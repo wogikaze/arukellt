@@ -21,10 +21,10 @@
 //!    count, skip (code-size guard).
 //! 4. Only active at `--opt-level 2` or higher.
 
+use super::PassStats;
 use crate::mir::MirModule;
 use crate::opt::{OptimizationPass, run_single_pass};
 use crate::opt_level::OptLevel;
-use super::PassStats;
 
 /// Minimum optimization level required to run this pass.
 pub const MIN_LEVEL: OptLevel = OptLevel::O2;
@@ -67,18 +67,23 @@ pub fn run(module: &mut MirModule, level: OptLevel) -> PassStats {
     // Take a snapshot so we can revert if the code-size guard fires.
     let snapshot = module.clone();
 
-    let unroll_summary = run_single_pass(module, OptimizationPass::LoopUnroll)
-        .unwrap_or_default();
+    let unroll_summary = run_single_pass(module, OptimizationPass::LoopUnroll).unwrap_or_default();
 
     if unroll_summary.loops_unrolled == 0 {
-        return PassStats { name: "loop_unroll", changed: 0 };
+        return PassStats {
+            name: "loop_unroll",
+            changed: 0,
+        };
     }
 
     // Code-size guard: revert if the module grew beyond 8× its prior size.
     let stmts_after = count_stmts(module);
     if stmts_before > 0 && stmts_after > MAX_SIZE_RATIO * stmts_before {
         *module = snapshot;
-        return PassStats { name: "loop_unroll", changed: 0 };
+        return PassStats {
+            name: "loop_unroll",
+            changed: 0,
+        };
     }
 
     // Follow-on passes: propagate constants that become obvious after

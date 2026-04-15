@@ -376,8 +376,11 @@ pub fn typecheck(source: &str) -> String {
     checker.register_builtins();
     checker.check_core_hir_module(&resolved, &mut tc_sink);
 
-    let tc_diagnostics: Vec<JsDiagnostic> =
-        tc_sink.diagnostics().iter().map(convert_diagnostic).collect();
+    let tc_diagnostics: Vec<JsDiagnostic> = tc_sink
+        .diagnostics()
+        .iter()
+        .map(convert_diagnostic)
+        .collect();
     let tc_error_count = tc_sink.error_count();
 
     all_diagnostics.extend(tc_diagnostics);
@@ -505,7 +508,11 @@ mod tests {
     fn typecheck_valid_source() {
         let json = typecheck("fn main() {}");
         let v: serde_json::Value = serde_json::from_str(&json).unwrap();
-        assert_eq!(v["ok"], true, "typecheck of valid source should succeed: {}", json);
+        assert_eq!(
+            v["ok"], true,
+            "typecheck of valid source should succeed: {}",
+            json
+        );
         assert_eq!(v["error_count"], 0);
         assert!(v["diagnostics"].as_array().unwrap().is_empty());
     }
@@ -514,7 +521,10 @@ mod tests {
     fn typecheck_returns_json_array_of_diagnostics() {
         let json = typecheck("fn main() {}");
         let v: serde_json::Value = serde_json::from_str(&json).unwrap();
-        assert!(v["diagnostics"].is_array(), "diagnostics should be a JSON array");
+        assert!(
+            v["diagnostics"].is_array(),
+            "diagnostics should be a JSON array"
+        );
     }
 
     #[test]

@@ -54,7 +54,9 @@ impl RegistryConfig {
             None => (false, None, None),
             Some(reg) => {
                 let raw_url = reg.url.clone();
-                let local_base = raw_url.as_deref().and_then(|u| parse_file_url(u, manifest_dir));
+                let local_base = raw_url
+                    .as_deref()
+                    .and_then(|u| parse_file_url(u, manifest_dir));
                 (true, raw_url, local_base)
             }
         };

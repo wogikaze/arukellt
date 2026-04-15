@@ -147,7 +147,10 @@ pub fn push_pass_reduction(
 ) {
     module.stats.pass_reductions.push((
         pass_name.into(),
-        ReductionStats { instructions_before, instructions_after },
+        ReductionStats {
+            instructions_before,
+            instructions_after,
+        },
     ));
 }
 
@@ -253,7 +256,12 @@ fn fmt_operand(op: &Operand) -> String {
         Operand::ConstI16(v) => format!("{}i16", v),
         Operand::Unit => "()".to_string(),
         Operand::BinOp(op, lhs, rhs) => {
-            format!("({} {} {})", fmt_operand(lhs), binop_sym(*op), fmt_operand(rhs))
+            format!(
+                "({} {} {})",
+                fmt_operand(lhs),
+                binop_sym(*op),
+                fmt_operand(rhs)
+            )
         }
         Operand::UnaryOp(op, inner) => {
             format!("({} {})", unaryop_sym(*op), fmt_operand(inner))
@@ -273,7 +281,9 @@ fn fmt_operand(op: &Operand) -> String {
         Operand::FieldAccess { object, field, .. } => {
             format!("{}.{}", fmt_operand(object), field)
         }
-        Operand::EnumInit { enum_name, variant, .. } => {
+        Operand::EnumInit {
+            enum_name, variant, ..
+        } => {
             format!("{}::{}", enum_name, variant)
         }
         Operand::EnumTag(inner) => format!("tag({})", fmt_operand(inner)),
@@ -294,13 +304,22 @@ fn fmt_rvalue(rv: &Rvalue) -> String {
     match rv {
         Rvalue::Use(op) => fmt_operand(op),
         Rvalue::BinaryOp(op, lhs, rhs) => {
-            format!("{} {} {}", fmt_operand(lhs), binop_sym(*op), fmt_operand(rhs))
+            format!(
+                "{} {} {}",
+                fmt_operand(lhs),
+                binop_sym(*op),
+                fmt_operand(rhs)
+            )
         }
         Rvalue::UnaryOp(op, inner) => {
             format!("{} {}", unaryop_sym(*op), fmt_operand(inner))
         }
         Rvalue::Aggregate(kind, fields) => {
-            let fields_str = fields.iter().map(fmt_operand).collect::<Vec<_>>().join(", ");
+            let fields_str = fields
+                .iter()
+                .map(fmt_operand)
+                .collect::<Vec<_>>()
+                .join(", ");
             match kind {
                 AggregateKind::Tuple => format!("({})", fields_str),
                 AggregateKind::Array => format!("[{}]", fields_str),
@@ -318,7 +337,12 @@ fn fmt_terminatort(term: &Terminator) -> String {
         Terminator::Return(None) => "return".to_string(),
         Terminator::Return(Some(op)) => format!("return {}", fmt_operand(op)),
         Terminator::Unreachable => "unreachable".to_string(),
-        Terminator::If { cond, then_block, else_block, .. } => {
+        Terminator::If {
+            cond,
+            then_block,
+            else_block,
+            ..
+        } => {
             format!(
                 "if {} → bb{} else bb{}",
                 fmt_operand(cond),
@@ -326,7 +350,11 @@ fn fmt_terminatort(term: &Terminator) -> String {
                 else_block.0
             )
         }
-        Terminator::Switch { scrutinee, arms, default } => {
+        Terminator::Switch {
+            scrutinee,
+            arms,
+            default,
+        } => {
             let arms_str = arms
                 .iter()
                 .map(|(val, bb)| format!("{} => bb{}", val, bb.0))
@@ -376,7 +404,11 @@ fn fmt_stmt_indented(stmt: &MirStmt, depth: usize) -> String {
                 .unwrap_or_default();
             format!("{}{}builtin {}({})", pad, dest_str, name, args_str)
         }
-        MirStmt::IfStmt { cond, then_body, else_body } => {
+        MirStmt::IfStmt {
+            cond,
+            then_body,
+            else_body,
+        } => {
             let mut s = format!("{}if {} {{", pad, fmt_operand(cond));
             for inner in then_body {
                 s += &format!("\n{}", fmt_stmt_indented(inner, depth + 1));
@@ -416,9 +448,18 @@ pub fn format_mir_function_text(func: &MirFunction) -> String {
             format!("{}: {}", name, p.ty)
         })
         .collect();
-    let mut out = format!("fn {}({}) -> {}:", func.name, params.join(", "), func.return_ty);
+    let mut out = format!(
+        "fn {}({}) -> {}:",
+        func.name,
+        params.join(", "),
+        func.return_ty
+    );
     for block in &func.blocks {
-        let marker = if block.id == func.entry { " [entry]" } else { "" };
+        let marker = if block.id == func.entry {
+            " [entry]"
+        } else {
+            ""
+        };
         out += &format!("\n  bb{}{}:", block.id.0, marker);
         for stmt in &block.stmts {
             out += &format!("\n{}", fmt_stmt_indented(stmt, 2));

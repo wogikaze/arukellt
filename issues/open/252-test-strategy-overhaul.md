@@ -1,8 +1,8 @@
 # テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する
 
-**Status**: done
+**Status**: open
 **Created**: 2026-03-30
-**Updated**: 2026-03-30
+**Updated**: 2026-04-15
 **ID**: 252
 **Depends on**: none
 **Track**: main
@@ -25,6 +25,10 @@
 * [ ] CI 上で各カテゴリが独立したジョブとして構成されている
 * [ ] 失敗時に「どの層が壊れたか」が直ちに分かる
 * [ ] fixture 数ではなく、品質面の網羅率で健康度を語れる
+
+## Reopen Note
+
+2026-04-15 audit: reopened from `issues/done/` because category documentation exists, but the CI structure does not yet provide the fully independent category jobs claimed by the parent acceptance.
 
 ## Scope
 
@@ -60,7 +64,3 @@
 * `issues/open/263-package-workspace-manifest-test-first-class.md`
 * `issues/open/264-ci-category-jobs.md`
 * `issues/open/265-failure-layer-identification.md`
-
-## Completion Note
-
-Closed 2026-04-09. test-strategy.md exists in docs/. CI structured into 8 named layers (unit/fixture-primary/fixture-supported/integration/packaging/determinism/heavy/perf). Each layer has documented responsibility. #261 done. verify-harness.sh has 13 checks. docs/test-strategy.md covers all 10 categories from the issue.

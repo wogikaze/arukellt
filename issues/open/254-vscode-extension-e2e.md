@@ -1,8 +1,8 @@
 # VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる
 
-**Status**: done
+**Status**: open
 **Created**: 2026-03-30
-**Updated**: 2026-03-30
+**Updated**: 2026-04-15
 **ID**: 254
 **Depends on**: none
 **Track**: main
@@ -26,6 +26,10 @@
 * [ ] テストが実際の VS Code extension host 上で走る
 * [ ] 失敗ログが user message・output channel・status bar の各面で検証される
 * [ ] CLI と extension の契約が壊れたら release 前に必ず止まる
+
+## Reopen Note
+
+2026-04-15 audit: reopened from `issues/done/` because extension tests and CI wiring exist, but the parent acceptance still lacks verified failure-surface coverage for user messages, restart behavior, and missing-binary error handling.
 
 ## Scope
 

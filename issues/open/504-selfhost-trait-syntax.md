@@ -49,6 +49,19 @@ This issue remains open because the parser/HIR slice did not include typechecker
 impl registration / bound satisfaction, and the issue-level `--cargo` verification
 is still blocked by unrelated pre-existing failures outside this slice.
 
+## Partial slice note — 2026-04-15 (Wave 3)
+
+Wave 3 landed commit `060db12c887b10bb73ed6b2d1441e526c56c5368`, which added:
+
+- minimal typechecker-side impl registration for simple `impl Trait for Type`
+- bound extraction from generic type parameters
+- focused bound-satisfaction enforcement for generic calls
+- a dedicated typecheck-level smoke fixture for trait impl satisfaction
+
+This issue remains open because the product surface still needs issue-level cargo
+green verification, and the broader workspace cargo failures are outside this
+issue's slice scope.
+
 ## Depends on
 
 - None (foundational)

@@ -98,6 +98,11 @@ pub fn classify_wit_type(ty: &WitType) -> CanonicalAbiClass {
             // WIT enum (all unit variants) → i32 discriminant pass-through.
             CanonicalAbiClass::Scalar(ScalarKind::I32)
         }
+        WitType::Flags(_) => {
+            // Flags are rejected before codegen in the current pipeline, but keep
+            // classification exhaustive so parser-only support compiles cleanly.
+            CanonicalAbiClass::Scalar(ScalarKind::I32)
+        }
         WitType::Resource(_) | WitType::Own(_) | WitType::Borrow(_) => CanonicalAbiClass::Handle,
     }
 }

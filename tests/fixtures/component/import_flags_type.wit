@@ -1,0 +1,5 @@
+package test:host;
+
+interface host {
+    set-perms: func(p: flags { read, write });
+}

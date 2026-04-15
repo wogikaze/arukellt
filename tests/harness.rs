@@ -121,6 +121,19 @@ fn arukellt_binary() -> PathBuf {
     path
 }
 
+fn fixture_extra_args(fixture: &Path) -> Vec<String> {
+    let flags_path = fixture.with_extension("flags");
+    if flags_path.exists() {
+        std::fs::read_to_string(&flags_path)
+            .unwrap()
+            .split_whitespace()
+            .map(String::from)
+            .collect()
+    } else {
+        vec![]
+    }
+}
+
 #[test]
 fn fixture_harness() {
     let workspace_root = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -225,16 +238,7 @@ fn fixture_harness() {
                 }
                 let expected = std::fs::read_to_string(&expected_path).unwrap();
 
-                let flags_path = fixture.with_extension("flags");
-                let extra_args: Vec<String> = if flags_path.exists() {
-                    std::fs::read_to_string(&flags_path)
-                        .unwrap()
-                        .split_whitespace()
-                        .map(String::from)
-                        .collect()
-                } else {
-                    vec![]
-                };
+                let extra_args = fixture_extra_args(&fixture);
 
                 let output = Command::new(&bin)
                     .arg("run")
@@ -349,6 +353,7 @@ fn fixture_harness() {
                     .arg("wasm32-wasi-p2")
                     .arg("--emit")
                     .arg("component")
+                    .args(fixture_extra_args(&fixture))
                     .arg(&fixture)
                     .output()
                     .expect("failed to run arukellt");
@@ -382,6 +387,7 @@ fn fixture_harness() {
                     .arg("wasm32-wasi-p2")
                     .arg("--emit")
                     .arg("component")
+                    .args(fixture_extra_args(&fixture))
                     .arg(&fixture)
                     .output()
                     .expect("failed to run arukellt");

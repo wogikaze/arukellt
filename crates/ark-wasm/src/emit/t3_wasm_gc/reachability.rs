@@ -350,6 +350,216 @@ impl Ctx {
         }
     }
 
+    // ── fd_seek / fd_tell / fd_fdstat_get reachability ───────────────
+
+    pub(super) fn mir_uses_fd_seek(mir: &MirModule, reachable: &[usize]) -> bool {
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                if block.stmts.iter().any(Self::stmt_uses_fd_seek)
+                    || Self::terminator_uses_fd_seek(&block.terminator)
+                {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn stmt_uses_fd_seek(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "fd_seek" || name == "__intrinsic_fd_seek"
+            }
+            MirStmt::Assign(_, rvalue) => Self::rvalue_uses_fd_seek(rvalue),
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
+                Self::operand_uses_fd_seek(cond)
+                    || then_body.iter().any(Self::stmt_uses_fd_seek)
+                    || else_body.iter().any(Self::stmt_uses_fd_seek)
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::operand_uses_fd_seek(cond) || body.iter().any(Self::stmt_uses_fd_seek)
+            }
+            MirStmt::Return(Some(op)) => Self::operand_uses_fd_seek(op),
+            _ => false,
+        }
+    }
+
+    fn terminator_uses_fd_seek(terminator: &Terminator) -> bool {
+        match terminator {
+            Terminator::Return(Some(op)) => Self::operand_uses_fd_seek(op),
+            Terminator::If { cond, .. } => Self::operand_uses_fd_seek(cond),
+            Terminator::Switch { scrutinee, .. } => Self::operand_uses_fd_seek(scrutinee),
+            _ => false,
+        }
+    }
+
+    fn rvalue_uses_fd_seek(rvalue: &Rvalue) -> bool {
+        match rvalue {
+            Rvalue::Use(op) => Self::operand_uses_fd_seek(op),
+            Rvalue::BinaryOp(_, l, r) => {
+                Self::operand_uses_fd_seek(l) || Self::operand_uses_fd_seek(r)
+            }
+            Rvalue::UnaryOp(_, op) => Self::operand_uses_fd_seek(op),
+            _ => false,
+        }
+    }
+
+    fn operand_uses_fd_seek(op: &Operand) -> bool {
+        match op {
+            Operand::Call(name, args) => {
+                if name == "fd_seek" || name == "__intrinsic_fd_seek" {
+                    return true;
+                }
+                args.iter().any(Self::operand_uses_fd_seek)
+            }
+            _ => false,
+        }
+    }
+
+    pub(super) fn mir_uses_fd_tell(mir: &MirModule, reachable: &[usize]) -> bool {
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                if block.stmts.iter().any(Self::stmt_uses_fd_tell)
+                    || Self::terminator_uses_fd_tell(&block.terminator)
+                {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn stmt_uses_fd_tell(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "fd_tell" || name == "__intrinsic_fd_tell"
+            }
+            MirStmt::Assign(_, rvalue) => Self::rvalue_uses_fd_tell(rvalue),
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
+                Self::operand_uses_fd_tell(cond)
+                    || then_body.iter().any(Self::stmt_uses_fd_tell)
+                    || else_body.iter().any(Self::stmt_uses_fd_tell)
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::operand_uses_fd_tell(cond) || body.iter().any(Self::stmt_uses_fd_tell)
+            }
+            MirStmt::Return(Some(op)) => Self::operand_uses_fd_tell(op),
+            _ => false,
+        }
+    }
+
+    fn terminator_uses_fd_tell(terminator: &Terminator) -> bool {
+        match terminator {
+            Terminator::Return(Some(op)) => Self::operand_uses_fd_tell(op),
+            Terminator::If { cond, .. } => Self::operand_uses_fd_tell(cond),
+            Terminator::Switch { scrutinee, .. } => Self::operand_uses_fd_tell(scrutinee),
+            _ => false,
+        }
+    }
+
+    fn rvalue_uses_fd_tell(rvalue: &Rvalue) -> bool {
+        match rvalue {
+            Rvalue::Use(op) => Self::operand_uses_fd_tell(op),
+            Rvalue::BinaryOp(_, l, r) => {
+                Self::operand_uses_fd_tell(l) || Self::operand_uses_fd_tell(r)
+            }
+            Rvalue::UnaryOp(_, op) => Self::operand_uses_fd_tell(op),
+            _ => false,
+        }
+    }
+
+    fn operand_uses_fd_tell(op: &Operand) -> bool {
+        match op {
+            Operand::Call(name, args) => {
+                if name == "fd_tell" || name == "__intrinsic_fd_tell" {
+                    return true;
+                }
+                args.iter().any(Self::operand_uses_fd_tell)
+            }
+            _ => false,
+        }
+    }
+
+    pub(super) fn mir_uses_fd_fdstat_get(mir: &MirModule, reachable: &[usize]) -> bool {
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                if block.stmts.iter().any(Self::stmt_uses_fd_fdstat_get)
+                    || Self::terminator_uses_fd_fdstat_get(&block.terminator)
+                {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn stmt_uses_fd_fdstat_get(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "fd_fdstat_get" || name == "__intrinsic_fd_fdstat_get"
+            }
+            MirStmt::Assign(_, rvalue) => Self::rvalue_uses_fd_fdstat_get(rvalue),
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
+                Self::operand_uses_fd_fdstat_get(cond)
+                    || then_body.iter().any(Self::stmt_uses_fd_fdstat_get)
+                    || else_body.iter().any(Self::stmt_uses_fd_fdstat_get)
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::operand_uses_fd_fdstat_get(cond)
+                    || body.iter().any(Self::stmt_uses_fd_fdstat_get)
+            }
+            MirStmt::Return(Some(op)) => Self::operand_uses_fd_fdstat_get(op),
+            _ => false,
+        }
+    }
+
+    fn terminator_uses_fd_fdstat_get(terminator: &Terminator) -> bool {
+        match terminator {
+            Terminator::Return(Some(op)) => Self::operand_uses_fd_fdstat_get(op),
+            Terminator::If { cond, .. } => Self::operand_uses_fd_fdstat_get(cond),
+            Terminator::Switch { scrutinee, .. } => Self::operand_uses_fd_fdstat_get(scrutinee),
+            _ => false,
+        }
+    }
+
+    fn rvalue_uses_fd_fdstat_get(rvalue: &Rvalue) -> bool {
+        match rvalue {
+            Rvalue::Use(op) => Self::operand_uses_fd_fdstat_get(op),
+            Rvalue::BinaryOp(_, l, r) => {
+                Self::operand_uses_fd_fdstat_get(l) || Self::operand_uses_fd_fdstat_get(r)
+            }
+            Rvalue::UnaryOp(_, op) => Self::operand_uses_fd_fdstat_get(op),
+            _ => false,
+        }
+    }
+
+    fn operand_uses_fd_fdstat_get(op: &Operand) -> bool {
+        match op {
+            Operand::Call(name, args) => {
+                if name == "fd_fdstat_get" || name == "__intrinsic_fd_fdstat_get" {
+                    return true;
+                }
+                args.iter().any(Self::operand_uses_fd_fdstat_get)
+            }
+            _ => false,
+        }
+    }
+
     // ── args reachability ────────────────────────────────────────────
 
     pub(super) fn mir_uses_args(mir: &MirModule, reachable: &[usize]) -> bool {

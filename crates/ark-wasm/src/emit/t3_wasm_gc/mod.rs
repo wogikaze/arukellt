@@ -32,9 +32,9 @@ use ark_typecheck::types::Type;
 use std::collections::{HashMap, HashSet};
 use wasm_encoder::{
     ArrayType, BranchHints, CodeSection, CompositeInnerType, CompositeType, DataSection,
-    DataSegment, ExportKind, ExportSection, FieldType, FunctionSection, GlobalSection,
-    GlobalType, HeapType, ImportSection, MemorySection, MemoryType, RefType as WasmRefType,
-    StorageType, StructType, SubType, TypeSection, ValType,
+    DataSegment, ExportKind, ExportSection, FieldType, FunctionSection, GlobalSection, GlobalType,
+    HeapType, ImportSection, MemorySection, MemoryType, RefType as WasmRefType, StorageType,
+    StructType, SubType, TypeSection, ValType,
 };
 
 // ── Linear memory layout (IO bridge only) ────────────────────────
@@ -156,6 +156,9 @@ fn normalize_intrinsic(name: &str) -> &str {
             "index_of" => "index_of",
             "process_exit" => "process_exit",
             "process_abort" => "process_abort",
+            "fd_seek" => "fd_seek",
+            "fd_tell" => "fd_tell",
+            "fd_fdstat_get" => "fd_fdstat_get",
             other => other,
         }
     } else {
@@ -445,9 +448,11 @@ pub(crate) fn collect_branch_hints(module: &MirModule) -> BranchHints {
     // Walk every function's terminator to look for BranchHint annotations.
     // When found we note that hints are present; exact byte offsets are not
     // tracked at this stage.
-    let _has_any = module.functions.iter().flat_map(|f| f.blocks.iter()).any(|b| {
-        matches!(&b.terminator, Terminator::If { hint: Some(_), .. })
-    });
+    let _has_any = module
+        .functions
+        .iter()
+        .flat_map(|f| f.blocks.iter())
+        .any(|b| matches!(&b.terminator, Terminator::If { hint: Some(_), .. }));
     // Return an empty BranchHints.  The caller always emits this section so
     // that the `metadata.code.branch_hint` name is present in the binary.
     BranchHints::new()
@@ -483,8 +488,8 @@ pub(super) struct Ctx {
     // HashMap GC type indices
     hashmap_i32_i32_ty: u32,
     hashmap_str_i32_ty: u32,
-    hashmap_i32_str_ty: u32,  // HashMap<i32, String> (issue #044)
-    hashmap_str_str_ty: u32,  // HashMap<String, String> (issue #044)
+    hashmap_i32_str_ty: u32, // HashMap<i32, String> (issue #044)
+    hashmap_str_str_ty: u32, // HashMap<String, String> (issue #044)
     // Well-known function type indices
     fd_write_ty: u32,
     // User struct GC type indices
@@ -571,6 +576,12 @@ pub(super) struct Ctx {
     wasi_needs_random: bool,
     wasi_proc_exit: u32,
     wasi_needs_proc_exit: bool,
+    wasi_fd_seek: u32,
+    wasi_needs_fd_seek: bool,
+    wasi_fd_tell: u32,
+    wasi_needs_fd_tell: bool,
+    wasi_fd_fdstat_get: u32,
+    wasi_needs_fd_fdstat_get: bool,
     wasi_args_sizes_get: u32,
     wasi_args_get: u32,
     wasi_needs_args: bool,
@@ -1089,6 +1100,12 @@ pub fn emit(
         wasi_needs_random: false,
         wasi_proc_exit: 0,
         wasi_needs_proc_exit: false,
+        wasi_fd_seek: 0,
+        wasi_needs_fd_seek: false,
+        wasi_fd_tell: 0,
+        wasi_needs_fd_tell: false,
+        wasi_fd_fdstat_get: 0,
+        wasi_needs_fd_fdstat_get: false,
         wasi_args_sizes_get: 0,
         wasi_args_get: 0,
         wasi_needs_args: false,
@@ -1141,6 +1158,12 @@ impl Ctx {
         self.wasi_needs_random = needs_random;
         let needs_proc_exit = Self::mir_uses_proc_exit(mir, &reachable_user_indices);
         self.wasi_needs_proc_exit = needs_proc_exit;
+        let needs_fd_seek = Self::mir_uses_fd_seek(mir, &reachable_user_indices);
+        self.wasi_needs_fd_seek = needs_fd_seek;
+        let needs_fd_tell = Self::mir_uses_fd_tell(mir, &reachable_user_indices);
+        self.wasi_needs_fd_tell = needs_fd_tell;
+        let needs_fd_fdstat_get = Self::mir_uses_fd_fdstat_get(mir, &reachable_user_indices);
+        self.wasi_needs_fd_fdstat_get = needs_fd_fdstat_get;
         let needs_args = Self::mir_uses_args(mir, &reachable_user_indices);
         self.wasi_needs_args = needs_args;
         let needs_environ = Self::mir_uses_environ(mir, &reachable_user_indices);
@@ -1187,6 +1210,17 @@ impl Ctx {
             .add_func(&[ValType::I32, ValType::I32], &[ValType::I32]);
         // proc_exit: (i32) -> ()
         let proc_exit_ty = self.types.add_func(&[ValType::I32], &[]);
+        // fd_seek: (i32, i64, i32, i32) -> i32
+        let fd_seek_ty = self.types.add_func(
+            &[ValType::I32, ValType::I64, ValType::I32, ValType::I32],
+            &[ValType::I32],
+        );
+        // fd_tell: (i32, i32) -> i32
+        let fd_tell_ty = self
+            .types
+            .add_func(&[ValType::I32, ValType::I32], &[ValType::I32]);
+        // fd_fdstat_get: (i32, i32) -> i32
+        let fd_fdstat_get_ty = fd_tell_ty;
         // args_sizes_get: (i32, i32) -> i32
         let args_sizes_get_ty = self
             .types
@@ -1257,6 +1291,18 @@ impl Ctx {
         }
         if needs_proc_exit {
             self.wasi_proc_exit = num_imports;
+            num_imports += 1;
+        }
+        if needs_fd_seek {
+            self.wasi_fd_seek = num_imports;
+            num_imports += 1;
+        }
+        if needs_fd_tell {
+            self.wasi_fd_tell = num_imports;
+            num_imports += 1;
+        }
+        if needs_fd_fdstat_get {
+            self.wasi_fd_fdstat_get = num_imports;
             num_imports += 1;
         }
         if needs_args {
@@ -1636,6 +1682,27 @@ impl Ctx {
                 wasm_encoder::EntityType::Function(proc_exit_ty),
             );
         }
+        if needs_fd_seek {
+            imports.import(
+                "wasi_snapshot_preview1",
+                "fd_seek",
+                wasm_encoder::EntityType::Function(fd_seek_ty),
+            );
+        }
+        if needs_fd_tell {
+            imports.import(
+                "wasi_snapshot_preview1",
+                "fd_tell",
+                wasm_encoder::EntityType::Function(fd_tell_ty),
+            );
+        }
+        if needs_fd_fdstat_get {
+            imports.import(
+                "wasi_snapshot_preview1",
+                "fd_fdstat_get",
+                wasm_encoder::EntityType::Function(fd_fdstat_get_ty),
+            );
+        }
         if needs_args {
             imports.import(
                 "wasi_snapshot_preview1",
@@ -1988,6 +2055,15 @@ impl Ctx {
             }
             if needs_proc_exit {
                 func_names.append(self.wasi_proc_exit, "wasi:proc_exit");
+            }
+            if needs_fd_seek {
+                func_names.append(self.wasi_fd_seek, "wasi:fd_seek");
+            }
+            if needs_fd_tell {
+                func_names.append(self.wasi_fd_tell, "wasi:fd_tell");
+            }
+            if needs_fd_fdstat_get {
+                func_names.append(self.wasi_fd_fdstat_get, "wasi:fd_fdstat_get");
             }
             if needs_args {
                 func_names.append(self.wasi_args_sizes_get, "wasi:args_sizes_get");

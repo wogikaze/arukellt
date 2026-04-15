@@ -39,6 +39,18 @@ pub fn component_unsupported_flags_diagnostic(func_name: &str) -> Diagnostic {
         ))
 }
 
+pub fn wit_flags_v2_diagnostic(path: &str, func_name: &str, type_desc: &str) -> Diagnostic {
+    Diagnostic::new(DiagnosticCode::E0090)
+        .with_phase(DiagnosticPhase::BackendValidate)
+        .with_note(format!(
+            "WIT file `{}` declares function `{}` with unsupported flags type `{}`",
+            path, func_name, type_desc
+        ))
+        .with_help(
+            "replace the flags type with individual bool parameters until WIT flags lowering lands",
+        )
+}
+
 pub fn component_compound_type_diagnostic(func_name: &str, type_desc: &str) -> Diagnostic {
     Diagnostic::new(DiagnosticCode::E0401)
         .with_phase(DiagnosticPhase::BackendValidate)

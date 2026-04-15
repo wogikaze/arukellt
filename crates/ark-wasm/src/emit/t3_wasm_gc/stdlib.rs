@@ -3096,7 +3096,9 @@ impl Ctx {
         // Return Option<i32>
         let option_ref = ref_nullable(option_base);
         f.instruction(&Instruction::LocalGet(self.si(9)));
-        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(option_ref)));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+            option_ref,
+        )));
         f.instruction(&Instruction::LocalGet(self.si(2)));
         f.instruction(&Instruction::StructNew(option_some_ty));
         f.instruction(&Instruction::Else);
@@ -3447,7 +3449,9 @@ impl Ctx {
         // Return Option<String>
         let option_ref = ref_nullable(option_base);
         f.instruction(&Instruction::LocalGet(self.si(9)));
-        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(option_ref)));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+            option_ref,
+        )));
         f.instruction(&Instruction::LocalGet(self.si(8)));
         f.instruction(&Instruction::StructNew(some_ty));
         f.instruction(&Instruction::Else);
@@ -3792,7 +3796,9 @@ impl Ctx {
         // Return Option<String>
         let option_ref = ref_nullable(option_base);
         f.instruction(&Instruction::LocalGet(self.si(9)));
-        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(option_ref)));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+            option_ref,
+        )));
         f.instruction(&Instruction::LocalGet(self.si(11)));
         f.instruction(&Instruction::StructNew(some_ty));
         f.instruction(&Instruction::Else);

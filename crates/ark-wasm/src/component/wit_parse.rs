@@ -293,6 +293,23 @@ impl<'a> Parser<'a> {
             self.expect_char('>')?;
             return Ok(WitType::Borrow(Box::new(inner)));
         }
+        if self.try_keyword("flags") {
+            self.expect_char('{')?;
+            let mut names = Vec::new();
+            loop {
+                self.skip_ws_and_comments();
+                if self.peek_char() == Some('}') {
+                    self.advance(1);
+                    break;
+                }
+                names.push(self.parse_ident()?);
+                self.skip_ws_and_comments();
+                if self.peek_char() == Some(',') {
+                    self.advance(1);
+                }
+            }
+            return Ok(WitType::Flags(names));
+        }
 
         // Named type reference (record, enum, variant, resource)
         let name = self.parse_ident()?;
@@ -694,6 +711,22 @@ mod tests {
         let funcs = &doc.interfaces[0].functions;
         assert!(matches!(funcs[0].params[0].1, WitType::Borrow(_)));
         assert!(matches!(funcs[1].params[0].1, WitType::Own(_)));
+    }
+
+    #[test]
+    fn parse_flags_type() {
+        let wit = r#"
+            interface perms {
+                has-any: func(p: flags { read, write }) -> bool;
+            }
+        "#;
+        let doc = parse_wit(wit).unwrap();
+        let funcs = &doc.interfaces[0].functions;
+        assert_eq!(
+            funcs[0].params[0].1,
+            WitType::Flags(vec!["read".to_string(), "write".to_string()])
+        );
+        assert_eq!(funcs[0].params[0].1.to_wit(), "flags { read, write }");
     }
 
     #[test]

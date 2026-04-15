@@ -8,7 +8,7 @@ use ark_parser::{ast, ast::ImportKind, parse};
 use ark_target::TargetId;
 
 use crate::module_graph::ModuleGraph;
-use crate::registry::{RegistryConfig, REGISTRY_ERROR_SENTINEL, resolve_registry_path};
+use crate::registry::{REGISTRY_ERROR_SENTINEL, RegistryConfig, resolve_registry_path};
 use crate::resolve::LoadedModule;
 
 // TODO(issue-077, issue-139): Target-gating for WASI P2-only modules is now
@@ -258,7 +258,9 @@ fn load_module_recursive(
     };
 
     for import in &module.imports {
-        load_single_import(import, &path, std_root, sink, visiting, loaded, target, registry);
+        load_single_import(
+            import, &path, std_root, sink, visiting, loaded, target, registry,
+        );
     }
 
     visiting.remove(&path);

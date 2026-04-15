@@ -663,7 +663,8 @@ mod tests {
         )];
         let mut locals = HashMap::new();
         locals.insert(0u32, "Point".to_string());
-        mir.functions.push(simple_func(vec![block(0, stmts)], locals));
+        mir.functions
+            .push(simple_func(vec![block(0, stmts)], locals));
 
         let mutable = collect_mutable_struct_fields(&mir);
         assert!(
@@ -685,13 +686,11 @@ mod tests {
         let mut locals = HashMap::new();
         locals.insert(0u32, "Point".to_string());
         let stmts = vec![MirStmt::Assign(
-            Place::Field(
-                Box::new(Place::Local(LocalId(0))),
-                "x".to_string(),
-            ),
+            Place::Field(Box::new(Place::Local(LocalId(0))), "x".to_string()),
             Rvalue::Use(Operand::ConstI32(100)),
         )];
-        mir.functions.push(simple_func(vec![block(0, stmts)], locals));
+        mir.functions
+            .push(simple_func(vec![block(0, stmts)], locals));
 
         let mutable = collect_mutable_struct_fields(&mir);
         assert!(
@@ -720,7 +719,8 @@ mod tests {
             then_body: vec![inner_write],
             else_body: vec![],
         }];
-        mir.functions.push(simple_func(vec![block(0, stmts)], locals));
+        mir.functions
+            .push(simple_func(vec![block(0, stmts)], locals));
 
         let mutable = collect_mutable_struct_fields(&mir);
         assert!(

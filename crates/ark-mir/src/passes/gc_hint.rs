@@ -29,10 +29,10 @@
 //! // ... uses of _3 ...
 //! ```
 
+use super::PassStats;
 use crate::mir::MirModule;
 use crate::opt::{OptimizationPass, run_single_pass};
 use crate::opt_level::OptLevel;
-use super::PassStats;
 
 /// Minimum optimization level required to run this pass.
 pub const MIN_LEVEL: OptLevel = OptLevel::O3;
@@ -44,8 +44,7 @@ pub fn run(module: &mut MirModule, level: OptLevel) -> PassStats {
     if !level.at_least(MIN_LEVEL) {
         return PassStats::default();
     }
-    let summary = run_single_pass(module, OptimizationPass::GcHint)
-        .unwrap_or_default();
+    let summary = run_single_pass(module, OptimizationPass::GcHint).unwrap_or_default();
     PassStats {
         name: "gc_hint",
         changed: summary.gc_hinted,
@@ -74,7 +73,11 @@ mod tests {
             },
             params: vec![],
             return_ty: Type::Unit,
-            locals: vec![MirLocal { id: LocalId(0), name: None, ty: Type::I32 }],
+            locals: vec![MirLocal {
+                id: LocalId(0),
+                name: None,
+                ty: Type::I32,
+            }],
             blocks: vec![BasicBlock {
                 id: BlockId(0),
                 stmts: vec![MirStmt::WhileStmt {
@@ -111,9 +114,10 @@ mod tests {
         // _0 = MyStruct { field0 }   (allocation, does not escape)
         let alloc = MirStmt::Assign(
             Place::Local(LocalId(0)),
-            Rvalue::Aggregate(AggregateKind::Struct("MyStruct".to_string()), vec![
-                Operand::ConstI32(42),
-            ]),
+            Rvalue::Aggregate(
+                AggregateKind::Struct("MyStruct".to_string()),
+                vec![Operand::ConstI32(42)],
+            ),
         );
         let mut module = module_with_while_body(vec![alloc]);
 
@@ -132,7 +136,10 @@ mod tests {
         assert!(
             matches!(
                 &body[1],
-                MirStmt::GcHint { local: LocalId(0), hint: GcHintKind::ShortLived }
+                MirStmt::GcHint {
+                    local: LocalId(0),
+                    hint: GcHintKind::ShortLived
+                }
             ),
             "expected GcHint(ShortLived) for local _0, got {:?}",
             &body[1],
@@ -175,6 +182,9 @@ mod tests {
 
         let stats = run(&mut module, OptLevel::O3);
 
-        assert!(!stats.did_change(), "escaping allocation must not be hinted");
+        assert!(
+            !stats.did_change(),
+            "escaping allocation must not be hinted"
+        );
     }
 }

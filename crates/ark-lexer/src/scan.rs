@@ -543,16 +543,16 @@ impl<'src> Lexer<'src> {
         loop {
             // Fast-scan past regular chars (not ", \, \n, \r) in bulk.
             let remaining = &self.bytes[self.pos..];
-            let chunk_end = memchr3(b'"', b'\\', b'\n', remaining)
-                .unwrap_or(remaining.len());
+            let chunk_end = memchr3(b'"', b'\\', b'\n', remaining).unwrap_or(remaining.len());
             // Check for \r boundary at chunk_end (it would stop the string too)
-            let chunk_end = if chunk_end > 0 && remaining.get(chunk_end.saturating_sub(1)) == Some(&b'\r') {
-                chunk_end - 1
-            } else if remaining.first() == Some(&b'\r') {
-                0
-            } else {
-                chunk_end
-            };
+            let chunk_end =
+                if chunk_end > 0 && remaining.get(chunk_end.saturating_sub(1)) == Some(&b'\r') {
+                    chunk_end - 1
+                } else if remaining.first() == Some(&b'\r') {
+                    0
+                } else {
+                    chunk_end
+                };
 
             if chunk_end > 0 {
                 value.push_str(&self.source[self.pos..self.pos + chunk_end]);

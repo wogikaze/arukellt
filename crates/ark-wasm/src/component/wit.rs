@@ -26,6 +26,7 @@ pub enum WitType {
     Bool,
     Char,
     StringType,
+    Flags(Vec<String>),
     List(Box<WitType>),
     Option(Box<WitType>),
     Result {
@@ -162,6 +163,22 @@ impl std::fmt::Display for WitError {
 }
 
 impl WitType {
+    pub fn contains_flags(&self) -> bool {
+        match self {
+            WitType::Flags(_) => true,
+            WitType::List(inner)
+            | WitType::Option(inner)
+            | WitType::Own(inner)
+            | WitType::Borrow(inner) => inner.contains_flags(),
+            WitType::Result { ok, err } => {
+                ok.as_deref().is_some_and(WitType::contains_flags)
+                    || err.as_deref().is_some_and(WitType::contains_flags)
+            }
+            WitType::Tuple(elems) => elems.iter().any(WitType::contains_flags),
+            _ => false,
+        }
+    }
+
     /// Convert to WIT type string.
     pub fn to_wit(&self) -> String {
         match self {
@@ -178,6 +195,7 @@ impl WitType {
             WitType::Bool => "bool".to_string(),
             WitType::Char => "char".to_string(),
             WitType::StringType => "string".to_string(),
+            WitType::Flags(names) => format!("flags {{ {} }}", names.join(", ")),
             WitType::List(inner) => format!("list<{}>", inner.to_wit()),
             WitType::Option(inner) => format!("option<{}>", inner.to_wit()),
             WitType::Result { ok, err } => match (ok, err) {
@@ -471,6 +489,18 @@ mod tests {
             err: Some(Box::new(WitType::StringType)),
         };
         assert_eq!(rt.to_wit(), "result<s32, string>");
+    }
+
+    #[test]
+    fn test_flags_type_roundtrip_format() {
+        assert_eq!(
+            WitType::Flags(vec!["read".to_string(), "write".to_string()]).to_wit(),
+            "flags { read, write }"
+        );
+        assert!(WitType::Flags(vec!["read".to_string()]).contains_flags());
+        assert!(
+            WitType::Option(Box::new(WitType::Flags(vec!["exec".to_string()]))).contains_flags()
+        );
     }
 
     #[test]

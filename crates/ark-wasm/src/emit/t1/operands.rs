@@ -6584,7 +6584,11 @@ impl EmitCtx {
                         // fd_seek(fd: i32, offset: i64, whence: i32) -> i64
                         // WASI: fd_seek(fd, offset, whence, result_ptr) -> errno
                         // Stores new file position at SCRATCH; returns i64 offset or -1 on error.
-                        let ma = MemArg { offset: 0, align: 3, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        };
                         if let (Some(fd), Some(offset), Some(whence)) =
                             (args.first(), args.get(1), args.get(2))
                         {
@@ -6606,7 +6610,11 @@ impl EmitCtx {
                         // fd_tell(fd: i32) -> i64
                         // WASI: fd_tell(fd, result_ptr) -> errno
                         // Stores current file position at SCRATCH; returns i64.
-                        let ma = MemArg { offset: 0, align: 3, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        };
                         if let Some(fd) = args.first() {
                             self.emit_operand(f, fd);
                         } else {
@@ -7385,7 +7393,10 @@ impl EmitCtx {
             Operand::UnaryOp(_, inner) => self.is_i64_operand(inner),
             Operand::Call(name, _) => {
                 let normalized = normalize_intrinsic_name(name.as_str());
-                if matches!(normalized, "clock_now" | "clock_now_ms" | "fd_seek" | "fd_tell") {
+                if matches!(
+                    normalized,
+                    "clock_now" | "clock_now_ms" | "fd_seek" | "fd_tell"
+                ) {
                     return true;
                 }
                 // Check fn_return_types for user-defined functions returning i64

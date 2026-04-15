@@ -21,6 +21,7 @@ pub enum DiagnosticCode {
     E0001,
     E0002,
     E0003,
+    E0090,
 
     // E01xx: Name resolution
     E0100,
@@ -99,6 +100,7 @@ pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
     DiagnosticCode::E0001,
     DiagnosticCode::E0002,
     DiagnosticCode::E0003,
+    DiagnosticCode::E0090,
     DiagnosticCode::E0100,
     DiagnosticCode::E0101,
     DiagnosticCode::E0102,
@@ -179,6 +181,13 @@ impl DiagnosticCode {
                 message: "invalid construct",
                 severity: Severity::Error,
                 phase: DiagnosticPhase::Parse,
+            },
+            Self::E0090 => DiagnosticSpec {
+                code: self,
+                id: "E0090",
+                message: "WIT flags type is not supported in v2; use individual bool parameters instead",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::BackendValidate,
             },
             Self::E0100 => DiagnosticSpec {
                 code: self,

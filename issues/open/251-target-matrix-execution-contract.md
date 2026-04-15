@@ -1,8 +1,8 @@
 # ターゲットマトリクスを「宣言」ではなく、継続検証される実行契約にする
 
-**Status**: done
+**Status**: open
 **Created**: 2026-03-30
-**Updated**: 2026-03-30
+**Updated**: 2026-04-15
 **ID**: 251
 **Depends on**: none
 **Track**: main
@@ -25,6 +25,10 @@ Arukellt は `docs/current-state.md` と `docs/data/project-state.toml` で T1/T
 * [ ] CI が target ごとに明示的に別経路を通し、実際の CLI 引数・emit 種別・期待結果が変わる
 * [ ] `docs/current-state.md` の target 表が CI 実行結果からしか更新できない構造になっている
 * [ ] T2/T4/T5 は未実装だけで終わらず、どこまでが scaffold かが分かる
+
+## Reopen Note
+
+2026-04-15 audit: reopened from `issues/done/` because the current-state target table is still generated from structured docs state rather than CI results alone, so the parent acceptance is not fully met.
 
 ## Scope
 
@@ -62,7 +66,3 @@ Arukellt は `docs/current-state.md` と `docs/data/project-state.toml` で T1/T
 * `issues/open/258-core-wasm-vs-component-guarantee-split.md`
 * `issues/open/259-unimplemented-target-verification-status.md`
 * `issues/open/260-current-state-target-table-from-ci.md`
-
-## Completion Note
-
-Closed 2026-04-09. CI now has ARUKELLT_TARGET injection (fixture-primary=wasm32-wasi-p2, fixture-supported=wasm32-wasi-p1). docs/target-contract.md exists with full target×verification-face matrix. T2/T4/T5 scaffold status documented. Component vs core-wasm guarantee levels split in ADR-013 (#258 done). Sub-issues #256 #257 #258 #259 all closed.

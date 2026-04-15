@@ -10,6 +10,24 @@ struct Point {
     y: i32,
 }
 
+trait Show {
+    fn show(self) -> String
+}
+
+struct Label {
+    text: String,
+}
+
+impl Show for Label {
+    fn show(self) -> String {
+        self.text
+    }
+}
+
+fn render<T: Show>(item: T) -> String {
+    item.show()
+}
+
 fn main() {
     // 1. ArrayRepeat
     let zeros = [0; 5]
@@ -30,4 +48,8 @@ fn main() {
         _ => "other",
     }
     stdio::println(msg)
+
+    // 4. Trait decl signature + impl Trait for Type + generic bound
+    let label = Label { text: String_from("trait-ok") }
+    stdio::println(render(label))
 }

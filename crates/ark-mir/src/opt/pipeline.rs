@@ -1814,12 +1814,10 @@ fn stmt_uses_any_local(stmt: &MirStmt) -> bool {
     match stmt {
         MirStmt::Assign(place, rvalue) => place_uses_local(place) || rvalue_uses_local(rvalue),
         MirStmt::Call { dest, args, .. } => {
-            dest.as_ref().map_or(false, place_uses_local)
-                || args.iter().any(operand_uses_local)
+            dest.as_ref().map_or(false, place_uses_local) || args.iter().any(operand_uses_local)
         }
         MirStmt::CallBuiltin { dest, args, .. } => {
-            dest.as_ref().map_or(false, place_uses_local)
-                || args.iter().any(operand_uses_local)
+            dest.as_ref().map_or(false, place_uses_local) || args.iter().any(operand_uses_local)
         }
         MirStmt::IfStmt {
             cond,
@@ -1830,9 +1828,7 @@ fn stmt_uses_any_local(stmt: &MirStmt) -> bool {
                 || stmts_use_any_local(then_body)
                 || stmts_use_any_local(else_body)
         }
-        MirStmt::WhileStmt { cond, body } => {
-            operand_uses_local(cond) || stmts_use_any_local(body)
-        }
+        MirStmt::WhileStmt { cond, body } => operand_uses_local(cond) || stmts_use_any_local(body),
         MirStmt::Return(Some(op)) => operand_uses_local(op),
         MirStmt::Return(None) | MirStmt::Break | MirStmt::Continue => false,
         MirStmt::GcHint { .. } => true, // always references a local
@@ -2099,7 +2095,9 @@ mod tests {
     /// `CallBuiltin`.
     #[test]
     fn inline_skips_callee_with_locals_no_undeclared_local_error() {
-        use crate::mir::{BlockId, default_block_source, default_function_source, sync_module_metadata};
+        use crate::mir::{
+            BlockId, default_block_source, default_function_source, sync_module_metadata,
+        };
 
         // Callee: fn helper(x: i32) -> i32 { return x + 1; }
         // The body uses local 0 (the parameter).  It must NOT be inlined into main.
@@ -2178,7 +2176,9 @@ mod tests {
         // The CallBuiltin must still be present in main (not inlined away).
         let main_stmts = &module.functions[0].blocks[0].stmts;
         assert!(
-            main_stmts.iter().any(|s| matches!(s, MirStmt::CallBuiltin { name, .. } if name == "helper")),
+            main_stmts
+                .iter()
+                .any(|s| matches!(s, MirStmt::CallBuiltin { name, .. } if name == "helper")),
             "CallBuiltin to 'helper' must not have been inlined (it references a local)"
         );
     }

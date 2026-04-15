@@ -17,10 +17,10 @@
 //! 3. Bounds checks inside `while i < len(arr)` loops where the induction
 //!    variable is incremented by 1 — the guard already ensures safety.
 
+use super::PassStats;
 use crate::mir::MirModule;
 use crate::opt::{OptimizationPass, run_single_pass};
 use crate::opt_level::OptLevel;
-use super::PassStats;
 
 /// Minimum optimization level required to run this pass.
 pub const MIN_LEVEL: OptLevel = OptLevel::O2;
@@ -32,8 +32,7 @@ pub fn run(module: &mut MirModule, level: OptLevel) -> PassStats {
     if !level.at_least(MIN_LEVEL) {
         return PassStats::default();
     }
-    let summary = run_single_pass(module, OptimizationPass::BoundsCheckElim)
-        .unwrap_or_default();
+    let summary = run_single_pass(module, OptimizationPass::BoundsCheckElim).unwrap_or_default();
     PassStats {
         name: "bounds_check_elim",
         changed: summary.bounds_checks_eliminated,
@@ -62,8 +61,16 @@ mod tests {
             params: vec![],
             return_ty: Type::Unit,
             locals: vec![
-                MirLocal { id: LocalId(0), name: None, ty: Type::I32 },
-                MirLocal { id: LocalId(1), name: None, ty: Type::I32 },
+                MirLocal {
+                    id: LocalId(0),
+                    name: None,
+                    ty: Type::I32,
+                },
+                MirLocal {
+                    id: LocalId(1),
+                    name: None,
+                    ty: Type::I32,
+                },
             ],
             blocks: vec![BasicBlock {
                 id: BlockId(0),

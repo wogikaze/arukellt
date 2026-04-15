@@ -284,10 +284,7 @@ pub fn lower_hir_to_mir(
 }
 
 /// Routes to the legacy AST lowerer. Deprecated — use `lower_check_output_to_mir`.
-#[deprecated(
-    since = "0.1.0",
-    note = "Use lower_check_output_to_mir instead."
-)]
+#[deprecated(since = "0.1.0", note = "Use lower_check_output_to_mir instead.")]
 pub fn lower_any_to_mir(
     module: &ast::Module,
     checker: &TypeChecker,
@@ -298,10 +295,7 @@ pub fn lower_any_to_mir(
 
 /// Routes to the legacy AST lowerer as the CoreHIR implementation. Deprecated — use
 /// `lower_check_output_to_mir` which will use the real CoreHIR lowerer when available.
-#[deprecated(
-    since = "0.1.0",
-    note = "Use lower_check_output_to_mir instead."
-)]
+#[deprecated(since = "0.1.0", note = "Use lower_check_output_to_mir instead.")]
 pub fn lower_corehir_via_legacy(
     module: &ast::Module,
     checker: &TypeChecker,

@@ -8,10 +8,10 @@
 //! **Depends on**: const_fold, const_prop (maximise constant visibility)
 //! **Safe to run multiple times**: yes (idempotent)
 
+use super::PassStats;
 use crate::mir::MirModule;
 use crate::opt::{OptimizationPass, run_single_pass};
 use crate::opt_level::OptLevel;
-use super::PassStats;
 
 /// Minimum optimization level required to run this pass.
 pub const MIN_LEVEL: OptLevel = OptLevel::O2;
@@ -23,8 +23,7 @@ pub fn run(module: &mut MirModule, level: OptLevel) -> PassStats {
     if !level.at_least(MIN_LEVEL) {
         return PassStats::default();
     }
-    let summary = run_single_pass(module, OptimizationPass::TypeNarrowing)
-        .unwrap_or_default();
+    let summary = run_single_pass(module, OptimizationPass::TypeNarrowing).unwrap_or_default();
     PassStats {
         name: "type_narrowing",
         changed: summary.types_narrowed,
@@ -83,7 +82,11 @@ mod tests {
 
     #[test]
     fn test_no_op_below_o2() {
-        let locals = vec![MirLocal { id: LocalId(0), name: None, ty: Type::I64 }];
+        let locals = vec![MirLocal {
+            id: LocalId(0),
+            name: None,
+            ty: Type::I64,
+        }];
         let stmts = vec![MirStmt::Assign(
             Place::Local(LocalId(0)),
             Rvalue::Use(Operand::ConstI64(42)),
@@ -100,7 +103,11 @@ mod tests {
     #[test]
     fn test_narrows_i32_range_constant() {
         // An i64 local assigned a value that fits in i32 should be narrowed.
-        let locals = vec![MirLocal { id: LocalId(0), name: None, ty: Type::I64 }];
+        let locals = vec![MirLocal {
+            id: LocalId(0),
+            name: None,
+            ty: Type::I64,
+        }];
         let stmts = vec![MirStmt::Assign(
             Place::Local(LocalId(0)),
             Rvalue::Use(Operand::ConstI64(100)),
@@ -117,7 +124,11 @@ mod tests {
     #[test]
     fn test_does_not_narrow_out_of_range() {
         // An i64 local assigned a value outside i32 range must NOT be narrowed.
-        let locals = vec![MirLocal { id: LocalId(0), name: None, ty: Type::I64 }];
+        let locals = vec![MirLocal {
+            id: LocalId(0),
+            name: None,
+            ty: Type::I64,
+        }];
         let large_val: i64 = (i32::MAX as i64) + 1;
         let stmts = vec![MirStmt::Assign(
             Place::Local(LocalId(0)),
@@ -127,7 +138,10 @@ mod tests {
         let mut module = module_with_fn(func);
 
         let stats = run(&mut module, OptLevel::O2);
-        assert_eq!(stats.changed, 0, "out-of-range constant must not be narrowed");
+        assert_eq!(
+            stats.changed, 0,
+            "out-of-range constant must not be narrowed"
+        );
         assert_eq!(module.functions[0].locals[0].ty, Type::I64);
     }
 }

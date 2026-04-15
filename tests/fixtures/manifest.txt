@@ -217,6 +217,7 @@ run:selfhost/mir_loop_for.ark
 run:selfhost/mir_predecessors_smoke.ark
 run:selfhost/parser_hir_trait_bounds_smoke.ark
 run:selfhost/parser_new_syntax.ark
+run:selfhost/typecheck_trait_impl_smoke.ark
 module-diag:selfhost/resolver_circular_import/main.ark
 run:selfhost/resolver_import_basic/main.ark
 run:selfhost/resolver_stdlib_module/main.ark

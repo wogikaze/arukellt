@@ -1,8 +1,8 @@
 # デバッグ体験を「DAP の箱がある」状態から、実際に使える end-to-end workflow にする
 
-**Status**: done
+**Status**: open
 **Created**: 2026-03-30
-**Updated**: 2026-03-30
+**Updated**: 2026-04-15
 **ID**: 255
 **Depends on**: none
 **Track**: main
@@ -25,6 +25,10 @@
 * [ ] VS Code 拡張から launch でき、`.ark` ソースにブレークポイントを置いて止まる
 * [ ] T1/T3 のどこまでを debug 対象とするかが明記され、canonical path で end-to-end が動く
 * [ ] DAP smoke test と E2E test が配線されている
+
+## Reopen Note
+
+2026-04-15 audit: reopened from `issues/done/` because DAP primitives and debug contributions exist, but the parent issue still lacks a demonstrated breakpoint-stop end-to-end workflow at the integration-test level.
 
 ## Scope
 
