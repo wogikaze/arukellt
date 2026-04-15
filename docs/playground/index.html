@@ -397,6 +397,7 @@
     // If they are absent (e.g., GitHub Pages before the first CI Wasm build),
     // fall back to the stub so the editor shell still renders.
     let parseFn = stubParse;
+    let tokenizeFn = undefined;
 
     try {
       const { createPlayground } = await import('./dist/index.js');
@@ -420,6 +421,7 @@
         { wasmUrl },
       );
       parseFn = (source) => pg.parse(source);
+      tokenizeFn = (source) => pg.tokenize(source);
       currentVersion = pg.version();
     } catch {
       // Wasm not yet available — editor runs with stub parse (no diagnostics).
@@ -441,6 +443,7 @@
         '',
       ].join('\n'),
       parse: parseFn,
+      tokenize: tokenizeFn,
     });
 
     exampleSelect.addEventListener('change', () => {
