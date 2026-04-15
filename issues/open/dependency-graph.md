@@ -17,7 +17,6 @@ graph LR
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I170["170 v5 Migration guide"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
   I195["195 Partial execution preview + local semantic insight"]
   I198["198 Advanced test UX: impact analysis / snapshot diff / fuzz UI"]
@@ -93,7 +92,6 @@ graph LR
 - **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **170** depends on: 165, 166, 169; blocks: none
 - **194** depends on: 193; blocks: none
 - **195** depends on: none; blocks: none
 - **198** depends on: 196, 197; blocks: none

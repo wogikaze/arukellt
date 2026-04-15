@@ -1,8 +1,8 @@
 # v5 Migration guide
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
-**Updated**: 2026-04-13
+**Updated**: 2026-04-15
 **ID**: 170
 **Depends on**: 165, 166, 169
 **Track**: main
@@ -13,6 +13,16 @@
 **Reason**: Guide claims selfhost as primary path but docs/current-state.md says Stage 2 fixpoint not reached.
 
 **Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
+
+## Completed — 2026-04-15
+
+**Evidence review**:
+- `docs/migration/v4-to-v5.md` no longer claims selfhost is already the primary compilation path.
+- The guide now states the dual period explicitly and points readers to
+  `docs/current-state.md` and `docs/compiler/bootstrap.md` for the verified status.
+- `python3 scripts/check/check-docs-consistency.py` passed for the correction slice.
+
+**Close gate**: satisfied by current-first docs alignment.
 
 ## Summary
 

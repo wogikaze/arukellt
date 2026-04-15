@@ -36,12 +36,12 @@ freestanding target track.
 
 ## Acceptance
 
-- [ ] `docs/playground/index.html` imports and initialises the playground WASM module
-- [ ] Example selector is rendered and functional
-- [ ] Share link generation works end-to-end in a browser
-- [ ] Syntax highlighting is applied to the editor area
-- [ ] Capability check warns when required browser APIs are absent
-- [ ] Build step produces the wired bundle (`playground/` build succeeds)
+- [x] `docs/playground/index.html` imports and initialises the playground WASM module
+- [x] Example selector is rendered and functional
+- [x] Share link generation works end-to-end in a browser
+- [x] Syntax highlighting is applied to the editor area
+- [x] Capability check warns when required browser APIs are absent
+- [x] Build step produces the wired bundle (`playground/` build succeeds)
 
 ## Primary paths
 
