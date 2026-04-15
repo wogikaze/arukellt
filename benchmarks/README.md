@@ -503,6 +503,18 @@ performance, and prints a per-benchmark delta table. See the
 [governance doc](../docs/benchmarks/governance.md#5-comparison-methodology)
 for full details on regression detection.
 
+## Workload Taxonomy
+
+Each benchmark is classified by workload category and language-feature coverage in
+[`benchmarks/workload-taxonomy.md`](workload-taxonomy.md).
+
+The taxonomy provides:
+
+- **Per-benchmark tags** mapping each fixture to workload categories (`cpu-bound`, `allocation-heavy`, `io-bound`, etc.)
+- **Feature coverage matrix** showing which language features (loops, closures, generics, etc.) each benchmark exercises
+- **Workload dimension coverage** mapping benchmarks to the five operational dimensions: compute, memory, I/O, GC, and startup
+- **Gap analysis** listing workload categories and features with no benchmark coverage
+
 ## Expected Output
 
 Each benchmark has a `.expected` file containing the correct stdout.

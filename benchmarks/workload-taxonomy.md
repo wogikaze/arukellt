@@ -22,6 +22,7 @@ Workloads dominated by heap allocation and container operations.
 | Benchmark | Tags | What it measures |
 |-----------|------|-----------------|
 | `vec_ops.ark` | `allocation-heavy`, `container`, `iteration` | Vec push (1k), sequential read, `contains` search; allocation throughput and linear scan cost |
+| `vec_push_pop.ark` | `allocation-heavy`, `container`, `gc-pressure` | Vec push (100k) then pop (100k); allocation + deallocation round-trip; stack-like access pattern |
 | `vec-ops.ark` (removed) | `container`, `match` | Vec push (100), indexed get via `Option` match; basic container + pattern matching |
 
 **Characteristics**: allocation-pressure sensitive, exercises GC or allocator, measures container API overhead.
@@ -44,6 +45,8 @@ Larger programs exercising multiple language features together.
 | Benchmark | Tags | What it measures |
 |-----------|------|-----------------|
 | `parser.ark` (in `docs/sample/`) | `application`, `string-heavy`, `struct-heavy`, `recursion`, `match` | 1458-line Gloss markup parser; structs, enums, match, recursion, string ops, Vec — closest to real-world workload |
+| `json_parse.ark` | `application`, `string-heavy`, `io-bound`, `host-call` | Reads a JSON file via `fs::read_to_string`; scans for character occurrences; exercises file I/O + string parsing |
+| `bench_parse_tree_distance.ark` | `application`, `match`, `container`, `io-bound`, `allocation-heavy` | Reads a 1200-node distance matrix from file; parses and processes; exercises I/O, Vec, Result, enums, and match in a realistic workload |
 
 **Characteristics**: representative of actual programs; exercises compiler optimizations across features; compile-time sensitive due to code size.
 
@@ -56,6 +59,16 @@ Small fixtures used for correctness validation rather than performance measureme
 | `struct_create.ark` | `struct`, `basic` | Single struct creation + field access; minimal allocation |
 
 **Characteristics**: too simple for meaningful perf measurement; useful for correctness parity checks.
+
+### 6. Startup / Overhead Baseline
+
+Benchmarks that isolate WASM module instantiation and process startup from computation.
+
+| Benchmark | Tags | What it measures |
+|-----------|------|------------------|
+| `startup.ark` | `startup`, `overhead-baseline` | Minimal `main` with no logic; measures irreducible WASM instantiation + runtime startup overhead |
+
+**Characteristics**: no computation, no allocation; establishes the minimum fixed overhead of any Arukellt program invocation.
 
 ## Feature Coverage Matrix
 
@@ -78,6 +91,46 @@ Per-benchmark view of which language and runtime features are exercised.
 | **Coverage count** | **7** | **1** | **1** | **1** | **0** | **0** | **2** | **7** | **4** | **8** | **1** | **3** |
 
 > "Coverage count" = number of benchmarks where the feature is primary (●) or secondary (○).
+
+## Workload Dimension Coverage
+
+Per-benchmark view across the five operational workload dimensions.
+
+**Legend**: ● = primary dimension &nbsp;|&nbsp; ○ = secondary / incidental &nbsp;|&nbsp; – = negligible
+
+| Benchmark | compute | memory | I/O | GC | startup |
+|-----------|:-------:|:------:|:---:|:--:|:-------:|
+| `fib.ark` | ● | – | – | – | – |
+| `binary_tree.ark` | ● | ○ | – | – | – |
+| `vec_ops.ark` | ○ | ● | – | – | – |
+| `vec_push_pop.ark` | ○ | ● | – | ● | – |
+| `string_concat.ark` | – | ● | – | ● | – |
+| `string_ops.ark` | – | ○ | – | – | – |
+| `struct_create.ark` | – | ○ | – | – | – |
+| `json_parse.ark` | ○ | ○ | ● | – | – |
+| `startup.ark` | – | – | – | – | ● |
+| `bench_parse_tree_distance.ark` | ● | ● | ○ | ○ | – |
+| **Coverage count** | **5** | **7** | **2** | **2** | **1** |
+
+**Dimension definitions**:
+
+| Dimension | Meaning | Implied by tags |
+|-----------|---------|------------------|
+| `compute` | CPU-bound arithmetic, loops, deep recursion | `cpu-bound`, `recursion-heavy`, `loop` |
+| `memory` | Heap allocation dominates the cost | `allocation-heavy`, `container`, `struct-heavy` |
+| `I/O` | File or stream reads/writes via host calls | `io-bound`, `host-call` (when used for file access) |
+| `GC` | Allocation churn that stresses the GC or allocator | `gc-pressure`, `string-heavy` |
+| `startup` | WASM module instantiation + process startup cost | `startup`, `overhead-baseline` |
+
+### Dimension gap summary
+
+| Dimension | Coverage | Gap |
+|-----------|:--------:|-----|
+| compute | 5 benchmarks | Iterative and recursive well-covered; no SIMD or floating-point |
+| memory | 7 benchmarks | Good coverage; struct-graph and pointer-chasing workloads missing |
+| I/O | 2 benchmarks | **Gap**: only file-read path covered; no write or streaming benchmark |
+| GC | 2 benchmarks | GC churn exercised by string and vec-push-pop only |
+| startup | 1 benchmark | Sole baseline; no parameterised or multi-module startup variant |
 
 ### Feature gap summary
 
@@ -126,3 +179,6 @@ Canonical tags for benchmark classification:
 | `match` | Pattern matching / enum dispatch |
 | `application` | Multi-feature, real-world-like |
 | `basic` | Minimal / smoke-test level |
+| `io-bound` | File or stream I/O dominates cost |
+| `startup` | Measures WASM instantiation / process startup |
+| `overhead-baseline` | Establishes irreducible per-invocation overhead |
