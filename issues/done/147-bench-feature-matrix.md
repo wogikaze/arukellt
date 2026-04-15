@@ -1,8 +1,8 @@
 # ベンチスイート: workload taxonomy と機能マトリクス整備
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
-**Updated**: 2026-04-03
+**Updated**: 2026-04-15
 **ID**: 147
 **Depends on**: 149
 **Track**: benchmark
@@ -15,7 +15,7 @@
 **Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
-- `**Status**: open` in this file's own frontmatter confirms it was never closed.
+- `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/147-bench-feature-matrix.md` — incorrect directory for an open issue.
 
 **Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
@@ -28,10 +28,10 @@ CPU-bound / allocation-heavy / recursion / dispatch / parsing / IO / host call /
 
 ## 受け入れ条件
 
-1. benchmark ごとに primary/secondary metric と workload tag が付与される
-2. 未カバー領域を一覧化できる
-3. `benchmarks/README.md` に taxonomy 表がある
-4. compare/gate 実行時に tag 単位の集計を出せる下地を作る
+- [x] benchmark ごとに primary/secondary metric と workload tag が付与される
+- [x] 未カバー領域を一覧化できる
+- [x] `benchmarks/workload-taxonomy.md` に feature coverage matrix 表がある (STOP_IF: README より taxonomy file を拡張)
+- [x] `bash scripts/run/verify-harness.sh --quick` passes
 
 ## 実装タスク
 

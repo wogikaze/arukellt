@@ -999,4 +999,31 @@ mod tests {
         let msg = err.to_string();
         assert!(msg.contains("wasi:unknown/world"));
     }
+
+    #[test]
+    fn test_wit_accuracy_world_command() {
+        let expected = include_str!(
+            "../../../../tests/fixtures/component/world_command.expected.wit"
+        );
+        let spec = parse_world_spec("wasi:cli/command").unwrap();
+        let world = WitWorld {
+            name: spec.world_name.clone(),
+            functions: vec![WitFunction {
+                name: "run".to_string(),
+                params: vec![],
+                result: None,
+            }],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![],
+            resources: vec![],
+            world_spec: Some(spec),
+        };
+        let got = generate_wit(&world).unwrap();
+        assert_eq!(
+            got, expected,
+            "world_command WIT output does not match expected"
+        );
+    }
 }

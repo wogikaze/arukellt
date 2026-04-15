@@ -1,0 +1,9 @@
+package arukellt:app;
+
+world command {
+    import wasi:cli/stdin@0.2.0;
+    import wasi:cli/stdout@0.2.0;
+    import wasi:clocks/wall-clock@0.2.0;
+
+    export run: func();
+}

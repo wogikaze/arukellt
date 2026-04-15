@@ -1,8 +1,8 @@
 # 基盤: benchmark 結果保存・履歴比較・トレンドレポート
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
-**Updated**: 2026-04-03
+**Updated**: 2026-04-15
 **ID**: 148
 **Depends on**: 140, 141, 142, 143, 145, 146
 **Track**: benchmark
@@ -27,10 +27,10 @@
 
 ## 受け入れ条件
 
-1. benchmark 結果を JSON で保存し、比較対象を指定できる
-2. 前回比・baseline 比・移動中央値をレポート出力できる
-3. perf gate failure 時に直近の改善/悪化傾向を表示できる
-4. docs に baseline 更新ルールと trend の読み方を記載する
+1. benchmark 結果を JSON で保存し、比較対象を指定できる — **done**: `save_to_history()` saves `bench-{mode}-{target}-{ts}.json` to `benchmarks/results/` on every run; `--no-save-history` skips it.
+2. 前回比・baseline 比・移動中央値をレポート出力できる — **done**: `compute_moving_median()` over last N prior runs, printed in Trend Context section of `render_text`.
+3. perf gate failure 時に直近の改善/悪化傾向を表示できる — **done**: `compute_trend_context()` labels each benchmark compile/run as improving/stable/degrading; appended to text output when history ≥ 2 runs.
+4. docs に baseline 更新ルールと trend の読み方を記載する — **done**: "Result Storage and History" section added to `benchmarks/README.md`.
 
 ## 実装タスク
 

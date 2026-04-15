@@ -33,6 +33,10 @@ THRESHOLDS = {
 CV_THRESHOLD = 5.0   # percent — benchmarks with CV > this are flagged as unstable
 REPRO_THRESHOLD = 10  # percent — reproducibility check: two sequential runs must agree within this
 
+# History / trend constants
+RESULTS_DIR = ROOT / "benchmarks" / "results"
+HISTORY_N = 5  # moving median window and trend depth
+
 WASM_SECTION_ID_NAMES: dict[int, str] = {
     0: "custom",
     1: "type",
@@ -1501,7 +1505,12 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
     return "\n".join(lines) + "\n"
 
 
-def render_text(current: dict[str, Any], comparison: dict[str, Any], baseline_path: Path | None) -> str:
+def render_text(
+    current: dict[str, Any],
+    comparison: dict[str, Any],
+    baseline_path: Path | None,
+    trend_ctx: dict[str, Any] | None = None,
+) -> str:
     lines: list[str] = []
     lines.append("═══════════════════════════════════════════")
     lines.append(" Arukellt Benchmark Suite")
@@ -1610,6 +1619,28 @@ def render_text(current: dict[str, Any], comparison: dict[str, Any], baseline_pa
     else:
         lines.append("")
         lines.append(f"Baseline : missing ({rel(baseline_path) if baseline_path else 'n/a'})")
+    # Trend context (shown when history is available)
+    if trend_ctx and trend_ctx.get("available"):
+        lines.append("")
+        lines.append("── Trend Context ─────────────────────────")
+        depth = trend_ctx["history_depth"]
+        lines.append(f"History  : {depth} prior run(s) used")
+        moving_med = trend_ctx.get("moving_median", {})
+        if moving_med:
+            lines.append(f"Moving median (last {min(depth, HISTORY_N)} runs):")
+            for bname, meds in moving_med.items():
+                lines.append(
+                    f"  {bname}: compile={format_ms(meds.get('compile_ms'))} ms"
+                    f"  run={format_ms(meds.get('run_ms'))} ms"
+                    f"  size={format_int(meds.get('binary_bytes'))} B"
+                )
+        bench_trends = trend_ctx.get("bench_trends", {})
+        if bench_trends:
+            lines.append("Trend labels (improving/stable/degrading):")
+            for bname, trends in bench_trends.items():
+                c_trend = trends.get("compile_ms", "stable")
+                r_trend = trends.get("run_ms", "stable")
+                lines.append(f"  {bname}: compile={c_trend}  run={r_trend}")
     # Variance / CV section
     var_lines = variance_report_lines(current)
     if var_lines:
@@ -1624,6 +1655,160 @@ def render_text(current: dict[str, Any], comparison: dict[str, Any], baseline_pa
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     ensure_parent(path)
     path.write_text(json.dumps(payload, indent=2) + "\n")
+
+
+# ── History / trend helpers ────────────────────────────────────────────────
+
+def _target_short(target: str) -> str:
+    """Extract short suffix from target: wasm32-wasi-p1 → p1."""
+    return target.split("-")[-1] if "-" in target else target
+
+
+def _result_filename(mode: str, target: str, ts_clean: str) -> str:
+    short = _target_short(target)
+    return f"bench-{mode}-{short}-{ts_clean}.json"
+
+
+def save_to_history(payload: dict[str, Any]) -> Path:
+    """Save a benchmark result to benchmarks/results/ with a timestamped filename.
+
+    The filename encodes mode, target short-name, and the ISO 8601 timestamp
+    from the payload so results sort correctly by name.  Returns the written path.
+    """
+    mode = payload.get("mode", "unknown")
+    target = payload.get("target", "unknown")
+    raw_ts = payload.get("generated_at", iso_now())
+    # "2026-04-15T12:34:56.789Z" → "20260415T123456Z"
+    ts_clean = raw_ts.replace("-", "").replace(":", "").split(".")[0] + "Z"
+    filename = _result_filename(mode, target, ts_clean)
+    dest = RESULTS_DIR / filename
+    write_json(dest, payload)
+    return dest
+
+
+def load_history(mode: str, target: str, limit: int = HISTORY_N) -> list[dict[str, Any]]:
+    """Load up to *limit* recent benchmark results from benchmarks/results/.
+
+    Matches files by mode prefix and target field in the JSON payload.
+    Returns results sorted newest-first.
+    """
+    if not RESULTS_DIR.exists():
+        return []
+    prefix = f"bench-{mode}-"
+    candidates: list[tuple[str, dict[str, Any]]] = []
+    for p in RESULTS_DIR.glob(f"{prefix}*.json"):
+        data = load_json(p)
+        if data is None:
+            continue
+        # Accept files whose stored target matches (or old files with no target)
+        file_target = data.get("target", "")
+        if file_target and file_target != target:
+            continue
+        ts_str = data.get("generated_at", "")
+        candidates.append((ts_str, data))
+    candidates.sort(key=lambda x: x[0], reverse=True)
+    return [d for _, d in candidates[:limit]]
+
+
+def _bench_metric_value(bench_data: dict[str, Any], metric_key: str) -> float | None:
+    """Extract a scalar metric from a benchmark result entry."""
+    if metric_key == "compile_ms":
+        return bench_data.get("compile", {}).get("median_ms")
+    if metric_key == "run_ms":
+        return bench_data.get("runtime", {}).get("median_ms")
+    if metric_key == "binary_bytes":
+        return bench_data.get("compile", {}).get("binary_bytes")
+    return None
+
+
+def _trend_label(values: list[float]) -> str:
+    """Return 'improving', 'degrading', or 'stable' over an oldest-first series.
+
+    Requires at least 3 values; shorter series return 'stable'.
+    A change of >5 % in the second half vs first half median triggers the label.
+    """
+    if len(values) < 3:
+        return "stable"
+    mid = max(1, len(values) // 2)
+    first_half = statistics.median(values[:mid])
+    second_half = statistics.median(values[mid:])
+    if first_half == 0:
+        return "stable"
+    change = (second_half - first_half) / first_half
+    if change < -0.05:
+        return "improving"
+    if change > 0.05:
+        return "degrading"
+    return "stable"
+
+
+def compute_moving_median(
+    history: list[dict[str, Any]],
+    n: int = HISTORY_N,
+) -> dict[str, dict[str, float | None]]:
+    """Compute moving median of key metrics over the last *n* results.
+
+    *history* is newest-first.  Returns ``{bench_name: {metric_key: value}}``.
+    """
+    window = history[:n]
+    if not window:
+        return {}
+    bench_names = {b["name"] for run in window for b in run.get("benchmarks", [])}
+    result: dict[str, dict[str, float | None]] = {}
+    for name in sorted(bench_names):
+        metrics: dict[str, float | None] = {}
+        for metric_key in ("compile_ms", "run_ms", "binary_bytes"):
+            vals = []
+            for run in window:
+                bmap = {b["name"]: b for b in run.get("benchmarks", [])}
+                b = bmap.get(name)
+                if b is not None:
+                    v = _bench_metric_value(b, metric_key)
+                    if v is not None:
+                        vals.append(v)
+            metrics[metric_key] = round(statistics.median(vals), 3) if vals else None
+        result[name] = metrics
+    return result
+
+
+def compute_trend_context(
+    history: list[dict[str, Any]],
+    current: dict[str, Any],
+    n: int = HISTORY_N,
+) -> dict[str, Any]:
+    """Build trend context from prior history and current results.
+
+    *history* is newest-first and does NOT include the current run.
+    Returns a dict with ``available``, ``history_depth``, ``moving_median``,
+    and ``bench_trends`` keys.
+    """
+    if not history:
+        return {"available": False, "history_depth": 0, "moving_median": {}, "bench_trends": {}}
+    # Full series newest → oldest: current + history
+    full_series = [current] + history
+    bench_trends: dict[str, dict[str, str]] = {}
+    current_benches = {b["name"]: b for b in current.get("benchmarks", [])}
+    for name in sorted(current_benches):
+        trends: dict[str, str] = {}
+        for metric_key in ("compile_ms", "run_ms"):
+            # Build oldest-first series bounded by n
+            vals_oldest_first: list[float] = []
+            for run in reversed(full_series[:n]):
+                bmap = {b["name"]: b for b in run.get("benchmarks", [])}
+                b = bmap.get(name)
+                if b is not None:
+                    v = _bench_metric_value(b, metric_key)
+                    if v is not None:
+                        vals_oldest_first.append(v)
+            trends[metric_key] = _trend_label(vals_oldest_first)
+        bench_trends[name] = trends
+    moving_med = compute_moving_median(history, n=n)
+    return {
+        "available": len(history) >= 2,
+        "history_depth": len(history),
+        "moving_median": moving_med,
+        "bench_trends": bench_trends,
+    }
 
 
 def failing_comparison(comparison: dict[str, Any]) -> bool:
@@ -1645,6 +1830,10 @@ def parse_args() -> argparse.Namespace:
                         help="Iterations for runtime latency / percentile measurement (overrides mode preset).")
     parser.add_argument("--no-write-markdown", action="store_true")
     parser.add_argument("--no-write-json", action="store_true")
+    parser.add_argument("--no-save-history", action="store_true",
+                        help="Skip saving a timestamped copy to benchmarks/results/.")
+    parser.add_argument("--history-n", type=int, default=HISTORY_N,
+                        help="Number of prior runs to use for moving median and trend (default: %(default)s).")
     parser.add_argument("--fail-on-regression", action="store_true")
     parser.add_argument("--print-json", action="store_true")
     parser.add_argument("--repro-output-json",
@@ -1699,12 +1888,23 @@ def main() -> None:
     output_json = Path(args.output_json)
     output_md = Path(args.output_md)
 
+    # Load prior history for trend context BEFORE saving so the current run is
+    # not included in the moving median window.
+    history_n: int = args.history_n
+    prior_history = load_history(current["mode"], current["target"], limit=history_n)
+    trend_ctx = compute_trend_context(prior_history, current, n=history_n)
+
     if not args.no_write_json:
         write_json(output_json, current)
     if not args.no_write_markdown:
         output_md.write_text(render_markdown(current, comparison, baseline_path))
 
-    text = render_text(current, comparison, baseline_path)
+    # Save timestamped copy to benchmarks/results/ for history tracking.
+    if not args.no_save_history:
+        history_path = save_to_history(current)
+        sys.stdout.write(f"History  : saved to {rel(history_path)}\n")
+
+    text = render_text(current, comparison, baseline_path, trend_ctx=trend_ctx)
     sys.stdout.write(text)
 
     if args.mode == "update-baseline":

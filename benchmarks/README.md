@@ -313,6 +313,63 @@ The comparison table prints `ark(ms)`, one column per reference language, and a
 `ratio(best)` column showing how many times slower Ark is relative to the
 fastest native reference.
 
+## Result Storage and History
+
+Every benchmark run automatically saves a timestamped JSON file to
+`benchmarks/results/` using the naming pattern:
+
+```
+benchmarks/results/bench-<mode>-<target>-<YYYYMMDDTHHMMSSZ>.json
+```
+
+For example: `bench-quick-p1-20260415T120000Z.json`.
+
+These files accumulate over time and form the basis for trend analysis.
+Pass `--no-save-history` to skip writing to `benchmarks/results/` for a
+single run (e.g., when running throwaway experiments).
+
+### Trend Analysis
+
+The runner loads the most recent N prior runs from `benchmarks/results/`
+(default N=5, controlled by `--history-n`) and reports:
+
+- **Moving median**: the statistical median of each metric over the last N
+  prior runs, giving a noise-resistant view of typical performance.
+- **Trend label**: `improving`, `degrading`, or `stable` based on whether
+  the second half of the series median is more than 5 % lower/higher than
+  the first half.  Requires at least 3 data points; fewer returns `stable`.
+
+Trend context is printed after the baseline comparison section when history
+is available.  When a perf gate fails (`--mode ci` or `--fail-on-regression`)
+the trend label tells you whether the regression is a new event (stable→degrading)
+or part of an ongoing drift (already degrading).
+
+### Baseline Update Rules
+
+Baselines are stored in `tests/baselines/perf/baselines.json` and represent
+the *expected* performance floor for CI regression checks.
+
+**When to update**:
+- After a deliberate performance improvement (new optimization, better codegen)
+- After updating a benchmark workload itself
+- When a systematic environment change shifts all numbers (new wasmtime, new host)
+
+**When NOT to update**:
+- Do not update to paper over a genuine regression
+- Do not update on a single noisy run; prefer `--mode full` (5 iterations) over
+  `--mode quick` when deciding to update
+
+**Procedure**:
+```bash
+mise bench:update-baseline  # runs full benchmark pass, then writes new baseline
+git add tests/baselines/perf/baselines.json
+git commit -m "bench: update baseline — <reason>"
+```
+
+The history files in `benchmarks/results/` are NOT the baseline; they are
+for tracking and trend analysis only.  The CI gate always compares against
+`tests/baselines/perf/baselines.json`.
+
 ## Results Placeholder
 
 Run `bash scripts/run/run-benchmarks.sh` to generate current measurements.

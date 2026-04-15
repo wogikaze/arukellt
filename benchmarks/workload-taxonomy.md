@@ -57,6 +57,44 @@ Small fixtures used for correctness validation rather than performance measureme
 
 **Characteristics**: too simple for meaningful perf measurement; useful for correctness parity checks.
 
+## Feature Coverage Matrix
+
+Per-benchmark view of which language and runtime features are exercised.
+
+**Legend**: ● = primary exercise &nbsp;|&nbsp; ○ = secondary / incidental &nbsp;|&nbsp; – = not present
+
+| Benchmark | loops | recursion | structs | enums/match | closures | higher-order | generics | strings | Vec | host-call | Result/Option | gc-pressure |
+|-----------|:-----:|:---------:|:-------:|:-----------:|:--------:|:------------:|:--------:|:-------:|:---:|:---------:|:-------------:|:-----------:|
+| `fib.ark` | ● | – | – | – | – | – | – | ○ | – | ○ | – | – |
+| `binary_tree.ark` | – | ● | – | – | – | – | – | ○ | – | ○ | – | – |
+| `vec_ops.ark` | ● | – | – | – | – | – | ○ | ○ | ● | ● | – | ○ |
+| `vec_push_pop.ark` | ● | – | – | – | – | – | ○ | – | ● | ● | ○ | ● |
+| `string_concat.ark` | ● | – | – | – | – | – | – | ● | – | ● | – | ● |
+| `string_ops.ark` | – | – | – | – | – | – | – | ● | – | ○ | – | – |
+| `struct_create.ark` | – | – | ● | – | – | – | – | ○ | – | ○ | – | – |
+| `json_parse.ark` | ● | – | – | – | – | – | – | ● | – | ● | – | ○ |
+| `startup.ark` | – | – | – | – | – | – | – | – | – | – | – | – |
+| `bench_parse_tree_distance.ark` | ● | – | – | ● | – | – | ○ | ○ | ● | ● | ● | ○ |
+| **Coverage count** | **7** | **1** | **1** | **1** | **0** | **0** | **2** | **7** | **4** | **8** | **1** | **3** |
+
+> "Coverage count" = number of benchmarks where the feature is primary (●) or secondary (○).
+
+### Feature gap summary
+
+Features with zero or near-zero coverage:
+
+| Feature | Coverage | Gap severity | Notes |
+|---------|:--------:|:------------:|-------|
+| **closures** | 0 | **critical** | No benchmark exercises closure literals at all |
+| **higher-order fns** | 0 | **critical** | No benchmark passes or returns functions |
+| **enums/match (custom)** | 1 | high | Only `bench_parse_tree_distance` uses `Result`; no custom enum dispatch |
+| **recursion** | 1 | high | Only `binary_tree` is recursion-primary; no mutual recursion, no tail-call check |
+| **structs under pressure** | 1 | medium | `struct_create` is smoke-level only; no large struct graphs or field-heavy iteration |
+| **generics (user-defined)** | 0 | medium | All generic use is built-in `Vec<i32>`; no user-defined generic fns or types |
+| **I/O-heavy loops** | 0 | medium | `fs::read_to_string` appears once but is not looped; no write path |
+| **compile-stress** | 0 | low | No large polymorphic or macro-expanded sources |
+| **error propagation** | 1 | low | `Result` is matched once; no chained propagation in a hot path |
+
 ## Missing Categories
 
 The following workload categories have **no benchmark coverage**:
