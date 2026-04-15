@@ -26,6 +26,22 @@ is scoped here.
 This issue is directly gated by ADR-020, not by #382 as an open issue. #382 remains the
 audit/history record for the false-done rollback, but it should not block T2 emitter work.
 
+## Partial progress — 2026-04-15
+
+Wave 1 landed commit `1f33b50d95198ba6dceb109972f7856fbd4cd602`, which added:
+
+- `crates/ark-wasm/src/emit/t2_freestanding.rs`
+- target-registry updates for `wasm32-freestanding`
+- a first regression path at `tests/fixtures/regression/t2_scaffold.ark`
+
+This issue stays open because the slice did not produce close evidence:
+
+- the validating T2 fixture path is not yet green
+- `bash scripts/run/verify-harness.sh --quick`, `--cargo`, and `--fixtures`
+  all failed during the slice
+- the reported failures included unrelated dirty-tree/workspace problems plus
+  pre-existing `ark-wasm` validation breakage when exercising the new path
+
 ## Current state
 
 - `crates/ark-target/src/lib.rs`: `wasm32-freestanding` registered, `implemented: false`
