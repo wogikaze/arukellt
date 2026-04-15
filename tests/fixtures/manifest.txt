@@ -215,6 +215,7 @@ run:selfhost/mir_lowering.ark
 run:selfhost/mir_match.ark
 run:selfhost/mir_loop_for.ark
 run:selfhost/mir_predecessors_smoke.ark
+run:selfhost/mir_phi_insertion_smoke.ark
 run:selfhost/mir_phi_representation_smoke.ark
 run:selfhost/parser_hir_trait_bounds_smoke.ark
 run:selfhost/parser_new_syntax.ark
@@ -229,8 +230,6 @@ run:selfhost/typecheck_infer_expr.ark
 run:selfhost/typecheck_generic_call.ark
 run:selfhost/typecheck_mono_instances.ark
 run:selfhost/typecheck_mono_vec.ark
-run:selfhost/typecheck_match_exhaustive.ark
-diag:selfhost/typecheck_match_nonexhaustive.ark
 run:selfhost/typecheck_match_exhaustive.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 run:t2/t2_scaffold.ark
