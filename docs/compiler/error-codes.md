@@ -75,6 +75,23 @@ fn main() {
 }
 ```
 
+### E0090 — WIT flags type is not supported in v2
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | backend-validate |
+| **Message** | WIT flags type is not supported in v2; use individual bool parameters instead |
+
+Emitted when component-model validation encounters a WIT `flags { ... }` type
+in a surface that only supports lowerable primitive and aggregate types.
+
+```wit
+interface example {
+    flags permissions { read, write }
+}
+```
+
 ---
 
 ## Name Resolution Errors — `E01xx`
@@ -776,6 +793,7 @@ one, please file a bug report.
 | E0001 | error | parse | unexpected token |
 | E0002 | error | parse | missing token |
 | E0003 | error | parse | invalid construct |
+| E0090 | error | backend-validate | WIT flags type is not supported in v2; use individual bool parameters instead |
 | E0100 | error | resolve | unresolved name |
 | E0101 | error | resolve | duplicate definition |
 | E0102 | error | resolve | access to private symbol |

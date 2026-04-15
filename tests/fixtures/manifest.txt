@@ -230,6 +230,7 @@ run:selfhost/typecheck_match_exhaustive.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 run:selfhost/typecheck_match_exhaustive.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
+run:t2/t2_scaffold.ark
 run:stdlib_bytes/bytes_basic.ark
 run:stdlib_bytes/bytes_helpers.ark
 run:stdlib_bytes/buf_basic.ark

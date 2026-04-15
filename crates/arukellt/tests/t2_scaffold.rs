@@ -36,7 +36,7 @@ fn t2_scaffold_emits_valid_core_wasm_for_empty_fixture() {
         .unwrap()
         .parent()
         .unwrap();
-    let fixture = workspace_root.join("tests/fixtures/regression/t2_scaffold.ark");
+    let fixture = workspace_root.join("tests/fixtures/t2/t2_scaffold.ark");
     let out_dir = tempfile::tempdir().expect("failed to create tempdir");
     let output_path = out_dir.path().join("t2_scaffold.wasm");
 
