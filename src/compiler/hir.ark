@@ -25,6 +25,7 @@ fn TY_STRUCT() -> i32 { 21 }
 fn TY_ENUM() -> i32 { 22 }
 fn TY_TUPLE() -> i32 { 23 }
 fn TY_TYPE_VAR() -> i32 { 30 }
+fn TY_TRAIT() -> i32 { 31 }
 
 // ── Type Representation ──────────────────────────────────────────────────────
 
@@ -84,6 +85,7 @@ fn type_name(ty: HirType) -> String {
     if ty.tag == TY_STRUCT() { return clone(ty.name) }
     if ty.tag == TY_ENUM() { return clone(ty.name) }
     if ty.tag == TY_TYPE_VAR() { return concat(String_from("?"), clone(ty.name)) }
+    if ty.tag == TY_TRAIT() { return clone(ty.name) }
     String_from("unknown")
 }
 
@@ -167,9 +169,53 @@ struct HirParam {
 struct HirFunction {
     name: String,
     params: Vec<HirParam>,
+    type_params: Vec<HirTypeParam>,
     return_type: HirType,
     body: HirNode,
     is_pub: bool,
+}
+
+struct HirTraitBound {
+    trait_ty: HirType,
+}
+
+fn HirTraitBound_new(trait_ty: HirType) -> HirTraitBound {
+    HirTraitBound { trait_ty: trait_ty }
+}
+
+struct HirTypeParam {
+    name: String,
+    bounds: Vec<HirTraitBound>,
+}
+
+fn HirTypeParam_new(name: String) -> HirTypeParam {
+    HirTypeParam {
+        name: name,
+        bounds: Vec_new_HirTraitBound(),
+    }
+}
+
+struct HirTraitDecl {
+    name: String,
+    methods: Vec<HirFunction>,
+    type_params: Vec<HirTypeParam>,
+    is_pub: bool,
+}
+
+struct HirImplBlock {
+    trait_ty: HirType,
+    self_ty: HirType,
+    methods: Vec<HirFunction>,
+    is_pub: bool,
+}
+
+fn HirImplBlock_new(trait_ty: HirType, self_ty: HirType) -> HirImplBlock {
+    HirImplBlock {
+        trait_ty: trait_ty,
+        self_ty: self_ty,
+        methods: Vec_new_HirFunction(),
+        is_pub: false,
+    }
 }
 
 // ── HIR Struct / Enum ────────────────────────────────────────────────────────
@@ -202,6 +248,8 @@ struct HirModule {
     functions: Vec<HirFunction>,
     structs: Vec<HirStructDef>,
     enums: Vec<HirEnumDef>,
+    traits: Vec<HirTraitDecl>,
+    impls: Vec<HirImplBlock>,
     imports: Vec<String>,
 }
 
@@ -210,8 +258,53 @@ fn HirModule_new() -> HirModule {
         functions: Vec_new_HirFunction(),
         structs: Vec_new_HirStructDef(),
         enums: Vec_new_HirEnumDef(),
+        traits: Vec_new_HirTraitDecl(),
+        impls: Vec_new_HirImplBlock(),
         imports: Vec_new_String(),
     }
+}
+
+pub fn issue504_hir_self_check() -> String {
+    let foo_trait = HirType_named(TY_TRAIT(), String_from("Foo"))
+    let self_ty = HirType_named(TY_STRUCT(), String_from("MyStruct"))
+
+    let type_param = HirTypeParam_new(String_from("T"))
+    push(type_param.bounds, HirTraitBound_new(foo_trait))
+
+    let func = HirFunction {
+        name: String_from("f"),
+        params: Vec_new_HirParam(),
+        type_params: Vec_new_HirTypeParam(),
+        return_type: HirType_simple(TY_UNIT()),
+        body: HirNode_new(HIR_BLOCK(), HirType_simple(TY_UNIT())),
+        is_pub: false,
+    }
+    push(func.type_params, type_param)
+
+    let impl_block = HirImplBlock_new(
+        HirType_named(TY_TRAIT(), String_from("Foo")),
+        self_ty,
+    )
+
+    let fn_param = get_unchecked(func.type_params, 0)
+    if len(fn_param.bounds) != 1 {
+        return String_from("issue504 hir fail: missing type param bound")
+    }
+    let bound = get_unchecked(fn_param.bounds, 0)
+    if !eq(clone(fn_param.name), String_from("T")) {
+        return String_from("issue504 hir fail: wrong type param")
+    }
+    if !eq(type_name(bound.trait_ty), String_from("Foo")) {
+        return String_from("issue504 hir fail: wrong bound")
+    }
+    if !eq(type_name(impl_block.trait_ty), String_from("Foo")) {
+        return String_from("issue504 hir fail: wrong impl trait")
+    }
+    if !eq(type_name(impl_block.self_ty), String_from("MyStruct")) {
+        return String_from("issue504 hir fail: wrong impl target")
+    }
+
+    String_from("issue504 hir ok: T bound Foo / impl Foo for MyStruct")
 }
 
 // ── HIR Dump ─────────────────────────────────────────────────────────────────
@@ -280,4 +373,5 @@ fn main() {
 
     dump_hir_node(stmt, 0)
     stdio::println(String_from("HIR module OK."))
+    stdio::println(issue504_hir_self_check())
 }

@@ -1,0 +1,15 @@
+use std::host::stdio
+
+struct MyStruct {}
+
+impl Foo for MyStruct {
+    fn value(x: MyStruct) -> i32 { 0 }
+}
+
+fn f<T: Foo>(x: T) -> T {
+    x
+}
+
+fn main() {
+    stdio::println(String_from("issue504 syntax ok"))
+}

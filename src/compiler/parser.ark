@@ -461,6 +461,38 @@ fn parse_type(p: Parser) -> AstNode {
     AstNode_leaf(NK_TYPE_NAMED(), String_from("_error"), tok_span(t))
 }
 
+fn parse_type_param(p: Parser) -> AstNode {
+    skip_newlines(p)
+    let gp = expect_token(p, TK_IDENT())
+    let param = AstNode_leaf(NK_TYPE_NAMED(), clone(gp.text), tok_span(gp))
+    skip_newlines(p)
+    if peek_kind(p) == TK_COLON() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let bound = parse_type(p)
+        push(param.type_ann, bound)
+    }
+    param
+}
+
+fn parse_generic_params(p: Parser, out: Vec<AstNode>) {
+    if peek_kind(p) != TK_LT() {
+        return
+    }
+
+    p.pos = p.pos + 1
+    let mut first = true
+    while !at(p, TK_GT()) && !at_eof(p) {
+        if !first { expect_token(p, TK_COMMA()) }
+        first = false
+        skip_newlines(p)
+        let param = parse_type_param(p)
+        push(out, param)
+        skip_newlines(p)
+    }
+    expect_token(p, TK_GT())
+}
+
 // ── Pattern Parsing ──────────────────────────────────────────────────────────
 
 fn parse_pattern(p: Parser) -> AstNode {
@@ -1144,20 +1176,8 @@ fn parse_fn_decl(p: Parser) -> AstNode {
     let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
 
-    // Generic params: <T, U>
-    if peek_kind(p) == TK_LT() {
-        p.pos = p.pos + 1
-        let mut first = true
-        while !at(p, TK_GT()) && !at_eof(p) {
-            if !first { expect_token(p, TK_COMMA()) }
-            first = false
-            skip_newlines(p)
-            let gp = expect_token(p, TK_IDENT())
-            let gpn = AstNode_leaf(NK_TYPE_NAMED(), clone(gp.text), tok_span(gp))
-            push(node.type_ann, gpn)
-        }
-        expect_token(p, TK_GT())
-    }
+    // Generic params: <T, U> and bounded params: <T: Foo>
+    parse_generic_params(p, node.type_ann)
 
     // Parameters
     expect_token(p, TK_LPAREN())
@@ -1203,19 +1223,7 @@ fn parse_struct_decl(p: Parser) -> AstNode {
     node.text = clone(name.text)
 
     // Generic params
-    if peek_kind(p) == TK_LT() {
-        p.pos = p.pos + 1
-        let mut first = true
-        while !at(p, TK_GT()) && !at_eof(p) {
-            if !first { expect_token(p, TK_COMMA()) }
-            first = false
-            skip_newlines(p)
-            let gp = expect_token(p, TK_IDENT())
-            let gpn = AstNode_leaf(NK_TYPE_NAMED(), clone(gp.text), tok_span(gp))
-            push(node.type_ann, gpn)
-        }
-        expect_token(p, TK_GT())
-    }
+    parse_generic_params(p, node.type_ann)
 
     skip_newlines(p)
     expect_token(p, TK_LBRACE())
@@ -1251,19 +1259,7 @@ fn parse_enum_decl(p: Parser) -> AstNode {
     node.text = clone(name.text)
 
     // Generic params
-    if peek_kind(p) == TK_LT() {
-        p.pos = p.pos + 1
-        let mut first = true
-        while !at(p, TK_GT()) && !at_eof(p) {
-            if !first { expect_token(p, TK_COMMA()) }
-            first = false
-            skip_newlines(p)
-            let gp = expect_token(p, TK_IDENT())
-            let gpn = AstNode_leaf(NK_TYPE_NAMED(), clone(gp.text), tok_span(gp))
-            push(node.type_ann, gpn)
-        }
-        expect_token(p, TK_GT())
-    }
+    parse_generic_params(p, node.type_ann)
 
     skip_newlines(p)
     expect_token(p, TK_LBRACE())
@@ -1319,8 +1315,16 @@ fn parse_trait_decl(p: Parser) -> AstNode {
 fn parse_impl_decl(p: Parser) -> AstNode {
     let t = expect_token(p, TK_IMPL())
     let node = AstNode_new(NK_IMPL_DECL(), tok_span(t))
-    let name = expect_token(p, TK_IDENT())
-    node.text = clone(name.text)
+    let impl_head = parse_type(p)
+    node.text = clone(impl_head.text)
+    push(node.type_ann, impl_head)
+    skip_newlines(p)
+    if peek_kind(p) == TK_FOR() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let target_ty = parse_type(p)
+        push(node.type_ann, target_ty)
+    }
     skip_newlines(p)
     expect_token(p, TK_LBRACE())
     skip_newlines(p)
@@ -1449,6 +1453,93 @@ pub fn print_ast(node: AstNode, depth: i32) {
     }
 }
 
+pub fn issue504_parser_self_check() -> String {
+    let tokens = Vec_new_Token()
+
+    // impl Foo for MyStruct { fn value(x: MyStruct) -> i32 { 0 } }
+    push(tokens, Token_new(TK_IMPL(), String_from("impl"), 0, 4))
+    push(tokens, Token_new(TK_IDENT(), String_from("Foo"), 5, 8))
+    push(tokens, Token_new(TK_FOR(), String_from("for"), 9, 12))
+    push(tokens, Token_new(TK_IDENT(), String_from("MyStruct"), 13, 21))
+    push(tokens, Token_new(TK_LBRACE(), String_from("{"), 22, 23))
+    push(tokens, Token_new(TK_FN(), String_from("fn"), 24, 26))
+    push(tokens, Token_new(TK_IDENT(), String_from("value"), 27, 32))
+    push(tokens, Token_new(TK_LPAREN(), String_from("("), 32, 33))
+    push(tokens, Token_new(TK_IDENT(), String_from("x"), 33, 34))
+    push(tokens, Token_new(TK_COLON(), String_from(":"), 34, 35))
+    push(tokens, Token_new(TK_IDENT(), String_from("MyStruct"), 36, 44))
+    push(tokens, Token_new(TK_RPAREN(), String_from(")"), 44, 45))
+    push(tokens, Token_new(TK_ARROW(), String_from("->"), 46, 48))
+    push(tokens, Token_new(TK_IDENT(), String_from("i32"), 49, 52))
+    push(tokens, Token_new(TK_LBRACE(), String_from("{"), 53, 54))
+    push(tokens, Token_new(TK_INT(), String_from("0"), 55, 56))
+    push(tokens, Token_new(TK_RBRACE(), String_from("}"), 57, 58))
+    push(tokens, Token_new(TK_RBRACE(), String_from("}"), 59, 60))
+
+    // fn f<T: Foo>(x: T) {}
+    push(tokens, Token_new(TK_FN(), String_from("fn"), 61, 63))
+    push(tokens, Token_new(TK_IDENT(), String_from("f"), 64, 65))
+    push(tokens, Token_new(TK_LT(), String_from("<"), 65, 66))
+    push(tokens, Token_new(TK_IDENT(), String_from("T"), 66, 67))
+    push(tokens, Token_new(TK_COLON(), String_from(":"), 67, 68))
+    push(tokens, Token_new(TK_IDENT(), String_from("Foo"), 69, 72))
+    push(tokens, Token_new(TK_GT(), String_from(">"), 72, 73))
+    push(tokens, Token_new(TK_LPAREN(), String_from("("), 73, 74))
+    push(tokens, Token_new(TK_IDENT(), String_from("x"), 74, 75))
+    push(tokens, Token_new(TK_COLON(), String_from(":"), 75, 76))
+    push(tokens, Token_new(TK_IDENT(), String_from("T"), 77, 78))
+    push(tokens, Token_new(TK_RPAREN(), String_from(")"), 78, 79))
+    push(tokens, Token_new(TK_LBRACE(), String_from("{"), 80, 81))
+    push(tokens, Token_new(TK_RBRACE(), String_from("}"), 82, 83))
+    push(tokens, Token_new(TK_EOF(), String_from(""), 83, 83))
+
+    let p = Parser_new(tokens)
+    let decls = parse_module(p)
+    if len(p.errors) != 0 {
+        return concat(String_from("issue504 parser fail: parse errors="), to_string(len(p.errors)))
+    }
+    if len(decls) != 2 {
+        return concat(String_from("issue504 parser fail: decl count="), to_string(len(decls)))
+    }
+
+    let impl_decl = get_unchecked(decls, 0)
+    if impl_decl.kind != NK_IMPL_DECL() {
+        return String_from("issue504 parser fail: expected impl decl")
+    }
+    if len(impl_decl.type_ann) != 2 {
+        return concat(String_from("issue504 parser fail: impl head count="), to_string(len(impl_decl.type_ann)))
+    }
+    let impl_trait = get_unchecked(impl_decl.type_ann, 0)
+    let impl_target = get_unchecked(impl_decl.type_ann, 1)
+    if !eq(clone(impl_trait.text), String_from("Foo")) {
+        return String_from("issue504 parser fail: impl trait")
+    }
+    if !eq(clone(impl_target.text), String_from("MyStruct")) {
+        return String_from("issue504 parser fail: impl target")
+    }
+
+    let fn_decl = get_unchecked(decls, 1)
+    if fn_decl.kind != NK_FN_DECL() {
+        return String_from("issue504 parser fail: expected fn decl")
+    }
+    if len(fn_decl.type_ann) == 0 {
+        return String_from("issue504 parser fail: missing type params")
+    }
+    let type_param = get_unchecked(fn_decl.type_ann, 0)
+    if !eq(clone(type_param.text), String_from("T")) {
+        return String_from("issue504 parser fail: type param name")
+    }
+    if len(type_param.type_ann) != 1 {
+        return String_from("issue504 parser fail: missing type param bound")
+    }
+    let bound = get_unchecked(type_param.type_ann, 0)
+    if !eq(clone(bound.text), String_from("Foo")) {
+        return String_from("issue504 parser fail: wrong bound")
+    }
+
+    String_from("issue504 parser ok: impl Foo for MyStruct / fn f<T: Foo>(x: T)")
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
@@ -1490,4 +1581,5 @@ fn main() {
     } else {
         stdio::println(String_from("No parse errors."))
     }
+    stdio::println(issue504_parser_self_check())
 }
