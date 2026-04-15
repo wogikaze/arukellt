@@ -26,6 +26,30 @@ Issue #503 now provides predecessor lists, immediate-dominator state, and
 dominance-frontier data in `src/compiler/mir.ark`. This issue can proceed to the
 remaining SSA-specific work: phi-node representation, insertion, and renaming.
 
+## Partial slice note — 2026-04-15
+
+Wave 1 landed commit `9562861cee996e66ce68bf5cb224b5df70740317`, which added:
+
+- `MIR_PHI` tag support in selfhost MIR
+- `MirPhiArg` / `MirPhi` data structures and block-attached phi storage
+- MIR dump visibility for phi nodes
+- a focused smoke fixture proving phi representation is expressible and visible
+
+This issue remains open because phi insertion at dominance frontiers and SSA
+renaming are still outstanding.
+
+## Partial slice note — 2026-04-15 (Wave 2)
+
+Wave 2 landed commit `4a3eee2aa6b4106c16c26371a3bde2db1ccd8ba5`, which added:
+
+- a focused simple-join phi insertion helper using the existing predecessor /
+	dominance metadata
+- a dedicated smoke fixture for diamond-CFG phi insertion
+
+This issue remains open because full SSA renaming and broader pipeline-wide SSA
+formation are still outstanding, but the phi insertion path now exists for the
+minimal join case.
+
 ## Primary paths
 
 - `src/compiler/`
