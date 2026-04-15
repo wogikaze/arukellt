@@ -165,12 +165,14 @@ v2 (Component Model) implementation is complete as of 2026-03-28.
 1. ✅ **Component emit**: `--emit component` produces `.component.wasm` outputs on the supported `wasm32-wasi-p2` path.
 2. ✅ **WIT generation**: `--emit wit` generates WIT for the supported export surface.
 3. ✅ **CLI integration**: `--wit <path>`, `--emit component`, and `--emit all` are wired into the CLI.
+  WIT-imported functions are accepted as callable host imports during component compilation.
 4. ✅ **Current export behavior**: non-exportable functions surface `W0005` warnings.
 5. ✅ **No regression to core Wasm paths**: T1/T3 core Wasm flows remain available.
 
 ### Known v2 carry-over limitations
 
 - `--emit component` requires external `wasm-tools` and a WASI adapter module
+- Component output is still T3-only: use `--target wasm32-wasi-p2` for `--emit component`, `--emit wit`, and `--emit all`
 - string/list/complex canonical ABI lift-lower coverage is not complete for every case
 - async Component Model features are not supported
 - jco browser-facing flow remains blocked upstream (`issues/blocked/037`)

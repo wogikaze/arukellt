@@ -47,6 +47,41 @@ interface host-fns {{
 }
 
 #[test]
+fn wit_imported_call_compiles_through_frontend() {
+    let mut tmpfile = tempfile::NamedTempFile::new().expect("tempfile creation failed");
+    writeln!(
+        tmpfile,
+        r#"package test:host;
+
+interface host-fns {{
+    add: func(a: s32, b: s32) -> s32;
+}}"#
+    )
+    .expect("write wit failed");
+    let wit_path = tmpfile.path().to_path_buf();
+
+    let mut src_tmp = tempfile::NamedTempFile::with_suffix(".ark").expect("tempfile ark failed");
+    writeln!(
+        src_tmp,
+        "fn main() {{\n    add(1, 2)\n}}"
+    )
+    .expect("write ark failed");
+    let src_path = src_tmp.path().to_path_buf();
+
+    let mut session = Session::new();
+    session.wit_files = vec![wit_path];
+
+    let compiled = session
+        .compile_selected(&src_path, TargetId::Wasm32WasiP2, MirSelection::CoreHir)
+        .expect("compilation with a WIT-imported call should succeed");
+
+    assert!(
+        compiled.mir.imports.iter().any(|import| import.name == "add"),
+        "mir.imports should include the called WIT import"
+    );
+}
+
+#[test]
 fn inject_wit_externs_adds_symbols() {
     use ark_resolve::{SymbolKind, SymbolTable, inject_wit_externs};
 

@@ -17,6 +17,23 @@ fn main() {
 arukellt run hello.ark
 ```
 
+## Component Build
+
+WIT / Component Model output is available on the T3 target.
+
+```bash
+arukellt compile --target wasm32-wasi-p2 --emit wit hello.ark
+arukellt compile --target wasm32-wasi-p2 --emit component hello.ark
+```
+
+To bind host imports from external WIT, pass one or more `--wit` files:
+
+```bash
+arukellt compile --target wasm32-wasi-p2 --emit component app.ark --wit host.wit
+```
+
+`--emit all` produces both `app.wasm` and `app.component.wasm`.
+
 ## 基本型
 
 <!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->

@@ -600,8 +600,8 @@ pub(crate) fn cmd_compile(
     session.timing_enabled = time || json;
     session.opt_level = opt_level;
     session.strip_debug = strip_debug;
-    session.disabled_passes = no_pass;
-    session.wit_files = wit_files;
+    session.disabled_passes = no_pass.clone();
+    session.wit_files = wit_files.clone();
     let selection = parse_mir_select(mir_select);
 
     if json {
@@ -670,7 +670,12 @@ pub(crate) fn cmd_compile(
                 }
                 // Also generate component
                 let mut comp_session = Session::new();
+                comp_session.timing_enabled = time;
+                comp_session.opt_level = opt_level;
+                comp_session.strip_debug = strip_debug;
+                comp_session.disabled_passes = no_pass.clone();
                 comp_session.p2_native = p2_native;
+                comp_session.wit_files = wit_files.clone();
                 match comp_session.compile_component_with_world(&file, target, world_spec) {
                     Ok(component) => {
                         let comp_output = file.with_extension("component.wasm");

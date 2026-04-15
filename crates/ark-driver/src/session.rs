@@ -20,7 +20,7 @@ use ark_parser::{ast, parse};
 use ark_resolve::resolved_program_entry;
 use ark_resolve::{ResolvedModule, ResolvedProgram};
 use ark_target::{EmitKind, TargetId, WasiVersion, build_backend_plan};
-use ark_typecheck::{CheckOutput, TypeChecker};
+use ark_typecheck::{CheckOutput, Type, TypeChecker};
 
 use crate::pipeline::{
     AnalyzeArtifact, ArtifactStore, BoundArtifact, CoreHirArtifact, LoadArtifact, PhaseKey,
@@ -233,6 +233,52 @@ fn ensure_runtime_entry(module: &MirModule, selection: MirSelection) -> Result<(
         ))
     } else {
         Ok(())
+    }
+}
+
+fn checker_type_from_wit_type(ty: &ark_wasm::component::WitType) -> Type {
+    match ty {
+        ark_wasm::component::WitType::U8 => Type::U8,
+        ark_wasm::component::WitType::U16 => Type::U16,
+        ark_wasm::component::WitType::U32 => Type::U32,
+        ark_wasm::component::WitType::U64 => Type::U64,
+        ark_wasm::component::WitType::S8 => Type::I8,
+        ark_wasm::component::WitType::S16 => Type::I16,
+        ark_wasm::component::WitType::S32 => Type::I32,
+        ark_wasm::component::WitType::S64 => Type::I64,
+        ark_wasm::component::WitType::F32 => Type::F32,
+        ark_wasm::component::WitType::F64 => Type::F64,
+        ark_wasm::component::WitType::Bool => Type::Bool,
+        ark_wasm::component::WitType::Char => Type::Char,
+        ark_wasm::component::WitType::StringType => Type::String,
+        ark_wasm::component::WitType::Flags(_) => Type::I32,
+        ark_wasm::component::WitType::List(inner) => {
+            Type::Vec(Box::new(checker_type_from_wit_type(inner)))
+        }
+        ark_wasm::component::WitType::Option(inner) => {
+            Type::Option(Box::new(checker_type_from_wit_type(inner)))
+        }
+        ark_wasm::component::WitType::Result { ok, err } => Type::Result(
+            Box::new(
+                ok.as_deref()
+                    .map(checker_type_from_wit_type)
+                    .unwrap_or(Type::Unit),
+            ),
+            Box::new(
+                err.as_deref()
+                    .map(checker_type_from_wit_type)
+                    .unwrap_or(Type::Unit),
+            ),
+        ),
+        ark_wasm::component::WitType::Tuple(items) => {
+            Type::Tuple(items.iter().map(checker_type_from_wit_type).collect())
+        }
+        ark_wasm::component::WitType::Record(_)
+        | ark_wasm::component::WitType::Enum(_)
+        | ark_wasm::component::WitType::Variant(_)
+        | ark_wasm::component::WitType::Resource(_)
+        | ark_wasm::component::WitType::Own(_)
+        | ark_wasm::component::WitType::Borrow(_) => Type::I32,
     }
 }
 
@@ -475,11 +521,14 @@ impl Session {
         // Inject WIT-imported function names into the symbol table so the
         // type-checker does not reject calls to them as undefined symbols.
         if !self.wit_files.is_empty() {
-            let wit_names = self.collect_wit_extern_names();
+            let wit_functions = self.collect_wit_extern_functions();
             inject_wit_externs(
                 &mut resolved.symbols,
                 resolved.global_scope,
-                &wit_names.iter().map(|s| s.as_str()).collect::<Vec<_>>(),
+                &wit_functions
+                    .iter()
+                    .map(|(name, _, _)| name.as_str())
+                    .collect::<Vec<_>>(),
             );
         }
 
@@ -499,6 +548,11 @@ impl Session {
         let t_tc = std::time::Instant::now();
         let mut checker = TypeChecker::new();
         checker.register_builtins();
+        if !self.wit_files.is_empty() {
+            for (name, params, ret) in self.collect_wit_extern_functions() {
+                checker.register_extern_function(name, params, ret);
+            }
+        }
         // Run CoreHIR typecheck into an isolated sink so that E0200 CoreHIR
         // structural validation failures don't abort the legacy lowering path.
         let mut corehir_sink = DiagnosticSink::new();
@@ -623,25 +677,34 @@ impl Session {
         })
     }
 
-    /// Collect all function names exported by the configured WIT files.
+    /// Collect WIT-imported functions declared by the configured WIT files.
     ///
-    /// Used to inject extern names into the resolver symbol table before the
-    /// type-checker runs. Silent on IO / parse errors — a malformed WIT file
-    /// will produce a diagnostic later via `preflight_wit_flags_for_component`.
-    fn collect_wit_extern_names(&self) -> Vec<String> {
-        let mut names = Vec::new();
+    /// Silent on IO / parse errors — malformed WIT files are rejected earlier
+    /// by the CLI preflight before the driver runs.
+    fn collect_wit_extern_functions(&self) -> Vec<(String, Vec<Type>, Type)> {
+        let mut functions = Vec::new();
         for wit_path in &self.wit_files {
             if let Ok(text) = std::fs::read_to_string(wit_path) {
                 if let Ok(doc) = ark_wasm::component::parse_wit(&text) {
                     for iface in &doc.interfaces {
                         for func in &iface.functions {
-                            names.push(func.name.clone());
+                            functions.push((
+                                func.name.clone(),
+                                func.params
+                                    .iter()
+                                    .map(|(_, ty)| checker_type_from_wit_type(ty))
+                                    .collect(),
+                                func.result
+                                    .as_ref()
+                                    .map(checker_type_from_wit_type)
+                                    .unwrap_or(Type::Unit),
+                            ));
                         }
                     }
                 }
             }
         }
-        names
+        functions
     }
 
     pub fn check(&mut self, path: &Path) -> Result<(), String> {

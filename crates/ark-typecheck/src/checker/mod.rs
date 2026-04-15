@@ -189,6 +189,19 @@ impl SemanticModel {
 }
 
 impl TypeChecker {
+    pub fn register_extern_function(&mut self, name: String, params: Vec<Type>, ret: Type) {
+        self.fn_sigs.insert(
+            name.clone(),
+            FnSig {
+                name,
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params,
+                ret,
+            },
+        );
+    }
+
     pub fn latest_core_hir(&self) -> Option<&CoreHirBundle> {
         self.latest_core_hir.as_ref()
     }
