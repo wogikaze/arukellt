@@ -52,6 +52,20 @@ The issue still remains open because the issue-level close gate has not yet been
 raised to a repo-wide green proof (`bash scripts/run/verify-harness.sh --quick`)
 and the acceptance text still expects the T2 path to be fully reflected there.
 
+Wave 3 landed commit `58688e16e3b80083eec7228caed0a06e943f54d0`, which added
+repo-visible proof/alignment on top of the existing scaffold:
+
+- `crates/ark-target/src/lib.rs` now marks `wasm32-freestanding` as implemented
+  with `run_supported: false`
+- `docs/target-contract.md` now describes the T2 scaffold using the current repo
+  proof surface instead of "not started"
+- `crates/arukellt/tests/t2_scaffold.rs` now proves the CLI/test entrypoint,
+  validates the emitted module with `wasmparser`, and checks the scaffold shape
+
+This issue remains open because the remaining acceptance still expects the T2
+emitter to be normalized into the issue's declared file/fixture layout before
+close review.
+
 ## Current state
 
 - `crates/ark-target/src/lib.rs`: `wasm32-freestanding` registered, `implemented: false`

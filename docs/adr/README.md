@@ -21,6 +21,7 @@
 | [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI の上限 | Archive | ステータス: DECIDED |
 | [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | Archive | ステータス: DECIDED |
 | [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | Archive | ステータス: DECIDED |
+| [ADR-008-wasm-gc-post-mvp.md](ADR-008-wasm-gc-post-mvp.md) | ADR-008: WasmGC Post-MVP 拡張機能 — 設計調査と Arukellt v5 評価 | Archive | ステータス: SURVEY (v4 では実装しない; v5 設計判断の参考資料) |
 | [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | Archive | Status: DECIDED |
 | [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | Archive | ステータス: DECIDED |
 | [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | Archive | ステータス: DECIDED |

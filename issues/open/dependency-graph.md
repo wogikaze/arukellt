@@ -10,7 +10,6 @@ graph LR
   I032["032 WIT resource type support (own/borrow)"]
   I036["036 jco JavaScript interop smoke test"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
-  I072["072 Wasm Multi-Value: ブロック / ループの複数値返却フル活用"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I094["094 T3: enum dispatch の br_on_cast 連鎖最適化"]
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
@@ -85,7 +84,6 @@ graph LR
 - **032** depends on: 030; blocks: 473
 - **036** depends on: 033; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
-- **072** depends on: none; blocks: none
 - **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476, 510
 - **094** depends on: none; blocks: none
 - **095** depends on: none; blocks: none

@@ -144,6 +144,22 @@ recorded in ADR-024: the MIR pipeline must first expose an explicit CFG with
 predecessors and dominance-frontier support, then #494 can build SSA on top of
 that graph.
 
+## Partial slice note — 2026-04-15
+
+Wave 1 landed commit `cecc3c64090142cc6bcf968d5896a0a21950cd4b`, which added:
+
+- `preds: Vec<i32>` storage on `MirBlock`
+- deterministic predecessor rebuilding from `succ0` / `succ1`
+- a focused smoke fixture for predecessor computation
+
+This issue remains open because the slice completed only the predecessor
+infrastructure groundwork. Full explicit CFG lowering, dominance, and phi-node
+support are still outstanding.
+
+Parent follow-up sync regenerated issue metadata, refreshed generated docs, and
+registered the new fixture in `tests/fixtures/manifest.txt`; after that,
+`bash scripts/run/verify-harness.sh --quick` passed again on the updated tree.
+
 ---
 
 ## References
