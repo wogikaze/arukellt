@@ -16,7 +16,7 @@ matrix job.  See `.github/workflows/ci.yml`.
 |-------|---------|
 | **guaranteed** | Runs in CI on every push/PR.  Failure blocks merge. |
 | **smoke** | Runs in CI but failure is non-blocking, or opt-in flag. |
-| **scaffold** | Code exists but is not wired into any automated check. |
+| **scaffold** | Code exists with targeted proof for shape or validation, but it is not part of the broad target-behavior guarantee tier. |
 | **none** | No implementation or test infrastructure exists. |
 
 ## Target × Verification Surface
@@ -54,11 +54,13 @@ matrix job.  See `.github/workflows/ci.yml`.
 
 **Status: scaffold**
 
-T2 now has a minimal emitter scaffold in `crates/ark-wasm`.  It produces a
+T2 now has a minimal emitter scaffold in `crates/ark-wasm`. It produces a
 structurally valid core Wasm module for the freestanding target, exports
-`"memory"` and `"_start"`, and passes wasmparser validation on the dedicated
-regression fixture.  It does **not** implement real MIR lowering yet and does
-not imply browser/runtime execution support.
+`"memory"` and `"_start"`, and passes `wasmparser` validation through the
+dedicated proof in `cargo test -p arukellt --test t2_scaffold -- --nocapture`.
+That test drives the CLI with `--target wasm32-freestanding` against
+`tests/fixtures/regression/t2_scaffold.ark`. It does **not** implement real
+MIR lowering yet and does not imply browser/runtime execution support.
 
 The I/O surface design is still the long-term contract from [ADR-020](adr/ADR-020-t2-io-surface.md),
 but the current scaffold does not wire that host bridge yet.
@@ -69,8 +71,9 @@ not require T2 and is not blocked on it (see ADR-017).
 | Surface | Status | Detail |
 |---------|--------|--------|
 | I/O surface | ADR written | ADR-020 defines the long-term `arukellt_io.write`/`flush` contract |
-| codegen | scaffold | Minimal core Wasm scaffold exists; no real MIR lowering yet |
-| all other | none | No runtime/browser execution support yet |
+| compile (core Wasm) | scaffold | `cargo test -p arukellt --test t2_scaffold -- --nocapture` compiles `--target wasm32-freestanding` and validates the emitted module |
+| run | none | No runtime/browser execution support yet |
+| validator pass | scaffold | Dedicated `t2_scaffold` proof runs `wasmparser::Validator::validate_all` on emitted output |
 
 ### T4 — native (LLVM backend)
 

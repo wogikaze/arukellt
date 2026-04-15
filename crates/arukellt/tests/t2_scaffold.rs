@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use ark_target::TargetId;
 use wasmparser::{ExternalKind, Parser, Payload, Validator};
 
 fn arukellt_bin() -> PathBuf {
@@ -20,6 +21,16 @@ fn arukellt_bin() -> PathBuf {
 
 #[test]
 fn t2_scaffold_emits_valid_core_wasm_for_empty_fixture() {
+    let profile = TargetId::Wasm32Freestanding.profile();
+    assert!(
+        profile.implemented,
+        "wasm32-freestanding should remain exposed as an implemented compile-only target"
+    );
+    assert!(
+        !profile.run_supported,
+        "wasm32-freestanding scaffold must stay compile-only until runtime wiring exists"
+    );
+
     let workspace_root = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()

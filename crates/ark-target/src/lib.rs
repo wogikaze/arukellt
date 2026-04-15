@@ -19,9 +19,11 @@ pub enum TargetId {
     /// T1: Linear memory + WASI Preview 1 (AtCoder target)
     #[default]
     Wasm32WasiP1,
-    /// T2: Wasm GC, no WASI (compile-only scaffold)
-    /// STATUS: scaffold — a minimal core-Wasm emitter exists, but run support
-    /// remains false and the target is not a browser runtime.
+    /// T2: Wasm GC, no WASI (validated compile-only scaffold)
+    /// STATUS: implemented, compile only — a minimal core-Wasm emitter exists,
+    /// the CLI/test surface exercises `--target wasm32-freestanding`, and the
+    /// emitted module is validated in `crates/arukellt/tests/t2_scaffold.rs`.
+    /// Run support remains false and this does not imply browser wiring.
     /// See docs/target-contract.md § T2 for the current scaffold scope.
     Wasm32Freestanding,
     /// T3: Wasm GC + WASI Preview 2 + Component Model (canonical target)
