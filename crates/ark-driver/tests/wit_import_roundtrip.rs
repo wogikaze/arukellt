@@ -61,11 +61,7 @@ interface host-fns {{
     let wit_path = tmpfile.path().to_path_buf();
 
     let mut src_tmp = tempfile::NamedTempFile::with_suffix(".ark").expect("tempfile ark failed");
-    writeln!(
-        src_tmp,
-        "fn main() {{\n    add(1, 2)\n}}"
-    )
-    .expect("write ark failed");
+    writeln!(src_tmp, "fn main() {{\n    add(1, 2)\n}}").expect("write ark failed");
     let src_path = src_tmp.path().to_path_buf();
 
     let mut session = Session::new();
@@ -76,7 +72,11 @@ interface host-fns {{
         .expect("compilation with a WIT-imported call should succeed");
 
     assert!(
-        compiled.mir.imports.iter().any(|import| import.name == "add"),
+        compiled
+            .mir
+            .imports
+            .iter()
+            .any(|import| import.name == "add"),
         "mir.imports should include the called WIT import"
     );
 }

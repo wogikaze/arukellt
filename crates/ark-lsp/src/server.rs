@@ -509,7 +509,10 @@ impl ArukellBackend {
             ]
         } else {
             let rel = remainder.join("/");
-            vec![src_dir.join(format!("{}.ark", rel)), src_dir.join(rel).join("mod.ark")]
+            vec![
+                src_dir.join(format!("{}.ark", rel)),
+                src_dir.join(rel).join("mod.ark"),
+            ]
         };
 
         candidates.into_iter().find(|path| path.exists())
@@ -528,7 +531,9 @@ impl ArukellBackend {
         }
 
         let rel = module_name.replace("::", "/");
-        let parent = current_path.parent().unwrap_or_else(|| std::path::Path::new("."));
+        let parent = current_path
+            .parent()
+            .unwrap_or_else(|| std::path::Path::new("."));
         let local_file = parent.join(format!("{}.ark", rel));
         if local_file.exists() {
             return Some(local_file);
@@ -2117,10 +2122,7 @@ impl ArukellBackend {
             .and_then(|expr| Self::find_qualified_reference_in_expr(expr, offset))
     }
 
-    fn find_qualified_reference_in_stmt(
-        stmt: &ast::Stmt,
-        offset: u32,
-    ) -> Option<(String, String)> {
+    fn find_qualified_reference_in_stmt(stmt: &ast::Stmt, offset: u32) -> Option<(String, String)> {
         match stmt {
             ast::Stmt::Let { init, span, .. } => {
                 if span.start > offset || offset > span.end {
@@ -2147,39 +2149,33 @@ impl ArukellBackend {
         }
     }
 
-    fn find_qualified_reference_in_expr(
-        expr: &ast::Expr,
-        offset: u32,
-    ) -> Option<(String, String)> {
+    fn find_qualified_reference_in_expr(expr: &ast::Expr, offset: u32) -> Option<(String, String)> {
         let span = expr.span();
         if span.start > offset || offset > span.end {
             return None;
         }
 
         match expr {
-            ast::Expr::QualifiedIdent { module, name, .. } => {
-                Some((module.clone(), name.clone()))
+            ast::Expr::QualifiedIdent { module, name, .. } => Some((module.clone(), name.clone())),
+            ast::Expr::Call { callee, args, .. } => {
+                Self::find_qualified_reference_in_expr(callee, offset).or_else(|| {
+                    args.iter()
+                        .find_map(|arg| Self::find_qualified_reference_in_expr(arg, offset))
+                })
             }
-            ast::Expr::Call { callee, args, .. } => Self::find_qualified_reference_in_expr(
-                callee, offset,
-            )
-            .or_else(|| {
-                args.iter()
-                    .find_map(|arg| Self::find_qualified_reference_in_expr(arg, offset))
-            }),
-            ast::Expr::Binary { left, right, .. } => Self::find_qualified_reference_in_expr(
-                left, offset,
-            )
-            .or_else(|| Self::find_qualified_reference_in_expr(right, offset)),
+            ast::Expr::Binary { left, right, .. } => {
+                Self::find_qualified_reference_in_expr(left, offset)
+                    .or_else(|| Self::find_qualified_reference_in_expr(right, offset))
+            }
             ast::Expr::Unary { operand, .. }
             | ast::Expr::Try { expr: operand, .. }
-            | ast::Expr::FieldAccess { object: operand, .. } => {
-                Self::find_qualified_reference_in_expr(operand, offset)
+            | ast::Expr::FieldAccess {
+                object: operand, ..
+            } => Self::find_qualified_reference_in_expr(operand, offset),
+            ast::Expr::Index { object, index, .. } => {
+                Self::find_qualified_reference_in_expr(object, offset)
+                    .or_else(|| Self::find_qualified_reference_in_expr(index, offset))
             }
-            ast::Expr::Index { object, index, .. } => Self::find_qualified_reference_in_expr(
-                object, offset,
-            )
-            .or_else(|| Self::find_qualified_reference_in_expr(index, offset)),
             ast::Expr::If {
                 cond,
                 then_block,
@@ -4712,7 +4708,8 @@ impl LanguageServer for ArukellBackend {
                 &module_name,
                 std_root.as_deref(),
                 &package_sources,
-            ) && let Some(location) = Self::definition_location_in_file(&target_path, &qualified_name)
+            ) && let Some(location) =
+                Self::definition_location_in_file(&target_path, &qualified_name)
             {
                 return Ok(Some(GotoDefinitionResponse::Scalar(location)));
             }

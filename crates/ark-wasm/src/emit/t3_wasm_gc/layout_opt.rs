@@ -439,6 +439,9 @@ mod tests {
         ]);
 
         let remap = compute_field_reorder(&mir, &[0], &mir.type_table.struct_defs);
-        assert!(remap.is_empty(), "equal-frequency fields should keep definition order");
+        assert!(
+            remap.is_empty(),
+            "equal-frequency fields should keep definition order"
+        );
     }
 }

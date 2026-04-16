@@ -219,14 +219,7 @@ pub(crate) fn bind_module_with_qualifier_filtered(
     sink: &mut DiagnosticSink,
     item_filter: &dyn Fn(&ast::Item) -> bool,
 ) {
-    bind_module_with_qualifier_impl(
-        module,
-        symbols,
-        scope,
-        qualifier,
-        sink,
-        Some(item_filter),
-    );
+    bind_module_with_qualifier_impl(module, symbols, scope, qualifier, sink, Some(item_filter));
 }
 
 fn bind_module_with_qualifier_impl(

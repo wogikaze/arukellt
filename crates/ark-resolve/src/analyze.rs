@@ -106,13 +106,9 @@ pub(crate) fn analyze_program(
     inject_prelude_symbols(&mut symbols, global_scope);
 
     if let Some(ref r) = reach {
-        bind_module_filtered(
-            &entry_module,
-            &mut symbols,
-            global_scope,
-            sink,
-            &|item| r.include_entry_item(item),
-        );
+        bind_module_filtered(&entry_module, &mut symbols, global_scope, sink, &|item| {
+            r.include_entry_item(item)
+        });
     } else {
         bind_module(&entry_module, &mut symbols, global_scope, sink);
     }
@@ -121,13 +117,9 @@ pub(crate) fn analyze_program(
             if !r.needed_modules.contains(&loaded.name) {
                 continue;
             }
-            bind_module_skip_dup_filtered(
-                &loaded.ast,
-                &mut symbols,
-                global_scope,
-                sink,
-                &|item| r.include_loaded_item(&loaded.name, item),
-            );
+            bind_module_skip_dup_filtered(&loaded.ast, &mut symbols, global_scope, sink, &|item| {
+                r.include_loaded_item(&loaded.name, item)
+            });
             bind_module_with_qualifier_filtered(
                 &loaded.ast,
                 &mut symbols,
@@ -249,14 +241,18 @@ mod tests {
                 lazy_reachability: true,
             },
         );
-        assert!(resolved
-            .symbols
-            .lookup(resolved.global_scope, "used")
-            .is_some());
-        assert!(resolved
-            .symbols
-            .lookup(resolved.global_scope, "unused")
-            .is_none());
+        assert!(
+            resolved
+                .symbols
+                .lookup(resolved.global_scope, "used")
+                .is_some()
+        );
+        assert!(
+            resolved
+                .symbols
+                .lookup(resolved.global_scope, "unused")
+                .is_none()
+        );
     }
 
     #[test]

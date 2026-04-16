@@ -10,9 +10,7 @@
 
 use std::collections::{HashMap, HashSet, VecDeque};
 
-use ark_parser::ast::{
-    self, Block, Expr, ForIter, Item, MatchArm, Pattern, Stmt, TypeExpr,
-};
+use ark_parser::ast::{self, Block, Expr, ForIter, Item, MatchArm, Pattern, Stmt, TypeExpr};
 
 use crate::module_graph::ModuleGraph;
 use crate::resolve::LoadedModule;
@@ -183,7 +181,10 @@ fn fn_named<'a>(module: &'a ast::Module, name: &str) -> Option<&'a ast::FnDef> {
 }
 
 fn top_level_fn_named(module: &ast::Module, name: &str) -> bool {
-    module.items.iter().any(|i| matches!(i, Item::FnDef(f) if f.name == name))
+    module
+        .items
+        .iter()
+        .any(|i| matches!(i, Item::FnDef(f) if f.name == name))
 }
 
 fn type_named(module: &ast::Module, name: &str) -> bool {
@@ -281,10 +282,7 @@ fn scan_block(
     for st in &block.stmts {
         match st {
             Stmt::Let {
-                ty,
-                init,
-                pattern,
-                ..
+                ty, init, pattern, ..
             } => {
                 if let Some(ty) = ty {
                     record_type(ty, slot, entry, loaded_by_name, entry_types, loaded_types);
@@ -406,7 +404,13 @@ fn scan_pattern_bindings(
     match p {
         Pattern::Tuple { elements, .. } => {
             for sub in elements {
-                scan_pattern_bindings(&Some(sub.clone()), entry, loaded_by_name, entry_types, loaded_types);
+                scan_pattern_bindings(
+                    &Some(sub.clone()),
+                    entry,
+                    loaded_by_name,
+                    entry_types,
+                    loaded_types,
+                );
             }
         }
         Pattern::Struct { name, .. } => {
@@ -483,10 +487,7 @@ fn scan_expr(
             }
         }
         Expr::StructInit {
-            name,
-            fields,
-            base,
-            ..
+            name, fields, base, ..
         } => {
             record_named_type(name, slot, entry, loaded_by_name, entry_types, loaded_types);
             if let Some(b) = base {
@@ -606,7 +607,9 @@ fn scan_expr(
                 );
             }
         }
-        Expr::Match { scrutinee, arms, .. } => {
+        Expr::Match {
+            scrutinee, arms, ..
+        } => {
             scan_expr(
                 scrutinee,
                 slot,
@@ -623,7 +626,13 @@ fn scan_expr(
                 ..
             } in arms
             {
-                scan_pattern_bindings(&Some(pattern.clone()), entry, loaded_by_name, entry_types, loaded_types);
+                scan_pattern_bindings(
+                    &Some(pattern.clone()),
+                    entry,
+                    loaded_by_name,
+                    entry_types,
+                    loaded_types,
+                );
                 if let Some(g) = guard {
                     scan_expr(
                         g,
@@ -858,10 +867,7 @@ mod tests {
         let lib = ast::Module {
             docs: vec![],
             imports: vec![],
-            items: vec![
-                empty_fn("f", empty_block()),
-                empty_fn("g", empty_block()),
-            ],
+            items: vec![empty_fn("f", empty_block()), empty_fn("g", empty_block())],
         };
         let mut loaded_map = HashMap::new();
         let p = PathBuf::from("/tmp/lib.ark");
@@ -880,8 +886,14 @@ mod tests {
         };
         let loaded: Vec<LoadedModule> = graph.loaded.values().cloned().collect();
         let r = compute_reachability(&graph, &loaded);
-        assert!(r.loaded_fns.contains(&(String::from("lib"), String::from("f"))));
-        assert!(!r.loaded_fns.contains(&(String::from("lib"), String::from("g"))));
+        assert!(
+            r.loaded_fns
+                .contains(&(String::from("lib"), String::from("f")))
+        );
+        assert!(
+            !r.loaded_fns
+                .contains(&(String::from("lib"), String::from("g")))
+        );
         assert!(r.needed_modules.contains("lib"));
     }
 

@@ -368,9 +368,7 @@ impl Ctx {
 
     fn stmt_uses_fd_seek(stmt: &MirStmt) -> bool {
         match stmt {
-            MirStmt::CallBuiltin { name, .. } => {
-                name == "fd_seek" || name == "__intrinsic_fd_seek"
-            }
+            MirStmt::CallBuiltin { name, .. } => name == "fd_seek" || name == "__intrinsic_fd_seek",
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_fd_seek(rvalue),
             MirStmt::IfStmt {
                 cond,
@@ -437,9 +435,7 @@ impl Ctx {
 
     fn stmt_uses_fd_tell(stmt: &MirStmt) -> bool {
         match stmt {
-            MirStmt::CallBuiltin { name, .. } => {
-                name == "fd_tell" || name == "__intrinsic_fd_tell"
-            }
+            MirStmt::CallBuiltin { name, .. } => name == "fd_tell" || name == "__intrinsic_fd_tell",
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_fd_tell(rvalue),
             MirStmt::IfStmt {
                 cond,

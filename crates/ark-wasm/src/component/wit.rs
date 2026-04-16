@@ -1032,9 +1032,8 @@ mod tests {
 
     #[test]
     fn test_wit_accuracy_world_command() {
-        let expected = include_str!(
-            "../../../../tests/fixtures/component/world_command.expected.wit"
-        );
+        let expected =
+            include_str!("../../../../tests/fixtures/component/world_command.expected.wit");
         let spec = parse_world_spec("wasi:cli/command").unwrap();
         let world = WitWorld {
             name: spec.world_name.clone(),

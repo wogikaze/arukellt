@@ -216,8 +216,7 @@ fn load_module_recursive<F>(
     target: Option<TargetId>,
     registry: Option<&RegistryConfig>,
     parse_module: &mut F,
-)
-where
+) where
     F: FnMut(&Path, &mut DiagnosticSink) -> Result<ast::Module, String>,
 {
     // Skip sentinel paths — errors were already emitted upstream.
@@ -301,8 +300,7 @@ fn load_single_import<F>(
     target: Option<TargetId>,
     registry: Option<&RegistryConfig>,
     parse_module: &mut F,
-)
-where
+) where
     F: FnMut(&Path, &mut DiagnosticSink) -> Result<ast::Module, String>,
 {
     match &import.kind {
