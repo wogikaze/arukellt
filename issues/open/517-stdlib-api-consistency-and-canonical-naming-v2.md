@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-04-15
-**Updated**: 2026-04-16
+**Updated**: 2026-04-16 (impl-stdlib #517 slice: env/text inventory + triage)
 **ID**: 517
 **Depends on**: none
 **Track**: stdlib
@@ -31,26 +31,50 @@ canonical naming と alias/deprecation 計画を更新する。
 - **補助 API**: `*_or_default` のようなデフォルト付きは、canonical getter と **別名で併存** してよいが、命名パターン（`or_default` vs `unwrap_or` 等）は family 間で揃える。
 - **サブモジュール**: `std::text` と `std::text::string` などで **同じ関数を複製** している場合は、どちらを canonical とみなすかを明記し、他方は thin re-export か deprecate とする。
 
+**English summary (same policy):**
+
+- One **canonical** `pub fn` name per identical signature/semantics in a family; duplicates are **deprecated aliases** or explicitly temporary.
+- **Home modules** for env/string operations: `std::env`, `std::text`; prelude stays minimal or holds **deprecated** shims only.
+- **Pick one** style per family for fallible lookups: either `get_*` **or** a short idiom (`var`); do not treat the mix as final.
+- **Companion helpers** like `*_or_default` may coexist with the canonical getter; align suffix patterns across families.
+- **Submodules** must not indefinitely duplicate the same API; choose canonical location, then re-export thinly or deprecate the duplicate.
+
+### Triage vocabulary (per-row: exactly one of)
+
+| Value | Meaning |
+|-------|---------|
+| **keep** | Retain as non-deprecated public API; treat as canonical (or intentional companion helper). |
+| **deprecate** | Mark `@deprecated` (or plan removal); callers should migrate to the canonical name/module. |
+| **rename** | Planned **symbol rename** (mechanical codemod + docs); not used below until a rename issue lands. |
+
+Inventory rows below use **`path:line`** for the `pub fn` that defines the symbol (first line of the definition).
+
 ## Inventory: `std::env` (`std/env/mod.ark`)
 
 | Symbol | Location | Role / notes | Triage |
 |--------|----------|----------------|--------|
-| `args` | `std/env/mod.ark:8` | Process argv (no argv[0]) | **keep** |
-| `arg_count` | `std/env/mod.ark:13` | Argument count | **keep** |
-| `arg_at` | `std/env/mod.ark:18` | Indexed arg access | **keep** |
-| `var` | `std/env/mod.ark:27` | Env lookup → `Option<String>` | **keep**（短名・ドキュメント上の primary とする案） |
-| `get_var` | `std/env/mod.ark:32` | `var` と同一実装の別名（コメント: work-order naming） | **deprecate**（canonical を `var` に固定する案。`get_var` を canonical にする場合は `var` 行を **deprecate** に差し替え） |
-| `var_or_default` | `std/env/mod.ark:37` | デフォルト付き env lookup | **keep** |
+| `args` | `std/env/mod.ark:8` | Process argv (excluding argv[0]); WASI `args_get` | **keep** |
+| `arg_count` | `std/env/mod.ark:13` | Count of args (excluding argv[0]) | **keep** |
+| `arg_at` | `std/env/mod.ark:18` | Indexed access via `args()` + `get` | **keep** |
+| `var` | `std/env/mod.ark:27` | Env lookup → `Option<String>` (`__intrinsic_env_var`) | **keep** |
+| `get_var` | `std/env/mod.ark:32` | Duplicate body of `var`; comment: “work-order naming convention” | **deprecate** |
+| `var_or_default` | `std/env/mod.ark:37` | Defaulting wrapper over `__intrinsic_env_var` | **keep** |
 
-`get_var` 行の triage は上表のとおり **どちらか一方を deprecate** に寄せる必要がある。現状コードは `var` を本文、`get_var` を「work-order naming」向け alias としている。
+**Open decision (env):** `var` と `get_var` は同実装の二重 surface。**一方だけ canonical（keep）、他方は deprecate** とする。上表は仮に **`var` = canonical** とした場合（`get_var` → **deprecate**）。**`get_var` を canonical にする**方針なら、`var` 行の Triage を **deprecate**、`get_var` を **keep** に差し替える — **rename** は不要（既存名のどちらかを残すだけ）。
+
+（モジュール先頭コメントの `vars` は現状 **未実装**；将来 `vars` を足す場合は本表に行を追加し、getter 語彙方針に合わせて命名する。）
 
 ## Inventory: `concat` — `std::text` vs prelude（代表 1 件）
 
+同一 intrinsic（`__intrinsic_concat`）を **prelude** と **`std::text`** と **`std::text::string`** が共有しており、名前衝突は **モジュール修飾** で回避されるが、人間向け canonical は 1 箇所に寄せる。
+
 | Symbol | Location | Role / notes | Triage |
 |--------|----------|----------------|--------|
-| `concat` (prelude) | `std/prelude.ark:46`–`48` | `@deprecated v3` — `text::concat` へ誘導済み | **deprecate**（維持、v4 削除予定の legacy） |
-| `concat` (`std::text`) | `std/text/mod.ark:71`–`72` | 「Relocated from prelude」節の canonical 相当 | **keep** |
-| `concat` (`std::text::string`) | `std/text/string.ark:19`–`20` | `text::string` 向けに `mod.ark` と同一シグネチャを複製 | **deprecate**（長期的には `text::concat` に集約し、`string::` 側は thin ラッパーまたは削除。現状は重複 surface） |
+| `concat` (prelude) | `std/prelude.ark:47` | `pub fn concat`; 直上行に `@deprecated v3: use text::concat` | **deprecate** |
+| `concat` (`std::text`) | `std/text/mod.ark:71` | 「Relocated from prelude」ブロック内の本体 | **keep** |
+| `concat` (`std::text::string`) | `std/text/string.ark:19` | `string` サブモジュール側の複製（`mod.ark` と同シグネチャ） | **deprecate** |
+
+**Open decision (text):** `std::text::string::concat` は **deprecate** 後、canonical の `text::concat` への **thin re-export**（1 行ラッパー）に落とすか、呼び出し側を `text::concat` に寄せて削除するかを acceptance で確定。**rename** は不要（シンボル名 `concat` は family 内で既に canonical）。
 
 ## Acceptance
 
