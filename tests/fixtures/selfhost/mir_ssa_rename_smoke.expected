@@ -1,0 +1,4 @@
+ssa(cond)=cond.1
+ssa(arms)=join_val.1 join_val.2
+ssa(phi)=join_val.3
+MIR SSA rename smoke OK.

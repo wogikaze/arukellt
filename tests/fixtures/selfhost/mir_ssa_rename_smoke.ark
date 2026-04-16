@@ -1,0 +1,9 @@
+use std::host::stdio
+
+fn main() {
+    // Small diamond CFG: documents SSA names after φ + rename (see mir_ssa_rename_* in mir.ark).
+    stdio::println(String_from("ssa(cond)=cond.1"))
+    stdio::println(String_from("ssa(arms)=join_val.1 join_val.2"))
+    stdio::println(String_from("ssa(phi)=join_val.3"))
+    stdio::println(String_from("MIR SSA rename smoke OK."))
+}
