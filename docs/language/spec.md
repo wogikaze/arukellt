@@ -1366,3 +1366,4 @@ Per ADR-007, Arukellt supports five compilation targets:
 | ADR-008 | External `wasm-tools` for Component Model wrapping |
 | ADR-009 | `use` for source imports; `import` reserved for WIT (v4+) |
 | ADR-011 | Host-bound APIs in `std::host::*`; pure APIs in `std::*` |
+| ADR-025 | Draft: Layer S paths vs WIT package IDs — collision policy and syntax exploration (#123) |

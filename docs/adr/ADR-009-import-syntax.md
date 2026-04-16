@@ -108,6 +108,7 @@ When fully wired, WIT imports will work as follows:
 
 ## Related
 
+- ADR-025: Draft elaboration — source paths vs WIT package IDs, collision avoidance, non-binding Layer C syntax sketches (issue #123)
 - ADR-006: 公開 ABI 3 層構造 (Layer 2A/2B の分離根拠)
 - ADR-007: コンパイルターゲット整理
 - ADR-008: Component Model ラッピング戦略

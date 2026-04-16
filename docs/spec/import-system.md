@@ -68,5 +68,6 @@ This contract does not redefine Arukellt source module paths to WIT package synt
 ## 5. Cross References
 
 - ADR decision: [../adr/ADR-009-import-syntax.md](../adr/ADR-009-import-syntax.md)
+- Draft elaboration (paths vs WIT IDs, collisions, migration): [../adr/ADR-025-use-paths-vs-wit-package-identifiers.md](../adr/ADR-025-use-paths-vs-wit-package-identifiers.md)
 - Current behavior contract: [../current-state.md](../current-state.md)
 - Language reference import section: [../language/spec.md](../language/spec.md)

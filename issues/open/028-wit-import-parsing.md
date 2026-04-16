@@ -1,6 +1,6 @@
 # WIT import parsing & host function binding
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-15
 **ID**: 028
@@ -22,7 +22,7 @@ despite being marked `[x]`. See corrected criteria below.
 ## Parent note — 2026-04-15
 
 The remaining open work from this issue is tracked as focused implementation issue
-[#028b](028b-wit-import-pipeline-wiring.md). Treat #028 as the parent acceptance issue:
+[#028b](../done/028b-wit-import-pipeline-wiring.md). Treat #028 as the parent acceptance issue:
 do not close it until #028b lands and the corrected acceptance items below are proven
 by repo evidence.
 
@@ -51,12 +51,12 @@ the import pipeline that all subsequent component work depends on.
 - [x] WIT primitive types (`u8`, `u16`, `u32`, `u64`, `s8`, `s16`, `s32`, `s64`, `f32`, `f64`,
       `bool`, `char`, `string`) are parsed and mapped to `WitType` variants.
 - [x] WIT container types (`list<T>`, `option<T>`, `result<T, E>`, `tuple<...>`) are parsed.
-- [ ] WIT `flags` type is parsed. At codegen time, any function whose signature includes a
+- [x] WIT `flags` type is parsed. At codegen time, any function whose signature includes a
       `flags` type emits a `E0090` diagnostic ("WIT flags type is not supported in v2; use
       individual bool parameters instead") and the compilation fails gracefully — no panic.
       **Audit 2026-04-15**: `WitType::Flags` variant does not exist; no `flags { ... }` parsing
       in `wit_parse.rs`; no E0090 diagnostic anywhere. MISSING.
-- [ ] `crates/ark-resolve/src/lib.rs` gains an `extern` function registration path: when
+- [x] `crates/ark-resolve/src/lib.rs` gains an `extern` function registration path: when
       `--wit <path>` is supplied, the resolver injects WIT-imported function signatures into
       the symbol table as externally-provided functions.
       **Audit 2026-04-15**: `--wit` files are validated to exist in `commands.rs` but never
@@ -69,7 +69,7 @@ the import pipeline that all subsequent component work depends on.
       is never populated during real compilation; only the unit test helper
       `wit_interface_to_mir_imports()` produces `MirImport` values. Struct exists ✅; pipeline
       wiring is part of the extern-registration gap ❌.
-- [ ] A round-trip test exists: parse a WIT file → resolve extern bindings → lower to MIR →
+- [x] A round-trip test exists: parse a WIT file → resolve extern bindings → lower to MIR →
       verify `MirModule.imports` contains expected entries.
       **Audit 2026-04-15**: `wit_to_mir_imports_roundtrip` in `wit_parse.rs` only tests
       parse → `MirImport` conversion directly; it does not go through resolver or compiler
@@ -93,3 +93,10 @@ the import pipeline that all subsequent component work depends on.
 - WIT `use` (cross-interface references) is out of scope for this issue. Single-file WIT only.
 - The `extern` binding mechanism must not conflict with the existing `import` statement
   (which handles Arukellt module imports, not WIT host imports).
+
+## Completion note — 2026-04-15
+
+Resolved by the combined landing of #028b pipeline wiring and the follow-up
+`flags`/E0090 diagnostic slice. The import-side WIT pipeline now parses `.wit`
+files, injects externs into resolution, records `MirModule.imports` during real
+compilation, and rejects unsupported `flags` types with a structured diagnostic.
