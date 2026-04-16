@@ -41,6 +41,7 @@ fn TK_AS() -> i32 { 27 }
 fn TK_TRAIT() -> i32 { 28 }
 fn TK_IMPL() -> i32 { 29 }
 fn TK_USE() -> i32 { 30 }
+fn TK_WHERE() -> i32 { 31 }
 
 // Operators
 fn TK_PLUS() -> i32 { 40 }
@@ -173,6 +174,7 @@ fn keyword_kind(word: String) -> i32 {
     if eq(word, "trait") { return TK_TRAIT() }
     if eq(word, "impl") { return TK_IMPL() }
     if eq(word, "use") { return TK_USE() }
+    if eq(word, "where") { return TK_WHERE() }
     if eq(word, "true") { return TK_BOOL() }
     if eq(word, "false") { return TK_BOOL() }
     0 - 1
@@ -667,6 +669,7 @@ pub fn token_kind_name(kind: i32) -> String {
     if kind == TK_IMPORT() { return String_from("IMPORT") }
     if kind == TK_AS() { return String_from("AS") }
     if kind == TK_USE() { return String_from("USE") }
+    if kind == TK_WHERE() { return String_from("WHERE") }
     if kind == TK_PLUS() { return String_from("PLUS") }
     if kind == TK_MINUS() { return String_from("MINUS") }
     if kind == TK_STAR() { return String_from("STAR") }

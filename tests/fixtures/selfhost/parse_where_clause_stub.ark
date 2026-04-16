@@ -1,0 +1,16 @@
+// parse-only (#504): selfhost `where` keyword + trailing clause stub after fn/trait generics.
+// Harness kind is parse-only (skipped at runtime); keeps manifest completeness and documents
+// the `where` parse hook. Empty clause or single `_` placeholder is accepted by the stub.
+
+trait Foo where {
+    fn m(x: i32) -> i32 {
+        x
+    }
+}
+
+fn bar<T>() where _ {
+    0
+}
+
+fn main() {
+}

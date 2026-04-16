@@ -773,6 +773,19 @@ let v = Vec_new_i32()  // W0008: deprecated API
 
 ---
 
+### W0009 — WASI Preview 2 native Wasm imports incomplete
+
+| | |
+|---|---|
+| **Severity** | warning |
+| **Phase** | backend-validate |
+| **Message** | WASI Preview 2 native Wasm imports are not fully implemented |
+
+Emitted when compiling for targets that rely on Preview 2 WASI imports that are
+not yet fully wired in the native Wasm pipeline.
+
+---
+
 ## Internal Compiler Errors — `ICE-*`
 
 These are not language errors but signals of compiler bugs. If you encounter
@@ -832,6 +845,7 @@ one, please file a bug report.
 | W0006 | warning | resolve | unused import |
 | W0007 | warning | typecheck | unused binding |
 | W0008 | warning | resolve | deprecated API |
+| W0009 | warning | backend-validate | WASI Preview 2 native Wasm imports are not fully implemented |
 
 ---
 

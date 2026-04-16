@@ -206,6 +206,7 @@ fn TK_AS() -> i32 { 27 }
 fn TK_TRAIT() -> i32 { 28 }
 fn TK_IMPL() -> i32 { 29 }
 fn TK_USE() -> i32 { 30 }
+fn TK_WHERE() -> i32 { 31 }
 fn TK_PLUS() -> i32 { 40 }
 fn TK_MINUS() -> i32 { 41 }
 fn TK_STAR() -> i32 { 42 }
@@ -491,6 +492,21 @@ fn parse_generic_params(p: Parser, out: Vec<AstNode>) {
         skip_newlines(p)
     }
     expect_token(p, TK_GT())
+}
+
+// Optional trailing `where` clause (stub): accepts `where` then nothing or a single `_`
+// placeholder. Real bound lists are deferred; this reserves the keyword and delimiter
+// for forward-compatible parsing after generic params on fn/trait.
+fn parse_optional_where_clause_stub(p: Parser) {
+    skip_newlines(p)
+    if peek_kind(p) != TK_WHERE() {
+        return
+    }
+    p.pos = p.pos + 1
+    skip_newlines(p)
+    if peek_kind(p) == TK_UNDERSCORE() {
+        p.pos = p.pos + 1
+    }
 }
 
 // ── Pattern Parsing ──────────────────────────────────────────────────────────
@@ -1235,6 +1251,8 @@ fn parse_fn_decl(p: Parser) -> AstNode {
         skip_newlines(p)
     }
     expect_token(p, TK_RPAREN())
+    skip_newlines(p)
+    parse_optional_where_clause_stub(p)
 
     // Return type
     if peek_kind(p) == TK_ARROW() {
@@ -1337,6 +1355,9 @@ fn parse_trait_decl(p: Parser) -> AstNode {
     let node = AstNode_new(NK_TRAIT_DECL(), tok_span(t))
     let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
+    parse_generic_params(p, node.type_ann)
+    skip_newlines(p)
+    parse_optional_where_clause_stub(p)
     skip_newlines(p)
     expect_token(p, TK_LBRACE())
     skip_newlines(p)
