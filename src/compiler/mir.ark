@@ -794,7 +794,7 @@ fn NK_INDEX() -> i32 { 10 }
 fn NK_STRUCT_LIT() -> i32 { 11 }
 fn NK_ARRAY_LIT() -> i32 { 12 }
 fn NK_IF_EXPR() -> i32 { 13 }
-fn NK_CLOSURE() -> i32 { 15 }   // closure/lambda expression (parser forward-declares, MIR stub)
+fn NK_CLOSURE() -> i32 { 15 }   // closure / lambda — lowered via lambda lifting (#499)
 fn NK_BLOCK() -> i32 { 20 }
 fn NK_ASSIGN() -> i32 { 18 }
 fn NK_LET() -> i32 { 30 }
@@ -878,6 +878,15 @@ struct LowerCtx {
     variant_tags: Vec<i32>,
     // Variant names that belong to payload enums (for heap allocation)
     payload_variants: Vec<String>,
+    // Lambda-lifted closures (issue #499): synthetic fns + call-site capture injection
+    closure_counter: i32,
+    closure_last_synth: String,
+    closure_last_caps: String,
+    closure_last_extra: i32,
+    closure_bind_names: Vec<String>,
+    closure_bind_synth: Vec<String>,
+    closure_bind_caps: Vec<String>,
+    closure_bind_extra: Vec<i32>,
 }
 
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
@@ -905,6 +914,14 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
         variant_names: Vec_new_String(),
         variant_tags: Vec_new_i32(),
         payload_variants: Vec_new_String(),
+        closure_counter: 0,
+        closure_last_synth: String_new(),
+        closure_last_caps: String_new(),
+        closure_last_extra: 0,
+        closure_bind_names: Vec_new_String(),
+        closure_bind_synth: Vec_new_String(),
+        closure_bind_caps: Vec_new_String(),
+        closure_bind_extra: Vec_new_i32(),
     }
 }
 
@@ -1216,6 +1233,200 @@ fn ctx_fresh_local(ctx: LowerCtx, vt: i32) -> i32 {
     let idx = ctx.func.next_local
     alloc_local(ctx.func, concat(String_from("_t"), to_string(idx)), vt)
     idx
+}
+
+fn closure_is_param_name(clos: AstNode, name: String) -> bool {
+    let c = len(clos.children)
+    if c <= 1 {
+        return false
+    }
+    let mut i = 0
+    while i < c - 1 {
+        let p = get_unchecked(clos.children, i)
+        if p.kind == NK_IDENT() && eq(clone(p.text), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn closure_collect_free(ctx: LowerCtx, expr: AstNode, clos: AstNode, acc: Vec<String>) {
+    if expr.kind == NK_CLOSURE() {
+        return
+    }
+    if expr.kind == NK_IDENT() {
+        if closure_is_param_name(clos, clone(expr.text)) {
+            return
+        }
+        if ctx_lookup_local(ctx, clone(expr.text)) < 0 {
+            return
+        }
+        let n = clone(expr.text)
+        let mut j = len(acc) - 1
+        let mut dup = false
+        while j >= 0 && !dup {
+            if eq(clone(get_unchecked(acc, j)), clone(n)) {
+                dup = true
+            }
+            j = j - 1
+        }
+        if !dup {
+            push(acc, n)
+        }
+        return
+    }
+    let cc = len(expr.children)
+    let mut ci = 0
+    while ci < cc {
+        closure_collect_free(ctx, get_unchecked(expr.children, ci), clos, acc)
+        ci = ci + 1
+    }
+}
+
+fn closure_pack_caps(caps: Vec<String>) -> String {
+    let mut s = String_new()
+    let c = len(caps)
+    let mut i = 0
+    while i < c {
+        if i > 0 {
+            s = concat(s, String_from(","))
+        }
+        s = concat(s, clone(get_unchecked(caps, i)))
+        i = i + 1
+    }
+    s
+}
+
+fn closure_emit_captured_args(ctx: LowerCtx, packed: String) {
+    let mut start = 0
+    let mut i = 0
+    let L = len(packed)
+    while i <= L {
+        let at_end = i == L
+        let mut is_comma = false
+        if !at_end {
+            if char_at(packed, i) == 44 {
+                is_comma = true
+            }
+        }
+        if at_end || is_comma {
+            if i > start {
+                let name = substring(packed, start, i)
+                if len(name) > 0 {
+                    let li = ctx_lookup_local(ctx, clone(name))
+                    if li >= 0 {
+                        let g = MirInst_new(MIR_LOCAL_GET())
+                        g.arg0 = li
+                        g.dest = li
+                        ctx_emit(ctx, g)
+                    }
+                }
+            }
+            start = i + 1
+        }
+        i = i + 1
+    }
+}
+
+fn closure_flush_pending_bind(ctx: LowerCtx, bind_name: String) {
+    if len(ctx.closure_last_synth) == 0 {
+        return
+    }
+    push(ctx.closure_bind_names, bind_name)
+    push(ctx.closure_bind_synth, clone(ctx.closure_last_synth))
+    push(ctx.closure_bind_caps, clone(ctx.closure_last_caps))
+    push(ctx.closure_bind_extra, ctx.closure_last_extra)
+    ctx.closure_last_synth = String_new()
+    ctx.closure_last_caps = String_new()
+    ctx.closure_last_extra = 0
+}
+
+fn ctx_closure_lookup(ctx: LowerCtx, name: String) -> i32 {
+    let count = len(ctx.closure_bind_names)
+    let mut i = count - 1
+    while i >= 0 {
+        if eq(clone(get_unchecked(ctx.closure_bind_names, i)), clone(name)) {
+            return i
+        }
+        i = i - 1
+    }
+    0 - 1
+}
+
+fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<String>) -> MirFunction {
+    let saved_func = ctx.func
+    let saved_block = ctx.cur_block
+    let saved_names = ctx.local_names
+    let saved_indices = ctx.local_indices
+    let saved_types = ctx.local_types
+    let saved_tidx = ctx.local_type_indices
+
+    let cap_n = len(caps)
+    let cap_vts = Vec_new_i32()
+    let mut cvi = 0
+    while cvi < cap_n {
+        let cname = clone(get_unchecked(caps, cvi))
+        let cli = ctx_lookup_local(ctx, clone(cname))
+        let mut pvt = VT_I32()
+        if cli >= 0 {
+            pvt = ctx_local_vt(ctx, cli)
+        }
+        push(cap_vts, pvt)
+        cvi = cvi + 1
+    }
+
+    let mf = MirFunction_new(clone(synth))
+    ctx.func = mf
+    ctx.local_names = Vec_new_String()
+    ctx.local_indices = Vec_new_i32()
+    ctx.local_types = Vec_new_String()
+    ctx.local_type_indices = Vec_new_i32()
+    let entry = alloc_block(ctx.func)
+    ctx.cur_block = entry
+
+    let child_count = len(clos.children)
+    let body = get_unchecked(clos.children, child_count - 1)
+
+    let mut pi = 0
+    while pi + 1 < child_count {
+        let p = get_unchecked(clos.children, pi)
+        if p.kind == NK_IDENT() {
+            let pvt = VT_I32()
+            let _idx = ctx_alloc_local(ctx, clone(p.text), pvt)
+            push(ctx.func.params, MirLocal { name: clone(p.text), val_type: pvt, ssa_name: clone(p.text), ssa_version: 0 - 1 })
+        }
+        pi = pi + 1
+    }
+
+    let mut ci = 0
+    while ci < cap_n {
+        let cname = clone(get_unchecked(caps, ci))
+        let pvt = get_unchecked(cap_vts, ci)
+        let _idx2 = ctx_alloc_local(ctx, clone(cname), pvt)
+        push(ctx.func.params, MirLocal { name: clone(cname), val_type: pvt, ssa_name: clone(cname), ssa_version: 0 - 1 })
+        ci = ci + 1
+    }
+
+    ctx.func.return_type = VT_I32()
+
+    let res = lower_expr(ctx, body)
+    if res >= 0 {
+        let ret_inst = MirInst_new(MIR_RETURN())
+        ret_inst.arg0 = res
+        ctx_emit(ctx, ret_inst)
+    } else {
+        ctx_emit(ctx, MirInst_new(MIR_RETURN()))
+    }
+
+    let out_fn = ctx.func
+    ctx.func = saved_func
+    ctx.cur_block = saved_block
+    ctx.local_names = saved_names
+    ctx.local_indices = saved_indices
+    ctx.local_types = saved_types
+    ctx.local_type_indices = saved_tidx
+    out_fn
 }
 
 fn ctx_local_vt(ctx: LowerCtx, idx: i32) -> i32 {
@@ -1568,6 +1779,30 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 get_r.arg0 = dest
                 ctx_emit(ctx, get_r)
                 return dest
+            }
+
+            // Closure call: callee names a let-bound lambda; emit synthetic fn + capture args (#499)
+            if callee.kind == NK_IDENT() {
+                let clo_ix = ctx_closure_lookup(ctx, clone(callee.text))
+                if clo_ix >= 0 {
+                    let synth = clone(get_unchecked(ctx.closure_bind_synth, clo_ix))
+                    let packed = clone(get_unchecked(ctx.closure_bind_caps, clo_ix))
+                    let extra = get_unchecked(ctx.closure_bind_extra, clo_ix)
+                    let mut ca = 1
+                    while ca < child_count {
+                        let carg = get_unchecked(node.children, ca)
+                        let _ai = lower_expr(ctx, carg)
+                        ca = ca + 1
+                    }
+                    closure_emit_captured_args(ctx, packed)
+                    let c_dest = ctx_fresh_local(ctx, VT_I32())
+                    let clo_call = MirInst_new(MIR_CALL())
+                    clo_call.str_val = synth
+                    clo_call.dest = c_dest
+                    clo_call.int_val = (child_count - 1) + extra
+                    ctx_emit(ctx, clo_call)
+                    return c_dest
+                }
             }
 
             let call_inst = MirInst_new(MIR_CALL())
@@ -2435,16 +2670,24 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         return lower_stmt(ctx, node)
     }
 
-    // NK_CLOSURE: closure/lambda expressions with captured environments.
-    // The parser reserves NK_CLOSURE (= 15) as a forward declaration but does not
-    // yet produce closure nodes (no |params| body syntax in the selfhost frontend).
-    // The typechecker likewise has no closure-environment support.
-    // STOP_IF applies: full closure lowering requires parser + typechecker changes
-    // that are not part of this issue. Register a NOP stub so any future node is
-    // handled gracefully rather than silently falling to the unknown-expr path.
+    // NK_CLOSURE: lambda-lift to a synthetic function; captures passed at each call site (#499).
     if kind == NK_CLOSURE() {
-        ctx_emit(ctx, MirInst_new(MIR_NOP()))
-        return 0 - 1
+        let caps = Vec_new_String()
+        closure_collect_free(ctx, node, node, caps)
+        let packed = closure_pack_caps(caps)
+        let extra = len(caps)
+        let synth = concat(String_from("__closure_"), to_string(ctx.closure_counter))
+        ctx.closure_counter = ctx.closure_counter + 1
+        let mf = mir_emit_closure_fn(ctx, synth, node, caps)
+        push(ctx.module.functions, mf)
+        push(ctx.fn_names, clone(mf.name))
+        push(ctx.fn_return_vts, mf.return_type)
+        ctx.closure_last_synth = clone(mf.name)
+        ctx.closure_last_caps = packed
+        ctx.closure_last_extra = extra
+        let dest = ctx_fresh_local(ctx, VT_I32())
+        ctx_emit(ctx, MirInst_const_i32(0, dest))
+        return dest
     }
 
     // Unknown expression: emit NOP
@@ -2552,6 +2795,15 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                     } else if init.kind == NK_CHAR_LIT() {
                         ctx_set_local_type(ctx, local_idx, String_from("char"))
                     }
+                }
+            }
+            if init.kind == NK_CLOSURE() {
+                if !eq(clone(node.text), String_from("_")) {
+                    closure_flush_pending_bind(ctx, clone(node.text))
+                } else {
+                    ctx.closure_last_synth = String_new()
+                    ctx.closure_last_caps = String_new()
+                    ctx.closure_last_extra = 0
                 }
             }
         }

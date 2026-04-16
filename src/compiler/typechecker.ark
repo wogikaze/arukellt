@@ -708,7 +708,14 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         // Only look up simple identifiers in fn_sigs
         if callee.kind != NK_IDENT() { return TypeInfo_simple(TY_UNKNOWN()) }
         let sig = lookup_fn_sig(fn_sigs, clone(callee.text))
-        if eq(clone(sig.name), String_from("")) { return TypeInfo_simple(TY_UNKNOWN()) }
+        if eq(clone(sig.name), String_from("")) {
+            // Local closure value (lambda): MIR lowers calls with capture injection (#499).
+            let loc_ty = scope_lookup(scope, clone(callee.text))
+            if loc_ty.tag == TY_FN() {
+                return TypeInfo_simple(TY_I32())
+            }
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
 
         // Non-generic function: return declared return type
         if len(sig.type_params) == 0 {

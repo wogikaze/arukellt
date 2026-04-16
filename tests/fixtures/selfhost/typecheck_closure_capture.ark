@@ -1,8 +1,9 @@
-// Issue #499 (slice): closure body references an outer `let` binding; must typecheck.
+// Issue #499: closure captures outer `let`; call site exercises MIR lowering + wasm.
 use std::host::stdio
 
 fn main() {
     let x = 1 + 2
-    let _f = || x + 1
-    stdio::println(String_from("ok"))
+    let f = || x + 1
+    let y = f()
+    stdio::println(to_string(y))
 }
