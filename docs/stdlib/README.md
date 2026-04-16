@@ -113,6 +113,7 @@ All 20 module pages carry curated overviews.
 | File | Summary |
 |------|---------|
 | [generation-schema.md](generation-schema.md) | This schema is enforced at generation time. |
+| [modernization/511-numeric-tag-inventory.md](modernization/511-numeric-tag-inventory.md) | This artifact inventories the current public numeric-tag sum-type surfaces in |
 | [modernization/514-quality-audit-matrix.md](modernization/514-quality-audit-matrix.md) | This audit is bounded to the family surfaces named by issue 514: |
 | [module-system.md](module-system.md) | Arukellt supports two import syntaxes for bringing modules into scope. |
 | [name-index.md](name-index.md) | Do not edit manually — changes will be overwritten on the next regeneration. |
