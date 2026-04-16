@@ -38,6 +38,9 @@ docs/spec/spec-*/
 .bootstrap-build/
 .compare-outputs-scratch/
 
+# local selfhost / tooling scratch outputs
+.build/
+
 # Node.js
 **/node_modules/
 
@@ -54,3 +57,4 @@ docs/playground/dist/benchmarks/results/
 
 # codex local settings
 .codex
+.mcp.json
