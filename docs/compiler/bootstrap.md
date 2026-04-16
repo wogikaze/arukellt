@@ -110,25 +110,31 @@ that directory is removed on script exit (`trap`).
 
 | Stage | What runs | Artifact(s) | Failure modes (non‑exhaustive) |
 |-------|-----------|-------------|----------------------------------|
-| **0** | Rust `arukellt` compiles `src/compiler/main.ark` with `--target wasm32-wasi-p1` to `-o .bootstrap-build/arukellt-s1.wasm` | `arukellt-s1.wasm` | No usable compiler binary (`ARUKELLT_BIN`, then `target/debug/arukellt`, then `target/release/arukellt`); missing `src/compiler/`; compile error (stderr from Stage 0 copied from `.bootstrap-build/stage0.stderr` when non‑empty). |
-| **1** | `wasmtime run --dir="$REPO_ROOT"` on `arukellt-s1.wasm` with `compile` on the same `main.ark`, same target, `-o` relative path to `arukellt-s2.wasm`, under `timeout 120` | `arukellt-s2.wasm` | Stage 0 artifact missing; `wasmtime` not on `PATH`; wasmtime/compile non‑zero exit (stderr from `.bootstrap-build/stage1.stderr` when non‑empty). |
-| **2** | `sha256sum` on both `.wasm` files; compare digests | (none new) | Either wasm missing; digests differ (script prints sizes and suggests `scripts/run/compare-outputs.sh`). |
+| **0** | Rust `arukellt` runs `compile` on `src/compiler/main.ark` with `--target wasm32-wasi-p1` and `-o .bootstrap-build/arukellt-s1.wasm` (paths as passed by the script: absolute `main.ark` / output) | `arukellt-s1.wasm` | Preflight: no `arukellt` binary at `ARUKELLT_BIN`, `target/debug/arukellt`, or `target/release/arukellt`; preflight: `src/compiler/` missing; preflight: chosen binary not executable; compile error (non‑zero exit; stderr copied from `.bootstrap-build/stage0.stderr` when non‑empty). |
+| **1** | `timeout 120 wasmtime run --dir=<repo root> .bootstrap-build/arukellt-s1.wasm -- compile src/compiler/main.ark --target wasm32-wasi-p1 -o .bootstrap-build/arukellt-s2.wasm` (repo-root-relative `compile`/`-o` paths as in the script) | `arukellt-s2.wasm` | Stage 0 artifact missing; `wasmtime` not on `PATH`; wasmtime/compile non‑zero exit or timeout (stderr from `.bootstrap-build/stage1.stderr` when non‑empty). |
+| **2** | `sha256sum` on both wasm files; compare digests | (none new) | Either wasm missing; digests differ (script prints sizes and suggests `scripts/run/compare-outputs.sh`). |
 
 ### Partial modes, `--check`, and “attainment”
 
 - **`--stage1-only`:** Runs Stage **0** only, then exits **0** on success while
   printing that **bootstrap attainment was not evaluated** (Stages 1–2 do
   not run).
-- **`--fixture-parity`:** After Stage 0, runs `scripts/check/check-selfhost-parity.sh --fixture` when that script is executable; then exits like
-  `--stage1-only` (no Stage 1–2 in that path).
+- **`--fixture-parity`:** After Stage 0, if `arukellt-s1.wasm` exists, runs
+  `scripts/check/check-selfhost-parity.sh --fixture` when that path is executable;
+  if the script is missing or not executable, prints `SKIP` and continues. On
+  success of Stage 0 (and parity, when run), exits like `--stage1-only` (no
+  Stage 1–2). If parity exits non‑zero, the bootstrap script exits immediately
+  (`set -e`), not with the partial “attainment not evaluated” success message.
 - **`--stage N`:** Runs only stage *N*; other stages are marked not requested.
   If the requested stage succeeds and any partial-mode condition holds, the
   script may exit **0** while stating that **bootstrap attainment was not
   evaluated**.
 - **`--check`:** Allowed only with the full Stage 0 → 1 → 2 run (no partial
-  flags).  Prints machine-readable lines `bootstrap-check:` with
-  `stage0-compile`, `stage1-self-compile`, `stage2-fixpoint`, and
-  `attainment: reached` or `attainment: not-reached`, then exits **0** or **1**
+  flags; mixing `--check` with `--stage`, `--stage1-only`, or `--fixture-parity`
+  is a preflight error, exit **1**). Prints machine-readable lines under
+  `bootstrap-check:`: `stage0-compile`, `stage1-self-compile`, and
+  `stage2-fixpoint` each set to `reached`, `not-reached`, or `not-requested`,
+  plus `attainment: reached` or `attainment: not-reached`, then exits **0** or **1**
   accordingly.
 
 Any path that exits **0** without running the full pipeline is explicitly **not**
@@ -294,6 +300,12 @@ hard-fail when the bootstrap stage has not yet been run.  When wired into
 - [ADR-0001: Harness Bootstrap](../adr/ADR-0001-harness-bootstrap.md)
 
 ## Selfhost Completion Criteria
+
+The **Completion contract (draft)** section above states only what
+`scripts/run/verify-bootstrap.sh` enforces (repository bootstrap / fixpoint
+gate). This section is the broader **language selfhost complete** checklist;
+see also `issues/open/253-selfhost-completion-criteria.md` and
+`issues/open/266-selfhost-completion-definition.md`.
 
 > **Canonical one-line criterion:** The selfhost compiler is complete when
 > `scripts/run/verify-bootstrap.sh` exits 0 with all stages passing (no
