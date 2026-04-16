@@ -67,3 +67,7 @@ selfhost 周辺は `src/compiler/*.ark`、`docs/compiler/bootstrap.md`、`script
 * `issues/open/268-selfhost-parity-ci-verification.md`
 * `issues/open/269-dual-period-end-condition.md`
 * `issues/open/270-current-state-selfhost-verified-update.md`
+
+---
+
+**Doc pointer:** What `scripts/run/verify-bootstrap.sh` actually runs (commands, artifacts, partial modes, `--check`) is summarized under **Completion contract (draft)** in `docs/compiler/bootstrap.md`, separately from broader “language selfhost complete” criteria.

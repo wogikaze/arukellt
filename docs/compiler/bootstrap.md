@@ -83,6 +83,58 @@ values into the output binary.  `scripts/run/verify-harness.sh` already
 checks determinism for fixtures and will be extended to the selfhost
 compiler.
 
+## Completion contract (draft)
+
+This section describes **only** what `scripts/run/verify-bootstrap.sh`
+implements today (commands, artifacts, exit behaviour).  It does not define
+the full **language selfhost complete** bar; for that product-level
+definition and checklist themes, see `issues/open/253-selfhost-completion-criteria.md`
+and `issues/open/266-selfhost-completion-definition.md`.
+
+**Repository bootstrap gate (this script).** A **full** invocation with no
+partial flags runs Stage 0 → 1 → 2 in order.  The script exits **0** only if
+every executed stage records success internally and Stage 2 proves
+`sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)`.  That gate shows a
+**fixpoint for the unified selfhost compiler** built from
+`src/compiler/main.ark`; it does **not** by itself prove fixture parity, CLI
+parity, diagnostic parity, or Rust compiler retirement.
+
+**Language selfhost complete.** Broader than this script: additional checks
+and governance live in the issue pointers above and elsewhere in this doc.
+
+### Stages (as the script runs them)
+
+Working directory is the repo root (`REPO_ROOT`).  Build outputs go under
+`.bootstrap-build/` (`arukellt-s1.wasm`, `arukellt-s2.wasm`, stderr logs);
+that directory is removed on script exit (`trap`).
+
+| Stage | What runs | Artifact(s) | Failure modes (non‑exhaustive) |
+|-------|-----------|-------------|----------------------------------|
+| **0** | Rust `arukellt` compiles `src/compiler/main.ark` with `--target wasm32-wasi-p1` to `-o .bootstrap-build/arukellt-s1.wasm` | `arukellt-s1.wasm` | No usable compiler binary (`ARUKELLT_BIN`, then `target/debug/arukellt`, then `target/release/arukellt`); missing `src/compiler/`; compile error (stderr from Stage 0 copied from `.bootstrap-build/stage0.stderr` when non‑empty). |
+| **1** | `wasmtime run --dir="$REPO_ROOT"` on `arukellt-s1.wasm` with `compile` on the same `main.ark`, same target, `-o` relative path to `arukellt-s2.wasm`, under `timeout 120` | `arukellt-s2.wasm` | Stage 0 artifact missing; `wasmtime` not on `PATH`; wasmtime/compile non‑zero exit (stderr from `.bootstrap-build/stage1.stderr` when non‑empty). |
+| **2** | `sha256sum` on both `.wasm` files; compare digests | (none new) | Either wasm missing; digests differ (script prints sizes and suggests `scripts/run/compare-outputs.sh`). |
+
+### Partial modes, `--check`, and “attainment”
+
+- **`--stage1-only`:** Runs Stage **0** only, then exits **0** on success while
+  printing that **bootstrap attainment was not evaluated** (Stages 1–2 do
+  not run).
+- **`--fixture-parity`:** After Stage 0, runs `scripts/check/check-selfhost-parity.sh --fixture` when that script is executable; then exits like
+  `--stage1-only` (no Stage 1–2 in that path).
+- **`--stage N`:** Runs only stage *N*; other stages are marked not requested.
+  If the requested stage succeeds and any partial-mode condition holds, the
+  script may exit **0** while stating that **bootstrap attainment was not
+  evaluated**.
+- **`--check`:** Allowed only with the full Stage 0 → 1 → 2 run (no partial
+  flags).  Prints machine-readable lines `bootstrap-check:` with
+  `stage0-compile`, `stage1-self-compile`, `stage2-fixpoint`, and
+  `attainment: reached` or `attainment: not-reached`, then exits **0** or **1**
+  accordingly.
+
+Any path that exits **0** without running the full pipeline is explicitly **not**
+a claim of fixpoint attainment; the script states that in its success
+message.
+
 ## Selfhost Compiler Components
 
 | File | Role |
