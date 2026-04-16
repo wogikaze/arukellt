@@ -10,7 +10,7 @@ worker round-trip, incremental parse strategy, and measurement methodology
   ADR-022 (deployment & caching, load-time budgets),
   `docs/playground/deployment-strategy.md` §7 (asset size & load budgets)
 
-> **Status note (2026-04-14, updated for #471):** This draft defines target runtime budgets. The browser playground entrypoint exists at `docs/playground/index.html` and the build/deploy path is proved via `pages.yml`. There is no `npm run dev` local dev-server workflow yet.
+> **Status note (2026-04-14, updated for #471):** This draft defines target runtime budgets. The browser playground entrypoint exists at `docs/playground/index.html`; deploy is repo-proved by `.github/workflows/pages.yml` (`npm run build:app` in `playground/` + deploy `./docs` via Pages). There is no `npm run dev` local dev-server workflow yet.
 
 ---
 
@@ -434,7 +434,7 @@ interactive.
 | Document | Scope |
 |----------|-------|
 | ADR-022 §D4 | Wasm ≤ 300 KB, total ≤ 250 KB gzip, TTI ≤ 3 s — **CI-enforced** |
-| `deployment-strategy.md` §7 | Load budgets, cache budgets, Wasm compile time — **CI-enforced (size) once #468 lands; advisory until then** |
+| `deployment-strategy.md` §7 | Load budgets, cache budgets, Wasm compile time — **current state: size/lighthouse CI jobs are in `.github/workflows/playground-ci.yml`; deploy path is `.github/workflows/pages.yml`** |
 | **This document** | Parse latency, worker round-trip, render jank, incremental strategy — **advisory (v1), future CI** |
 
 ---

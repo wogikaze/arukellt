@@ -44,6 +44,10 @@ command / workflow reality は feature claim correction と別層であり、分
 - [ ] workflow / preview deploy / publish path claim は、current workflow file と output path で証明できるものだけに限定されている。
 - [ ] current repo に存在しない script / workflow / preview deploy は、docs から current-state として除かれるか、separate open issue としてのみ参照されている。
 
+## Slice progress
+
+- [x] 2026-04-16: `docs/playground/diagnostics-worker-performance-budget.md` の command/workflow 記述を現物合わせに修正（`pages.yml` の実在ステップ明記、旧「once #468 lands」表現を current-state workflow 参照に更新）。
+
 ## Required verification
 
 - docs から command / workflow 名を grep する
