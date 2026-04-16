@@ -167,8 +167,11 @@ function discoverBinary(configuredPath) {
   return { command: configuredPath, probe: { ok: false, message: 'arukellt binary not found. Install via cargo or set arukellt.server.path.' } }
 }
 
-function startLanguageServer(context) {
-  resetLanguageServerTestTelemetry()
+function startLanguageServer(context, options = {}) {
+  resetLanguageServerTestTelemetry({ keepOutputChannelLines: !!options.afterRestartShutdown })
+  if (options.afterRestartShutdown) {
+    appendLanguageServerOutputLine('[arukellt] language server: restart session (new client starting)')
+  }
   const config = getConfiguration()
   const configuredPath = config.get('server.path', 'arukellt')
   const extraArgs = config.get('server.args', [])
@@ -238,19 +241,20 @@ function startLanguageServer(context) {
         return { action: 2 /* Shutdown */ }
       },
       closed() {
+        // CloseAction: DoNotRestart = 1, Restart = 2 (vscode-languageclient)
         if (isDeactivating || suppressClientRestart) {
-          return { action: 2 /* DoNotRestart */ }
+          return { action: 1 /* DoNotRestart */ }
         }
         if (restartCount < 5) {
           restartCount++
           updateLanguageStatus('warning', `Restarting (attempt ${restartCount})…`)
-          return { action: 1 /* Restart */ }
+          return { action: 2 /* Restart */ }
         }
         updateLanguageStatus('error', 'Server crashed repeatedly')
         vscode.window.showErrorMessage(
           'Arukellt language server crashed 5 times. Use "Arukellt: Restart Language Server" to try again.',
         )
-        return { action: 2 /* DoNotRestart */ }
+        return { action: 1 /* DoNotRestart */ }
       },
     },
   }
@@ -277,7 +281,7 @@ function startLanguageServer(context) {
             'Stage 2 fixpoint (Issue 459). Continuing with the Rust backend.'
           )
         }
-        if (client) {
+        if (client && client.isRunning()) {
           client.sendNotification('workspace/didChangeConfiguration', {
             settings: {
               arukellt: {
@@ -332,6 +336,9 @@ async function shutdownLanguageClient(options = {}) {
   suppressClientRestart = true
   try {
     await stopClientWithTimeout(currentClient, timeoutMs)
+    if (logContext === 'restart' && outputChannel) {
+      appendLanguageServerOutputLine('[arukellt] language server: previous client stopped (restart)')
+    }
   } catch (err) {
     if (logFailure && outputChannel) {
       outputChannel.appendLine(`[arukellt] ${logContext}: stop failed (${err.message})`)
@@ -349,7 +356,7 @@ async function restartLanguageServer(context) {
   restartCount = 0
   if (client) {
     await shutdownLanguageClient({ timeoutMs: 5000, logFailure: true, logContext: 'restart' })
-    startLanguageServer(context)
+    startLanguageServer(context, { afterRestartShutdown: true })
     vscode.window.showInformationMessage('Arukellt language server restarted.')
   } else {
     startLanguageServer(context)
@@ -373,10 +380,12 @@ function appendLanguageServerOutputLine(line) {
   }
 }
 
-function resetLanguageServerTestTelemetry() {
+function resetLanguageServerTestTelemetry(options = {}) {
   testTelemetry.lastErrorMessage = null
-  testTelemetry.outputChannelLines = []
   testTelemetry.recordedErrorNotificationCount = 0
+  if (!options.keepOutputChannelLines) {
+    testTelemetry.outputChannelLines = []
+  }
 }
 
 function showRecordedErrorMessage(message, ...items) {

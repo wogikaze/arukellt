@@ -1,6 +1,7 @@
 // @ts-check
 const assert = require("assert");
 const fs = require("fs");
+const os = require("os");
 const vscode = require("vscode");
 const path = require("path");
 
@@ -307,6 +308,136 @@ suite("Test Controller (#274)", () => {
       assert.strictEqual(after.hasClient, true);
       assert.strictEqual(after.languageStatusText, "$(check) Ready");
     }, { description: "healthy language server after restart" });
+  });
+});
+
+// ============================================================
+// #254 — restart path with stub LSP (spy process + output channel)
+// ============================================================
+
+suite("Language Server Restart — stub LSP (#254)", () => {
+  let savedPath;
+  let savedArgs;
+  let spyLogPath;
+
+  suiteSetup(async function () {
+    this.timeout(45000);
+    const stubScript = path.join(__dirname, "fixtures", "lsp-stub.js");
+    const cfg = vscode.workspace.getConfiguration("arukellt");
+    savedPath = cfg.get("server.path");
+    savedArgs = cfg.get("server.args");
+    spyLogPath = path.join(
+      os.tmpdir(),
+      `arukellt-lsp-stub-spy-${process.pid}-${Date.now()}.log`
+    );
+    process.env.ARK_LSP_STUB_SPY = spyLogPath;
+
+    const { api } = await activateExtension();
+    await api.shutdownForTests?.();
+
+    // Apply stub server settings only after the prior client is gone so
+    // didChangeConfiguration cannot target a disposing / wrong process.
+    // Use `node` from PATH: in the extension host `process.execPath` is the
+    // VS Code / Electron binary, not a JS runtime, so it cannot execute the stub.
+    await cfg.update(
+      "server.path",
+      "node",
+      vscode.ConfigurationTarget.Global
+    );
+    await cfg.update(
+      "server.args",
+      [stubScript],
+      vscode.ConfigurationTarget.Global
+    );
+
+    await vscode.commands.executeCommand("arukellt.restartLanguageServer");
+    await waitFor(
+      () => {
+        const state = api.__getTestState();
+        assert.strictEqual(state.hasClient, true);
+        assert.strictEqual(state.languageStatusText, "$(check) Ready");
+      },
+      { description: "stub LSP running after config switch", timeoutMs: 30000 }
+    );
+  });
+
+  suiteTeardown(async function () {
+    this.timeout(45000);
+    const cfg = vscode.workspace.getConfiguration("arukellt");
+    delete process.env.ARK_LSP_STUB_SPY;
+    try {
+      fs.unlinkSync(spyLogPath);
+    } catch (_) {
+      /* ignore */
+    }
+
+    const ext = getExtension();
+    if (ext.isActive && ext.exports.shutdownForTests) {
+      await ext.exports.shutdownForTests();
+    }
+    await cfg.update("server.path", savedPath, vscode.ConfigurationTarget.Global);
+    await cfg.update("server.args", savedArgs, vscode.ConfigurationTarget.Global);
+    if (ext.isActive) {
+      await vscode.commands.executeCommand("arukellt.restartLanguageServer");
+      if (fs.existsSync(repoDebugBinary)) {
+        await waitFor(
+          () => {
+            const state = ext.exports.__getTestState();
+            assert.strictEqual(state.hasClient, true);
+            assert.strictEqual(state.languageStatusText, "$(check) Ready");
+          },
+          { description: "restore LSP after stub suite", timeoutMs: 30000 }
+        );
+      }
+    }
+  });
+
+  test("restart command stops client and starts a new stub session (session id, spy log, output channel)", async () => {
+    const { api } = await activateExtension();
+    const beforeSession = api.__getTestState().clientSessionId;
+    const spyBefore = fs.existsSync(spyLogPath)
+      ? fs
+          .readFileSync(spyLogPath, "utf8")
+          .trim()
+          .split("\n")
+          .filter(Boolean).length
+      : 0;
+
+    await vscode.commands.executeCommand("arukellt.restartLanguageServer");
+
+    await waitFor(
+      () => {
+        const after = api.__getTestState();
+        assert.ok(
+          after.clientSessionId > beforeSession,
+          "restart should create a fresh language client session"
+        );
+        assert.strictEqual(after.hasClient, true);
+        assert.strictEqual(after.languageStatusText, "$(check) Ready");
+        assert.ok(
+          after.outputChannelLines.some((line) =>
+            /restart session \(new client starting\)/i.test(line)
+          ),
+          `expected restart telemetry line, got: ${after.outputChannelLines.join(" | ")}`
+        );
+        assert.ok(
+          after.outputChannelLines.some((line) =>
+            /previous client stopped \(restart\)/i.test(line)
+          ),
+          `expected prior client stop line, got: ${after.outputChannelLines.join(" | ")}`
+        );
+        const spyAfter = fs
+          .readFileSync(spyLogPath, "utf8")
+          .trim()
+          .split("\n")
+          .filter(Boolean).length;
+        assert.ok(
+          spyAfter >= spyBefore + 1,
+          `stub should log a new process spawn (before ${spyBefore}, after ${spyAfter})`
+        );
+      },
+      { description: "restart with stub server", timeoutMs: 30000 }
+    );
   });
 });
 
