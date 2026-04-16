@@ -18,6 +18,11 @@ let languageStatusItem = null
 let testController = null
 let projectTreeProvider = null
 let componentDiagnostics = null
+let testTelemetry = {
+  lastErrorMessage: null,
+  outputChannelLines: [],
+  recordedErrorNotificationCount: 0,
+}
 let debugSessionState = {
   startCount: 0,
   terminateCount: 0,
@@ -145,30 +150,25 @@ function probeServerBinary(command) {
  */
 function discoverBinary(configuredPath) {
   const candidates = getCandidatePaths(configuredPath)
-  if (outputChannel) {
-    outputChannel.appendLine('[binary discovery] searching for arukellt binary...')
-  }
+  appendLanguageServerOutputLine('[binary discovery] searching for arukellt binary...')
   for (const candidate of candidates) {
     const probe = probeServerBinary(candidate.path)
-    if (outputChannel) {
-      if (probe.ok) {
-        outputChannel.appendLine(`[binary discovery] found via ${candidate.source}: ${candidate.path} (${probe.version})`)
-      } else {
-        outputChannel.appendLine(`[binary discovery] not found via ${candidate.source}: ${probe.message}`)
-      }
+    if (probe.ok) {
+      appendLanguageServerOutputLine(`[binary discovery] found via ${candidate.source}: ${candidate.path} (${probe.version})`)
+    } else {
+      appendLanguageServerOutputLine(`[binary discovery] not found via ${candidate.source}: ${probe.message}`)
     }
     if (probe.ok) {
       return { command: candidate.path, probe }
     }
   }
-  if (outputChannel) {
-    outputChannel.appendLine('[binary discovery] arukellt binary not found in any location')
-    outputChannel.appendLine('[binary discovery] install guide: https://github.com/arukellt/arukellt#installation')
-  }
+  appendLanguageServerOutputLine('[binary discovery] arukellt binary not found in any location')
+  appendLanguageServerOutputLine('[binary discovery] install guide: https://github.com/arukellt/arukellt#installation')
   return { command: configuredPath, probe: { ok: false, message: 'arukellt binary not found. Install via cargo or set arukellt.server.path.' } }
 }
 
 function startLanguageServer(context) {
+  resetLanguageServerTestTelemetry()
   const config = getConfiguration()
   const configuredPath = config.get('server.path', 'arukellt')
   const extraArgs = config.get('server.args', [])
@@ -177,7 +177,7 @@ function startLanguageServer(context) {
   if (!probe.ok) {
     updateStatus('$(error) Arukellt: binary missing', 'Failed to find arukellt binary')
     updateLanguageStatus('error', 'Binary not found')
-    vscode.window.showErrorMessage(
+    showRecordedErrorMessage(
       `Arukellt: arukellt binary not found. ${probe.message} ` +
       'See the output channel for details, or set arukellt.server.path in settings.',
       'Open Output', 'Open Settings'
@@ -361,6 +361,28 @@ function updateStatus(text, tooltip) {
   statusBarItem.text = text
   statusBarItem.tooltip = tooltip || text
   statusBarItem.show()
+}
+
+function appendLanguageServerOutputLine(line) {
+  if (outputChannel) {
+    outputChannel.appendLine(line)
+  }
+  testTelemetry.outputChannelLines.push(line)
+  if (testTelemetry.outputChannelLines.length > 100) {
+    testTelemetry.outputChannelLines.shift()
+  }
+}
+
+function resetLanguageServerTestTelemetry() {
+  testTelemetry.lastErrorMessage = null
+  testTelemetry.outputChannelLines = []
+  testTelemetry.recordedErrorNotificationCount = 0
+}
+
+function showRecordedErrorMessage(message, ...items) {
+  testTelemetry.lastErrorMessage = message
+  testTelemetry.recordedErrorNotificationCount += 1
+  return vscode.window.showErrorMessage(message, ...items)
 }
 
 function runCliCommand(kind) {
@@ -1388,6 +1410,9 @@ function getTestState() {
     hasClient: !!client,
     clientSessionId,
     restartCount,
+    lastErrorMessage: testTelemetry.lastErrorMessage,
+    recordedErrorNotificationCount: testTelemetry.recordedErrorNotificationCount,
+    outputChannelLines: [...testTelemetry.outputChannelLines],
     statusBarText: statusBarItem ? statusBarItem.text : null,
     statusBarTooltip: statusBarItem ? statusBarItem.tooltip : null,
     languageStatusText: languageStatusItem ? languageStatusItem.text : null,
