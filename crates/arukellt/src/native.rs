@@ -8,22 +8,22 @@ use ark_target::EmitKind;
 #[cfg(feature = "llvm")]
 use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
 #[cfg(feature = "llvm")]
-use ark_driver::Session;
-#[cfg(feature = "llvm")]
 use ark_lexer::Lexer;
 #[cfg(feature = "llvm")]
 use ark_parser::parse;
+#[cfg(feature = "llvm")]
+use ark_target::TargetId;
 
 /// Handle `--target native` compilation (requires `llvm` feature).
 pub(crate) fn compile_native_target(
     file: &PathBuf,
     output: Option<&PathBuf>,
     _emit_kind: EmitKind,
+    lazy_reachability: bool,
 ) {
     #[cfg(feature = "llvm")]
     {
-        let mut session = Session::new();
-        match session.compile_native_ir(file) {
+        match compile_file_native(file, lazy_reachability) {
             Ok(llvm_ir) => {
                 let output = output.cloned().unwrap_or_else(|| file.with_extension("ll"));
                 std::fs::write(&output, &llvm_ir).unwrap_or_else(|e| {
@@ -45,7 +45,7 @@ pub(crate) fn compile_native_target(
     }
     #[cfg(not(feature = "llvm"))]
     {
-        let _ = (file, output, _emit_kind);
+        let _ = (file, output, _emit_kind, lazy_reachability);
         eprintln!(
             "error: native target requires LLVM backend support.\n\
              Rebuild with: cargo build --features llvm\n\
@@ -57,7 +57,7 @@ pub(crate) fn compile_native_target(
 
 /// Compile to LLVM IR (only available with `llvm` feature).
 #[cfg(feature = "llvm")]
-fn compile_file_native(path: &PathBuf) -> Result<String, String> {
+fn compile_file_native(path: &PathBuf, lazy_reachability: bool) -> Result<String, String> {
     let source =
         std::fs::read_to_string(path).map_err(|e| format!("error: {}: {}", path.display(), e))?;
 
@@ -73,8 +73,13 @@ fn compile_file_native(path: &PathBuf) -> Result<String, String> {
         return Err(render_diagnostics(sink.diagnostics(), &source_map));
     }
 
-    let resolved = ark_resolve::resolve_program_entry(path.as_path(), &mut sink)
-        .unwrap_or_else(|_| ark_resolve::resolve_module(module, &mut sink));
+    let resolved = ark_resolve::resolve_program_entry_with_target_and_crate_options(
+        path.as_path(),
+        &mut sink,
+        Some(TargetId::Native),
+        ark_resolve::ResolveCrateOptions { lazy_reachability },
+    )
+    .unwrap_or_else(|_| ark_resolve::resolve_module(module, &mut sink));
     if sink.has_errors() {
         return Err(render_diagnostics(sink.diagnostics(), &source_map));
     }
@@ -102,11 +107,10 @@ fn compile_file_native(path: &PathBuf) -> Result<String, String> {
 }
 
 /// Handle `arukellt run --target native` (requires `llvm` feature).
-pub(crate) fn run_native_target(file: &PathBuf) {
+pub(crate) fn run_native_target(file: &PathBuf, lazy_reachability: bool) {
     #[cfg(feature = "llvm")]
     {
-        let mut session = Session::new();
-        match session.compile_native_ir(file) {
+        match compile_file_native(file, lazy_reachability) {
             Ok(llvm_ir) => {
                 if let Err(e) = run_native_ir(&llvm_ir, file) {
                     eprintln!("error: {}", e);
@@ -121,7 +125,7 @@ pub(crate) fn run_native_target(file: &PathBuf) {
     }
     #[cfg(not(feature = "llvm"))]
     {
-        let _ = file;
+        let _ = (file, lazy_reachability);
         eprintln!(
             "error: native target requires LLVM backend support.\n\
              Rebuild with: cargo build --features llvm\n\

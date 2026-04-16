@@ -456,6 +456,20 @@ pub fn resolve_program_entry_with_target(
     Ok(resolved_program_entry(program))
 }
 
+/// Like [`resolve_program_entry_with_target`], but threads [`ResolveCrateOptions`]
+/// (including `lazy_reachability`) through the crate load/analyze path.
+pub fn resolve_program_entry_with_target_and_crate_options(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+    target: Option<TargetId>,
+    options: ResolveCrateOptions,
+) -> Result<ResolvedModule, String> {
+    let mut program =
+        resolve_program_with_target_and_crate_options(entry_path, sink, target, options)?;
+    merge_prelude(&mut program, sink);
+    Ok(resolved_program_entry(program))
+}
+
 pub fn resolve_module_with_intrinsic_prelude(
     module: ast::Module,
     sink: &mut DiagnosticSink,
@@ -526,6 +540,7 @@ pub fn inject_wit_externs(
 mod tests {
     use super::*;
     use ark_diagnostics::Span;
+    use std::fs;
 
     #[test]
     fn resolve_module_preserves_symbols() {
@@ -549,5 +564,72 @@ mod tests {
                 .lookup(resolved.global_scope, "Point")
                 .is_some()
         );
+    }
+
+    #[test]
+    fn resolve_program_entry_with_target_and_crate_options_respects_lazy_reachability() {
+        let tmp = std::env::temp_dir().join(format!(
+            "ark_resolve_lazy_entry_{}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&tmp);
+        fs::create_dir_all(&tmp).expect("temp project dir");
+
+        let dep = tmp.join("dep.ark");
+        let main = tmp.join("main.ark");
+        fs::write(
+            &dep,
+            r#"pub fn used() -> i32 {
+    1
+}
+pub fn unused() -> i32 {
+    2
+}
+"#,
+        )
+        .expect("write dep.ark");
+        fs::write(
+            &main,
+            r#"import dep
+fn main() {
+    let _ = dep::used()
+}
+"#,
+        )
+        .expect("write main.ark");
+
+        let mut sink = DiagnosticSink::new();
+        let eager = resolve_program_entry_with_target_and_crate_options(
+            &main,
+            &mut sink,
+            Some(TargetId::Native),
+            ResolveCrateOptions {
+                lazy_reachability: false,
+            },
+        )
+        .expect("eager resolve");
+        assert!(!sink.has_errors(), "{:?}", sink.diagnostics());
+        assert!(
+            eager.symbols.lookup(eager.global_scope, "dep::unused").is_some(),
+            "eager resolve should bind unreachable pub `dep::unused` for qualified lookups"
+        );
+
+        let mut sink = DiagnosticSink::new();
+        let lazy = resolve_program_entry_with_target_and_crate_options(
+            &main,
+            &mut sink,
+            Some(TargetId::Native),
+            ResolveCrateOptions {
+                lazy_reachability: true,
+            },
+        )
+        .expect("lazy resolve");
+        assert!(!sink.has_errors(), "{:?}", sink.diagnostics());
+        assert!(
+            lazy.symbols.lookup(lazy.global_scope, "dep::unused").is_none(),
+            "lazy resolve should omit bindings not reachable from entry"
+        );
+
+        let _ = fs::remove_dir_all(&tmp);
     }
 }

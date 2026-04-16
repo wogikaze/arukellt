@@ -7,7 +7,7 @@ use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics, wit_flags_v
 use ark_driver::{MirSelection, OptLevel, Session};
 use ark_manifest::Manifest;
 use ark_mir::mir::{MirModule, MirStmt, Operand, Rvalue};
-use ark_target::{EmitKind, TargetId};
+use ark_target::{EmitKind, TargetId, WasiVersion};
 use ark_wasm::component::{WitDocument, WitFunction, WitType, parse_wit};
 use serde::Serialize;
 
@@ -386,6 +386,7 @@ pub(crate) fn cmd_build(
     profile_mem: bool,
     time: bool,
     lazy_reachability: bool,
+    wasi_version: WasiVersion,
 ) {
     let cwd = std::env::current_dir().unwrap_or_else(|e| {
         eprintln!("error: cannot determine current directory: {}", e);
@@ -422,6 +423,7 @@ pub(crate) fn cmd_build(
 
     let world = manifest.world.as_ref().map(|w| w.name.clone());
 
+    let p2_native = wasi_version == WasiVersion::P2;
     cmd_compile(
         input_file,
         Some(output_file),
@@ -429,7 +431,8 @@ pub(crate) fn cmd_build(
         emit_kind,
         vec![],
         world,
-        false,
+        p2_native,
+        wasi_version,
         profile_mem,
         time,
         opt_level_raw,
@@ -450,6 +453,7 @@ pub(crate) fn cmd_compile(
     wit_files: Vec<PathBuf>,
     world: Option<String>,
     p2_native: bool,
+    wasi_version: WasiVersion,
     profile_mem: bool,
     time: bool,
     opt_level_raw: u8,
@@ -461,7 +465,7 @@ pub(crate) fn cmd_compile(
 ) {
     // Native target: handled separately via LLVM backend
     if target == TargetId::Native {
-        native::compile_native_target(&file, output.as_ref(), emit_kind);
+        native::compile_native_target(&file, output.as_ref(), emit_kind, lazy_reachability);
         return;
     }
 
@@ -510,16 +514,18 @@ pub(crate) fn cmd_compile(
     }
     let world_spec = world.as_deref();
 
-    // Validate --p2-native flag usage
+    // Validate --p2-native / --wasi-version p2 usage
     if p2_native && target != TargetId::Wasm32WasiP2 {
         eprintln!(
-            "error: --p2-native requires --target wasm32-wasi-p2 (current target: {})",
+            "error: --p2-native and --wasi-version p2 require --target wasm32-wasi-p2 (current target: {})",
             target
         );
         process::exit(1);
     }
     if p2_native && emit_kind != EmitKind::Component && emit_kind != EmitKind::All {
-        eprintln!("warning: --p2-native only affects --emit component or --emit all");
+        eprintln!(
+            "warning: --p2-native and --wasi-version p2 only affect --emit component or --emit all"
+        );
     }
 
     let opt_level = match OptLevel::from_u8(opt_level_raw) {
@@ -530,10 +536,17 @@ pub(crate) fn cmd_compile(
         }
     };
 
+    let pipeline_wasi = if p2_native {
+        WasiVersion::P2
+    } else {
+        wasi_version
+    };
+
     // WIT-only emit
     if emit_kind == EmitKind::Wit {
         let mut session = Session::new();
         session.set_lazy_reachability(lazy_reachability);
+        session.set_wasi_version(pipeline_wasi);
         session.timing_enabled = time;
         session.opt_level = opt_level;
         session.strip_debug = strip_debug;
@@ -565,6 +578,7 @@ pub(crate) fn cmd_compile(
         let component_output = output.unwrap_or_else(|| file.with_extension("component.wasm"));
         let mut session = Session::new();
         session.set_lazy_reachability(lazy_reachability);
+        session.set_wasi_version(pipeline_wasi);
         session.timing_enabled = time;
         session.opt_level = opt_level;
         session.strip_debug = strip_debug;
@@ -598,6 +612,7 @@ pub(crate) fn cmd_compile(
         if profile_mem {
             let mut session = Session::new();
             session.set_lazy_reachability(lazy_reachability);
+            session.set_wasi_version(pipeline_wasi);
             if let Ok(info) = session.profile_memory(&file) {
                 eprintln!("{}", info);
             }
@@ -609,6 +624,7 @@ pub(crate) fn cmd_compile(
     let output = output.unwrap_or_else(|| file.with_extension("wasm"));
     let mut session = Session::new();
     session.set_lazy_reachability(lazy_reachability);
+    session.set_wasi_version(pipeline_wasi);
     session.timing_enabled = time || json;
     session.opt_level = opt_level;
     session.strip_debug = strip_debug;
@@ -683,6 +699,7 @@ pub(crate) fn cmd_compile(
                 // Also generate component
                 let mut comp_session = Session::new();
                 comp_session.set_lazy_reachability(lazy_reachability);
+                comp_session.set_wasi_version(pipeline_wasi);
                 comp_session.timing_enabled = time;
                 comp_session.opt_level = opt_level;
                 comp_session.strip_debug = strip_debug;
@@ -742,7 +759,7 @@ pub(crate) fn cmd_run(
 ) {
     // Native target: handled separately
     if target == TargetId::Native {
-        native::run_native_target(&file);
+        native::run_native_target(&file, lazy_reachability);
         return;
     }
 
