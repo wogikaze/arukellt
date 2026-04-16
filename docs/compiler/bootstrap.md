@@ -10,10 +10,10 @@ self-hosted compiler produces a bit-identical binary when it compiles itself.
 
 ```
 Stage 0 (Rust compiler)
-  └─ compiles src/compiler/*.ark → arukellt-s1.wasm   (trusted base)
+  └─ compiles src/compiler/main.ark → arukellt-s1.wasm   (trusted base)
 
 Stage 1 (arukellt-s1.wasm under wasmtime)
-  └─ compiles src/compiler/*.ark → arukellt-s2.wasm   (first self-compile)
+  └─ compiles src/compiler/main.ark → arukellt-s2.wasm   (first self-compile)
 
 Stage 2 (fixpoint check)
   └─ sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)
@@ -47,22 +47,24 @@ scripts/run/verify-bootstrap.sh
 scripts/run/verify-bootstrap.sh --stage 0
 ```
 
+**Last audited (stage numbering and CLI flags):** 2026-04-16 against
+`scripts/run/verify-bootstrap.sh`.
+
 ## Verification Stages
 
 ### Stage 0 — Compile with Rust compiler
 
-The Rust-hosted compiler (`target/release/arukellt`) compiles each
-`src/compiler/*.ark` file.  This is the **trusted base**: if the Rust
-compiler is correct, the output is correct.
-
-When `main.ark` produces a unified `main.wasm`, it is copied to
-`.bootstrap-build/arukellt-s1.wasm` for the next stage.
+The Rust-hosted `arukellt` binary (see `scripts/run/verify-bootstrap.sh` for
+`ARUKELLT_BIN` / `target/debug` / `target/release` resolution) compiles
+`src/compiler/main.ark` with `--target wasm32-wasi-p1` and writes
+`.bootstrap-build/arukellt-s1.wasm`.  This is the **trusted base**: if the
+Rust compiler is correct, the output is correct.
 
 ### Stage 1 — Self-compile with arukellt-s1.wasm
 
-The Stage 0 artifact (`arukellt-s1.wasm`) is executed under wasmtime to
-compile the same selfhost sources again.  The output is
-`.bootstrap-build/arukellt-s2.wasm`.
+The Stage 0 artifact (`arukellt-s1.wasm`) is executed under `wasmtime` (repo
+root mounted, per the script) to compile the same `src/compiler/main.ark`
+again.  The output is `.bootstrap-build/arukellt-s2.wasm`.
 
 If Stage 1 cannot produce `arukellt-s2.wasm`, `scripts/run/verify-bootstrap.sh`
 fails the bootstrap gate explicitly. A partial command such as `--stage1-only`
@@ -253,8 +255,8 @@ simultaneously and be verified by CI on every merge to `master`:
 
 | Criterion | Description | Verification script/command |
 |-----------|-------------|----------------------------|
-| **Stage 0 compile** | Rust compiler compiles all `src/compiler/*.ark` files with zero errors | `scripts/run/verify-bootstrap.sh --stage1-only` |
-| **Stage 1 compile** | `arukellt-s1.wasm` compiles all `src/compiler/*.ark` files with zero errors | `scripts/run/verify-bootstrap.sh` Stage 1 |
+| **Stage 0 compile** | Rust compiler compiles `src/compiler/main.ark` to `.bootstrap-build/arukellt-s1.wasm` with zero errors | `scripts/run/verify-bootstrap.sh --stage1-only` |
+| **Stage 1 compile** | `arukellt-s1.wasm` compiles the same `main.ark` to `.bootstrap-build/arukellt-s2.wasm` with zero errors | `scripts/run/verify-bootstrap.sh` Stage 1 |
 | **Stage 2 fixpoint** | `sha256(s1) == sha256(s2)` — compiler reproduces itself byte-for-byte | `scripts/run/verify-bootstrap.sh` Stage 2 |
 | **Fixture parity** | Selfhost compiler passes all 575+ fixture tests identically to the Rust compiler | `scripts/check/check-selfhost-parity.sh` |
 | **CLI parity** | `arukellt-s1.wasm compile <file>` stdout/stderr matches `arukellt compile <file>` for all fixture inputs | `scripts/check/check-selfhost-parity.sh --cli` |
