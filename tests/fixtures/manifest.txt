@@ -232,6 +232,7 @@ run:selfhost/typecheck_generic_call.ark
 run:selfhost/typecheck_mono_instances.ark
 run:selfhost/typecheck_mono_vec.ark
 run:selfhost/typecheck_match_exhaustive.ark
+run:selfhost/typecheck_closure_capture.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 run:t2/t2_scaffold.ark
 run:stdlib_bytes/bytes_basic.ark

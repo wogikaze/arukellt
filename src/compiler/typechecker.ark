@@ -626,6 +626,8 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
     }
 
     if node.kind == NK_CLOSURE() {
+        // Lexical environment: clone enclosing `let` bindings into the closure scope
+        // so the body can resolve captured identifiers (issue #499).
         let closure_scope = scope_child(scope)
         let child_count = len(node.children)
         if child_count == 0 {
@@ -640,7 +642,8 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         }
 
         let body = get_unchecked(node.children, child_count - 1)
-        infer_expr(env, closure_scope, fn_sigs, body)
+        let body_ty = infer_expr(env, closure_scope, fn_sigs, body)
+        resolve_type(env, body_ty)
         return TypeInfo_simple(TY_FN())
     }
 
