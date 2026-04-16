@@ -26,6 +26,8 @@ Primary paths usually include:
 - `crates/ark-mir/**`
 - `crates/ark-typecheck/**`
 - `crates/ark-hir/**`
+- `crates/ark-resolve/**` (reachability / lazy resolution when explicitly assigned)
+- `crates/ark-driver/**` (compile session / incremental driver hooks when explicitly assigned)
 - Compiler regression fixture / validation test paths
 
 You do **NOT** work on:
