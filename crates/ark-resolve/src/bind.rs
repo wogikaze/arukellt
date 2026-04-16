@@ -9,7 +9,25 @@ pub(crate) fn bind_module(
     global_scope: ScopeId,
     sink: &mut DiagnosticSink,
 ) {
-    bind_module_impl(module, symbols, global_scope, sink, false, false);
+    bind_module_impl(module, symbols, global_scope, sink, false, false, None);
+}
+
+pub(crate) fn bind_module_filtered(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    global_scope: ScopeId,
+    sink: &mut DiagnosticSink,
+    item_filter: &dyn Fn(&ast::Item) -> bool,
+) {
+    bind_module_impl(
+        module,
+        symbols,
+        global_scope,
+        sink,
+        false,
+        false,
+        Some(item_filter),
+    );
 }
 
 pub(crate) fn bind_public_module(
@@ -18,7 +36,7 @@ pub(crate) fn bind_public_module(
     global_scope: ScopeId,
     sink: &mut DiagnosticSink,
 ) {
-    bind_module_impl(module, symbols, global_scope, sink, true, true);
+    bind_module_impl(module, symbols, global_scope, sink, true, true, None);
 }
 
 pub(crate) fn bind_module_skip_dup(
@@ -27,7 +45,25 @@ pub(crate) fn bind_module_skip_dup(
     global_scope: ScopeId,
     sink: &mut DiagnosticSink,
 ) {
-    bind_module_impl(module, symbols, global_scope, sink, false, true);
+    bind_module_impl(module, symbols, global_scope, sink, false, true, None);
+}
+
+pub(crate) fn bind_module_skip_dup_filtered(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    global_scope: ScopeId,
+    sink: &mut DiagnosticSink,
+    item_filter: &dyn Fn(&ast::Item) -> bool,
+) {
+    bind_module_impl(
+        module,
+        symbols,
+        global_scope,
+        sink,
+        false,
+        true,
+        Some(item_filter),
+    );
 }
 
 /// Bind all items (pub + private) from an imported user module, skipping
@@ -39,8 +75,14 @@ fn bind_module_impl(
     sink: &mut DiagnosticSink,
     pub_only: bool,
     skip_duplicates: bool,
+    item_filter: Option<&dyn Fn(&ast::Item) -> bool>,
 ) {
     for item in &module.items {
+        if let Some(pred) = item_filter {
+            if !pred(item) {
+                continue;
+            }
+        }
         match item {
             ast::Item::FnDef(f) => {
                 if pub_only && !f.is_pub {
@@ -164,9 +206,43 @@ pub(crate) fn bind_module_with_qualifier(
     symbols: &mut SymbolTable,
     scope: ScopeId,
     qualifier: &str,
+    sink: &mut DiagnosticSink,
+) {
+    bind_module_with_qualifier_impl(module, symbols, scope, qualifier, sink, None);
+}
+
+pub(crate) fn bind_module_with_qualifier_filtered(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    scope: ScopeId,
+    qualifier: &str,
+    sink: &mut DiagnosticSink,
+    item_filter: &dyn Fn(&ast::Item) -> bool,
+) {
+    bind_module_with_qualifier_impl(
+        module,
+        symbols,
+        scope,
+        qualifier,
+        sink,
+        Some(item_filter),
+    );
+}
+
+fn bind_module_with_qualifier_impl(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    scope: ScopeId,
+    qualifier: &str,
     _sink: &mut DiagnosticSink,
+    item_filter: Option<&dyn Fn(&ast::Item) -> bool>,
 ) {
     for item in &module.items {
+        if let Some(pred) = item_filter {
+            if !pred(item) {
+                continue;
+            }
+        }
         match item {
             ast::Item::FnDef(f) if f.is_pub => {
                 let qualified = format!("{}::{}", qualifier, f.name);

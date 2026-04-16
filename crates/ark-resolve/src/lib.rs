@@ -7,6 +7,7 @@ mod analyze;
 mod bind;
 mod load;
 mod module_graph;
+mod reachability;
 mod registry;
 mod resolve;
 mod scope;
@@ -15,13 +16,16 @@ mod unused;
 
 #[allow(deprecated)]
 pub use resolve::{
-    LoadedModule, ResolvedEnum, ResolvedFunction, ResolvedModule, ResolvedProgram, ResolvedStruct,
-    Visibility, bind_program, load_program_graph_with_target,
+    LoadedModule, ResolveCrateOptions, ResolvedEnum, ResolvedFunction, ResolvedModule,
+    ResolvedProgram, ResolvedStruct, Visibility, bind_program, load_program_graph_with_target,
     load_program_graph_with_target_and_parser, merge_prelude, resolve_module,
     resolve_module_default, resolve_module_for_tests, resolve_module_legacy,
     resolve_module_public, resolve_module_stdlib, resolve_module_with_intrinsic_prelude,
+    analyze_loaded_program_with_options,
     resolve_program, resolve_program_entry, resolve_program_entry_with_target,
-    resolve_program_with_target, resolve_program_with_target_and_parser, resolved_program_entry,
+    resolve_program_with_crate_options, resolve_program_with_target,
+    resolve_program_with_target_and_crate_options, resolve_program_with_target_and_parser,
+    resolve_program_with_target_and_parser_and_crate_options, resolved_program_entry,
     resolved_program_to_module, inject_wit_externs,
 };
 pub use scope::{Scope, ScopeId, Symbol, SymbolKind, SymbolTable};

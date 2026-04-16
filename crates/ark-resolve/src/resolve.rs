@@ -13,6 +13,15 @@ use crate::bind::{bind_module, bind_public_module, inject_prelude_symbols};
 use crate::load::{load_program, load_program_with_target, load_program_with_target_and_parser};
 use crate::scope::{ScopeId, SymbolTable};
 
+/// Options for multi-module crate resolution (`resolve_program*`,
+/// `analyze_loaded_program*`).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ResolveCrateOptions {
+    /// When set, only definitions reachable from program entrypoints are bound
+    /// into the symbol table (conservative call graph in `reachability.rs`).
+    pub lazy_reachability: bool,
+}
+
 /// Visibility of a declaration within its module.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Visibility {
@@ -111,11 +120,21 @@ where
     load_program_with_target_and_parser(entry_path, sink, target, parse_module)
 }
 
+// Convenience wrapper; the driver uses `analyze_loaded_program_with_options` directly.
+#[allow(dead_code)]
 pub fn analyze_loaded_program(
     graph: crate::module_graph::ModuleGraph,
     sink: &mut DiagnosticSink,
 ) -> ResolvedProgram {
-    analyze_program(graph, sink)
+    analyze_loaded_program_with_options(graph, sink, ResolveCrateOptions::default())
+}
+
+pub fn analyze_loaded_program_with_options(
+    graph: crate::module_graph::ModuleGraph,
+    sink: &mut DiagnosticSink,
+    options: ResolveCrateOptions,
+) -> ResolvedProgram {
+    analyze_program(graph, sink, options)
 }
 
 pub fn resolve_bound_program(program: ResolvedProgram) -> ResolvedProgram {
@@ -126,8 +145,18 @@ pub fn resolve_program(
     entry_path: &Path,
     sink: &mut DiagnosticSink,
 ) -> Result<ResolvedProgram, String> {
+    resolve_program_with_crate_options(entry_path, sink, ResolveCrateOptions::default())
+}
+
+pub fn resolve_program_with_crate_options(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+    options: ResolveCrateOptions,
+) -> Result<ResolvedProgram, String> {
     let graph = load_program_graph(entry_path, sink)?;
-    Ok(resolve_bound_program(analyze_loaded_program(graph, sink)))
+    Ok(resolve_bound_program(analyze_loaded_program_with_options(
+        graph, sink, options,
+    )))
 }
 
 pub fn resolve_program_with_target(
@@ -135,8 +164,24 @@ pub fn resolve_program_with_target(
     sink: &mut DiagnosticSink,
     target: Option<TargetId>,
 ) -> Result<ResolvedProgram, String> {
+    resolve_program_with_target_and_crate_options(
+        entry_path,
+        sink,
+        target,
+        ResolveCrateOptions::default(),
+    )
+}
+
+pub fn resolve_program_with_target_and_crate_options(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+    target: Option<TargetId>,
+    options: ResolveCrateOptions,
+) -> Result<ResolvedProgram, String> {
     let graph = load_program_graph_with_target(entry_path, sink, target)?;
-    Ok(resolve_bound_program(analyze_loaded_program(graph, sink)))
+    Ok(resolve_bound_program(analyze_loaded_program_with_options(
+        graph, sink, options,
+    )))
 }
 
 pub fn resolve_program_with_target_and_parser<F>(
@@ -148,8 +193,29 @@ pub fn resolve_program_with_target_and_parser<F>(
 where
     F: FnMut(&Path, &mut DiagnosticSink) -> Result<ast::Module, String>,
 {
+    resolve_program_with_target_and_parser_and_crate_options(
+        entry_path,
+        sink,
+        target,
+        parse_module,
+        ResolveCrateOptions::default(),
+    )
+}
+
+pub fn resolve_program_with_target_and_parser_and_crate_options<F>(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+    target: Option<TargetId>,
+    parse_module: &mut F,
+    options: ResolveCrateOptions,
+) -> Result<ResolvedProgram, String>
+where
+    F: FnMut(&Path, &mut DiagnosticSink) -> Result<ast::Module, String>,
+{
     let graph = load_program_graph_with_target_and_parser(entry_path, sink, target, parse_module)?;
-    Ok(resolve_bound_program(analyze_loaded_program(graph, sink)))
+    Ok(resolve_bound_program(analyze_loaded_program_with_options(
+        graph, sink, options,
+    )))
 }
 
 /// Resolve names in a parsed module.
