@@ -61,7 +61,7 @@ higher-level, more user-friendly interface for component operations:
 
 ## Acceptance
 
-- [ ] `arukellt component --help` is reachable and shows subcommands
+- [x] `arukellt component --help` is reachable and shows subcommands
 - [ ] `arukellt component build <file.ark>` compiles to `<file>.component.wasm`
 - [ ] `arukellt component inspect <file.component.wasm>` prints the WIT world
 - [ ] `arukellt component validate <file.component.wasm>` exits 0 for a valid component

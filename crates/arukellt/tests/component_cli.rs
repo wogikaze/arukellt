@@ -51,6 +51,30 @@ fn write_wit_import_fixture(dir: &tempfile::TempDir) -> (std::path::PathBuf, std
 }
 
 #[test]
+fn component_help_shows_subcommands() {
+    let output = Command::new(arukellt_bin())
+        .args(["component", "--help"])
+        .current_dir(workspace_root())
+        .output()
+        .expect("arukellt component --help failed to spawn");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(output.status.success(), "arukellt component --help should succeed");
+    assert!(
+        stdout.contains("build"),
+        "component --help should list the build subcommand\nstdout: {stdout}"
+    );
+    assert!(
+        stdout.contains("inspect"),
+        "component --help should list the inspect subcommand\nstdout: {stdout}"
+    );
+    assert!(
+        stdout.contains("validate"),
+        "component --help should list the validate subcommand\nstdout: {stdout}"
+    );
+}
+
+#[test]
 fn compile_component_accepts_wit_import_calls() {
     if !component_cli_available() {
         eprintln!("skipping component CLI test: wasm-tools not installed");

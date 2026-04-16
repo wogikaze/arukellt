@@ -1,6 +1,6 @@
 //! Arukellt compiler CLI.
 //!
-//! Subcommands: compile, run, check
+//! Subcommands: compile, run, check, component
 
 mod cmd_doc;
 mod commands;
@@ -35,6 +35,25 @@ enum ScriptCommands {
         /// Additional arguments passed to the script
         #[arg(trailing_var_arg = true)]
         args: Vec<String>,
+    },
+}
+
+#[derive(Subcommand)]
+enum ComponentCommands {
+    /// Compile an .ark file to a WebAssembly component
+    Build {
+        /// Input .ark file
+        file: PathBuf,
+    },
+    /// Print the WIT world for a compiled component
+    Inspect {
+        /// Input .component.wasm file
+        file: PathBuf,
+    },
+    /// Validate a compiled component
+    Validate {
+        /// Input .component.wasm file
+        file: PathBuf,
     },
 }
 
@@ -243,6 +262,11 @@ enum Commands {
     Script {
         #[command(subcommand)]
         subcommand: ScriptCommands,
+    },
+    /// Build and inspect WebAssembly components
+    Component {
+        #[command(subcommand)]
+        subcommand: ComponentCommands,
     },
     /// Start the LSP server (stdio transport)
     Lsp {
@@ -457,6 +481,30 @@ fn main() {
             }
             ScriptCommands::Run { name, args } => {
                 commands::cmd_script_run(name, args);
+            }
+        },
+        Commands::Component { subcommand } => match subcommand {
+            ComponentCommands::Build { file } => {
+                eprintln!(
+                    "error: `arukellt component build {}` is not implemented yet; use `arukellt compile --target wasm32-wasi-p2 --emit component {}` for now",
+                    file.display(),
+                    file.display()
+                );
+                std::process::exit(2);
+            }
+            ComponentCommands::Inspect { file } => {
+                eprintln!(
+                    "error: `arukellt component inspect {}` is not implemented yet",
+                    file.display()
+                );
+                std::process::exit(2);
+            }
+            ComponentCommands::Validate { file } => {
+                eprintln!(
+                    "error: `arukellt component validate {}` is not implemented yet",
+                    file.display()
+                );
+                std::process::exit(2);
             }
         },
         Commands::Lsp { .. } => {
