@@ -535,4 +535,19 @@ mod tests {
         assert!(v["error_count"].as_u64().unwrap() > 0);
         assert!(!v["diagnostics"].as_array().unwrap().is_empty());
     }
+
+    #[test]
+    fn typecheck_resolve_error_propagates() {
+        let json = typecheck("fn main() {\n    totally_undefined_function_xyz()\n}\n");
+        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(v["ok"], false);
+        assert!(v["error_count"].as_u64().unwrap() > 0);
+        assert!(
+            v["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["phase"] == "resolve" || d["phase"] == "typecheck")
+        );
+    }
 }
