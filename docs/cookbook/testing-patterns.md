@@ -2,6 +2,9 @@
 
 Using `std::test` assert functions for effective tests.
 
+> Policy: user-facing samples should avoid direct low-level prelude helper calls.
+> Prefer module-local wrappers/facades; if needed, hide prelude details behind local helper functions.
+
 ## Basic Assertions
 
 <!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->

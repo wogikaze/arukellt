@@ -2,6 +2,9 @@
 
 Patterns for HashMap, Deque, Vec sorting, and collection algorithms.
 
+> Policy: user-facing samples should avoid direct low-level prelude helper calls.
+> Prefer module-local wrappers/facades; if needed, hide prelude details behind local helper functions.
+
 ## HashMap — Word Frequency Counter
 
 <!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->

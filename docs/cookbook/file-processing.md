@@ -2,6 +2,9 @@
 
 Read a file, process its lines, and write output using `std::host::fs`, `std::host::stdio`, and `std::text`.
 
+> Policy: user-facing samples should avoid direct low-level prelude helper calls.
+> Prefer module-local wrappers/facades; if needed, hide prelude details behind local helper functions.
+
 ## Read a File and Print Its Contents
 
 <!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->

@@ -2,6 +2,9 @@
 
 Using `std::wasm` types and `std::bytes` to build Wasm binary sections.
 
+> Policy: user-facing samples should avoid direct low-level prelude helper calls.
+> Prefer module-local wrappers/facades; if needed, hide prelude details behind local helper functions.
+
 > Both `std::wasm` and parts of `std::bytes` are **Experimental** in implementation status.
 
 ## Wasm Magic Header

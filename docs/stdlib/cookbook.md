@@ -16,7 +16,7 @@
 1. 関数呼び出し形式を基準にする
 2. `get` / `pop` の戻り値は `Option<T>` として扱う
 3. `Result<T, String>` は `match` または `?` で処理する
-4. v1 機能があっても、まずは Prelude ベースの書き方を優先する
+4. user-facing な sample では prelude helper の直叩きを避け、module-local wrapper / facade を優先する
 5. 文字列化は primitive helper より `to_string(x)` を優先する
 
 ---
