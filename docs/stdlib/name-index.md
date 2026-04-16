@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 588
+- **Canonical names:** 590
 - **Historical/deprecated names:** 3
-- **Total entries:** 591
+- **Total entries:** 593
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -587,6 +587,8 @@ Current public API names, sorted alphabetically.
 | `wit_type_char` | `std::wit` | `experimental` | Wit |
 | `wit_type_f32` | `std::wit` | `experimental` | Wit |
 | `wit_type_f64` | `std::wit` | `experimental` | Wit |
+| `wit_type_from_id` | `std::wit` | `experimental` | Wit |
+| `wit_type_id` | `std::wit` | `experimental` | Wit |
 | `wit_type_name` | `std::wit` | `experimental` | Wit |
 | `wit_type_s16` | `std::wit` | `experimental` | Wit |
 | `wit_type_s32` | `std::wit` | `experimental` | Wit |
@@ -1199,6 +1201,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `wit_type_char` | ✅ `experimental` | `std::wit` | Wit |
 | `wit_type_f32` | ✅ `experimental` | `std::wit` | Wit |
 | `wit_type_f64` | ✅ `experimental` | `std::wit` | Wit |
+| `wit_type_from_id` | ✅ `experimental` | `std::wit` | Wit |
+| `wit_type_id` | ✅ `experimental` | `std::wit` | Wit |
 | `wit_type_name` | ✅ `experimental` | `std::wit` | Wit |
 | `wit_type_s16` | ✅ `experimental` | `std::wit` | Wit |
 | `wit_type_s32` | ✅ `experimental` | `std::wit` | Wit |

@@ -7,14 +7,15 @@ Source-backed docs for WIT helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::wit` module mirrors WebAssembly Interface Types (WIT) primitive type identifiers as integer constants plus a name-lookup helper. These are building blocks for component-model tooling and WIT introspection.
+The `std::wit` module exposes WebAssembly Interface Types (WIT) primitive types as a typed enum plus explicit integer conversions for interop and introspection. These are building blocks for component-model tooling and WIT-aware utilities.
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `wit_type_bool()` … `wit_type_string()` | Integer constants for each WIT primitive type. |
-| `wit_type_name(id)` | Map a WIT type constant back to its human-readable name. |
+| `WitType` + `wit_type_bool()` … `wit_type_string()` | Typed constructors for each WIT primitive type. |
+| `wit_type_id(ty)` / `wit_type_from_id(id)` | Explicit conversions between `WitType` and raw numeric IDs. |
+| `wit_type_name(ty)` | Map a `WitType` value back to its human-readable name. |
 
 **Target constraints:** All targets (T1 + T3). No host capability required.
 
@@ -23,7 +24,8 @@ The `std::wit` module mirrors WebAssembly Interface Types (WIT) primitive type i
 ```ark
 import std::wit
 
-let t = wit_type_u32()        // integer constant for u32
+let t = wit_type_u32()
+let id = wit_type_id(t)       // 4
 let name = wit_type_name(t)   // "u32"
 ```
 
@@ -32,28 +34,37 @@ let name = wit_type_name(t)   // "u32"
 ## `std::wit`
 
 - Source: [`../../../std/wit/mod.ark`](../../../std/wit/mod.ark)
-- Manifest-backed functions: 14
-- Stability: experimental 14
+- Manifest-backed functions: 16
+- Stability: experimental 16
 
 Experimental WIT helpers.
 
-The current surface mirrors WIT primitive types as integer constants.
+The current surface exposes WIT primitive types as a typed enum plus
+explicit integer conversions for interop and introspection.
+
+### Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `WitType` | `enum` | - |
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `wit_type_bool` | `() -> i32` | `experimental` | - |
-| `wit_type_u8` | `() -> i32` | `experimental` | - |
-| `wit_type_u16` | `() -> i32` | `experimental` | - |
-| `wit_type_u32` | `() -> i32` | `experimental` | - |
-| `wit_type_u64` | `() -> i32` | `experimental` | - |
-| `wit_type_s8` | `() -> i32` | `experimental` | - |
-| `wit_type_s16` | `() -> i32` | `experimental` | - |
-| `wit_type_s32` | `() -> i32` | `experimental` | - |
-| `wit_type_s64` | `() -> i32` | `experimental` | - |
-| `wit_type_f32` | `() -> i32` | `experimental` | - |
-| `wit_type_f64` | `() -> i32` | `experimental` | - |
-| `wit_type_char` | `() -> i32` | `experimental` | - |
-| `wit_type_string` | `() -> i32` | `experimental` | - |
-| `wit_type_name` | `(i32) -> String` | `experimental` | - |
+| `wit_type_bool` | `() -> WitType` | `experimental` | - |
+| `wit_type_u8` | `() -> WitType` | `experimental` | - |
+| `wit_type_u16` | `() -> WitType` | `experimental` | - |
+| `wit_type_u32` | `() -> WitType` | `experimental` | - |
+| `wit_type_u64` | `() -> WitType` | `experimental` | - |
+| `wit_type_s8` | `() -> WitType` | `experimental` | - |
+| `wit_type_s16` | `() -> WitType` | `experimental` | - |
+| `wit_type_s32` | `() -> WitType` | `experimental` | - |
+| `wit_type_s64` | `() -> WitType` | `experimental` | - |
+| `wit_type_f32` | `() -> WitType` | `experimental` | - |
+| `wit_type_f64` | `() -> WitType` | `experimental` | - |
+| `wit_type_char` | `() -> WitType` | `experimental` | - |
+| `wit_type_string` | `() -> WitType` | `experimental` | - |
+| `wit_type_id` | `(WitType) -> i32` | `experimental` | - |
+| `wit_type_from_id` | `(i32) -> WitType` | `experimental` | - |
+| `wit_type_name` | `(WitType) -> String` | `experimental` | - |

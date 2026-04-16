@@ -132,8 +132,9 @@ let n = len(types)
 let mut j = 0
 while j < n {
     let ty = get(types, j)
-    let name = wit::wit_type_name(ty)
-    println(concat(to_string(ty), concat(": ", name)))
+    let wit_ty = wit::wit_type_from_id(ty)
+    let name = wit::wit_type_name(wit_ty)
+    println(concat(to_string(wit::wit_type_id(wit_ty)), concat(": ", name)))
     j = j + 1
 }
 // 1: bool, 2: u8, ..., 13: string

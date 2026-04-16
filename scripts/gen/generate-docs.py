@@ -624,19 +624,21 @@ let i32_type = valtype_i32()       // 0x7f
         "modules": ["std::wit"],
         "overview": {
             "summary": (
-                "The `std::wit` module mirrors WebAssembly Interface Types (WIT) primitive type "
-                "identifiers as integer constants plus a name-lookup helper. These are building "
-                "blocks for component-model tooling and WIT introspection."
+                "The `std::wit` module exposes WebAssembly Interface Types (WIT) primitive types "
+                "as a typed enum plus explicit integer conversions for interop and introspection. "
+                "These are building blocks for component-model tooling and WIT-aware utilities."
             ),
             "highlights": [
-                ("`wit_type_bool()` … `wit_type_string()`", "Integer constants for each WIT primitive type."),
-                ("`wit_type_name(id)`", "Map a WIT type constant back to its human-readable name."),
+                ("`WitType` + `wit_type_bool()` … `wit_type_string()`", "Typed constructors for each WIT primitive type."),
+                ("`wit_type_id(ty)` / `wit_type_from_id(id)`", "Explicit conversions between `WitType` and raw numeric IDs."),
+                ("`wit_type_name(ty)`", "Map a `WitType` value back to its human-readable name."),
             ],
             "typical_usage": """\
 ```ark
 import std::wit
 
-let t = wit_type_u32()        // integer constant for u32
+let t = wit_type_u32()
+let id = wit_type_id(t)       // 4
 let name = wit_type_name(t)   // "u32"
 ```""",
         },

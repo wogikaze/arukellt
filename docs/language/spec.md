@@ -1206,15 +1206,18 @@ These functions are available via stdlib modules, not auto-imported.
 `canonical_abi_version() -> i32`,
 `component_model_version() -> String`
 
-**WIT Type Constants**:
-`wit_type_u8() -> i32`, `wit_type_u16() -> i32`,
-`wit_type_u32() -> i32`, `wit_type_u64() -> i32`,
-`wit_type_s8() -> i32`, `wit_type_s16() -> i32`,
-`wit_type_s32() -> i32`, `wit_type_s64() -> i32`,
-`wit_type_f32() -> i32`, `wit_type_f64() -> i32`,
-`wit_type_char() -> i32`, `wit_type_bool() -> i32`,
-`wit_type_string() -> i32`,
-`wit_type_name(id: i32) -> String`
+**WIT Type Helpers**:
+`WitType`,
+`wit_type_u8() -> WitType`, `wit_type_u16() -> WitType`,
+`wit_type_u32() -> WitType`, `wit_type_u64() -> WitType`,
+`wit_type_s8() -> WitType`, `wit_type_s16() -> WitType`,
+`wit_type_s32() -> WitType`, `wit_type_s64() -> WitType`,
+`wit_type_f32() -> WitType`, `wit_type_f64() -> WitType`,
+`wit_type_char() -> WitType`, `wit_type_bool() -> WitType`,
+`wit_type_string() -> WitType`,
+`wit_type_id(ty: WitType) -> i32`,
+`wit_type_from_id(id: i32) -> WitType`,
+`wit_type_name(ty: WitType) -> String`
 
 ---
 

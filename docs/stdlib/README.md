@@ -98,11 +98,11 @@ All 20 module pages carry curated overviews.
 
 ## Current Snapshot
 
-- Manifest-backed public functions: **591**
+- Manifest-backed public functions: **593**
 - Prelude wrappers: 132
 - Prelude types: `Option`, `Result`, `String`, `Vec`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`
 - Prelude values: `Some`, `None`, `Ok`, `Err`, `true`, `false`
-- Categories: `assert` 5, `box` 2, `bytes` 45, `cli` 6, `collections` 168, `component` 2, `control` 1, `conversion` 10, `core` 22, `csv` 7, `env` 6, `fs` 3, `host_clock` 2, `host_env` 5, `host_fs` 6, `host_http` 2, `host_process` 2, `host_random` 4, `host_sockets` 1, `host_stdio` 3, `host_udp` 1, `io` 28, `json` 22, `math` 5, `numeric` 2, `option_result` 14, `path` 9, `process` 2, `random` 3, `scalar_conversion` 14, `seq` 13, `signal` 11, `string` 20, `test` 17, `text` 42, `time` 3, `toml` 8, `wasm` 61, `wit` 14
+- Categories: `assert` 5, `box` 2, `bytes` 45, `cli` 6, `collections` 168, `component` 2, `control` 1, `conversion` 10, `core` 22, `csv` 7, `env` 6, `fs` 3, `host_clock` 2, `host_env` 5, `host_fs` 6, `host_http` 2, `host_process` 2, `host_random` 4, `host_sockets` 1, `host_stdio` 3, `host_udp` 1, `io` 28, `json` 22, `math` 5, `numeric` 2, `option_result` 14, `path` 9, `process` 2, `random` 3, `scalar_conversion` 14, `seq` 13, `signal` 11, `string` 20, `test` 17, `text` 42, `time` 3, `toml` 8, `wasm` 61, `wit` 16
 - Source-backed modules: 29
 - Source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), `std/*.ark` source files
 
@@ -113,6 +113,7 @@ All 20 module pages carry curated overviews.
 | File | Summary |
 |------|---------|
 | [generation-schema.md](generation-schema.md) | This schema is enforced at generation time. |
+| [modernization/514-quality-audit-matrix.md](modernization/514-quality-audit-matrix.md) | This audit is bounded to the family surfaces named by issue 514: |
 | [module-system.md](module-system.md) | Arukellt supports two import syntaxes for bringing modules into scope. |
 | [name-index.md](name-index.md) | Do not edit manually — changes will be overwritten on the next regeneration. |
 | [ownership-map.md](ownership-map.md) | Defines the ownership, maintenance tier, and release gate responsibilities |

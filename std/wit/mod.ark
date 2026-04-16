@@ -1,35 +1,91 @@
 //! Experimental WIT helpers.
 //!
-//! The current surface mirrors WIT primitive types as integer constants.
+//! The current surface exposes WIT primitive types as a typed enum plus
+//! explicit integer conversions for interop and introspection.
 
-pub fn wit_type_bool() -> i32 { 1 }
-pub fn wit_type_u8() -> i32 { 2 }
-pub fn wit_type_u16() -> i32 { 3 }
-pub fn wit_type_u32() -> i32 { 4 }
-pub fn wit_type_u64() -> i32 { 5 }
-pub fn wit_type_s8() -> i32 { 6 }
-pub fn wit_type_s16() -> i32 { 7 }
-pub fn wit_type_s32() -> i32 { 8 }
-pub fn wit_type_s64() -> i32 { 9 }
-pub fn wit_type_f32() -> i32 { 10 }
-pub fn wit_type_f64() -> i32 { 11 }
-pub fn wit_type_char() -> i32 { 12 }
-pub fn wit_type_string() -> i32 { 13 }
+pub enum WitType {
+    Bool,
+    U8,
+    U16,
+    U32,
+    U64,
+    S8,
+    S16,
+    S32,
+    S64,
+    F32,
+    F64,
+    Char,
+    String,
+    Unknown(i32),
+}
 
-pub fn wit_type_name(ty: i32) -> String {
-    if ty == 1 { "bool" }
-    else { if ty == 2 { "u8" }
-    else { if ty == 3 { "u16" }
-    else { if ty == 4 { "u32" }
-    else { if ty == 5 { "u64" }
-    else { if ty == 6 { "s8" }
-    else { if ty == 7 { "s16" }
-    else { if ty == 8 { "s32" }
-    else { if ty == 9 { "s64" }
-    else { if ty == 10 { "f32" }
-    else { if ty == 11 { "f64" }
-    else { if ty == 12 { "char" }
-    else { if ty == 13 { "string" }
-    else { "unknown"
+pub fn wit_type_bool() -> WitType { WitType::Bool }
+pub fn wit_type_u8() -> WitType { WitType::U8 }
+pub fn wit_type_u16() -> WitType { WitType::U16 }
+pub fn wit_type_u32() -> WitType { WitType::U32 }
+pub fn wit_type_u64() -> WitType { WitType::U64 }
+pub fn wit_type_s8() -> WitType { WitType::S8 }
+pub fn wit_type_s16() -> WitType { WitType::S16 }
+pub fn wit_type_s32() -> WitType { WitType::S32 }
+pub fn wit_type_s64() -> WitType { WitType::S64 }
+pub fn wit_type_f32() -> WitType { WitType::F32 }
+pub fn wit_type_f64() -> WitType { WitType::F64 }
+pub fn wit_type_char() -> WitType { WitType::Char }
+pub fn wit_type_string() -> WitType { WitType::String }
+
+pub fn wit_type_id(ty: WitType) -> i32 {
+    match ty {
+        WitType::Bool => 1,
+        WitType::U8 => 2,
+        WitType::U16 => 3,
+        WitType::U32 => 4,
+        WitType::U64 => 5,
+        WitType::S8 => 6,
+        WitType::S16 => 7,
+        WitType::S32 => 8,
+        WitType::S64 => 9,
+        WitType::F32 => 10,
+        WitType::F64 => 11,
+        WitType::Char => 12,
+        WitType::String => 13,
+        WitType::Unknown(id) => id,
+    }
+}
+
+pub fn wit_type_from_id(id: i32) -> WitType {
+    if id == 1 { WitType::Bool }
+    else { if id == 2 { WitType::U8 }
+    else { if id == 3 { WitType::U16 }
+    else { if id == 4 { WitType::U32 }
+    else { if id == 5 { WitType::U64 }
+    else { if id == 6 { WitType::S8 }
+    else { if id == 7 { WitType::S16 }
+    else { if id == 8 { WitType::S32 }
+    else { if id == 9 { WitType::S64 }
+    else { if id == 10 { WitType::F32 }
+    else { if id == 11 { WitType::F64 }
+    else { if id == 12 { WitType::Char }
+    else { if id == 13 { WitType::String }
+    else { WitType::Unknown(id)
     } } } } } } } } } } } } }
+}
+
+pub fn wit_type_name(ty: WitType) -> String {
+    match ty {
+        WitType::Bool => "bool",
+        WitType::U8 => "u8",
+        WitType::U16 => "u16",
+        WitType::U32 => "u32",
+        WitType::U64 => "u64",
+        WitType::S8 => "s8",
+        WitType::S16 => "s16",
+        WitType::S32 => "s32",
+        WitType::S64 => "s64",
+        WitType::F32 => "f32",
+        WitType::F64 => "f64",
+        WitType::Char => "char",
+        WitType::String => "string",
+        WitType::Unknown(_) => "unknown",
+    }
 }

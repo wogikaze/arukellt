@@ -4103,7 +4103,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_u8"
@@ -4111,7 +4111,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_u16"
@@ -4119,7 +4119,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_u32"
@@ -4127,7 +4127,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_u64"
@@ -4135,7 +4135,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_s8"
@@ -4143,7 +4143,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_s16"
@@ -4151,7 +4151,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_s32"
@@ -4159,7 +4159,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_s64"
@@ -4167,7 +4167,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_f32"
@@ -4175,7 +4175,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_f64"
@@ -4183,7 +4183,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_char"
@@ -4191,7 +4191,7 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
-returns = "i32"
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_string"
@@ -4199,14 +4199,30 @@ module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
 params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_id"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = ["WitType"]
 returns = "i32"
+
+[[functions]]
+name = "wit_type_from_id"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = ["i32"]
+returns = "WitType"
 
 [[functions]]
 name = "wit_type_name"
 module = "std::wit"
 doc_category = "wit"
 stability = "experimental"
-params = ["i32"]
+params = ["WitType"]
 returns = "String"
 
 # === std::component ===

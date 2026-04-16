@@ -4,13 +4,13 @@ use std::wit
 // Tests WIT type constants and name lookup
 fn main() {
     // Type constants
-    stdio::println(i32_to_string(wit::wit_type_bool()))
-    stdio::println(i32_to_string(wit::wit_type_u32()))
-    stdio::println(i32_to_string(wit::wit_type_string()))
+    stdio::println(i32_to_string(wit::wit_type_id(wit::wit_type_bool())))
+    stdio::println(i32_to_string(wit::wit_type_id(wit::wit_type_u32())))
+    stdio::println(i32_to_string(wit::wit_type_id(wit::wit_type_string())))
 
     // Type name lookup
-    stdio::println(wit::wit_type_name(1))
-    stdio::println(wit::wit_type_name(4))
-    stdio::println(wit::wit_type_name(13))
-    stdio::println(wit::wit_type_name(99))
+    stdio::println(wit::wit_type_name(wit::wit_type_from_id(1)))
+    stdio::println(wit::wit_type_name(wit::wit_type_from_id(4)))
+    stdio::println(wit::wit_type_name(wit::wit_type_from_id(13)))
+    stdio::println(wit::wit_type_name(wit::wit_type_from_id(99)))
 }
