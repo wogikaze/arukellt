@@ -1,0 +1,11 @@
+// Issue #499 (slice): pipe-delimited closure literals `|params| body` and `|| body`
+// parse in the selfhost frontend. MIR still lowers closures to NOP; this fixture only
+// forces the lexer/parser surface through `arukellt compile` + run.
+
+use std::host::stdio
+
+fn main() {
+    let _add = |x, y| x + y
+    let _z = || 42
+    stdio::println(String_from("ok"))
+}

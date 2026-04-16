@@ -758,6 +758,17 @@ fn parse_prefix(p: Parser) -> AstNode {
         return node
     }
 
+    // Zero-parameter closure: `|| body` (tokenized as PipePipe, not two Pipe tokens).
+    if t.kind == TK_PIPEPIPE() {
+        p.pos = p.pos + 1
+        let node = AstNode_new(NK_CLOSURE(), tok_span(t))
+        skip_newlines(p)
+        let body = parse_expr_or_block(p)
+        node.span = Span_new(t.start, body.span.end)
+        push(node.children, body)
+        return node
+    }
+
     if t.kind == TK_PIPE() {
         p.pos = p.pos + 1
         return parse_closure_expr(p, t)
@@ -1648,6 +1659,72 @@ pub fn issue499_parser_self_check() -> String {
     String_from("issue499 parser ok: let add = |x, y| x + y")
 }
 
+pub fn issue499_parser_pipepipe_self_check() -> String {
+    let tokens = Vec_new_Token()
+
+    // fn main() { let z = || 42 }
+    push(tokens, Token_new(TK_FN(), String_from("fn"), 0, 2))
+    push(tokens, Token_new(TK_IDENT(), String_from("main"), 3, 7))
+    push(tokens, Token_new(TK_LPAREN(), String_from("("), 7, 8))
+    push(tokens, Token_new(TK_RPAREN(), String_from(")"), 8, 9))
+    push(tokens, Token_new(TK_LBRACE(), String_from("{"), 10, 11))
+    push(tokens, Token_new(TK_LET(), String_from("let"), 12, 15))
+    push(tokens, Token_new(TK_IDENT(), String_from("z"), 16, 17))
+    push(tokens, Token_new(TK_EQ(), String_from("="), 18, 19))
+    push(tokens, Token_new(TK_PIPEPIPE(), String_from("||"), 20, 22))
+    push(tokens, Token_int(42, String_from("42"), 23, 25))
+    push(tokens, Token_new(TK_RBRACE(), String_from("}"), 26, 27))
+    push(tokens, Token_new(TK_EOF(), String_from(""), 27, 27))
+
+    let p = Parser_new(tokens)
+    let decls = parse_module(p)
+    if len(p.errors) != 0 {
+        return concat(String_from("issue499 pipepipe fail: parse errors="), to_string(len(p.errors)))
+    }
+    if len(decls) != 1 {
+        return concat(String_from("issue499 pipepipe fail: decl count="), to_string(len(decls)))
+    }
+
+    let fn_decl = get_unchecked(decls, 0)
+    if fn_decl.kind != NK_FN_DECL() {
+        return String_from("issue499 pipepipe fail: expected fn decl")
+    }
+    if len(fn_decl.children) != 1 {
+        return concat(String_from("issue499 pipepipe fail: fn child count="), to_string(len(fn_decl.children)))
+    }
+
+    let body = get_unchecked(fn_decl.children, 0)
+    if body.kind != NK_BLOCK() {
+        return String_from("issue499 pipepipe fail: expected block body")
+    }
+    if len(body.children) != 1 {
+        return concat(String_from("issue499 pipepipe fail: stmt count="), to_string(len(body.children)))
+    }
+
+    let let_stmt = get_unchecked(body.children, 0)
+    if let_stmt.kind != NK_LET() {
+        return String_from("issue499 pipepipe fail: expected let stmt")
+    }
+    if len(let_stmt.children) != 1 {
+        return concat(String_from("issue499 pipepipe fail: let child count="), to_string(len(let_stmt.children)))
+    }
+
+    let closure = get_unchecked(let_stmt.children, 0)
+    if closure.kind != NK_CLOSURE() {
+        return String_from("issue499 pipepipe fail: expected closure expr")
+    }
+    if len(closure.children) != 1 {
+        return concat(String_from("issue499 pipepipe fail: closure child count="), to_string(len(closure.children)))
+    }
+
+    let closure_body = get_unchecked(closure.children, 0)
+    if closure_body.kind != NK_INT_LIT() || closure_body.int_val != 42 {
+        return String_from("issue499 pipepipe fail: closure body")
+    }
+
+    String_from("issue499 parser ok: let z = || 42")
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
@@ -1690,5 +1767,6 @@ fn main() {
         stdio::println(String_from("No parse errors."))
     }
     stdio::println(issue499_parser_self_check())
+    stdio::println(issue499_parser_pipepipe_self_check())
     stdio::println(issue504_parser_self_check())
 }

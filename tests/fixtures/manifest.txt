@@ -211,6 +211,7 @@ run:scalar/u64_basic.ark
 run:scalar/u8_basic.ark
 run:scalar/u8_overflow.ark
 run:scalar/licm_hoist.ark
+run:selfhost/issue499_closure_literal.ark
 run:selfhost/mir_lowering.ark
 run:selfhost/mir_match.ark
 run:selfhost/mir_loop_for.ark
