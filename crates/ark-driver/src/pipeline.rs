@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use ark_hir::Program;
 use ark_parser::ast;
 use ark_resolve::{ResolvedModule, ResolvedProgram};
-use ark_target::TargetId;
+use ark_target::{TargetId, WasiVersion};
 use ark_typecheck::CheckOutput;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -37,6 +37,7 @@ impl PhaseKey {
         config.feature_key.hash(&mut hasher);
         config.optimization_profile.hash(&mut hasher);
         config.lazy_reachability.hash(&mut hasher);
+        config.wasi_version.hash(&mut hasher);
         let source_hash = hasher.finish();
         Self {
             source_hash,
@@ -54,6 +55,8 @@ pub struct PipelineConfig {
     pub optimization_profile: String,
     /// When true, multi-module resolve uses lazy reachability (`ResolveCrateOptions`).
     pub lazy_reachability: bool,
+    /// WASI interface version from `--wasi-version` (compile / build).
+    pub wasi_version: WasiVersion,
 }
 
 impl Default for PipelineConfig {
@@ -63,6 +66,7 @@ impl Default for PipelineConfig {
             feature_key: "default".to_string(),
             optimization_profile: "default".to_string(),
             lazy_reachability: false,
+            wasi_version: WasiVersion::P1,
         }
     }
 }

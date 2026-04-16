@@ -43,6 +43,30 @@ fn compile_help_shows_lazy_resolve_flags() {
         stdout.contains("--lazy-resolve") && stdout.contains("--no-lazy-resolve"),
         "compile --help should document lazy resolve flags\nstdout: {stdout}"
     );
+    assert!(
+        stdout.contains("--wasi-version"),
+        "compile --help should document --wasi-version\nstdout: {stdout}"
+    );
+}
+
+#[test]
+fn build_help_shows_wasi_version() {
+    let output = Command::new(arukellt_bin())
+        .args(["build", "--help"])
+        .current_dir(workspace_root())
+        .output()
+        .expect("arukellt build --help failed to spawn");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        output.status.success(),
+        "build --help should succeed\nstdout: {stdout}\nstderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        stdout.contains("--wasi-version"),
+        "build --help should document --wasi-version\nstdout: {stdout}"
+    );
 }
 
 #[test]

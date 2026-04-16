@@ -10,10 +10,13 @@ pub use t1 as t1_wasm32_p1;
 pub mod t2_freestanding;
 pub mod t3_wasm_gc;
 
-use ark_diagnostics::{DiagnosticSink, wasm_validation_diagnostic};
+use ark_diagnostics::{
+    DiagnosticSink, wasi_p2_native_emit_limitation_diagnostic, wasm_validation_diagnostic,
+};
 use ark_mir::mir::MirModule;
 use ark_target::{
-    BackendPlan, EmitCapability, EmitKind, RuntimeModel, TargetId, build_backend_plan,
+    BackendPlan, EmitCapability, EmitKind, RuntimeModel, TargetId, WasiVersion,
+    build_backend_plan,
 };
 
 /// Validate generated Wasm module bytes using `wasmparser`.
@@ -44,7 +47,7 @@ pub fn emit(
     opt_level: u8,
 ) -> Vec<u8> {
     match build_backend_plan(target, target.profile().default_emit_kind) {
-        Ok(plan) => emit_with_plan(mir, sink, &plan, opt_level, false),
+        Ok(plan) => emit_with_plan(mir, sink, &plan, opt_level, false, WasiVersion::P1),
         Err(message) => {
             sink.emit(wasm_validation_diagnostic(message));
             Vec::new()
@@ -58,7 +61,11 @@ pub fn emit_with_plan(
     plan: &BackendPlan,
     opt_level: u8,
     strip_debug: bool,
+    wasi_version: WasiVersion,
 ) -> Vec<u8> {
+    if wasi_version == WasiVersion::P2 && plan.runtime_model == RuntimeModel::T3WasmGcP2 {
+        sink.emit(wasi_p2_native_emit_limitation_diagnostic());
+    }
     let bytes = match plan.runtime_model {
         RuntimeModel::T1LinearP1 => t1_wasm32_p1::emit(mir, sink),
         RuntimeModel::T2Freestanding => t2_freestanding::emit(mir, sink),

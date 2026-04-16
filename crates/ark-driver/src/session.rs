@@ -306,11 +306,19 @@ impl Session {
         self.config.lazy_reachability = enabled;
     }
 
+    /// Sets `wasi_version` on the session and pipeline config (incremental cache key).
+    pub fn set_wasi_version(&mut self, version: WasiVersion) {
+        self.wasi_version = version;
+        self.config.wasi_version = version;
+    }
+
     pub fn new() -> Self {
+        let config = PipelineConfig::default();
+        let wasi_version = config.wasi_version;
         Self {
             source_map: SourceMap::new(),
             sink: DiagnosticSink::new(),
-            config: PipelineConfig::default(),
+            config,
             artifacts: ArtifactStore::default(),
             file_mtime_cache: HashMap::new(),
             timing_enabled: false,
@@ -318,7 +326,7 @@ impl Session {
             opt_level: OptLevel::O1,
             disabled_passes: Vec::new(),
             p2_native: false,
-            wasi_version: WasiVersion::P1,
+            wasi_version,
             strip_debug: false,
             lint_allow: Vec::new(),
             lint_deny: Vec::new(),
@@ -1060,7 +1068,14 @@ impl Session {
             OptLevel::O1 => 1u8,
             OptLevel::O2 => 2u8,
         };
-        let wasm = ark_wasm::emit_with_plan(&mir, &mut self.sink, &plan, opt_u8, self.strip_debug);
+        let wasm = ark_wasm::emit_with_plan(
+            &mir,
+            &mut self.sink,
+            &plan,
+            opt_u8,
+            self.strip_debug,
+            self.wasi_version,
+        );
         let emit_ms = t_emit.elapsed().as_secs_f64() * 1000.0;
 
         if self.sink.has_errors() {
@@ -1328,6 +1343,19 @@ mod tests {
         );
         let key_lazy = PhaseKey::for_path(Path::new("x.ark"), "fn main() {}", &cfg_lazy);
         assert_ne!(key_default, key_lazy);
+    }
+
+    #[test]
+    fn session_cache_key_changes_with_wasi_version() {
+        let mut cfg_p2 = PipelineConfig::default();
+        cfg_p2.wasi_version = WasiVersion::P2;
+        let key_p1 = PhaseKey::for_path(
+            Path::new("x.ark"),
+            "fn main() {}",
+            &PipelineConfig::default(),
+        );
+        let key_p2 = PhaseKey::for_path(Path::new("x.ark"), "fn main() {}", &cfg_p2);
+        assert_ne!(key_p1, key_p2);
     }
 
     #[test]

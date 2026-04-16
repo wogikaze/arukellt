@@ -319,7 +319,7 @@ impl FromStr for EmitKind {
 /// Full P2 import-table switching in the T3 emitter is deferred; see
 /// `issues/open/510-t3-p2-import-table-switch.md` for the specific switch
 /// points that need to change before native P2 components work end-to-end.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum WasiVersion {
     /// WASI Preview 1 — `wasi_snapshot_preview1` imports (default).
     #[default]

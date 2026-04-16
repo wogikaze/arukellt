@@ -21,6 +21,21 @@ pub fn wasm_validation_diagnostic(message: impl Into<String>) -> Diagnostic {
         .with_note(message.into())
 }
 
+/// Emitted when `--wasi-version p2` selects P2-native wrapping while the T3
+/// core module still targets Preview 1 import names.
+pub fn wasi_p2_native_emit_limitation_diagnostic() -> Diagnostic {
+    Diagnostic::new(DiagnosticCode::W0009)
+        .with_phase(DiagnosticPhase::BackendValidate)
+        .with_note(
+            "the T3 emitter still emits `wasi_snapshot_preview1` imports; Preview 2 native \
+             components need the import-table switch (see issues/open/510-t3-p2-import-table-switch.md)",
+        )
+        .with_help(
+            "use `--wasi-version p1` (default) for portable components, or expect hosts to bridge \
+             Preview 1 imports until P2 emission lands",
+        )
+}
+
 pub fn non_exportable_function_diagnostic(func_name: &str, reason: &str) -> Diagnostic {
     Diagnostic::new(DiagnosticCode::W0005)
         .with_phase(DiagnosticPhase::BackendValidate)

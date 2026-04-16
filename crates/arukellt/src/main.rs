@@ -99,8 +99,8 @@ enum Commands {
         /// `--wasi-version p2` is equivalent to `--p2-native` and requires
         /// `--target wasm32-wasi-p2`.  Full P2 import-table switching in the
         /// T3 emitter is deferred; see issues/open/510-t3-p2-import-table-switch.md.
-        #[arg(long, value_name = "VERSION")]
-        wasi_version: Option<WasiVersion>,
+        #[arg(long, value_name = "VERSION", default_value_t = WasiVersion::P1)]
+        wasi_version: WasiVersion,
         /// Output results as JSON
         #[arg(long)]
         json: bool,
@@ -149,6 +149,9 @@ enum Commands {
         /// Force full-crate resolve (default). Overrides `--lazy-resolve`.
         #[arg(long)]
         no_lazy_resolve: bool,
+        /// WASI interface version for the compile pipeline (default p1).
+        #[arg(long, value_name = "VERSION", default_value_t = WasiVersion::P1)]
+        wasi_version: WasiVersion,
     },
     /// Format .ark source files
     Fmt {
@@ -332,7 +335,7 @@ fn main() {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
             // --wasi-version p2 is equivalent to --p2-native
-            let p2_native = p2_native || wasi_version == Some(WasiVersion::P2);
+            let p2_native = p2_native || wasi_version == WasiVersion::P2;
             let lazy_reachability =
                 commands::effective_lazy_reachability(lazy_resolve, no_lazy_resolve);
             commands::cmd_compile(
@@ -343,6 +346,7 @@ fn main() {
                 wit_files,
                 world,
                 p2_native,
+                wasi_version,
                 profile_mem,
                 time,
                 opt_level,
@@ -376,6 +380,7 @@ fn main() {
             time,
             lazy_resolve,
             no_lazy_resolve,
+            wasi_version,
         } => {
             let lazy_reachability =
                 commands::effective_lazy_reachability(lazy_resolve, no_lazy_resolve);
@@ -387,6 +392,7 @@ fn main() {
                 profile_mem,
                 time,
                 lazy_reachability,
+                wasi_version,
             );
         }
         Commands::Run {

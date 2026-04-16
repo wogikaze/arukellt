@@ -94,6 +94,8 @@ pub enum DiagnosticCode {
     W0007,
     /// Deprecated API usage
     W0008,
+    /// WASI P2 native emission / import table not fully implemented
+    W0009,
 }
 
 pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
@@ -144,6 +146,7 @@ pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
     DiagnosticCode::W0006,
     DiagnosticCode::W0007,
     DiagnosticCode::W0008,
+    DiagnosticCode::W0009,
 ];
 
 pub const INTERNAL_DIAGNOSTIC_IDS: &[&str] = &["ICE-PIPELINE", "ICE-MIR", "ICE-BACKEND"];
@@ -490,6 +493,13 @@ impl DiagnosticCode {
                 message: "deprecated API",
                 severity: Severity::Warning,
                 phase: DiagnosticPhase::Resolve,
+            },
+            Self::W0009 => DiagnosticSpec {
+                code: self,
+                id: "W0009",
+                message: "WASI Preview 2 native Wasm imports are not fully implemented",
+                severity: Severity::Warning,
+                phase: DiagnosticPhase::BackendValidate,
             },
         }
     }
