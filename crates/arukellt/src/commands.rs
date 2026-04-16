@@ -14,6 +14,11 @@ use serde::Serialize;
 use crate::native;
 use crate::runtime::{RuntimeCaps, run_wasm_gc, run_wasm_p1};
 
+/// Effective lazy reachability for resolve: `--no-lazy-resolve` wins over `--lazy-resolve`.
+pub(crate) fn effective_lazy_reachability(lazy_resolve: bool, no_lazy_resolve: bool) -> bool {
+    lazy_resolve && !no_lazy_resolve
+}
+
 fn wit_type_flags_desc(ty: &WitType) -> Option<String> {
     match ty {
         WitType::Flags(names) => Some(format!("flags {{ {} }}", names.join(", "))),
@@ -380,6 +385,7 @@ pub(crate) fn cmd_build(
     mir_select: &str,
     profile_mem: bool,
     time: bool,
+    lazy_reachability: bool,
 ) {
     let cwd = std::env::current_dir().unwrap_or_else(|e| {
         eprintln!("error: cannot determine current directory: {}", e);
@@ -431,6 +437,7 @@ pub(crate) fn cmd_build(
         vec![],
         mir_select,
         false,
+        lazy_reachability,
     );
 }
 
@@ -450,6 +457,7 @@ pub(crate) fn cmd_compile(
     no_pass: Vec<String>,
     mir_select: &str,
     json: bool,
+    lazy_reachability: bool,
 ) {
     // Native target: handled separately via LLVM backend
     if target == TargetId::Native {
@@ -525,6 +533,7 @@ pub(crate) fn cmd_compile(
     // WIT-only emit
     if emit_kind == EmitKind::Wit {
         let mut session = Session::new();
+        session.set_lazy_reachability(lazy_reachability);
         session.timing_enabled = time;
         session.opt_level = opt_level;
         session.strip_debug = strip_debug;
@@ -555,6 +564,7 @@ pub(crate) fn cmd_compile(
     if emit_kind == EmitKind::Component {
         let component_output = output.unwrap_or_else(|| file.with_extension("component.wasm"));
         let mut session = Session::new();
+        session.set_lazy_reachability(lazy_reachability);
         session.timing_enabled = time;
         session.opt_level = opt_level;
         session.strip_debug = strip_debug;
@@ -587,6 +597,7 @@ pub(crate) fn cmd_compile(
 
         if profile_mem {
             let mut session = Session::new();
+            session.set_lazy_reachability(lazy_reachability);
             if let Ok(info) = session.profile_memory(&file) {
                 eprintln!("{}", info);
             }
@@ -597,6 +608,7 @@ pub(crate) fn cmd_compile(
 
     let output = output.unwrap_or_else(|| file.with_extension("wasm"));
     let mut session = Session::new();
+    session.set_lazy_reachability(lazy_reachability);
     session.timing_enabled = time || json;
     session.opt_level = opt_level;
     session.strip_debug = strip_debug;
@@ -670,6 +682,7 @@ pub(crate) fn cmd_compile(
                 }
                 // Also generate component
                 let mut comp_session = Session::new();
+                comp_session.set_lazy_reachability(lazy_reachability);
                 comp_session.timing_enabled = time;
                 comp_session.opt_level = opt_level;
                 comp_session.strip_debug = strip_debug;
@@ -725,6 +738,7 @@ pub(crate) fn cmd_run(
     strip_debug: bool,
     mir_select: &str,
     watch: bool,
+    lazy_reachability: bool,
 ) {
     // Native target: handled separately
     if target == TargetId::Native {
@@ -760,6 +774,7 @@ pub(crate) fn cmd_run(
     }
 
     let mut session = Session::new();
+    session.set_lazy_reachability(lazy_reachability);
     session.strip_debug = strip_debug;
     let selection = parse_mir_select(mir_select);
 
@@ -843,7 +858,7 @@ pub(crate) fn cmd_run(
     }
 }
 
-pub(crate) fn cmd_check(file: PathBuf, target: TargetId) {
+pub(crate) fn cmd_check(file: PathBuf, target: TargetId, lazy_reachability: bool) {
     let profile = target.profile();
     if !profile.implemented {
         eprintln!(
@@ -854,6 +869,7 @@ pub(crate) fn cmd_check(file: PathBuf, target: TargetId) {
         process::exit(1);
     }
     let mut session = Session::new();
+    session.set_lazy_reachability(lazy_reachability);
     // Set the target so that target-gating checks (e.g., E0500 for T1-incompatible
     // imports) work during the resolve phase.
     session.active_target = Some(target);
@@ -876,7 +892,12 @@ pub(crate) fn cmd_check(file: PathBuf, target: TargetId) {
     }
 }
 
-pub(crate) fn cmd_lint(file: Option<PathBuf>, target: TargetId, list: bool) {
+pub(crate) fn cmd_lint(
+    file: Option<PathBuf>,
+    target: TargetId,
+    list: bool,
+    lazy_reachability: bool,
+) {
     use ark_diagnostics::LintRegistry;
 
     let registry = LintRegistry::new();
@@ -920,6 +941,7 @@ pub(crate) fn cmd_lint(file: Option<PathBuf>, target: TargetId, list: bool) {
         process::exit(1);
     }
     let mut session = Session::new();
+    session.set_lazy_reachability(lazy_reachability);
     // Set the target so that target-gating checks (e.g., E0500 for T1-incompatible
     // imports) work during the resolve phase.
     session.active_target = Some(target);
@@ -959,8 +981,16 @@ struct TestSuiteResult {
     total_duration_ms: f64,
 }
 
-pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool, filter: Option<String>) {
+pub(crate) fn cmd_test(
+    file: PathBuf,
+    target: TargetId,
+    json: bool,
+    list: bool,
+    filter: Option<String>,
+    lazy_reachability: bool,
+) {
     let mut session = Session::new();
+    session.set_lazy_reachability(lazy_reachability);
     let tests = match session.find_tests(&file) {
         Ok(t) => t,
         Err(e) => {
@@ -970,7 +1000,10 @@ pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool, 
     };
 
     let tests = if let Some(ref pat) = filter {
-        tests.into_iter().filter(|t| t.contains(pat.as_str())).collect::<Vec<_>>()
+        tests
+            .into_iter()
+            .filter(|t| t.contains(pat.as_str()))
+            .collect::<Vec<_>>()
     } else {
         tests
     };

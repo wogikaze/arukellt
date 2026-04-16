@@ -5,7 +5,6 @@ use std::time::SystemTime;
 
 use ark_diagnostics::{DiagnosticSink, Severity, SourceMap, render_diagnostics};
 use ark_hir::Program;
-use ark_resolve::inject_wit_externs;
 #[allow(deprecated)]
 use ark_mir::lower_legacy_only;
 use ark_mir::{
@@ -15,9 +14,10 @@ use ark_mir::{
     set_mir_provenance, validate_backend_legal_module, validate_module,
 };
 use ark_parser::{ast, parse_source};
+use ark_resolve::inject_wit_externs;
 #[allow(deprecated)]
 use ark_resolve::resolved_program_entry;
-use ark_resolve::{ResolvedModule, ResolvedProgram};
+use ark_resolve::{ResolveCrateOptions, ResolvedModule, ResolvedProgram};
 use ark_target::{EmitKind, TargetId, WasiVersion, build_backend_plan};
 use ark_typecheck::{CheckOutput, Type, TypeChecker};
 
@@ -300,6 +300,12 @@ fn checker_type_from_wit_type(ty: &ark_wasm::component::WitType) -> Type {
 }
 
 impl Session {
+    /// Enable or disable lazy reachability for multi-module resolve (`load_graph` /
+    /// `resolve_program*`). Default is off (full-crate resolve).
+    pub fn set_lazy_reachability(&mut self, enabled: bool) {
+        self.config.lazy_reachability = enabled;
+    }
+
     pub fn new() -> Self {
         Self {
             source_map: SourceMap::new(),
@@ -471,16 +477,18 @@ impl Session {
         }
 
         let active_target = self.active_target;
+        let lazy_reachability = self.config.lazy_reachability;
         let mut sink = DiagnosticSink::new();
         let mut parse_module = |module_path: &Path, parse_sink: &mut DiagnosticSink| {
             self.parse_incremental_with_sink(module_path, parse_sink, false)
                 .map(|result| result.module)
         };
-        let program = ark_resolve::resolve_program_with_target_and_parser(
+        let program = ark_resolve::resolve_program_with_target_and_parser_and_crate_options(
             path,
             &mut sink,
             active_target,
             &mut parse_module,
+            ResolveCrateOptions { lazy_reachability },
         )
         .ok();
         self.sink = sink;
@@ -929,8 +937,7 @@ impl Session {
                 if let Ok(text) = std::fs::read_to_string(&wit_path) {
                     if let Ok(doc) = ark_wasm::component::parse_wit(&text) {
                         for iface in &doc.interfaces {
-                            let imports =
-                                ark_wasm::component::wit_interface_to_mir_imports(iface);
+                            let imports = ark_wasm::component::wit_interface_to_mir_imports(iface);
                             mir.imports.extend(imports);
                         }
                     }
@@ -1311,6 +1318,19 @@ mod tests {
     }
 
     #[test]
+    fn session_cache_key_changes_with_lazy_reachability() {
+        let mut cfg_lazy = PipelineConfig::default();
+        cfg_lazy.lazy_reachability = true;
+        let key_default = PhaseKey::for_path(
+            Path::new("x.ark"),
+            "fn main() {}",
+            &PipelineConfig::default(),
+        );
+        let key_lazy = PhaseKey::for_path(Path::new("x.ark"), "fn main() {}", &cfg_lazy);
+        assert_ne!(key_default, key_lazy);
+    }
+
+    #[test]
     #[allow(deprecated)]
     fn mir_selection_labels_are_stable() {
         assert_eq!(MirSelection::Legacy.as_str(), "legacy");
@@ -1353,7 +1373,10 @@ mod tests {
         session.parse_incremental(&main).expect("parse main");
         session.parse_incremental(&helper).expect("parse helper");
         assert_eq!(
-            session.parse_incremental(&helper).expect("reuse helper").status,
+            session
+                .parse_incremental(&helper)
+                .expect("reuse helper")
+                .status,
             IncrementalParseStatus::Reused
         );
 

@@ -104,6 +104,12 @@ enum Commands {
         /// Output results as JSON
         #[arg(long)]
         json: bool,
+        /// Resolve only reachable symbols in multi-module crates (compile-speed; opt-in)
+        #[arg(long)]
+        lazy_resolve: bool,
+        /// Force full-crate resolve (default). Overrides `--lazy-resolve`.
+        #[arg(long)]
+        no_lazy_resolve: bool,
     },
     /// Initialize a new Arukellt project in the specified directory
     Init {
@@ -137,6 +143,12 @@ enum Commands {
         /// Show per-phase compilation time
         #[arg(long)]
         time: bool,
+        /// Resolve only reachable symbols in multi-module crates (compile-speed; opt-in)
+        #[arg(long)]
+        lazy_resolve: bool,
+        /// Force full-crate resolve (default). Overrides `--lazy-resolve`.
+        #[arg(long)]
+        no_lazy_resolve: bool,
     },
     /// Format .ark source files
     Fmt {
@@ -178,6 +190,12 @@ enum Commands {
         /// Watch file for changes and recompile automatically
         #[arg(long)]
         watch: bool,
+        /// Resolve only reachable symbols in multi-module crates (compile-speed; opt-in)
+        #[arg(long)]
+        lazy_resolve: bool,
+        /// Force full-crate resolve (default). Overrides `--lazy-resolve`.
+        #[arg(long)]
+        no_lazy_resolve: bool,
     },
     /// Type-check an .ark file without compiling
     Check {
@@ -186,6 +204,12 @@ enum Commands {
         /// Compile target
         #[arg(long, default_value = "wasm32-wasi-p1")]
         target: TargetId,
+        /// Resolve only reachable symbols in multi-module crates (compile-speed; opt-in)
+        #[arg(long)]
+        lazy_resolve: bool,
+        /// Force full-crate resolve (default). Overrides `--lazy-resolve`.
+        #[arg(long)]
+        no_lazy_resolve: bool,
     },
     /// Discover and run tests
     Test {
@@ -203,6 +227,12 @@ enum Commands {
         /// Only run tests whose name contains this substring
         #[arg(long, value_name = "NAME")]
         filter: Option<String>,
+        /// Resolve only reachable symbols in multi-module crates (compile-speed; opt-in)
+        #[arg(long)]
+        lazy_resolve: bool,
+        /// Force full-crate resolve (default). Overrides `--lazy-resolve`.
+        #[arg(long)]
+        no_lazy_resolve: bool,
     },
     /// List available compile targets
     Targets,
@@ -229,6 +259,12 @@ enum Commands {
         /// List available lint rules
         #[arg(long)]
         list: bool,
+        /// Resolve only reachable symbols in multi-module crates (compile-speed; opt-in)
+        #[arg(long)]
+        lazy_resolve: bool,
+        /// Force full-crate resolve (default). Overrides `--lazy-resolve`.
+        #[arg(long)]
+        no_lazy_resolve: bool,
     },
     /// Analyze a compiled Wasm binary
     Analyze {
@@ -290,11 +326,15 @@ fn main() {
             p2_native,
             wasi_version,
             json,
+            lazy_resolve,
+            no_lazy_resolve,
         } => {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
             // --wasi-version p2 is equivalent to --p2-native
             let p2_native = p2_native || wasi_version == Some(WasiVersion::P2);
+            let lazy_reachability =
+                commands::effective_lazy_reachability(lazy_resolve, no_lazy_resolve);
             commands::cmd_compile(
                 file,
                 output,
@@ -310,6 +350,7 @@ fn main() {
                 no_pass,
                 &mir_select,
                 json,
+                lazy_reachability,
             );
         }
         Commands::Init {
@@ -333,7 +374,11 @@ fn main() {
             mir_select,
             profile_mem,
             time,
+            lazy_resolve,
+            no_lazy_resolve,
         } => {
+            let lazy_reachability =
+                commands::effective_lazy_reachability(lazy_resolve, no_lazy_resolve);
             commands::cmd_build(
                 target,
                 opt_level,
@@ -341,6 +386,7 @@ fn main() {
                 &mir_select,
                 profile_mem,
                 time,
+                lazy_reachability,
             );
         }
         Commands::Run {
@@ -354,7 +400,11 @@ fn main() {
             strip_debug,
             mir_select,
             watch,
+            lazy_resolve,
+            no_lazy_resolve,
         } => {
+            let lazy_reachability =
+                commands::effective_lazy_reachability(lazy_resolve, no_lazy_resolve);
             commands::cmd_run(
                 file,
                 target,
@@ -366,10 +416,18 @@ fn main() {
                 strip_debug,
                 &mir_select,
                 watch,
+                lazy_reachability,
             );
         }
-        Commands::Check { file, target } => {
-            commands::cmd_check(file, target);
+        Commands::Check {
+            file,
+            target,
+            lazy_resolve,
+            no_lazy_resolve,
+        } => {
+            let lazy_reachability =
+                commands::effective_lazy_reachability(lazy_resolve, no_lazy_resolve);
+            commands::cmd_check(file, target, lazy_reachability);
         }
         Commands::Test {
             file,
@@ -377,8 +435,12 @@ fn main() {
             json,
             list,
             filter,
+            lazy_resolve,
+            no_lazy_resolve,
         } => {
-            commands::cmd_test(file, target, json, list, filter);
+            let lazy_reachability =
+                commands::effective_lazy_reachability(lazy_resolve, no_lazy_resolve);
+            commands::cmd_test(file, target, json, list, filter, lazy_reachability);
         }
         Commands::Targets => {
             commands::cmd_targets();
@@ -400,8 +462,16 @@ fn main() {
         Commands::Analyze { wasm_size } => {
             commands::cmd_analyze_wasm_size(&wasm_size);
         }
-        Commands::Lint { file, target, list } => {
-            commands::cmd_lint(file, target, list);
+        Commands::Lint {
+            file,
+            target,
+            list,
+            lazy_resolve,
+            no_lazy_resolve,
+        } => {
+            let lazy_reachability =
+                commands::effective_lazy_reachability(lazy_resolve, no_lazy_resolve);
+            commands::cmd_lint(file, target, list, lazy_reachability);
         }
         Commands::Doc {
             symbol,

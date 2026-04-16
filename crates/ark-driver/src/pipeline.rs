@@ -36,6 +36,7 @@ impl PhaseKey {
         config.target_key.hash(&mut hasher);
         config.feature_key.hash(&mut hasher);
         config.optimization_profile.hash(&mut hasher);
+        config.lazy_reachability.hash(&mut hasher);
         let source_hash = hasher.finish();
         Self {
             source_hash,
@@ -51,6 +52,8 @@ pub struct PipelineConfig {
     pub target_key: String,
     pub feature_key: String,
     pub optimization_profile: String,
+    /// When true, multi-module resolve uses lazy reachability (`ResolveCrateOptions`).
+    pub lazy_reachability: bool,
 }
 
 impl Default for PipelineConfig {
@@ -59,6 +62,7 @@ impl Default for PipelineConfig {
             target_key: TargetId::Wasm32WasiP1.canonical_name().to_string(),
             feature_key: "default".to_string(),
             optimization_profile: "default".to_string(),
+            lazy_reachability: false,
         }
     }
 }
