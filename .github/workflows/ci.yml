@@ -10,7 +10,8 @@ name: CI
 #  integration             integration                   yes           CLI compile/run smoke on known examples
 #  packaging layer         packaging                     yes           release binary entrypoint smoke
 #  determinism             determinism                   yes           byte-exact repeat compile check
-#  docs/size/WAT layer     heavy-checks                  push only     verify-harness auxiliary checks
+#  verification-harness    verification-harness-quick    yes           verify-harness --quick (manifest + docs hygiene)
+#  docs/size/WAT layer     heavy-checks                  push only     verify-harness --size --wat --docs
 #  component-interop       component-interop             push only     component emit / host interop smoke
 #  perf                    perf-baseline                 push only     baseline snapshot collection
 #  bootstrap               selfhost-bootstrap            yes*          Stage 0/1 required; Stage 2/parity informational
@@ -69,6 +70,16 @@ jobs:
           cargo test --workspace --exclude ark-llvm
           --lib --bins
           -- --nocapture
+
+  # ── Verification harness — quick gate (merge gate) ───────────────────────
+  verification-harness-quick:
+    name: "Verification harness — quick gate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Quick harness (manifest + docs hygiene)
+        run: bash scripts/run/verify-harness.sh --quick
 
   # ── Layer 2: Fixture suite — T3 primary (merge gate) ────────────────────
   fixture-primary:
@@ -496,7 +507,7 @@ jobs:
   # ── Final gate ───────────────────────────────────────────────────────────
   verify:
     name: "Final Gate"
-    needs: [unit-tests, fixture-primary, integration, packaging, determinism, selfhost-bootstrap, extension-tests, lsp-e2e]
+    needs: [unit-tests, verification-harness-quick, fixture-primary, integration, packaging, determinism, selfhost-bootstrap, extension-tests, lsp-e2e]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All required CI layers passed (unit + fixture/T3 + integration + packaging + determinism + selfhost-bootstrap + extension-tests + lsp-e2e)"
+      - run: echo "All required CI layers passed (unit + verification-harness-quick + fixture/T3 + integration + packaging + determinism + selfhost-bootstrap + extension-tests + lsp-e2e)"

@@ -50,12 +50,13 @@ today.
 | CI layer / job | Gate level | Primary categories covered | Notes |
 |----------------|------------|----------------------------|-------|
 | **Unit tests** (`unit-tests`) | merge-blocking | unit, package-workspace | Also runs clippy and rustfmt so compiler / manifest regressions fail in the first layer. |
+| **Verification harness — quick gate** (`verification-harness-quick`) | merge-blocking | docs/size/WAT auxiliary checks (quick slice) | Runs `bash scripts/run/verify-harness.sh --quick` in its own job so manifest / docs hygiene / repo-structure failures identify this layer immediately (distinct from `unit-tests`). |
 | **Fixture suite - T3 primary** (`fixture-primary`) | merge-blocking | fixture, target-contract | Primary target behavior gate for `wasm32-wasi-p2`. |
 | **Fixture suite - T1 supported** (`fixture-supported`) | non-blocking | fixture, target-contract | Supported target alerting lane for `wasm32-wasi-p1`. |
 | **Integration - CLI smoke** (`integration`) | merge-blocking | integration | Confirms release CLI can compile and run a known program. |
 | **Packaging - binary smoke** (`packaging`) | merge-blocking | packaging CI layer | Verifies release binary entrypoints; this is a workflow layer rather than a top-level test category. |
 | **Determinism - same input same output** (`determinism`) | merge-blocking | determinism | Byte-for-byte compile reproducibility gate. |
-| **Heavy checks (size, WAT, docs)** (`heavy-checks`) | push-only | docs/size/WAT auxiliary checks | Executes `verify-harness.sh --size --wat --docs`; useful for drift detection, not a merge gate. |
+| **Heavy checks (size, WAT, docs)** (`heavy-checks`) | push-only | docs/size/WAT auxiliary checks | Executes `verify-harness.sh --size --wat --docs` (includes the same default harness checks as `--quick`, plus size/WAT/markdownlint); useful for drift detection, not a merge gate. |
 | **Component interop** (`component-interop`) | push-only | component-interop | Optional component smoke coverage. |
 | **Perf baseline snapshot** (`perf-baseline`) | push-only | perf | Collects baseline JSON artifacts. |
 | **Selfhost bootstrap (full)** (`selfhost-bootstrap`) | merge-blocking with informational sub-results | bootstrap | Stage 0 and Stage 1 must pass; Stage 2 fixpoint and parity evidence are collected without failing the job. |
