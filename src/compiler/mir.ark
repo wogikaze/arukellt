@@ -560,6 +560,15 @@ fn mir_find_last_value_local(block: MirBlock) -> i32 {
         }
         i = i - 1
     }
+    let phi_count = len(block.phis)
+    let mut p = phi_count - 1
+    while p >= 0 {
+        let phi = get_unchecked(block.phis, p)
+        if phi.dest >= 0 {
+            return phi.dest
+        }
+        p = p - 1
+    }
     0 - 1
 }
 
@@ -3803,6 +3812,75 @@ pub fn run_phi_insertion_smoke() {
     stdio::println(String_from("MIR phi insertion self-check OK."))
 }
 
+pub fn run_phi_insertion_nested_join_smoke() {
+    let m = MirModule_new()
+    let f = MirFunction_new(String_from("phi_insert_nested_join_sample"))
+    let cond_outer = alloc_local(f, String_from("cond_outer"), VT_I32())
+    let cond_inner = alloc_local(f, String_from("cond_inner"), VT_I32())
+    let inner_then_val = alloc_local(f, String_from("inner_then_val"), VT_I32())
+    let inner_else_val = alloc_local(f, String_from("inner_else_val"), VT_I32())
+    let inner_join_val = alloc_local(f, String_from("inner_join_val"), VT_I32())
+    let outer_else_val = alloc_local(f, String_from("outer_else_val"), VT_I32())
+    let outer_join_val = alloc_local(f, String_from("outer_join_val"), VT_I32())
+    f.return_type = VT_I32()
+
+    let entry = alloc_block(f)
+    let outer_then_bb = alloc_block(f)
+    let inner_then_bb = alloc_block(f)
+    let inner_else_bb = alloc_block(f)
+    let inner_join_bb = alloc_block(f)
+    let outer_else_bb = alloc_block(f)
+    let outer_join_bb = alloc_block(f)
+
+    emit_inst(f, entry, MirInst_const_i32(1, cond_outer))
+    let entry_block = get_unchecked(f.blocks, entry)
+    entry_block.succ0 = outer_then_bb
+    entry_block.succ1 = outer_else_bb
+
+    emit_inst(f, outer_then_bb, MirInst_const_i32(1, cond_inner))
+    let outer_then_block = get_unchecked(f.blocks, outer_then_bb)
+    outer_then_block.succ0 = inner_then_bb
+    outer_then_block.succ1 = inner_else_bb
+
+    emit_inst(f, inner_then_bb, MirInst_const_i32(10, inner_then_val))
+    let inner_then_block = get_unchecked(f.blocks, inner_then_bb)
+    inner_then_block.succ0 = inner_join_bb
+
+    emit_inst(f, inner_else_bb, MirInst_const_i32(20, inner_else_val))
+    let inner_else_block = get_unchecked(f.blocks, inner_else_bb)
+    inner_else_block.succ0 = inner_join_bb
+
+    let inner_join_block = get_unchecked(f.blocks, inner_join_bb)
+    inner_join_block.succ0 = outer_join_bb
+
+    emit_inst(f, outer_else_bb, MirInst_const_i32(30, outer_else_val))
+    let outer_else_block = get_unchecked(f.blocks, outer_else_bb)
+    outer_else_block.succ0 = outer_join_bb
+
+    let ret_inst = MirInst_new(MIR_RETURN())
+    ret_inst.arg0 = outer_join_val
+    emit_inst(f, outer_join_bb, ret_inst)
+
+    mir_compute_dominance_for_function(f)
+    if !mir_try_insert_simple_join_phi(f, inner_join_bb, inner_join_val) {
+        stdio::eprintln(String_from("nested join phi insertion failed at inner join"))
+        process::exit(1)
+    }
+    if !mir_try_insert_simple_join_phi(f, outer_join_bb, outer_join_val) {
+        stdio::eprintln(String_from("nested join phi insertion failed at outer join"))
+        process::exit(1)
+    }
+
+    mir_ssa_rename_function(f)
+
+    mir_expect_phi(f, inner_join_bb, inner_join_val, VT_I32(), 2, inner_then_bb, inner_then_val, inner_else_bb, inner_else_val)
+    mir_expect_phi(f, outer_join_bb, outer_join_val, VT_I32(), 2, inner_join_bb, inner_join_val, outer_else_bb, outer_else_val)
+
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR nested phi insertion self-check OK."))
+}
+
 fn run_ssa_rename_smoke() {
     let m = MirModule_new()
     let f = MirFunction_new(String_from("ssa_rename_sample"))
@@ -3922,5 +4000,6 @@ fn main() {
     stdio::println(String_from("MIR module OK."))
     run_phi_representation_smoke()
     run_phi_insertion_smoke()
+    run_phi_insertion_nested_join_smoke()
     run_ssa_rename_smoke()
 }

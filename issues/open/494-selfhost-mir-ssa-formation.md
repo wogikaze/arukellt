@@ -50,6 +50,15 @@ This issue remains open because full SSA renaming and broader pipeline-wide SSA
 formation are still outstanding, but the phi insertion path now exists for the
 minimal join case.
 
+## Partial slice note — 2026-04-16 (Wave 3)
+
+Wave 3 extends the slice to an additional non-trivial join shape:
+
+- simple-join phi insertion now accepts predecessor values coming from an
+  already-placed phi in a predecessor join block
+- nested-join smoke coverage added to validate phi at both the inner and outer
+  join points
+
 ## Primary paths
 
 - `src/compiler/`

@@ -63,6 +63,14 @@ Every new stdlib function must satisfy ALL of:
 5. **Naming**: Follows naming conventions in `docs/stdlib/stability-policy.md`
 6. **Stability**: Marked as `experimental` for new additions
 
+## User-Facing Sample Policy (Wrapper-First)
+
+For user-facing examples in `docs/stdlib/` and `docs/cookbook/`:
+
+1. Avoid direct calls to low-level prelude helpers in sample code.
+2. Prefer module-local wrappers/facades (for example, `std::text`, `std::core::convert`, `std::io`, and other family-local surfaces) as the primary teaching surface.
+3. If a direct prelude call is temporarily unavoidable, wrap it in a local helper/facade within the example and keep the prelude detail out of the main usage flow.
+
 ## See Also
 
 - [Stability Policy](stability-policy.md)

@@ -52,6 +52,14 @@ Gap to close:
 2. Add a corresponding invocation in `playground/src/` (e.g., in `playground-app.ts` or `worker-client.ts`).
 3. Add a native-target test in `lib.rs` that exercises `typecheck` on known-valid and known-invalid input.
 
+## Progress Note — 2026-04-16 (issue 472 acceptance slice)
+
+- `crates/ark-playground-wasm/src/lib.rs` exports `#[wasm_bindgen] pub fn typecheck(source: &str) -> String`
+  backed by parse → resolve → `ark_typecheck::TypeChecker`.
+- Added focused test `typecheck_resolve_error_propagates` to mechanically verify invalid
+  (parse-valid) input behavior for the checker surface.
+- Required verification run: `cargo test -p ark-playground-wasm` (pass).
+
 ## Summary
 
 `type checking available` を parser / diagnostics wording に紛れ込ませず、独立した product claim として追跡する。callable checker surface と entrypoint-level proof がない限り、この claim は done にしない。
@@ -84,9 +92,9 @@ type-checker claim は parser / format / diagnostics とは別の product claim 
 
 ## Acceptance criteria
 
-- [ ] current repo に callable checker surface が存在し、その source path が issue 本文に明記されている。
+- [x] current repo に callable checker surface が存在し、その source path が issue 本文に明記されている。
 - [ ] issue 466 の browser entrypoint から、その checker surface が実際に invoke されることを repo files で確認できる。
-- [ ] checker result を機械的に検証する command / test / fixture が repo に存在する。
+- [x] checker result を機械的に検証する command / test / fixture が repo に存在する。
 
 ## Required verification
 
