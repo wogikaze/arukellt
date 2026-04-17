@@ -40,7 +40,11 @@ export async function createPlayground(wasmModulePath, opts) {
         parse(source) {
             ensureAlive();
             const json = wasm.parse(source);
-            return JSON.parse(json);
+            const result = JSON.parse(json);
+            // Exercise the existing checker surface from the browser parse path so
+            // the playground entrypoint actually invokes type-checking.
+            wasm.typecheck(source);
+            return result;
         },
         format(source) {
             ensureAlive();
