@@ -75,7 +75,7 @@ fn toml_parse_value(raw: String) -> TomlValue {
         } else {
             TomlValue { tag: 0, raw: "" }
         }
-    } else if s == "true" || s == "false" {
+    } else if eq(s, "true") || eq(s, "false") {
         TomlValue { tag: 3, raw: s }
     } else if c == 91 {
         TomlValue { tag: 4, raw: s }
@@ -158,7 +158,7 @@ pub fn toml_as_int(v: TomlValue) -> Option<i32> {
 }
 
 pub fn toml_as_bool(v: TomlValue) -> Option<bool> {
-    if v.tag == 3 { Some(v.raw == "true") } else { None }
+    if v.tag == 3 { Some(eq(v.raw, "true")) } else { None }
 }
 
 // ─── Table accessor ──────────────────────────────────────────────────────────
@@ -180,7 +180,7 @@ pub fn toml_get(v: TomlValue, key: String) -> Option<TomlValue> {
             let eq_pos = index_of(line, "=")
             if eq_pos > 0 {
                 let k = trim(slice(line, 0, eq_pos))
-                if k == key {
+                if eq(k, key) {
                     let val_raw = trim(slice(line, eq_pos + 1, line_len))
                     return Some(toml_parse_value(val_raw))
                 }
