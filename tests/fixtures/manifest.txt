@@ -222,6 +222,7 @@ run:selfhost/mir_phi_insertion_smoke.ark
 run:selfhost/mir_phi_representation_smoke.ark
 run:selfhost/mir_ssa_rename_smoke.ark
 run:selfhost/mir_ssa_trivial_block_rename_smoke.ark
+run:selfhost/mir_ssa_sequential_def_rename_smoke.ark
 run:selfhost/parser_hir_trait_bounds_smoke.ark
 run:selfhost/parser_new_syntax.ark
 run:selfhost/typecheck_trait_impl_smoke.ark

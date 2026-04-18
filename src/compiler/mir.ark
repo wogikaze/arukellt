@@ -628,7 +628,9 @@ fn mir_try_insert_simple_join_phi(f: MirFunction, join_block_id: i32, dest_local
 // Assigns `ssa_name` / `ssa_version` on `MirLocal` so dumps and downstream
 // passes can treat defs as SSA slots. φ operands share the dest's base name
 // with versions 1..N; the φ result is version N+1. Parameters are v0. Remaining
-// value-producing defs (no φ involvement) get v1.
+// value-producing defs (no φ involvement) get v1, or v2, v3, … when the same
+// local is redefined by later instructions in the same block (only when
+// `ssa_name` still matches `name`, so φ-renamed operand slots are not bumped).
 
 fn mir_is_pure_ssa_def(inst: MirInst) -> bool {
     let op = inst.op
@@ -654,6 +656,17 @@ fn mir_is_pure_ssa_def(inst: MirInst) -> bool {
         return false
     }
     true
+}
+
+fn mir_ssa_reset_local_slots(f: MirFunction) {
+    let lc = len(f.locals)
+    let mut i = 0
+    while i < lc {
+        let loc = get_unchecked(f.locals, i)
+        loc.ssa_version = 0 - 1
+        loc.ssa_name = clone(loc.name)
+        i = i + 1
+    }
 }
 
 fn mir_ssa_rename_phis(f: MirFunction) {
@@ -711,6 +724,8 @@ fn mir_ssa_tag_linear_defs(f: MirFunction) {
                     let loc = get_unchecked(f.locals, d)
                     if loc.ssa_version < 0 {
                         mir_assign_local_ssa(f, d, clone(loc.name), 1)
+                    } else if eq(clone(loc.ssa_name), clone(loc.name)) {
+                        mir_assign_local_ssa(f, d, clone(loc.ssa_name), loc.ssa_version + 1)
                     }
                 }
             }
@@ -721,6 +736,7 @@ fn mir_ssa_tag_linear_defs(f: MirFunction) {
 }
 
 fn mir_ssa_rename_function(f: MirFunction) {
+    mir_ssa_reset_local_slots(f)
     mir_ssa_rename_phis(f)
     mir_ssa_tag_function_params(f)
     mir_ssa_tag_linear_defs(f)
@@ -3955,6 +3971,29 @@ fn run_ssa_trivial_block_rename_smoke() {
     stdio::println(String_from("MIR SSA trivial-block rename self-check OK."))
 }
 
+fn run_ssa_sequential_def_rename_smoke() {
+    let m = MirModule_new()
+    let f = MirFunction_new(String_from("ssa_sequential_def_sample"))
+    let t = alloc_local(f, String_from("t"), VT_I32())
+    f.return_type = VT_I32()
+
+    let bb0 = alloc_block(f)
+    emit_inst(f, bb0, MirInst_const_i32(1, t))
+    emit_inst(f, bb0, MirInst_const_i32(2, t))
+    let ret_inst = MirInst_new(MIR_RETURN())
+    ret_inst.arg0 = t
+    emit_inst(f, bb0, ret_inst)
+
+    mir_compute_dominance_for_function(f)
+    mir_ssa_rename_function(f)
+
+    mir_expect_local_ssa(f, t, String_from("t"), 2)
+
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR SSA sequential-def rename self-check OK."))
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
@@ -4028,4 +4067,5 @@ fn main() {
     run_phi_insertion_nested_join_smoke()
     run_ssa_rename_smoke()
     run_ssa_trivial_block_rename_smoke()
+    run_ssa_sequential_def_rename_smoke()
 }

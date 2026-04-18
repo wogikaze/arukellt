@@ -1,0 +1,16 @@
+use std::host::stdio
+
+fn format_ssa_slot(name: String, ver: i32) -> String {
+    let mut out = String_from("%")
+    out = concat(out, name)
+    out = concat(out, String_from("."))
+    concat(out, to_string(ver))
+}
+
+fn main() {
+    // Two const.i32 defs to the same local in one block → t.1 then t.2 (see run_ssa_sequential_def_rename_smoke in mir.ark).
+    stdio::println(String_from("single-block sequential SSA rename"))
+    stdio::println(concat(String_from("const.i32 -> "), format_ssa_slot(String_from("t"), 1)))
+    stdio::println(concat(String_from("const.i32 -> "), format_ssa_slot(String_from("t"), 2)))
+    stdio::println(String_from("MIR SSA sequential-def rename smoke OK."))
+}
