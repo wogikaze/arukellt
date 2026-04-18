@@ -3930,6 +3930,31 @@ fn run_ssa_rename_smoke() {
     stdio::println(String_from("MIR SSA rename self-check OK."))
 }
 
+fn run_ssa_trivial_block_rename_smoke() {
+    let m = MirModule_new()
+    let f = MirFunction_new(String_from("ssa_trivial_block_sample"))
+    let p = alloc_local(f, String_from("p"), VT_I32())
+    push(f.params, MirLocal { name: String_from("p"), val_type: VT_I32(), ssa_name: String_from("p"), ssa_version: 0 - 1 })
+    let t = alloc_local(f, String_from("t"), VT_I32())
+    f.return_type = VT_I32()
+
+    let bb0 = alloc_block(f)
+    emit_inst(f, bb0, MirInst_const_i32(42, t))
+    let ret_inst = MirInst_new(MIR_RETURN())
+    ret_inst.arg0 = t
+    emit_inst(f, bb0, ret_inst)
+
+    mir_compute_dominance_for_function(f)
+    mir_ssa_rename_function(f)
+
+    mir_expect_local_ssa(f, p, String_from("p"), 0)
+    mir_expect_local_ssa(f, t, String_from("t"), 1)
+
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR SSA trivial-block rename self-check OK."))
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
@@ -4002,4 +4027,5 @@ fn main() {
     run_phi_insertion_smoke()
     run_phi_insertion_nested_join_smoke()
     run_ssa_rename_smoke()
+    run_ssa_trivial_block_rename_smoke()
 }
