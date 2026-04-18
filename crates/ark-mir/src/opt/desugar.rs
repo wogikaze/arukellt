@@ -1650,6 +1650,9 @@ pub fn desugar_try_exprs(func: &mut MirFunction, fn_return_types: &HashMap<Strin
             pre.push(MirStmt::Return(Some(Operand::Place(Place::Local(ok_tmp)))));
 
             block.stmts.extend(pre);
+            // Value returns live in `MirStmt::Return`; keep a non-`Unreachable` terminator so the
+            // entry block passes `validate_backend_legal_module`.
+            block.terminator = Terminator::Return(None);
             counter += 1 + c1;
         }
     }

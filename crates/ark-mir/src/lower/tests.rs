@@ -392,6 +392,38 @@ fn make_try_expr_function() -> MirFunction {
     }
 }
 
+/// `return place?` lowers to the same match-on-Result shape as assignment, but the illegal
+/// `TryExpr` appears in the block terminator until `desugar_try_exprs` runs (CoreHIR / lowering-time path; #283).
+fn make_try_expr_return_terminator_function() -> MirFunction {
+    MirFunction {
+        id: FnId(5),
+        name: "try_return".to_string(),
+        instance: InstanceKey::simple("try_return"),
+        params: vec![],
+        return_ty: Type::I32,
+        locals: vec![MirLocal {
+            id: LocalId(0),
+            name: Some("input".to_string()),
+            ty: Type::Result(Box::new(Type::I32), Box::new(Type::String)),
+        }],
+        blocks: vec![BasicBlock {
+            id: BlockId(0),
+            stmts: vec![],
+            terminator: Terminator::Return(Some(Operand::TryExpr {
+                expr: Box::new(Operand::Place(Place::Local(LocalId(0)))),
+                from_fn: None,
+            })),
+            source: default_block_source(),
+        }],
+        entry: BlockId(0),
+        struct_typed_locals: Default::default(),
+        enum_typed_locals: Default::default(),
+        type_params: vec![],
+        source: default_function_source(),
+        is_exported: false,
+    }
+}
+
 #[test]
 fn lower_try_expr_removes_tryexpr_operand() {
     let mut func = make_try_expr_function();
@@ -418,6 +450,29 @@ fn lower_try_expr_removes_tryexpr_operand() {
     assert!(
         has_if_stmt,
         "IfStmt must be present after TryExpr desugaring"
+    );
+}
+
+#[test]
+fn lower_try_expr_removes_tryexpr_from_return_terminator() {
+    let func = make_try_expr_return_terminator_function();
+    let mut module = MirModule::new();
+    module.functions.push(func);
+    module.entry_fn = Some(FnId(5));
+
+    assert!(
+        !is_backend_legal_module(&module),
+        "pre-condition: Return(TryExpr) terminator must be backend-illegal"
+    );
+
+    lower_try_expr(&mut module.functions[0]);
+
+    assert!(
+        is_backend_legal_module(&module),
+        "TryExpr in return terminator must desugar to backend-legal MIR"
+    );
+    validate_backend_legal_module(&module).expect(
+        "validate_backend_legal_module after lowering Return(TryExpr)",
     );
 }
 

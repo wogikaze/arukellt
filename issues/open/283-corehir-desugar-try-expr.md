@@ -34,6 +34,10 @@
 - [x] `?` 演算子を含む fixture が CoreHIR path 単独で compile & run 成功
 - [x] `validate_backend_legal_module` が try 含む MIR で pass する
 
+## Progress
+
+- 2026-04-18: Added `lower_try_expr_removes_tryexpr_from_return_terminator` in `crates/ark-mir/src/lower/tests.rs` to cover `Terminator::Return(Some(TryExpr))` desugar (distinct from assign+rvalue path).
+
 ## References
 
 - `crates/ark-mir/src/lower/mod.rs`
