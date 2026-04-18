@@ -61,6 +61,12 @@ pub struct ParseCacheStats {
     pub cached_modules: usize,
 }
 
+/// Stats for the compile-speed AST cache (`Session::compile_ast_cache`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct CompileCacheStats {
+    pub ast_entries: usize,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MirSelection {
     /// Deprecated: routes through the legacy AST lowerer (`lower_to_mir`).
@@ -174,6 +180,12 @@ pub struct Session {
     /// mtime-based cache: path → (mtime, source, key). Lets `load_source` skip
     /// `fs::read_to_string` when the file has not changed since the last compile.
     file_mtime_cache: HashMap<PathBuf, (SystemTime, String, PhaseKey)>,
+    /// Per-file AST slots for compile-speed caching (canonical path → mtime + module).
+    ///
+    /// TODO(#099): `invalidate_file` only drops the direct path; add dependency-aware
+    /// invalidation, pipeline/config keying, and wire `try_compile_cached_ast` into
+    /// `parse_incremental*` once `--watch` / notify and cross-file rules land (#2–3).
+    compile_ast_cache: HashMap<PathBuf, (SystemTime, ast::Module)>,
     pub timing_enabled: bool,
     pub last_timing: Option<CompileTiming>,
     pub opt_level: OptLevel,
@@ -321,6 +333,7 @@ impl Session {
             config,
             artifacts: ArtifactStore::default(),
             file_mtime_cache: HashMap::new(),
+            compile_ast_cache: HashMap::new(),
             timing_enabled: false,
             last_timing: None,
             opt_level: OptLevel::O1,
@@ -344,6 +357,28 @@ impl Session {
             cached_files: self.file_mtime_cache.len(),
             cached_modules: self.artifacts.parse.len(),
         }
+    }
+
+    pub fn compile_cache_stats(&self) -> CompileCacheStats {
+        CompileCacheStats {
+            ast_entries: self.compile_ast_cache.len(),
+        }
+    }
+
+    /// Compile-cache lookup hook. Always misses until #099 #2–3 wire mtime/key checks and parse integration.
+    pub fn try_compile_cached_ast(&mut self, _path: &Path) -> Option<ast::Module> {
+        // TODO(#099 #2–3): canonicalize, compare mtime to `compile_ast_cache`, reconcile `ArtifactStore` / `PhaseKey`.
+        None
+    }
+
+    /// Store a parsed module in the compile AST cache (not used by the parse pipeline yet).
+    pub fn record_compile_cached_ast(&mut self, path: &Path, module: ast::Module) -> Result<(), String> {
+        let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+        let mtime = std::fs::metadata(&canonical)
+            .and_then(|m| m.modified())
+            .map_err(|e| format!("compile cache: {}: {}", path.display(), e))?;
+        self.compile_ast_cache.insert(canonical, (mtime, module));
+        Ok(())
     }
 
     fn load_source(&mut self, path: &Path) -> Result<(String, PhaseKey, u32), String> {
@@ -388,6 +423,7 @@ impl Session {
     pub fn invalidate_file(&mut self, path: &Path) {
         let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
         self.file_mtime_cache.remove(&canonical);
+        self.compile_ast_cache.remove(&canonical);
         if let Some(key) = self.artifacts.path_keys.remove(&canonical) {
             self.artifacts.parse.remove(&key);
             self.artifacts.bind.remove(&key);
@@ -1422,6 +1458,24 @@ mod tests {
                 .status,
             IncrementalParseStatus::Reused
         );
+    }
+
+    #[test]
+    fn compile_ast_cache_record_invalidate_lifecycle() {
+        let dir = TempDir::new().expect("temp dir");
+        let main = write_module(&dir, "main.ark", "fn main() {}\n");
+
+        let mut session = Session::new();
+        assert_eq!(session.compile_cache_stats().ast_entries, 0);
+
+        let parsed = session.parse(&main).expect("parse");
+        session
+            .record_compile_cached_ast(&main, parsed)
+            .expect("record compile cache");
+        assert_eq!(session.compile_cache_stats().ast_entries, 1);
+
+        session.invalidate_file(&main);
+        assert_eq!(session.compile_cache_stats().ast_entries, 0);
     }
 
     #[test]
