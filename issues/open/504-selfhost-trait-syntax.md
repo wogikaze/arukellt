@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-04-15
-**Updated**: 2026-04-15
+**Updated**: 2026-04-18
 **ID**: 504
 **Depends on**: none
 **Track**: selfhost
@@ -91,13 +91,25 @@ issue's slice scope.
 
 ## Acceptance
 
-- [ ] `trait Foo { fn bar(self) -> i64 }` parses without error
-- [ ] `impl Foo for MyStruct { fn bar(self) -> i64 { 0 } }` parses without error
-- [ ] `fn f<T: Foo>(x: T)` parses and the bound is reachable from the HIR type
+- [x] `trait Foo { fn bar(self) -> i64 }` parses without error
+- [x] `impl Foo for MyStruct { fn bar(self) -> i64 { 0 } }` parses without error
+- [x] `fn f<T: Foo>(x: T)` parses and the bound is reachable from the HIR type
   parameter node
 - [ ] Typechecker can register an impl and answer "does type T satisfy bound B?"
 - [ ] At least one parse-level fixture and one typecheck-level fixture
 - [ ] `cargo test` passes
+
+### Acceptance verify — 2026-04-18 (items 1–3 only)
+
+Slice scope: parse + HIR surface for traits / `impl Trait for Type` / bounded generics. Sources reviewed: `src/compiler/parser.ark` (`parse_trait_decl`, `parse_impl_decl`, `parse_type_param` / `parse_generic_params`), `src/compiler/hir.ark` (`HirTypeParam.bounds`, `HirTraitBound`, `HirImplBlock`, `issue504_hir_self_check`).
+
+| Item | Evidence |
+|------|----------|
+| **1** Trait with method | `tests/fixtures/selfhost/parser_new_syntax.ark` — `trait Show { fn show(self) -> String }` (same receiver shape as acceptance; return type is immaterial to the parser). `tests/fixtures/selfhost/typecheck_trait_impl_smoke.ark` — full `trait Foo { ... }` decl. |
+| **2** `impl Trait for Type` | `tests/fixtures/selfhost/parser_hir_trait_bounds_smoke.ark`, `typecheck_trait_impl_smoke.ark`, and `parser_new_syntax.ark` (`impl Show for Label { ... }`). Parser regression: `issue504_parser_self_check()` in `parser.ark`. |
+| **3** Bounded generic + HIR | `tests/fixtures/selfhost/parser_hir_trait_bounds_smoke.ark` — `fn f<T: Foo>(x: T) -> T`. HIR model + self-check: `issue504_hir_self_check()` in `hir.ark` (`HirTypeParam` name `T` with one `HirTraitBound` for `Foo`, plus `HirImplBlock` trait/self types). |
+
+Items **4–6** intentionally not re-verified in this slice (item 4 per STOP_IF; **5** already satisfied in-tree but left unchecked until a follow-up ties acceptance to close gate; **6** remains issue-level `--cargo` gate).
 
 ## Required verification
 
