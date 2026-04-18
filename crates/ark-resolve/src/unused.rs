@@ -31,11 +31,30 @@ pub fn find_unused_imports(module: &ast::Module) -> HashSet<String> {
             continue;
         }
 
-        if !used_modules.contains(effective_name) {
-            unused.insert(import.module_name.clone());
+        if import_used_by_module_uses(import, effective_name, &used_modules) {
+            continue;
         }
+
+        unused.insert(import.module_name.clone());
     }
     unused
+}
+
+/// Whether an import is considered used given the set of module qualifiers
+/// referenced in the module body (`foo` in `foo::bar`).
+fn import_used_by_module_uses(
+    import: &ast::Import,
+    effective_name: &str,
+    used_modules: &HashSet<String>,
+) -> bool {
+    if used_modules.contains(effective_name) {
+        return true;
+    }
+    // `use a::b::{c, d}` — body uses `c::...` / `d::...`, not the path suffix `b`.
+    if let ast::ImportKind::DestructureImport { names } = &import.kind {
+        return names.iter().any(|n| used_modules.contains(n));
+    }
+    false
 }
 
 /// Check for unused imports in the given module and emit W0006 warnings.
@@ -63,13 +82,15 @@ pub fn check_unused_imports(module: &ast::Module, sink: &mut DiagnosticSink) {
             continue;
         }
 
-        if !used_modules.contains(effective_name) {
-            sink.emit(
-                Diagnostic::new(DiagnosticCode::W0006)
-                    .with_message(format!("unused import `{}`", import.module_name))
-                    .with_label(import.span, "this import is not used"),
-            );
+        if import_used_by_module_uses(import, effective_name, &used_modules) {
+            continue;
         }
+
+        sink.emit(
+            Diagnostic::new(DiagnosticCode::W0006)
+                .with_message(format!("unused import `{}`", import.module_name))
+                .with_label(import.span, "this import is not used"),
+        );
     }
 }
 
@@ -647,6 +668,19 @@ mod tests {
             "use std::math\nfn main() {\n    let x = math::sqrt(4.0)\n    println(x)\n}",
         );
         assert!(warnings.is_empty(), "got: {:?}", warnings);
+    }
+
+    #[test]
+    fn destructure_import_used_via_qualifiers() {
+        // Synthetic path names — only unused-import tracking is under test.
+        let warnings = parse_and_check(
+            "use foo::bar::{baz, qux}\nfn main() {\n    let _ = baz::f(1)\n    let _ = qux::g(2)\n}",
+        );
+        assert!(
+            warnings.is_empty(),
+            "destructure names used as qualifiers should not warn: {:?}",
+            warnings
+        );
     }
 
     #[test]
