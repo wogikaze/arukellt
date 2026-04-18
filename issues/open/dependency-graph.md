@@ -46,7 +46,6 @@ graph LR
   I285["285 Legacy lowering path を隔離・撤去する"]
   I286["286 bootstrap セクションの fixpoint 記述整合を再検証する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
-  I301["301 current-state.md と README.md の整合を取る"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
   I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
@@ -187,7 +186,6 @@ graph LR
 - **285** depends on: 284; blocks: 508
 - **286** depends on: none; blocks: none
 - **289** depends on: 287; blocks: none
-- **301** depends on: 303; blocks: none
 - **312** depends on: 311; blocks: 495
 - **382** depends on: 378; blocks: none
 - **453** depends on: 450, 451, 452; blocks: none
