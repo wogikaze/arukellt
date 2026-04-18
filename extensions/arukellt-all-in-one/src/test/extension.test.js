@@ -428,6 +428,14 @@ suite("Command Registration (#273)", () => {
       "arukellt.refreshProjectTree",
       "arukellt.toggleVerboseLogging",
       "arukellt.runScript",
+      "arukellt.buildComponent",
+      "arukellt.buildComponentWit",
+      "arukellt.runComponent",
+      "arukellt.openInPlayground",
+      "arukellt.runMain",
+      "arukellt.debugMain",
+      "arukellt.runTest",
+      "arukellt.debugTest",
     ];
     for (const cmd of expected) {
       assert.ok(
