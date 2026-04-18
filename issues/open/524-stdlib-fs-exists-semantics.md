@@ -8,7 +8,7 @@
 **Track**: stdlib
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
-**Blocks v1 exit**: no
+**Blocks v{N}**: none
 **Source**: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
 
 ## Progress

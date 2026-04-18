@@ -8,7 +8,7 @@
 **Track**: stdlib
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
-**Blocks v1 exit**: no
+**Blocks v{N}**: none
 **Source**: follow-up extraction from `#519`
 
 ## Summary
