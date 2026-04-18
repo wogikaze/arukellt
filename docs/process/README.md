@@ -7,7 +7,7 @@
 
 - Verification command: `bash scripts/run/verify-harness.sh (fast local gate; use --full for full local verification)`
 - Current verification gate: 19/19 checks pass
-- Fixture manifest size: 780 entries
+- Fixture manifest size: 786 entries
 - Generated docs pull state from `docs/data/project-state.toml`, `std/manifest.toml`, and fixture manifests.
 
 ## Documents
@@ -38,4 +38,4 @@
 | [v0-status.md](v0-status.md) | Archived v0 status | この文書は過去の詳細 status メモです。現在の実装確認には使わないでください。 |
 | [v1-non-goals.md](v1-non-goals.md) | v1 Non-Goals | Archive / current-first note: |
 | [v1-status.md](v1-status.md) | V1 Completion Report | Historical report: this page records the v1 exit state as it stood on 2026-03-27. |
-| [wasm-size-reduction.md](wasm-size-reduction.md) | Wasm Binary Size Reduction Tracking | Status: achieved |
+| [wasm-size-reduction.md](wasm-size-reduction.md) | Wasm Binary Size Reduction Tracking | Status: achieved (fixture tests/fixtures/hello/hello.ark under 1 KB on T1 and T3) |
