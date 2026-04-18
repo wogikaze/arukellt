@@ -231,6 +231,23 @@ pub fn lower_try_exprs(module: &mut MirModule) {
     }
 }
 
+/// Run [`lower_if_exprs`], [`lower_loop_exprs`], and [`lower_try_exprs`] until the module is
+/// backend-legal or `max_rounds` is exhausted.
+///
+/// A single pass is not always enough: `Operand::TryExpr` hides its inner expression from the
+/// earlier if/loop passes, so `IfExpr` / `LoopExpr` can remain until after `TryExpr` is expanded
+/// (issue #283).
+pub(crate) fn lower_backend_illegal_operands(module: &mut MirModule, max_rounds: usize) {
+    for _ in 0..max_rounds {
+        lower_if_exprs(module);
+        lower_loop_exprs(module);
+        lower_try_exprs(module);
+        if is_backend_legal_module(module) {
+            return;
+        }
+    }
+}
+
 pub fn lower_corehir_with_fallback(
     core_hir: &Program,
     module: &ast::Module,
@@ -246,9 +263,7 @@ pub fn lower_corehir_with_fallback(
         #[allow(deprecated)]
         Ok(_) | Err(_) => lower_corehir_via_legacy(module, checker, sink),
     };
-    lower_if_exprs(&mut mir);
-    lower_loop_exprs(&mut mir);
-    lower_try_exprs(&mut mir);
+    lower_backend_illegal_operands(&mut mir, 16);
     Ok(mir)
 }
 
