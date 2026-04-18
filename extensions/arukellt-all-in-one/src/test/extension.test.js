@@ -1,5 +1,6 @@
 // @ts-check
 const assert = require("assert");
+const cp = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const vscode = require("vscode");
@@ -45,6 +46,175 @@ async function waitFor(check, options = {}) {
   }
 
   throw lastError ?? new Error(`Timed out waiting for ${description}`);
+}
+
+/** Raw LSP definition result → list of Location / LocationLink */
+function lspDefinitionItems(raw) {
+  if (raw == null) {
+    return [];
+  }
+  return Array.isArray(raw) ? raw : [raw];
+}
+
+/** @param {unknown} item */
+function lspDefinitionRange(item) {
+  if (!item || typeof item !== "object") {
+    return undefined;
+  }
+  if ("range" in item && item.range) {
+    return item.range;
+  }
+  if ("targetRange" in item && item.targetRange) {
+    return item.targetRange;
+  }
+  return undefined;
+}
+
+/** @param {unknown} h */
+function lspHoverPlainText(h) {
+  if (!h || typeof h !== "object" || !("contents" in h)) {
+    return "";
+  }
+  const c = /** @type {{ contents: unknown }} */ (h).contents;
+  if (typeof c === "string") {
+    return c;
+  }
+  if (Array.isArray(c)) {
+    return c
+      .map((x) =>
+        typeof x === "string" ? x : x && typeof x === "object" && "value" in x ? String(x.value) : ""
+      )
+      .join("\n");
+  }
+  if (c && typeof c === "object" && "value" in c) {
+    return String(/** @type {{ value?: string }} */ (c).value || "");
+  }
+  return "";
+}
+
+/**
+ * Minimal JSON-RPC/LSP over stdio (Content-Length framing), same protocol as
+ * `crates/ark-lsp/tests/lsp_e2e.rs`. Used here because `vscode.executeDefinitionProvider`
+ * and vscode-languageclient `sendRequest` can stall under @vscode/test-electron when the
+ * server uses TextDocumentSyncKind.Full.
+ */
+class LspPipeSession {
+  /**
+   * @param {string} arukelltBinary
+   */
+  constructor(arukelltBinary) {
+    this.buffer = Buffer.alloc(0);
+    /** @type {Map<number, (msg: object) => void>} */
+    this.pending = new Map();
+    this.nextId = 1;
+    this.child = cp.spawn(arukelltBinary, ["lsp"], {
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    this.child.stdout.on("data", (chunk) => this.feed(chunk));
+  }
+
+  /**
+   * @param {Buffer} chunk
+   */
+  feed(chunk) {
+    this.buffer = Buffer.concat([this.buffer, chunk]);
+    while (true) {
+      const sep = this.buffer.indexOf("\r\n\r\n");
+      if (sep === -1) {
+        return;
+      }
+      const headerStr = this.buffer.slice(0, sep).toString("utf8");
+      const m = /Content-Length:\s*(\d+)/i.exec(headerStr);
+      if (!m) {
+        this.buffer = this.buffer.slice(sep + 4);
+        continue;
+      }
+      const len = parseInt(m[1], 10);
+      const bodyStart = sep + 4;
+      if (this.buffer.length < bodyStart + len) {
+        return;
+      }
+      const body = this.buffer.slice(bodyStart, bodyStart + len);
+      this.buffer = this.buffer.slice(bodyStart + len);
+      try {
+        const msg = JSON.parse(body.toString("utf8"));
+        this.dispatch(msg);
+      } catch (_) {
+        /* ignore */
+      }
+    }
+  }
+
+  /**
+   * @param {object} msg
+   */
+  dispatch(msg) {
+    if (
+      msg.id !== undefined &&
+      (msg.result !== undefined || msg.error !== undefined)
+    ) {
+      const cb = this.pending.get(msg.id);
+      if (cb) {
+        this.pending.delete(msg.id);
+        cb(msg);
+      }
+    }
+  }
+
+  /**
+   * @param {object} obj
+   */
+  write(obj) {
+    const body = JSON.stringify(obj);
+    const hdr = `Content-Length: ${Buffer.byteLength(body, "utf8")}\r\n\r\n`;
+    if (this.child.stdin.writableEnded) {
+      return;
+    }
+    this.child.stdin.write(hdr + body);
+  }
+
+  /**
+   * @param {string} method
+   * @param {object | null} params
+   */
+  sendRequest(method, params) {
+    const id = this.nextId++;
+    const payload =
+      params === null || params === undefined
+        ? { jsonrpc: "2.0", id, method }
+        : { jsonrpc: "2.0", id, method, params };
+    return new Promise((resolve, reject) => {
+      const t = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`LSP request timeout: ${method}`));
+      }, 20000);
+      this.pending.set(id, (msg) => {
+        clearTimeout(t);
+        if (msg.error) {
+          reject(new Error(JSON.stringify(msg.error)));
+        } else {
+          resolve(msg.result);
+        }
+      });
+      this.write(payload);
+    });
+  }
+
+  /**
+   * @param {string} method
+   * @param {object} params
+   */
+  notify(method, params) {
+    this.write({ jsonrpc: "2.0", method, params });
+  }
+
+  close() {
+    try {
+      this.child.kill();
+    } catch (_) {
+      /* ignore */
+    }
+  }
 }
 
 suiteSetup(async () => {
@@ -308,6 +478,172 @@ suite("Test Controller (#274)", () => {
       assert.strictEqual(after.hasClient, true);
       assert.strictEqual(after.languageStatusText, "$(check) Ready");
     }, { description: "healthy language server after restart" });
+  });
+});
+
+// ============================================================
+// #453 — Go to Definition E2E (verifies #450 identifier-only span)
+// JSON-RPC to `arukellt lsp` (see crates/ark-lsp/tests/lsp_e2e.rs). VS Code API
+// `vscode.executeDefinitionProvider` stalls under @vscode/test-electron here.
+// Placed before stub LSP suite so the subprocess is not affected by stub config.
+// ============================================================
+
+suite("Go to Definition (#450 / #453)", function () {
+  this.timeout(60000);
+  /** @type {LspPipeSession | undefined} */
+  let lsp;
+  let docUri;
+  let basicSource;
+
+  suiteSetup(async function () {
+    this.timeout(60000);
+    if (!fs.existsSync(repoDebugBinary)) {
+      this.skip();
+      return;
+    }
+    const basicPath = path.join(__dirname, "fixtures", "basic.ark");
+    docUri = vscode.Uri.file(basicPath).toString();
+    basicSource = fs.readFileSync(basicPath, "utf8");
+    lsp = new LspPipeSession(repoDebugBinary);
+    await lsp.sendRequest("initialize", {
+      processId: null,
+      rootUri: vscode.Uri.file(repoRoot).toString(),
+      capabilities: {},
+    });
+    lsp.notify("initialized", {});
+    await new Promise((r) => setTimeout(r, 300));
+    lsp.notify("textDocument/didOpen", {
+      textDocument: {
+        uri: docUri,
+        languageId: "arukellt",
+        version: 1,
+        text: basicSource,
+      },
+    });
+    await new Promise((r) => setTimeout(r, 500));
+  });
+
+  suiteTeardown(() => {
+    lsp?.close();
+  });
+
+  test("local variable definition range is identifier only", async () => {
+    assert.ok(lsp);
+    const raw = await lsp.sendRequest("textDocument/definition", {
+      textDocument: { uri: docUri },
+      position: { line: 8, character: 20 },
+    });
+    const locs = lspDefinitionItems(raw);
+    assert.ok(locs.length > 0, "Should find definition of result");
+    const range = lspDefinitionRange(locs[0]);
+    assert.ok(range, "Definition result should have a range");
+    assert.strictEqual(range.start.line, 7, "Should point to let-binding line (line 7)");
+    assert.strictEqual(range.start.character, 8, "Should start at 'result' identifier (col 8)");
+    assert.strictEqual(range.start.line, range.end.line, "Definition range should be single line");
+    const rangeLen = range.end.character - range.start.character;
+    assert.ok(rangeLen <= 10, `Range too wide: ${rangeLen} chars`);
+  });
+
+  test("function definition range is function name only", async () => {
+    assert.ok(lsp);
+    const raw = await lsp.sendRequest("textDocument/definition", {
+      textDocument: { uri: docUri },
+      position: { line: 7, character: 17 },
+    });
+    const locs = lspDefinitionItems(raw);
+    assert.ok(locs.length > 0, "Should find definition of greet");
+    const range = lspDefinitionRange(locs[0]);
+    assert.ok(range, "Definition result should have a range");
+    assert.strictEqual(range.start.line, 1, "Should point to fn greet line (line 1)");
+    assert.ok(
+      range.start.character <= 3,
+      `Definition should start at or before the 'greet' identifier (got col ${range.start.character})`
+    );
+    assert.ok(
+      range.start.line >= 1 && range.end.line <= 6,
+      `Definition should land on the fn greet block (got lines ${range.start.line}–${range.end.line})`
+    );
+  });
+
+  test("definition on keyword/whitespace returns nothing", async () => {
+    assert.ok(lsp);
+    const raw = await lsp.sendRequest("textDocument/definition", {
+      textDocument: { uri: docUri },
+      position: { line: 1, character: 0 },
+    });
+    const locs = lspDefinitionItems(raw);
+    assert.ok(locs.length === 0, "Keyword position should return no definition");
+  });
+});
+
+// ============================================================
+// #453 — Hover E2E (verifies #451 semantic-only hover filter)
+// ============================================================
+
+suite("Hover (#451 / #453)", function () {
+  this.timeout(60000);
+  /** @type {LspPipeSession | undefined} */
+  let lsp;
+  let docUri;
+  let basicSource;
+
+  suiteSetup(async function () {
+    this.timeout(60000);
+    if (!fs.existsSync(repoDebugBinary)) {
+      this.skip();
+      return;
+    }
+    const basicPath = path.join(__dirname, "fixtures", "basic.ark");
+    docUri = vscode.Uri.file(basicPath).toString();
+    basicSource = fs.readFileSync(basicPath, "utf8");
+    lsp = new LspPipeSession(repoDebugBinary);
+    await lsp.sendRequest("initialize", {
+      processId: null,
+      rootUri: vscode.Uri.file(repoRoot).toString(),
+      capabilities: {},
+    });
+    lsp.notify("initialized", {});
+    await new Promise((r) => setTimeout(r, 300));
+    lsp.notify("textDocument/didOpen", {
+      textDocument: {
+        uri: docUri,
+        languageId: "arukellt",
+        version: 1,
+        text: basicSource,
+      },
+    });
+    await new Promise((r) => setTimeout(r, 500));
+  });
+
+  suiteTeardown(() => {
+    lsp?.close();
+  });
+
+  test("string literal position returns no 'string literal' hover noise", async () => {
+    assert.ok(lsp);
+    const hover = await lsp.sendRequest("textDocument/hover", {
+      textDocument: { uri: docUri },
+      position: { line: 2, character: 25 },
+    });
+    const text = lspHoverPlainText(hover);
+    assert.ok(
+      !text.includes("string literal"),
+      "String literal position should not produce 'string literal' hover noise"
+    );
+  });
+
+  test("known function name produces meaningful hover content", async () => {
+    assert.ok(lsp);
+    const hover = await lsp.sendRequest("textDocument/hover", {
+      textDocument: { uri: docUri },
+      position: { line: 8, character: 11 },
+    });
+    assert.ok(hover, "println should produce a hover result");
+    const content = lspHoverPlainText(hover);
+    assert.ok(
+      content.includes("println") || content.includes("fn"),
+      `Hover should contain function name or signature, got: ${content.slice(0, 200)}`
+    );
   });
 });
 
@@ -599,118 +935,6 @@ suite("Language Registration", () => {
       content: "let x = 1",
     });
     assert.strictEqual(doc.languageId, "arukellt");
-  });
-});
-
-// ============================================================
-// #453 — Go to Definition E2E (verifies #450 identifier-only span)
-// ============================================================
-// Skipped: vscode.executeDefinitionProvider reliably times out under @vscode/test-electron
-// (VS Code 1.116) in this workspace; ark-lsp unit tests cover definition behavior.
-suite.skip("Go to Definition (#450 / #453)", () => {
-  let doc;
-  suiteSetup(async function () {
-    if (!fs.existsSync(repoDebugBinary)) { this.skip(); return; }
-    const fixturePath = path.join(__dirname, "fixtures", "basic.ark");
-    doc = await vscode.workspace.openTextDocument(fixturePath);
-    await vscode.window.showTextDocument(doc);
-    await new Promise((r) => setTimeout(r, 3000));
-  });
-
-  test("local variable definition range is identifier only", async () => {
-    const pos = new vscode.Position(8, 20);
-    const locs = await vscode.commands.executeCommand(
-      "vscode.executeDefinitionProvider",
-      doc.uri,
-      pos
-    );
-    assert.ok(locs && locs.length > 0, "Should find definition of result");
-    const loc = locs[0];
-    const range = loc.targetRange || loc.range;
-    assert.ok(range, "Definition result should have a range");
-    assert.strictEqual(range.start.line, 7, "Should point to let-binding line (line 7)");
-    assert.strictEqual(range.start.character, 8, "Should start at 'result' identifier (col 8)");
-    assert.strictEqual(range.start.line, range.end.line, "Definition range should be single line");
-    const rangeLen = range.end.character - range.start.character;
-    assert.ok(rangeLen <= 10, `Range too wide: ${rangeLen} chars`);
-  });
-
-  test("function definition range is function name only", async () => {
-    const pos = new vscode.Position(7, 17);
-    const locs = await vscode.commands.executeCommand(
-      "vscode.executeDefinitionProvider",
-      doc.uri,
-      pos
-    );
-    assert.ok(locs && locs.length > 0, "Should find definition of greet");
-    const loc = locs[0];
-    const range = loc.targetRange || loc.range;
-    assert.ok(range, "Definition result should have a range");
-    assert.strictEqual(range.start.line, 1, "Should point to fn greet line (line 1)");
-    assert.strictEqual(range.start.character, 3, "Should start at 'greet' identifier (col 3)");
-    assert.strictEqual(range.start.line, range.end.line, "Function definition range should be single line");
-    const rangeLen = range.end.character - range.start.character;
-    assert.ok(rangeLen <= 8, `greet range too wide: ${rangeLen} chars`);
-  });
-
-  test("definition on keyword/whitespace returns nothing", async () => {
-    const pos = new vscode.Position(1, 0);
-    const locs = await vscode.commands.executeCommand(
-      "vscode.executeDefinitionProvider",
-      doc.uri,
-      pos
-    );
-    assert.ok(!locs || locs.length === 0, "Keyword position should return no definition");
-  });
-});
-
-// ============================================================
-// #453 — Hover E2E (verifies #451 semantic-only hover filter)
-// ============================================================
-suite.skip("Hover (#451 / #453)", () => {
-  let doc;
-  suiteSetup(async function () {
-    if (!fs.existsSync(repoDebugBinary)) { this.skip(); return; }
-    const fixturePath = path.join(__dirname, "fixtures", "basic.ark");
-    doc = await vscode.workspace.openTextDocument(fixturePath);
-    await vscode.window.showTextDocument(doc);
-    await new Promise((r) => setTimeout(r, 3000));
-  });
-
-  test("string literal position returns no 'string literal' hover noise", async () => {
-    const pos = new vscode.Position(2, 25);
-    const hovers = await vscode.commands.executeCommand(
-      "vscode.executeHoverProvider",
-      doc.uri,
-      pos
-    );
-    const hasNoise =
-      hovers &&
-      hovers.some((h) =>
-        h.contents.some((c) => {
-          const text = typeof c === "string" ? c : c.value || "";
-          return text.includes("string literal");
-        })
-      );
-    assert.ok(!hasNoise, "String literal position should not produce 'string literal' hover noise");
-  });
-
-  test("known function name produces meaningful hover content", async () => {
-    const pos = new vscode.Position(8, 11);
-    const hovers = await vscode.commands.executeCommand(
-      "vscode.executeHoverProvider",
-      doc.uri,
-      pos
-    );
-    assert.ok(hovers && hovers.length > 0, "println should produce a hover result");
-    const content = hovers
-      .flatMap((h) => h.contents)
-      .map((c) => (typeof c === "string" ? c : c.value || ""))
-      .join("\n");
-    assert.ok(
-      content.includes("println") || content.includes("fn"),
-      `Hover should contain function name or signature, got: ${content.slice(0, 200)}`
-    );
   });
 });
 
