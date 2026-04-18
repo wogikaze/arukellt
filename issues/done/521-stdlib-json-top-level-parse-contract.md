@@ -1,8 +1,9 @@
 # Stdlib JSON: top-level parse は trailing non-whitespace を拒否する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-18
 **Updated**: 2026-04-18
+**Closed**: 2026-04-18
 **ID**: 521
 **Depends on**: none
 **Track**: stdlib
@@ -119,3 +120,30 @@ Verification (this slice):
 - `python3 scripts/check/check-docs-consistency.py` — PASS (after repo index/docs in sync with manifest)
 - All `tests/fixtures/stdlib_json/*.ark` vs `.expected` — PASS (`arukellt run` per file)
 - `bash scripts/run/verify-harness.sh --fixtures` — **not used** here: harness script races on `_BG_DIR` cleanup in this environment (missing `*.rc` under temp dir); stdlib JSON coverage proven via manifest `run:` entries + direct fixture diff loop above.
+
+---
+
+## Close note — 2026-04-18
+
+Closed as complete. std::json::parse now enforces full-document contract and rejects trailing non-whitespace.
+
+**Close evidence:**
+- Wave 1 commit 83ec2b6: `std::json::parse` rejects trailing non-whitespace after first top-level value
+- Wave 2: Fixed keyword literal comparison using `eq(...)` instead of `==`; fixed `json_get` to parse from bounded slices
+- Wave 3: Added object + trailing garbage fixture aligned with issue summary
+- All 4 acceptance criteria checked
+- Negative fixtures added: `json_parse_trailing_garbage.ark`, `json_parse_multiple_values.ark`, `json_parse_trailing_object_garbage.ark`
+- Verification: `bash scripts/run/verify-harness.sh --quick` → PASS (2026-04-18)
+- Verification: `python3 scripts/check/check-docs-consistency.py` → PASS (2026-04-18)
+- Verification: All `tests/fixtures/stdlib_json/*.ark` vs `.expected` → PASS (2026-04-18)
+
+**Acceptance mapping:**
+- ✓ `std::json::parse` rejects trailing non-whitespace with `Err(...)`
+- ✓ At least 2 negative fixtures added (3 added)
+- ✓ Existing valid JSON fixtures don't regress
+- ✓ `docs/stdlib/modules/json.md` states full-document parse contract
+
+**Implementation notes:**
+- Three implementation waves delivered complete contract enforcement
+- Parser contract now rejects `"{\"x\":1} garbage"` style inputs as invalid
+- Full `--fixtures` harness has unrelated failures; stdlib JSON-specific verification used as close gate

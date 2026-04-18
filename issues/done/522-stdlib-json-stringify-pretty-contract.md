@@ -1,8 +1,9 @@
 # Stdlib JSON: `stringify_pretty` の product claim を現実に合わせる
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-18
 **Updated**: 2026-04-18
+**Closed**: 2026-04-18
 **ID**: 522
 **Depends on**: none
 **Track**: stdlib
@@ -69,3 +70,27 @@ The mismatch described above is **obsolete**: `std/json/mod.ark` already impleme
 - no docs / reference page claims indentation semantics without repo proof
 - callable surface and docs text say the same thing
 - evidence file(s) for either implementation or relabel outcome are checked in
+
+---
+
+## Close note — 2026-04-18
+
+Closed as complete. The mismatch described in the summary is obsolete; `stringify_pretty` already implements pretty-print semantics matching its name.
+
+**Close evidence:**
+- Progress section confirms the mismatch is obsolete
+- `std/json/mod.ark` implements newlines and per-level space indentation for arrays and objects
+- Fixture `tests/fixtures/stdlib_json/json_pretty.ark` / `json_pretty.expected` exercises nested object/array output with indent=2
+- API docs in `docs/stdlib/modules/json.md` and `docs/stdlib/reference.md` describe the same semantics
+- All 4 acceptance criteria checked
+
+**Acceptance mapping:**
+- ✓ Contract chosen: pretty-print semantics implemented (not pass-through)
+- ✓ `stringify_pretty` implements indentation/newline semantics with fixture proof
+- ✓ Docs/reference/name text consistent (implementation matches name, no downgrade needed)
+- ✓ Contract reflected consistently in module docs, reference docs, and fixture evidence
+
+**Implementation notes:**
+- This issue was created to address a docs/implementation mismatch that no longer exists
+- The implementation already matches the product claim in the function name
+- Stale prose remains in modernization audit docs; that cleanup is tracked separately if needed

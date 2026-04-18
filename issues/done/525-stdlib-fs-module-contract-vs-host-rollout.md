@@ -1,8 +1,9 @@
 # Stdlib FS: module-level docs を host rollout reality に合わせる
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-18
 **Updated**: 2026-04-18 (docs slice landed)
+**Closed**: 2026-04-18
 **ID**: 525
 **Depends on**: none
 **Track**: stdlib, docs
@@ -64,3 +65,31 @@ module-level docs と generated reference を `std::host::*` rollout reality に
 
 - docs-only claim is reduced to repo-provable wording
 - generated and curated docs agree on the module contract
+
+---
+
+## Close note — 2026-04-18
+
+Closed as complete. Module-level docs updated to reflect host rollout reality without overclaiming durable surface area.
+
+**Close evidence:**
+- Docs slice landed 2026-04-18
+- `std/fs/mod.ark` module docs updated
+- Curated `modules/fs.md` overview added with `build_target_constraints` fix
+- Regenerated `docs/stdlib/modules/fs.md` and `docs/stdlib/modules/io.md`
+- Cross-link from `docs/current-state.md` Known Limitations
+- All 4 acceptance criteria checked
+- Verification: `bash scripts/run/verify-harness.sh --quick` → PASS (2026-04-18)
+- Verification: `python3 scripts/gen/generate-docs.py` → PASS (2026-04-18)
+- Verification: `python3 scripts/check/check-docs-consistency.py` → PASS (2026-04-18)
+
+**Acceptance mapping:**
+- ✓ Module overview makes subset/bridge status explicit at import-time
+- ✓ Docs explain `std::fs` relation to `std::host::*` rollout without overclaiming
+- ✓ Generated reference and curated module page don't contradict
+- ✓ No user-visible page implies "complete filesystem facade" without repo proof
+
+**Implementation notes:**
+- This is a docs-only slice; no filesystem runtime implementation changes
+- Module contract wording reduced to repo-provable claims
+- Fixed "No host capability required" alongside `--dir` Availability contradiction
