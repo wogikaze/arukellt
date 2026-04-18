@@ -39,6 +39,7 @@ graph LR
   I252["252 テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する"]
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
   I254["254 VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる"]
+  I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
   I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
   I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
@@ -86,11 +87,9 @@ graph LR
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I205["205 Docs / codebase intelligence surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
-  I267["267 verify-bootstrap.sh を達成判定本体へ昇格させる"]
+  I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
-  I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
-  I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I028["028 WIT import parsing & host function binding"]
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
@@ -129,14 +128,12 @@ graph LR
   I475 --> I485
   I188 --> I205
   I188 --> I214
-  I266 --> I267
+  I266 --> I269
+  I268 --> I269
   I504 --> I512
   I495 --> I512
   I039 --> I054
   I044 --> I054
-  I267 --> I268
-  I266 --> I269
-  I268 --> I269
   I028 --> I028
   I028 --> I034
   I036 --> I037
@@ -177,6 +174,7 @@ graph LR
 - **252** depends on: none; blocks: none
 - **253** depends on: none; blocks: 266
 - **254** depends on: none; blocks: none
+- **268** depends on: 267; blocks: 269
 - **282** depends on: 281; blocks: none
 - **283** depends on: 281; blocks: none
 - **285** depends on: 284; blocks: 508
@@ -211,7 +209,7 @@ graph LR
 - **126** depends on: 125; blocks: none
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
-- **266** depends on: 253; blocks: 267, 269
+- **266** depends on: 253; blocks: 269
 - **508** depends on: 285; blocks: none
 - **495** depends on: 312, 504; blocks: 512
 - **518** depends on: 513, 517; blocks: none
@@ -224,11 +222,9 @@ graph LR
 - **485** depends on: 475; blocks: none
 - **205** depends on: 185, 188; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
-- **267** depends on: 266; blocks: 268
+- **269** depends on: 266, 268; blocks: none
 - **512** depends on: 504, 495; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
-- **268** depends on: 267; blocks: 269
-- **269** depends on: 266, 268; blocks: none
 - **028** depends on: 028; blocks: 028, 034
 - **034** depends on: 030, 031, 028; blocks: none
 
