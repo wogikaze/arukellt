@@ -145,7 +145,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 200 | [Runtime inspection / stepping / evaluate surface](200-runtime-inspection-stepping-and-evaluate-surface.md) | parallel | no | 199 | 201 | 3 checked / 0 open | implementation-ready | — | |
 | 204 | [Project explain / build explain / script sandbox surface](204-project-explain-build-explain-and-script-sandbox-surface.md) | parallel | no | 202, 203 | 188 | 3 checked / 0 open | implementation-ready | — | |
 | 206 | [Interactive compiler pipeline + inline profiling](206-interactive-compiler-pipeline-and-inline-profiling.md) | parallel | no | 184, 185, 187 | none | 3 checked / 0 open | implementation-ready | — | |
-| 249 | [migration guide v4→v5: self-hosted compiler bootstrap](249-migration-v4-to-v5-selfhost-bootstrap.md) | compiler/selfhost | no | none | none | 9 checked / 0 open | implementation-ready | — | |
+| 249 | [migration guide v4→v5: self-hosted compiler bootstrap](249-migration-v4-to-v5-selfhost-bootstrap.md) | compiler/selfhost | no | none | none | 7 checked / 2 open | implementation-ready | — | |
 | 252 | [テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する](252-test-strategy-overhaul.md) | main | yes | none | none | 0 checked / 0 open | design-ready | — | |
 | 253 | [セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない](253-selfhost-completion-criteria.md) | main | yes | none | 266 | 0 checked / 0 open | verification-ready | — | |
 | 254 | [VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる](254-vscode-extension-e2e.md) | main | yes | none | none | 0 checked / 0 open | implementation-ready | — | |
