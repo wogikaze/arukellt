@@ -25,7 +25,6 @@ graph LR
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
   I130["130 MIR lower.rs (4360行) をサブモジュールに分割"]
-  I134["134 ark-lexer lib.rs (1698行) をサブモジュールに分割"]
   I135["135 ark-diagnostics lib.rs (1099行) をサブモジュールに分割"]
   I154["154 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
   I157["157 ADR-004 P4: メソッド構文 / trait 再評価"]
@@ -144,7 +143,6 @@ graph LR
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
 - **130** depends on: none; blocks: none
-- **134** depends on: none; blocks: none
 - **135** depends on: none; blocks: none
 - **154** depends on: 153; blocks: none
 - **157** depends on: none; blocks: none
