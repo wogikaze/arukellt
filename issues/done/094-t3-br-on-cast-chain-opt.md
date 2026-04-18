@@ -1,8 +1,9 @@
 # T3: enum dispatch の br_on_cast 連鎖最適化
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-18
+**Closed**: 2026-04-18
 **ID**: 094
 **Depends on**: —
 **Track**: backend-opt

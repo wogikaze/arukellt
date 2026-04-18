@@ -15,7 +15,6 @@ graph LR
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I051["051 std::time + std::random: 時刻・期間・乱数"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
-  I094["094 T3: enum dispatch の br_on_cast 連鎖最適化"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
@@ -58,7 +57,6 @@ graph LR
   I526["526 Stdlib JSON: parity と differential tests を round-trip corpus で拡張する"]
   I527["527 Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する"]
   I528["528 Stdlib collections/hash: property と differential tests を map / set invariant で拡張する"]
-  I529["529 100% Self-Hosting Transition Plan"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
@@ -122,7 +120,6 @@ graph LR
 - **047** depends on: 039, 041; blocks: none
 - **051** depends on: 039, 040; blocks: none
 - **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476, 510
-- **094** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
@@ -165,7 +162,6 @@ graph LR
 - **526** depends on: none; blocks: none
 - **527** depends on: none; blocks: none
 - **528** depends on: none; blocks: none
-- **529** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
