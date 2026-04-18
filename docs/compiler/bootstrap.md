@@ -13,6 +13,11 @@ future `verify-harness` integration notes) lives in
 [`docs/process/bootstrap-verification.md`](../process/bootstrap-verification.md)
 (issue #154, `issues/open/154-bootstrap-verification-scaffold.md`).
 
+**Executable contract:** authoritative artifact paths, the Stage 2 `sha256sum`
+comparison rule, and failure/diff behavior (including “no wasm binary diff in
+this script”) are defined in the header comments of
+[`scripts/run/verify-bootstrap.sh`](../../scripts/run/verify-bootstrap.sh).
+
 ```
 Stage 0 (Rust compiler)
   └─ compiles src/compiler/main.ark → arukellt-s1.wasm   (trusted base)

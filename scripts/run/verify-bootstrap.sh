@@ -9,19 +9,34 @@
 #   Stage 1 — First self-compile: run Stage 0 output under wasmtime with the repo
 #             root mounted; compile the same `main.ark` to a second wasm artifact.
 #   Stage 2 — Fixpoint gate: byte identity of Stage 0 vs Stage 1 outputs
-#             (sha256 equality on the two wasm files).
+#             (SHA-256 digest equality on the two wasm files).
 #
-# Artifact naming (under REPO_ROOT, all ephemeral unless noted):
-#   BUILD_DIR="${REPO_ROOT}/.bootstrap-build"   # removed on exit (trap)
-#   S1_WASM="${BUILD_DIR}/arukellt-s1.wasm"      # Stage 0 output
-#   S2_WASM="${BUILD_DIR}/arukellt-s2.wasm"      # Stage 1 output
-#   Stage stderr logs: "${BUILD_DIR}/stage0.stderr", "${BUILD_DIR}/stage1.stderr"
+# Executable contract (issue #154 acceptance #2: artifact naming, comparison, failure/diff):
 #
-# Comparison targets:
-#   Stage 2 compares sha256(S1_WASM) vs sha256(S2_WASM).  When they differ, the
-#   script prints both digests and sizes; it does not emit a binary diff.  Use
-#   `scripts/run/compare-outputs.sh` on fixtures to find the first divergent
-#   compiler phase (see docs/compiler/bootstrap.md).
+#   Artifact naming (paths relative to REPO_ROOT; BUILD_DIR is ephemeral — created
+#   before stages and removed on every exit via `trap … EXIT`):
+#     BUILD_DIR=".bootstrap-build"
+#     Stage 0 output: ".bootstrap-build/arukellt-s1.wasm"
+#     Stage 1 output: ".bootstrap-build/arukellt-s2.wasm"
+#     Stage stderr logs: ".bootstrap-build/stage0.stderr", ".bootstrap-build/stage1.stderr"
+#
+#   Comparison method (Stage 2 only for the fixpoint gate):
+#     Run sha256sum on each wasm file and compare the first field (hex digest).
+#     Fixpoint holds iff digests are equal (implies byte-identical files). No other
+#     structural or semantic comparison is performed here.
+#
+#   Failure and diff policy:
+#     - Full gate (no partial flags): exit 0 only if every executed stage succeeds
+#       and Stage 2 digests match; otherwise exit 1 (failed stage increments an
+#       internal failure count; preflight errors exit 1 immediately).
+#     - Partial modes (`--stage1-only`, `--stage N`, `--fixture-parity`): exit
+#       according to the subset run; see usage text and inline messages for when
+#       bootstrap “attainment” is not evaluated.
+#     - Stage 0/1: on failure, print status; if the stage stderr log file is
+#       non-empty, indent its contents onto stderr.
+#     - Stage 2 mismatch: print both digests and both file sizes; suggest
+#       scripts/run/compare-outputs.sh for fixture-level phase narrowing. This
+#       script does not emit a binary, unified, or hexdump diff of the wasm blobs.
 #
 # Future integration: `scripts/run/verify-harness.sh` may call this script once
 # bootstrap is stable; today optional `--fixpoint` uses check-selfhost-fixpoint.sh

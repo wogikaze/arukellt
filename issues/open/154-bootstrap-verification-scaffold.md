@@ -48,3 +48,9 @@ v5 に入ったときの曖昧さを減らせる。
 - `docs/process/roadmap-cross-cutting.md` §6.5
 - `docs/process/roadmap-v5.md`
 - `scripts/run/verify-harness.sh`
+
+## Progress (verification infra)
+
+- **2026-04-18:** Acceptance #2 — `scripts/run/verify-bootstrap.sh` header documents
+  artifact naming, Stage 2 comparison (`sha256sum` digest equality), and
+  failure/diff policy; `docs/compiler/bootstrap.md` links to that header contract.
