@@ -36,7 +36,6 @@ graph LR
   I204["204 Project explain / build explain / script sandbox surface"]
   I206["206 Interactive compiler pipeline + inline profiling"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
-  I251["251 ターゲットマトリクスを「宣言」ではなく、継続検証される実行契約にする"]
   I252["252 テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する"]
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
   I254["254 VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる"]
@@ -175,7 +174,6 @@ graph LR
 - **204** depends on: 202, 203; blocks: 188
 - **206** depends on: 184, 185, 187; blocks: none
 - **249** depends on: none; blocks: none
-- **251** depends on: none; blocks: none
 - **252** depends on: none; blocks: none
 - **253** depends on: none; blocks: 266
 - **254** depends on: none; blocks: none
