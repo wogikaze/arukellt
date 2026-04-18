@@ -1,0 +1,10 @@
+// WIT round-trip scenario
+// Tests: Arukellt → WIT → Arukellt bindings round-trip
+
+export fn identity(x: i32) -> i32 {
+    x
+}
+
+export fn double(x: i32) -> i32 {
+    x * 2
+}
