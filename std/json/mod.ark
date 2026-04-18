@@ -198,7 +198,7 @@ pub fn parse(s: String) -> Result<JsonValue, String> {
     let c = char_at(s, pos)
     if c == 110 {
         if n >= pos + 4 {
-            if slice(s, pos, pos + 4) == "null" {
+            if eq(slice(s, pos, pos + 4), "null") {
                 let end = pos + 4
                 let after = skip_ws(s, end)
                 if after == n {
@@ -210,7 +210,7 @@ pub fn parse(s: String) -> Result<JsonValue, String> {
         Err("invalid null")
     } else if c == 116 {
         if n >= pos + 4 {
-            if slice(s, pos, pos + 4) == "true" {
+            if eq(slice(s, pos, pos + 4), "true") {
                 let end = pos + 4
                 let after = skip_ws(s, end)
                 if after == n {
@@ -222,7 +222,7 @@ pub fn parse(s: String) -> Result<JsonValue, String> {
         Err("invalid true")
     } else if c == 102 {
         if n >= pos + 5 {
-            if slice(s, pos, pos + 5) == "false" {
+            if eq(slice(s, pos, pos + 5), "false") {
                 let end = pos + 5
                 let after = skip_ws(s, end)
                 if after == n {
@@ -291,7 +291,7 @@ pub fn is_object(v: JsonValue) -> bool { v.tag == 5 }
 // ─── Value extractors ────────────────────────────────────────────────────────
 
 pub fn json_as_bool(v: JsonValue) -> Option<bool> {
-    if v.tag == 1 { Some(v.raw == "true") } else { None }
+    if v.tag == 1 { Some(eq(v.raw, "true")) } else { None }
 }
 
 pub fn json_as_string(v: JsonValue) -> Option<String> {
@@ -349,11 +349,12 @@ pub fn json_get(v: JsonValue, key: String) -> Option<JsonValue> {
             i = i + 1
         } else if c == 34 {
             if i + needle_len <= n {
-                if slice(raw, i, i + needle_len) == needle {
+                if eq(slice(raw, i, i + needle_len), needle) {
                     let after = skip_ws(raw, i + needle_len)
                     if after < n && char_at(raw, after) == 58 {
                         let value_start = skip_ws(raw, after + 1)
-                        match parse(slice(raw, value_start, n)) {
+                        let value_end = find_value_end(raw, value_start)
+                        match parse(slice(raw, value_start, value_end)) {
                             Ok(val) => return Some(val),
                             Err(_) => return None,
                         }
