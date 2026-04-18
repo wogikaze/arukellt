@@ -66,6 +66,9 @@ graph LR
   I523["523 Stdlib TOML: parse failure と supported subset contract を定義する"]
   I524["524 Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する"]
   I525["525 Stdlib FS: module-level docs を host rollout reality に合わせる"]
+  I526["526 Stdlib JSON: parity と differential tests を round-trip corpus で拡張する"]
+  I527["527 Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する"]
+  I528["528 Stdlib collections/hash: property と differential tests を map / set invariant で拡張する"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I041["041 std::core: Error 型、ordering、range、cmp、math、convert、hash"]
   I043["043 std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128"]
@@ -210,6 +213,9 @@ graph LR
 - **523** depends on: none; blocks: none
 - **524** depends on: none; blocks: none
 - **525** depends on: none; blocks: none
+- **526** depends on: none; blocks: none
+- **527** depends on: none; blocks: none
+- **528** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **041** depends on: 039; blocks: 044, 045, 047, 048, 049
 - **043** depends on: 039, 040; blocks: none

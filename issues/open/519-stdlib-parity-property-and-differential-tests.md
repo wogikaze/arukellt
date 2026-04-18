@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-04-15
-**Updated**: 2026-04-16
+**Updated**: 2026-04-18
 **ID**: 519
 **Depends on**: none
 **Track**: stdlib
@@ -50,7 +50,7 @@ The rows below propose **property-style or differential** additions on top of th
 - [x] family ごとの test strategy matrix (regression / property / differential / fuzz-ish) が作成される
 - [x] `json`, `toml`, `csv`, `path`, `collections/hash`, `text` の優先ケースが列挙される
 - [x] どの family は Rust or external reference と比較できるかが整理される（表中の differential 列）
-- [ ] follow-up fixture / harness issue が必要なら派生する（実装フェーズで起票）
+- [x] follow-up fixture / harness issue が必要なら派生する（実装フェーズで起票）
 
 ## Primary paths
 
@@ -65,3 +65,7 @@ The rows below propose **property-style or differential** additions on top of th
 
 - `issues/done/389-stdlib-serialization-roundtrip-baselines.md`
 - `issues/done/388-stdlib-collections-seq-parity-tests.md`
+
+## Notes
+
+- 2026-04-18: follow-up extraction completed as `#526` JSON parity/differential tests, `#527` TOML parity/differential tests, and `#528` collections/hash property-differential tests.
