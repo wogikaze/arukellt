@@ -1,8 +1,9 @@
 # Stdlib: property / differential / parity test を family 横断で拡張する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-15
 **Updated**: 2026-04-18
+**Closed**: 2026-04-18
 **ID**: 519
 **Depends on**: none
 **Track**: stdlib
@@ -69,3 +70,17 @@ The rows below propose **property-style or differential** additions on top of th
 ## Notes
 
 - 2026-04-18: follow-up extraction completed as `#526` JSON parity/differential tests, `#527` TOML parity/differential tests, and `#528` collections/hash property-differential tests.
+
+## Closed by orchestration — 2026-04-18
+
+**Implementation-backed close evidence**: commit `da6f11b` (`design(stdlib): split parity test follow-up issues from 519`).
+
+**Why this closes the issue**:
+
+- The last unchecked acceptance item was follow-up extraction.
+- Commit `da6f11b` created `#526`, `#527`, and `#528` as focused open issues with concrete primary paths, non-goals, acceptance, required verification, and close gates.
+- The same commit updated this issue and regenerated the queue indexes.
+
+**Verification cited**:
+
+- `bash scripts/gen/generate-issue-index.sh` — PASS

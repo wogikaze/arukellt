@@ -59,3 +59,27 @@
 - reject fixtures and docs text can both be cited from repo evidence
 - parser contract no longer accepts trailing non-whitespace as valid success
 - no user-visible docs page claims looser behavior than the implementation
+
+## Progress note — 2026-04-18 (Wave 1)
+
+Wave 1 landed commit `83ec2b6` (`feat(stdlib): enforce full-document json parse contract`).
+
+Delivered in this slice:
+
+- `std::json::parse` now rejects trailing non-whitespace after the first top-level value
+- added negative fixtures:
+  - `tests/fixtures/stdlib_json/json_parse_trailing_garbage.ark`
+  - `tests/fixtures/stdlib_json/json_parse_multiple_values.ark`
+- updated JSON docs/reference/readme surfaces to state the full-document parse contract
+
+Focused verification from the completion report:
+
+- `bash scripts/run/verify-harness.sh --quick` — PASS
+- `cargo build -p arukellt` — PASS
+- focused positive/negative JSON fixture runs — PASS
+- `python3 scripts/check/check-docs-consistency.py` — PASS
+
+This issue remains open because the issue-level required verification still
+includes `bash scripts/run/verify-harness.sh --fixtures`, and that command
+reported unrelated pre-existing failures outside this slice. Do not close until
+the required verification contract is green or explicitly narrowed.
