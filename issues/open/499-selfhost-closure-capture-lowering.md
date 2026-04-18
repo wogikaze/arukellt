@@ -8,7 +8,7 @@
 **Track**: selfhost
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
-**Blocks v1 exit**: no
+**Blocks v5**: yes
 **Source**: audit — issues/done/493-selfhost-mir-control-flow-coverage.md STOP_IF
 
 ## Summary

@@ -8,7 +8,7 @@
 **Track**: selfhost
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
-**Blocks v1 exit**: no
+**Blocks v5**: yes
 **Source**: audit — issues/done/211-selfhost-mir-lower-fn-bodies.md "Out of scope (deferred)"
 
 ## Summary

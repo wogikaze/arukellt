@@ -8,7 +8,7 @@
 **Track**: selfhost-frontend
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
-**Blocks v1 exit**: no
+**Blocks v5**: yes
 **Priority**: 11
 
 

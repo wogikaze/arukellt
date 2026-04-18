@@ -8,7 +8,7 @@
 **Track**: selfhost
 **Orchestration class**: blocked-by-upstream
 **Orchestration upstream**: #312, #504
-**Blocks v1 exit**: no
+**Blocks v5**: yes
 **Source**: audit — issues/done/210-selfhost-typechecker-typed-fns.md "Out of scope (deferred)"
 
 ## Summary

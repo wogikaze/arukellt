@@ -8,7 +8,7 @@
 **Track**: stdlib
 **Orchestration class**: blocked-by-upstream
 **Orchestration upstream**: #495, #504
-**Blocks v1 exit**: no
+**Blocks v5**: yes
 **Source**: stdlib modernization backlog requested 2026-04-15
 
 ## Summary

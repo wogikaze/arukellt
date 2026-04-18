@@ -8,7 +8,7 @@
 **Track**: selfhost
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
-**Blocks v1 exit**: no
+**Blocks v5**: yes
 **Source**: STOP_IF blocker detected while working #495-selfhost-trait-bounds
 
 ## Summary
