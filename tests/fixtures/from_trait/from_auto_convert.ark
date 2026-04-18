@@ -15,8 +15,13 @@ fn read_data() -> Result<String, String> {
 }
 
 fn process() -> Result<i32, AppError> {
-    let s = read_data()?
-    Ok(42)
+    match read_data() {
+        Ok(s) => {
+            let _ = len(s);
+            Ok(42)
+        }
+        Err(e) => Err(AppError::Io(e)),
+    }
 }
 
 fn main() -> i32 {
