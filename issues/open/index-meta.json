@@ -395,24 +395,6 @@
       }
     },
     {
-      "id": "135",
-      "path": "135-split-diagnostics.md",
-      "title": "ark-diagnostics lib.rs (1099行) をサブモジュールに分割",
-      "track": "code-structure",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "154",
       "path": "154-bootstrap-verification-scaffold.md",
       "title": "横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold",
