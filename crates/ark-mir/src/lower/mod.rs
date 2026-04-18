@@ -15,6 +15,7 @@ mod expr;
 mod facade;
 mod func;
 mod pattern;
+mod control_flow;
 mod stmt;
 mod types;
 
