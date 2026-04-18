@@ -4,26 +4,6 @@
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
-      "id": "028",
-      "path": "028-wit-import-parsing.md",
-      "title": "WIT import parsing & host function binding",
-      "track": "component-model",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "028b"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 8,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "032",
       "path": "032-resource-type.md",
       "title": "WIT resource type support (own/borrow)",
