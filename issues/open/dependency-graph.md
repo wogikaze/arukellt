@@ -20,7 +20,6 @@ graph LR
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I130["130 MIR lower.rs (4360行) をサブモジュールに分割"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
   I195["195 Partial execution preview + local semantic insight"]
   I198["198 Advanced test UX: impact analysis / snapshot diff / fuzz UI"]
@@ -34,13 +33,11 @@ graph LR
   I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
-  I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I490["490 pub use / pub import re-export"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
   I504["504 504 — Selfhost: trait/interface syntax and impl-block infrastructure"]
-  I511["511 Stdlib: 数値タグ / if 連鎖を enum + match 優先へ移行する"]
   I513["513 Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する"]
   I514["514 Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する"]
   I515["515 Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる"]
@@ -123,7 +120,6 @@ graph LR
 - **112** depends on: 109; blocks: none
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **130** depends on: none; blocks: none
 - **194** depends on: 193; blocks: none
 - **195** depends on: none; blocks: none
 - **198** depends on: 196, 197; blocks: none
@@ -137,13 +133,11 @@ graph LR
 - **268** depends on: 267; blocks: 269
 - **285** depends on: 284; blocks: 508
 - **312** depends on: 311; blocks: 495
-- **382** depends on: 378; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **490** depends on: 234; blocks: none
 - **494** depends on: 493, 503; blocks: none
 - **499** depends on: none; blocks: none
 - **504** depends on: none; blocks: 495, 512
-- **511** depends on: none; blocks: none
 - **513** depends on: none; blocks: 518
 - **514** depends on: none; blocks: none
 - **515** depends on: none; blocks: none

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T11:32:48Z",
+  "generated_at": "2026-04-18T11:33:45Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -300,24 +300,6 @@
       }
     },
     {
-      "id": "130",
-      "path": "130-split-mir-lower.md",
-      "title": "MIR lower.rs (4360行) をサブモジュールに分割",
-      "track": "code-structure",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "194",
       "path": "194-semantic-preview-diff-and-ghost-refactor-surface.md",
       "title": "Semantic preview / diff / ghost refactor surface",
@@ -582,26 +564,6 @@
       }
     },
     {
-      "id": "382",
-      "path": "382-playground-t2-freestanding.md",
-      "title": "Playground: wasm32-freestanding (T2) target の downstream 実装を開始する",
-      "track": "playground",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "378"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "459",
       "path": "459-selfhost-fixpoint-dual-period-end.md",
       "title": "selfhost Stage 2 fixpoint 達成と dual-period 終了計画",
@@ -699,24 +661,6 @@
       "acceptance": {
         "checked": 3,
         "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "511",
-      "path": "511-stdlib-syntax-modernization-enum-match.md",
-      "title": "Stdlib: 数値タグ / if 連鎖を enum + match 優先へ移行する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
       },
       "orchestration": {
         "class": "implementation-ready",
