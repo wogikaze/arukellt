@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-13
+**Updated**: 2026-04-18
 **ID**: 249
 **Depends on**: none
 **Track**: compiler/selfhost
@@ -18,15 +18,20 @@
 
 ## Summary
 
-v4→v5 のセルフホスト型コンパイラ bootstrap が完了。
-Stage 0→Stage 1→Stage 2 の全パイプラインが通り、fixpoint (sha256 一致) が達成された。
+v4→v5 のセルフホスト型コンパイラ bootstrap は **未完了**（2026-04-13 の reopen 理由どおり）。
+`scripts/run/verify-bootstrap.sh` は Stage 0→1→2 を順に実行するが、**Stage 2（fixpoint）は未達**
+（`docs/current-state.md` の Self-Hosting Bootstrap Status 参照）。Stage 0・1 は成功している。
 
 ## Acceptance
 
-- [x] `scripts/run/verify-bootstrap.sh` が全ステージ pass する
-- [x] `sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)` が一致する（fixpoint）
-- [x] Stage 1 が全 selfhost ソースを compile pass する
-- [x] v5 以降のバグ修正が Rust 実装と Arukellt 実装の両方に適用されるワークフローが確立されている
+- [ ] `scripts/run/verify-bootstrap.sh` の **full** 実行（Stage 0→1→2）が exit 0 になる（現状: Stage 2 で fixpoint 不一致のため **未達**）
+- [ ] `sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)`（fixpoint）（**未達** — 同上）
+- [x] Stage 1 が selfhost の `main.ark` 経由で wasm を生成できる（`docs/current-state.md` Stage 1 行の根拠）
+- [x] v5 以降のバグ修正が Rust 実装と Arukellt 実装の両方に適用されるワークフローが確立されている（dual-period 方針として文書化済み）
+
+### Doc alignment (2026-04-18)
+
+`docs/migration/v4-to-v5.md` と `docs/compiler/bootstrap.md` を `scripts/run/verify-bootstrap.sh` および `docs/current-state.md` に揃えた。上記チェックボックスは根拠のあるものだけ `[x]`。
 
 ## User Migration Checklist
 
@@ -42,8 +47,8 @@ Stage 0→Stage 1→Stage 2 の全パイプラインが通り、fixpoint (sha256
 
 ### Bootstrap 完成
 
-- `scripts/run/verify-bootstrap.sh` の Stage 2 が SKIP → PASS になること
-- Stage 1 コンパイラが全 fixture を pass すること
+- `scripts/run/verify-bootstrap.sh` の Stage 2（fixpoint）が **PASS** し、full 実行が exit 0 になること（現状 Stage 2 は実行されるが **FAIL**）
+- 自己完結したコンパイラとして fixture / parity など広い意味での完了は `docs/compiler/bootstrap.md` と関連 issue（例 #253, #266）を参照
 
 ### Fixture 差分の解消
 

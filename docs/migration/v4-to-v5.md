@@ -41,6 +41,15 @@ Bootstrap verification is a three-stage gate defined and labeled by
 | **1** | `wasmtime run` executes `arukellt-s1.wasm` with the repo root mounted; it compiles the same `main.ark` to the same target | `.bootstrap-build/arukellt-s2.wasm` |
 | **2** | `sha256sum` on both wasm files | Success when hashes match (fixpoint) |
 
+**Current status (authoritative detail):** see
+[Self-Hosting Bootstrap Status](../current-state.md#self-hosting-bootstrap-status).
+As of that page, Stages **0** and **1** succeed (Rust and `arukellt-s1.wasm`
+each compile `main.ark` to wasm), but Stage **2** reports **fixpoint not
+reached** (`sha256(s1) ≠ sha256(s2)`). A full `scripts/run/verify-bootstrap.sh`
+run therefore exits **1** after Stage 2 until the selfhost output is
+byte-identical across the two compiles. With `--check`, expect
+`stage2-fixpoint: not-reached` and `attainment: not-reached` in that state.
+
 **Compiler binary** (Stage 0): the script uses `ARUKELLT_BIN` if set, otherwise
 `target/debug/arukellt`, otherwise `target/release/arukellt` (the file must
 exist and be executable — see the script’s pre-flight checks).
@@ -65,8 +74,8 @@ exits (the script installs an `EXIT` trap that deletes that directory).
 For deeper debugging and governance, see
 [Bootstrap documentation](../compiler/bootstrap.md).
 
-**Last audited:** 2026-04-16 against `scripts/run/verify-bootstrap.sh` in this
-repository.
+**Last audited:** 2026-04-18 against `scripts/run/verify-bootstrap.sh` and
+`docs/current-state.md` in this repository.
 
 ## See Also
 

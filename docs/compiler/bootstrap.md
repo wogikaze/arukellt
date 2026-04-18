@@ -271,13 +271,16 @@ The bootstrap check is available via `scripts/run/verify-bootstrap.sh`:
 
 | Context | Command | Notes |
 |---------|---------|-------|
-| PR checks | `scripts/run/verify-bootstrap.sh --stage1-only` | Fast partial smoke; does not prove bootstrap attainment |
-| Merge to main | `scripts/run/verify-bootstrap.sh` | Full Stage 0 → 1 → 2 bootstrap attainment gate |
+| Fast smoke (local layered gates, etc.) | `scripts/run/verify-bootstrap.sh --stage1-only` | Stage 0 only; does not prove bootstrap attainment |
+| CI `selfhost-bootstrap` job | `scripts/run/verify-bootstrap.sh --check` | Runs Stages 0 → 1 → 2; the workflow asserts Stage 0 and Stage 1 report `reached`; Stage 2 fixpoint may still fail while `sha256(s1) ≠ sha256(s2)` (see [current-state.md](../current-state.md#self-hosting-bootstrap-status)) |
 | Local dev | `scripts/run/verify-bootstrap.sh --stage 0` | Single stage |
 
-The `--stage1-only` flag is suitable for fast smoke checks, while only the full
-Stage 0 → 1 → 2 run is the bootstrap attainment gate. `--check` is a
-machine-readable form of that full gate and rejects partial-mode flags.
+The `--stage1-only` flag is suitable for fast smoke checks. A **full**
+invocation (no partial flags) runs Stage 0 → 1 → 2 and exits **0** only when
+Stage 2 proves fixpoint (`sha256` match); that is the repository bootstrap
+attainment gate. `--check` prints the same stages in machine-readable form
+(`stage0-compile`, `stage1-self-compile`, `stage2-fixpoint`, `attainment`) and
+rejects partial-mode flags.
 
 ## Verification Scripts
 

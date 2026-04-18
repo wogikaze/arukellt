@@ -265,7 +265,7 @@ Verification status of each bootstrap stage (source: `src/compiler/*.ark`):
 
 ### Fixpoint status
 
-Stage 0 and Stage 1 compile successfully (`stage0-compile: reached`, `stage1-compile: reached`).
+Stage 0 and Stage 1 compile successfully (`stage0-compile: reached`, `stage1-self-compile: reached`).
 Fixpoint has **not** been reached:
 
 ```
