@@ -71,7 +71,7 @@ compatibility with existing fixtures.
 | `json_parse_bool` | `(String) -> bool` | `experimental` | Parse "true"/"false" into a bool. |
 | `parse` | `(String) -> Result<JsonValue, String>` | `experimental` | Parse a full JSON document from s and reject trailing non-whitespace after |
 | `stringify` | `(JsonValue) -> String` | `experimental` | Serialize a JsonValue back to its JSON text. |
-| `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | Serialize with indentation (basic pass-through; full indentation deferred). |
+| `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | Serialize a JsonValue with newlines and indentation for arrays and objects. |
 | `is_null` | `(JsonValue) -> bool` | `experimental` | - |
 | `is_bool` | `(JsonValue) -> bool` | `experimental` | - |
 | `is_number` | `(JsonValue) -> bool` | `experimental` | - |
@@ -96,7 +96,7 @@ Serialize a JsonValue back to its JSON text.
 
 #### `stringify_pretty`
 
-Serialize a JsonValue with basic formatting.
+Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged.
 
 #### `json_get`
 

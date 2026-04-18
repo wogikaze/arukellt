@@ -274,9 +274,139 @@ pub fn stringify(v: JsonValue) -> String {
     v.raw
 }
 
-/// Serialize with indentation (basic pass-through; full indentation deferred).
+fn repeat_spaces(count: i32) -> String {
+    let mut n = count
+    if n < 0 {
+        n = 0
+    }
+    let mut s = ""
+    let mut i = 0
+    while i < n {
+        s = concat(s, " ")
+        i = i + 1
+    }
+    s
+}
+
+fn stringify_pretty_at(v: JsonValue, indent: i32, depth: i32) -> String {
+    if v.tag == 0 {
+        v.raw
+    } else if v.tag == 1 {
+        v.raw
+    } else if v.tag == 2 {
+        v.raw
+    } else if v.tag == 3 {
+        v.raw
+    } else if v.tag == 4 {
+        format_array_pretty(v.raw, indent, depth)
+    } else if v.tag == 5 {
+        format_object_pretty(v.raw, indent, depth)
+    } else {
+        v.raw
+    }
+}
+
+fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
+    let n = len(raw)
+    let i0 = skip_ws(raw, 1)
+    if i0 < n && char_at(raw, i0) == 93 {
+        return "[]"
+    }
+    let child_pad = repeat_spaces(indent * (depth + 1))
+    let close_pad = repeat_spaces(indent * depth)
+    let mut result = "[\n"
+    let mut i = skip_ws(raw, 1)
+    let mut first = true
+    while i < n - 1 {
+        i = skip_ws(raw, i)
+        if i >= n {
+            break
+        }
+        if char_at(raw, i) == 93 {
+            break
+        }
+        let elem_end = find_value_end(raw, i)
+        match parse(slice(raw, i, elem_end)) {
+            Ok(elem) => {
+                if !first {
+                    result = concat(result, ",\n")
+                }
+                first = false
+                result = concat(result, child_pad)
+                result = concat(result, stringify_pretty_at(elem, indent, depth + 1))
+                i = skip_ws(raw, elem_end)
+                if i < n && char_at(raw, i) == 44 {
+                    i = i + 1
+                }
+            }
+            Err(_) => {
+                return raw
+            }
+        }
+    }
+    concat(concat(concat(result, "\n"), close_pad), "]")
+}
+
+fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
+    let n = len(raw)
+    let i0 = skip_ws(raw, 1)
+    if i0 < n && char_at(raw, i0) == 125 {
+        return "{}"
+    }
+    let child_pad = repeat_spaces(indent * (depth + 1))
+    let close_pad = repeat_spaces(indent * depth)
+    let mut result = "{\n"
+    let mut i = skip_ws(raw, 1)
+    let mut first = true
+    while i < n - 1 {
+        i = skip_ws(raw, i)
+        if i >= n {
+            break
+        }
+        if char_at(raw, i) == 125 {
+            break
+        }
+        if char_at(raw, i) != 34 {
+            return raw
+        }
+        let key_end = find_string_end(raw, i + 1)
+        let key_raw = slice(raw, i, key_end)
+        i = skip_ws(raw, key_end)
+        if i >= n || char_at(raw, i) != 58 {
+            return raw
+        }
+        i = skip_ws(raw, i + 1)
+        let val_start = i
+        let val_end = find_value_end(raw, val_start)
+        match parse(slice(raw, val_start, val_end)) {
+            Ok(v) => {
+                if !first {
+                    result = concat(result, ",\n")
+                }
+                first = false
+                result = concat(result, child_pad)
+                result = concat(result, key_raw)
+                result = concat(result, ": ")
+                result = concat(result, stringify_pretty_at(v, indent, depth + 1))
+                i = skip_ws(raw, val_end)
+                if i < n && char_at(raw, i) == 44 {
+                    i = i + 1
+                }
+            }
+            Err(_) => {
+                return raw
+            }
+        }
+    }
+    concat(concat(concat(result, "\n"), close_pad), "}")
+}
+
+/// Serialize a `JsonValue` with newlines and indentation for arrays and objects.
+/// Scalar values use the stored raw text unchanged. `indent` is spaces per
+/// nesting level; negative values are treated as 0.
 pub fn stringify_pretty(v: JsonValue, indent: i32) -> String {
-    v.raw
+    let ind = if indent < 0 { 0 } else { indent }
+    stringify_pretty_at(v, ind, 0)
 }
 
 // ─── Type predicates ─────────────────────────────────────────────────────────

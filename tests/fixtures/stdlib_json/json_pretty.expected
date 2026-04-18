@@ -1,6 +1,23 @@
 null
 true
 "hello"
+[
+  1,
+  2,
+  3
+]
+{
+  "k": 1
+}
+{
+  "a": [
+    1,
+    2
+  ],
+  "b": {
+    "c": 3
+  }
+}
 true
 false
 true

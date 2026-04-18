@@ -667,7 +667,7 @@ Expected output: `Hello, world!`
 | `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `parse` | `(String) -> Result<JsonValue, String>` | `std::json` | `experimental` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
 | `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
-| `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue with basic formatting. |
+| `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged. |
 
 ## Math
 
@@ -1582,7 +1582,7 @@ Expected output: `hello world`
 | `slotmap_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Create a new SlotMap (deletion-safe handle map for i32 values). |
 | `slotmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Remove and return the value at the given SlotKey, or None if already removed. |
 | `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
-| `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue with basic formatting. |
+| `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged. |
 | `to_utf8_bytes` | `(String) -> Vec<i32>` | `std::text` | `experimental` | `builtin` | no | - | - |
 | `toml_as_bool` | `(TomlValue) -> Option<bool>` | `std::toml` | `experimental` | `builtin` | no | - | - |
 | `toml_as_int` | `(TomlValue) -> Option<i32>` | `std::toml` | `experimental` | `builtin` | no | - | - |

@@ -4968,7 +4968,7 @@ doc_category = "json"
 stability = "experimental"
 params = ["JsonValue", "i32"]
 returns = "String"
-doc = "Serialize a JsonValue with basic formatting."
+doc = "Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged."
 
 [[functions]]
 name = "is_null"
