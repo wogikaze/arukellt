@@ -3509,4 +3509,96 @@ mod tests {
             "expected at least one Wasm `if` (control instruction) in emitted code"
         );
     }
+
+    /// Issue #070: `bool` (as i32) flowing through a generic `T` / `Any` parameter is boxed with
+    /// `ref.i31` and unboxed with `i31.get_s` — no GC heap allocation for that scalar path.
+    #[test]
+    fn generic_identity_bool_emits_ref_i31_and_i31_get_s() {
+        let identity = MirFunction {
+            id: FnId(0),
+            name: "identity".to_string(),
+            instance: InstanceKey::simple("identity"),
+            params: vec![MirLocal {
+                id: LocalId(0),
+                name: Some("x".into()),
+                ty: Type::Any,
+            }],
+            return_ty: Type::Any,
+            locals: Vec::new(),
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: Vec::new(),
+                terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(0))))),
+                source: SourceInfo::unknown(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: vec!["T".into()],
+            source: SourceInfo::unknown(),
+            is_exported: false,
+        };
+
+        let main_fn = MirFunction {
+            id: FnId(1),
+            name: "main".to_string(),
+            instance: InstanceKey::simple("main"),
+            params: Vec::new(),
+            return_ty: Type::I32,
+            locals: vec![MirLocal {
+                id: LocalId(0),
+                name: None,
+                ty: Type::Bool,
+            }],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![MirStmt::Call {
+                    dest: Some(Place::Local(LocalId(0))),
+                    func: FnId(0),
+                    args: vec![Operand::ConstBool(true)],
+                }],
+                terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(0))))),
+                source: SourceInfo::unknown(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: Vec::new(),
+            source: SourceInfo::unknown(),
+            is_exported: false,
+        };
+
+        let mut mir = MirModule::new();
+        mir.functions.push(identity);
+        mir.functions.push(main_fn);
+        mir.entry_fn = Some(FnId(1));
+
+        let mut sink = DiagnosticSink::new();
+        // O2 is the planned “bool as i31ref local” tier; boxing/unboxing must still work here.
+        let wasm = super::super::emit(&mir, &mut sink, 2, true);
+
+        let mut ref_i31 = 0usize;
+        let mut i31_get_s = 0usize;
+        for payload in Parser::new(0).parse_all(&wasm) {
+            let Ok(payload) = payload else {
+                continue;
+            };
+            if let Payload::CodeSectionEntry(body) = payload {
+                let mut reader = body.get_operators_reader().expect("operators reader");
+                while !reader.eof() {
+                    match reader.read().expect("operator") {
+                        Operator::RefI31 => ref_i31 += 1,
+                        Operator::I31GetS => i31_get_s += 1,
+                        _ => {}
+                    }
+                }
+            }
+        }
+
+        assert!(
+            ref_i31 >= 1 && i31_get_s >= 1,
+            "expected ref.i31 (box) and i31.get_s (unbox) for bool through Any generic; \
+             got ref_i31={ref_i31}, i31_get_s={i31_get_s}"
+        );
+    }
 }
