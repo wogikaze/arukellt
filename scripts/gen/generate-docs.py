@@ -575,8 +575,9 @@ let elapsed = duration_ms(t0, t1)  // milliseconds
                 "TOML subset** only: blank lines, full-line comments (`# …`), and simple "
                 "`key = value` entries (one entry per non-comment line). `toml_parse` returns "
                 "`Ok` only for documents that fit that subset; table headers (`[…]`), lines "
-                "without `=`, empty keys or values, trailing non-comment lines without `key = "
-                "value`, and other malformed or unsupported forms return `Err(String)`. This is "
+                "without `=`, empty keys or values, unclosed quoted values, trailing non-comment "
+                "lines without `key = value`, and other malformed or unsupported forms return "
+                "`Err(String)`. This is "
                 "not full TOML 1.0 compliance."
             ),
             "highlights": [

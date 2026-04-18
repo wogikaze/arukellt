@@ -3,8 +3,9 @@
 //! This module intentionally supports only a bounded TOML subset:
 //! blank lines, comment lines, and simple `key = value` entries (one
 //! assignment per non-comment line). Table headers, arrays of tables,
-//! empty keys or values, lines without `=`, and other unsupported or
-//! malformed grammar are rejected by `toml_parse` with `Err(String)`.
+//! empty keys or values, lines without `=`, unclosed quoted values, and
+//! other unsupported or malformed grammar are rejected by `toml_parse`
+//! with `Err(String)`.
 //!
 //! ## Value representation
 //!
@@ -116,6 +117,13 @@ pub fn toml_parse(s: String) -> Result<TomlValue, String> {
             let value = trim(slice(line, eq_pos + 1, line_len))
             if len(key) == 0 || len(value) == 0 {
                 return Err("unsupported TOML subset")
+            }
+            let v0 = char_at(value, 0)
+            if v0 == 34 || v0 == 39 {
+                let vn = len(value)
+                if vn < 2 || char_at(value, vn - 1) != v0 {
+                    return Err("unsupported TOML subset")
+                }
             }
             i = i + 1
         }

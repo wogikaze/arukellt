@@ -221,6 +221,7 @@ run:selfhost/mir_predecessors_smoke.ark
 run:selfhost/mir_phi_insertion_smoke.ark
 run:selfhost/mir_phi_representation_smoke.ark
 run:selfhost/mir_ssa_rename_smoke.ark
+run:selfhost/mir_ssa_phi_elimination_smoke.ark
 run:selfhost/mir_ssa_trivial_block_rename_smoke.ark
 run:selfhost/mir_ssa_sequential_def_rename_smoke.ark
 run:selfhost/parser_hir_trait_bounds_smoke.ark
@@ -390,6 +391,7 @@ run:stdlib_toml/toml_parse_valid_subset.ark
 run:stdlib_toml/toml_parse_invalid_table_header.ark
 run:stdlib_toml/toml_parse_invalid_trailing_garbage.ark
 run:stdlib_toml/toml_parse_invalid_empty_value.ark
+run:stdlib_toml/toml_parse_invalid_unclosed_string.ark
 run:stdlib_vec/any_find.ark
 run:stdlib_vec/vec_filter.ark
 run:stdlib_vec/vec_fold.ark
