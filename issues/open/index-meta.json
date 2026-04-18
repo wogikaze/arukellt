@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T11:31:01Z",
+  "generated_at": "2026-04-18T11:32:48Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -65,27 +65,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "037-external-jco"
-      }
-    },
-    {
-      "id": "043",
-      "path": "043-std-bytes.md",
-      "title": "std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "039",
-        "040"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {
@@ -192,24 +171,6 @@
         "476",
         "510"
       ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "096",
-      "path": "096-compile-lazy-stdlib.md",
-      "title": "コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)",
-      "track": "compile-speed",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0

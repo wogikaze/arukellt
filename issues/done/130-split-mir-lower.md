@@ -1,8 +1,9 @@
 # MIR lower.rs (4360行) をサブモジュールに分割
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
+**Closed**: 2026-04-18
 **ID**: 130
 **Depends on**: —
 **Track**: code-structure
@@ -71,3 +72,38 @@ crates/ark-mir/src/
 ## 参照
 
 - `crates/ark-mir/src/lower.rs`
+
+---
+
+## Close note — 2026-04-18
+
+Closed as complete. MIR lower.rs has been split into submodules.
+
+**Close evidence:**
+- `crates/ark-mir/src/lower.rs` converted to directory `crates/ark-mir/src/lower/`
+- Split into 12 submodules (more granular than the 6 proposed):
+  - `mod.rs` - pub fn entrypoints + re-exports
+  - `ctx.rs` - LowerCtx struct + basic helpers
+  - `expr.rs` - lower_expr implementation
+  - `stmt.rs` - lower_stmt, lower_block implementation
+  - `control_flow.rs` - lower_match_stmt, if/loop/try control flow
+  - `facade.rs` - thin wrapper functions
+  - `builders.rs` - function/block builders
+  - `func.rs` - function-level lowering
+  - `pattern.rs` - pattern lowering
+  - `types.rs` - type utilities
+  - `type_helpers.rs` - type helper functions
+  - `tests.rs` - test utilities
+- Build succeeds: `cargo build --workspace --exclude ark-llvm --exclude ark-lsp` → exit 0
+- Verification: `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)
+
+**Acceptance mapping:**
+- ✓ Split into submodules (12 files, more granular than proposed 6)
+- ✓ facade.rs thin wrappers present (dead_code lint not run due to pub re-exports)
+- ✓ cargo build succeeds
+- ✓ Verification passes
+
+**Implementation notes:**
+- Split is more granular than originally proposed (12 files vs 6), providing better separation of concerns
+- Original 4360-line lower.rs has been fully decomposed into focused submodules
+- All lowering functionality preserved with no behavior change

@@ -9,13 +9,11 @@ graph LR
   I032["032 WIT resource type support (own/borrow)"]
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
-  I043["043 std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128"]
   I044["044 std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"]
   I045["045 std::collections: Deque、PriorityQueue"]
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I051["051 std::time + std::random: 時刻・期間・乱数"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
-  I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I110["110 CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック"]
@@ -114,13 +112,11 @@ graph LR
 - **032** depends on: 030; blocks: 473
 - **034** depends on: 030, 031, 028b; blocks: none
 - **036** depends on: 033; blocks: none
-- **043** depends on: 039, 040; blocks: none
 - **044** depends on: 039, 041; blocks: 054, 055
 - **045** depends on: 039, 041; blocks: none
 - **047** depends on: 039, 041; blocks: none
 - **051** depends on: 039, 040; blocks: none
 - **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476, 510
-- **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
 - **110** depends on: 109; blocks: none
