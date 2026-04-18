@@ -40,7 +40,6 @@ graph LR
   I252["252 テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する"]
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
   I254["254 VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる"]
-  I255["255 デバッグ体験を「DAP の箱がある」状態から、実際に使える end-to-end workflow にする"]
   I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
   I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
@@ -180,7 +179,6 @@ graph LR
 - **252** depends on: none; blocks: none
 - **253** depends on: none; blocks: 266
 - **254** depends on: none; blocks: none
-- **255** depends on: none; blocks: none
 - **282** depends on: 281; blocks: none
 - **283** depends on: 281; blocks: none
 - **285** depends on: 284; blocks: 508
