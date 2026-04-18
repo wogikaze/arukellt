@@ -184,7 +184,11 @@ fn find_value_end(s: String, pos: i32) -> i32 {
 
 // ─── Public parse / stringify ────────────────────────────────────────────────
 
-/// Parse the first JSON value in `s`.
+/// Parse a full JSON document from `s` and reject trailing non-whitespace after
+/// the first top-level value.
+///
+/// Leading and trailing whitespace is ignored, but any non-whitespace
+/// characters after the first top-level value cause an error.
 pub fn parse(s: String) -> Result<JsonValue, String> {
     let pos = skip_ws(s, 0)
     let n = len(s)
@@ -195,36 +199,71 @@ pub fn parse(s: String) -> Result<JsonValue, String> {
     if c == 110 {
         if n >= pos + 4 {
             if slice(s, pos, pos + 4) == "null" {
-                return Ok(JsonValue { tag: 0, raw: "null" })
+                let end = pos + 4
+                let after = skip_ws(s, end)
+                if after == n {
+                    return Ok(JsonValue { tag: 0, raw: "null" })
+                }
+                return Err("trailing characters")
             }
         }
         Err("invalid null")
     } else if c == 116 {
         if n >= pos + 4 {
             if slice(s, pos, pos + 4) == "true" {
-                return Ok(JsonValue { tag: 1, raw: "true" })
+                let end = pos + 4
+                let after = skip_ws(s, end)
+                if after == n {
+                    return Ok(JsonValue { tag: 1, raw: "true" })
+                }
+                return Err("trailing characters")
             }
         }
         Err("invalid true")
     } else if c == 102 {
         if n >= pos + 5 {
             if slice(s, pos, pos + 5) == "false" {
-                return Ok(JsonValue { tag: 1, raw: "false" })
+                let end = pos + 5
+                let after = skip_ws(s, end)
+                if after == n {
+                    return Ok(JsonValue { tag: 1, raw: "false" })
+                }
+                return Err("trailing characters")
             }
         }
         Err("invalid false")
     } else if c == 34 {
         let end = find_string_end(s, pos + 1)
-        Ok(JsonValue { tag: 3, raw: slice(s, pos, end) })
+        let after = skip_ws(s, end)
+        if after == n {
+            Ok(JsonValue { tag: 3, raw: slice(s, pos, end) })
+        } else {
+            Err("trailing characters")
+        }
     } else if c == 91 {
         let end = find_closing(s, pos + 1, 91, 93)
-        Ok(JsonValue { tag: 4, raw: slice(s, pos, end) })
+        let after = skip_ws(s, end)
+        if after == n {
+            Ok(JsonValue { tag: 4, raw: slice(s, pos, end) })
+        } else {
+            Err("trailing characters")
+        }
     } else if c == 123 {
         let end = find_closing(s, pos + 1, 123, 125)
-        Ok(JsonValue { tag: 5, raw: slice(s, pos, end) })
+        let after = skip_ws(s, end)
+        if after == n {
+            Ok(JsonValue { tag: 5, raw: slice(s, pos, end) })
+        } else {
+            Err("trailing characters")
+        }
     } else if (c >= 48 && c <= 57) || c == 45 {
         let end = find_number_end(s, pos)
-        Ok(JsonValue { tag: 2, raw: slice(s, pos, end) })
+        let after = skip_ws(s, end)
+        if after == n {
+            Ok(JsonValue { tag: 2, raw: slice(s, pos, end) })
+        } else {
+            Err("trailing characters")
+        }
     } else {
         Err("unexpected character")
     }

@@ -664,7 +664,7 @@ Expected output: `Hello, world!`
 | `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `parse` | `(String) -> Result<JsonValue, String>` | `std::json` | `experimental` | `builtin` | no | - | Parse the first JSON value in a string. |
+| `parse` | `(String) -> Result<JsonValue, String>` | `std::json` | `experimental` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
 | `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue with basic formatting. |
 
@@ -1551,7 +1551,7 @@ Expected output: `hello world`
 | `op_nop` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: nop (0x01). |
 | `op_return` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: return (0x0f). |
 | `op_unreachable` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: unreachable (0x00). |
-| `parse` | `(String) -> Result<JsonValue, String>` | `std::json` | `experimental` | `builtin` | no | - | Parse the first JSON value in a string. |
+| `parse` | `(String) -> Result<JsonValue, String>` | `std::json` | `experimental` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
 | `reftype_externref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Reference type byte for externref. |
 | `reftype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Reference type byte for funcref. |
 | `rope_delete` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Delete bytes [start, end) from the Rope, returning the new Rope. |

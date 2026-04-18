@@ -1,0 +1,9 @@
+use std::json
+use std::host::stdio
+
+fn main() {
+    match json::parse("[1,2,3]x") {
+        Ok(v) => stdio::println(json::stringify(v)),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+}

@@ -4940,7 +4940,7 @@ doc_category = "json"
 stability = "experimental"
 params = ["String"]
 returns = "Result<JsonValue, String>"
-doc = "Parse the first JSON value in a string."
+doc = "Parse a full JSON document and reject trailing non-whitespace after the first top-level value."
 
 [[functions]]
 name = "stringify"

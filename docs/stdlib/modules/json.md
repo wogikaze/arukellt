@@ -69,7 +69,7 @@ compatibility with existing fixtures.
 | `json_null` | `() -> String` | `experimental` | Return the JSON null literal. |
 | `json_parse_i32` | `(String) -> i32` | `experimental` | Parse a decimal integer from a JSON number string. |
 | `json_parse_bool` | `(String) -> bool` | `experimental` | Parse "true"/"false" into a bool. |
-| `parse` | `(String) -> Result<JsonValue, String>` | `experimental` | Parse the first JSON value in s. |
+| `parse` | `(String) -> Result<JsonValue, String>` | `experimental` | Parse a full JSON document from s and reject trailing non-whitespace after |
 | `stringify` | `(JsonValue) -> String` | `experimental` | Serialize a JsonValue back to its JSON text. |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | Serialize with indentation (basic pass-through; full indentation deferred). |
 | `is_null` | `(JsonValue) -> bool` | `experimental` | - |
@@ -88,7 +88,7 @@ compatibility with existing fixtures.
 
 #### `parse`
 
-Parse the first JSON value in a string.
+Parse a full JSON document and reject trailing non-whitespace after the first top-level value.
 
 #### `stringify`
 
