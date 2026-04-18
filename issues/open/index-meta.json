@@ -584,9 +584,7 @@
       "status": "open",
       "blocks_v1_exit": "yes",
       "depends_on": [],
-      "blocks_issue_ids": [
-        "266"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -1463,25 +1461,24 @@
       }
     },
     {
-      "id": "266",
-      "path": "266-selfhost-completion-definition.md",
-      "title": "selfhost 完了条件を定義し文書に固定する",
+      "id": "269",
+      "path": "269-dual-period-end-condition.md",
+      "title": "Rust 実装と selfhost 実装の dual period 終了条件を定義する",
       "track": "main",
-      "status": "done",
-      "blocks_v1_exit": "yes",
+      "status": "open",
+      "blocks_v1_exit": "no",
       "depends_on": [
-        "253"
+        "266",
+        "268"
       ],
-      "blocks_issue_ids": [
-        "269"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 4,
         "unchecked": 0
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#253"
+        "upstream_notes": "#266, #268"
       }
     },
     {
@@ -1634,27 +1631,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#188"
-      }
-    },
-    {
-      "id": "269",
-      "path": "269-dual-period-end-condition.md",
-      "title": "Rust 実装と selfhost 実装の dual period 終了条件を定義する",
-      "track": "main",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "266",
-        "268"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#266, #268"
       }
     },
     {

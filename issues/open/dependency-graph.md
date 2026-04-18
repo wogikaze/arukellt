@@ -78,7 +78,7 @@ graph LR
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
-  I266["266 selfhost 完了条件を定義し文書に固定する"]
+  I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
@@ -86,7 +86,6 @@ graph LR
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I205["205 Docs / codebase intelligence surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
-  I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I032 --> I473
@@ -102,7 +101,7 @@ graph LR
   I125 --> I126
   I200 --> I201
   I204 --> I188
-  I253 --> I266
+  I268 --> I269
   I285 --> I508
   I312 --> I495
   I504 --> I495
@@ -113,8 +112,6 @@ graph LR
   I475 --> I485
   I188 --> I205
   I188 --> I214
-  I266 --> I269
-  I268 --> I269
   I504 --> I512
   I495 --> I512
   I036 --> I037
@@ -150,7 +147,7 @@ graph LR
 - **206** depends on: 184, 185, 187; blocks: none
 - **249** depends on: none; blocks: none
 - **252** depends on: none; blocks: none
-- **253** depends on: none; blocks: 266
+- **253** depends on: none; blocks: none
 - **254** depends on: none; blocks: none
 - **268** depends on: 267; blocks: 269
 - **282** depends on: 281; blocks: none
@@ -194,7 +191,7 @@ graph LR
 - **126** depends on: 125; blocks: none
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
-- **266** depends on: 253; blocks: 269
+- **269** depends on: 266, 268; blocks: none
 - **508** depends on: 285; blocks: none
 - **495** depends on: 312, 504; blocks: 512
 - **518** depends on: 513, 517; blocks: none
@@ -202,7 +199,6 @@ graph LR
 - **485** depends on: 475; blocks: none
 - **205** depends on: 185, 188; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
-- **269** depends on: 266, 268; blocks: none
 - **512** depends on: 504, 495; blocks: none
 
 ### Blocked
