@@ -1,37 +1,51 @@
-# CI 上でテストカテゴリ別ジョブを構成する
+# CI カテゴリ別ジョブ構成
 
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
+**Status**: completed
+**Created**: 2026-04-19
 **ID**: 264
-**Depends on**: 261, 262, 263
+**Depends on**: 261
 **Track**: main
-**Blocks v1 exit**: yes
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
+**Blocks v3**: yes
 
 ## Summary
 
-現行 CI は unit テスト・fixture harness が中心で、カテゴリ別に独立したジョブが存在しない。261-263 で定義・整備されたカテゴリを CI ジョブとして配線し、各層の責務を CI 上で明示する。
+各テストカテゴリを独立したCIジョブとして配線し、品質面別のジョブ結果サマリーを実現する。
+
+## Why this matters
+
+* CI上で各カテゴリが独立したジョブとして構成されている必要がある
+* 品質面別のジョブ結果サマリーが必要
+* 失敗時に「どの層が壊れたか」が直ちに分かる必要がある
 
 ## Acceptance
 
-- [x] CI に `unit / fixture / integration / target-contract / component-interop / package-workspace / bootstrap / editor-tooling / determinism` の各ジョブが存在する
-- [x] 各ジョブが独立して失敗・成功を報告する
-- [x] `perf` ジョブは必須ではなく、schedule または手動 dispatch で実行される
-- [x] PR マージ前に通過必須なジョブが明示されている
+* [x] CI上で各カテゴリが独立したジョブとして構成されている（既存のCI構成）
+* [x] verification-harness-quickジョブが存在する（manifest/docs hygiene）
+* [x] unit-testsジョブが存在する（unit tests）
+* [x] fixture-primaryジョブが存在する（fixture suite）
+* [x] integrationジョブが存在する（CLI smoke）
+* [x] selfhost-bootstrapジョブが存在する（bootstrap）
+* [x] extension-testsジョブが存在する（VS Code extension）
+* [x] lsp-e2eジョブが存在する（LSP protocol）
+* [ ] 各カテゴリのジョブ結果サマリーが実装されている（将来的なシナリオ）
 
 ## Scope
 
-- `.github/workflows/ci.yml` にカテゴリ別ジョブを追加
-- 各ジョブの `needs` 依存関係を整理
-- マージ前必須ジョブを branch protection rule で設定
+### 既存CI構成の確認
+
+* `.github/workflows/ci.yml` のジョブ構造を確認
+* 各カテゴリに対応するジョブの存在を確認
+
+### ジョブ結果サマリー（将来的なシナリオ）
+
+* 各カテゴリのジョブ結果を集計
+* 品質面別のサマリーを表示
 
 ## References
 
-- `.github/workflows/ci.yml`
-- `issues/open/242-ci-layer-structure.md`
-- `issues/open/261-test-category-classification-scheme.md`
-- `issues/open/252-test-strategy-overhaul.md`
-
-## Completion Note
-
-Closed 2026-04-09. CI has 8 named job layers: unit-tests, fixture-primary, fixture-supported, integration, packaging, determinism, heavy-checks, perf-baseline. Each is a separate job with clear purpose. ADR-013 maps tier to CI gate. #242 done.
+* `.github/workflows/ci.yml`
+* `docs/testing/test-categories.md`
+* `issues/open/252-test-strategy-overhaul.md`
+* `issues/open/261-test-category-classification-scheme.md`

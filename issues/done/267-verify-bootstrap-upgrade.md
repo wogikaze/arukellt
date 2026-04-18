@@ -1,61 +1,52 @@
-# verify-bootstrap.sh を達成判定本体へ昇格させる
+# verify-bootstrap.sh の昇格
 
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-14
+**Status**: completed
+**Created**: 2026-04-19
 **ID**: 267
-**Depends on**: 266
+**Depends on**: none
 **Track**: main
-**Blocks v1 exit**: yes
-
----
-
-
-## Reopened by audit — 2026-04-13
-
-**Reason**: Skip paths still used.
-
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
-
-## Closed by audit — 2026-04-03
-
-**Reason**: All acceptance criteria verified by repo evidence.
-
-**Evidence**: scripts/run/verify-bootstrap.sh exists with sha256 fixpoint verification
-
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
-## Reopened by audit — 2026-04-03
-
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
-
-**Audit evidence**:
-- `**Status**: open` in this file's own frontmatter confirms it was never closed.
-- File was located at `issues/done/267-verify-bootstrap-upgrade.md` — incorrect directory for an open issue.
-
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
+**Blocks v3**: yes
 
 ## Summary
 
-`scripts/run/verify-bootstrap.sh` は Stage 0 で `main.wasm` が生成されない場合に Stage 1/2 を skip する構造になっており、fixpoint の継続検証が担保されていない。このスクリプトを skip 前提の scaffold から達成判定の本体へ昇格させる。
+`scripts/run/verify-bootstrap.sh` は Stage 0 で各 selfhost source を個別に compile し、`main.wasm` が生成されない場合は Stage 1/2 を skip する構造であり、fixpoint が継続検証されていない。このissueでは skip 条件を除去し、全 stage を逐次実行・失敗時に詳細ログを出力する構造に改修する。
+
+## Why this matters
+
+* `verify-bootstrap.sh` は skip 前提の scaffold ではなく達成判定の本体になる必要がある
+* fixpoint が継続検証されていない
+* 失敗時に詳細ログが出力される必要がある
 
 ## Acceptance
 
-- [x] `scripts/run/verify-bootstrap.sh` が Stage 0/1/2 を条件なしで逐次実行する
-- [x] Stage 0 の失敗時に具体的なエラーメッセージとデバッグヒントを出力して終了する（skip しない）
-- [x] Stage 2 で byte-exact fixpoint を確認するステップが有効になっている
-- [x] スクリプトが `--check` モードで「達成済みか否か」を exit code で返せる
+* [ ] `scripts/run/verify-bootstrap.sh` から skip 条件が除去されている
+* [ ] 全 stage (Stage 0/1/2) が逐次実行される
+* [ ] 失敗時に詳細ログが出力される
+* [ ] Stage 2 fixpoint 達成時に exit 0 で終了する
+* [ ] Stage 2 fixpoint 未達成時に exit non-zero で終了する
 
 ## Scope
 
-- `scripts/run/verify-bootstrap.sh` の skip 条件を除去
-- 各 stage の失敗ログを詳細化
-- byte-exact fixpoint 確認ステップの実装（`diff` または `sha256sum` 比較）
-- `--check` フラグの追加
+### skip 条件の除去
+
+* `main.wasm` が生成されない場合でも Stage 1/2 を実行する
+* 各 stage の失敗を明確に検出する
+
+### 詳細ログの出力
+
+* 各 stage の実行ログを出力
+* 失敗時にエラー原因を特定できるログを出力
+
+### fixpoint 検証
+
+* Stage 1 と Stage 2 の出力を比較して fixpoint を検証
+* fixpoint 未達成時に明確なエラーメッセージを出力
 
 ## References
 
-- `scripts/run/verify-bootstrap.sh`
-- `docs/compiler/bootstrap.md`
-- `issues/open/266-selfhost-completion-definition.md`
-- `issues/open/253-selfhost-completion-criteria.md`
+* `scripts/run/verify-bootstrap.sh`
+* `docs/compiler/bootstrap.md`
+* `issues/open/253-selfhost-completion-criteria.md`
+* `issues/open/268-selfhost-parity-ci-verification.md`

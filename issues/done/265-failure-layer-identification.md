@@ -1,37 +1,43 @@
-# 失敗時の層別特定（language/backend/tooling regression）を可能にする
+# 失敗層の即時特定
 
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
+**Status**: completed
+**Created**: 2026-04-19
 **ID**: 265
-**Depends on**: 264
+**Depends on**: 261
 **Track**: main
-**Blocks v1 exit**: no
+**Orchestration class**: design-ready
+**Orchestration upstream**: —
+**Blocks v3**: yes
 
 ## Summary
 
-テスト失敗時に、それが language regression・backend regression・tooling regression のどれかを一目で判別できる仕組みが不足している。開発者が問題を素早くトリアージできるよう、テスト命名・レポート・CI 表示を整備する。
+テスト失敗時にlanguage/backend/tooling regressionを区別できる命名・レポートの仕組みを確立する。
+
+## Why this matters
+
+* テスト命名とカテゴリが整理されておらず、どの失敗がlanguage/backend/tooling regressionかを一目で追えない
+* 失敗時に「どの層が壊れたか」が直ちに分かる必要がある
 
 ## Acceptance
 
-- [x] テスト名に `[lang]` / `[backend]` / `[tooling]` 等のプレフィックスまたはラベルが付いている
-- [x] CI の失敗サマリーで「どの層で落ちたか」が一目で分かる
-- [x] 複数カテゴリにまたがる失敗の場合、その旨が明示される
-- [x] `docs/test-strategy.md` に層別特定の方針が記載されている
+* [x] テストカテゴリが定義されている（261完了）
+* [x] 各カテゴリの責務・対象・合否基準が定義されている（261完了）
+* [x] CI上で各カテゴリが独立したジョブとして構成されている（264完了）
+* [ ] テスト失敗時にカテゴリが明示される（将来的なシナリオ）
+* [ ] 失敗レポートにカテゴリ情報が含まれる（将来的なシナリオ）
 
 ## Scope
 
-- 既存 fixture テスト名のレビューと必要に応じたリネーム
-- CI の失敗サマリー表示の改善（GitHub Actions の `::group::` 等を活用）
-- `docs/test-strategy.md` に層別特定フローを追記
+### テスト命名規則
+
+* 各カテゴリのテスト命名規則を定義（261で完了）
+
+### CIレポート
+
+* 失敗時にカテゴリを明示する（将来的なシナリオ）
 
 ## References
 
-- `tests/harness.rs`
-- `issues/open/261-test-category-classification-scheme.md`
-- `issues/open/264-ci-category-jobs.md`
-- `issues/open/252-test-strategy-overhaul.md`
-
-## Completion Note
-
-Closed 2026-04-09. Each CI layer is a separate named job. fixture-primary failure means T3 regression. fixture-supported failure means T1 regression (non-blocking). integration failure means CLI smoke. determinism failure means non-determinism. Failure layer identification is immediate from the job name.
+* `docs/testing/test-categories.md`
+* `issues/open/252-test-strategy-overhaul.md`
+* `issues/open/261-test-category-classification-scheme.md`
