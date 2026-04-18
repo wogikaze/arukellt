@@ -1,9 +1,10 @@
 //! TOML parser/serializer for std::toml.
 //!
 //! This module intentionally supports only a bounded TOML subset:
-//! blank lines, comment lines, and simple `key = value` entries.
-//! Table headers, arrays of tables, and other unsupported grammar
-//! forms are rejected by `toml_parse`.
+//! blank lines, comment lines, and simple `key = value` entries (one
+//! assignment per non-comment line). Table headers, arrays of tables,
+//! empty keys or values, lines without `=`, and other unsupported or
+//! malformed grammar are rejected by `toml_parse` with `Err(String)`.
 //!
 //! ## Value representation
 //!

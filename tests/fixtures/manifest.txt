@@ -388,6 +388,7 @@ run:stdlib_toml/toml_extended.ark
 run:stdlib_toml/toml_parse_valid_subset.ark
 run:stdlib_toml/toml_parse_invalid_table_header.ark
 run:stdlib_toml/toml_parse_invalid_trailing_garbage.ark
+run:stdlib_toml/toml_parse_invalid_empty_value.ark
 run:stdlib_vec/any_find.ark
 run:stdlib_vec/vec_filter.ark
 run:stdlib_vec/vec_fold.ark

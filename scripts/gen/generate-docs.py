@@ -571,12 +571,17 @@ let elapsed = duration_ms(t0, t1)  // milliseconds
         "modules": ["std::toml"],
         "overview": {
             "summary": (
-                "The `std::toml` module provides minimal experimental TOML helpers. The current "
-                "implementation handles only simple `key=value` style lines; full TOML table and "
-                "array support is not yet available."
+                "The `std::toml` module provides minimal experimental helpers for a **bounded "
+                "TOML subset** only: blank lines, full-line comments (`# …`), and simple "
+                "`key = value` entries (one entry per non-comment line). `toml_parse` returns "
+                "`Ok` only for documents that fit that subset; table headers (`[…]`), lines "
+                "without `=`, empty keys or values, trailing non-comment lines without `key = "
+                "value`, and other malformed or unsupported forms return `Err(String)`. This is "
+                "not full TOML 1.0 compliance."
             ),
             "highlights": [
-                ("`toml_parse_line(line)`", "Parse a `key=value` line and return the value as a string."),
+                ("`toml_parse(doc)`", "Parse a multi-line document in the supported subset; `Err` on unsupported or malformed lines."),
+                ("`toml_parse_line(line)`", "Legacy single-line filter: pass through `key = value` lines; blank or `#` comment lines become `\"\"`."),
             ],
             "typical_usage": """\
 ```ark
