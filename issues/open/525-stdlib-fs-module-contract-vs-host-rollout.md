@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-04-18
-**Updated**: 2026-04-18
+**Updated**: 2026-04-18 (docs slice landed)
 **ID**: 525
 **Depends on**: none
 **Track**: stdlib, docs
@@ -45,10 +45,15 @@ module-level docs と generated reference を `std::host::*` rollout reality に
 
 ## Acceptance
 
-- [ ] module overview makes the current subset / bridge status explicit at import-time
-- [ ] docs explain how `std::fs` relates to the broader `std::host::*` rollout without overclaiming durable surface area
-- [ ] generated reference and curated module page do not contradict each other
-- [ ] no user-visible page implies “complete filesystem facade” without repo proof
+- [x] module overview makes the current subset / bridge status explicit at import-time
+- [x] docs explain how `std::fs` relates to the broader `std::host::*` rollout without overclaiming durable surface area
+- [x] generated reference and curated module page do not contradict each other
+- [x] no user-visible page implies “complete filesystem facade” without repo proof
+
+## Progress
+
+- **2026-04-18:** `std/fs/mod.ark` module docs; curated `modules/fs.md` overview + `build_target_constraints` fix (no more “No host capability required” alongside `--dir` **Availability**); regenerated `docs/stdlib/modules/fs.md` and `docs/stdlib/modules/io.md`; cross-link from `docs/current-state.md` Known Limitations.
+- **Verified:** `bash scripts/run/verify-harness.sh --quick`, `python3 scripts/gen/generate-docs.py`, `python3 scripts/check/check-docs-consistency.py`.
 
 ## Required verification
 

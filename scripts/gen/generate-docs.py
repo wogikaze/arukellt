@@ -242,10 +242,13 @@ let fields = csv_split_line("name,age,city")
         "modules": ["std::host::fs", "std::fs"],
         "overview": {
             "summary": (
-                "The `std::host::fs` module provides host filesystem operations: reading files "
-                "into strings and writing string or byte content to files. The `std::fs` module "
-                "provides the same operations with a slightly different API surface and adds an "
-                "`exists` probe. Both are host-bound APIs backed by WASI filesystem intrinsics. "
+                "`std::host::fs` is the primary host filesystem module: whole-file reads, string "
+                "and byte writes, an `exists` read probe, and experimental fd helpers, all backed "
+                "by the current WASI filesystem intrinsics. `std::fs` is a smaller stable-shaped "
+                "bridge over the same intrinsics (`read_string` / `write_string` / `exists`) — "
+                "useful when you want a compact API, with the understanding that it tracks only a "
+                "subset of the evolving `std::host::fs` rollout. Neither module is a complete "
+                "filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). "
                 "Pure path manipulation lives in `std::path`; for the full host family overview, "
                 "see [io.md](io.md)."
             ),
@@ -253,7 +256,10 @@ let fields = csv_split_line("name,age,city")
                 ("`read_to_string(path)` / `read_string(path)`", "Read a whole file as a UTF-8 string, returning `Result<String, String>`."),
                 ("`write_string(path, content)`", "Write or replace a UTF-8 file."),
                 ("`write_bytes(path, buf)`", "Write a byte array to a file."),
-                ("`exists(path)`", "Probe whether a file at the given path exists and is readable."),
+                (
+                    "`exists(path)`",
+                    "Read probe: `true` when a full read succeeds; not a general path-existence check.",
+                ),
             ],
             "typical_usage": """\
 ```ark
@@ -2008,7 +2014,7 @@ def render_stdlib_module_page(
         for mod in page["modules"]:
             all_page_funcs.extend(manifest_functions_by_module.get(mod, []))
         computed_constraints = build_target_constraints(
-            "/".join(page["modules"]), all_page_funcs
+            page["modules"], all_page_funcs
         )
         # Build a copy of the overview with the dynamically-derived constraint
         overview_with_computed = dict(page["overview"])
@@ -2360,7 +2366,7 @@ def _availability_t3_only(funcs: list[dict]) -> bool:
     return all(not a.get("t1", True) for a in avail_entries)
 
 
-def build_target_constraints(module_name: str, funcs: list[dict]) -> str:
+def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
     """Derive a human-readable target-constraint string from manifest data.
 
     Reads ``availability`` (t1/t3 tier flags) and ``target`` (platform list) from
@@ -2370,7 +2376,7 @@ def build_target_constraints(module_name: str, funcs: list[dict]) -> str:
     constraints that are not expressed through availability tiers.
 
     Args:
-        module_name: Module name for context (currently unused, reserved for future use).
+        page_modules: Module names on this doc page (used for filesystem runtime notes).
         funcs: List of manifest function dicts for the module(s) being described.
 
     Returns:
@@ -2379,9 +2385,16 @@ def build_target_constraints(module_name: str, funcs: list[dict]) -> str:
         - ``"⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."``
         - ``"Targets: wasm32-wasi-p1, wasm32-wasi-p2."``
     """
+    fs_on_page = any(m in ("std::host::fs", "std::fs") for m in page_modules)
+    fs_runtime = (
+        " **`std::host::fs` / `std::fs`:** file I/O requires runtime directory access "
+        "(`--dir`, or equivalent); see each function's **Availability**."
+    )
+
     # Primary signal: availability.t1 / availability.t3 tier flags from manifest.
     if _availability_t3_only(funcs):
-        return "⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."
+        base = "⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."
+        return base + fs_runtime if fs_on_page else base
 
     # Fallback: collect explicit ``target`` lists from function entries.
     targets: set[str] = set()
@@ -2390,10 +2403,13 @@ def build_target_constraints(module_name: str, funcs: list[dict]) -> str:
         if t:
             targets.update(t)
     if not targets or targets == {"wasm32-wasi-p1", "wasm32-wasi-p2"}:
-        return "All targets (T1 + T3). No host capability required."
+        base = "All targets (T1 + T3)."
+        return base + fs_runtime if fs_on_page else base + " No host capability required."
     if targets == {"wasm32-wasi-p2"}:
-        return "⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."
-    return f"Targets: {', '.join(sorted(targets))}."
+        base = "⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."
+        return base + fs_runtime if fs_on_page else base
+    base = f"Targets: {', '.join(sorted(targets))}."
+    return base + fs_runtime if fs_on_page else base
 
 
 # ── Deprecation helpers ──────────────────────────────────────────────────────

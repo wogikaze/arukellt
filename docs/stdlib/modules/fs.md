@@ -7,7 +7,7 @@ Source-backed docs for explicit host filesystem operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::host::fs` module provides host filesystem operations: reading files into strings and writing string or byte content to files. The `std::fs` module provides the same operations with a slightly different API surface and adds an `exists` probe. Both are host-bound APIs backed by WASI filesystem intrinsics. Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
+`std::host::fs` is the primary host filesystem module: whole-file reads, string and byte writes, an `exists` read probe, and experimental fd helpers, all backed by the current WASI filesystem intrinsics. `std::fs` is a smaller stable-shaped bridge over the same intrinsics (`read_string` / `write_string` / `exists`) — useful when you want a compact API, with the understanding that it tracks only a subset of the evolving `std::host::fs` rollout. Neither module is a complete filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
 
 **Recommended API highlights:**
 
@@ -16,9 +16,9 @@ The `std::host::fs` module provides host filesystem operations: reading files in
 | `read_to_string(path)` / `read_string(path)` | Read a whole file as a UTF-8 string, returning `Result<String, String>`. |
 | `write_string(path, content)` | Write or replace a UTF-8 file. |
 | `write_bytes(path, buf)` | Write a byte array to a file. |
-| `exists(path)` | Probe whether a file at the given path exists and is readable. |
+| `exists(path)` | Read probe: `true` when a full read succeeds; not a general path-existence check. |
 
-**Target constraints:** All targets (T1 + T3). No host capability required.
+**Target constraints:** All targets (T1 + T3). **`std::host::fs` / `std::fs`:** file I/O requires runtime directory access (`--dir`, or equivalent); see each function's **Availability**.
 
 **Typical usage:**
 
@@ -55,7 +55,7 @@ These APIs perform host I/O. Pure path manipulation remains in `std::path`.
 | `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
-| `exists` | `(String) -> bool` | `stable` | ✅ impl | Returns true when path can be opened for reading as a file. |
+| `exists` | `(String) -> bool` | `stable` | ✅ impl | Read probe / readable-file check: returns true when a full read of path |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ impl | Seeks within an open file descriptor. |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ impl | Returns the current file offset for an open file descriptor. |
 | `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ impl | Returns the errno from fd_fdstat_get for an open file descriptor. |
@@ -121,15 +121,26 @@ Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 - Manifest-backed functions: 3
 - Stability: stable 3
 
-Filesystem operations backed by low-level WASI/host intrinsics.
+Small host-backed file helpers — a **partial bridge**, not a full filesystem API.
+
+`std::fs` tracks a narrow, stable-shaped subset of the same WASI filesystem
+intrinsics behind `std::host::fs` (`read_string` / `write_string` plus an
+`exists` read probe). Prefer `std::host::fs` for the full host rollout surface
+(`read_to_string`, `write_bytes`, experimental fd helpers, and future additions).
+This namespace exists so call sites can depend on a compact API while
+`std::host::*` continues to evolve.
+
+There is no in-tree directory listing, metadata API, or streaming I/O yet; do
+not treat this as a complete POSIX-style facade. Broader
+`wasi:filesystem/types`-class coverage remains future work.
 
 Paths are plain `String` values using `/` as the separator (POSIX/WASI
 convention). For pure path manipulation helpers see `std::path`.
 
-**Probe notice**: `exists` is intentionally a readability probe, not a
-general path-existence check. Directories, missing paths, and unreadable
-paths may return `false`. Full WASI P2 `wasi:filesystem/types`
-intrinsics are planned for a later release.
+**Probe notice**: `exists` is a **read probe** / readable-file check: it
+succeeds only when the same read operation as `read_string` succeeds. It is not
+a general path-existence or metadata query. Directories, missing paths,
+and unreadable paths may return `false`.
 
 ### Public API
 
@@ -137,7 +148,7 @@ intrinsics are planned for a later release.
 |------|-----------|-----------|---------|
 | `read_string` | `(String) -> Result<String, String>` | `stable` | Reads the entire contents of a file into a UTF-8 string. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, creating or truncating it. |
-| `exists` | `(String) -> bool` | `stable` | Returns true when path can be opened for reading as a file. |
+| `exists` | `(String) -> bool` | `stable` | Read probe / readable-file check: returns true when a full read of path |
 
 #### `read_string`
 
