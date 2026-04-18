@@ -582,3 +582,75 @@ fn lower_try_wrapping_ifexpr_needs_second_round() {
     validate_backend_legal_module(&module)
         .expect("validate_backend_legal_module after lower_backend_illegal_operands");
 }
+
+/// Same visibility issue as [`lower_try_wrapping_ifexpr_needs_second_round`]: `Operand::TryExpr`
+/// hides a `LoopExpr` until `lower_try_exprs` runs, so one if/loop/try round is not enough (#282).
+#[test]
+fn lower_try_wrapping_loopexpr_needs_second_round() {
+    let inner_loop = Operand::LoopExpr {
+        init: Box::new(Operand::ConstI32(0)),
+        body: vec![MirStmt::WhileStmt {
+            cond: Operand::ConstBool(true),
+            body: vec![MirStmt::Break],
+        }],
+        result: Box::new(Operand::ConstI32(42)),
+    };
+    let func = MirFunction {
+        id: FnId(5),
+        name: "try_loop".to_string(),
+        instance: InstanceKey::simple("try_loop"),
+        params: vec![],
+        return_ty: Type::Result(Box::new(Type::I32), Box::new(Type::String)),
+        locals: vec![
+            MirLocal {
+                id: LocalId(0),
+                name: Some("input".to_string()),
+                ty: Type::Result(Box::new(Type::I32), Box::new(Type::String)),
+            },
+            MirLocal {
+                id: LocalId(1),
+                name: Some("value".to_string()),
+                ty: Type::I32,
+            },
+        ],
+        blocks: vec![BasicBlock {
+            id: BlockId(0),
+            stmts: vec![MirStmt::Assign(
+                Place::Local(LocalId(1)),
+                Rvalue::Use(Operand::TryExpr {
+                    expr: Box::new(inner_loop),
+                    from_fn: None,
+                }),
+            )],
+            terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(1))))),
+            source: default_block_source(),
+        }],
+        entry: BlockId(0),
+        struct_typed_locals: Default::default(),
+        enum_typed_locals: Default::default(),
+        type_params: vec![],
+        source: default_function_source(),
+        is_exported: false,
+    };
+
+    let mut module = MirModule::new();
+    module.functions.push(func);
+    module.entry_fn = Some(FnId(5));
+    assert!(!is_backend_legal_module(&module));
+
+    lower_if_exprs(&mut module);
+    lower_loop_exprs(&mut module);
+    lower_try_exprs(&mut module);
+    assert!(
+        !is_backend_legal_module(&module),
+        "LoopExpr inside TryExpr must still be illegal after one if/loop/try round"
+    );
+
+    lower_backend_illegal_operands(&mut module, 16);
+    assert!(
+        is_backend_legal_module(&module),
+        "second-round lowering must remove LoopExpr exposed by TryExpr desugar"
+    );
+    validate_backend_legal_module(&module)
+        .expect("validate_backend_legal_module after lower_backend_illegal_operands (try+loop)");
+}
