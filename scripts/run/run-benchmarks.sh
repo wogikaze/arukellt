@@ -35,6 +35,8 @@ COMPARE=false
 USE_SELFHOST=false
 COMPARE_LANGS=""
 SCALING=false
+COMPARE_WRITE_MD=""
+COMPARE_C_RATIO_GATE=false
 
 # Use positional index loop so we can consume the next arg for space-separated
 # options like --compare-lang c,rust
@@ -58,6 +60,15 @@ while [[ $# -gt 0 ]]; do
       ;;
     --selfhost) USE_SELFHOST=true ;;
     --scaling) SCALING=true ;;
+    --compare-write-md=*) COMPARE_WRITE_MD="${arg#--compare-write-md=}" ;;
+    --compare-write-md)
+      if [[ $# -gt 1 && "${2}" != --* ]]; then
+        shift; COMPARE_WRITE_MD="$1"
+      else
+        COMPARE_WRITE_MD="$ROOT/docs/process/benchmark-results.md"
+      fi
+      ;;
+    --compare-c-ratio-gate) COMPARE_C_RATIO_GATE=true ;;
     --help|-h)
       cat <<'USAGE'
 Usage: bash scripts/run/run-benchmarks.sh [OPTIONS]
@@ -77,6 +88,8 @@ Options:
   --selfhost                   Use selfhost (wasm) compiler instead of Rust compiler
   --scaling                    Run input-size sweep and emit scaling curve report (3 pts quick, 5 pts full)
   --compare-lang [c,rust,go]   Also time reference implementations in C/Rust/Go
+  --compare-write-md [PATH]    After --compare-lang, embed table in PATH (default: docs/process/benchmark-results.md)
+  --compare-c-ratio-gate       With --compare-lang and C enabled, fail if fib Ark/C >1.5x or vec_ops >2.0x
   --target <TARGET>            Wasm target triple (default: wasm32-wasi-p1)
   -h, --help                   Show this help text
 
@@ -879,6 +892,33 @@ print(int(r.get('median',0)*1000))
   return 0
 }
 
+# Embed cross-language Markdown into docs/process/benchmark-results.md between HTML markers.
+embed_compare_md() {
+  local md_path="$1"
+  local body_path="$2"
+  [[ -f "$md_path" ]] || {
+    echo "NOTE: --compare-write-md target missing; skip embed: $md_path" >&2
+    return 0
+  }
+  python3 -c "
+import pathlib, sys
+path = pathlib.Path(sys.argv[1])
+body = pathlib.Path(sys.argv[2]).read_text(encoding='utf-8')
+start = '<!-- arukellt:cross-lang-compare:start -->'
+end = '<!-- arukellt:cross-lang-compare:end -->'
+text = path.read_text(encoding='utf-8')
+if start not in text or end not in text:
+    print('NOTE: cross-lang markers not found in {}; skip embed'.format(path), file=sys.stderr)
+    sys.exit(0)
+pre, rest = text.split(start, 1)
+_, post = rest.split(end, 1)
+if body and not body.endswith('\\n'):
+    body += '\\n'
+path.write_text(pre + start + '\\n' + body + end + post, encoding='utf-8')
+print('Embedded cross-language table into:', path)
+" "$md_path" "$body_path"
+}
+
 if [[ -n "$COMPARE_LANGS" ]]; then
   echo ""
   echo "=== Language Comparison (--compare-lang $COMPARE_LANGS) ==="
@@ -913,6 +953,28 @@ if [[ -n "$COMPARE_LANGS" ]]; then
     esac
   done
 
+  COMPARE_MD_TMP="$(mktemp "${TMPDIR:-/tmp}/ark-compare-md.XXXXXX")"
+  GATE_FIB_ARK="" GATE_FIB_C=""
+  GATE_VEC_ARK="" GATE_VEC_C=""
+
+  _md_row="| benchmark | ark (ms) |"
+  for lang in "${LANG_LIST[@]}"; do
+    _md_row+=" ${lang} (ms) |"
+  done
+  _md_row+=" ratio (Ark/best) |"
+  echo "### Cross-language runtime (median ms)" >> "$COMPARE_MD_TMP"
+  echo "" >> "$COMPARE_MD_TMP"
+  echo "- Generated at: $(now_iso)" >> "$COMPARE_MD_TMP"
+  echo "- compare-lang: \`$COMPARE_LANGS\`" >> "$COMPARE_MD_TMP"
+  echo "" >> "$COMPARE_MD_TMP"
+  echo "$_md_row" >> "$COMPARE_MD_TMP"
+  _md_sep="|-----------|----------|"
+  for _ in "${LANG_LIST[@]}"; do
+    _md_sep+="------------|"
+  done
+  _md_sep+="------------------|"
+  echo "$_md_sep" >> "$COMPARE_MD_TMP"
+
   # Print header
   printf "%-16s %12s" "benchmark" "ark(ms)"
   for lang in "${LANG_LIST[@]}"; do
@@ -930,8 +992,6 @@ if [[ -n "$COMPARE_LANGS" ]]; then
   mkdir -p "$LANG_TMP"
 
   for bench in "${BENCH_NAMES[@]}"; do
-    BENCH_WASM_MEDIAN="${RUNTIME_MEDIAN:-0}"
-
     # re-run to get runtime median for this bench (already printed above but not retained)
     BENCH_WASM="$RESULTS_DIR/${bench}.wasm"
     ARK_RUNTIME_MS=0
@@ -949,6 +1009,8 @@ if [[ -n "$COMPARE_LANGS" ]]; then
     printf "%-16s %12s" "$bench" "$ARK_RUNTIME_MS"
 
     BEST_LANG_MS=$ARK_RUNTIME_MS
+    C_REF_MS=""
+    _md_line="| \`$bench\` | $ARK_RUNTIME_MS |"
 
     for lang in "${LANG_LIST[@]}"; do
       ext="${LANG_EXT[$lang]:-}"
@@ -957,20 +1019,25 @@ if [[ -n "$COMPARE_LANGS" ]]; then
 
       if [[ -z "$ext" || ! -f "$src" ]]; then
         printf " %10s" "(no ref)"
+        _md_line+=" — |"
         continue
       fi
 
       # Compile the reference binary (once)
       if [[ ! -x "$ref_bin" ]]; then
         case "$lang" in
-          c)    cc -O2 -o "$ref_bin" "$src" 2>/dev/null || { printf " %10s" "(cc err)"; continue; } ;;
-          rust) rustc -O -o "$ref_bin" "$src" 2>/dev/null || { printf " %10s" "(rustc err)"; continue; } ;;
-          go)   (cd "$LANG_TMP" && go build -o "$ref_bin" "$src") 2>/dev/null || { printf " %10s" "(go err)"; continue; } ;;
+          c)    cc -O2 -o "$ref_bin" "$src" 2>/dev/null || { printf " %10s" "(cc err)"; _md_line+=" (cc err) |"; continue; } ;;
+          rust) rustc -O -o "$ref_bin" "$src" 2>/dev/null || { printf " %10s" "(rustc err)"; _md_line+=" (rustc err) |"; continue; } ;;
+          go)   (cd "$LANG_TMP" && go build -o "$ref_bin" "$src") 2>/dev/null || { printf " %10s" "(go err)"; _md_line+=" (go err) |"; continue; } ;;
         esac
       fi
 
       time_ref_binary "$ref_bin"
       printf " %10s" "$LANG_MEDIAN_MS"
+      _md_line+=" $LANG_MEDIAN_MS |"
+      if [[ "$lang" == "c" ]]; then
+        C_REF_MS=$LANG_MEDIAN_MS
+      fi
       if [[ "$LANG_MEDIAN_MS" -gt 0 ]]; then
         if [[ "$BEST_LANG_MS" -eq 0 || "$LANG_MEDIAN_MS" -lt "$BEST_LANG_MS" ]]; then
           BEST_LANG_MS=$LANG_MEDIAN_MS
@@ -984,11 +1051,56 @@ if [[ -n "$COMPARE_LANGS" ]]; then
       ratio="N/A"
     fi
     printf " %10s\n" "$ratio"
+    _md_line+=" $ratio |"
+    echo "$_md_line" >> "$COMPARE_MD_TMP"
+
+    case "$bench" in
+      fib)    GATE_FIB_ARK=$ARK_RUNTIME_MS; GATE_FIB_C=$C_REF_MS ;;
+      vec_ops) GATE_VEC_ARK=$ARK_RUNTIME_MS; GATE_VEC_C=$C_REF_MS ;;
+    esac
   done
 
   # Clean up compiled reference binaries
   rm -rf "$LANG_TMP"
   echo ""
+
+  if [[ -n "$COMPARE_WRITE_MD" ]]; then
+    _md_out="${COMPARE_WRITE_MD}"
+    [[ "$_md_out" != /* ]] && _md_out="$ROOT/$_md_out"
+    embed_compare_md "$_md_out" "$COMPARE_MD_TMP"
+  fi
+  rm -f "$COMPARE_MD_TMP"
+
+  if [[ "$COMPARE_C_RATIO_GATE" == "true" ]]; then
+    _gate_fail=false
+    if printf '%s\n' "${LANG_LIST[@]}" | grep -qx c; then
+      if [[ -n "$GATE_FIB_C" && "$GATE_FIB_C" =~ ^[0-9]+$ && "$GATE_FIB_C" -gt 0 && -n "$GATE_FIB_ARK" && "$GATE_FIB_ARK" =~ ^[0-9]+$ ]]; then
+        _fib_r=$(python3 -c "print(round($GATE_FIB_ARK / $GATE_FIB_C, 3))")
+        python3 -c "import sys; sys.exit(0 if $GATE_FIB_ARK / $GATE_FIB_C <= 1.5 else 1)" || {
+          echo "COMPARE_C_RATIO_GATE FAIL: fib Ark/C = ${_fib_r}x (max 1.5x)" >&2
+          _gate_fail=true
+        }
+        echo "C ratio gate fib: Ark/C = ${_fib_r}x (max 1.5x)"
+      else
+        echo "NOTE: C ratio gate for fib skipped — missing C reference timing (need benchmarks/fib.c and cc)"
+      fi
+      if [[ -n "$GATE_VEC_C" && "$GATE_VEC_C" =~ ^[0-9]+$ && "$GATE_VEC_C" -gt 0 && -n "$GATE_VEC_ARK" && "$GATE_VEC_ARK" =~ ^[0-9]+$ ]]; then
+        _vec_r=$(python3 -c "print(round($GATE_VEC_ARK / $GATE_VEC_C, 3))")
+        python3 -c "import sys; sys.exit(0 if $GATE_VEC_ARK / $GATE_VEC_C <= 2.0 else 1)" || {
+          echo "COMPARE_C_RATIO_GATE FAIL: vec_ops Ark/C = ${_vec_r}x (max 2.0x)" >&2
+          _gate_fail=true
+        }
+        echo "C ratio gate vec_ops: Ark/C = ${_vec_r}x (max 2.0x)"
+      else
+        echo "NOTE: C ratio gate for vec_ops skipped — missing C reference timing (need benchmarks/vec_ops.c and cc)"
+      fi
+    else
+      echo "NOTE: --compare-c-ratio-gate ignored — 'c' not in --compare-lang list"
+    fi
+    if [[ "$_gate_fail" == "true" ]]; then
+      exit 1
+    fi
+  fi
 fi
 
 # --- comparison summary table ------------------------------------------------

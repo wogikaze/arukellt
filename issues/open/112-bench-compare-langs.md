@@ -38,12 +38,22 @@ roadmap-v4.md §5.4 で選定した比較言語 (C gcc-O2 / Rust --release / Go 
 
 - roadmap-v4.md §5.4
 
-## Closed — 2026-04-14
+## Prior “closed” note (superseded)
 
-Completed by `impl-benchmark` agent.
+An earlier edit marked this issue closed while **`Status` remained `open`** and acceptance was not evidenced in-repo. The **2026-04-03 reopen** (above) is authoritative. The bullet list below is historical context only (partial shell fixes landed in b9db40c); remaining acceptance is tracked against the checklist in the next section.
 
 - Fixed `--compare-lang VALUE` (space-separated) argument parsing
 - Fixed `local` keyword used outside function in compare-lang timing loop
 - Added graceful toolchain availability checks (cc/gcc/rustc/go)
 - C references (fib.c, binary_tree.c) and README comparison section were already present from #109
-- Commit: b9db40c
+
+## Acceptance vs repo (audit)
+
+| # | Criterion | Met in repo? | Notes |
+|---|-----------|--------------|-------|
+| 1 | `scripts/compare-benchmarks.sh` builds each ref lang and times with hyperfine when installed | **Yes** | `run-benchmarks.sh --compare-lang`; falls back to shell timer if hyperfine missing |
+| 2 | Markdown table written to `docs/process/benchmark-results.md` | **Yes** | Embedded between `<!-- arukellt:cross-lang-compare:start/end -->` via `--compare-write-md` (default from `compare-benchmarks.sh`) |
+| 3 | C-ratio gates fib ≤1.5×, vec_ops ≤2.0× vs C | **Yes** | `--compare-c-ratio-gate` (default from `compare-benchmarks.sh`); **skipped** if `benchmarks/*.c` or `cc` missing — no fake fail |
+| 4 | Grain comparison | **No (STOP_IF)** | No `benchmarks/*.grain`, no `grain` CLI hook in runner; needs external Grain toolchain + sources |
+
+**Status**: Remains **open** until Grain slice is implemented or explicitly descoped with ADR/issue update.

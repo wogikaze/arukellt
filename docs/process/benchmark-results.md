@@ -15,15 +15,22 @@ mise bench:ci               # regression gate (fail on threshold breach)
 
 ## Cross-language comparison
 
-Native reference programs (C, Rust, Go) are timed with `hyperfine` when available (otherwise a built-in shell timer) and compared to Ark wasm; the ratio table is printed to **stdout**, not embedded below.
+Native reference programs (C, Rust, Go) are built with each toolchain’s release-style flags, timed with `hyperfine` when available (otherwise a built-in shell timer), and compared to Ark wasm. `bash scripts/compare-benchmarks.sh` prints the table to **stdout** and embeds the same Markdown table in the block below (between HTML comments so `scripts/util/benchmark_runner.py` can regenerate the rest of this file without deleting it).
 
 ```bash
 bash scripts/compare-benchmarks.sh
 # equivalent:
-bash scripts/run/run-benchmarks.sh --compare-lang c,rust,go
+bash scripts/run/run-benchmarks.sh --compare-lang c,rust,go \
+  --compare-write-md docs/process/benchmark-results.md --compare-c-ratio-gate
 ```
 
-Roadmap C-ratio targets and Grain are described in [`docs/process/roadmap-v4.md`](../process/roadmap-v4.md); Grain is not wired in the shell runner yet.
+Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced when using `--compare-c-ratio-gate` (on by default via `compare-benchmarks.sh`). **Grain** (Wasm GC) is not in this runner yet — no `benchmarks/*.grain` sources and no `grain` CLI hook; see [`docs/process/roadmap-v4.md`](../process/roadmap-v4.md) and issue #112.
+
+<!-- arukellt:cross-lang-compare:start -->
+
+*No cross-language table embedded yet. Run `bash scripts/compare-benchmarks.sh` after a release compiler build to populate this section.*
+
+<!-- arukellt:cross-lang-compare:end -->
 
 ## Current Run
 

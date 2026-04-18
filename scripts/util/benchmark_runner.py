@@ -23,6 +23,9 @@ DEFAULT_CURRENT_RESULTS = ROOT / "tests" / "baselines" / "perf" / "current.json"
 DEFAULT_BASELINE_RESULTS = ROOT / "tests" / "baselines" / "perf" / "baselines.json"
 DEFAULT_RESULTS_MARKDOWN = ROOT / "docs" / "process" / "benchmark-results.md"
 SCHEMA_VERSION = "arukellt-bench-v1"
+# Preserved across `render_markdown` regenerations when `compare-benchmarks.sh` embeds a table.
+CROSS_LANG_COMPARE_START = "<!-- arukellt:cross-lang-compare:start -->"
+CROSS_LANG_COMPARE_END = "<!-- arukellt:cross-lang-compare:end -->"
 THRESHOLDS = {
     "compile_ms": 20,
     "run_ms": 10,
@@ -1410,6 +1413,27 @@ def format_delta(metric: dict[str, Any]) -> str:
     return f"{sign}{value:.2f}%"
 
 
+def extract_preserved_cross_lang_markdown(existing: str) -> str | None:
+    """Return inner Markdown between cross-lang markers, or None if absent."""
+    if CROSS_LANG_COMPARE_START not in existing or CROSS_LANG_COMPARE_END not in existing:
+        return None
+    _, rest = existing.split(CROSS_LANG_COMPARE_START, 1)
+    inner, _ = rest.split(CROSS_LANG_COMPARE_END, 1)
+    return inner
+
+
+def merge_preserved_cross_lang_markdown(template: str, preserved_inner: str | None) -> str:
+    """Re-inject a preserved cross-lang block into freshly rendered Markdown."""
+    if preserved_inner is None:
+        return template
+    if CROSS_LANG_COMPARE_START not in template or CROSS_LANG_COMPARE_END not in template:
+        return template
+    pre, rest = template.split(CROSS_LANG_COMPARE_START, 1)
+    _, post = rest.split(CROSS_LANG_COMPARE_END, 1)
+    body = preserved_inner if preserved_inner.endswith("\n") else preserved_inner + "\n"
+    return pre + CROSS_LANG_COMPARE_START + body + CROSS_LANG_COMPARE_END + post
+
+
 def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baseline_path: Path | None) -> str:
     lines: list[str] = []
     lines.append("# Benchmark Results")
@@ -1430,22 +1454,38 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
     lines.append("## Cross-language comparison")
     lines.append("")
     lines.append(
-        "Native reference programs (C, Rust, Go) are timed with `hyperfine` when "
-        "available (otherwise a built-in shell timer) and compared to Ark wasm; "
-        "the ratio table is printed to **stdout**, not embedded below."
+        "Native reference programs (C, Rust, Go) are built with each toolchain’s "
+        "release-style flags, timed with `hyperfine` when available (otherwise a "
+        "built-in shell timer), and compared to Ark wasm. "
+        "`bash scripts/compare-benchmarks.sh` prints the table to **stdout** and "
+        "embeds the same Markdown table in the block below (between HTML comments "
+        "so `scripts/util/benchmark_runner.py` can regenerate the rest of this file "
+        "without deleting it)."
     )
     lines.append("")
     lines.append("```bash")
     lines.append("bash scripts/compare-benchmarks.sh")
     lines.append("# equivalent:")
-    lines.append("bash scripts/run/run-benchmarks.sh --compare-lang c,rust,go")
+    lines.append("bash scripts/run/run-benchmarks.sh --compare-lang c,rust,go \\")
+    lines.append("  --compare-write-md docs/process/benchmark-results.md --compare-c-ratio-gate")
     lines.append("```")
     lines.append("")
     lines.append(
-        "Roadmap C-ratio targets and Grain are described in "
-        "[`docs/process/roadmap-v4.md`](../process/roadmap-v4.md); "
-        "Grain is not wired in the shell runner yet."
+        "Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced "
+        "when using `--compare-c-ratio-gate` (on by default via `compare-benchmarks.sh`). "
+        "**Grain** (Wasm GC) is not in this runner yet — no `benchmarks/*.grain` "
+        "sources and no `grain` CLI hook; see "
+        "[`docs/process/roadmap-v4.md`](../process/roadmap-v4.md) and issue #112."
     )
+    lines.append("")
+    lines.append(CROSS_LANG_COMPARE_START)
+    lines.append("")
+    lines.append(
+        "*No cross-language table embedded yet. Run `bash scripts/compare-benchmarks.sh` "
+        "after a release compiler build to populate this section.*"
+    )
+    lines.append("")
+    lines.append(CROSS_LANG_COMPARE_END)
     lines.append("")
     lines.append("## Current Run")
     lines.append("")
@@ -2093,7 +2133,13 @@ def main() -> None:
     if not args.no_write_json:
         write_json(output_json, current)
     if not args.no_write_markdown:
-        output_md.write_text(render_markdown(current, comparison, baseline_path))
+        preserved_cross: str | None = None
+        if output_md.exists():
+            preserved_cross = extract_preserved_cross_lang_markdown(
+                output_md.read_text(encoding="utf-8")
+            )
+        md_text = render_markdown(current, comparison, baseline_path)
+        output_md.write_text(merge_preserved_cross_lang_markdown(md_text, preserved_cross))
 
     # Save timestamped copy to benchmarks/results/ for history tracking.
     if not args.no_save_history:
