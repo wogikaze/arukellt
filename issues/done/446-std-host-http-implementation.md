@@ -2,7 +2,7 @@
 
 **Status**: done
 **Created**: 2026-04-02
-**Updated**: 2026-04-03
+**Updated**: 2026-04-18
 **ID**: 446
 **Depends on**: none
 **Track**: runtime
@@ -18,6 +18,20 @@
 **Evidence**: runtime.rs has register_http_host_fns, http_get_impl; HOST_STUB_BUILTINS is empty
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
+
+## Audit normalization — 2026-04-18
+
+The `Reopened by audit` section below is a historical note from an earlier stale-state
+pass. Current repo evidence still supports `done`:
+
+- `crates/arukellt/src/runtime.rs` registers HTTP host functions and implements
+  `http_get_impl` / `http_request_impl`
+- `crates/arukellt/src/commands.rs` no longer treats HTTP builtins as host stubs
+- `tests/fixtures/host/http/` contains host HTTP fixtures
+- `docs/current-state.md` and `docs/capability-surface.md` describe `std::host::http`
+  as available rather than compile-time blocked
+
+The issue remains in `issues/done/`; the stale reopen note is kept only as historical audit context.
 
 ## Reopened by audit — 2026-04-03
 

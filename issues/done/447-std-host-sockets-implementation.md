@@ -2,7 +2,7 @@
 
 **Status**: done
 **Created**: 2026-04-02
-**Updated**: 2026-04-03
+**Updated**: 2026-04-18
 **ID**: 447
 **Depends on**: none
 **Track**: runtime
@@ -18,6 +18,18 @@
 **Evidence**: tests/fixtures/host/sockets and target_gating/t1_import_sockets fixtures exist, HOST_STUB_BUILTINS empty
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
+
+## Audit normalization — 2026-04-18
+
+The `Reopened by audit` section below is historical. Current repo evidence still
+supports `done`:
+
+- `tests/fixtures/host/sockets/` contains connect refusal / DNS failure proof
+- `tests/fixtures/target_gating/t1_import_sockets.ark` covers the T1 compile-time gate
+- `crates/arukellt/src/commands.rs` no longer keeps sockets in `HOST_STUB_BUILTINS`
+- `docs/stdlib/modules/sockets.md` describes the current T3-only availability contract
+
+This issue remains in `issues/done/`; the earlier reopen note is retained only as audit history.
 
 ## Reopened by audit — 2026-04-03
 

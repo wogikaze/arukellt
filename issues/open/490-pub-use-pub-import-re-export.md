@@ -1,8 +1,8 @@
 # pub use / pub import re-export
 
-**Status**: closed
+**Status**: open
 **Created**: 2026-04-13
-**Updated**: 2026-04-14
+**Updated**: 2026-04-18
 **ID**: 490
 **Depends on**: 234
 **Track**: compiler, module-system
@@ -12,6 +12,20 @@
 ## Created by audit — 2026-04-13
 
 **Source**: `docs/module-resolution.md` line 213 states "`pub use` or `pub import` makes the imported module's public items re-exported (not yet implemented; tracked in #234)." However, #234's scope and acceptance criteria cover visibility modifiers only (`pub`/`priv`/`pub(crate)`) — re-export was never part of its acceptance. This issue tracks the missing re-export feature separately.
+
+## Reopened by audit — 2026-04-18
+
+**Reason**: The close gate evidence is self-contradictory. This issue was moved to `done/` even though its own progress notes state that required verification is incomplete and that the issue must remain open until end-to-end verification is green.
+
+**Audit evidence**:
+
+- `issues/open/490-pub-use-pub-import-re-export.md`: "Required verification status for close gate remains incomplete due pre-existing repo drift"
+- `issues/open/490-pub-use-pub-import-re-export.md`: "Issue remains open until full required verification is green and acceptance can be checked end-to-end."
+
+**Violated acceptance / close gate**:
+
+- Required verification does not have repo-backed pass evidence.
+- Close gate cannot be cited while the issue text itself records unresolved verification drift.
 
 ## Summary
 

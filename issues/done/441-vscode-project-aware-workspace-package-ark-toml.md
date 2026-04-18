@@ -2,17 +2,29 @@
 
 **Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-04-14
+**Updated**: 2026-04-18
 **ID**: 441
 **Depends on**: 333, 335, 340
 **Track**: vscode-ide
 **Blocks v1 exit**: no
 **Priority**: 3
 
-## Audit — 2026-04-14
+## Audit normalization — 2026-04-18
+
+The 2026-04-14 audit note below captured the partial pre-`#502` state. `#502` is now
+closed under `issues/done/502-lsp-full-multi-root-workspace.md`, and current repo
+evidence shows the dependency-root discovery, multi-root indexing, cross-package
+definition lookup, and package-aware diagnostics paths are present in
+`crates/ark-lsp/src/server.rs` with regression coverage in
+`crates/ark-lsp/tests/lsp_e2e.rs` and `tests/package-workspace/multi-root-indexing/`.
+
+This issue remains `done`, but the historical partial-state note below should no
+longer be read as the current repo truth.
+
+## Historical audit snapshot — 2026-04-14
 
 **Action**: Audited acceptance items against actual code; partial scaffolding confirmed.
-Full multi-root work carved out into `issues/open/502-lsp-full-multi-root-workspace.md`.
+Full multi-root work was carved out into `issues/done/502-lsp-full-multi-root-workspace.md`.
 
 ### What IS implemented (scaffolding)
 
@@ -35,9 +47,9 @@ Full multi-root work carved out into `issues/open/502-lsp-full-multi-root-worksp
 - Import resolution is not package-aware (`std_root` is the only resolved stdlib path).
 - Index rebuild on workspace changes only applies to the primary root.
 
-All five acceptance checkboxes were marked `[x]` prematurely; the scaffolding exists
-but the functional multi-package behavior does not.  The full implementation is tracked
-in `issues/open/502-lsp-full-multi-root-workspace.md`.
+At the time of this historical note, all five acceptance checkboxes were marked `[x]`
+prematurely; the scaffolding existed but the functional multi-package behavior did not.
+That remaining work later landed in `issues/done/502-lsp-full-multi-root-workspace.md`.
 
 ## Summary
 
@@ -45,11 +57,11 @@ VSCode拡張を単なるファイル単位ツールから、ark.toml・workspace
 
 ## Acceptance
 
-- [x] `ark.toml` を元に module graph を構築する。 *(scaffolding only — see #502)*
-- [x] workspace 内複数 package を解決可能にする。 *(scaffolding only — see #502)*
-- [x] cross-package go-to-definition が動作する。 *(scaffolding only — see #502)*
-- [x] import 解決が package aware になる。 *(scaffolding only — see #502)*
-- [x] workspace 変更時に index が再構築される。 *(single-root only — see #502)*
+- [x] `ark.toml` を元に module graph を構築する。 *(completed by #502; historical pre-landing note above)*
+- [x] workspace 内複数 package を解決可能にする。 *(completed by #502; historical pre-landing note above)*
+- [x] cross-package go-to-definition が動作する。 *(completed by #502; historical pre-landing note above)*
+- [x] import 解決が package aware になる。 *(completed by #502; historical pre-landing note above)*
+- [x] workspace 変更時に index が再構築される。 *(completed by #502; historical pre-landing note above)*
 
 ## References
 
@@ -57,4 +69,4 @@ VSCode拡張を単なるファイル単位ツールから、ark.toml・workspace
 - `docs/ark-toml.md`
 - `crates/ark-lsp/src/server.rs`
 - `tests/package-workspace/`
-- `issues/open/502-lsp-full-multi-root-workspace.md`
+- `issues/done/502-lsp-full-multi-root-workspace.md`

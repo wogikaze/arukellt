@@ -49,6 +49,7 @@ graph LR
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
   I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
+  I490["490 pub use / pub import re-export"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
   I504["504 504 — Selfhost: trait/interface syntax and impl-block infrastructure"]
@@ -60,6 +61,11 @@ graph LR
   I517["517 Stdlib: canonical naming / module layering / surface consistency の第2監査"]
   I519["519 Stdlib: property / differential / parity test を family 横断で拡張する"]
   I520["520 Stdlib: allocation / complexity / perf footgun を family 横断で監査する"]
+  I521["521 Stdlib JSON: top-level parse は trailing non-whitespace を拒否する"]
+  I522["522 Stdlib JSON: `stringify_pretty` の product claim を現実に合わせる"]
+  I523["523 Stdlib TOML: parse failure と supported subset contract を定義する"]
+  I524["524 Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する"]
+  I525["525 Stdlib FS: module-level docs を host rollout reality に合わせる"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I041["041 std::core: Error 型、ordering、range、cmp、math、convert、hash"]
   I043["043 std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128"]
@@ -90,6 +96,7 @@ graph LR
   I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
+  I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I028["028 WIT import parsing & host function binding"]
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
@@ -134,6 +141,8 @@ graph LR
   I495 --> I512
   I039 --> I054
   I044 --> I054
+  I039 --> I055
+  I044 --> I055
   I028 --> I028
   I028 --> I034
   I036 --> I037
@@ -143,7 +152,7 @@ graph LR
 
 - **032** depends on: 030; blocks: 473
 - **036** depends on: 033; blocks: none
-- **039** depends on: none; blocks: 041, 043, 044, 045, 047, 048, 049, 051, 054
+- **039** depends on: none; blocks: 041, 043, 044, 045, 047, 048, 049, 051, 054, 055
 - **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none
 - **070** depends on: none; blocks: none
@@ -184,6 +193,7 @@ graph LR
 - **382** depends on: 378; blocks: none
 - **453** depends on: 450, 451, 452; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
+- **490** depends on: 234; blocks: none
 - **494** depends on: 493, 503; blocks: none
 - **499** depends on: none; blocks: none
 - **504** depends on: none; blocks: 495, 512
@@ -195,6 +205,11 @@ graph LR
 - **517** depends on: none; blocks: 518
 - **519** depends on: none; blocks: none
 - **520** depends on: none; blocks: none
+- **521** depends on: none; blocks: none
+- **522** depends on: none; blocks: none
+- **523** depends on: none; blocks: none
+- **524** depends on: none; blocks: none
+- **525** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **041** depends on: 039; blocks: 044, 045, 047, 048, 049
 - **043** depends on: 039, 040; blocks: none
@@ -213,7 +228,7 @@ graph LR
 - **508** depends on: 285; blocks: none
 - **495** depends on: 312, 504; blocks: 512
 - **518** depends on: 513, 517; blocks: none
-- **044** depends on: 039, 041; blocks: 054
+- **044** depends on: 039, 041; blocks: 054, 055
 - **045** depends on: 039, 041; blocks: none
 - **047** depends on: 039, 041; blocks: none
 - **048** depends on: 039, 041; blocks: none
@@ -225,6 +240,7 @@ graph LR
 - **269** depends on: 266, 268; blocks: none
 - **512** depends on: 504, 495; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
+- **055** depends on: 039, 042, 044; blocks: none
 - **028** depends on: 028; blocks: 028, 034
 - **034** depends on: 030, 031, 028; blocks: none
 

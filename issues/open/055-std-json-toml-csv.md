@@ -1,8 +1,8 @@
 # std::json + std::toml + std::csv: データ形式パーサ
 
-**Status**: done
+**Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-18
 **ID**: 055
 **Depends on**: 039, 042, 044
 **Track**: stdlib
@@ -19,6 +19,23 @@
 - File was located at `issues/done/055-std-json-toml-csv.md` — incorrect directory for an open issue.
 
 **Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
+
+## Reopened by audit — 2026-04-18
+
+**Reason**: The issue remained under `issues/done/` even after the earlier reopen note, and the product claim still overstates reality. Current repo evidence uses tagged raw-text wrappers for `JsonValue` / `TomlValue`, while the done issue still claims recursive enum surfaces and broad parser coverage as completed.
+
+**Audit evidence**:
+
+- `issues/open/055-std-json-toml-csv.md`: this file itself says it had been moved back to `issues/open/`, but it remained under `issues/done/` until this audit.
+- `std/json/mod.ark`: current JSON surface is not the recursive enum API claimed in the acceptance block.
+- `std/toml/mod.ark`: current TOML surface is not the recursive enum API claimed in the acceptance block.
+- `docs/stdlib/modules/json.md`: pretty-printing is still deferred and described as pass-through rather than fully implemented formatting semantics.
+
+**Violated acceptance / close gate**:
+
+- JSON/TOML public value models do not match the enum-based acceptance text.
+- `stringify_pretty` semantics are still explicitly deferred in current docs.
+- The issue cannot stay in `done/` while its own prior audit note says acceptance was unverified.
 
 ## Summary
 
