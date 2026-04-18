@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 590
+- **Canonical names:** 591
 - **Historical/deprecated names:** 3
-- **Total entries:** 593
+- **Total entries:** 594
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -185,6 +185,7 @@ Current public API names, sorted alphabetically.
 | `err` | `prelude` | `stable` | Option Result |
 | `error_message` | `std::core::error` | `stable` | Core |
 | `exists` | `std::fs` | `stable` | Fs |
+| `exists` | `std::host::fs` | `stable` | Host Fs |
 | `exit` | `std::host::process` | `stable` | Host Process |
 | `exit` | `std::process` | `stable` | Process |
 | `expect` | `prelude` | `stable` | Option Result |
@@ -796,6 +797,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `err` | ✅ `stable` | `prelude` | Option Result |
 | `error_message` | ✅ `stable` | `std::core::error` | Core |
 | `exists` | ✅ `stable` | `std::fs` | Fs |
+| `exists` | ✅ `stable` | `std::host::fs` | Host Fs |
 | `exit` | ✅ `stable` | `std::host::process` | Host Process |
 | `exit` | ✅ `stable` | `std::process` | Process |
 | `expect` | ✅ `stable` | `prelude` | Option Result |

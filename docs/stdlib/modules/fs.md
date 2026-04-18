@@ -39,8 +39,8 @@ write_string("output.txt", "hello")
 ## `std::host::fs`
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
-- Manifest-backed functions: 6
-- Stability: experimental 3, stable 3
+- Manifest-backed functions: 7
+- Stability: experimental 3, stable 4
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
@@ -55,6 +55,7 @@ These APIs perform host I/O. Pure path manipulation remains in `std::path`.
 | `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
+| `exists` | `(String) -> bool` | `stable` | ✅ impl | Returns true when path can be opened for reading as a file. |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ impl | Seeks within an open file descriptor. |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ impl | Returns the current file offset for an open file descriptor. |
 | `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ impl | Returns the errno from fd_fdstat_get for an open file descriptor. |
@@ -90,6 +91,12 @@ Write a byte sequence (Vec<i32> where each element is 0–255) to the given file
 
 **Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
 
+#### `exists`
+
+Returns true when the path can be opened for reading as a file. Probe helper; directories, missing paths, and unreadable paths may return false.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
 #### `fd_seek`
 
 Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset.
@@ -119,10 +126,10 @@ Filesystem operations backed by low-level WASI/host intrinsics.
 Paths are plain `String` values using `/` as the separator (POSIX/WASI
 convention). For pure path manipulation helpers see `std::path`.
 
-**Stub notice**: `exists` is a best-effort approximation that probes
-readability. Directories and write-only files may not be detected
-correctly. Full WASI P2 `wasi:filesystem/types` intrinsics are
-planned for a later release.
+**Probe notice**: `exists` is intentionally a readability probe, not a
+general path-existence check. Directories, missing paths, and unreadable
+paths may return `false`. Full WASI P2 `wasi:filesystem/types`
+intrinsics are planned for a later release.
 
 ### Public API
 
@@ -130,7 +137,7 @@ planned for a later release.
 |------|-----------|-----------|---------|
 | `read_string` | `(String) -> Result<String, String>` | `stable` | Reads the entire contents of a file into a UTF-8 string. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, creating or truncating it. |
-| `exists` | `(String) -> bool` | `stable` | Returns true if a file at path appears to exist and is readable. |
+| `exists` | `(String) -> bool` | `stable` | Returns true when path can be opened for reading as a file. |
 
 #### `read_string`
 
@@ -150,6 +157,6 @@ Write a UTF-8 string to a file, creating or truncating it.
 
 #### `exists`
 
-Returns true if a file at the given path appears to exist and is readable. Stub: uses a read probe.
+Returns true when the path can be opened for reading as a file. Probe helper; directories, missing paths, and unreadable paths may return false.
 
 **Availability:** Requires the --dir capability flag at runtime.

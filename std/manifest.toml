@@ -2372,7 +2372,7 @@ doc_category = "fs"
 stability = "stable"
 params = ["String"]
 returns = "bool"
-doc = "Returns true if a file at the given path appears to exist and is readable. Stub: uses a read probe."
+doc = "Returns true when the path can be opened for reading as a file. Probe helper; directories, missing paths, and unreadable paths may return false."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 # === std::host::fs ===
@@ -2412,6 +2412,16 @@ intrinsic = "__intrinsic_fs_write_bytes"
 doc_category = "host_fs"
 doc = "Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path."
 errors = "Returns Err if the path is not writable or any byte value is out of range 0–255."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "exists"
+module = "std::host::fs"
+stability = "stable"
+params = ["String"]
+returns = "bool"
+doc_category = "host_fs"
+doc = "Returns true when the path can be opened for reading as a file. Probe helper; directories, missing paths, and unreadable paths may return false."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]

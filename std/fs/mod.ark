@@ -3,10 +3,10 @@
 //! Paths are plain `String` values using `/` as the separator (POSIX/WASI
 //! convention). For pure path manipulation helpers see `std::path`.
 //!
-//! **Stub notice**: `exists` is a best-effort approximation that probes
-//! readability. Directories and write-only files may not be detected
-//! correctly. Full WASI P2 `wasi:filesystem/types` intrinsics are
-//! planned for a later release.
+//! **Probe notice**: `exists` is intentionally a readability probe, not a
+//! general path-existence check. Directories, missing paths, and unreadable
+//! paths may return `false`. Full WASI P2 `wasi:filesystem/types`
+//! intrinsics are planned for a later release.
 
 /// Reads the entire contents of a file into a UTF-8 string.
 ///
@@ -24,10 +24,20 @@ pub fn write_string(path: String, contents: String) -> Result<(), String> {
     __intrinsic_fs_write_file(path, contents)
 }
 
-/// Returns `true` if a file at `path` appears to exist and is readable.
+/// Returns `true` when `path` can be opened for reading as a file.
 ///
-/// **Stub**: implemented as a read probe — returns `false` for
-/// non-existent paths and also for directories or write-only files.
+/// This is a probe helper, not a general path-existence check.
+/// Directories, missing paths, and unreadable paths may return `false`.
+///
+/// Example — Probe a readable file versus a broken symlink with `std::host::fs`:
+/// ```ark
+/// use std::host::fs
+/// let file_ok = fs::exists("tests/fixtures/stdlib_fs/present.txt")
+/// let link_ok = fs::exists("tests/fixtures/stdlib_fs/broken_link")
+/// ```
 pub fn exists(path: String) -> bool {
-    is_ok(__intrinsic_fs_read_file(path))
+    match __intrinsic_fs_read_file(path) {
+        Ok(_) => true,
+        Err(_) => false,
+    }
 }

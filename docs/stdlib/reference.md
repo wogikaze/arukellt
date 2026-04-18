@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 410 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 411 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 175 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -419,7 +419,7 @@ Expected output: `42`
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `exists` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Returns true if a file at the given path appears to exist and is readable. Stub: uses a read probe. |
+| `exists` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Returns true when the path can be opened for reading as a file. Probe helper; directories, missing p… |
 | `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
 
@@ -463,6 +463,7 @@ match home { Some(p) => println(p), None => println("not set") }
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `exists` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | Returns true when the path can be opened for reading as a file. Probe helper; directories, missing p… |
 | `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
 | `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
@@ -1166,7 +1167,8 @@ Expected output: `hello world`
 | `eq` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
 | `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - | - |
-| `exists` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Returns true if a file at the given path appears to exist and is readable. Stub: uses a read probe. |
+| `exists` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Returns true when the path can be opened for reading as a file. Probe helper; directories, missing p… |
+| `exists` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | Returns true when the path can be opened for reading as a file. Probe helper; directories, missing p… |
 | `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
 | `exit` | `(i32) -> ()` | `std::process` | `stable` | `builtin` | no | - | Terminate the process with the given exit code. |
 | `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |

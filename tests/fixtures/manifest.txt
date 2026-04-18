@@ -290,6 +290,7 @@ run:stdlib_io/fs_deny_overrides_dir.ark
 run:stdlib_io/fs_read_error.ark
 run:stdlib_io/fs_read_write.ark
 run:stdlib_io/fs_readonly_write.ark
+run:stdlib_fs/exists_probe_contract.ark
 run:stdlib_io/i32_to_string.ark
 run:stdlib_io/parse_int.ark
 run:stdlib_io/print_hello.ark
