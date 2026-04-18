@@ -253,6 +253,7 @@ pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
                         "supportsSteppingGranularity": true,
                         "supportsTerminateRequest": true,
                         "supportsSingleThreadExecutionRequests": true,
+                        "supportsEvaluateForHovers": false,
                     })),
                 ));
             }
@@ -484,6 +485,31 @@ pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
                     &request,
                     Some(serde_json::json!({ "variables": vars })),
                 ));
+            }
+
+            "evaluate" => {
+                let args = request.arguments.as_ref();
+                let expression = args
+                    .and_then(|a| a.get("expression"))
+                    .and_then(|e| e.as_str())
+                    .unwrap_or("");
+                let body = if let Ok(sess) = session.lock() {
+                    match &sess.exec_state {
+                        ExecState::Stopped { line, .. } => {
+                            evaluate_expression(&sess.source_lines, *line, expression)
+                        }
+                        _ => serde_json::json!({
+                            "result": "(not stopped — evaluate requires a paused debug session)",
+                            "variablesReference": 0,
+                        }),
+                    }
+                } else {
+                    serde_json::json!({
+                        "result": "(session unavailable)",
+                        "variablesReference": 0,
+                    })
+                };
+                messages.push(make_response(&request, Some(body)));
             }
 
             "continue" => {
@@ -773,6 +799,30 @@ fn extract_visible_variables(lines: &[String], target_line: i64) -> Vec<serde_js
     vars
 }
 
+/// Minimal evaluate: resolve a bare identifier against the same static locals view as `variables`.
+fn evaluate_expression(lines: &[String], target_line: i64, expression: &str) -> serde_json::Value {
+    let expr = expression.trim();
+    if expr.is_empty() {
+        return serde_json::json!({
+            "result": "",
+            "variablesReference": 0,
+        });
+    }
+    let vars = extract_visible_variables(lines, target_line);
+    for v in &vars {
+        if v.get("name").and_then(|n| n.as_str()) == Some(expr) {
+            return serde_json::json!({
+                "result": v.get("value").and_then(|x| x.as_str()).unwrap_or(""),
+                "variablesReference": 0,
+            });
+        }
+    }
+    serde_json::json!({
+        "result": format!("(no static binding for `{expr}`)"),
+        "variablesReference": 0,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -815,6 +865,29 @@ mod tests {
         assert!(names.contains(&"msg"));
         assert!(names.contains(&"a"));
         assert!(names.contains(&"b"));
+    }
+
+    #[test]
+    fn test_evaluate_expression_resolves_local() {
+        let lines = vec![
+            "fn main() {".to_string(),
+            "  let x = 42".to_string(),
+            "  print(x)".to_string(),
+            "}".to_string(),
+        ];
+        let v = evaluate_expression(&lines, 3, "x");
+        assert_eq!(v["result"].as_str(), Some("42"));
+    }
+
+    #[test]
+    fn test_evaluate_expression_unknown() {
+        let lines = vec![
+            "fn main() {".to_string(),
+            "  let x = 1".to_string(),
+            "}".to_string(),
+        ];
+        let v = evaluate_expression(&lines, 2, "unknown");
+        assert!(v["result"].as_str().unwrap().contains("no static binding"));
     }
 
     #[test]
