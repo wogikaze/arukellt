@@ -15,7 +15,6 @@ graph LR
   I045["045 std::collections: Deque、PriorityQueue"]
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I051["051 std::time + std::random: 時刻・期間・乱数"]
-  I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
   I070["070 Wasm GC i31ref: 小整数 unboxed scalar 最適化"]
   I072["072 Wasm Multi-Value: ブロック / ループの複数値返却フル活用"]
@@ -140,7 +139,6 @@ graph LR
 - **045** depends on: 039, 041; blocks: none
 - **047** depends on: 039, 041; blocks: none
 - **051** depends on: 039, 040; blocks: none
-- **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none
 - **070** depends on: none; blocks: none
 - **072** depends on: none; blocks: none

@@ -196,24 +196,6 @@
       }
     },
     {
-      "id": "064",
-      "path": "064-wasm-branch-hinting.md",
-      "title": "Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント",
-      "track": "wasm-feature",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "066",
       "path": "066-wasm-bulk-memory-full.md",
       "title": "Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応",
