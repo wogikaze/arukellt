@@ -8,7 +8,7 @@
 **Track**: parallel
 **Orchestration class**: blocked-by-upstream
 **Orchestration upstream**: #188
-**Blocks v1 exit**: no
+**Blocks v{N}**: none
 
 ## Reopened by audit — 2026-04-13
 

@@ -8,7 +8,7 @@
 **Track**: wasi-feature
 **Orchestration class**: blocked-by-upstream
 **Orchestration upstream**: #74
-**Blocks v1 exit**: no
+**Blocks v{N}**: none
 
 **Status note**: P2-only capability. T1 では compile-time error が正しい挙動。
 

@@ -9,7 +9,7 @@
 **Track**: corehir
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
-**Blocks v1 exit**: no
+**Blocks v{N}**: none
 **Priority**: 5
 
 

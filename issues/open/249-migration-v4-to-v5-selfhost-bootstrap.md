@@ -8,7 +8,7 @@
 **Track**: compiler/selfhost
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
-**Blocks v1 exit**: no
+**Blocks v{N}**: none
 
 ## Reopened by audit — 2026-04-13
 
