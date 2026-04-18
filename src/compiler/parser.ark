@@ -1808,6 +1808,60 @@ pub fn issue499_parser_lexer_integration_self_check() -> String {
     String_from("issue499 parser ok: lexer integration |x, y| x + y")
 }
 
+/// Closure with braced body: `|x| { x + 1 }` (covers `parse_expr_or_block` after closing `|`).
+pub fn issue499_parser_block_body_lexer_integration_self_check() -> String {
+    let src = String_from("fn main() { let f = |x| { x + 1 } }")
+    let tokens = lexer::tokenize(src)
+    let p = Parser_new(tokens)
+    let decls = parse_module(p)
+    if len(p.errors) != 0 {
+        return concat(String_from("issue499 block body fail: parse errors="), to_string(len(p.errors)))
+    }
+    if len(decls) != 1 {
+        return concat(String_from("issue499 block body fail: decl count="), to_string(len(decls)))
+    }
+
+    let fn_decl = get_unchecked(decls, 0)
+    if fn_decl.kind != NK_FN_DECL() {
+        return String_from("issue499 block body fail: expected fn decl")
+    }
+    let body = get_unchecked(fn_decl.children, 0)
+    if body.kind != NK_BLOCK() || len(body.children) != 1 {
+        return String_from("issue499 block body fail: fn body")
+    }
+
+    let let_stmt = get_unchecked(body.children, 0)
+    if let_stmt.kind != NK_LET() || len(let_stmt.children) != 1 {
+        return String_from("issue499 block body fail: let stmt")
+    }
+
+    let closure = get_unchecked(let_stmt.children, 0)
+    if closure.kind != NK_CLOSURE() || len(closure.children) != 2 {
+        return String_from("issue499 block body fail: closure shape")
+    }
+
+    let param0 = get_unchecked(closure.children, 0)
+    let closure_body = get_unchecked(closure.children, 1)
+    if !eq(clone(param0.text), String_from("x")) {
+        return String_from("issue499 block body fail: param")
+    }
+    if closure_body.kind != NK_BLOCK() || len(closure_body.children) != 1 {
+        return String_from("issue499 block body fail: closure block")
+    }
+
+    let inner_stmt = get_unchecked(closure_body.children, 0)
+    if inner_stmt.kind != NK_EXPR_STMT() || len(inner_stmt.children) != 1 {
+        return String_from("issue499 block body fail: inner stmt")
+    }
+
+    let add_expr = get_unchecked(inner_stmt.children, 0)
+    if add_expr.kind != NK_BINARY() || add_expr.op != OP_ADD() {
+        return String_from("issue499 block body fail: inner expr")
+    }
+
+    String_from("issue499 parser ok: lexer integration block body |x| { x + 1 }")
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
@@ -1852,5 +1906,6 @@ fn main() {
     stdio::println(issue499_parser_self_check())
     stdio::println(issue499_parser_pipepipe_self_check())
     stdio::println(issue499_parser_lexer_integration_self_check())
+    stdio::println(issue499_parser_block_body_lexer_integration_self_check())
     stdio::println(issue504_parser_self_check())
 }
