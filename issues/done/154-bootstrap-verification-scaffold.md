@@ -54,3 +54,14 @@ v5 に入ったときの曖昧さを減らせる。
 - **2026-04-18:** Acceptance #2 — `scripts/run/verify-bootstrap.sh` header documents
   artifact naming, Stage 2 comparison (`sha256sum` digest equality), and
   failure/diff policy; `docs/compiler/bootstrap.md` links to that header contract.
+
+
+---
+
+## Queue closure verification — 2026-04-18
+
+- **Evidence**: Completion notes and primary paths recorded in this issue body match HEAD.
+- **Verification**: `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18).
+- **False-done checklist**: Frontmatter `Status: done` aligned with repo; acceptance items for delivered scope cite files or are marked complete in prose where applicable.
+
+**Reviewer:** implementation-backed queue normalization (verify checklist).

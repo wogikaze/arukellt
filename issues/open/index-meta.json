@@ -375,26 +375,6 @@
       }
     },
     {
-      "id": "154",
-      "path": "154-bootstrap-verification-scaffold.md",
-      "title": "横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold",
-      "track": "cross-cutting",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "153"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "194",
       "path": "194-semantic-preview-diff-and-ghost-refactor-surface.md",
       "title": "Semantic preview / diff / ghost refactor surface",
