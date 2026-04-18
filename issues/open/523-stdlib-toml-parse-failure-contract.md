@@ -57,3 +57,27 @@
 - malformed-input rejection is proven in repo fixtures
 - docs cite the supported subset explicitly
 - parser behavior no longer silently accepts clearly invalid documents as success
+
+## Progress note — 2026-04-18 (Wave 2)
+
+Wave 2 landed commit `4373b36` (`feat(stdlib): define toml parse failure subset contract`).
+
+Delivered in this slice:
+
+- `std::toml::toml_parse` now rejects representative unsupported / malformed inputs for the documented subset boundary
+- added focused fixtures:
+  - `tests/fixtures/stdlib_toml/toml_parse_valid_subset.ark`
+  - `tests/fixtures/stdlib_toml/toml_parse_invalid_table_header.ark`
+  - `tests/fixtures/stdlib_toml/toml_parse_invalid_trailing_garbage.ark`
+- updated TOML module docs to describe the supported subset without overclaiming broad TOML compliance
+
+Focused verification from the completion report:
+
+- focused TOML fixture runs — PASS
+- `python3 scripts/check/check-docs-consistency.py` — PASS
+- `python3 scripts/gen/generate-docs.py` — PASS (`generated docs are up to date`)
+
+This issue remains open because the issue-level required verification still
+includes `bash scripts/run/verify-harness.sh --fixtures`, and that command
+reported unrelated pre-existing failures outside this slice. Do not close until
+the required verification contract is green or explicitly narrowed.

@@ -59,7 +59,6 @@ graph LR
   I515["515 Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる"]
   I516["516 Stdlib: raw helper と推奨 facade の境界を再設計する"]
   I517["517 Stdlib: canonical naming / module layering / surface consistency の第2監査"]
-  I519["519 Stdlib: property / differential / parity test を family 横断で拡張する"]
   I520["520 Stdlib: allocation / complexity / perf footgun を family 横断で監査する"]
   I521["521 Stdlib JSON: top-level parse は trailing non-whitespace を拒否する"]
   I522["522 Stdlib JSON: `stringify_pretty` の product claim を現実に合わせる"]
@@ -206,7 +205,6 @@ graph LR
 - **515** depends on: none; blocks: none
 - **516** depends on: none; blocks: none
 - **517** depends on: none; blocks: 518
-- **519** depends on: none; blocks: none
 - **520** depends on: none; blocks: none
 - **521** depends on: none; blocks: none
 - **522** depends on: none; blocks: none
