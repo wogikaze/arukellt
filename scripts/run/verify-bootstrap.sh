@@ -1,10 +1,31 @@
 #!/usr/bin/env bash
 # verify-bootstrap.sh — Bootstrap fixpoint verification for self-hosting.
 #
-# Stages:
-#   0  Compile src/compiler/*.ark with the Rust compiler → arukellt-s1.wasm
-#   1  Compile src/compiler/*.ark with arukellt-s1.wasm  → arukellt-s2.wasm
-#   2  Compare sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)
+# Scaffold contract (issues/open/154-bootstrap-verification-scaffold.md, v5 roadmap):
+#   Canonical stages are fixed slots; behavior is implemented here (not no-op stubs).
+#
+#   Stage 0 — Trusted base: Rust-hosted `arukellt` compiles `src/compiler/main.ark`
+#             to a single wasm artifact (wasm32-wasi-p1).
+#   Stage 1 — First self-compile: run Stage 0 output under wasmtime with the repo
+#             root mounted; compile the same `main.ark` to a second wasm artifact.
+#   Stage 2 — Fixpoint gate: byte identity of Stage 0 vs Stage 1 outputs
+#             (sha256 equality on the two wasm files).
+#
+# Artifact naming (under REPO_ROOT, all ephemeral unless noted):
+#   BUILD_DIR="${REPO_ROOT}/.bootstrap-build"   # removed on exit (trap)
+#   S1_WASM="${BUILD_DIR}/arukellt-s1.wasm"      # Stage 0 output
+#   S2_WASM="${BUILD_DIR}/arukellt-s2.wasm"      # Stage 1 output
+#   Stage stderr logs: "${BUILD_DIR}/stage0.stderr", "${BUILD_DIR}/stage1.stderr"
+#
+# Comparison targets:
+#   Stage 2 compares sha256(S1_WASM) vs sha256(S2_WASM).  When they differ, the
+#   script prints both digests and sizes; it does not emit a binary diff.  Use
+#   `scripts/run/compare-outputs.sh` on fixtures to find the first divergent
+#   compiler phase (see docs/compiler/bootstrap.md).
+#
+# Future integration: `scripts/run/verify-harness.sh` may call this script once
+# bootstrap is stable; today optional `--fixpoint` uses check-selfhost-fixpoint.sh
+# (see docs/process/bootstrap-verification.md).
 #
 # Usage:
 #   scripts/run/verify-bootstrap.sh                # full bootstrap attainment gate

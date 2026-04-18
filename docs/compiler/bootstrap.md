@@ -8,6 +8,11 @@ The Arukellt v5 compiler is written in Arukellt itself (`src/compiler/*.ark`).
 Bootstrap verification proves correctness by reaching a **fixpoint**: the
 self-hosted compiler produces a bit-identical binary when it compiles itself.
 
+Process-level scaffold (stage slots, artifact names, failure/diff policy, and
+future `verify-harness` integration notes) lives in
+[`docs/process/bootstrap-verification.md`](../process/bootstrap-verification.md)
+(issue #154, `issues/open/154-bootstrap-verification-scaffold.md`).
+
 ```
 Stage 0 (Rust compiler)
   └─ compiles src/compiler/main.ark → arukellt-s1.wasm   (trusted base)
@@ -278,7 +283,7 @@ machine-readable form of that full gate and rejects partial-mode flags.
 
 | Script | Purpose | Issue |
 |--------|---------|-------|
-| `scripts/run/verify-bootstrap.sh` | Stage 0→1→2 fixpoint verification | #181, #182 |
+| `scripts/run/verify-bootstrap.sh` | Stage 0→1→2 fixpoint verification | #154, #181, #182 |
 | `scripts/check/check-selfhost-fixpoint.sh` | sha256 fixpoint check (s1 vs s2); `--no-build` compares cached artifacts | #459 |
 | `scripts/check/check-selfhost-fixture-parity.sh` | Run "run:" fixtures through s1.wasm; compare stdout to Rust output | #459 |
 | `scripts/check/check-selfhost-diagnostic-parity.sh` | Run "diag:" fixtures through s1.wasm; check expected error pattern appears | #459 |

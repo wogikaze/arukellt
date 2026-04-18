@@ -1,96 +1,87 @@
 # Bootstrap Verification
 
-This document describes the staged bootstrap pipeline and fixpoint
-verification methodology used to validate the Arukellt self-hosted compiler.
+This document is the **process-level** entry for the staged bootstrap pipeline
+and fixpoint gate.  The executable contract lives in
+`scripts/run/verify-bootstrap.sh`; the user-facing compiler guide is
+[`docs/compiler/bootstrap.md`](../compiler/bootstrap.md).
+
+**Tracking:** scaffold and naming contract for issue
+#154 (`issues/open/154-bootstrap-verification-scaffold.md`); roadmap alignment:
+`docs/process/roadmap-cross-cutting.md` §6.5, `docs/process/roadmap-v5.md`.
 
 ## Goal
 
 Prove that the self-hosted compiler is correct by reaching a **fixpoint**:
-compiling the compiler with itself produces a bit-identical binary.
+compiling the compiler with itself produces a **byte-identical** wasm binary
+when the trusted base (Rust compiler) and the first self-compile agree.
 
-## Stages
+## Stages (canonical slots)
 
-| Stage | Input              | Tool                   | Output            | Status      |
-|-------|--------------------|------------------------|-------------------|-------------|
-| 0     | `lexer.ark`        | Rust compiler          | `lexer.wasm`      | Implemented |
-| 1     | `lexer.wasm`       | wasmtime               | exit 0            | Implemented |
-| 2     | `parser.ark`       | Rust compiler          | `parser.wasm`     | Placeholder |
-| 3     | `compiler.ark` × 3 | Stage-N compilers      | fixpoint diff     | Placeholder |
+These map 1:1 to the implementation in `scripts/run/verify-bootstrap.sh`.
 
-### Stage 0 — Compile with Rust compiler
+| Stage | Input | Tool | Output | Role |
+|-------|--------|------|--------|------|
+| **0** | `src/compiler/main.ark` | Rust `arukellt` (`ARUKELLT_BIN` or `target/{debug,release}/arukellt`) | `.bootstrap-build/arukellt-s1.wasm` | Trusted base |
+| **1** | same `main.ark` (paths relative to repo root) | `wasmtime run` of `arukellt-s1.wasm` | `.bootstrap-build/arukellt-s2.wasm` | First self-compile |
+| **2** | `arukellt-s1.wasm`, `arukellt-s2.wasm` | `sha256sum` | (none) | Fixpoint: digests must match |
 
-The Rust-hosted compiler (`target/release/arukellt`) compiles
-`src/compiler/lexer.ark` into `src/compiler/lexer.wasm`.  This is the
-**trusted base**: if the Rust compiler is correct, the output is correct.
+Intermediate paths live under **`.bootstrap-build/`** and are removed when the
+script exits (cleanup trap).  Do not treat that directory as a cache across
+runs unless you copy artifacts out first.
 
-### Stage 1 — Execute under wasmtime
+## Artifact naming convention
 
-Run `lexer.wasm` under wasmtime.  A zero exit code confirms the compiled
-module is structurally valid and executes without trapping.
+| Artifact | Path | Producer |
+|----------|------|----------|
+| `arukellt-s1.wasm` | `.bootstrap-build/arukellt-s1.wasm` | Stage 0 (Rust compiler) |
+| `arukellt-s2.wasm` | `.bootstrap-build/arukellt-s2.wasm` | Stage 1 (self-compile) |
 
-### Stage 2 — Parser compilation (placeholder)
+Per-stage compiler stderr is captured to `.bootstrap-build/stage0.stderr` and
+`.bootstrap-build/stage1.stderr` when present; the script may indent and print
+these on failure.
 
-Once `src/compiler/parser.ark` exists, Stage 2 will compile and execute it
-the same way Stages 0–1 handle the lexer.
+## Failure and diff policy
 
-### Stage 3 — Fixpoint verification (placeholder)
+- Any failed stage exits **1** for the full gate; partial modes (`--stage1-only`,
+  `--stage N`, `--fixture-parity`) exit **0** only when the requested subset
+  succeeds and **do not** claim fixpoint attainment unless the full 0→1→2 path
+  ran successfully.
+- **Stage 2** does not run `diff` on wasm bytes.  On mismatch it prints both
+  **sha256** digests and **file sizes**, then points to
+  `scripts/run/compare-outputs.sh` to locate the first divergent **phase** on a
+  fixture (see `docs/compiler/bootstrap.md` — Debug Procedures).
+- **`--check`:** machine-readable summary for the full gate only; incompatible
+  with partial flags (see `docs/compiler/bootstrap.md` — Completion contract).
 
-When a complete self-hosted compiler exists (`compiler.ark`), the fixpoint
-check proceeds as follows:
+## Determinism requirement
 
-```
-  Rust compiler  ──compile──▶  compiler-s0.wasm   (Stage 0 output)
-  compiler-s0    ──compile──▶  compiler-s1.wasm   (first self-compile)
-  compiler-s1    ──compile──▶  compiler-s2.wasm   (second self-compile)
-
-  diff compiler-s1.wasm compiler-s2.wasm  →  must be identical
-```
-
-If `compiler-s1.wasm` and `compiler-s2.wasm` are byte-identical, the
-compiler is a **fixpoint**: it reproduces itself when it compiles itself.
-This is the strongest practical proof of compiler correctness short of
-formal verification.
-
-### Determinism requirement
-
-Fixpoint verification only works when compilation is **deterministic**.
-The compiler must not embed timestamps, random nonces, or pointer-derived
-values into the output binary.  Determinism is verified by `scripts/run/verify-harness.sh`
-(which compiles fixtures twice and asserts byte-identical output) and will be extended to
-cover the self-hosted compiler once it exists.
+Fixpoint verification requires **deterministic** compilation: no timestamps,
+random nonces, or pointer-derived bytes in the wasm output.  Harness
+determinism checks for fixtures are extended toward selfhost over time; see
+`docs/compiler/bootstrap.md` and `scripts/run/verify-harness.sh`.
 
 ## Running
 
 ```bash
-# All stages
+# Full Stage 0 → 1 → 2 (fixpoint attainment gate when all pass)
 scripts/run/verify-bootstrap.sh
 
+# Stage 0 only (smoke; does not prove fixpoint)
+scripts/run/verify-bootstrap.sh --stage1-only
+
 # Single stage
-scripts/run/verify-bootstrap.sh --stage=0
+scripts/run/verify-bootstrap.sh --stage 0
 ```
 
 ## Integration with verify-harness
 
-`scripts/run/verify-harness.sh` is the top-level completion gate.  Once
-bootstrap stages are stable, the harness will invoke `verify-bootstrap.sh`
-as a sub-check so that self-hosting regressions block the build.
+`scripts/run/verify-harness.sh` is the top-level completion gate.
 
-## Artifact naming convention
+- **Today:** optional `--fixpoint` runs `scripts/check/check-selfhost-fixpoint.sh`
+  (issue #459; may SKIP or soft-fail depending on artifacts and fixpoint state).
+- **Future:** the harness may invoke `scripts/run/verify-bootstrap.sh` directly
+  as the canonical Stage 0→1→2 gate once bootstrap is stable in CI; the
+  contract above is written so that wiring is a one-line delegation.
 
-| Artifact            | Path                          | Producer         |
-|---------------------|-------------------------------|------------------|
-| `lexer.wasm`        | `src/compiler/lexer.wasm`     | Rust compiler    |
-| `parser.wasm`       | `src/compiler/parser.wasm`    | Rust compiler    |
-| `compiler-s0.wasm`  | (build dir, not committed)    | Rust compiler    |
-| `compiler-s1.wasm`  | (build dir, not committed)    | compiler-s0.wasm |
-| `compiler-s2.wasm`  | (build dir, not committed)    | compiler-s1.wasm |
-
-Intermediate fixpoint artifacts live in a temporary build directory and are
-cleaned up after each verification run.  Only the canonical `lexer.wasm`
-and `parser.wasm` are committed to the repository.
-
-## Failure policy
-
-- Any non-zero exit from a stage marks the entire bootstrap check as **FAIL**.
-- On failure the script exits with status 1 and prints which stage failed.
-- When integrated with CI, a bootstrap failure blocks merge.
+No change to `verify-harness.sh` is required for issue #154; the integration
+point is documented here for future CI work.
