@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-04-15
-**Updated**: 2026-04-15
+**Updated**: 2026-04-18
 **ID**: 513
 **Depends on**: none
 **Track**: stdlib
@@ -10,6 +10,10 @@
 **Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Source**: stdlib modernization backlog requested 2026-04-15
+
+## Progress
+
+- **2026-04-18** — Prelude call-site inventory (stdlib implementation modules): [`docs/stdlib/prelude-migration-inventory.md`](../../docs/stdlib/prelude-migration-inventory.md)
 
 ## Summary
 
@@ -27,7 +31,7 @@ prelude intrinsic 露出を一段隠す方針へ寄せる。
 ## Acceptance
 
 - [x] 「user-facing sample / docs / cookbook では prelude 直叩きを避ける」ルールが明文化される
-- [ ] stdlib 内部で module facade に置き換えられる prelude call site の棚卸しが作られる
+- [x] stdlib 内部で module facade に置き換えられる prelude call site の棚卸しが作られる
 - [ ] `std::text`, `std::core::convert`, `std::io` など wrapper を優先すべき family が列挙される
 - [ ] deprecated prelude helper を docs example から段階削除する migration plan がある
 
