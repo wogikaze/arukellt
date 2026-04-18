@@ -1,8 +1,9 @@
 # std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
+**Closed**: 2026-04-18
 **ID**: 043
 **Depends on**: 039, 040
 **Track**: stdlib
@@ -152,3 +153,29 @@ pub fn byte_view_to_cursor(v: ByteView) -> ByteCursor
 
 1. Bytes の immutability を型レベルで保証するか、convention で保証するか
 2. エンディアン指定を enum (`Endian::Little`, `Endian::Big`) にするか関数名で分けるか
+
+---
+
+## Close note — 2026-04-18
+
+Closed as complete. std::bytes module fully implemented with all required functionality.
+
+**Close evidence:**
+- std/bytes/mod.ark implements all Bytes, ByteBuf, ByteCursor operations
+- Endian utilities (u16/u32 LE/BE conversions) implemented
+- Hex encode/decode implemented
+- Base64 encode/decode implemented
+- LEB128 encode/decode for u32/i32/u64 implemented
+- 9 fixtures covering all functionality: bytes_basic, bytes_helpers, bytes_slice, buf_basic, cursor_read, endian, hex, base64, leb128
+- Verification: `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)
+
+**Acceptance mapping:**
+- ✓ Bytes basic operations (new, from_array, len, get, slice, concat, eq)
+- ✓ ByteBuf operations (new, with_capacity, push_u8/u16_le/u32_le/u64_le, extend, freeze, len)
+- ✓ ByteCursor operations (new, pos, remaining, read_u8/u16_le/u32_le/u64_le/u32_be, read_bytes)
+- ✓ Encoding (hex_encode/decode, base64_encode/decode)
+- ✓ LEB128 codec (encode_u32/i32/u64, decode_u32/i32/u64)
+- ✓ Endian utilities (u16/u32 LE/BE conversions)
+- ✓ 8+ fixtures pass (9 fixtures registered)
+
+Implementation uses Vec<i32> representation for all types (current runtime limitation).
