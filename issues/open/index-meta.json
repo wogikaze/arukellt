@@ -1,8 +1,28 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T06:27:23Z",
+  "generated_at": "2026-04-18T06:43:07Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
+    {
+      "id": "028",
+      "path": "028-wit-import-parsing.md",
+      "title": "WIT import parsing & host function binding",
+      "track": "component-model",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "028b"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 8,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
     {
       "id": "032",
       "path": "032-resource-type.md",
@@ -18,6 +38,28 @@
       ],
       "acceptance": {
         "checked": 10,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "034",
+      "path": "034-wit-cli-integration.md",
+      "title": "CLI --wit flag, --emit component workflow, docs",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "030",
+        "031",
+        "028b"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 9,
         "unchecked": 0
       },
       "orchestration": {
@@ -186,8 +228,8 @@
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
+        "class": "verification-ready",
+        "upstream_notes": "STOP_IF — see §STOP_IF; do not dispatch impl until issue rescoped"
       }
     },
     {
@@ -811,8 +853,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 1,
-        "unchecked": 4
+        "checked": 2,
+        "unchecked": 3
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1894,51 +1936,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#39, #44"
-      }
-    },
-    {
-      "id": "028",
-      "path": "028-wit-import-parsing.md",
-      "title": "WIT import parsing & host function binding",
-      "track": "component-model",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "028"
-      ],
-      "blocks_issue_ids": [
-        "028",
-        "034"
-      ],
-      "acceptance": {
-        "checked": 8,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "034",
-      "path": "034-wit-cli-integration.md",
-      "title": "CLI --wit flag, --emit component workflow, docs",
-      "track": "component-model",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "030",
-        "031",
-        "028"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 9,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     }
   ],

@@ -6,8 +6,8 @@
 **ID**: 094
 **Depends on**: —
 **Track**: backend-opt
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+**Orchestration class**: verification-ready
+**Orchestration upstream**: STOP_IF — see §STOP_IF; do not dispatch impl until issue rescoped
 **Blocks v4 exit**: no
 
 ---

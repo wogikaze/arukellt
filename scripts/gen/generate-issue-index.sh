@@ -33,6 +33,10 @@ def normalize_dep_token(token):
     token = token.strip()
     if not token or token in {'none', 'なし', '—', '-'}:
         return None
+    # Suffix issues e.g. 028b (done/open file 028b-*.md), not the same as 028
+    m = re.match(r'^#?(\d{3})([a-z])\b', token)
+    if m:
+        return m.group(1) + m.group(2)
     if token.startswith('#'):
         m = re.match(r'^#?(\d+)', token)
         if m:
