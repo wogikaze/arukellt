@@ -1427,6 +1427,26 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
     lines.append("mise bench:ci               # regression gate (fail on threshold breach)")
     lines.append("```")
     lines.append("")
+    lines.append("## Cross-language comparison")
+    lines.append("")
+    lines.append(
+        "Native reference programs (C, Rust, Go) are timed with `hyperfine` when "
+        "available (otherwise a built-in shell timer) and compared to Ark wasm; "
+        "the ratio table is printed to **stdout**, not embedded below."
+    )
+    lines.append("")
+    lines.append("```bash")
+    lines.append("bash scripts/compare-benchmarks.sh")
+    lines.append("# equivalent:")
+    lines.append("bash scripts/run/run-benchmarks.sh --compare-lang c,rust,go")
+    lines.append("```")
+    lines.append("")
+    lines.append(
+        "Roadmap C-ratio targets and Grain are described in "
+        "[`docs/process/roadmap-v4.md`](../process/roadmap-v4.md); "
+        "Grain is not wired in the shell runner yet."
+    )
+    lines.append("")
     lines.append("## Current Run")
     lines.append("")
     lines.append(f"- Mode: `{current['mode']}`")

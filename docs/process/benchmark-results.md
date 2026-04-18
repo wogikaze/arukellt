@@ -13,10 +13,22 @@ mise bench:update-baseline  # replace baseline with current measurements
 mise bench:ci               # regression gate (fail on threshold breach)
 ```
 
+## Cross-language comparison
+
+Native reference programs (C, Rust, Go) are timed with `hyperfine` when available (otherwise a built-in shell timer) and compared to Ark wasm; the ratio table is printed to **stdout**, not embedded below.
+
+```bash
+bash scripts/compare-benchmarks.sh
+# equivalent:
+bash scripts/run/run-benchmarks.sh --compare-lang c,rust,go
+```
+
+Roadmap C-ratio targets and Grain are described in [`docs/process/roadmap-v4.md`](../process/roadmap-v4.md); Grain is not wired in the shell runner yet.
+
 ## Current Run
 
-- Mode: `ci`
-- Generated at: `2026-04-18T05:04:31+00:00`
+- Mode: `quick`
+- Generated at: `2026-04-18T06:53:39+00:00`
 - Target: `wasm32-wasi-p1`
 - Compiler: `target/release/arukellt`
 
@@ -32,21 +44,21 @@ mise bench:ci               # regression gate (fail on threshold breach)
 
 | Benchmark | Tags | Compile ms | Run ms | Binary bytes | Compile RSS KB | Run RSS KB | Correctness |
 |-----------|------|------------|--------|--------------|----------------|------------|-------------|
-| fib | cpu-bound, loop, scalar | 13.141 | 10.229 | 931 | 11904 | 19328 | pass |
-| binary_tree | recursion-heavy, allocation-light, call-heavy | 13.612 | 14.394 | 907 | 12032 | 19328 | pass |
-| vec_ops | allocation-heavy, container, iteration | 12.499 | 9.905 | 1899 | 11904 | 19072 | pass |
-| string_concat | string-heavy, allocation-heavy, gc-pressure | 12.345 | 10.227 | 1170 | 11904 | 18944 | pass |
-| parse_tree_distance | parse, allocation-heavy, container, iteration | 16.394 | 45.782 | 7042 | 13184 | 27648 | pass |
+| fib | cpu-bound, loop, scalar | 12.361 | 10.895 | 931 | 12160 | 19072 | pass |
+| binary_tree | recursion-heavy, allocation-light, call-heavy | 15.113 | 15.636 | 907 | 12160 | 19072 | pass |
+| vec_ops | allocation-heavy, container, iteration | 13.854 | 11.544 | 1899 | 12160 | 19200 | pass |
+| string_concat | string-heavy, allocation-heavy, gc-pressure | 17.296 | 12.216 | 1170 | 12032 | 19328 | pass |
+| parse_tree_distance | parse, allocation-heavy, container, iteration | 16.516 | 45.447 | 7042 | 13184 | 27520 | pass |
 
 ## Compile Latency Breakdown (ms)
 
 | Benchmark | lex | parse | resolve | typecheck | lower | opt | emit | total |
 |-----------|-----|-------|---------|-----------|-------|-----|------|-------|
-| fib | 0.000 | 0.000 | 1.300 | 1.000 | 4.000 | 0.800 | 0.300 | 7.800 |
-| binary_tree | 0.000 | 0.000 | 1.400 | 1.000 | 4.100 | 0.800 | 0.300 | 8.200 |
-| vec_ops | 0.000 | 0.000 | 1.300 | 1.000 | 3.900 | 0.800 | 0.300 | 7.700 |
-| string_concat | 0.000 | 0.000 | 1.300 | 1.000 | 3.800 | 0.800 | 0.300 | 7.500 |
-| parse_tree_distance | 0.000 | 0.000 | 2.100 | 1.800 | 4.600 | 1.100 | 0.400 | 10.700 |
+| fib | 0.000 | 0.000 | 1.300 | 1.000 | 3.900 | 0.800 | 0.300 | 7.600 |
+| binary_tree | 0.000 | 0.000 | 1.700 | 1.300 | 4.200 | 0.800 | 0.400 | 8.900 |
+| vec_ops | 0.000 | 0.000 | 1.400 | 1.100 | 4.000 | 1.000 | 0.400 | 8.300 |
+| string_concat | 0.000 | 0.000 | 2.300 | 1.000 | 5.000 | 0.900 | 0.400 | 10.000 |
+| parse_tree_distance | 0.000 | 0.000 | 2.100 | 2.000 | 4.800 | 1.100 | 0.500 | 11.100 |
 
 ## Wasm Section Breakdown (bytes)
 
@@ -74,11 +86,11 @@ Benchmarks with CV > 5.0% are flagged as **unstable** — high variance may indi
 
 | Benchmark | Compile CV% | Compile Stable | Runtime CV% | Runtime Stable |
 |-----------|-------------|----------------|-------------|----------------|
-| fib | 4.01 | ✓ | 2.75 | ✓ |
-| binary_tree | 3.64 | ✓ | 2.40 | ✓ |
-| vec_ops | 1.48 | ✓ | 4.57 | ✓ |
-| string_concat | 2.08 | ✓ | 4.74 | ✓ |
-| parse_tree_distance | 8.07 | ✗ unstable | 4.42 | ✓ |
+| fib | 0.00 | ✓ | 8.00 | ✗ unstable |
+| binary_tree | 0.00 | ✓ | 2.72 | ✓ |
+| vec_ops | 0.00 | ✓ | 1.80 | ✓ |
+| string_concat | 0.00 | ✓ | 8.40 | ✗ unstable |
+| parse_tree_distance | 0.00 | ✓ | 3.29 | ✓ |
 
 ## Baseline Comparison
 
@@ -86,11 +98,11 @@ Baseline source: `tests/baselines/perf/baselines.json`
 
 | Benchmark | Compile Δ | Run Δ | Size Δ | Status |
 |-----------|-----------|-------|--------|--------|
-| fib | -3.24% | -9.08% | +0.00% | pass |
-| binary_tree | +0.46% | -2.84% | +0.00% | pass |
-| vec_ops | -32.82% | -8.28% | +0.00% | pass |
-| string_concat | -35.75% | -5.98% | +0.00% | pass |
-| parse_tree_distance | -41.86% | +0.99% | +0.00% | pass |
+| fib | -8.98% | -3.16% | +0.00% | pass |
+| binary_tree | +11.54% | +5.55% | +0.00% | pass |
+| vec_ops | -25.54% | +6.90% | +0.00% | pass |
+| string_concat | -9.98% | +12.31% | +0.00% | fail |
+| parse_tree_distance | -41.43% | +0.25% | +0.00% | pass |
 
 ### Wasm Section Δ vs Baseline (bytes)
 
@@ -104,8 +116,8 @@ Positive delta = size grew. Negative = shrank. `n/a` = section absent in one sid
 | string_concat | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
 | parse_tree_distance | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
 
-- Pass: 15
-- Fail: 0
+- Pass: 14
+- Fail: 1
 - Skipped: 0
 
 ## Schema
@@ -124,11 +136,11 @@ RSS peaks are sourced from `/usr/bin/time -f %M` (null when the tool is absent).
 
 | Benchmark | Tags | Compiler RSS KB | Runtime RSS KB | GC pauses |
 |-----------|------|-----------------|----------------|-----------|
-| fib | cpu-bound, loop, scalar | 11904 | 19328 | unavailable |
-| binary_tree | recursion-heavy, allocation-light, call-heavy | 12032 | 19328 | unavailable |
-| vec_ops | allocation-heavy, container, iteration | 11904 | 19072 | unavailable |
-| string_concat | string-heavy, allocation-heavy, gc-pressure | 11904 | 18944 | unavailable |
-| parse_tree_distance | parse, allocation-heavy, container, iteration | 13184 | 27648 | unavailable |
+| fib | cpu-bound, loop, scalar | 12160 | 19072 | unavailable |
+| binary_tree | recursion-heavy, allocation-light, call-heavy | 12160 | 19072 | unavailable |
+| vec_ops | allocation-heavy, container, iteration | 12160 | 19200 | unavailable |
+| string_concat | string-heavy, allocation-heavy, gc-pressure | 12032 | 19328 | unavailable |
+| parse_tree_distance | parse, allocation-heavy, container, iteration | 13184 | 27520 | unavailable |
 
 ## Runtime Latency Breakdown (ms)
 
@@ -137,9 +149,9 @@ Guest execution time = median total − startup overhead.
 
 | Benchmark | startup | guest | p50 | p95 | p99 | stddev |
 |-----------|---------|-------|-----|-----|-----|--------|
-| fib | 10.131 | 0.098 | 10.229 | 10.520 | 10.685 | 0.281 |
-| binary_tree | 10.131 | 4.263 | 14.394 | 14.899 | 15.197 | 0.346 |
-| vec_ops | 10.131 | 0.000 | 9.905 | 10.899 | 11.012 | 0.460 |
-| string_concat | 10.131 | 0.096 | 10.227 | 11.093 | 11.290 | 0.488 |
-| parse_tree_distance | 10.131 | 35.651 | 45.782 | 50.223 | 50.576 | 2.033 |
+| fib | 11.281 | 0.000 | 10.895 | 12.608 | 12.859 | 0.908 |
+| binary_tree | 11.281 | 4.355 | 15.636 | 16.288 | 16.301 | 0.430 |
+| vec_ops | 11.281 | 0.263 | 11.544 | 11.775 | 11.809 | 0.208 |
+| string_concat | 11.281 | 0.935 | 12.216 | 13.038 | 13.097 | 1.014 |
+| parse_tree_distance | 11.281 | 34.166 | 45.447 | 47.485 | 47.805 | 1.503 |
 

@@ -399,7 +399,7 @@ Baseline stored in `tests/baselines/perf/baselines.json`._
 - **`scripts/util/benchmark_runner.py`** — canonical runner used by `mise bench`, compare, baseline update, and CI gate.
 - **`benchmarks/run_benchmarks.sh`** — wrapper for the canonical runner.
 - **`scripts/check/perf-gate.sh`** — CI-oriented wrapper (`--mode ci` / `--mode update-baseline`).
-- **`scripts/compare-benchmarks.sh`** — baseline comparison wrapper.
+- **`scripts/compare-benchmarks.sh`** — cross-language reference timing wrapper (`run-benchmarks.sh --compare-lang`; prints the table to stdout).
 - **`parity-check.sh`** — Verify T1 vs T3 produce identical output for all `.ark` fixtures.
 - **`size-compare.sh`** — Compare Wasm binary sizes between T1 and T3.
 

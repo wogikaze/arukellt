@@ -341,14 +341,67 @@ suite("Extension Activation (#272)", () => {
     }
   });
 
-  test("custom server.path setting is respected", () => {
+  test("custom absolute server.path is used for binary discovery and LSP (#254)", async function () {
+    if (!fs.existsSync(repoDebugBinary)) {
+      this.skip();
+      return;
+    }
+
+    const { api } = await activateExtension();
     const cfg = vscode.workspace.getConfiguration("arukellt");
-    const serverPath = cfg.get("server.path");
-    assert.strictEqual(
-      typeof serverPath,
-      "string",
-      "server.path should be a string"
-    );
+    const originalPath = cfg.get("server.path");
+    const originalArgs = cfg.get("server.args");
+
+    try {
+      await cfg.update(
+        "server.path",
+        repoDebugBinary,
+        vscode.ConfigurationTarget.Global
+      );
+      await cfg.update("server.args", [], vscode.ConfigurationTarget.Global);
+      await vscode.commands.executeCommand("arukellt.restartLanguageServer");
+
+      await waitFor(
+        () => {
+          const state = api.__getTestState();
+          assert.strictEqual(
+            state.hasClient,
+            true,
+            "language client should run when server.path points at the repo binary"
+          );
+          assert.strictEqual(state.languageStatusText, "$(check) Ready");
+          assert.ok(
+            state.outputChannelLines.some((line) =>
+              /found via arukellt\.server\.path setting/i.test(line)
+            ),
+            `output channel should record resolution via configured path; got: ${state.outputChannelLines.join(" | ")}`
+          );
+        },
+        { description: "custom server.path LSP ready", timeoutMs: 30000 }
+      );
+    } finally {
+      await cfg.update(
+        "server.path",
+        originalPath,
+        vscode.ConfigurationTarget.Global
+      );
+      await cfg.update(
+        "server.args",
+        originalArgs,
+        vscode.ConfigurationTarget.Global
+      );
+      await vscode.commands.executeCommand("arukellt.restartLanguageServer");
+      if (fs.existsSync(repoDebugBinary)) {
+        await waitFor(
+          () => {
+            const state = api.__getTestState();
+            assert.strictEqual(state.hasClient, true);
+            assert.strictEqual(state.languageStatusText, "$(check) Ready");
+          },
+          { description: "restore LSP after custom server.path test", timeoutMs: 30000 }
+        );
+      }
+    }
   });
 });
 
