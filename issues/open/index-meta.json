@@ -415,24 +415,6 @@
       }
     },
     {
-      "id": "157",
-      "path": "157-adr004-method-syntax-evaluation.md",
-      "title": "ADR-004 P4: メソッド構文 / trait 再評価",
-      "track": "language-design",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "194",
       "path": "194-semantic-preview-diff-and-ghost-refactor-surface.md",
       "title": "Semantic preview / diff / ghost refactor surface",

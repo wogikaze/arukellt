@@ -26,7 +26,6 @@ graph LR
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
   I130["130 MIR lower.rs (4360行) をサブモジュールに分割"]
   I154["154 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
-  I157["157 ADR-004 P4: メソッド構文 / trait 再評価"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
   I195["195 Partial execution preview + local semantic insight"]
   I198["198 Advanced test UX: impact analysis / snapshot diff / fuzz UI"]
@@ -143,7 +142,6 @@ graph LR
 - **125** depends on: none; blocks: 126
 - **130** depends on: none; blocks: none
 - **154** depends on: 153; blocks: none
-- **157** depends on: none; blocks: none
 - **194** depends on: 193; blocks: none
 - **195** depends on: none; blocks: none
 - **198** depends on: 196, 197; blocks: none
