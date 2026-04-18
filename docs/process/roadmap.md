@@ -11,9 +11,9 @@
 |----|------|---------|------|
 | v1 | **完了** (2026-03-27) | Wasm GC ネイティブ対応 | [roadmap-v1.md](roadmap-v1.md) |
 | v2 | **完了** (2026-03-28) | Component Model 完全対応 | [roadmap-v2.md](roadmap-v2.md) |
-| v3 | **完了** (2026-03-28, tracked issues 039–059 are in `issues/done/`) | 標準ライブラリ整備 | [roadmap-v3.md](roadmap-v3.md) |
-| v4 | 未着手 | 最適化 (4 軸定量目標) | [roadmap-v4.md](roadmap-v4.md) |
-| v5 | 未着手 | セルフホスト | [roadmap-v5.md](roadmap-v5.md) |
+| v3 | **完了** (2026-03-28, tracked issues 039–059 are in `issues/done/`) | 標準ライブラリ整備 + セルフホスト完了 | [roadmap-v3.md](roadmap-v3.md) |
+| v4 | **スキップ** (後回し) | 最適化 (4 軸定量目標) | [roadmap-v4.md](roadmap-v4.md) — v3完了後に再評価 |
+| v5 | **v3完了時点で完了** | セルフホスト (Rust→Arukellt完全移行) | [roadmap-v5.md](roadmap-v5.md) — v3完了時点で達成
 
 横断事項 → [roadmap-cross-cutting.md](roadmap-cross-cutting.md)
 
