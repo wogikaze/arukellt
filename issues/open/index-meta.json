@@ -196,24 +196,6 @@
       }
     },
     {
-      "id": "070",
-      "path": "070-wasm-i31ref-scalar.md",
-      "title": "Wasm GC i31ref: 小整数 unboxed scalar 最適化",
-      "track": "wasm-feature",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "072",
       "path": "072-wasm-multi-value-full.md",
       "title": "Wasm Multi-Value: ブロック / ループの複数値返却フル活用",
