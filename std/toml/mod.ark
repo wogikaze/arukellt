@@ -1,5 +1,10 @@
 //! TOML parser/serializer for std::toml.
 //!
+//! This module intentionally supports only a bounded TOML subset:
+//! blank lines, comment lines, and simple `key = value` entries.
+//! Table headers, arrays of tables, and other unsupported grammar
+//! forms are rejected by `toml_parse`.
+//!
 //! ## Value representation
 //!
 //! `TomlValue` is a tagged struct.  Array and Table variants store their
@@ -85,33 +90,36 @@ fn toml_parse_value(raw: String) -> TomlValue {
 
 // ─── Public parse / stringify ────────────────────────────────────────────────
 
-/// Parse a multi-line TOML document (key = value pairs only; table headers
-/// and arrays-of-tables are not yet supported and are skipped).
+/// Parse a multi-line TOML document made of blank lines, comment lines,
+/// and simple `key = value` entries.
 ///
-/// Returns `Ok(TomlValue)` with tag 5 (table) whose `raw` stores the
-/// original source, or `Err(String)` on failure.
+/// Table headers, arrays of tables, and malformed non-empty lines are
+/// rejected with `Err(String)`.
 pub fn toml_parse(s: String) -> Result<TomlValue, String> {
-    // Validate: at least one non-comment, non-blank line with `=`
     let lines = split(s, "\n")
     let n = len(lines)
-    let mut valid = false
     let mut i = 0
     while i < n {
         let line = trim(get_unchecked(lines, i))
         let line_len = len(line)
-        if line_len > 0 && char_at(line, 0) != 35 {
-            if contains(line, "=") {
-                valid = true
+        if line_len == 0 || char_at(line, 0) == 35 {
+            i = i + 1
+        } else if char_at(line, 0) == 91 {
+            return Err("unsupported TOML subset")
+        } else {
+            let eq_pos = index_of(line, "=")
+            if eq_pos <= 0 {
+                return Err("unsupported TOML subset")
             }
+            let key = trim(slice(line, 0, eq_pos))
+            let value = trim(slice(line, eq_pos + 1, line_len))
+            if len(key) == 0 || len(value) == 0 {
+                return Err("unsupported TOML subset")
+            }
+            i = i + 1
         }
-        i = i + 1
     }
-    if valid {
-        Ok(TomlValue { tag: 5, raw: s })
-    } else {
-        // Empty document is a valid empty table
-        Ok(TomlValue { tag: 5, raw: s })
-    }
+    Ok(TomlValue { tag: 5, raw: s })
 }
 
 /// Serialize a `TomlValue` back to text.

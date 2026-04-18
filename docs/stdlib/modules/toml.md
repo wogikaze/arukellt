@@ -36,6 +36,11 @@ let value = toml_parse_line("name = \"arukellt\"")
 
 TOML parser/serializer for std::toml.
 
+This module intentionally supports only a bounded TOML subset:
+blank lines, comment lines, and simple `key = value` entries.
+Table headers, arrays of tables, and other unsupported grammar
+forms are rejected by `toml_parse`.
+
 #### Value representation
 
 `TomlValue` is a tagged struct.  Array and Table variants store their
@@ -56,7 +61,7 @@ raw serialized text to avoid recursive type constraints.
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `toml_parse_line` | `(String) -> String` | `experimental` | Filter a single TOML source line: returns the line unchanged for key=value |
-| `toml_parse` | `(String) -> Result<TomlValue, String>` | `experimental` | Parse a multi-line TOML document (key = value pairs only; table headers |
+| `toml_parse` | `(String) -> Result<TomlValue, String>` | `experimental` | Parse a multi-line TOML document made of blank lines, comment lines, |
 | `toml_stringify` | `(TomlValue) -> String` | `experimental` | Serialize a TomlValue back to text. |
 | `toml_as_string` | `(TomlValue) -> Option<String>` | `experimental` | - |
 | `toml_as_int` | `(TomlValue) -> Option<i32>` | `experimental` | - |

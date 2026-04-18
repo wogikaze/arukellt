@@ -1,0 +1,10 @@
+use std::toml
+use std::host::stdio
+
+fn main() {
+    let doc = "# comment line\nname = \"arukellt\"\n\ncount = 42"
+    match toml::toml_parse(doc) {
+        Ok(_) => stdio::println("ok"),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+}

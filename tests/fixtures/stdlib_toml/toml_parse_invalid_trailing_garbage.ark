@@ -1,0 +1,10 @@
+use std::toml
+use std::host::stdio
+
+fn main() {
+    let doc = "name = \"arukellt\"\ntrailing garbage"
+    match toml::toml_parse(doc) {
+        Ok(_) => stdio::println("unexpected ok"),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+}
