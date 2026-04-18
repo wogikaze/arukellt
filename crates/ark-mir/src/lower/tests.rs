@@ -4,6 +4,7 @@ use crate::mir::{
     Operand, Place, Rvalue, Terminator, default_block_source, default_function_source,
     is_backend_legal_module,
 };
+use crate::validate::validate_backend_legal_module;
 use ark_typecheck::types::Type;
 
 fn make_if_expr_function() -> MirFunction {
@@ -279,6 +280,8 @@ fn lower_loop_exprs_produces_backend_legal_module() {
         is_backend_legal_module(&module),
         "module must be backend-legal after lower_loop_exprs"
     );
+    validate_backend_legal_module(&module)
+        .expect("validate_backend_legal_module after lower_loop_exprs");
 }
 
 #[test]
@@ -345,6 +348,8 @@ fn lower_combined_if_then_loop_produces_legal_module() {
         is_backend_legal_module(&module),
         "combined if+loop lowering must produce backend-legal module"
     );
+    validate_backend_legal_module(&module)
+        .expect("validate_backend_legal_module after lower_if_exprs + lower_loop_exprs");
 }
 
 fn make_try_expr_function() -> MirFunction {
@@ -503,5 +508,8 @@ fn lower_combined_if_loop_try_produces_legal_module() {
     assert!(
         is_backend_legal_module(&module),
         "combined if+loop+try lowering must produce backend-legal module"
+    );
+    validate_backend_legal_module(&module).expect(
+        "validate_backend_legal_module after lower_if_exprs + lower_loop_exprs + lower_try_exprs",
     );
 }
