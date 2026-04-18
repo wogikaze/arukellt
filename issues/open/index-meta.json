@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T07:59:42Z",
+  "generated_at": "2026-04-18T08:13:13Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -88,32 +88,71 @@
       }
     },
     {
-      "id": "039",
-      "path": "039-module-system-infrastructure.md",
-      "title": "std モジュールシステム基盤: `use std::*` import インフラ",
+      "id": "041",
+      "path": "041-std-core.md",
+      "title": "std::core: Error 型、ordering、range、cmp、math、convert、hash",
       "track": "stdlib",
       "status": "done",
       "blocks_v1_exit": "no",
-      "depends_on": [],
+      "depends_on": [
+        "039"
+      ],
       "blocks_issue_ids": [
-        "041",
-        "043",
         "044",
         "045",
         "047",
         "048",
-        "049",
-        "051",
-        "054",
-        "055"
+        "049"
       ],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39"
+      }
+    },
+    {
+      "id": "043",
+      "path": "043-std-bytes.md",
+      "title": "std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "040"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39"
+      }
+    },
+    {
+      "id": "051",
+      "path": "051-std-time-random.md",
+      "title": "std::time + std::random: 時刻・期間・乱数",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "040"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39"
       }
     },
     {
@@ -1283,41 +1322,81 @@
       }
     },
     {
-      "id": "041",
-      "path": "041-std-core.md",
-      "title": "std::core: Error 型、ordering、range、cmp、math、convert、hash",
+      "id": "044",
+      "path": "044-std-collections-hash.md",
+      "title": "std::collections::hash: HashMap\\<K,V\\> 汎用化と HashSet\\<T\\>",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "041"
+      ],
+      "blocks_issue_ids": [
+        "054",
+        "055"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #41"
+      }
+    },
+    {
+      "id": "045",
+      "path": "045-std-collections-linear.md",
+      "title": "std::collections: Deque、PriorityQueue",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "041"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #41"
+      }
+    },
+    {
+      "id": "047",
+      "path": "047-std-collections-compiler.md",
+      "title": "std::collections: Arena、SlotMap、Interner ／ std::text: Rope",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "041"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #41"
+      }
+    },
+    {
+      "id": "048",
+      "path": "048-std-seq.md",
+      "title": "std::seq: Seq\\<T\\> 遅延シーケンスとアルゴリズム",
       "track": "stdlib",
       "status": "done",
       "blocks_v1_exit": "no",
       "depends_on": [
-        "039"
-      ],
-      "blocks_issue_ids": [
-        "044",
-        "045",
-        "047",
-        "048",
-        "049"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#39"
-      }
-    },
-    {
-      "id": "043",
-      "path": "043-std-bytes.md",
-      "title": "std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
         "039",
-        "040"
+        "041"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -1326,19 +1405,20 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#39"
+        "upstream_notes": "#39, #41"
       }
     },
     {
-      "id": "051",
-      "path": "051-std-time-random.md",
-      "title": "std::time + std::random: 時刻・期間・乱数",
+      "id": "049",
+      "path": "049-std-path-fs.md",
+      "title": "std::path + std::fs: パス操作とファイル I/O",
       "track": "stdlib",
-      "status": "open",
+      "status": "done",
       "blocks_v1_exit": "no",
       "depends_on": [
         "039",
-        "040"
+        "041",
+        "042"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -1347,7 +1427,7 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#39"
+        "upstream_notes": "#39, #41"
       }
     },
     {
@@ -1656,39 +1736,38 @@
       }
     },
     {
-      "id": "044",
-      "path": "044-std-collections-hash.md",
-      "title": "std::collections::hash: HashMap\\<K,V\\> 汎用化と HashSet\\<T\\>",
+      "id": "054",
+      "path": "054-std-wit-component.md",
+      "title": "std::wit + std::component: WIT 型、resource handle、canonical ABI",
       "track": "stdlib",
       "status": "open",
       "blocks_v1_exit": "no",
       "depends_on": [
         "039",
-        "041"
+        "044",
+        "053"
       ],
-      "blocks_issue_ids": [
-        "054",
-        "055"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#39, #41"
+        "upstream_notes": "#39, #44"
       }
     },
     {
-      "id": "045",
-      "path": "045-std-collections-linear.md",
-      "title": "std::collections: Deque、PriorityQueue",
+      "id": "055",
+      "path": "055-std-json-toml-csv.md",
+      "title": "std::json + std::toml + std::csv: データ形式パーサ",
       "track": "stdlib",
       "status": "open",
       "blocks_v1_exit": "no",
       "depends_on": [
         "039",
-        "041"
+        "042",
+        "044"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -1697,71 +1776,7 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#39, #41"
-      }
-    },
-    {
-      "id": "047",
-      "path": "047-std-collections-compiler.md",
-      "title": "std::collections: Arena、SlotMap、Interner ／ std::text: Rope",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "039",
-        "041"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#39, #41"
-      }
-    },
-    {
-      "id": "048",
-      "path": "048-std-seq.md",
-      "title": "std::seq: Seq\\<T\\> 遅延シーケンスとアルゴリズム",
-      "track": "stdlib",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "039",
-        "041"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#39, #41"
-      }
-    },
-    {
-      "id": "049",
-      "path": "049-std-path-fs.md",
-      "title": "std::path + std::fs: パス操作とファイル I/O",
-      "track": "stdlib",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "039",
-        "041",
-        "042"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#39, #41"
+        "upstream_notes": "#39, #44"
       }
     },
     {
@@ -1892,50 +1907,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#495, #504"
-      }
-    },
-    {
-      "id": "054",
-      "path": "054-std-wit-component.md",
-      "title": "std::wit + std::component: WIT 型、resource handle、canonical ABI",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "039",
-        "044",
-        "053"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#39, #44"
-      }
-    },
-    {
-      "id": "055",
-      "path": "055-std-json-toml-csv.md",
-      "title": "std::json + std::toml + std::csv: データ形式パーサ",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "039",
-        "042",
-        "044"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#39, #44"
       }
     }
   ],

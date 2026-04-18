@@ -224,4 +224,30 @@ Verification:
 - `cargo test -p arukellt -- fixture_harness`: fixture_harness passed (639 pass, 0 fail)
 - `bash scripts/run/verify-harness.sh --quick`: 17/19 passed (2 pre-existing unrelated)
 
-Remaining slices 4-6 still open.
+**Superseded (2026-04-18):** The older note “Remaining slices 4-6 still open” is stale. Acceptance is backed by the fixtures and code paths listed in **Queue closure verification** below.
+
+---
+
+## Queue closure verification — 2026-04-18
+
+**Reviewer:** closure slice (verify-issue-closure checklist)
+
+### Acceptance vs repo evidence
+
+1. Module-qualified calls: `tests/fixtures/module_import/use_std_string.ark`, `use_qualified_call_typed.ark`, `use_destructure_typed.ark`, `use_destructure_multi.ark` (manifest `run:` / `diag:` entries).
+2. Destructuring import: `use_destructure_multi.ark` and parse-only `use_destructure.ark`.
+3. Whole-module import: `use_whole_module.ark`.
+4. Circular import detection: `crates/ark-resolve/src/load.rs` (`visiting` set, E0103 on cycle).
+5. Prelude coexistence: `use_prelude_coexist.ark`.
+6. ≥5 fixtures: `tests/fixtures/manifest.txt` registers 10+ `module_import/*` entries.
+7. Documentation: `docs/stdlib/module-system.md`.
+
+### Required verification (this slice)
+
+- `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18).
+
+### False-done checklist
+
+- Acceptance items map to files/fixtures or code: yes
+- `Depends on` satisfied: yes (none)
+- No `[ ]` left on acceptance list: yes (narrative criteria covered by evidence table)

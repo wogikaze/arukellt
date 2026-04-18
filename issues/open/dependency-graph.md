@@ -10,7 +10,9 @@ graph LR
   I032["032 WIT resource type support (own/borrow)"]
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
-  I039["039 std モジュールシステム基盤: `use std::*` import インフラ"]
+  I041["041 std::core: Error 型、ordering、range、cmp、math、convert、hash"]
+  I043["043 std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128"]
+  I051["051 std::time + std::random: 時刻・期間・乱数"]
   I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
   I070["070 Wasm GC i31ref: 小整数 unboxed scalar 最適化"]
@@ -71,9 +73,11 @@ graph LR
   I527["527 Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する"]
   I528["528 Stdlib collections/hash: property と differential tests を map / set invariant で拡張する"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
-  I041["041 std::core: Error 型、ordering、range、cmp、math、convert、hash"]
-  I043["043 std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128"]
-  I051["051 std::time + std::random: 時刻・期間・乱数"]
+  I044["044 std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"]
+  I045["045 std::collections: Deque、PriorityQueue"]
+  I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
+  I048["048 std::seq: Seq\<T\> 遅延シーケンスとアルゴリズム"]
+  I049["049 std::path + std::fs: パス操作とファイル I/O"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
@@ -88,24 +92,21 @@ graph LR
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
-  I044["044 std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"]
-  I045["045 std::collections: Deque、PriorityQueue"]
-  I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
-  I048["048 std::seq: Seq\<T\> 遅延シーケンスとアルゴリズム"]
-  I049["049 std::path + std::fs: パス操作とファイル I/O"]
+  I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
+  I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I205["205 Docs / codebase intelligence surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
   I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
-  I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
-  I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I032 --> I473
-  I039 --> I041
-  I039 --> I043
-  I039 --> I051
+  I041 --> I044
+  I041 --> I045
+  I041 --> I047
+  I041 --> I048
+  I041 --> I049
   I074 --> I077
   I074 --> I124
   I074 --> I139
@@ -122,16 +123,8 @@ graph LR
   I504 --> I495
   I513 --> I518
   I517 --> I518
-  I039 --> I044
-  I041 --> I044
-  I039 --> I045
-  I041 --> I045
-  I039 --> I047
-  I041 --> I047
-  I039 --> I048
-  I041 --> I048
-  I039 --> I049
-  I041 --> I049
+  I044 --> I054
+  I044 --> I055
   I077 --> I136
   I139 --> I136
   I475 --> I485
@@ -141,10 +134,6 @@ graph LR
   I268 --> I269
   I504 --> I512
   I495 --> I512
-  I039 --> I054
-  I044 --> I054
-  I039 --> I055
-  I044 --> I055
   I036 --> I037
 ```
 
@@ -154,7 +143,9 @@ graph LR
 - **032** depends on: 030; blocks: 473
 - **034** depends on: 030, 031, 028b; blocks: none
 - **036** depends on: 033; blocks: none
-- **039** depends on: none; blocks: 041, 043, 044, 045, 047, 048, 049, 051, 054, 055
+- **041** depends on: 039; blocks: 044, 045, 047, 048, 049
+- **043** depends on: 039, 040; blocks: none
+- **051** depends on: 039, 040; blocks: none
 - **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none
 - **070** depends on: none; blocks: none
@@ -215,9 +206,11 @@ graph LR
 - **527** depends on: none; blocks: none
 - **528** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
-- **041** depends on: 039; blocks: 044, 045, 047, 048, 049
-- **043** depends on: 039, 040; blocks: none
-- **051** depends on: 039, 040; blocks: none
+- **044** depends on: 039, 041; blocks: 054, 055
+- **045** depends on: 039, 041; blocks: none
+- **047** depends on: 039, 041; blocks: none
+- **048** depends on: 039, 041; blocks: none
+- **049** depends on: 039, 041, 042; blocks: none
 - **077** depends on: 074, 137; blocks: 136
 - **124** depends on: 074; blocks: none
 - **139** depends on: 074, 137; blocks: 136
@@ -232,19 +225,14 @@ graph LR
 - **508** depends on: 285; blocks: none
 - **495** depends on: 312, 504; blocks: 512
 - **518** depends on: 513, 517; blocks: none
-- **044** depends on: 039, 041; blocks: 054, 055
-- **045** depends on: 039, 041; blocks: none
-- **047** depends on: 039, 041; blocks: none
-- **048** depends on: 039, 041; blocks: none
-- **049** depends on: 039, 041, 042; blocks: none
+- **054** depends on: 039, 044, 053; blocks: none
+- **055** depends on: 039, 042, 044; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
 - **205** depends on: 185, 188; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
 - **269** depends on: 266, 268; blocks: none
 - **512** depends on: 504, 495; blocks: none
-- **054** depends on: 039, 044, 053; blocks: none
-- **055** depends on: 039, 042, 044; blocks: none
 
 ### Blocked
 
