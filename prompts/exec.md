@@ -62,6 +62,11 @@ agent 作成ルール
 - 親は repo の canonical state 以外を truth にしない。内部 SQL / scratch table は補助メモにすぎず、issue の真実を上書きしない。
 - 親は product implementation をしない。
 - 1 acceptance slice が完了した subagent は、completion report を返す前に必ずコミットし、commit hash を報告する。
+- 親は `issues/open/` → `issues/done/` の移動を issue-only state update として単独で行ってはならない。
+- `done` 移動は implementation-backed close のみ許可する。
+- implementation-backed close とは、同一 run 内で read 済みの subagent completion report に `changed files`, `verification`, `DONE_WHEN`, `commit hash` が揃い、その commit が当該 issue acceptance を閉じると repo evidence で示せる状態をいう。
+- 既存実装 commit を後追いで close する場合でも、親は issue 本文にその commit hash と「なぜこの commit で close できるのか」の close note を追記できる場合に限る。単なる stale open cleanup を理由に `done` へ移動してはならない。
+- `chore(issue)` の親コミットは open/done 正規化や progress note の同期には使ってよいが、implementation-backed evidence なしに close を作ってはならない。
 
 agent 不足時の必須手順
 - `implementation-ready` / `design-ready` / `verification-ready` の issue があるのに担当 agent がない場合、親は即停止してはならない。
@@ -93,6 +98,7 @@ issue 分類
 - ADR / contract / scope 決定が成果物なら `design-ready`
 - 実装 slice を切れて verification コマンドが定義できるなら `implementation-ready`
 - 実装済み想定で parity / consistency / close 判定中心なら `verification-ready`
+- ただし `verification-ready` は「implementation-backed close 候補の証明」を扱うのであり、issue-only stale cleanup を done にするための分類ではない。
 - agent を新規作成しても安全に扱えないものだけ `unsupported-in-this-run`
 
 最初に必ず行うこと
@@ -143,6 +149,8 @@ subagent を `done` 扱いできる条件はすべて満たすこと。
 - slice 完了後の commit hash が列挙されている
 - completion report 時点で、その slice に対応する変更がコミット済みである
 - blocker がある場合は close candidate にしない
+- `issues/done/` へ移動する場合は、上記 completion report が close evidence としてそのまま引用できること
+- code change を伴わない issue-only close は `done` 条件を満たさない
 
 wave barrier
 - 現 wave の全 subagent を read するまで次 wave を切らない。
@@ -162,6 +170,8 @@ wave barrier
 - product implementation を親が行う
 - 1 issue 全体をそのまま subagent に丸投げする
 - 単に agent が未定義という理由だけで停止する
+- implementation-backed evidence がないのに `issues/open/` から `issues/done/` へ移動する
+- stale open issue を見つけたという理由だけで `done` に寄せる
 
 最終目的
 - この run では、dispatch 可能な open issue を可能な限り減らし、並列度を落としてでも最後まで処理を進める。
