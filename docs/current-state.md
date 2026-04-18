@@ -294,5 +294,5 @@ All three are wired into `verify-harness.sh --full` (and individually via `--fix
 
 The dual-period continues while fixpoint and parity criteria remain unmet.
 Both the Rust compiler and the selfhost sources are maintained in parallel.
-See [Dual-Period End Condition](docs/compiler/bootstrap.md#dual-period-end-condition)
+See [When the Dual Period Ends](docs/compiler/bootstrap.md#when-the-dual-period-ends)
 in bootstrap.md for the exact criteria that close this period.

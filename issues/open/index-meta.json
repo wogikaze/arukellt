@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T08:28:04Z",
+  "generated_at": "2026-04-18T09:07:49Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -1034,6 +1034,24 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "529",
+      "path": "529-100-percent-selfhost-transition-plan.md",
+      "title": "100% Self-Hosting Transition Plan",
+      "track": "main",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 26
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
       }
     },
     {
