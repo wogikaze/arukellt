@@ -1,8 +1,9 @@
 # pub use / pub import re-export
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-13
 **Updated**: 2026-04-18
+**Closed**: 2026-04-18
 **ID**: 490
 **Depends on**: 234
 **Track**: compiler, module-system
