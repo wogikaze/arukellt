@@ -659,28 +659,6 @@
       }
     },
     {
-      "id": "453",
-      "path": "453-vscode-e2e-editor-behavior-tests.md",
-      "title": "VSCode API を使った editor behavior E2E テストを追加する",
-      "track": "vscode-ide",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "450",
-        "451",
-        "452"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "459",
       "path": "459-selfhost-fixpoint-dual-period-end.md",
       "title": "selfhost Stage 2 fixpoint 達成と dual-period 終了計画",

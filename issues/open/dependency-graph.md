@@ -38,7 +38,6 @@ graph LR
   I285["285 Legacy lowering path を隔離・撤去する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
-  I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I490["490 pub use / pub import re-export"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
@@ -145,7 +144,6 @@ graph LR
 - **285** depends on: 284; blocks: 508
 - **312** depends on: 311; blocks: 495
 - **382** depends on: 378; blocks: none
-- **453** depends on: 450, 451, 452; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **490** depends on: 234; blocks: none
 - **494** depends on: 493, 503; blocks: none

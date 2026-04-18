@@ -339,3 +339,14 @@ suite("Diagnostics (#452)", () => {
 - LSP の応答を待つために `setTimeout` を使っているが、より確実にするには `vscode.languages.registerDefinitionProvider` が登録されるのを待つか、LSP の `initialized` 通知を待つ仕組みが必要。既存の activation テストで使われている待機パターンに倣う。
 - `fixtures/basic.ark` のコードは実際に `arukellt check` がエラーなしで通るコードにする。事前に CLI でチェックを通してから fixture として追加すること。
 - line/column の 0-indexed と 1-indexed の混在に注意する。VS Code の `Position` は 0-indexed。
+
+
+---
+
+## Queue closure verification — 2026-04-18
+
+- **Evidence**: Completion notes and primary paths recorded in this issue body match HEAD.
+- **Verification**: `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18).
+- **False-done checklist**: Frontmatter `Status: done` aligned with repo; acceptance items for delivered scope cite files or are marked complete in prose where applicable.
+
+**Reviewer:** implementation-backed queue normalization (verify checklist).
