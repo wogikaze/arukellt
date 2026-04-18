@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T11:55:39Z",
+  "generated_at": "2026-04-18T11:57:22Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -196,26 +196,6 @@
       },
       "orchestration": {
         "class": "verification-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "110",
-      "path": "110-bench-perf-gate.md",
-      "title": "CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "109"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "—"
       }
     },

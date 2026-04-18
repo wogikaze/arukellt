@@ -15,7 +15,6 @@ graph LR
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
-  I110["110 CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
@@ -95,7 +94,6 @@ graph LR
 - **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476, 510
 - **099** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
-- **110** depends on: 109; blocks: none
 - **112** depends on: 109; blocks: none
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
