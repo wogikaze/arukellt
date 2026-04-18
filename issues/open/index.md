@@ -102,7 +102,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 047 | [std::collections: Arena、SlotMap、Interner ／ std::text: Rope](047-std-collections-compiler.md) | stdlib | no | 039, 041 | none | 0 checked / 0 open | blocked-by-upstream | #39, #41 | |
 | 051 | [std::time + std::random: 時刻・期間・乱数](051-std-time-random.md) | stdlib | no | 039, 040 | none | 0 checked / 0 open | blocked-by-upstream | #39 | |
 | 074 | [WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成](074-wasi-p2-native-component.md) | wasi-feature | no | none | 077, 124, 139, 474, 475, 476, 510 | 0 checked / 0 open | implementation-ready | — | |
-| 094 | [T3: enum dispatch の br_on_cast 連鎖最適化](094-t3-br-on-cast-chain-opt.md) | backend-opt | no | none | none | 0 checked / 0 open | verification-ready | STOP_IF — see §STOP_IF; do not dispatch impl until issue rescoped | |
+| 094 | [T3: enum dispatch の br_on_cast 連鎖最適化](094-t3-br-on-cast-chain-opt.md) | backend-opt | no | none | none | 3 checked / 0 open | design-ready | Rescoped 2026-04-18 — original i31 / monolithic `br_on_cast` acceptance deferred; see §Rescope — 2026-04-18; partial IfStmt→`br_table` work landed under #505 (`issues/done/505-t3-br-table-type-info-gap.md`) | |
 | 096 | [コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)](096-compile-lazy-stdlib.md) | compile-speed | no | none | none | 0 checked / 0 open | implementation-ready | — | |
 | 099 | [コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)](099-compile-incremental-parse.md) | compile-speed | no | none | none | 0 checked / 0 open | implementation-ready | — | |
 | 108 | [実行時性能: hello.wasm 1KB 以下 達成プラン](108-runtime-wasm-binary-size.md) | runtime-perf | no | 091, 092, 088, 089 | none | 0 checked / 0 open | verification-ready | — | |

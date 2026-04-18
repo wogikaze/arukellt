@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T08:25:26Z",
+  "generated_at": "2026-04-18T08:26:28Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -206,17 +206,17 @@
       "path": "094-t3-br-on-cast-chain-opt.md",
       "title": "T3: enum dispatch の br_on_cast 連鎖最適化",
       "track": "backend-opt",
-      "status": "blocked — STOP_IF triggered (see below)",
+      "status": "open",
       "blocks_v1_exit": "no",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
+        "checked": 3,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "verification-ready",
-        "upstream_notes": "STOP_IF — see §STOP_IF; do not dispatch impl until issue rescoped"
+        "class": "design-ready",
+        "upstream_notes": "Rescoped 2026-04-18 — original i31 / monolithic `br_on_cast` acceptance deferred; see §Rescope — 2026-04-18; partial IfStmt→`br_table` work landed under #505 (`issues/done/505-t3-br-table-type-info-gap.md`)"
       }
     },
     {

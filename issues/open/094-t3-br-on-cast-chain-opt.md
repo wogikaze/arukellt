@@ -1,13 +1,13 @@
 # T3: enum dispatch の br_on_cast 連鎖最適化
 
-**Status**: blocked — STOP_IF triggered (see below)
+**Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-15
+**Updated**: 2026-04-18
 **ID**: 094
 **Depends on**: —
 **Track**: backend-opt
-**Orchestration class**: verification-ready
-**Orchestration upstream**: STOP_IF — see §STOP_IF; do not dispatch impl until issue rescoped
+**Orchestration class**: design-ready
+**Orchestration upstream**: Rescoped 2026-04-18 — original i31 / monolithic `br_on_cast` acceptance deferred; see §Rescope — 2026-04-18; partial IfStmt→`br_table` work landed under #505 (`issues/done/505-t3-br-table-type-info-gap.md`)
 **Blocks v4 exit**: no
 
 ---
@@ -33,9 +33,14 @@ Arukellt の enum パターンマッチは T3 で `br_on_cast` / `br_on_cast_fai
 
 ## 受け入れ条件
 
-1. enum ディスパッチの `br_on_cast` 連鎖が3個以上の場合に最適化対象
-2. `br_table` への変換: i31 タグを使った O(1) ディスパッチ実装
-3. パターンマッチを多用するベンチマークで実行時間改善を確認
+**Superseded (2026-04-18):** The three bullets below described an optimization
+target that contradicts the current T3 GC enum representation (see §STOP_IF).
+They are retained as historical scope; **close gate for this issue** is now
+the documentation rescope in §Rescope — 2026-04-18, not a new emitter landing.
+
+1. enum ディスパッチの `br_on_cast` 連鎖が3個以上の場合に最適化対象 *(historical)*
+2. `br_table` への変換: i31 タグを使った O(1) ディスパッチ実装 *(blocked — requires repr change; deferred)*
+3. パターンマッチを多用するベンチマークで実行時間改善を確認 *(out of scope until #505 / future repr work)*
 
 ## 参照
 
@@ -133,7 +138,7 @@ the enum representation — is feasible within ~100 lines:
 
 This reduces step-2 from O(n) if/else to O(1) br_table dispatch. Step-1
 (tag extraction) remains O(n) via BrOnCast, so overall is O(n) not O(n²).
-This optimization is tracked at: `issues/open/505-t3-br-table-type-info-gap.md`
+This optimization was tracked at: `issues/done/505-t3-br-table-type-info-gap.md` (done).
 
 ### Summary
 
@@ -144,3 +149,37 @@ This optimization is tracked at: `issues/open/505-t3-br-table-type-info-gap.md`
 | Arm dispatch | O(n) if/else | O(1) br_table |
 | Overall | O(n²) worst case | O(1) |
 | Blocker | Repr change > 150 lines | — |
+
+---
+
+## Rescope — 2026-04-18 (design slice, `impl-compiler`)
+
+**Purpose:** Lift the hard **STOP_IF** gate for orchestration by recording the
+canonical “actual T3 behavior vs original acceptance” split in-repo, and
+routing feasible emitter work to the correct tracker.
+
+**Decisions**
+
+1. **No dispatch** of this issue’s *original* i31-tagged `br_table` acceptance
+   until enum representation carries an explicit integer tag (see §Why
+   i31-tagged `br_table` is blocked).
+2. **Partial dispatch** (IfStmt chain → `br_table` on a cached `EnumTag`
+   discriminant, still O(n) tag extraction) was tracked under **#505**
+   (`issues/done/505-t3-br-table-type-info-gap.md`), not under #094.
+3. #094 remains a **design / audit anchor**: STOP_IF sections below document
+   emitter reality (`crates/ark-mir/src/lower/pattern.rs`,
+   `crates/ark-wasm/src/emit/t3_wasm_gc/stmts.rs`, `operands.rs`).
+
+**New acceptance (documentation-only, this slice)**
+
+- [x] Issue documents why original acceptance is incompatible with HEAD (§STOP_IF + table above).
+- [x] Follow-up implementation path cites #505 (`issues/done/505-…`) for `br_table` dispatch without repr change.
+- [x] Frontmatter `Status` / orchestration class updated so agents do not dispatch blind optimization.
+
+**Verification**
+
+- `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18).
+
+**STOP_IF historical note:** The §STOP_IF section remains as **audit evidence**;
+it is no longer interpreted as “block all work on this issue” now that scope is
+explicitly documentation + routing.
