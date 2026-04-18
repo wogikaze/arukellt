@@ -1,0 +1,5 @@
+phi %join_val.3 = [bb1 -> %join_val.1, bb2 -> %join_val.2] : i32
+phi_elim_copy bb1->bb3: join_val <- %join_val.1
+phi_elim_copy bb2->bb3: join_val <- %join_val.2
+phi_elim_join bb3: join_val (phi removed)
+MIR SSA phi elimination smoke OK.

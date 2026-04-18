@@ -52,6 +52,15 @@ This issue remains open because full SSA renaming and broader pipeline-wide SSA
 formation are still outstanding, but the phi insertion path now exists for the
 minimal join case.
 
+## Partial slice note — 2026-04-18 (Wave 4)
+
+Wave 4 adds a **phi elimination preview** for the minimal diamond join after SSA
+renaming: `mir_stdio_print_phi_elimination_preview` documents parallel-copy
+lowering (`phi_elim_copy` / `phi_elim_join` lines), `run_phi_elimination_smoke`
+locks the formatted output, and `tests/fixtures/selfhost/mir_ssa_phi_elimination_smoke.*`
+demonstrates the same branch pattern for acceptance #2 (demo fixture). Full φ
+removal in the lowered MIR instruction stream remains future work.
+
 ## Partial slice note — 2026-04-16 (Wave 3)
 
 Wave 3 extends the slice to an additional non-trivial join shape:

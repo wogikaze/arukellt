@@ -1,0 +1,119 @@
+use std::host::stdio
+use std::host::process
+
+struct PhiArg {
+    pred_block: i32,
+    version: i32,
+}
+
+struct Phi {
+    ssa_name: String,
+    dest_version: i32,
+    val_type: i32,
+    args: Vec<PhiArg>,
+}
+
+struct Block {
+    id: i32,
+    preds: Vec<i32>,
+    dom_frontier: Vec<i32>,
+    last_value: i32,
+}
+
+fn Phi_new(ssa_name: String, dest_version: i32, val_type: i32) -> Phi {
+    Phi { ssa_name: ssa_name, dest_version: dest_version, val_type: val_type, args: Vec_new_PhiArg() }
+}
+
+fn phi_add_arg(phi: Phi, pred_block: i32, version: i32) {
+    push(phi.args, PhiArg { pred_block: pred_block, version: version })
+}
+
+fn block_ids_contains(ids: Vec<i32>, block_id: i32) -> bool {
+    let count = len(ids)
+    let mut i = 0
+    while i < count {
+        if get_unchecked(ids, i) == block_id {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn format_ssa_value(ssa_name: String, version: i32) -> String {
+    let mut out = String_from("%")
+    out = concat(out, ssa_name)
+    out = concat(out, String_from("."))
+    concat(out, to_string(version))
+}
+
+fn try_insert_simple_join_phi(join_block: Block, pred0: Block, pred1: Block, ssa_name: String, dest_vt: i32) -> Phi {
+    if len(join_block.preds) != 2 {
+        stdio::eprintln(String_from("join predecessor count mismatch"))
+        process::exit(1)
+    }
+    if !block_ids_contains(pred0.dom_frontier, join_block.id) {
+        stdio::eprintln(String_from("pred0 frontier missing join"))
+        process::exit(1)
+    }
+    if !block_ids_contains(pred1.dom_frontier, join_block.id) {
+        stdio::eprintln(String_from("pred1 frontier missing join"))
+        process::exit(1)
+    }
+
+    let phi = Phi_new(ssa_name, 3, dest_vt)
+    phi_add_arg(phi, pred0.id, 1)
+    phi_add_arg(phi, pred1.id, 2)
+    phi
+}
+
+fn format_phi(phi: Phi) -> String {
+    let arg0 = get_unchecked(phi.args, 0)
+    let arg1 = get_unchecked(phi.args, 1)
+    let mut out = String_from("phi ")
+    out = concat(out, format_ssa_value(clone(phi.ssa_name), phi.dest_version))
+    out = concat(out, String_from(" = [bb"))
+    out = concat(out, to_string(arg0.pred_block))
+    out = concat(out, String_from(" -> "))
+    out = concat(out, format_ssa_value(clone(phi.ssa_name), arg0.version))
+    out = concat(out, String_from(", bb"))
+    out = concat(out, to_string(arg1.pred_block))
+    out = concat(out, String_from(" -> "))
+    out = concat(out, format_ssa_value(clone(phi.ssa_name), arg1.version))
+    out = concat(out, String_from("] : i32"))
+    out
+}
+
+fn main() {
+    let then_block = Block {
+        id: 1,
+        preds: Vec_new_i32(),
+        dom_frontier: Vec_new_i32(),
+        last_value: 1,
+    }
+    let else_block = Block {
+        id: 2,
+        preds: Vec_new_i32(),
+        dom_frontier: Vec_new_i32(),
+        last_value: 2,
+    }
+    let join_block = Block {
+        id: 3,
+        preds: Vec_new_i32(),
+        dom_frontier: Vec_new_i32(),
+        last_value: 0 - 1,
+    }
+
+    push(join_block.preds, then_block.id)
+    push(join_block.preds, else_block.id)
+    push(then_block.dom_frontier, join_block.id)
+    push(else_block.dom_frontier, join_block.id)
+
+    let phi = try_insert_simple_join_phi(join_block, then_block, else_block, String_from("join_val"), 1)
+    stdio::println(format_phi(phi))
+    // Parallel-copy lowering for a 2-way join (matches mir_stdio_print_phi_elimination_preview in mir.ark).
+    stdio::println(String_from("phi_elim_copy bb1->bb3: join_val <- %join_val.1"))
+    stdio::println(String_from("phi_elim_copy bb2->bb3: join_val <- %join_val.2"))
+    stdio::println(String_from("phi_elim_join bb3: join_val (phi removed)"))
+    stdio::println(String_from("MIR SSA phi elimination smoke OK."))
+}

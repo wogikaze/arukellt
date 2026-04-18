@@ -751,6 +751,50 @@ fn mir_ssa_rename_module(m: MirModule) {
     }
 }
 
+// Preview parallel-copy lowering that replaces a φ after minimal SSA renaming.
+// Each predecessor edge receives `merge_name <- ssa_operand`; the join block
+// then uses the single merge slot instead of a φ (real insertion is future work).
+fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
+    if join_block_id < 0 || join_block_id >= len(f.blocks) {
+        return
+    }
+    let block = get_unchecked(f.blocks, join_block_id)
+    let pc = len(block.phis)
+    let mut pi = 0
+    while pi < pc {
+        let phi = get_unchecked(block.phis, pi)
+        stdio::println(mir_format_phi(f, phi))
+        if phi.dest < 0 || phi.dest >= len(f.locals) {
+            pi = pi + 1
+            continue
+        }
+        let dest_rec = get_unchecked(f.locals, phi.dest)
+        let merge_name = clone(dest_rec.name)
+        let ac = len(phi.args)
+        let mut ai = 0
+        while ai < ac {
+            let a = get_unchecked(phi.args, ai)
+            let mut line = String_from("phi_elim_copy bb")
+            line = concat(line, to_string(a.pred_block))
+            line = concat(line, String_from("->bb"))
+            line = concat(line, to_string(join_block_id))
+            line = concat(line, String_from(": "))
+            line = concat(line, clone(merge_name))
+            line = concat(line, String_from(" <- "))
+            line = concat(line, mir_format_local_ref(f, a.local))
+            stdio::println(line)
+            ai = ai + 1
+        }
+        let mut tail = String_from("phi_elim_join bb")
+        tail = concat(tail, to_string(join_block_id))
+        tail = concat(tail, String_from(": "))
+        tail = concat(tail, clone(merge_name))
+        tail = concat(tail, String_from(" (phi removed)"))
+        stdio::println(tail)
+        pi = pi + 1
+    }
+}
+
 // ── MIR Module ───────────────────────────────────────────────────────────────
 
 struct MirModule {
@@ -3946,6 +3990,65 @@ fn run_ssa_rename_smoke() {
     stdio::println(String_from("MIR SSA rename self-check OK."))
 }
 
+fn run_phi_elimination_smoke() {
+    let m = MirModule_new()
+    let f = MirFunction_new(String_from("phi_elim_sample"))
+    let cond = alloc_local(f, String_from("cond"), VT_I32())
+    let then_val = alloc_local(f, String_from("then_val"), VT_I32())
+    let else_val = alloc_local(f, String_from("else_val"), VT_I32())
+    let join_val = alloc_local(f, String_from("join_val"), VT_I32())
+    f.return_type = VT_I32()
+
+    let entry = alloc_block(f)
+    let then_bb = alloc_block(f)
+    let else_bb = alloc_block(f)
+    let join_bb = alloc_block(f)
+
+    emit_inst(f, entry, MirInst_const_i32(1, cond))
+    let entry_block = get_unchecked(f.blocks, entry)
+    entry_block.succ0 = then_bb
+    entry_block.succ1 = else_bb
+
+    emit_inst(f, then_bb, MirInst_const_i32(10, then_val))
+    let then_block = get_unchecked(f.blocks, then_bb)
+    then_block.succ0 = join_bb
+
+    emit_inst(f, else_bb, MirInst_const_i32(20, else_val))
+    let else_block = get_unchecked(f.blocks, else_bb)
+    else_block.succ0 = join_bb
+
+    let phi = MirPhi_new(join_val, VT_I32())
+    mir_phi_add_arg(phi, then_bb, then_val)
+    mir_phi_add_arg(phi, else_bb, else_val)
+    emit_phi(f, join_bb, phi)
+
+    let ret_inst = MirInst_new(MIR_RETURN())
+    ret_inst.arg0 = join_val
+    emit_inst(f, join_bb, ret_inst)
+
+    mir_compute_dominance_for_function(f)
+    mir_ssa_rename_function(f)
+
+    mir_expect_local_ssa(f, cond, String_from("cond"), 1)
+    mir_expect_local_ssa(f, then_val, String_from("join_val"), 1)
+    mir_expect_local_ssa(f, else_val, String_from("join_val"), 2)
+    mir_expect_local_ssa(f, join_val, String_from("join_val"), 3)
+
+    let join_block = get_unchecked(f.blocks, join_bb)
+    let phi0 = get_unchecked(join_block.phis, 0)
+    let phi_fmt = mir_format_phi(f, phi0)
+    if !eq(phi_fmt, String_from("phi %join_val.3 = [bb1 -> %join_val.1, bb2 -> %join_val.2] : i32")) {
+        stdio::eprintln(concat(String_from("phi elim smoke: unexpected phi line: "), phi_fmt))
+        process::exit(1)
+    }
+
+    mir_stdio_print_phi_elimination_preview(f, join_bb)
+
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR SSA phi elimination preview self-check OK."))
+}
+
 fn run_ssa_trivial_block_rename_smoke() {
     let m = MirModule_new()
     let f = MirFunction_new(String_from("ssa_trivial_block_sample"))
@@ -4066,6 +4169,7 @@ fn main() {
     run_phi_insertion_smoke()
     run_phi_insertion_nested_join_smoke()
     run_ssa_rename_smoke()
+    run_phi_elimination_smoke()
     run_ssa_trivial_block_rename_smoke()
     run_ssa_sequential_def_rename_smoke()
 }
