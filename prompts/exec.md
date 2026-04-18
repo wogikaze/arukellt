@@ -152,7 +152,55 @@ subagent を `done` 扱いできる条件はすべて満たすこと。
 - `issues/done/` へ移動する場合は、上記 completion report が close evidence としてそのまま引用できること
 - code change を伴わない issue-only close は `done` 条件を満たさない
 
-wave barrier
+## スライス完了後: `issues/open` → `issues/done` への移動（close 手順）
+
+slice をコミットした **だけ** では issue を `done` にしてはならない。次の **close 手順**は、**必須レビュー（後述）をパスした後**にのみ実施する。
+
+### 前提条件（すべて満たすこと）
+
+- issue の **全 acceptance**（および issue 本文で close gate と呼んでいる条件）が、**リポジトリ上の証拠**で満たされている。
+  - 証拠は **commit hash**（実装・テスト・fixture・生成 doc を含む）、**実行した verification コマンドと exit 0 の記録**、必要なら **ファイルパスと行・挙動の対応表**。
+- issue の **Required verification** / **Close gate** に書かれたコマンドが、issue 本文または close note に **実際に実行した結果**として記録されている（「想定で green」は不可）。
+- **残タスク・STOP_IF・blocked 宣言**が本文に残っている場合は `done` にしない。先に issue を更新するか、別 issue に切り出す。
+- **単なる progress note・監査メモ・チェックボックスの機械的な `[x]` 更新**だけでは close しない（実装・検証・ドキュメントのいずれかに触れた証拠コミットが必要）。
+
+### 移動操作（レビュー合格後）
+
+1. `issues/open/<slug>.md` を `issues/done/<slug>.md` に **git mv** する（履歴とパスを保つ）。
+2. issue フロントマターと本文を整える。
+   - `**Status**`: `done`（またはリポジトリのテンプレに合わせた閉じた状態）。
+   - **Close note** を追記する: **日付**、**根拠となる commit hash（複数可）**、**満たした acceptance の対応表**、**実行した verification**。
+3. `bash scripts/gen/generate-issue-index.sh` を実行し、`issues/open/index.md` / `index-meta.json` を更新する。
+4. ドキュメントや manifest を触った場合は `python3 scripts/check/check-docs-consistency.py` を実行する。
+5. 上記を **1 コミットまたは論理分割された少数コミット**にまとめる（例: `chore(issues): close #NNN …`）。**issue だけ移動して index を忘れない**。
+
+### false-done 防止のための必須レビュー（レビュアー承認または同等の自己検証）
+
+**`done` へ移動する前に、次を満たすレビューを必須とする。** 人間レビュアーがいない場合は、実行者と **別役割のエージェント／担当者**が同じチェックリストを再実行する（自己申告のみの「LGTM」は不可）。
+
+#### レビュー担当の義務
+
+- issue 本文・acceptance・Required verification を **HEAD のツリーと突合**し、**誇張・未実装・`[x]` 誤記**がないことを確認する。
+- **クローズ証拠の commit が mainline に取り込まれている**（cherry-pick 忘れ、別ブランチのみ、などがないこと）を確認する。
+- 次の **false-done パターン**を明示的に潰す（いずれか該当なら `done` 禁止）:
+  - `Status: open` や acceptance に **`[ ]` が残ったまま** `done/` に置かれている。
+  - 本文に **「Completed」「全項目達成」** とあるが、**受け入れ条件が未検証**または **verification が未実行・失敗**。
+  - **親 issue の acceptance の一部だけ**を別コミットで満たしたが、**issue 全体を close する根拠がない**（→ 部分達成は open のまま progress note に留めるか、子 issue に分割）。
+  - **issue-only の文言修正**だけで「実装完了」と主張している（implementation-backed でない）。
+  - **依存 issue がまだ open** なのに、本文の「Depends on」を無視して close している。
+- レビュー結果を issue の **Close note** または **レビュー記録**に残す（例: レビュアー名またはエージェント ID、日付、チェックリスト完了の宣言）。
+
+#### レビュー完了の定義
+
+- 上記チェックリストに対し **すべて Yes**（該当なしは N/A と理由）で、レビュー担当が **文書上で承認**している。
+- 承認なしに `git mv` して `done/` へ入れてはならない。
+
+### 親オーケストレータへの明示
+
+- 親は **レビュー承認後**の close 作業を指示・検証する。承認がない場合、親は **移動を拒否**し、差し戻し理由を報告する。
+- 「open 件数を減らす」ことを優先して **レビューをスキップしてはならない**。
+
+## wave barrier
 - 現 wave の全 subagent を read するまで次 wave を切らない。
 - 1件でも `running` / `partial` / `blocked` がある状態で downstream を dispatch しない。
 - upstream 完了後に only-then で次 issue を再分類する。
