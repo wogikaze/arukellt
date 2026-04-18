@@ -33,6 +33,8 @@ v4→v5 のセルフホスト型コンパイラ bootstrap は **未完了**（20
 
 `docs/migration/v4-to-v5.md` と `docs/compiler/bootstrap.md` を `scripts/run/verify-bootstrap.sh` および `docs/current-state.md` に揃えた。上記チェックボックスは根拠のあるものだけ `[x]`。
 
+**Progress note (docs only, 2026-04-18):** 両ドキュメントに **#499**（セルフホスト closure 構文パーサー等、例: commit `6610945`）への「Related progress」を追記。fixpoint 到達の主張はなし。Stage 2 / fixpoint の Acceptance は引き続き **[ ]**。
+
 **Checkbox hygiene:** Reopen の「all [x]」誤記に対応するため、**bootstrap 完了**の 2 行（full `verify-bootstrap.sh` exit 0、fixpoint 等価）は **[ ]** のまま。`[x]` は Stage 1 経路・dual-period 方針など、根拠を本文または `docs/current-state.md` で示せる項目のみ。
 
 ## User Migration Checklist

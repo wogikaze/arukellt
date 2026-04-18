@@ -83,6 +83,12 @@ For deeper debugging and governance, see
 **Last audited:** 2026-04-18 against `scripts/run/verify-bootstrap.sh` and
 `docs/current-state.md` in this repository.
 
+**Related progress:** Selfhost closure literal parsing and related front-end
+slices are tracked in issue **#499** (for example commit `6610945`). That work
+reduces Rust/selfhost gaps in the parser pipeline; it does **not** assert
+bootstrap Stage 2 fixpoint—see
+[Self-Hosting Bootstrap Status](../current-state.md#self-hosting-bootstrap-status).
+
 ## See Also
 
 - [Bootstrap Documentation](../compiler/bootstrap.md)

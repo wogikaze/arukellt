@@ -60,6 +60,12 @@ scripts/run/verify-bootstrap.sh --stage 0
 **Last audited (stage numbering and CLI flags):** 2026-04-18 against
 `scripts/run/verify-bootstrap.sh`.
 
+**Related progress:** Selfhost closure literal parsing and related slices are
+tracked in issue **#499** (for example commit `6610945`). That is incremental
+parser/front-end alignment work; it does **not** by itself mean Stage 2 fixpoint
+(`sha256(s1) == sha256(s2)`)—see
+[current-state.md — Self-Hosting Bootstrap Status](../current-state.md#self-hosting-bootstrap-status).
+
 ## Verification Stages
 
 ### Stage 0 — Compile with Rust compiler
