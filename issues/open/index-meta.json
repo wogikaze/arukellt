@@ -196,24 +196,6 @@
       }
     },
     {
-      "id": "072",
-      "path": "072-wasm-multi-value-full.md",
-      "title": "Wasm Multi-Value: ブロック / ループの複数値返却フル活用",
-      "track": "wasm-feature",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "074",
       "path": "074-wasi-p2-native-component.md",
       "title": "WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成",
