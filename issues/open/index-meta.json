@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T11:57:22Z",
+  "generated_at": "2026-04-18T15:54:53Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -9,7 +9,11 @@
       "title": "CLI --wit flag, --emit component workflow, docs",
       "track": "component-model",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "030",
         "031",
@@ -31,7 +35,11 @@
       "title": "jco JavaScript interop smoke test",
       "track": "component-model",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "033"
       ],
@@ -51,7 +59,11 @@
       "title": "std::collections::hash: HashMap\\<K,V\\> 汎用化と HashSet\\<T\\>",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "039",
         "041"
@@ -75,7 +87,11 @@
       "title": "std::collections: Deque、PriorityQueue",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "039",
         "041"
@@ -96,7 +112,11 @@
       "title": "std::collections: Arena、SlotMap、Interner ／ std::text: Rope",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "039",
         "041"
@@ -117,7 +137,11 @@
       "title": "std::time + std::random: 時刻・期間・乱数",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "039",
         "040"
@@ -138,7 +162,11 @@
       "title": "WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成",
       "track": "wasi-feature",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [
         "077",
@@ -164,7 +192,11 @@
       "title": "コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)",
       "track": "compile-speed",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -182,7 +214,11 @@
       "title": "実行時性能: hello.wasm 1KB 以下 達成プラン",
       "track": "runtime-perf",
       "status": "done",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "091",
         "092",
@@ -205,7 +241,11 @@
       "title": "ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト",
       "track": "benchmark",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "109"
       ],
@@ -225,7 +265,11 @@
       "title": "import 構文と WIT パッケージ識別子の統一方針決定",
       "track": "language-design",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -243,7 +287,11 @@
       "title": "`compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)",
       "track": "pipeline-refactor",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [
         "126"
@@ -263,7 +311,11 @@
       "title": "Docs / codebase intelligence surfaces",
       "track": "parallel",
       "status": "done",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "185",
         "188"
@@ -284,7 +336,11 @@
       "title": "Extension quality / packaging / marketplace readiness",
       "track": "parallel",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "184",
         "185",
@@ -308,7 +364,11 @@
       "title": "migration guide v4→v5: self-hosted compiler bootstrap",
       "track": "compiler/selfhost",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -321,86 +381,16 @@
       }
     },
     {
-      "id": "252",
-      "path": "252-test-strategy-overhaul.md",
-      "title": "テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する",
-      "track": "main",
-      "status": "open",
-      "blocks_v1_exit": "yes",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "253",
-      "path": "253-selfhost-completion-criteria.md",
-      "title": "セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない",
-      "track": "main",
-      "status": "open",
-      "blocks_v1_exit": "yes",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "verification-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "254",
-      "path": "254-vscode-extension-e2e.md",
-      "title": "VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる",
-      "track": "main",
-      "status": "open",
-      "blocks_v1_exit": "yes",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "268",
-      "path": "268-selfhost-parity-ci-verification.md",
-      "title": "Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する",
-      "track": "main",
-      "status": "open",
-      "blocks_v1_exit": "yes",
-      "depends_on": [
-        "267"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "verification-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "285",
       "path": "285-legacy-path-deprecation.md",
       "title": "Legacy lowering path を隔離・撤去する",
       "track": "corehir",
       "status": "open (partially complete — blocked by CoreHIR lowerer stub)",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "284"
       ],
@@ -422,7 +412,11 @@
       "title": "Selfhost に generic instantiation と monomorphization を実装する",
       "track": "selfhost-frontend",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
       "depends_on": [
         "311"
       ],
@@ -444,7 +438,11 @@
       "title": "selfhost Stage 2 fixpoint 達成と dual-period 終了計画",
       "track": "compiler, selfhost",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
       "depends_on": [
         "445",
         "446",
@@ -468,7 +466,11 @@
       "title": "Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC",
       "track": "wasm-feature",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "032",
         "done)"
@@ -489,7 +491,11 @@
       "title": "494 — Selfhost MIR: SSA formation pass",
       "track": "selfhost",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
       "depends_on": [
         "493",
         "503"
@@ -510,7 +516,11 @@
       "title": "499 — Selfhost compiler: closure capture environment lowering",
       "track": "selfhost",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -528,7 +538,11 @@
       "title": "504 — Selfhost: trait/interface syntax and impl-block infrastructure",
       "track": "selfhost",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
       "depends_on": [],
       "blocks_issue_ids": [
         "495",
@@ -549,7 +563,11 @@
       "title": "Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [
         "518"
@@ -569,7 +587,11 @@
       "title": "Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -587,7 +609,11 @@
       "title": "Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -605,7 +631,11 @@
       "title": "Stdlib: raw helper と推奨 facade の境界を再設計する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -623,7 +653,11 @@
       "title": "Stdlib: canonical naming / module layering / surface consistency の第2監査",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [
         "518"
@@ -643,7 +677,11 @@
       "title": "Stdlib: allocation / complexity / perf footgun を family 横断で監査する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -661,7 +699,11 @@
       "title": "Stdlib TOML: parse failure と supported subset contract を定義する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -679,7 +721,11 @@
       "title": "Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -697,7 +743,11 @@
       "title": "Stdlib JSON: parity と differential tests を round-trip corpus で拡張する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -715,7 +765,11 @@
       "title": "Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -733,7 +787,11 @@
       "title": "Stdlib collections/hash: property と differential tests を map / set invariant で拡張する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -751,7 +809,11 @@
       "title": "std::wit + std::component: WIT 型、resource handle、canonical ABI",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "039",
         "044",
@@ -773,7 +835,11 @@
       "title": "std::json + std::toml + std::csv: データ形式パーサ",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "039",
         "042",
@@ -795,7 +861,11 @@
       "title": "WASI P2: `std::host::http` facade と runtime 検証",
       "track": "wasi-feature",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "074",
         "137"
@@ -818,7 +888,11 @@
       "title": "WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成",
       "track": "language-design",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "074"
       ],
@@ -838,7 +912,11 @@
       "title": "WASI P2: `std::host::sockets` facade と T3 実行検証",
       "track": "wasi-feature",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "074",
         "137"
@@ -861,7 +939,11 @@
       "title": "Async Component Support (v5/T5)",
       "track": "wasm-feature",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "035",
         "done)",
@@ -883,7 +965,11 @@
       "title": "`arukellt component` サブコマンド (v3 候補)",
       "track": "cli",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "035",
         "done)",
@@ -907,7 +993,11 @@
       "title": "`wasm-tools compose` 統合 (v3 候補)",
       "track": "wasm-feature",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "035",
         "done)",
@@ -929,7 +1019,11 @@
       "title": "T3 emitter: WASI P2 import-table switch (full P2-native component)",
       "track": "wasi-feature",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "074"
       ],
@@ -949,7 +1043,11 @@
       "title": "`run_frontend()` の二重 lower を解消 (遅延 lower)",
       "track": "pipeline-refactor",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "125"
       ],
@@ -969,7 +1067,11 @@
       "title": "Legacy path removal is blocked by CoreHIR lowerer stub",
       "track": "corehir",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "285"
       ],
@@ -989,7 +1091,11 @@
       "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
       "track": "selfhost",
       "status": "blocked-by-upstream",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
       "depends_on": [
         "312",
         "504"
@@ -1012,7 +1118,11 @@
       "title": "Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "513",
         "517"
@@ -1033,7 +1143,11 @@
       "title": "ADR-011 に沿った `std::host` layer の段階的ロールアウト",
       "track": "wasi-feature",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "137",
         "138",
@@ -1056,7 +1170,11 @@
       "title": "docs: arukellt component サブコマンド CLI リファレンス",
       "track": "docs",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
       "depends_on": [
         "475"
       ],
@@ -1076,7 +1194,11 @@
       "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
       "depends_on": [
         "504",
         "495"

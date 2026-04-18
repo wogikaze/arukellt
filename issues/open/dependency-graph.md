@@ -21,10 +21,6 @@ graph LR
   I205["205 Docs / codebase intelligence surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
-  I252["252 テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する"]
-  I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
-  I254["254 VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる"]
-  I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
@@ -100,10 +96,6 @@ graph LR
 - **205** depends on: 185, 188; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
 - **249** depends on: none; blocks: none
-- **252** depends on: none; blocks: none
-- **253** depends on: none; blocks: none
-- **254** depends on: none; blocks: none
-- **268** depends on: 267; blocks: none
 - **285** depends on: 284; blocks: 508
 - **312** depends on: 311; blocks: 495
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
