@@ -18,7 +18,7 @@ pub use wit_parse::{
 };
 pub use wrap::{ComponentDeps, WrapError, compose_components, read_component_deps};
 
-use ark_diagnostics::{wit_flags_v2_diagnostic, Diagnostic};
+use ark_diagnostics::{Diagnostic, wit_flags_v2_diagnostic};
 use ark_mir::mir::MirModule;
 use ark_typecheck::types::Type;
 
@@ -871,12 +871,13 @@ fn parse_inline_flags_wit_type_name(s: &str) -> Option<WitType> {
 
 #[cfg(test)]
 mod tests {
+    use super::canonical_abi::{CanonicalAbiClass, classify_wit_type};
     use super::*;
+    use ark_diagnostics::DiagnosticCode;
     use ark_mir::mir::{
         BasicBlock, BlockId, FnId, InstanceKey, LocalId, MirFunction, MirImport, MirLocal,
         MirModule, SourceInfo,
     };
-    use ark_diagnostics::DiagnosticCode;
     use ark_typecheck::types::Type;
 
     fn make_instance_key() -> InstanceKey {
@@ -987,6 +988,24 @@ mod tests {
             resources: vec!["file".to_string()],
             world_spec: None,
         };
+        // Export validation (#032) accepts resource handles only when canonical ABI classifies
+        // `own`/`borrow` as `Handle` (not as unknown compound types).
+        let own_ret = world.functions[0]
+            .result
+            .as_ref()
+            .expect("constructor should return own<file>");
+        assert_eq!(
+            classify_wit_type(own_ret),
+            CanonicalAbiClass::Handle,
+            "exported own<T> return must classify as Handle"
+        );
+        let borrow_param = &world.functions[1].params[0].1;
+        assert_eq!(
+            classify_wit_type(borrow_param),
+            CanonicalAbiClass::Handle,
+            "exported borrow<T> parameter must classify as Handle"
+        );
+
         let errors = validate_component_export_types(&world);
         assert!(
             errors.is_empty(),
