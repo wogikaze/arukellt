@@ -24,7 +24,6 @@ graph LR
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I129["129 T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割"]
   I130["130 MIR lower.rs (4360行) をサブモジュールに分割"]
   I134["134 ark-lexer lib.rs (1698行) をサブモジュールに分割"]
   I135["135 ark-diagnostics lib.rs (1099行) をサブモジュールに分割"]
@@ -144,7 +143,6 @@ graph LR
 - **112** depends on: 109; blocks: none
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **129** depends on: none; blocks: none
 - **130** depends on: none; blocks: none
 - **134** depends on: none; blocks: none
 - **135** depends on: none; blocks: none

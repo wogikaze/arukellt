@@ -377,24 +377,6 @@
       }
     },
     {
-      "id": "129",
-      "path": "129-split-t1-emitter.md",
-      "title": "T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割",
-      "track": "code-structure",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "130",
       "path": "130-split-mir-lower.md",
       "title": "MIR lower.rs (4360行) をサブモジュールに分割",

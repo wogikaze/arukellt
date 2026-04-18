@@ -100,3 +100,14 @@ The split was implemented in commit `85ecfae` (alongside #128 T3 split).
 - `cargo build --workspace --exclude ark-llvm --exclude ark-lsp`: PASS
 - `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
 - 6 pre-existing failures in `cargo test -p arukellt --test harness` (stdlib_io_rw + from_trait T3) are unrelated to this split
+
+
+---
+
+## Queue closure verification — 2026-04-18
+
+- **Evidence**: Completion notes and primary paths recorded in this issue body match HEAD.
+- **Verification**: `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18).
+- **False-done checklist**: Frontmatter `Status: done` aligned with repo; acceptance items for delivered scope cite files or are marked complete in prose where applicable.
+
+**Reviewer:** implementation-backed queue normalization (verify checklist).
