@@ -549,9 +549,10 @@ fn collect_wit_type_refs(wt: &WitType, out: &mut std::collections::HashSet<Strin
     }
 }
 
-/// Validate that all exported functions use only scalar (pass-through) types
-/// in the canonical ABI. Returns a list of (function_name, diagnostic) pairs
-/// for any function that uses compound types requiring canonical ABI adapters.
+/// Validate that all exported functions use canonical-ABI-representable types.
+/// Scalar and resource handle (`own`/`borrow`/`resource` as flat `i32`) types are
+/// accepted. Returns a list of (function_name, diagnostic) pairs for signatures
+/// that still need adapters this pipeline does not implement.
 pub fn validate_component_export_types(
     world: &WitWorld,
 ) -> Vec<(String, ark_diagnostics::Diagnostic)> {
@@ -628,11 +629,8 @@ pub fn validate_component_export_types(
                     }
                 }
                 CanonicalAbiClass::Handle => {
-                    errors.push((
-                        func.name.clone(),
-                        ark_diagnostics::component_resource_diagnostic(&func.name),
-                    ));
-                    break;
+                    // Resources cross as flat i32 handle indices; T3 emitter + handle table
+                    // own this path (issue #032).
                 }
                 CanonicalAbiClass::Record(fields) => {
                     // Only all-scalar records (including tuples) are supported
@@ -892,6 +890,42 @@ mod tests {
         assert_eq!(world.functions.len(), 1);
         assert_eq!(world.functions[0].result, Some(WitType::StringType));
         assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn resource_export_validation_accepts_constructor_and_borrow_method() {
+        let world = WitWorld {
+            name: "storage".to_string(),
+            functions: vec![
+                WitFunction {
+                    name: "open".to_string(),
+                    params: vec![("path".to_string(), WitType::StringType)],
+                    result: Some(WitType::Own(Box::new(WitType::Resource(
+                        "file".to_string(),
+                    )))),
+                },
+                WitFunction {
+                    name: "read".to_string(),
+                    params: vec![(
+                        "f".to_string(),
+                        WitType::Borrow(Box::new(WitType::Resource("file".to_string()))),
+                    )],
+                    result: Some(WitType::StringType),
+                },
+            ],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![],
+            resources: vec!["file".to_string()],
+            world_spec: None,
+        };
+        let errors = validate_component_export_types(&world);
+        assert!(
+            errors.is_empty(),
+            "expected resource exports to validate; got: {:?}",
+            errors
+        );
     }
 
     #[test]
