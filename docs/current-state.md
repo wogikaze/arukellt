@@ -29,6 +29,17 @@ The legacy path remains available as an opt-in fallback via `--mir-select legacy
 | `wasm32-wasi-p3` | T5 | not-started | not-started | No | Not started: target id exists but no backend, runtime, or scaffold code |
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
 
+### `wasm32-freestanding` (T2)
+
+`wasm32-freestanding` is **implemented for compile-only** in `crates/ark-target`
+(`implemented: true`, `run_supported: false`). The backend scaffold
+`crates/ark-wasm/src/emit/t2_freestanding.rs` emits a minimal core Wasm module
+(linear memory plus empty `_start`, no WASI imports). Regression proof:
+`cargo test -p arukellt --test t2_scaffold` against
+`tests/fixtures/t2/t2_scaffold.ark` with `wasmparser` validation. Full target
+verification contract and roadmap context: [target-contract.md](target-contract.md)
+and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
+
 <!-- BEGIN GENERATED:CURRENT_STATE_TEST_HEALTH -->
 ## Test Health
 

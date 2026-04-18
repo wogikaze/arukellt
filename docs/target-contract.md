@@ -40,7 +40,7 @@ contract remains the single docs source for target verification status.
 
 | Surface | Status | Detail |
 |---------|--------|--------|
-| parse | guaranteed | 209 `run` + 18 `module-run` + 17 `diag` + 3 `module-diag` fixtures |
+| parse | guaranteed | 342 `run` + 25 `module-run` + 29 `diag` + 8 `module-diag` fixtures |
 | typecheck | guaranteed | same fixture set; type errors covered by `diag` entries |
 | compile (core Wasm) | guaranteed | all `run`/`module-run` fixtures compile before execution |
 | run (wasmtime) | guaranteed | stdout compared against `.expected` files |
@@ -56,29 +56,35 @@ contract remains the single docs source for target verification status.
 |---------|--------|--------|
 | parse | guaranteed | shared frontend; same parser as T1 |
 | typecheck | guaranteed | shared frontend; same typechecker as T1 |
-| compile (core Wasm) | guaranteed | 157 `t3-run` + 161 `t3-compile` fixtures |
-| run (wasmtime) | guaranteed | 157 `t3-run` fixtures with stdout comparison (uses null GC collector) |
-| emit component | smoke | 6 `component-compile` fixtures; skipped if `wasm-tools` absent |
+| compile (core Wasm) | guaranteed | 175 `t3-run` + 170 `t3-compile` fixtures |
+| run (wasmtime) | guaranteed | 175 `t3-run` fixtures with stdout comparison (uses null GC collector) |
+| emit component | smoke | 16 `component-compile` fixtures; skipped if `wasm-tools` absent |
 | emit WIT | smoke | `--emit wit` tested in component-compile fixtures |
 | host capabilities | guaranteed | WASI P2 imports conditionally emitted per reachability |
 | determinism | smoke | spot-checked via baselines |
 | validator pass | guaranteed | `wasmparser` validation runs post-emit |
-| compile-error | guaranteed | 10 `compile-error` fixtures verify expected failures |
+| compile-error | guaranteed | 3 `compile-error` fixtures verify expected failures |
 
 ### T2 — `wasm32-freestanding` (Wasm GC, no WASI)
 
 **Status: scaffold**
 
-T2 now has a minimal emitter scaffold in `crates/ark-wasm`. It produces a
-structurally valid core Wasm module for the freestanding target, exports
-`"memory"` and `"_start"`, and passes `wasmparser` validation through the
-dedicated proof in `cargo test -p arukellt --test t2_scaffold -- --nocapture`.
-That test drives the CLI with `--target wasm32-freestanding` against
-`tests/fixtures/regression/t2_scaffold.ark`. It does **not** implement real
-MIR lowering yet and does not imply browser/runtime execution support.
+T2 is defined (ADR-007 / ADR-013) as a **Wasm GC, WASI-free** browser-oriented
+target. The current implementation is still a **plumbing scaffold**: emitter
+code lives in `crates/ark-wasm/src/emit/t2_freestanding.rs` and emits a minimal
+**core Wasm** module (one page of linear memory, empty `_start`, **no** imports)
+to prove the target and validation path before full MIR → Wasm GC lowering lands.
 
-The I/O surface design is still the long-term contract from [ADR-020](adr/ADR-020-t2-io-surface.md),
-but the current scaffold does not wire that host bridge yet.
+Repo-visible proof is `cargo test -p arukellt --test t2_scaffold`, which runs
+`arukellt compile --target wasm32-freestanding` on the manifest fixture
+`tests/fixtures/t2/t2_scaffold.ark` (also listed as `run:t2/t2_scaffold.ark` in
+`tests/fixtures/manifest.txt`), then runs `wasmparser::Validator::validate_all`
+and asserts no WASI imports and exports for `"memory"` and `"_start"`. An older
+copy under `tests/fixtures/regression/t2_scaffold.ark` remains for inventory
+compatibility but the canonical proof path is `tests/fixtures/t2/`.
+
+The long-term I/O surface remains [ADR-020](adr/ADR-020-t2-io-surface.md); the
+scaffold does not import `arukellt_io` yet.
 
 T2 is a **v2 playground target** only in the roadmap sense.  Playground v1 does
 not require T2 and is not blocked on it (see ADR-017).
@@ -86,7 +92,7 @@ not require T2 and is not blocked on it (see ADR-017).
 | Surface | Status | Detail |
 |---------|--------|--------|
 | I/O surface | ADR written | ADR-020 defines the long-term `arukellt_io.write`/`flush` contract |
-| compile (core Wasm) | scaffold | `cargo test -p arukellt --test t2_scaffold -- --nocapture` compiles `--target wasm32-freestanding` and validates the emitted module |
+| compile (core Wasm) | scaffold | `cargo test -p arukellt --test t2_scaffold` compiles `--target wasm32-freestanding` against `tests/fixtures/t2/t2_scaffold.ark` and validates the emitted module |
 | run | none | No runtime/browser execution support yet |
 | validator pass | scaffold | Dedicated `t2_scaffold` proof runs `wasmparser::Validator::validate_all` on emitted output |
 
@@ -148,18 +154,18 @@ This document should only be updated when:
 2. CI jobs are added or restructured.
 3. Fixture counts change significantly (regenerate via manifest counts).
 
-Current fixture counts (as of this commit):
+Current fixture counts (from `tests/fixtures/manifest.txt`):
 
 ```text
-run:              210
-module-run:        18
-diag:              17
-module-diag:        3
-t3-run:             5
-t3-compile:       161
-component-compile:  6
-compile-error:     10
+run:              342
+module-run:        25
+diag:              29
+module-diag:        8
+t3-run:           175
+t3-compile:       170
+component-compile: 16
+compile-error:      3
 bench:              5
 ────────────────────
-total:            435
+total:            773
 ```

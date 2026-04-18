@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-03-31
-**Updated**: 2026-04-13
+**Updated**: 2026-04-18
 **ID**: 382
 **Depends on**: 378
 **Track**: playground
@@ -39,11 +39,11 @@ playground v2 (ブラウザ内フル実行) に向けて、`wasm32-freestanding`
 
 ## Current state
 
-- `crates/ark-target/src/lib.rs`: `wasm32-freestanding` registered, `implemented: false`
-- `docs/target-contract.md`: "identifier is registered but nothing downstream handles it"
-- `docs/current-state.md`: T2 = "not-started / unimplemented / No"
-- T3 emitter (`crates/ark-wasm/src/emit/t3/`) は WASI import を前提 — T2 には fd_write 等が使えない
-- T2 用の I/O surface (console.log binding 等) の設計なし
+- `crates/ark-target/src/lib.rs`: `wasm32-freestanding` registered, `implemented: true`, `run_supported: false` (compile-only; see #501)
+- `crates/ark-wasm/src/emit/t2_freestanding.rs`: minimal scaffold emitter (linear memory + empty `_start`, no WASI imports)
+- `docs/target-contract.md` / `docs/current-state.md`: T2 scaffold tier, proof path `tests/fixtures/t2/t2_scaffold.ark` + `cargo test -p arukellt --test t2_scaffold` (synced 2026-04-18, issue #382 docs slice)
+- T3 emitter (`crates/ark-wasm/src/emit/t3_wasm_gc/`) は WASI import を前提 — T2 には fd_write 等が使えない
+- T2 I/O surface: ADR-020 で記録済み; scaffold はまだ `arukellt_io` import を出さない
 
 ## Acceptance
 
@@ -51,7 +51,7 @@ playground v2 (ブラウザ内フル実行) に向けて、`wasm32-freestanding`
 - [ ] T2 output がブラウザの Wasm runtime (Chrome/Firefox) でインスタンス化できる ← tracked in #501
 - [x] T2 の I/O surface (console / DOM bridge) の設計が ADR として記録される → `docs/adr/ADR-020-t2-io-surface.md` (DECIDED)
 - [ ] 最低 1 つの fixture が T2 target で compile + browser 実行される ← tracked in #501
-- [ ] `docs/target-contract.md` の T2 状態が更新される ← update when #501 emitter ships
+- [x] `docs/target-contract.md` の T2 状態が更新される (#501 landed; #382 docs slice 2026-04-18 で emitter/fixture と整合)
 
 ## References
 
