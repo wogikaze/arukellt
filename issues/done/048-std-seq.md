@@ -119,3 +119,14 @@ pub fn group_by<T, K>(v: Vec<T>, key: fn(T) -> K) -> Vec<(K, Vec<T>)>
 1. Seq の内部表現: closure-based vs coroutine-based
 2. `group_by` の K 型に hash/eq 制約が必要 — 現状の型システムで可能か
 3. `sort_by` の比較関数の戻り値: `i32` (-1/0/1) vs `Ordering`
+
+
+---
+
+## Queue closure verification — 2026-04-18
+
+- **Evidence**: Completion notes and primary paths recorded in this issue body match HEAD.
+- **Verification**: `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18).
+- **False-done checklist**: Frontmatter `Status: done` aligned with repo; acceptance items for delivered scope cite files or are marked complete in prose where applicable.
+
+**Reviewer:** implementation-backed queue normalization (verify checklist).

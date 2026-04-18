@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T08:25:18Z",
+  "generated_at": "2026-04-18T08:25:24Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -159,27 +159,6 @@
       "title": "std::collections: Arena、SlotMap、Interner ／ std::text: Rope",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "039",
-        "041"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#39, #41"
-      }
-    },
-    {
-      "id": "048",
-      "path": "048-std-seq.md",
-      "title": "std::seq: Seq\\<T\\> 遅延シーケンスとアルゴリズム",
-      "track": "stdlib",
-      "status": "done",
       "blocks_v1_exit": "no",
       "depends_on": [
         "039",
