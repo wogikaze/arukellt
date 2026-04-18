@@ -39,3 +39,4 @@
 | [ADR-023-package-registry-resolution.md](ADR-023-package-registry-resolution.md) | ADR-023: Package Registry Resolution Design | Archive | Status: DECIDED |
 | [ADR-024-selfhost-mir-explicit-cfg-before-ssa.md](ADR-024-selfhost-mir-explicit-cfg-before-ssa.md) | ADR-024: Selfhost MIR uses an explicit CFG before SSA formation | Archive | Status: DECIDED |
 | [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: Source module paths vs WIT package identifiers — collision policy and syntax exploration | Archive | Status: Proposed (draft) |
+| [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: Arukellt source imports vs WIT package syntax — problem, options, recommendation stub | Archive | Status: Proposed (draft) |

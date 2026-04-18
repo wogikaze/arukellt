@@ -288,3 +288,13 @@ Verification for this slice (to be recorded by agent):
 
 - `python3 scripts/check/check-docs-consistency.py`
 - `bash scripts/run/verify-harness.sh --quick` (repo skill; recommended)
+
+---
+
+## Progress — ADR-026 draft (2026-04-18)
+
+Documentation-only slice for issue #123:
+
+- Added: [`docs/adr/ADR-026-import-vs-wit-package-syntax.md`](../../docs/adr/ADR-026-import-vs-wit-package-syntax.md) (**Status: Proposed (draft)**) — problem statement (`std::` vs `wasi:`), option summary, **recommendation stub** (explicitly not decided here; defers to ADR-009 unless superseded), and **in-repo WIT fixture / spec paths** (`docs/spec/import-system.md`, `tests/fixtures/component/*.wit`, JCO sample).
+- Cross-link: [`docs/module-resolution.md`](../../docs/module-resolution.md) (one sentence under `import` resolution).
+- **Note:** ADR-021 is already allocated (`playground-share-url-format`); this work uses the next free ADR number (**026**), not 021.

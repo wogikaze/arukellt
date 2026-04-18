@@ -41,7 +41,8 @@ All other `.ark` files in the source tree are importable as sibling modules.
 
 `import` is a v0 keyword. As of v1, prefer `use` for all standard library
 imports. `import` will be reserved for Component Model boundary imports in v4+
-(see ADR-009).
+(see ADR-009). WIT package IDs (`namespace:pkg/iface@ver`) are a separate
+surface from `::` module paths; see [ADR-026](adr/ADR-026-import-vs-wit-package-syntax.md).
 
 ### 2.3 `use` resolution order
 
