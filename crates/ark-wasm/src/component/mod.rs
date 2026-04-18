@@ -956,6 +956,9 @@ mod tests {
         assert!(warnings.is_empty());
     }
 
+    /// Regression (#032 reopen): component **export** path must accept resource handles and
+    /// emit matching WIT (`resource` + `export` funcs with `own`/`borrow`), not only type-check
+    /// a synthetic world in isolation.
     #[test]
     fn resource_export_validation_accepts_constructor_and_borrow_method() {
         let world = WitWorld {
@@ -989,6 +992,23 @@ mod tests {
             errors.is_empty(),
             "expected resource exports to validate; got: {:?}",
             errors
+        );
+
+        let wit = generate_wit(&world).expect("generate_wit");
+        assert!(
+            wit.contains("resource file;"),
+            "expected resource declaration in WIT; got:\n{}",
+            wit
+        );
+        assert!(
+            wit.contains("export open:") && wit.contains("own<file>"),
+            "expected constructor export with own<file>; got:\n{}",
+            wit
+        );
+        assert!(
+            wit.contains("export read:") && wit.contains("borrow<file>"),
+            "expected method export with borrow<file>; got:\n{}",
+            wit
         );
     }
 
