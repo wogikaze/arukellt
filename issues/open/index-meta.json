@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T11:53:44Z",
+  "generated_at": "2026-04-18T11:54:20Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -278,39 +278,15 @@
       }
     },
     {
-      "id": "188",
-      "path": "188-ark-toml-project-workspace-and-scripts.md",
-      "title": "`ark.toml`: project / workspace metadata と `script run` surface",
+      "id": "205",
+      "path": "205-docs-and-codebase-intelligence-surfaces.md",
+      "title": "Docs / codebase intelligence surfaces",
       "track": "parallel",
-      "status": "open",
+      "status": "done",
       "blocks_v1_exit": "no",
       "depends_on": [
-        "202",
-        "203",
-        "204"
-      ],
-      "blocks_issue_ids": [
-        "205",
-        "214"
-      ],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#204"
-      }
-    },
-    {
-      "id": "201",
-      "path": "201-advanced-debug-intelligence.md",
-      "title": "Advanced debug intelligence",
-      "track": "parallel",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "200"
+        "185",
+        "188"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -319,7 +295,31 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#200"
+        "upstream_notes": "#188"
+      }
+    },
+    {
+      "id": "214",
+      "path": "214-extension-quality-packaging-and-marketplace.md",
+      "title": "Extension quality / packaging / marketplace readiness",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "184",
+        "185",
+        "186",
+        "187",
+        "188"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#188"
       }
     },
     {
@@ -983,51 +983,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#125"
-      }
-    },
-    {
-      "id": "205",
-      "path": "205-docs-and-codebase-intelligence-surfaces.md",
-      "title": "Docs / codebase intelligence surfaces",
-      "track": "parallel",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "185",
-        "188"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#188"
-      }
-    },
-    {
-      "id": "214",
-      "path": "214-extension-quality-packaging-and-marketplace.md",
-      "title": "Extension quality / packaging / marketplace readiness",
-      "track": "parallel",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "184",
-        "185",
-        "186",
-        "187",
-        "188"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#188"
       }
     },
     {

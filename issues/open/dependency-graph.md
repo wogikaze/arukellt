@@ -19,8 +19,8 @@ graph LR
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
-  I201["201 Advanced debug intelligence"]
+  I205["205 Docs / codebase intelligence surfaces"]
+  I214["214 Extension quality / packaging / marketplace readiness"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
   I252["252 テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する"]
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
@@ -54,8 +54,6 @@ graph LR
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I510["510 T3 emitter: WASI P2 import-table switch (full P2-native component)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
-  I205["205 Docs / codebase intelligence surfaces"]
-  I214["214 Extension quality / packaging / marketplace readiness"]
   I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
@@ -74,8 +72,6 @@ graph LR
   I074 --> I476
   I074 --> I510
   I125 --> I126
-  I188 --> I205
-  I188 --> I214
   I268 --> I269
   I285 --> I508
   I312 --> I495
@@ -105,8 +101,8 @@ graph LR
 - **112** depends on: 109; blocks: none
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **188** depends on: 202, 203, 204; blocks: 205, 214
-- **201** depends on: 200; blocks: none
+- **205** depends on: 185, 188; blocks: none
+- **214** depends on: 184, 185, 186, 187, 188; blocks: none
 - **249** depends on: none; blocks: none
 - **252** depends on: none; blocks: none
 - **253** depends on: none; blocks: none
@@ -140,8 +136,6 @@ graph LR
 - **476** depends on: 035, done), 074; blocks: none
 - **510** depends on: 074; blocks: none
 - **126** depends on: 125; blocks: none
-- **205** depends on: 185, 188; blocks: none
-- **214** depends on: 184, 185, 186, 187, 188; blocks: none
 - **269** depends on: 266, 268; blocks: none
 - **508** depends on: 285; blocks: none
 - **495** depends on: 312, 504; blocks: 512
