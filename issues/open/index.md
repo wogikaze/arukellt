@@ -128,7 +128,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 095 | [T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)](095-t3-struct-layout-opt.md) | backend-opt | no | none | none | 5 checked / 0 open | implementation-ready | — | |
 | 096 | [コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)](096-compile-lazy-stdlib.md) | compile-speed | no | none | none | 0 checked / 0 open | implementation-ready | — | |
 | 099 | [コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)](099-compile-incremental-parse.md) | compile-speed | no | none | none | 0 checked / 0 open | implementation-ready | — | |
-| 108 | [実行時性能: hello.wasm 1KB 以下 達成プラン](108-runtime-wasm-binary-size.md) | runtime-perf | no | 091, 092, 088, 089 | none | 5 checked / 0 open | implementation-ready | — | |
+| 108 | [実行時性能: hello.wasm 1KB 以下 達成プラン](108-runtime-wasm-binary-size.md) | runtime-perf | no | 091, 092, 088, 089 | none | 0 checked / 0 open | verification-ready | — | |
 | 110 | [CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック](110-bench-perf-gate.md) | benchmark | no | 109 | none | 0 checked / 0 open | implementation-ready | — | |
 | 112 | [ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト](112-bench-compare-langs.md) | benchmark | no | 109 | none | 0 checked / 0 open | implementation-ready | — | |
 | 123 | [import 構文と WIT パッケージ識別子の統一方針決定](123-import-syntax-unification.md) | language-design | no | none | none | 0 checked / 0 open | design-ready | — | |
@@ -174,7 +174,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 522 | [Stdlib JSON: `stringify_pretty` の product claim を現実に合わせる](522-stdlib-json-stringify-pretty-contract.md) | stdlib | no | none | none | 4 checked / 0 open | implementation-ready | — | |
 | 523 | [Stdlib TOML: parse failure と supported subset contract を定義する](523-stdlib-toml-parse-failure-contract.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
 | 524 | [Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する](524-stdlib-fs-exists-semantics.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
-| 525 | [Stdlib FS: module-level docs を host rollout reality に合わせる](525-stdlib-fs-module-contract-vs-host-rollout.md) | stdlib, docs | no | none | none | 0 checked / 4 open | implementation-ready | — | |
+| 525 | [Stdlib FS: module-level docs を host rollout reality に合わせる](525-stdlib-fs-module-contract-vs-host-rollout.md) | stdlib, docs | no | none | none | 4 checked / 0 open | implementation-ready | — | |
 | 526 | [Stdlib JSON: parity と differential tests を round-trip corpus で拡張する](526-stdlib-json-parity-and-differential-tests.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
 | 527 | [Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する](527-stdlib-toml-parity-and-differential-tests.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
 | 528 | [Stdlib collections/hash: property と differential tests を map / set invariant で拡張する](528-stdlib-collections-hash-property-and-differential-tests.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |

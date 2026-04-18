@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T07:47:44Z",
+  "generated_at": "2026-04-18T07:55:59Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -291,7 +291,7 @@
       "path": "108-runtime-wasm-binary-size.md",
       "title": "実行時性能: hello.wasm 1KB 以下 達成プラン",
       "track": "runtime-perf",
-      "status": "done",
+      "status": "open",
       "blocks_v1_exit": "no",
       "depends_on": [
         "091",
@@ -301,11 +301,11 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 5,
+        "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "verification-ready",
         "upstream_notes": "—"
       }
     },
@@ -1199,8 +1199,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 4
+        "checked": 4,
+        "unchecked": 0
       },
       "orchestration": {
         "class": "implementation-ready",

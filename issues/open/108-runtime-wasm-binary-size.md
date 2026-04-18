@@ -1,54 +1,48 @@
 # 実行時性能: hello.wasm 1KB 以下 達成プラン
 
-**Status**: done
+**Status**: open
+**Status note**: Lives in `issues/open/` (see audit trail). Metrics below were re-verified 2026-04-18; do not use the retired “Completed” banner as queue closure — index/closure is separate.
 **Created**: 2026-03-28
-**Updated**: 2026-04-15
+**Updated**: 2026-04-18
 **ID**: 108
 **Depends on**: 091, 092, 088, 089
 **Track**: runtime-perf
-**Orchestration class**: implementation-ready
+**Orchestration class**: verification-ready
 **Orchestration upstream**: —
 **Blocks v4 exit**: yes
 
 ---
 
-## Completed — 2026-04-15
+## Verification snapshot — 2026-04-18
 
-**All acceptance criteria met.**
+Audited `tests/fixtures/hello/hello.ark` (current `std::host::stdio` fixture) against
+`docs/process/wasm-size-reduction.md`.
 
-- `tests/fixtures/hello/hello.ark` compiles to **526 bytes** at `--opt-level 2`
-  (well under the 1 KB target).
-- Section breakdown obtained: dominant sections are `code` (46.6%, 245 B) and
-  `type` (20.5%, 108 B with 17 entries, 3 referenced).
-- Targeted fix implemented: `inter_function_inline` local-remapping guard
-  (`stmts_use_any_local` guard in Phase 3 of `pipeline.rs`) fixes the O2 compilation
-  failure ("use of undeclared local 0") for any callee with params/locals.
-- Regression test added: `inline_skips_callee_with_locals_no_undeclared_local_error`
-  in `crates/ark-mir/src/opt/pipeline.rs`.
-- Documentation: `docs/process/wasm-size-reduction.md` updated with measurements,
-  section breakdown, and remaining opportunities.
-- `cargo test -p ark-mir` passes (64 tests).
-- `bash scripts/run/verify-harness.sh --quick` passes (19/19).
+| Target | Opt | Size (bytes) | Notes |
+|--------|-----|--------------|--------|
+| `wasm32-wasi-p1` (T1) | 2 | **534** | Under 1 KB; replaces stale **526 B** citations |
+| `wasm32-wasi-p2` (T3 / GC) | 2 | **918** | Under 1 KB; replaces stale **2639 B** rows still present in older doc revisions |
 
-## Acceptance criteria
+Section-level T1 breakdown and commands: see `docs/process/wasm-size-reduction.md`.
 
-- [x] Current hello.wasm binary size is measured and documented (526 bytes at O2)
-- [x] Section-level breakdown (wasm-objdump) identifies largest section (`code` 245 B)
-- [x] At least one targeted size reduction is implemented (inliner local-guard bug fix)
-- [x] `cargo test` passes
-- [x] `bash scripts/run/verify-harness.sh --quick` passes
+## Milestone — 2026-04-15 (inliner guard)
 
----
+Delivered: `inter_function_inline` local-remapping guard (`stmts_use_any_local` in Phase 3 of
+`pipeline.rs`) so O2 no longer fails with “use of undeclared local 0” for callees with
+params/locals. Regression: `inline_skips_callee_with_locals_no_undeclared_local_error` in
+`crates/ark-mir/src/opt/pipeline.rs`.
 
-## Reopened by audit — 2026-04-03
+This milestone fixed a real O2 pipeline bug; it is **not** by itself proof that every
+bullet in the original issue checklist was satisfied at that date.
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
+## Audit trail — 2026-04-03
 
-**Audit evidence**:
-- `**Status**: open` in this file's own frontmatter confirms it was never closed.
-- File was located at `issues/done/108-runtime-wasm-binary-size.md` — incorrect directory for an open issue.
+**Reason**: Issue was filed under `issues/done/` while still tracked as open work, and the
+body later gained a “Completed” banner that did not match queue placement or verifiable
+metrics.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
+**Action**: Moved `issues/done/108-runtime-wasm-binary-size.md` → `issues/open/`. This
+reconciliation commit aligns status, directory, and measured sizes (no emitter change).
 
 ## Summary
 
@@ -60,14 +54,14 @@ roadmap-v4.md §2 の「hello.wasm 1KB 以下」目標を達成するための
 ## 現状分析タスク
 
 1. 現在の `hello.wasm` のバイナリサイズを計測
-2. `wasm-objdump --section-stats` でセクション別サイズ内訳を取得
+2. `wasm-objdump -h`（または `scripts/run/wasm-size-analysis.sh`）でセクション別サイズ内訳を取得
 3. 最大のセクション (通常: type, code, data) について削減策を立案
 
 ## 受け入れ条件
 
-1. `hello.wasm` (GC-native) が `--opt-level 2` で 1KB 以下
-2. 各最適化の寄与量を記録した `docs/process/wasm-size-reduction.md` を作成
-3. `scripts/run/verify-harness.sh` の perf gate にバイナリサイズチェックを追加
+1. `hello.wasm` (GC-native) が `--opt-level 2` で 1KB 以下 — **918 B** on `wasm32-wasi-p2` (2026-04-18)
+2. 各最適化の寄与量を記録した `docs/process/wasm-size-reduction.md` を維持 — **updated in this reconciliation**
+3. `scripts/run/verify-harness.sh` の perf gate にバイナリサイズチェックを追加 — **partial**: `verify-harness.sh --size` / perf baselines track size; **`--quick` does not run `--size` by default**
 
 ## 参照
 
