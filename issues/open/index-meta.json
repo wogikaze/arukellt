@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T11:54:20Z",
+  "generated_at": "2026-04-18T11:54:43Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -404,9 +404,7 @@
       "depends_on": [
         "267"
       ],
-      "blocks_issue_ids": [
-        "269"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 4
@@ -983,27 +981,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#125"
-      }
-    },
-    {
-      "id": "269",
-      "path": "269-dual-period-end-condition.md",
-      "title": "Rust 実装と selfhost 実装の dual period 終了条件を定義する",
-      "track": "main",
-      "status": "open",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "266",
-        "268"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#266, #268"
       }
     },
     {

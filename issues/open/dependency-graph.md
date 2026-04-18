@@ -54,7 +54,6 @@ graph LR
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I510["510 T3 emitter: WASI P2 import-table switch (full P2-native component)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
-  I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
@@ -72,7 +71,6 @@ graph LR
   I074 --> I476
   I074 --> I510
   I125 --> I126
-  I268 --> I269
   I285 --> I508
   I312 --> I495
   I504 --> I495
@@ -107,7 +105,7 @@ graph LR
 - **252** depends on: none; blocks: none
 - **253** depends on: none; blocks: none
 - **254** depends on: none; blocks: none
-- **268** depends on: 267; blocks: 269
+- **268** depends on: 267; blocks: none
 - **285** depends on: 284; blocks: 508
 - **312** depends on: 311; blocks: 495
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
@@ -136,7 +134,6 @@ graph LR
 - **476** depends on: 035, done), 074; blocks: none
 - **510** depends on: 074; blocks: none
 - **126** depends on: 125; blocks: none
-- **269** depends on: 266, 268; blocks: none
 - **508** depends on: 285; blocks: none
 - **495** depends on: 312, 504; blocks: 512
 - **518** depends on: 513, 517; blocks: none
