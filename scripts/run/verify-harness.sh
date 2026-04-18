@@ -59,7 +59,7 @@ Options:
   --full       Run all heavy local verification groups (includes --fixpoint,
                --selfhost-fixture-parity, --selfhost-diag-parity, --lsp-perf,
                --repro)
-  --perf-gate  Run the perf regression gate (still opt-in)
+  --perf-gate  Run the perf regression gate (still opt-in); proof: tests/baselines/perf/*.json, updater: scripts/update-baselines.sh, check: scripts/check/perf-gate.sh
   --help       Show this help message
 EOF
 }

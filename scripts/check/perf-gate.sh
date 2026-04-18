@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Performance gate: detect compile-time, execution-time, and binary-size regressions.
 #
-# Usage: scripts/perf-gate.sh [--update]
+# Usage: scripts/check/perf-gate.sh [--update]
 #   --update   Write current measurements as new baselines (no comparison failure).
 
 set -euo pipefail
