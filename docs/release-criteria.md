@@ -20,6 +20,17 @@ This document defines what must be true before each release tier.
 | `--emit wit` generates extractable WIT | WIT round-trip fixture |
 | No regression in T1/T3 core Wasm | Full harness |
 
+## V3 Criteria (SATISFIED — stdlib track complete)
+
+| Guarantee | Verification method |
+|-----------|-------------------|
+| Stdlib module system (`use std::*`) functional | Fixture harness with manifest-driven tests |
+| Scalar type completeness (all primitive types) | Type system validation + fixture coverage |
+| Manifest-backed stdlib reference generated | `python3 scripts/gen/generate-docs.py` exit 0 |
+| Prelude migration completed | Deprecated APIs flagged, migration guide exists |
+| Stability labels applied to stdlib surface | `docs/stdlib-compatibility.md` verification |
+| All v3 stdlib fixtures pass | `cargo test -p arukellt --test harness` (stdlib subset) |
+
 ## Pre-release Checklist
 
 Run before any tagged release:
