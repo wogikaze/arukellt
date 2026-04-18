@@ -1,8 +1,9 @@
 # Stdlib: 数値タグ / if 連鎖を enum + match 優先へ移行する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-15
 **Updated**: 2026-04-15
+**Closed**: 2026-04-18
 **ID**: 511
 **Depends on**: none
 **Track**: stdlib
@@ -95,3 +96,28 @@ slice の inventory 対象からは除外する。
 
 - `issues/done/391-stdlib-component-wit-helper-usability.md`
 - `issues/open/054-std-wit-component.md`
+
+---
+
+## Close note — 2026-04-18
+
+Closed as complete for planning/documentation slice. This issue established the migration strategy from numeric tags/if-chains to enum+match in stdlib.
+
+**Close evidence:**
+- Inventory matrix completed for std::json, std::toml, std::wit
+- Classification completed: migrate-to-enum+match vs keep-raw-id-temporarily
+- Per-module migration notes documented for std::json, std::toml, std::wit
+- Rule fixed: "new stdlib APIs must not expose raw numeric tag" documented in issue note
+- All 4 acceptance criteria checked
+
+**Acceptance mapping:**
+- ✓ Inventory of numeric tag public APIs in std completed
+- ✓ Classification of migrate-to-enum+match vs keep-raw-id targets completed
+- ✓ Individual migration policies for std::json, std::toml, std::wit documented
+- ✓ Rule fixing "new stdlib APIs must not expose raw numeric tag" documented
+
+**Implementation notes:**
+- This is a planning/documentation slice that establishes the migration strategy
+- Actual code migration to enum+match is tracked in separate issues per module
+- The rule established by this issue applies to all new stdlib API development
+- ABI/interop boundaries (wit_type_id/wit_type_from_id) are exempted as documented
