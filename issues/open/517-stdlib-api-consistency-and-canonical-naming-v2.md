@@ -21,6 +21,22 @@ canonical naming と alias/deprecation 計画を更新する。
 - `std/text` family と prelude の `concat` / formatting helpers が並立している
 - collections family に monomorphic historical naming が残る
 
+## Metadata / search-index judgement
+
+The current docs generator already knows how to render `stability` and `deprecated_by`
+metadata into `docs/stdlib/reference.md` and `docs/stdlib/name-index.md`:
+the missing piece is the manifest metadata for the families below, not a new schema.
+
+| Family | Judgement | Repo-grounded evidence | Why this is the judgement |
+|--------|-----------|------------------------|---------------------------|
+| `std::env` | **yes** | `std/manifest.toml:4851-4876` defines both `var` and `get_var` as `stable` with no `deprecated_by`; `docs/stdlib/reference.md:414-416` and `docs/stdlib/name-index.md:230,574-576,842,1186-1188` render both as canonical stable entries. | The canonical-name policy cannot be expressed in generated docs/search index until one name is marked historical/deprecated in manifest metadata. |
+| `std::text` | **yes** | `std/manifest.toml:2079-2086` defines `std::text::concat`, while `std/text/string.ark` still duplicates `concat` and `docs/stdlib/reference.md:857` + `docs/stdlib/name-index.md:750-751` currently list both `prelude` and `std::text` surfaces as canonical stable names. | The duplicate text surface is still rendered as first-class API, so docs/search index need metadata to distinguish canonical vs historical placement. |
+| representative collections family: `HashMap_*` prelude surface | **yes** | `std/manifest.toml:1260-1440` shows the old monomorphic `HashMap_*` surface as plain `stable` entries with no `deprecated_by`; `docs/stdlib/reference.md:1018-1034` and `docs/stdlib/name-index.md:240-245,852-865` likewise render them as canonical stable names. | The monomorphic historical naming is still present in the generated docs/search index as active API, so policy-aligned historical/deprecated metadata is needed here too. |
+
+Bottom line: the current generator is sufficient, but these families still need
+manifest metadata changes before generated docs/search index can faithfully encode
+the canonical-name/deprecation policy.
+
 ## Canonical naming policy (restated for #517)
 
 以下は本 issue の整理作業で前提とする **canonical 方針の箇条書き**（最終決定は acceptance 完了時に確定）。
