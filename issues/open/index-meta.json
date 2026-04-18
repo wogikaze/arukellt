@@ -635,26 +635,6 @@
       }
     },
     {
-      "id": "283",
-      "path": "283-corehir-desugar-try-expr.md",
-      "title": "CoreHIR lowering: TryExpr を制御フローに desugar する",
-      "track": "corehir",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "281"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "285",
       "path": "285-legacy-path-deprecation.md",
       "title": "Legacy lowering path を隔離・撤去する",
