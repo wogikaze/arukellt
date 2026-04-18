@@ -77,7 +77,11 @@ def parse_file(path):
     deps = normalize_deps(deps_raw)
     status = meta.get('Status', 'open')
     track = meta.get('Track', 'main')
-    blocks_v1 = meta.get('Blocks v1 exit', 'no')
+    blocks_v1 = meta.get('Blocks v1', 'none')
+    blocks_v2 = meta.get('Blocks v2', 'none')
+    blocks_v3 = meta.get('Blocks v3', 'none')
+    blocks_v4 = meta.get('Blocks v4', 'none')
+    blocks_v5 = meta.get('Blocks v5', 'none')
     blocked_by = meta.get('Blocked by', '')
     orchestration_class = meta.get('Orchestration class', '')
     orchestration_upstream = meta.get('Orchestration upstream', '')
@@ -91,6 +95,10 @@ def parse_file(path):
         'status': status,
         'track': track,
         'blocks_v1': blocks_v1,
+        'blocks_v2': blocks_v2,
+        'blocks_v3': blocks_v3,
+        'blocks_v4': blocks_v4,
+        'blocks_v5': blocks_v5,
         'blocked_by': blocked_by,
         'unchecked': acceptance_unchecked,
         'checked': acceptance_checked,
@@ -141,7 +149,11 @@ lines.append(f'- Total open issues: {len(issues)}')
 lines.append(f'- Blocked issues: {len(blocked_issues)}')
 lines.append(f'- Main-track issues: {sum(1 for i in issues.values() if i["track"] == "main")}')
 lines.append(f'- Parallel-track issues: {sum(1 for i in issues.values() if i["track"] == "parallel")}')
-lines.append(f'- V1-exit blockers: {sum(1 for i in issues.values() if i["blocks_v1"] == "yes")}')
+lines.append(f'- V1 blockers: {sum(1 for i in issues.values() if i["blocks_v1"] == "yes")}')
+lines.append(f'- V2 blockers: {sum(1 for i in issues.values() if i["blocks_v2"] == "yes")}')
+lines.append(f'- V3 blockers: {sum(1 for i in issues.values() if i["blocks_v3"] == "yes")}')
+lines.append(f'- V4 blockers: {sum(1 for i in issues.values() if i["blocks_v4"] == "yes")}')
+lines.append(f'- V5 blockers: {sum(1 for i in issues.values() if i["blocks_v5"] == "yes")}')
 lines.append('')
 lines.append('Machine-readable metadata (orchestration + deps + acceptance counts): `index-meta.json` (generated alongside this file).')
 lines.append('')
@@ -153,16 +165,29 @@ for idx, iid in enumerate(order, 1):
 lines.append('')
 lines.append('## Issue table')
 lines.append('')
-lines.append('| ID | Title | Track | Blocks v1 | Depends on | Blocks | Acceptance | Orchestration | Orch notes | |')
-lines.append('|----|-------|-------|-----------|------------|--------|------------|---------------|------------|-|')
+lines.append('| ID | Title | Track | Blocks v{N} | Depends on | Blocks | Acceptance | Orchestration | Orch notes | |')
+lines.append('|----|-------|-------|-------------|------------|--------|------------|---------------|------------|-|')
 for iid in order:
     data = issues[iid]
     deps = ', '.join(data['deps']) if data['deps'] else 'none'
     blocks = ', '.join(sorted(reverse.get(iid, []))) if reverse.get(iid) else 'none'
+    # Collect all non-"none" blocker versions
+    blocker_versions = []
+    if data['blocks_v1'] == 'yes':
+        blocker_versions.append('v1')
+    if data['blocks_v2'] == 'yes':
+        blocker_versions.append('v2')
+    if data['blocks_v3'] == 'yes':
+        blocker_versions.append('v3')
+    if data['blocks_v4'] == 'yes':
+        blocker_versions.append('v4')
+    if data['blocks_v5'] == 'yes':
+        blocker_versions.append('v5')
+    blocks_vn = ', '.join(blocker_versions) if blocker_versions else 'none'
     progress = f'{data["checked"]} checked / {data["unchecked"]} open'
     orch = data.get('orchestration_class', '') or '—'
     orch_note = (data.get('orchestration_upstream', '') or '—').replace('|', '/')
-    lines.append(f'| {iid} | [{data["title"]}]({data["path"]}) | {data["track"]} | {data["blocks_v1"]} | {deps} | {blocks} | {progress} | {orch} | {orch_note} | |')
+    lines.append(f'| {iid} | [{data["title"]}]({data["path"]}) | {data["track"]} | {blocks_vn} | {deps} | {blocks} | {progress} | {orch} | {orch_note} | |')
 
 if blocked_issues:
     lines.append('')
@@ -230,7 +255,11 @@ meta_payload = {
             'title': issues[iid]['title'],
             'track': issues[iid]['track'],
             'status': issues[iid]['status'],
-            'blocks_v1_exit': issues[iid]['blocks_v1'],
+            'blocks_v1': issues[iid]['blocks_v1'],
+            'blocks_v2': issues[iid]['blocks_v2'],
+            'blocks_v3': issues[iid]['blocks_v3'],
+            'blocks_v4': issues[iid]['blocks_v4'],
+            'blocks_v5': issues[iid]['blocks_v5'],
             'depends_on': issues[iid]['deps'],
             'blocks_issue_ids': sorted(reverse.get(iid, [])),
             'acceptance': {
