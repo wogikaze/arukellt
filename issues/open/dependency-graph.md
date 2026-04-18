@@ -37,7 +37,6 @@ graph LR
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
   I254["254 VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる"]
   I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
-  I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
   I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I286["286 bootstrap セクションの fixpoint 記述整合を再検証する"]
@@ -150,7 +149,6 @@ graph LR
 - **253** depends on: none; blocks: none
 - **254** depends on: none; blocks: none
 - **268** depends on: 267; blocks: 269
-- **282** depends on: 281; blocks: none
 - **283** depends on: 281; blocks: none
 - **285** depends on: 284; blocks: 508
 - **286** depends on: none; blocks: none
