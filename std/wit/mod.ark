@@ -54,21 +54,22 @@ pub fn wit_type_id(ty: WitType) -> i32 {
 }
 
 pub fn wit_type_from_id(id: i32) -> WitType {
-    if id == 1 { WitType::Bool }
-    else { if id == 2 { WitType::U8 }
-    else { if id == 3 { WitType::U16 }
-    else { if id == 4 { WitType::U32 }
-    else { if id == 5 { WitType::U64 }
-    else { if id == 6 { WitType::S8 }
-    else { if id == 7 { WitType::S16 }
-    else { if id == 8 { WitType::S32 }
-    else { if id == 9 { WitType::S64 }
-    else { if id == 10 { WitType::F32 }
-    else { if id == 11 { WitType::F64 }
-    else { if id == 12 { WitType::Char }
-    else { if id == 13 { WitType::String }
-    else { WitType::Unknown(id)
-    } } } } } } } } } } } } }
+    match id {
+        1 => WitType::Bool,
+        2 => WitType::U8,
+        3 => WitType::U16,
+        4 => WitType::U32,
+        5 => WitType::U64,
+        6 => WitType::S8,
+        7 => WitType::S16,
+        8 => WitType::S32,
+        9 => WitType::S64,
+        10 => WitType::F32,
+        11 => WitType::F64,
+        12 => WitType::Char,
+        13 => WitType::String,
+        _ => WitType::Unknown(id),
+    }
 }
 
 pub fn wit_type_name(ty: WitType) -> String {
