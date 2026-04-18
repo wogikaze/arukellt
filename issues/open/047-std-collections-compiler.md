@@ -6,8 +6,8 @@
 **ID**: 047
 **Depends on**: 039, 041
 **Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #39, #41
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v3 exit**: no (Experimental)
 
 ---

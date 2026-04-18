@@ -96,11 +96,11 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 032 | [WIT resource type support (own/borrow)](032-resource-type.md) | component-model | no | 030 | 473 | 10 checked / 0 open | implementation-ready | — | |
 | 034 | [CLI --wit flag, --emit component workflow, docs](034-wit-cli-integration.md) | component-model | no | 030, 031, 028b | none | 9 checked / 0 open | implementation-ready | — | |
 | 036 | [jco JavaScript interop smoke test](036-jco-javascript-interop.md) | component-model | no | 033 | none | 4 checked / 0 open | blocked-by-upstream | 037-external-jco | |
-| 043 | [std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128](043-std-bytes.md) | stdlib | no | 039, 040 | none | 0 checked / 0 open | blocked-by-upstream | #39 | |
-| 044 | [std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>](044-std-collections-hash.md) | stdlib | no | 039, 041 | 054, 055 | 0 checked / 0 open | blocked-by-upstream | #39, #41 | |
-| 045 | [std::collections: Deque、PriorityQueue](045-std-collections-linear.md) | stdlib | no | 039, 041 | none | 0 checked / 0 open | blocked-by-upstream | #39, #41 | |
-| 047 | [std::collections: Arena、SlotMap、Interner ／ std::text: Rope](047-std-collections-compiler.md) | stdlib | no | 039, 041 | none | 0 checked / 0 open | blocked-by-upstream | #39, #41 | |
-| 051 | [std::time + std::random: 時刻・期間・乱数](051-std-time-random.md) | stdlib | no | 039, 040 | none | 0 checked / 0 open | blocked-by-upstream | #39 | |
+| 043 | [std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128](043-std-bytes.md) | stdlib | no | 039, 040 | none | 0 checked / 0 open | implementation-ready | — | |
+| 044 | [std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>](044-std-collections-hash.md) | stdlib | no | 039, 041 | 054, 055 | 0 checked / 0 open | implementation-ready | — | |
+| 045 | [std::collections: Deque、PriorityQueue](045-std-collections-linear.md) | stdlib | no | 039, 041 | none | 0 checked / 0 open | implementation-ready | — | |
+| 047 | [std::collections: Arena、SlotMap、Interner ／ std::text: Rope](047-std-collections-compiler.md) | stdlib | no | 039, 041 | none | 0 checked / 0 open | implementation-ready | — | |
+| 051 | [std::time + std::random: 時刻・期間・乱数](051-std-time-random.md) | stdlib | no | 039, 040 | none | 0 checked / 0 open | implementation-ready | — | |
 | 074 | [WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成](074-wasi-p2-native-component.md) | wasi-feature | no | none | 077, 124, 139, 474, 475, 476, 510 | 0 checked / 0 open | implementation-ready | — | |
 | 094 | [T3: enum dispatch の br_on_cast 連鎖最適化](094-t3-br-on-cast-chain-opt.md) | backend-opt | no | none | none | 3 checked / 0 open | design-ready | Rescoped 2026-04-18 — original i31 / monolithic `br_on_cast` acceptance deferred; see §Rescope — 2026-04-18; partial IfStmt→`br_table` work landed under #505 (`issues/done/505-t3-br-table-type-info-gap.md`) | |
 | 096 | [コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)](096-compile-lazy-stdlib.md) | compile-speed | no | none | none | 0 checked / 0 open | implementation-ready | — | |
