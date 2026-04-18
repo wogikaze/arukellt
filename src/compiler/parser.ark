@@ -4,6 +4,7 @@
 // Uses i32 tag constants for node kinds (same pattern as lexer).
 
 use std::host::stdio
+use lexer
 
 // ── AST Node Kind Tags ──────────────────────────────────────────────────────
 
@@ -1746,6 +1747,67 @@ pub fn issue499_parser_pipepipe_self_check() -> String {
     String_from("issue499 parser ok: let z = || 42")
 }
 
+/// Lexer + parser integration: `|params| body` must survive real tokenization (not only hand-built tokens).
+pub fn issue499_parser_lexer_integration_self_check() -> String {
+    let src = String_from("fn main() { let add = |x, y| x + y }")
+    let tokens = lexer::tokenize(src)
+    let p = Parser_new(tokens)
+    let decls = parse_module(p)
+    if len(p.errors) != 0 {
+        return concat(String_from("issue499 lexer integration fail: parse errors="), to_string(len(p.errors)))
+    }
+    if len(decls) != 1 {
+        return concat(String_from("issue499 lexer integration fail: decl count="), to_string(len(decls)))
+    }
+
+    let fn_decl = get_unchecked(decls, 0)
+    if fn_decl.kind != NK_FN_DECL() {
+        return String_from("issue499 lexer integration fail: expected fn decl")
+    }
+    if len(fn_decl.children) != 1 {
+        return concat(String_from("issue499 lexer integration fail: fn child count="), to_string(len(fn_decl.children)))
+    }
+
+    let body = get_unchecked(fn_decl.children, 0)
+    if body.kind != NK_BLOCK() {
+        return String_from("issue499 lexer integration fail: expected block body")
+    }
+    if len(body.children) != 1 {
+        return concat(String_from("issue499 lexer integration fail: stmt count="), to_string(len(body.children)))
+    }
+
+    let let_stmt = get_unchecked(body.children, 0)
+    if let_stmt.kind != NK_LET() {
+        return String_from("issue499 lexer integration fail: expected let stmt")
+    }
+    if len(let_stmt.children) != 1 {
+        return concat(String_from("issue499 lexer integration fail: let child count="), to_string(len(let_stmt.children)))
+    }
+
+    let closure = get_unchecked(let_stmt.children, 0)
+    if closure.kind != NK_CLOSURE() {
+        return String_from("issue499 lexer integration fail: expected closure expr")
+    }
+    if len(closure.children) != 3 {
+        return concat(String_from("issue499 lexer integration fail: closure child count="), to_string(len(closure.children)))
+    }
+
+    let param0 = get_unchecked(closure.children, 0)
+    let param1 = get_unchecked(closure.children, 1)
+    let closure_body = get_unchecked(closure.children, 2)
+    if !eq(clone(param0.text), String_from("x")) {
+        return String_from("issue499 lexer integration fail: first param")
+    }
+    if !eq(clone(param1.text), String_from("y")) {
+        return String_from("issue499 lexer integration fail: second param")
+    }
+    if closure_body.kind != NK_BINARY() || closure_body.op != OP_ADD() {
+        return String_from("issue499 lexer integration fail: closure body")
+    }
+
+    String_from("issue499 parser ok: lexer integration |x, y| x + y")
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
@@ -1789,5 +1851,6 @@ fn main() {
     }
     stdio::println(issue499_parser_self_check())
     stdio::println(issue499_parser_pipepipe_self_check())
+    stdio::println(issue499_parser_lexer_integration_self_check())
     stdio::println(issue504_parser_self_check())
 }
