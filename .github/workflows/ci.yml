@@ -14,7 +14,7 @@ name: CI
 #  docs/size/WAT layer     heavy-checks                  push only     verify-harness --size --wat --docs
 #  component-interop       component-interop             push only     component emit / host interop smoke
 #  perf                    perf-baseline                 push only     baseline snapshot collection
-#  bootstrap               selfhost-bootstrap            yes*          Stage 0/1 required; Stage 2/parity informational
+#  bootstrap               selfhost-bootstrap            yes*          Stage 0/1 required; Stage 2 informational; fixture parity sub-step (--fixture only, || true; CLI/diag not in CI)
 #  editor-tooling          extension-tests               yes           VS Code extension workflow tests
 #  editor-tooling          lsp-e2e                       yes           LSP protocol unit + end-to-end tests
 #  target-contract drift   target-contract-drift-check   yes           docs/target-contract.md matches CI truth
