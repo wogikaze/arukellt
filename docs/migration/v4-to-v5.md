@@ -41,6 +41,12 @@ Bootstrap verification is a three-stage gate defined and labeled by
 | **1** | `wasmtime run` executes `arukellt-s1.wasm` with the repo root mounted; it compiles the same `main.ark` to the same target | `.bootstrap-build/arukellt-s2.wasm` |
 | **2** | `sha256sum` on both wasm files | Success when hashes match (fixpoint) |
 
+**What the script compiles:** Stages **0** and **1** each run the compiler on
+**`src/compiler/main.ark` only**, producing one unified wasm (`arukellt-s1.wasm`
+then `arukellt-s2.wasm`). The script lists how many `*.ark` files exist under
+`src/compiler/` for visibility, but it does **not** compile each file as a
+separate Stage 0 artifact (see `scripts/run/verify-bootstrap.sh`).
+
 **Current status (authoritative detail):** see
 [Self-Hosting Bootstrap Status](../current-state.md#self-hosting-bootstrap-status).
 As of that page, Stages **0** and **1** succeed (Rust and `arukellt-s1.wasm`

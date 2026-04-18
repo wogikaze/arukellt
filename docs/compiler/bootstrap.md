@@ -52,7 +52,7 @@ scripts/run/verify-bootstrap.sh
 scripts/run/verify-bootstrap.sh --stage 0
 ```
 
-**Last audited (stage numbering and CLI flags):** 2026-04-16 against
+**Last audited (stage numbering and CLI flags):** 2026-04-18 against
 `scripts/run/verify-bootstrap.sh`.
 
 ## Verification Stages
