@@ -8,7 +8,7 @@
 **Track**: stdlib
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
-**Blocks v1 exit**: no
+**Blocks v{N}**: none
 **Source**: stdlib modernization backlog requested 2026-04-15
 
 ## Summary

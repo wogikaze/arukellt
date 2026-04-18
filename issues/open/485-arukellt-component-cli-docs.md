@@ -8,7 +8,7 @@
 **Track**: docs
 **Orchestration class**: blocked-by-upstream
 **Orchestration upstream**: #475
-**Blocks v1 exit**: no
+**Blocks v{N}**: none
 
 ---
 
