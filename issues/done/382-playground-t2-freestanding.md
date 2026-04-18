@@ -1,8 +1,9 @@
 # Playground: wasm32-freestanding (T2) target の downstream 実装を開始する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-04-18
+**Closed**: 2026-04-18
 **ID**: 382
 **Depends on**: 378
 **Track**: playground
@@ -119,3 +120,30 @@ Failed: 0
 - `crates/ark-wasm/src/emit/t3/` — T3 emitter (参考)
 - `docs/target-contract.md` — target 契約
 - `docs/current-state.md` — implementation status
+
+---
+
+## Close note — 2026-04-18
+
+Closed as complete for ADR slice. Full T2 emitter implementation tracked in #501.
+
+**Close evidence:**
+- ADR-020 T2 I/O Surface Design exists with Status: DECIDED
+- docs/target-contract.md T2 status updated (scaffold tier, emitter not started)
+- T2 scaffold emitter present: `crates/ark-wasm/src/emit/t2_freestanding.rs`
+- T2 scaffold fixture exists: `tests/fixtures/t2/t2_scaffold.ark`
+- Integration test passes: `cargo test -p arukellt --test t2_scaffold` → exit 0
+- Verification: `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)
+
+**Acceptance mapping (ADR slice only):**
+- ✓ T2 I/O surface ADR recorded → ADR-020 (DECIDED)
+- ✓ docs/target-contract.md T2 status updated
+- ~ T2 emitter generates minimal Wasm module → tracked in #501
+- ~ T2 output instantiatable in browser → tracked in #501
+- ~ At least 1 fixture compiles + browser runs → tracked in #501
+
+**Implementation notes:**
+- This issue was rescoped per audit correction (2026-04-14) to track only the ADR/documentation slice
+- Full T2 emitter implementation (WASI-free GC Wasm output) is tracked in issue #501
+- T2 scaffold tier achieved: compile-only, run_supported: false in target registry
+- Emitter work requires >100 LOC; STOP_IF triggered, work broken out to #501
