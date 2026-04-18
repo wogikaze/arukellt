@@ -184,3 +184,22 @@ routing feasible emitter work to the correct tracker.
 **STOP_IF historical note:** The §STOP_IF section remains as **audit evidence**;
 it is no longer interpreted as “block all work on this issue” now that scope is
 explicitly documentation + routing.
+
+---
+
+## Close note — 2026-04-18
+
+Closed as documentation-only rescope. Original implementation acceptance (i31-tagged `br_table` O(1) dispatch) is blocked by enum representation change requirements (>150 lines across 4 files). Partial feasible optimization (IfStmt chain → `br_table` without repr change) was tracked and completed under issue #505.
+
+**Close evidence:**
+- Documentation rescope complete: issue documents why original acceptance is incompatible with HEAD (§STOP_IF + table)
+- Follow-up implementation path correctly cites #505 for actual `br_table` dispatch work
+- Frontmatter Status updated to done
+- Verification: `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)
+
+**Acceptance mapping:**
+- [x] Issue documents why original acceptance is incompatible with HEAD
+- [x] Follow-up implementation path cites #505
+- [x] Frontmatter Status / orchestration class updated
+
+No code changes required for this close - documentation and routing only.
