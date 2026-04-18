@@ -170,7 +170,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 516 | [Stdlib: raw helper と推奨 facade の境界を再設計する](516-stdlib-raw-helper-boundary-and-facades.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
 | 517 | [Stdlib: canonical naming / module layering / surface consistency の第2監査](517-stdlib-api-consistency-and-canonical-naming-v2.md) | stdlib | no | none | 518 | 0 checked / 4 open | implementation-ready | — | |
 | 520 | [Stdlib: allocation / complexity / perf footgun を family 横断で監査する](520-stdlib-performance-allocation-and-complexity-audit.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
-| 521 | [Stdlib JSON: top-level parse は trailing non-whitespace を拒否する](521-stdlib-json-top-level-parse-contract.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
+| 521 | [Stdlib JSON: top-level parse は trailing non-whitespace を拒否する](521-stdlib-json-top-level-parse-contract.md) | stdlib | no | none | none | 4 checked / 0 open | implementation-ready | — | |
 | 522 | [Stdlib JSON: `stringify_pretty` の product claim を現実に合わせる](522-stdlib-json-stringify-pretty-contract.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
 | 523 | [Stdlib TOML: parse failure と supported subset contract を定義する](523-stdlib-toml-parse-failure-contract.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
 | 524 | [Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する](524-stdlib-fs-exists-semantics.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
