@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T08:25:24Z",
+  "generated_at": "2026-04-18T08:25:25Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -193,24 +193,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#39"
-      }
-    },
-    {
-      "id": "066",
-      "path": "066-wasm-bulk-memory-full.md",
-      "title": "Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応",
-      "track": "wasm-feature",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {
