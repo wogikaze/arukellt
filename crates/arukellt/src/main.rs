@@ -87,7 +87,12 @@ enum Commands {
         /// Emit kind (core-wasm, component, wit, all)
         #[arg(long)]
         emit: Option<EmitKind>,
-        /// WIT file(s) for host import binding
+        /// WIT interface file(s) for component compilation.
+        ///
+        /// Paths must exist. With `--emit component` or `--emit all`, each file is parsed
+        /// and checked; interface functions are registered for type-checking and added to
+        /// the component import list. Full WIT package or cross-file `use` resolution is
+        /// not performed—only the given file(s) are read.
         #[arg(long = "wit", value_name = "PATH")]
         wit_files: Vec<PathBuf>,
         /// Show memory profiling info (escape analysis, allocation hints, compiler RSS)
