@@ -6,6 +6,8 @@
 **ID**: 473
 **Depends on**: 032 (resource-type, done)
 **Track**: wasm-feature
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #32
 **Blocks v4 exit**: no
 
 ---

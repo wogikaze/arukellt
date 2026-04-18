@@ -6,6 +6,8 @@
 **ID**: 459
 **Depends on**: 445, 446, 447, 448, 449
 **Track**: compiler, selfhost
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Priority**: 3
 

@@ -4,6 +4,8 @@
 **Created**: 2026-03-28
 **ID**: 124
 **Track**: language-design
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #74
 **Blocks v4 exit**: yes
 **Depends on**: 074 (wasi-p2-native-component)
 **ADR candidate**: yes

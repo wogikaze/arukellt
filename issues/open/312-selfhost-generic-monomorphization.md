@@ -6,6 +6,8 @@
 **ID**: 312
 **Depends on**: 311
 **Track**: selfhost-frontend
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Priority**: 11
 

@@ -6,6 +6,8 @@
 **ID**: 125
 **Depends on**: —
 **Track**: pipeline-refactor
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: CoreHIR-default-blocked (issue body: fixtures failing)
 **Blocks v4 exit**: yes
 
 **Status note**: BLOCKED — CoreHIR path fails 378/410 fixtures. Legacy path must remain default.

@@ -6,6 +6,8 @@
 **ID**: 514
 **Depends on**: none
 **Track**: stdlib
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Source**: stdlib modernization backlog requested 2026-04-15
 

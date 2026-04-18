@@ -59,6 +59,7 @@ These files are auto-generated. Run the generator instead of editing manually:
 | `docs/stdlib/modules/*.md` | `python3 scripts/gen/generate-docs.py` |
 | `docs/stdlib/scoreboard.md` | `bash scripts/gen/generate-scoreboard.sh` |
 | `issues/open/index.md` | `bash scripts/gen/generate-issue-index.sh` |
+| `issues/open/index-meta.json` | `bash scripts/gen/generate-issue-index.sh` |
 | `issues/done/index.md` | `bash scripts/gen/generate-issue-index.sh` |
 | `issues/open/dependency-graph.md` | `bash scripts/gen/generate-issue-index.sh` |
 

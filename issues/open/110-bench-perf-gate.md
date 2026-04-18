@@ -6,6 +6,8 @@
 **ID**: 110
 **Depends on**: 109
 **Track**: benchmark
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: yes
 
 ## Reopened by audit — 2026-04-13

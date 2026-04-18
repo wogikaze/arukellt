@@ -6,6 +6,8 @@
 **ID**: 286
 **Depends on**: —
 **Track**: selfhost
+**Orchestration class**: verification-ready
+**Orchestration upstream**: —
 
 ## Reopened by audit — 2026-04-13
 

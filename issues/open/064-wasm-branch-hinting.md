@@ -6,6 +6,8 @@
 **ID**: 064
 **Depends on**: —
 **Track**: wasm-feature
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: no
 
 **Status note**: Implemented. `BranchHint::Likely/Unlikely` was already present in MIR. T3 WasmGC emitter now always emits the `metadata.code.branch_hint` custom section (stub with 0 entries; precise byte-offset tracking deferred). Criterion 3 (`@likely`/`@unlikely` syntax) deferred to ADR-004 P4.

@@ -6,6 +6,8 @@
 **ID**: 126
 **Depends on**: 125
 **Track**: pipeline-refactor
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #125
 **Blocks v4 exit**: no (compile-time optimization)
 
 ---

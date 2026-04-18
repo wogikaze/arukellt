@@ -6,6 +6,8 @@
 **ID**: 200
 **Depends on**: 199
 **Track**: parallel
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13

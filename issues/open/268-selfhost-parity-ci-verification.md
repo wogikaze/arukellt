@@ -6,6 +6,8 @@
 **ID**: 268
 **Depends on**: 267
 **Track**: main
+**Orchestration class**: verification-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: yes
 
 

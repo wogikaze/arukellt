@@ -19,6 +19,8 @@ Each issue is a markdown file with machine-readable header fields plus human-rea
 **Updated**: YYYY-MM-DD
 **ID**: 001
 **Depends on**: none | 001, 002
+**Orchestration class**: implementation-ready | design-ready | verification-ready | blocked-by-upstream | unsupported-in-this-run
+**Orchestration upstream**: — | free-form (e.g. `#039`, `external:037`)
 
 ## Summary
 Brief description of what needs to be done.
@@ -35,9 +37,11 @@ Any context, blockers, or implementation notes.
 The generator reads these exact header fields. `Depends on` must contain comma-separated numeric IDs or `none`.
 
 Generated artifacts:
-- `issues/open/index.md` — dependency-aware issue index
+- `issues/open/index.md` — dependency-aware issue index (includes orchestration columns when set in issue headers)
+- `issues/open/index-meta.json` — machine-readable export (deps, acceptance counts, orchestration)
 - `issues/open/dependency-graph.md` — Mermaid graph + adjacency lists
 - `scripts/gen/generate-issue-index.sh` — shell entrypoint for regeneration
+- `scripts/gen/sync-issue-orchestration-fields.py` — optional bulk import of orchestration fields from a TSV into issue headers
 
 ## Workflow
 

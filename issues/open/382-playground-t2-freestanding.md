@@ -6,6 +6,8 @@
 **ID**: 382
 **Depends on**: 378
 **Track**: playground
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Priority**: 25
 

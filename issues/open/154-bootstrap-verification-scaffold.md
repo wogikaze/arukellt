@@ -6,6 +6,8 @@
 **ID**: 154
 **Depends on**: 153
 **Track**: cross-cutting
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 
 ---

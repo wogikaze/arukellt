@@ -8,8 +8,10 @@ INDEX_OUT="$OPEN_DIR/index.md"
 GRAPH_OUT="$OPEN_DIR/dependency-graph.md"
 
 python3 - "$OPEN_DIR" "$BLOCKED_DIR" "$INDEX_OUT" "$GRAPH_OUT" <<'PY'
+import json
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from collections import defaultdict, deque
 
@@ -17,6 +19,7 @@ open_dir = Path(sys.argv[1])
 blocked_dir = Path(sys.argv[2])
 index_out = Path(sys.argv[3])
 graph_out = Path(sys.argv[4])
+meta_out = open_dir / "index-meta.json"
 
 issue_files = sorted(p for p in open_dir.glob('*.md') if re.match(r'^\d', p.name))
 blocked_files = sorted(blocked_dir.glob('*.md')) if blocked_dir.exists() else []
@@ -54,10 +57,17 @@ def parse_file(path):
     lines = text.splitlines()
     title = lines[0][2:].strip() if lines and lines[0].startswith('# ') else path.stem
     meta = {}
-    for line in lines[1:14]:
+    i = 1
+    while i < len(lines):
+        line = lines[i]
+        if line.strip() == '---':
+            break
+        if line.startswith('## '):
+            break
         m = meta_re.match(line)
         if m:
             meta[m.group(1).strip()] = m.group(2).strip()
+        i += 1
     issue_id = meta.get('ID', path.name.split('-')[0])
     deps_raw = meta.get('Depends on', 'none')
     deps = normalize_deps(deps_raw)
@@ -65,6 +75,8 @@ def parse_file(path):
     track = meta.get('Track', 'main')
     blocks_v1 = meta.get('Blocks v1 exit', 'no')
     blocked_by = meta.get('Blocked by', '')
+    orchestration_class = meta.get('Orchestration class', '')
+    orchestration_upstream = meta.get('Orchestration upstream', '')
     acceptance_unchecked = sum(1 for line in lines if line.startswith('- [ ]'))
     acceptance_checked = sum(1 for line in lines if line.startswith('- [x]') or line.startswith('- [X]'))
     return {
@@ -78,6 +90,8 @@ def parse_file(path):
         'blocked_by': blocked_by,
         'unchecked': acceptance_unchecked,
         'checked': acceptance_checked,
+        'orchestration_class': orchestration_class,
+        'orchestration_upstream': orchestration_upstream,
     }
 
 for path in issue_files:
@@ -125,6 +139,8 @@ lines.append(f'- Main-track issues: {sum(1 for i in issues.values() if i["track"
 lines.append(f'- Parallel-track issues: {sum(1 for i in issues.values() if i["track"] == "parallel")}')
 lines.append(f'- V1-exit blockers: {sum(1 for i in issues.values() if i["blocks_v1"] == "yes")}')
 lines.append('')
+lines.append('Machine-readable metadata (orchestration + deps + acceptance counts): `index-meta.json` (generated alongside this file).')
+lines.append('')
 lines.append('## Dependency order')
 lines.append('')
 for idx, iid in enumerate(order, 1):
@@ -133,14 +149,16 @@ for idx, iid in enumerate(order, 1):
 lines.append('')
 lines.append('## Issue table')
 lines.append('')
-lines.append('| ID | Title | Track | Blocks v1 | Depends on | Blocks | Acceptance | |')
-lines.append('|----|-------|-------|-----------|------------|--------|------------|-|')
+lines.append('| ID | Title | Track | Blocks v1 | Depends on | Blocks | Acceptance | Orchestration | Orch notes | |')
+lines.append('|----|-------|-------|-----------|------------|--------|------------|---------------|------------|-|')
 for iid in order:
     data = issues[iid]
     deps = ', '.join(data['deps']) if data['deps'] else 'none'
     blocks = ', '.join(sorted(reverse.get(iid, []))) if reverse.get(iid) else 'none'
     progress = f'{data["checked"]} checked / {data["unchecked"]} open'
-    lines.append(f'| {iid} | [{data["title"]}]({data["path"]}) | {data["track"]} | {data["blocks_v1"]} | {deps} | {blocks} | {progress} | |')
+    orch = data.get('orchestration_class', '') or '—'
+    orch_note = (data.get('orchestration_upstream', '') or '—').replace('|', '/')
+    lines.append(f'| {iid} | [{data["title"]}]({data["path"]}) | {data["track"]} | {data["blocks_v1"]} | {deps} | {blocks} | {progress} | {orch} | {orch_note} | |')
 
 if blocked_issues:
     lines.append('')
@@ -196,4 +214,43 @@ if blocked_issues:
         graph.append(f'- **{iid}** ⛔ blocked — depends on: {deps}; blocked by: {data["blocked_by"] or "external"}')
 
 graph_out.write_text(re.sub(r'\n{3,}', '\n\n', '\n'.join(graph)) + '\n')
+
+meta_payload = {
+    'schema': 'arukellt-issue-index-meta-v1',
+    'generated_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+    'generator': 'scripts/gen/generate-issue-index.sh',
+    'open_issues': [
+        {
+            'id': iid,
+            'path': issues[iid]['path'],
+            'title': issues[iid]['title'],
+            'track': issues[iid]['track'],
+            'status': issues[iid]['status'],
+            'blocks_v1_exit': issues[iid]['blocks_v1'],
+            'depends_on': issues[iid]['deps'],
+            'blocks_issue_ids': sorted(reverse.get(iid, [])),
+            'acceptance': {
+                'checked': issues[iid]['checked'],
+                'unchecked': issues[iid]['unchecked'],
+            },
+            'orchestration': {
+                'class': issues[iid].get('orchestration_class') or None,
+                'upstream_notes': issues[iid].get('orchestration_upstream') or None,
+            },
+        }
+        for iid in order
+    ],
+    'blocked_external': [
+        {
+            'id': iid,
+            'path': blocked_issues[iid]['path'],
+            'title': blocked_issues[iid]['title'],
+            'track': blocked_issues[iid]['track'],
+            'blocked_by': blocked_issues[iid]['blocked_by'],
+            'depends_on': blocked_issues[iid]['deps'],
+        }
+        for iid in sorted(blocked_issues)
+    ],
+}
+meta_out.write_text(json.dumps(meta_payload, indent=2, ensure_ascii=False) + '\n')
 PY

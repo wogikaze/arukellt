@@ -6,6 +6,8 @@
 **ID**: 495
 **Depends on**: 312, 504
 **Track**: selfhost
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #312, #504
 **Blocks v1 exit**: no
 **Source**: audit — issues/done/210-selfhost-typechecker-typed-fns.md "Out of scope (deferred)"
 

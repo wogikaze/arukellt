@@ -6,6 +6,8 @@
 **ID**: 112
 **Depends on**: 109
 **Track**: benchmark
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: yes
 
 ---

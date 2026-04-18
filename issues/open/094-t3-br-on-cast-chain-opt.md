@@ -6,6 +6,8 @@
 **ID**: 094
 **Depends on**: —
 **Track**: backend-opt
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: no
 
 ---

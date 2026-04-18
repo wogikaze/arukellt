@@ -6,6 +6,8 @@
 **ID**: 188
 **Depends on**: 202, 203, 204
 **Track**: parallel
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #204
 **Blocks v1 exit**: no
 
 **Status note**: Parent issue for manifest schema, script CLI surface, and project explain/inspection features.

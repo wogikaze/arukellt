@@ -6,6 +6,8 @@
 **ID**: 108
 **Depends on**: 091, 092, 088, 089
 **Track**: runtime-perf
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: yes
 
 ---

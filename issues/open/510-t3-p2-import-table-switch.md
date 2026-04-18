@@ -5,6 +5,8 @@
 **ID**: 510
 **Depends on**: 074
 **Track**: wasi-feature
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #74
 **Blocks v4 exit**: no
 
 **Status note**: Deferred — requires WASI P2 ABI design for the T3 bridge layer.

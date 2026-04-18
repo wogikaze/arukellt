@@ -4,6 +4,8 @@
 **Created**: 2026-03-28
 **ID**: 123
 **Track**: language-design
+**Orchestration class**: design-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: yes
 **ADR candidate**: yes
 

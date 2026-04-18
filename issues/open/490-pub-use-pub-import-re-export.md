@@ -6,6 +6,8 @@
 **ID**: 490
 **Depends on**: 234
 **Track**: compiler, module-system
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Priority**: 50
 

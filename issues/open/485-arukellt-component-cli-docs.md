@@ -6,6 +6,8 @@
 **ID**: 485
 **Depends on**: 475
 **Track**: docs
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #475
 **Blocks v1 exit**: no
 
 ---

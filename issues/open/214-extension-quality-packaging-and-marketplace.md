@@ -6,6 +6,8 @@
 **ID**: 214
 **Depends on**: 184, 185, 186, 187, 188
 **Track**: parallel
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #188
 **Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13

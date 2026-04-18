@@ -6,6 +6,8 @@
 **ID**: 253
 **Depends on**: none
 **Track**: main
+**Orchestration class**: verification-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: yes
 
 ## Reopened by audit — 2026-04-13

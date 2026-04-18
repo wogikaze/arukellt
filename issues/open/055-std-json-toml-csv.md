@@ -6,6 +6,8 @@
 **ID**: 055
 **Depends on**: 039, 042, 044
 **Track**: stdlib
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #39, #44
 **Blocks v3 exit**: no (Experimental — json のみ Stable 候補)
 
 ---

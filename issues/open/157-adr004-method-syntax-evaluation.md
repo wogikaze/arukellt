@@ -6,6 +6,8 @@
 **ID**: 157
 **Depends on**: —
 **Track**: language-design
+**Orchestration class**: design-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 
 **Status note**: ADR-004-P4 evaluation decision formalized. Trigger conditions defined with measurable criteria. Evaluation deferred pending trigger (v4 opt passes not yet stable as of 2026-04-15).

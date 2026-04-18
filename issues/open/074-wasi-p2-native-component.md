@@ -6,6 +6,8 @@
 **ID**: 074
 **Depends on**: —
 **Track**: wasi-feature
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: no
 
 **Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.

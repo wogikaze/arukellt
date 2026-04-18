@@ -7,6 +7,8 @@
 **ID**: 039
 **Depends on**: —
 **Track**: stdlib
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v3 exit**: yes
 
 ---

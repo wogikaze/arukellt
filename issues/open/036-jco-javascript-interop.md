@@ -6,6 +6,8 @@
 **ID**: 036
 **Depends on**: 033
 **Track**: component-model
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: 037-external-jco
 **Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13

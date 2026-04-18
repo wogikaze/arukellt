@@ -6,6 +6,8 @@
 **ID**: 289
 **Depends on**: 287
 **Track**: selfhost
+**Orchestration class**: verification-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Priority**: 9
 

@@ -1,0 +1,1957 @@
+{
+  "schema": "arukellt-issue-index-meta-v1",
+  "generated_at": "2026-04-18T06:27:23Z",
+  "generator": "scripts/gen/generate-issue-index.sh",
+  "open_issues": [
+    {
+      "id": "032",
+      "path": "032-resource-type.md",
+      "title": "WIT resource type support (own/borrow)",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "030"
+      ],
+      "blocks_issue_ids": [
+        "473"
+      ],
+      "acceptance": {
+        "checked": 10,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "036",
+      "path": "036-jco-javascript-interop.md",
+      "title": "jco JavaScript interop smoke test",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "033"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "037-external-jco"
+      }
+    },
+    {
+      "id": "039",
+      "path": "039-module-system-infrastructure.md",
+      "title": "std モジュールシステム基盤: `use std::*` import インフラ",
+      "track": "stdlib",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "041",
+        "043",
+        "044",
+        "045",
+        "047",
+        "048",
+        "049",
+        "051",
+        "054",
+        "055"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "064",
+      "path": "064-wasm-branch-hinting.md",
+      "title": "Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント",
+      "track": "wasm-feature",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "066",
+      "path": "066-wasm-bulk-memory-full.md",
+      "title": "Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応",
+      "track": "wasm-feature",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "070",
+      "path": "070-wasm-i31ref-scalar.md",
+      "title": "Wasm GC i31ref: 小整数 unboxed scalar 最適化",
+      "track": "wasm-feature",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "072",
+      "path": "072-wasm-multi-value-full.md",
+      "title": "Wasm Multi-Value: ブロック / ループの複数値返却フル活用",
+      "track": "wasm-feature",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "074",
+      "path": "074-wasi-p2-native-component.md",
+      "title": "WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "077",
+        "124",
+        "139",
+        "474",
+        "475",
+        "476",
+        "510"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "094",
+      "path": "094-t3-br-on-cast-chain-opt.md",
+      "title": "T3: enum dispatch の br_on_cast 連鎖最適化",
+      "track": "backend-opt",
+      "status": "blocked — STOP_IF triggered (see below)",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "095",
+      "path": "095-t3-struct-layout-opt.md",
+      "title": "T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)",
+      "track": "backend-opt",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "096",
+      "path": "096-compile-lazy-stdlib.md",
+      "title": "コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)",
+      "track": "compile-speed",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "099",
+      "path": "099-compile-incremental-parse.md",
+      "title": "コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)",
+      "track": "compile-speed",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "108",
+      "path": "108-runtime-wasm-binary-size.md",
+      "title": "実行時性能: hello.wasm 1KB 以下 達成プラン",
+      "track": "runtime-perf",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "091",
+        "092",
+        "088",
+        "089"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "110",
+      "path": "110-bench-perf-gate.md",
+      "title": "CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "109"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "112",
+      "path": "112-bench-compare-langs.md",
+      "title": "ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "109"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "123",
+      "path": "123-import-syntax-unification.md",
+      "title": "import 構文と WIT パッケージ識別子の統一方針決定",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "125",
+      "path": "125-corehir-as-default-compile-path.md",
+      "title": "`compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)",
+      "track": "pipeline-refactor",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "126"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "CoreHIR-default-blocked (issue body: fixtures failing)"
+      }
+    },
+    {
+      "id": "129",
+      "path": "129-split-t1-emitter.md",
+      "title": "T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割",
+      "track": "code-structure",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "130",
+      "path": "130-split-mir-lower.md",
+      "title": "MIR lower.rs (4360行) をサブモジュールに分割",
+      "track": "code-structure",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "134",
+      "path": "134-split-lexer.md",
+      "title": "ark-lexer lib.rs (1698行) をサブモジュールに分割",
+      "track": "code-structure",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "135",
+      "path": "135-split-diagnostics.md",
+      "title": "ark-diagnostics lib.rs (1099行) をサブモジュールに分割",
+      "track": "code-structure",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "154",
+      "path": "154-bootstrap-verification-scaffold.md",
+      "title": "横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold",
+      "track": "cross-cutting",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "153"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "157",
+      "path": "157-adr004-method-syntax-evaluation.md",
+      "title": "ADR-004 P4: メソッド構文 / trait 再評価",
+      "track": "language-design",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "194",
+      "path": "194-semantic-preview-diff-and-ghost-refactor-surface.md",
+      "title": "Semantic preview / diff / ghost refactor surface",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "193"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "195",
+      "path": "195-partial-execution-preview-and-local-semantic-insight.md",
+      "title": "Partial execution preview + local semantic insight",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "198",
+      "path": "198-advanced-test-ux-impact-analysis-snapshot-diff-and-fuzz-ui.md",
+      "title": "Advanced test UX: impact analysis / snapshot diff / fuzz UI",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "196",
+        "197"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "200",
+      "path": "200-runtime-inspection-stepping-and-evaluate-surface.md",
+      "title": "Runtime inspection / stepping / evaluate surface",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "199"
+      ],
+      "blocks_issue_ids": [
+        "201"
+      ],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "204",
+      "path": "204-project-explain-build-explain-and-script-sandbox-surface.md",
+      "title": "Project explain / build explain / script sandbox surface",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "202",
+        "203"
+      ],
+      "blocks_issue_ids": [
+        "188"
+      ],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "206",
+      "path": "206-interactive-compiler-pipeline-and-inline-profiling.md",
+      "title": "Interactive compiler pipeline + inline profiling",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "184",
+        "185",
+        "187"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "249",
+      "path": "249-migration-v4-to-v5-selfhost-bootstrap.md",
+      "title": "migration guide v4→v5: self-hosted compiler bootstrap",
+      "track": "compiler/selfhost",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 9,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "252",
+      "path": "252-test-strategy-overhaul.md",
+      "title": "テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する",
+      "track": "main",
+      "status": "open",
+      "blocks_v1_exit": "yes",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "253",
+      "path": "253-selfhost-completion-criteria.md",
+      "title": "セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない",
+      "track": "main",
+      "status": "open",
+      "blocks_v1_exit": "yes",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "266"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "verification-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "254",
+      "path": "254-vscode-extension-e2e.md",
+      "title": "VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる",
+      "track": "main",
+      "status": "open",
+      "blocks_v1_exit": "yes",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "268",
+      "path": "268-selfhost-parity-ci-verification.md",
+      "title": "Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する",
+      "track": "main",
+      "status": "open",
+      "blocks_v1_exit": "yes",
+      "depends_on": [
+        "267"
+      ],
+      "blocks_issue_ids": [
+        "269"
+      ],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "verification-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "282",
+      "path": "282-corehir-desugar-loop-expr.md",
+      "title": "CoreHIR lowering: LoopExpr を制御フローに desugar する",
+      "track": "corehir",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "281"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "283",
+      "path": "283-corehir-desugar-try-expr.md",
+      "title": "CoreHIR lowering: TryExpr を制御フローに desugar する",
+      "track": "corehir",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "281"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "285",
+      "path": "285-legacy-path-deprecation.md",
+      "title": "Legacy lowering path を隔離・撤去する",
+      "track": "corehir",
+      "status": "open (partially complete — blocked by CoreHIR lowerer stub)",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "284"
+      ],
+      "blocks_issue_ids": [
+        "508"
+      ],
+      "acceptance": {
+        "checked": 2,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "286",
+      "path": "286-update-bootstrap-docs.md",
+      "title": "bootstrap セクションの fixpoint 記述整合を再検証する",
+      "track": "selfhost",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "verification-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "289",
+      "path": "289-selfhost-diagnostic-parity.md",
+      "title": "セルフホスト diagnostic parity を確認する",
+      "track": "selfhost",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "287"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "verification-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "312",
+      "path": "312-selfhost-generic-monomorphization.md",
+      "title": "Selfhost に generic instantiation と monomorphization を実装する",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "311"
+      ],
+      "blocks_issue_ids": [
+        "495"
+      ],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "382",
+      "path": "382-playground-t2-freestanding.md",
+      "title": "Playground: wasm32-freestanding (T2) target の downstream 実装を開始する",
+      "track": "playground",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "378"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 1,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "453",
+      "path": "453-vscode-e2e-editor-behavior-tests.md",
+      "title": "VSCode API を使った editor behavior E2E テストを追加する",
+      "track": "vscode-ide",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "450",
+        "451",
+        "452"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "459",
+      "path": "459-selfhost-fixpoint-dual-period-end.md",
+      "title": "selfhost Stage 2 fixpoint 達成と dual-period 終了計画",
+      "track": "compiler, selfhost",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "445",
+        "446",
+        "447",
+        "448",
+        "449"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 6,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "490",
+      "path": "490-pub-use-pub-import-re-export.md",
+      "title": "pub use / pub import re-export",
+      "track": "compiler, module-system",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "234"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "494",
+      "path": "494-selfhost-mir-ssa-formation.md",
+      "title": "494 — Selfhost MIR: SSA formation pass",
+      "track": "selfhost",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "493",
+        "503"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "499",
+      "path": "499-selfhost-closure-capture-lowering.md",
+      "title": "499 — Selfhost compiler: closure capture environment lowering",
+      "track": "selfhost",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "504",
+      "path": "504-selfhost-trait-syntax.md",
+      "title": "504 — Selfhost: trait/interface syntax and impl-block infrastructure",
+      "track": "selfhost",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "495",
+        "512"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "511",
+      "path": "511-stdlib-syntax-modernization-enum-match.md",
+      "title": "Stdlib: 数値タグ / if 連鎖を enum + match 優先へ移行する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "513",
+      "path": "513-stdlib-prelude-safety-and-wrapper-surface.md",
+      "title": "Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "518"
+      ],
+      "acceptance": {
+        "checked": 1,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "514",
+      "path": "514-stdlib-implementation-quality-audit.md",
+      "title": "Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "515",
+      "path": "515-stdlib-result-option-sentinel-cleanup.md",
+      "title": "Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "516",
+      "path": "516-stdlib-raw-helper-boundary-and-facades.md",
+      "title": "Stdlib: raw helper と推奨 facade の境界を再設計する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "517",
+      "path": "517-stdlib-api-consistency-and-canonical-naming-v2.md",
+      "title": "Stdlib: canonical naming / module layering / surface consistency の第2監査",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "518"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "520",
+      "path": "520-stdlib-performance-allocation-and-complexity-audit.md",
+      "title": "Stdlib: allocation / complexity / perf footgun を family 横断で監査する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "521",
+      "path": "521-stdlib-json-top-level-parse-contract.md",
+      "title": "Stdlib JSON: top-level parse は trailing non-whitespace を拒否する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "522",
+      "path": "522-stdlib-json-stringify-pretty-contract.md",
+      "title": "Stdlib JSON: `stringify_pretty` の product claim を現実に合わせる",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "523",
+      "path": "523-stdlib-toml-parse-failure-contract.md",
+      "title": "Stdlib TOML: parse failure と supported subset contract を定義する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "524",
+      "path": "524-stdlib-fs-exists-semantics.md",
+      "title": "Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "525",
+      "path": "525-stdlib-fs-module-contract-vs-host-rollout.md",
+      "title": "Stdlib FS: module-level docs を host rollout reality に合わせる",
+      "track": "stdlib, docs",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "526",
+      "path": "526-stdlib-json-parity-and-differential-tests.md",
+      "title": "Stdlib JSON: parity と differential tests を round-trip corpus で拡張する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "527",
+      "path": "527-stdlib-toml-parity-and-differential-tests.md",
+      "title": "Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "528",
+      "path": "528-stdlib-collections-hash-property-and-differential-tests.md",
+      "title": "Stdlib collections/hash: property と differential tests を map / set invariant で拡張する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "473",
+      "path": "473-resource-type-v3-advanced-features.md",
+      "title": "Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC",
+      "track": "wasm-feature",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "032",
+        "done)"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#32"
+      }
+    },
+    {
+      "id": "041",
+      "path": "041-std-core.md",
+      "title": "std::core: Error 型、ordering、range、cmp、math、convert、hash",
+      "track": "stdlib",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039"
+      ],
+      "blocks_issue_ids": [
+        "044",
+        "045",
+        "047",
+        "048",
+        "049"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39"
+      }
+    },
+    {
+      "id": "043",
+      "path": "043-std-bytes.md",
+      "title": "std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "040"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39"
+      }
+    },
+    {
+      "id": "051",
+      "path": "051-std-time-random.md",
+      "title": "std::time + std::random: 時刻・期間・乱数",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "040"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39"
+      }
+    },
+    {
+      "id": "077",
+      "path": "077-wasi-p2-http.md",
+      "title": "WASI P2: `std::host::http` facade と runtime 検証",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "074",
+        "137"
+      ],
+      "blocks_issue_ids": [
+        "136"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "124",
+      "path": "124-wit-component-import-syntax.md",
+      "title": "WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "074"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "139",
+      "path": "139-std-wasi-sockets-p2.md",
+      "title": "WASI P2: `std::host::sockets` facade と T3 実行検証",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "074",
+        "137"
+      ],
+      "blocks_issue_ids": [
+        "136"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "474",
+      "path": "474-async-component-support-v5.md",
+      "title": "Async Component Support (v5/T5)",
+      "track": "wasm-feature",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "035",
+        "done)",
+        "074"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "475",
+      "path": "475-arukellt-component-subcommand.md",
+      "title": "`arukellt component` サブコマンド (v3 候補)",
+      "track": "cli",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "035",
+        "done)",
+        "074"
+      ],
+      "blocks_issue_ids": [
+        "485"
+      ],
+      "acceptance": {
+        "checked": 1,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "476",
+      "path": "476-wasm-tools-compose-integration.md",
+      "title": "`wasm-tools compose` 統合 (v3 候補)",
+      "track": "wasm-feature",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "035",
+        "done)",
+        "074"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "510",
+      "path": "510-t3-p2-import-table-switch.md",
+      "title": "T3 emitter: WASI P2 import-table switch (full P2-native component)",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "074"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "126",
+      "path": "126-eliminate-double-lowering.md",
+      "title": "`run_frontend()` の二重 lower を解消 (遅延 lower)",
+      "track": "pipeline-refactor",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "125"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#125"
+      }
+    },
+    {
+      "id": "201",
+      "path": "201-advanced-debug-intelligence.md",
+      "title": "Advanced debug intelligence",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "200"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#200"
+      }
+    },
+    {
+      "id": "188",
+      "path": "188-ark-toml-project-workspace-and-scripts.md",
+      "title": "`ark.toml`: project / workspace metadata と `script run` surface",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "202",
+        "203",
+        "204"
+      ],
+      "blocks_issue_ids": [
+        "205",
+        "214"
+      ],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#204"
+      }
+    },
+    {
+      "id": "266",
+      "path": "266-selfhost-completion-definition.md",
+      "title": "selfhost 完了条件を定義し文書に固定する",
+      "track": "main",
+      "status": "done",
+      "blocks_v1_exit": "yes",
+      "depends_on": [
+        "253"
+      ],
+      "blocks_issue_ids": [
+        "269"
+      ],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#253"
+      }
+    },
+    {
+      "id": "508",
+      "path": "508-legacy-path-removal-unblocked-by.md",
+      "title": "Legacy path removal is blocked by CoreHIR lowerer stub",
+      "track": "corehir",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "285"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#285"
+      }
+    },
+    {
+      "id": "495",
+      "path": "495-selfhost-trait-bounds.md",
+      "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
+      "track": "selfhost",
+      "status": "blocked-by-upstream",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "312",
+        "504"
+      ],
+      "blocks_issue_ids": [
+        "512"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#312, #504"
+      }
+    },
+    {
+      "id": "518",
+      "path": "518-stdlib-docs-examples-as-canonical-style.md",
+      "title": "Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "513",
+        "517"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#513, #517"
+      }
+    },
+    {
+      "id": "044",
+      "path": "044-std-collections-hash.md",
+      "title": "std::collections::hash: HashMap\\<K,V\\> 汎用化と HashSet\\<T\\>",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "041"
+      ],
+      "blocks_issue_ids": [
+        "054",
+        "055"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #41"
+      }
+    },
+    {
+      "id": "045",
+      "path": "045-std-collections-linear.md",
+      "title": "std::collections: Deque、PriorityQueue",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "041"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #41"
+      }
+    },
+    {
+      "id": "047",
+      "path": "047-std-collections-compiler.md",
+      "title": "std::collections: Arena、SlotMap、Interner ／ std::text: Rope",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "041"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #41"
+      }
+    },
+    {
+      "id": "048",
+      "path": "048-std-seq.md",
+      "title": "std::seq: Seq\\<T\\> 遅延シーケンスとアルゴリズム",
+      "track": "stdlib",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "041"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #41"
+      }
+    },
+    {
+      "id": "049",
+      "path": "049-std-path-fs.md",
+      "title": "std::path + std::fs: パス操作とファイル I/O",
+      "track": "stdlib",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "041",
+        "042"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #41"
+      }
+    },
+    {
+      "id": "136",
+      "path": "136-std-wasi-capability-rollout.md",
+      "title": "ADR-011 に沿った `std::host` layer の段階的ロールアウト",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "137",
+        "138",
+        "077",
+        "139"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#139, #77"
+      }
+    },
+    {
+      "id": "485",
+      "path": "485-arukellt-component-cli-docs.md",
+      "title": "docs: arukellt component サブコマンド CLI リファレンス",
+      "track": "docs",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "475"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#475"
+      }
+    },
+    {
+      "id": "205",
+      "path": "205-docs-and-codebase-intelligence-surfaces.md",
+      "title": "Docs / codebase intelligence surfaces",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "185",
+        "188"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#188"
+      }
+    },
+    {
+      "id": "214",
+      "path": "214-extension-quality-packaging-and-marketplace.md",
+      "title": "Extension quality / packaging / marketplace readiness",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "184",
+        "185",
+        "186",
+        "187",
+        "188"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#188"
+      }
+    },
+    {
+      "id": "269",
+      "path": "269-dual-period-end-condition.md",
+      "title": "Rust 実装と selfhost 実装の dual period 終了条件を定義する",
+      "track": "main",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "266",
+        "268"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#266, #268"
+      }
+    },
+    {
+      "id": "512",
+      "path": "512-stdlib-trait-oriented-reuse-surface.md",
+      "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "504",
+        "495"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#495, #504"
+      }
+    },
+    {
+      "id": "054",
+      "path": "054-std-wit-component.md",
+      "title": "std::wit + std::component: WIT 型、resource handle、canonical ABI",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "044",
+        "053"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #44"
+      }
+    },
+    {
+      "id": "055",
+      "path": "055-std-json-toml-csv.md",
+      "title": "std::json + std::toml + std::csv: データ形式パーサ",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "039",
+        "042",
+        "044"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #44"
+      }
+    },
+    {
+      "id": "028",
+      "path": "028-wit-import-parsing.md",
+      "title": "WIT import parsing & host function binding",
+      "track": "component-model",
+      "status": "done",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "028"
+      ],
+      "blocks_issue_ids": [
+        "028",
+        "034"
+      ],
+      "acceptance": {
+        "checked": 8,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "034",
+      "path": "034-wit-cli-integration.md",
+      "title": "CLI --wit flag, --emit component workflow, docs",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1_exit": "no",
+      "depends_on": [
+        "030",
+        "031",
+        "028"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 9,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    }
+  ],
+  "blocked_external": [
+    {
+      "id": "037",
+      "path": "037-jco-gc-support.md",
+      "title": "jco: Wasm GC 型サポート待ち (upstream blocked)",
+      "track": "component-model",
+      "blocked_by": "jco upstream (<https://github.com/bytecodealliance/jco>)",
+      "depends_on": [
+        "036"
+      ]
+    }
+  ]
+}

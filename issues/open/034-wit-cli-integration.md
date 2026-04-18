@@ -6,6 +6,8 @@
 **ID**: 034
 **Depends on**: 030, 031, 028b
 **Track**: component-model
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13

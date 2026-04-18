@@ -6,6 +6,8 @@
 **ID**: 525
 **Depends on**: none
 **Track**: stdlib, docs
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Source**: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
 

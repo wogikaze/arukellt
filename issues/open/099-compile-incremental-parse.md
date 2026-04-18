@@ -6,6 +6,8 @@
 **ID**: 099
 **Depends on**: —
 **Track**: compile-speed
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: no
 
 **Status note**: Compiler architecture improvement — deferred to v5+. hello.ark already compiles in 4.2ms.

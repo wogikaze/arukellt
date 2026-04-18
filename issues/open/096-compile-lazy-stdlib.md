@@ -6,6 +6,8 @@
 **ID**: 096
 **Depends on**: —
 **Track**: compile-speed
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: yes
 
 ---

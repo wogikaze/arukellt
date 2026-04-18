@@ -55,3 +55,4 @@ docs/process/benchmark-results.md | scripts/gen/generate-docs.py | python3 scrip
 # issue indexes (generate-issue-index.sh)
 issues/open/index.md | scripts/gen/generate-issue-index.sh | bash scripts/gen/generate-issue-index.sh
 issues/open/dependency-graph.md | scripts/gen/generate-issue-index.sh | bash scripts/gen/generate-issue-index.sh
+issues/open/index-meta.json | scripts/gen/generate-issue-index.sh | bash scripts/gen/generate-issue-index.sh

@@ -6,6 +6,8 @@
 **Depends on**: 285
 **Blocks**: completion of issue 285 acceptance item "all fixtures pass legacy-less"
 **Track**: corehir
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #285
 **Priority**: 4
 
 ## Summary

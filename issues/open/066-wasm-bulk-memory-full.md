@@ -6,6 +6,8 @@
 **ID**: 066
 **Depends on**: —
 **Track**: wasm-feature
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: no
 
 **Status note**: Implemented in T3 (WasmGC) and T1 emitters; runtime.rs explicitly enables bulk_memory; std/wasm::memory_copy + memory_fill call actual intrinsics; fixture tests/fixtures/stdlib_wasm/memory_ops.ark verified.

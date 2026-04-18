@@ -6,6 +6,8 @@
 **ID**: 453
 **Depends on**: 450, 451, 452
 **Track**: vscode-ide
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Priority**: 4
 

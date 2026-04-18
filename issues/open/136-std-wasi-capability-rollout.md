@@ -6,6 +6,8 @@
 **ID**: 136
 **Depends on**: 137, 138, 077, 139
 **Track**: wasi-feature
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #139, #77
 **Blocks v1 exit**: no
 
 ---

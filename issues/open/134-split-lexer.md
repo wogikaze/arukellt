@@ -6,6 +6,8 @@
 **ID**: 134
 **Depends on**: —
 **Track**: code-structure
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: no
 
 ---

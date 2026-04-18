@@ -6,6 +6,8 @@
 **ID**: 283
 **Depends on**: 281
 **Track**: corehir
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Priority**: 3
 

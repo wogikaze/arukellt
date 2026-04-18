@@ -6,6 +6,8 @@
 **ID**: 070
 **Depends on**: —
 **Track**: wasm-feature
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v4 exit**: no
 
 ---

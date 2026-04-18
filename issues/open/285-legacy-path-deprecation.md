@@ -7,6 +7,8 @@
 **Depends on**: 284
 **Blocks**: 508
 **Track**: corehir
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Priority**: 5
 

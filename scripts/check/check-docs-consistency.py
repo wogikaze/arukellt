@@ -9,6 +9,7 @@ Beyond generated-docs freshness, this script validates:
 """
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 import re
@@ -150,7 +151,15 @@ def check_issue_index_freshness() -> int:
     """Validate that issue indexes are up to date by comparing with regeneration."""
     index_path = ROOT / "issues" / "open" / "index.md"
     graph_path = ROOT / "issues" / "open" / "dependency-graph.md"
+    meta_path = ROOT / "issues" / "open" / "index-meta.json"
     generator = ROOT / "scripts" / "gen" / "generate-issue-index.sh"
+
+    def meta_without_timestamp(raw: str) -> str:
+        if not raw.strip():
+            return raw
+        data = json.loads(raw)
+        data.pop("generated_at", None)
+        return json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True)
 
     if not generator.exists():
         return 0
@@ -160,6 +169,7 @@ def check_issue_index_freshness() -> int:
     # Capture current content
     old_index = index_path.read_text()
     old_graph = graph_path.read_text()
+    old_meta = meta_path.read_text() if meta_path.exists() else ""
 
     # Regenerate
     result = subprocess.run(
@@ -174,6 +184,7 @@ def check_issue_index_freshness() -> int:
 
     new_index = index_path.read_text()
     new_graph = graph_path.read_text()
+    new_meta = meta_path.read_text() if meta_path.exists() else ""
 
     stale = 0
     if new_index != old_index:
@@ -185,6 +196,12 @@ def check_issue_index_freshness() -> int:
     if new_graph != old_graph:
         errors.append(
             "dependency graph stale: issues/open/dependency-graph.md differs after regeneration; "
+            "run `bash scripts/gen/generate-issue-index.sh`"
+        )
+        stale = 1
+    if meta_without_timestamp(new_meta) != meta_without_timestamp(old_meta):
+        errors.append(
+            "issue meta JSON stale: issues/open/index-meta.json differs after regeneration; "
             "run `bash scripts/gen/generate-issue-index.sh`"
         )
         stale = 1

@@ -6,6 +6,8 @@
 **ID**: 527
 **Depends on**: none
 **Track**: stdlib
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
 **Blocks v1 exit**: no
 **Source**: follow-up extraction from `#519`
 
