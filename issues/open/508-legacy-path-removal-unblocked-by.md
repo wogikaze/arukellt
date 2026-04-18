@@ -2,6 +2,7 @@
 
 **Status**: open
 **Created**: 2026-04-15
+**Updated**: 2026-04-18
 **ID**: 508
 **Depends on**: 285
 **Blocks**: completion of issue 285 acceptance item "all fixtures pass legacy-less"
@@ -33,7 +34,7 @@ lower_check_output_to_mir
                  └─ lower_to_mir    ← the only real lowering implementation
 ```
 
-`lower_hir_to_mir` in `crates/ark-mir/src/lower/mod.rs` builds structural statistics
+`lower_hir_to_mir` in `crates/ark-mir/src/lower/facade.rs` builds structural statistics
 from the CoreHIR program (item count, body count, etc.) but always returns empty MIR:
 
 ```rust
@@ -64,6 +65,6 @@ lowerer implementation work (probably a large chunk of the corehir track).
 ## References
 
 - `crates/ark-mir/src/lower/func.rs` — `lower_to_mir` (legacy implementation)
-- `crates/ark-mir/src/lower/mod.rs` — `lower_hir_to_mir` (stub), `lower_corehir_with_fallback`
+- `crates/ark-mir/src/lower/facade.rs` — `lower_hir_to_mir` (stub), `lower_corehir_with_fallback`
 - `docs/compiler/legacy-path-status.md` — full pipeline state at time of deprecation
 - Issue #285 (`issues/open/285-legacy-path-deprecation.md`)

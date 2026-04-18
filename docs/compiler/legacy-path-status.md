@@ -1,6 +1,6 @@
 # Legacy Lowering Path Status
 
-**Updated**: 2026-04-15
+**Updated**: 2026-04-18
 **Related issue**: [issues/open/285-legacy-path-deprecation.md](../../issues/open/285-legacy-path-deprecation.md)
 **Blocker issue**: [issues/open/508-legacy-path-removal-unblocked-by.md](../../issues/open/508-legacy-path-removal-unblocked-by.md)
 **Migration guide**: [legacy-path-migration.md](legacy-path-migration.md)
@@ -17,7 +17,7 @@ The call chain for every real compilation is:
 Session::compile / compile_with_entry
   └─ run_frontend_for(hint=Some(CoreHir))
        └─ lower_check_output_to_mir(module, core_hir, ...)
-            └─ lower_corehir_with_fallback(core_hir, module, ...)
+            └─ lower_corehir_with_fallback(core_hir, module, ...)  (`lower/facade.rs`)
                  └─ lower_hir_to_mir(core_hir, ...)     ← returns empty MirModule (stub)
                  └─ lower_corehir_via_legacy(module, ...) ← ALWAYS taken (deprecated)
                       └─ lower_hir_fallback(module, ...)
@@ -34,10 +34,10 @@ routes to the legacy AST lowerer.
 | Symbol | Location | Status |
 |--------|----------|--------|
 | `lower_to_mir` | `crates/ark-mir/src/lower/func.rs` | `#[deprecated]` since 0.1.0 |
-| `lower_legacy_only` | `crates/ark-mir/src/lower/mod.rs` | `#[deprecated]` since 0.1.0 |
-| `lower_prefer_legacy` | `crates/ark-mir/src/lower/mod.rs` | `#[deprecated]` since 0.1.0 |
-| `lower_any_to_mir` | `crates/ark-mir/src/lower/mod.rs` | `#[deprecated]` since 0.1.0 |
-| `lower_corehir_via_legacy` | `crates/ark-mir/src/lower/mod.rs` | `#[deprecated]` since 0.1.0 |
+| `lower_legacy_only` | `crates/ark-mir/src/lower/facade.rs` | `#[deprecated]` since 0.1.0 |
+| `lower_prefer_legacy` | `crates/ark-mir/src/lower/facade.rs` | `#[deprecated]` since 0.1.0 |
+| `lower_any_to_mir` | `crates/ark-mir/src/lower/facade.rs` | `#[deprecated]` since 0.1.0 |
+| `lower_corehir_via_legacy` | `crates/ark-mir/src/lower/facade.rs` | `#[deprecated]` since 0.1.0 |
 | `MirSelection::Legacy` | `crates/ark-driver/src/session.rs` | `#[deprecated]` since 0.1.0 |
 | `MirSelection::OptimizedLegacy` | `crates/ark-driver/src/session.rs` | `#[deprecated]` since 0.1.0 |
 | `--mir-select legacy` CLI flag | `crates/arukellt/src/commands.rs` | Runtime deprecation warning |
