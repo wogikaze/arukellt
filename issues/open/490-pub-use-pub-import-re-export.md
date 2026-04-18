@@ -50,8 +50,32 @@ The language specification describes `pub use` / `pub import` syntax for re-expo
 
 ## Required verification
 
-- `bash scripts/run/verify-harness.sh --quick` passes
-- Re-export fixtures pass
+- `bash scripts/run/verify-harness.sh --quick` passes *(2026-04-18: PASS — see below)*
+- Re-export fixtures pass *(2026-04-18: `modules/pub_use_*` behavioral fixtures PASS in harness; see below)*
+- `bash scripts/run/verify-harness.sh --fixtures` full gate *(2026-04-18: FAIL — unrelated failures; see below)*
+
+## Verification evidence — 2026-04-18
+
+Commands (repo root `/home/wogikaze/arukellt`):
+
+```text
+$ bash scripts/run/verify-harness.sh --quick
+→ PASS (19/19 checks; exit 0)
+```
+
+```text
+$ bash scripts/run/verify-harness.sh --fixtures
+→ FAIL — fixture harness reports 29 failures (exit 1)
+  Summary line: PASS: 723 FAIL: 29 SKIP: 31 (scheduled: 783, total manifest: 783)
+```
+
+**`pub_use` focus (`tests/fixtures/modules/pub_use_*`):**
+
+- `module-run:modules/pub_use_reexport_visible/main.ark` — not among harness failures; manual check: compile `wasm32-wasi-p1`, `wasmtime run` → stdout `7` (matches `.expected`).
+- `module-diag:modules/pub_use_nonpub_hidden/main.ark` — not among harness failures; manual compile fails with `E0501` / `symbol not found in module` as intended.
+- `parse-only:module_import/pub_use_basic.ark` — harness skips with `(unknown kind "parse-only")` (expected; manifest bookkeeping only).
+
+**Top unrelated fixture failures (do not mass-fix under this slice):** harness reports multiple buckets, including `FAIL [run] stdlib_io_rw/reader_basic.ark` (empty stdout vs expected), `FAIL [t3-compile] from_trait/from_auto_convert.ark` (stderr warning line), `FAIL [compile-error] component/import_flags_type.ark`, and several `selfhost/*` run fixtures — pre-existing / out of scope for #490.
 
 ## Close gate
 
@@ -92,3 +116,7 @@ Required verification status for close gate remains incomplete due pre-existing 
 - `bash scripts/run/verify-harness.sh --fixtures` failed on unrelated pre-existing fixture failure (`from_trait/from_auto_convert.ark`).
 
 Issue remains open until full required verification is green and acceptance can be checked end-to-end.
+
+## Progress note — 2026-04-18 (verification evidence)
+
+Re-ran required commands; captured results in **Verification evidence — 2026-04-18** above. `--quick` is now PASS on this snapshot; `--fixtures` still FAIL (29 unrelated failures); `modules/pub_use_*` behavioral fixtures pass harness + spot-check.
