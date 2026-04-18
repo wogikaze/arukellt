@@ -243,7 +243,8 @@ let fields = csv_split_line("name,age,city")
         "overview": {
             "summary": (
                 "`std::host::fs` is the primary host filesystem module: whole-file reads, string "
-                "and byte writes, an `exists` read probe, and experimental fd helpers, all backed "
+                "and byte writes, an `exists` read probe / readable-file check (not path existence), "
+                "and experimental fd helpers, all backed "
                 "by the current WASI filesystem intrinsics. `std::fs` is a smaller stable-shaped "
                 "bridge over the same intrinsics (`read_string` / `write_string` / `exists`) — "
                 "useful when you want a compact API, with the understanding that it tracks only a "

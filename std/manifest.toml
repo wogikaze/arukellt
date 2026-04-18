@@ -2372,7 +2372,7 @@ doc_category = "fs"
 stability = "stable"
 params = ["String"]
 returns = "bool"
-doc = "Returns true when the path can be opened for reading as a file. Probe helper; directories, missing paths, and unreadable paths may return false."
+doc = "Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); not a path-existence query. Directories, missing paths, and unreadable paths may return false."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 # === std::host::fs ===
@@ -2421,7 +2421,7 @@ stability = "stable"
 params = ["String"]
 returns = "bool"
 doc_category = "host_fs"
-doc = "Returns true when the path can be opened for reading as a file. Probe helper; directories, missing paths, and unreadable paths may return false."
+doc = "Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_to_string); not a path-existence query. Directories, missing paths, and unreadable paths may return false."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]

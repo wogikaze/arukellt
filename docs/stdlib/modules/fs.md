@@ -7,7 +7,7 @@ Source-backed docs for explicit host filesystem operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-`std::host::fs` is the primary host filesystem module: whole-file reads, string and byte writes, an `exists` read probe, and experimental fd helpers, all backed by the current WASI filesystem intrinsics. `std::fs` is a smaller stable-shaped bridge over the same intrinsics (`read_string` / `write_string` / `exists`) — useful when you want a compact API, with the understanding that it tracks only a subset of the evolving `std::host::fs` rollout. Neither module is a complete filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
+`std::host::fs` is the primary host filesystem module: whole-file reads, string and byte writes, an `exists` read probe / readable-file check (not path existence), and experimental fd helpers, all backed by the current WASI filesystem intrinsics. `std::fs` is a smaller stable-shaped bridge over the same intrinsics (`read_string` / `write_string` / `exists`) — useful when you want a compact API, with the understanding that it tracks only a subset of the evolving `std::host::fs` rollout. Neither module is a complete filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
 
 **Recommended API highlights:**
 
@@ -55,7 +55,7 @@ These APIs perform host I/O. Pure path manipulation remains in `std::path`.
 | `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
-| `exists` | `(String) -> bool` | `stable` | ✅ impl | Read probe / readable-file check: returns true when a full read of path |
+| `exists` | `(String) -> bool` | `stable` | ✅ impl | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ impl | Seeks within an open file descriptor. |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ impl | Returns the current file offset for an open file descriptor. |
 | `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ impl | Returns the errno from fd_fdstat_get for an open file descriptor. |
@@ -93,7 +93,7 @@ Write a byte sequence (Vec<i32> where each element is 0–255) to the given file
 
 #### `exists`
 
-Returns true when the path can be opened for reading as a file. Probe helper; directories, missing paths, and unreadable paths may return false.
+Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_to_string); not a path-existence query. Directories, missing paths, and unreadable paths may return false.
 
 **Availability:** Requires the --dir capability flag at runtime.
 
@@ -148,7 +148,7 @@ and unreadable paths may return `false`.
 |------|-----------|-----------|---------|
 | `read_string` | `(String) -> Result<String, String>` | `stable` | Reads the entire contents of a file into a UTF-8 string. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, creating or truncating it. |
-| `exists` | `(String) -> bool` | `stable` | Read probe / readable-file check: returns true when a full read of path |
+| `exists` | `(String) -> bool` | `stable` | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
 
 #### `read_string`
 
@@ -168,6 +168,6 @@ Write a UTF-8 string to a file, creating or truncating it.
 
 #### `exists`
 
-Returns true when the path can be opened for reading as a file. Probe helper; directories, missing paths, and unreadable paths may return false.
+Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); not a path-existence query. Directories, missing paths, and unreadable paths may return false.
 
 **Availability:** Requires the --dir capability flag at runtime.

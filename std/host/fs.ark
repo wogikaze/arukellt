@@ -17,10 +17,10 @@ pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
     __intrinsic_fs_write_bytes(path, bytes)
 }
 
-/// Returns `true` when `path` can be opened for reading as a file.
+/// Read probe / readable-file check: `true` when a full read succeeds; not a path-existence query.
 ///
-/// This is a probe helper, not a general path-existence check.
-/// Directories, missing paths, and unreadable paths may return `false`.
+/// Uses the same intrinsic as `read_to_string`. Directories, missing paths, and unreadable paths may
+/// return `false`.
 pub fn exists(path: String) -> bool {
     match __intrinsic_fs_read_file(path) {
         Ok(_) => true,

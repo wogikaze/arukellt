@@ -11,6 +11,10 @@
 **Blocks v1 exit**: no
 **Source**: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
 
+## Progress
+
+- **2026-04-18**: Docs/contract slice — `std/host/fs.ark` `exists` doc comment + `std/manifest.toml` `doc` fields aligned with the read-probe contract; curated `modules/fs.md` overview in `generate-docs.py` calls out readable-file check vs path existence; regenerated `docs/stdlib/modules/fs.md`, `io.md`, and `reference.md`. (`std/fs/mod.ark` already matched this contract.) Runtime rename / semantics choice deferred.
+
 ## Summary
 
 現行 `std::fs::exists` は doc comment 上も implementation 上も `__intrinsic_fs_read_file` 成功可否に近く、
