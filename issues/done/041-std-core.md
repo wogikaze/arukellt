@@ -115,3 +115,12 @@ pub struct RangeInclusive { start: i32, end: i32 }
 1. `Error` に `Custom(String)` バリアントを入れるか
 2. `StdResult<T>` を prelude に入れるか、明示 import を要求するか
 3. `math::PI`, `math::E` 等の定数をどう表現するか (const 構文の有無に依存)
+
+---
+
+## Queue closure verification — 2026-04-18
+
+- **Upstream**: #039 closed (`f108b6f`); `Depends on: 039` satisfied.
+- **Evidence**: §Completion — `std/core/*.ark`, `tests/fixtures/stdlib_core/*`, `std/manifest.toml`.
+- **Verification**: `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18).
+- **False-done checklist**: Narrative acceptance matches repo layout; no conflicting `[ ]` under §受け入れ条件 for delivered scope.
