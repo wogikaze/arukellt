@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T08:25:25Z",
+  "generated_at": "2026-04-18T08:25:26Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -653,24 +653,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "286",
-      "path": "286-update-bootstrap-docs.md",
-      "title": "bootstrap セクションの fixpoint 記述整合を再検証する",
-      "track": "selfhost",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "verification-ready",
         "upstream_notes": "—"
       }
     },

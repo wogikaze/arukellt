@@ -38,7 +38,6 @@ graph LR
   I254["254 VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる"]
   I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
-  I286["286 bootstrap セクションの fixpoint 記述整合を再検証する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
@@ -149,7 +148,6 @@ graph LR
 - **254** depends on: none; blocks: none
 - **268** depends on: 267; blocks: 269
 - **285** depends on: 284; blocks: 508
-- **286** depends on: none; blocks: none
 - **289** depends on: 287; blocks: none
 - **312** depends on: 311; blocks: 495
 - **382** depends on: 378; blocks: none
