@@ -157,12 +157,13 @@ check_fail() {
 run_check() {
     local label="$1"
     local command="$2"
+    local tail_lines="${3:-30}"
     local output
     if output=$(bash -lc "$command" 2>&1); then
         check_pass "$label"
     else
         check_fail "$label"
-        printf '%s\n' "$output" | tail -30
+        printf '%s\n' "$output" | tail -"$tail_lines"
     fi
 }
 
@@ -416,7 +417,8 @@ fi
 
 if [ "$PERF_GATE" = true ]; then
     printf '\n%s\n' "${YELLOW}[perf] Running performance regression gate...${NC}"
-    run_check "perf gate (compile time / binary size / run time)" "bash scripts/check/perf-gate.sh"
+    # Longer tail: benchmark text report ends with variance/CV lines after baseline FAIL/PASS.
+    run_check "perf gate (compile time / binary size / run time)" "bash scripts/check/perf-gate.sh" 120
 fi
 
 if [ "$RUN_OPT_EQUIV" = true ]; then

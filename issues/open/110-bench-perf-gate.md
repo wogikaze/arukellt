@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-13
+**Updated**: 2026-04-18
 **ID**: 110
 **Depends on**: 109
 **Track**: benchmark
@@ -10,11 +10,11 @@
 **Orchestration upstream**: —
 **Blocks v4 exit**: yes
 
-## Reopened by audit — 2026-04-13
+## Historical: reopened by audit — 2026-04-13
 
-**Reason**: Perf gate exists in verify-harness but required updater script (scripts/update-baselines.sh) does not exist.
+**Reason (obsolete)**: Queue audit thought `scripts/update-baselines.sh` was missing.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
+**Repo truth (2026-04-18)**: Updater, baselines JSON, `--perf-gate`, and `scripts/check/perf-gate.sh` are present; see audit below. This section is kept for traceability only.
 
 ## Summary
 
@@ -41,16 +41,35 @@ roadmap-v4.md §6 item 8 および §7 で明示的に要求されている。
 
 - roadmap-v4.md §6 item 8, §7, §8
 
-## Closed — 2026-04-14
+## Landed implementation — 2026-04-14 (not a queue “close”)
 
-**Commit**: see bench(perf-gate) commit
+Earlier body used “Closed” while **Status** stayed `open` in the generated index — contradictory. This section is the implementation record only; queue state remains `open` until maintainers move the file to `issues/done/` and regenerate indexes.
 
-**Changes**:
-- `scripts/check/perf-gate.sh`: fixed path to benchmark_runner.py (`scripts/util/` not `scripts/`)
-- `scripts/update-baselines.sh`: created, executable, supports `--dry-run`
-- `tests/baselines/perf/`: directory with baselines.json (5 benchmarks), current.json, hello-wasm-size.json
+**Changes (landed)**:
+- `scripts/check/perf-gate.sh`: invokes `scripts/util/benchmark_runner.py` with baseline/current paths
+- `scripts/update-baselines.sh`: baseline refresh, supports `--dry-run`
+- `tests/baselines/perf/`: `baselines.json` (5 benchmarks), `current.json`, `hello-wasm-size.json`
+- `scripts/run/verify-harness.sh`: `--perf-gate` runs the check above
 
-**Verification**:
-- `verify-harness.sh --quick`: 19/19 passed ✓
-- `scripts/update-baselines.sh --dry-run`: exits 0 ✓
-- `verify-harness.sh --perf-gate`: outputs CI-friendly regression messages ✓
+## Audit — 2026-04-18 (impl-benchmark #110)
+
+Acceptance re-checked. CI messaging tightened: `perf-gate.sh` prints remediation on non-zero exit; verify-harness shows up to 120 lines of perf output on failure (baseline compare was previously easy to miss after `tail -30`).
+
+**Commands**
+
+```text
+$ bash scripts/run/verify-harness.sh --quick
+Total checks: 19
+Passed: 19
+Failed: 0
+✓ All selected harness checks passed
+
+$ bash scripts/update-baselines.sh --dry-run
+[dry-run] Would run benchmark_runner.py --mode update-baseline
+[dry-run] Would write: .../tests/baselines/perf/baselines.json
+[dry-run] Would write: .../tests/baselines/perf/current.json
+[dry-run] Would write: .../docs/process/benchmark-results.md
+
+$ bash scripts/check/perf-gate.sh
+(Outcome environment-dependent: on 2026-04-18 audit host, runs alternated between PASS and FAIL on compile/run variance vs frozen baseline; failure path prints thresholds + `update-baselines.sh` hint. Opt-in gate remains appropriate for CI hardware profiles.)
+```

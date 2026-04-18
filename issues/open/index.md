@@ -164,7 +164,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 499 | [499 — Selfhost compiler: closure capture environment lowering](499-selfhost-closure-capture-lowering.md) | selfhost | no | none | none | 0 checked / 5 open | implementation-ready | — | |
 | 504 | [504 — Selfhost: trait/interface syntax and impl-block infrastructure](504-selfhost-trait-syntax.md) | selfhost | no | none | 495, 512 | 0 checked / 6 open | implementation-ready | — | |
 | 511 | [Stdlib: 数値タグ / if 連鎖を enum + match 優先へ移行する](511-stdlib-syntax-modernization-enum-match.md) | stdlib | no | none | none | 4 checked / 0 open | implementation-ready | — | |
-| 513 | [Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する](513-stdlib-prelude-safety-and-wrapper-surface.md) | stdlib | no | none | 518 | 1 checked / 3 open | implementation-ready | — | |
+| 513 | [Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する](513-stdlib-prelude-safety-and-wrapper-surface.md) | stdlib | no | none | 518 | 2 checked / 2 open | implementation-ready | — | |
 | 514 | [Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する](514-stdlib-implementation-quality-audit.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
 | 515 | [Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる](515-stdlib-result-option-sentinel-cleanup.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
 | 516 | [Stdlib: raw helper と推奨 facade の境界を再設計する](516-stdlib-raw-helper-boundary-and-facades.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |

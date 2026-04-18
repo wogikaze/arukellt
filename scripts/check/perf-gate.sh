@@ -21,9 +21,23 @@ for arg in "$@"; do
     esac
 done
 
-exec python3 "$ROOT/scripts/util/benchmark_runner.py" \
+if ! python3 "$ROOT/scripts/util/benchmark_runner.py" \
     --mode "$MODE" \
     --baseline "$ROOT/tests/baselines/perf/baselines.json" \
     --output-json "$ROOT/tests/baselines/perf/current.json" \
     --output-md "$ROOT/docs/process/benchmark-results.md" \
-    "${EXTRA_ARGS[@]}"
+    "${EXTRA_ARGS[@]}"; then
+    cat >&2 <<'EOF'
+perf gate: non-zero exit (missing baseline, benchmark error, or regression vs tests/baselines/perf/baselines.json).
+
+Thresholds: compile +20%, run +10%, wasm binary size +15% vs baseline.
+
+If the change is intentional, refresh baselines and commit the JSON:
+  bash scripts/update-baselines.sh
+
+Local re-run:
+  bash scripts/check/perf-gate.sh
+  bash scripts/run/verify-harness.sh --perf-gate
+EOF
+    exit 1
+fi
