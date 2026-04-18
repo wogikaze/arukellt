@@ -240,24 +240,6 @@
       }
     },
     {
-      "id": "095",
-      "path": "095-t3-struct-layout-opt.md",
-      "title": "T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)",
-      "track": "backend-opt",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "096",
       "path": "096-compile-lazy-stdlib.md",
       "title": "コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)",

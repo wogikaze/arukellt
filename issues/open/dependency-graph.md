@@ -17,7 +17,6 @@ graph LR
   I051["051 std::time + std::random: 時刻・期間・乱数"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I094["094 T3: enum dispatch の br_on_cast 連鎖最適化"]
-  I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
@@ -138,7 +137,6 @@ graph LR
 - **051** depends on: 039, 040; blocks: none
 - **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476, 510
 - **094** depends on: none; blocks: none
-- **095** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
