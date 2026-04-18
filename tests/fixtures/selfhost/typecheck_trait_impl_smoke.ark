@@ -19,5 +19,7 @@ fn take_foo<T: Foo>(x: T) -> T {
 fn main() {
     let item = take_foo(MyStruct { value: 7 })
     stdio::println(to_string(item.value))
+    let item2 = MyStruct { value: 42 }
+    stdio::println(to_string(item2.id()))
     stdio::println(String_from("issue504 trait impl ok"))
 }

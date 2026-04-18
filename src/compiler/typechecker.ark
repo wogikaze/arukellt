@@ -19,6 +19,7 @@ fn NK_IDENT() -> i32 { 5 }
 fn NK_BINARY() -> i32 { 6 }
 fn NK_UNARY() -> i32 { 7 }
 fn NK_CALL() -> i32 { 8 }
+fn NK_METHOD_CALL() -> i32 { 21 }
 fn NK_CLOSURE() -> i32 { 15 }
 fn NK_BLOCK() -> i32 { 20 }
 fn NK_LET() -> i32 { 30 }
@@ -27,6 +28,7 @@ fn NK_WHILE() -> i32 { 34 }
 fn NK_FOR() -> i32 { 36 }
 fn NK_EXPR_STMT() -> i32 { 37 }
 fn NK_FN_DECL() -> i32 { 50 }
+fn NK_IMPL_DECL() -> i32 { 56 }
 fn NK_IF_EXPR() -> i32 { 13 }
 fn NK_ASSIGN() -> i32 { 18 }
 fn NK_MATCH_EXPR() -> i32 { 14 }
@@ -423,6 +425,50 @@ fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
     }
 }
 
+fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
+    let type_param_bounds = collect_type_param_bounds(node.type_ann)
+    let type_params = collect_type_param_names(type_param_bounds)
+    let ann_count = len(node.type_ann)
+    let mut j = 0
+
+    let param_types = Vec_new_TypeInfo()
+    let child_count = len(node.children)
+    if child_count > 1 {
+        let mut p = 0
+        while p < child_count - 1 {
+            let param = get_unchecked(node.children, p)
+            let mut pty = TypeInfo_simple(TY_UNKNOWN())
+            if len(param.type_ann) > 0 {
+                let type_node = get_unchecked(param.type_ann, 0)
+                pty = resolve_type_ann_node_generic(type_node, type_params)
+            }
+            push(param_types, pty)
+            p = p + 1
+        }
+    }
+
+    let mut return_type = TypeInfo_simple(TY_UNIT())
+    j = 0
+    while j < ann_count {
+        let ann = get_unchecked(node.type_ann, j)
+        if eq(clone(ann.text), String_from("__return")) {
+            if len(ann.children) > 0 {
+                let ret_node = get_unchecked(ann.children, 0)
+                return_type = resolve_type_ann_node_generic(ret_node, type_params)
+            }
+        }
+        j = j + 1
+    }
+
+    FnSig {
+        name: clone(node.text),
+        param_types: param_types,
+        return_type: return_type,
+        type_params: type_params,
+        type_param_bounds: type_param_bounds,
+    }
+}
+
 fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
     let infos = Vec_new_TypeParamBounds()
     let ann_count = len(type_ann)
@@ -461,9 +507,10 @@ fn collect_type_param_names(bound_infos: Vec<TypeParamBounds>) -> Vec<String> {
 }
 
 fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
-    if node.kind == NK_FN_DECL() { return }
+    if node.kind != NK_IMPL_DECL() { return }
     if eq(clone(node.text), String_from("")) { return }
-    if len(node.type_ann) < 1 { return }
+    // `impl Trait for Type { ... }` stores trait head in type_ann[0] and self type in type_ann[1].
+    if len(node.type_ann) < 2 { return }
 
     let child_count = len(node.children)
     if child_count < 1 { return }
@@ -477,7 +524,7 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
         i = i + 1
     }
 
-    let self_ty_node = get_unchecked(node.type_ann, 0)
+    let self_ty_node = get_unchecked(node.type_ann, 1)
     register_trait_impl(env, clone(node.text), resolve_type_ann_node(self_ty_node))
 }
 
@@ -769,6 +816,71 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         return ret_ty
     }
 
+    // Method call: recv.method(args) — signatures include methods from `impl` blocks (issue #504).
+    if node.kind == NK_METHOD_CALL() {
+        if len(node.children) < 1 { return TypeInfo_simple(TY_UNKNOWN()) }
+        let sig = lookup_fn_sig(fn_sigs, clone(node.text))
+        if eq(clone(sig.name), String_from("")) {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
+
+        let recv_node = get_unchecked(node.children, 0)
+        let recv_ty = infer_expr(env, scope, fn_sigs, recv_node)
+
+        let explicit_args = len(node.children) - 1
+        let param_count = len(sig.param_types)
+        if param_count < 1 { return TypeInfo_simple(TY_UNKNOWN()) }
+        if explicit_args + 1 != param_count {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
+
+        if len(sig.type_params) == 0 {
+            let p0 = get_unchecked(sig.param_types, 0)
+            unify(env, p0, recv_ty)
+            let mut a = 0
+            while a < explicit_args {
+                let arg_node = get_unchecked(node.children, a + 1)
+                let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
+                let pty = get_unchecked(sig.param_types, a + 1)
+                unify(env, pty, arg_ty)
+                a = a + 1
+            }
+            return sig.return_type
+        }
+
+        let infer_env = TypeEnv_new()
+        let var_names = Vec_new_String()
+        let var_types = Vec_new_TypeInfo()
+        let tp_count = len(sig.type_params)
+        let mut k = 0
+        while k < tp_count {
+            let tp_name = get_unchecked(sig.type_params, k)
+            let tv = fresh_var(infer_env)
+            push(var_names, clone(tp_name))
+            push(var_types, tv)
+            k = k + 1
+        }
+
+        let p0 = get_unchecked(sig.param_types, 0)
+        let inst_p0 = instantiate_type(p0, var_names, var_types)
+        unify(infer_env, inst_p0, recv_ty)
+
+        let mut a = 0
+        while a < explicit_args {
+            let arg_node = get_unchecked(node.children, a + 1)
+            let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
+            let pty = get_unchecked(sig.param_types, a + 1)
+            let inst_pt = instantiate_type(pty, var_names, var_types)
+            unify(infer_env, inst_pt, arg_ty)
+            a = a + 1
+        }
+
+        let inst_ret = instantiate_type(sig.return_type, var_names, var_types)
+        let ret_ty = resolve_type(infer_env, inst_ret)
+        enforce_fn_sig_bounds(env, infer_env, sig, var_types)
+        return ret_ty
+    }
+
     // Match expression
     if node.kind == NK_MATCH_EXPR() {
         let child_count = len(node.children)
@@ -965,50 +1077,18 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
     while i < decl_count {
         let node = get_unchecked(decls, i)
         if node.kind == NK_FN_DECL() {
-            // Collect generic type param names and bounds from type annotations.
-            let type_param_bounds = collect_type_param_bounds(node.type_ann)
-            let type_params = collect_type_param_names(type_param_bounds)
-            let ann_count = len(node.type_ann)
-            let mut j = 0
-
-            // Extract parameter types from children (all except last = body block)
-            let param_types = Vec_new_TypeInfo()
-            let child_count = len(node.children)
-            if child_count > 1 {
-                let mut p = 0
-                while p < child_count - 1 {
-                    let param = get_unchecked(node.children, p)
-                    let mut pty = TypeInfo_simple(TY_UNKNOWN())
-                    if len(param.type_ann) > 0 {
-                        let type_node = get_unchecked(param.type_ann, 0)
-                        pty = resolve_type_ann_node_generic(type_node, type_params)
-                    }
-                    push(param_types, pty)
-                    p = p + 1
+            push(fn_sigs, fn_sig_from_fn_decl(node))
+        }
+        if node.kind == NK_IMPL_DECL() {
+            let impl_child_count = len(node.children)
+            let mut ic = 0
+            while ic < impl_child_count {
+                let meth = get_unchecked(node.children, ic)
+                if meth.kind == NK_FN_DECL() {
+                    push(fn_sigs, fn_sig_from_fn_decl(meth))
                 }
+                ic = ic + 1
             }
-
-            // Extract return type
-            let mut return_type = TypeInfo_simple(TY_UNIT())
-            j = 0
-            while j < ann_count {
-                let ann = get_unchecked(node.type_ann, j)
-                if eq(clone(ann.text), "__return") {
-                    if len(ann.children) > 0 {
-                        let ret_node = get_unchecked(ann.children, 0)
-                        return_type = resolve_type_ann_node_generic(ret_node, type_params)
-                    }
-                }
-                j = j + 1
-            }
-
-            push(fn_sigs, FnSig {
-                name: clone(node.text),
-                param_types: param_types,
-                return_type: return_type,
-                type_params: type_params,
-                type_param_bounds: type_param_bounds,
-            })
         }
         i = i + 1
     }
@@ -1037,6 +1117,17 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
 
             // Infer expression types within the function body
             check_fn_body(env, fn_sigs, node)
+        }
+        if node.kind == NK_IMPL_DECL() {
+            let impl_child_count = len(node.children)
+            let mut ic = 0
+            while ic < impl_child_count {
+                let meth = get_unchecked(node.children, ic)
+                if meth.kind == NK_FN_DECL() {
+                    check_fn_body(env, fn_sigs, meth)
+                }
+                ic = ic + 1
+            }
         }
         i = i + 1
     }
