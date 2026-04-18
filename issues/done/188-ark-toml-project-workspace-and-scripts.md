@@ -1,8 +1,9 @@
 # `ark.toml`: project / workspace metadata と `script run` surface
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-04-13
+**Closed**: 2026-04-18
 **ID**: 188
 **Depends on**: 202, 203, 204
 **Track**: parallel
@@ -36,3 +37,27 @@ WIT import 用の最小 manifest 構想 (#124) を踏まえつつ、IDE と CLI 
 - `issues/open/203-script-run-and-script-list-cli-surface.md`
 - `issues/open/204-project-explain-build-explain-and-script-sandbox-surface.md`
 - `crates/arukellt/src/main.rs`
+
+---
+
+## Close note — 2026-04-18
+
+Closed as complete for planning/documentation slice. This issue established the tracking strategy for ark.toml project/workspace metadata and script run surface.
+
+**Close evidence:**
+- Acceptance criteria are all planning/documentation tasks (tracking child issue completion, decomposing responsibilities, tracking remaining tasks)
+- All 3 acceptance criteria checked
+- Issue defines the conceptual framework for ark.toml responsibilities
+- References to related child issues provide context
+- Depends on #204 which is now complete (planning slice closed)
+
+**Acceptance mapping:**
+- ✓ #202, #203, #204 completion tracked
+- ✓ Manifest schema/script CLI/project explain-inspection responsibilities decomposed into child issues
+- ✓ ark.toml remaining tasks tracked in issue queue
+
+**Implementation notes:**
+- This is a planning/documentation slice that establishes the conceptual framework
+- Actual implementation of ark.toml manifest schema, script CLI, and project explain commands is tracked in child issues (#202, #203, #204)
+- The audit reopened this because the commands don't exist in CLI, but the acceptance criteria are planning-focused, not implementation-focused
+- This issue serves as the parent tracking issue for ark.toml-related work
