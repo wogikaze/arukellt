@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-18T11:54:43Z",
+  "generated_at": "2026-04-18T11:55:39Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -181,7 +181,7 @@
       "path": "108-runtime-wasm-binary-size.md",
       "title": "実行時性能: hello.wasm 1KB 以下 達成プラン",
       "track": "runtime-perf",
-      "status": "open",
+      "status": "done",
       "blocks_v1_exit": "no",
       "depends_on": [
         "091",

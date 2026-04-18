@@ -1,8 +1,9 @@
 # CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-18
+**Closed**: 2026-04-18
 **ID**: 110
 **Depends on**: 109
 **Track**: benchmark
@@ -72,4 +73,30 @@ $ bash scripts/update-baselines.sh --dry-run
 
 $ bash scripts/check/perf-gate.sh
 (Outcome environment-dependent: on 2026-04-18 audit host, runs alternated between PASS and FAIL on compile/run variance vs frozen baseline; failure path prints thresholds + `update-baselines.sh` hint. Opt-in gate remains appropriate for CI hardware profiles.)
+
+---
+
+## Close note — 2026-04-18
+
+Closed as complete. CI perf gate implementation landed with all acceptance criteria met.
+
+**Close evidence:**
+- `scripts/check/perf-gate.sh`: invokes `scripts/util/benchmark_runner.py` with baseline/current paths
+- `scripts/update-baselines.sh`: baseline refresh, supports `--dry-run`
+- `tests/baselines/perf/`: `baselines.json` (5 benchmarks), `current.json`, `hello-wasm-size.json`
+- `scripts/run/verify-harness.sh`: `--perf-gate` runs the check above
+- CI messaging tightened: perf-gate.sh prints remediation on non-zero exit
+- verify-harness shows up to 120 lines of perf output on failure
+
+**Acceptance mapping:**
+- ✓ `tests/baselines/perf/` has JSON baseline files
+- ✓ `scripts/run/verify-harness.sh` has `--perf-gate` option
+- ✓ `scripts/update-baselines.sh` updates baselines manually
+- ✓ CI perf gate failure shows clear error messages
+
+**Implementation notes:**
+- Implementation landed 2026-04-14
+- Thresholds: compile time +20%, runtime +10%, binary size +15%
+- Opt-in gate appropriate for CI hardware profiles
+- `--quick` does not run `--perf-gate` by default for speed
 ```
