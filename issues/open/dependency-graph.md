@@ -53,7 +53,6 @@ graph LR
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I464["464 `arukellt init` のテンプレート拡充と新規ユーザー導線整備"]
   I469["469 Extension: playground surface は repo で証明できる endpoint だけを指す"]
-  I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
   I504["504 504 — Selfhost: trait/interface syntax and impl-block infrastructure"]
@@ -197,7 +196,6 @@ graph LR
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **464** depends on: none; blocks: none
 - **469** depends on: 466, 468; blocks: none
-- **472** depends on: 466; blocks: none
 - **494** depends on: 493, 503; blocks: none
 - **499** depends on: none; blocks: none
 - **504** depends on: none; blocks: 495, 512
