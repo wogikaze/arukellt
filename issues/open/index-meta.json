@@ -657,26 +657,6 @@
       }
     },
     {
-      "id": "289",
-      "path": "289-selfhost-diagnostic-parity.md",
-      "title": "セルフホスト diagnostic parity を確認する",
-      "track": "selfhost",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "287"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "verification-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "312",
       "path": "312-selfhost-generic-monomorphization.md",
       "title": "Selfhost に generic instantiation と monomorphization を実装する",
