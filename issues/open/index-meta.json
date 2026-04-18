@@ -175,28 +175,6 @@
       }
     },
     {
-      "id": "049",
-      "path": "049-std-path-fs.md",
-      "title": "std::path + std::fs: パス操作とファイル I/O",
-      "track": "stdlib",
-      "status": "done",
-      "blocks_v1_exit": "no",
-      "depends_on": [
-        "039",
-        "041",
-        "042"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#39, #41"
-      }
-    },
-    {
       "id": "051",
       "path": "051-std-time-random.md",
       "title": "std::time + std::random: 時刻・期間・乱数",

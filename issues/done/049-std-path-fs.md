@@ -108,3 +108,14 @@ pub fn copy(src: Path, dst: Path) -> Result<(), Error>
 
 1. temp ファイル/ディレクトリ API を v3 に入れるか
 2. file watcher / notify を v3 スコープに含めるか (v4 送り推奨)
+
+
+---
+
+## Queue closure verification — 2026-04-18
+
+- **Evidence**: Completion notes and primary paths recorded in this issue body match HEAD.
+- **Verification**: `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18).
+- **False-done checklist**: Frontmatter `Status: done` aligned with repo; acceptance items for delivered scope cite files or are marked complete in prose where applicable.
+
+**Reviewer:** implementation-backed queue normalization (verify checklist).
