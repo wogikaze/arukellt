@@ -8664,44 +8664,7 @@ fn val_type_to_wasm(vt: i32) -> i32 {
 
 // ── Public API (used by driver) ──────────────────────────────────────────────
 
-struct MirModule {
-    functions: Vec<MirFunction>,
-    string_constants: Vec<String>,
-}
 
-struct MirFunction {
-    name: String,
-    params: Vec<MirLocal>,
-    locals: Vec<MirLocal>,
-    blocks: Vec<MirBlock>,
-    return_type: i32,
-    next_local: i32,
-    next_block: i32,
-}
-
-struct MirLocal {
-    name: String,
-    val_type: i32,
-}
-
-struct MirBlock {
-    id: i32,
-    instructions: Vec<MirInst>,
-    terminator: i32,
-    succ0: i32,
-    succ1: i32,
-}
-
-struct MirInst {
-    op: i32,
-    dest: i32,
-    arg0: i32,
-    arg1: i32,
-    int_val: i32,
-    float_val: f64,
-    str_val: String,
-    val_type: i32,
-}
 
 pub fn emit_wasm(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
     emit_wasm_module(mir, target, opt_level)

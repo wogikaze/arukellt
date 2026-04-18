@@ -69,6 +69,7 @@ fn TY_NEVER() -> i32 { 8 }
 fn TY_VEC() -> i32 { 10 }
 fn TY_OPTION() -> i32 { 11 }
 fn TY_RESULT() -> i32 { 12 }
+fn TY_HASHMAP() -> i32 { 13 }
 fn TY_FN() -> i32 { 20 }
 fn TY_STRUCT() -> i32 { 21 }
 fn TY_ENUM() -> i32 { 22 }

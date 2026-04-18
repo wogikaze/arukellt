@@ -452,7 +452,7 @@ fn cmd_build(opts: CliOptions) {
             }
 
             // Parse dependencies (just list them for now)
-            let deps = find_toml_value(clone(content), String_from("dependencies"))
+            // let deps = find_toml_value(clone(content), String_from("dependencies"))
             // Dependencies are not yet resolved, just acknowledged
 
             let config = driver::DriverConfig_default()
