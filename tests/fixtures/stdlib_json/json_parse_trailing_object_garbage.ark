@@ -1,0 +1,9 @@
+use std::json
+use std::host::stdio
+
+fn main() {
+    match json::parse("{\"x\":1} garbage") {
+        Ok(v) => stdio::println(json::stringify(v)),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+}

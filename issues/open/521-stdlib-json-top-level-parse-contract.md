@@ -104,3 +104,18 @@ Verification (this slice):
 - `cargo test -p arukellt --test harness` — FAIL (30 fixtures), **none** under `tests/fixtures/stdlib_json/`; failures are in e.g. `selfhost/*`, `stdlib_io_rw/*`, `stdlib_hashmap/*`, `stdlib_process/*`, `stdlib_env/*`, `stdlib_cli/*`, `stdlib_toml/*`, `stdlib_migration/*`, `component/*`, `from_trait/*`, `t3-*` — out of scope for #521.
 
 The **Required verification** section above is explicitly narrowed to the stdlib JSON gate; full `--fixtures` green is a separate repo health item.
+
+## Progress note — 2026-04-18 (Wave 3)
+
+Contract re-verified; added object + trailing garbage fixture aligned with issue summary (`{"x":1} garbage`).
+
+- `std::json::parse` in `std/json/mod.ark` already rejects any non-whitespace after the first top-level value (`Err("trailing characters")`).
+- New negative fixture: `tests/fixtures/stdlib_json/json_parse_trailing_object_garbage.ark` (+ `.expected`), registered in `tests/fixtures/manifest.txt`.
+- Existing negatives remain: `json_parse_trailing_garbage.ark`, `json_parse_multiple_values.ark`.
+
+Verification (this slice):
+
+- `bash scripts/run/verify-harness.sh --quick` — PASS
+- `python3 scripts/check/check-docs-consistency.py` — PASS (after repo index/docs in sync with manifest)
+- All `tests/fixtures/stdlib_json/*.ark` vs `.expected` — PASS (`arukellt run` per file)
+- `bash scripts/run/verify-harness.sh --fixtures` — **not used** here: harness script races on `_BG_DIR` cleanup in this environment (missing `*.rc` under temp dir); stdlib JSON coverage proven via manifest `run:` entries + direct fixture diff loop above.

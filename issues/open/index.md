@@ -149,20 +149,20 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 252 | [テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する](252-test-strategy-overhaul.md) | main | yes | none | none | 0 checked / 0 open | design-ready | — | |
 | 253 | [セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない](253-selfhost-completion-criteria.md) | main | yes | none | 266 | 0 checked / 0 open | verification-ready | — | |
 | 254 | [VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる](254-vscode-extension-e2e.md) | main | yes | none | none | 0 checked / 0 open | implementation-ready | — | |
-| 268 | [Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する](268-selfhost-parity-ci-verification.md) | main | yes | 267 | 269 | 4 checked / 0 open | verification-ready | — | |
+| 268 | [Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する](268-selfhost-parity-ci-verification.md) | main | yes | 267 | 269 | 0 checked / 4 open | verification-ready | — | |
 | 282 | [CoreHIR lowering: LoopExpr を制御フローに desugar する](282-corehir-desugar-loop-expr.md) | corehir | no | 281 | none | 3 checked / 0 open | implementation-ready | — | |
 | 283 | [CoreHIR lowering: TryExpr を制御フローに desugar する](283-corehir-desugar-try-expr.md) | corehir | no | 281 | none | 3 checked / 0 open | implementation-ready | — | |
 | 285 | [Legacy lowering path を隔離・撤去する](285-legacy-path-deprecation.md) | corehir | no | 284 | 508 | 2 checked / 2 open | implementation-ready | — | |
 | 286 | [bootstrap セクションの fixpoint 記述整合を再検証する](286-update-bootstrap-docs.md) | selfhost | no | none | none | 4 checked / 0 open | verification-ready | — | |
 | 289 | [セルフホスト diagnostic parity を確認する](289-selfhost-diagnostic-parity.md) | selfhost | no | 287 | none | 3 checked / 0 open | verification-ready | — | |
-| 312 | [Selfhost に generic instantiation と monomorphization を実装する](312-selfhost-generic-monomorphization.md) | selfhost-frontend | no | 311 | 495 | 4 checked / 0 open | implementation-ready | — | |
+| 312 | [Selfhost に generic instantiation と monomorphization を実装する](312-selfhost-generic-monomorphization.md) | selfhost-frontend | no | 311 | 495 | 0 checked / 4 open | implementation-ready | — | |
 | 382 | [Playground: wasm32-freestanding (T2) target の downstream 実装を開始する](382-playground-t2-freestanding.md) | playground | no | 378 | none | 2 checked / 3 open | implementation-ready | — | |
 | 453 | [VSCode API を使った editor behavior E2E テストを追加する](453-vscode-e2e-editor-behavior-tests.md) | vscode-ide | no | 450, 451, 452 | none | 5 checked / 0 open | implementation-ready | — | |
 | 459 | [selfhost Stage 2 fixpoint 達成と dual-period 終了計画](459-selfhost-fixpoint-dual-period-end.md) | compiler, selfhost | no | 445, 446, 447, 448, 449 | none | 6 checked / 0 open | implementation-ready | — | |
 | 490 | [pub use / pub import re-export](490-pub-use-pub-import-re-export.md) | compiler, module-system | no | 234 | none | 5 checked / 0 open | implementation-ready | — | |
 | 494 | [494 — Selfhost MIR: SSA formation pass](494-selfhost-mir-ssa-formation.md) | selfhost | no | 493, 503 | none | 0 checked / 3 open | implementation-ready | — | |
 | 499 | [499 — Selfhost compiler: closure capture environment lowering](499-selfhost-closure-capture-lowering.md) | selfhost | no | none | none | 0 checked / 5 open | implementation-ready | — | |
-| 504 | [504 — Selfhost: trait/interface syntax and impl-block infrastructure](504-selfhost-trait-syntax.md) | selfhost | no | none | 495, 512 | 0 checked / 6 open | implementation-ready | — | |
+| 504 | [504 — Selfhost: trait/interface syntax and impl-block infrastructure](504-selfhost-trait-syntax.md) | selfhost | no | none | 495, 512 | 3 checked / 3 open | implementation-ready | — | |
 | 511 | [Stdlib: 数値タグ / if 連鎖を enum + match 優先へ移行する](511-stdlib-syntax-modernization-enum-match.md) | stdlib | no | none | none | 4 checked / 0 open | implementation-ready | — | |
 | 513 | [Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する](513-stdlib-prelude-safety-and-wrapper-surface.md) | stdlib | no | none | 518 | 2 checked / 2 open | implementation-ready | — | |
 | 514 | [Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する](514-stdlib-implementation-quality-audit.md) | stdlib | no | none | none | 0 checked / 4 open | implementation-ready | — | |
