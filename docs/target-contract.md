@@ -136,8 +136,20 @@ There is no scaffold code.
 
 ## Component output: separate guarantee tier
 
-`--emit component` requires external `wasm-tools` and a WASI adapter
-module.  These are not bundled with the Arukellt binary.  Therefore:
+`--emit component` / `--emit all` require external `wasm-tools` (on `PATH`,
+with a fallback lookup under `~/.cargo/bin`).  The driver emits core Wasm plus
+WIT, then runs `wasm-tools component embed` and `wasm-tools component new`.
+Unless `--wasi-version p2` / `--p2-native` is selected, the `component new` step
+passes `--adapt wasi_snapshot_preview1=…` when a Preview 1 adapter module is
+found (`wasi_snapshot_preview1.reactor.wasm` or `wasi_snapshot_preview1.command.wasm`,
+including project-local paths, `~/.cargo/bin`, `~/.local/share/arukellt/`, or
+`ARK_WASI_ADAPTER`).
+
+**WASI Preview 2 native** component output (no Preview 1 adapter; core Wasm
+imports Component-Model `wasi:cli/*` directly — [issue
+074](../issues/open/074-wasi-p2-native-component.md)) is **deferred to v5+**
+pending WASI P2 runtime maturity.  The Preview 1 adapter and `wasm-tools` are
+not bundled with the Arukellt binary.  Therefore:
 
 - Core Wasm output (`--emit core-wasm`) is **guaranteed** for T1 and T3.
 - Component output (`--emit component`) is **smoke** tier for T3.

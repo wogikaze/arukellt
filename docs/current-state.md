@@ -13,7 +13,7 @@ The legacy path remains available as an opt-in fallback via `--mir-select legacy
 
 - **corehir** (default): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
 - **legacy** (opt-in fallback): `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm`
-- Component path (v2): `... → MIR → WasmEmit → WIT generation → wasm-tools component embed/new`
+- Component path (v2): `... → MIR → WasmEmit → WIT generation → wasm-tools component embed → wasm-tools component new` (default wrap passes `--adapt wasi_snapshot_preview1=…` to `component new` when a Preview 1 adapter module is discoverable; see [target-contract.md](target-contract.md#component-output-separate-guarantee-tier))
 - Shared orchestration entry point: `ark-driver::Session`
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
@@ -182,7 +182,8 @@ v2 (Component Model) implementation is complete as of 2026-03-28.
 
 ### Known v2 carry-over limitations
 
-- `--emit component` requires external `wasm-tools` and a WASI adapter module
+- `--emit component` / `--emit all` require external `wasm-tools` on `PATH` (also probed under `~/.cargo/bin`). The driver runs `wasm-tools component embed` then `wasm-tools component new`; unless `--wasi-version p2` / `--p2-native` is used, `component new` links the **WASI Preview 1** adapter when a matching adapter module is found (reactor/command `.wasm`, or `ARK_WASI_ADAPTER`).
+- **WASI Preview 2 native components** (core Wasm imports `wasi:cli/*` etc. directly, no Preview 1 adapter — [issue 074](../issues/open/074-wasi-p2-native-component.md)) are **deferred to v5+** pending WASI P2 runtime maturity. Today, `--wasi-version p2` only skips the adapter in `wasm-tools` while the T3 core module still uses `wasi_snapshot_preview1` imports (`W0009`; import-table work: [issue 510](../issues/open/510-t3-p2-import-table-switch.md)).
 - Component output is still T3-only: use `--target wasm32-wasi-p2` for `--emit component`, `--emit wit`, and `--emit all`
 - string/list/complex canonical ABI lift-lower coverage is not complete for every case
 - async Component Model features are not supported
