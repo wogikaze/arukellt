@@ -302,6 +302,14 @@ impl<'a> PeepholeWriter<'a> {
         self.flush_pending();
     }
 
+    /// Byte length of the encoded function body so far, after flushing peephole
+    /// buffers. Used for `metadata.code.branch_hint` offsets (byte offset to the
+    /// hinted `if` instruction).
+    pub fn encoded_body_byte_len(&mut self) -> usize {
+        self.flush();
+        self.func.byte_len()
+    }
+
     /// Number of `local.set`/`local.get` pairs replaced with `local.tee`.
     pub fn tee_count(&self) -> usize {
         self.tee_count

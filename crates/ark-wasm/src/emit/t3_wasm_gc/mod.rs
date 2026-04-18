@@ -29,7 +29,7 @@ mod types;
 use ark_diagnostics::DiagnosticSink;
 use ark_mir::mir::*;
 use ark_typecheck::types::Type;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use wasm_encoder::{
     ArrayType, BranchHints, CodeSection, CompositeInnerType, CompositeType, DataSection,
     DataSegment, ExportKind, ExportSection, FieldType, FunctionSection, GlobalSection, GlobalType,
@@ -430,32 +430,21 @@ impl TypeAlloc {
 
 // ── Branch hint utilities ─────────────────────────────────────────
 
-/// Build a `BranchHints` section from a MIR module.
-///
-/// The WebAssembly `metadata.code.branch_hint` custom section records
-/// `(function_index, byte_offset, hint_value)` triples so that JIT compilers
-/// can use branch prediction information.
-///
-/// Precise byte offsets require instrumenting the code section encoder, which
-/// is deferred (see issue #064 for tracking).  For now this function returns
-/// an empty section whenever the MIR has `BranchHint` annotations, signalling
-/// that the module was compiled with branch-hint awareness even though no
-/// individual offsets are recorded yet.
-///
-/// A `None` return means the MIR contains no branch hints at all; callers
-/// should still emit an empty custom section to advertise support.
-pub(crate) fn collect_branch_hints(module: &MirModule) -> BranchHints {
-    // Walk every function's terminator to look for BranchHint annotations.
-    // When found we note that hints are present; exact byte offsets are not
-    // tracked at this stage.
-    let _has_any = module
-        .functions
-        .iter()
-        .flat_map(|f| f.blocks.iter())
-        .any(|b| matches!(&b.terminator, Terminator::If { hint: Some(_), .. }));
-    // Return an empty BranchHints.  The caller always emits this section so
-    // that the `metadata.code.branch_hint` name is present in the binary.
-    BranchHints::new()
+/// Build wasm-encoder `BranchHints` from `(func_index, offset, taken)` records
+/// collected during code emission (see `Ctx::branch_hint_records`).
+fn branch_hints_from_emit_records(records: &[(u32, u32, u32)]) -> BranchHints {
+    let mut by_fn: BTreeMap<u32, Vec<wasm_encoder::BranchHint>> = BTreeMap::new();
+    for &(fn_idx, offset, taken) in records {
+        by_fn.entry(fn_idx).or_default().push(wasm_encoder::BranchHint {
+            branch_func_offset: offset,
+            branch_hint_value: taken,
+        });
+    }
+    let mut out = BranchHints::new();
+    for (fn_idx, hints) in by_fn {
+        out.function_hints(fn_idx, hints);
+    }
+    out
 }
 
 // ── Emit context ─────────────────────────────────────────────────
@@ -609,9 +598,19 @@ pub(super) struct Ctx {
     field_remap: HashMap<String, Vec<usize>>,
     /// When true, the Wasm Name Section is omitted entirely (--strip-debug).
     strip_name_section: bool,
+    /// `(wasm_func_index, branch_func_offset, branch_hint_value)` for
+    /// `metadata.code.branch_hint` (populated during T3 code emission).
+    branch_hint_records: Vec<(u32, u32, u32)>,
+    /// Wasm function index of the MIR function currently being encoded.
+    current_emit_fn_idx: u32,
 }
 
 impl Ctx {
+    /// Record one `metadata.code.branch_hint` entry (`taken`: 0 = not taken, 1 = taken).
+    pub(super) fn record_branch_hint(&mut self, func_idx: u32, offset: u32, taken: u32) {
+        self.branch_hint_records.push((func_idx, offset, taken));
+    }
+
     pub(super) fn type_to_val(&self, ty: &Type) -> ValType {
         match ty {
             Type::I64 | Type::U64 => ValType::I64,
@@ -1122,6 +1121,8 @@ pub fn emit(
         string_intern_count: 0,
         field_remap: HashMap::new(),
         strip_name_section: strip_debug,
+        branch_hint_records: Vec::new(),
+        current_emit_fn_idx: 0,
     };
     ctx.emit_module(mir)
 }
@@ -2017,10 +2018,9 @@ impl Ctx {
 
         // Branch hint custom section (metadata.code.branch_hint).
         // Emitted before the Code section so runtimes can use the hints while
-        // streaming-compiling the code section.  Currently emits a stub with
-        // zero function entries; byte-offset tracking for precise hints is
-        // deferred (see issue #064).
-        let branch_hints = collect_branch_hints(mir);
+        // streaming-compiling the code section.  Entries are collected during
+        // `emit_function` (IfStmt → Wasm `if`); empty if no hints were recorded.
+        let branch_hints = branch_hints_from_emit_records(&self.branch_hint_records);
         if !branch_hints.is_empty() {
             module.section(&branch_hints);
         } else {

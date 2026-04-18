@@ -9,6 +9,7 @@ pub mod pipeline;
 pub mod tail_call;
 pub mod type_narrowing;
 
+pub use branch_hint::infer_if_stmt_branch_hint;
 pub use pipeline::{
     OptimizationPass, OptimizationSummary, default_pass_order, eliminate_dead_functions, find_pass,
     optimization_pass_catalog, optimization_trace_snapshot, optimize_module, optimize_module_named,

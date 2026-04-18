@@ -1,6 +1,50 @@
 use super::OptimizationSummary;
 use crate::mir::{BasicBlock, BlockId, BranchHint, MirFunction, MirStmt, Operand, Terminator};
 
+/// Infer `BranchHint` for a statement-level `if` (MIR `IfStmt`), using the same
+/// panic-path heuristic as [`branch_hint_infer`] for `Terminator::If`.
+///
+/// Backends that lower `IfStmt` to a Wasm `if` can call this at emit time to
+/// populate `metadata.code.branch_hint` entries without requiring CFG-shaped
+/// `Terminator::If` in the MIR.
+pub fn infer_if_stmt_branch_hint(
+    then_body: &[MirStmt],
+    else_body: &[MirStmt],
+) -> Option<BranchHint> {
+    let then_panic = stmts_look_like_panic_path(then_body);
+    let else_panic = stmts_look_like_panic_path(else_body);
+    if then_panic && !else_panic {
+        Some(BranchHint::Unlikely)
+    } else if else_panic && !then_panic {
+        Some(BranchHint::Likely)
+    } else {
+        None
+    }
+}
+
+fn stmts_look_like_panic_path(stmts: &[MirStmt]) -> bool {
+    stmts.iter().any(|s| stmt_may_be_panic(s))
+}
+
+fn stmt_may_be_panic(stmt: &MirStmt) -> bool {
+    if stmt_is_panic(stmt) {
+        return true;
+    }
+    match stmt {
+        MirStmt::IfStmt {
+            then_body,
+            else_body,
+            ..
+        } => {
+            stmts_look_like_panic_path(then_body)
+                || stmts_look_like_panic_path(else_body)
+        }
+        MirStmt::WhileStmt { body, .. } => stmts_look_like_panic_path(body),
+        MirStmt::Return(Some(op)) => operand_calls_panic(op),
+        _ => false,
+    }
+}
+
 /// Infer branch hints for `Terminator::If` nodes.
 ///
 /// Heuristic: if the `then_block` leads to a panic, assertion failure, or
@@ -266,5 +310,23 @@ mod tests {
             Terminator::If { hint, .. } => assert_eq!(*hint, Some(BranchHint::Likely)),
             _ => panic!("expected If terminator"),
         }
+    }
+
+    #[test]
+    fn infer_if_stmt_matches_terminator_panic_heuristic() {
+        let then_body = vec![MirStmt::CallBuiltin {
+            dest: None,
+            name: "panic".into(),
+            args: vec![],
+        }];
+        let else_body = vec![MirStmt::Return(None)];
+        assert_eq!(
+            infer_if_stmt_branch_hint(&then_body, &else_body),
+            Some(BranchHint::Unlikely)
+        );
+        assert_eq!(
+            infer_if_stmt_branch_hint(&else_body, &then_body),
+            Some(BranchHint::Likely)
+        );
     }
 }

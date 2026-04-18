@@ -1687,6 +1687,11 @@ impl Ctx {
         self.current_fn_type_params = func.type_params.clone();
         self.current_fn_return_ty = func.return_ty.clone();
         self.current_fn_ret_type_name = self.fn_ret_type_names.get(&func.name).cloned();
+        self.current_emit_fn_idx = self
+            .fn_map
+            .get(&func.name)
+            .copied()
+            .expect("emit_function: missing wasm function index for MIR function");
 
         // ── Type propagation: scan ALL assignments (including nested) to infer ref types ──
         let mut extra_enum: HashMap<u32, String> = HashMap::new();
@@ -3384,6 +3389,124 @@ mod tests {
             count_br_tables(&wasm),
             0,
             "non-matching enum IfStmt chains must keep the existing if/else lowering"
+        );
+    }
+
+    /// `metadata.code.branch_hint` must contain at least one recorded hint when
+    /// `IfStmt` lowers to Wasm `if` and the panic-path heuristic applies.
+    #[test]
+    fn branch_hint_custom_section_non_empty_for_ifstmt_panic_heuristic() {
+        use ark_mir::mir::{
+            BasicBlock, BlockId, FnId, InstanceKey, MirFunction, MirLocal, MirModule, MirStmt,
+            Operand, Place, Rvalue, SourceInfo, Terminator,
+        };
+        use ark_typecheck::types::Type;
+        use wasmparser::{KnownCustom, Operator, Parser, Payload};
+
+        let func = MirFunction {
+            id: FnId(0),
+            name: "main".to_string(),
+            instance: InstanceKey::simple("main"),
+            params: vec![],
+            return_ty: Type::Unit,
+            locals: vec![MirLocal {
+                id: LocalId(0),
+                name: None,
+                ty: Type::Bool,
+            }],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![
+                    MirStmt::Assign(
+                        Place::Local(LocalId(0)),
+                        Rvalue::Use(Operand::ConstBool(true)),
+                    ),
+                    MirStmt::IfStmt {
+                        cond: Operand::Place(Place::Local(LocalId(0))),
+                        then_body: vec![MirStmt::CallBuiltin {
+                            dest: None,
+                            name: "panic".into(),
+                            args: vec![],
+                        }],
+                        else_body: vec![MirStmt::Return(None)],
+                    },
+                ],
+                terminator: Terminator::Return(None),
+                source: SourceInfo::unknown(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: vec![],
+            source: SourceInfo::unknown(),
+            is_exported: false,
+        };
+
+        let mut mir = MirModule::new();
+        mir.functions.push(func);
+        mir.entry_fn = Some(FnId(0));
+
+        let mut sink = DiagnosticSink::new();
+        let wasm = super::super::emit(&mir, &mut sink, 0, true);
+        assert!(!wasm.is_empty());
+
+        let mut hint_payload_len = 0usize;
+        let mut parsed_taken: Option<bool> = None;
+        for payload in Parser::new(0).parse_all(&wasm) {
+            let Ok(payload) = payload else {
+                continue;
+            };
+            if let Payload::CustomSection(c) = payload {
+                if c.name() == "metadata.code.branch_hint" {
+                    hint_payload_len = c.data().len();
+                    if let KnownCustom::BranchHints(reader) = c.as_known() {
+                        let fh = reader
+                            .into_iter()
+                            .next()
+                            .expect("branch hint section")
+                            .expect("function hint group");
+                        let hint = fh
+                            .hints
+                            .into_iter()
+                            .next()
+                            .expect("hint list")
+                            .expect("branch hint entry");
+                        parsed_taken = Some(hint.taken);
+                    }
+                }
+            }
+        }
+
+        assert!(
+            hint_payload_len > 1,
+            "expected non-empty branch_hint custom section payload"
+        );
+        assert_eq!(
+            parsed_taken,
+            Some(false),
+            "then-panic path should be hinted as unlikely (not taken)"
+        );
+
+        let mut if_op_count = 0usize;
+        for payload in Parser::new(0).parse_all(&wasm) {
+            let Ok(payload) = payload else {
+                continue;
+            };
+            if let Payload::CodeSectionEntry(body) = payload {
+                let mut reader = body.get_operators_reader().expect("operators reader");
+                while !reader.eof() {
+                    if matches!(
+                        reader.read().expect("operator"),
+                        Operator::If { .. }
+                    ) {
+                        if_op_count += 1;
+                    }
+                }
+            }
+        }
+        assert!(
+            if_op_count >= 1,
+            "expected at least one Wasm `if` (control instruction) in emitted code"
         );
     }
 }

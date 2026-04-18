@@ -3,6 +3,7 @@
 //! Handles MIR statement lowering to Wasm instructions, including
 //! assignment, control flow, and builtin call dispatch.
 
+use ark_mir::infer_if_stmt_branch_hint;
 use ark_mir::mir::*;
 use ark_typecheck::types::Type;
 use std::collections::BTreeMap;
@@ -290,7 +291,15 @@ impl Ctx {
                     return;
                 }
                 self.emit_operand(f, cond);
+                let if_offset = f.encoded_body_byte_len() as u32;
                 f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                if let Some(h) = infer_if_stmt_branch_hint(then_body, else_body) {
+                    let taken = match h {
+                        BranchHint::Likely => 1u32,
+                        BranchHint::Unlikely => 0u32,
+                    };
+                    self.record_branch_hint(self.current_emit_fn_idx, if_offset, taken);
+                }
                 self.loop_break_extra_depth += 1;
                 for s in then_body {
                     self.emit_stmt(f, s);

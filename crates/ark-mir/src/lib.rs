@@ -16,9 +16,9 @@ pub use lower::{compare_lowering_paths, lower_check_output_to_mir, lower_legacy_
 pub use mir::*;
 pub use opt::{
     OptimizationPass, OptimizationSummary, default_pass_order, eliminate_dead_functions, find_pass,
-    optimization_pass_catalog, optimization_trace_snapshot, optimize_module, optimize_module_named,
-    optimize_module_named_only, optimize_module_named_until, optimize_module_named_without,
-    optimize_module_none, pass_pipeline_snapshot, run_single_pass,
+    infer_if_stmt_branch_hint, optimization_pass_catalog, optimization_trace_snapshot, optimize_module,
+    optimize_module_named, optimize_module_named_only, optimize_module_named_until,
+    optimize_module_named_without, optimize_module_none, pass_pipeline_snapshot, run_single_pass,
 };
 pub use opt_level::OptLevel;
 pub use passes::PassStats;
