@@ -13,6 +13,15 @@
 
 ---
 
+## Audit — 2026-04-18 (#453 E2E)
+
+**suite.skip (Definition / Hover / Diagnostics)**: No — `extension.test.js` uses `suite("Go to Definition (#450 / #453)", ...)`, `suite("Hover (#451 / #453)", ...)`, and `suite("Diagnostics (#452 / #453)", ...)` with no `suite.skip`. Binary-missing guard is `suiteSetup` → `this.skip()` when `target/debug/arukellt` is absent.
+
+**npm test** (`extensions/arukellt-all-in-one`): Pass — `vscode-test` exit 0, 34 passing (2026-04-18).
+
+**verify-harness.sh --quick**: Pass — 19/19 checks.
+
+**FYI**: `test.skip("unresolved name produces E0100 diagnostic")` remains pending in the Diagnostics suite; not a `suite.skip`.
 
 ## Closed — 2026-04-15
 
