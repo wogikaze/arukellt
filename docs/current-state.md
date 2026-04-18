@@ -255,6 +255,8 @@ The #122 opt-level separation work established the `passes/` directory and the u
 
 Verification status of each bootstrap stage (source: `src/compiler/*.ark`):
 
+The selfhost compiler records generic call specializations in the typechecker (`mono_instances`) but does not yet monomorphize or prune them before MIR lowering (see issue #312).
+
 | Stage | Description | Status |
 |-------|-------------|--------|
 | **Stage 0** | Rust compiler compiles all `src/compiler/*.ark` files individually | ✅ **Verified** (CI + `verify-bootstrap.sh --stage1-only`) |
