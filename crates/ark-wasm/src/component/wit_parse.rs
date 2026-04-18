@@ -4,7 +4,7 @@
 //! - `package` header
 //! - `interface` blocks with `func` declarations
 //! - `record`, `enum`, `variant`, `resource` type declarations
-//! - Primitive types, `list<T>`, `option<T>`, `result<T, E>`, `tuple<...>`
+//! - Primitive types, `list<T>`, `option<T>`, `result<T, E>`, `tuple<...>`, inline `flags { ... }`
 //!
 //! Single-file WIT only. `use` (cross-interface references) is out of scope for v2.
 

@@ -18,8 +18,50 @@ pub use wit_parse::{
 };
 pub use wrap::{ComponentDeps, WrapError, compose_components, read_component_deps};
 
+use ark_diagnostics::{wit_flags_v2_diagnostic, Diagnostic};
 use ark_mir::mir::MirModule;
 use ark_typecheck::types::Type;
+
+/// Collect [`E0090`](ark_diagnostics::codes::DiagnosticCode::E0090) diagnostics for every
+/// WIT function whose parameter or return type uses a `flags` type (not supported in v2).
+pub fn collect_wit_flags_diagnostics(doc: &WitDocument, wit_path: &str) -> Vec<Diagnostic> {
+    let mut out = Vec::new();
+    for iface in &doc.interfaces {
+        for func in &iface.functions {
+            if let Some(type_desc) = wit_function_first_flags_description(func) {
+                out.push(wit_flags_v2_diagnostic(
+                    wit_path,
+                    &format!("{}::{}", iface.name, func.name),
+                    &type_desc,
+                ));
+            }
+        }
+    }
+    out
+}
+
+fn wit_function_first_flags_description(func: &WitFunction) -> Option<String> {
+    func.params
+        .iter()
+        .find_map(|(_, ty)| wit_type_flags_description(ty))
+        .or_else(|| func.result.as_ref().and_then(wit_type_flags_description))
+}
+
+fn wit_type_flags_description(ty: &WitType) -> Option<String> {
+    match ty {
+        WitType::Flags(names) => Some(format!("flags {{ {} }}", names.join(", "))),
+        WitType::List(inner)
+        | WitType::Option(inner)
+        | WitType::Own(inner)
+        | WitType::Borrow(inner) => wit_type_flags_description(inner),
+        WitType::Result { ok, err } => ok
+            .as_deref()
+            .and_then(wit_type_flags_description)
+            .or_else(|| err.as_deref().and_then(wit_type_flags_description)),
+        WitType::Tuple(elems) => elems.iter().find_map(wit_type_flags_description),
+        _ => None,
+    }
+}
 
 /// Convert a MIR module into a WIT world descriptor.
 ///
@@ -774,6 +816,10 @@ pub fn validate_core_wasm_exports(wasm: &[u8]) -> Vec<(String, ark_diagnostics::
 
 /// Convert a WIT type name string (e.g., "s32", "string") to a WitType.
 fn wit_type_name_to_wit(name: &str) -> Option<WitType> {
+    let name = name.trim();
+    if let Some(flags) = parse_inline_flags_wit_type_name(name) {
+        return Some(flags);
+    }
     match name {
         "u8" => Some(WitType::U8),
         "u16" => Some(WitType::U16),
@@ -806,13 +852,31 @@ fn wit_type_name_to_wit(name: &str) -> Option<WitType> {
     }
 }
 
+/// Parses inline `flags { a, b }` strings produced by [`WitType::to_wit`] / MIR import metadata.
+fn parse_inline_flags_wit_type_name(s: &str) -> Option<WitType> {
+    let rest = s.strip_prefix("flags")?;
+    let rest = rest.trim_start();
+    let rest = rest.strip_prefix('{')?;
+    let rest = rest.strip_suffix('}')?;
+    let names: Vec<String> = rest
+        .split(',')
+        .map(|part| part.trim().to_string())
+        .filter(|part| !part.is_empty())
+        .collect();
+    if names.is_empty() {
+        return None;
+    }
+    Some(WitType::Flags(names))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use ark_mir::mir::{
-        BasicBlock, BlockId, FnId, InstanceKey, LocalId, MirFunction, MirLocal, MirModule,
-        SourceInfo,
+        BasicBlock, BlockId, FnId, InstanceKey, LocalId, MirFunction, MirImport, MirLocal,
+        MirModule, SourceInfo,
     };
+    use ark_diagnostics::DiagnosticCode;
     use ark_typecheck::types::Type;
 
     fn make_instance_key() -> InstanceKey {
@@ -1267,5 +1331,31 @@ mod tests {
         let (world, _) = mir_to_wit_world_with_warnings(&mir, "myapp", None).unwrap();
         assert_eq!(world.name, "myapp");
         assert!(world.world_spec.is_none());
+    }
+
+    #[test]
+    fn collect_wit_flags_diagnostics_emits_e0090() {
+        let wit = include_str!("../../../../tests/fixtures/component/import_flags_type.wit");
+        let doc = parse_wit(wit).unwrap();
+        let diags = collect_wit_flags_diagnostics(&doc, "import_flags_type.wit");
+        assert_eq!(diags.len(), 1);
+        assert_eq!(diags[0].code, DiagnosticCode::E0090);
+    }
+
+    #[test]
+    fn mir_import_flags_string_round_trips_to_wit_type_flags() {
+        let mut mir = MirModule::new();
+        mir.imports.push(MirImport {
+            interface: "host".to_string(),
+            name: "set-perms".to_string(),
+            param_types: vec!["flags { read, write }".to_string()],
+            return_type: None,
+        });
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
+        assert_eq!(world.imports.len(), 1);
+        assert_eq!(
+            world.imports[0].params[0].1,
+            WitType::Flags(vec!["read".to_string(), "write".to_string()])
+        );
     }
 }
