@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-04-15
-**Updated**: 2026-04-16
+**Updated**: 2026-04-18
 **ID**: 515
 **Depends on**: none
 **Track**: stdlib
@@ -59,3 +59,43 @@ Source: `std/bytes/mod.ark` (read-only audit). Classification uses this issue’
 **Note (non-public helper):** `base64_val` (`std/bytes/mod.ark:500–567`, `:566`) uses the same `0 - 1` invalid pattern; it is not `pub` but shapes `base64_decode` behavior—any future `Option`/`Result` surface for Base64 might lift or replace this helper.
 
 **Negative evidence:** No other `pub fn` in `std/bytes/mod.ark` returns `0 - 1` to callers; `leb128_decode_*` uses `0` or partial decoding for some failure modes (different convention), and `leb128_encode_i32` uses `val == 0 - 1` only as an internal signed-encode state check (`:226`), not as a public return contract.
+
+## Inventory (std::text / std::path / std::seq)
+
+Source-backed audit scope for this slice:
+
+- `std/text/mod.ark:97-150` and `std/text/mod.ark:138-150`
+- `std/path/mod.ark:25-183`
+- `std/seq/mod.ark:76-95`
+- `std/core/error.ark:4-16`
+
+### Family-level migration rule
+
+- `std::text`: return `Option` when the only outcome is absence / no-match, and return `Result<_, Error>` when the call is rejecting invalid input boundaries or other caller-visible misuse. Keep the current `i32` / empty-string forms only as adapter wrappers if a compatibility layer is still required.
+- `std::path`: return `Option` for missing components such as file name, extension, or parent; do not encode absence as `""` in the modern surface. Keep any legacy string-returning helpers as thin adapters until the `Path`-typed surface from the path/fs work lands.
+- `std::seq`: return `Result` for search operations that need a hit/index vs insertion-point distinction; use a small typed enum only if the family later standardizes on an explicit search-result enum instead of `Result<i32, i32>`. Keep `-1` only in compatibility adapters.
+- `std::core::Error` is the shared target for boundary/validation failures; do not introduce new `Result<_, String>` surfaces for these families.
+
+### Inventory (text)
+
+| Public API | Location | Sentinel / contract | Classification |
+|------------|----------|---------------------|----------------|
+| `slice_bytes` | `std/text/mod.ark:97-104` | Invalid byte boundaries return `""`, which is ambiguous with a valid empty slice | **Result** (`Result<String, Error>`; likely `InvalidArgument` / `IndexOutOfBounds`); **adapter-preserve**: keep the old `String` wrapper only if a compatibility bridge is needed |
+| `index_of` | `std/text/mod.ark:138-150` | Not found → `0 - 1` (`-1`) | **Option** (`Option<i32>`); **adapter-preserve**: legacy `i32` sentinel wrapper for the existing surface |
+
+### Inventory (path)
+
+| Public API | Location | Sentinel / contract | Classification |
+|------------|----------|---------------------|----------------|
+| `file_name` | `std/path/mod.ark:25-33` | Empty path / root path collapses to `""` instead of an explicit absence | **Option** (`Option<String>`) |
+| `extension` | `std/path/mod.ark:35-44` | No extension, or leading-dot file treated as "no extension", returns `""` | **Option** (`Option<String>`) |
+| `parent` | `std/path/mod.ark:69-77` | Root / no-parent collapses to `""` | **Option** (`Option<String>`) |
+| `last_index_of` | `std/path/mod.ark:149-183` | Not found → `0 - 1` (`-1`) | **Option** (`Option<i32>`); if retained temporarily, it can serve as the adapter beneath the higher-level path helpers |
+
+### Inventory (seq)
+
+| Public API | Location | Sentinel / contract | Classification |
+|------------|----------|---------------------|----------------|
+| `binary_search` | `std/seq/mod.ark:76-95` | Not found → `0 - 1` (`-1`) | **Result** (`Result<i32, i32>` matches the family guidance already recorded in issue #048); **adapter-preserve**: keep `-1` only in a deprecated compatibility wrapper |
+
+**Audit note:** `min_i32`, `max_i32`, `sum_i32`, `count_eq`, `seq_contains`, and the remaining `std/seq` functions do not return a sentinel on their public success path, so they are not part of this migration inventory.
