@@ -18,6 +18,7 @@ mod pattern;
 mod control_flow;
 mod stmt;
 mod types;
+mod type_helpers;
 
 pub use facade::*;
 
