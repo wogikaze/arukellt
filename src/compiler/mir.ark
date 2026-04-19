@@ -512,6 +512,17 @@ fn alloc_block(f: MirFunction) -> i32 {
     idx
 }
 
+fn ctx_alloc_block(ctx: LowerCtx) -> i32 {
+    let mut f = ctx.func
+    let idx = f.next_block
+    f.next_block = f.next_block + 1
+    let bs = f.blocks
+    push(bs, MirBlock_new(idx))
+    f.blocks = bs
+    ctx.func = f
+    idx
+}
+
 fn emit_inst(f: MirFunction, block_id: i32, inst: MirInst) {
     let block = get_unchecked(f.blocks, block_id)
     push(block.instructions, inst)
@@ -1275,7 +1286,9 @@ fn ctx_register_builtin_variants(ctx: LowerCtx) {
 }
 
 fn ctx_alloc_local(ctx: LowerCtx, name: String, vt: i32) -> i32 {
-    let idx = alloc_local(ctx.func, clone(name), vt)
+    let mut f = ctx.func
+    let idx = alloc_local(f, clone(name), vt)
+    ctx.func = f
     push(ctx.local_names, name)
     push(ctx.local_indices, idx)
     idx
@@ -1295,12 +1308,16 @@ fn ctx_lookup_local(ctx: LowerCtx, name: String) -> i32 {
 }
 
 fn ctx_emit(ctx: LowerCtx, inst: MirInst) {
-    emit_inst(ctx.func, ctx.cur_block, inst)
+    let mut f = ctx.func
+    emit_inst(f, ctx.cur_block, inst)
+    ctx.func = f
 }
 
 fn ctx_fresh_local(ctx: LowerCtx, vt: i32) -> i32 {
-    let idx = ctx.func.next_local
-    alloc_local(ctx.func, concat(String_from("_t"), to_string(idx)), vt)
+    let mut f = ctx.func
+    let idx = f.next_local
+    alloc_local(f, concat(String_from("_t"), to_string(idx)), vt)
+    ctx.func = f
     idx
 }
 
@@ -1451,7 +1468,7 @@ fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<St
     ctx.local_indices = Vec_new_i32()
     ctx.local_types = Vec_new_String()
     ctx.local_type_indices = Vec_new_i32()
-    let entry = alloc_block(ctx.func)
+    let entry = ctx_alloc_block(ctx)
     ctx.cur_block = entry
 
     let child_count = len(clos.children)
@@ -1463,7 +1480,9 @@ fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<St
         if p.kind == NK_IDENT() {
             let pvt = VT_I32()
             let _idx = ctx_alloc_local(ctx, clone(p.text), pvt)
-            push(ctx.func.params, MirLocal { name: clone(p.text), val_type: pvt, ssa_name: clone(p.text), ssa_version: 0 - 1 })
+            let mut fparam = ctx.func
+            push(fparam.params, MirLocal { name: clone(p.text), val_type: pvt, ssa_name: clone(p.text), ssa_version: 0 - 1 })
+            ctx.func = fparam
         }
         pi = pi + 1
     }
@@ -1473,11 +1492,15 @@ fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<St
         let cname = clone(get_unchecked(caps, ci))
         let pvt = get_unchecked(cap_vts, ci)
         let _idx2 = ctx_alloc_local(ctx, clone(cname), pvt)
-        push(ctx.func.params, MirLocal { name: clone(cname), val_type: pvt, ssa_name: clone(cname), ssa_version: 0 - 1 })
+        let mut fparam2 = ctx.func
+        push(fparam2.params, MirLocal { name: clone(cname), val_type: pvt, ssa_name: clone(cname), ssa_version: 0 - 1 })
+        ctx.func = fparam2
         ci = ci + 1
     }
 
-    ctx.func.return_type = VT_I32()
+    let mut fret = ctx.func
+    fret.return_type = VT_I32()
+    ctx.func = fret
 
     let res = lower_expr(ctx, body)
     if res >= 0 {
