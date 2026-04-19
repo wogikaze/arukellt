@@ -100,11 +100,6 @@ fn OP_F64_TRUNC() -> i32 { 0x9f }
 fn OP_I32_TRUNC_F64_S() -> i32 { 0xaa }
 fn OP_F64_CONVERT_I32_S() -> i32 { 0xb7 }
 
-fn OP_GLOBAL_GET() -> i32 { 0x23 }
-fn OP_GLOBAL_SET() -> i32 { 0x24 }
-
-fn SEC_GLOBAL() -> i32 { 6 }
-
 // ── Binary Writer ────────────────────────────────────────────────────────────
 
 struct WasmWriter {
@@ -274,6 +269,8 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         true_str_idx: true_idx,
         false_str_idx: false_idx,
         vec_locals: Vec_new_i32(),
+        peek_next_op: 0 - 1,
+        peek_next_dest: 0 - 1,
     }
 
     // Determine if main needs a start wrapper (non-void return type)
@@ -417,7 +414,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     let mem_sec = WasmWriter_new()
     emit_leb128_u(mem_sec, 1)
     emit_byte(mem_sec, 0x00)    // limits: no max
-    emit_leb128_u(mem_sec, 1)   // initial: 1 page
+    emit_leb128_u(mem_sec, 1024) // initial: 1024 pages (64MB)
     emit_section(out, SEC_MEMORY(), mem_sec)
 
     // Global section: heap pointer (mutable i32, initialized to data_offset)
@@ -512,6 +509,21 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
             let mut ii = 0
             while ii < inst_count {
                 let inst = get_unchecked(block.instructions, ii)
+                // Peek at next instruction so the CALL epilogue can decide
+                // whether to leave the result on the WASM stack or store it.
+                if ii + 1 < inst_count {
+                    let peek = get_unchecked(block.instructions, ii + 1)
+                    ctx.peek_next_op = peek.op
+                    // Use arg1 if set (>= 0), else fall back to arg0.
+                    if peek.arg1 >= 0 {
+                        ctx.peek_next_dest = peek.arg1
+                    } else {
+                        ctx.peek_next_dest = peek.arg0
+                    }
+                } else {
+                    ctx.peek_next_op = 0 - 1
+                    ctx.peek_next_dest = 0 - 1
+                }
                 emit_mir_inst_ctx(body, inst, ctx)
                 ii = ii + 1
             }
@@ -628,6 +640,11 @@ struct SelfEmitCtx {
     true_str_idx: i32,
     false_str_idx: i32,
     vec_locals: Vec<i32>,
+    // Lookahead: op and dest-arg of the *next* instruction in the current block.
+    // Set by the emitter loop before calling emit_mir_inst_ctx.
+    // peek_next_dest is arg1 if arg1>=0, else arg0 of the next instruction.
+    peek_next_op: i32,
+    peek_next_dest: i32,
 }
 
 fn ctx_mark_vec_local(ctx: SelfEmitCtx, local_idx: i32) {
@@ -654,16 +671,40 @@ fn ctx_is_vec_local(ctx: SelfEmitCtx, local_idx: i32) -> bool {
     false
 }
 
+fn strip_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
+}
+
 fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
     // Returns function index (0-based, user functions; caller must add 1 for import offset)
     let count = len(ctx.functions)
     let mut i = 0
     while i < count {
         let f = get_unchecked(ctx.functions, i)
-        if eq(clone(f.name), name) {
+        if eq(clone(f.name), clone(name)) {
             return i
         }
         i = i + 1
+    }
+    // Fallback: strip module prefix (e.g. "driver::compile_file" -> "compile_file")
+    let short_name = strip_module_prefix(clone(name))
+    if !eq(clone(short_name), clone(name)) {
+        let mut j = 0
+        while j < count {
+            let f = get_unchecked(ctx.functions, j)
+            if eq(clone(f.name), clone(short_name)) {
+                return j
+            }
+            j = j + 1
+        }
     }
     0 - 1  // not found
 }
@@ -777,6 +818,10 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         emit_byte(w, OP_I32_SHR_S())
     } else if inst.op == 40 {  // CALL
         let callee = clone(inst.str_val)
+        // Tracks whether the callee leaves an i32 result on the WASM stack.
+        // At the end of the CALL case we emit `local.set inst.dest` to pop it.
+        // Void callees (println, sort_i32, process::exit, …) set this false.
+        let mut result_on_stack = true
         if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") {
             // Inline println: the string pointer is on the stack
             // We need to: store string ptr, compute length, set up IOV, call fd_write, write newline
@@ -892,7 +937,8 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_CALL())
             emit_leb128_u(w, 0)  // fd_write
             emit_byte(w, OP_DROP())
-            
+            result_on_stack = false  // println is void
+
         } else if eq(clone(callee), "stdio::print") || eq(clone(callee), "print") {
             // Inline print (no newline): same as println but skip newline step
             emit_byte(w, OP_LOCAL_SET())
@@ -931,6 +977,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_CALL())
             emit_leb128_u(w, 0)
             emit_byte(w, OP_DROP())
+            result_on_stack = false  // print is void
 
         } else if eq(clone(callee), "String_from") || eq(clone(callee), "clone") {
             // String_from and clone are no-op identities: value is already on stack
@@ -1004,6 +1051,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_CALL())
             emit_leb128_u(w, 0)
             emit_byte(w, OP_DROP())
+            result_on_stack = false  // eprintln is void
         } else if eq(clone(callee), "bool_to_string") || eq(clone(callee), "text::format_bool") || eq(clone(callee), "convert::bool_to_string") {
             // Inline bool_to_string: if value != 0 → "true" ptr, else → "false" ptr
             let s_tmp = ctx.scratch_base + 2
@@ -1408,6 +1456,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_u(w, 0)
             emit_byte(w, OP_END())
             emit_byte(w, OP_END())
+            result_on_stack = false  // sort_i32 is void (in-place)
 
         } else if eq(clone(callee), "trim_start") || eq(clone(callee), "text::trim_start") {
             // trim_start(str) -> str
@@ -1862,6 +1911,25 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_SUB())
             emit_byte(w, OP_I32_LOAD())
             emit_byte(w, 2)
+            emit_byte(w, 0)
+
+        } else if eq(clone(callee), "char_at") {
+            // char_at(str, i) -> i32: byte value at position i
+            // str_ptr points to data (length is at str_ptr - 4)
+            // Stack: [str_ptr, i] → i32.load8_u(str_ptr + i)
+            let s_ca_str = ctx.scratch_base + 0
+            let s_ca_i = ctx.scratch_base + 1
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_ca_i)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_ca_str)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ca_str)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ca_i)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD8_U())
+            emit_byte(w, 0)
             emit_byte(w, 0)
 
         } else if eq(clone(callee), "pad_left") || eq(clone(callee), "text::pad_left") {
@@ -3769,7 +3837,362 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_GLOBAL_SET())
             emit_leb128_u(w, 0)
             emit_byte(w, OP_END())  // end if/else
-        } else if eq(clone(callee), "char_to_string") || eq(clone(callee), "convert::char_to_string") {
+        } else if eq(clone(callee), "fs::write_bytes") {
+            // fs::write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String>
+            // Stack: [path_ptr, bytes_vec_ptr]
+            // Vec<i32> layout: [len:i32, cap:i32, data_ptr:i32]
+            // Each byte in the vec is stored as an i32 (low byte only used).
+            let s_bvec = ctx.scratch_base + 0   // bytes_vec_ptr
+            let s_path3 = ctx.scratch_base + 1  // path_ptr
+            let s_bdata = ctx.scratch_base + 2  // data_ptr of vec
+            let s_bcount = ctx.scratch_base + 3 // byte_count (vec len)
+            let s_bbuf = ctx.scratch_base + 4   // heap buffer start
+            let s_bi = ctx.scratch_base + 5     // copy loop index
+            // Pop args: bytes_vec_ptr first (top of stack), then path_ptr
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_bvec)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_path3)
+            // byte_count = load(bytes_vec_ptr + 0) — Vec len
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bvec)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_bcount)
+            // data_ptr = load(bytes_vec_ptr + 8) — Vec data_ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bvec)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_bdata)
+            // buf_start = global[0]; save it
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_bbuf)
+            // Bump heap by byte_count (aligned to 4)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bcount)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 3)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0 - 4)
+            emit_byte(w, 0x71)  // i32.and
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // Copy loop: mem8[buf_start + i] = mem32[data_ptr + i*4] (low byte)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_bi)
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)  // void
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)  // void
+            // if s_bi >= s_bcount: break
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bi)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bcount)
+            emit_byte(w, OP_I32_GE_U())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)  // break out of block
+            // dst = s_bbuf + s_bi
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bbuf)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bi)
+            emit_byte(w, OP_I32_ADD())
+            // src byte = load32(s_bdata + s_bi*4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bdata)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bi)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_STORE8())
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+            // s_bi++
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bi)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_bi)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)  // continue loop
+            emit_byte(w, OP_END())  // end loop
+            emit_byte(w, OP_END())  // end block
+            // path_open(dirfd=3, dirflags=0, path_ptr, path_len, oflags=9, fs_rights_base=64, fs_rights_inheriting=0, fdflags=0, &opened_fd)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 3)   // dirfd
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)   // dirflags
+            // path = path_ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_path3)
+            // path_len = load(path_ptr - 4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_path3)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 9)   // oflags = O_CREAT|O_TRUNC
+            emit_byte(w, OP_I64_CONST())
+            emit_leb128_s(w, 64)  // fs_rights_base = FD_WRITE
+            emit_byte(w, OP_I64_CONST())
+            emit_leb128_s(w, 0)   // fs_rights_inheriting
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)   // fdflags
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_FS_FD())
+            emit_byte(w, OP_CALL())
+            emit_leb128_u(w, 3)   // path_open = import 3
+            // Check errno: non-zero = error
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_NE())
+            emit_byte(w, OP_IF())
+            emit_byte(w, WASM_I32())
+            // Build Err("file write error") on heap
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 16)  // "file write error" = 16 bytes
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            let err_msg_wb = "file write error"
+            let mut ebi_wb = 0
+            while ebi_wb < 16 {
+                emit_byte(w, OP_GLOBAL_GET())
+                emit_leb128_u(w, 0)
+                emit_byte(w, OP_I32_CONST())
+                emit_leb128_s(w, 4 + ebi_wb)
+                emit_byte(w, OP_I32_ADD())
+                emit_byte(w, OP_I32_CONST())
+                emit_leb128_s(w, char_at(err_msg_wb, ebi_wb))
+                emit_byte(w, OP_I32_STORE8())
+                emit_byte(w, 0x00)
+                emit_byte(w, 0x00)
+                ebi_wb = ebi_wb + 1
+            }
+            // err_str_ptr = global(0) + 4
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_FS_STRPTR())
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Bump heap by 4 + 16 = 20
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 20)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // Build Result enum: [tag=1(Err), payload=err_str_ptr]
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_FS_STRPTR())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_ELSE())
+            // path_open succeeded — write buffer then close
+            // Setup IOV: [ptr=s_bbuf, len=s_bcount]
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_IOV())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bbuf)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_IOV() + 4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bcount)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // fd_write(fd, &iov, 1, &nwritten)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_FS_FD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_IOV())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_NWRITTEN())
+            emit_byte(w, OP_CALL())
+            emit_leb128_u(w, 0)   // fd_write = import 0
+            emit_byte(w, OP_DROP())
+            // fd_close(fd)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_FS_FD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_CALL())
+            emit_leb128_u(w, 5)   // fd_close = import 5
+            emit_byte(w, OP_DROP())
+            // Build Ok(()) enum: [tag=0, payload=0]
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)  // tag = 0 (Ok)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)  // payload = 0 (unit)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_END())  // end if/else path_open
+
+        } else if eq(clone(callee), "env::var") || eq(clone(callee), "env_var") {
+            // env::var(name: String) -> Option<String>
+            // Stub: always return None (tag=1) to avoid requiring environ WASI imports.
+            // Stack: [name_ptr] — drop it
+            emit_byte(w, OP_DROP())
+            // Allocate 8 bytes for Option::None: [tag=1, payload=0]
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)   // tag = 1 (None)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)   // payload = 0
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+
+        } else if eq(clone(callee), "f64_bits_lo") {
+            // f64_bits_lo(val: f64) -> i32: low 32 bits of IEEE 754
+            // Stack: [f64_val] — save to scratch f64 local, store to memory, load low 4 bytes
+            let f_tmp = ctx.scratch_base + 12   // f64 scratch local
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, f_tmp)
+            // store f64 to SCRATCH_I32BUF (16 bytes aligned, 8 bytes reserved)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_I32BUF())  // = 16
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, f_tmp)
+            emit_byte(w, OP_F64_STORE())
+            emit_byte(w, 0x03)  // align = 3 (8 bytes)
+            emit_byte(w, 0x00)
+            // load low 4 bytes as i32
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_I32BUF())  // = 16
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)  // align = 2 (4 bytes)
+            emit_byte(w, 0x00)
+
+        } else if eq(clone(callee), "f64_bits_hi") {
+            // f64_bits_hi(val: f64) -> i32: high 32 bits of IEEE 754
+            // Stack: [f64_val] — same as f64_bits_lo but load at +4
+            let f_tmp2 = ctx.scratch_base + 12   // f64 scratch local
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, f_tmp2)
+            // store f64 to SCRATCH_I32BUF (16 bytes aligned)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_I32BUF())  // = 16
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, f_tmp2)
+            emit_byte(w, OP_F64_STORE())
+            emit_byte(w, 0x03)  // align = 3 (8 bytes)
+            emit_byte(w, 0x00)
+            // load high 4 bytes as i32
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_I32BUF() + 4)  // = 20
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)  // align = 2 (4 bytes)
+            emit_byte(w, 0x00)
+        } else if eq(clone(callee), "char_to_string") {
             // char_to_string: convert codepoint (i32) to single-char string
             // Stack: [char_code]
             // Allocate 5 bytes from heap: [len=1, char_byte]
@@ -3865,7 +4288,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, 0x02)  // align=4
             emit_byte(w, 0x00)  // offset=0
 
-        } else if eq(clone(callee), "Vec_new_i32") || eq(clone(callee), "Vec_new_String") || eq(clone(callee), "Vec_new_Point") || eq(clone(callee), "Vec_new_MirInst") || eq(clone(callee), "Vec_new_MirLocal") || eq(clone(callee), "Vec_new_MirBlock") || eq(clone(callee), "Vec_new_MirFunction") || eq(clone(callee), "Vec_new_AstNode") || eq(clone(callee), "Vec_new_u8") || eq(clone(callee), "Vec_new_f64") || eq(clone(callee), "Vec_new_bool") || eq(clone(callee), "Vec_new_Item") || eq(clone(callee), "Vec_new_Container") || eq(clone(callee), "Vec_new_Context") || eq(clone(callee), "Vec_new_Holder") || eq(clone(callee), "Vec_new_Inner") || eq(clone(callee), "Vec_new_Outer") || eq(clone(callee), "Vec_new_Token") || eq(clone(callee), "Vec_new_Span") || eq(clone(callee), "Vec_new_Diagnostic") || eq(clone(callee), "Vec_new_TypedFn") || eq(clone(callee), "Vec_new_WasmLocal") || eq(clone(callee), "Vec_new_ImportEntry") || eq(clone(callee), "Vec_new_ExportEntry") || eq(clone(callee), "Vec_new_FuncType") || eq(clone(callee), "Vec_new_Pair") || eq(clone(callee), "Vec_new_Node") {
+        } else if starts_with(clone(callee), "Vec_new_") {
             // Vec_new_*: allocate Vec header {len:0, cap:8, data_ptr} + data (8*4=32 bytes)
             // Memory layout: [len(4) | cap(4) | data_ptr(4)] then [data(32)]
             // Total: 12 + 32 = 44 bytes
@@ -3942,9 +4365,12 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, 0x02)
             emit_byte(w, 0x00)
 
-        } else if eq(clone(callee), "vec_push") {
+        } else if eq(clone(callee), "vec_push") || eq(clone(callee), "push") {
             // vec_push(v, x): grow if needed, store x at data[len*4], increment len
             // Stack: [vec_ptr, value]
+            // "push" is the void alias (MIR treats it as void, no DROP emitted after it).
+            // "vec_push" is non-void (MIR emits DROP or uses the result).
+            let is_void_push = eq(clone(callee), "push")
             let s_val = ctx.scratch_base
             let s_vec = ctx.scratch_base + 1
             let s_data = ctx.scratch_base + 2
@@ -4099,12 +4525,15 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, 0x02)
             emit_byte(w, 0x00)
 
-            // Push vec_ptr as result
+            // Push vec_ptr as result (or drop it for void "push")
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s_vec)
+            if is_void_push {
+                emit_byte(w, OP_DROP())
+            }
 
-        } else if eq(clone(callee), "vec_get_unchecked") {
-            // vec_get_unchecked(v, i): load data[i*4]
+        } else if eq(clone(callee), "vec_get_unchecked") || eq(clone(callee), "get_unchecked") {
+            // vec_get_unchecked/get_unchecked(v, i): load data[i*4]
             // Stack: [vec_ptr, index]
             let s_idx = ctx.scratch_base
             let s_vec2 = ctx.scratch_base + 1
@@ -4881,8 +5310,8 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_s(w, 4)
             emit_byte(w, OP_I32_ADD())
 
-        } else if eq(clone(callee), "slice") {
-            // slice(s, start, end): return substring [start..end)
+        } else if eq(clone(callee), "slice") || eq(clone(callee), "substring") {
+            // slice/substring(s, start, end): return substring [start..end)
             // Stack: [str_ptr, start, end]
             let s_sl_end = ctx.scratch_base
             let s_sl_start = ctx.scratch_base + 1
@@ -6162,7 +6591,8 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, 2)
             emit_leb128_u(w, 0)
             // C string ptr on stack; compute strlen
-            let s_cstr = ctx.scratch_base + 4  // reuse argv
+            // NOTE: must NOT reuse s_argv (scratch_base+4) — we need s_argv each loop iteration
+            let s_cstr = ctx.scratch_base + 7  // separate slot, does not alias s_argv
             emit_byte(w, OP_LOCAL_SET())
             emit_leb128_u(w, s_cstr)
             // Strlen: scan for null byte
@@ -6200,7 +6630,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             // Allocate Arukellt string: [len_i32, data...]
             emit_byte(w, OP_GLOBAL_GET())
             emit_leb128_u(w, 0)
-            let s_str = ctx.scratch_base + 6  // must not alias s_cstr (scratch_base+4)
+            let s_str = ctx.scratch_base + 6  // must not alias s_cstr (scratch_base+7)
             emit_byte(w, OP_LOCAL_TEE())
             emit_leb128_u(w, s_str)
             // Store length
@@ -8465,27 +8895,39 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             // process::exit(code) — call WASI proc_exit
             emit_byte(w, OP_CALL())
             emit_leb128_u(w, 6)  // import index 6 = proc_exit
+            result_on_stack = false  // proc_exit is void
         } else {
             // User-defined function call
             let fn_idx = resolve_fn_index(ctx, clone(callee))
             if fn_idx >= 0 {
                 emit_byte(w, OP_CALL())
                 emit_leb128_u(w, fn_idx + NUM_WASI_IMPORTS())  // offset for wasi imports
+                // Check if user function is void (return_type == VT_VOID == 0)
+                let called_fn = get_unchecked(ctx.functions, fn_idx)
+                if called_fn.return_type == 0 {
+                    result_on_stack = false
+                }
             } else {
-                // Unknown function (cross-module or unresolved) — drop the args
-                // that are on the stack, then push i32.const 0 as placeholder.
-                // This keeps the wasm type-stack valid without using unreachable.
+                // Unknown function (cross-module or unresolved) — drop args then
+                // emit unreachable. After unreachable the validator treats the stack
+                // as polymorphic, so the following local.set / drop / block-end all
+                // type-check correctly regardless of whether the callee is void or not.
+                // The i32.const 0 placeholder approach was wrong: for void callees it
+                // leaves a spurious value on the stack → "values remaining on stack".
                 let arg_count = inst.int_val
                 let mut drop_i = 0
                 while drop_i < arg_count {
                     emit_byte(w, OP_DROP())
                     drop_i = drop_i + 1
                 }
-                // Push placeholder result (i32 = 0)
-                emit_byte(w, OP_I32_CONST())
-                emit_leb128_s(w, 0)
+                emit_byte(w, OP_UNREACHABLE())
             }
         }
+        // No common epilogue here. The WASM stack machine model requires that
+        // non-void call results stay on the WASM stack so the following instruction
+        // (local.set, struct.set, return, binary ops, etc.) can consume them.
+        // Void callees clean up the stack themselves (result_on_stack=false).
+        // NK_EXPR_STMT emits MIR_DROP for discarded non-void call results.
     } else if inst.op == 42 {  // RETURN
         emit_byte(w, OP_RETURN())
     } else if inst.op == 70 {  // DROP

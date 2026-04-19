@@ -505,6 +505,21 @@ fn alloc_local(f: MirFunction, name: String, vt: i32) -> i32 {
     idx
 }
 
+fn mir_locals_replace_at(locals: Vec<MirLocal>, at: i32, new_l: MirLocal) -> Vec<MirLocal> {
+    let out = Vec_new_MirLocal()
+    let n = len(locals)
+    let mut i = 0
+    while i < n {
+        if i == at {
+            push(out, new_l)
+        } else {
+            push(out, get_unchecked(locals, i))
+        }
+        i = i + 1
+    }
+    out
+}
+
 fn alloc_block(f: MirFunction) -> i32 {
     let idx = f.next_block
     f.next_block = f.next_block + 1
@@ -1531,9 +1546,64 @@ fn ctx_local_vt(ctx: LowerCtx, idx: i32) -> i32 {
 
 fn ctx_set_local_vt(ctx: LowerCtx, idx: i32, vt: i32) {
     if idx >= 0 && idx < len(ctx.func.locals) {
-        let loc = get_unchecked(ctx.func.locals, idx)
+        let mut f = ctx.func
+        let loc = get_unchecked(f.locals, idx)
         loc.val_type = vt
+        f.locals = mir_locals_replace_at(f.locals, idx, loc)
+        ctx.func = f
     }
+}
+
+fn MIR_LOWER_TRACE() -> i32 {
+    0
+}
+
+fn mir_lower_trace_line(phase: i32, np: i32, nl: i32, nb: i32, rt: i32) {
+    if MIR_LOWER_TRACE() == 0 {
+        return
+    }
+    let mut s = to_string(phase)
+    s = concat(s, String_from(" "))
+    s = concat(s, to_string(np))
+    s = concat(s, String_from(" "))
+    s = concat(s, to_string(nl))
+    s = concat(s, String_from(" "))
+    s = concat(s, to_string(nb))
+    s = concat(s, String_from(" "))
+    s = concat(s, to_string(rt))
+    stdio::eprintln(s)
+}
+
+fn mir_lower_trace_ctx(ctx: LowerCtx, phase: i32) {
+    if MIR_LOWER_TRACE() == 0 {
+        return
+    }
+    let f = ctx.func
+    mir_lower_trace_line(phase, len(f.params), len(f.locals), len(f.blocks), f.return_type)
+}
+
+fn ctx_push_func_param(ctx: LowerCtx, ml: MirLocal) {
+    let mut f = ctx.func
+    push(f.params, ml)
+    ctx.func = f
+}
+
+fn ctx_apply_fn_return_type_for_rt_tag(ctx: LowerCtx, rt_tag: i32) {
+    let mut f = ctx.func
+    if rt_tag == 3 {
+        f.return_type = VT_F64()
+    } else {
+        if rt_tag >= 1 && rt_tag <= 6 {
+            f.return_type = VT_I32()
+        }
+    }
+    if rt_tag >= 10 && rt_tag <= 12 {
+        f.return_type = VT_I32()
+    }
+    if rt_tag >= 20 && rt_tag <= 23 {
+        f.return_type = VT_I32()
+    }
+    ctx.func = f
 }
 
 fn binop_to_mir(op: i32) -> i32 {
@@ -3430,7 +3500,7 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                         }
                     }
                     let param_local = ctx_alloc_local(ctx, clone(param.text), pvt)
-                    push(ctx.func.params, MirLocal { name: clone(param.text), val_type: pvt, ssa_name: clone(param.text), ssa_version: 0 - 1 })
+                    ctx_push_func_param(ctx, MirLocal { name: clone(param.text), val_type: pvt, ssa_name: clone(param.text), ssa_version: 0 - 1 })
                     // Register type for Vec/struct parameters so len/get_unchecked dispatch works
                     if len(param.type_ann) >= 1 {
                         let p_ty = get_unchecked(param.type_ann, 0)
@@ -3450,28 +3520,20 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                 p = p + 1
             }
 
+            mir_lower_trace_ctx(ctx, 1)
+
             // Set return type from type-check result
             // TY_I32=1, TY_I64=2, TY_F64=3, TY_BOOL=4, TY_STRING=5, TY_CHAR=6
             // TY_UNIT=7 means void, TY_UNKNOWN=0 means unresolved
             // TY_VEC=10, TY_OPTION=11, TY_RESULT=12, TY_STRUCT=21, TY_ENUM=22, TY_TUPLE=23
             let rt_tag = tf.return_type.tag
-            if rt_tag == 3 {
-                ctx.func.return_type = VT_F64()
-            } else if rt_tag >= 1 && rt_tag <= 6 {
-                // covers i32(1), i64(2), f64(3), bool(4), String(5), char(6)
-                ctx.func.return_type = VT_I32()
-            }
-            // Struct/enum/vec/option/result/tuple return as i32 pointer
-            if rt_tag >= 10 && rt_tag <= 12 {
-                ctx.func.return_type = VT_I32()
-            }
-            if rt_tag >= 20 && rt_tag <= 23 {
-                ctx.func.return_type = VT_I32()
-            }
+            ctx_apply_fn_return_type_for_rt_tag(ctx, rt_tag)
+            mir_lower_trace_ctx(ctx, 2)
 
             // Create entry block
-            let entry = alloc_block(ctx.func)
+            let entry = ctx_alloc_block(ctx)
             ctx.cur_block = entry
+            mir_lower_trace_ctx(ctx, 3)
 
             // Lower body (last child is the block)
             if body_idx >= 0 {
@@ -3487,6 +3549,7 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                 }
             }
 
+            mir_lower_trace_ctx(ctx, 4)
             push(ctx.module.functions, ctx.func)
             fn_idx = fn_idx + 1
         }
