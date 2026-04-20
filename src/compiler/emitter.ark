@@ -74,6 +74,7 @@ fn OP_I64_DIV_U() -> i32 { 0x80 }
 fn OP_I64_REM_S() -> i32 { 0x81 }
 fn OP_I64_REM_U() -> i32 { 0x82 }
 fn OP_I64_EXTEND_I32_S() -> i32 { 0xac }
+fn OP_I64_EXTEND_I32_U() -> i32 { 0xad }
 fn OP_I32_WRAP_I64() -> i32 { 0xa7 }
 fn OP_I32_EQZ() -> i32 { 0x45 }
 fn OP_I32_EQ() -> i32 { 0x46 }
@@ -9701,6 +9702,33 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_CALL())
             emit_leb128_u(w, 6)  // import index 6 = proc_exit
             result_on_stack = false  // proc_exit is void
+        } else if eq(clone(callee), "i8_to_i32") || eq(clone(callee), "u8_to_i32") || eq(clone(callee), "i16_to_i32") || eq(clone(callee), "u16_to_i32") {
+            // Type conversions: value already on stack as i32, just keep it
+            // WASM stores i8/u8/i16/u16 as i32, so no conversion needed
+            result_on_stack = true
+        } else if eq(clone(callee), "i32_to_u8") || eq(clone(callee), "i32_to_i8") {
+            // i32 → u8/i8: mask to 0xFF (already in lower 8 bits)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 255)  // 0xFF mask
+            emit_byte(w, OP_I32_AND())
+            result_on_stack = true
+        } else if eq(clone(callee), "u32_to_u64") {
+            // u32 → u64: zero-extend with 0
+            emit_byte(w, OP_I64_EXTEND_I32_U())
+            result_on_stack = true
+        } else if eq(clone(callee), "i32_to_u32") {
+            // i32 → u32: bit pattern unchanged (identity)
+            result_on_stack = true
+        } else if eq(clone(callee), "f32_to_f64") || eq(clone(callee), "f64_to_f32") {
+            // Floating point conversions (not supported in selfhost, pass through)
+            // In full Arukellt these would use f32.demote_f64 or f64.promote_f32
+            result_on_stack = true
+        } else if eq(clone(callee), "f32_to_string") {
+            // f32_to_string: convert to f64 then use f64_to_string logic
+            // For now, just return a placeholder string to avoid crashes
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 12)  // SCRATCH_STR_BASE()
+            result_on_stack = true
         } else {
             // User-defined function call
             let fn_idx = resolve_fn_index(ctx, clone(callee))
