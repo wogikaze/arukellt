@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-20T13:29:31Z",
+  "generated_at": "2026-04-20T17:41:36Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -306,28 +306,47 @@
       }
     },
     {
-      "id": "205",
-      "path": "205-docs-and-codebase-intelligence-surfaces.md",
-      "title": "Docs / codebase intelligence surfaces",
-      "track": "parallel",
-      "status": "done",
+      "id": "204",
+      "path": "204-project-explain-build-explain-and-script-sandbox-surface.md",
+      "title": "204-project-explain-build-explain-and-script-sandbox-surface",
+      "track": "main",
+      "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [
-        "185",
-        "188"
-      ],
+      "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 3,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#188"
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "205",
+      "path": "205-docs-and-codebase-intelligence-surfaces.md",
+      "title": "205-docs-and-codebase-intelligence-surfaces",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
       }
     },
     {
@@ -433,6 +452,96 @@
       }
     },
     {
+      "id": "379",
+      "path": "379-playground-wasm-build.md",
+      "title": "379-playground-wasm-build",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "429",
+      "path": "429-playground-wasm-package-runtime-wrapper.md",
+      "title": "429-playground-wasm-package-runtime-wrapper",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "436",
+      "path": "436-playground-docs-site-integration.md",
+      "title": "436-playground-docs-site-integration",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "437",
+      "path": "437-playground-deploy-preview-cache.md",
+      "title": "Playground: deployment / preview environment / asset cache 戦略を整える",
+      "track": "playground",
+      "status": "done",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "431"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "459",
       "path": "459-selfhost-fixpoint-dual-period-end.md",
       "title": "selfhost Stage 2 fixpoint 達成と dual-period 終了計画",
@@ -461,6 +570,72 @@
       }
     },
     {
+      "id": "468",
+      "path": "468-playground-build-and-publish-path-proof.md",
+      "title": "468-playground-build-and-publish-path-proof",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "469",
+      "path": "469-extension-playground-surface-points-to-repo-proved-endpoint.md",
+      "title": "469-extension-playground-surface-points-to-repo-proved-endpoint",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "470",
+      "path": "470-playground-feature-claims-match-implementation.md",
+      "title": "470-playground-feature-claims-match-implementation",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "473",
       "path": "473-resource-type-v3-advanced-features.md",
       "title": "Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC",
@@ -483,6 +658,28 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#32"
+      }
+    },
+    {
+      "id": "489",
+      "path": "489-playground-user-visible-entrypoint-wiring.md",
+      "title": "489-playground-user-visible-entrypoint-wiring",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 6,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
       }
     },
     {
@@ -530,6 +727,28 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "500",
+      "path": "500-playground-wasm-typecheck-export.md",
+      "title": "500-playground-wasm-typecheck-export",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
       }
     },
     {
@@ -819,6 +1038,28 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 10
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "530",
+      "path": "530-selfhost-parity-ci-gates.md",
+      "title": "530-selfhost-parity-ci-gates",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
       },
       "orchestration": {
         "class": null,

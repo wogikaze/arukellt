@@ -1,3 +1,11 @@
+
+## Reopened by audit
+
+- **Date**: 2026-04-21
+- **Reason**: docs/playground/index.html exists but playground is non-functional without wasm binary; integration is structural only
+- **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
+- **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
+
 # Playground: docs site への統合と navigation を実装する
 
 **Status**: done

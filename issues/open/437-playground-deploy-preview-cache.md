@@ -17,7 +17,16 @@
 **Evidence summary**:
 
 | Acceptance item | Evidence |
-|----------------|---------|
+|------
+
+## Reopened by audit
+
+- **Date**: 2026-04-21
+- **Reason**: deployment-strategy.md states pages.yml does NOT compile Wasm, does NOT run size gates, does NOT create PR previews
+- **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
+- **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
+
+----------|---------|
 | Deploy 手順または workflow | `.github/workflows/pages.yml` — pushes `master` → builds playground JS + deploys `./docs` to GitHub Pages via `actions/deploy-pages@v4` |
 | Preview 環境または preview 手順 | `docs/playground/deployment-strategy.md` §5.2 — local preview procedure: `cd playground && npm run build:app`, then `python3 -m http.server` in `docs/`; PR preview workflow is target-state (documented, not automated) |
 | Asset versioning / cache busting | `scripts/gen/stamp-playground-assets.sh` — computes SHA-256 of `ark_playground_wasm_bg.wasm` (first 12 hex chars), copies to `ark_playground_wasm_bg-<hash12>.wasm`, writes `docs/playground/wasm/asset-manifest.json`; `docs/playground/index.html` fetches the manifest at runtime and passes the hashed URL to `createPlayground` |

@@ -1,3 +1,11 @@
+
+## Reopened by audit
+
+- **Date**: 2026-04-21
+- **Reason**: TS wrapper exists but wraps a wasm module that was never compiled; worker.ts loads wasm dynamically but no binary exists
+- **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
+- **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
+
 # Playground: parser / formatter / diagnostics の Wasm package と JS wrapper を作る
 
 **Status**: done

@@ -18,15 +18,25 @@ graph LR
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I205["205 Docs / codebase intelligence surfaces"]
+  I204["204 204-project-explain-build-explain-and-script-sandbox-surface"]
+  I205["205 205-docs-and-codebase-intelligence-surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
+  I379["379 379-playground-wasm-build"]
+  I429["429 429-playground-wasm-package-runtime-wrapper"]
+  I436["436 436-playground-docs-site-integration"]
+  I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
+  I468["468 468-playground-build-and-publish-path-proof"]
+  I469["469 469-extension-playground-surface-points-to-repo-proved-endpoint"]
+  I470["470 470-playground-feature-claims-match-implementation"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
+  I489["489 489-playground-user-visible-entrypoint-wiring"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
+  I500["500 500-playground-wasm-typecheck-export"]
   I504["504 504 — Selfhost: trait/interface syntax and impl-block infrastructure"]
   I513["513 Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する"]
   I514["514 Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する"]
@@ -40,6 +50,7 @@ graph LR
   I527["527 Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する"]
   I528["528 Stdlib collections/hash: property と differential tests を map / set invariant で拡張する"]
   I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
+  I530["530 530-selfhost-parity-ci-gates"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -94,15 +105,25 @@ graph LR
 - **112** depends on: 109; blocks: none
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **205** depends on: 185, 188; blocks: none
+- **204** depends on: none; blocks: none
+- **205** depends on: none; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
 - **249** depends on: none; blocks: none
 - **285** depends on: 284; blocks: 508
 - **312** depends on: 311; blocks: 495
+- **379** depends on: none; blocks: none
+- **429** depends on: none; blocks: none
+- **436** depends on: none; blocks: none
+- **437** depends on: 431; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
+- **468** depends on: none; blocks: none
+- **469** depends on: none; blocks: none
+- **470** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
+- **489** depends on: none; blocks: none
 - **494** depends on: 493, 503; blocks: none
 - **499** depends on: none; blocks: none
+- **500** depends on: none; blocks: none
 - **504** depends on: none; blocks: 495, 512
 - **513** depends on: none; blocks: 518
 - **514** depends on: none; blocks: none
@@ -116,6 +137,7 @@ graph LR
 - **527** depends on: none; blocks: none
 - **528** depends on: none; blocks: none
 - **529** depends on: none; blocks: none
+- **530** depends on: none; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136

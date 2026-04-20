@@ -1,3 +1,11 @@
+
+## Reopened by audit
+
+- **Date**: 2026-04-21
+- **Reason**: wasm-pack build never executed; crates/ark-playground-wasm/pkg/ missing; no .wasm binary in repo
+- **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
+- **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
+
 # Playground: parser / formatter を Wasm に build しブラウザで動かす
 
 **Status**: done

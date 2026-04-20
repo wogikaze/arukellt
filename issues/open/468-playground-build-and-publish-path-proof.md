@@ -1,3 +1,11 @@
+
+## Reopened by audit
+
+- **Date**: 2026-04-21
+- **Reason**: build:app script uses || true to silently skip missing wasm; publish path for wasm is broken
+- **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
+- **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
+
 # Playground: build と publish path を repo 証拠で固定する
 
 **Status**: done

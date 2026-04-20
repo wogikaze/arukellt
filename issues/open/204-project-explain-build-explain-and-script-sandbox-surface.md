@@ -1,3 +1,11 @@
+
+## Reopened by audit
+
+- **Date**: 2026-04-21
+- **Reason**: explainCode command is a pure toast stub (showInformationMessage only). User-visible command registered but does nothing useful.
+- **Evidence**: extensions/arukellt-all-in-one/src/extension.js line ~774: explainCode shows toast only
+- **Classification**: User-visible stub command misleads users — registered in package.json activationEvents but handler is a no-op toast.
+
 # Project explain / build explain / script sandbox surface
 
 **Status**: done
