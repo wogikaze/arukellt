@@ -92,12 +92,30 @@ fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
     ctx.next_decl_index = ctx.next_decl_index + 1
     // Add to current scope
     let scope = get_unchecked(ctx.scopes, ctx.current_depth)
-    // Check for duplicates at current depth
+    // Check for duplicates at current depth.
+    // Shadowing is allowed for:
+    //   - Local variable re-binding (let x = ...; let x = ...;)
+    //   - User-defined functions/structs/enums shadowing builtin modules
     let sym_count = len(scope.symbols)
     let mut i = 0
     while i < sym_count {
         let existing = get_unchecked(scope.symbols, i)
         if eq(clone(existing.name), clone(name)) && existing.scope_depth == ctx.current_depth {
+            // Allow shadowing of local variables and parameters
+            if kind == SYM_LOCAL() || kind == SYM_PARAM() {
+                // Overwrite in-place to shadow the existing binding
+                existing.kind = kind
+                existing.decl_index = idx
+                existing.is_pub = is_pub
+                return
+            }
+            // Allow user-defined fn/struct/enum to shadow a builtin module
+            if (kind == SYM_FN() || kind == SYM_STRUCT() || kind == SYM_ENUM()) && existing.kind == SYM_MODULE() {
+                existing.kind = kind
+                existing.decl_index = idx
+                existing.is_pub = is_pub
+                return
+            }
             resolve_error(ctx, concat(String_from("duplicate definition: "), clone(name)))
             return
         }
@@ -201,6 +219,27 @@ fn path_symbol_part(path: String) -> String {
         return String_new()
     }
     substring(path, pos + 2, len(path))
+}
+
+// Returns the last segment of a "::" separated path.
+// e.g. "std::host::stdio" → "stdio", "std::bytes" → "bytes", "foo" → "foo"
+fn use_module_short_name(path: String) -> String {
+    let n = len(path)
+    let mut last_sep = 0 - 1
+    let mut i = n - 2  // need at least 2 chars for "::"
+    while i >= 0 {
+        if eq(substring(path, i, i + 2), String_from("::")) {
+            last_sep = i
+            i = 0 - 1  // break
+        } else {
+            i = i - 1
+        }
+    }
+    if last_sep < 0 {
+        clone(path)
+    } else {
+        substring(path, last_sep + 2, n)
+    }
 }
 
 // Register a single exported symbol from an imported module.
@@ -323,6 +362,67 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("collections"), SYM_MODULE())
     // parse_i64 (same as parse_i32 in selfhost, i32-limited)
     define(ctx, String_from("parse_i64"), SYM_BUILTIN())
+    // Intrinsic names used directly in fixtures
+    define(ctx, String_from("__intrinsic_println"), SYM_BUILTIN())
+    define(ctx, String_from("__intrinsic_i32_to_string"), SYM_BUILTIN())
+    define(ctx, String_from("__intrinsic_f64_to_string"), SYM_BUILTIN())
+    // Type conversion intrinsics
+    define(ctx, String_from("i8_to_i32"), SYM_BUILTIN())
+    define(ctx, String_from("i16_to_i32"), SYM_BUILTIN())
+    define(ctx, String_from("u8_to_i32"), SYM_BUILTIN())
+    define(ctx, String_from("u16_to_i32"), SYM_BUILTIN())
+    define(ctx, String_from("i32_to_u8"), SYM_BUILTIN())
+    define(ctx, String_from("i32_to_i8"), SYM_BUILTIN())
+    define(ctx, String_from("u32_to_u64"), SYM_BUILTIN())
+    define(ctx, String_from("i32_to_u32"), SYM_BUILTIN())
+    define(ctx, String_from("f32_to_f64"), SYM_BUILTIN())
+    define(ctx, String_from("f64_to_f32"), SYM_BUILTIN())
+    define(ctx, String_from("f32_to_string"), SYM_BUILTIN())
+    // HOF intrinsics
+    define(ctx, String_from("map_i32_i32"), SYM_BUILTIN())
+    define(ctx, String_from("map_i64_i64"), SYM_BUILTIN())
+    define(ctx, String_from("map_f64_f64"), SYM_BUILTIN())
+    define(ctx, String_from("map_String_String"), SYM_BUILTIN())
+    define(ctx, String_from("filter_i32"), SYM_BUILTIN())
+    define(ctx, String_from("filter_i64"), SYM_BUILTIN())
+    define(ctx, String_from("filter_f64"), SYM_BUILTIN())
+    define(ctx, String_from("filter_String"), SYM_BUILTIN())
+    define(ctx, String_from("fold_i32_i32"), SYM_BUILTIN())
+    define(ctx, String_from("fold_i64_i64"), SYM_BUILTIN())
+    define(ctx, String_from("fold_f64_f64"), SYM_BUILTIN())
+    define(ctx, String_from("map_option_i32_i32"), SYM_BUILTIN())
+    define(ctx, String_from("sort_i64"), SYM_BUILTIN())
+    define(ctx, String_from("sort_f64"), SYM_BUILTIN())
+    define(ctx, String_from("sort_String"), SYM_BUILTIN())
+    // HashMap intrinsics (monomorphized)
+    define(ctx, String_from("HashMap_i32_i32_new"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_i32_insert"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_i32_get"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_i32_contains_key"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_i32_remove"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_i32_len"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_new"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_insert"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_get"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_contains_key"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_remove"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_len"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_new"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_insert"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_get"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_contains_key"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_remove"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_len"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_new"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_insert"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_get"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_contains_key"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_remove"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_len"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_new_i32_i32"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_new_i32_String"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_new_String_i32"), SYM_BUILTIN())
+    define(ctx, String_from("HashMap_new_String_String"), SYM_BUILTIN())
 }
 
 // ── AST Node Kind Constants (from parser) ────────────────────────────────────
@@ -446,6 +546,13 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Resolv
             if existing_use < 0 {
                 define(ctx, clone(d.text), SYM_IMPORT())
             }
+            // Also register the short name (last path segment) as SYM_MODULE so
+            // that qualified paths like `bytes::foo` resolve the module part.
+            let short_name = use_module_short_name(clone(d.text))
+            let existing_mod = lookup(ctx, clone(short_name))
+            if existing_mod < 0 {
+                define(ctx, clone(short_name), SYM_MODULE())
+            }
         }
         i = i + 1
     }
@@ -494,7 +601,8 @@ fn resolve_enum(ctx: ResolveCtx, node: AstNode) {
     while i < child_count {
         let variant = get_unchecked(node.children, i)
         let full_name = concat(clone(node.text), concat(String_from("::"), clone(variant.text)))
-        define(ctx, full_name, SYM_VARIANT())
+        // Variants inherit the visibility of their parent enum.
+        define_with_vis(ctx, full_name, SYM_VARIANT(), node.is_pub)
         i = i + 1
     }
 }
@@ -567,13 +675,18 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         // Check visibility when the qualified symbol is pre-registered.
         let sym_idx = lookup(ctx, clone(path))
         if sym_idx >= 0 {
-            if !lookup_is_pub(ctx, clone(path)) {
-                resolve_error(ctx, concat(
-                    String_from("visibility error: `"),
-                    concat(clone(symbol_part),
-                    concat(String_from("` is private and cannot be accessed from module `"),
-                    concat(clone(module_part), String_from("`"))))
-                ))
+            // Enum variants are always accessible when the enum is in scope;
+            // skip the visibility check if the left-hand side is an enum type.
+            let mod_kind = lookup_kind(ctx, clone(module_part))
+            if mod_kind != SYM_ENUM() {
+                if !lookup_is_pub(ctx, clone(path)) {
+                    resolve_error(ctx, concat(
+                        String_from("visibility error: `"),
+                        concat(clone(symbol_part),
+                        concat(String_from("` is private and cannot be accessed from module `"),
+                        concat(clone(module_part), String_from("`"))))
+                    ))
+                }
             }
         }
         // If sym_idx < 0 the qualified name is not pre-registered (e.g. std:: modules,

@@ -11,7 +11,7 @@ pub mod t2_freestanding;
 pub mod t3_wasm_gc;
 
 use ark_diagnostics::{
-    DiagnosticSink, wasi_p2_native_emit_limitation_diagnostic, wasm_validation_diagnostic,
+    DiagnosticSink, wasm_validation_diagnostic,
 };
 use ark_mir::mir::MirModule;
 use ark_target::{
@@ -63,13 +63,10 @@ pub fn emit_with_plan(
     strip_debug: bool,
     wasi_version: WasiVersion,
 ) -> Vec<u8> {
-    if wasi_version == WasiVersion::P2 && plan.runtime_model == RuntimeModel::T3WasmGcP2 {
-        sink.emit(wasi_p2_native_emit_limitation_diagnostic());
-    }
     let bytes = match plan.runtime_model {
         RuntimeModel::T1LinearP1 => t1_wasm32_p1::emit(mir, sink),
         RuntimeModel::T2Freestanding => t2_freestanding::emit(mir, sink),
-        RuntimeModel::T3WasmGcP2 => t3_wasm_gc::emit(mir, sink, opt_level, strip_debug),
+        RuntimeModel::T3WasmGcP2 => t3_wasm_gc::emit(mir, sink, opt_level, strip_debug, wasi_version),
         RuntimeModel::T4LlvmScaffold => {
             sink.emit(wasm_validation_diagnostic(
                 "native backend plan cannot be emitted via ark-wasm".to_string(),

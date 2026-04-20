@@ -115,12 +115,15 @@ pub fn mir_to_wit_world_with_warnings(
     // Use type_table.fn_sigs for accurate type names (MIR lowering loses struct/enum
     // type info, converting them to I32 — fn_sigs preserves the original names).
     let mut exported_fns = Vec::new();
+    // Check if we need to include main for wasi:cli/command
+    let include_main = world_spec == Some("wasi:cli/command");
     for func in &mir.functions {
         let name = &func.name;
-        if name.starts_with("__") || name == "_start" || name == "main" {
+        if name.starts_with("__") || name == "_start" || (name == "main" && !include_main) {
             continue;
         }
-        if !func.is_exported {
+        // For wasi:cli/command, include main even if not marked as exported
+        if !func.is_exported && !(name == "main" && include_main) {
             continue;
         }
 
@@ -316,6 +319,15 @@ pub fn mir_to_wit_world_with_warnings(
             spec: spec_str.to_string(),
         })?;
 
+        // For wasi:cli/command, rename main to run to match the expected export
+        if spec_str == "wasi:cli/command" {
+            for func in &mut world.functions {
+                if func.name == "main" {
+                    func.name = "run".to_string();
+                }
+            }
+        }
+
         // Validate required exports
         for (required_path, required_fn) in &spec.required_exports {
             let has_export = world.functions.iter().any(|f| f.name == *required_fn);
@@ -326,6 +338,9 @@ pub fn mir_to_wit_world_with_warnings(
                 });
             }
         }
+
+        // Note: we don't use spec.use_imports to avoid requiring external WASI packages
+        // The imports are handled directly by the component runtime
 
         world.name = spec.world_name.clone();
         world.world_spec = Some(spec);

@@ -143,6 +143,7 @@ fi
 # ── Stage 2: s1.wasm compiles itself → s2.wasm ──────────────────────────────
 if [[ "$NO_BUILD" = false ]]; then
     echo "${CYAN}[stage-2] s1.wasm selfhost compile → s2.wasm ...${NC}"
+    rm -f "$S2_WASM"
     # wasmtime WASI P1: output path must be relative to the preopened directory.
     # We use --dir="$REPO_ROOT" and write to a path relative to REPO_ROOT.
     S2_REL=".build/selfhost/arukellt-s2.wasm"

@@ -60,11 +60,18 @@ fn OP_F64_CONST() -> i32 { 0x44 }
 fn OP_I64_LOAD() -> i32 { 0x29 }
 fn OP_I64_STORE() -> i32 { 0x37 }
 fn OP_I64_EQZ() -> i32 { 0x50 }
+fn OP_I64_EQ() -> i32 { 0x51 }
+fn OP_I64_NE() -> i32 { 0x52 }
 fn OP_I64_LT_S() -> i32 { 0x53 }
+fn OP_I64_GT_S() -> i32 { 0x55 }
+fn OP_I64_LE_S() -> i32 { 0x57 }
+fn OP_I64_GE_S() -> i32 { 0x59 }
 fn OP_I64_ADD() -> i32 { 0x7c }
 fn OP_I64_SUB() -> i32 { 0x7d }
 fn OP_I64_MUL() -> i32 { 0x7e }
+fn OP_I64_DIV_S() -> i32 { 0x7f }
 fn OP_I64_DIV_U() -> i32 { 0x80 }
+fn OP_I64_REM_S() -> i32 { 0x81 }
 fn OP_I64_REM_U() -> i32 { 0x82 }
 fn OP_I64_EXTEND_I32_S() -> i32 { 0xac }
 fn OP_I32_WRAP_I64() -> i32 { 0xa7 }
@@ -791,35 +798,46 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         emit_leb128_u(w, inst.arg0)
     } else if inst.op == 20 {  // ADD
         if inst.val_type == VT_F64() { emit_byte(w, OP_F64_ADD()) }
+        else if inst.val_type == VT_I64() { emit_byte(w, OP_I64_ADD()) }
         else { emit_byte(w, OP_I32_ADD()) }
     } else if inst.op == 21 {  // SUB
         if inst.val_type == VT_F64() { emit_byte(w, OP_F64_SUB()) }
+        else if inst.val_type == VT_I64() { emit_byte(w, OP_I64_SUB()) }
         else { emit_byte(w, OP_I32_SUB()) }
     } else if inst.op == 22 {  // MUL
         if inst.val_type == VT_F64() { emit_byte(w, OP_F64_MUL()) }
+        else if inst.val_type == VT_I64() { emit_byte(w, OP_I64_MUL()) }
         else { emit_byte(w, OP_I32_MUL()) }
     } else if inst.op == 23 {  // DIV
         if inst.val_type == VT_F64() { emit_byte(w, OP_F64_DIV()) }
+        else if inst.val_type == VT_I64() { emit_byte(w, OP_I64_DIV_S()) }
         else { emit_byte(w, OP_I32_DIV_S()) }
     } else if inst.op == 24 {  // MOD
-        emit_byte(w, OP_I32_REM_S())
+        if inst.val_type == VT_I64() { emit_byte(w, OP_I64_REM_S()) }
+        else { emit_byte(w, OP_I32_REM_S()) }
     } else if inst.op == 25 {  // EQ
         if inst.val_type == VT_F64() { emit_byte(w, OP_F64_EQ()) }
+        else if inst.val_type == VT_I64() { emit_byte(w, OP_I64_EQ()) }
         else { emit_byte(w, OP_I32_EQ()) }
     } else if inst.op == 26 {  // NEQ
         if inst.val_type == VT_F64() { emit_byte(w, OP_F64_NE()) }
+        else if inst.val_type == VT_I64() { emit_byte(w, OP_I64_NE()) }
         else { emit_byte(w, OP_I32_NE()) }
     } else if inst.op == 27 {  // LT
         if inst.val_type == VT_F64() { emit_byte(w, OP_F64_LT()) }
+        else if inst.val_type == VT_I64() { emit_byte(w, OP_I64_LT_S()) }
         else { emit_byte(w, OP_I32_LT_S()) }
     } else if inst.op == 28 {  // LTEQ
         if inst.val_type == VT_F64() { emit_byte(w, OP_F64_LE()) }
+        else if inst.val_type == VT_I64() { emit_byte(w, OP_I64_LE_S()) }
         else { emit_byte(w, OP_I32_LE_S()) }
     } else if inst.op == 29 {  // GT
         if inst.val_type == VT_F64() { emit_byte(w, OP_F64_GT()) }
+        else if inst.val_type == VT_I64() { emit_byte(w, OP_I64_GT_S()) }
         else { emit_byte(w, OP_I32_GT_S()) }
     } else if inst.op == 30 {  // GTEQ
         if inst.val_type == VT_F64() { emit_byte(w, OP_F64_GE()) }
+        else if inst.val_type == VT_I64() { emit_byte(w, OP_I64_GE_S()) }
         else { emit_byte(w, OP_I32_GE_S()) }
     } else if inst.op == 31 {  // AND (logical)
         emit_byte(w, OP_I32_AND())
@@ -7752,9 +7770,17 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_UNREACHABLE())
             emit_byte(w, OP_END())
 
-        } else if eq(clone(callee), "assert_eq") || eq(clone(callee), "assert_eq_i64") {
-            // assert_eq(a, b): trap if a != b
+        } else if eq(clone(callee), "assert_eq") {
+            // assert_eq(a, b): trap if a != b (i32 comparison)
             emit_byte(w, OP_I32_NE())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_UNREACHABLE())
+            emit_byte(w, OP_END())
+
+        } else if eq(clone(callee), "assert_eq_i64") {
+            // assert_eq_i64(a, b): trap if a != b (i64 comparison)
+            emit_byte(w, OP_I64_NE())
             emit_byte(w, OP_IF())
             emit_byte(w, 0x40)
             emit_byte(w, OP_UNREACHABLE())
@@ -9709,6 +9735,10 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         // NK_EXPR_STMT emits MIR_DROP for discarded non-void call results.
     } else if inst.op == 42 {  // RETURN
         emit_byte(w, OP_RETURN())
+    } else if inst.op == 45 {  // EXTEND_I32_TO_I64 — pure stack transformation
+        // The i32 value is already on top of the WASM stack from a preceding
+        // CONST_I32 or LOCAL_GET; just widen it in-place.
+        emit_byte(w, OP_I64_EXTEND_I32_S())
     } else if inst.op == 70 {  // DROP
         emit_byte(w, OP_DROP())
     } else if inst.op == 71 {  // NOP

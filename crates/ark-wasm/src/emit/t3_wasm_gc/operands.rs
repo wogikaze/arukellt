@@ -25,6 +25,41 @@ impl Ctx {
         )
     }
 
+    /// After [`Self::emit_operand`], coerce the stack top to `dest_vt` the same way
+    /// `MirStmt::Assign(Place::Local, Rvalue::Use)` does before `local.set`.
+    ///
+    /// Needed for `struct.new` / `array.set` sites where values may still be
+    /// `anyref` (e.g. generic locals) but the GC field type is concrete.
+    fn coerce_stack_top_after_emit(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        emitted_op: &Operand,
+        dest_vt: ValType,
+    ) {
+        let op_vt = self.infer_operand_type(emitted_op);
+        if let (ValType::Ref(rt_op), ValType::Ref(rt_dest)) = (op_vt, dest_vt) {
+            let op_any = matches!(
+                rt_op.heap_type,
+                HeapType::Abstract {
+                    ty: wasm_encoder::AbstractHeapType::Any,
+                    ..
+                }
+            );
+            if rt_op.heap_type != rt_dest.heap_type
+                || (op_any && matches!(rt_dest.heap_type, HeapType::Concrete(_)))
+            {
+                f.instruction(&Instruction::RefCastNullable(rt_dest.heap_type));
+            }
+        }
+        let op_is_anyref = Self::is_anyref_result_valtype(&op_vt);
+        let dest_is_anyref = Self::is_anyref_result_valtype(&dest_vt);
+        if dest_is_anyref && op_vt == ValType::I32 {
+            f.instruction(&Instruction::RefI31);
+        } else if op_is_anyref && !dest_is_anyref {
+            self.emit_anyref_unbox(f, &dest_vt);
+        }
+    }
+
     fn try_emit_tuple_ifexpr_multivalue(
         &mut self,
         f: &mut PeepholeWriter<'_>,
@@ -430,9 +465,11 @@ impl Ctx {
                 // GC-native: push field values in order, then struct.new
                 let layout = self.struct_layouts.get(name).cloned().unwrap_or_default();
                 let ty_idx = self.struct_gc_types.get(name).copied().unwrap_or(0);
-                for (fname, _fty) in &layout {
+                for (fname, f_ty) in &layout {
+                    let expected_vt = self.field_valtype(f_ty);
                     if let Some((_, val)) = fields.iter().find(|(n, _)| n == fname) {
                         self.emit_operand(f, val);
+                        self.coerce_stack_top_after_emit(f, val, expected_vt);
                     } else {
                         // Default value for missing field
                         f.instruction(&Instruction::I32Const(0));
@@ -481,8 +518,17 @@ impl Ctx {
                     .and_then(|vs| vs.get(variant.as_str()))
                     .copied()
                     .unwrap_or(0);
-                for p in payload.iter() {
+                let field_ty_names: Vec<String> = self
+                    .enum_variant_field_types
+                    .get(&(effective_enum_name.clone(), variant.clone()))
+                    .cloned()
+                    .unwrap_or_default();
+                for (i, p) in payload.iter().enumerate() {
                     self.emit_operand(f, p);
+                    if let Some(ft_name) = field_ty_names.get(i) {
+                        let expected_vt = self.field_valtype(ft_name);
+                        self.coerce_stack_top_after_emit(f, p, expected_vt);
+                    }
                 }
                 f.instruction(&Instruction::StructNew(ty_idx));
             }

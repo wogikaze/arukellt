@@ -78,7 +78,8 @@ cleanup() {
     fi
 }
 trap cleanup EXIT
-_WORK_DIR=$(mktemp -d)
+
+_WORK_DIR=$(mktemp -d "${REPO_ROOT}/.build/selfhost/parity-XXXXXX")
 
 # Run a fixture with the Rust compiler and capture stdout.
 rust_run() {
@@ -93,7 +94,7 @@ selfhost_run() {
     local wasm_out="${_WORK_DIR}/s1_out_$$.wasm"
     local rel_out="${wasm_out#${REPO_ROOT}/}"
 
-    # Compile via selfhost wasm
+    # Compile via selfhost wasm (output path must be relative to REPO_ROOT for WASI sandbox)
     local compile_err
     compile_err=$(
         cd "${REPO_ROOT}"
@@ -102,7 +103,7 @@ selfhost_run() {
             "${S1_WASM}" \
             -- compile "${rel_input}" \
                --target wasm32-wasi-p1 \
-               -o "${wasm_out}" 2>&1
+               -o "${rel_out}" 2>&1
     ) || true
 
     if [[ ! -f "${wasm_out}" ]]; then

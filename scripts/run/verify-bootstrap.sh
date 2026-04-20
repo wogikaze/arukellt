@@ -167,7 +167,7 @@ run_stage() {
 
 BUILD_DIR="${REPO_ROOT}/.bootstrap-build"
 mkdir -p "$BUILD_DIR"
-trap 'rm -rf "$BUILD_DIR"' EXIT
+# trap 'rm -rf "$BUILD_DIR"' EXIT  # Disabled for debugging
 
 S1_WASM="${BUILD_DIR}/arukellt-s1.wasm"
 S2_WASM="${BUILD_DIR}/arukellt-s2.wasm"
@@ -269,7 +269,13 @@ stage1() {
     local rel_out="${S2_WASM#$REPO_ROOT/}"
     local stderr_file="${BUILD_DIR}/stage1.stderr"
     echo -e "  Compiling main.ark → arukellt-s2.wasm (via s1)..."
+    # Pass through MIR_LOWER_TRACE so selfhost mir::lower_to_mir can print phase lines to guest stderr.
+    local -a wt_env=()
+    if [[ -n "${MIR_LOWER_TRACE:-}" ]]; then
+        wt_env+=(--env "MIR_LOWER_TRACE=${MIR_LOWER_TRACE}")
+    fi
     if timeout 120 wasmtime run --dir="${REPO_ROOT}" \
+        "${wt_env[@]}" \
         "$S1_WASM" -- compile "$rel_src" --target wasm32-wasi-p1 \
         -o "$rel_out" 2>"$stderr_file"; then
         local size

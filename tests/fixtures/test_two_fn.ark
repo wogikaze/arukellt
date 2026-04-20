@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn double(x: i32) -> i32 {
+    return x * 2
+}
+
+fn main() {
+    let y = double(5)
+    stdio::println(to_string(y))
+}

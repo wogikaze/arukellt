@@ -2972,6 +2972,9 @@ impl Ctx {
         f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_str_ty)));
         f.instruction(&Instruction::LocalGet(self.si(2)));
         f.instruction(&Instruction::LocalGet(self.si(8)));
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::ArraySet(arr_str_ty));
 
         // values[count] = value
@@ -3277,6 +3280,9 @@ impl Ctx {
         f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_str_ty)));
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::LocalGet(self.si(8)));
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::ArraySet(arr_str_ty));
         // found = 1
         f.instruction(&Instruction::I32Const(1));
@@ -3320,6 +3326,9 @@ impl Ctx {
         f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_str_ty)));
         f.instruction(&Instruction::LocalGet(self.si(0)));
         f.instruction(&Instruction::LocalGet(self.si(8)));
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::ArraySet(arr_str_ty));
 
         // map.count = count + 1
@@ -3453,6 +3462,10 @@ impl Ctx {
             option_ref,
         )));
         f.instruction(&Instruction::LocalGet(self.si(8)));
+        // Scratch locals are `anyref`; `Some` expects a typed GC string ref.
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::StructNew(some_ty));
         f.instruction(&Instruction::Else);
         f.instruction(&Instruction::StructNew(none_ty));
@@ -3629,6 +3642,9 @@ impl Ctx {
         f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_str_ty)));
         f.instruction(&Instruction::LocalGet(self.si(3)));
         f.instruction(&Instruction::LocalGet(self.si(11)));
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::ArraySet(arr_str_ty));
         // si(9) already = 1
         f.instruction(&Instruction::Br(2));
@@ -3658,6 +3674,9 @@ impl Ctx {
         f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_str_ty)));
         f.instruction(&Instruction::LocalGet(self.si(2)));
         f.instruction(&Instruction::LocalGet(self.si(8)));
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::ArraySet(arr_str_ty));
 
         // values[count] = value
@@ -3670,6 +3689,9 @@ impl Ctx {
         f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_str_ty)));
         f.instruction(&Instruction::LocalGet(self.si(2)));
         f.instruction(&Instruction::LocalGet(self.si(11)));
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::ArraySet(arr_str_ty));
 
         // map.count = count + 1
@@ -3800,6 +3822,9 @@ impl Ctx {
             option_ref,
         )));
         f.instruction(&Instruction::LocalGet(self.si(11)));
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::StructNew(some_ty));
         f.instruction(&Instruction::Else);
         f.instruction(&Instruction::StructNew(none_ty));

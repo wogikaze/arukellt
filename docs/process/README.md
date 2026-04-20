@@ -29,7 +29,7 @@
 | [roadmap-v2.md](roadmap-v2.md) | v2: Component Model 完全対応 | 状態: 完了 (2026-03-28) — ただし jco 対応は upstream 待ち (#037 blocked) |
 | [roadmap-v3.md](roadmap-v3.md) | v3: 標準ライブラリ整備 | Status: completed / historical roadmap |
 | [roadmap-v4.md](roadmap-v4.md) | v4: 最適化 (4 軸定量目標) | 状態: 未着手 — v3 完了後に着手可能 |
-| [roadmap-v5.md](roadmap-v5.md) | v5: セルフホスト | 状態: 未着手 — v4 完了後に着手可能 |
+| [roadmap-v5.md](roadmap-v5.md) | v5: セルフホスト | 状態: v3完了時点で達成 — v4はスキップ (ADR-027) |
 | [roadmap.md](roadmap.md) | Arukellt v1–v5 ロードマップ概要 | Current state source of truth: 実装の現在地と open work はまず docs/current-state.md と issues/open/index.md を参照してください。 |
 | [selfhosting-stdlib-checklist.md](selfhosting-stdlib-checklist.md) | Selfhosting Stdlib Checklist (Verified) | Last verified: 2026-04-14 |
 | [snapshot-baseline-policy.md](snapshot-baseline-policy.md) | Snapshot vs Baseline Policy | This document defines the responsibilities and update workflows for |

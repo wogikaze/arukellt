@@ -20,7 +20,8 @@ impl Ctx {
 
     pub(super) fn emit_wasi_p2_get_stdout_shim(&self, codes: &mut CodeSection) {
         let mut f = Function::new([]);
-        f.instruction(&Instruction::I32Const(1));
+        // Call the P2 get_stdout import which returns i32 (stream handle)
+        f.instruction(&Instruction::Call(self.wasi_p2_import_get_stdout));
         f.instruction(&Instruction::End);
         codes.function(&f);
     }
@@ -93,37 +94,28 @@ impl Ctx {
     }
 
     pub(super) fn emit_wasi_p2_write_and_flush_shim(&self, codes: &mut CodeSection) {
-        let ma = MemArg {
-            offset: 0,
-            align: 2,
-            memory_index: 0,
-        };
-        // Params: 0=stream handle, 1=ptr, 2=len, 3=retptr scratch.
-        let mut f = Function::new([]);
+        // Params: 0=stream handle, 1=ptr, 2=len, 3=retptr (unused in P2).
+        // P2 signature: (stream, ptr, len) -> result (i32 error code)
+        let mut f = Function::new([(0, ValType::I32), (1, ValType::I32), (2, ValType::I32), (3, ValType::I32)]);
 
-        // Reuse the caller-provided retptr area as a single preview1 iovec plus nwritten slot.
-        f.instruction(&Instruction::LocalGet(3));
-        f.instruction(&Instruction::LocalGet(1));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::LocalGet(3));
-        f.instruction(&Instruction::I32Const(4));
-        f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::LocalGet(2));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::LocalGet(0));
-        f.instruction(&Instruction::LocalGet(3));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::LocalGet(3));
-        f.instruction(&Instruction::I32Const(8));
-        f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::Call(self.wasi_fd_write));
+        // Call P2 import directly with 3 params
+        f.instruction(&Instruction::LocalGet(0)); // stream
+        f.instruction(&Instruction::LocalGet(1)); // ptr
+        f.instruction(&Instruction::LocalGet(2)); // len
+        f.instruction(&Instruction::Call(self.wasi_p2_import_write_and_flush));
+        // Drop the result (error code) to match registered signature
         f.instruction(&Instruction::Drop);
         f.instruction(&Instruction::End);
         codes.function(&f);
     }
 
     pub(super) fn emit_wasi_p2_drop_output_stream_shim(&self, codes: &mut CodeSection) {
-        let mut f = Function::new([]);
+        // P2 signature: (stream: i32) -> ()
+        // Params: 0=stream handle
+        let mut f = Function::new([(0, ValType::I32)]);
+        // Call the P2 drop import
+        f.instruction(&Instruction::LocalGet(0)); // stream
+        f.instruction(&Instruction::Call(self.wasi_p2_import_drop_output_stream));
         f.instruction(&Instruction::End);
         codes.function(&f);
     }
@@ -137,7 +129,12 @@ impl Ctx {
         // Param 0 = (ref null $string). Locals 1=len, 2=i, 3=handle.
         let mut f = Function::new([(3, ValType::I32)]);
 
-        f.instruction(&Instruction::Call(self.wasi_p2_get_stdout));
+        // Get stdout handle
+        if self.wasi_version == ark_target::WasiVersion::P2 {
+            f.instruction(&Instruction::Call(self.wasi_p2_import_get_stdout));
+        } else {
+            f.instruction(&Instruction::Call(self.wasi_p2_get_stdout));
+        }
         f.instruction(&Instruction::LocalSet(3));
         f.instruction(&Instruction::LocalGet(0));
         f.instruction(&Instruction::ArrayLen);
@@ -166,13 +163,25 @@ impl Ctx {
         f.instruction(&Instruction::End);
         f.instruction(&Instruction::End);
 
+        // Write string
         f.instruction(&Instruction::LocalGet(3));
         f.instruction(&Instruction::I32Const(SCRATCH as i32));
         f.instruction(&Instruction::LocalGet(1));
-        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
-        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        if self.wasi_version == ark_target::WasiVersion::P2 {
+            // P2: call blocking_write_and_flush directly (stream, ptr, len) -> result
+            f.instruction(&Instruction::Call(self.wasi_p2_import_write_and_flush));
+            f.instruction(&Instruction::Drop); // drop error code
+        } else {
+            // P1: call shim with (stream, ptr, len, retptr)
+            f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+            f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        }
         f.instruction(&Instruction::LocalGet(3));
-        f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
+        if self.wasi_version == ark_target::WasiVersion::P2 {
+            f.instruction(&Instruction::Call(self.wasi_p2_import_drop_output_stream));
+        } else {
+            f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
+        }
         f.instruction(&Instruction::End);
         codes.function(&f);
     }
@@ -1992,30 +2001,10 @@ impl Ctx {
                                             .entry(dst.0)
                                             .or_insert_with(|| "__hashmap_str_i32".to_string());
                                     }
-                                    "HashMap_new_i32_String" => {
-                                        extra_struct
-                                            .entry(dst.0)
-                                            .or_insert_with(|| "__hashmap_i32_str".to_string());
-                                    }
-                                    "HashMap_new_String_String" => {
-                                        extra_struct
-                                            .entry(dst.0)
-                                            .or_insert_with(|| "__hashmap_str_str".to_string());
-                                    }
                                     "HashMap_String_i32_get" => {
                                         extra_enum
                                             .entry(dst.0)
                                             .or_insert_with(|| "Option".to_string());
-                                    }
-                                    "HashMap_i32_String_get" => {
-                                        extra_enum
-                                            .entry(dst.0)
-                                            .or_insert_with(|| "Option_String".to_string());
-                                    }
-                                    "HashMap_String_String_get" => {
-                                        extra_enum
-                                            .entry(dst.0)
-                                            .or_insert_with(|| "Option_String".to_string());
                                     }
                                     // get_unchecked on Vec<Struct> → result is a struct
                                     "get_unchecked" | "get" => {
@@ -2171,31 +2160,6 @@ impl Ctx {
                                 extra_struct
                                     .entry(dst.0)
                                     .or_insert_with(|| "__hashmap_str_i32".to_string());
-                            }
-                            "HashMap_new_i32_String" => {
-                                extra_struct
-                                    .entry(dst.0)
-                                    .or_insert_with(|| "__hashmap_i32_str".to_string());
-                            }
-                            "HashMap_new_String_String" => {
-                                extra_struct
-                                    .entry(dst.0)
-                                    .or_insert_with(|| "__hashmap_str_str".to_string());
-                            }
-                            "HashMap_String_i32_get" => {
-                                extra_enum
-                                    .entry(dst.0)
-                                    .or_insert_with(|| "Option".to_string());
-                            }
-                            "HashMap_i32_String_get" => {
-                                extra_enum
-                                    .entry(dst.0)
-                                    .or_insert_with(|| "Option_String".to_string());
-                            }
-                            "HashMap_String_String_get" => {
-                                extra_enum
-                                    .entry(dst.0)
-                                    .or_insert_with(|| "Option_String".to_string());
                             }
                             // get_unchecked on Vec<Struct> → result is a struct; get on Vec<String> → Option_String
                             "get_unchecked" | "get" => {

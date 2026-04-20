@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn get_bool(x: bool) -> bool {
+    x
+}
+
+fn main() {
+    let a: bool = get_bool(true)
+    stdio::println(a)
+}

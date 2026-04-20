@@ -421,7 +421,12 @@ pub(crate) fn cmd_build(
     let profile = target.profile();
     let emit_kind = profile.default_emit_kind;
 
-    let world = manifest.world.as_ref().map(|w| w.name.clone());
+    let world_arg = manifest.world.as_ref().map(|w| w.name.clone());
+    let world = if world_arg.is_none() && wasi_version == WasiVersion::P2 {
+        Some("wasi:cli/command".to_string())
+    } else {
+        world_arg
+    };
 
     let p2_native = wasi_version == WasiVersion::P2;
     cmd_compile(
@@ -512,7 +517,19 @@ pub(crate) fn cmd_compile(
             "warning: --world flag is only used with --emit component, --emit wit, or --emit all"
         );
     }
-    let world_spec = world.as_deref();
+
+    let pipeline_wasi = if p2_native {
+        WasiVersion::P2
+    } else {
+        wasi_version
+    };
+
+    let world_spec_arg = world.as_deref();
+    let world_spec = if world_spec_arg.is_none() && pipeline_wasi == WasiVersion::P2 {
+        Some("wasi:cli/command")
+    } else {
+        world_spec_arg
+    };
 
     // Validate --p2-native / --wasi-version p2 usage
     if p2_native && target != TargetId::Wasm32WasiP2 {
@@ -534,12 +551,6 @@ pub(crate) fn cmd_compile(
             eprintln!("error: {}", e);
             process::exit(1);
         }
-    };
-
-    let pipeline_wasi = if p2_native {
-        WasiVersion::P2
-    } else {
-        wasi_version
     };
 
     // WIT-only emit

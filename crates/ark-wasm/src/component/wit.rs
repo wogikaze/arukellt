@@ -226,18 +226,8 @@ pub fn generate_wit(world: &WitWorld) -> Result<String, WitError> {
     writeln!(out).unwrap();
     writeln!(out, "world {} {{", to_kebab_case(&world.name)).unwrap();
 
-    // Emit `use` import directives from world spec
-    if let Some(ref spec) = world.world_spec {
-        for use_import in &spec.use_imports {
-            writeln!(out, "    import {};", use_import).unwrap();
-        }
-        for use_export in &spec.use_exports {
-            writeln!(out, "    export {};", use_export).unwrap();
-        }
-        if !spec.use_imports.is_empty() || !spec.use_exports.is_empty() {
-            writeln!(out).unwrap();
-        }
-    }
+    // Note: we skip use_imports from world spec to avoid requiring external WASI packages
+    // The imports are handled directly by the component runtime through the core Wasm imports
 
     // Type definitions inside world block
     for record in &world.records {

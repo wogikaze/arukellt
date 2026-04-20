@@ -196,6 +196,14 @@ impl LowerCtx {
                 {
                     self.struct_typed_locals.insert(local_id.0, sname);
                 }
+                // Infer struct type from field access initializer (e.g. `let f = ctx.func`)
+                #[allow(clippy::map_entry)]
+                if !self.struct_typed_locals.contains_key(&local_id.0)
+                    && let ast::Expr::FieldAccess { .. } = init
+                    && let Some(sname) = self.infer_struct_type(init)
+                {
+                    self.struct_typed_locals.insert(local_id.0, sname);
+                }
                 // Infer Vec<Struct> elem type from Vec_new_* init (no annotation case)
                 if !self.vec_struct_locals.contains_key(&local_id.0)
                     && let ast::Expr::Call { callee, .. } = init

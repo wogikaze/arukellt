@@ -231,7 +231,10 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         return a
     }
 
-    // Numeric coercion: i32 and i64 mismatch is error
+    // Numeric widening: allow i32 literal to unify with i64 context.
+    if a.tag == TY_I32() && b.tag == TY_I64() { return b }
+    if a.tag == TY_I64() && b.tag == TY_I32() { return a }
+
     type_error(env, concat(String_from("type mismatch: "), concat(type_tag_name(a.tag), concat(String_from(" vs "), type_tag_name(b.tag)))))
     a
 }

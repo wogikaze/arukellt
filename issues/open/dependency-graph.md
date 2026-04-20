@@ -39,6 +39,7 @@ graph LR
   I526["526 Stdlib JSON: parity と differential tests を round-trip corpus で拡張する"]
   I527["527 Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する"]
   I528["528 Stdlib collections/hash: property と differential tests を map / set invariant で拡張する"]
+  I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -114,6 +115,7 @@ graph LR
 - **526** depends on: none; blocks: none
 - **527** depends on: none; blocks: none
 - **528** depends on: none; blocks: none
+- **529** depends on: none; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136

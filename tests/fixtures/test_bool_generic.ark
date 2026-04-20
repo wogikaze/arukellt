@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn identity<T>(x: T) -> T {
+    x
+}
+
+fn main() {
+    let a: bool = identity(true)
+    stdio::println(a)
+}

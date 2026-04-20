@@ -1472,7 +1472,19 @@ impl EmitCtx {
                     }
                     "starts_with" => {
                         // starts_with(s, prefix) -> bool
-                        // Compare first prefix_len bytes of s with prefix
+                        // Compare first prefix_len bytes of s with prefix.
+                        //
+                        // IMPORTANT: args are evaluated ONCE and saved to scratch memory
+                        // before entering the loop. Re-evaluating inside the loop is
+                        // incorrect because complex args (e.g. clone(...)) use NWRITTEN as
+                        // their own loop counter, corrupting the starts_with counter.
+                        //
+                        // Scratch layout:
+                        //   NWRITTEN     (8)  = loop counter i
+                        //   SCRATCH     (16)  = prefix_len
+                        //   SCRATCH+4   (20)  = result flag (1=true, 0=false)
+                        //   SCRATCH+8   (24)  = saved s_ptr
+                        //   SCRATCH+12  (28)  = saved p_ptr
                         let ma = MemArg {
                             offset: 0,
                             align: 2,
@@ -1483,16 +1495,28 @@ impl EmitCtx {
                             align: 0,
                             memory_index: 0,
                         };
-                        // Check s_len >= prefix_len
+                        // Save s_ptr to SCRATCH+8 (24). Evaluate s once here.
+                        // Note: if s is clone(...), clone internally uses SCRATCH+8/+12
+                        // but finishes before we store the result there.
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 8));
                         if let Some(s) = args.first() {
                             self.emit_operand(f, s);
                         }
-                        f.instruction(&Instruction::I32Const(4));
-                        f.instruction(&Instruction::I32Sub);
-                        f.instruction(&Instruction::I32Load(ma)); // s_len
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Save p_ptr to SCRATCH+12 (28). Evaluate p once here.
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 12));
                         if let Some(p) = args.get(1) {
                             self.emit_operand(f, p);
                         }
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Check s_len >= prefix_len using saved pointers
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 8));
+                        f.instruction(&Instruction::I32Load(ma)); // s_ptr
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma)); // s_len
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 12));
+                        f.instruction(&Instruction::I32Load(ma)); // p_ptr
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma)); // p_len
@@ -1503,15 +1527,13 @@ impl EmitCtx {
                         if let Some(d) = self.loop_depths.last_mut() {
                             *d += 1;
                         }
-                        // Compare byte by byte using NWRITTEN as counter
-                        // Store prefix_len in SCRATCH
+                        // Store prefix_len at SCRATCH (16) using saved p_ptr
                         f.instruction(&Instruction::I32Const(SCRATCH as i32));
-                        if let Some(p) = args.get(1) {
-                            self.emit_operand(f, p);
-                        }
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 12));
+                        f.instruction(&Instruction::I32Load(ma)); // p_ptr
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
-                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Load(ma)); // p_len
                         f.instruction(&Instruction::I32Store(ma));
                         // i = 0
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
@@ -1530,21 +1552,20 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32GeU);
                         f.instruction(&Instruction::BrIf(1));
-                        // if s[i] != prefix[i], set result=0 and break
-                        if let Some(s) = args.first() {
-                            self.emit_operand(f, s);
-                        }
+                        // Load s[i] using saved s_ptr — no re-evaluation of operand s
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 8));
+                        f.instruction(&Instruction::I32Load(ma)); // s_ptr
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Load(ma)); // i
                         f.instruction(&Instruction::I32Add);
-                        f.instruction(&Instruction::I32Load8U(ma0));
-                        if let Some(p) = args.get(1) {
-                            self.emit_operand(f, p);
-                        }
+                        f.instruction(&Instruction::I32Load8U(ma0)); // s[i]
+                        // Load p[i] using saved p_ptr — no re-evaluation of operand p
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 12));
+                        f.instruction(&Instruction::I32Load(ma)); // p_ptr
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Load(ma)); // i
                         f.instruction(&Instruction::I32Add);
-                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Load8U(ma0)); // p[i]
                         f.instruction(&Instruction::I32Ne);
                         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
                         f.instruction(&Instruction::I32Const(SCRATCH as i32 + 4));
@@ -3447,6 +3468,42 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Store(ma));
+
+                        // Grow memory if needed: (global[0] + byte_count + 65535) / 65536 + 1 > memory.size
+                        // pages_needed = (buf_start + byte_count + 65535) >> 16 + 1
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));  // buf_start
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));  // byte_count
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const(65535));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const(16));
+                        f.instruction(&Instruction::I32ShrU);
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);       // pages_needed
+                        f.instruction(&Instruction::MemorySize(0));
+                        f.instruction(&Instruction::I32GtU);       // pages_needed > memory.size
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        {
+                            // memory.grow(pages_needed - memory.size)
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 24) as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const(65535));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const(16));
+                            f.instruction(&Instruction::I32ShrU);
+                            f.instruction(&Instruction::I32Const(1));
+                            f.instruction(&Instruction::I32Add);   // pages_needed
+                            f.instruction(&Instruction::MemorySize(0));
+                            f.instruction(&Instruction::I32Sub);   // pages_to_grow
+                            f.instruction(&Instruction::MemoryGrow(0));
+                            f.instruction(&Instruction::Drop);
+                        }
+                        f.instruction(&Instruction::End);
 
                         // Init loop counter i = 0 at FS_SCRATCH+32
                         f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));

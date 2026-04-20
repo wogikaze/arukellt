@@ -548,7 +548,11 @@ pub(super) struct Ctx {
     // Return type of the function being emitted
     current_fn_return_ty: Type,
     current_fn_ret_type_name: Option<String>,
-    // P2 WASI import indices (always present)
+    // P2 WASI import indices (actual imports from host)
+    wasi_p2_import_get_stdout: u32,
+    wasi_p2_import_write_and_flush: u32,
+    wasi_p2_import_drop_output_stream: u32,
+    // P2 WASI helper function indices (shims that call the imports)
     wasi_p2_get_stdout: u32,
     wasi_p2_write_and_flush: u32,
     wasi_p2_drop_output_stream: u32,
@@ -603,6 +607,8 @@ pub(super) struct Ctx {
     branch_hint_records: Vec<(u32, u32, u32)>,
     /// Wasm function index of the MIR function currently being encoded.
     current_emit_fn_idx: u32,
+    /// WASI version for import/export generation (P1 or P2).
+    wasi_version: ark_target::WasiVersion,
 }
 
 impl Ctx {
@@ -973,8 +979,8 @@ pub fn emit(
     _sink: &mut DiagnosticSink,
     opt_level: u8,
     strip_debug: bool,
+    wasi_version: ark_target::WasiVersion,
 ) -> Vec<u8> {
-    // struct_layouts is sourced exclusively from mir.type_table (MIR-01 resolved).
     let struct_layouts: HashMap<String, Vec<(String, String)>> = mir.type_table.struct_defs.clone();
     let fn_ret_types: HashMap<String, Type> = mir
         .functions
@@ -1084,6 +1090,9 @@ pub fn emit(
         current_fn_type_params: vec![],
         current_fn_return_ty: Type::Unit,
         current_fn_ret_type_name: None,
+        wasi_p2_import_get_stdout: 0,
+        wasi_p2_import_write_and_flush: 0,
+        wasi_p2_import_drop_output_stream: 0,
         wasi_p2_get_stdout: 0,
         wasi_p2_write_and_flush: 0,
         wasi_p2_drop_output_stream: 0,
@@ -1123,10 +1132,10 @@ pub fn emit(
         strip_name_section: strip_debug,
         branch_hint_records: Vec::new(),
         current_emit_fn_idx: 0,
+        wasi_version: wasi_version,
     };
     ctx.emit_module(mir)
 }
-
 // ── Module emission ──────────────────────────────────────────────
 
 impl Ctx {
@@ -1182,6 +1191,17 @@ impl Ctx {
         // Phase 2: Register function type signatures
         let fd_write_ty = self.types.add_func(&[ValType::I32; 4], &[ValType::I32]);
         self.fd_write_ty = fd_write_ty;
+        
+        // P2 function type signatures
+        // wasi:cli/stdout@0.2.0 write_and_flush: (stream: i32, ptr: i32, len: i32) -> result
+        let p2_write_and_flush_ty = self.types.add_func(&[ValType::I32, ValType::I32, ValType::I32], &[ValType::I32]);
+        self.wasi_p2_write_and_flush = p2_write_and_flush_ty;
+        // wasi:cli/stdout@0.2.0 drop_output_stream: (stream: i32) -> ()
+        let p2_drop_output_stream_ty = self.types.add_func(&[ValType::I32], &[]);
+        self.wasi_p2_drop_output_stream = p2_drop_output_stream_ty;
+        // wasi:cli/stdout@0.2.0 get_stdout: () -> i32 (stream handle)
+        let p2_get_stdout_ty = self.types.add_func(&[], &[ValType::I32]);
+        self.wasi_p2_get_stdout = p2_get_stdout_ty;
         // path_open: (i32,i32,i32,i32,i32,i64,i64,i32,i32) -> i32
         let path_open_ty = self.types.add_func(
             &[
@@ -1228,6 +1248,10 @@ impl Ctx {
             .add_func(&[ValType::I32, ValType::I32], &[ValType::I32]);
         // args_get: (i32, i32) -> i32
         let args_get_ty = args_sizes_get_ty; // same signature
+        // environ_sizes_get: (i32, i32) -> i32
+        let environ_sizes_get_ty = args_sizes_get_ty; // same signature
+        // environ_get: (i32, i32) -> i32
+        let environ_get_ty = args_sizes_get_ty; // same signature
         // http_get: (url_ptr: i32, url_len: i32, resp_ptr: i32) -> i32
         let http_get_ty = self
             .types
@@ -1347,14 +1371,16 @@ impl Ctx {
         let mut f64_to_str_pos: Option<usize> = None;
         let mut p2_get_stderr_pos: Option<usize> = None;
         let mut eprint_str_ln_pos: Option<usize> = None;
-        let needs_p2_stdio_shims = needed.print_str
-            || needed.print_i32
-            || needed.print_bool
-            || needed.print_str_ln
-            || needed.print_i32_ln
-            || needed.print_bool_ln
-            || needed.print_newline
-            || needed.eprint_str_ln;
+        let needs_p2_stdio_shims = false; // P2 stdio requires significant architectural changes to print helpers
+        // let needs_p2_stdio_shims = (self.wasi_version == ark_target::WasiVersion::P2)
+        //     && (needed.print_str
+        //         || needed.print_i32
+        //         || needed.print_bool
+        //         || needed.print_str_ln
+        //         || needed.print_i32_ln
+        //         || needed.print_bool_ln
+        //         || needed.print_newline
+        //         || needed.eprint_str_ln);
 
         if needs_p2_stdio_shims {
             p2_get_stdout_pos = Some(helper_fns.len());
@@ -1638,95 +1664,250 @@ impl Ctx {
 
         // Import section: WASI functions (only those actually used)
         let mut imports = ImportSection::new();
+        let mut import_idx = 0u32;
         if needs_fd_write {
-            imports.import(
-                "wasi_snapshot_preview1",
-                "fd_write",
-                wasm_encoder::EntityType::Function(fd_write_ty),
-            );
+            if self.wasi_version == ark_target::WasiVersion::P2 {
+                // P2: use wasi:cli/stdout@0.2.0 with correct P2 types
+                // get_stdout: () -> i32
+                self.wasi_p2_import_get_stdout = import_idx;
+                imports.import(
+                    "wasi:cli/stdout@0.2.0",
+                    "get_stdout",
+                    wasm_encoder::EntityType::Function(p2_get_stdout_ty),
+                );
+                import_idx += 1;
+                // blocking_write_and_flush: (stream, ptr, len) -> result
+                self.wasi_p2_import_write_and_flush = import_idx;
+                imports.import(
+                    "wasi:cli/stdout@0.2.0",
+                    "blocking_write_and_flush",
+                    wasm_encoder::EntityType::Function(p2_write_and_flush_ty),
+                );
+                import_idx += 1;
+                // drop: (stream) -> ()
+                self.wasi_p2_import_drop_output_stream = import_idx;
+                imports.import(
+                    "wasi:cli/stdout@0.2.0",
+                    "drop",
+                    wasm_encoder::EntityType::Function(p2_drop_output_stream_ty),
+                );
+                import_idx += 1;
+            } else {
+                // P1: use wasi_snapshot_preview1
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "fd_write",
+                    wasm_encoder::EntityType::Function(fd_write_ty),
+                );
+                import_idx += 1;
+            }
         }
         if needs_fs {
-            imports.import(
-                "wasi_snapshot_preview1",
-                "path_open",
-                wasm_encoder::EntityType::Function(path_open_ty),
-            );
-            imports.import(
-                "wasi_snapshot_preview1",
-                "fd_read",
-                wasm_encoder::EntityType::Function(fd_read_ty),
-            );
-            imports.import(
-                "wasi_snapshot_preview1",
-                "fd_close",
-                wasm_encoder::EntityType::Function(fd_close_ty),
-            );
+            if self.wasi_version == ark_target::WasiVersion::P2 {
+                // P2: use wasi:filesystem@0.2.0
+                imports.import(
+                    "wasi:filesystem@0.2.0",
+                    "open_at",
+                    wasm_encoder::EntityType::Function(path_open_ty),
+                );
+                import_idx += 1;
+                imports.import(
+                    "wasi:filesystem@0.2.0",
+                    "read",
+                    wasm_encoder::EntityType::Function(fd_read_ty),
+                );
+                import_idx += 1;
+                imports.import(
+                    "wasi:filesystem@0.2.0",
+                    "close",
+                    wasm_encoder::EntityType::Function(fd_close_ty),
+                );
+                import_idx += 1;
+            } else {
+                // P1: use wasi_snapshot_preview1
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "path_open",
+                    wasm_encoder::EntityType::Function(path_open_ty),
+                );
+                import_idx += 1;
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "fd_read",
+                    wasm_encoder::EntityType::Function(fd_read_ty),
+                );
+                import_idx += 1;
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "fd_close",
+                    wasm_encoder::EntityType::Function(fd_close_ty),
+                );
+                import_idx += 1;
+            }
         }
         if needs_clock {
-            imports.import(
-                "wasi_snapshot_preview1",
-                "clock_time_get",
-                wasm_encoder::EntityType::Function(clock_time_get_ty),
-            );
+            if self.wasi_version == ark_target::WasiVersion::P2 {
+                // P2: use wasi:clocks/wall-clock@0.2.0
+                imports.import(
+                    "wasi:clocks/wall-clock@0.2.0",
+                    "now",
+                    wasm_encoder::EntityType::Function(clock_time_get_ty),
+                );
+                import_idx += 1;
+            } else {
+                // P1: use wasi_snapshot_preview1
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "clock_time_get",
+                    wasm_encoder::EntityType::Function(clock_time_get_ty),
+                );
+                import_idx += 1;
+            }
         }
         if needs_random {
-            imports.import(
-                "wasi_snapshot_preview1",
-                "random_get",
-                wasm_encoder::EntityType::Function(random_get_ty),
-            );
+            if self.wasi_version == ark_target::WasiVersion::P2 {
+                // P2: use wasi:random/random@0.2.0
+                imports.import(
+                    "wasi:random/random@0.2.0",
+                    "get_random_bytes",
+                    wasm_encoder::EntityType::Function(random_get_ty),
+                );
+                import_idx += 1;
+            } else {
+                // P1: use wasi_snapshot_preview1
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "random_get",
+                    wasm_encoder::EntityType::Function(random_get_ty),
+                );
+                import_idx += 1;
+            }
         }
         if needs_proc_exit {
-            imports.import(
-                "wasi_snapshot_preview1",
-                "proc_exit",
-                wasm_encoder::EntityType::Function(proc_exit_ty),
-            );
+            if self.wasi_version == ark_target::WasiVersion::P2 {
+                // P2: use wasi:cli/exit@0.2.0
+                imports.import(
+                    "wasi:cli/exit@0.2.0",
+                    "exit",
+                    wasm_encoder::EntityType::Function(proc_exit_ty),
+                );
+                import_idx += 1;
+            } else {
+                // P1: use wasi_snapshot_preview1
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "proc_exit",
+                    wasm_encoder::EntityType::Function(proc_exit_ty),
+                );
+                import_idx += 1;
+            }
         }
         if needs_fd_seek {
-            imports.import(
-                "wasi_snapshot_preview1",
-                "fd_seek",
-                wasm_encoder::EntityType::Function(fd_seek_ty),
-            );
+            if self.wasi_version == ark_target::WasiVersion::P2 {
+                // P2: use wasi:filesystem@0.2.0
+                imports.import(
+                    "wasi:filesystem@0.2.0",
+                    "seek",
+                    wasm_encoder::EntityType::Function(fd_seek_ty),
+                );
+                import_idx += 1;
+            } else {
+                // P1: use wasi_snapshot_preview1
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "fd_seek",
+                    wasm_encoder::EntityType::Function(fd_seek_ty),
+                );
+                import_idx += 1;
+            }
         }
         if needs_fd_tell {
-            imports.import(
-                "wasi_snapshot_preview1",
-                "fd_tell",
-                wasm_encoder::EntityType::Function(fd_tell_ty),
-            );
+            if self.wasi_version == ark_target::WasiVersion::P2 {
+                // P2: use wasi:filesystem@0.2.0
+                imports.import(
+                    "wasi:filesystem@0.2.0",
+                    "tell",
+                    wasm_encoder::EntityType::Function(fd_tell_ty),
+                );
+                import_idx += 1;
+            } else {
+                // P1: use wasi_snapshot_preview1
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "fd_tell",
+                    wasm_encoder::EntityType::Function(fd_tell_ty),
+                );
+                import_idx += 1;
+            }
         }
         if needs_fd_fdstat_get {
-            imports.import(
-                "wasi_snapshot_preview1",
-                "fd_fdstat_get",
-                wasm_encoder::EntityType::Function(fd_fdstat_get_ty),
-            );
+            if self.wasi_version == ark_target::WasiVersion::P2 {
+                // P2: use wasi:filesystem@0.2.0
+                imports.import(
+                    "wasi:filesystem@0.2.0",
+                    "get_filestat",
+                    wasm_encoder::EntityType::Function(fd_fdstat_get_ty),
+                );
+                import_idx += 1;
+            } else {
+                // P1: use wasi_snapshot_preview1
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "fd_fdstat_get",
+                    wasm_encoder::EntityType::Function(fd_fdstat_get_ty),
+                );
+                import_idx += 1;
+            }
         }
         if needs_args {
-            imports.import(
-                "wasi_snapshot_preview1",
-                "args_sizes_get",
-                wasm_encoder::EntityType::Function(args_sizes_get_ty),
-            );
-            imports.import(
-                "wasi_snapshot_preview1",
-                "args_get",
-                wasm_encoder::EntityType::Function(args_get_ty),
-            );
+            if self.wasi_version == ark_target::WasiVersion::P2 {
+                // P2: use wasi:cli/environment@0.2.0
+                imports.import(
+                    "wasi:cli/environment@0.2.0",
+                    "get_arguments",
+                    wasm_encoder::EntityType::Function(args_get_ty),
+                );
+                import_idx += 1;
+            } else {
+                // P1: use wasi_snapshot_preview1
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "args_sizes_get",
+                    wasm_encoder::EntityType::Function(args_sizes_get_ty),
+                );
+                import_idx += 1;
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "args_get",
+                    wasm_encoder::EntityType::Function(args_get_ty),
+                );
+                import_idx += 1;
+            }
         }
         if needs_environ {
-            imports.import(
-                "wasi_snapshot_preview1",
-                "environ_sizes_get",
-                wasm_encoder::EntityType::Function(args_sizes_get_ty),
-            );
-            imports.import(
-                "wasi_snapshot_preview1",
-                "environ_get",
-                wasm_encoder::EntityType::Function(args_get_ty),
-            );
+            if self.wasi_version == ark_target::WasiVersion::P2 {
+                // P2: use wasi:cli/environment@0.2.0
+                imports.import(
+                    "wasi:cli/environment@0.2.0",
+                    "get_environment",
+                    wasm_encoder::EntityType::Function(environ_get_ty),
+                );
+                import_idx += 1;
+            } else {
+                // P1: use wasi_snapshot_preview1
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "environ_sizes_get",
+                    wasm_encoder::EntityType::Function(environ_sizes_get_ty),
+                );
+                import_idx += 1;
+                imports.import(
+                    "wasi_snapshot_preview1",
+                    "environ_get",
+                    wasm_encoder::EntityType::Function(environ_get_ty),
+                );
+                import_idx += 1;
+            }
         }
         if needs_http {
             imports.import(
@@ -1801,10 +1982,20 @@ impl Ctx {
         // Export section
         let mut exports = ExportSection::new();
         exports.export("memory", ExportKind::Memory, 0);
-        if let Some(&start_idx) = self.fn_map.get("_start") {
-            exports.export("_start", ExportKind::Func, start_idx);
-        } else if let Some(&main_idx) = self.fn_map.get("main") {
-            exports.export("_start", ExportKind::Func, main_idx);
+        
+        // For P2 native mode, export run instead of _start (for wasi:cli/command world)
+        if self.wasi_version == ark_target::WasiVersion::P2 {
+            if let Some(&start_idx) = self.fn_map.get("_start") {
+                exports.export("run", ExportKind::Func, start_idx);
+            } else if let Some(&main_idx) = self.fn_map.get("main") {
+                exports.export("run", ExportKind::Func, main_idx);
+            }
+        } else {
+            if let Some(&start_idx) = self.fn_map.get("_start") {
+                exports.export("_start", ExportKind::Func, start_idx);
+            } else if let Some(&main_idx) = self.fn_map.get("main") {
+                exports.export("_start", ExportKind::Func, main_idx);
+            }
         }
 
         // Export user pub functions for Component Model (kebab-case names for WIT)

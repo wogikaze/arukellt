@@ -5,7 +5,7 @@ use super::*;
 use ark_mir::mir::MirModule;
 use wasm_encoder::{
     CodeSection, DataSection, ExportKind, ExportSection, FunctionSection, ImportSection,
-    MemorySection, MemoryType, Module, TypeSection,
+    MemorySection, MemoryType, Module, NameMap, NameSection, TypeSection,
 };
 
 impl EmitCtx {
@@ -528,6 +528,18 @@ impl EmitCtx {
             );
         }
         module.section(&data);
+
+        // Debug name section for readable backtraces
+        let mut names = NameSection::new();
+        let mut fn_name_map = NameMap::new();
+        for (i, name) in self.fn_names.iter().enumerate() {
+            let actual_idx = self.fn_map[FN_USER_BASE as usize + i];
+            if actual_idx != u32::MAX {
+                fn_name_map.append(actual_idx, name);
+            }
+        }
+        names.functions(&fn_name_map);
+        module.section(&names);
 
         module.finish()
     }

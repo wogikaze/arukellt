@@ -39,13 +39,6 @@ impl Ctx {
                 }
                 self.emit_operand(f, op);
                 let op_vt = self.infer_operand_type(op);
-                // Distinct GC ref types (e.g. `Option` vs `Option_String` bases) must be
-                // unified before `local.set` — validation requires exact local types.
-                if let (ValType::Ref(rt_op), ValType::Ref(rt_dest)) = (op_vt, dest_vt)
-                    && rt_op.heap_type != rt_dest.heap_type
-                {
-                    f.instruction(&Instruction::RefCastNullable(rt_dest.heap_type));
-                }
                 let op_is_anyref = Self::is_anyref_valtype(&op_vt);
                 let dest_is_anyref = Self::is_anyref_valtype(&dest_vt);
                 if dest_is_anyref && op_vt == ValType::I32 {
@@ -715,14 +708,6 @@ impl Ctx {
                 | "HashMap_String_i32_get"
                 | "HashMap_String_i32_contains_key"
                 | "HashMap_String_i32_len"
-                | "HashMap_i32_String_insert"
-                | "HashMap_i32_String_get"
-                | "HashMap_i32_String_contains_key"
-                | "HashMap_i32_String_len"
-                | "HashMap_String_String_insert"
-                | "HashMap_String_String_get"
-                | "HashMap_String_String_contains_key"
-                | "HashMap_String_String_len"
                 | "insert"
                 | "get_or_default"
                 | "contains_key"
@@ -1654,145 +1639,6 @@ impl Ctx {
             }
             "HashMap_i32_i32_contains_key" => {
                 self.emit_hashmap_i32_i32_contains_key(f, args);
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            // ── HashMap<String, i32> ──
-            "HashMap_new_String_i32" => {
-                self.emit_hashmap_str_i32_new(f);
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            "HashMap_String_i32_insert" => {
-                self.emit_hashmap_str_i32_insert(f, args);
-            }
-            "HashMap_String_i32_get" => {
-                self.emit_hashmap_str_i32_get(f, args);
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            "HashMap_String_i32_contains_key" => {
-                self.emit_hashmap_str_i32_contains_key(f, args);
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            "HashMap_String_i32_len" => {
-                // Match HashMap_i32_i32_len: emit_operand already yields a concrete
-                // `$hashmap_str_i32` ref for locals; an extra `ref.cast null` here
-                // left the validator seeing unbalanced stack in some call patterns.
-                if let Some(arg) = args.first() {
-                    self.emit_operand(f, arg);
-                    f.instruction(&Instruction::StructGet {
-                        struct_type_index: self.hashmap_str_i32_ty,
-                        field_index: 2,
-                    });
-                } else {
-                    f.instruction(&Instruction::I32Const(0));
-                }
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            "HashMap_new_i32_String" => {
-                self.emit_hashmap_i32_str_new(f);
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            "HashMap_i32_String_insert" => {
-                self.emit_hashmap_i32_str_insert(f, args);
-            }
-            "HashMap_i32_String_get" => {
-                self.emit_hashmap_i32_str_get(f, args);
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            "HashMap_i32_String_contains_key" => {
-                self.emit_hashmap_i32_str_contains_key(f, args);
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            "HashMap_i32_String_len" => {
-                if let Some(arg) = args.first() {
-                    self.emit_operand(f, arg);
-                    f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
-                        self.hashmap_i32_str_ty,
-                    )));
-                    f.instruction(&Instruction::StructGet {
-                        struct_type_index: self.hashmap_i32_str_ty,
-                        field_index: 2,
-                    });
-                } else {
-                    f.instruction(&Instruction::I32Const(0));
-                }
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            "HashMap_new_String_String" => {
-                self.emit_hashmap_str_str_new(f);
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            "HashMap_String_String_insert" => {
-                self.emit_hashmap_str_str_insert(f, args);
-            }
-            "HashMap_String_String_get" => {
-                self.emit_hashmap_str_str_get(f, args);
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            "HashMap_String_String_contains_key" => {
-                self.emit_hashmap_str_str_contains_key(f, args);
-                if let Some(Place::Local(id)) = dest {
-                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
-                } else {
-                    f.instruction(&Instruction::Drop);
-                }
-            }
-            "HashMap_String_String_len" => {
-                if let Some(arg) = args.first() {
-                    self.emit_operand(f, arg);
-                    f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
-                        self.hashmap_str_str_ty,
-                    )));
-                    f.instruction(&Instruction::StructGet {
-                        struct_type_index: self.hashmap_str_str_ty,
-                        field_index: 2,
-                    });
-                } else {
-                    f.instruction(&Instruction::I32Const(0));
-                }
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {
