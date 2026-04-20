@@ -335,7 +335,7 @@ fn lex_number(lex: Lexer) -> Token {
         // Workaround: extract f64 from match to avoid codegen bug
         // with match returning structs containing f64 fields
         let num_text = substring(lex.src, start, lex.pos - suffix_len)
-        let f_result = parse_f64(clone(num_text))
+        let f_result: Result<f64, String> = parse_f64(clone(num_text))
         let mut fv: f64 = 0.0
         let mut parse_ok = true
         match f_result {

@@ -762,7 +762,7 @@ fn parse_closure_expr(p: Parser, start: Token) -> AstNode {
 
 fn parse_prefix(p: Parser) -> AstNode {
     skip_newlines(p)
-    let t = cur(p)
+    let t: Token = cur(p)
 
     // Unary operators
     let ubp = prefix_bp(t.kind)

@@ -207,14 +207,14 @@ fn load_single_module(module_name: String, base_dir: String, state: LoadState) {
     match source_result {
         Ok(source) => {
             // Lex
-            let tokens = lexer::tokenize(clone(source))
+            let tokens: Vec<Token> = lexer::tokenize(clone(source))
             // Parse
             let p = parser::Parser_new(tokens)
-            let mod_decls = parser::parse_module(p)
+            let mod_decls: Vec<AstNode> = parser::parse_module(p)
 
             // Record as loaded
             push(state.loaded_names, clone(module_name))
-            push(state.modules, ModuleDecls { name: clone(module_name), decls: clone(mod_decls) })
+            push(state.modules, ModuleDecls { name: clone(module_name), decls: mod_decls })
 
             // Recursively load imports from this module
             load_imported_modules(mod_decls, clone(base_dir), state)
@@ -238,7 +238,7 @@ fn load_single_module(module_name: String, base_dir: String, state: LoadState) {
 
 pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     // Phase 1: Lex
-    let tokens = lexer::tokenize(clone(source))
+    let tokens: Vec<Token> = lexer::tokenize(clone(source))
     let token_count = len(tokens)
 
     if config.dump_tokens {
@@ -267,7 +267,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
 
     // Phase 2: Parse
     let parser = parser::Parser_new(tokens)
-    let decls = parser::parse_module(parser)
+    let decls: Vec<AstNode> = parser::parse_module(parser)
 
     if config.dump_ast {
         stdio::eprintln(String_from("=== AST ==="))
@@ -332,8 +332,30 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         return result
     }
 
-    // Phase 4: Type check
-    let check_result = typechecker::typecheck_module(decls, resolve_ctx)
+    // Build combined declaration list: imported modules first, then main module.
+    // This allows MIR lowering to include all functions needed for cross-module calls.
+    let all_decls = Vec_new_AstNode()
+    let combined_mc = len(load_state.modules)
+    let mut combined_mi = 0
+    while combined_mi < combined_mc {
+        let combined_md = get_unchecked(load_state.modules, combined_mi)
+        let combined_dc = len(combined_md.decls)
+        let mut combined_dk = 0
+        while combined_dk < combined_dc {
+            push(all_decls, get_unchecked(combined_md.decls, combined_dk))
+            combined_dk = combined_dk + 1
+        }
+        combined_mi = combined_mi + 1
+    }
+    let main_dc = len(decls)
+    let mut main_dk = 0
+    while main_dk < main_dc {
+        push(all_decls, get_unchecked(decls, main_dk))
+        main_dk = main_dk + 1
+    }
+
+    // Phase 4: Type check (using combined declarations for cross-module type info)
+    let check_result = typechecker::typecheck_module(all_decls, resolve_ctx)
 
     if config.dump_hir {
         stdio::eprintln(String_from("=== TYPED HIR ==="))
@@ -348,8 +370,8 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         return CompileResult_ok(PHASE_TYPECHECK())
     }
 
-    // Phase 5: Lower to MIR
-    let mir_module = mir::lower_to_mir(decls, check_result)
+    // Phase 5: Lower to MIR (using combined declarations)
+    let mir_module = mir::lower_to_mir(all_decls, check_result)
 
     if config.dump_mir {
         stdio::eprintln(String_from("=== MIR ==="))

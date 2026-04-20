@@ -1209,7 +1209,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_u(w, s_la)
             emit_byte(w, 0x4e)  // i32.ge_s → 1 if loop completed, 0 if broke early
             emit_byte(w, 0x0b)  // end (if/else)
-        } else if eq(clone(callee), "concat") {
+        } else if eq(clone(callee), "concat") || eq(clone(callee), "text::concat") {
             // concat(a, b): allocate on heap, copy both strings using memory.copy
             // Stack: [ptr_a, ptr_b] (ptr_b on top)
             let s_a = ctx.scratch_base       // ptr_a
@@ -3326,6 +3326,66 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             
             emit_byte(w, OP_END()) // end if/else
             // enum_ptr is now on the stack as the call result
+        } else if eq(clone(callee), "fs::exists") {
+            // fs::exists(path: String) -> bool
+            // Stack: [path_ptr]
+            // Returns 1 (true) if file exists, 0 (false) otherwise.
+            // Uses path_open with read rights; errno=0 means file exists.
+            let s_ex = ctx.scratch_base + 2
+            // Save path_ptr
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_ex)
+            // path_open(dirfd=3, dirflags=0, path_ptr, path_len, oflags=0,
+            //           fs_rights_base=2(FD_READ), fs_rights_inheriting=0, fdflags=0, &SCRATCH_FS_FD)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 3)   // dirfd
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)   // dirflags
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ex)  // path_ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ex)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)  // path_len (from ptr-4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)   // oflags
+            emit_byte(w, OP_I64_CONST())
+            emit_leb128_s(w, 2)   // fs_rights_base = FD_READ
+            emit_byte(w, OP_I64_CONST())
+            emit_leb128_s(w, 0)   // fs_rights_inheriting
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)   // fdflags
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_FS_FD())  // &opened_fd
+            emit_byte(w, OP_CALL())
+            emit_leb128_u(w, 3)   // path_open = import 3
+            // errno == 0 means file exists
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_EQ())
+            emit_byte(w, OP_IF())
+            emit_byte(w, WASM_I32())  // result: i32
+            // File exists: close the fd and return 1
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_FS_FD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_CALL())
+            emit_leb128_u(w, 5)   // fd_close = import 5
+            emit_byte(w, OP_DROP())  // discard fd_close errno
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)   // true
+            emit_byte(w, OP_ELSE())
+            // File doesn't exist: return 0
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)   // false
+            emit_byte(w, OP_END())  // end if/else
+
         } else if eq(clone(callee), "fs::read_to_string") {
             // fs::read_to_string(path: String) -> Result<String, String>
             // Stack: [path_ptr]
@@ -4150,6 +4210,48 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_ADD())
             emit_byte(w, OP_GLOBAL_SET())
             emit_leb128_u(w, 0)
+
+        } else if eq(clone(callee), "env::get_var") {
+            // env::get_var(name: String) -> Option<String>
+            // Stub: same as env::var — always return None
+            emit_byte(w, OP_DROP())
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)   // tag = 1 (None)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)   // payload = 0
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+
+        } else if eq(clone(callee), "env::var_or_default") {
+            // env::var_or_default(name: String, default: String) -> String
+            // Stub: always return the default value (drop name, keep default)
+            // Stack top: [name_ptr, default_ptr] → drop name, push default
+            let tmp_default = ctx.scratch_base
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, tmp_default)
+            emit_byte(w, OP_DROP())          // drop name_ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, tmp_default)    // push default
 
         } else if eq(clone(callee), "f64_bits_lo") {
             // f64_bits_lo(val: f64) -> i32: low 32 bits of IEEE 754
@@ -5310,7 +5412,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_s(w, 4)
             emit_byte(w, OP_I32_ADD())
 
-        } else if eq(clone(callee), "slice") || eq(clone(callee), "substring") {
+        } else if eq(clone(callee), "slice") || eq(clone(callee), "substring") || eq(clone(callee), "text::slice_bytes") {
             // slice/substring(s, start, end): return substring [start..end)
             // Stack: [str_ptr, start, end]
             let s_sl_end = ctx.scratch_base
@@ -5393,7 +5495,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_s(w, 4)
             emit_byte(w, OP_I32_ADD())
 
-        } else if eq(clone(callee), "join") {
+        } else if eq(clone(callee), "join") || eq(clone(callee), "text::join") {
             // join(parts: Vec<String>, sep: String) -> String
             // Stack: [vec_ptr, sep_ptr]
             let s_sep = ctx.scratch_base
@@ -5587,7 +5689,76 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_s(w, 4)
             emit_byte(w, OP_I32_ADD())
 
-        } else if eq(clone(callee), "split") {
+        } else if eq(clone(callee), "text::chars") {
+            // text::chars(s) -> Vec<String> with 1 element (the whole string)
+            // Mirrors Rust __intrinsic_split(s, "") which returns [s] when sep is empty
+            // Stack: [src_ptr]
+            let s_ch_src = ctx.scratch_base
+            let s_ch_vec = ctx.scratch_base + 1
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_ch_src)
+            // Allocate vec: [len=1, cap=1, data_ptr=vec+12]
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_ch_vec)
+            // vec[0] = 1 (len)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ch_vec)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // vec[4] = 1 (cap)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ch_vec)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // vec[8] = vec+12 (data ptr)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ch_vec)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ch_vec)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 12)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // vec[12] = src_ptr (the one element)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ch_vec)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 12)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ch_src)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Bump heap by 16 (12 header + 4 for one pointer)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ch_vec)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 16)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // push vec ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ch_vec)
+
+        } else if eq(clone(callee), "split") || eq(clone(callee), "text::split") {
             // split(s, sep) -> Vec<String>: split string by separator
             // Stack: [str_ptr, sep_ptr]
             let s_sp_sep = ctx.scratch_base
@@ -6907,7 +7078,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_s(w, 0)
             emit_byte(w, OP_I32_NE())
 
-        } else if eq(clone(callee), "abs") || eq(clone(callee), "math::abs") {
+        } else if eq(clone(callee), "abs") || eq(clone(callee), "math::abs") || eq(clone(callee), "math::abs_i32") || eq(clone(callee), "abs_i32") {
             // abs(x) -> i32: if x < 0 then 0 - x else x
             let s0 = ctx.scratch_base + 0
             emit_byte(w, OP_LOCAL_TEE())
@@ -6927,7 +7098,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_u(w, s0)
             emit_byte(w, OP_END())
 
-        } else if eq(clone(callee), "min") || eq(clone(callee), "math::min") {
+        } else if eq(clone(callee), "min") || eq(clone(callee), "math::min") || eq(clone(callee), "math::min_i32") || eq(clone(callee), "min_i32") {
             // min(a, b) -> i32
             let s0 = ctx.scratch_base + 0
             let s1 = ctx.scratch_base + 1
@@ -6946,7 +7117,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_LE_S())
             emit_byte(w, OP_SELECT())
 
-        } else if eq(clone(callee), "max") || eq(clone(callee), "math::max") {
+        } else if eq(clone(callee), "max") || eq(clone(callee), "math::max") || eq(clone(callee), "math::max_i32") || eq(clone(callee), "max_i32") {
             // max(a, b) -> i32
             let s0 = ctx.scratch_base + 0
             let s1 = ctx.scratch_base + 1

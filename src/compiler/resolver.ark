@@ -442,7 +442,10 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Resolv
         } else if d.kind == NK_ENUM_DECL() {
             define_with_vis(ctx, clone(d.text), SYM_ENUM(), d.is_pub)
         } else if d.kind == NK_USE() {
-            define(ctx, clone(d.text), SYM_IMPORT())
+            let existing_use = lookup(ctx, clone(d.text))
+            if existing_use < 0 {
+                define(ctx, clone(d.text), SYM_IMPORT())
+            }
         }
         i = i + 1
     }
