@@ -2334,6 +2334,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             // Detect if scrutinee is Result<f64,...> or Option<f64>
             let scrut_type = ctx_get_local_type(ctx, scrut_idx)
             let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") || eq(clone(scrut_type), "Option_f64")
+            let scrut_ok_is_i64 = eq(clone(scrut_type), "Result_i64") || eq(clone(scrut_type), "Option_i64")
 
             // For payload enum match, extract the tag from the heap once
             let mut compare_idx = scrut_idx
@@ -2394,8 +2395,15 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                                     field_is_f64 = true
                                 }
                             }
+                            let mut field_is_i64 = false
+                            if !field_is_f64 && scrut_ok_is_i64 && bi == 0 {
+                                if eq(clone(variant_name), "Ok") || eq(clone(variant_name), "Result::Ok") || eq(clone(variant_name), "Some") || eq(clone(variant_name), "Option::Some") {
+                                    field_is_i64 = true
+                                }
+                            }
                             let mut bind_vt = VT_I32()
                             if field_is_f64 { bind_vt = VT_F64() }
+                            else if field_is_i64 { bind_vt = VT_I64() }
                             let bind_local = ctx_alloc_local(ctx, clone(bind_pat.text), bind_vt)
                             let get_s2 = MirInst_new(MIR_LOCAL_GET())
                             get_s2.arg0 = scrut_idx
@@ -2403,6 +2411,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                             let sget2 = MirInst_new(MIR_STRUCT_GET())
                             sget2.int_val = ctx_struct_field_offset(ctx, clone(variant_name), bi + 1)
                             if field_is_f64 { sget2.val_type = VT_F64() }
+                            else if field_is_i64 { sget2.val_type = VT_I64() }
                             ctx_emit(ctx, sget2)
                             let set_b = MirInst_new(MIR_LOCAL_SET())
                             set_b.arg0 = bind_local
@@ -2480,8 +2489,15 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                                         field_is_f64_2 = true
                                     }
                                 }
+                                let mut field_is_i64_2 = false
+                                if !field_is_f64_2 && scrut_ok_is_i64 && bi2 == 0 {
+                                    if eq(clone(variant_name2), "Ok") || eq(clone(variant_name2), "Result::Ok") || eq(clone(variant_name2), "Some") || eq(clone(variant_name2), "Option::Some") {
+                                        field_is_i64_2 = true
+                                    }
+                                }
                                 let mut bind_vt2 = VT_I32()
                                 if field_is_f64_2 { bind_vt2 = VT_F64() }
+                                else if field_is_i64_2 { bind_vt2 = VT_I64() }
                                 let bind_local2 = ctx_alloc_local(ctx, clone(bind_pat2.text), bind_vt2)
                                 let get_s3 = MirInst_new(MIR_LOCAL_GET())
                                 get_s3.arg0 = scrut_idx
@@ -2489,6 +2505,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                                 let sget3 = MirInst_new(MIR_STRUCT_GET())
                                 sget3.int_val = ctx_struct_field_offset(ctx, clone(variant_name2), bi2 + 1)
                                 if field_is_f64_2 { sget3.val_type = VT_F64() }
+                                else if field_is_i64_2 { sget3.val_type = VT_I64() }
                                 ctx_emit(ctx, sget3)
                                 let set_b2 = MirInst_new(MIR_LOCAL_SET())
                                 set_b2.arg0 = bind_local2
@@ -2966,6 +2983,8 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                         let ok_ty = get_unchecked(ta.children, 1)
                         if eq(clone(ok_ty.text), "f64") {
                             ctx_set_local_type(ctx, local_idx, String_from("Result_f64"))
+                        } else if eq(clone(ok_ty.text), "i64") {
+                            ctx_set_local_type(ctx, local_idx, String_from("Result_i64"))
                         }
                     }
                 } else if eq(clone(ta_name), "Option") {
@@ -2973,6 +2992,8 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                         let some_ty = get_unchecked(ta.children, 1)
                         if eq(clone(some_ty.text), "f64") {
                             ctx_set_local_type(ctx, local_idx, String_from("Option_f64"))
+                        } else if eq(clone(some_ty.text), "i64") {
+                            ctx_set_local_type(ctx, local_idx, String_from("Option_i64"))
                         }
                     }
                 }
