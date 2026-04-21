@@ -1,8 +1,25 @@
 # Stdlib JSON: parity と differential tests を round-trip corpus で拡張する
 
-**Status**: implementation-ready
+**Status**: done
 **Created**: 2026-04-18
-**Updated**: 2026-04-18
+**Updated**: 2026-04-22
+
+## Close note
+
+Closed by commit `feat(stdlib): add JSON round-trip parity and differential test corpus (#526)`.
+
+Added 5 new fixture files under `tests/fixtures/stdlib_json/`:
+- `json_rt_nested_object.ark` — nested object parse→stringify→re-parse round-trip
+- `json_rt_array.ark` — array round-trip
+- `json_rt_scalars.ark` — null, bool, 0, negative number, type predicate edge cases
+- `json_rt_string_escape.ark` — string escape encoding + golden differential check
+- `json_differential.ark` — mixed-type object differential against known-correct structure
+
+All 5 fixtures registered in `tests/fixtures/manifest.txt`.
+Normalization rules documented in `tests/fixtures/stdlib_json/NORMALIZATION.md`.
+
+Verification: `cargo test -p arukellt --test harness` — PASS: 750 FAIL: 31 (all FAILs pre-existing, none in stdlib_json new fixtures). No production `std/json/mod.ark` changes made.
+
 **ID**: 526
 **Depends on**: none
 **Track**: stdlib
