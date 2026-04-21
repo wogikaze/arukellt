@@ -56,6 +56,10 @@ impl EmitCtx {
                 let is_f32 = !is_f64 && (self.is_f32_operand(left) || self.is_f32_operand(right));
                 let is_i64 =
                     !is_f64 && !is_f32 && (self.is_i64_operand(left) || self.is_i64_operand(right));
+                let is_string = !is_f64
+                    && !is_f32
+                    && !is_i64
+                    && (self.is_string_operand(left) || self.is_string_operand(right));
                 if is_f64 {
                     // Promote both operands to f64 if needed
                     self.emit_f64_operand(f, left);
@@ -70,6 +74,22 @@ impl EmitCtx {
                     self.emit_i64_operand(f, left);
                     self.emit_i64_operand(f, right);
                     self.emit_binop_i64(f, op);
+                } else if is_string {
+                    // String equality/inequality: use byte-wise comparison
+                    self.emit_operand(f, left);
+                    self.emit_operand(f, right);
+                    match op {
+                        BinOp::Eq => {
+                            self.call_fn(f, FN_STR_EQ);
+                        }
+                        BinOp::Ne => {
+                            self.call_fn(f, FN_STR_EQ);
+                            f.instruction(&Instruction::I32Eqz);
+                        }
+                        _ => {
+                            self.emit_binop(f, op);
+                        }
+                    }
                 } else {
                     self.emit_operand(f, left);
                     self.emit_operand(f, right);
@@ -4077,7 +4097,22 @@ impl EmitCtx {
                     "HashMap_i32_i32_new" => {
                         self.call_fn(f, FN_HASHMAP_I32_NEW);
                     }
+                    "HashMap_new_String_i32"
+                    | "HashMap_new_i32_String"
+                    | "HashMap_new_String_String" => {
+                        // String-keyed HashMap uses the same i32 map structure
+                        // (string pointers are i32; interning makes equality correct)
+                        self.call_fn(f, FN_HASHMAP_I32_NEW);
+                    }
                     "HashMap_i32_i32_insert" => {
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
+                        self.call_fn(f, FN_HASHMAP_I32_INSERT);
+                    }
+                    "HashMap_String_i32_insert"
+                    | "HashMap_i32_String_insert"
+                    | "HashMap_String_String_insert" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
@@ -4089,13 +4124,37 @@ impl EmitCtx {
                         }
                         self.call_fn(f, FN_HASHMAP_I32_GET);
                     }
+                    "HashMap_String_i32_get"
+                    | "HashMap_i32_String_get"
+                    | "HashMap_String_String_get" => {
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
+                        self.call_fn(f, FN_HASHMAP_I32_GET);
+                    }
                     "HashMap_i32_i32_contains_key" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
                         self.call_fn(f, FN_HASHMAP_I32_CONTAINS);
                     }
+                    "HashMap_String_i32_contains_key"
+                    | "HashMap_i32_String_contains_key"
+                    | "HashMap_String_String_contains_key" => {
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
+                        self.call_fn(f, FN_HASHMAP_I32_CONTAINS);
+                    }
                     "HashMap_i32_i32_len" => {
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
+                        self.call_fn(f, FN_HASHMAP_I32_LEN);
+                    }
+                    "HashMap_String_i32_len"
+                    | "HashMap_i32_String_len"
+                    | "HashMap_String_String_len" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }

@@ -35,10 +35,6 @@ fn deprecated_std_import_replacement(module_name: &str) -> Option<(&'static str,
             "std::host::process",
             "host process control is no longer exposed as `std::process`",
         )),
-        "std::cli" => Some((
-            "std::host::env",
-            "CLI argument helpers now live in `std::host::env`",
-        )),
         _ => None,
     }
 }

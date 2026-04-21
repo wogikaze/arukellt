@@ -109,7 +109,10 @@ impl EmitCtx {
                     | "reverse_i32"
                     | "reverse_String"
                     | "remove_i32"
-                    | "HashMap_i32_i32_insert" => {
+                    | "HashMap_i32_i32_insert"
+                    | "HashMap_String_i32_insert"
+                    | "HashMap_i32_String_insert"
+                    | "HashMap_String_String_insert" => {
                         // Void Vec operations — emit inline via Operand::Call path
                         let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
@@ -188,6 +191,18 @@ impl EmitCtx {
                     | "HashMap_i32_i32_get"
                     | "HashMap_i32_i32_contains_key"
                     | "HashMap_i32_i32_len"
+                    | "HashMap_new_String_i32"
+                    | "HashMap_new_i32_String"
+                    | "HashMap_new_String_String"
+                    | "HashMap_String_i32_get"
+                    | "HashMap_String_i32_contains_key"
+                    | "HashMap_String_i32_len"
+                    | "HashMap_i32_String_get"
+                    | "HashMap_i32_String_contains_key"
+                    | "HashMap_i32_String_len"
+                    | "HashMap_String_String_get"
+                    | "HashMap_String_String_contains_key"
+                    | "HashMap_String_String_len"
                     | "contains_i32"
                     | "contains_String" => {
                         // Value-returning Vec operations called as statement — emit and drop result

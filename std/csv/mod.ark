@@ -58,12 +58,11 @@ pub fn csv_parse_row(line: String) -> Vec<String> {
             }
         }
         push(result, field)
-        if i > n { break }
         if i == n && n > 0 && char_at(line, n - 1) == 44 {
             // Trailing comma — add empty field
             push(result, "")
-            break
         }
+        if i >= n { break }
     }
     result
 }

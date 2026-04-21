@@ -558,6 +558,35 @@ impl Parser<'_> {
                 }
             }
             TokenKind::Pipe => self.parse_closure(start),
+            TokenKind::Fn => {
+                // Inline fn expression: fn(x: i32, y: i32) -> i32 { x + y }
+                // Parses as Closure to reuse existing closure lowering
+                self.advance(); // consume `fn`
+                self.expect(&TokenKind::LParen);
+                let mut params = Vec::new();
+                while *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
+                    let pstart = self.span();
+                    let name = self.expect_ident();
+                    let ty = if self.eat(&TokenKind::Colon) {
+                        Some(self.parse_type_expr())
+                    } else {
+                        None
+                    };
+                    params.push(ClosureParam { name, ty, span: pstart.merge(self.span()) });
+                    if !self.eat(&TokenKind::Comma) {
+                        break;
+                    }
+                }
+                self.expect(&TokenKind::RParen);
+                let return_type = if self.eat(&TokenKind::Arrow) {
+                    Some(self.parse_type_expr())
+                } else {
+                    None
+                };
+                let body = Expr::Block(self.parse_block());
+                let span = start.merge(body.span());
+                Expr::Closure { params, return_type, body: Box::new(body), span }
+            }
             TokenKind::PipePipe => {
                 // || closure (no params)
                 self.advance();

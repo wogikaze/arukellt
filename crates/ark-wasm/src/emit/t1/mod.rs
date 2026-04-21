@@ -294,6 +294,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         next_type_idx: 0,
         local_struct_names: std::collections::HashMap::new(),
         fn_map: Vec::new(),
+        string_intern_cache: std::collections::HashMap::new(),
     };
     ctx.emit_module(mir)
 }
@@ -356,6 +357,10 @@ struct EmitCtx {
     local_struct_names: std::collections::HashMap<u32, String>,
     /// Maps canonical function index (FN_*) to actual Wasm function index after DCE.
     fn_map: Vec<u32>,
+    /// Interning cache for length-prefixed strings: content -> data pointer.
+    /// Guarantees identical string literals share the same pointer, enabling
+    /// pointer-equality-based HashMap lookups for String keys.
+    string_intern_cache: std::collections::HashMap<String, u32>,
 }
 
 impl EmitCtx {
@@ -484,7 +489,12 @@ impl EmitCtx {
 
     /// Allocate a length-prefixed string in memory.
     /// Returns the pointer to the data (after the length prefix).
+    /// Identical strings share the same pointer (interning) so that String-keyed
+    /// HashMaps can use pointer equality for literal key lookup.
     pub(super) fn alloc_length_prefixed_string(&mut self, s: &str) -> u32 {
+        if let Some(&cached) = self.string_intern_cache.get(s) {
+            return cached;
+        }
         let bytes = s.as_bytes();
         let len = bytes.len() as u32;
         let offset = self.data_offset;
@@ -494,7 +504,9 @@ impl EmitCtx {
         // Write data
         self.string_literals.push((offset + 4, bytes.to_vec()));
         self.data_offset += 4 + len;
-        offset + 4 // pointer to data start
+        let ptr = offset + 4;
+        self.string_intern_cache.insert(s.to_string(), ptr);
+        ptr
     }
 
     /// Emit inline panic with a static message: write message to stderr, then unreachable.
@@ -734,7 +746,16 @@ impl EmitCtx {
             }
             match &block.terminator {
                 Terminator::Return(Some(op)) => {
-                    self.emit_operand(&mut f, op);
+                    // If the function has a non-void return type but the return
+                    // operand is Unit (e.g. unimplemented generic body), emit
+                    // `unreachable` to keep the WASM type stack valid.
+                    if matches!(op, Operand::Unit)
+                        && !matches!(func.return_ty, ark_typecheck::types::Type::Unit)
+                    {
+                        f.instruction(&Instruction::Unreachable);
+                    } else {
+                        self.emit_operand(&mut f, op);
+                    }
                 }
                 // T1 (wasm32-wasi-p1) has no native tail-call instructions.
                 // Emit TailCall as a regular call so the result sits on the
@@ -1068,6 +1089,7 @@ pub(super) fn collect_needed_fns(mir: &MirModule) -> std::collections::HashSet<u
     let mut needed = std::collections::HashSet::new();
     needed.insert(FN_FD_WRITE);
     needed.insert(FN_ENSURE_HEAP); // always needed — every allocation calls grow check
+    needed.insert(FN_STR_EQ); // always needed — string == / != is pervasive
     for func in &mir.functions {
         for block in &func.blocks {
             for stmt in &block.stmts {
@@ -1209,6 +1231,19 @@ fn cfn_visit_rvalue(
     }
 }
 
+fn cfn_operand_has_const_string(op: &Operand) -> bool {
+    match op {
+        Operand::ConstString(_) => true,
+        Operand::Call(name, _) => matches!(
+            normalize_intrinsic_name(name.as_str()),
+            "concat" | "slice" | "to_string" | "i32_to_string" | "bool_to_string"
+                | "i64_to_string" | "f64_to_string" | "join" | "trim" | "replace"
+                | "to_lower" | "to_upper" | "clone"
+        ),
+        _ => false,
+    }
+}
+
 fn cfn_visit_operand(
     op: &Operand,
     func: &MirFunction,
@@ -1223,7 +1258,14 @@ fn cfn_visit_operand(
                 cfn_visit_operand(arg, func, mir, needed);
             }
         }
-        Operand::BinOp(_, l, r) => {
+        Operand::BinOp(op, l, r) => {
+            // String equality/inequality requires FN_STR_EQ. We conservatively
+            // add it whenever Eq/Ne appears with any string-literal operand.
+            if matches!(op, BinOp::Eq | BinOp::Ne)
+                && (cfn_operand_has_const_string(l) || cfn_operand_has_const_string(r))
+            {
+                needed.insert(FN_STR_EQ);
+            }
             cfn_visit_operand(l, func, mir, needed);
             cfn_visit_operand(r, func, mir, needed);
         }
@@ -1419,9 +1461,11 @@ fn cfn_handle_builtin(
         }
         other
             if (other.contains("HashMap") || other.contains("hashmap"))
-                && other.ends_with("_new") =>
+                && (other.ends_with("_new") || other.starts_with("HashMap_new_")
+                    || other.starts_with("hashmap_new_")) =>
         {
             needed.insert(FN_HASHMAP_I32_NEW);
+            needed.insert(FN_ENSURE_HEAP);
         }
         other
             if (other.contains("HashMap") || other.contains("hashmap"))
