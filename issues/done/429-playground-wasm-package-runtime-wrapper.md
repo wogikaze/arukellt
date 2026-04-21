@@ -1,21 +1,27 @@
 
-## Reopened by audit
+## Closed
 
-- **Date**: 2026-04-21
-- **Reason**: TS wrapper exists but wraps a wasm module that was never compiled; worker.ts loads wasm dynamically but no binary exists
-- **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
-- **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
+- **Date**: 2026-04-22
+- **Commit**: TBD (to be filled after commit)
+- **Branch**: feat/429-wasm-package-wrapper
+- **Close note**: JS/TS wrapper verified to correctly load `docs/playground/wasm/ark_playground_wasm_bg.wasm`
+  (568 KB, committed in #379). The wrapper in `playground/src/worker.ts` derives the JS glue URL from
+  the wasm URL and calls `mod.default(wasmUrl)` to initialise the module, then exposes `parse`,
+  `format`, `tokenize`, `typecheck`, and `version` APIs. Main-thread path in `playground/src/playground.ts`
+  does the same. The compiled TypeScript output (`docs/playground/dist/`) was missing — `npm run build:app`
+  built and copied it (57 files). All 171 JS unit tests pass. The `index.html` correctly imports from
+  `./dist/playground-app.js` and loads wasm from `./wasm/ark_playground_wasm_bg.wasm`.
 
 # Playground: parser / formatter / diagnostics の Wasm package と JS wrapper を作る
 
-> **Status:** Implementation-ready
+> **Status:** done
 > **Track:** playground
 > **Type:** Implementation
 
 **Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 **Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Updated**: 2026-04-22
 **ID**: 429
 **Depends on**: 379
 **Track**: playground

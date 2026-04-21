@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T18:51:48Z",
+  "generated_at": "2026-04-21T19:17:29Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -451,28 +451,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "429",
-      "path": "429-playground-wasm-package-runtime-wrapper.md",
-      "title": "429-playground-wasm-package-runtime-wrapper",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
       }
     },
     {
