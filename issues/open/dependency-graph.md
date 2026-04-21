@@ -45,7 +45,6 @@ graph LR
   I520["520 Stdlib: allocation / complexity / perf footgun を family 横断で監査する"]
   I523["523 Stdlib TOML: parse failure と supported subset contract を定義する"]
   I524["524 Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する"]
-  I526["526 Stdlib JSON: parity と differential tests を round-trip corpus で拡張する"]
   I527["527 Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する"]
   I528["528 Stdlib collections/hash: property と differential tests を map / set invariant で拡張する"]
   I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
@@ -160,7 +159,6 @@ graph LR
 - **520** depends on: none; blocks: none
 - **523** depends on: none; blocks: none
 - **524** depends on: none; blocks: none
-- **526** depends on: none; blocks: none
 - **527** depends on: none; blocks: none
 - **528** depends on: none; blocks: none
 - **529** depends on: none; blocks: none

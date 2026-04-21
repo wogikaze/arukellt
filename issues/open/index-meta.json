@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T18:03:13Z",
+  "generated_at": "2026-04-21T19:14:14Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -918,28 +918,6 @@
       "title": "Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "526",
-      "path": "526-stdlib-json-parity-and-differential-tests.md",
-      "title": "Stdlib JSON: parity と differential tests を round-trip corpus で拡張する",
-      "track": "stdlib",
-      "status": "implementation-ready",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",

@@ -63,10 +63,10 @@ Verification: `cargo test -p arukellt --test harness` — PASS: 750 FAIL: 31 (al
 
 ## Acceptance
 
-- [ ] JSON round-trip parity corpus is defined for nested objects, arrays, and scalar edge cases
-- [ ] at least one differential test path compares Arukellt JSON behavior against a reference implementation or normalized golden corpus
-- [ ] the test corpus is wired into the repo’s existing harness or a thin Rust test module without changing production JSON behavior
-- [ ] normalization rules for ordering / formatting differences are documented alongside the corpus
+- [x] JSON round-trip parity corpus is defined for nested objects, arrays, and scalar edge cases
+- [x] at least one differential test path compares Arukellt JSON behavior against a reference implementation or normalized golden corpus
+- [x] the test corpus is wired into the repo’s existing harness or a thin Rust test module without changing production JSON behavior
+- [x] normalization rules for ordering / formatting differences are documented alongside the corpus
 
 ## Required verification
 
