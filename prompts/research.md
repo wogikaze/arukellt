@@ -30,6 +30,8 @@ canonical truth
 - `issues/done/` の全件
 - `issues/open/` の関連依存
 - docs
+  - チェックリストドキュメント（release-checklist.mdなど）
+  - user-visible claim を含むドキュメント
 - extension
 - CLI commands/help
 - workflow / deploy / pages / routes
@@ -47,6 +49,7 @@ canonical truth
 - `externally-routed-but-repo-proof-missing`
 - `acceptance-not-actually-met`
 - `future-work-missing-open-issue`
+- `checklist-item-not-tracked-as-issue`
 - `false-done-risk-high`
 - `must-reopen`
 
@@ -61,6 +64,22 @@ canonical truth
 - issue が done だが、本文に `not yet implemented`, `future work`, `deferred`, `out of scope for v1`, `planned later` が含まれ、その不足分を埋める open issue がない
 - issue close に必要な evidence を列挙できない
 - extension / docs / issue のどれかが existence claim を出しているが、repo 内で現物証拠がない
+
+チェックリスト項目のissue化ルール
+docs内のチェックリスト（release-checklist.mdなど）に記載された検証可能な項目は、個別のissueとしてトラックすべき。
+- チェックリスト項目が検証可能な主張を含む場合、対応するissueが存在するか確認する
+- 対応するissueが存在しない場合、新規issueを作成する
+- チェックリスト項目は1項目=1issueの原則に従う
+- チェックリスト項目が「CI」とマークされていても、手動検証が必要な項目はissueとしてトラックする
+- チェックリスト項目が「Manual」とマークされている場合、必ずissueとしてトラックする
+
+チェックリスト項目のissue化基準
+次の条件を満たすチェックリスト項目はissue化する：
+- 検証可能な主張を含む（例：「arukellt --version exits 0」）
+- repo内証拠で検証できる（例：binary、test、script）
+- user-visible claim を含む（例：CLIコマンド、extension機能）
+- 手動検証が必要（「Manual」マーク）
+- CI自動化されていない（「CI」マークでも実装されていない場合）
 
 future issue 作成の強制条件
 次のどれかを見つけたら、対応する open issue が既にない限り、新規 issue を作成する。
@@ -79,6 +98,7 @@ future issue 作成の強制条件
 - `TODO(issue-...)` で未解決
 - docs / ADR / README / extension comment に書かれた未実装機能
 - false-done を reopen した結果、新たに独立 follow-up が必要だと分かったもの
+- チェックリストドキュメント（release-checklist.mdなど）の検証可能な項目で、対応するissueが存在しないもの
 
 future issue 作成ルール
 - 1 future issue = 1 product claim または 1 implementation gap にする
@@ -99,9 +119,10 @@ future issue 作成ルール
 4. docs / extension / CLI / workflow がその主張を広げていないか
 5. build / script / route / page / command / workflow が実在するか
 6. test / fixture / verification が実在するか
-7. close 時に挙げられる証拠が repo 内で列挙できるか
+7. close 時に挙げられる証拠を repo 内で列挙できるか
 8. 本当に「done」なのか、それとも「部品のみ」なのか
 9. future work の記載に対応 open issue があるか
+10. チェックリストドキュメント（release-checklist.mdなど）の項目が個別のissueとしてトラックされているか
 
 reopen の実務ルール
 - `issues/done/<id>-<slug>.md` を `issues/open/<id>-<slug>.md` に移動する
@@ -181,7 +202,9 @@ mandatory post-wave procedure
 3. parent-owned residual diff を分類する
 4. orchestration-state diff を必要ならコミットする
 5. partial issue を再分類し、次 slice が切れるか判定する
-6. dispatch 可能な issue が 1 件でも残っていれば次 wave を起動する
+6. チェックリストドキュメント（release-checklist.mdなど）の項目が個別のissueとしてトラックされているか確認
+7. チェックリスト項目がトラックされていない場合、新規issueを作成する
+8. dispatch 可能な issue が 1 件でも残っていれば次 wave を起動する
 
 この手順の途中で、明示 blocker がない限り、ユーザー確認で停止してはならない。
 
@@ -228,6 +251,8 @@ human-escalation gate
 6. evidence table
 7. dependency updates
 8. remaining high-risk false-done items
+9. checklist items not tracked as issues
+10. newly-created checklist tracking issues
 
 各 reopened issue について必須で出すもの
 - ISSUE_ID
@@ -249,6 +274,7 @@ human-escalation gate
 - Acceptance
 - Required verification
 - Close gate
+- Checklist item source (if from checklist document)
 
 false-done 防止の再確認
 - 部品だけある
@@ -265,7 +291,8 @@ false-done 防止の再確認
 最終目的
 - `issues/done/` から false-done を除去する
 - 未実装なのに user-facing claim が出ている箇所を open issue に戻す
-- repo に書かれている future work / v1 非対応項目を open issue 化する
+- repo に書かれている future work / v1非対応項目を open issue 化する
+- チェックリストドキュメント（release-checklist.mdなど）の検証可能な項目を個別のissueとしてトラックする
 - done / open / docs / extension / CLI / workflow / deploy の状態を一致させる
 - 親は、dispatch 可能な issue が残っている限り、自律的に整理・反映・コミット・再分類・再dispatch を繰り返す。
 - 親は、残差分整理や state 同期を理由に停止しない。
@@ -276,4 +303,5 @@ false-done 防止の再確認
 - `issues/done/` の監査対象をすべて見た
 - false-done は reopen 済み
 - future work / v1非対応で issue 未作成のものは open issue 作成済み
+- チェックリストドキュメント（release-checklist.mdなど）の検証可能な項目はすべて個別のissueとしてトラックされている
 - 監査結果を summary と evidence 付きで報告した
