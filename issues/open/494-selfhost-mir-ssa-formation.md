@@ -87,7 +87,7 @@ Wave 3 extends the slice to an additional non-trivial join shape:
 
 ## Required verification
 
-- `bash scripts/run/verify-harness.sh --quick` passes
+- `python scripts/manager.py verify quick` passes
 
 ## Close gate
 

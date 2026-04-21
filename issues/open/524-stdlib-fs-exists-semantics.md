@@ -58,7 +58,7 @@
 ## Required verification
 
 - focused FS fixture run for the chosen contract
-- `bash scripts/run/verify-harness.sh --fixtures`
+- `python scripts/manager.py verify fixtures`
 - `python3 scripts/check/check-docs-consistency.py`
 
 ## Close gate

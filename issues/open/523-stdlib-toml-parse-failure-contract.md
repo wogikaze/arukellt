@@ -80,6 +80,6 @@ Focused verification from the completion report:
 - `python3 scripts/gen/generate-docs.py` — PASS (`generated docs are up to date`)
 
 This issue remains open because the issue-level required verification still
-includes `bash scripts/run/verify-harness.sh --fixtures`, and that command
+includes `python scripts/manager.py verify fixtures`, and that command
 reported unrelated pre-existing failures outside this slice. Do not close until
 the required verification contract is green or explicitly narrowed.

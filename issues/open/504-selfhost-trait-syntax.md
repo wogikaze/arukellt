@@ -113,8 +113,8 @@ Items **4–6** intentionally not re-verified in this slice (item 4 per STOP_IF;
 
 ## Required verification
 
-- `bash scripts/run/verify-harness.sh --quick` passes
-- `bash scripts/run/verify-harness.sh --cargo` passes
+- `python scripts/manager.py verify quick` passes
+- `python scripts/manager.py verify cargo` passes
 
 ## Close gate
 

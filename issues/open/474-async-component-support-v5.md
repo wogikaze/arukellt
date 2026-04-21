@@ -53,7 +53,7 @@ Scope:
 - [ ] Arukellt source can declare and call async functions
 - [ ] Async WIT function signatures are parsed and type-checked
 - [ ] An async WASI P2 function (e.g., `wasi:io/streams@0.2.0#write`) can be called
-- [ ] `bash scripts/run/verify-harness.sh` passes
+- [ ] `python scripts/manager.py verify` passes
 
 ## Required verification
 

@@ -73,7 +73,7 @@ toolchain (Rust + wasmtime). Separating the issue allows:
 - `tests/component-interop/jco/calculator/calculator.ark`
 - `tests/component-interop/jco/calculator/test.mjs`
 - `tests/component-interop/jco/calculator/run.sh`
-- `scripts/run/verify-harness.sh` — optional check 18
+- `python scripts/manager.py verify` — optional check 18
 - `docs/platform/wasm-features.md` — jco usage docs
 - `README.md` / `docs/contributing.md` — Node.js dependency note
 
@@ -114,7 +114,7 @@ String component interop is deferred to the canonical ABI implementation work.
 - ⚠️  `greet(String) -> String`: BLOCKED — canonical ABI string adapters not implemented.
 - ⚠️  `docs/platform/wasm-features.md` jco documentation: deferred (jco not usable).
 
-- The jco gate is **opt-in**. `scripts/run/verify-harness.sh` without `ARUKELLT_TEST_JCO=1`
+- The jco gate is **opt-in**. `python scripts/manager.py verify` without `ARUKELLT_TEST_JCO=1`
   must still exit 0 at 17/17 (the existing component gate from #035). The jco gate is
   check 18, separate from the core 17-point harness.
 - String crossing the component boundary (`greet`) is included to exercise the canonical

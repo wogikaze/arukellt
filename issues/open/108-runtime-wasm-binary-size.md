@@ -79,12 +79,12 @@ Closed as complete. Primary verification target (hello.wasm under 1KB) achieved 
 - T1 (wasm32-wasi-p1, opt-level 2): **534 bytes** (under 1KB)
 - T2/T3 (wasm32-wasi-p2, opt-level 2, GC): **918 bytes** (under 1KB)
 - `docs/process/wasm-size-reduction.md` updated with current metrics and section breakdown
-- `scripts/run/verify-harness.sh --size` tracks size baselines (perf gate partial)
+- `python scripts/manager.py verify size` tracks size baselines (perf gate partial)
 
 **Acceptance mapping:**
 - ✓ hello.wasm under 1KB at opt-level 2: MET (534 B T1, 918 B T2)
 - ✓ docs/process/wasm-size-reduction.md maintained: MET (updated 2026-04-18)
-- ~ verify-harness.sh perf gate with binary size check: PARTIAL (--size exists but --quick doesn't run it by default)
+- ~ manager.py verify size perf gate with binary size check: PARTIAL (verify size exists but verify quick doesn't run it by default)
 
 **Implementation notes:**
 - Primary goal (1KB target) achieved for both targets

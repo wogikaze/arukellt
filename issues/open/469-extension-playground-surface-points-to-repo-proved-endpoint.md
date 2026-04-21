@@ -35,7 +35,7 @@
 - `extensions/arukellt-all-in-one/package.json` restricts `arukellt.playgroundUrl` enum/default to the repo-proved URL.
 - `extensions/arukellt-all-in-one/src/extension.js` guards `openInPlayground` against non-allowed URLs.
 - `extensions/arukellt-all-in-one/README.md` now states only the repo-proved route is supported.
-- Verification in slice commit `0426b64`: `bash scripts/run/verify-harness.sh --quick` PASS, `npm --prefix extensions/arukellt-all-in-one run test:playground-endpoint` PASS.
+- Verification in slice commit `0426b64`: `python scripts/manager.py verify quick` PASS, `npm --prefix extensions/arukellt-all-in-one run test:playground-endpoint` PASS.
 
 **Action**: Move to `issues/done/` with status `done`.
 

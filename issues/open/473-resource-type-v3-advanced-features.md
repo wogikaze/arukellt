@@ -54,7 +54,7 @@ tracks the advanced resource features deferred to v3+:
 - [ ] Async resource drop emits correct WASM GC instructions
 - [ ] Cross-component resource handle forwarding works in a smoke test
 - [ ] Handle table GC releases unused handles (no leak after N allocations)
-- [ ] `bash scripts/run/verify-harness.sh` passes
+- [ ] `python scripts/manager.py verify` passes
 
 ## Required verification
 

@@ -287,7 +287,7 @@ Partial advancement for issue #123 (documentation-only slice):
 Verification for this slice (to be recorded by agent):
 
 - `python3 scripts/check/check-docs-consistency.py`
-- `bash scripts/run/verify-harness.sh --quick` (repo skill; recommended)
+- `python scripts/manager.py verify quick` (repo skill; recommended)
 
 ---
 

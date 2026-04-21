@@ -51,7 +51,7 @@ to a composition YAML spec. Arukellt v2 does not support this workflow. This iss
 - [ ] Two Arukellt-produced components are composed successfully and run with wasmtime
 - [ ] `docs/platform/wasm-features.md` documents the compose workflow
 - [ ] CI gate (optional/`ARUKELLT_TEST_COMPOSE=1`) runs the compose test
-- [ ] `bash scripts/run/verify-harness.sh` passes
+- [ ] `python scripts/manager.py verify` passes
 
 ## Required verification
 

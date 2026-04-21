@@ -68,7 +68,7 @@ higher-level, more user-friendly interface for component operations:
 - [ ] `arukellt component inspect <file.component.wasm>` prints the WIT world
 - [ ] `arukellt component validate <file.component.wasm>` exits 0 for a valid component
 - [ ] CLI reference docs updated with `component` subcommand
-- [ ] `bash scripts/run/verify-harness.sh` passes
+- [ ] `python scripts/manager.py verify` passes
 
 ## Required verification
 

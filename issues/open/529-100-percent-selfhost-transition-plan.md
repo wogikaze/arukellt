@@ -193,7 +193,7 @@ bash scripts/check/check-selfhost-parity.sh --diag
 #### 5-2. Update Scripts to Selfhost-First
 
 **Targets:**
-- `scripts/run/verify-harness.sh`
+- `python scripts/manager.py verify`
 - `.github/workflows/*.yml`
 
 **Changes:**
@@ -292,9 +292,9 @@ DAP involves runtime/debug info/stepping. Separate issue, lower priority than LS
 
 4. **Minimal verification**
    ```bash
-   bash scripts/run/verify-harness.sh --quick
-   bash scripts/run/verify-harness.sh --cargo
-   bash scripts/run/verify-harness.sh --fixtures
+   python scripts/manager.py verify quick
+   python scripts/manager.py verify cargo
+   python scripts/manager.py verify fixtures
    ```
 
 5. **Selfhost verification**

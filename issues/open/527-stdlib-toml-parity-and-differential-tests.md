@@ -52,7 +52,7 @@
 ## Required verification
 
 - focused TOML fixture or Rust test run for the new parity corpus
-- `bash scripts/run/verify-harness.sh --fixtures`
+- `python scripts/manager.py verify fixtures`
 - `bash scripts/gen/generate-issue-index.sh`
 
 ## Close gate

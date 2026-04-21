@@ -40,11 +40,11 @@ playground frontend, which is the prerequisite for closing #472.
 - [x] `crates/ark-playground-wasm/src/lib.rs` exports `pub fn typecheck(source: &str) -> String` backed by a real `ark-typecheck` call
 - [x] `playground/src/` calls the typecheck export and surfaces the result
 - [x] At least one native-target test exercises the typecheck WASM export
-- [x] `bash scripts/run/verify-harness.sh --quick` passes
+- [x] `python scripts/manager.py verify quick` passes
 
 ## Required verification
 
-- `bash scripts/run/verify-harness.sh --quick` passes
+- `python scripts/manager.py verify quick` passes
 - Native test exercising `ark_playground_wasm::typecheck()` passes
 
 ## Close gate

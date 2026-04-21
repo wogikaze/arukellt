@@ -223,7 +223,7 @@ The following crates are deleted after dual-period ends:
 ## 後方互換性
 
 - Rust コンパイラを削除するのは dual-period 終了後。本 issue では削除しない。
-- `verify-harness.sh --quick` に fixpoint check を追加しない（重いため full pass のみ）。
+- `manager.py verify quick` に fixpoint check を追加しない（重いため full pass のみ）。
 
 ---
 
@@ -242,13 +242,13 @@ The following crates are deleted after dual-period ends:
 - [x] `check-selfhost-diagnostic-parity.sh` が CI で pass する（最低 10 ケース以上）
 - [x] `docs/compiler/bootstrap.md` に dual-period 終了条件と retained crate 表が記載されている
 - [x] `docs/current-state.md` の selfhost セクションが Stage 2 達成を反映している
-- [x] `bash scripts/run/verify-harness.sh` が全 pass する
+- [x] `python scripts/manager.py verify` が全 pass する
 
 ---
 
 ## 必要なテスト
 
-1. CI: `check-selfhost-fixpoint.sh` を `verify-harness.sh` full pass に統合
+1. CI: `check-selfhost-fixpoint.sh` を `manager.py verify` full pass に統合
 2. CI: `check-selfhost-fixture-parity.sh` を full pass に統合
 3. CI: `check-selfhost-diagnostic-parity.sh` を full pass に統合
 4. 手動: `s1` と `s2` の wasm-diff で実際の差異がゼロであることを目視確認

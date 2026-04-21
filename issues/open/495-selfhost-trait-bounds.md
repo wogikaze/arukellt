@@ -40,7 +40,7 @@ compiler.
 
 ## Required verification
 
-- `bash scripts/run/verify-harness.sh --quick` passes
+- `python scripts/manager.py verify quick` passes
 
 ## Close gate
 

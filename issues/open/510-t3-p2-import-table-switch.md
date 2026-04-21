@@ -80,7 +80,7 @@ RuntimeModel::T3WasmGcP2 if wasi_version == WasiVersion::P2 => {
 3. A fixture compiled with `--target wasm32-wasi-p2 --wasi-version p2` and
    `--emit component` passes `wasm-tools validate` without errors.
 4. Binary size is ≥ 80 KB smaller than the P1-adapter variant.
-5. `bash scripts/run/verify-harness.sh` passes.
+5. `python scripts/manager.py verify` passes.
 
 ## What was done in issue 074 (parent)
 

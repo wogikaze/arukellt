@@ -35,15 +35,15 @@ Only fixture parity is verified in CI. This issue tracks adding the missing CI g
 - [ ] CI job runs selfhost CLI parity check on every PR
 - [ ] CI job runs selfhost diagnostic parity check on every PR
 - [ ] Both jobs are merge-blocking
-- [ ] verify-harness.sh includes both checks
+- [ ] manager.py verify includes both checks
 
 ## Required verification
 
 ```bash
 # CI config has parity jobs
 grep -q 'cli.*parity\|diagnostic.*parity' .github/workflows/ci.yml
-# verify-harness includes checks
-bash scripts/run/verify-harness.sh
+# manager.py verify includes checks
+python scripts/manager.py verify
 ```
 
 ## Close gate
