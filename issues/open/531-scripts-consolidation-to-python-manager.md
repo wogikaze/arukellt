@@ -1,10 +1,10 @@
 # Scripts Consolidation Epic: Python CLI Refactoring
 
-> **Status:** Implementation-ready (Epic)
+> **Status:** Phase 1 complete (Epic in progress)
 > **Track:** tooling
 > **Type:** Epic
 > **Blocks:** none
-> **Acceptance:** 0 checked / 5 open
+> **Acceptance:** 9 checked / 0 open
 
 ## Why this must exist
 
@@ -47,12 +47,12 @@ python scripts/manager.py verify component
 **Note:** `verify docs` is **not** included in Phase 1. Current `verify-harness.sh --docs` calls check-docs-*.py directly; this behavior remains unchanged in Phase 1. Docs will become a separate top-level domain in Issue #534.
 
 **Exit conditions for Phase 1:**
-- [ ] `scripts/lib/` created with truly generic utilities (subprocess helpers, file ops)
-- [ ] `scripts/verify/` created with verify-specific logic (harness integration, fixture loading)
-- [ ] `scripts/manager.py verify` subcommands pass behavioral contract tests
-- [ ] CI updated to use `python scripts/manager.py verify` where applicable
-- [ ] Shell scripts for verify kept as thin wrappers (forward to manager.py)
-- [ ] Documentation updated for verify commands only
+- [x] `scripts/lib/` created with truly generic utilities (subprocess helpers, file ops)
+- [x] `scripts/verify/` created with verify-specific logic (harness integration, fixture loading)
+- [x] `scripts/manager.py verify` subcommands pass behavioral contract tests
+- [x] CI updated to use `python scripts/manager.py verify` where applicable
+- [x] Shell scripts for verify kept as thin wrappers (forward to manager.py)
+- [x] Documentation updated for verify commands only
 
 **Follow-up issues (to be created after Phase 1):**
 - Issue #533: Selfhost domain migration
@@ -118,16 +118,16 @@ exec python3 scripts/manager.py verify "$@"
 
 ## Acceptance Criteria (Phase 1)
 
-- [ ] Shared library (`scripts/lib/`) created and tested
-- [ ] Verify domain library (`scripts/verify/`) created and tested
-- [ ] `manager.py verify quick` passes behavioral contract test
-- [ ] `manager.py verify fixtures` passes behavioral contract test
-- [ ] `manager.py verify size` passes behavioral contract test
-- [ ] `manager.py verify wat` passes behavioral contract test
-- [ ] `manager.py verify component` passes behavioral contract test
-- [ ] CI workflows using verify updated to call manager.py (dual-run period)
-- [ ] verify-harness.sh converted to thin wrapper (forwarding to manager.py)
-- [ ] Documentation updated for verify commands
+- [x] Shared library (`scripts/lib/`) created and tested
+- [x] Verify domain library (`scripts/verify/`) created and tested
+- [x] `manager.py verify quick` passes behavioral contract test
+- [x] `manager.py verify fixtures` passes behavioral contract test
+- [x] `manager.py verify size` passes behavioral contract test
+- [x] `manager.py verify wat` passes behavioral contract test
+- [x] `manager.py verify component` passes behavioral contract test
+- [x] CI workflows using verify updated to call manager.py (dual-run period)
+- [x] verify-harness.sh converted to thin wrapper (forwarding to manager.py)
+- [x] Documentation updated for verify commands
 
 **Behavioral contract test definition:**
 - Exit code matches shell script on success/failure (exact match required)
