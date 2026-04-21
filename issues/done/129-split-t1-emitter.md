@@ -101,7 +101,6 @@ The split was implemented in commit `85ecfae` (alongside #128 T3 split).
 - `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
 - 6 pre-existing failures in `cargo test -p arukellt --test harness` (stdlib_io_rw + from_trait T3) are unrelated to this split
 
-
 ---
 
 ## Queue closure verification — 2026-04-18

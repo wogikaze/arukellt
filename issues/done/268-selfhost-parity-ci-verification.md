@@ -10,7 +10,6 @@
 **Orchestration upstream**: —
 **Blocks v3**: yes
 
-
 ## Reopened by audit — 2026-04-13
 
 **Reason**: Parity non-blocking and tolerant.

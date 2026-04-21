@@ -80,6 +80,7 @@ keeps the representation ambiguous for later analyses.
 ## Alternatives considered
 
 ### A. Keep structured MIR as the primary representation and infer CFG only in
+
 the SSA pass
 
 Rejected. This pushes the same graph reconstruction problem into #494 and

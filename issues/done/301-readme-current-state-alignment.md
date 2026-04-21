@@ -11,7 +11,6 @@
 
 ---
 
-
 ## Reopened by audit — 2026-04-13
 
 **Reason**: README/current-state fixture counts differ.

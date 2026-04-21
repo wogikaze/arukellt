@@ -73,7 +73,6 @@ the standalone trend inspection surface (`--mode trend`).
 - `scripts/compare-benchmarks.sh`
 - `scripts/update-perf-baselines.sh`
 
-
 **Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:

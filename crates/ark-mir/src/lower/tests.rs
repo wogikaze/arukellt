@@ -471,9 +471,8 @@ fn lower_try_expr_removes_tryexpr_from_return_terminator() {
         is_backend_legal_module(&module),
         "TryExpr in return terminator must desugar to backend-legal MIR"
     );
-    validate_backend_legal_module(&module).expect(
-        "validate_backend_legal_module after lowering Return(TryExpr)",
-    );
+    validate_backend_legal_module(&module)
+        .expect("validate_backend_legal_module after lowering Return(TryExpr)");
 }
 
 #[test]
@@ -562,9 +561,8 @@ fn lower_combined_if_loop_try_produces_legal_module() {
         is_backend_legal_module(&module),
         "combined if+loop+try lowering must produce backend-legal module"
     );
-    validate_backend_legal_module(&module).expect(
-        "validate_backend_legal_module after lower_backend_illegal_operands",
-    );
+    validate_backend_legal_module(&module)
+        .expect("validate_backend_legal_module after lower_backend_illegal_operands");
 }
 
 /// `TryExpr` wraps its inner operand, so an `IfExpr` (or `LoopExpr`) inside `?` is not visible to

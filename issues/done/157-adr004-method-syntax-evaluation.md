@@ -52,7 +52,6 @@
 - `docs/adr/ADR-004-trait-strategy.md`
 - `issues/done/001-v0-syntax-canonical-surface.md`
 
-
 ---
 
 ## Queue closure verification — 2026-04-18

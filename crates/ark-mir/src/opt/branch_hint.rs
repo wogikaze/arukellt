@@ -35,10 +35,7 @@ fn stmt_may_be_panic(stmt: &MirStmt) -> bool {
             then_body,
             else_body,
             ..
-        } => {
-            stmts_look_like_panic_path(then_body)
-                || stmts_look_like_panic_path(else_body)
-        }
+        } => stmts_look_like_panic_path(then_body) || stmts_look_like_panic_path(else_body),
         MirStmt::WhileStmt { body, .. } => stmts_look_like_panic_path(body),
         MirStmt::Return(Some(op)) => operand_calls_panic(op),
         _ => false,

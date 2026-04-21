@@ -47,7 +47,6 @@ GC ヒープ割り当てなしで `anyref` / `eqref` として扱えるように
 - `docs/spec/spec-3.0.0/proposals/gc/MVP.md` §i31
 - `docs/spec/spec-3.0.0/OVERVIEW.md` §GC詳細
 
-
 ---
 
 ## Queue closure verification — 2026-04-18

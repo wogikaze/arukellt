@@ -11,7 +11,6 @@
 **Blocks v1 exit**: no
 **Priority**: 3
 
-
 ## Reopened by audit — 2026-04-13
 
 **Reason**: CoreHIR TryExpr still backend-illegal.
@@ -43,7 +42,6 @@
 - `crates/ark-mir/src/lower/mod.rs`
 - `crates/ark-mir/src/lower/func.rs`
 - `crates/ark-mir/src/mir.rs`
-
 
 ---
 

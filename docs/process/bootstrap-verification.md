@@ -6,7 +6,9 @@ and fixpoint gate.  The executable contract lives in
 [`docs/compiler/bootstrap.md`](../compiler/bootstrap.md).
 
 **Tracking:** scaffold and naming contract for issue
-#154 (`issues/open/154-bootstrap-verification-scaffold.md`); roadmap alignment:
+
+## 154 (`issues/open/154-bootstrap-verification-scaffold.md`); roadmap alignment
+
 `docs/process/roadmap-cross-cutting.md` §6.5, `docs/process/roadmap-v5.md`.
 
 ## Goal

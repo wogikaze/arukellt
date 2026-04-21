@@ -10,7 +10,6 @@
 
 **Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
 
-
 ## Reopened by audit
 
 - **Date**: 2026-04-21

@@ -12,7 +12,6 @@
 
 ---
 
-
 ## Reopened by audit — 2026-04-13
 
 **Reason**: Completion not achieved.
@@ -60,7 +59,6 @@
 - `docs/migration/v4-to-v5.md`
 - `scripts/run/verify-bootstrap.sh`
 - `issues/open/253-selfhost-completion-criteria.md`
-
 
 ---
 

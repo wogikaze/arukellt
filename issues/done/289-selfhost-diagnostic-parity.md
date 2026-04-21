@@ -11,7 +11,6 @@
 **Blocks v1 exit**: no
 **Priority**: 9
 
-
 ## Completion — 2026-04-15
 
 Parity verification re-run against current `.build/selfhost/arukellt-s1.wasm` (377 kB)
@@ -47,7 +46,6 @@ stdlib_cli/stdlib_csv/stdlib_hashmap are unrelated to diagnostic parity.
 - `docs/compiler/bootstrap.md`
 - `src/compiler/driver.ark`
 - `crates/ark-diagnostics/`
-
 
 ---
 

@@ -41,7 +41,7 @@ let parsed = json_parse_i32("42")    // 42
 
 JSON parser/serializer for std::json.
 
-#### Value representation
+### Value representation
 
 `JsonValue` is a tagged struct.  Array and Object variants store their
 raw JSON text to avoid recursive type constraints (STOP_IF: use

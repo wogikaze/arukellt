@@ -48,7 +48,6 @@ T3 emitter で活用する。現在は `array.new_data` で passive data segment
 
 - `docs/spec/spec-1.0.0/proposals/bulk-memory-operations/Overview.md`
 
-
 ---
 
 ## Queue closure verification — 2026-04-18

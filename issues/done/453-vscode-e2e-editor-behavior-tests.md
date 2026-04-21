@@ -340,7 +340,6 @@ suite("Diagnostics (#452)", () => {
 - `fixtures/basic.ark` のコードは実際に `arukellt check` がエラーなしで通るコードにする。事前に CLI でチェックを通してから fixture として追加すること。
 - line/column の 0-indexed と 1-indexed の混在に注意する。VS Code の `Position` は 0-indexed。
 
-
 ---
 
 ## Queue closure verification — 2026-04-18

@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 8
 
-
 ## Reopened by audit — 2026-04-13
 
 **Reason**: Wrong generator path in checker.

@@ -45,6 +45,7 @@ One focused commit per completed slice; no drive-by refactors outside PRIMARY_PA
 - Verification cannot be run locally as specified  
 
 **Output format:**  
+
 ```text
 Issue worked: <ISSUE_ID>
 Acceptance slice: <SUBTASK>

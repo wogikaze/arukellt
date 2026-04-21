@@ -1236,9 +1236,19 @@ fn cfn_operand_has_const_string(op: &Operand) -> bool {
         Operand::ConstString(_) => true,
         Operand::Call(name, _) => matches!(
             normalize_intrinsic_name(name.as_str()),
-            "concat" | "slice" | "to_string" | "i32_to_string" | "bool_to_string"
-                | "i64_to_string" | "f64_to_string" | "join" | "trim" | "replace"
-                | "to_lower" | "to_upper" | "clone"
+            "concat"
+                | "slice"
+                | "to_string"
+                | "i32_to_string"
+                | "bool_to_string"
+                | "i64_to_string"
+                | "f64_to_string"
+                | "join"
+                | "trim"
+                | "replace"
+                | "to_lower"
+                | "to_upper"
+                | "clone"
         ),
         _ => false,
     }
@@ -1461,7 +1471,8 @@ fn cfn_handle_builtin(
         }
         other
             if (other.contains("HashMap") || other.contains("hashmap"))
-                && (other.ends_with("_new") || other.starts_with("HashMap_new_")
+                && (other.ends_with("_new")
+                    || other.starts_with("HashMap_new_")
                     || other.starts_with("hashmap_new_")) =>
         {
             needed.insert(FN_HASHMAP_I32_NEW);

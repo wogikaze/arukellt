@@ -37,11 +37,13 @@ strategy" for the full analysis. Summary:
 `MirStmt::IfStmt` at `opt_level >= 1`:
 
 1. **Detect "linear enum switch" pattern** — a chain of:
+
    ```
    IfStmt { cond: BinOp(Eq, EnumTag(Place(local_x)), ConstI32(k_0)), ... }
    else [IfStmt { cond: BinOp(Eq, EnumTag(Place(local_x)), ConstI32(k_1)), ... }]
    else [... last arm has no EnumTag condition]
    ```
+
    where all `EnumTag` args refer to the **same local** `local_x` and n ≥ 3.
 
 2. **Emit tag once**: `EnumTag(Place(local_x))` → `si(9)` (or a dedicated

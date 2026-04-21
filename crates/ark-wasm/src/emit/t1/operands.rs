@@ -3492,18 +3492,18 @@ impl EmitCtx {
                         // Grow memory if needed: (global[0] + byte_count + 65535) / 65536 + 1 > memory.size
                         // pages_needed = (buf_start + byte_count + 65535) >> 16 + 1
                         f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
-                        f.instruction(&Instruction::I32Load(ma));  // buf_start
+                        f.instruction(&Instruction::I32Load(ma)); // buf_start
                         f.instruction(&Instruction::I32Const((FS_SCRATCH + 24) as i32));
-                        f.instruction(&Instruction::I32Load(ma));  // byte_count
+                        f.instruction(&Instruction::I32Load(ma)); // byte_count
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Const(65535));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Const(16));
                         f.instruction(&Instruction::I32ShrU);
                         f.instruction(&Instruction::I32Const(1));
-                        f.instruction(&Instruction::I32Add);       // pages_needed
+                        f.instruction(&Instruction::I32Add); // pages_needed
                         f.instruction(&Instruction::MemorySize(0));
-                        f.instruction(&Instruction::I32GtU);       // pages_needed > memory.size
+                        f.instruction(&Instruction::I32GtU); // pages_needed > memory.size
                         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
                         {
                             // memory.grow(pages_needed - memory.size)
@@ -3517,9 +3517,9 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(16));
                             f.instruction(&Instruction::I32ShrU);
                             f.instruction(&Instruction::I32Const(1));
-                            f.instruction(&Instruction::I32Add);   // pages_needed
+                            f.instruction(&Instruction::I32Add); // pages_needed
                             f.instruction(&Instruction::MemorySize(0));
-                            f.instruction(&Instruction::I32Sub);   // pages_to_grow
+                            f.instruction(&Instruction::I32Sub); // pages_to_grow
                             f.instruction(&Instruction::MemoryGrow(0));
                             f.instruction(&Instruction::Drop);
                         }

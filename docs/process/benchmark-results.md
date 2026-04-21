@@ -161,4 +161,3 @@ Guest execution time = median total − startup overhead.
 | vec_ops | 11.281 | 0.263 | 11.544 | 11.775 | 11.809 | 0.208 |
 | string_concat | 11.281 | 0.935 | 12.216 | 13.038 | 13.097 | 1.014 |
 | parse_tree_distance | 11.281 | 34.166 | 45.447 | 47.485 | 47.805 | 1.503 |
-

@@ -11,14 +11,14 @@ pub(crate) use builders::{
     finalize_lowered_module, infer_fn_id, push_function, type_to_sig_name,
 };
 
+mod control_flow;
 mod expr;
 mod facade;
 mod func;
 mod pattern;
-mod control_flow;
 mod stmt;
-mod types;
 mod type_helpers;
+mod types;
 
 pub use facade::*;
 

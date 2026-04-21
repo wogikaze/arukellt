@@ -109,7 +109,6 @@ pub fn copy(src: Path, dst: Path) -> Result<(), Error>
 1. temp ファイル/ディレクトリ API を v3 に入れるか
 2. file watcher / notify を v3 スコープに含めるか (v4 送り推奨)
 
-
 ---
 
 ## Queue closure verification — 2026-04-18

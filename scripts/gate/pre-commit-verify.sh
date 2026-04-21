@@ -32,7 +32,7 @@ fi
 banner "markdownlint"
 if command -v npx >/dev/null 2>&1; then
   if npx --yes markdownlint-cli2 '**/*.md' --config .markdownlint.json \
-       --ignore node_modules --ignore target; then
+       --ignore '**/node_modules/**' --ignore 'target/**'; then
     step "OK"
   else
     echo "FAIL: markdownlint found issues. Run 'mise run fmt:docs' to auto-fix." >&2

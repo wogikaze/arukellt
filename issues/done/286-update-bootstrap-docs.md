@@ -30,7 +30,6 @@
 - dual-period 継続条件が残っており、selfhost 完了を主張していないことを確認。
 - 追加の文面修正は不要と判定。
 
-
 ---
 
 ## Queue closure verification — 2026-04-18

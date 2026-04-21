@@ -29,7 +29,9 @@ criteria are historical; the **2026-04-18** lines there summarize present behavi
 ## Parent note — 2026-04-15
 
 Child [#028b](../done/028b-wit-import-pipeline-wiring.md) tracked the wiring slice; it is **done**.
-#028 remains the parent acceptance umbrella; closure is evidenced by the 2026-04-18 pipeline
+
+## 028 remains the parent acceptance umbrella; closure is evidenced by the 2026-04-18 pipeline
+
 audit table and the updated acceptance notes.
 
 ## Pipeline audit — 2026-04-18
@@ -125,7 +127,6 @@ compilation, and rejects unsupported `flags` types with a structured diagnostic.
 
 **2026-04-18:** Repo audit (table above) confirms the CLI → `Session.wit_files` → resolve/type-check
 → `MirModule.imports` path matches corrected acceptance; line anchors are approximate (`~L…`).
-
 
 ---
 

@@ -30,6 +30,7 @@ All acceptance criteria implemented and verified.
 ## 実装内容
 
 ### `scripts/util/benchmark_runner.py`
+
 - `WASM_SECTION_ID_NAMES` 定数追加（section id 0–12 のマッピング）
 - `_read_uleb128` — 純 Python LEB128 デコーダ（外部ツール不要）
 - `parse_wasm_sections` — Wasm binary をパースしてセクションごとのペイロードサイズを返す
@@ -41,9 +42,11 @@ All acceptance criteria implemented and verified.
 - `render_markdown` に **Wasm Section Breakdown** テーブルと **Wasm Section Δ vs Baseline** テーブルを追加
 
 ### `benchmarks/schema.json`
+
 - `compile_metrics.wasm_sections` オブジェクト定義を追加（type/import/function/code/data/export/custom_total/symbol_attribution/error）
 
 ### `benchmarks/README.md`
+
 - `## Wasm Section Breakdown` セクション追加（フィールド説明、`wasm-objdump` 手動確認方法）
 - Optional Tools に `wasm-objdump` を追加
 - 概念フィールドリファレンスに `wasm_section_code_bytes` / `wasm_section_data_bytes` を追加

@@ -45,7 +45,7 @@ renaming are still outstanding.
 Wave 2 landed commit `4a3eee2aa6b4106c16c26371a3bde2db1ccd8ba5`, which added:
 
 - a focused simple-join phi insertion helper using the existing predecessor /
-	dominance metadata
+ dominance metadata
 - a dedicated smoke fixture for diamond-CFG phi insertion
 
 This issue remains open because full SSA renaming and broader pipeline-wide SSA

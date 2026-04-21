@@ -25,22 +25,15 @@ fn workspace_root() -> std::path::PathBuf {
         .to_path_buf()
 }
 
-    fn component_cli_available() -> bool {
-        Command::new("wasm-tools")
-        .arg("--version")
-        .output()
-        .is_ok()
-    }
+fn component_cli_available() -> bool {
+    Command::new("wasm-tools").arg("--version").output().is_ok()
+}
 
 fn write_wit_import_fixture(dir: &tempfile::TempDir) -> (std::path::PathBuf, std::path::PathBuf) {
     let ark_file = dir.path().join("host_import.ark");
     let wit_file = dir.path().join("host.wit");
 
-    std::fs::write(
-        &ark_file,
-        "fn main() {\n    add(1, 2)\n}\n",
-    )
-    .unwrap();
+    std::fs::write(&ark_file, "fn main() {\n    add(1, 2)\n}\n").unwrap();
     std::fs::write(
         &wit_file,
         "package test:host;\n\ninterface host-fns {\n    add: func(a: s32, b: s32) -> s32;\n}\n",
@@ -59,7 +52,10 @@ fn component_help_shows_subcommands() {
         .expect("arukellt component --help failed to spawn");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(output.status.success(), "arukellt component --help should succeed");
+    assert!(
+        output.status.success(),
+        "arukellt component --help should succeed"
+    );
     assert!(
         stdout.contains("build"),
         "component --help should list the build subcommand\nstdout: {stdout}"
@@ -85,7 +81,14 @@ fn compile_component_accepts_wit_import_calls() {
     let (ark_file, wit_file) = write_wit_import_fixture(&dir);
 
     let output = Command::new(arukellt_bin())
-        .args(["compile", "--target", "wasm32-wasi-p2", "--emit", "component", "--wit"])
+        .args([
+            "compile",
+            "--target",
+            "wasm32-wasi-p2",
+            "--emit",
+            "component",
+            "--wit",
+        ])
         .arg(&wit_file)
         .arg(&ark_file)
         .current_dir(workspace_root())
@@ -116,7 +119,14 @@ fn emit_all_preserves_wit_imports_for_component_output() {
     let (ark_file, wit_file) = write_wit_import_fixture(&dir);
 
     let output = Command::new(arukellt_bin())
-        .args(["compile", "--target", "wasm32-wasi-p2", "--emit", "all", "--wit"])
+        .args([
+            "compile",
+            "--target",
+            "wasm32-wasi-p2",
+            "--emit",
+            "all",
+            "--wit",
+        ])
         .arg(&wit_file)
         .arg(&ark_file)
         .current_dir(workspace_root())

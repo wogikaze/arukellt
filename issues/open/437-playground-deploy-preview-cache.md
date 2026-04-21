@@ -11,7 +11,6 @@
 
 **Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
-
 ## Completed — 2026-04-15
 
 **Closed by**: impl-playground agent
@@ -57,13 +56,13 @@ playground の frontend と Wasm assets をどこに配置し、preview 環境�
 ## Acceptance
 
 - [x] deploy 手順または workflow が追加される。
-      _Evidence: `.github/workflows/pages.yml` — builds playground JS and deploys docs site to GitHub Pages on push to master._
+      *Evidence: `.github/workflows/pages.yml` — builds playground JS and deploys docs site to GitHub Pages on push to master.*
 - [x] preview 環境または preview 手順が定義される。
-      _Evidence: `docs/playground/deployment-strategy.md` §5.2 — local dev preview procedure documents `npm run build:app` + `python3 -m http.server` workflow._
+      *Evidence: `docs/playground/deployment-strategy.md` §5.2 — local dev preview procedure documents `npm run build:app` + `python3 -m http.server` workflow.*
 - [x] asset versioning / cache busting が実装される。
-      _Evidence: `scripts/gen/stamp-playground-assets.sh` — content-hashes Wasm binary, writes `asset-manifest.json`; `docs/playground/index.html` reads manifest to load hashed Wasm URL. Called from `playground/package.json` `build:app`._
+      *Evidence: `scripts/gen/stamp-playground-assets.sh` — content-hashes Wasm binary, writes `asset-manifest.json`; `docs/playground/index.html` reads manifest to load hashed Wasm URL. Called from `playground/package.json` `build:app`.*
 - [x] 最低限の smoke test がある。
-      _Evidence: `.github/workflows/playground-ci.yml` runs full `npm run build:app` in both size-gate jobs on every PR touching playground paths._
+      *Evidence: `.github/workflows/playground-ci.yml` runs full `npm run build:app` in both size-gate jobs on every PR touching playground paths.*
 
 ## References
 

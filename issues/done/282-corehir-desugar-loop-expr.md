@@ -11,7 +11,6 @@
 **Blocks v1 exit**: no
 **Priority**: 2
 
-
 ## Reopened by audit — 2026-04-13
 
 **Reason**: CoreHIR LoopExpr still backend-illegal.
@@ -39,7 +38,6 @@
 - `crates/ark-mir/src/lower/mod.rs`
 - `crates/ark-mir/src/lower/func.rs` (legacy の loop lowering)
 - `crates/ark-mir/src/mir.rs`
-
 
 ---
 

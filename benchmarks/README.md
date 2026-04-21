@@ -360,6 +360,7 @@ the *expected* performance floor for CI regression checks.
   `--mode quick` when deciding to update
 
 **Procedure**:
+
 ```bash
 mise bench:update-baseline  # runs full benchmark pass, then writes new baseline
 git add tests/baselines/perf/baselines.json
@@ -384,8 +385,8 @@ The JSON output lands in `benchmarks/results/`.
 | vec_push_pop | — | — | N/A | N/A | — | — |
 | json_parse | — | — | N/A | N/A | — | — |
 
-_Populated by running `mise bench` or `bash scripts/run/run-benchmarks.sh --full --compare-lang c,rust`.  
-Baseline stored in `tests/baselines/perf/baselines.json`._
+*Populated by running `mise bench` or `bash scripts/run/run-benchmarks.sh --full --compare-lang c,rust`.  
+Baseline stored in `tests/baselines/perf/baselines.json`.*
 
 ### Legacy Fixtures
 

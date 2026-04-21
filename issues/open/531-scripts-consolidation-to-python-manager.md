@@ -36,6 +36,7 @@ This is an **epic**, not a single implementation issue. We will:
 - **Exclude docs from Phase 1:** docs check scripts remain as-is; `verify docs` command will be removed in Issue #534 when docs domain is migrated
 
 **CLI design (subcommand-based):**
+
 ```bash
 python scripts/manager.py verify quick
 python scripts/manager.py verify fixtures
@@ -94,6 +95,7 @@ python scripts/manager.py verify component
 - `scripts/run/verify-harness.sh` (convert to thin wrapper)
 
 **Wrapper contract (verify-harness.sh):**
+
 ```bash
 #!/bin/bash
 # Thin wrapper: forward all args to manager.py

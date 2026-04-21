@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 1
 
-
 ## Reopened by audit — 2026-04-13
 
 **Reason**: CoreHIR IfExpr still backend-illegal.

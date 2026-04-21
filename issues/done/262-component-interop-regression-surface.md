@@ -23,13 +23,13 @@
 
 * [x] `tests/component-interop/`に複数のシナリオテストが存在する
 * [x] 各シナリオについて以下が定義されている：
-  - Arukelltソース（export関数定義）
-  - 期待されるWIT構造
+  * Arukelltソース（export関数定義）
+  * 期待されるWIT構造
 * [x] 以下のシナリオがカバーされている：
-  - 基本的な関数export/import
-  - 構造体のexport/import
-  - 複数のWIT worldの使用
-  - Canonical ABI compliance
+  * 基本的な関数export/import
+  * 構造体のexport/import
+  * 複数のWIT worldの使用
+  * Canonical ABI compliance
 * [ ] リソース型のexport/import（将来的なシナリオとしてマーク、未実装）
 * [x] CIでcomponent interopテストが独立したジョブとして実行される（既存のcomponent-interopジョブ）
 * [ ] WIT round-tripテスト（将来的なシナリオとしてマーク、bindings生成未実装）

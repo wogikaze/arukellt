@@ -708,6 +708,14 @@ impl Ctx {
                 | "HashMap_String_i32_get"
                 | "HashMap_String_i32_contains_key"
                 | "HashMap_String_i32_len"
+                | "HashMap_i32_String_insert"
+                | "HashMap_i32_String_get"
+                | "HashMap_i32_String_contains_key"
+                | "HashMap_i32_String_len"
+                | "HashMap_String_String_insert"
+                | "HashMap_String_String_get"
+                | "HashMap_String_String_contains_key"
+                | "HashMap_String_String_len"
                 | "insert"
                 | "get_or_default"
                 | "contains_key"
@@ -1612,6 +1620,41 @@ impl Ctx {
             "HashMap_i32_i32_insert" => {
                 self.emit_hashmap_i32_i32_insert(f, args);
             }
+            "HashMap_String_i32_insert" => {
+                self.emit_hashmap_str_i32_insert(f, args);
+            }
+            "HashMap_String_i32_get" => {
+                self.emit_hashmap_str_i32_get(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "HashMap_String_i32_contains_key" => {
+                self.emit_hashmap_str_i32_contains_key(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "HashMap_String_i32_len" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand(f, arg);
+                    f.instruction(&Instruction::StructGet {
+                        struct_type_index: self.hashmap_str_i32_ty,
+                        field_index: 2,
+                    });
+                } else {
+                    f.instruction(&Instruction::I32Const(0));
+                }
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
             "HashMap_i32_i32_get" => {
                 self.emit_hashmap_i32_i32_get(f, args);
                 if let Some(Place::Local(id)) = dest {
@@ -1639,6 +1682,82 @@ impl Ctx {
             }
             "HashMap_i32_i32_contains_key" => {
                 self.emit_hashmap_i32_i32_contains_key(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "HashMap_i32_String_insert" => {
+                self.emit_hashmap_i32_str_insert(f, args);
+            }
+            "HashMap_i32_String_get" => {
+                self.emit_hashmap_i32_str_get(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "HashMap_i32_String_contains_key" => {
+                self.emit_hashmap_i32_str_contains_key(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "HashMap_i32_String_len" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand(f, arg);
+                    f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                        self.hashmap_i32_str_ty,
+                    )));
+                    f.instruction(&Instruction::StructGet {
+                        struct_type_index: self.hashmap_i32_str_ty,
+                        field_index: 2,
+                    });
+                } else {
+                    f.instruction(&Instruction::I32Const(0));
+                }
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "HashMap_String_String_insert" => {
+                self.emit_hashmap_str_str_insert(f, args);
+            }
+            "HashMap_String_String_get" => {
+                self.emit_hashmap_str_str_get(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "HashMap_String_String_contains_key" => {
+                self.emit_hashmap_str_str_contains_key(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "HashMap_String_String_len" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand(f, arg);
+                    f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                        self.hashmap_str_str_ty,
+                    )));
+                    f.instruction(&Instruction::StructGet {
+                        struct_type_index: self.hashmap_str_str_ty,
+                        field_index: 2,
+                    });
+                } else {
+                    f.instruction(&Instruction::I32Const(0));
+                }
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {

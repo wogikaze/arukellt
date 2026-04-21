@@ -10,13 +10,10 @@ pub use t1 as t1_wasm32_p1;
 pub mod t2_freestanding;
 pub mod t3_wasm_gc;
 
-use ark_diagnostics::{
-    DiagnosticSink, wasm_validation_diagnostic,
-};
+use ark_diagnostics::{DiagnosticSink, wasm_validation_diagnostic};
 use ark_mir::mir::MirModule;
 use ark_target::{
-    BackendPlan, EmitCapability, EmitKind, RuntimeModel, TargetId, WasiVersion,
-    build_backend_plan,
+    BackendPlan, EmitCapability, EmitKind, RuntimeModel, TargetId, WasiVersion, build_backend_plan,
 };
 
 /// Validate generated Wasm module bytes using `wasmparser`.
@@ -66,7 +63,9 @@ pub fn emit_with_plan(
     let bytes = match plan.runtime_model {
         RuntimeModel::T1LinearP1 => t1_wasm32_p1::emit(mir, sink),
         RuntimeModel::T2Freestanding => t2_freestanding::emit(mir, sink),
-        RuntimeModel::T3WasmGcP2 => t3_wasm_gc::emit(mir, sink, opt_level, strip_debug, wasi_version),
+        RuntimeModel::T3WasmGcP2 => {
+            t3_wasm_gc::emit(mir, sink, opt_level, strip_debug, wasi_version)
+        }
         RuntimeModel::T4LlvmScaffold => {
             sink.emit(wasm_validation_diagnostic(
                 "native backend plan cannot be emitted via ark-wasm".to_string(),

@@ -44,7 +44,7 @@ empty keys or values, lines without `=`, unclosed quoted values, and
 other unsupported or malformed grammar are rejected by `toml_parse`
 with `Err(String)`.
 
-#### Value representation
+### Value representation
 
 `TomlValue` is a tagged struct.  Array and Table variants store their
 raw serialized text to avoid recursive type constraints.

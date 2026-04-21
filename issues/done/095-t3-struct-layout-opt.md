@@ -17,19 +17,19 @@
 Closed 2026-04-15.
 
 - `crates/ark-wasm/src/emit/t3_wasm_gc/layout_opt.rs` computes deterministic
-	per-struct field reorder permutations from reachable MIR field-access
-	frequency.
+ per-struct field reorder permutations from reachable MIR field-access
+ frequency.
 - `crates/ark-wasm/src/emit/t3_wasm_gc/mod.rs` applies the optimization only at
-	`opt_level >= 2`, reorders `self.struct_layouts`, and preserves definition
-	order for equal-frequency ties.
+ `opt_level >= 2`, reorders `self.struct_layouts`, and preserves definition
+ order for equal-frequency ties.
 - `crates/ark-wasm/src/emit/t3_wasm_gc/types.rs`,
-	`crates/ark-wasm/src/emit/t3_wasm_gc/operands.rs`, and
-	`crates/ark-wasm/src/emit/t3_wasm_gc/stmts.rs` all resolve emitted field
-	order from `self.struct_layouts`, so `struct.new`, `struct.get`, and
-	`struct.set` use the same remapped layout.
+ `crates/ark-wasm/src/emit/t3_wasm_gc/operands.rs`, and
+ `crates/ark-wasm/src/emit/t3_wasm_gc/stmts.rs` all resolve emitted field
+ order from `self.struct_layouts`, so `struct.new`, `struct.get`, and
+ `struct.set` use the same remapped layout.
 - Regression coverage in `crates/ark-wasm/src/emit/t3_wasm_gc/layout_opt.rs`
-	proves that the hottest field is moved to the front and that equal-frequency
-	ties remain in declaration order.
+ proves that the hottest field is moved to the front and that equal-frequency
+ ties remain in declaration order.
 
 ## Summary
 
@@ -56,7 +56,6 @@ wasmtime の JIT コードがより小さいオフセット即値を使えるよ
 ## 参照
 
 - `docs/spec/spec-3.0.0/proposals/gc/MVP.md` §struct
-
 
 ---
 

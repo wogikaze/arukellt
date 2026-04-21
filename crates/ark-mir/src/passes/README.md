@@ -74,10 +74,12 @@ pipeline level; their `run` function itself is always safe to call.
 ## Adding a new pass
 
 1. Create `passes/<pass_name>.rs` with the two required items:
+
    ```rust
    pub const MIN_LEVEL: OptLevel = OptLevel::O1; // or O2/O3
    pub fn run(module: &mut MirModule, level: OptLevel) -> PassStats { … }
    ```
+
 2. Declare `pub mod <pass_name>;` in `passes/mod.rs` and add to `run_all`.
 3. Add a row to this README (module, level, description, dependencies).
 4. If the pass also belongs in the batch pipeline, add the variant to
@@ -133,4 +135,3 @@ validation failure occurs across the `tests/fixtures/` suite.
 | `aggregate_simplify` | Collapses single-element aggregates; if the aggregate is a GC struct, collapsing it removes the heap allocation the T3 emitter expects | Teach pass to skip GC-typed single-field structs |
 | `gc_hint` | Annotates GC allocation sites for the runtime; T3 GC runtime does not yet consume these annotations, so they may produce invalid Wasm | Wire T3 GC runtime to consume `gc_hint` annotations, then re-enable |
 | `branch_hint_infer` | O3 hint pass; T3 Wasm engine ignores branch hints — no benefit and untested for T3 | Re-evaluate when T3 target gains profile-guided execution support |
-

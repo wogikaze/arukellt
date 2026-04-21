@@ -12,7 +12,6 @@
 **Blocks v1 exit**: no
 **Priority**: 25
 
-
 ## Audit correction — 2026-04-14
 
 **Previous state**: All acceptance items were `[x]` (false-done) when issue was in `issues/done/`.

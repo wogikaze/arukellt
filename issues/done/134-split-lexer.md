@@ -49,7 +49,6 @@ crates/ark-lexer/src/
 
 - `crates/ark-lexer/src/lib.rs`
 
-
 ---
 
 ## Queue closure verification — 2026-04-18

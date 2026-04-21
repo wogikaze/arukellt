@@ -34,14 +34,14 @@ WebAssembly Multi-Value 提案 (`docs/spec/spec-1.0.0/proposals/multi-value/Over
 Scoped T3 backend slice completed in `crates/ark-wasm/src/emit/t3_wasm_gc/`.
 
 - `Operand::IfExpr` now recognizes concrete tuple results (`__tupleN` / `__tupleN_any`) where both
-	branches materialize the same tuple shape and emits the branch values through a
-	`BlockType::FunctionType(...)` multi-value `if` block.
+ branches materialize the same tuple shape and emits the branch values through a
+ `BlockType::FunctionType(...)` multi-value `if` block.
 - The tuple GC struct is now materialized once after the merge point with a single `struct.new`
-	instead of constructing one tuple object per branch.
+ instead of constructing one tuple object per branch.
 - Added a regression test in `crates/ark-wasm/src/emit/t3_wasm_gc/helpers.rs` that parses the
-	emitted Wasm and verifies both:
-	1. the control-flow path uses a function-typed `if` block, and
-	2. only one tuple `struct.new` is emitted for the merged result.
+ emitted Wasm and verifies both:
+ 1. the control-flow path uses a function-typed `if` block, and
+ 2. only one tuple `struct.new` is emitted for the merged result.
 
 This keeps the external function ABI unchanged while landing a real multi-value control-flow path
 inside the T3 backend.
@@ -56,14 +56,13 @@ inside the T3 backend.
 ## Verification — 2026-04-15
 
 - `cargo test -p ark-wasm tuple_ifexpr_uses_multivalue_block_and_single_struct_new -- --nocapture`
-	passed.
+ passed.
 - The tuple-merge regression proves the optimized path emits one merged tuple materialization instead
-	of branch-local tuple boxing.
+ of branch-local tuple boxing.
 
 ## 参照
 
 - `docs/spec/spec-1.0.0/proposals/multi-value/Overview.md`
-
 
 ---
 

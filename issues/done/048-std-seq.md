@@ -120,7 +120,6 @@ pub fn group_by<T, K>(v: Vec<T>, key: fn(T) -> K) -> Vec<(K, Vec<T>)>
 2. `group_by` の K 型に hash/eq 制約が必要 — 現状の型システムで可能か
 3. `sort_by` の比較関数の戻り値: `i32` (-1/0/1) vs `Ordering`
 
-
 ---
 
 ## Queue closure verification — 2026-04-18

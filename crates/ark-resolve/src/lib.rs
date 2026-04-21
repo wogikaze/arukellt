@@ -23,9 +23,8 @@ pub use resolve::{
     resolve_module_legacy, resolve_module_public, resolve_module_stdlib,
     resolve_module_with_intrinsic_prelude, resolve_program, resolve_program_entry,
     resolve_program_entry_with_target, resolve_program_entry_with_target_and_crate_options,
-    resolve_program_with_crate_options,
-    resolve_program_with_target, resolve_program_with_target_and_crate_options,
-    resolve_program_with_target_and_parser,
+    resolve_program_with_crate_options, resolve_program_with_target,
+    resolve_program_with_target_and_crate_options, resolve_program_with_target_and_parser,
     resolve_program_with_target_and_parser_and_crate_options, resolved_program_entry,
     resolved_program_to_module,
 };

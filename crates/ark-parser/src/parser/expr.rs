@@ -572,7 +572,11 @@ impl Parser<'_> {
                     } else {
                         None
                     };
-                    params.push(ClosureParam { name, ty, span: pstart.merge(self.span()) });
+                    params.push(ClosureParam {
+                        name,
+                        ty,
+                        span: pstart.merge(self.span()),
+                    });
                     if !self.eat(&TokenKind::Comma) {
                         break;
                     }
@@ -585,7 +589,12 @@ impl Parser<'_> {
                 };
                 let body = Expr::Block(self.parse_block());
                 let span = start.merge(body.span());
-                Expr::Closure { params, return_type, body: Box::new(body), span }
+                Expr::Closure {
+                    params,
+                    return_type,
+                    body: Box::new(body),
+                    span,
+                }
             }
             TokenKind::PipePipe => {
                 // || closure (no params)

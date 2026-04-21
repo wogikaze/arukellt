@@ -22,6 +22,7 @@
 **Purpose:** Fix current state. Observe only. Do not implement.
 
 **Execution:**
+
 ```bash
 cargo build -p arukellt
 bash scripts/run/verify-harness.sh --quick
@@ -97,6 +98,7 @@ bash scripts/check/check-selfhost-diagnostic-parity.sh
 - NO non-deterministic function index allocation
 
 **Verification (mandatory):**
+
 ```bash
 bash scripts/check/check-selfhost-fixpoint.sh
 bash scripts/run/verify-bootstrap.sh --check
@@ -111,6 +113,7 @@ bash scripts/run/verify-bootstrap.sh --check
 **Goal:** Selfhost compiler handles general fixtures same as trusted base.
 
 **Execution:**
+
 ```bash
 bash scripts/check/check-selfhost-fixture-parity.sh
 bash scripts/check/check-selfhost-parity.sh --fixture
@@ -138,6 +141,7 @@ bash scripts/check/check-selfhost-parity.sh --fixture
 **Goal:** Error detection and reporting matches Rust compiler.
 
 **Execution:**
+
 ```bash
 bash scripts/check/check-selfhost-diagnostic-parity.sh
 bash scripts/check/check-selfhost-parity.sh --diag
@@ -283,6 +287,7 @@ DAP involves runtime/debug info/stepping. Separate issue, lower priority than LS
    - Example: driver module loading only, OR emitter qualified call only, OR parser error recovery only
 
 2. **Observe before change**
+
    ```bash
    bash scripts/check/check-selfhost-fixpoint.sh --no-build
    bash scripts/check/check-selfhost-fixture-parity.sh
@@ -291,6 +296,7 @@ DAP involves runtime/debug info/stepping. Separate issue, lower priority than LS
 3. **Implement**
 
 4. **Minimal verification**
+
    ```bash
    python scripts/manager.py verify quick
    python scripts/manager.py verify cargo
@@ -298,6 +304,7 @@ DAP involves runtime/debug info/stepping. Separate issue, lower priority than LS
    ```
 
 5. **Selfhost verification**
+
    ```bash
    bash scripts/check/check-selfhost-fixpoint.sh
    bash scripts/check/check-selfhost-fixture-parity.sh
@@ -331,19 +338,23 @@ One branch per concern:
 ## Completion Criteria
 
 ### Criterion A: Selfhost Bootstrap
+
 - [ ] `check-selfhost-fixpoint.sh` passes
 - [ ] `verify-bootstrap.sh --check` reports `stage2-fixpoint: reached`
 
 ### Criterion B: Compiler Parity
+
 - [ ] Fixture parity: 0 fails
 - [ ] Diagnostic parity: 0 critical fails
 - [ ] Skip count: temporarily acceptable, target 0 eventually
 
 ### Criterion C: Rust Core Compiler Retirement
+
 - [ ] Execution path switched to selfhost
 - [ ] Harness passes after core compiler crate deletion
 
 ### Criterion D: Full Rust Retirement
+
 - [ ] IDE fully selfhost/native
 - [ ] No Cargo workspace needed
 - [ ] No Rust code in repository

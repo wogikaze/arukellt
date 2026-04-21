@@ -4,7 +4,7 @@ Parse and stringify JSON primitive values using `std::json`.
 
 > Policy: user-facing samples should avoid direct low-level prelude helper calls.
 > Prefer module-local wrappers/facades; if needed, hide prelude details behind local helper functions.
-
+>
 > `std::json` is **Experimental** — full object/array support is planned for v4.
 
 ## Stringify Values

@@ -3585,13 +3585,15 @@ impl Ctx {
         self.emit_operand(f, &args[0]);
         f.instruction(&Instruction::LocalSet(self.si(10)));
 
-        // key → si(8)
-        self.emit_operand(f, &args[1]);
-        f.instruction(&Instruction::LocalSet(self.si(8)));
-
-        // value → si(11)
+        // value → si(11) BEFORE key, because string-const lazy-init uses si(8) as
+        // a scratch register internally (see operands.rs emit_operand ConstString).
+        // Loading value first lets key be the last string loaded, so si(8) = key.
         self.emit_operand(f, &args[2]);
         f.instruction(&Instruction::LocalSet(self.si(11)));
+
+        // key → si(8) last — si(8) correctly holds the search key after this
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::LocalSet(self.si(8)));
 
         // count = map.count → si(2)
         f.instruction(&Instruction::LocalGet(self.si(10)));

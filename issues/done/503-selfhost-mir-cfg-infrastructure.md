@@ -49,6 +49,7 @@ The following must be added before the SSA pass from #494 is feasible:
 ### A — Change if/else/while lowering to produce multiple blocks
 
 Currently:
+
 ```
 // single block 0
 MIR_IF
@@ -59,6 +60,7 @@ MIR_END
 ```
 
 Required for SSA:
+
 ```
 // block 0 (entry):  ...cond...  terminate with BR_IF(then_bb, else_bb)
 // block 1 (then_bb): (then-body instructions)  terminate with BR(join_bb)

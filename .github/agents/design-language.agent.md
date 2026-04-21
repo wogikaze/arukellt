@@ -4,28 +4,28 @@ description: >-
   Designs and specifies language features, syntax decisions, and
   language design contracts. Produces ADRs and design documents.
 domains:
-  - language-design
+- language-design
 tracks:
-  - language-design
+- language-design
 primary_paths:
-  - docs/adr/
-  - docs/language/
+- docs/adr/
+- docs/language/
 allowed_adjacent_paths:
-  - docs/
+- docs/
 out_of_scope:
-  - Implementation code changes
-  - Test fixture implementation
+- Implementation code changes
+- Test fixture implementation
 required_verification:
-  - ADR format validation
-  - Design review completeness
+- ADR format validation
+- Design review completeness
 stop_if:
-  - Design conflicts with existing ADRs without resolution
+- Design conflicts with existing ADRs without resolution
 commit_discipline:
-  - ADR as single commit
-  - Include RFC/discussion references
+- ADR as single commit
+- Include RFC/discussion references
 output_format:
-  - ADR document
-  - Design rationale
-  - Acceptance criteria
-  - DONE_WHEN checklist
-  - Commit hash
+- ADR document
+- Design rationale
+- Acceptance criteria
+- DONE_WHEN checklist
+- Commit hash

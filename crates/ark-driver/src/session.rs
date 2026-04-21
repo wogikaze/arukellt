@@ -372,7 +372,11 @@ impl Session {
     }
 
     /// Store a parsed module in the compile AST cache (not used by the parse pipeline yet).
-    pub fn record_compile_cached_ast(&mut self, path: &Path, module: ast::Module) -> Result<(), String> {
+    pub fn record_compile_cached_ast(
+        &mut self,
+        path: &Path,
+        module: ast::Module,
+    ) -> Result<(), String> {
         let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
         let mtime = std::fs::metadata(&canonical)
             .and_then(|m| m.modified())

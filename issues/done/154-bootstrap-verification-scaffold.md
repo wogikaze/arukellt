@@ -55,7 +55,6 @@ v5 に入ったときの曖昧さを減らせる。
   artifact naming, Stage 2 comparison (`sha256sum` digest equality), and
   failure/diff policy; `docs/compiler/bootstrap.md` links to that header contract.
 
-
 ---
 
 ## Queue closure verification — 2026-04-18

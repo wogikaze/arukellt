@@ -82,7 +82,7 @@ The v3 migration is a *two-step* process:
 
 ## See Also
 
-- [prelude-migration.md](prelude-migration.md) — detailed migration reference
-- [prelude-migration-inventory.md](prelude-migration-inventory.md) — stdlib implementation files still using replaceable prelude helpers ([issue #513](../../issues/open/513-stdlib-prelude-safety-and-wrapper-surface.md))
-- [migration/v2-to-v3.md](../migration/v2-to-v3.md) — full old → new API map
-- [std/prelude.ark](../../std/prelude.ark) — implementation source
+* [prelude-migration.md](prelude-migration.md) — detailed migration reference
+* [prelude-migration-inventory.md](prelude-migration-inventory.md) — stdlib implementation files still using replaceable prelude helpers ([issue #513](../../issues/open/513-stdlib-prelude-safety-and-wrapper-surface.md))
+* [migration/v2-to-v3.md](../migration/v2-to-v3.md) — full old → new API map
+* [std/prelude.ark](../../std/prelude.ark) — implementation source

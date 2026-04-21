@@ -568,10 +568,8 @@ mod tests {
 
     #[test]
     fn resolve_program_entry_with_target_and_crate_options_respects_lazy_reachability() {
-        let tmp = std::env::temp_dir().join(format!(
-            "ark_resolve_lazy_entry_{}",
-            std::process::id()
-        ));
+        let tmp =
+            std::env::temp_dir().join(format!("ark_resolve_lazy_entry_{}", std::process::id()));
         let _ = fs::remove_dir_all(&tmp);
         fs::create_dir_all(&tmp).expect("temp project dir");
 
@@ -610,7 +608,10 @@ fn main() {
         .expect("eager resolve");
         assert!(!sink.has_errors(), "{:?}", sink.diagnostics());
         assert!(
-            eager.symbols.lookup(eager.global_scope, "dep::unused").is_some(),
+            eager
+                .symbols
+                .lookup(eager.global_scope, "dep::unused")
+                .is_some(),
             "eager resolve should bind unreachable pub `dep::unused` for qualified lookups"
         );
 
@@ -626,7 +627,9 @@ fn main() {
         .expect("lazy resolve");
         assert!(!sink.has_errors(), "{:?}", sink.diagnostics());
         assert!(
-            lazy.symbols.lookup(lazy.global_scope, "dep::unused").is_none(),
+            lazy.symbols
+                .lookup(lazy.global_scope, "dep::unused")
+                .is_none(),
             "lazy resolve should omit bindings not reachable from entry"
         );
 

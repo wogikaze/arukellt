@@ -11,7 +11,6 @@
 **Orchestration upstream**: #266, #268
 **Blocks v1 exit**: no
 
-
 ## Reopened by audit — 2026-04-13
 
 **Reason**: Dual-period not reached.
