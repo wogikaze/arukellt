@@ -39,7 +39,6 @@ graph LR
   I504["504 504 — Selfhost: trait/interface syntax and impl-block infrastructure"]
   I513["513 Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する"]
   I514["514 Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する"]
-  I515["515 Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる"]
   I516["516 Stdlib: raw helper と推奨 facade の境界を再設計する"]
   I517["517 Stdlib: canonical naming / module layering / surface consistency の第2監査"]
   I520["520 Stdlib: allocation / complexity / perf footgun を family 横断で監査する"]
@@ -52,6 +51,7 @@ graph LR
   I531["531 Scripts Consolidation Epic: Python CLI Refactoring"]
   I540["540 540 — Benchmark: enum dispatch (pattern matching)"]
   I541["541 541 — Benchmark: struct graph (nested structs / recursive types)"]
+  I542["542 542 — Benchmark: error chain (Result / error propagation)"]
   I544["544 544 — Benchmark suite reorganization and docs integration"]
   I545["545 545 — Benchmark: real-world workloads"]
   I546["546 Release: Binary Smoke Tests"]
@@ -77,7 +77,6 @@ graph LR
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
   I539["539 539 — Benchmark: closure map (higher-order functions)"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
-  I542["542 542 — Benchmark: error chain (Result / error propagation)"]
   I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
@@ -100,7 +99,6 @@ graph LR
   I499 --> I539
   I312 --> I495
   I504 --> I495
-  I515 --> I542
   I513 --> I518
   I517 --> I518
   I077 --> I136
@@ -152,7 +150,6 @@ graph LR
 - **504** depends on: none; blocks: 495, 512
 - **513** depends on: none; blocks: 518
 - **514** depends on: none; blocks: none
-- **515** depends on: none; blocks: 542
 - **516** depends on: none; blocks: none
 - **517** depends on: none; blocks: 518
 - **520** depends on: none; blocks: none
@@ -165,6 +162,7 @@ graph LR
 - **531** depends on: none; blocks: none
 - **540** depends on: none; blocks: none
 - **541** depends on: none; blocks: none
+- **542** depends on: 515; blocks: none
 - **544** depends on: none; blocks: none
 - **545** depends on: none; blocks: none
 - **546** depends on: none; blocks: none
@@ -190,7 +188,6 @@ graph LR
 - **508** depends on: 285; blocks: none
 - **539** depends on: 499; blocks: none
 - **495** depends on: 312, 504; blocks: 512
-- **542** depends on: 515; blocks: none
 - **518** depends on: 513, 517; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
