@@ -13,15 +13,20 @@ use wasm_encoder::{
 use super::i31ref as i31;
 use super::peephole::PeepholeWriter;
 use super::{Ctx, nominalize_generic_type_name, normalize_intrinsic, ref_nullable};
-use super::{I32BUF, P2_RETPTR, SCRATCH};
+use super::{I32BUF, IOV_BASE, IOV_LEN, NWRITTEN, P2_RETPTR, SCRATCH};
 
 impl Ctx {
     // ── Helper function bodies ───────────────────────────────────
 
     pub(super) fn emit_wasi_p2_get_stdout_shim(&self, codes: &mut CodeSection) {
         let mut f = Function::new([]);
-        // Call the P2 get_stdout import which returns i32 (stream handle)
-        f.instruction(&Instruction::Call(self.wasi_p2_import_get_stdout));
+        if self.wasi_version == ark_target::WasiVersion::P2 {
+            // Call the P2 get_stdout import which returns i32 (stream handle)
+            f.instruction(&Instruction::Call(self.wasi_p2_import_get_stdout));
+        } else {
+            // P1: stdout is always fd=1
+            f.instruction(&Instruction::I32Const(1));
+        }
         f.instruction(&Instruction::End);
         codes.function(&f);
     }
@@ -94,28 +99,48 @@ impl Ctx {
     }
 
     pub(super) fn emit_wasi_p2_write_and_flush_shim(&self, codes: &mut CodeSection) {
-        // Params: 0=stream handle, 1=ptr, 2=len, 3=retptr (unused in P2).
-        // P2 signature: (stream, ptr, len) -> result (i32 error code)
-        let mut f = Function::new([(0, ValType::I32), (1, ValType::I32), (2, ValType::I32), (3, ValType::I32)]);
-
-        // Call P2 import directly with 3 params
-        f.instruction(&Instruction::LocalGet(0)); // stream
-        f.instruction(&Instruction::LocalGet(1)); // ptr
-        f.instruction(&Instruction::LocalGet(2)); // len
-        f.instruction(&Instruction::Call(self.wasi_p2_import_write_and_flush));
-        // Drop the result (error code) to match registered signature
-        f.instruction(&Instruction::Drop);
+        // Params: 0=stream/fd, 1=ptr, 2=len, 3=retptr (unused in P2).
+        let mut f = Function::new([]);
+        if self.wasi_version == ark_target::WasiVersion::P2 {
+            // P2 signature: (stream, ptr, len) -> result (i32 error code)
+            f.instruction(&Instruction::LocalGet(0)); // stream
+            f.instruction(&Instruction::LocalGet(1)); // ptr
+            f.instruction(&Instruction::LocalGet(2)); // len
+            f.instruction(&Instruction::Call(self.wasi_p2_import_write_and_flush));
+            // Drop the result (error code) to match registered signature
+            f.instruction(&Instruction::Drop);
+        } else {
+            // P1: set up IOV structure at [IOV_BASE, IOV_LEN], call fd_write
+            let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+            // mem[IOV_BASE] = ptr
+            f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+            f.instruction(&Instruction::LocalGet(1));
+            f.instruction(&Instruction::I32Store(ma0));
+            // mem[IOV_LEN] = len
+            f.instruction(&Instruction::I32Const(IOV_LEN as i32));
+            f.instruction(&Instruction::LocalGet(2));
+            f.instruction(&Instruction::I32Store(ma0));
+            // fd_write(fd, IOV_BASE, iovs_len=1, nwritten_ptr=NWRITTEN)
+            f.instruction(&Instruction::LocalGet(0));
+            f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+            f.instruction(&Instruction::I32Const(1));
+            f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+            f.instruction(&Instruction::Call(self.wasi_fd_write));
+            f.instruction(&Instruction::Drop); // drop errno
+        }
         f.instruction(&Instruction::End);
         codes.function(&f);
     }
 
     pub(super) fn emit_wasi_p2_drop_output_stream_shim(&self, codes: &mut CodeSection) {
-        // P2 signature: (stream: i32) -> ()
         // Params: 0=stream handle
-        let mut f = Function::new([(0, ValType::I32)]);
-        // Call the P2 drop import
-        f.instruction(&Instruction::LocalGet(0)); // stream
-        f.instruction(&Instruction::Call(self.wasi_p2_import_drop_output_stream));
+        let mut f = Function::new([]);
+        if self.wasi_version == ark_target::WasiVersion::P2 {
+            // P2: call import to drop the output stream resource
+            f.instruction(&Instruction::LocalGet(0));
+            f.instruction(&Instruction::Call(self.wasi_p2_import_drop_output_stream));
+        }
+        // P1: fd handles don't need explicit cleanup — nothing to do
         f.instruction(&Instruction::End);
         codes.function(&f);
     }

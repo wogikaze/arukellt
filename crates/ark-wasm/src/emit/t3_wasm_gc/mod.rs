@@ -38,9 +38,9 @@ use wasm_encoder::{
 };
 
 // ── Linear memory layout (IO bridge only) ────────────────────────
-const IOV_BASE: u32 = 0;
-const IOV_LEN: u32 = 4;
-const NWRITTEN: u32 = 8;
+pub(super) const IOV_BASE: u32 = 0;
+pub(super) const IOV_LEN: u32 = 4;
+pub(super) const NWRITTEN: u32 = 8;
 const SCRATCH: u32 = 16;
 const I32BUF: u32 = 48;
 const SCR_VAL64: u32 = 56; // 8-byte scratch for i64/f64 values
@@ -1371,7 +1371,7 @@ impl Ctx {
         let mut f64_to_str_pos: Option<usize> = None;
         let mut p2_get_stderr_pos: Option<usize> = None;
         let mut eprint_str_ln_pos: Option<usize> = None;
-        let needs_p2_stdio_shims = false; // P2 stdio requires significant architectural changes to print helpers
+        let needs_p2_stdio_shims = needs_fd_write; // always need shims when printing
         // let needs_p2_stdio_shims = (self.wasi_version == ark_target::WasiVersion::P2)
         //     && (needed.print_str
         //         || needed.print_i32
