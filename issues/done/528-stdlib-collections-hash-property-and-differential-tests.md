@@ -1,8 +1,8 @@
 # Stdlib collections/hash: property と differential tests を map / set invariant で拡張する
 
-**Status**: implementation-ready
+**Status**: done
 **Created**: 2026-04-18
-**Updated**: 2026-04-18
+**Updated**: 2026-04-22
 **ID**: 528
 **Depends on**: none
 **Track**: stdlib
@@ -74,3 +74,9 @@
 - invariant coverage is repo-provable from the new tests
 - differential comparison avoids iteration-order flakiness
 - the issue can be closed by citing corpus / harness evidence from repo state
+
+## Close note
+
+Closed by commit `e791a84a` on branch `feat/528-stdlib-hash-property-tests`.
+All four acceptance criteria met: three property/differential fixtures added and
+passing, registered in manifest, no production hash source changed.
