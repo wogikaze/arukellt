@@ -21,7 +21,6 @@ graph LR
   I204["204 204-project-explain-build-explain-and-script-sandbox-surface"]
   I205["205 205-docs-and-codebase-intelligence-surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
-  I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I379["379 379-playground-wasm-build"]
@@ -134,7 +133,6 @@ graph LR
 - **204** depends on: none; blocks: none
 - **205** depends on: none; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
-- **249** depends on: none; blocks: none
 - **285** depends on: 284; blocks: 508
 - **312** depends on: 311; blocks: 495
 - **379** depends on: none; blocks: none
