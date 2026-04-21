@@ -293,8 +293,40 @@ fn should_dump(opts: CliOptions, phase: String) -> bool {
 }
 
 // ── Structured Error Formatting ──────────────────────────────────────────────
+// Emit phase-coded error prefixes (e.g. "error[E0200|typecheck]:") so that
+// selfhost diagnostics surface the same error-code / phase tag as the Rust
+// compiler.  Codes are generic per phase — specific codes are carried by the
+// individual phase diagnostic paths when available.  Phase integers match
+// driver::PHASE_* constants (lex=1, parse=2, resolve=3, typecheck=4,
+// lower=5, emit=6).
+fn phase_error_tag(phase: i32) -> String {
+    if phase == 1 {
+        return String_from("error[E0001|lex]: ")
+    }
+    if phase == 2 {
+        return String_from("error[E0001|parse]: ")
+    }
+    if phase == 3 {
+        return String_from("error[E0100|resolve]: ")
+    }
+    if phase == 4 {
+        return String_from("error[E0200|typecheck]: ")
+    }
+    if phase == 5 {
+        return String_from("error[E0400|lower]: ")
+    }
+    if phase == 6 {
+        return String_from("error[E0500|emit]: ")
+    }
+    String_from("error: ")
+}
+
 fn format_error(file: String, msg: String) -> String {
     concat(clone(file), concat(String_from(": error: "), msg))
+}
+
+fn format_error_phased(file: String, phase: i32, msg: String) -> String {
+    concat(clone(file), concat(String_from(": "), concat(phase_error_tag(phase), msg)))
 }
 
 fn format_error_json(file: String, phase: i32, messages: Vec<String>) -> String {
@@ -416,7 +448,7 @@ fn cmd_compile(opts: CliOptions) {
             let mut i = 0
             while i < err_count {
                 let msg = get_unchecked(result.error_messages, i)
-                stdio::eprintln(format_error(clone(input_file), clone(msg)))
+                stdio::eprintln(format_error_phased(clone(input_file), result.phase_reached, clone(msg)))
                 i = i + 1
             }
         }
