@@ -1,7 +1,7 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T08:34:40Z",
-  "generator": "scripts/gen/generate-issue-index.sh",
+  "generated_at": "2026-04-21T08:50:18Z",
+  "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
       "id": "034",
@@ -1088,94 +1088,6 @@
       "acceptance": {
         "checked": 16,
         "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "533",
-      "path": "533-selfhost-domain-migration.md",
-      "title": "Selfhost Domain Migration to manager.py",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "534",
-      "path": "534-docs-domain-migration.md",
-      "title": "Docs Domain Migration to manager.py",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "535",
-      "path": "535-perf-domain-migration.md",
-      "title": "Perf Domain Migration to manager.py",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "536",
-      "path": "536-gate-domain-migration.md",
-      "title": "Gate Domain Migration to manager.py",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
       },
       "orchestration": {
         "class": null,
