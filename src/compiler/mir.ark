@@ -2049,12 +2049,38 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         let raw_len = len(raw_text)
         let mut is_i64_literal = false
         let is_hex_or_bin = raw_len >= 2 && char_at(raw_text, 0) == 48 && char_at(raw_text, 1) == 120 || char_at(raw_text, 1) == 88 || char_at(raw_text, 1) == 98 || char_at(raw_text, 1) == 66
-        if !is_hex_or_bin {
+        let mut has_small_suffix = false
+        let mut has_64_suffix = false
+        if raw_len >= 2 {
+            let last = char_at(raw_text, raw_len - 1)
+            let prev = char_at(raw_text, raw_len - 2)
+            if last == 56 && (prev == 105 || prev == 117) {
+                has_small_suffix = true
+            }
+            if raw_len >= 3 {
+                let last3a = char_at(raw_text, raw_len - 3)
+                let last3b = char_at(raw_text, raw_len - 2)
+                let last3c = char_at(raw_text, raw_len - 1)
+                if (last3a == 105 || last3a == 117) && last3b == 49 && last3c == 54 {
+                    has_small_suffix = true
+                }
+                if (last3a == 105 || last3a == 117) && last3b == 51 && last3c == 50 {
+                    has_small_suffix = true
+                }
+                if (last3a == 105 || last3a == 117) && last3b == 54 && last3c == 52 {
+                    has_64_suffix = true
+                }
+            }
+        }
+        if !is_hex_or_bin && !has_small_suffix {
             let as_i64 = parse_decimal_as_i64(clone(raw_text))
             let as_i32_ext = i32_to_i64(node.int_val)
             if as_i64 != as_i32_ext {
                 is_i64_literal = true
             }
+        }
+        if has_64_suffix {
+            is_i64_literal = true
         }
         if is_i64_literal {
             let dest = ctx_fresh_local(ctx, VT_I64())
@@ -3144,7 +3170,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     let mut needs_convert = arg.kind == NK_INT_LIT() || arg.kind == NK_BOOL_LIT() || arg.kind == NK_CHAR_LIT() || arg.kind == NK_FLOAT_LIT()
                     if !needs_convert {
                         let lt = ctx_get_local_type(ctx, arg_idx)
-                        if eq(clone(lt), "char") || eq(clone(lt), "u8") || eq(clone(lt), "u16") || eq(clone(lt), "u32") || eq(clone(lt), "i16") || eq(clone(lt), "i32") || eq(clone(lt), "i64") || eq(clone(lt), "bool") || eq(clone(lt), "f64") {
+                        if eq(clone(lt), "char") || eq(clone(lt), "u8") || eq(clone(lt), "u16") || eq(clone(lt), "u32") || eq(clone(lt), "u64") || eq(clone(lt), "i16") || eq(clone(lt), "i32") || eq(clone(lt), "i64") || eq(clone(lt), "bool") || eq(clone(lt), "f64") {
                             needs_convert = true
                         }
                     }
@@ -4085,7 +4111,7 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             if eq(clone(ta_pre.text), "f64") {
                 vt = VT_F64()
             } else {
-                if eq(clone(ta_pre.text), "i64") {
+                if eq(clone(ta_pre.text), "i64") || eq(clone(ta_pre.text), "u64") {
                     vt = VT_I64()
                 }
             }
@@ -4121,7 +4147,7 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
         if ta_count >= 1 {
             let ta = get_unchecked(node.type_ann, 0)
             let ta_name = clone(ta.text)
-            if eq(clone(ta_name), "char") || eq(clone(ta_name), "u8") || eq(clone(ta_name), "u16") || eq(clone(ta_name), "u32") || eq(clone(ta_name), "i16") || eq(clone(ta_name), "i32") || eq(clone(ta_name), "i64") || eq(clone(ta_name), "bool") || eq(clone(ta_name), "f64") {
+            if eq(clone(ta_name), "char") || eq(clone(ta_name), "u8") || eq(clone(ta_name), "u16") || eq(clone(ta_name), "u32") || eq(clone(ta_name), "u64") || eq(clone(ta_name), "i16") || eq(clone(ta_name), "i32") || eq(clone(ta_name), "i64") || eq(clone(ta_name), "bool") || eq(clone(ta_name), "f64") {
                 ctx_set_local_type(ctx, local_idx, ta_name)
             } else {
                 if ctx_struct_field_count(ctx, clone(ta_name)) > 0 {

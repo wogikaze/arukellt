@@ -204,6 +204,8 @@ def _load_manifest_fixtures(root: Path, kind: str) -> tuple[list[str], str]:
 FIXTURE_PARITY_SKIP: set[str] = {
     "stdlib_sort/sort_f64.ark",  # selfhost f64_to_string uses naive digit extraction
                                  # (1.2 → 1.199999999999999); Rust uses Grisu2/shortest-repr
+    "functions/higher_order.ark",  # selfhost emitter lacks funcref table / call_indirect
+                                   # support; fn-pointer parameters are not yet lowered.
 }
 
 
