@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T17:52:56Z",
+  "generated_at": "2026-04-21T17:56:07Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -541,34 +541,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "459",
-      "path": "459-selfhost-fixpoint-dual-period-end.md",
-      "title": "selfhost Stage 2 fixpoint 達成と dual-period 終了計画",
-      "track": "compiler, selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "yes",
-      "depends_on": [
-        "445",
-        "446",
-        "447",
-        "448",
-        "449"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 6,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {

@@ -28,7 +28,6 @@ graph LR
   I429["429 429-playground-wasm-package-runtime-wrapper"]
   I436["436 436-playground-docs-site-integration"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
-  I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I468["468 468-playground-build-and-publish-path-proof"]
   I469["469 469-extension-playground-surface-points-to-repo-proved-endpoint"]
   I470["470 470-playground-feature-claims-match-implementation"]
@@ -145,7 +144,6 @@ graph LR
 - **429** depends on: none; blocks: none
 - **436** depends on: none; blocks: none
 - **437** depends on: 431; blocks: none
-- **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **468** depends on: none; blocks: none
 - **469** depends on: none; blocks: none
 - **470** depends on: none; blocks: none

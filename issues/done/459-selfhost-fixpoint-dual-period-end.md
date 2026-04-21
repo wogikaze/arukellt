@@ -1,6 +1,6 @@
 # selfhost Stage 2 fixpoint 達成と dual-period 終了計画
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
 **Updated**: 2026-04-22
 **ID**: 459
@@ -15,7 +15,26 @@
 
 ---
 
-## Progress — 2026-04-22 (afternoon)
+## Closed — 2026-04-22
+
+**All dual-period exit conditions met.**
+
+**Evidence (branch: fix/selfhost-emitter-invalid-wasm):**
+- `python3 scripts/manager.py selfhost fixpoint` → **PASS** (sha256(s2)==sha256(s3), 536,277 bytes)
+- `python3 scripts/manager.py selfhost fixture-parity` → **PASS** (PASS=100, FAIL=0, SKIP=249)
+- `python3 scripts/manager.py selfhost parity --mode --cli` → **PASS** (#557 + #558)
+- `python3 scripts/manager.py selfhost diag-parity` → **PASS** (PASS=10, SKIP=24, FAIL=0, exit 0)
+- `docs/compiler/bootstrap.md` canonical gate: `python scripts/manager.py selfhost parity` → **exit 0**
+
+SKIP counts in fixture-parity (249) and diag-parity (24) reflect unimplemented features
+(f32, closures, call_indirect, typecheck diagnostics, etc.) tracked as separate issues.
+Gate requires FAIL=0 and exit 0, not SKIP=0. Both conditions satisfied.
+
+**Action**: Moved from `issues/open/` → `issues/done/`.
+
+---
+
+
 
 Dual-period parity gate status after Phase 3 / Phase 4 / Phase 5 work on
 branch `fix/selfhost-emitter-invalid-wasm`:
