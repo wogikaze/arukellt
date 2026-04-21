@@ -74,6 +74,6 @@
 ## Closed by orchestrator — 2026-04-05
 
 Close gate satisfied (commits `912dbb2`, `e9b1d62`):
-- scripts/gen/gen-harness-report.sh created (executable, JSON/text modes, --baseline regression tracking)
+- scripts/gen/gen-harness-report.py created (executable, JSON/text modes, --baseline regression tracking)
 - .github/workflows/ci.yml modified: ARUKELLT_BIN env var + harness artifact upload
 - verify-harness.sh --quick 19/19

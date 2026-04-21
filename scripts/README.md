@@ -67,7 +67,7 @@ Documentation and index generation scripts.
 
 | Script | Language | Purpose | Usage |
 |--------|----------|---------|-------|
-| `gen-harness-report.sh` | Shell | Parse cargo test harness output for CI artifact upload | `bash scripts/gen/gen-harness-report.sh [--baseline FILE] [--text] [LOG_FILE]` |
+| `gen-harness-report.py` | Python | Parse cargo test harness output for CI artifact upload | `python3 scripts/gen/gen-harness-report.py [--baseline FILE] [--text] [LOG_FILE]` |
 | `generate-docs.py` | Python | Generate documentation from source | `python3 scripts/gen/generate-docs.py [--check]` |
 | `generate-issue-index.py` | Python | Auto-generate issue index and dependency graph | `python3 scripts/gen/generate-issue-index.py` |
 

@@ -111,7 +111,7 @@ jobs:
           ARUKELLT_BIN: ./target/release/arukellt
         run: |
           cargo test -p arukellt --test harness -- --nocapture 2>&1 | tee harness-raw.log
-          bash scripts/gen/gen-harness-report.sh harness-raw.log > harness-report.json
+          python3 scripts/gen/gen-harness-report.py harness-raw.log > harness-report.json
 
       - name: Upload harness report artifact
         if: always()
