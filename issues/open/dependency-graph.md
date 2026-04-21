@@ -51,7 +51,6 @@ graph LR
   I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
   I530["530 530-selfhost-parity-ci-gates"]
   I531["531 Scripts Consolidation Epic: Python CLI Refactoring"]
-  I540["540 540 — Benchmark: enum dispatch (pattern matching)"]
   I541["541 541 — Benchmark: struct graph (nested structs / recursive types)"]
   I544["544 544 — Benchmark suite reorganization and docs integration"]
   I545["545 545 — Benchmark: real-world workloads"]
@@ -166,7 +165,6 @@ graph LR
 - **529** depends on: none; blocks: none
 - **530** depends on: none; blocks: none
 - **531** depends on: none; blocks: none
-- **540** depends on: none; blocks: none
 - **541** depends on: none; blocks: none
 - **544** depends on: none; blocks: none
 - **545** depends on: none; blocks: none

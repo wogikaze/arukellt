@@ -109,7 +109,7 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         name="enum_dispatch",
         source="benchmarks/bench_cpu_enum_dispatch.ark",
         expected="benchmarks/bench_cpu_enum_dispatch.expected",
-        description="Enum variant dispatch via match (100,000 iterations, 3 variants)",
+        description="Enum variant dispatch via match (100,000 iterations, 5 variants)",
         tags=("cpu-bound", "match-heavy", "allocation-heavy", "iteration"),
     ),
 )
