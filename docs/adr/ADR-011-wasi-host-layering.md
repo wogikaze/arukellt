@@ -1,6 +1,6 @@
 # ADR-011: host-bound stdlib API は `std::host::*` に隔離する
 
-ステータス: **DECIDED**
+ステータス: **DECIDED** — host-boundなstdlib APIは`std::host::*`に隔離
 
 決定日: 2026-03-29
 

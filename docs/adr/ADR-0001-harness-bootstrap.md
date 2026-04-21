@@ -1,6 +1,6 @@
 # ADR-0001: Harness Bootstrap Strategy
 
-**Status**: Accepted
+ステータス: **ACCEPTED** — NEPLg2・vibe-lang・wadoの合成ベースラインharnessを採用
 **Date**: 2026-03-24
 **Decided by**: Agent initialization
 

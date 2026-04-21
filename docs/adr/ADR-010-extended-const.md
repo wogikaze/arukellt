@@ -1,6 +1,6 @@
 # ADR-010: Extended Const Expressions (Wasm)
 
-ステータス: **DECIDED**
+ステータス: **DECIDED** — T3 emitterにextended constのインフラを追加
 
 決定日: 2026-03-28
 

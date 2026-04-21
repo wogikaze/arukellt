@@ -1,6 +1,6 @@
 # ADR-025: Source module paths vs WIT package identifiers — collision policy and syntax exploration
 
-**Status**: Proposed (draft)
+ステータス: **PROPOSED** (draft)
 **Date**: 2026-04-16
 **Track**: language-design (issue #123)
 

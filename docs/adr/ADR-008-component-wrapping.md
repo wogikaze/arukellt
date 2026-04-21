@@ -1,6 +1,6 @@
 # ADR-008: Component Model ラッピング戦略
 
-ステータス: **DECIDED**
+ステータス: **DECIDED** — v2ではwasm-tools component newを外部subprocessとして使用
 
 決定日: 2026-03-28
 

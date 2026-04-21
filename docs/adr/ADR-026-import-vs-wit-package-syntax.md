@@ -1,6 +1,6 @@
 # ADR-026: Arukellt source imports vs WIT package syntax — problem, options, recommendation stub
 
-**Status**: Proposed (draft)
+ステータス: **PROPOSED** (draft)
 **Date**: 2026-04-18
 **Track**: language-design (issue [#123](../../issues/open/123-import-syntax-unification.md))
 

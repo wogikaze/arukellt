@@ -1,6 +1,6 @@
 # ADR-012: stringification surface は `to_string(x)` を canonical にする
 
-ステータス: **DECIDED**
+ステータス: **DECIDED** — `to_string(x)`をcanonicalにする
 
 決定日: 2026-03-29
 

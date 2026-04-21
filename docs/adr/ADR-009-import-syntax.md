@@ -1,6 +1,6 @@
 # ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離
 
-**Status**: DECIDED
+ステータス: **DECIDED** — `use std::host::stdio`の`::`-separated形式をソースモジュール参照として確定
 **Date**: 2026-03-28
 **Decided by**: Language-design track (issue #123)
 

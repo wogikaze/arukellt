@@ -1,6 +1,6 @@
 # ADR-019: Anchor / Permalink Naming Convention and Redirect Policy
 
-**Status**: DECIDED
+ステータス: **DECIDED** — Anchor命名規則・リダイレクトポリシーを採用
 **Created**: 2026-04-14
 **Scope**: Language documentation (`docs/language/`), all Markdown docs under `docs/`, docs site (`docs/index.html`)
 

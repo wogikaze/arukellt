@@ -1,6 +1,6 @@
 # ADR-020: T2 (`wasm32-freestanding`) I/O Surface Design — Console/DOM Bridge Contract
 
-**Status**: DECIDED
+ステータス: **DECIDED** — Import-based bridge（1ページlinear memory region）を採用
 **Created**: 2026-04-20
 **Scope**: T2 codegen target, playground v2 browser execution, `crates/ark-wasm` (future), `docs/target-contract.md`
 

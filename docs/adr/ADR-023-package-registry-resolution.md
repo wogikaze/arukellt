@@ -1,6 +1,6 @@
 # ADR-023: Package Registry Resolution Design
 
-**Status**: DECIDED
+ステータス: **DECIDED** — Registry lookupモデル（local > workspace > registry）を採用
 **Date**: 2026-04-14
 **Decided by**: Module-system track (issue #487)
 

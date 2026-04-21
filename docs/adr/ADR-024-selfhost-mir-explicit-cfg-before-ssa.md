@@ -1,6 +1,6 @@
 # ADR-024: Selfhost MIR uses an explicit CFG before SSA formation
 
-**Status**: DECIDED  
+ステータス: **DECIDED** — Selfhost MIRはSSA形成前に明示的なCFGを採用  
 **Created**: 2026-04-15  
 **Scope**: selfhost MIR, SSA formation, lowering, codegen boundary
 

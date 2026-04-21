@@ -1,6 +1,6 @@
 # ADR-003: generics 戦略
 
-ステータス: **DECIDED**
+ステータス: **DECIDED** — 制限付きMonomorphization（型ごとのコード生成）を採用
 
 決定日: 2026-03-24
 

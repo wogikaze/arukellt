@@ -1,6 +1,6 @@
 # ADR-016: Breaking Change Process — Three-Piece Set
 
-**Status**: DECIDED  
+ステータス: **DECIDED** — Breaking Change Process（3要素セット）を採用  
 **Created**: 2026-04-09  
 **Scope**: Language, stdlib, CLI, LSP, extension
 

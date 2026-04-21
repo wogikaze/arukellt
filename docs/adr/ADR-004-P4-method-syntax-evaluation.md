@@ -1,6 +1,6 @@
 # ADR-004 P4: Method Syntax Evaluation
 
-**Status**: DEFERRED — evaluation deferred pending trigger
+ステータス: **DEFERRED** — 評価保留（trigger待ち）
 **Date**: 2026-04-15
 **Relates to**: ADR-004 (trait strategy), Issue #157
 

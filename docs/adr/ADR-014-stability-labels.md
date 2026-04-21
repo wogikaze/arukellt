@@ -1,6 +1,6 @@
 # ADR-014: Stability Labels for Language Spec and Stdlib API
 
-**Status**: accepted  
+ステータス: **ACCEPTED** — 4段階の安定性ラベル（stable/provisional/experimental/unimplemented）を採用  
 **Date**: 2026-04-01  
 **Deciders**: core team
 

@@ -1,6 +1,6 @@
 # ADR-006: 公開 ABI の上限
 
-ステータス: **DECIDED**
+ステータス: **DECIDED** — 公開ABIは3層まで（内部・WASM・native）
 
 決定日: 2026-03-24
 
