@@ -13,6 +13,7 @@ Cross-reference of benchmarks against language features they exercise.
 | `string_concat.ark` | string | — | ✔ | — | — | ✔ | — | — | — | ✔ | ✔ | ✔ |
 | `string-ops.ark` (legacy) | string | — | — | — | — | ✔ | — | — | — | ✔ | — | — |
 | `struct-create.ark` (legacy) | memory | — | — | ✔ | — | — | — | — | — | ✔ | — | — |
+| `bench_cpu_enum_dispatch.ark` | compute | — | ✔ | — | — | — | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `parser.ark` (sample) | application | ✔ | ✔ | ✔ | ✔ | ✔ | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 
 ### Legend
@@ -27,7 +28,7 @@ The following language features have **no dedicated benchmark**:
 | Feature | Current coverage | Gap severity |
 |---------|-----------------|:------------:|
 | **Closures / higher-order functions** | None | High |
-| **Enum / pattern matching** | Only `vec-ops.ark` (legacy, `Option` match) | High |
+| **Enum / pattern matching** | `bench_cpu_enum_dispatch.ark` (dedicated dispatch benchmark) | Covered |
 | **Error paths / Result handling** | None | Medium |
 | **I/O-heavy workloads** | Only trivial `println` calls | Medium |
 | **Struct-heavy allocation** | Only `struct-create.ark` (legacy, trivial) | Medium |

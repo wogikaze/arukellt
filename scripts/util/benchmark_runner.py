@@ -105,6 +105,13 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         tags=("parse", "allocation-heavy", "container", "iteration"),
         runtime_args=("run", "--dir=."),
     ),
+    BenchmarkCase(
+        name="enum_dispatch",
+        source="benchmarks/bench_cpu_enum_dispatch.ark",
+        expected="benchmarks/bench_cpu_enum_dispatch.expected",
+        description="Enum variant dispatch via match (100,000 iterations, 3 variants)",
+        tags=("cpu-bound", "match-heavy", "allocation-heavy", "iteration"),
+    ),
 )
 
 MODE_PRESETS: dict[str, dict[str, Any]] = {
