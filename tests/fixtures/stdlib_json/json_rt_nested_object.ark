@@ -1,0 +1,66 @@
+use std::host::stdio
+use std::json
+
+fn main() {
+    // Round-trip: parse a nested object, then stringify it and re-parse to verify values
+    let raw = "{\"person\":{\"name\":\"bob\",\"age\":25},\"active\":true}"
+    match json::parse(raw) {
+        Result::Ok(top) => {
+            match json::json_get(top, "person") {
+                Option::Some(person) => {
+                    match json::json_get(person, "name") {
+                        Option::Some(nv) => {
+                            match json::json_as_string(nv) {
+                                Option::Some(s) => stdio::println(s),
+                                None => stdio::println("not string"),
+                            }
+                        },
+                        None => stdio::println("key not found"),
+                    }
+                    match json::json_get(person, "age") {
+                        Option::Some(av) => {
+                            match json::json_as_i32(av) {
+                                Option::Some(n) => stdio::println(i32_to_string(n)),
+                                None => stdio::println("not number"),
+                            }
+                        },
+                        None => stdio::println("key not found"),
+                    }
+                },
+                None => stdio::println("person not found"),
+            }
+            match json::json_get(top, "active") {
+                Option::Some(bv) => {
+                    match json::json_as_bool(bv) {
+                        Option::Some(b) => stdio::println(bool_to_string(b)),
+                        None => stdio::println("not bool"),
+                    }
+                },
+                None => stdio::println("active not found"),
+            }
+            // Stringify and re-parse to confirm round-trip
+            let s = json::stringify(top)
+            match json::parse(s) {
+                Result::Ok(top2) => {
+                    match json::json_get(top2, "person") {
+                        Option::Some(p2) => {
+                            match json::json_get(p2, "age") {
+                                Option::Some(av2) => {
+                                    match json::json_as_i32(av2) {
+                                        Option::Some(n2) => stdio::println(i32_to_string(n2)),
+                                        None => stdio::println("not number"),
+                                    }
+                                },
+                                None => stdio::println("key not found"),
+                            }
+                        },
+                        None => stdio::println("person not found"),
+                    }
+                },
+                Result::Err(e) => stdio::println(concat("re-parse error:", e)),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+}
+// nested object round-trip: parse → access → stringify → re-parse → access
