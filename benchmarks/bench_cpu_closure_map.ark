@@ -1,0 +1,35 @@
+use std::host::stdio
+
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < 2000 {
+        push(v, i + 1)
+        i = i + 1
+    }
+
+    // map pass: scale each element and add offset (closure captures outer let bindings)
+    let scale: i32 = 3
+    let offset: i32 = 7
+    let map_fn = |x: i32| -> i32 { x * scale + offset }
+
+    let mut mapped: Vec<i32> = Vec_new_i32()
+    let mut j: i32 = 0
+    while j < len(v) {
+        push(mapped, map_fn(get_unchecked(v, j)))
+        j = j + 1
+    }
+
+    // reduce pass: sum all mapped values (closure captures running accumulator seed)
+    let seed: i32 = 0
+    let reduce_fn = |acc: i32, x: i32| -> i32 { acc + x }
+
+    let mut sum: i32 = seed
+    let mut k: i32 = 0
+    while k < len(mapped) {
+        sum = reduce_fn(sum, get_unchecked(mapped, k))
+        k = k + 1
+    }
+
+    stdio::println(i32_to_string(sum))
+}

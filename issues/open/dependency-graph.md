@@ -75,7 +75,6 @@ graph LR
   I510["510 T3 emitter: WASI P2 import-table switch (full P2-native component)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
-  I539["539 539 — Benchmark: closure map (higher-order functions)"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I542["542 542 — Benchmark: error chain (Result / error propagation)"]
   I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
@@ -97,7 +96,6 @@ graph LR
   I074 --> I510
   I125 --> I126
   I285 --> I508
-  I499 --> I539
   I312 --> I495
   I504 --> I495
   I515 --> I542
@@ -147,7 +145,7 @@ graph LR
 - **473** depends on: 032, done); blocks: none
 - **489** depends on: none; blocks: none
 - **494** depends on: 493, 503; blocks: none
-- **499** depends on: none; blocks: 539
+- **499** depends on: none; blocks: none
 - **500** depends on: none; blocks: none
 - **504** depends on: none; blocks: 495, 512
 - **513** depends on: none; blocks: 518
@@ -188,7 +186,6 @@ graph LR
 - **510** depends on: 074; blocks: 076, 121
 - **126** depends on: 125; blocks: none
 - **508** depends on: 285; blocks: none
-- **539** depends on: 499; blocks: none
 - **495** depends on: 312, 504; blocks: 512
 - **542** depends on: 515; blocks: none
 - **518** depends on: 513, 517; blocks: none

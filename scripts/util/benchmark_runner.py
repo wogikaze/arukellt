@@ -105,6 +105,13 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         tags=("parse", "allocation-heavy", "container", "iteration"),
         runtime_args=("run", "--dir=."),
     ),
+    BenchmarkCase(
+        name="closure_map",
+        source="benchmarks/bench_cpu_closure_map.ark",
+        expected="benchmarks/bench_cpu_closure_map.expected",
+        description="Closure-based map+reduce over Vec<i32> (2000 elements, captured bindings)",
+        tags=("cpu-bound", "closure-heavy", "allocation-heavy", "iteration"),
+    ),
 )
 
 MODE_PRESETS: dict[str, dict[str, Any]] = {

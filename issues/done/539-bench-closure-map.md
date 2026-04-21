@@ -1,7 +1,8 @@
 # 539 — Benchmark: closure map (higher-order functions)
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-21
+**Closed**: 2026-04-22
 **ID**: 539
 **Depends on**: 499
 **Track**: benchmark
@@ -27,13 +28,13 @@ docs/benchmarks/feature-matrix.md identifies **closures / higher-order functions
 
 ## Acceptance
 
-- [ ] `benchmarks/bench_cpu_closure_map.ark` created with closure-based map over Vec
-- [ ] `benchmarks/bench_cpu_closure_map.expected` created with correct stdout
-- [ ] Benchmark registered in `scripts/util/benchmark_runner.py` `BENCHMARKS` tuple
-- [ ] Tags: `cpu-bound`, `closure-heavy`, `allocation-heavy`, `iteration`
-- [ ] `mise bench` passes for the new benchmark
-- [ ] `mise bench:update-baseline` includes the new benchmark
-- [ ] docs/benchmarks/feature-matrix.md updated to mark closures as covered
+- [x] `benchmarks/bench_cpu_closure_map.ark` created with closure-based map over Vec
+- [x] `benchmarks/bench_cpu_closure_map.expected` created with correct stdout
+- [x] Benchmark registered in `scripts/util/benchmark_runner.py` `BENCHMARKS` tuple
+- [x] Tags: `cpu-bound`, `closure-heavy`, `allocation-heavy`, `iteration`
+- [x] `mise bench` passes for the new benchmark
+- [x] `mise bench:update-baseline` includes the new benchmark
+- [x] docs/benchmarks/feature-matrix.md updated to mark closures as covered
 
 ## Required verification
 
@@ -43,3 +44,10 @@ docs/benchmarks/feature-matrix.md identifies **closures / higher-order functions
 ## Close gate
 
 Benchmark fixture exists, is registered in the runner, and baseline is updated.
+
+## Close note
+
+Implemented in commit on branch `feat/539-bench-closure-map`. Benchmark compiles and produces
+deterministic output `6017000` (map: `x * 3 + 7` over 2000 elements, reduce: sum). Closures
+with lexical captures work as expected via the production Rust compiler. Feature matrix updated
+to mark closures/higher-order functions as covered.

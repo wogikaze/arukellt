@@ -14,6 +14,7 @@ Cross-reference of benchmarks against language features they exercise.
 | `string-ops.ark` (legacy) | string | — | — | — | — | ✔ | — | — | — | ✔ | — | — |
 | `struct-create.ark` (legacy) | memory | — | — | ✔ | — | — | — | — | — | ✔ | — | — |
 | `parser.ark` (sample) | application | ✔ | ✔ | ✔ | ✔ | ✔ | — | ✔ | ✔ | ✔ | ✔ | ✔ |
+| `bench_cpu_closure_map.ark` | compute | — | ✔ | — | ✔ | — | ✔ | — | — | ✔ | ✔ | ✔ |
 
 ### Legend
 
@@ -26,7 +27,7 @@ The following language features have **no dedicated benchmark**:
 
 | Feature | Current coverage | Gap severity |
 |---------|-----------------|:------------:|
-| **Closures / higher-order functions** | None | High |
+| **Closures / higher-order functions** | `bench_cpu_closure_map.ark` (map+reduce, captured bindings) | Covered |
 | **Enum / pattern matching** | Only `vec-ops.ark` (legacy, `Option` match) | High |
 | **Error paths / Result handling** | None | Medium |
 | **I/O-heavy workloads** | Only trivial `println` calls | Medium |
