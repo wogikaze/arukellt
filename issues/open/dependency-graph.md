@@ -66,7 +66,6 @@ graph LR
   I554["554 Release: Extension Live Editor Tests"]
   I555["555 Release: Pre-Release CI Checks"]
   I556["556 Release: Selfhost Bootstrap Check"]
-  I558["558 558-expand-selfhost-cli-parity-runner-beyond-help-version"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -182,7 +181,6 @@ graph LR
 - **554** depends on: none; blocks: none
 - **555** depends on: none; blocks: none
 - **556** depends on: none; blocks: none
-- **558** depends on: none; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136

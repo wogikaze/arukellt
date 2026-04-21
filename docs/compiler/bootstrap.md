@@ -370,7 +370,7 @@ simultaneously and be verified by CI on every merge to `master`:
 | **Stage 1 compile** | `arukellt-s1.wasm` compiles the same `main.ark` to `.bootstrap-build/arukellt-s2.wasm` with zero errors | `scripts/run/verify-bootstrap.sh` Stage 1 |
 | **Stage 2 fixpoint** | `sha256(s2) == sha256(s3)` — selfhost compiler reproduces itself byte-for-byte | `scripts/run/verify-bootstrap.sh` Stage 2 |
 | **Fixture parity** | Selfhost compiler passes all 575+ fixture tests identically to the Rust compiler | `python scripts/manager.py selfhost parity` |
-| **CLI parity** | `arukellt-s1.wasm compile <file>` stdout/stderr matches `arukellt compile <file>` for all fixture inputs | `python scripts/manager.py selfhost parity --mode --cli` |
+| **CLI parity** | Rust and selfhost compilers agree on a representative set of CLI surface cases — exact output for `--version`/`--help`, and matching non-zero exit for unknown commands and no-arg `compile`/`check`/`run` | `python scripts/manager.py selfhost parity --mode --cli` |
 | **Diagnostic parity** | Error message text, line/column positions, and exit codes match for all error fixtures | `python scripts/manager.py selfhost parity --mode --diag` |
 | **Determinism** | Running Stage 0 twice on the same input produces identical bytes | part of `verify-bootstrap.sh` Stage 2 |
 

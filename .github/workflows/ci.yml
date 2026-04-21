@@ -14,7 +14,7 @@ name: CI
 #  docs/size/WAT layer     heavy-checks                  push only     verify-harness --size --wat --docs
 #  component-interop       component-interop             push only     component emit / host interop smoke
 #  perf                    perf-baseline                 push only     baseline snapshot collection
-#  bootstrap               selfhost-bootstrap            yes*          Stage 0/1 required; Stage 2 informational; fixture parity sub-step (--fixture only, || true; CLI/diag not in CI)
+#  bootstrap               selfhost-bootstrap            yes*          Stage 0/1 required; Stage 2 informational; fixture parity sub-step (--fixture only, || true); CLI parity + diag parity merge-blocking (#530)
 #  editor-tooling          extension-tests               yes           VS Code extension workflow tests
 #  editor-tooling          lsp-e2e                       yes           LSP protocol unit + end-to-end tests
 #  target-contract drift   target-contract-drift-check   yes           docs/target-contract.md matches CI truth
@@ -403,6 +403,27 @@ jobs:
           ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
         run: bash scripts/check/check-selfhost-parity.sh --fixture 2>&1 | tee parity-results.txt || true
 
+      # ── Merge-blocking CLI parity gate (#530) ─────────────────────────────
+      # Fails the PR if the selfhost compiler's CLI surface diverges from the
+      # reference Rust compiler. No `|| true`: this is required for merge.
+      - name: Selfhost CLI parity (merge-blocking, #530)
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
+        run: |
+          python3 scripts/manager.py selfhost parity --mode --cli 2>&1 \
+            | tee cli-parity-results.txt
+
+      # ── Merge-blocking diagnostic parity gate (#530) ──────────────────────
+      # Fails the PR if the selfhost compiler's diagnostic surface diverges
+      # from the reference Rust compiler. SKIP>0 is acceptable (unimplemented
+      # diagnostics), but any FAIL blocks the merge.
+      - name: Selfhost diagnostic parity (merge-blocking, #530)
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
+        run: |
+          python3 scripts/manager.py selfhost diag-parity 2>&1 \
+            | tee diag-parity-results.txt
+
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
@@ -411,6 +432,8 @@ jobs:
           path: |
             bootstrap-results.txt
             parity-results.txt
+            cli-parity-results.txt
+            diag-parity-results.txt
 
   # ── Layer 10: VS Code extension tests (merge gate) ─────────────────────
   extension-tests:

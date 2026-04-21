@@ -453,6 +453,44 @@ def cmd_verify_component(args: argparse.Namespace) -> int:
     return h.exit_code()
 
 
+def cmd_verify_selfhost_parity(args: argparse.Namespace) -> int:
+    """Aggregate selfhost parity gate (#530): CLI parity + diagnostic parity.
+
+    Delegates to the existing ``selfhost parity --mode --cli`` and
+    ``selfhost diag-parity`` runners without modifying their behavior. Returns
+    non-zero if either underlying check fails.
+    """
+    root = _repo_root()
+    dry_run: bool = args.dry_run
+    h = Harness(repo_root=root, dry_run=dry_run)
+
+    print(f"\n{YELLOW}[selfhost-parity] CLI parity + diagnostic parity gates (#530)...{NC}")
+
+    rc_cli, out_cli = run_parity(root, dry_run, mode="--cli")
+    if rc_cli == 0:
+        h.check_pass("selfhost CLI parity")
+    else:
+        h.check_fail("selfhost CLI parity")
+        for line in out_cli.splitlines()[-30:]:
+            print(line)
+
+    rc_diag, out_diag = run_diag_parity(root, dry_run)
+    if rc_diag == 0:
+        h.check_pass("selfhost diagnostic parity")
+    else:
+        h.check_fail("selfhost diagnostic parity")
+        for line in out_diag.splitlines()[-30:]:
+            print(line)
+
+    total, passed, skipped, failed = h.summary()
+    print(f"\n{YELLOW}Summary{NC}")
+    print(f"Total checks: {total}")
+    print(f"Passed: {GREEN}{passed}{NC}")
+    print(f"Skipped: {YELLOW}{skipped}{NC}")
+    print(f"Failed: {RED}{failed}{NC}")
+    return h.exit_code()
+
+
 # ── CLI wiring ────────────────────────────────────────────────────────────────
 
 # Flags not yet migrated to manager.py (Phase 1 out-of-scope).
@@ -485,8 +523,12 @@ def build_parser() -> argparse.ArgumentParser:
     verify_parser.add_argument("--component", action="store_true", help="Run the component interop smoke test")
     verify_parser.add_argument("--docs",      action="store_true", help="[Phase 1 stub] skipped — not yet migrated")
     verify_parser.add_argument(
+        "--selfhost-parity", action="store_true",
+        help="Run selfhost CLI parity + diagnostic parity gates (#530)",
+    )
+    verify_parser.add_argument(
         "--full", action="store_true",
-        help="Run quick + fixtures + size + wat + component sequentially",
+        help="Run quick + fixtures + size + wat + component + selfhost-parity sequentially",
     )
 
     # ── Positional subcommand interface (legacy, preserved) ───────────────────
@@ -640,6 +682,7 @@ def main() -> int:
         # Expand --full into the individual Phase-1 flags.
         if args.full:
             args.quick = args.fixtures = args.size = args.wat = args.component = True
+            args.selfhost_parity = True
 
         # Collect requested steps in a deterministic order.
         steps: list[tuple[str, object]] = []
@@ -649,6 +692,7 @@ def main() -> int:
             ("size",      cmd_verify_size),
             ("wat",       cmd_verify_wat),
             ("component", cmd_verify_component),
+            ("selfhost_parity", cmd_verify_selfhost_parity),
         ]:
             if getattr(args, flag, False):
                 steps.append((flag, fn))
