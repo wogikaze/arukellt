@@ -73,7 +73,7 @@ entry and migration guide are still required).
 ## Enforcement
 
 - PR reviewers must reject PRs that introduce breaking changes without the three-piece set
-- `scripts/run/verify-harness.sh` has a `--full` mode check for CHANGELOG entries
+- `scripts/manager.py` has a `--full` mode check for CHANGELOG entries
 - The issue template includes a `[breaking]` checkbox
 
 ## References

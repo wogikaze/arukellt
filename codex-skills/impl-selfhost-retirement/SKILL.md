@@ -61,7 +61,7 @@ You do **NOT** work on:
    - Keep policy and proof aligned; avoid speculative retirement language
 
 6. **Run required verification**
-   - Always run: `bash scripts/run/verify-harness.sh --quick`
+   - Always run: `python scripts/manager.py verify quick`
    - For docs/process changes: also run `python3 scripts/check/check-docs-consistency.py`
    - If the work order changes generated process docs or issue indexes, run the explicit generator commands it requires
    - If bootstrap verification commands are named, run them exactly
@@ -85,7 +85,7 @@ Classification: retirement-policy | parity-gate | source-of-truth-transition | v
 Files changed: <list>
 Checks/docs updated: <list>
 Verification commands and results:
-  - bash scripts/run/verify-harness.sh --quick: [PASS/FAIL]
+  - python scripts/manager.py verify quick: [PASS/FAIL]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
   - <bootstrap or generator command>: [PASS/FAIL if run]
 Completed: yes/no

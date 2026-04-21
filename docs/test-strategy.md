@@ -10,7 +10,7 @@ their responsibilities, and how they map to the CI pipeline.
 | **unit** | Individual functions / modules in compiler crates | merge-blocking | `unit-tests` job: clippy, rustfmt, `cargo test --workspace --lib --bins` |
 | **fixture** | End-to-end `.ark` → stdout/diagnostic correctness | mixed: T3 merge-blocking, T1 non-blocking | `fixture-primary` and `fixture-supported` jobs |
 | **target-contract** | Per-target behavior and CI/doc target drift | mixed: T3 merge-blocking, T1 non-blocking, drift merge-blocking | `fixture-primary`, `fixture-supported`, and `target-contract-drift-check` |
-| **component-interop** | Component Model emit + host interop | push-only informational | `component-interop` job: `bash scripts/run/verify-harness.sh --component` |
+| **component-interop** | Component Model emit + host interop | push-only informational | `component-interop` job: `bash scripts/manager.py --component` |
 | **package-workspace** | `ark.toml`, workspace resolution, manifest | merge-blocking, but currently piggybacks another layer | `unit-tests` job via `ark-manifest` / `ark-resolve` tests; no dedicated CI job yet |
 | **bootstrap** | Selfhost Stage 0→1→2 bootstrap and parity evidence | mixed: Stage 0/1 merge-blocking, Stage 2/parity informational | `selfhost-bootstrap` job |
 | **editor-tooling** | VS Code extension activation and LSP protocol behavior | merge-blocking | `extension-tests` and `lsp-e2e` jobs |
@@ -50,7 +50,7 @@ today.
 | CI layer / job | Gate level | Primary categories covered | Notes |
 |----------------|------------|----------------------------|-------|
 | **Unit tests** (`unit-tests`) | merge-blocking | unit, package-workspace | Also runs clippy and rustfmt so compiler / manifest regressions fail in the first layer. |
-| **Verification harness — quick gate** (`verification-harness-quick`) | merge-blocking | docs/size/WAT auxiliary checks (quick slice) | Runs `bash scripts/run/verify-harness.sh --quick` in its own job so manifest / docs hygiene / repo-structure failures identify this layer immediately (distinct from `unit-tests`). |
+| **Verification harness — quick gate** (`verification-harness-quick`) | merge-blocking | docs/size/WAT auxiliary checks (quick slice) | Runs `python scripts/manager.py verify quick` in its own job so manifest / docs hygiene / repo-structure failures identify this layer immediately (distinct from `unit-tests`). |
 | **Fixture suite - T3 primary** (`fixture-primary`) | merge-blocking | fixture, target-contract | Primary target behavior gate for `wasm32-wasi-p2`. |
 | **Fixture suite - T1 supported** (`fixture-supported`) | non-blocking | fixture, target-contract | Supported target alerting lane for `wasm32-wasi-p1`. |
 | **Integration - CLI smoke** (`integration`) | merge-blocking | integration | Confirms release CLI can compile and run a known program. |

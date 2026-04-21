@@ -33,7 +33,7 @@ Documentation of queue state only (no policy change).
 
 **Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: scripts/check/check-selfhost-fixpoint.sh, check-selfhost-parity.sh, check-selfhost-diagnostic-parity.sh all exist
+**Evidence**: `python scripts/manager.py selfhost fixpoint`, `selfhost parity`, `selfhost diag-parity` all implemented in `scripts/manager.py`
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
@@ -117,7 +117,7 @@ fi
 echo "OK: fixpoint reached ($S1_HASH)"
 ```
 
-このスクリプトを `scripts/run/verify-harness.sh` の full pass（非 `--quick`）に追加する。
+このスクリプトを `python scripts/manager.py verify` の full pass に追加する。
 
 ### Step 3: fixture parity テストを追加する
 
@@ -169,7 +169,7 @@ done
 The dual-period (Rust implementation and selfhost implementation maintained in parallel)
 ends when ALL of the following are true:
 
-1. Stage 2 fixpoint: `sha256(s1) = sha256(s2)` passes CI (`check-selfhost-fixpoint.sh`)
+1. Stage 2 fixpoint: `sha256(s1) = sha256(s2)` passes CI (`python scripts/manager.py selfhost fixpoint`)
 2. Fixture parity: all `tests/fixtures/*.ark` produce identical output from Rust and ark compilers
 3. CLI parity: `arukellt` and `arukellt-s1` produce identical CLI output for check/compile/run/test
 4. Diagnostic parity: error fixtures produce identical diagnostic JSON from both compilers
@@ -213,7 +213,7 @@ The following crates are deleted after dual-period ends:
 ## 影響範囲
 
 - `scripts/check/` (新規スクリプト 3 本)
-- `scripts/run/verify-harness.sh` (fixpoint check 追加)
+- `scripts/manager.py` (fixpoint check 追加)
 - `docs/compiler/bootstrap.md` (dual-period 終了条件・retained crate 表)
 - `docs/current-state.md` (selfhost セクション更新)
 - `src/compiler/*.ark` (fixpoint 不一致の修正)
@@ -238,9 +238,9 @@ The following crates are deleted after dual-period ends:
 
 ## 完了条件
 
-- [x] `check-selfhost-fixpoint.sh` が CI で pass する（`sha256(s1) = sha256(s2)`）
-- [x] `check-selfhost-fixture-parity.sh` が CI で pass する
-- [x] `check-selfhost-diagnostic-parity.sh` が CI で pass する（最低 10 ケース以上）
+- [x] `python scripts/manager.py selfhost fixpoint` が CI で pass する（`sha256(s1) = sha256(s2)`）
+- [x] `python scripts/manager.py selfhost fixture-parity` が CI で pass する
+- [x] `python scripts/manager.py selfhost diag-parity` が CI で pass する（最低 10 ケース以上）
 - [x] `docs/compiler/bootstrap.md` に dual-period 終了条件と retained crate 表が記載されている
 - [x] `docs/current-state.md` の selfhost セクションが Stage 2 達成を反映している
 - [x] `python scripts/manager.py verify` が全 pass する
@@ -249,9 +249,9 @@ The following crates are deleted after dual-period ends:
 
 ## 必要なテスト
 
-1. CI: `check-selfhost-fixpoint.sh` を `manager.py verify` full pass に統合
-2. CI: `check-selfhost-fixture-parity.sh` を full pass に統合
-3. CI: `check-selfhost-diagnostic-parity.sh` を full pass に統合
+1. CI: `python scripts/manager.py selfhost fixpoint` を `manager.py verify` full pass に統合
+2. CI: `python scripts/manager.py selfhost fixture-parity` を full pass に統合
+3. CI: `python scripts/manager.py selfhost diag-parity` を full pass に統合
 4. 手動: `s1` と `s2` の wasm-diff で実際の差異がゼロであることを目視確認
 
 ---

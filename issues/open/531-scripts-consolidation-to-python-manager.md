@@ -92,7 +92,7 @@ python scripts/manager.py verify component
 
 **Modify:**
 - `.github/workflows/ci.yml` (update verify calls to use manager.py with dual-run period)
-- `scripts/run/verify-harness.sh` (convert to thin wrapper)
+- `scripts/manager.py` (convert to thin wrapper)
 
 **Wrapper contract (verify-harness.sh):**
 

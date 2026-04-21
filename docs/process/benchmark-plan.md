@@ -36,7 +36,7 @@ definition; downstream tooling **must** honour these semantics.
 
 ### CI gate wiring
 
-The perf gate is invoked via `scripts/check/perf-gate.sh`, which calls
+The perf gate is invoked via `python scripts/manager.py perf gate`, which calls
 `benchmark_runner.py --mode ci`.  The gate runs on every PR that touches:
 
 - `src/` (compiler source)

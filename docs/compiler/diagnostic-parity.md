@@ -365,7 +365,7 @@ ok: 413 bytes
 | 6 | Wrong arg count | E0202 | ✅ | ❌ | ❌ | ❌ | ❌ |
 | 7 | Immutable mutation | E0207 | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-**Full parity check** (`scripts/check/check-selfhost-diagnostic-parity.sh`):
+**Full parity check** (`python scripts/manager.py selfhost diag-parity`):
 30 diagnostic fixtures tested — 0 pass, 0 fail, **30 skip** (selfhost does
 not emit the expected `error[Exxxx|phase]:` pattern for any fixture).
 
@@ -440,7 +440,7 @@ The selfhost compiler's diagnostic system is at an **early stage**:
 ## Verification
 
 ```
-bash scripts/check/check-selfhost-diagnostic-parity.sh
+python scripts/manager.py selfhost diag-parity
   → diag-parity: pass=0 fail=0 skip=30 total=30
   → Exit 0 (no regressions; skips are expected at this stage)
 ```

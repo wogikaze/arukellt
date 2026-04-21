@@ -95,7 +95,7 @@ Identical checksums prove the compiler is a fixpoint.
 
 Fixpoint verification only works when compilation is **deterministic**.
 The compiler must not embed timestamps, random nonces, or pointer-derived
-values into the output binary.  `scripts/run/verify-harness.sh` already
+values into the output binary.  `scripts/manager.py` already
 checks determinism for fixtures and will be extended to the selfhost
 compiler.
 
@@ -156,8 +156,8 @@ Stage **0** compiles **only** `src/compiler/main.ark` into the unified
   printing that **bootstrap attainment was not evaluated** (Stages 1–2 do
   not run).
 - **`--fixture-parity`:** After Stage 0, if `arukellt-s1.wasm` exists, runs
-  `bash scripts/check/check-selfhost-parity.sh --fixture` when
-  `scripts/check/check-selfhost-parity.sh` exists **and** is executable by the
+  `python scripts/manager.py selfhost parity --mode --fixture` when
+  `python scripts/manager.py selfhost parity` exists **and** is executable by the
   current user; otherwise prints `SKIP  check-selfhost-parity.sh not found` and
   continues. On success of Stage 0 (and parity, when run), exits like
   `--stage1-only` (no Stage 1–2). If parity exits non‑zero, the bootstrap
@@ -298,33 +298,33 @@ rejects partial-mode flags.
 | Script | Purpose | Issue |
 |--------|---------|-------|
 | `scripts/run/verify-bootstrap.sh` | Stage 0→1→2 fixpoint verification | #154, #181, #182 |
-| `scripts/check/check-selfhost-fixpoint.sh` | sha256 fixpoint check (s1 vs s2); `--no-build` compares cached artifacts | #459 |
-| `scripts/check/check-selfhost-fixture-parity.sh` | Run "run:" fixtures through s1.wasm; compare stdout to Rust output | #459 |
-| `scripts/check/check-selfhost-diagnostic-parity.sh` | Run "diag:" fixtures through s1.wasm; check expected error pattern appears | #459 |
+| `python scripts/manager.py selfhost fixpoint` | sha256 fixpoint check (s1 vs s2) | #459 |
+| `python scripts/manager.py selfhost fixture-parity` | Run "run:" fixtures through s1.wasm; compare stdout to Rust output | #459 |
+| `python scripts/manager.py selfhost diag-parity` | Run "diag:" fixtures through s1.wasm; check expected error pattern appears | #459 |
 | `scripts/run/compare-outputs.sh` | Phase output diff (Rust vs selfhost) | #174 |
-| `scripts/run/verify-harness.sh` | Top-level verification gate | — |
+| `scripts/manager.py` | Top-level verification gate | — |
 
 ### How to Run the Fixpoint Check
 
 ```bash
 # Build s1.wasm and s2.wasm then compare sha256
-bash scripts/check/check-selfhost-fixpoint.sh
+python scripts/manager.py selfhost fixpoint
 
 # Compare pre-built cached artifacts (faster, suitable for CI)
-bash scripts/check/check-selfhost-fixpoint.sh --no-build
+python scripts/manager.py selfhost fixpoint --no-build
 
 # Run fixture output parity (requires .build/selfhost/arukellt-s1.wasm)
-bash scripts/check/check-selfhost-fixture-parity.sh
+python scripts/manager.py selfhost fixture-parity
 
 # Run diagnostic parity (requires .build/selfhost/arukellt-s1.wasm)
-bash scripts/check/check-selfhost-diagnostic-parity.sh
+python scripts/manager.py selfhost diag-parity
 
 # Run all selfhost checks via the full harness pass
-bash scripts/run/verify-harness.sh --full
+bash scripts/manager.py --full
 # Or individually:
-bash scripts/run/verify-harness.sh --fixpoint
-bash scripts/run/verify-harness.sh --selfhost-fixture-parity
-bash scripts/run/verify-harness.sh --selfhost-diag-parity
+bash scripts/manager.py --fixpoint
+bash scripts/manager.py --selfhost-fixture-parity
+bash scripts/manager.py --selfhost-diag-parity
 ```
 
 **SKIP behaviour:** All three scripts exit 0 with a `SKIP:` message when
@@ -352,7 +352,7 @@ selfhost complete** checklist; see also
 > **Language selfhost complete (product bar):** The selfhost compiler is
 > complete when `scripts/run/verify-bootstrap.sh` exits 0 on the full
 > Stage 0 → 1 → 2 path (fixpoint attained), **and**
-> `scripts/check/check-selfhost-parity.sh` exits 0 on the same commit (fixture /
+> `python scripts/manager.py selfhost parity` exits 0 on the same commit (fixture /
 > CLI / diagnostic parity as defined by that script). That bar is **not**
 > implied by the repository bootstrap gate alone.
 
@@ -368,9 +368,9 @@ simultaneously and be verified by CI on every merge to `master`:
 | **Stage 0 compile** | Rust compiler compiles `src/compiler/main.ark` to `.bootstrap-build/arukellt-s1.wasm` with zero errors | `scripts/run/verify-bootstrap.sh --stage1-only` |
 | **Stage 1 compile** | `arukellt-s1.wasm` compiles the same `main.ark` to `.bootstrap-build/arukellt-s2.wasm` with zero errors | `scripts/run/verify-bootstrap.sh` Stage 1 |
 | **Stage 2 fixpoint** | `sha256(s1) == sha256(s2)` — compiler reproduces itself byte-for-byte | `scripts/run/verify-bootstrap.sh` Stage 2 |
-| **Fixture parity** | Selfhost compiler passes all 575+ fixture tests identically to the Rust compiler | `scripts/check/check-selfhost-parity.sh` |
-| **CLI parity** | `arukellt-s1.wasm compile <file>` stdout/stderr matches `arukellt compile <file>` for all fixture inputs | `scripts/check/check-selfhost-parity.sh --cli` |
-| **Diagnostic parity** | Error message text, line/column positions, and exit codes match for all error fixtures | `scripts/check/check-selfhost-parity.sh --diag` |
+| **Fixture parity** | Selfhost compiler passes all 575+ fixture tests identically to the Rust compiler | `python scripts/manager.py selfhost parity` |
+| **CLI parity** | `arukellt-s1.wasm compile <file>` stdout/stderr matches `arukellt compile <file>` for all fixture inputs | `python scripts/manager.py selfhost parity --mode --cli` |
+| **Diagnostic parity** | Error message text, line/column positions, and exit codes match for all error fixtures | `python scripts/manager.py selfhost parity --mode --diag` |
 | **Determinism** | Running Stage 0 twice on the same input produces identical bytes | part of `verify-bootstrap.sh` Stage 2 |
 
 ### Current Verification Status
@@ -424,9 +424,9 @@ All Rust crates currently in the workspace will be deleted once their Arukellt e
 
 The dual period for the core compiler ends when:
 
-> `scripts/check/check-selfhost-parity.sh` exits 0 on `HEAD` of `master`.
+> `python scripts/manager.py selfhost parity` exits 0 on `HEAD` of `master`.
 
-Once `scripts/check/check-selfhost-parity.sh` exits 0 in CI, the core compiler crates (driver, mir, wasm, CLI) can be deleted. The IDE and foundational crates will follow as their Arukellt counterparts achieve functional parity for incremental analysis and language server capabilities.
+Once `python scripts/manager.py selfhost parity` exits 0 in CI, the core compiler crates (driver, mir, wasm, CLI) can be deleted. The IDE and foundational crates will follow as their Arukellt counterparts achieve functional parity for incremental analysis and language server capabilities.
 
 ### IDE Tooling Positioning (100% Arukellt Architecture)
 

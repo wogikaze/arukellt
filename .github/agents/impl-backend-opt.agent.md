@@ -20,7 +20,7 @@ out_of_scope:
 - Frontend/parser changes
 - Stdlib implementation
 required_verification:
-- `bash scripts/run/verify-harness.sh --quick`
+- `python scripts/manager.py verify quick`
 - Benchmark regression checks
 stop_if:
 - Optimization pass breaks existing fixture parity

@@ -61,7 +61,7 @@ You do **NOT** work on:
    - Do not widen into compiler optimization or runtime changes
 
 4. **Verification**
-   - Run `bash scripts/run/verify-harness.sh --quick` to check nothing is broken
+   - Run `python scripts/manager.py verify quick` to check nothing is broken
    - Run any benchmark-specific verification defined in the work order
    - Ensure new benchmark programs compile and produce expected output
 

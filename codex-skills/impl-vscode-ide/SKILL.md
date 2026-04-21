@@ -62,8 +62,8 @@ You do **NOT** work on:
    - If browser/editor smoke is required, keep it acceptance-driven and scoped
 
 6. **Run required verification**
-   - Always run: `bash scripts/run/verify-harness.sh --quick`
-   - For Rust LSP crate changes: also run `bash scripts/run/verify-harness.sh --cargo`
+   - Always run: `python scripts/manager.py verify quick`
+   - For Rust LSP crate changes: also run `cargo test --workspace --exclude ark-llvm`
    - For extension/editor slices: run the explicit extension or VS Code E2E command provided by the work order
    - For docs/help text changes tied to the IDE surface: also run `python3 scripts/check/check-docs-consistency.py` when relevant
 
@@ -86,8 +86,8 @@ Classification: lsp-precision | diagnostics-parity | codelens-command | extensio
 Files changed: <list>
 Tests/checks added or updated: <list>
 Verification commands and results:
-  - bash scripts/run/verify-harness.sh --quick: [PASS/FAIL]
-  - bash scripts/run/verify-harness.sh --cargo: [PASS/FAIL if run]
+  - python scripts/manager.py verify quick: [PASS/FAIL]
+  - cargo test --workspace --exclude ark-llvm: [PASS/FAIL if run]
   - <extension or VS Code E2E command>: [PASS/FAIL if run]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
 Completed: yes/no

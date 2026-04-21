@@ -38,7 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- Perf gate thresholds added to `scripts/run/verify-harness.sh`
+- Perf gate thresholds added to `scripts/manager.py`
 
 ### Migration
 

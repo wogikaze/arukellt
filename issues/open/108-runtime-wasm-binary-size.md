@@ -63,7 +63,7 @@ roadmap-v4.md §2 の「hello.wasm 1KB 以下」目標を達成するための
 
 1. `hello.wasm` (GC-native) が `--opt-level 2` で 1KB 以下 — **918 B** on `wasm32-wasi-p2` (2026-04-18)
 2. 各最適化の寄与量を記録した `docs/process/wasm-size-reduction.md` を維持 — **updated in this reconciliation**
-3. `scripts/run/verify-harness.sh` の perf gate にバイナリサイズチェックを追加 — **partial**: `verify-harness.sh --size` / perf baselines track size; **`--quick` does not run `--size` by default**
+3. `scripts/manager.py` の perf gate にバイナリサイズチェックを追加 — **partial**: `python scripts/manager.py verify size` / perf baselines track size; **`verify quick` does not run `size` by default**
 
 ## 参照
 

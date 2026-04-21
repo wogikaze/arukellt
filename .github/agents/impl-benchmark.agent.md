@@ -33,7 +33,7 @@ Complete exactly one assigned benchmark work order. Stay inside measurement infr
 - Open-ended optimization without a measurement story  
 
 **Required verification:**  
-- Run commands listed in the work order; default minimum includes `bash scripts/run/verify-harness.sh --quick` when repo Rust changes occur.  
+- Run commands listed in the work order; default minimum includes `python scripts/manager.py verify quick` when repo Rust changes occur.  
 - If the slice only touches scripts/docs, run any script-specific dry-run or `bash -n` / `shellcheck` commands requested in the work order.  
 
 **Commit discipline:**  

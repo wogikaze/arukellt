@@ -65,9 +65,9 @@ You do **NOT** work on:
    - Keep tests minimal and acceptance-driven
 
 6. **Run required verification**
-   - Always run: `bash scripts/run/verify-harness.sh --quick`
-   - For runtime/code changes: also run `bash scripts/run/verify-harness.sh --cargo`
-   - For fixture behavior: also run `bash scripts/run/verify-harness.sh --fixtures`
+   - Always run: `python scripts/manager.py verify quick`
+   - For runtime/code changes: also run `cargo test --workspace --exclude ark-llvm`
+   - For fixture behavior: also run `python scripts/manager.py verify fixtures`
    - For docs/current behavior changes: also run `python3 scripts/check/check-docs-consistency.py`
    - If the work order specifies more, run only those additional commands
 
@@ -90,9 +90,9 @@ Classification: host-runtime | capability-enforcement | target-gating | runtime-
 Files changed: <list>
 Fixtures/tests/checks added or updated: <list>
 Verification commands and results:
-  - bash scripts/run/verify-harness.sh --quick: [PASS/FAIL]
-  - bash scripts/run/verify-harness.sh --cargo: [PASS/FAIL]
-  - bash scripts/run/verify-harness.sh --fixtures: [PASS/FAIL]
+  - python scripts/manager.py verify quick: [PASS/FAIL]
+  - cargo test --workspace --exclude ark-llvm: [PASS/FAIL]
+  - python scripts/manager.py verify fixtures: [PASS/FAIL]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
 Completed: yes/no
 Blockers: <list or 'None'>

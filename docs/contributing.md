@@ -22,10 +22,10 @@ Before changing behavior, read:
 cargo build --release -p arukellt
 
 # Run the fast local verification gate
-bash scripts/run/verify-harness.sh
+python scripts/manager.py verify
 
 # Run the full local verification set when needed
-bash scripts/run/verify-harness.sh --full
+bash scripts/manager.py --full
 
 # Run a sample program
 ./target/release/arukellt run docs/examples/hello.ark
@@ -37,10 +37,10 @@ bash scripts/run/verify-harness.sh --full
 cargo fmt --all --check
 cargo clippy --workspace --exclude ark-llvm -- -D warnings
 cargo test --workspace --exclude ark-llvm
-bash scripts/run/verify-harness.sh
-bash scripts/run/verify-harness.sh --cargo
-bash scripts/run/verify-harness.sh --fixtures
-bash scripts/run/verify-harness.sh --full
+python scripts/manager.py verify
+cargo test --workspace --exclude ark-llvm
+python scripts/manager.py verify fixtures
+bash scripts/manager.py --full
 python3 scripts/gen/generate-docs.py
 python3 scripts/check/check-docs-consistency.py
 python3 scripts/util/collect-baseline.py
@@ -78,7 +78,7 @@ docs/               # user-facing and design docs
 
 - `tests/fixtures/manifest.txt` is the single source of truth for fixture entry points.
 - The harness is manifest-driven; do not assume globbing.
-- Current totals are derived dynamically by `scripts/run/verify-harness.sh` and surfaced in [`current-state.md`](current-state.md).
+- Current totals are derived dynamically by `scripts/manager.py` and surfaced in [`current-state.md`](current-state.md).
 - Fixture kinds currently include:
   - `run`
   - `diag`
@@ -109,7 +109,7 @@ This updates / validates generated landing pages, README status blocks, sidebar 
 Default local verification is the fast deterministic gate:
 
 ```bash
-bash scripts/run/verify-harness.sh
+python scripts/manager.py verify
 ```
 
 It covers, among other checks:
@@ -122,9 +122,9 @@ It covers, among other checks:
 Run heavier groups explicitly when needed:
 
 ```bash
-bash scripts/run/verify-harness.sh --cargo
-bash scripts/run/verify-harness.sh --fixtures
-bash scripts/run/verify-harness.sh --full
+cargo test --workspace --exclude ark-llvm
+python scripts/manager.py verify fixtures
+bash scripts/manager.py --full
 ```
 
 Heavy checks also belong in CI and can be installed locally as a pre-push hook via:

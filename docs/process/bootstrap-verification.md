@@ -60,7 +60,7 @@ these on failure.
 Fixpoint verification requires **deterministic** compilation: no timestamps,
 random nonces, or pointer-derived bytes in the wasm output.  Harness
 determinism checks for fixtures are extended toward selfhost over time; see
-`docs/compiler/bootstrap.md` and `scripts/run/verify-harness.sh`.
+`docs/compiler/bootstrap.md` and `scripts/manager.py`.
 
 ## Running
 
@@ -75,15 +75,15 @@ scripts/run/verify-bootstrap.sh --stage1-only
 scripts/run/verify-bootstrap.sh --stage 0
 ```
 
-## Integration with verify-harness
+## Integration with verify harness
 
-`scripts/run/verify-harness.sh` is the top-level completion gate.
+`python scripts/manager.py verify` is the top-level completion gate.
 
-- **Today:** optional `--fixpoint` runs `scripts/check/check-selfhost-fixpoint.sh`
+- **Today:** optional fixpoint check runs `python scripts/manager.py selfhost fixpoint`
   (issue #459; may SKIP or soft-fail depending on artifacts and fixpoint state).
 - **Future:** the harness may invoke `scripts/run/verify-bootstrap.sh` directly
   as the canonical Stage 0→1→2 gate once bootstrap is stable in CI; the
   contract above is written so that wiring is a one-line delegation.
 
-No change to `verify-harness.sh` is required for issue #154; the integration
+No change to `scripts/manager.py` is required for issue #154; the integration
 point is documented here for future CI work.

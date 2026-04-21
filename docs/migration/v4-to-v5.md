@@ -68,7 +68,7 @@ exist and be executable — see the script’s pre-flight checks).
 - `--stage1-only` runs **Stage 0 only**, then exits; it does not evaluate
   bootstrap attainment.
 - `--stage N` runs a single stage (`0`, `1`, or `2`).
-- `--fixture-parity` after Stage 0 runs `scripts/check/check-selfhost-parity.sh --fixture` when that helper exists.
+- `--fixture-parity` after Stage 0 runs `python scripts/manager.py selfhost parity --mode --fixture` when that helper exists.
 - `--check` prints machine-readable stage status (`stage0-compile`,
   `stage1-self-compile`, `stage2-fixpoint`, `attainment`) for the **full**
   gate only; it cannot be combined with `--stage`, `--stage1-only`, or

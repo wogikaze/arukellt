@@ -61,7 +61,7 @@ You do **NOT** work on:
    - Prefer validating examples rather than expanding them into new tutorial scope
 
 6. **Run required verification**
-   - Always run: `bash scripts/run/verify-harness.sh --quick`
+   - Always run: `python scripts/manager.py verify quick`
    - For docs consistency work: also run `python3 scripts/check/check-docs-consistency.py`
    - If generated docs inputs changed: also run `python3 scripts/gen/generate-docs.py`
    - If sample validation commands are provided, run them exactly
@@ -85,7 +85,7 @@ Classification: spec-sync | guide-update | sample-validation | docs-generator
 Files changed: <list>
 Examples/tests/checks added or updated: <list>
 Verification commands and results:
-  - bash scripts/run/verify-harness.sh --quick: [PASS/FAIL]
+  - python scripts/manager.py verify quick: [PASS/FAIL]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
   - python3 scripts/gen/generate-docs.py: [PASS/FAIL if run]
   - <sample validation command>: [PASS/FAIL if run]

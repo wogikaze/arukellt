@@ -47,7 +47,7 @@ and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 - Fixture harness: 641 passed, 0 failed, 28 skipped (manifest-driven)
 - Fixture manifest: 733 entries
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `bash scripts/run/verify-harness.sh (fast local gate; use --full for full local verification)` — **19/19 checks pass**
+- Verification entry point: `python scripts/manager.py verify (fast local gate; use --full for full local verification)` — **19/19 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ## GC-Native Data Model (T3, wasm32-wasi-p2)
@@ -250,7 +250,7 @@ The #122 opt-level separation work established the `passes/` directory and the u
 ## Self-Hosting Bootstrap Status
 
 > **Completion criterion:** `scripts/run/verify-bootstrap.sh` exits 0 (no
-> SKIP) **and** `scripts/check/check-selfhost-parity.sh` exits 0.
+> SKIP) **and** `python scripts/manager.py selfhost parity` exits 0.
 > See [docs/compiler/bootstrap.md](docs/compiler/bootstrap.md) for full details.
 
 Verification status of each bootstrap stage (source: `src/compiler/*.ark`):
@@ -281,10 +281,10 @@ Root cause (tracked in issue #459 — not fixed in this slice):
 - All cross-module calls are lowered to `i32.const 0` stubs in `emitter.ark`.
 - s2.wasm contains only ~24 functions (CLI stubs) vs s1.wasm's ~556 (full compiler).
 
-CI scripts added in issue #459:
-- `scripts/check/check-selfhost-fixpoint.sh` — sha256 fixpoint check
-- `scripts/check/check-selfhost-fixture-parity.sh` — run fixture output parity
-- `scripts/check/check-selfhost-diagnostic-parity.sh` — diagnostic parity
+CI checks added in issue #459 (via `python scripts/manager.py selfhost`):
+- `selfhost fixpoint` — sha256 fixpoint check
+- `selfhost fixture-parity` — run fixture output parity
+- `selfhost diag-parity` — diagnostic parity
 
 All three are wired into `verify-harness.sh --full` (and individually via `--fixpoint`,
 `--selfhost-fixture-parity`, `--selfhost-diag-parity`).  They exit 0 (SKIP) when

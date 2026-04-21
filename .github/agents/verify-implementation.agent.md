@@ -21,7 +21,7 @@ out_of_scope:
 - New feature implementation
 - Design work
 required_verification:
-- `bash scripts/run/verify-harness.sh`
+- `python scripts/manager.py verify`
 - Specific verification commands from issue
 stop_if:
 - Verification fails with unclear blocker

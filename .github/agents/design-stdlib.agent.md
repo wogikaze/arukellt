@@ -48,7 +48,7 @@ docs/process artifacts that clarify the modernization roadmap.
 
 ## Required verification
 
-- Always run: `bash scripts/run/verify-harness.sh --quick`
+- Always run: `python scripts/manager.py verify quick`
 - For docs/process changes: `python3 scripts/check/check-docs-consistency.py`
 - If generator inputs change: `python3 scripts/gen/generate-docs.py`
 
@@ -67,7 +67,7 @@ Acceptance slice: <exact SUBTASK text>
 Classification: audit | inventory | migration-plan | contract-clarification
 Files changed: <list>
 Verification commands and results:
-  - bash scripts/run/verify-harness.sh --quick: [PASS/FAIL]
+  - python scripts/manager.py verify quick: [PASS/FAIL]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
   - python3 scripts/gen/generate-docs.py: [PASS/FAIL if run]
 DONE_WHEN evaluation:

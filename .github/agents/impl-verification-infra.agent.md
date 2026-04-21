@@ -61,7 +61,7 @@ the verification slice.
 
 ## REQUIRED_VERIFICATION
 
-- Always run `bash scripts/run/verify-harness.sh --quick`
+- Always run `python scripts/manager.py verify quick`
 - Run the issue-specific verification commands from the work order exactly
 - Run `python3 scripts/check/check-docs-consistency.py` when docs contracts are
   changed
@@ -92,7 +92,7 @@ Classification: verification-contract | ci-wiring | bootstrap-proof | docs-sync
 Files changed: <list>
 Tests/checks added or updated: <list>
 Verification commands and results:
-  - bash scripts/run/verify-harness.sh --quick: [PASS/FAIL]
+  - python scripts/manager.py verify quick: [PASS/FAIL]
   - <issue-specific verification command>: [PASS/FAIL if run]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
   - python3 scripts/gen/generate-docs.py: [PASS/FAIL if run]

@@ -276,7 +276,7 @@ literals and arithmetic are wired through the emitter.
 ## Reference Implementations
 
 C and Rust reference implementations are provided for cross-language comparison.
-Use `--compare-lang c,rust,go` with `scripts/run/run-benchmarks.sh` to compile
+Use `--compare-lang` with `bash scripts/compare-benchmarks.sh` (or `python scripts/manager.py perf benchmarks`) to compile
 and time them automatically.
 
 | Benchmark | C ref | Rust ref | Notes |
@@ -300,13 +300,10 @@ rustc -O -o /tmp/btree_rs benchmarks/binary_tree.rs
 
 ```bash
 # Compare Ark (Wasm/wasmtime) vs C and Rust native binaries (3-run median)
-bash scripts/run/run-benchmarks.sh --compare-lang c,rust
+bash scripts/compare-benchmarks.sh
 
-# Include Go reference implementations (if .go files are present)
-bash scripts/run/run-benchmarks.sh --compare-lang c,rust,go
-
-# Combine with full-mode for more iterations
-bash scripts/run/run-benchmarks.sh --full --compare-lang c,rust
+# Full benchmark run (more iterations)
+python scripts/manager.py perf benchmarks --no-quick
 ```
 
 The comparison table prints `ark(ms)`, one column per reference language, and a
@@ -373,7 +370,7 @@ for tracking and trend analysis only.  The CI gate always compares against
 
 ## Results Placeholder
 
-Run `bash scripts/run/run-benchmarks.sh` to generate current measurements.
+Run `python scripts/manager.py perf benchmarks` to generate current measurements.
 The JSON output lands in `benchmarks/results/`.
 
 | Benchmark | ark compile (ms) | ark run (ms) | c run (ms) | rust run (ms) | ark/c ratio | ark/rust ratio |
@@ -385,7 +382,7 @@ The JSON output lands in `benchmarks/results/`.
 | vec_push_pop | — | — | N/A | N/A | — | — |
 | json_parse | — | — | N/A | N/A | — | — |
 
-*Populated by running `mise bench` or `bash scripts/run/run-benchmarks.sh --full --compare-lang c,rust`.  
+*Populated by running `mise bench` or `python scripts/manager.py perf benchmarks --no-quick`.  
 Baseline stored in `tests/baselines/perf/baselines.json`.*
 
 ### Legacy Fixtures
@@ -399,8 +396,8 @@ Baseline stored in `tests/baselines/perf/baselines.json`.*
 
 - **`scripts/util/benchmark_runner.py`** — canonical runner used by `mise bench`, compare, baseline update, and CI gate.
 - **`benchmarks/run_benchmarks.sh`** — wrapper for the canonical runner.
-- **`scripts/check/perf-gate.sh`** — CI-oriented wrapper (`--mode ci` / `--mode update-baseline`).
-- **`scripts/compare-benchmarks.sh`** — cross-language reference timing wrapper (`run-benchmarks.sh --compare-lang`; prints the table to stdout).
+- **`python scripts/manager.py perf gate`** — CI-oriented perf gate (`--update` to update baseline).
+- **`scripts/compare-benchmarks.sh`** — cross-language reference timing wrapper (prints the table to stdout).
 - **`parity-check.sh`** — Verify T1 vs T3 produce identical output for all `.ark` fixtures.
 - **`size-compare.sh`** — Compare Wasm binary sizes between T1 and T3.
 
@@ -413,7 +410,7 @@ Baseline stored in `tests/baselines/perf/baselines.json`.*
 
 ## Threshold Policy
 
-`mise bench:ci` and `scripts/check/perf-gate.sh` enforce these baseline regressions:
+`mise bench:ci` and `python scripts/manager.py perf gate` enforce these baseline regressions:
 
 | Metric       | Max allowed regression |
 |--------------|:----------------------:|

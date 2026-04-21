@@ -263,7 +263,7 @@ It does not claim full issue closure.
 - Linked from canonical ADR: `docs/adr/ADR-009-import-syntax.md` → `../spec/import-system.md`
 - Repo-internal links resolve under docs consistency checks (including ADR-009 -> import-system contract page).
 - Verification for this slice:
-  - `bash scripts/run/verify-harness.sh --quick` (PASS)
+  - `python scripts/manager.py verify quick` (PASS)
   - `python3 scripts/check/check-docs-consistency.py` (PASS)
 
 ---

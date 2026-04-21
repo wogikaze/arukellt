@@ -69,7 +69,7 @@ internal ABI / Wasm public ABI / canonical ABI の境界を分け、必要な変
 
 ### 原則 6: manifest-driven verification
 
-fixture harness は `tests/fixtures/manifest.txt` 駆動で、verification contract は `scripts/run/verify-harness.sh` が担います。デフォルトは fast local gate とし、fixture sweep などの重い検証は明示フラグまたは CI 側で実行します。
+fixture harness は `tests/fixtures/manifest.txt` 駆動で、verification contract は `scripts/manager.py` が担います。デフォルトは fast local gate とし、fixture sweep などの重い検証は明示フラグまたは CI 側で実行します。
 
 ### 原則 7: perf gate の分離
 

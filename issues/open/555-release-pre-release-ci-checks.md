@@ -18,9 +18,9 @@ docs/release-checklist.md — Pre-release section
 - [ ] `cargo test -p arukellt --test harness` passes (all fixtures green)
 - [ ] `cargo clippy --workspace --exclude ark-llvm -- -D warnings` clean
 - [ ] `cargo fmt --all -- --check` clean
-- [ ] `bash scripts/run/verify-harness.sh --quick` passes
-- [ ] `bash scripts/run/verify-harness.sh --component` passes (component interop)
-- [ ] `bash scripts/run/verify-harness.sh --opt-equiv` passes (O0 == O1)
+- [ ] `python scripts/manager.py verify quick` passes
+- [ ] `python scripts/manager.py verify component` passes (component interop)
+- [ ] `bash scripts/run/test-opt-equivalence.sh` passes (O0 == O1)
 - [ ] LSP unit tests: `cargo test -p ark-lsp --lib` passes
 
 ## Required Verification

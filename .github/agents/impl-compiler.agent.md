@@ -66,9 +66,9 @@ You do **NOT** work on:
    - Avoid broad refactors or cleanup justified only by style
 
 6. **Run required verification**
-   - Always run: `bash scripts/run/verify-harness.sh --quick`
-   - For compiler crate changes: also run `bash scripts/run/verify-harness.sh --cargo`
-   - For fixture/regression changes: also run `bash scripts/run/verify-harness.sh --fixtures`
+   - Always run: `python scripts/manager.py verify quick`
+   - For compiler crate changes: also run `cargo test --workspace --exclude ark-llvm`
+   - For fixture/regression changes: also run `python scripts/manager.py verify fixtures`
    - If the work order specifies target-specific or regression commands, run them too
 
 7. **Stop when done**
@@ -91,9 +91,9 @@ Classification: lowering | mir-validation | emitter | regression-fixture | compi
 Files changed: <list>
 Tests/fixtures added or updated: <list>
 Verification commands and results:
-  - bash scripts/run/verify-harness.sh --quick: [PASS/FAIL]
-  - bash scripts/run/verify-harness.sh --cargo: [PASS/FAIL]
-  - bash scripts/run/verify-harness.sh --fixtures: [PASS/FAIL]
+  - python scripts/manager.py verify quick: [PASS/FAIL]
+  - cargo test --workspace --exclude ark-llvm: [PASS/FAIL]
+  - python scripts/manager.py verify fixtures: [PASS/FAIL]
 Completed: yes/no
 Blockers: <list or 'None'>
 ```

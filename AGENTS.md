@@ -21,7 +21,7 @@ Use these in order, depending on the question:
 - **Current dependency ordering**: `issues/open/dependency-graph.md`
 - **Completed tracked work**: `issues/done/`
 - **Design decisions / rationale**: `docs/adr/`
-- **Verification contract**: `scripts/run/verify-harness.sh`
+- **Verification contract**: `scripts/manager.py` (`python scripts/manager.py verify`)
 - **Generated docs contract**: `scripts/gen/generate-docs.py`
 
 ## Current Work Surface
@@ -61,7 +61,7 @@ python3 scripts/gen/generate-issue-index.py
 Work is complete when the relevant scope is updated and verification passes.
 For tracked issue work, that normally means:
 
-1. `bash scripts/run/verify-harness.sh` exits with status 0
+1. `python scripts/manager.py verify` exits with status 0
 2. generated artifacts touched by the work are regenerated and included
 3. relevant docs / ADRs are updated when behavior changed
 4. tracked issue files move from `issues/open/` to `issues/done/` when the task itself is completed
@@ -69,8 +69,8 @@ For tracked issue work, that normally means:
 
 ## Verification Loop
 
-- Quick pass: `bash scripts/run/verify-harness.sh --quick`
-- Full pass: `bash scripts/run/verify-harness.sh`
+- Quick pass: `python scripts/manager.py verify quick`
+- Full pass: `python scripts/manager.py verify --full`
 
 ## Tooling Notes
 

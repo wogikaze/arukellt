@@ -178,14 +178,14 @@ Items marked **Manual** require human verification during review.
 ```bash
 # Run all automated gates (required before merge):
 python3 scripts/check/check-docs-consistency.py    # Gates 1–7 (18 checks)
-bash scripts/run/verify-harness.sh --quick       # Includes docs consistency + harness checks
+python scripts/manager.py verify quick       # Includes docs consistency + harness checks
 
 # If generated source inputs changed:
 python3 scripts/gen/generate-docs.py             # Regenerate all generated files
 python3 scripts/gen/generate-docs.py --check     # Verify freshness (Gate 1.1)
 
 # Full verification (before releases):
-bash scripts/run/verify-harness.sh --full        # All checks including heavy ones
+bash scripts/manager.py --full        # All checks including heavy ones
 ```
 
 ---

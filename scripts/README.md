@@ -77,7 +77,7 @@ Utility libraries and helpers.
 
 | Script | Language | Purpose | Usage |
 |--------|----------|---------|-------|
-| `benchmark_runner.py` | Python | Benchmark runner for performance data collection | Used by perf-gate.sh and update-baselines.sh |
+| `benchmark_runner.py` | Python | Benchmark runner for performance data collection | Used by `python scripts/manager.py perf gate` and `bash scripts/update-baselines.sh` |
 | `collect-baseline.py` | Python | Collect performance baseline data | `python3 scripts/util/collect-baseline.py` |
 
 ### Root Level Scripts

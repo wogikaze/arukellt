@@ -215,7 +215,7 @@ The target playground CI/CD workflow (does not yet exist in repo):
 10. **Assemble dist** — Copy Wasm + frontend assets into deploy directory, apply content hashes
 11. **Smoke test** — Run headless browser test (Playwright) against built assets
 12. **Deploy** — Push assembled assets to GitHub Pages via `actions/deploy-pages@v4`
-13. **Verify** — `bash scripts/run/verify-harness.sh --quick`
+13. **Verify** — `python scripts/manager.py verify quick`
 
 **Estimated CI time** (once implemented): 3–5 minutes (Rust build cached), 6–8 minutes (cold cache).
 

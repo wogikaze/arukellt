@@ -54,7 +54,7 @@ turns a broad modernization issue into concrete follow-up-ready evidence.
 
 - Run the verification commands named in the work order exactly
 - When docs or generated-doc inputs change, run `python3 scripts/check/check-docs-consistency.py`
-- Run `bash scripts/run/verify-harness.sh --quick` when the slice changes
+- Run `python scripts/manager.py verify quick` when the slice changes
   executable stdlib-facing artifacts or the work order requires it
 - If generator inputs change, run `python3 scripts/gen/generate-docs.py`
 

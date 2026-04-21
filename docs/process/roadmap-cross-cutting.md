@@ -91,7 +91,7 @@ v4.言語仕様凍結 (docs/language/spec.md)
 |------|------|
 | 発生条件 | v3 でモノモーフ名 (`Vec_new_i32`) から新 API 名への移行時、deprecation 期間なしに旧 API が除去される |
 | 影響 | 既存 346 fixture と user code が全て壊れる |
-| 緩和策 | `std/manifest.toml` の `stability` フィールドで管理。旧 API は v3 で Deprecated 化、v4 で除去。除去前に全 fixture を新 API に移行する。`scripts/run/verify-harness.sh` に deprecated API 使用チェックを追加 |
+| 緩和策 | `std/manifest.toml` の `stability` フィールドで管理。旧 API は v3 で Deprecated 化、v4 で除去。除去前に全 fixture を新 API に移行する。`scripts/manager.py` に deprecated API 使用チェックを追加 |
 | 許容基準 | v3 リリース時に Deprecated API が 0 の状態の fixture がない (全件移行済み) |
 
 ### リスク 4: 性能未達 — GC overhead が許容範囲を超える
@@ -194,7 +194,7 @@ v5 完了時に揃っているべきドキュメントの全リスト:
 ### 性能回帰テスト
 
 - `tests/baselines/perf/` に JSON 形式でベンチマーク結果を保存 (v4 で追加)
-- `scripts/run/verify-harness.sh` の perf gate で自動比較: コンパイル時間 +20%, 実行時間 +10%, バイナリサイズ +15% で failure
+- `scripts/manager.py` の perf gate で自動比較: コンパイル時間 +20%, 実行時間 +10%, バイナリサイズ +15% で failure
 - 手動更新: `scripts/update-baselines.sh` (意図的な性能変化のみ)
 
 ### 再現ビルド検証
@@ -229,8 +229,8 @@ bash scripts/gate/check-reproducible-build.sh --verbose
 bash scripts/gate/check-reproducible-build.sh --fixture src/compiler/main.ark --target wasm32-wasi-p1
 
 # verify-harness から呼び出す
-bash scripts/run/verify-harness.sh --repro
-bash scripts/run/verify-harness.sh --full  # --repro を含む
+bash scripts/manager.py --repro
+bash scripts/manager.py --full  # --repro を含む
 ```
 
 差分が出た場合、スクリプトは SHA-256 チェックサム・WAT diff（wabt が存在する場合）・バイナリ diff を出力する。

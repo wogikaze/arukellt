@@ -36,7 +36,7 @@ v3 までに確立した言語仕様と stdlib の上で、コンパイル時間
 | `crates/ark-driver/src/session.rs` | `--opt-level` を最適化パスに伝播 |
 | `benchmarks/` | 新規ベンチマーク追加 (binary_tree, json_parse 等) |
 | `tests/baselines/` | CI ベースライン更新 |
-| `scripts/run/verify-harness.sh` | perf gate の拡張 (閾値チェック強化) |
+| `scripts/manager.py` | perf gate の拡張 (閾値チェック強化) |
 
 ---
 
@@ -126,9 +126,9 @@ v3 までに確立した言語仕様と stdlib の上で、コンパイル時間
 7. **ベンチマーク追加** (`benchmarks/`)  
    - `binary_tree.ark` (depth=15)、`vec_push_pop.ark` (10 万要素)、`string_concat.ark` (1 万回)
    - 各ベンチマークの期待出力・実行コマンドを `benchmarks/README.md` に固定
-   - `scripts/run/run-benchmarks.sh` を追加
+   - `python scripts/manager.py perf benchmarks` で実行可能
 
-8. **CI ベースライン更新と回帰検知** (`tests/baselines/`, `scripts/run/verify-harness.sh`)  
+8. **CI ベースライン更新と回帰検知** (`tests/baselines/`, `scripts/manager.py`)  
    - `tests/baselines/perf/` にベンチマーク結果を JSON で保存
    - verify-harness.sh の perf gate: コンパイル時間 +20%, 実行時間 +10%, バイナリサイズ +15% で failure
    - `scripts/update-baselines.sh` でベースラインを手動更新するコマンドを作成
@@ -153,10 +153,10 @@ arukellt compile --opt-level 2 tests/fixtures/basic/fib.ark -o fib_o2.wasm
 wasmtime run fib_o0.wasm && wasmtime run fib_o2.wasm
 
 # ベンチマーク実行
-scripts/run/run-benchmarks.sh --compare-lang c,rust,go
+bash scripts/compare-benchmarks.sh
 
 # perf gate
-scripts/run/verify-harness.sh  # 拡張 perf gate 含む
+scripts/manager.py  # 拡張 perf gate 含む
 
 # MIR dump 確認
 ARUKELLT_DUMP_PHASES=optimized-mir arukellt compile tests/fixtures/basic/fib.ark
@@ -176,7 +176,7 @@ ARUKELLT_DUMP_PHASES=optimized-mir arukellt compile tests/fixtures/basic/fib.ark
 | `--opt-level 2` の結果と `--opt-level 0` の結果が意味論的に同一である | fixture harness で検証 |
 | 7 つの MIR 最適化パスが独立 on/off できる | `--no-pass=dce` 等で確認 |
 | `ARUKELLT_DUMP_PHASES=optimized-mir` が動作する | コマンド実行 + 出力確認 |
-| `scripts/run/verify-harness.sh` の拡張 perf gate が通る | exit code 0 |
+| `scripts/manager.py` の拡張 perf gate が通る | exit code 0 |
 | `benchmarks/README.md` にベンチマーク方法が記載されている | ファイル確認 |
 
 ---

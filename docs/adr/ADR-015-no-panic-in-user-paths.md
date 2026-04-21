@@ -69,7 +69,7 @@ The user-facing crates are clean as of this ADR.
 
 ## Enforcement
 
-- `scripts/run/verify-harness.sh` includes a panic audit check: `--no-panic-audit`
+- `scripts/manager.py` includes a panic audit check: `--no-panic-audit`
 - CI runs this check in the `integration` layer
 - New violations are treated as `P1` bugs (immediate fix required)
 

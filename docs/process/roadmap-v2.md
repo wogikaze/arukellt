@@ -134,7 +134,7 @@ cargo test --workspace --exclude ark-llvm
 cargo test -p arukellt --test harness -- --nocapture
 
 # Component e2e (新規)
-scripts/run/verify-harness.sh  # v2 で追加される component smoke test gate が含まれる
+scripts/manager.py  # v2 で追加される component smoke test gate が含まれる
 
 # Component 手動検証
 arukellt compile --emit component tests/e2e/calculator/main.ark -o calculator.component.wasm
@@ -157,7 +157,7 @@ node tests/e2e/calculator/test.mjs
 | WIT 型マッピング全 16 種のテスト fixture が pass する | fixture harness | ⚠️ 5/16 実装済み (#038 で残 11 種追跡中) |
 | 既存 fixture (T3 GC-native) が引き続き pass する | 数値確認 | ✅ (379 件全件 pass) |
 | T1 の全 fixture が引き続き pass する | fixture harness | ✅ |
-| `scripts/run/verify-harness.sh` の全ゲートが通る | exit code 0 | ✅ (17/17 — Check 17 は component interop optional) |
+| `scripts/manager.py` の全ゲートが通る | exit code 0 | ✅ (17/17 — Check 17 は component interop optional) |
 | `ADR-008-component-wrapping.md` が `docs/adr/` に存在する | ファイル存在確認 | ✅ |
 | `docs/migration/v1-to-v2.md` が存在する | ファイル存在確認 | ✅ |
 
@@ -196,7 +196,7 @@ v3 が開始できる前提条件:
 3. **WIT enum と Arukellt enum の混同**: WIT `enum` は discriminant only、Arukellt `enum` は payload 付き variant。変換コード内でこの差異を明示的に処理しないと、WIT validate 時に型不整合が起きる。
 4. **`resource` の drop semantics**: WIT `resource` には `[resource-drop]` handle があり、drop 時のフックが必要。GC ランタイムの finalization との統合は複雑。v2 では `resource` の生存期間を明示的に管理する (i32 handle + 明示的 drop) に限定し、GC finalization による暗黙 drop は v3 以降で評価する。
 5. **jco の Node.js 依存**: CI で jco テストを実行するには Node.js が必要。CI 環境に Node.js がない場合は jco テストをオプショナルにし、`--with-jco` フラグで有効化する。
-6. **`verify-harness.sh` の component gate 追加**: v2 の完了ゲートとして `scripts/run/verify-harness.sh` に `arukellt compile --emit component` の smoke test を追加する。このゲートが追加されることで v2 以降のデグレードを検知できる。
+6. **`verify-harness.sh` の component gate 追加**: v2 の完了ゲートとして `scripts/manager.py` に `arukellt compile --emit component` の smoke test を追加する。このゲートが追加されることで v2 以降のデグレードを検知できる。
 7. **Component Model 仕様の安定性**: Wasm Component Model 仕様は現在 Phase 2 (安定化前)。仕様変更による対応コストを考慮し、wasmtime の特定バージョンに固定して実装する。バージョン固定を `Cargo.toml` に明記する。
 
 ---

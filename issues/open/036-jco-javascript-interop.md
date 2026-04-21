@@ -61,7 +61,7 @@ toolchain (Rust + wasmtime). Separating the issue allows:
         5. Exits with code 0 on success, 1 on failure
       - `run.sh` — shell script that compiles `calculator.ark` to `calculator.component.wasm`
         then runs `node test.mjs`
-- [x] `scripts/run/verify-harness.sh` gains an optional check:
+- [x] `python scripts/manager.py verify component` gains an optional check:
       - Skipped silently when `ARUKELLT_TEST_JCO=1` is not set
       - When set: runs `tests/component-interop/jco/calculator/run.sh` and reports
         pass/fail as check 18 (jco-interop)
@@ -95,7 +95,7 @@ types.
 - `tests/component-interop/jco/calculator/run.sh` — wasmtime CLI–based test:
   `wasmtime run --wasm gc --wasm component-model --invoke 'add(3, 4)'` → `7`
   7 test cases: add(3,4), add(0,0), add(-1,1), mul(6,7), mul(0,100), negate(5), negate(-3)
-- `scripts/run/verify-harness.sh` — optional check 17 via `ARUKELLT_TEST_COMPONENT=1`
+- `python scripts/manager.py verify component` — optional check 17 via `ARUKELLT_TEST_COMPONENT=1`
   (renamed from `ARUKELLT_TEST_JCO=1` to reflect wasmtime-based implementation)
 
 ### String exports excluded
@@ -109,7 +109,7 @@ String component interop is deferred to the canonical ABI implementation work.
 
 - ✅ `calculator.ark` fixture exists
 - ✅ `run.sh` compiles and runs the component interop test (wasmtime, not jco/Node.js)
-- ✅ `verify-harness.sh` optional gate added (check 17, `ARUKELLT_TEST_COMPONENT=1`)
+- ✅ `python scripts/manager.py verify component` optional gate added (check 17, `ARUKELLT_TEST_COMPONENT=1`)
 - ⚠️  `test.mjs` / jco path: BLOCKED — jco does not support Wasm GC. Track jco upstream.
 - ⚠️  `greet(String) -> String`: BLOCKED — canonical ABI string adapters not implemented.
 - ⚠️  `docs/platform/wasm-features.md` jco documentation: deferred (jco not usable).

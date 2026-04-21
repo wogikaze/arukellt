@@ -54,8 +54,8 @@ Scope Enforcement:
 - Hard stop: unresolved upstream dependency, missing target support, assigned slice belongs to selfhost/playground, verification cannot run, completion would cross into another issue
 
 Verification Defaults:
-Always run: `bash scripts/run/verify-harness.sh --quick`
-For stdlib runtime/API changes: also run `bash scripts/run/verify-harness.sh --cargo` and `bash scripts/run/verify-harness.sh --fixtures`
+Always run: `python scripts/manager.py verify quick`
+For stdlib runtime/API changes: also run `cargo test --workspace --exclude ark-llvm` and `python scripts/manager.py verify fixtures`
 For generator/manifest/docs consistency: also run `python3 scripts/check/check-docs-consistency.py`
 If generated docs sources changed: also run `python3 scripts/gen/generate-docs.py`
 

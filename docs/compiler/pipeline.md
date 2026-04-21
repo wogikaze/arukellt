@@ -142,7 +142,7 @@ Full documentation: [optimization.md](optimization.md)
 - fixture harness は `tests/fixtures/manifest.txt` 駆動
 - fixture 総数や verification gate の現在値は `docs/current-state.md` を参照
 - `scripts/check/check-docs-consistency.py` が generated docs drift を検出
-- `scripts/run/verify-harness.sh` が correctness gate を担う
+- `scripts/manager.py` が correctness gate を担う
 
 ## 読み方
 

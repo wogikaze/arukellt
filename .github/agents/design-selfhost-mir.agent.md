@@ -28,7 +28,7 @@ into product implementation work.
 ## Allowed adjacent paths
 
 - `src/compiler/**` for evidence gathering only
-- `scripts/run/verify-harness.sh` for verification contract reference
+- `scripts/manager.py` for verification contract reference
 - `docs/current-state.md` when the design changes a user-visible claim
 
 ## Out of scope
@@ -41,7 +41,7 @@ into product implementation work.
 ## Required verification
 
 - Any explicitly assigned docs/consistency checks
-- `bash scripts/run/verify-harness.sh --quick` when the work order requires repo-wide proof
+- `python scripts/manager.py verify quick` when the work order requires repo-wide proof
 - `python3 scripts/check/check-docs-consistency.py` when docs are changed
 
 ## Stop conditions

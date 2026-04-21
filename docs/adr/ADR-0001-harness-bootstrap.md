@@ -41,7 +41,7 @@ The minimum viable harness includes:
 - `docs/process/agent-harness.md` - Pointer document for developers
 - `docs/adr/` - Workflow and design decisions
 - `issues/open/` and `issues/done/` - Work queue
-- `scripts/run/verify-harness.sh` - Root completion gate
+- `scripts/manager.py` - Root completion gate
 
 Subsequent ADRs will address:
 

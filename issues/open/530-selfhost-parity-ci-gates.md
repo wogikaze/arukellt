@@ -22,8 +22,8 @@ Only fixture parity is verified in CI. This issue tracks adding the missing CI g
 ## Primary paths
 
 - .github/workflows/ci.yml
-- scripts/check/check-selfhost-cli-parity.sh (or equivalent)
-- scripts/check/check-selfhost-diagnostic-parity.sh (or equivalent)
+- `python scripts/manager.py selfhost parity --mode --cli` (or equivalent)
+- `python scripts/manager.py selfhost diag-parity` (or equivalent)
 
 ## Non-goals
 

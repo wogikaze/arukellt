@@ -19,7 +19,7 @@ Read these in order when relevant:
 3. `issues/open/dependency-graph.md` for dependency ordering
 4. `issues/done/` for completed tracked work
 5. `docs/adr/` for design rationale
-6. `scripts/run/verify-harness.sh` for the verification contract
+6. `scripts/manager.py` for the verification contract
 7. `scripts/gen/generate-docs.py` for generated docs behavior
 
 ## Markdown Reading
@@ -36,8 +36,8 @@ Use `dive` first, then narrow with `--path`, then `read` only the section you ne
 
 ## Verification
 
-- Quick pass: `bash scripts/run/verify-harness.sh --quick`
-- Full pass: `bash scripts/run/verify-harness.sh`
+- Quick pass: `python scripts/manager.py verify quick`
+- Full pass: `python scripts/manager.py verify`
 
 If behavior changes and generated docs or issue indexes are affected, run:
 

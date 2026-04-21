@@ -135,7 +135,7 @@ arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 
 v0 完成の条件:
 
-1. `scripts/run/verify-harness.sh` が成功
+1. `scripts/manager.py` が成功
 2. 以下のサンプルがコンパイル・実行可能:
    - Hello World ✅
    - 数値計算（フィボナッチ、素数判定） ✅

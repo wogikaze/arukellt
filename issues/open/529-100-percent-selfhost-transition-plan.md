@@ -25,10 +25,10 @@
 
 ```bash
 cargo build -p arukellt
-bash scripts/run/verify-harness.sh --quick
-bash scripts/check/check-selfhost-fixpoint.sh
-bash scripts/check/check-selfhost-fixture-parity.sh
-bash scripts/check/check-selfhost-diagnostic-parity.sh
+python scripts/manager.py verify quick
+python scripts/manager.py selfhost fixpoint
+python scripts/manager.py selfhost fixture-parity
+python scripts/manager.py selfhost diag-parity
 ```
 
 **Record:**
@@ -38,7 +38,7 @@ bash scripts/check/check-selfhost-diagnostic-parity.sh
 - Fixture parity: pass/fail/skip counts
 - Diagnostic parity: pass/fail/skip counts
 
-**Known Root Cause (from `check-selfhost-fixpoint.sh`):**
+**Known Root Cause (from `python scripts/manager.py selfhost fixpoint`):**
 1. Selfhost compiler does NOT follow `use` statements to load multiple files
 2. Cross-module calls are stubbed (not lowered/emitted correctly)
 3. Result: s2.wasm is extremely small
@@ -100,7 +100,7 @@ bash scripts/check/check-selfhost-diagnostic-parity.sh
 **Verification (mandatory):**
 
 ```bash
-bash scripts/check/check-selfhost-fixpoint.sh
+python scripts/manager.py selfhost fixpoint
 bash scripts/run/verify-bootstrap.sh --check
 ```
 
@@ -115,8 +115,8 @@ bash scripts/run/verify-bootstrap.sh --check
 **Execution:**
 
 ```bash
-bash scripts/check/check-selfhost-fixture-parity.sh
-bash scripts/check/check-selfhost-parity.sh --fixture
+python scripts/manager.py selfhost fixture-parity
+python scripts/manager.py selfhost parity --mode --fixture
 ```
 
 **Approach:**
@@ -143,8 +143,8 @@ bash scripts/check/check-selfhost-parity.sh --fixture
 **Execution:**
 
 ```bash
-bash scripts/check/check-selfhost-diagnostic-parity.sh
-bash scripts/check/check-selfhost-parity.sh --diag
+python scripts/manager.py selfhost diag-parity
+python scripts/manager.py selfhost parity --mode --diag
 ```
 
 **Internal Milestones (do not skip):**
@@ -208,11 +208,11 @@ bash scripts/check/check-selfhost-parity.sh --diag
 #### 5-3. Final Verification Before Deletion
 
 ```bash
-bash scripts/run/verify-harness.sh --quick
-bash scripts/run/verify-harness.sh --fixtures
-bash scripts/run/verify-harness.sh --fixpoint
-bash scripts/run/verify-harness.sh --selfhost-fixture-parity
-bash scripts/run/verify-harness.sh --selfhost-diag-parity
+python scripts/manager.py verify quick
+python scripts/manager.py verify fixtures
+python scripts/manager.py selfhost fixpoint
+python scripts/manager.py selfhost fixture-parity
+python scripts/manager.py selfhost diag-parity
 ```
 
 **Then delete.**
@@ -289,8 +289,8 @@ DAP involves runtime/debug info/stepping. Separate issue, lower priority than LS
 2. **Observe before change**
 
    ```bash
-   bash scripts/check/check-selfhost-fixpoint.sh --no-build
-   bash scripts/check/check-selfhost-fixture-parity.sh
+   python scripts/manager.py selfhost fixpoint
+   python scripts/manager.py selfhost fixture-parity
    ```
 
 3. **Implement**
@@ -299,16 +299,15 @@ DAP involves runtime/debug info/stepping. Separate issue, lower priority than LS
 
    ```bash
    python scripts/manager.py verify quick
-   python scripts/manager.py verify cargo
    python scripts/manager.py verify fixtures
    ```
 
 5. **Selfhost verification**
 
    ```bash
-   bash scripts/check/check-selfhost-fixpoint.sh
-   bash scripts/check/check-selfhost-fixture-parity.sh
-   bash scripts/check/check-selfhost-diagnostic-parity.sh
+   python scripts/manager.py selfhost fixpoint
+   python scripts/manager.py selfhost fixture-parity
+   python scripts/manager.py selfhost diag-parity
    ```
 
 6. **Record deltas**
@@ -339,7 +338,7 @@ One branch per concern:
 
 ### Criterion A: Selfhost Bootstrap
 
-- [ ] `check-selfhost-fixpoint.sh` passes
+- [ ] `python scripts/manager.py selfhost fixpoint` passes
 - [ ] `verify-bootstrap.sh --check` reports `stage2-fixpoint: reached`
 
 ### Criterion B: Compiler Parity
@@ -367,6 +366,6 @@ One branch per concern:
 
 1. **Implement recursive module loading** in `src/compiler/driver.ark`
 2. **Align qualified cross-module call resolution** in `src/compiler/mir.ark` and `src/compiler/emitter.ark`
-3. **Verify** `bash scripts/check/check-selfhost-fixpoint.sh` passes
+3. **Verify** `python scripts/manager.py selfhost fixpoint` passes
 
 **Rule:** Do not proceed to Phase 2+ until Phase 1 fixpoint is stable. Root cause isolation becomes impossible if you mix phases.

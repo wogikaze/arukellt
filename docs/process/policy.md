@@ -55,7 +55,7 @@
 
 ## Verification Policy
 
-Normal correctness verification lives in `scripts/run/verify-harness.sh` and should stay deterministic.
+Normal correctness verification lives in `scripts/manager.py` and should stay deterministic.
 
 The default invocation is the fast local gate. It covers:
 

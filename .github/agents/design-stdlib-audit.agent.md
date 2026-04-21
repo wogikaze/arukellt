@@ -51,7 +51,7 @@ extraction for a named stdlib issue slice.
 
 - Run the commands named in the work order exactly
 - Run `python3 scripts/check/check-docs-consistency.py` when docs inputs change
-- Run `bash scripts/run/verify-harness.sh --quick` when the slice changes
+- Run `python scripts/manager.py verify quick` when the slice changes
   executable-facing stdlib artifacts or the work order requires it
 - Run `python3 scripts/gen/generate-docs.py` if generator inputs change
 

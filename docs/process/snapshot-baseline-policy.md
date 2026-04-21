@@ -45,7 +45,7 @@ compile time.
 
 ## Verification Harness Integration
 
-`scripts/run/verify-harness.sh` treats snapshots and baselines differently:
+`scripts/manager.py` treats snapshots and baselines differently:
 
 - **Baselines**: The `--perf-gate` flag enables quantitative regression
   checks (compile ≤ +20 %, runtime ≤ +10 %, binary size ≤ +15 %).

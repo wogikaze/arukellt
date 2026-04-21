@@ -142,7 +142,7 @@ Every tier change must update **both** the manifest source of truth and the gene
 - [ ] **Run CI checks**
   - `python3 scripts/gen/generate-docs.py --check` must pass
   - `python3 scripts/check/check-docs-consistency.py` must pass
-  - `bash scripts/run/verify-harness.sh --quick` must pass
+  - `python scripts/manager.py verify quick` must pass
 - [ ] **Update this file** if the module classification table changes
 - [ ] **Record the change in CHANGELOG.md**
 
@@ -174,5 +174,5 @@ After any stability tier change, run these commands and confirm all pass:
 python3 scripts/gen/generate-docs.py          # regenerate all docs
 python3 scripts/gen/generate-docs.py --check  # verify freshness
 python3 scripts/check/check-docs-consistency.py # verify metadata consistency
-bash scripts/run/verify-harness.sh --quick    # verify test harness
+python scripts/manager.py verify quick    # verify test harness
 ```

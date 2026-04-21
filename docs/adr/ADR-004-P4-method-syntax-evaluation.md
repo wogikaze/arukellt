@@ -169,7 +169,7 @@ Evaluation begins when **all** of the following are true:
 | # | Condition | Measurable criterion |
 |---|-----------|----------------------|
 | T1 | All v4 MIR optimization passes are stable | Every issue with `Track: mir-opt` and `Blocks v4 exit: yes` (or equivalent) is in `issues/done/`; the full verify-harness pass rate at `--opt-level 1` is ≥ baseline. |
-| T2 | Core v4 pass suite is regression-free for ≥ 2 consecutive CI runs | `bash scripts/run/verify-harness.sh` exits 0 on two successive runs with MIR opt enabled. |
+| T2 | Core v4 pass suite is regression-free for ≥ 2 consecutive CI runs | `python scripts/manager.py verify` exits 0 on two successive runs with MIR opt enabled. |
 | T3 | Stdlib API surface is stable | No issues with `Track: stdlib` open that plan name/signature changes to the methods in the evaluation scope. |
 
 **Current status (2026-04-15):** Trigger NOT met.

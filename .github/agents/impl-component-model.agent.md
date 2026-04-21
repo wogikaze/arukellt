@@ -62,9 +62,9 @@ You do **NOT** work on:
    - If the slice changes a documented contract, update the corresponding docs only when assigned
 
 6. **Run required verification**
-   - Always run: `bash scripts/run/verify-harness.sh --quick`
-   - For Rust/component code changes: also run `bash scripts/run/verify-harness.sh --cargo`
-   - For fixture or contract changes: also run `bash scripts/run/verify-harness.sh --fixtures` when relevant
+   - Always run: `python scripts/manager.py verify quick`
+   - For Rust/component code changes: also run `cargo test --workspace --exclude ark-llvm`
+   - For fixture or contract changes: also run `python scripts/manager.py verify fixtures` when relevant
    - For docs contract updates: also run `python3 scripts/check/check-docs-consistency.py`
    - Run any explicit component/WIT verification commands from the work order
 
@@ -87,9 +87,9 @@ Classification: wit-integration | component-wrapper | composition-path | canonic
 Files changed: <list>
 Tests/fixtures/checks added or updated: <list>
 Verification commands and results:
-  - bash scripts/run/verify-harness.sh --quick: [PASS/FAIL]
-  - bash scripts/run/verify-harness.sh --cargo: [PASS/FAIL if run]
-  - bash scripts/run/verify-harness.sh --fixtures: [PASS/FAIL if run]
+  - python scripts/manager.py verify quick: [PASS/FAIL]
+  - cargo test --workspace --exclude ark-llvm: [PASS/FAIL if run]
+  - python scripts/manager.py verify fixtures: [PASS/FAIL if run]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
 Completed: yes/no
 Blockers: <list or 'None'>
