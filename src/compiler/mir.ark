@@ -785,14 +785,157 @@ fn mir_try_insert_simple_join_phi(f: MirFunction, join_block_id: i32, dest_local
     true
 }
 
-// ── SSA renaming (minimal, after φ placement) ──────────────────────────────
+// ── SSA renaming (after φ placement) ────────────────────────────────────────
 //
-// Assigns `ssa_name` / `ssa_version` on `MirLocal` so dumps and downstream
-// passes can treat defs as SSA slots. φ operands share the dest's base name
-// with versions 1..N; the φ result is version N+1. Parameters are v0. Remaining
-// value-producing defs (no φ involvement) get v1, or v2, v3, … when the same
-// local is redefined by later instructions in the same block (only when
-// `ssa_name` still matches `name`, so φ-renamed operand slots are not bumped).
+// The selfhost MIR keeps φ nodes in the existing `MirPhi` representation. SSA
+// renaming rewrites local references to distinct MIR local slots so dumps and
+// self-checks can observe value IDs without requiring backend φ lowering.
+struct MirSsaRenameState {
+    original_local_count: i32,
+    versions: Vec<i32>,
+    current: Vec<i32>,
+    exit_values: Vec<i32>,
+}
+
+fn mir_i32_vec_filled(count: i32, value: i32) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let mut i = 0
+    while i < count {
+        push(out, value)
+        i = i + 1
+    }
+    out
+}
+
+fn mir_i32_vec_replace_at(values: Vec<i32>, at: i32, value: i32) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let count = len(values)
+    let mut i = 0
+    while i < count {
+        if i == at {
+            push(out, value)
+        } else {
+            push(out, get_unchecked(values, i))
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn MirSsaRenameState_new(original_local_count: i32, block_count: i32) -> MirSsaRenameState {
+    MirSsaRenameState {
+        original_local_count: original_local_count,
+        versions: mir_i32_vec_filled(original_local_count, 0 - 1),
+        current: mir_i32_vec_filled(original_local_count, 0 - 1),
+        exit_values: mir_i32_vec_filled(original_local_count * block_count, 0 - 1),
+    }
+}
+
+fn mir_ssa_exit_index(state: MirSsaRenameState, block_id: i32, local_id: i32) -> i32 {
+    block_id * state.original_local_count + local_id
+}
+
+fn mir_ssa_set_current(state: MirSsaRenameState, local_id: i32, value_id: i32) {
+    if local_id < 0 || local_id >= state.original_local_count {
+        return
+    }
+    state.current = mir_i32_vec_replace_at(state.current, local_id, value_id)
+}
+
+fn mir_ssa_set_version(state: MirSsaRenameState, local_id: i32, version: i32) {
+    if local_id < 0 || local_id >= state.original_local_count {
+        return
+    }
+    state.versions = mir_i32_vec_replace_at(state.versions, local_id, version)
+}
+
+fn mir_ssa_current_for(state: MirSsaRenameState, local_id: i32) -> i32 {
+    if local_id < 0 || local_id >= state.original_local_count {
+        return local_id
+    }
+    let value_id = get_unchecked(state.current, local_id)
+    if value_id >= 0 {
+        return value_id
+    }
+    local_id
+}
+
+fn mir_ssa_pred_value_for(state: MirSsaRenameState, pred_block: i32, local_id: i32) -> i32 {
+    if local_id < 0 || local_id >= state.original_local_count {
+        return local_id
+    }
+    let idx = mir_ssa_exit_index(state, pred_block, local_id)
+    if idx >= 0 && idx < len(state.exit_values) {
+        let value_id = get_unchecked(state.exit_values, idx)
+        if value_id >= 0 {
+            return value_id
+        }
+    }
+    local_id
+}
+
+fn mir_ssa_load_block_entry(state: MirSsaRenameState, block_id: i32) {
+    if block_id < 0 {
+        return
+    }
+    let next_current = Vec_new_i32()
+    let mut i = 0
+    while i < state.original_local_count {
+        let idx = mir_ssa_exit_index(state, block_id, i)
+        if idx >= 0 && idx < len(state.exit_values) {
+            push(next_current, get_unchecked(state.exit_values, idx))
+        } else {
+            push(next_current, 0 - 1)
+        }
+        i = i + 1
+    }
+    state.current = next_current
+}
+
+fn mir_ssa_record_block_exit(state: MirSsaRenameState, block_id: i32) {
+    let mut i = 0
+    while i < state.original_local_count {
+        let idx = mir_ssa_exit_index(state, block_id, i)
+        if idx >= 0 && idx < len(state.exit_values) {
+            state.exit_values = mir_i32_vec_replace_at(state.exit_values, idx, get_unchecked(state.current, i))
+        }
+        i = i + 1
+    }
+}
+
+fn mir_ssa_append_value_slot(f: MirFunction, original_local: i32, ssa_name: String, ssa_version: i32) -> i32 {
+    let source = get_unchecked(f.locals, original_local)
+    let idx = len(f.locals)
+    push(f.locals, MirLocal { name: clone(source.name), val_type: source.val_type, ssa_name: ssa_name, ssa_version: ssa_version })
+    idx
+}
+
+fn mir_ssa_define_value(f: MirFunction, state: MirSsaRenameState, original_local: i32, ssa_name: String) -> i32 {
+    if original_local < 0 || original_local >= state.original_local_count {
+        return original_local
+    }
+    let old_version = get_unchecked(state.versions, original_local)
+    let new_version = old_version + 1
+    let mut value_id = original_local
+    if old_version >= 0 {
+        value_id = mir_ssa_append_value_slot(f, original_local, clone(ssa_name), new_version)
+    } else {
+        mir_assign_local_ssa(f, original_local, clone(ssa_name), new_version)
+    }
+    mir_ssa_set_version(state, original_local, new_version)
+    mir_ssa_set_current(state, original_local, value_id)
+    value_id
+}
+
+fn mir_ssa_rewrite_inst_uses(inst: MirInst, state: MirSsaRenameState) {
+    if inst.arg0 >= 0 {
+        inst.arg0 = mir_ssa_current_for(state, inst.arg0)
+    }
+    if inst.arg1 >= 0 {
+        inst.arg1 = mir_ssa_current_for(state, inst.arg1)
+    }
+}
+
 fn mir_is_pure_ssa_def(inst: MirInst) -> bool {
     let op = inst.op
     if op == MIR_LOCAL_GET() || op == MIR_LOCAL_SET() {
@@ -830,79 +973,78 @@ fn mir_ssa_reset_local_slots(f: MirFunction) {
     }
 }
 
-fn mir_ssa_rename_phis(f: MirFunction) {
-    let bc = len(f.blocks)
-    let mut bi = 0
-    while bi < bc {
-        let block = get_unchecked(f.blocks, bi)
-        let pc = len(block.phis)
-        let mut pi = 0
-        while pi < pc {
-            let phi = get_unchecked(block.phis, pi)
-            let dest = phi.dest
-            if dest < 0 || dest >= len(f.locals) {
-                pi = pi + 1
-                continue
-            }
-            let dest_local = get_unchecked(f.locals, dest)
-            let base = clone(dest_local.name)
-            let ac = len(phi.args)
-            let mut ai = 0
-            while ai < ac {
-                let a = get_unchecked(phi.args, ai)
-                mir_assign_local_ssa(f, a.local, clone(base), ai + 1)
-                ai = ai + 1
-            }
-            mir_assign_local_ssa(f, dest, base, ac + 1)
-            pi = pi + 1
-        }
-        bi = bi + 1
-    }
-}
-
-fn mir_ssa_tag_function_params(f: MirFunction) {
+fn mir_ssa_tag_function_params(f: MirFunction, state: MirSsaRenameState) {
     let pc = len(f.params)
     let mut pi = 0
     while pi < pc {
         let p = get_unchecked(f.params, pi)
-        mir_assign_local_ssa(f, pi, clone(p.name), 0)
+        if pi < state.original_local_count {
+            mir_assign_local_ssa(f, pi, clone(p.name), 0)
+            mir_ssa_set_version(state, pi, 0)
+            mir_ssa_set_current(state, pi, pi)
+        }
         pi = pi + 1
     }
 }
 
-fn mir_ssa_tag_linear_defs(f: MirFunction) {
+fn mir_ssa_rename_block(f: MirFunction, state: MirSsaRenameState, block_id: i32) {
+    if block_id < 0 || block_id >= len(f.blocks) {
+        return
+    }
+    let block = get_unchecked(f.blocks, block_id)
+    if block.idom >= 0 {
+        mir_ssa_load_block_entry(state, block.idom)
+    }
+    let pc = len(block.phis)
+    let mut pi = 0
+    while pi < pc {
+        let phi = get_unchecked(block.phis, pi)
+        let original_dest = phi.dest
+        if original_dest >= 0 && original_dest < state.original_local_count {
+            let ac = len(phi.args)
+            let mut ai = 0
+            while ai < ac {
+                let a = get_unchecked(phi.args, ai)
+                a.local = mir_ssa_pred_value_for(state, a.pred_block, a.local)
+                ai = ai + 1
+            }
+            let dest_local = get_unchecked(f.locals, original_dest)
+            phi.dest = mir_ssa_define_value(f, state, original_dest, clone(dest_local.name))
+        }
+        pi = pi + 1
+    }
+    let ic = len(block.instructions)
+    let mut ii = 0
+    while ii < ic {
+        let inst = get_unchecked(block.instructions, ii)
+        mir_ssa_rewrite_inst_uses(inst, state)
+        if mir_is_pure_ssa_def(inst) {
+            let original_dest = inst.dest
+            if original_dest >= 0 && original_dest < state.original_local_count {
+                let dest_local = get_unchecked(f.locals, original_dest)
+                inst.dest = mir_ssa_define_value(f, state, original_dest, clone(dest_local.name))
+            }
+        }
+        ii = ii + 1
+    }
+    mir_ssa_record_block_exit(state, block.id)
+}
+
+fn mir_ssa_rename_blocks(f: MirFunction, state: MirSsaRenameState) {
     let bc = len(f.blocks)
     let mut bi = 0
     while bi < bc {
-        let block = get_unchecked(f.blocks, bi)
-        let ic = len(block.instructions)
-        let mut ii = 0
-        while ii < ic {
-            let inst = get_unchecked(block.instructions, ii)
-            if mir_is_pure_ssa_def(inst) {
-                let d = inst.dest
-                if d >= 0 && d < len(f.locals) {
-                    let loc = get_unchecked(f.locals, d)
-                    if loc.ssa_version < 0 {
-                        mir_assign_local_ssa(f, d, clone(loc.name), 1)
-                    } else {
-                        if eq(clone(loc.ssa_name), clone(loc.name)) {
-                            mir_assign_local_ssa(f, d, clone(loc.ssa_name), loc.ssa_version + 1)
-                        }
-                    }
-                }
-            }
-            ii = ii + 1
-        }
+        mir_ssa_rename_block(f, state, bi)
         bi = bi + 1
     }
 }
 
 fn mir_ssa_rename_function(f: MirFunction) {
+    let original_local_count = len(f.locals)
     mir_ssa_reset_local_slots(f)
-    mir_ssa_rename_phis(f)
-    mir_ssa_tag_function_params(f)
-    mir_ssa_tag_linear_defs(f)
+    let state = MirSsaRenameState_new(original_local_count, len(f.blocks))
+    mir_ssa_tag_function_params(f, state)
+    mir_ssa_rename_blocks(f, state)
 }
 
 fn mir_ssa_rename_module(m: MirModule) {
@@ -5369,6 +5511,41 @@ fn mir_expect_local_ssa(f: MirFunction, local_id: i32, expected_name: String, ex
     }
 }
 
+fn mir_expect_local_ref_eq(f: MirFunction, local_id: i32, expected: String, label: String) {
+    let actual = mir_format_local_ref(f, local_id)
+    if !eq(clone(actual), clone(expected)) {
+        let mut msg = concat(String_from("ssa ref check failed for "), label)
+        msg = concat(msg, String_from(": expected "))
+        msg = concat(msg, expected)
+        msg = concat(msg, String_from(" actual "))
+        msg = concat(msg, actual)
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
+fn mir_expect_phi_format(f: MirFunction, block_id: i32, phi_index: i32, expected: String) {
+    if block_id < 0 || block_id >= len(f.blocks) {
+        stdio::eprintln(String_from("phi format check failed: block out of range"))
+        process::exit(1)
+    }
+    let block = get_unchecked(f.blocks, block_id)
+    if phi_index < 0 || phi_index >= len(block.phis) {
+        stdio::eprintln(String_from("phi format check failed: phi out of range"))
+        process::exit(1)
+    }
+    let phi = get_unchecked(block.phis, phi_index)
+    let actual = mir_format_phi(f, phi)
+    if !eq(clone(actual), clone(expected)) {
+        let mut msg = String_from("phi format check failed: expected ")
+        msg = concat(msg, expected)
+        msg = concat(msg, String_from(" actual "))
+        msg = concat(msg, actual)
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
 pub fn run_phi_representation_smoke() {
     let m = MirModule_new()
     let f = MirFunction_new(String_from("phi_repr_sample"))
@@ -5405,9 +5582,10 @@ pub fn run_phi_representation_smoke() {
     mir_expect_frontier(f, else_bb, 1, join_bb, 0)
     mir_expect_phi(f, join_bb, join_val, VT_I32(), 2, then_bb, then_val, else_bb, else_val)
     mir_expect_local_ssa(f, cond, String_from("cond"), 1)
-    mir_expect_local_ssa(f, then_val, String_from("join_val"), 1)
-    mir_expect_local_ssa(f, else_val, String_from("join_val"), 2)
-    mir_expect_local_ssa(f, join_val, String_from("join_val"), 3)
+    mir_expect_local_ssa(f, then_val, String_from("then_val"), 1)
+    mir_expect_local_ssa(f, else_val, String_from("else_val"), 1)
+    mir_expect_local_ssa(f, join_val, String_from("join_val"), 1)
+    mir_expect_phi_format(f, join_bb, 0, String_from("phi %join_val.1 = [bb1 -> %then_val.1, bb2 -> %else_val.1] : i32"))
     push(m.functions, f)
     dump_mir(m)
     stdio::println(String_from("MIR phi representation self-check OK."))
@@ -5449,9 +5627,10 @@ pub fn run_phi_insertion_smoke() {
     mir_expect_frontier(f, else_bb, 1, join_bb, 0)
     mir_expect_phi(f, join_bb, join_val, VT_I32(), 2, then_bb, then_val, else_bb, else_val)
     mir_expect_local_ssa(f, cond, String_from("cond"), 1)
-    mir_expect_local_ssa(f, then_val, String_from("join_val"), 1)
-    mir_expect_local_ssa(f, else_val, String_from("join_val"), 2)
-    mir_expect_local_ssa(f, join_val, String_from("join_val"), 3)
+    mir_expect_local_ssa(f, then_val, String_from("then_val"), 1)
+    mir_expect_local_ssa(f, else_val, String_from("else_val"), 1)
+    mir_expect_local_ssa(f, join_val, String_from("join_val"), 1)
+    mir_expect_phi_format(f, join_bb, 0, String_from("phi %join_val.1 = [bb1 -> %then_val.1, bb2 -> %else_val.1] : i32"))
     push(m.functions, f)
     dump_mir(m)
     stdio::println(String_from("MIR phi insertion self-check OK."))
@@ -5509,6 +5688,8 @@ pub fn run_phi_insertion_nested_join_smoke() {
     mir_ssa_rename_function(f)
     mir_expect_phi(f, inner_join_bb, inner_join_val, VT_I32(), 2, inner_then_bb, inner_then_val, inner_else_bb, inner_else_val)
     mir_expect_phi(f, outer_join_bb, outer_join_val, VT_I32(), 2, inner_join_bb, inner_join_val, outer_else_bb, outer_else_val)
+    mir_expect_phi_format(f, inner_join_bb, 0, String_from("phi %inner_join_val.1 = [bb2 -> %inner_then_val.1, bb3 -> %inner_else_val.1] : i32"))
+    mir_expect_phi_format(f, outer_join_bb, 0, String_from("phi %outer_join_val.1 = [bb4 -> %inner_join_val.1, bb5 -> %outer_else_val.1] : i32"))
     push(m.functions, f)
     dump_mir(m)
     stdio::println(String_from("MIR nested phi insertion self-check OK."))
@@ -5546,9 +5727,10 @@ fn run_ssa_rename_smoke() {
     mir_compute_dominance_for_function(f)
     mir_ssa_rename_function(f)
     mir_expect_local_ssa(f, cond, String_from("cond"), 1)
-    mir_expect_local_ssa(f, then_val, String_from("join_val"), 1)
-    mir_expect_local_ssa(f, else_val, String_from("join_val"), 2)
-    mir_expect_local_ssa(f, join_val, String_from("join_val"), 3)
+    mir_expect_local_ssa(f, then_val, String_from("then_val"), 1)
+    mir_expect_local_ssa(f, else_val, String_from("else_val"), 1)
+    mir_expect_local_ssa(f, join_val, String_from("join_val"), 1)
+    mir_expect_phi_format(f, join_bb, 0, String_from("phi %join_val.1 = [bb1 -> %then_val.1, bb2 -> %else_val.1] : i32"))
     push(m.functions, f)
     dump_mir(m)
     stdio::println(String_from("MIR SSA rename self-check OK."))
@@ -5586,13 +5768,13 @@ fn run_phi_elimination_smoke() {
     mir_compute_dominance_for_function(f)
     mir_ssa_rename_function(f)
     mir_expect_local_ssa(f, cond, String_from("cond"), 1)
-    mir_expect_local_ssa(f, then_val, String_from("join_val"), 1)
-    mir_expect_local_ssa(f, else_val, String_from("join_val"), 2)
-    mir_expect_local_ssa(f, join_val, String_from("join_val"), 3)
+    mir_expect_local_ssa(f, then_val, String_from("then_val"), 1)
+    mir_expect_local_ssa(f, else_val, String_from("else_val"), 1)
+    mir_expect_local_ssa(f, join_val, String_from("join_val"), 1)
     let join_block = get_unchecked(f.blocks, join_bb)
     let phi0 = get_unchecked(join_block.phis, 0)
     let phi_fmt = mir_format_phi(f, phi0)
-    if !eq(phi_fmt, String_from("phi %join_val.3 = [bb1 -> %join_val.1, bb2 -> %join_val.2] : i32")) {
+    if !eq(phi_fmt, String_from("phi %join_val.1 = [bb1 -> %then_val.1, bb2 -> %else_val.1] : i32")) {
         stdio::eprintln(concat(String_from("phi elim smoke: unexpected phi line: "), phi_fmt))
         process::exit(1)
     }
@@ -5636,7 +5818,12 @@ fn run_ssa_sequential_def_rename_smoke() {
     emit_inst(f, bb0, ret_inst)
     mir_compute_dominance_for_function(f)
     mir_ssa_rename_function(f)
-    mir_expect_local_ssa(f, t, String_from("t"), 2)
+    mir_expect_local_ssa(f, t, String_from("t"), 1)
+    let block = get_unchecked(f.blocks, bb0)
+    let second_def = get_unchecked(block.instructions, 1)
+    let ret = get_unchecked(block.instructions, 2)
+    mir_expect_local_ref_eq(f, second_def.dest, String_from("%t.2"), String_from("sequential second def"))
+    mir_expect_local_ref_eq(f, ret.arg0, String_from("%t.2"), String_from("sequential return use"))
     push(m.functions, f)
     dump_mir(m)
     stdio::println(String_from("MIR SSA sequential-def rename self-check OK."))
