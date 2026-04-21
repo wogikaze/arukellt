@@ -28,7 +28,7 @@ Canonical queue-state sync.
 - **Bootstrap evidence:** `bash scripts/run/verify-bootstrap.sh --check` now reports `stage0-compile: reached`, `stage1-self-compile: reached`, `stage2-fixpoint: reached`, `attainment: reached`.
 - **Current fixpoint evidence:** `s2` = 536,522 bytes, `s3` = 536,522 bytes, `sha256(s2) == sha256(s3)`.
 - **Important interpretation:** `s1 != s2` is no longer the Phase 1 blocker. The canonical verifier defines fixpoint as `sha256(s2) == sha256(s3)` because `s1` is emitted by the Rust trusted-base compiler while `s2/s3` are emitted by the selfhost compiler.
-- **Parity status:** Fixture parity remains in progress. CLI parity and diagnostic parity still block dual-period exit.
+- **Parity status:** Fixture parity remains in progress. CLI parity is reached for the current canonical runner (`--version`, `--help`). Diagnostic parity still blocks dual-period exit.
 
 ### Phase 1 status
 
@@ -102,7 +102,7 @@ Do not close #459 on fixpoint alone. Close it only when parity gates are satisfi
 | Stage 1 | ✅ | `arukellt-s1.wasm` が自身のソースをコンパイルして `arukellt-s2.wasm` を生成できる |
 | Stage 2 fixpoint | ✅ | `sha256(arukellt-s2.wasm) = sha256(arukellt-s3.wasm)` が `verify-bootstrap.sh --check` で確認済み |
 | fixture parity | 🟡 | selfhost parity は進行中。最新セッション報告では `PASS 761 / FAIL 10 / SKIP 15` |
-| CLI parity | 🔴 | `arukellt` (Rust) と `arukellt-s1` (ark) の CLI 出力一致は未完了 |
+| CLI parity | 🟡 | canonical runner `python3 scripts/manager.py selfhost parity --mode --cli` は PASS。現在の gate は `--version` / `--help` 一致を確認済み |
 | diagnostic parity | 🔴 | Rust / ark コンパイラの診断一致は未完了 |
 
 ---
