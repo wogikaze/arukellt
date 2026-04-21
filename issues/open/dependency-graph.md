@@ -52,7 +52,6 @@ graph LR
   I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
   I530["530 530-selfhost-parity-ci-gates"]
   I531["531 Scripts Consolidation Epic: Python CLI Refactoring"]
-  I537["537 Shell Script Removal After Deprecation"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -148,7 +147,6 @@ graph LR
 - **529** depends on: none; blocks: none
 - **530** depends on: none; blocks: none
 - **531** depends on: none; blocks: none
-- **537** depends on: none; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136
