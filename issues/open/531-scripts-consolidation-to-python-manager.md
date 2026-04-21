@@ -29,23 +29,26 @@ This is an **epic**, not a single implementation issue. We will:
 ## First Phase: Verify Migration (Issue #532)
 
 **Scope (Phase 1 only):**
-- Establish shared Python library (`scripts/lib/`)
+- Establish shared Python library (`scripts/lib/`) for truly generic utilities
+- Create domain-specific library (`scripts/verify/`) for verify-specific logic
 - Create CLI skeleton (`scripts/manager.py`)
-- Migrate verify domain only (verify-harness.sh + check-docs-*.py)
-- Keep other domains (selfhost, docs, perf, gate) as-is for now
+- Migrate verify domain only (verify-harness.sh core logic)
+- **Exclude docs from Phase 1:** docs check scripts remain as-is; `verify docs` command will be removed in Issue #534 when docs domain is migrated
 
 **CLI design (subcommand-based):**
 ```bash
 python scripts/manager.py verify quick
 python scripts/manager.py verify fixtures
-python scripts/manager.py verify docs
 python scripts/manager.py verify size
 python scripts/manager.py verify wat
 python scripts/manager.py verify component
 ```
 
+**Note:** `verify docs` is **not** included in Phase 1. Current `verify-harness.sh --docs` calls check-docs-*.py directly; this behavior remains unchanged in Phase 1. Docs will become a separate top-level domain in Issue #534.
+
 **Exit conditions for Phase 1:**
-- [ ] `scripts/lib/` created with subprocess helpers, file ops, test harness integration
+- [ ] `scripts/lib/` created with truly generic utilities (subprocess helpers, file ops)
+- [ ] `scripts/verify/` created with verify-specific logic (harness integration, fixture loading)
 - [ ] `scripts/manager.py verify` subcommands pass behavioral contract tests
 - [ ] CI updated to use `python scripts/manager.py verify` where applicable
 - [ ] Shell scripts for verify kept as thin wrappers (forward to manager.py)
@@ -64,7 +67,7 @@ python scripts/manager.py verify component
 
 **Dependency policy:** Standard library only (no external deps like click)
 
-**Windows support:** Out of scope for Phase 1; Linux/macOS only (matches current shell scripts)
+**Windows support:** Out of scope for this epic. Current shell scripts are Linux/macOS only; Python CLI will maintain the same platform scope. Future Windows support would require separate issue with platform-specific subprocess handling.
 
 **Logging policy:** Preserve current stdout/stderr separation; no centralized logging yet
 
@@ -78,15 +81,34 @@ python scripts/manager.py verify component
 
 **Create:**
 - `scripts/lib/__init__.py`
-- `scripts/lib/subprocess.py` (helpers for cargo, wasmtime, etc.)
-- `scripts/lib/files.py` (file operations)
-- `scripts/lib/harness.py` (test harness integration)
+- `scripts/lib/subprocess.py` (truly generic subprocess helpers)
+- `scripts/lib/files.py` (truly generic file operations)
+- `scripts/verify/__init__.py`
+- `scripts/verify/harness.py` (verify-specific harness integration)
+- `scripts/verify/fixtures.py` (verify-specific fixture loading)
 - `scripts/manager.py` (CLI skeleton with verify subcommands only)
 - `scripts/tests/test_manager.py` (behavioral contract tests for verify)
 
 **Modify:**
-- `.github/workflows/ci.yml` (update verify calls to use manager.py)
-- `scripts/run/verify-harness.sh` (convert to thin wrapper: exec python scripts/manager.py verify "$@")
+- `.github/workflows/ci.yml` (update verify calls to use manager.py with dual-run period)
+- `scripts/run/verify-harness.sh` (convert to thin wrapper)
+
+**Wrapper contract (verify-harness.sh):**
+```bash
+#!/bin/bash
+# Thin wrapper: forward all args to manager.py
+# Exit code: forward manager.py exit code exactly
+# Signals: forward SIGINT/SIGTERM to manager.py (allow Python cleanup)
+# Environment: inherit all env vars; pass ARUKELLT_BIN, ARUKELLT_TARGET to manager.py
+# Args: forward "$@" exactly as-is
+exec python3 scripts/manager.py verify "$@"
+```
+
+**CI migration strategy (dual-run period):**
+- Week 1: CI runs both shell script and manager.py in parallel; both must pass
+- Week 2: CI runs manager.py only; shell script kept as fallback
+- Week 3: Remove shell script calls from CI; keep shell file for local use
+- After Phase 1 completion: Shell script becomes optional local convenience
 
 **Keep unchanged (Phase 1):**
 - All selfhost scripts
@@ -97,20 +119,20 @@ python scripts/manager.py verify component
 ## Acceptance Criteria (Phase 1)
 
 - [ ] Shared library (`scripts/lib/`) created and tested
+- [ ] Verify domain library (`scripts/verify/`) created and tested
 - [ ] `manager.py verify quick` passes behavioral contract test
 - [ ] `manager.py verify fixtures` passes behavioral contract test
-- [ ] `manager.py verify docs` passes behavioral contract test
 - [ ] `manager.py verify size` passes behavioral contract test
 - [ ] `manager.py verify wat` passes behavioral contract test
 - [ ] `manager.py verify component` passes behavioral contract test
-- [ ] CI workflows using verify updated to call manager.py
+- [ ] CI workflows using verify updated to call manager.py (dual-run period)
 - [ ] verify-harness.sh converted to thin wrapper (forwarding to manager.py)
 - [ ] Documentation updated for verify commands
 
 **Behavioral contract test definition:**
-- Exit code matches shell script on success/failure
-- stdout content matches shell script on success (for commands with output)
-- stderr content matches shell script on failure (error messages)
+- Exit code matches shell script on success/failure (exact match required)
+- stdout contains key success indicators (regex/contains, not exact match - allows for minor whitespace/timing differences)
+- stderr contains key error messages (regex/contains, not exact match - allows for subprocess interleaving differences)
 - Environment variables honored (ARUKELLT_BIN, ARUKELLT_TARGET, etc.)
 - Working directory behavior preserved
 - Signal handling (Ctrl+C) exits cleanly

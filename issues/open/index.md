@@ -132,7 +132,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 528 | [Stdlib collections/hash: property と differential tests を map / set invariant で拡張する](528-stdlib-collections-hash-property-and-differential-tests.md) | stdlib | none | none | none | 0 checked / 4 open | implementation-ready | — | |
 | 529 | [100% Self-Hosting Transition Plan (Operational Guide)](529-100-percent-selfhost-transition-plan.md) | main | none | none | none | 0 checked / 10 open | — | — | |
 | 530 | [530-selfhost-parity-ci-gates](530-selfhost-parity-ci-gates.md) | main | none | none | none | 0 checked / 4 open | — | — | |
-| 531 | [Scripts Consolidation Epic: Python CLI Refactoring](531-scripts-consolidation-to-python-manager.md) | main | none | none | none | 0 checked / 15 open | — | — | |
+| 531 | [Scripts Consolidation Epic: Python CLI Refactoring](531-scripts-consolidation-to-python-manager.md) | main | none | none | none | 0 checked / 16 open | — | — | |
 | 054 | [std::wit + std::component: WIT 型、resource handle、canonical ABI](054-std-wit-component.md) | stdlib | none | 039, 044, 053 | none | 0 checked / 0 open | blocked-by-upstream | #39, #44 | |
 | 055 | [std::json + std::toml + std::csv: データ形式パーサ](055-std-json-toml-csv.md) | stdlib | none | 039, 042, 044 | none | 0 checked / 0 open | blocked-by-upstream | #39, #44 | |
 | 077 | [WASI P2: `std::host::http` facade と runtime 検証](077-wasi-p2-http.md) | wasi-feature | none | 074, 137 | 136 | 0 checked / 0 open | blocked-by-upstream | #74 | |
