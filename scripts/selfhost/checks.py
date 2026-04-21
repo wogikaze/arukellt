@@ -459,29 +459,69 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
     if not wasmtime:
         return (1, f"{RED}error: wasmtime not found{NC}\n")
 
-    lines.append(f"{YELLOW}[cli-parity] Comparing --version and --help output...{NC}")
+    lines.append(f"{YELLOW}[cli-parity] Checking CLI surface parity...{NC}")
 
     pass_count = 0
     fail_count = 0
 
-    for flag in ["--version", "--help"]:
-        r_rust = _run([arukellt_bin, flag], root)
-        r_self = _run([wasmtime, "run", str(selfhost_wasm), "--", flag], root)
-        rust_out = (r_rust.stdout + r_rust.stderr).strip()
-        self_out = (r_self.stdout + r_self.stderr).strip()
-        if rust_out == self_out:
+    def run_rust(*args: str) -> tuple[int, str]:
+        r = _run([arukellt_bin, *args], root)
+        return r.returncode, (r.stdout + r.stderr).strip()
+
+    def run_self(*args: str) -> tuple[int, str]:
+        r = _run([wasmtime, "run", str(selfhost_wasm), "--", *args], root)
+        return r.returncode, (r.stdout + r.stderr).strip()
+
+    # Case 1: --version — exact output match
+    rc_r, out_r = run_rust("--version")
+    rc_s, out_s = run_self("--version")
+    if out_r == out_s:
+        lines.append("  pass: --version (output identical)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: --version (outputs differ)\n    rust: {out_r!r}\n    self: {out_s!r}")
+        fail_count += 1
+
+    # Case 2: --help — exact output match
+    rc_r, out_r = run_rust("--help")
+    rc_s, out_s = run_self("--help")
+    if out_r == out_s:
+        lines.append("  pass: --help (output identical)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: --help (outputs differ)")
+        fail_count += 1
+
+    # Case 3: unknown command — both must exit non-zero
+    # selfhost treats unknown names as filenames (exit 1); Rust exits 2.
+    # We only require both to be non-zero.
+    rc_r, _ = run_rust("foobar_unknown_cmd")
+    rc_s, _ = run_self("foobar_unknown_cmd")
+    if rc_r != 0 and rc_s != 0:
+        lines.append(f"  pass: unknown-cmd (both non-zero: rust={rc_r} self={rc_s})")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: unknown-cmd (expected non-zero: rust={rc_r} self={rc_s})")
+        fail_count += 1
+
+    # Cases 4-6: known commands with no args — exit codes must match
+    for cmd in ["compile", "check", "run"]:
+        rc_r, _ = run_rust(cmd)
+        rc_s, _ = run_self(cmd)
+        if rc_r != 0 and rc_s != 0:
+            lines.append(f"  pass: {cmd} (no-args: both non-zero: rust={rc_r} self={rc_s})")
             pass_count += 1
         else:
-            lines.append(f"  FAIL: {flag} (outputs differ)")
+            lines.append(f"  FAIL: {cmd} (no-args: expected non-zero: rust={rc_r} self={rc_s})")
             fail_count += 1
 
     lines.append("")
     lines.append(f"{YELLOW}cli-parity: PASS={pass_count} FAIL={fail_count}{NC}")
     if fail_count > 0:
-        lines.append(f"{RED}✗ cli parity: {fail_count} flag(s) differ{NC}")
+        lines.append(f"{RED}✗ cli parity: {fail_count} case(s) differ{NC}")
         return (1, "\n".join(lines) + "\n")
 
-    lines.append(f"{GREEN}✓ all {pass_count} CLI flags match{NC}")
+    lines.append(f"{GREEN}✓ all {pass_count} CLI parity cases pass{NC}")
     return (0, "\n".join(lines) + "\n")
 
 
