@@ -2,7 +2,7 @@
 ## Closed
 
 - **Date**: 2026-04-22
-- **Commit**: TBD (to be filled after commit)
+- **Commit**: 3309c553
 - **Branch**: feat/429-wasm-package-wrapper
 - **Close note**: JS/TS wrapper verified to correctly load `docs/playground/wasm/ark_playground_wasm_bg.wasm`
   (568 KB, committed in #379). The wrapper in `playground/src/worker.ts` derives the JS glue URL from
