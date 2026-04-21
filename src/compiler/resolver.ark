@@ -113,7 +113,7 @@ fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
                 existing.is_pub = is_pub
                 return
             }
-            if kind == SYM_FN() || kind == SYM_STRUCT() || kind == SYM_ENUM() && existing.kind == SYM_MODULE() {
+            if (kind == SYM_FN() || kind == SYM_STRUCT() || kind == SYM_ENUM()) && existing.kind == SYM_MODULE() {
                 existing.kind = kind
                 existing.decl_index = idx
                 existing.is_pub = is_pub
