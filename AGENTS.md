@@ -53,7 +53,7 @@ python3 scripts/check/check-docs-consistency.py
 - If queue structure changes, regenerate issue indexes with:
 
 ```bash
-bash scripts/gen/generate-issue-index.sh
+python3 scripts/gen/generate-issue-index.py
 ```
 
 ## Completion Criteria

@@ -48,7 +48,7 @@ work order authorizes closure, and regenerate queue indexes.
 ## REQUIRED_VERIFICATION
 
 - Run the evidence checks named in the work order exactly
-- Run `bash scripts/gen/generate-issue-index.sh` if an issue file is moved or
+- Run `python3 scripts/gen/generate-issue-index.py` if an issue file is moved or
   status is updated
 - Run `python3 scripts/check/check-docs-consistency.py` when the closure slice
   edits docs

@@ -52,7 +52,7 @@ docs/stdlib/modules/wit.md | scripts/gen/generate-docs.py | python3 scripts/gen/
 # process docs (generate-docs.py)
 docs/process/benchmark-results.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 
-# issue indexes (generate-issue-index.sh)
-issues/open/index.md | scripts/gen/generate-issue-index.sh | bash scripts/gen/generate-issue-index.sh
-issues/open/dependency-graph.md | scripts/gen/generate-issue-index.sh | bash scripts/gen/generate-issue-index.sh
-issues/open/index-meta.json | scripts/gen/generate-issue-index.sh | bash scripts/gen/generate-issue-index.sh
+# issue indexes (generate-issue-index.py)
+issues/open/index.md | scripts/gen/generate-issue-index.py | python3 scripts/gen/generate-issue-index.py
+issues/open/dependency-graph.md | scripts/gen/generate-issue-index.py | python3 scripts/gen/generate-issue-index.py
+issues/open/index-meta.json | scripts/gen/generate-issue-index.py | python3 scripts/gen/generate-issue-index.py
