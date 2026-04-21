@@ -56,6 +56,17 @@ graph LR
   I541["541 541 — Benchmark: struct graph (nested structs / recursive types)"]
   I544["544 544 — Benchmark suite reorganization and docs integration"]
   I545["545 545 — Benchmark: real-world workloads"]
+  I546["546 Release: Binary Smoke Tests"]
+  I547["547 Release: Determinism Check"]
+  I548["548 Release: LSP E2E Tests"]
+  I549["549 Release: Extension Activation Tests"]
+  I550["550 Release: Formatter CLI-LSP Parity"]
+  I551["551 Release: Failure Recovery Tests"]
+  I552["552 Release: Post-Release Documentation"]
+  I553["553 Release: Binary Distribution"]
+  I554["554 Release: Extension Live Editor Tests"]
+  I555["555 Release: Pre-Release CI Checks"]
+  I556["556 Release: Selfhost Bootstrap Check"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -161,6 +172,17 @@ graph LR
 - **541** depends on: none; blocks: none
 - **544** depends on: none; blocks: none
 - **545** depends on: none; blocks: none
+- **546** depends on: none; blocks: none
+- **547** depends on: none; blocks: none
+- **548** depends on: none; blocks: none
+- **549** depends on: none; blocks: none
+- **550** depends on: none; blocks: none
+- **551** depends on: none; blocks: none
+- **552** depends on: none; blocks: none
+- **553** depends on: none; blocks: none
+- **554** depends on: none; blocks: none
+- **555** depends on: none; blocks: none
+- **556** depends on: none; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136
