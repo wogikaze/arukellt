@@ -49,7 +49,7 @@ with `Err(String)`.
 `TomlValue` is a tagged struct.  Array and Table variants store their
 raw serialized text to avoid recursive type constraints.
 
-#### Primitive helpers (legacy)
+### Primitive helpers (legacy)
 
 `toml_parse_line` is preserved for backward compatibility.
 

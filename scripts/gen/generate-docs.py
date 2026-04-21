@@ -1057,7 +1057,7 @@ def render_source_doc_block(lines: list[str], fallback: str) -> list[str]:
         match = re.match(r"^(#+)(\s+.*)$", line)
         if match:
             hashes, rest = match.groups()
-            rendered.append("#" * min(len(hashes) + 2, 6) + rest)
+            rendered.append("#" * min(len(hashes) + 1, 6) + rest)
         else:
             rendered.append(line)
     return rendered

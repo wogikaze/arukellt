@@ -145,14 +145,14 @@ Hash-based collection helpers.
 The current implementation uses open addressing with linear probing and a
 monomorphic `i32 -> i32` map representation.
 
-### STOP_IF note
+## STOP_IF note
 
 True generic HashMap<K,V> / HashSet<T> require trait-based hashing and
 equality which are not yet supported at the Arukellt runtime level.
 All new functions below are monomorphic (i32 key / i32 value / i32 element)
 per the impl-stdlib STOP_IF policy documented in issue #044.
 
-### Layout
+## Layout
 
 `Vec<i32>` backing store: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]
 flags: 0 = empty, 1 = occupied

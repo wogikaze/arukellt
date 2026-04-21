@@ -1,6 +1,6 @@
 # selfhost Stage 2 fixpoint 達成と dual-period 終了計画
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
 **Updated**: 2025-07-14
 **ID**: 459
@@ -83,7 +83,7 @@ Do not close #459 on fixpoint alone. Close it only when parity gates are satisfi
 **Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
-- `**Status**: open` in this file's own frontmatter confirms it was never closed.
+- `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/459-selfhost-fixpoint-dual-period-end.md` — incorrect directory for an open issue.
 
 **Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).

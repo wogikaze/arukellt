@@ -45,14 +45,14 @@ Binary data helpers built on `Vec<i32>`.
 
 Each element is treated as a byte in the `0..=255` range.
 
-### Type aliases (runtime representation)
+## Type aliases (runtime representation)
 
 - `Bytes`      = `Vec<i32>` (treated as immutable)
 - `ByteBuf`    = `Vec<i32>` (mutable buffer)
 - `ByteCursor` = `Vec<i32>` where index 0 is the cursor position and
 indices 1..n hold the data bytes
 
-### Limitations
+## Limitations
 
 u8/u16/u32/u64 are not first-class types in the current runtime.
 All byte values are represented as i32 (masked to 0-255 on write).

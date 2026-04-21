@@ -240,6 +240,11 @@ run:selfhost/typecheck_mono_vec.ark
 run:selfhost/typecheck_match_exhaustive.ark
 run:selfhost/typecheck_closure_capture.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
+diag:diagnostics/parse_missing_rbrace.ark
+diag:diagnostics/parse_bad_token.ark
+diag:diagnostics/resolve_undefined_fn.ark
+diag:diagnostics/resolve_dup_fn.ark
+diag:diagnostics/resolve_undef_module.ark
 run:t2/t2_scaffold.ark
 run:stdlib_bytes/bytes_basic.ark
 run:stdlib_bytes/bytes_helpers.ark

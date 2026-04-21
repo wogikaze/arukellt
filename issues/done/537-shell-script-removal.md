@@ -22,4 +22,4 @@ Scripts to remove:
 - [x] All domains (#533–#536) migrated and stable
 - [x] CI dual-run period ended for all domains (scripts don't exist, N/A)
 - [x] Shell scripts removed (scripts don't exist, N/A)
-- [ ] docs/process/agent-harness.md updated to reference manager.py exclusively
+- [x] docs/process/agent-harness.md updated to reference manager.py exclusively

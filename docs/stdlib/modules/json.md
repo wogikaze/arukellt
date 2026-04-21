@@ -48,7 +48,7 @@ raw JSON text to avoid recursive type constraints (STOP_IF: use
 iteration with explicit stack).  Use `json_get` / `json_get_index` to
 access nested values — those functions re-parse the raw text on demand.
 
-#### Primitive helpers (legacy)
+### Primitive helpers (legacy)
 
 The original stringify/parse helpers are preserved for backward
 compatibility with existing fixtures.

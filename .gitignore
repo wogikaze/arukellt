@@ -17,10 +17,9 @@ tests/fixtures/**/*.wasm
 wasi_snapshot_preview1.reactor.wasm
 tests/component-interop/**/*.wasm
 
-# root-level wasm build/test artifacts
-/*.wasm
-/*.cwasm
-/src/**/*.wasm
+# wasm build/test artifacts
+*.wasm
+*.cwasm
 
 # root-level scratch/temp files
 /_test_*.ark

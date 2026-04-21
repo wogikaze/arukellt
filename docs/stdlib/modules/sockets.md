@@ -44,7 +44,7 @@ TCP socket helpers via the arukellt_host Wasmtime linker.
 These APIs are host-bound and only available on wasm32-wasi-p2 (T3) targets.
 On T1 (wasm32-wasi-p1) a compile-time error (E0500) is emitted by the resolver.
 
-### Minimum implementation notes
+## Minimum implementation notes
 
 `connect` establishes a TCP connection and returns a fixed fd value of 3 on
 success.  Full socket fd management (read/write/close) is a future extension.
