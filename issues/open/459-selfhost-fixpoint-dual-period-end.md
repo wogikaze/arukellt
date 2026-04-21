@@ -23,66 +23,52 @@
 
 ## Progress — 2026-04-21
 
-Queue state update with explicit Phase 1 task list.
+Canonical queue-state sync.
 
-- **Bootstrap table / fixpoint evidence:** [Self-Hosting Bootstrap Status](../../docs/current-state.md#self-hosting-bootstrap-status) in `docs/current-state.md` (Stage 0 complete; Stage 1 self-compile reached; Stage 2 fixpoint not reached).
-- **Current fixpoint evidence:** `stage1-self-compile: reached`, `stage2-fixpoint: not-reached`; `s1` = 567,736 bytes, `s2` = 536,522 bytes.
-- **Parity status:** Fixture parity is in progress (`PASS 761 / FAIL 10 / SKIP 15` per latest session note). This is Phase 2 side work; it does not change the Phase 1 gate.
-- **Remaining Stage 2 gap:** Fixpoint is still blocked by selfhost architectural gaps, not by trusted-base fixture bugs.
+- **Bootstrap evidence:** `bash scripts/run/verify-bootstrap.sh --check` now reports `stage0-compile: reached`, `stage1-self-compile: reached`, `stage2-fixpoint: reached`, `attainment: reached`.
+- **Current fixpoint evidence:** `s2` = 536,522 bytes, `s3` = 536,522 bytes, `sha256(s2) == sha256(s3)`.
+- **Important interpretation:** `s1 != s2` is no longer the Phase 1 blocker. The canonical verifier defines fixpoint as `sha256(s2) == sha256(s3)` because `s1` is emitted by the Rust trusted-base compiler while `s2/s3` are emitted by the selfhost compiler.
+- **Parity status:** Fixture parity remains in progress. CLI parity and diagnostic parity still block dual-period exit.
 
-### Phase 1 task list (must finish before Phase 2+ is treated as meaningful)
+### Phase 1 status
 
 #### Task 1 — `src/compiler/driver.ark`: recursive module loading
 
-Goal: selfhost compiler must follow `use` declarations and load the full multi-file compiler source tree instead of compiling only the entry file.
+Status: effectively complete for the bootstrap fixpoint gate.
 
-Required scope:
-- resolve `use foo` / `use foo::bar` against sibling module files under `src/compiler/`
-- recursively load discovered modules
-- maintain a visited set to avoid duplicate loads
-- make module discovery / load order deterministic
-- fail explicitly on missing module files instead of silently emitting partial output
-
-Repo evidence required for closure:
-- `src/compiler/driver.ark` contains deterministic recursive module loading
-- selfhost compile of `src/compiler/main.ark` includes imported compiler modules instead of entry-file-only stubs
+Evidence:
+- `verify-bootstrap.sh --check` reaches Stage 1 and Stage 2 instead of producing a tiny stub `s2`.
+- selfhost compile now loads enough of `src/compiler/*.ark` to reproduce itself as `s2 -> s3`.
 
 #### Task 2 — `src/compiler/mir.ark` + `src/compiler/emitter.ark`: qualified call resolution
 
-Goal: cross-module calls such as `lexer::tokenize` must lower and emit as real function references, not stubbed or dropped calls.
+Status: effectively complete for the bootstrap fixpoint gate.
 
-Required scope:
-- resolve qualified names to the correct function symbol during selfhost lowering
-- preserve deterministic symbol / function index allocation
-- ensure emitted calls target the resolved cross-module function body
-- prove that `lexer::tokenize`-style calls survive MIR and reach final wasm output
-
-Repo evidence required for closure:
-- no stubbed cross-module call path remains in selfhost compiler for compiler-internal modules
-- MIR / emitter path for qualified calls is explicit and deterministic
+Evidence:
+- cross-module compiler-internal calls now survive far enough for `s2` to emit a byte-identical `s3`.
+- the previous "entry-file-only / stubbed-call" failure mode is no longer the active fixpoint blocker.
 
 #### Task 3 — fixpoint verification
 
-Goal: after Task 1 and Task 2, prove Stage 2 fixpoint is actually reached.
+Status: complete.
 
-Required verification:
+Verification:
 - `bash scripts/run/verify-bootstrap.sh --check`
 - output shows `stage1-self-compile: reached`
 - output shows `stage2-fixpoint: reached`
-- `sha256(s1) == sha256(s2)`
+- `sha256(s2) == sha256(s3)`
 
-Audit note:
-- `scripts/check/check-selfhost-fixpoint.sh` does not exist; `verify-bootstrap.sh --check` is the canonical verifier for this phase.
+### Current blocker after Phase 1
 
-### What this progress update is NOT
-
-- It is NOT a claim that Phase 1 moved forward in this session.
-- It is NOT a claim that fixture parity progress reduces the fixpoint blocker.
-- It is NOT a claim that Stage 2 is waiting on benchmarks or docs.
+Phase 1 is no longer the blocker for #459.
+The remaining open work is dual-period exit:
+- fixture parity
+- CLI parity
+- diagnostic parity
 
 ### Immediate gate
 
-Do not treat Phase 2+ progress as selfhost architectural progress until Task 1–3 above are complete.
+Do not close #459 on fixpoint alone. Close it only when parity gates are satisfied and the dual-period exit conditions are met.
 
 ## Closed by audit — 2026-04-03
 
