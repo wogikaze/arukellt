@@ -771,7 +771,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     emit_byte(global_sec, WASM_I32())
     emit_byte(global_sec, 1)
     emit_byte(global_sec, OP_I32_CONST())
-    let heap_start = data_offset + 7 / 8 * 8
+    let heap_start = (data_offset + 7) / 8 * 8
     emit_leb128_s(global_sec, heap_start)
     emit_byte(global_sec, OP_END())
     emit_section(out, SEC_GLOBAL(), global_sec)
