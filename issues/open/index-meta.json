@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T08:14:47Z",
+  "generated_at": "2026-04-21T08:17:44Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -722,7 +722,7 @@
       "blocks_v5": "yes",
       "depends_on": [],
       "blocks_issue_ids": [
-        "532"
+        "539"
       ],
       "acceptance": {
         "checked": 0,
@@ -839,7 +839,7 @@
       "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [
-        "535"
+        "542"
       ],
       "acceptance": {
         "checked": 0,
@@ -1095,9 +1095,9 @@
       }
     },
     {
-      "id": "533",
-      "path": "533-bench-enum-dispatch.md",
-      "title": "533 — Benchmark: enum dispatch (pattern matching)",
+      "id": "540",
+      "path": "540-bench-enum-dispatch.md",
+      "title": "540 — Benchmark: enum dispatch (pattern matching)",
       "track": "benchmark",
       "status": "open",
       "blocks_v1": "none",
@@ -1117,9 +1117,9 @@
       }
     },
     {
-      "id": "534",
-      "path": "534-bench-struct-graph.md",
-      "title": "534 — Benchmark: struct graph (nested structs / recursive types)",
+      "id": "541",
+      "path": "541-bench-struct-graph.md",
+      "title": "541 — Benchmark: struct graph (nested structs / recursive types)",
       "track": "benchmark",
       "status": "open",
       "blocks_v1": "none",
@@ -1139,9 +1139,9 @@
       }
     },
     {
-      "id": "537",
-      "path": "537-bench-suite-reorg-and-docs-integration.md",
-      "title": "537 — Benchmark suite reorganization and docs integration",
+      "id": "544",
+      "path": "544-bench-suite-reorg-and-docs-integration.md",
+      "title": "544 — Benchmark suite reorganization and docs integration",
       "track": "benchmark",
       "status": "open",
       "blocks_v1": "none",
@@ -1161,9 +1161,9 @@
       }
     },
     {
-      "id": "538",
-      "path": "538-bench-real-world-workloads.md",
-      "title": "538 — Benchmark: real-world workloads",
+      "id": "545",
+      "path": "545-bench-real-world-workloads.md",
+      "title": "545 — Benchmark: real-world workloads",
       "track": "benchmark",
       "status": "open",
       "blocks_v1": "none",
@@ -1470,9 +1470,9 @@
       }
     },
     {
-      "id": "532",
-      "path": "532-bench-closure-map.md",
-      "title": "532 — Benchmark: closure map (higher-order functions)",
+      "id": "539",
+      "path": "539-bench-closure-map.md",
+      "title": "539 — Benchmark: closure map (higher-order functions)",
       "track": "benchmark",
       "status": "open",
       "blocks_v1": "none",
@@ -1521,9 +1521,9 @@
       }
     },
     {
-      "id": "535",
-      "path": "535-bench-error-chain.md",
-      "title": "535 — Benchmark: error chain (Result / error propagation)",
+      "id": "542",
+      "path": "542-bench-error-chain.md",
+      "title": "542 — Benchmark: error chain (Result / error propagation)",
       "track": "benchmark",
       "status": "open",
       "blocks_v1": "none",
@@ -1636,7 +1636,7 @@
         "510"
       ],
       "blocks_issue_ids": [
-        "536"
+        "543"
       ],
       "acceptance": {
         "checked": 0,
@@ -1699,9 +1699,9 @@
       }
     },
     {
-      "id": "536",
-      "path": "536-bench-file-io.md",
-      "title": "536 — Benchmark: file I/O (I/O-heavy workloads)",
+      "id": "543",
+      "path": "543-bench-file-io.md",
+      "title": "543 — Benchmark: file I/O (I/O-heavy workloads)",
       "track": "benchmark",
       "status": "open",
       "blocks_v1": "none",

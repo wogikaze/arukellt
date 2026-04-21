@@ -1,8 +1,8 @@
-# 538 — Benchmark: real-world workloads
+# 545 — Benchmark: real-world workloads
 
 **Status**: open
 **Created**: 2026-04-21
-**ID**: 538
+**ID**: 545
 **Depends on**: none
 **Track**: benchmark
 **Orchestration class**: implementation-ready

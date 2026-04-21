@@ -1,8 +1,8 @@
-# 532 — Benchmark: closure map (higher-order functions)
+# 539 — Benchmark: closure map (higher-order functions)
 
 **Status**: open
 **Created**: 2026-04-21
-**ID**: 532
+**ID**: 539
 **Depends on**: 499
 **Track**: benchmark
 **Orchestration class**: implementation-ready

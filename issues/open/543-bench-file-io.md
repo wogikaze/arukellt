@@ -1,8 +1,8 @@
-# 536 — Benchmark: file I/O (I/O-heavy workloads)
+# 543 — Benchmark: file I/O (I/O-heavy workloads)
 
 **Status**: open
 **Created**: 2026-04-21
-**ID**: 536
+**ID**: 543
 **Depends on**: 076
 **Track**: benchmark
 **Orchestration class**: implementation-ready

@@ -1,8 +1,8 @@
-# 537 — Benchmark suite reorganization and docs integration
+# 544 — Benchmark suite reorganization and docs integration
 
 **Status**: open
 **Created**: 2026-04-21
-**ID**: 537
+**ID**: 544
 **Depends on**: none
 **Track**: benchmark
 **Orchestration class**: implementation-ready

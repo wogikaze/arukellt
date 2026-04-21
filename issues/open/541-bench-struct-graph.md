@@ -1,8 +1,8 @@
-# 534 — Benchmark: struct graph (nested structs / recursive types)
+# 541 — Benchmark: struct graph (nested structs / recursive types)
 
 **Status**: open
 **Created**: 2026-04-21
-**ID**: 534
+**ID**: 541
 **Depends on**: none
 **Track**: benchmark
 **Orchestration class**: implementation-ready

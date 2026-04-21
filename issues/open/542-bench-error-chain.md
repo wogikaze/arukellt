@@ -1,8 +1,8 @@
-# 535 — Benchmark: error chain (Result / error propagation)
+# 542 — Benchmark: error chain (Result / error propagation)
 
 **Status**: open
 **Created**: 2026-04-21
-**ID**: 535
+**ID**: 542
 **Depends on**: 515
 **Track**: benchmark
 **Orchestration class**: implementation-ready

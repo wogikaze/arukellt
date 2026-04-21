@@ -1,8 +1,8 @@
-# 533 — Benchmark: enum dispatch (pattern matching)
+# 540 — Benchmark: enum dispatch (pattern matching)
 
 **Status**: open
 **Created**: 2026-04-21
-**ID**: 533
+**ID**: 540
 **Depends on**: none
 **Track**: benchmark
 **Orchestration class**: implementation-ready

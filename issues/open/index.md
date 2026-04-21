@@ -64,10 +64,10 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 44. [529 — 100% Self-Hosting Transition Plan (Operational Guide)](529-100-percent-selfhost-transition-plan.md)
 45. [530 — 530-selfhost-parity-ci-gates](530-selfhost-parity-ci-gates.md)
 46. [531 — Scripts Consolidation Epic: Python CLI Refactoring](531-scripts-consolidation-to-python-manager.md)
-47. [533 — 533 — Benchmark: enum dispatch (pattern matching)](533-bench-enum-dispatch.md)
-48. [534 — 534 — Benchmark: struct graph (nested structs / recursive types)](534-bench-struct-graph.md)
-49. [537 — 537 — Benchmark suite reorganization and docs integration](537-bench-suite-reorg-and-docs-integration.md)
-50. [538 — 538 — Benchmark: real-world workloads](538-bench-real-world-workloads.md)
+47. [540 — 540 — Benchmark: enum dispatch (pattern matching)](540-bench-enum-dispatch.md)
+48. [541 — 541 — Benchmark: struct graph (nested structs / recursive types)](541-bench-struct-graph.md)
+49. [544 — 544 — Benchmark suite reorganization and docs integration](544-bench-suite-reorg-and-docs-integration.md)
+50. [545 — 545 — Benchmark: real-world workloads](545-bench-real-world-workloads.md)
 51. [054 — std::wit + std::component: WIT 型、resource handle、canonical ABI](054-std-wit-component.md)
 52. [055 — std::json + std::toml + std::csv: データ形式パーサ](055-std-json-toml-csv.md)
 53. [077 — WASI P2: `std::host::http` facade と runtime 検証](077-wasi-p2-http.md)
@@ -79,16 +79,16 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 59. [510 — T3 emitter: WASI P2 import-table switch (full P2-native component)](510-t3-p2-import-table-switch.md)
 60. [126 — `run_frontend()` の二重 lower を解消 (遅延 lower)](126-eliminate-double-lowering.md)
 61. [508 — Legacy path removal is blocked by CoreHIR lowerer stub](508-legacy-path-removal-unblocked-by.md)
-62. [532 — 532 — Benchmark: closure map (higher-order functions)](532-bench-closure-map.md)
+62. [539 — 539 — Benchmark: closure map (higher-order functions)](539-bench-closure-map.md)
 63. [495 — 495 — Selfhost typechecker: trait bounds and constraint solving](495-selfhost-trait-bounds.md)
-64. [535 — 535 — Benchmark: error chain (Result / error propagation)](535-bench-error-chain.md)
+64. [542 — 542 — Benchmark: error chain (Result / error propagation)](542-bench-error-chain.md)
 65. [518 — Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する](518-stdlib-docs-examples-as-canonical-style.md)
 66. [136 — ADR-011 に沿った `std::host` layer の段階的ロールアウト](136-std-wasi-capability-rollout.md)
 67. [485 — docs: arukellt component サブコマンド CLI リファレンス](485-arukellt-component-cli-docs.md)
 68. [076 — WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング](076-wasi-p2-filesystem.md)
 69. [121 — WASI P2: Canonical ABI ハンドリングの堅牢化](121-wasi-p2-canonical-abi-hardening.md)
 70. [512 — Stdlib: trait ベースの再利用可能 surface へ段階移行する](512-stdlib-trait-oriented-reuse-surface.md)
-71. [536 — 536 — Benchmark: file I/O (I/O-heavy workloads)](536-bench-file-io.md)
+71. [543 — 543 — Benchmark: file I/O (I/O-heavy workloads)](543-bench-file-io.md)
 
 ## Issue table
 
@@ -123,12 +123,12 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 473 | [Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC](473-resource-type-v3-advanced-features.md) | wasm-feature | none | 032, done) | none | 0 checked / 5 open | blocked-by-upstream | #32 | |
 | 489 | [489-playground-user-visible-entrypoint-wiring](489-playground-user-visible-entrypoint-wiring.md) | main | none | none | none | 6 checked / 0 open | — | — | |
 | 494 | [494 — Selfhost MIR: SSA formation pass](494-selfhost-mir-ssa-formation.md) | selfhost | v5 | 493, 503 | none | 0 checked / 3 open | implementation-ready | — | |
-| 499 | [499 — Selfhost compiler: closure capture environment lowering](499-selfhost-closure-capture-lowering.md) | selfhost | v5 | none | 532 | 0 checked / 5 open | implementation-ready | — | |
+| 499 | [499 — Selfhost compiler: closure capture environment lowering](499-selfhost-closure-capture-lowering.md) | selfhost | v5 | none | 539 | 0 checked / 5 open | implementation-ready | — | |
 | 500 | [500-playground-wasm-typecheck-export](500-playground-wasm-typecheck-export.md) | main | none | none | none | 4 checked / 0 open | — | — | |
 | 504 | [504 — Selfhost: trait/interface syntax and impl-block infrastructure](504-selfhost-trait-syntax.md) | selfhost | v5 | none | 495, 512 | 3 checked / 3 open | implementation-ready | — | |
 | 513 | [Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する](513-stdlib-prelude-safety-and-wrapper-surface.md) | stdlib | none | none | 518 | 2 checked / 2 open | implementation-ready | — | |
 | 514 | [Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する](514-stdlib-implementation-quality-audit.md) | stdlib | none | none | none | 0 checked / 4 open | implementation-ready | — | |
-| 515 | [Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる](515-stdlib-result-option-sentinel-cleanup.md) | stdlib | none | none | 535 | 0 checked / 4 open | implementation-ready | — | |
+| 515 | [Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる](515-stdlib-result-option-sentinel-cleanup.md) | stdlib | none | none | 542 | 0 checked / 4 open | implementation-ready | — | |
 | 516 | [Stdlib: raw helper と推奨 facade の境界を再設計する](516-stdlib-raw-helper-boundary-and-facades.md) | stdlib | none | none | none | 0 checked / 4 open | implementation-ready | — | |
 | 517 | [Stdlib: canonical naming / module layering / surface consistency の第2監査](517-stdlib-api-consistency-and-canonical-naming-v2.md) | stdlib | none | none | 518 | 0 checked / 4 open | implementation-ready | — | |
 | 520 | [Stdlib: allocation / complexity / perf footgun を family 横断で監査する](520-stdlib-performance-allocation-and-complexity-audit.md) | stdlib | none | none | none | 0 checked / 4 open | implementation-ready | — | |
@@ -140,10 +140,10 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 529 | [100% Self-Hosting Transition Plan (Operational Guide)](529-100-percent-selfhost-transition-plan.md) | main | none | none | none | 0 checked / 10 open | — | — | |
 | 530 | [530-selfhost-parity-ci-gates](530-selfhost-parity-ci-gates.md) | main | none | none | none | 0 checked / 4 open | — | — | |
 | 531 | [Scripts Consolidation Epic: Python CLI Refactoring](531-scripts-consolidation-to-python-manager.md) | main | none | none | none | 16 checked / 0 open | — | — | |
-| 533 | [533 — Benchmark: enum dispatch (pattern matching)](533-bench-enum-dispatch.md) | benchmark | none | none | none | 0 checked / 7 open | implementation-ready | — | |
-| 534 | [534 — Benchmark: struct graph (nested structs / recursive types)](534-bench-struct-graph.md) | benchmark | none | none | none | 0 checked / 7 open | implementation-ready | — | |
-| 537 | [537 — Benchmark suite reorganization and docs integration](537-bench-suite-reorg-and-docs-integration.md) | benchmark | none | none | none | 0 checked / 8 open | implementation-ready | — | |
-| 538 | [538 — Benchmark: real-world workloads](538-bench-real-world-workloads.md) | benchmark | none | none | none | 0 checked / 7 open | implementation-ready | — | |
+| 540 | [540 — Benchmark: enum dispatch (pattern matching)](540-bench-enum-dispatch.md) | benchmark | none | none | none | 0 checked / 7 open | implementation-ready | — | |
+| 541 | [541 — Benchmark: struct graph (nested structs / recursive types)](541-bench-struct-graph.md) | benchmark | none | none | none | 0 checked / 7 open | implementation-ready | — | |
+| 544 | [544 — Benchmark suite reorganization and docs integration](544-bench-suite-reorg-and-docs-integration.md) | benchmark | none | none | none | 0 checked / 8 open | implementation-ready | — | |
+| 545 | [545 — Benchmark: real-world workloads](545-bench-real-world-workloads.md) | benchmark | none | none | none | 0 checked / 7 open | implementation-ready | — | |
 | 054 | [std::wit + std::component: WIT 型、resource handle、canonical ABI](054-std-wit-component.md) | stdlib | none | 039, 044, 053 | none | 0 checked / 0 open | blocked-by-upstream | #39, #44 | |
 | 055 | [std::json + std::toml + std::csv: データ形式パーサ](055-std-json-toml-csv.md) | stdlib | none | 039, 042, 044 | none | 0 checked / 0 open | blocked-by-upstream | #39, #44 | |
 | 077 | [WASI P2: `std::host::http` facade と runtime 検証](077-wasi-p2-http.md) | wasi-feature | none | 074, 137 | 136 | 0 checked / 0 open | blocked-by-upstream | #74 | |
@@ -155,16 +155,16 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 510 | [T3 emitter: WASI P2 import-table switch (full P2-native component)](510-t3-p2-import-table-switch.md) | wasi-feature | none | 074 | 076, 121 | 0 checked / 0 open | blocked-by-upstream | #74 | |
 | 126 | [`run_frontend()` の二重 lower を解消 (遅延 lower)](126-eliminate-double-lowering.md) | pipeline-refactor | none | 125 | none | 0 checked / 0 open | blocked-by-upstream | #125 | |
 | 508 | [Legacy path removal is blocked by CoreHIR lowerer stub](508-legacy-path-removal-unblocked-by.md) | corehir | none | 285 | none | 0 checked / 5 open | blocked-by-upstream | #285 | |
-| 532 | [532 — Benchmark: closure map (higher-order functions)](532-bench-closure-map.md) | benchmark | none | 499 | none | 0 checked / 7 open | implementation-ready | — | |
+| 539 | [539 — Benchmark: closure map (higher-order functions)](539-bench-closure-map.md) | benchmark | none | 499 | none | 0 checked / 7 open | implementation-ready | — | |
 | 495 | [495 — Selfhost typechecker: trait bounds and constraint solving](495-selfhost-trait-bounds.md) | selfhost | v5 | 312, 504 | 512 | 0 checked / 4 open | blocked-by-upstream | #312, #504 | |
-| 535 | [535 — Benchmark: error chain (Result / error propagation)](535-bench-error-chain.md) | benchmark | none | 515 | none | 0 checked / 7 open | implementation-ready | — | |
+| 542 | [542 — Benchmark: error chain (Result / error propagation)](542-bench-error-chain.md) | benchmark | none | 515 | none | 0 checked / 7 open | implementation-ready | — | |
 | 518 | [Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する](518-stdlib-docs-examples-as-canonical-style.md) | stdlib | none | 513, 517 | none | 0 checked / 4 open | blocked-by-upstream | #513, #517 | |
 | 136 | [ADR-011 に沿った `std::host` layer の段階的ロールアウト](136-std-wasi-capability-rollout.md) | wasi-feature | none | 137, 138, 077, 139 | none | 0 checked / 0 open | blocked-by-upstream | #139, #77 | |
 | 485 | [docs: arukellt component サブコマンド CLI リファレンス](485-arukellt-component-cli-docs.md) | docs | none | 475 | none | 0 checked / 0 open | blocked-by-upstream | #475 | |
-| 076 | [WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング](076-wasi-p2-filesystem.md) | wasi-feature | none | 074, 510 | 536 | 0 checked / 0 open | — | — | |
+| 076 | [WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング](076-wasi-p2-filesystem.md) | wasi-feature | none | 074, 510 | 543 | 0 checked / 0 open | — | — | |
 | 121 | [WASI P2: Canonical ABI ハンドリングの堅牢化](121-wasi-p2-canonical-abi-hardening.md) | wasi-feature | none | 074, 124, 510 | none | 0 checked / 0 open | — | — | |
 | 512 | [Stdlib: trait ベースの再利用可能 surface へ段階移行する](512-stdlib-trait-oriented-reuse-surface.md) | stdlib | v5 | 504, 495 | none | 0 checked / 4 open | blocked-by-upstream | #495, #504 | |
-| 536 | [536 — Benchmark: file I/O (I/O-heavy workloads)](536-bench-file-io.md) | benchmark | none | 076 | none | 0 checked / 7 open | implementation-ready | — | |
+| 543 | [543 — Benchmark: file I/O (I/O-heavy workloads)](543-bench-file-io.md) | benchmark | none | 076 | none | 0 checked / 7 open | implementation-ready | — | |
 
 ## Blocked issues
 
