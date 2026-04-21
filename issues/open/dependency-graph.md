@@ -52,6 +52,11 @@ graph LR
   I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
   I530["530 530-selfhost-parity-ci-gates"]
   I531["531 Scripts Consolidation Epic: Python CLI Refactoring"]
+  I533["533 Selfhost Domain Migration to manager.py"]
+  I534["534 Docs Domain Migration to manager.py"]
+  I535["535 Perf Domain Migration to manager.py"]
+  I536["536 Gate Domain Migration to manager.py"]
+  I537["537 Shell Script Removal After Deprecation"]
   I540["540 540 — Benchmark: enum dispatch (pattern matching)"]
   I541["541 541 — Benchmark: struct graph (nested structs / recursive types)"]
   I544["544 544 — Benchmark suite reorganization and docs integration"]
@@ -157,6 +162,11 @@ graph LR
 - **529** depends on: none; blocks: none
 - **530** depends on: none; blocks: none
 - **531** depends on: none; blocks: none
+- **533** depends on: none; blocks: none
+- **534** depends on: none; blocks: none
+- **535** depends on: none; blocks: none
+- **536** depends on: none; blocks: none
+- **537** depends on: none; blocks: none
 - **540** depends on: none; blocks: none
 - **541** depends on: none; blocks: none
 - **544** depends on: none; blocks: none
