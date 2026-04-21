@@ -1,7 +1,0 @@
-[package]
-name = "hello-ark"
-version = "0.1.0"
-
-[bin]
-name = "hello-ark"
-path = "src/main.ark"

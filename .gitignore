@@ -25,6 +25,9 @@ tests/component-interop/**/*.wasm
 # root-level scratch/temp files
 /_test_*.ark
 /archive.zip
+/test_*.wat
+/check_layout
+/audit-*.json
 
 # benchmark build artifacts (result summaries are tracked separately)
 benchmarks/*.wasm
