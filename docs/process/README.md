@@ -33,6 +33,7 @@
 | [roadmap.md](roadmap.md) | Arukellt v1–v5 ロードマップ概要 | Current state source of truth: 実装の現在地と open work はまず docs/current-state.md と issues/open/index.md を参照してください。 |
 | [selfhosting-stdlib-checklist.md](selfhosting-stdlib-checklist.md) | Selfhosting Stdlib Checklist (Verified) | Last verified: 2026-04-14 |
 | [snapshot-baseline-policy.md](snapshot-baseline-policy.md) | Snapshot vs Baseline Policy | This document defines the responsibilities and update workflows for |
+| [std-task.md](std-task.md) | stdlib migration task board | Rust 実装中心の stdlib を、Arukellt 実装中心の std/.ark へ移していくための実行順タスクボード。 |
 | [v0-completion-report.md](v0-completion-report.md) | Archived v0 completion report | この文書は過去の設計・進捗レポートです。現在の実装確認には使わないでください。 |
 | [v0-scope.md](v0-scope.md) | v0 スコープ定義 | arukellt v0 は「LLM フレンドリな言語」の最小限の実装。 |
 | [v0-status.md](v0-status.md) | Archived v0 status | この文書は過去の詳細 status メモです。現在の実装確認には使わないでください。 |

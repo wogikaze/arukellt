@@ -18,6 +18,7 @@ fn TK_STRING() -> i32 { 4 }
 fn TK_BOOL() -> i32 { 5 }
 fn TK_NEWLINE() -> i32 { 6 }
 fn TK_ERROR() -> i32 { 7 }
+fn TK_FSTRING() -> i32 { 8 }
 
 // Keywords
 fn TK_FN() -> i32 { 10 }
@@ -238,12 +239,39 @@ fn lex_ident(lex: Lexer) -> Token {
         lex.pos = lex.pos + 1
     }
     let word = substring(lex.src, start, lex.pos)
+    // f"..." f-string: `f` immediately followed by `"`
+    if eq(clone(word), "f") {
+        if lex.pos < lex.src_len && peek(lex) == 34 {
+            return lex_fstring(lex, start)
+        }
+    }
     let kw = keyword_kind(clone(word))
     if kw >= 0 {
         Token_new(kw, word, start, lex.pos)
     } else {
         Token_new(TK_IDENT(), word, start, lex.pos)
     }
+}
+
+fn lex_fstring(lex: Lexer, start: i32) -> Token {
+    lex.pos = lex.pos + 1  // skip opening "
+    let content_start = lex.pos
+    let mut depth = 0
+    while lex.pos < lex.src_len {
+        let c = peek(lex)
+        if c == 34 && depth == 0 {
+            let content = substring(lex.src, content_start, lex.pos)
+            lex.pos = lex.pos + 1
+            return Token_new(TK_FSTRING(), content, start, lex.pos)
+        }
+        if c == 10 {
+            return Token_new(TK_ERROR(), String_from("unterminated f-string"), start, lex.pos)
+        }
+        if c == 123 { depth = depth + 1 }
+        if c == 125 { depth = depth - 1 }
+        lex.pos = lex.pos + 1
+    }
+    Token_new(TK_ERROR(), String_from("unterminated f-string"), start, lex.pos)
 }
 
 // ── Lex Number ───────────────────────────────────────────────────────────────

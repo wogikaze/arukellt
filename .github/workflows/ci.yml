@@ -79,7 +79,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Quick harness (manifest + docs hygiene)
-        run: bash scripts/run/verify-harness.sh --quick
+        run: python3 scripts/manager.py verify --quick
 
   # ── Layer 2: Fixture suite — T3 primary (merge gate) ────────────────────
   fixture-primary:
@@ -285,7 +285,7 @@ jobs:
       - name: Verify harness (size + WAT + docs)
         env:
           ARUKELLT_BIN: ${{ runner.temp }}/target-heavy/debug/arukellt
-        run: bash scripts/run/verify-harness.sh --size --wat --docs
+        run: python3 scripts/manager.py verify --size --wat --docs
 
   # ── Layer 7b: Component interop (push only) ──────────────────────────────
   component-interop:
@@ -321,7 +321,7 @@ jobs:
         run: cargo build -p arukellt --quiet
 
       - name: Component interop tests
-        run: bash scripts/run/verify-harness.sh --component
+        run: python3 scripts/manager.py verify --component
 
   # ── Layer 8: Perf baseline snapshot (push only) ─────────────────────────
   perf-baseline:

@@ -350,6 +350,12 @@ fn resolve_type_name(name: String) -> TypeInfo {
     if eq(clone(name), "Option") { return TypeInfo_simple(TY_OPTION()) }
     if eq(clone(name), "Result") { return TypeInfo_simple(TY_RESULT()) }
     if eq(clone(name), "HashMap") { return TypeInfo_simple(TY_HASHMAP()) }
+    // Narrow integer types — treat as i32 at the selfhost level
+    if eq(clone(name), "u8") { return TypeInfo_simple(TY_I32()) }
+    if eq(clone(name), "u16") { return TypeInfo_simple(TY_I32()) }
+    if eq(clone(name), "u32") { return TypeInfo_simple(TY_I32()) }
+    if eq(clone(name), "i8") { return TypeInfo_simple(TY_I32()) }
+    if eq(clone(name), "i16") { return TypeInfo_simple(TY_I32()) }
     TypeInfo_named(TY_STRUCT(), name)
 }
 

@@ -240,6 +240,21 @@ fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState
             } else {
                 load_single_module(clone(use_path), clone(base_dir), state)
             }
+            // Handle destructure children: use base::{a, b, ...}
+            let num_children = len(d.children)
+            let mut ci = 0
+            while ci < num_children {
+                let child = get_unchecked(d.children, ci)
+                if child.kind == 54 {  // NK_USE
+                    let child_path = clone(child.text)
+                    if is_stdlib_path(clone(child_path)) {
+                        load_stdlib_module(clone(child_path), state)
+                    } else {
+                        load_single_module(clone(child_path), clone(base_dir), state)
+                    }
+                }
+                ci = ci + 1
+            }
         }
         i = i + 1
     }

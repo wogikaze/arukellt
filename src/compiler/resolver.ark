@@ -387,6 +387,14 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("filter_i64"), SYM_BUILTIN())
     define(ctx, String_from("filter_f64"), SYM_BUILTIN())
     define(ctx, String_from("filter_String"), SYM_BUILTIN())
+    define(ctx, String_from("any_i32"), SYM_BUILTIN())
+    define(ctx, String_from("any_i64"), SYM_BUILTIN())
+    define(ctx, String_from("any_f64"), SYM_BUILTIN())
+    define(ctx, String_from("any_String"), SYM_BUILTIN())
+    define(ctx, String_from("find_i32"), SYM_BUILTIN())
+    define(ctx, String_from("find_i64"), SYM_BUILTIN())
+    define(ctx, String_from("find_f64"), SYM_BUILTIN())
+    define(ctx, String_from("find_String"), SYM_BUILTIN())
     define(ctx, String_from("fold_i32_i32"), SYM_BUILTIN())
     define(ctx, String_from("fold_i64_i64"), SYM_BUILTIN())
     define(ctx, String_from("fold_f64_f64"), SYM_BUILTIN())
@@ -541,6 +549,17 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Resolv
             define_with_vis(ctx, clone(d.text), SYM_STRUCT(), d.is_pub)
         } else if d.kind == NK_ENUM_DECL() {
             define_with_vis(ctx, clone(d.text), SYM_ENUM(), d.is_pub)
+        } else if d.kind == NK_IMPL_DECL() {
+            // Register each method as StructName::method_name
+            let struct_name = clone(d.text)
+            let mcount = len(d.children)
+            let mut mi = 0
+            while mi < mcount {
+                let method = get_unchecked(d.children, mi)
+                let mangled = concat(clone(struct_name), concat(String_from("::"), clone(method.text)))
+                define_with_vis(ctx, mangled, SYM_FN(), d.is_pub)
+                mi = mi + 1
+            }
         } else if d.kind == NK_USE() {
             let existing_use = lookup(ctx, clone(d.text))
             if existing_use < 0 {
@@ -548,10 +567,34 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Resolv
             }
             // Also register the short name (last path segment) as SYM_MODULE so
             // that qualified paths like `bytes::foo` resolve the module part.
-            let short_name = use_module_short_name(clone(d.text))
+            // If an alias is present (stored in type_ann[0]), use it instead.
+            let short_name = if len(d.type_ann) > 0 {
+                let alias_node = get_unchecked(d.type_ann, 0)
+                clone(alias_node.text)
+            } else {
+                use_module_short_name(clone(d.text))
+            }
             let existing_mod = lookup(ctx, clone(short_name))
             if existing_mod < 0 {
                 define(ctx, clone(short_name), SYM_MODULE())
+            }
+            // Handle destructure children: use base::{a, b, ...}
+            let num_children = len(d.children)
+            let mut ci = 0
+            while ci < num_children {
+                let child = get_unchecked(d.children, ci)
+                if child.kind == NK_USE() {
+                    let existing_child = lookup(ctx, clone(child.text))
+                    if existing_child < 0 {
+                        define(ctx, clone(child.text), SYM_IMPORT())
+                    }
+                    let child_short = use_module_short_name(clone(child.text))
+                    let existing_child_mod = lookup(ctx, clone(child_short))
+                    if existing_child_mod < 0 {
+                        define(ctx, clone(child_short), SYM_MODULE())
+                    }
+                }
+                ci = ci + 1
             }
         }
         i = i + 1
@@ -565,6 +608,30 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Resolv
             resolve_fn(ctx, d)
         } else if d.kind == NK_ENUM_DECL() {
             resolve_enum(ctx, d)
+        } else if d.kind == NK_IMPL_DECL() {
+            // Resolve each method body, registering self as a param
+            let struct_name = clone(d.text)
+            let mcount = len(d.children)
+            let mut mi = 0
+            while mi < mcount {
+                let method = get_unchecked(d.children, mi)
+                push_scope(ctx)
+                let m_child_count = len(method.children)
+                let mut pi = 0
+                while pi < m_child_count - 1 {
+                    let param = get_unchecked(method.children, pi)
+                    if param.kind == NK_IDENT() {
+                        define(ctx, clone(param.text), SYM_PARAM())
+                    }
+                    pi = pi + 1
+                }
+                if m_child_count > 0 {
+                    let m_body = get_unchecked(method.children, m_child_count - 1)
+                    resolve_node(ctx, m_body)
+                }
+                pop_scope(ctx)
+                mi = mi + 1
+            }
         }
         j = j + 1
     }

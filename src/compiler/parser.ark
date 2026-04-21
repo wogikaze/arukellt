@@ -62,6 +62,7 @@ fn NK_PAT_LITERAL() -> i32 { 72 }
 fn NK_PAT_VARIANT() -> i32 { 73 }
 fn NK_PAT_STRUCT() -> i32 { 74 }
 fn NK_PAT_TUPLE() -> i32 { 75 }
+fn NK_PAT_OR() -> i32 { 76 }
 
 // Types
 fn NK_TYPE_NAMED() -> i32 { 90 }
@@ -186,6 +187,7 @@ fn TK_STRING() -> i32 { 4 }
 fn TK_BOOL() -> i32 { 5 }
 fn TK_NEWLINE() -> i32 { 6 }
 fn TK_ERROR() -> i32 { 7 }
+fn TK_FSTRING() -> i32 { 8 }
 fn TK_FN() -> i32 { 10 }
 fn TK_STRUCT() -> i32 { 11 }
 fn TK_ENUM() -> i32 { 12 }
@@ -278,6 +280,24 @@ pub fn Parser_new(tokens: Vec<Token>) -> Parser {
 
 // ── Parser Helpers ───────────────────────────────────────────────────────────
 
+// Consume a closing `>` in generic type contexts.
+// Handles `>>` (TK_SHR) by replacing it with `>` (TK_GT) WITHOUT advancing —
+// the outer generic parse will then see the `>` and consume it.
+fn consume_closing_gt(p: Parser) {
+    skip_newlines(p)
+    let t = cur(p)
+    if t.kind == TK_GT() {
+        p.pos = p.pos + 1
+        return
+    }
+    if t.kind == TK_SHR() {
+        let gt_tok = Token_new(TK_GT(), String_from(">"), t.start, t.end)
+        set(p.tokens, p.pos, gt_tok)
+        return
+    }
+    error(p, String_from("expected >"))
+}
+
 fn cur(p: Parser) -> Token {
     if p.pos >= p.token_count {
         // Synthesize EOF
@@ -308,6 +328,12 @@ fn bump(p: Parser) -> Token {
 
 fn skip_newlines(p: Parser) {
     while peek_kind(p) == TK_NEWLINE() || peek_kind(p) == TK_SEMI() {
+        p.pos = p.pos + 1
+    }
+}
+
+fn skip_only_newlines(p: Parser) {
+    while peek_kind(p) == TK_NEWLINE() {
         p.pos = p.pos + 1
     }
 }
@@ -419,14 +445,14 @@ fn parse_type(p: Parser) -> AstNode {
             node.text = clone(t.text)
             push(node.children, base)
             let mut first = true
-            while !at(p, TK_GT()) && !at_eof(p) {
+            while !at(p, TK_GT()) && !at(p, TK_SHR()) && !at_eof(p) {
                 if !first { expect_token(p, TK_COMMA()) }
                 first = false
                 skip_newlines(p)
                 let arg = parse_type(p)
                 push(node.children, arg)
             }
-            expect_token(p, TK_GT())
+            consume_closing_gt(p)
             return node
         }
         return base
@@ -458,6 +484,28 @@ fn parse_type(p: Parser) -> AstNode {
         return node
     }
 
+    // Function pointer type: fn(T1, T2) -> Ret
+    if t.kind == TK_FN() {
+        p.pos = p.pos + 1
+        let fn_node = AstNode_new(NK_TYPE_FN(), tok_span(t))
+        expect_token(p, TK_LPAREN())
+        let mut fn_first = true
+        while !at(p, TK_RPAREN()) && !at_eof(p) {
+            if !fn_first { expect_token(p, TK_COMMA()) }
+            fn_first = false
+            skip_newlines(p)
+            let fn_arg = parse_type(p)
+            push(fn_node.children, fn_arg)
+        }
+        expect_token(p, TK_RPAREN())
+        if peek_kind(p) == TK_ARROW() {
+            p.pos = p.pos + 1
+            let fn_ret = parse_type(p)
+            push(fn_node.type_ann, fn_ret)
+        }
+        return fn_node
+    }
+
     // Fallback: error
     error(p, concat(String_from("expected type, got "), to_string(t.kind)))
     AstNode_leaf(NK_TYPE_NAMED(), String_from("_error"), tok_span(t))
@@ -484,7 +532,7 @@ fn parse_generic_params(p: Parser, out: Vec<AstNode>) {
 
     p.pos = p.pos + 1
     let mut first = true
-    while !at(p, TK_GT()) && !at_eof(p) {
+    while !at(p, TK_GT()) && !at(p, TK_SHR()) && !at_eof(p) {
         if !first { expect_token(p, TK_COMMA()) }
         first = false
         skip_newlines(p)
@@ -492,7 +540,7 @@ fn parse_generic_params(p: Parser, out: Vec<AstNode>) {
         push(out, param)
         skip_newlines(p)
     }
-    expect_token(p, TK_GT())
+    consume_closing_gt(p)
 }
 
 // Optional trailing `where` clause (stub): accepts `where` then nothing or a single `_`
@@ -601,7 +649,7 @@ fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
     let mut lhs = parse_prefix(p)
 
     while true {
-        skip_newlines(p)
+        skip_only_newlines(p)
         let k = peek_kind(p)
         if k == TK_EOF() || k == TK_NEWLINE() || k == TK_RBRACE() || k == TK_RPAREN()
             || k == TK_RBRACKET() || k == TK_COMMA() || k == TK_SEMI()
@@ -760,6 +808,73 @@ fn parse_closure_expr(p: Parser, start: Token) -> AstNode {
     node
 }
 
+/// Desugar f"Hello, {name}!" into concat(concat("Hello, ", to_string(name)), "!")
+fn desugar_fstring(content: String, span: Span) -> AstNode {
+    let clen = len(content)
+    let mut nodes: Vec<AstNode> = Vec_new_AstNode()
+    let mut lit_start = 0
+    let mut i = 0
+    while i < clen {
+        let c = char_at(content, i)
+        if c == 123 {  // {
+            if i > lit_start {
+                let lit = substring(content, lit_start, i)
+                let lit_node = AstNode_new(NK_STRING_LIT(), span)
+                lit_node.text = lit
+                push(nodes, lit_node)
+            }
+            let expr_start = i + 1
+            let mut depth = 1
+            i = i + 1
+            while i < clen && depth > 0 {
+                let ec = char_at(content, i)
+                if ec == 123 { depth = depth + 1 }
+                if ec == 125 { depth = depth - 1 }
+                i = i + 1
+            }
+            let expr_text = substring(content, expr_start, i - 1)
+            let toks = lexer::tokenize(clone(expr_text))
+            let sub_p = Parser_new(toks)
+            let expr = parse_expr(sub_p)
+            let ts_node = AstNode_new(NK_CALL(), span)
+            let fn_node = AstNode_leaf(NK_IDENT(), String_from("to_string"), span)
+            push(ts_node.children, fn_node)
+            push(ts_node.children, expr)
+            push(nodes, ts_node)
+            lit_start = i
+        } else {
+            i = i + 1
+        }
+    }
+    if lit_start < clen {
+        let tail = substring(content, lit_start, clen)
+        let tail_node = AstNode_new(NK_STRING_LIT(), span)
+        tail_node.text = tail
+        push(nodes, tail_node)
+    }
+    let n = len(nodes)
+    if n == 0 {
+        let empty = AstNode_new(NK_STRING_LIT(), span)
+        empty.text = String_new()
+        return empty
+    }
+    if n == 1 {
+        return get_unchecked(nodes, 0)
+    }
+    let mut result = get_unchecked(nodes, 0)
+    let mut j = 1
+    while j < n {
+        let concat_call = AstNode_new(NK_CALL(), span)
+        let fn_concat = AstNode_leaf(NK_IDENT(), String_from("concat"), span)
+        push(concat_call.children, fn_concat)
+        push(concat_call.children, result)
+        push(concat_call.children, get_unchecked(nodes, j))
+        result = concat_call
+        j = j + 1
+    }
+    result
+}
+
 fn parse_prefix(p: Parser) -> AstNode {
     skip_newlines(p)
     let t: Token = cur(p)
@@ -805,6 +920,10 @@ fn parse_prefix(p: Parser) -> AstNode {
     if t.kind == TK_STRING() {
         p.pos = p.pos + 1
         return AstNode_leaf(NK_STRING_LIT(), clone(t.text), tok_span(t))
+    }
+    if t.kind == TK_FSTRING() {
+        p.pos = p.pos + 1
+        return desugar_fstring(clone(t.text), tok_span(t))
     }
     if t.kind == TK_BOOL() {
         p.pos = p.pos + 1
@@ -928,8 +1047,7 @@ fn parse_prefix(p: Parser) -> AstNode {
         }
         skip_newlines(p)
         let first_elem = parse_expr(p)
-        skip_newlines(p)
-        // Array repeat: [expr; count]
+        // Array repeat: [expr; count] — check BEFORE skip_newlines since it eats ';'
         if peek_kind(p) == TK_SEMI() {
             p.pos = p.pos + 1
             skip_newlines(p)
@@ -941,6 +1059,7 @@ fn parse_prefix(p: Parser) -> AstNode {
             push(node.children, count)
             return node
         }
+        skip_newlines(p)
         // Regular array literal
         let node = AstNode_new(NK_ARRAY_LIT(), tok_span(t))
         push(node.children, first_elem)
@@ -1044,9 +1163,23 @@ fn parse_match_expr(p: Parser) -> AstNode {
         if at(p, TK_RBRACE()) { break }
         let pat = parse_pattern(p)
         skip_newlines(p)
+        // OR pattern: 1 | 2 | 3 => body
+        let mut final_pat = pat
+        if peek_kind(p) == TK_PIPE() {
+            let or_node = AstNode_new(NK_PAT_OR(), pat.span)
+            push(or_node.children, pat)
+            while peek_kind(p) == TK_PIPE() {
+                p.pos = p.pos + 1
+                skip_newlines(p)
+                let alt_pat = parse_pattern(p)
+                push(or_node.children, alt_pat)
+                skip_newlines(p)
+            }
+            final_pat = or_node
+        }
         // Match guard: pattern if condition => body
-        let arm = AstNode_new(NK_MATCH_ARM(), pat.span)
-        push(arm.children, pat)
+        let arm = AstNode_new(NK_MATCH_ARM(), final_pat.span)
+        push(arm.children, final_pat)
         if peek_kind(p) == TK_IF() {
             p.pos = p.pos + 1
             skip_newlines(p)
@@ -1257,11 +1390,16 @@ fn parse_fn_decl(p: Parser) -> AstNode {
         skip_newlines(p)
         let pname = expect_token(p, TK_IDENT())
         let param = AstNode_leaf(NK_IDENT(), clone(pname.text), tok_span(pname))
-        expect_token(p, TK_COLON())
-        skip_newlines(p)
-        let pty = parse_type(p)
-        push(param.type_ann, pty)
-        push(node.children, param)
+        // `self` parameter has no type annotation
+        if eq(clone(pname.text), "self") && peek_kind(p) != TK_COLON() {
+            push(node.children, param)
+        } else {
+            expect_token(p, TK_COLON())
+            skip_newlines(p)
+            let pty = parse_type(p)
+            push(param.type_ann, pty)
+            push(node.children, param)
+        }
         skip_newlines(p)
     }
     expect_token(p, TK_RPAREN())
@@ -1355,6 +1493,26 @@ fn parse_enum_decl(p: Parser) -> AstNode {
             expect_token(p, TK_RPAREN())
         }
 
+        // Struct variant: Variant { field: Type, ... }
+        if peek_kind(p) == TK_LBRACE() {
+            p.pos = p.pos + 1
+            skip_newlines(p)
+            while !at(p, TK_RBRACE()) && !at_eof(p) {
+                skip_newlines(p)
+                if at(p, TK_RBRACE()) { break }
+                let fname = expect_token(p, TK_IDENT())
+                expect_token(p, TK_COLON())
+                let fty = parse_type(p)
+                let field = AstNode_leaf(NK_IDENT(), clone(fname.text), tok_span(fname))
+                push(field.type_ann, fty)
+                push(variant.children, field)
+                skip_newlines(p)
+                if peek_kind(p) == TK_COMMA() { p.pos = p.pos + 1 }
+                skip_newlines(p)
+            }
+            expect_token(p, TK_RBRACE())
+        }
+
         push(node.children, variant)
         skip_newlines(p)
         if peek_kind(p) == TK_COMMA() { p.pos = p.pos + 1 }
@@ -1417,16 +1575,44 @@ fn parse_use_decl(p: Parser) -> AstNode {
     let t = expect_token(p, TK_USE())
     let node = AstNode_new(NK_USE(), tok_span(t))
     skip_newlines(p)
-    // use std::host::module
     let mut path = String_new()
     let first_seg = expect_token(p, TK_IDENT())
     path = clone(first_seg.text)
     while peek_kind(p) == TK_COLONCOLON() {
         p.pos = p.pos + 1
+        if peek_kind(p) == TK_LBRACE() {
+            // Destructure: use base::{item1, item2, ...}
+            p.pos = p.pos + 1
+            skip_newlines(p)
+            let first_item = expect_token(p, TK_IDENT())
+            node.text = concat(clone(path), concat(String_from("::"), clone(first_item.text)))
+            skip_newlines(p)
+            while peek_kind(p) == TK_COMMA() {
+                p.pos = p.pos + 1
+                skip_newlines(p)
+                if peek_kind(p) == TK_RBRACE() { break }
+                let extra_item = expect_token(p, TK_IDENT())
+                let child_path = concat(clone(path), concat(String_from("::"), clone(extra_item.text)))
+                let child_node = AstNode_new(NK_USE(), tok_span(extra_item))
+                child_node.text = child_path
+                push(node.children, child_node)
+                skip_newlines(p)
+            }
+            expect_token(p, TK_RBRACE())
+            return node
+        }
         let seg = expect_token(p, TK_IDENT())
         path = concat(path, concat(String_from("::"), clone(seg.text)))
     }
     node.text = path
+    // Optional alias: use std::foo as bar
+    if peek_kind(p) == TK_AS() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let alias_tok = expect_token(p, TK_IDENT())
+        let alias_node = AstNode_leaf(NK_IDENT(), clone(alias_tok.text), tok_span(alias_tok))
+        push(node.type_ann, alias_node)
+    }
     node
 }
 
