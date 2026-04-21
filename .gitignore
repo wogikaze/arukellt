@@ -60,4 +60,8 @@ docs/playground/dist/benchmarks/results/
 
 # codex local settings
 .codex
+.codex-debug/
 .mcp.json
+
+# Cursor IDE settings
+.cursor/

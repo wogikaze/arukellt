@@ -1,2 +1,0 @@
-use std::host::stdio
-fn main() { stdio::print(String_from("hi")) }
