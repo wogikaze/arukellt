@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T07:40:31Z",
+  "generated_at": "2026-04-21T08:14:47Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -721,7 +721,9 @@
       "blocks_v4": "none",
       "blocks_v5": "yes",
       "depends_on": [],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "532"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 5
@@ -836,7 +838,9 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "535"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 4
@@ -1088,6 +1092,94 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "533",
+      "path": "533-bench-enum-dispatch.md",
+      "title": "533 — Benchmark: enum dispatch (pattern matching)",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "534",
+      "path": "534-bench-struct-graph.md",
+      "title": "534 — Benchmark: struct graph (nested structs / recursive types)",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "537",
+      "path": "537-bench-suite-reorg-and-docs-integration.md",
+      "title": "537 — Benchmark suite reorganization and docs integration",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "538",
+      "path": "538-bench-real-world-workloads.md",
+      "title": "538 — Benchmark: real-world workloads",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
       }
     },
     {
@@ -1378,6 +1470,30 @@
       }
     },
     {
+      "id": "532",
+      "path": "532-bench-closure-map.md",
+      "title": "532 — Benchmark: closure map (higher-order functions)",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "499"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
       "id": "495",
       "path": "495-selfhost-trait-bounds.md",
       "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
@@ -1402,6 +1518,30 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#312, #504"
+      }
+    },
+    {
+      "id": "535",
+      "path": "535-bench-error-chain.md",
+      "title": "535 — Benchmark: error chain (Result / error propagation)",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "515"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
       }
     },
     {
@@ -1495,7 +1635,9 @@
         "074",
         "510"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "536"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -1554,6 +1696,30 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#495, #504"
+      }
+    },
+    {
+      "id": "536",
+      "path": "536-bench-file-io.md",
+      "title": "536 — Benchmark: file I/O (I/O-heavy workloads)",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "076"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
       }
     }
   ],
