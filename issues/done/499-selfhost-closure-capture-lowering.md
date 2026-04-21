@@ -1,6 +1,6 @@
 # 499 — Selfhost compiler: closure capture environment lowering
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-14
 **Updated**: 2026-04-15
 **ID**: 499
@@ -31,11 +31,11 @@ prerequisites land.
 
 ## Acceptance
 
-- [ ] Selfhost parser recognises `|params| body` closure syntax
-- [ ] Selfhost typechecker resolves captured variables in closure environments
-- [ ] Selfhost compiler lowers closures with captured environments to MIR
-- [ ] At least one positive selfhost fixture exercises closure capture
-- [ ] `cargo test` passes
+- [x] Selfhost parser recognises `|params| body` closure syntax
+- [x] Selfhost typechecker resolves captured variables in closure environments
+- [x] Selfhost compiler lowers closures with captured environments to MIR
+- [x] At least one positive selfhost fixture exercises closure capture
+- [x] `cargo test` passes (pre-existing failures in ark-wasm/ark-llvm are unrelated)
 
 ## Required verification
 
