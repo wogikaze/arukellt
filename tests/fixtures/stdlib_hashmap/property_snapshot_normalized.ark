@@ -1,0 +1,87 @@
+// Property fixture for issue #528 — deterministic snapshot comparison.
+//
+// Invariant: a snapshot of a HashMap is independent of the hash map's
+// iteration order when the snapshot is produced under an explicit
+// normalization rule.  The normalization rule used here is:
+//
+//     1. collect the keys via `hashmap_keys` into a `Vec<i32>`
+//     2. sort the key vector in ascending order (inline insertion sort)
+//     3. for each key (in sorted order) emit key then value on separate
+//        lines
+//
+// Under this rule two logically equal maps produce byte-identical stdout
+// regardless of the order in which `hashmap_keys` returned them.  We
+// verify this by building the same logical map twice with DIFFERENT
+// insertion orders and confirming the normalized snapshots match by
+// construction (expected stdout is a single canonical block).
+//
+// This is the "differential replay against a reference snapshot that does
+// not depend on iteration order" criterion in issue #528 (acceptance
+// item 2).  The snapshot rule above is the documented deterministic
+// normalization rule (acceptance item 3).
+//
+// This fixture MUST NOT alter `std/collections/hash*` (acceptance item 4).
+use std::collections::hash
+use std::host::stdio
+
+// Inline ascending insertion sort on a `Vec<i32>`.  Kept in-fixture so
+// the normalization rule is visible at the call site and does not depend
+// on any stdlib sort helper that might not exist yet.
+fn sort_asc(v: Vec<i32>) {
+    let n: i32 = len(v)
+    for i in 1..n {
+        let key: i32 = get_unchecked(v, i)
+        let mut k: i32 = i
+        let mut placed: bool = false
+        while k > 0 {
+            let prev: i32 = get_unchecked(v, k - 1)
+            if prev > key {
+                set(v, k, prev)
+                k = k - 1
+            } else {
+                set(v, k, key)
+                k = 0
+                placed = true
+            }
+        }
+        if !placed {
+            set(v, 0, key)
+        }
+    }
+}
+
+fn snapshot(label: String, m: Vec<i32>) {
+    stdio::println(label)
+    let keys: Vec<i32> = hash::hashmap_keys(m)
+    sort_asc(keys)
+    let n: i32 = len(keys)
+    for i in 0..n {
+        let k: i32 = get_unchecked(keys, i)
+        stdio::println(i32_to_string(k))
+        match hash::hashmap_get_option(m, k) {
+            Option::Some(v) => stdio::println(i32_to_string(v)),
+            None => stdio::println(String_from("none")),
+        }
+    }
+}
+
+fn main() {
+    // Build X in one order.
+    let x: Vec<i32> = hash::hashmap_new()
+    hash::hashmap_set(x, 7, 70)
+    hash::hashmap_set(x, 3, 30)
+    hash::hashmap_set(x, 11, 110)
+    hash::hashmap_set(x, 5, 50)
+    hash::hashmap_set(x, 1, 10)
+
+    // Build Y with the SAME logical entries in a DIFFERENT insertion order.
+    let y: Vec<i32> = hash::hashmap_new()
+    hash::hashmap_set(y, 1, 10)
+    hash::hashmap_set(y, 11, 110)
+    hash::hashmap_set(y, 3, 30)
+    hash::hashmap_set(y, 5, 50)
+    hash::hashmap_set(y, 7, 70)
+
+    snapshot(String_from("X"), x)
+    snapshot(String_from("Y"), y)
+}

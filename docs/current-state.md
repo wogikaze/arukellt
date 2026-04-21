@@ -47,7 +47,7 @@ and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 - Fixture harness: 641 passed, 0 failed, 28 skipped (manifest-driven)
 - Fixture manifest: 733 entries
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `python scripts/manager.py verify (fast local gate; use --full for full local verification)` — **19/19 checks pass**
+- Verification entry point: `bash scripts/run/verify-harness.sh (fast local gate; use --full for full local verification)` — **19/19 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ## GC-Native Data Model (T3, wasm32-wasi-p2)
