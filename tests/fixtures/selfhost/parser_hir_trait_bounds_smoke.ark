@@ -1,9 +1,12 @@
 use std::host::stdio
 
-struct MyStruct {}
+struct MyStruct {
+}
 
 impl Foo for MyStruct {
-    fn value(x: MyStruct) -> i32 { 0 }
+    fn value(x: MyStruct) -> i32 {
+        0
+    }
 }
 
 fn f<T: Foo>(x: T) -> T {

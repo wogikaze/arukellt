@@ -4,4 +4,5 @@ pub fn greet(name: String) -> String {
     name
 }
 
-fn main() {}
+fn main() {
+}

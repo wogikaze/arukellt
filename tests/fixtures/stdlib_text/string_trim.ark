@@ -1,5 +1,5 @@
-use std::text
 use std::host::stdio
+use std::text
 
 fn main() {
     let s = "  hello world  "

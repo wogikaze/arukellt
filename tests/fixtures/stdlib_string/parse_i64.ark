@@ -1,32 +1,29 @@
 use std::host::stdio
+
 fn main() {
     let r1: Result<i64, String> = parse_i64(String_from("42"))
     match r1 {
-        Ok(v) => stdio::println(i64_to_string(v)),
-        Err(e) => stdio::println(e),
+        Result::Ok(v) => stdio::println(i64_to_string(v)),
+        Result::Err(e) => stdio::println(e),
     }
-
     let r2: Result<i64, String> = parse_i64(String_from("-100"))
     match r2 {
-        Ok(v) => stdio::println(i64_to_string(v)),
-        Err(e) => stdio::println(e),
+        Result::Ok(v) => stdio::println(i64_to_string(v)),
+        Result::Err(e) => stdio::println(e),
     }
-
     let r3: Result<i64, String> = parse_i64(String_from("0"))
     match r3 {
-        Ok(v) => stdio::println(i64_to_string(v)),
-        Err(e) => stdio::println(e),
+        Result::Ok(v) => stdio::println(i64_to_string(v)),
+        Result::Err(e) => stdio::println(e),
     }
-
     let r4: Result<i64, String> = parse_i64(String_from("9999999999"))
     match r4 {
-        Ok(v) => stdio::println(i64_to_string(v)),
-        Err(e) => stdio::println(e),
+        Result::Ok(v) => stdio::println(i64_to_string(v)),
+        Result::Err(e) => stdio::println(e),
     }
-
     let r5: Result<i64, String> = parse_i64(String_from("abc"))
     match r5 {
-        Ok(v) => stdio::println(i64_to_string(v)),
-        Err(e) => stdio::println(e),
+        Result::Ok(v) => stdio::println(i64_to_string(v)),
+        Result::Err(e) => stdio::println(e),
     }
 }

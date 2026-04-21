@@ -1,4 +1,5 @@
 use std::host::stdio
+
 enum AppError {
     Io(String),
     Parse,
@@ -16,23 +17,23 @@ fn read_data() -> Result<String, String> {
 
 fn process() -> Result<i32, AppError> {
     match read_data() {
-        Ok(s) => {
-            let _ = len(s);
+        Result::Ok(s) => {
+            let _ = len(s)
             Ok(42)
-        }
-        Err(e) => Err(AppError::Io(e)),
+        },
+        Result::Err(e) => Err(AppError::Io(e)),
     }
 }
 
 fn main() -> i32 {
     match process() {
-        Ok(n) => stdio::println(n),
-        Err(e) => {
+        Result::Ok(n) => stdio::println(n),
+        Result::Err(e) => {
             match e {
                 AppError::Io(msg) => stdio::println(msg),
                 AppError::Parse => stdio::println(String_from("parse error")),
             }
-        }
+        },
     }
     0
 }

@@ -1,43 +1,43 @@
-use std::toml
 use std::host::stdio
+use std::toml
 
 fn main() {
-    // toml_parse recognises a valid key=value document
     let doc = "name = \"arukellt\"\nversion = \"0.1.0\"\nenabled = true\ncount = 42"
     match toml::toml_parse(doc) {
-        Ok(table) => {
-            // toml_get extracts individual fields
+        Result::Ok(table) => {
             match toml::toml_get(table, "name") {
-                Some(v) => {
+                Option::Some(v) => {
                     match toml::toml_as_string(v) {
-                        Some(s) => stdio::println(s),
+                        Option::Some(s) => stdio::println(s),
                         None => stdio::println("not string"),
                     }
-                }
+                },
                 None => stdio::println("key not found"),
             }
             match toml::toml_get(table, "enabled") {
-                Some(v) => {
+                Option::Some(v) => {
                     match toml::toml_as_bool(v) {
-                        Some(b) => stdio::println(bool_to_string(b)),
+                        Option::Some(b) => stdio::println(bool_to_string(b)),
                         None => stdio::println("not bool"),
                     }
-                }
+                },
                 None => stdio::println("key not found"),
             }
             match toml::toml_get(table, "count") {
-                Some(v) => {
+                Option::Some(v) => {
                     match toml::toml_as_int(v) {
-                        Some(n) => stdio::println(i32_to_string(n)),
+                        Option::Some(n) => stdio::println(i32_to_string(n)),
                         None => stdio::println("not int"),
                     }
-                }
+                },
                 None => stdio::println("key not found"),
             }
-            // toml_table_keys returns the key list
             let keys = toml::toml_table_keys(table)
             stdio::println(i32_to_string(len(keys)))
-        }
-        Err(e) => stdio::println(concat("error:", e)),
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
     }
 }
+// toml_parse recognises a valid key=value document
+// toml_get extracts individual fields
+// toml_table_keys returns the key list

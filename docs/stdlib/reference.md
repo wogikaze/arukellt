@@ -295,7 +295,7 @@
 
 ### `len` — `prelude`
 
-*Example — Get the length of a vector:*
+_Example — Get the length of a vector:_
 
 ```ark
 let v = Vec_new_i32()
@@ -307,7 +307,7 @@ Expected output: `1`
 
 ### `push` — `prelude`
 
-*Example — Build a vector by pushing elements:*
+_Example — Build a vector by pushing elements:_
 
 ```ark
 let v = Vec_new_i32()
@@ -345,7 +345,7 @@ push(v, 2)
 
 ### `i32_to_string` — `prelude`
 
-*Example — Print integer as string:*
+_Example — Print integer as string:_
 
 ```ark
 println(i32_to_string(42))
@@ -357,7 +357,7 @@ Expected output: `42`
 
 **Errors:** Returns Err if the string is not a valid decimal integer or is out of i32 range.
 
-*Example — Parse a numeric string:*
+_Example — Parse a numeric string:_
 
 ```ark
 match parse_i32("42") { Ok(n) => println(i32_to_string(n)), Err(e) => eprintln(e) }
@@ -452,7 +452,7 @@ Expected output: `42`
 
 **Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
 
-*Example — Read the HOME environment variable:*
+_Example — Read the HOME environment variable:_
 
 ```ark
 let home = env::var("HOME")
@@ -475,7 +475,7 @@ match home { Some(p) => println(p), None => println("not set") }
 
 **Errors:** Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8.
 
-*Example — Read a text file and print it:*
+_Example — Read a text file and print it:_
 
 ```ark
 let txt = fs::read_to_string("data.txt")
@@ -501,7 +501,7 @@ match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
-*Example — Fetch a URL and print its body:*
+_Example — Fetch a URL and print its body:_
 
 ```ark
 let body = http::get("http://example.com")
@@ -515,7 +515,7 @@ match body {
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
-*Example — POST JSON to an API endpoint:*
+_Example — POST JSON to an API endpoint:_
 
 ```ark
 let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\"}")
@@ -541,7 +541,7 @@ let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\
 
 **Errors:** Panics at runtime if lo >= hi.
 
-*Example — Roll a six-sided die (1–6):*
+_Example — Roll a six-sided die (1–6):_
 
 ```ark
 let n = random::random_i32_range(1, 7)
@@ -557,7 +557,7 @@ let n = random::random_i32_range(1, 7)
 
 **Errors:** Err on DNS resolution failure, connection refused, or network unreachable.
 
-*Example — Connect to a local server on port 8080:*
+_Example — Connect to a local server on port 8080:_
 
 ```ark
 let sock = sockets::connect("localhost", 8080)
@@ -574,7 +574,7 @@ match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
 
 ### `eprintln` — `std::host::stdio`
 
-*Example — Write a diagnostic message to stderr:*
+_Example — Write a diagnostic message to stderr:_
 
 ```ark
 eprintln("Error: something went wrong")
@@ -582,7 +582,7 @@ eprintln("Error: something went wrong")
 
 ### `print` — `std::host::stdio`
 
-*Example — Print without newlines:*
+_Example — Print without newlines:_
 
 ```ark
 print("hello ")
@@ -591,7 +591,7 @@ print("world")
 
 ### `println` — `std::host::stdio`
 
-*Example — Basic hello-world output:*
+_Example — Basic hello-world output:_
 
 ```ark
 println("Hello, world!")
@@ -814,7 +814,7 @@ Expected output: `Hello, world!`
 
 ### `concat` — `prelude`
 
-*Example — Join two string literals:*
+_Example — Join two string literals:_
 
 ```ark
 let s = concat("hello", " world")

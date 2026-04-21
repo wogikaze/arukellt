@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn returns_true() -> bool {
     stdio::println("evaluated")
     true

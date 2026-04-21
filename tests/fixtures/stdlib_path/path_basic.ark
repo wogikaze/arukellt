@@ -1,27 +1,22 @@
-use std::path
 use std::host::stdio
+use std::path
 
 fn main() {
-    // join
     stdio::println(path::join("/usr", "bin"))
     stdio::println(path::join("/usr/", "bin"))
     stdio::println(path::join("", "file.txt"))
-
-    // parent
     stdio::println(path::parent("/usr/bin/ls"))
     stdio::println(path::parent("/"))
-
-    // file_name
     stdio::println(path::file_name("/usr/bin/ls"))
-
-    // extension
     stdio::println(path::extension("main.ark"))
     stdio::println(path::extension("Makefile"))
-
-    // with_extension
     stdio::println(path::with_extension("main.rs", "ark"))
-
-    // is_absolute
     stdio::println(bool_to_string(path::is_absolute("/usr")))
     stdio::println(bool_to_string(path::is_absolute("relative")))
 }
+// join
+// parent
+// file_name
+// extension
+// with_extension
+// is_absolute

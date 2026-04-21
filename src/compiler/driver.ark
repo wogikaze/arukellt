@@ -3,29 +3,43 @@
 // Orchestrates the compilation pipeline:
 //   source → tokens → AST → (resolve → typecheck → HIR → MIR → Wasm)
 // Error propagation stops at first phase failure.
-
-use std::host::stdio
-use std::host::fs
 use std::host::env
+use std::host::fs
+use std::host::process
+use std::host::stdio
+
+use emitter
 use lexer
+use mir
 use parser
 use resolver
 use typechecker
-use mir
-use emitter
-use std::host::process
 
-// ── Pipeline Phase Tags ──────────────────────────────────────────────────────
+fn PHASE_LEX() -> i32 {
+    1
+}
 
-fn PHASE_LEX() -> i32 { 1 }
-fn PHASE_PARSE() -> i32 { 2 }
-fn PHASE_RESOLVE() -> i32 { 3 }
-fn PHASE_TYPECHECK() -> i32 { 4 }
-fn PHASE_LOWER() -> i32 { 5 }
-fn PHASE_EMIT() -> i32 { 6 }
+fn PHASE_PARSE() -> i32 {
+    2
+}
+
+fn PHASE_RESOLVE() -> i32 {
+    3
+}
+
+fn PHASE_TYPECHECK() -> i32 {
+    4
+}
+
+fn PHASE_LOWER() -> i32 {
+    5
+}
+
+fn PHASE_EMIT() -> i32 {
+    6
+}
 
 // ── Compilation Result ───────────────────────────────────────────────────────
-
 struct CompileResult {
     success: bool,
     phase_reached: i32,
@@ -35,29 +49,16 @@ struct CompileResult {
 }
 
 fn CompileResult_ok(phase: i32) -> CompileResult {
-    CompileResult {
-        success: true,
-        phase_reached: phase,
-        error_count: 0,
-        error_messages: Vec_new_String(),
-        output_bytes: Vec_new_i32(),
-    }
+    CompileResult { success: true, phase_reached: phase, error_count: 0, error_messages: Vec_new_String(), output_bytes: Vec_new_i32() }
 }
 
 fn CompileResult_err(phase: i32, msg: String) -> CompileResult {
     let mut msgs: Vec<String> = Vec_new_String()
     push(msgs, msg)
-    CompileResult {
-        success: false,
-        phase_reached: phase,
-        error_count: 1,
-        error_messages: msgs,
-        output_bytes: Vec_new_i32(),
-    }
+    CompileResult { success: false, phase_reached: phase, error_count: 1, error_messages: msgs, output_bytes: Vec_new_i32() }
 }
 
 // ── Driver Configuration ─────────────────────────────────────────────────────
-
 struct DriverConfig {
     target: String,
     opt_level: i32,
@@ -73,23 +74,10 @@ struct DriverConfig {
 }
 
 pub fn DriverConfig_default() -> DriverConfig {
-    DriverConfig {
-        target: String_from("wasm32-wasi-p2"),
-        opt_level: 0,
-        emit_mode: String_from("wasm"),
-        dump_tokens: false,
-        dump_ast: false,
-        dump_hir: false,
-        dump_mir: false,
-        dump_wasm: false,
-        parse_only: false,
-        check_only: false,
-        source_dir: String_from("."),
-    }
+    DriverConfig { target: String_from("wasm32-wasi-p2"), opt_level: 0, emit_mode: String_from("wasm"), dump_tokens: false, dump_ast: false, dump_hir: false, dump_mir: false, dump_wasm: false, parse_only: false, check_only: false, source_dir: String_from(".") }
 }
 
 // ── File Loading ─────────────────────────────────────────────────────────────
-
 fn load_source(path: String) -> Result<String, String> {
     fs::read_to_string(path)
 }
@@ -97,7 +85,6 @@ fn load_source(path: String) -> Result<String, String> {
 // ── Module Loading ───────────────────────────────────────────────────────────
 // Loads imported modules referenced by `use` declarations.
 // Handles local .ark files, circular import detection, and stdlib recognition.
-
 /// Returns true if the use path is a stdlib import (starts with "std::").
 fn is_stdlib_path(path: String) -> bool {
     let n = len(path)
@@ -115,17 +102,19 @@ fn parent_dir(path: String) -> String {
     while i >= 0 {
         if eq(substring(path, i, i + 1), String_from("/")) {
             last_slash = i
-            i = 0 - 1  // break
+            i = 0 - 1
         } else {
             i = i - 1
         }
     }
     if last_slash < 0 {
         String_from(".")
-    } else if last_slash == 0 {
-        String_from("/")
     } else {
-        substring(path, 0, last_slash)
+        if last_slash == 0 {
+            String_from("/")
+        } else {
+            substring(path, 0, last_slash)
+        }
     }
 }
 
@@ -145,12 +134,7 @@ struct LoadState {
 }
 
 fn LoadState_new() -> LoadState {
-    LoadState {
-        loaded_names: Vec_new_String(),
-        loading_stack: Vec_new_String(),
-        modules: Vec_new_ModuleDecls(),
-        errors: Vec_new_String(),
-    }
+    LoadState { loaded_names: Vec_new_String(), loading_stack: Vec_new_String(), modules: Vec_new_ModuleDecls(), errors: Vec_new_String() }
 }
 
 /// Check if a name is in a string vector.
@@ -198,21 +182,21 @@ fn load_stdlib_module(stdlib_path: String, state: LoadState) {
     let primary = stdlib_path_to_file(clone(stdlib_path))
     let source_res = fs::read_to_string(clone(primary))
     match source_res {
-        Ok(src) => {
+        Result::Ok(src) => {
             load_stdlib_source(clone(stdlib_path), clone(short_name), src, state)
         },
-        Err(_) => {
+        Result::Err(_) => {
             let n = len(primary)
             let mod_path = concat(substring(clone(primary), 0, n - 4), String_from("/mod.ark"))
             let mod_res = fs::read_to_string(clone(mod_path))
             match mod_res {
-                Ok(src) => {
+                Result::Ok(src) => {
                     load_stdlib_source(clone(stdlib_path), clone(short_name), src, state)
                 },
-                Err(_) => {
-                }
+                Result::Err(_) => {
+                },
             }
-        }
+        },
     }
 }
 
@@ -233,19 +217,18 @@ fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)
-        if d.kind == 54 {  // NK_USE
+        if d.kind == 54 {
             let use_path = clone(d.text)
             if is_stdlib_path(clone(use_path)) {
                 load_stdlib_module(clone(use_path), state)
             } else {
                 load_single_module(clone(use_path), clone(base_dir), state)
             }
-            // Handle destructure children: use base::{a, b, ...}
             let num_children = len(d.children)
             let mut ci = 0
             while ci < num_children {
                 let child = get_unchecked(d.children, ci)
-                if child.kind == 54 {  // NK_USE
+                if child.kind == 54 {
                     let child_path = clone(child.text)
                     if is_stdlib_path(clone(child_path)) {
                         load_stdlib_module(clone(child_path), state)
@@ -262,50 +245,29 @@ fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState
 
 /// Load a single module by name from the given directory.
 fn load_single_module(module_name: String, base_dir: String, state: LoadState) {
-    // Already loaded — skip
     if vec_has(state.loaded_names, clone(module_name)) {
         return
     }
-
-    // Circular import detection
     if vec_has(state.loading_stack, clone(module_name)) {
-        push(state.errors, concat(
-            String_from("circular import detected: "),
-            clone(module_name)
-        ))
+        push(state.errors, concat(String_from("circular import detected: "), clone(module_name)))
         return
     }
-
-    // Push onto loading stack
     push(state.loading_stack, clone(module_name))
-
-    // Construct file path: base_dir/module_name.ark
     let file_path = concat(clone(base_dir), concat(String_from("/"), concat(clone(module_name), String_from(".ark"))))
     let source_result = fs::read_to_string(file_path)
     match source_result {
-        Ok(source) => {
-            // Lex
+        Result::Ok(source) => {
             let tokens: Vec<Token> = lexer::tokenize(clone(source))
-            // Parse
             let p = parser::Parser_new(tokens)
             let mod_decls: Vec<AstNode> = parser::parse_module(p)
-
-            // Record as loaded
             push(state.loaded_names, clone(module_name))
             push(state.modules, ModuleDecls { name: clone(module_name), decls: mod_decls })
-
-            // Recursively load imports from this module
             load_imported_modules(mod_decls, clone(base_dir), state)
         },
-        Err(e) => {
-            push(state.errors, concat(
-                String_from("failed to load module `"),
-                concat(clone(module_name), concat(String_from("`: "), e))
-            ))
+        Result::Err(e) => {
+            push(state.errors, concat(String_from("failed to load module `"), concat(clone(module_name), concat(String_from("`: "), e))))
         },
     }
-
-    // Pop from loading stack
     let stack_len = len(state.loading_stack)
     if stack_len > 0 {
         pop(state.loading_stack)
@@ -313,12 +275,9 @@ fn load_single_module(module_name: String, base_dir: String, state: LoadState) {
 }
 
 // ── Pipeline Orchestration ───────────────────────────────────────────────────
-
 pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
-    // Phase 1: Lex
     let tokens: Vec<Token> = lexer::tokenize(clone(source))
     let token_count = len(tokens)
-
     if config.dump_tokens {
         stdio::eprintln(String_from("=== TOKENS ==="))
         let mut i = 0
@@ -328,13 +287,11 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
             i = i + 1
         }
     }
-
-    // Check for lexer errors
     let mut lex_errors = 0
     let mut i = 0
     while i < token_count {
         let tok = get_unchecked(tokens, i)
-        if tok.kind == 7 {  // TK_ERROR
+        if tok.kind == 7 {
             lex_errors = lex_errors + 1
         }
         i = i + 1
@@ -342,11 +299,8 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     if lex_errors > 0 {
         return CompileResult_err(PHASE_LEX(), concat(to_string(lex_errors), String_from(" lexer error(s)")))
     }
-
-    // Phase 2: Parse
     let parser = parser::Parser_new(tokens)
     let decls: Vec<AstNode> = parser::parse_module(parser)
-
     if config.dump_ast {
         stdio::eprintln(String_from("=== AST ==="))
         let decl_count = len(decls)
@@ -357,7 +311,6 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
             j = j + 1
         }
     }
-
     let parse_error_count = len(parser.errors)
     if parse_error_count > 0 {
         let mut result = CompileResult_err(PHASE_PARSE(), concat(to_string(parse_error_count), String_from(" parse error(s)")))
@@ -370,23 +323,14 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         result.error_count = parse_error_count
         return result
     }
-
     if config.parse_only {
         return CompileResult_ok(PHASE_PARSE())
     }
-
-    // Phase 3: Resolve (name binding)
-    // Load imported modules from use declarations
     let load_state = LoadState_new()
     load_imported_modules(decls, clone(config.source_dir), load_state)
-
-    // Auto-import std::collections::hash when HashMap_* or HashSet_* builtins are used
-    // without an explicit import. These monomorphic builtins delegate to the hash module.
     if contains(clone(source), String_from("HashMap_")) || contains(clone(source), String_from("HashSet_")) {
         load_stdlib_module(String_from("std::collections::hash"), load_state)
     }
-
-    // Report module loading errors
     if len(load_state.errors) > 0 {
         let mut result = CompileResult_err(PHASE_RESOLVE(), String_from("module loading error(s)"))
         let mut le = 0
@@ -397,14 +341,11 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         result.error_count = len(load_state.errors)
         return result
     }
-
     let resolve_ctx = resolver::resolve_program(decls, load_state.modules)
-
     if config.dump_hir {
         stdio::eprintln(String_from("=== HIR (post-resolve) ==="))
         resolver::dump_scope(resolve_ctx)
     }
-
     if resolve_ctx.error_count > 0 {
         let mut result = CompileResult_err(PHASE_RESOLVE(), concat(to_string(resolve_ctx.error_count), String_from(" resolve error(s)")))
         let mut ei = 0
@@ -415,9 +356,6 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         result.error_count = resolve_ctx.error_count
         return result
     }
-
-    // Build combined declaration list: imported modules first, then main module.
-    // This allows MIR lowering to include all functions needed for cross-module calls.
     let all_decls = Vec_new_AstNode()
     let combined_mc = len(load_state.modules)
     let mut combined_mi = 0
@@ -437,38 +375,26 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         push(all_decls, get_unchecked(decls, main_dk))
         main_dk = main_dk + 1
     }
-
-    // Phase 4: Type check (using combined declarations for cross-module type info)
     let check_result = typechecker::typecheck_module(all_decls, resolve_ctx)
-
     if config.dump_hir {
         stdio::eprintln(String_from("=== TYPED HIR ==="))
         typechecker::dump_typed_hir(check_result)
     }
-
     if check_result.error_count > 0 {
         return CompileResult_err(PHASE_TYPECHECK(), concat(to_string(check_result.error_count), String_from(" type error(s)")))
     }
-
     if config.check_only {
         return CompileResult_ok(PHASE_TYPECHECK())
     }
-
-    // Phase 5: Lower to MIR (using combined declarations)
     let mir_module = mir::lower_to_mir(all_decls, check_result)
-
     if config.dump_mir {
         stdio::eprintln(String_from("=== MIR ==="))
         mir::dump_mir(mir_module)
     }
-
-    // Phase 6: Emit Wasm
     let emit_mode = clone(config.emit_mode)
     if eq(clone(emit_mode), "wat") {
-        // WAT text output
         let wat_text = emitter::emit_wat(mir_module, clone(config.target), config.opt_level)
         let mut result = CompileResult_ok(PHASE_EMIT())
-        // Convert WAT string to byte vector
         let wat_len = len(wat_text)
         let mut wat_bytes: Vec<i32> = Vec_new_i32()
         let mut wi = 0
@@ -478,47 +404,41 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         }
         result.output_bytes = wat_bytes
         result
-    } else if eq(clone(emit_mode), "wasm") {
-        let wasm_bytes = emitter::emit_wasm(mir_module, clone(config.target), config.opt_level)
-
-        if config.dump_wasm {
-            stdio::eprintln(String_from("=== WASM ==="))
-            stdio::eprintln(concat(String_from("output size: "), concat(to_string(len(wasm_bytes)), String_from(" bytes"))))
-        }
-
-        let mut result = CompileResult_ok(PHASE_EMIT())
-        result.output_bytes = wasm_bytes
-        result
     } else {
-        CompileResult_err(PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
+        if eq(clone(emit_mode), "wasm") {
+            let wasm_bytes = emitter::emit_wasm(mir_module, clone(config.target), config.opt_level)
+            if config.dump_wasm {
+                stdio::eprintln(String_from("=== WASM ==="))
+                stdio::eprintln(concat(String_from("output size: "), concat(to_string(len(wasm_bytes)), String_from(" bytes"))))
+            }
+            let mut result = CompileResult_ok(PHASE_EMIT())
+            result.output_bytes = wasm_bytes
+            result
+        } else {
+            CompileResult_err(PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
+        }
     }
 }
 
 // ── Compile File ─────────────────────────────────────────────────────────────
-
 pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
     let cloned_path = clone(path)
-    // Set source_dir from the file's parent directory for module resolution
     config.source_dir = parent_dir(clone(cloned_path))
     let source_result = load_source(cloned_path)
     match source_result {
-        Ok(source) => {
+        Result::Ok(source) => {
             compile_source(source, config)
         },
-        Err(e) => {
+        Result::Err(e) => {
             CompileResult_err(0, concat(String_from("failed to read file: "), e))
         },
     }
 }
 
 // ── Entry Point ──────────────────────────────────────────────────────────────
-
 fn main() {
     let args = env::args()
     let argc = env::arg_count()
-
-    // Expect: compile <input> [--target <target>] [--emit <mode>] -o <output>
-    // Skip any leading `--` separator that wasmtime passes as argv
     let mut arg_start = 0
     if argc > 0 {
         let first = get_unchecked(args, 0)
@@ -526,23 +446,19 @@ fn main() {
             arg_start = 1
         }
     }
-
     if argc - arg_start < 4 {
         stdio::eprintln(String_from("usage: arukellt compile <input> --target <target> -o <output>"))
         process::exit(1)
     }
-
     let subcommand = get_unchecked(args, arg_start)
     if !eq(clone(subcommand), String_from("compile")) {
         stdio::eprintln(concat(String_from("unknown subcommand: "), clone(subcommand)))
         process::exit(1)
     }
-
     let input_path = get_unchecked(args, arg_start + 1)
     let config = DriverConfig_default()
     let mut output_path = String_from("")
     let mut has_output = false
-
     let mut i = arg_start + 2
     while i < argc {
         let flag = get_unchecked(args, i)
@@ -554,35 +470,38 @@ fn main() {
             } else {
                 i = i + 1
             }
-        } else if eq(clone(flag), String_from("--target")) {
-            if i + 1 < argc {
-                config.target = get_unchecked(args, i + 1)
-                i = i + 2
-            } else {
-                i = i + 1
-            }
-        } else if eq(clone(flag), String_from("--emit")) {
-            if i + 1 < argc {
-                config.emit_mode = get_unchecked(args, i + 1)
-                i = i + 2
-            } else {
-                i = i + 1
-            }
         } else {
-            i = i + 1
+            if eq(clone(flag), String_from("--target")) {
+                if i + 1 < argc {
+                    config.target = get_unchecked(args, i + 1)
+                    i = i + 2
+                } else {
+                    i = i + 1
+                }
+            } else {
+                if eq(clone(flag), String_from("--emit")) {
+                    if i + 1 < argc {
+                        config.emit_mode = get_unchecked(args, i + 1)
+                        i = i + 2
+                    } else {
+                        i = i + 1
+                    }
+                } else {
+                    i = i + 1
+                }
+            }
         }
     }
-
     if !has_output {
         stdio::eprintln(String_from("error: missing -o <output> flag"))
         process::exit(1)
     }
-
     let result = compile_file(clone(input_path), config)
     if result.success {
         match fs::write_bytes(clone(output_path), result.output_bytes) {
-            Ok(_) => {},
-            Err(e) => {
+            Result::Ok(_) => {
+            },
+            Result::Err(e) => {
                 stdio::eprintln(concat(String_from("error writing output: "), e))
                 process::exit(1)
             },
@@ -598,3 +517,36 @@ fn main() {
         process::exit(1)
     }
 }
+// ── Pipeline Phase Tags ──────────────────────────────────────────────────────
+// break
+// NK_USE
+// Handle destructure children: use base::{a, b, ...}
+// NK_USE
+// Already loaded — skip
+// Circular import detection
+// Push onto loading stack
+// Construct file path: base_dir/module_name.ark
+// Lex
+// Parse
+// Record as loaded
+// Recursively load imports from this module
+// Pop from loading stack
+// Phase 1: Lex
+// Check for lexer errors
+// TK_ERROR
+// Phase 2: Parse
+// Phase 3: Resolve (name binding)
+// Load imported modules from use declarations
+// Auto-import std::collections::hash when HashMap_* or HashSet_* builtins are used
+// without an explicit import. These monomorphic builtins delegate to the hash module.
+// Report module loading errors
+// Build combined declaration list: imported modules first, then main module.
+// This allows MIR lowering to include all functions needed for cross-module calls.
+// Phase 4: Type check (using combined declarations for cross-module type info)
+// Phase 5: Lower to MIR (using combined declarations)
+// Phase 6: Emit Wasm
+// WAT text output
+// Convert WAT string to byte vector
+// Set source_dir from the file's parent directory for module resolution
+// Expect: compile <input> [--target <target>] [--emit <mode>] -o <output>
+// Skip any leading `--` separator that wasmtime passes as argv

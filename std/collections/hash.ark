@@ -1,28 +1,24 @@
-//! Hash-based collection helpers.
-//!
-//! The current implementation uses open addressing with linear probing and a
-//! monomorphic `i32 -> i32` map representation.
-//!
-//! # STOP_IF note
-//!
-//! True generic HashMap<K,V> / HashSet<T> require trait-based hashing and
-//! equality which are not yet supported at the Arukellt runtime level.
-//! All new functions below are monomorphic (i32 key / i32 value / i32 element)
-//! per the impl-stdlib STOP_IF policy documented in issue #044.
-//!
-//! # Layout
-//!
-//! `Vec<i32>` backing store: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]
-//! flags: 0 = empty, 1 = occupied
-
+/// Hash-based collection helpers.
+/// 
+/// The current implementation uses open addressing with linear probing and a
+/// monomorphic `i32 -> i32` map representation.
+/// 
+/// # STOP_IF note
+/// 
+/// True generic HashMap<K,V> / HashSet<T> require trait-based hashing and
+/// equality which are not yet supported at the Arukellt runtime level.
+/// All new functions below are monomorphic (i32 key / i32 value / i32 element)
+/// per the impl-stdlib STOP_IF policy documented in issue #044.
+/// 
+/// # Layout
+/// 
+/// `Vec<i32>` backing store: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]
+/// flags: 0 = empty, 1 = occupied
 pub fn hashmap_new() -> Vec<i32> {
-    // Layout: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]
-    // Stored as a flat Vec<i32>
     let cap: i32 = 16
     let m: Vec<i32> = Vec_new_i32()
     push(m, cap)
     push(m, 0)
-    // keys, values, flags (all zeroed via push)
     let mut i: i32 = 0
     while i < cap * 3 {
         push(m, 0)
@@ -32,9 +28,12 @@ pub fn hashmap_new() -> Vec<i32> {
 }
 
 pub fn hash_i32(key: i32) -> i32 {
-    // Simple hash: multiply by prime
     let h: i32 = key * 1000003
-    if h < 0 { 0 - h } else { h }
+    if h < 0 {
+        0 - h
+    } else {
+        h
+    }
 }
 
 pub fn hashmap_get(m: Vec<i32>, key: i32) -> i32 {
@@ -55,7 +54,7 @@ pub fn hashmap_get(m: Vec<i32>, key: i32) -> i32 {
                 found = true
                 probes = cap
             } else {
-                idx = (idx + 1) % cap
+                idx = idx + 1 % cap
                 probes = probes + 1
             }
         }
@@ -79,7 +78,7 @@ pub fn hashmap_contains(m: Vec<i32>, key: i32) -> bool {
                 found = true
                 probes = cap
             } else {
-                idx = (idx + 1) % cap
+                idx = idx + 1 % cap
                 probes = probes + 1
             }
         }
@@ -110,7 +109,7 @@ pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) {
                 done = true
                 probes = cap
             } else {
-                idx = (idx + 1) % cap
+                idx = idx + 1 % cap
                 probes = probes + 1
             }
         }
@@ -122,7 +121,6 @@ pub fn hashmap_size(m: Vec<i32>) -> i32 {
 }
 
 // ─── Extended HashMap API (monomorphic i32→i32) ───────────────────────────
-
 /// Create a new HashMap with a specific initial capacity.
 /// Capacity is rounded up to the given value; must be >= 1.
 pub fn hashmap_with_capacity(cap: i32) -> Vec<i32> {
@@ -154,7 +152,7 @@ pub fn hashmap_get_option(m: Vec<i32>, key: i32) -> Option<i32> {
                 result = Some(get_unchecked(m, 2 + cap + idx))
                 probes = cap
             } else {
-                idx = (idx + 1) % cap
+                idx = idx + 1 % cap
                 probes = probes + 1
             }
         }
@@ -234,7 +232,6 @@ pub fn hashmap_remove(m: Vec<i32>, key: i32) -> Option<i32> {
 }
 
 // ─── HashSet API (monomorphic i32, backed by HashMap<i32,i32>) ──────────────
-
 /// Create a new empty HashSet.
 pub fn hashset_new() -> Vec<i32> {
     hashmap_new()
@@ -334,7 +331,6 @@ pub fn hashset_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
 }
 
 // ─── HashSet<String> API (backed by Vec<String>, linear scan) ────────────────
-
 /// Create a new empty HashSet<String>.
 pub fn hashset_str_new() -> Vec<String> {
     Vec_new_String()
@@ -393,7 +389,6 @@ pub fn hashset_str_remove(s: Vec<String>, value: String) -> bool {
     if !found {
         false
     } else {
-        // collect elements to keep
         let tmp: Vec<String> = Vec_new_String()
         let mut j: i32 = 0
         while j < n {
@@ -403,13 +398,11 @@ pub fn hashset_str_remove(s: Vec<String>, value: String) -> bool {
             }
             j = j + 1
         }
-        // drain s
         let mut k: i32 = 0
         while k < n {
             let _ = pop(s)
             k = k + 1
         }
-        // refill s from tmp
         let m: i32 = len(tmp)
         let mut l: i32 = 0
         while l < m {
@@ -429,3 +422,10 @@ pub fn hashset_str_len(s: Vec<String>) -> i32 {
 pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
     len(s) == 0
 }
+// Layout: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]
+// Stored as a flat Vec<i32>
+// keys, values, flags (all zeroed via push)
+// Simple hash: multiply by prime
+// collect elements to keep
+// drain s
+// refill s from tmp

@@ -1,7 +1,8 @@
 use std::host::stdio
+
 fn unwrap_or_default<T>(opt: Option<T>, default: T) -> T {
     match opt {
-        Some(val) => val,
+        Option::Some(val) => val,
         None => default,
     }
 }

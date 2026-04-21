@@ -1,21 +1,15 @@
-use std::random
 use std::host::stdio
+use std::random
 
 fn main() {
-    // Test seeded_random determinism
     let a = random::seeded_random(12345)
     let b = random::seeded_random(12345)
     assert_eq(a, b)
-
-    // Different seeds produce different values
     let c = random::seeded_random(99999)
     assert(a != c)
-
-    // Chained: use output as next seed
     let s1 = random::seeded_random(42)
     let s2 = random::seeded_random(s1)
     let s3 = random::seeded_random(s2)
-    // Replay
     let r1 = random::seeded_random(42)
     let r2 = random::seeded_random(r1)
     let r3 = random::seeded_random(r2)
@@ -24,3 +18,7 @@ fn main() {
     assert_eq(s3, r3)
     stdio::println("random_seed ok")
 }
+// Test seeded_random determinism
+// Different seeds produce different values
+// Chained: use output as next seed
+// Replay

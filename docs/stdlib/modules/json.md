@@ -39,19 +39,7 @@ let parsed = json_parse_i32("42")    // 42
 - Manifest-backed functions: 22
 - Stability: experimental 22
 
-JSON parser/serializer for std::json.
-
-### Value representation
-
-`JsonValue` is a tagged struct.  Array and Object variants store their
-raw JSON text to avoid recursive type constraints (STOP_IF: use
-iteration with explicit stack).  Use `json_get` / `json_get_index` to
-access nested values — those functions re-parse the raw text on demand.
-
-### Primitive helpers (legacy)
-
-The original stringify/parse helpers are preserved for backward
-compatibility with existing fixtures.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public Types
 
@@ -63,7 +51,7 @@ compatibility with existing fixtures.
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `json_stringify_i32` | `(i32) -> String` | `experimental` | Stringify an i32 as a JSON number. |
+| `json_stringify_i32` | `(i32) -> String` | `experimental` | JSON parser/serializer for std::json. |
 | `json_stringify_bool` | `(bool) -> String` | `experimental` | Stringify a bool as a JSON boolean literal. |
 | `json_stringify_string` | `(String) -> String` | `experimental` | Stringify a string by wrapping it in double quotes. |
 | `json_null` | `() -> String` | `experimental` | Return the JSON null literal. |

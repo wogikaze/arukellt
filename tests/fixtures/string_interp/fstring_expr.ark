@@ -1,9 +1,9 @@
 use std::host::stdio
+
 fn main() {
     let a: i32 = 10
     let b: i32 = 20
-    stdio::println(f"sum = {a + b}")
-
+    stdio::println(concat("sum = ", to_string(a + b)))
     let x: i32 = 5
-    stdio::println(f"{x} * 2 = {x * 2}")
+    stdio::println(concat(concat(to_string(x), " * 2 = "), to_string(x * 2)))
 }

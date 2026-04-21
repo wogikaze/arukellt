@@ -1,5 +1,5 @@
-use std::wit
 use std::host::stdio
+use std::wit
 
 fn main() {
     stdio::println(i32_to_string(wit::wit_type_id(wit::wit_type_string())))

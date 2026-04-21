@@ -42,17 +42,13 @@ let label   = pad_right(format_i32(42), 6, " ")  // "42    "
 - Manifest-backed functions: 34
 - Stability: experimental 2, stable 32
 
-Extended string operations beyond the prelude.
-
-This module provides string inspection, trimming, replacement,
-line splitting, padding, formatting, string building, and
-relocated prelude string functions.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `len_bytes` | `(String) -> i32` | `stable` | Returns the length of the string in bytes. |
+| `len_bytes` | `(String) -> i32` | `stable` | Extended string operations beyond the prelude. |
 | `len_chars` | `(String) -> i32` | `stable` | Returns the number of characters (best-effort Unicode scalar count). |
 | `is_empty` | `(String) -> bool` | `stable` | Returns true when the string has zero bytes. |
 | `repeat` | `(String, i32) -> String` | `stable` | - |

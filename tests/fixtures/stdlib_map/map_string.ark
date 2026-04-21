@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn to_upper_wrapper(s: String) -> String {
     to_upper(s)
 }

@@ -2,7 +2,6 @@
 // Used by resolver_visibility_ok fixture (issue #310: selfhost visibility enforcement).
 // Provides a pub function that callers are allowed to access cross-module,
 // and a private helper that is intentionally NOT accessible to importers.
-
 pub fn greet(name: String) -> String {
     concat(String_from("Hello, "), name)
 }

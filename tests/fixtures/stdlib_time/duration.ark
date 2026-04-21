@@ -1,22 +1,18 @@
-use std::time
 use std::host::stdio
+use std::time
 
 fn main() {
-    // Test duration_ms calculation
-    let d1 = time::duration_ms(0_i64, 5000000_i64)
-    assert_eq_i64(d1, 5_i64)
-
-    // Test duration_us
-    let d2 = time::duration_us(0_i64, 5000000_i64)
-    assert_eq_i64(d2, 5000_i64)
-
-    // Test duration_ns
-    let d3 = time::duration_ns(0_i64, 5000000_i64)
-    assert_eq_i64(d3, 5000000_i64)
-
-    // Negative duration should be 0
-    let d4 = time::duration_ms(10000000_i64, 5000000_i64)
-    assert_eq_i64(d4, 0_i64)
-
+    let d1 = time::duration_ms(0i64, 5000000i64)
+    assert_eq_i64(d1, 5i64)
+    let d2 = time::duration_us(0i64, 5000000i64)
+    assert_eq_i64(d2, 5000i64)
+    let d3 = time::duration_ns(0i64, 5000000i64)
+    assert_eq_i64(d3, 5000000i64)
+    let d4 = time::duration_ms(10000000i64, 5000000i64)
+    assert_eq_i64(d4, 0i64)
     stdio::println("duration ok")
 }
+// Test duration_ms calculation
+// Test duration_us
+// Test duration_ns
+// Negative duration should be 0

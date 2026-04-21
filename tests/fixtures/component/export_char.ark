@@ -3,4 +3,5 @@ pub fn same_char(a: char, b: char) -> bool {
     a == b
 }
 
-fn main() {}
+fn main() {
+}

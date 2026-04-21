@@ -35,14 +35,11 @@ let ver = component_model_version()     // e.g. "0.2"
 - Manifest-backed functions: 2
 - Stability: experimental 2
 
-Experimental component-model helpers.
-
-The current module only exposes version constants while the rest of the
-component surface is still being designed.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `canonical_abi_version` | `() -> i32` | `experimental` | - |
+| `canonical_abi_version` | `() -> i32` | `experimental` | Experimental component-model helpers. |
 | `component_model_version` | `() -> String` | `experimental` | - |

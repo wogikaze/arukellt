@@ -1,8 +1,9 @@
 use std::host::stdio
+
 fn ok_or_default<T, E>(res: Result<T, E>, default: T) -> T {
     match res {
-        Ok(val) => val,
-        Err(_) => default,
+        Result::Ok(val) => val,
+        Result::Err(_) => default,
     }
 }
 

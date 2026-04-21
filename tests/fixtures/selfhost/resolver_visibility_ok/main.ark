@@ -4,8 +4,8 @@
 // This fixture exercises that `pub` functions from an imported module are
 // accessible without error. The private helper `internal_helper` is NOT
 // called here; only the pub API is used.
-
 use std::host::stdio
+
 use vismod
 
 fn main() {

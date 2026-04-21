@@ -1,4 +1,5 @@
 use std::host::stdio
+
 struct Config {
     width: i32,
     height: i32,

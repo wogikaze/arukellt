@@ -3,4 +3,5 @@
 // Gating: This should be rejected when --target wasm32-wasi-p1 is used
 use std::host::udp
 
-fn main() {}
+fn main() {
+}

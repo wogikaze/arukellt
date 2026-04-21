@@ -1,26 +1,25 @@
-//! Small host-backed file helpers — a **partial bridge**, not a full filesystem API.
-//!
-//! `std::fs` tracks a narrow, stable-shaped subset of the same WASI filesystem
-//! intrinsics behind `std::host::fs` (`read_string` / `write_string` plus an
-//! `exists` read probe). Prefer `std::host::fs` for the full host rollout surface
-//! (`read_to_string`, `write_bytes`, experimental fd helpers, and future additions).
-//! This namespace exists so call sites can depend on a compact API while
-//! `std::host::*` continues to evolve.
-//!
-//! There is no in-tree directory listing, metadata API, or streaming I/O yet; do
-//! not treat this as a complete POSIX-style facade. Broader
-//! `wasi:filesystem/types`-class coverage remains future work.
-//!
-//! Paths are plain `String` values using `/` as the separator (POSIX/WASI
-//! convention). For pure path manipulation helpers see `std::path`.
-//!
-//! **Probe notice**: `exists` is a **read probe** / readable-file check: it
-//! succeeds only when the same read operation as `read_string` succeeds. It is not
-//! a general path-existence or metadata query. Directories, missing paths,
-//! and unreadable paths may return `false`.
-
+/// Small host-backed file helpers — a **partial bridge**, not a full filesystem API.
+/// 
+/// `std::fs` tracks a narrow, stable-shaped subset of the same WASI filesystem
+/// intrinsics behind `std::host::fs` (`read_string` / `write_string` plus an
+/// `exists` read probe). Prefer `std::host::fs` for the full host rollout surface
+/// (`read_to_string`, `write_bytes`, experimental fd helpers, and future additions).
+/// This namespace exists so call sites can depend on a compact API while
+/// `std::host::*` continues to evolve.
+/// 
+/// There is no in-tree directory listing, metadata API, or streaming I/O yet; do
+/// not treat this as a complete POSIX-style facade. Broader
+/// `wasi:filesystem/types`-class coverage remains future work.
+/// 
+/// Paths are plain `String` values using `/` as the separator (POSIX/WASI
+/// convention). For pure path manipulation helpers see `std::path`.
+/// 
+/// **Probe notice**: `exists` is a **read probe** / readable-file check: it
+/// succeeds only when the same read operation as `read_string` succeeds. It is not
+/// a general path-existence or metadata query. Directories, missing paths,
+/// and unreadable paths may return `false`.
 /// Reads the entire contents of a file into a UTF-8 string.
-///
+/// 
 /// Returns `Err` if the file does not exist, the path is not readable,
 /// or the content is not valid UTF-8.
 pub fn read_string(path: String) -> Result<String, String> {
@@ -28,7 +27,7 @@ pub fn read_string(path: String) -> Result<String, String> {
 }
 
 /// Writes a UTF-8 string to a file, creating or truncating it.
-///
+/// 
 /// Returns `Err` if the path is not writable or the parent directory
 /// does not exist.
 pub fn write_string(path: String, contents: String) -> Result<(), String> {
@@ -36,10 +35,10 @@ pub fn write_string(path: String, contents: String) -> Result<(), String> {
 }
 
 /// Read probe / readable-file check: `true` when a full read succeeds; not a path-existence query.
-///
+/// 
 /// Uses the same intrinsic as `read_string`. Directories, missing paths, and unreadable paths may
 /// return `false`.
-///
+/// 
 /// Example — Probe a readable file versus a broken symlink with `std::host::fs`:
 /// ```ark
 /// use std::host::fs
@@ -48,7 +47,7 @@ pub fn write_string(path: String, contents: String) -> Result<(), String> {
 /// ```
 pub fn exists(path: String) -> bool {
     match __intrinsic_fs_read_file(path) {
-        Ok(_) => true,
-        Err(_) => false,
+        Result::Ok(_) => true,
+        Result::Err(_) => false,
     }
 }

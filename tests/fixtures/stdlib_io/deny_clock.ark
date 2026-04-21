@@ -1,5 +1,5 @@
-use std::host::stdio
 use std::host::clock
+use std::host::stdio
 
 fn main() {
     let t = clock::monotonic_now()

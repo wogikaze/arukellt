@@ -8,4 +8,5 @@ pub fn maybe_double(n: i32) -> Option<i32> {
     }
 }
 
-fn main() {}
+fn main() {
+}

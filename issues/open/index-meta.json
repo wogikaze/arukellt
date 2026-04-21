@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T15:27:04Z",
+  "generated_at": "2026-04-21T16:09:41Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -541,6 +541,34 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "459",
+      "path": "459-selfhost-fixpoint-dual-period-end.md",
+      "title": "selfhost Stage 2 fixpoint 達成と dual-period 終了計画",
+      "track": "compiler, selfhost",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
+      "depends_on": [
+        "445",
+        "446",
+        "447",
+        "448",
+        "449"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 6,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
       }
     },
     {
@@ -1390,6 +1418,28 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 1
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "558",
+      "path": "558-expand-selfhost-cli-parity-runner-beyond-help-version.md",
+      "title": "558-expand-selfhost-cli-parity-runner-beyond-help-version",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
       },
       "orchestration": {
         "class": null,

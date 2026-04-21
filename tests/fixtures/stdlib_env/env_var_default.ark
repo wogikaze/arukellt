@@ -5,18 +5,16 @@ fn main() {
     let a = env::args()
     stdio::println(i32_to_string(len(a)))
     stdio::println(i32_to_string(env::arg_count()))
-
-    // var with default: use match on env::var
     let d = match env::var("ARUKELLT_NONEXISTENT_ENV_VAR_XYZ") {
-        Some(s) => s,
+        Option::Some(s) => s,
         None => String_from("default_val"),
     }
     stdio::println(d)
-
-    // var: unknown var should return None
     let w = env::var("ARUKELLT_NONEXISTENT_ENV_VAR_XYZ")
     match w {
-        Some(s) => stdio::println("unexpected"),
+        Option::Some(s) => stdio::println("unexpected"),
         None => stdio::println("none"),
     }
 }
+// var with default: use match on env::var
+// var: unknown var should return None

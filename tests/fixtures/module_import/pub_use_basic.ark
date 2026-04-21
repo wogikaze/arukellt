@@ -5,5 +5,5 @@
 pub use std::text::string
 
 fn main() {
-    // body intentionally empty — only parser acceptance is tested
 }
+// body intentionally empty — only parser acceptance is tested

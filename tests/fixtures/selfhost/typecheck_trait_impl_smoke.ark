@@ -9,7 +9,9 @@ trait Foo {
 }
 
 impl Foo for MyStruct {
-    fn id(x: MyStruct) -> i32 { x.value }
+    fn id(x: MyStruct) -> i32 {
+        x.value
+    }
 }
 
 fn take_foo<T: Foo>(x: T) -> T {

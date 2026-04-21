@@ -1,5 +1,5 @@
-use std::random
 use std::host::stdio
+use std::random
 
 fn main() {
     let mut all_in_range = true

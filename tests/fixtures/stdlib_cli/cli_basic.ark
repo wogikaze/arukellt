@@ -5,7 +5,7 @@ fn main() {
     stdio::println(i32_to_string(env::arg_count()))
     stdio::println(bool_to_string(env::has_flag("--verbose")))
     match env::arg_at(0) {
-        Some(s) => stdio::println(s),
+        Option::Some(s) => stdio::println(s),
         None => stdio::println("no arg"),
     }
 }

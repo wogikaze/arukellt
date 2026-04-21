@@ -1,5 +1,5 @@
-use std::json
 use std::host::stdio
+use std::json
 
 fn main() {
     stdio::println(json::json_stringify_i32(42))

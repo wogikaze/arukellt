@@ -1,10 +1,9 @@
-//! Rope — large text editing buffer (Experimental).
-//!
-//! Stub implementation backed by a flat String.
-//! Provides O(n) insert/delete; a balanced tree implementation is planned.
-//!
-//! All APIs are Experimental and may change in v4+.
-
+/// Rope — large text editing buffer (Experimental).
+/// 
+/// Stub implementation backed by a flat String.
+/// Provides O(n) insert/delete; a balanced tree implementation is planned.
+/// 
+/// All APIs are Experimental and may change in v4+.
 /// Create a new empty Rope.
 pub fn rope_new() -> String {
     String_new()
@@ -30,10 +29,12 @@ pub fn rope_insert(r: String, pos: i32, text: String) -> String {
     let n: i32 = len(r)
     let safe_pos: i32 = if pos < 0 {
         0
-    } else if pos > n {
-        n
     } else {
-        pos
+        if pos > n {
+            n
+        } else {
+            pos
+        }
     }
     let before: String = slice(r, 0, safe_pos)
     let after: String = slice(r, safe_pos, n)
@@ -43,8 +44,24 @@ pub fn rope_insert(r: String, pos: i32, text: String) -> String {
 /// Delete bytes in `[start, end)`, returning the new Rope.
 pub fn rope_delete(r: String, start: i32, end: i32) -> String {
     let n: i32 = len(r)
-    let safe_start: i32 = if start < 0 { 0 } else if start > n { n } else { start }
-    let safe_end: i32 = if end < safe_start { safe_start } else if end > n { n } else { end }
+    let safe_start: i32 = if start < 0 {
+        0
+    } else {
+        if start > n {
+            n
+        } else {
+            start
+        }
+    }
+    let safe_end: i32 = if end < safe_start {
+        safe_start
+    } else {
+        if end > n {
+            n
+        } else {
+            end
+        }
+    }
     let before: String = slice(r, 0, safe_start)
     let after: String = slice(r, safe_end, n)
     concat(before, after)

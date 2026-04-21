@@ -3,7 +3,6 @@
 // Tests that a single component can export functions with different
 // scalar types (i32, i64, f64, bool) through the Component Model ABI.
 // This validates heterogeneous function signatures in one world.
-
 pub fn add_i32(a: i32, b: i32) -> i32 {
     a + b
 }
@@ -28,4 +27,5 @@ pub fn abs_i32(x: i32) -> i32 {
     }
 }
 
-fn main() {}
+fn main() {
+}

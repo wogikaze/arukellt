@@ -46,13 +46,13 @@ println("Running as: " + name)
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-Host process-control helpers.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `exit` | `(i32) -> ()` | `stable` | ✅ impl | Requests process termination with the given exit code. |
+| `exit` | `(i32) -> ()` | `stable` | ✅ impl | Host process-control helpers. |
 | `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately with exit code 134 (SIGABRT convention). |
 
 #### `exit`
@@ -71,16 +71,13 @@ Abort the process immediately with an abnormal-termination signal (non-zero exit
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-Host environment helpers.
-
-Backed by WASI args_sizes_get / args_get for CLI argument access
-and WASI environ_sizes_get / environ_get for environment variable lookup.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `args` | `() -> Vec<String>` | `stable` | ✅ impl | Returns the process argument vector (excluding argv[0]). |
+| `args` | `() -> Vec<String>` | `stable` | ✅ impl | Host environment helpers. |
 | `arg_count` | `() -> i32` | `stable` | ✅ impl | Returns the number of process arguments (excluding argv[0]). |
 | `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ impl | Returns the argument at the given index when in range. |
 | `var` | `(String) -> Option<String>` | `stable` | ✅ impl | Looks up an environment variable by name. |
@@ -106,7 +103,7 @@ Look up an environment variable by name. Returns None if the variable is not set
 
 **Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
 
-*Example — Read the HOME environment variable:*
+_Example — Read the HOME environment variable:_
 
 ```ark
 let home = env::var("HOME")

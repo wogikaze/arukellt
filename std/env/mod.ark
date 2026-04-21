@@ -1,9 +1,8 @@
-//! std::env — runtime environment access.
-//!
-//! Exposes process arguments and environment variables.
-//! On WASI the backing intrinsics use `args_get` / `environ_get`.
-//! On non-WASI targets `var` / `vars` return `None` / empty results.
-
+/// std::env — runtime environment access.
+/// 
+/// Exposes process arguments and environment variables.
+/// On WASI the backing intrinsics use `args_get` / `environ_get`.
+/// On non-WASI targets `var` / `vars` return `None` / empty results.
 /// Returns the argument vector for the current process (excluding argv[0]).
 pub fn args() -> Vec<String> {
     __intrinsic_args()
@@ -21,7 +20,7 @@ pub fn arg_at(index: i32) -> Option<String> {
 }
 
 /// Looks up an environment variable by name.
-///
+/// 
 /// Returns `None` when the variable is unset or the target does not
 /// support environment variable access.
 pub fn var(name: String) -> Option<String> {
@@ -37,7 +36,7 @@ pub fn get_var(name: String) -> Option<String> {
 pub fn var_or_default(name: String, default: String) -> String {
     let v = __intrinsic_env_var(name)
     match v {
-        Some(s) => s,
+        Option::Some(s) => s,
         None => default,
     }
 }

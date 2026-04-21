@@ -40,10 +40,7 @@ let dir  = parent(p)                    // "/home/user"
 - Manifest-backed functions: 9
 - Stability: stable 9
 
-Pure string-based path manipulation helpers.
-
-Paths are represented as `String` values and always use `/` as the
-separator to match POSIX and WASI conventions.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 

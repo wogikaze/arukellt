@@ -41,23 +41,7 @@ let s = string_from_bytes(back)  // "hello"
 - Manifest-backed functions: 45
 - Stability: stable 45
 
-Binary data helpers built on `Vec<i32>`.
-
-Each element is treated as a byte in the `0..=255` range.
-
-## Type aliases (runtime representation)
-
-- `Bytes`      = `Vec<i32>` (treated as immutable)
-- `ByteBuf`    = `Vec<i32>` (mutable buffer)
-- `ByteCursor` = `Vec<i32>` where index 0 is the cursor position and
-indices 1..n hold the data bytes
-
-## Limitations
-
-u8/u16/u32/u64 are not first-class types in the current runtime.
-All byte values are represented as i32 (masked to 0-255 on write).
-64-bit values use i64.
-Vec<u8> is unavailable; Vec<i32> is used throughout.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Byte buffer creation
 

@@ -20,11 +20,8 @@ struct Counter {
 
 fn main() {
     let c = Counter { val: 42 }
-    // Identity assignment — RMW no-op; peephole should eliminate 4 instructions.
     c.val = c.val
     stdio::println(i32_to_string(c.val))
-
-    // Multiple fields: verify each no-op is independently eliminated.
     let p = Point { x: 10, y: 20 }
     p.x = p.x
     p.y = p.y
@@ -36,3 +33,5 @@ struct Point {
     x: i32,
     y: i32,
 }
+// Identity assignment — RMW no-op; peephole should eliminate 4 instructions.
+// Multiple fields: verify each no-op is independently eliminated.

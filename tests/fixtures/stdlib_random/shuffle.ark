@@ -1,5 +1,5 @@
-use std::random
 use std::host::stdio
+use std::random
 
 fn main() {
     let v = Vec_new_i32()
@@ -8,11 +8,8 @@ fn main() {
     push(v, 30)
     push(v, 40)
     push(v, 50)
-
     let shuffled = random::shuffle_i32(v, 42)
-    // Same length
     assert_eq(len(shuffled), 5)
-    // Contains all original elements (sum check)
     let mut sum = 0
     let mut i = 0
     while i < len(shuffled) {
@@ -22,3 +19,5 @@ fn main() {
     assert_eq(sum, 150)
     stdio::println("shuffle ok")
 }
+// Same length
+// Contains all original elements (sum check)

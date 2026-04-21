@@ -4,5 +4,5 @@
 use std::host::clock
 
 fn main() {
-    // body intentionally empty — only parse/import acceptance is tested
 }
+// body intentionally empty — only parse/import acceptance is tested

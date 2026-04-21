@@ -2,47 +2,39 @@
 // Verifies: int literal → i32, float literal → f64, string literal → String,
 //           bool literal → bool, binary arithmetic infers operand type,
 //           let binding infers type from initializer expression.
-
 use std::host::stdio
 
 fn main() {
-    // Integer literal → i32, binary add → i32
     let x = 1 + 2
     stdio::println(to_string(x))
-
-    // Float literal → f64, binary add → f64
     let f = 1.5 + 2.5
     stdio::println(f64_to_string(f))
-
-    // Bool literal → bool
     let b = true
     if b {
         stdio::println(String_from("b is true"))
     } else {
         stdio::println(String_from("b is false"))
     }
-
-    // String literal → String
     let s = String_from("hello")
     stdio::println(s)
-
-    // Chained arithmetic: (10 - 3) * 2 → i32
-    let y = (10 - 3) * 2
+    let y = 10 - 3 * 2
     stdio::println(to_string(y))
-
-    // Comparison produces bool
     let cmp = x > 1
     if cmp {
         stdio::println(String_from("x > 1"))
     } else {
         stdio::println(String_from("x <= 1"))
     }
-
-    // Annotated let consistent with inferred type
     let z: i32 = 5 + 6
     stdio::println(to_string(z))
-
-    // Use inferred i32 in further arithmetic
     let total = x + z
     stdio::println(to_string(total))
 }
+// Integer literal → i32, binary add → i32
+// Float literal → f64, binary add → f64
+// Bool literal → bool
+// String literal → String
+// Chained arithmetic: (10 - 3) * 2 → i32
+// Comparison produces bool
+// Annotated let consistent with inferred type
+// Use inferred i32 in further arithmetic

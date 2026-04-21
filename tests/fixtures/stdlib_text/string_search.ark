@@ -1,33 +1,29 @@
 use std::host::stdio
 use std::text
 
-// String search operations: contains, index_of, starts_with, ends_with
 fn main() {
     let s = "hello world"
-
-    // contains
     stdio::println(bool_to_string(text::contains(s, "world")))
     stdio::println(bool_to_string(text::contains(s, "xyz")))
     stdio::println(bool_to_string(text::contains(s, "")))
     stdio::println(bool_to_string(text::contains("", "")))
     stdio::println(bool_to_string(text::contains("", "a")))
-
-    // index_of
     stdio::println(i32_to_string(text::index_of(s, "hello")))
     stdio::println(i32_to_string(text::index_of(s, "world")))
     stdio::println(i32_to_string(text::index_of(s, " ")))
     stdio::println(i32_to_string(text::index_of(s, "xyz")))
     stdio::println(i32_to_string(text::index_of(s, "")))
-
-    // starts_with / ends_with (prelude)
     stdio::println(bool_to_string(starts_with(s, "hello")))
     stdio::println(bool_to_string(starts_with(s, "world")))
     stdio::println(bool_to_string(starts_with(s, "")))
     stdio::println(bool_to_string(ends_with(s, "world")))
     stdio::println(bool_to_string(ends_with(s, "hello")))
     stdio::println(bool_to_string(ends_with(s, "")))
-
-    // Edge: single char search
     stdio::println(i32_to_string(text::index_of("a", "a")))
     stdio::println(i32_to_string(text::index_of("a", "b")))
 }
+// String search operations: contains, index_of, starts_with, ends_with
+// contains
+// index_of
+// starts_with / ends_with (prelude)
+// Edge: single char search

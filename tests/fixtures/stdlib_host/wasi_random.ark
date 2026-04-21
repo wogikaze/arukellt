@@ -6,8 +6,8 @@ use std::host::stdio
 
 fn main() {
     let r = random::random_i32()
-    // Any i32 value is valid — just verify the call runs without error.
-    // A 1-in-2^32 chance of being 0 is acceptable.
     let _ = r
     stdio::println("wasi_random ok")
 }
+// Any i32 value is valid — just verify the call runs without error.
+// A 1-in-2^32 chance of being 0 is acceptable.

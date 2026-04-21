@@ -2,36 +2,29 @@ use std::host::stdio
 
 fn main() {
     let m = HashMap_new_String_String()
-
     HashMap_String_String_insert(m, "greeting", "hello")
     HashMap_String_String_insert(m, "farewell", "goodbye")
     HashMap_String_String_insert(m, "color", "red")
-
-    // Update existing key
     HashMap_String_String_insert(m, "color", "blue")
-
-    // len
     stdio::println(i32_to_string(HashMap_String_String_len(m)))
-
-    // get existing key
     match HashMap_String_String_get(m, "greeting") {
-        Some(v) => stdio::println(v),
-        None    => stdio::println("not found"),
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
     }
-
-    // get updated key
     match HashMap_String_String_get(m, "color") {
-        Some(v) => stdio::println(v),
-        None    => stdio::println("not found"),
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
     }
-
-    // get missing key
     match HashMap_String_String_get(m, "missing") {
-        Some(v) => stdio::println(v),
-        None    => stdio::println("not found"),
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
     }
-
-    // contains_key
     stdio::println(bool_to_string(HashMap_String_String_contains_key(m, "farewell")))
     stdio::println(bool_to_string(HashMap_String_String_contains_key(m, "unknown")))
 }
+// Update existing key
+// len
+// get existing key
+// get updated key
+// get missing key
+// contains_key

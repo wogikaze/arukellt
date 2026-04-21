@@ -1,11 +1,10 @@
-//! Experimental WebAssembly helpers.
-//!
-//! Exposes magic bytes, version bytes, section IDs, value-type constants,
-//! opcode constants, FuncType/Limits constructors, a minimal WasmModuleBuilder,
-//! and LEB128 encoding utilities.
-//!
-//! All APIs are Experimental and may change in v4+.
-
+/// Experimental WebAssembly helpers.
+/// 
+/// Exposes magic bytes, version bytes, section IDs, value-type constants,
+/// opcode constants, FuncType/Limits constructors, a minimal WasmModuleBuilder,
+/// and LEB128 encoding utilities.
+/// 
+/// All APIs are Experimental and may change in v4+.
 pub fn wasm_magic() -> Vec<i32> {
     let b: Vec<i32> = Vec_new_i32()
     push(b, 0)
@@ -25,37 +24,105 @@ pub fn wasm_version() -> Vec<i32> {
 }
 
 // Section IDs
-pub fn section_type() -> i32 { 1 }
-pub fn section_import() -> i32 { 2 }
-pub fn section_function() -> i32 { 3 }
-pub fn section_table() -> i32 { 4 }
-pub fn section_memory() -> i32 { 5 }
-pub fn section_global() -> i32 { 6 }
-pub fn section_export() -> i32 { 7 }
-pub fn section_start() -> i32 { 8 }
-pub fn section_element() -> i32 { 9 }
-pub fn section_code() -> i32 { 10 }
-pub fn section_data() -> i32 { 11 }
+pub fn section_type() -> i32 {
+    1
+}
+
+pub fn section_import() -> i32 {
+    2
+}
+
+pub fn section_function() -> i32 {
+    3
+}
+
+pub fn section_table() -> i32 {
+    4
+}
+
+pub fn section_memory() -> i32 {
+    5
+}
+
+pub fn section_global() -> i32 {
+    6
+}
+
+pub fn section_export() -> i32 {
+    7
+}
+
+pub fn section_start() -> i32 {
+    8
+}
+
+pub fn section_element() -> i32 {
+    9
+}
+
+pub fn section_code() -> i32 {
+    10
+}
+
+pub fn section_data() -> i32 {
+    11
+}
 
 // Value types
-pub fn valtype_i32() -> i32 { 127 }
-pub fn valtype_i64() -> i32 { 126 }
-pub fn valtype_f32() -> i32 { 125 }
-pub fn valtype_f64() -> i32 { 124 }
+pub fn valtype_i32() -> i32 {
+    127
+}
+
+pub fn valtype_i64() -> i32 {
+    126
+}
+
+pub fn valtype_f32() -> i32 {
+    125
+}
+
+pub fn valtype_f64() -> i32 {
+    124
+}
+
 // Extended value types (reference-types proposal)
-pub fn valtype_v128() -> i32 { 123 }
-pub fn valtype_funcref() -> i32 { 112 }
-pub fn valtype_externref() -> i32 { 111 }
+pub fn valtype_v128() -> i32 {
+    123
+}
+
+pub fn valtype_funcref() -> i32 {
+    112
+}
+
+pub fn valtype_externref() -> i32 {
+    111
+}
 
 // NumType constants (subset: numeric value types only)
-pub fn numtype_i32() -> i32 { 127 }
-pub fn numtype_i64() -> i32 { 126 }
-pub fn numtype_f32() -> i32 { 125 }
-pub fn numtype_f64() -> i32 { 124 }
+pub fn numtype_i32() -> i32 {
+    127
+}
+
+pub fn numtype_i64() -> i32 {
+    126
+}
+
+pub fn numtype_f32() -> i32 {
+    125
+}
+
+pub fn numtype_f64() -> i32 {
+    124
+}
 
 // RefType constants
-pub fn reftype_funcref() -> i32 { 112 }
-pub fn reftype_externref() -> i32 { 111 }
+pub fn reftype_funcref() -> i32 {
+    112
+}
+
+pub fn reftype_externref() -> i32 {
+    111
+}
 
 // --- FuncType ---
 //
@@ -63,7 +130,6 @@ pub fn reftype_externref() -> i32 { 111 }
 // Layout: [param_count, p0, p1, ..., result_count, r0, r1, ...]
 //
 // functype_new(params: Vec<i32>, results: Vec<i32>) -> Vec<i32>
-
 pub fn functype_new(params: Vec<i32>, results: Vec<i32>) -> Vec<i32> {
     let ft: Vec<i32> = Vec_new_i32()
     let plen: i32 = len(params)
@@ -105,7 +171,6 @@ pub fn functype_get_result(ft: Vec<i32>, idx: i32) -> i32 {
 //
 // Backed by Vec<i32>.
 // Layout: [min, has_max, max]
-
 pub fn limits_unbounded(min: i32) -> Vec<i32> {
     let l: Vec<i32> = Vec_new_i32()
     push(l, min)
@@ -140,13 +205,12 @@ pub fn limits_max(l: Vec<i32>) -> i32 {
 // Functions/memories/exports are counted but not yet encoded into full sections.
 //
 // State Vec<i32> layout: [func_type_count, func_count, mem_count, export_count]
-
 pub fn module_new() -> Vec<i32> {
     let m: Vec<i32> = Vec_new_i32()
-    push(m, 0)   // func_type_count
-    push(m, 0)   // func_count
-    push(m, 0)   // mem_count
-    push(m, 0)   // export_count
+    push(m, 0)
+    push(m, 0)
+    push(m, 0)
+    push(m, 0)
     m
 }
 
@@ -173,21 +237,30 @@ pub fn module_add_export_func(m: Vec<i32>, name: String, func_idx: i32) {
     set(m, 3, cnt + 1)
 }
 
-pub fn module_type_count(m: Vec<i32>) -> i32 { get_unchecked(m, 0) }
-pub fn module_func_count(m: Vec<i32>) -> i32 { get_unchecked(m, 1) }
-pub fn module_mem_count(m: Vec<i32>) -> i32  { get_unchecked(m, 2) }
-pub fn module_export_count(m: Vec<i32>) -> i32 { get_unchecked(m, 3) }
+pub fn module_type_count(m: Vec<i32>) -> i32 {
+    get_unchecked(m, 0)
+}
+
+pub fn module_func_count(m: Vec<i32>) -> i32 {
+    get_unchecked(m, 1)
+}
+
+pub fn module_mem_count(m: Vec<i32>) -> i32 {
+    get_unchecked(m, 2)
+}
+
+pub fn module_export_count(m: Vec<i32>) -> i32 {
+    get_unchecked(m, 3)
+}
 
 /// Encode the module to a Wasm binary header (magic + version).
 /// Full section encoding is a v4 task; this stub returns a valid 8-byte header.
 pub fn module_encode_header() -> Vec<i32> {
     let out: Vec<i32> = Vec_new_i32()
-    // magic: \0asm
     push(out, 0)
     push(out, 97)
     push(out, 115)
     push(out, 109)
-    // version: 1
     push(out, 1)
     push(out, 0)
     push(out, 0)
@@ -196,7 +269,6 @@ pub fn module_encode_header() -> Vec<i32> {
 }
 
 // --- LEB128 encoding ---
-
 /// Encode a u32 as unsigned LEB128. Returns Vec<i32> of bytes.
 pub fn leb128_encode_u32(x: i32) -> Vec<i32> {
     let out: Vec<i32> = Vec_new_i32()
@@ -217,60 +289,205 @@ pub fn leb128_encode_u32(x: i32) -> Vec<i32> {
 
 /// Return the number of bytes needed to encode x as unsigned LEB128.
 pub fn leb128_size_u32(x: i32) -> i32 {
-    if x < 128 { 1 }
-    else if x < 16384 { 2 }
-    else if x < 2097152 { 3 }
-    else if x < 268435456 { 4 }
-    else { 5 }
+    if x < 128 {
+        1
+    } else {
+        if x < 16384 {
+            2
+        } else {
+            if x < 2097152 {
+                3
+            } else {
+                if x < 268435456 {
+                    4
+                } else {
+                    5
+                }
+            }
+        }
+    }
 }
 
 // --- Opcode constants (Wasm MVP subset) ---
+pub fn op_unreachable() -> i32 {
+    0
+}
 
-pub fn op_unreachable() -> i32  { 0 }
-pub fn op_nop() -> i32          { 1 }
-pub fn op_block() -> i32        { 2 }
-pub fn op_loop() -> i32         { 3 }
-pub fn op_if() -> i32           { 4 }
-pub fn op_else() -> i32         { 5 }
-pub fn op_end() -> i32          { 11 }
-pub fn op_br() -> i32           { 12 }
-pub fn op_br_if() -> i32        { 13 }
-pub fn op_return() -> i32       { 15 }
-pub fn op_call() -> i32         { 16 }
-pub fn op_drop() -> i32         { 26 }
-pub fn op_select() -> i32       { 27 }
-pub fn op_local_get() -> i32    { 32 }
-pub fn op_local_set() -> i32    { 33 }
-pub fn op_local_tee() -> i32    { 34 }
-pub fn op_global_get() -> i32   { 35 }
-pub fn op_global_set() -> i32   { 36 }
-pub fn op_i32_load() -> i32     { 40 }
-pub fn op_i32_store() -> i32    { 54 }
-pub fn op_memory_size() -> i32  { 63 }
-pub fn op_memory_grow() -> i32  { 64 }
-pub fn op_i32_const() -> i32    { 65 }
-pub fn op_i64_const() -> i32    { 66 }
-pub fn op_f32_const() -> i32    { 67 }
-pub fn op_f64_const() -> i32    { 68 }
-pub fn op_i32_eqz() -> i32      { 69 }
-pub fn op_i32_eq() -> i32       { 70 }
-pub fn op_i32_ne() -> i32       { 71 }
-pub fn op_i32_lt_s() -> i32     { 72 }
-pub fn op_i32_gt_s() -> i32     { 74 }
-pub fn op_i32_le_s() -> i32     { 76 }
-pub fn op_i32_ge_s() -> i32     { 78 }
-pub fn op_i32_add() -> i32      { 106 }
-pub fn op_i32_sub() -> i32      { 107 }
-pub fn op_i32_mul() -> i32      { 108 }
-pub fn op_i32_div_s() -> i32    { 109 }
-pub fn op_i32_and() -> i32      { 113 }
-pub fn op_i32_or() -> i32       { 114 }
-pub fn op_i32_xor() -> i32      { 115 }
-pub fn op_i32_shl() -> i32      { 116 }
-pub fn op_i32_shr_s() -> i32    { 117 }
-pub fn op_i64_add() -> i32      { 124 }
-pub fn op_i64_sub() -> i32      { 125 }
-pub fn op_i64_mul() -> i32      { 126 }
+pub fn op_nop() -> i32 {
+    1
+}
+
+pub fn op_block() -> i32 {
+    2
+}
+
+pub fn op_loop() -> i32 {
+    3
+}
+
+pub fn op_if() -> i32 {
+    4
+}
+
+pub fn op_else() -> i32 {
+    5
+}
+
+pub fn op_end() -> i32 {
+    11
+}
+
+pub fn op_br() -> i32 {
+    12
+}
+
+pub fn op_br_if() -> i32 {
+    13
+}
+
+pub fn op_return() -> i32 {
+    15
+}
+
+pub fn op_call() -> i32 {
+    16
+}
+
+pub fn op_drop() -> i32 {
+    26
+}
+
+pub fn op_select() -> i32 {
+    27
+}
+
+pub fn op_local_get() -> i32 {
+    32
+}
+
+pub fn op_local_set() -> i32 {
+    33
+}
+
+pub fn op_local_tee() -> i32 {
+    34
+}
+
+pub fn op_global_get() -> i32 {
+    35
+}
+
+pub fn op_global_set() -> i32 {
+    36
+}
+
+pub fn op_i32_load() -> i32 {
+    40
+}
+
+pub fn op_i32_store() -> i32 {
+    54
+}
+
+pub fn op_memory_size() -> i32 {
+    63
+}
+
+pub fn op_memory_grow() -> i32 {
+    64
+}
+
+pub fn op_i32_const() -> i32 {
+    65
+}
+
+pub fn op_i64_const() -> i32 {
+    66
+}
+
+pub fn op_f32_const() -> i32 {
+    67
+}
+
+pub fn op_f64_const() -> i32 {
+    68
+}
+
+pub fn op_i32_eqz() -> i32 {
+    69
+}
+
+pub fn op_i32_eq() -> i32 {
+    70
+}
+
+pub fn op_i32_ne() -> i32 {
+    71
+}
+
+pub fn op_i32_lt_s() -> i32 {
+    72
+}
+
+pub fn op_i32_gt_s() -> i32 {
+    74
+}
+
+pub fn op_i32_le_s() -> i32 {
+    76
+}
+
+pub fn op_i32_ge_s() -> i32 {
+    78
+}
+
+pub fn op_i32_add() -> i32 {
+    106
+}
+
+pub fn op_i32_sub() -> i32 {
+    107
+}
+
+pub fn op_i32_mul() -> i32 {
+    108
+}
+
+pub fn op_i32_div_s() -> i32 {
+    109
+}
+
+pub fn op_i32_and() -> i32 {
+    113
+}
+
+pub fn op_i32_or() -> i32 {
+    114
+}
+
+pub fn op_i32_xor() -> i32 {
+    115
+}
+
+pub fn op_i32_shl() -> i32 {
+    116
+}
+
+pub fn op_i32_shr_s() -> i32 {
+    117
+}
+
+pub fn op_i64_add() -> i32 {
+    124
+}
+
+pub fn op_i64_sub() -> i32 {
+    125
+}
+
+pub fn op_i64_mul() -> i32 {
+    126
+}
 
 // Bulk memory operations
 pub fn memory_copy(dst: i32, src: i32, len: i32) {
@@ -280,3 +497,9 @@ pub fn memory_copy(dst: i32, src: i32, len: i32) {
 pub fn memory_fill(ptr: i32, val: i32, len: i32) {
     __intrinsic_memory_fill(ptr, val, len)
 }
+// func_type_count
+// func_count
+// mem_count
+// export_count
+// magic: \0asm
+// version: 1

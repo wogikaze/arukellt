@@ -1,15 +1,16 @@
 use std::host::stdio
+
 struct Point {
     x: i32,
     y: i32,
 }
 
 impl Point {
-    fn sum(self) -> i32 {
+    fn sum(self: Point) -> i32 {
         self.x + self.y
     }
 
-    fn add(self, other: Point) -> Point {
+    fn add(self: Point, other: Point) -> Point {
         Point { x: self.x + other.x, y: self.y + other.y }
     }
 }

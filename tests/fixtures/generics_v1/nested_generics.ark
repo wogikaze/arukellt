@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn main() {
     let v: Vec<Vec<i32>> = Vec_new_i32()
     stdio::println(i32_to_string(len(v)))

@@ -1,7 +1,7 @@
 ---
 id: 557
 title: "Selfhost CLI top-level command surface parity"
-status: open
+status: done
 track: selfhost-cli
 created: 2026-04-22
 updated: 2026-04-22
@@ -31,10 +31,10 @@ Repo evidence:
 
 ## Acceptance
 
-- [ ] Selfhost CLI either implements every top-level command it advertises or stops advertising unsupported commands
-- [ ] `--help` output matches actual selfhost command reachability
-- [ ] For each supported top-level command, invocation reaches a real handler rather than falling through to implicit compile / unknown-command behavior
-- [ ] Differences from Rust CLI are documented explicitly if any remain intentionally out of scope
+- [x] Selfhost CLI either implements every top-level command it advertises or stops advertising unsupported commands
+- [x] `--help` output matches actual selfhost command reachability
+- [x] For each supported top-level command, invocation reaches a real handler rather than falling through to implicit compile / unknown-command behavior
+- [x] Differences from Rust CLI are documented explicitly if any remain intentionally out of scope
 
 ## Required verification
 
@@ -48,3 +48,25 @@ wasmtime run .build/selfhost/arukellt-s1.wasm -- targets --help
 ## Close gate
 
 No user-visible command in selfhost help is a false existence claim.
+
+## Closed — 2026-04-22
+
+**Implementation**: Added `CMD_NOT_YET()` constant and explicit stub handlers in `src/compiler/main.ark`
+for all 11 unimplemented commands: `init`, `fmt`, `targets`, `script`, `component`, `lsp`,
+`debug-adapter`, `lint`, `analyze`, `doc`, `compose`. Each exits 1 with
+`"error: command not yet implemented in selfhost compiler"`. No command falls through to
+implicit compile / unknown behavior.
+
+**Remaining intentional scope gap**: The 11 commands have stubs, not full implementations.
+Full implementation of each command is tracked as separate post-#459 issues per the Phase 6+
+plan in #529.
+
+**Evidence**:
+
+```
+init: exit=1 | error: command not yet implemented in selfhost compiler
+fmt:  exit=1 | error: command not yet implemented in selfhost compiler
+... (all 11 verified)
+python3 scripts/manager.py selfhost parity --mode --cli → exit 0
+python3 scripts/manager.py selfhost fixpoint → exit 0
+```

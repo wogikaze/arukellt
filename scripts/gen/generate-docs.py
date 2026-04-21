@@ -2168,7 +2168,7 @@ def render_stdlib_module_page(
                     desc = ex.get("description", "")
                     lines.append("")
                     if desc:
-                        lines.append(f"*Example — {desc}:*")
+                        lines.append(f"_Example — {desc}:_")
                         lines.append("")
                     lines.extend(["```ark", code, "```"])
                     if ex.get("output"):
@@ -2511,7 +2511,7 @@ def _render_reference_function_details(entry: dict) -> list[str]:
         expected = ex.get("output", "")
         lines.append("")
         if desc:
-            lines.append(f"*Example — {desc}:*")
+            lines.append(f"_Example — {desc}:_")
             lines.append("")
         lines.extend(["```ark", code, "```"])
         if expected:

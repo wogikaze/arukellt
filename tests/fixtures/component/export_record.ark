@@ -9,4 +9,5 @@ pub fn distance_sq(p: Point) -> i32 {
     p.x * p.x + p.y * p.y
 }
 
-fn main() {}
+fn main() {
+}

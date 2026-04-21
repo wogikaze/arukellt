@@ -1,10 +1,15 @@
-//! Shared error types for manifest-backed stdlib modules.
-
+/// Shared error types for manifest-backed stdlib modules.
 /// Shared error variants used across stdlib modules.
 pub enum Error {
     InvalidArgument(String),
-    IndexOutOfBounds { index: i32, len: i32 },
-    ParseError { kind: String, input: String },
+    IndexOutOfBounds {
+        index: i32,
+        len: i32,
+    },
+    ParseError {
+        kind: String,
+        input: String,
+    },
     Utf8Error,
     IoError(String),
     NotFound(String),

@@ -1,9 +1,8 @@
-//! StringBuilder — efficient string building through append operations.
-//!
-//! The builder accumulates string fragments and produces a final String
-//! via `builder_build`. Currently implemented as simple concatenation;
-//! a future version may use an internal buffer for better performance.
-
+/// StringBuilder — efficient string building through append operations.
+/// 
+/// The builder accumulates string fragments and produces a final String
+/// via `builder_build`. Currently implemented as simple concatenation;
+/// a future version may use an internal buffer for better performance.
 /// Creates a new empty StringBuilder (represented as a String internally).
 pub fn builder_new() -> String {
     ""

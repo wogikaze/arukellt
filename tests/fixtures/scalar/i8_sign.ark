@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn main() {
     let a = 42i8
     let b = 100i8

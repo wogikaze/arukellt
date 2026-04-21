@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn main() {
     stdio::eprintln("error message")
     stdio::println("normal output")

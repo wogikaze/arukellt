@@ -7,4 +7,5 @@ pub fn is_positive(n: i32) -> bool {
     n > 0
 }
 
-fn main() {}
+fn main() {
+}

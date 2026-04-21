@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn main() {
     let a = 300i16
     let b = 200i16

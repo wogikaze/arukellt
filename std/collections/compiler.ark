@@ -1,13 +1,11 @@
-//! Experimental compiler-oriented collections.
-//!
-//! Provides Arena, SlotMap, and Interner suitable for compiler/IDE toolchain
-//! use. All APIs are Experimental and may change in v4+.
-
+/// Experimental compiler-oriented collections.
+/// 
+/// Provides Arena, SlotMap, and Interner suitable for compiler/IDE toolchain
+/// use. All APIs are Experimental and may change in v4+.
 // --- Arena (bump allocator) ---
 //
 // Layout of backing Vec<i32>: [count, value_0, value_1, ...]
 // ArenaId = i32 index (monotonically increasing).
-
 pub fn arena_new() -> Vec<i32> {
     let a: Vec<i32> = Vec_new_i32()
     push(a, 0)
@@ -35,7 +33,6 @@ pub fn arena_len(a: Vec<i32>) -> i32 {
 //   [count, max_key, value_0, alive_0, value_1, alive_1, ...]
 // SlotKey = i32 (the slot index, stable across removes).
 // alive_N = 1 if slot N is active, 0 if removed.
-
 pub fn slotmap_new() -> Vec<i32> {
     let m: Vec<i32> = Vec_new_i32()
     push(m, 0)
@@ -98,7 +95,6 @@ pub fn slotmap_len(m: Vec<i32>) -> i32 {
 // Backed by Vec<String>: index = Symbol (i32).
 // intern returns the existing Symbol if value was already interned.
 // lookup returns Option<String> for the given Symbol.
-
 pub fn interner_new() -> Vec<String> {
     Vec_new_String()
 }

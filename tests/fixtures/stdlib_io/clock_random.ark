@@ -1,6 +1,7 @@
-use std::host::stdio
 use std::host::clock
 use std::host::random as host_random
+use std::host::stdio
+
 fn main() {
     let t = clock::monotonic_now()
     let t_str = i64_to_string(t)

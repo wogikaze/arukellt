@@ -1,5 +1,4 @@
-//! Format utilities — primitive-to-string conversion and padding.
-
+/// Format utilities — primitive-to-string conversion and padding.
 /// Formats an `i32` as a decimal string.
 pub fn format_i32(n: i32) -> String {
     __intrinsic_i32_to_string(n)
@@ -23,7 +22,9 @@ pub fn format_bool(b: bool) -> String {
 /// Left-pads the string with `fill` until `width` bytes are reached.
 pub fn pad_left(s: String, width: i32, fill: String) -> String {
     let slen = len(s)
-    if slen >= width { return s }
+    if slen >= width {
+        return s
+    }
     let mut padding = ""
     let mut i = 0
     let need = width - slen
@@ -39,7 +40,9 @@ pub fn pad_left(s: String, width: i32, fill: String) -> String {
 /// Right-pads the string with `fill` until `width` bytes are reached.
 pub fn pad_right(s: String, width: i32, fill: String) -> String {
     let slen = len(s)
-    if slen >= width { return s }
+    if slen >= width {
+        return s
+    }
     let mut padding = ""
     let mut i = 0
     let need = width - slen

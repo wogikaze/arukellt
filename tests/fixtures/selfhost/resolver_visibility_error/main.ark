@@ -4,7 +4,6 @@
 // This fixture exercises that accessing a private function from another module
 // produces a compile error. `secmod::secret` is private and must NOT be
 // callable from this module.
-
 use secmod
 
 fn main() {

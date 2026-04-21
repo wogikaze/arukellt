@@ -41,16 +41,13 @@ let len = range_len(r)  // 10
 - Manifest-backed functions: 6
 - Stability: stable 6
 
-Fundamental types and helpers shared across the standard library.
-
-This module exposes foundational types (`Ordering`, `Range`) and helpers
-that other stdlib modules build upon.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
-| `Ordering` | `enum` | Ordering relationship between two values. |
+| `Ordering` | `enum` | Fundamental types and helpers shared across the standard library. |
 | `Range` | `struct` | Half-open integer range [start, end). |
 | `RangeInclusive` | `struct` | Closed integer range [start, end]. |
 
@@ -71,13 +68,13 @@ that other stdlib modules build upon.
 - Manifest-backed functions: 1
 - Stability: stable 1
 
-Shared error types for manifest-backed stdlib modules.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
-| `Error` | `enum` | Shared error variants used across stdlib modules. |
+| `Error` | `enum` | Shared error types for manifest-backed stdlib modules. |
 
 ### Public API
 
@@ -91,13 +88,13 @@ Shared error types for manifest-backed stdlib modules.
 - Manifest-backed functions: 4
 - Stability: stable 4
 
-Small hashing helpers used by the current collection implementations.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `hash_i32` | `(i32) -> i32` | `stable` | Hashes an i32 into a stable non-negative integer. |
+| `hash_i32` | `(i32) -> i32` | `stable` | Small hashing helpers used by the current collection implementations. |
 | `hash_string` | `(String) -> i32` | `stable` | Hashes a string into a stable non-negative integer. |
 | `combine` | `(i32, i32) -> i32` | `stable` | - |
 | `hash_combine` | `(i32, i32) -> i32` | `stable` | - |

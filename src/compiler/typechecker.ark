@@ -2,82 +2,237 @@
 //
 // Performs type inference, unification, and generates typed HIR.
 // Uses a substitution-based unification approach.
-
 use std::host::stdio
 
-// ── Type Tags (from hir.ark) ─────────────────────────────────────────────────
-
-fn TY_UNKNOWN() -> i32 { 0 }
+fn TY_UNKNOWN() -> i32 {
+    0
+}
 
 // ── Node Kind Tags (from parser.ark) ─────────────────────────────────────────
+fn NK_INT_LIT() -> i32 {
+    1
+}
 
-fn NK_INT_LIT() -> i32 { 1 }
-fn NK_FLOAT_LIT() -> i32 { 2 }
-fn NK_STRING_LIT() -> i32 { 3 }
-fn NK_BOOL_LIT() -> i32 { 4 }
-fn NK_IDENT() -> i32 { 5 }
-fn NK_BINARY() -> i32 { 6 }
-fn NK_UNARY() -> i32 { 7 }
-fn NK_CALL() -> i32 { 8 }
-fn NK_METHOD_CALL() -> i32 { 21 }
-fn NK_CLOSURE() -> i32 { 15 }
-fn NK_BLOCK() -> i32 { 20 }
-fn NK_LET() -> i32 { 30 }
-fn NK_RETURN() -> i32 { 31 }
-fn NK_WHILE() -> i32 { 34 }
-fn NK_FOR() -> i32 { 36 }
-fn NK_EXPR_STMT() -> i32 { 37 }
-fn NK_FN_DECL() -> i32 { 50 }
-fn NK_IMPL_DECL() -> i32 { 56 }
-fn NK_IF_EXPR() -> i32 { 13 }
-fn NK_ASSIGN() -> i32 { 18 }
-fn NK_MATCH_EXPR() -> i32 { 14 }
-fn NK_MATCH_ARM() -> i32 { 26 }
+fn NK_FLOAT_LIT() -> i32 {
+    2
+}
+
+fn NK_STRING_LIT() -> i32 {
+    3
+}
+
+fn NK_BOOL_LIT() -> i32 {
+    4
+}
+
+fn NK_IDENT() -> i32 {
+    5
+}
+
+fn NK_BINARY() -> i32 {
+    6
+}
+
+fn NK_UNARY() -> i32 {
+    7
+}
+
+fn NK_CALL() -> i32 {
+    8
+}
+
+fn NK_METHOD_CALL() -> i32 {
+    21
+}
+
+fn NK_CLOSURE() -> i32 {
+    15
+}
+
+fn NK_BLOCK() -> i32 {
+    20
+}
+
+fn NK_LET() -> i32 {
+    30
+}
+
+fn NK_RETURN() -> i32 {
+    31
+}
+
+fn NK_WHILE() -> i32 {
+    34
+}
+
+fn NK_FOR() -> i32 {
+    36
+}
+
+fn NK_EXPR_STMT() -> i32 {
+    37
+}
+
+fn NK_FN_DECL() -> i32 {
+    50
+}
+
+fn NK_IMPL_DECL() -> i32 {
+    56
+}
+
+fn NK_IF_EXPR() -> i32 {
+    13
+}
+
+fn NK_ASSIGN() -> i32 {
+    18
+}
+
+fn NK_MATCH_EXPR() -> i32 {
+    14
+}
+
+fn NK_MATCH_ARM() -> i32 {
+    26
+}
 
 // ── Pattern Kind Tags (from parser.ark) ──────────────────────────────────────
+fn NK_PAT_WILDCARD() -> i32 {
+    71
+}
 
-fn NK_PAT_WILDCARD() -> i32 { 71 }
-fn NK_PAT_IDENT() -> i32 { 70 }
-fn NK_PAT_LITERAL() -> i32 { 72 }
+fn NK_PAT_IDENT() -> i32 {
+    70
+}
+
+fn NK_PAT_LITERAL() -> i32 {
+    72
+}
 
 // ── Operator Tags (from parser.ark) ──────────────────────────────────────────
+fn OP_ADD() -> i32 {
+    1
+}
 
-fn OP_ADD() -> i32 { 1 }
-fn OP_SUB() -> i32 { 2 }
-fn OP_MUL() -> i32 { 3 }
-fn OP_DIV() -> i32 { 4 }
-fn OP_MOD() -> i32 { 5 }
-fn OP_EQ() -> i32 { 6 }
-fn OP_NEQ() -> i32 { 7 }
-fn OP_LT() -> i32 { 8 }
-fn OP_LTEQ() -> i32 { 9 }
-fn OP_GT() -> i32 { 10 }
-fn OP_GTEQ() -> i32 { 11 }
-fn OP_AND() -> i32 { 12 }
-fn OP_OR() -> i32 { 13 }
+fn OP_SUB() -> i32 {
+    2
+}
+
+fn OP_MUL() -> i32 {
+    3
+}
+
+fn OP_DIV() -> i32 {
+    4
+}
+
+fn OP_MOD() -> i32 {
+    5
+}
+
+fn OP_EQ() -> i32 {
+    6
+}
+
+fn OP_NEQ() -> i32 {
+    7
+}
+
+fn OP_LT() -> i32 {
+    8
+}
+
+fn OP_LTEQ() -> i32 {
+    9
+}
+
+fn OP_GT() -> i32 {
+    10
+}
+
+fn OP_GTEQ() -> i32 {
+    11
+}
+
+fn OP_AND() -> i32 {
+    12
+}
+
+fn OP_OR() -> i32 {
+    13
+}
 
 // ── Type Tags (continued) ────────────────────────────────────────────────────
+fn TY_I32() -> i32 {
+    1
+}
 
-fn TY_I32() -> i32 { 1 }
-fn TY_I64() -> i32 { 2 }
-fn TY_F64() -> i32 { 3 }
-fn TY_BOOL() -> i32 { 4 }
-fn TY_STRING() -> i32 { 5 }
-fn TY_CHAR() -> i32 { 6 }
-fn TY_UNIT() -> i32 { 7 }
-fn TY_NEVER() -> i32 { 8 }
-fn TY_VEC() -> i32 { 10 }
-fn TY_OPTION() -> i32 { 11 }
-fn TY_RESULT() -> i32 { 12 }
-fn TY_HASHMAP() -> i32 { 13 }
-fn TY_FN() -> i32 { 20 }
-fn TY_STRUCT() -> i32 { 21 }
-fn TY_ENUM() -> i32 { 22 }
-fn TY_TUPLE() -> i32 { 23 }
-fn TY_TYPE_VAR() -> i32 { 30 }
+fn TY_I64() -> i32 {
+    2
+}
+
+fn TY_F64() -> i32 {
+    3
+}
+
+fn TY_BOOL() -> i32 {
+    4
+}
+
+fn TY_STRING() -> i32 {
+    5
+}
+
+fn TY_CHAR() -> i32 {
+    6
+}
+
+fn TY_UNIT() -> i32 {
+    7
+}
+
+fn TY_NEVER() -> i32 {
+    8
+}
+
+fn TY_VEC() -> i32 {
+    10
+}
+
+fn TY_OPTION() -> i32 {
+    11
+}
+
+fn TY_RESULT() -> i32 {
+    12
+}
+
+fn TY_HASHMAP() -> i32 {
+    13
+}
+
+fn TY_FN() -> i32 {
+    20
+}
+
+fn TY_STRUCT() -> i32 {
+    21
+}
+
+fn TY_ENUM() -> i32 {
+    22
+}
+
+fn TY_TUPLE() -> i32 {
+    23
+}
+
+fn TY_TYPE_VAR() -> i32 {
+    30
+}
 
 // ── Type Representation ──────────────────────────────────────────────────────
-
 struct TypeInfo {
     tag: i32,
     name: String,
@@ -93,7 +248,6 @@ fn TypeInfo_named(tag: i32, name: String) -> TypeInfo {
 }
 
 // ── Type Variable / Substitution ─────────────────────────────────────────────
-
 struct TypeVar {
     id: i32,
     bound: TypeInfo,
@@ -110,14 +264,7 @@ struct TypeEnv {
 }
 
 fn TypeEnv_new() -> TypeEnv {
-    TypeEnv {
-        vars: Vec_new_TypeVar(),
-        next_id: 0,
-        errors: Vec_new_String(),
-        error_count: 0,
-        mono_instances: Vec_new_MonoInstance(),
-        trait_impls: Vec_new_TraitImplInfo(),
-    }
+    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), trait_impls: Vec_new_TraitImplInfo() }
 }
 
 struct TraitImplInfo {
@@ -126,15 +273,18 @@ struct TraitImplInfo {
 }
 
 // ── Monomorphization Instance Tracking ──────────────────────────────────────
-
 struct MonoInstance {
     fn_name: String,
     mangled_name: String,
 }
 
 fn mono_type_key(ty: TypeInfo) -> String {
-    if ty.tag == TY_TYPE_VAR() { return concat(String_from("?"), clone(ty.name)) }
-    if ty.tag == TY_STRUCT() || ty.tag == TY_ENUM() { return clone(ty.name) }
+    if ty.tag == TY_TYPE_VAR() {
+        return concat(String_from("?"), clone(ty.name))
+    }
+    if ty.tag == TY_STRUCT() || ty.tag == TY_ENUM() {
+        return clone(ty.name)
+    }
     type_tag_name(ty.tag)
 }
 
@@ -147,7 +297,6 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
         mangled = concat(mangled, concat(String_from("__"), mono_type_key(ty)))
         i = i + 1
     }
-    // Dedup: skip if already recorded
     let mi_count = len(env.mono_instances)
     let mut j = 0
     while j < mi_count {
@@ -189,13 +338,13 @@ fn type_error(env: TypeEnv, msg: String) {
 }
 
 // ── Unification ──────────────────────────────────────────────────────────────
-
 fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
-    // If either is unknown, take the other
-    if a.tag == TY_UNKNOWN() { return b }
-    if b.tag == TY_UNKNOWN() { return a }
-
-    // If both are type vars, bind one to the other
+    if a.tag == TY_UNKNOWN() {
+        return b
+    }
+    if b.tag == TY_UNKNOWN() {
+        return a
+    }
     if a.tag == TY_TYPE_VAR() {
         bind_var(env, clone(a.name), b)
         return b
@@ -204,15 +353,12 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         bind_var(env, clone(b.name), a)
         return a
     }
-
-    // Same concrete type
     if a.tag == b.tag {
         if a.tag == TY_STRUCT() || a.tag == TY_ENUM() {
             if !eq(clone(a.name), clone(b.name)) {
                 type_error(env, concat(String_from("type mismatch: "), concat(clone(a.name), concat(String_from(" vs "), clone(b.name)))))
             }
         }
-        // Compare type arguments for generic types (e.g., Vec<i32> vs Vec<String>)
         let ac = len(a.type_args)
         let bc = len(b.type_args)
         if ac > 0 && bc > 0 {
@@ -230,11 +376,12 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         }
         return a
     }
-
-    // Numeric widening: allow i32 literal to unify with i64 context.
-    if a.tag == TY_I32() && b.tag == TY_I64() { return b }
-    if a.tag == TY_I64() && b.tag == TY_I32() { return a }
-
+    if a.tag == TY_I32() && b.tag == TY_I64() {
+        return b
+    }
+    if a.tag == TY_I64() && b.tag == TY_I32() {
+        return a
+    }
     type_error(env, concat(String_from("type mismatch: "), concat(type_tag_name(a.tag), concat(String_from(" vs "), type_tag_name(b.tag)))))
     a
 }
@@ -254,7 +401,9 @@ fn bind_var(env: TypeEnv, var_name: String, ty: TypeInfo) {
 }
 
 fn resolve_type(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
-    if ty.tag != TY_TYPE_VAR() { return ty }
+    if ty.tag != TY_TYPE_VAR() {
+        return ty
+    }
     let count = len(env.vars)
     let mut i = 0
     while i < count {
@@ -271,18 +420,42 @@ fn resolve_type(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
 }
 
 fn type_tag_name(tag: i32) -> String {
-    if tag == TY_I32() { return String_from("i32") }
-    if tag == TY_I64() { return String_from("i64") }
-    if tag == TY_F64() { return String_from("f64") }
-    if tag == TY_BOOL() { return String_from("bool") }
-    if tag == TY_STRING() { return String_from("String") }
-    if tag == TY_CHAR() { return String_from("char") }
-    if tag == TY_UNIT() { return String_from("()") }
-    if tag == TY_VEC() { return String_from("Vec") }
-    if tag == TY_FN() { return String_from("fn") }
-    if tag == TY_STRUCT() { return String_from("struct") }
-    if tag == TY_ENUM() { return String_from("enum") }
-    if tag == TY_TYPE_VAR() { return String_from("var") }
+    if tag == TY_I32() {
+        return String_from("i32")
+    }
+    if tag == TY_I64() {
+        return String_from("i64")
+    }
+    if tag == TY_F64() {
+        return String_from("f64")
+    }
+    if tag == TY_BOOL() {
+        return String_from("bool")
+    }
+    if tag == TY_STRING() {
+        return String_from("String")
+    }
+    if tag == TY_CHAR() {
+        return String_from("char")
+    }
+    if tag == TY_UNIT() {
+        return String_from("()")
+    }
+    if tag == TY_VEC() {
+        return String_from("Vec")
+    }
+    if tag == TY_FN() {
+        return String_from("fn")
+    }
+    if tag == TY_STRUCT() {
+        return String_from("struct")
+    }
+    if tag == TY_ENUM() {
+        return String_from("enum")
+    }
+    if tag == TY_TYPE_VAR() {
+        return String_from("var")
+    }
     String_from("?")
 }
 
@@ -294,7 +467,9 @@ fn type_display_name(ty: TypeInfo) -> String {
 }
 
 fn same_named_type(a: TypeInfo, b: TypeInfo) -> bool {
-    if a.tag != b.tag { return false }
+    if a.tag != b.tag {
+        return false
+    }
     if !eq(clone(a.name), String_from("")) || !eq(clone(b.name), String_from("")) {
         return eq(clone(a.name), clone(b.name))
     }
@@ -316,8 +491,9 @@ fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
 
 fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bool {
     let resolved_ty = resolve_type(env, ty)
-    if resolved_ty.tag == TY_TYPE_VAR() { return true }
-
+    if resolved_ty.tag == TY_TYPE_VAR() {
+        return true
+    }
     let count = len(env.trait_impls)
     let mut i = 0
     while i < count {
@@ -331,41 +507,69 @@ fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bo
 }
 
 fn enforce_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) {
-    if type_satisfies_trait_bound(env, ty, bound) { return }
+    if type_satisfies_trait_bound(env, ty, bound) {
+        return
+    }
     let ty_name = type_display_name(resolve_type(env, ty))
     let bound_name = type_display_name(bound)
     type_error(env, concat(String_from("trait bound not satisfied: "), concat(ty_name, concat(String_from(" does not implement "), bound_name))))
 }
 
 // ── Type Annotation Resolution ───────────────────────────────────────────────
-
 fn resolve_type_name(name: String) -> TypeInfo {
-    if eq(clone(name), "i32") { return TypeInfo_simple(TY_I32()) }
-    if eq(clone(name), "i64") { return TypeInfo_simple(TY_I64()) }
-    if eq(clone(name), "f64") { return TypeInfo_simple(TY_F64()) }
-    if eq(clone(name), "bool") { return TypeInfo_simple(TY_BOOL()) }
-    if eq(clone(name), "String") { return TypeInfo_simple(TY_STRING()) }
-    if eq(clone(name), "char") { return TypeInfo_simple(TY_CHAR()) }
-    if eq(clone(name), "Vec") { return TypeInfo_simple(TY_VEC()) }
-    if eq(clone(name), "Option") { return TypeInfo_simple(TY_OPTION()) }
-    if eq(clone(name), "Result") { return TypeInfo_simple(TY_RESULT()) }
-    if eq(clone(name), "HashMap") { return TypeInfo_simple(TY_HASHMAP()) }
-    // Narrow integer types — treat as i32 at the selfhost level
-    if eq(clone(name), "u8") { return TypeInfo_simple(TY_I32()) }
-    if eq(clone(name), "u16") { return TypeInfo_simple(TY_I32()) }
-    if eq(clone(name), "u32") { return TypeInfo_simple(TY_I32()) }
-    if eq(clone(name), "i8") { return TypeInfo_simple(TY_I32()) }
-    if eq(clone(name), "i16") { return TypeInfo_simple(TY_I32()) }
+    if eq(clone(name), "i32") {
+        return TypeInfo_simple(TY_I32())
+    }
+    if eq(clone(name), "i64") {
+        return TypeInfo_simple(TY_I64())
+    }
+    if eq(clone(name), "f64") {
+        return TypeInfo_simple(TY_F64())
+    }
+    if eq(clone(name), "bool") {
+        return TypeInfo_simple(TY_BOOL())
+    }
+    if eq(clone(name), "String") {
+        return TypeInfo_simple(TY_STRING())
+    }
+    if eq(clone(name), "char") {
+        return TypeInfo_simple(TY_CHAR())
+    }
+    if eq(clone(name), "Vec") {
+        return TypeInfo_simple(TY_VEC())
+    }
+    if eq(clone(name), "Option") {
+        return TypeInfo_simple(TY_OPTION())
+    }
+    if eq(clone(name), "Result") {
+        return TypeInfo_simple(TY_RESULT())
+    }
+    if eq(clone(name), "HashMap") {
+        return TypeInfo_simple(TY_HASHMAP())
+    }
+    if eq(clone(name), "u8") {
+        return TypeInfo_simple(TY_I32())
+    }
+    if eq(clone(name), "u16") {
+        return TypeInfo_simple(TY_I32())
+    }
+    if eq(clone(name), "u32") {
+        return TypeInfo_simple(TY_I32())
+    }
+    if eq(clone(name), "i8") {
+        return TypeInfo_simple(TY_I32())
+    }
+    if eq(clone(name), "i16") {
+        return TypeInfo_simple(TY_I32())
+    }
     TypeInfo_named(TY_STRUCT(), name)
 }
 
 // ── Generic Type Annotation Resolution ───────────────────────────────────────
-
 // Resolve a type annotation AST node to TypeInfo, handling Vec<T>, Option<T>, etc.
 fn resolve_type_ann_node(ann: AstNode) -> TypeInfo {
-    if ann.kind == 91 {  // NK_TYPE_GENERIC
+    if ann.kind == 91 {
         let base_ty = resolve_type_name(clone(ann.text))
-        // children: [0]=base, [1..]=type arguments
         let child_count = len(ann.children)
         let mut k = 1
         while k < child_count {
@@ -381,7 +585,7 @@ fn resolve_type_ann_node(ann: AstNode) -> TypeInfo {
 
 // Resolve a type annotation node with generic type param awareness.
 fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> TypeInfo {
-    if ann.kind == 91 {  // NK_TYPE_GENERIC
+    if ann.kind == 91 {
         let base_ty = resolve_type_name(clone(ann.text))
         let child_count = len(ann.children)
         let mut k = 1
@@ -397,7 +601,6 @@ fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> Type
 }
 
 // ── Generic-Aware Type Resolution ────────────────────────────────────────────
-
 fn resolve_type_name_generic(name: String, type_params: Vec<String>) -> TypeInfo {
     let tp_count = len(type_params)
     let mut k = 0
@@ -426,13 +629,7 @@ fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
         }
         i = i + 1
     }
-    FnSig {
-        name: String_new(),
-        param_types: Vec_new_TypeInfo(),
-        return_type: TypeInfo_simple(TY_UNKNOWN()),
-        type_params: Vec_new_String(),
-        type_param_bounds: Vec_new_TypeParamBounds(),
-    }
+    FnSig { name: String_new(), param_types: Vec_new_TypeInfo(), return_type: TypeInfo_simple(TY_UNKNOWN()), type_params: Vec_new_String(), type_param_bounds: Vec_new_TypeParamBounds() }
 }
 
 fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
@@ -440,7 +637,6 @@ fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
     let type_params = collect_type_param_names(type_param_bounds)
     let ann_count = len(node.type_ann)
     let mut j = 0
-
     let param_types = Vec_new_TypeInfo()
     let child_count = len(node.children)
     if child_count > 1 {
@@ -456,7 +652,6 @@ fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
             p = p + 1
         }
     }
-
     let mut return_type = TypeInfo_simple(TY_UNIT())
     j = 0
     while j < ann_count {
@@ -469,14 +664,7 @@ fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
         }
         j = j + 1
     }
-
-    FnSig {
-        name: clone(node.text),
-        param_types: param_types,
-        return_type: return_type,
-        type_params: type_params,
-        type_param_bounds: type_param_bounds,
-    }
+    FnSig { name: clone(node.text), param_types: param_types, return_type: return_type, type_params: type_params, type_param_bounds: type_param_bounds }
 }
 
 fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
@@ -486,10 +674,7 @@ fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
     while i < ann_count {
         let ann = get_unchecked(type_ann, i)
         if !eq(clone(ann.text), String_from("__return")) {
-            let info = TypeParamBounds {
-                name: clone(ann.text),
-                bounds: Vec_new_TypeInfo(),
-            }
+            let info = TypeParamBounds { name: clone(ann.text), bounds: Vec_new_TypeInfo() }
             let child_count = len(ann.children)
             let mut j = 0
             while j < child_count {
@@ -517,14 +702,19 @@ fn collect_type_param_names(bound_infos: Vec<TypeParamBounds>) -> Vec<String> {
 }
 
 fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
-    if node.kind != NK_IMPL_DECL() { return }
-    if eq(clone(node.text), String_from("")) { return }
-    // `impl Trait for Type { ... }` stores trait head in type_ann[0] and self type in type_ann[1].
-    if len(node.type_ann) < 2 { return }
-
+    if node.kind != NK_IMPL_DECL() {
+        return
+    }
+    if eq(clone(node.text), String_from("")) {
+        return
+    }
+    if len(node.type_ann) < 2 {
+        return
+    }
     let child_count = len(node.children)
-    if child_count < 1 { return }
-
+    if child_count < 1 {
+        return
+    }
     let mut i = 0
     while i < child_count {
         let child = get_unchecked(node.children, i)
@@ -533,7 +723,6 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
         }
         i = i + 1
     }
-
     let self_ty_node = get_unchecked(node.type_ann, 1)
     register_trait_impl(env, clone(node.text), resolve_type_ann_node(self_ty_node))
 }
@@ -571,7 +760,6 @@ fn instantiate_type(ty: TypeInfo, names: Vec<String>, types: Vec<TypeInfo>) -> T
 }
 
 // ── Type Check Context ───────────────────────────────────────────────────────
-
 struct CheckCtx {
     env: TypeEnv,
     fn_sigs: Vec<FnSig>,
@@ -599,16 +787,10 @@ struct EnumInfo {
 }
 
 fn CheckCtx_new() -> CheckCtx {
-    CheckCtx {
-        env: TypeEnv_new(),
-        fn_sigs: Vec_new_FnSig(),
-        struct_defs: Vec_new_StructInfo(),
-        enum_defs: Vec_new_EnumInfo(),
-    }
+    CheckCtx { env: TypeEnv_new(), fn_sigs: Vec_new_FnSig(), struct_defs: Vec_new_StructInfo(), enum_defs: Vec_new_EnumInfo() }
 }
 
 // ── Variable Scope (tracks let-binding types within a function) ─────────────
-
 struct VarBinding {
     name: String,
     ty: TypeInfo,
@@ -653,94 +835,98 @@ fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {
 }
 
 // ── Expression Type Inference ───────────────────────────────────────────────
-
 fn is_comparison_op(op: i32) -> bool {
-    if op == OP_EQ() { return true }
-    if op == OP_NEQ() { return true }
-    if op == OP_LT() { return true }
-    if op == OP_LTEQ() { return true }
-    if op == OP_GT() { return true }
-    if op == OP_GTEQ() { return true }
+    if op == OP_EQ() {
+        return true
+    }
+    if op == OP_NEQ() {
+        return true
+    }
+    if op == OP_LT() {
+        return true
+    }
+    if op == OP_LTEQ() {
+        return true
+    }
+    if op == OP_GT() {
+        return true
+    }
+    if op == OP_GTEQ() {
+        return true
+    }
     false
 }
 
 fn is_logical_op(op: i32) -> bool {
-    if op == OP_AND() { return true }
-    if op == OP_OR() { return true }
+    if op == OP_AND() {
+        return true
+    }
+    if op == OP_OR() {
+        return true
+    }
     false
 }
 
 fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNode) -> TypeInfo {
-    // Literals
-    if node.kind == NK_INT_LIT() { return TypeInfo_simple(TY_I32()) }
-    if node.kind == NK_FLOAT_LIT() { return TypeInfo_simple(TY_F64()) }
-    if node.kind == NK_STRING_LIT() { return TypeInfo_simple(TY_STRING()) }
-    if node.kind == NK_BOOL_LIT() { return TypeInfo_simple(TY_BOOL()) }
-
-    // Variable reference
+    if node.kind == NK_INT_LIT() {
+        return TypeInfo_simple(TY_I32())
+    }
+    if node.kind == NK_FLOAT_LIT() {
+        return TypeInfo_simple(TY_F64())
+    }
+    if node.kind == NK_STRING_LIT() {
+        return TypeInfo_simple(TY_STRING())
+    }
+    if node.kind == NK_BOOL_LIT() {
+        return TypeInfo_simple(TY_BOOL())
+    }
     if node.kind == NK_IDENT() {
         return scope_lookup(scope, clone(node.text))
     }
-
     if node.kind == NK_CLOSURE() {
-        // Lexical environment: clone enclosing `let` bindings into the closure scope
-        // so the body can resolve captured identifiers (issue #499).
         let closure_scope = scope_child(scope)
         let child_count = len(node.children)
         if child_count == 0 {
             return TypeInfo_simple(TY_FN())
         }
-
         let mut i = 0
         while i + 1 < child_count {
             let param = get_unchecked(node.children, i)
             scope_define(closure_scope, clone(param.text), fresh_var(env))
             i = i + 1
         }
-
         let body = get_unchecked(node.children, child_count - 1)
         let body_ty = infer_expr(env, closure_scope, fn_sigs, body)
         resolve_type(env, body_ty)
         return TypeInfo_simple(TY_FN())
     }
-
-    // Binary expression
     if node.kind == NK_BINARY() {
         if len(node.children) >= 2 {
             let lhs_node = get_unchecked(node.children, 0)
             let rhs_node = get_unchecked(node.children, 1)
             let lhs_ty = infer_expr(env, scope, fn_sigs, lhs_node)
             let rhs_ty = infer_expr(env, scope, fn_sigs, rhs_node)
-
-            // Comparison operators always produce bool
             if is_comparison_op(node.op) {
                 return TypeInfo_simple(TY_BOOL())
             }
-            // Logical operators always produce bool
             if is_logical_op(node.op) {
                 return TypeInfo_simple(TY_BOOL())
             }
-            // Arithmetic operators propagate operand type via unification
             return unify(env, lhs_ty, rhs_ty)
         }
     }
-
-    // Unary expression — propagate operand type
     if node.kind == NK_UNARY() {
         if len(node.children) > 0 {
             let operand = get_unchecked(node.children, 0)
             return infer_expr(env, scope, fn_sigs, operand)
         }
     }
-
-    // Block — type is the type of the last expression
     if node.kind == NK_BLOCK() {
         let count = len(node.children)
         let mut i = 0
         while i < count {
             let child = get_unchecked(node.children, i)
             if i == count - 1 {
-                // Last child: its inferred type is the block type
                 return infer_expr(env, scope, fn_sigs, child)
             }
             check_stmt(env, scope, fn_sigs, child)
@@ -748,43 +934,34 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         }
         return TypeInfo_simple(TY_UNIT())
     }
-
-    // If expression — infer from then branch
     if node.kind == NK_IF_EXPR() {
         if len(node.children) >= 2 {
             let then_node = get_unchecked(node.children, 1)
             return infer_expr(env, scope, fn_sigs, then_node)
         }
     }
-
-    // Call expression — infer return type via fn signature lookup
     if node.kind == NK_CALL() {
-        if len(node.children) < 1 { return TypeInfo_simple(TY_UNKNOWN()) }
+        if len(node.children) < 1 {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
         let callee = get_unchecked(node.children, 0)
-
-        // Only look up simple identifiers in fn_sigs
-        if callee.kind != NK_IDENT() { return TypeInfo_simple(TY_UNKNOWN()) }
+        if callee.kind != NK_IDENT() {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
         let sig = lookup_fn_sig(fn_sigs, clone(callee.text))
         if eq(clone(sig.name), String_from("")) {
-            // Local closure value (lambda): MIR lowers calls with capture injection (#499).
             let loc_ty = scope_lookup(scope, clone(callee.text))
             if loc_ty.tag == TY_FN() {
                 return TypeInfo_simple(TY_I32())
             }
             return TypeInfo_simple(TY_UNKNOWN())
         }
-
-        // Non-generic function: return declared return type
         if len(sig.type_params) == 0 {
             return sig.return_type
         }
-
-        // Generic function: instantiate type params and unify with arguments
         let infer_env = TypeEnv_new()
         let var_names = Vec_new_String()
         let var_types = Vec_new_TypeInfo()
-
-        // Create fresh type vars for each type param
         let tp_count = len(sig.type_params)
         let mut k = 0
         while k < tp_count {
@@ -794,8 +971,6 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             push(var_types, tv)
             k = k + 1
         }
-
-        // Unify argument types with instantiated parameter types
         let arg_count = len(node.children) - 1
         let param_count = len(sig.param_types)
         let mut a = 0
@@ -807,12 +982,8 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             unify(infer_env, inst_param, arg_ty)
             a = a + 1
         }
-
-        // Resolve return type through instantiation and substitution
         let inst_ret = instantiate_type(sig.return_type, var_names, var_types)
         let ret_ty = resolve_type(infer_env, inst_ret)
-
-        // Record monomorphization instance: collect resolved concrete type args
         let resolved_type_args = Vec_new_TypeInfo()
         let mut rv = 0
         while rv < tp_count {
@@ -825,25 +996,24 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         record_mono_instance(env, clone(callee.text), resolved_type_args)
         return ret_ty
     }
-
-    // Method call: recv.method(args) — signatures include methods from `impl` blocks (issue #504).
     if node.kind == NK_METHOD_CALL() {
-        if len(node.children) < 1 { return TypeInfo_simple(TY_UNKNOWN()) }
+        if len(node.children) < 1 {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
         let sig = lookup_fn_sig(fn_sigs, clone(node.text))
         if eq(clone(sig.name), String_from("")) {
             return TypeInfo_simple(TY_UNKNOWN())
         }
-
         let recv_node = get_unchecked(node.children, 0)
         let recv_ty = infer_expr(env, scope, fn_sigs, recv_node)
-
         let explicit_args = len(node.children) - 1
         let param_count = len(sig.param_types)
-        if param_count < 1 { return TypeInfo_simple(TY_UNKNOWN()) }
+        if param_count < 1 {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
         if explicit_args + 1 != param_count {
             return TypeInfo_simple(TY_UNKNOWN())
         }
-
         if len(sig.type_params) == 0 {
             let p0 = get_unchecked(sig.param_types, 0)
             unify(env, p0, recv_ty)
@@ -857,7 +1027,6 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             }
             return sig.return_type
         }
-
         let infer_env = TypeEnv_new()
         let var_names = Vec_new_String()
         let var_types = Vec_new_TypeInfo()
@@ -870,11 +1039,9 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             push(var_types, tv)
             k = k + 1
         }
-
         let p0 = get_unchecked(sig.param_types, 0)
         let inst_p0 = instantiate_type(p0, var_names, var_types)
         unify(infer_env, inst_p0, recv_ty)
-
         let mut a = 0
         while a < explicit_args {
             let arg_node = get_unchecked(node.children, a + 1)
@@ -884,27 +1051,23 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             unify(infer_env, inst_pt, arg_ty)
             a = a + 1
         }
-
         let inst_ret = instantiate_type(sig.return_type, var_names, var_types)
         let ret_ty = resolve_type(infer_env, inst_ret)
         enforce_fn_sig_bounds(env, infer_env, sig, var_types)
         return ret_ty
     }
-
-    // Match expression
     if node.kind == NK_MATCH_EXPR() {
         let child_count = len(node.children)
         let arm_count = child_count - 1
-        if arm_count < 1 { return TypeInfo_simple(TY_UNKNOWN()) }
-
+        if arm_count < 1 {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
         let scrutinee_node = get_unchecked(node.children, 0)
         let scrutinee_ty = infer_expr(env, scope, fn_sigs, scrutinee_node)
-
         let mut result_ty = TypeInfo_simple(TY_UNKNOWN())
         let mut has_wildcard = false
         let mut has_bool_true = false
         let mut has_bool_false = false
-
         let mut idx = 0
         while idx < arm_count {
             let arm = get_unchecked(node.children, idx + 1)
@@ -914,64 +1077,55 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
                 continue
             }
             let pat = get_unchecked(arm.children, 0)
-
-            // Catch-all patterns make the match exhaustive
-            if pat.kind == NK_PAT_WILDCARD() { has_wildcard = true }
-            if pat.kind == NK_PAT_IDENT() { has_wildcard = true }
-
-            // Track bool literal coverage
-            if pat.kind == NK_PAT_LITERAL() {
-                if eq(clone(pat.text), String_from("true")) { has_bool_true = true }
-                if eq(clone(pat.text), String_from("false")) { has_bool_false = true }
+            if pat.kind == NK_PAT_WILDCARD() {
+                has_wildcard = true
             }
-
-            // Body is the last child of the arm
+            if pat.kind == NK_PAT_IDENT() {
+                has_wildcard = true
+            }
+            if pat.kind == NK_PAT_LITERAL() {
+                if eq(clone(pat.text), String_from("true")) {
+                    has_bool_true = true
+                }
+                if eq(clone(pat.text), String_from("false")) {
+                    has_bool_false = true
+                }
+            }
             let body = get_unchecked(arm.children, arm_child_count - 1)
             let arm_ty = infer_expr(env, scope, fn_sigs, body)
-            if idx == 0 { result_ty = arm_ty }
-
+            if idx == 0 {
+                result_ty = arm_ty
+            }
             idx = idx + 1
         }
-
-        // Exhaustiveness check for bool scrutinee
         if !has_wildcard && scrutinee_ty.tag == TY_BOOL() {
             if !has_bool_true || !has_bool_false {
                 type_error(env, String_from("non-exhaustive match: bool requires `true` and `false` arms or a wildcard"))
             }
         }
-
         return result_ty
     }
-
     TypeInfo_simple(TY_UNKNOWN())
 }
 
 // ── Statement Type Checking ─────────────────────────────────────────────────
-
 fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNode) {
     if node.kind == NK_LET() {
         let mut bind_ty = TypeInfo_simple(TY_UNKNOWN())
-
-        // Infer from initializer expression
         if len(node.children) > 0 {
             let init = get_unchecked(node.children, 0)
             bind_ty = infer_expr(env, scope, fn_sigs, init)
         }
-
-        // Unify with explicit type annotation if present (handles Vec<i32>, Vec<String>, etc.)
         if len(node.type_ann) > 0 {
             let ann = get_unchecked(node.type_ann, 0)
             let ann_ty = resolve_type_ann_node(ann)
             bind_ty = unify(env, bind_ty, ann_ty)
         }
-
-        // Bind the variable name to the inferred type
         if !eq(clone(node.text), "_") {
             scope_define(scope, clone(node.text), bind_ty)
         }
         return
     }
-
     if node.kind == NK_EXPR_STMT() {
         if len(node.children) > 0 {
             let child = get_unchecked(node.children, 0)
@@ -979,7 +1133,6 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         }
         return
     }
-
     if node.kind == NK_RETURN() {
         if len(node.children) > 0 {
             let child = get_unchecked(node.children, 0)
@@ -987,9 +1140,7 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         }
         return
     }
-
     if node.kind == NK_WHILE() || node.kind == NK_FOR() {
-        // Walk body children
         let count = len(node.children)
         let mut i = 0
         while i < count {
@@ -999,7 +1150,6 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         }
         return
     }
-
     if node.kind == NK_BLOCK() {
         let count = len(node.children)
         let mut i = 0
@@ -1010,21 +1160,14 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         }
         return
     }
-
-    // For any expression node used as a statement, try to infer its type
     infer_expr(env, scope, fn_sigs, node)
 }
 
 // ── Function Body Type Checking ─────────────────────────────────────────────
-
 fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, fn_node: AstNode) {
     let scope = LocalScope_new()
-
-    // Collect generic type param names and bounds from type annotations.
     let type_param_bounds = collect_type_param_bounds(fn_node.type_ann)
     let type_params = collect_type_param_names(type_param_bounds)
-
-    // Register parameter types from children (all except last child = body block)
     let child_count = len(fn_node.children)
     if child_count > 1 {
         let mut p = 0
@@ -1039,8 +1182,6 @@ fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, fn_node: AstNode) {
             p = p + 1
         }
     }
-
-    // Walk body block (last child)
     if child_count > 0 {
         let body = get_unchecked(fn_node.children, child_count - 1)
         check_stmt(env, scope, fn_sigs, body)
@@ -1048,7 +1189,6 @@ fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, fn_node: AstNode) {
 }
 
 // ── Type Check Result ────────────────────────────────────────────────────────
-
 struct TypeCheckResult {
     error_count: i32,
     errors: Vec<String>,
@@ -1062,26 +1202,17 @@ struct TypedFn {
 }
 
 pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeCheckResult {
-    let result = TypeCheckResult {
-        error_count: 0,
-        errors: Vec_new_String(),
-        typed_fns: Vec_new_TypedFn(),
-        mono_instances: Vec_new_MonoInstance(),
-    }
+    let result = TypeCheckResult { error_count: 0, errors: Vec_new_String(), typed_fns: Vec_new_TypedFn(), mono_instances: Vec_new_MonoInstance() }
     let env = TypeEnv_new()
     result.error_count = resolve_ctx.error_count
     result.errors = resolve_ctx.errors
-
     let decl_count = len(decls)
-
     let mut i = 0
     while i < decl_count {
         let node = get_unchecked(decls, i)
         maybe_register_impl_decl(env, node)
         i = i + 1
     }
-
-    // Pass 1: Build function signature registry (needed for call-site inference)
     let fn_sigs = Vec_new_FnSig()
     i = 0
     while i < decl_count {
@@ -1102,15 +1233,12 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         }
         i = i + 1
     }
-
-    // Pass 2: Type-check function bodies and build TypedFn entries
     i = 0
     while i < decl_count {
         let node = get_unchecked(decls, i)
         if node.kind == NK_FN_DECL() {
             let fn_name = clone(node.text)
             let mut return_type = TypeInfo_simple(TY_UNIT())
-            // Search type_ann for the __return marker
             let ann_count = len(node.type_ann)
             let mut j = 0
             while j < ann_count {
@@ -1124,8 +1252,6 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
                 j = j + 1
             }
             push(result.typed_fns, TypedFn { name: fn_name, return_type: return_type })
-
-            // Infer expression types within the function body
             check_fn_body(env, fn_sigs, node)
         }
         if node.kind == NK_IMPL_DECL() {
@@ -1141,8 +1267,6 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         }
         i = i + 1
     }
-
-    // Propagate any type errors from inference
     let err_count = len(env.errors)
     let mut e = 0
     while e < err_count {
@@ -1151,10 +1275,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         result.error_count = result.error_count + 1
         e = e + 1
     }
-
-    // Collect monomorphization instances from inference
     result.mono_instances = env.mono_instances
-
     result
 }
 
@@ -1177,7 +1298,6 @@ pub fn dump_typed_hir(result: TypeCheckResult) {
 }
 
 // ── Resolve Context (duplicated from resolver for standalone) ────────────────
-
 struct Symbol {
     name: String,
     kind: i32,
@@ -1201,59 +1321,39 @@ struct ResolveCtx {
 }
 
 // ── Entry Point ──────────────────────────────────────────────────────────────
-
 fn main() {
     let env = TypeEnv_new()
-
-    // Test unification
     let t1 = TypeInfo_simple(TY_I32())
     let t2 = TypeInfo_simple(TY_I32())
     let t3 = unify(env, t1, t2)
     stdio::println(concat(String_from("unified: "), type_tag_name(t3.tag)))
-
-    // Test type var
     let tv = fresh_var(env)
     stdio::println(concat(String_from("fresh var: "), clone(tv.name)))
-
     let t4 = TypeInfo_simple(TY_STRING())
     let t5 = unify(env, tv, t4)
     stdio::println(concat(String_from("unified var: "), type_tag_name(t5.tag)))
-
-    // Test error
     let ta = TypeInfo_simple(TY_I32())
     let tb = TypeInfo_simple(TY_STRING())
     let tc = unify(env, ta, tb)
     stdio::println(concat(String_from("error count: "), to_string(env.error_count)))
-
-    // Test expression inference: literals
     let env2 = TypeEnv_new()
     let scope = LocalScope_new()
-
-    // Infer integer literal → i32
     let int_ty = TypeInfo_simple(TY_I32())
     scope_define(scope, String_from("x"), int_ty)
     let looked = scope_lookup(scope, String_from("x"))
     stdio::println(concat(String_from("x type: "), type_tag_name(looked.tag)))
-
-    // Infer float → f64
     let float_ty = TypeInfo_simple(TY_F64())
     scope_define(scope, String_from("f"), float_ty)
     let looked_f = scope_lookup(scope, String_from("f"))
     stdio::println(concat(String_from("f type: "), type_tag_name(looked_f.tag)))
-
-    // Test binary op unification: i32 + i32 = i32
     let arith_ty = unify(env2, TypeInfo_simple(TY_I32()), TypeInfo_simple(TY_I32()))
     stdio::println(concat(String_from("i32+i32: "), type_tag_name(arith_ty.tag)))
-
-    // Test generic-aware type resolution
     let gp = Vec_new_String()
     push(gp, String_from("T"))
     let tv_res = resolve_type_name_generic(String_from("T"), gp)
     stdio::println(concat(String_from("generic T: "), type_tag_name(tv_res.tag)))
     let i32_res = resolve_type_name_generic(String_from("i32"), gp)
     stdio::println(concat(String_from("concrete i32: "), type_tag_name(i32_res.tag)))
-
-    // Test instantiate_type
     let tv_t = TypeInfo_named(TY_TYPE_VAR(), String_from("T"))
     let inst_names = Vec_new_String()
     push(inst_names, String_from("T"))
@@ -1261,25 +1361,80 @@ fn main() {
     push(inst_types, TypeInfo_simple(TY_I32()))
     let inst_result = instantiate_type(tv_t, inst_names, inst_types)
     stdio::println(concat(String_from("instantiate T->i32: "), type_tag_name(inst_result.tag)))
-
-    // Test lookup_fn_sig
     let test_sigs = Vec_new_FnSig()
     let id_params = Vec_new_TypeInfo()
     push(id_params, TypeInfo_named(TY_TYPE_VAR(), String_from("T")))
     let id_tp = Vec_new_String()
     push(id_tp, String_from("T"))
-    push(test_sigs, FnSig {
-        name: String_from("identity"),
-        param_types: id_params,
-        return_type: TypeInfo_named(TY_TYPE_VAR(), String_from("T")),
-        type_params: id_tp,
-    })
+    push(test_sigs, FnSig { name: String_from("identity"), param_types: id_params, return_type: TypeInfo_named(TY_TYPE_VAR(), String_from("T")), type_params: id_tp })
     let found_sig = lookup_fn_sig(test_sigs, String_from("identity"))
     stdio::println(concat(String_from("found sig: "), clone(found_sig.name)))
     let not_found = lookup_fn_sig(test_sigs, String_from("nope"))
     if eq(clone(not_found.name), String_from("")) {
         stdio::println(String_from("missing sig: (none)"))
     }
-
     stdio::println(String_from("TypeChecker OK."))
 }
+// ── Type Tags (from hir.ark) ─────────────────────────────────────────────────
+// Dedup: skip if already recorded
+// If either is unknown, take the other
+// If both are type vars, bind one to the other
+// Same concrete type
+// Compare type arguments for generic types (e.g., Vec<i32> vs Vec<String>)
+// Numeric widening: allow i32 literal to unify with i64 context.
+// Narrow integer types — treat as i32 at the selfhost level
+// NK_TYPE_GENERIC
+// children: [0]=base, [1..]=type arguments
+// NK_TYPE_GENERIC
+// `impl Trait for Type { ... }` stores trait head in type_ann[0] and self type in type_ann[1].
+// Literals
+// Variable reference
+// Lexical environment: clone enclosing `let` bindings into the closure scope
+// so the body can resolve captured identifiers (issue #499).
+// Binary expression
+// Comparison operators always produce bool
+// Logical operators always produce bool
+// Arithmetic operators propagate operand type via unification
+// Unary expression — propagate operand type
+// Block — type is the type of the last expression
+// Last child: its inferred type is the block type
+// If expression — infer from then branch
+// Call expression — infer return type via fn signature lookup
+// Only look up simple identifiers in fn_sigs
+// Local closure value (lambda): MIR lowers calls with capture injection (#499).
+// Non-generic function: return declared return type
+// Generic function: instantiate type params and unify with arguments
+// Create fresh type vars for each type param
+// Unify argument types with instantiated parameter types
+// Resolve return type through instantiation and substitution
+// Record monomorphization instance: collect resolved concrete type args
+// Method call: recv.method(args) — signatures include methods from `impl` blocks (issue #504).
+// Match expression
+// Catch-all patterns make the match exhaustive
+// Track bool literal coverage
+// Body is the last child of the arm
+// Exhaustiveness check for bool scrutinee
+// Infer from initializer expression
+// Unify with explicit type annotation if present (handles Vec<i32>, Vec<String>, etc.)
+// Bind the variable name to the inferred type
+// Walk body children
+// For any expression node used as a statement, try to infer its type
+// Collect generic type param names and bounds from type annotations.
+// Register parameter types from children (all except last child = body block)
+// Walk body block (last child)
+// Pass 1: Build function signature registry (needed for call-site inference)
+// Pass 2: Type-check function bodies and build TypedFn entries
+// Search type_ann for the __return marker
+// Infer expression types within the function body
+// Propagate any type errors from inference
+// Collect monomorphization instances from inference
+// Test unification
+// Test type var
+// Test error
+// Test expression inference: literals
+// Infer integer literal → i32
+// Infer float → f64
+// Test binary op unification: i32 + i32 = i32
+// Test generic-aware type resolution
+// Test instantiate_type
+// Test lookup_fn_sig

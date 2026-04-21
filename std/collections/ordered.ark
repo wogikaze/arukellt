@@ -1,11 +1,7 @@
-//! Ordered collection helpers backed by sorted vectors.
-//!
-//! The current surface provides a sorted map and bitset-style utilities.
-
+/// Ordered collection helpers backed by sorted vectors.
+/// 
+/// The current surface provides a sorted map and bitset-style utilities.
 pub fn sorted_map_new() -> Vec<i32> {
-    // Layout: [count, ...keys(n), ...values(n)] — kept sorted by key
-    // We use two parallel vecs packed into one: first half keys, second half values
-    // Actually simpler: [count, k0, v0, k1, v1, ...]
     let m: Vec<i32> = Vec_new_i32()
     push(m, 0)
     m
@@ -20,7 +16,7 @@ pub fn sorted_map_find_idx(m: Vec<i32>, key: i32) -> i32 {
     let mut lo: i32 = 0
     let mut hi: i32 = count
     while lo < hi {
-        let mid: i32 = (lo + hi) / 2
+        let mid: i32 = lo + hi / 2
         let mk: i32 = get_unchecked(m, 1 + mid * 2)
         if mk < key {
             lo = mid + 1
@@ -65,13 +61,12 @@ pub fn sorted_map_insert(m: Vec<i32>, key: i32, value: i32) {
         if k == key {
             set(m, 1 + idx * 2 + 1, value)
         } else {
-            // Insert at idx: shift elements right
             push(m, 0)
             push(m, 0)
             let mut i: i32 = count - 1
             while i >= idx {
-                set(m, 1 + (i + 1) * 2, get_unchecked(m, 1 + i * 2))
-                set(m, 1 + (i + 1) * 2 + 1, get_unchecked(m, 1 + i * 2 + 1))
+                set(m, 1 + i + 1 * 2, get_unchecked(m, 1 + i * 2))
+                set(m, 1 + i + 1 * 2 + 1, get_unchecked(m, 1 + i * 2 + 1))
                 i = i - 1
             }
             set(m, 1 + idx * 2, key)
@@ -86,7 +81,6 @@ pub fn sorted_map_insert(m: Vec<i32>, key: i32, value: i32) {
 }
 
 // --- BTreeMap API (sorted-vector backed, i32 key, i32 value) ---
-
 pub fn btree_new() -> Vec<i32> {
     sorted_map_new()
 }
@@ -107,8 +101,8 @@ pub fn btree_remove(m: Vec<i32>, key: i32) {
         if k == key {
             let mut i: i32 = idx
             while i < count - 1 {
-                set(m, 1 + i * 2, get_unchecked(m, 1 + (i + 1) * 2))
-                set(m, 1 + i * 2 + 1, get_unchecked(m, 1 + (i + 1) * 2 + 1))
+                set(m, 1 + i * 2, get_unchecked(m, 1 + i + 1 * 2))
+                set(m, 1 + i * 2 + 1, get_unchecked(m, 1 + i + 1 * 2 + 1))
                 i = i + 1
             }
             pop(m)
@@ -154,7 +148,6 @@ pub fn btree_range(m: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
 }
 
 // --- BTreeSet API (sorted unique values, i32) ---
-
 pub fn btree_set_new() -> Vec<i32> {
     let s: Vec<i32> = Vec_new_i32()
     push(s, 0)
@@ -166,7 +159,7 @@ pub fn btree_set_find_idx(s: Vec<i32>, value: i32) -> i32 {
     let mut lo: i32 = 0
     let mut hi: i32 = count
     while lo < hi {
-        let mid: i32 = (lo + hi) / 2
+        let mid: i32 = lo + hi / 2
         let v: i32 = get_unchecked(s, 1 + mid)
         if v < value {
             lo = mid + 1
@@ -218,7 +211,6 @@ pub fn btree_set_len(s: Vec<i32>) -> i32 {
 
 // --- IndexMap API (insertion-order map, i32 key, i32 value) ---
 // Layout: [count, k0, v0, k1, v1, ...]
-
 pub fn index_map_new() -> Vec<i32> {
     let m: Vec<i32> = Vec_new_i32()
     push(m, 0)
@@ -279,7 +271,6 @@ pub fn index_map_keys(m: Vec<i32>) -> Vec<i32> {
 
 // --- IndexSet API (insertion-order unique values, i32) ---
 // Layout: [count, v0, v1, ...]
-
 pub fn index_set_new() -> Vec<i32> {
     let s: Vec<i32> = Vec_new_i32()
     push(s, 0)
@@ -319,7 +310,6 @@ pub fn index_set_len(s: Vec<i32>) -> i32 {
 }
 
 // --- BitSet ---
-
 pub fn bitset_new() -> Vec<i32> {
     let bs: Vec<i32> = Vec_new_i32()
     push(bs, 256)
@@ -345,7 +335,7 @@ pub fn bitset_unmark(bs: Vec<i32>, bit: i32) {
     let offset: i32 = bit % 32
     let old: i32 = get_unchecked(bs, 1 + word)
     let mask: i32 = 1 << offset
-    let inv: i32 = mask ^ (0 - 1)
+    let inv: i32 = mask ^ 0 - 1
     let newval: i32 = old & inv
     set(bs, 1 + word, newval)
 }
@@ -360,7 +350,6 @@ pub fn bitset_test(bs: Vec<i32>, bit: i32) -> bool {
 }
 
 // New API-compatible aliases and extended BitSet operations
-
 pub fn bitset_set(bs: Vec<i32>, bit: i32) {
     bitset_mark(bs, bit)
 }
@@ -372,7 +361,7 @@ pub fn bitset_clear(bs: Vec<i32>, bit: i32) {
 pub fn bitset_with_capacity(cap: i32) -> Vec<i32> {
     let bs: Vec<i32> = Vec_new_i32()
     push(bs, cap)
-    let words: i32 = (cap + 31) / 32
+    let words: i32 = cap + 31 / 32
     let mut i: i32 = 0
     while i < words {
         push(bs, 0)
@@ -383,13 +372,13 @@ pub fn bitset_with_capacity(cap: i32) -> Vec<i32> {
 
 pub fn bitset_count(bs: Vec<i32>) -> i32 {
     let cap: i32 = get_unchecked(bs, 0)
-    let words: i32 = (cap + 31) / 32
+    let words: i32 = cap + 31 / 32
     let mut total: i32 = 0
     let mut w: i32 = 0
     while w < words {
         let mut val: i32 = get_unchecked(bs, 1 + w)
         while val != 0 {
-            val = val & (val - 1)
+            val = val & val - 1
             total = total + 1
         }
         w = w + 1
@@ -405,9 +394,9 @@ pub fn bitset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
         cap = cap_b
     }
     let result: Vec<i32> = bitset_with_capacity(cap)
-    let words_a: i32 = (cap_a + 31) / 32
-    let words_b: i32 = (cap_b + 31) / 32
-    let words: i32 = (cap + 31) / 32
+    let words_a: i32 = cap_a + 31 / 32
+    let words_b: i32 = cap_b + 31 / 32
+    let words: i32 = cap + 31 / 32
     let mut i: i32 = 0
     while i < words {
         let mut va: i32 = 0
@@ -432,7 +421,7 @@ pub fn bitset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
         cap = cap_b
     }
     let result: Vec<i32> = bitset_with_capacity(cap)
-    let words: i32 = (cap + 31) / 32
+    let words: i32 = cap + 31 / 32
     let mut i: i32 = 0
     while i < words {
         let va: i32 = get_unchecked(a, 1 + i)
@@ -442,3 +431,7 @@ pub fn bitset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     }
     result
 }
+// Layout: [count, ...keys(n), ...values(n)] — kept sorted by key
+// We use two parallel vecs packed into one: first half keys, second half values
+// Actually simpler: [count, k0, v0, k1, v1, ...]
+// Insert at idx: shift elements right

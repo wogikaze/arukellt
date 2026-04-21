@@ -1,8 +1,13 @@
-use std::host::stdio
 use std::host::process
+use std::host::stdio
 
-fn MIR_PHI() -> i32 { 73 }
-fn VT_I32() -> i32 { 1 }
+fn MIR_PHI() -> i32 {
+    73
+}
+
+fn VT_I32() -> i32 {
+    1
+}
 
 struct MirPhiArg {
     pred_block: i32,
@@ -17,12 +22,7 @@ struct MirPhi {
 }
 
 fn MirPhi_new(dest: i32, val_type: i32) -> MirPhi {
-    MirPhi {
-        op: MIR_PHI(),
-        dest: dest,
-        val_type: val_type,
-        args: Vec_new_MirPhiArg(),
-    }
+    MirPhi { op: MIR_PHI(), dest: dest, val_type: val_type, args: Vec_new_MirPhiArg() }
 }
 
 fn mir_phi_add_arg(phi: MirPhi, pred_block: i32, local: i32) {
@@ -40,7 +40,6 @@ fn mir_format_phi(phi: MirPhi) -> String {
     let mut out = String_from("phi %")
     out = concat(out, to_string(phi.dest))
     out = concat(out, String_from(" = ["))
-
     let arg_count = len(phi.args)
     let mut i = 0
     while i < arg_count {
@@ -54,7 +53,6 @@ fn mir_format_phi(phi: MirPhi) -> String {
         out = concat(out, to_string(arg.local))
         i = i + 1
     }
-
     out = concat(out, String_from("] : "))
     concat(out, mir_value_type_name(phi.val_type))
 }
@@ -70,10 +68,8 @@ fn run_phi_representation_smoke() {
     let phi = MirPhi_new(3, VT_I32())
     mir_phi_add_arg(phi, 1, 1)
     mir_phi_add_arg(phi, 2, 2)
-
     ensure(phi.op == MIR_PHI(), String_from("expected MIR_PHI tag"))
     ensure(len(phi.args) == 2, String_from("expected two phi args"))
-
     stdio::eprintln(String_from("MIR module: 1 function(s)"))
     stdio::eprintln(String_from("  fn phi_repr_sample (4 locals, 4 blocks)"))
     stdio::eprintln(String_from("    bb0: phis=0 instructions=1 succs=[1,2] preds=[] idom=- df=[]"))

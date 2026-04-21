@@ -7,8 +7,8 @@ fn triple(x: i32) -> i32 {
 
 /// Calls a function reference in tail position.
 /// At opt_level >= 1 the TCO pass detects:
-///   let f = triple  →  fn_ref_locals[f] = "triple"
-///   f(x)            →  TailCallRef { callee: FnRef("triple"), args: [x] }
+/// let f = triple  →  fn_ref_locals[f] = "triple"
+/// f(x)            →  TailCallRef { callee: FnRef("triple"), args: [x] }
 /// The T3 emitter then emits:  ref.func $triple  +  return_call_ref $type
 fn apply_fn_ref(x: i32) -> i32 {
     let f = triple

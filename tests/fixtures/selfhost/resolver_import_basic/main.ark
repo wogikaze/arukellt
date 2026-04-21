@@ -5,8 +5,8 @@
 //   - `use mymath` (local module import, no `std::` prefix)
 //   - Calling a pub function from the imported module: mymath::add, mymath::mul
 //   - Verifying the module file is loaded and its symbols are in scope
-
 use std::host::stdio
+
 use mymath
 
 fn main() {

@@ -2,7 +2,6 @@ use std::collections::linear
 use std::host::stdio
 
 fn main() {
-    // Deque
     let d: Vec<i32> = linear::deque_new()
     linear::deque_push_back(d, 10)
     linear::deque_push_back(d, 20)
@@ -13,8 +12,6 @@ fn main() {
     let b: i32 = linear::deque_pop_back(d)
     stdio::println(i32_to_string(b))
     stdio::println(i32_to_string(linear::deque_len(d)))
-
-    // PriorityQueue
     let pq: Vec<i32> = linear::pq_new()
     linear::pq_push(pq, 30)
     linear::pq_push(pq, 10)
@@ -25,3 +22,5 @@ fn main() {
     let m2: i32 = linear::pq_pop(pq)
     stdio::println(i32_to_string(m2))
 }
+// Deque
+// PriorityQueue

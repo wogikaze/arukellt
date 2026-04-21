@@ -1,8 +1,9 @@
 use std::host::stdio
+
 fn main() {
     let r: Result<i32, String> = Err(String_from("something went wrong"))
     match r {
-        Ok(val) => stdio::println(i32_to_string(val)),
-        Err(e) => stdio::println(e),
+        Result::Ok(val) => stdio::println(i32_to_string(val)),
+        Result::Err(e) => stdio::println(e),
     }
 }

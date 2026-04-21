@@ -5,4 +5,5 @@ pub fn maybe_values(flag: bool) -> Option<Vec<i32>> {
     None
 }
 
-fn main() {}
+fn main() {
+}

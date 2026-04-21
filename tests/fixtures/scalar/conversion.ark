@@ -1,28 +1,24 @@
 use std::host::stdio
 
 fn main() {
-    // u8 → i32 (widening, no-op in Wasm: u8 is stored as i32)
     let a: u8 = 255u8
     let a_i32: i32 = u8_to_i32(a)
     stdio::println(a_i32)
-
-    // i32 → u8 (masking with 0xFF: 300 & 0xFF = 44)
     let b: i32 = 300
     let b_u8: u8 = i32_to_u8(b)
     stdio::println(b_u8)
-
-    // u16 → i32 (widening)
     let c: u16 = 1000u16
     let c_i32: i32 = u16_to_i32(c)
     stdio::println(c_i32)
-
-    // i8 → i32 (widening, sign-extended)
     let d: i8 = 42i8
     let d_i32: i32 = i8_to_i32(d)
     stdio::println(d_i32)
-
-    // u32 → u64 (zero-extend)
     let e: u32 = 1000000u32
     let e_u64: u64 = u32_to_u64(e)
     stdio::println(e_u64)
 }
+// u8 → i32 (widening, no-op in Wasm: u8 is stored as i32)
+// i32 → u8 (masking with 0xFF: 300 & 0xFF = 44)
+// u16 → i32 (widening)
+// i8 → i32 (widening, sign-extended)
+// u32 → u64 (zero-extend)

@@ -1,7 +1,7 @@
 // Fixture: --deny-clock blocks programs that use clock intrinsics at compile time.
 // Expected: compile-time error from MIR capability scan.
-use std::host::stdio
 use std::host::clock
+use std::host::stdio
 
 fn main() {
     let t = clock::monotonic_now()

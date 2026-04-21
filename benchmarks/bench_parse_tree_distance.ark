@@ -6,24 +6,22 @@ fn is_space(ch: i32) -> bool {
 }
 
 fn dist_offset(n: i32, i: i32, j: i32) -> i32 {
-    i * (2 * n - i - 1) / 2 + (j - i - 1)
+    i * 2 * n - i - 1 / 2 + j - i - 1
 }
 
 fn main() {
     let read_result: Result<String, String> = fs::read_to_string("benchmarks/bench_parse_tree_distance.input.txt")
     match read_result {
-        Ok(raw) => {
+        Result::Ok(raw) => {
             let mut pos = 0
             while pos < len(raw) && is_space(char_at(raw, pos)) {
                 pos = pos + 1
             }
-
             let mut n = 0
             while pos < len(raw) && !is_space(char_at(raw, pos)) {
-                n = n * 10 + (char_at(raw, pos) - 48)
+                n = n * 10 + char_at(raw, pos) - 48
                 pos = pos + 1
             }
-
             let dists: Vec<i32> = Vec_new_i32()
             let mut i = 0
             while i < n {
@@ -32,19 +30,16 @@ fn main() {
                     while pos < len(raw) && is_space(char_at(raw, pos)) {
                         pos = pos + 1
                     }
-
                     let mut value = 0
                     while pos < len(raw) && !is_space(char_at(raw, pos)) {
-                        value = value * 10 + (char_at(raw, pos) - 48)
+                        value = value * 10 + char_at(raw, pos) - 48
                         pos = pos + 1
                     }
-
                     push(dists, value)
                     j = j + 1
                 }
                 i = i + 1
             }
-
             let order_keys: Vec<i32> = Vec_new_i32()
             let base = n + 1
             let mut v = 0
@@ -58,10 +53,8 @@ fn main() {
                 v = v + 1
             }
             sort_i32(order_keys)
-
             let processed: Vec<i32> = Vec_new_i32()
             push(processed, 0)
-
             let mut ok = true
             let mut k = 1
             while ok && k < len(order_keys) {
@@ -74,7 +67,6 @@ fn main() {
                 let mut parent = 0
                 let mut best_depth = 0
                 let mut p = 0
-
                 while p < len(processed) {
                     let u = get_unchecked(processed, p)
                     let u_depth = if u == 0 {
@@ -82,7 +74,6 @@ fn main() {
                     } else {
                         get_unchecked(dists, dist_offset(n, 0, u))
                     }
-
                     let mut a = u
                     let mut b = v
                     if a > b {
@@ -95,14 +86,12 @@ fn main() {
                     } else {
                         get_unchecked(dists, dist_offset(n, a, b))
                     }
-
                     if u_depth + uv == root_dist && u_depth >= best_depth {
                         best_depth = u_depth
                         parent = u
                     }
                     p = p + 1
                 }
-
                 let parent_depth = if parent == 0 {
                     0
                 } else {
@@ -115,7 +104,6 @@ fn main() {
                     p = 0
                     while ok && p < len(processed) {
                         let u = get_unchecked(processed, p)
-
                         let mut a1 = v
                         let mut b1 = u
                         if a1 > b1 {
@@ -128,7 +116,6 @@ fn main() {
                         } else {
                             get_unchecked(dists, dist_offset(n, a1, b1))
                         }
-
                         let mut a2 = parent
                         let mut b2 = u
                         if a2 > b2 {
@@ -141,26 +128,23 @@ fn main() {
                         } else {
                             get_unchecked(dists, dist_offset(n, a2, b2))
                         }
-
                         if vu != weight + pu {
                             ok = false
                         }
                         p = p + 1
                     }
                 }
-
                 if ok {
                     push(processed, v)
                 }
                 k = k + 1
             }
-
             if ok {
                 stdio::println("Yes")
             } else {
                 stdio::println("No")
             }
-        }
-        Err(e) => stdio::println(e),
+        },
+        Result::Err(e) => stdio::println(e),
     }
 }

@@ -1,14 +1,12 @@
 use std::host::stdio
+
 fn main() {
     let name: String = String_from("world")
-    stdio::println(f"Hello, {name}!")
-
+    stdio::println(concat(concat("Hello, ", to_string(name)), "!"))
     let x: i32 = 42
-    stdio::println(f"The answer is {x}.")
-
+    stdio::println(concat(concat("The answer is ", to_string(x)), "."))
     let flag: bool = true
-    stdio::println(f"flag is {flag}")
-
+    stdio::println(concat("flag is ", to_string(flag)))
     let pi: f64 = 3.14
-    stdio::println(f"pi = {pi}")
+    stdio::println(concat("pi = ", to_string(pi)))
 }

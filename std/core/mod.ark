@@ -1,8 +1,7 @@
-//! Fundamental types and helpers shared across the standard library.
-//!
-//! This module exposes foundational types (`Ordering`, `Range`) and helpers
-//! that other stdlib modules build upon.
-
+/// Fundamental types and helpers shared across the standard library.
+/// 
+/// This module exposes foundational types (`Ordering`, `Range`) and helpers
+/// that other stdlib modules build upon.
 /// Ordering relationship between two values.
 pub enum Ordering {
     Less,
@@ -33,7 +32,7 @@ pub fn range_contains(r: Range, value: i32) -> bool {
 }
 
 /// Returns the non-negative length of the half-open range.
-pub fn range_len(r: Range, ) -> i32 {
+pub fn range_len(r: Range) -> i32 {
     if r.end > r.start {
         r.end - r.start
     } else {
@@ -53,10 +52,12 @@ pub fn range_inclusive_contains(r: RangeInclusive, value: i32) -> bool {
 pub fn cmp_i32(a: i32, b: i32) -> Ordering {
     if a < b {
         Ordering::Less
-    } else if a > b {
-        Ordering::Greater
     } else {
-        Ordering::Equal
+        if a > b {
+            Ordering::Greater
+        } else {
+            Ordering::Equal
+        }
     }
 }
 

@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn main() {
     let arr = [10, 20, 30]
     stdio::println(arr[0])

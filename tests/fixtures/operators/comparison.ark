@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn main() {
     stdio::println(bool_to_string(1 == 1))
     stdio::println(bool_to_string(1 != 2))

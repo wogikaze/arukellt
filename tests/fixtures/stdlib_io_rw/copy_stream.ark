@@ -1,35 +1,42 @@
-use std::io
 use std::bytes
 use std::host::stdio
+use std::io
 
 fn main() {
-    // Source reader with "hello world"
     let data: Vec<i32> = bytes::bytes_new()
-    bytes::bytes_push(data, 104)  // h
-    bytes::bytes_push(data, 101)  // e
-    bytes::bytes_push(data, 108)  // l
-    bytes::bytes_push(data, 108)  // l
-    bytes::bytes_push(data, 111)  // o
-    bytes::bytes_push(data, 32)   // ' '
-    bytes::bytes_push(data, 119)  // w
-    bytes::bytes_push(data, 111)  // o
-    bytes::bytes_push(data, 114)  // r
-    bytes::bytes_push(data, 108)  // l
-    bytes::bytes_push(data, 100)  // d
-
+    bytes::bytes_push(data, 104)
+    bytes::bytes_push(data, 101)
+    bytes::bytes_push(data, 108)
+    bytes::bytes_push(data, 108)
+    bytes::bytes_push(data, 111)
+    bytes::bytes_push(data, 32)
+    bytes::bytes_push(data, 119)
+    bytes::bytes_push(data, 111)
+    bytes::bytes_push(data, 114)
+    bytes::bytes_push(data, 108)
+    bytes::bytes_push(data, 100)
     let src: Vec<i32> = io::reader_from_bytes(data)
     let dst: Vec<i32> = io::writer_new()
-
     let res: Result<i32, String> = io::copy_bytes(src, dst)
     match res {
-        Ok(n) => stdio::println(i32_to_string(n)),
-        Err(e) => stdio::println(e),
+        Result::Ok(n) => stdio::println(i32_to_string(n)),
+        Result::Err(e) => stdio::println(e),
     }
-
-    // dst should now hold all bytes
     let out: Vec<i32> = io::writer_to_bytes(dst)
     stdio::println(bytes::string_from_bytes(out))
-
-    // src should be at eof
     stdio::println(bool_to_string(io::reader_eof(src)))
 }
+// Source reader with "hello world"
+// h
+// e
+// l
+// l
+// o
+// ' '
+// w
+// o
+// r
+// l
+// d
+// dst should now hold all bytes
+// src should be at eof

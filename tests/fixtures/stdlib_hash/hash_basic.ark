@@ -10,8 +10,8 @@ fn main() {
     stdio::println(i32_to_string(hash::hashmap_get(m, 7)))
     stdio::println(bool_to_string(hash::hashmap_contains(m, 42)))
     stdio::println(bool_to_string(hash::hashmap_contains(m, 99)))
-    // overwrite
     hash::hashmap_set(m, 42, 300)
     stdio::println(i32_to_string(hash::hashmap_get(m, 42)))
     stdio::println(i32_to_string(hash::hashmap_size(m)))
 }
+// overwrite

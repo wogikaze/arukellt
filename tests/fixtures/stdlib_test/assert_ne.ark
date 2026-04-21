@@ -1,5 +1,5 @@
-use std::test
 use std::host::stdio
+use std::test
 
 fn main() {
     test::assert_ne_i32(1, 2)

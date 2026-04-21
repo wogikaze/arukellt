@@ -1,7 +1,8 @@
 use std::host::stdio
+
 fn main() {
     let name = String_from("world")
     let x = 42
-    stdio::println(f"hello {name}")
-    stdio::println(f"x = {x}")
+    stdio::println(concat("hello ", to_string(name)))
+    stdio::println(concat("x = ", to_string(x)))
 }

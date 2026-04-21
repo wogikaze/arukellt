@@ -1,17 +1,16 @@
-//! std::process — process exit and abort.
-//!
-//! Provides cross-module wrappers for host-level process control.
-//! On WASI targets these map to `proc_exit` / an abort trap.
-
+/// std::process — process exit and abort.
+/// 
+/// Provides cross-module wrappers for host-level process control.
+/// On WASI targets these map to `proc_exit` / an abort trap.
 /// Terminates the process with the given exit code.
-///
+/// 
 /// This function does not return.
 pub fn exit(code: i32) {
     __intrinsic_process_exit(code)
 }
 
 /// Terminates the process immediately with an abort signal (exit code 134).
-///
+/// 
 /// This function does not return.
 pub fn abort() {
     __intrinsic_process_abort()

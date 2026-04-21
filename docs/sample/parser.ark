@@ -9,7 +9,6 @@
 //
 // NOTE: This is a v0 arukellt transliteration of parser.rs.
 // It demonstrates the language's expressiveness and limitations.
-
 import io
 
 fn str_find(s: String, needle: String) -> Option<i32> {
@@ -31,17 +30,26 @@ fn str_char_count(s: String) -> i32 {
 
 fn trim_start(s: String) -> String {
     let mut i = 0
-    while i < len(s) && (char_at(s, i) == 32 || char_at(s, i) == 9 || char_at(s, i) == 13) {
+    while i < len(s) && char_at(s, i) == 32 || char_at(s, i) == 9 || char_at(s, i) == 13 {
         i = i + 1
     }
     substring(s, i, len(s))
 }
 
 fn char_byte_len(c: i32) -> i32 {
-    if c < 128 { 1 }
-    else if c < 224 { 2 }
-    else if c < 240 { 3 }
-    else { 4 }
+    if c < 128 {
+        1
+    } else {
+        if c < 224 {
+            2
+        } else {
+            if c < 240 {
+                3
+            } else {
+                4
+            }
+        }
+    }
 }
 
 fn char_at_char_index(s: String, i: i32) -> i32 {
@@ -49,28 +57,79 @@ fn char_at_char_index(s: String, i: i32) -> i32 {
 }
 
 // ── Warning codes ────────────────────────────────────────────────────────────
+fn RUBY_KATAKANA_HIRAGANA() -> String {
+    "ruby-katakana-hiragana"
+}
 
-fn RUBY_KATAKANA_HIRAGANA() -> String { "ruby-katakana-hiragana" }
-fn RUBY_EMPTY_BASE() -> String { "ruby-empty-base" }
-fn RUBY_EMPTY_READING() -> String { "ruby-empty-reading" }
-fn RUBY_SELF_REFERENTIAL() -> String { "ruby-self-referential" }
-fn RUBY_MALFORMED() -> String { "ruby-malformed" }
-fn ANNO_LOOKS_LIKE_RUBY() -> String { "anno-looks-like-ruby" }
-fn ANNO_MALFORMED() -> String { "anno-malformed" }
-fn ANNO_EMPTY_BASE() -> String { "anno-empty-base" }
-fn KANJI_NO_RUBY() -> String { "kanji-no-ruby" }
-fn MATH_UNCLOSED_DISPLAY() -> String { "math-unclosed-display" }
-fn MATH_UNCLOSED_INLINE() -> String { "math-unclosed-inline" }
-fn FOOTNOTE_UNDEFINED_REF() -> String { "footnote-undefined-ref" }
-fn FOOTNOTE_UNUSED_DEF() -> String { "footnote-unused-def" }
-fn CARD_NON_HTTP() -> String { "card-non-http" }
-fn CARD_MALFORMED() -> String { "card-malformed" }
-fn CARD_UNKNOWN_TYPE() -> String { "card-unknown-type" }
-fn RUBY_KANA_BASE() -> String { "ruby-kana-base" }
-fn RUBY_KANJI_READING() -> String { "ruby-kanji-reading" }
+fn RUBY_EMPTY_BASE() -> String {
+    "ruby-empty-base"
+}
+
+fn RUBY_EMPTY_READING() -> String {
+    "ruby-empty-reading"
+}
+
+fn RUBY_SELF_REFERENTIAL() -> String {
+    "ruby-self-referential"
+}
+
+fn RUBY_MALFORMED() -> String {
+    "ruby-malformed"
+}
+
+fn ANNO_LOOKS_LIKE_RUBY() -> String {
+    "anno-looks-like-ruby"
+}
+
+fn ANNO_MALFORMED() -> String {
+    "anno-malformed"
+}
+
+fn ANNO_EMPTY_BASE() -> String {
+    "anno-empty-base"
+}
+
+fn KANJI_NO_RUBY() -> String {
+    "kanji-no-ruby"
+}
+
+fn MATH_UNCLOSED_DISPLAY() -> String {
+    "math-unclosed-display"
+}
+
+fn MATH_UNCLOSED_INLINE() -> String {
+    "math-unclosed-inline"
+}
+
+fn FOOTNOTE_UNDEFINED_REF() -> String {
+    "footnote-undefined-ref"
+}
+
+fn FOOTNOTE_UNUSED_DEF() -> String {
+    "footnote-unused-def"
+}
+
+fn CARD_NON_HTTP() -> String {
+    "card-non-http"
+}
+
+fn CARD_MALFORMED() -> String {
+    "card-malformed"
+}
+
+fn CARD_UNKNOWN_TYPE() -> String {
+    "card-unknown-type"
+}
+
+fn RUBY_KANA_BASE() -> String {
+    "ruby-kana-base"
+}
+
+fn RUBY_KANJI_READING() -> String {
+    "ruby-kanji-reading"
+}
 
 // ── Front matter ─────────────────────────────────────────────────────────────
-
 struct FrontMatterField {
     key: String,
     raw: String,
@@ -98,18 +157,15 @@ fn extract_front_matter(text: String) -> Option<FmResult> {
             return None
         }
     }
-
     let after_open = unwrap(str_find(text, "\n")) + 1
     let rest = substring(text, after_open, len(text))
-
-    // Find closing --- line
     let close_pos = str_find(rest, "\n---\n")
     let close = match close_pos {
-        Some(p) => Some(FmBounds { fm_end: p, content_start: p + 5 }),
+        Option::Some(p) => Some(FmBounds { fm_end: p, content_start: p + 5 }),
         None => {
             let close2 = str_find(rest, "\n---\r\n")
             match close2 {
-                Some(p) => Some(FmBounds { fm_end: p, content_start: p + 6 }),
+                Option::Some(p) => Some(FmBounds { fm_end: p, content_start: p + 6 }),
                 None => {
                     if ends_with(rest, "\n---") {
                         Some(FmBounds { fm_end: len(rest) - 4, content_start: len(rest) })
@@ -120,17 +176,15 @@ fn extract_front_matter(text: String) -> Option<FmResult> {
             }
         },
     }
-
     match close {
         None => None,
-        Some(b) => {
+        Option::Some(b) => {
             let fm_str = substring(rest, 0, b.fm_end)
             let remainder = if b.content_start < len(rest) {
                 substring(rest, b.content_start, len(rest))
             } else {
                 ""
             }
-
             let mut fields: Vec<FrontMatterField> = Vec_new_FrontMatterField()
             let lines = split(fm_str, "\n")
             let mut i = 0
@@ -140,14 +194,15 @@ fn extract_front_matter(text: String) -> Option<FmResult> {
                     if !starts_with(line, "#") {
                         let colon = str_find(line, ":")
                         match colon {
-                            Some(idx) => {
+                            Option::Some(idx) => {
                                 let key = trim(substring(line, 0, idx))
                                 let raw = trim(substring(line, idx + 1, len(line)))
                                 if len(key) > 0 {
                                     push(fields, FrontMatterField_new(key, raw))
                                 }
                             },
-                            None => {},
+                            None => {
+                            },
                         }
                     }
                 }
@@ -159,7 +214,6 @@ fn extract_front_matter(text: String) -> Option<FmResult> {
 }
 
 // ── Warning struct ────────────────────────────────────────────────────────────
-
 struct Warning {
     code: String,
     message: String,
@@ -173,7 +227,6 @@ fn Warning_new(code: String, message: String, source: String, line: i32, col: i3
 }
 
 // ── Position context ─────────────────────────────────────────────────────────
-
 struct ParseCtx {
     input: String,
     source: String,
@@ -206,11 +259,10 @@ fn ctx_pos(ctx: ParseCtx, offset: i32) -> Pos {
     if offset > len(ctx.input) {
         return Pos { line: 1, col: 1 }
     }
-    // binary search for last line_start <= offset
     let mut lo = 0
     let mut hi = len(ctx.line_starts) - 1
     while lo < hi {
-        let mid = (lo + hi + 1) / 2
+        let mid = lo + hi + 1 / 2
         if get_unchecked(ctx.line_starts, mid) <= offset {
             lo = mid
         } else {
@@ -223,13 +275,7 @@ fn ctx_pos(ctx: ParseCtx, offset: i32) -> Pos {
     Pos { line: line, col: col }
 }
 
-fn ctx_warn(
-    ctx: ParseCtx,
-    warnings: Vec<Warning>,
-    code: String,
-    msg: String,
-    at_offset: i32,
-) {
+fn ctx_warn(ctx: ParseCtx, warnings: Vec<Warning>, code: String, msg: String, at_offset: i32) {
     let pos = ctx_pos(ctx, at_offset)
     let line = pos.line
     let col = pos.col
@@ -237,7 +283,6 @@ fn ctx_warn(
 }
 
 // ── AST types ────────────────────────────────────────────────────────────────
-
 enum Alignment {
     AlignNone,
     Left,
@@ -286,7 +331,6 @@ enum Event {
 }
 
 // ── Public parser ─────────────────────────────────────────────────────────────
-
 struct ParserResult {
     events: Vec<Event>,
     warnings: Vec<Warning>,
@@ -300,16 +344,13 @@ fn parse_with_source(text: String, source: String) -> ParserResult {
     let ctx = ParseCtx_new(text, source)
     let mut events: Vec<Event> = Vec_new_Event()
     let mut warnings: Vec<Warning> = Vec_new_Warning()
-
-    // Strip front matter first
     let content = match extract_front_matter(text) {
-        Some(r) => {
+        Option::Some(r) => {
             push(events, Event::FrontMatter(r.fields))
             r.remainder
         },
         None => text,
     }
-
     let lines = split(content, "\n")
     let fn_defs = collect_fn_defs(lines)
     let mut fn_refs: Vec<String> = Vec_new_String()
@@ -319,7 +360,6 @@ fn parse_with_source(text: String, source: String) -> ParserResult {
 }
 
 // ── FNV-1a hash ──────────────────────────────────────────────────────────────
-
 fn fnv1a(s: String) -> i32 {
     let mut h: i32 = -2128831035
     let mut i = 0
@@ -333,68 +373,56 @@ fn fnv1a(s: String) -> i32 {
 }
 
 // ── Source block splitting ────────────────────────────────────────────────────
-
 fn split_source_blocks(input: String) -> Vec<String> {
     let mut result: Vec<String> = Vec_new_String()
     let mut block_start: Option<i32> = None
     let mut block_end: i32 = 0
     let mut in_fence: bool = false
     let mut pos: i32 = 0
-
     let lines = split(input, "\n")
     let mut i = 0
     while i < len(lines) {
         let line = get(lines, i)
         let line_end = pos + len(line)
         let trimmed = trim_start(line)
-
         if starts_with(trimmed, "```") {
             in_fence = !in_fence
         }
-
         if !in_fence && len(trimmed) == 0 {
             match block_start {
-                Some(start) => {
+                Option::Some(start) => {
                     push(result, substring(input, start, block_end))
                     block_start = None
                 },
-                None => {},
+                None => {
+                },
             }
         } else {
             match block_start {
-                None => { block_start = Some(pos) },
-                Some(_) => {},
+                None => {
+                    block_start = Some(pos)
+                },
+                Option::Some(_) => {
+                },
             }
             block_end = line_end
         }
-
         pos = line_end + 1
         i = i + 1
     }
-
     match block_start {
-        Some(start) => {
+        Option::Some(start) => {
             push(result, substring(input, start, block_end))
         },
-        None => {},
+        None => {
+        },
     }
     result
 }
 
 // ── Unicode helpers ───────────────────────────────────────────────────────────
-
 fn is_kanji(c: i32) -> bool {
-    (c >= 0x4E00 && c <= 0x9FFF)
-        || (c >= 0x3400 && c <= 0x4DBF)
-        || (c >= 0x20000 && c <= 0x2A6DF)
-        || (c >= 0x2A700 && c <= 0x2B73F)
-        || (c >= 0x2B740 && c <= 0x2B81F)
-        || (c >= 0x2B820 && c <= 0x2CEAF)
-        || (c >= 0x2CEB0 && c <= 0x2EBEF)
-        || (c >= 0x30000 && c <= 0x3134F)
-        || (c >= 0xF900 && c <= 0xFAFF)
-        || (c >= 0x2F800 && c <= 0x2FA1F)
-        || c == 0x3005
+    c >= 19968 && c <= 40959 || c >= 13312 && c <= 19903 || c >= 131072 && c <= 173791 || c >= 173824 && c <= 177983 || c >= 177984 && c <= 178207 || c >= 178208 && c <= 183983 || c >= 183984 && c <= 191471 || c >= 196608 && c <= 201551 || c >= 63744 && c <= 64255 || c >= 194560 && c <= 195103 || c == 12293
 }
 
 fn contains_kanji(s: String) -> bool {
@@ -409,46 +437,51 @@ fn contains_kanji(s: String) -> bool {
 }
 
 fn is_katakana(c: i32) -> bool {
-    (c >= 0x30A0 && c <= 0x30FF)
-        || (c >= 0x31F0 && c <= 0x31FF)
-        || (c >= 0xFF65 && c <= 0xFF9F)
+    c >= 12448 && c <= 12543 || c >= 12784 && c <= 12799 || c >= 65381 && c <= 65439
 }
 
 fn is_hiragana(c: i32) -> bool {
-    (c >= 0x3040 && c <= 0x309F) || c == 0x30FC
+    c >= 12352 && c <= 12447 || c == 12540
 }
 
 fn is_purely_katakana(s: String) -> bool {
-    if str_char_count(s) == 0 { return false }
+    if str_char_count(s) == 0 {
+        return false
+    }
     let mut i = 0
     while i < str_char_count(s) {
-        if !is_katakana(char_at_char_index(s, i)) { return false }
+        if !is_katakana(char_at_char_index(s, i)) {
+            return false
+        }
         i = i + 1
     }
     true
 }
 
 fn is_purely_hiragana(s: String) -> bool {
-    if str_char_count(s) == 0 { return false }
+    if str_char_count(s) == 0 {
+        return false
+    }
     let mut i = 0
     while i < str_char_count(s) {
-        if !is_hiragana(char_at_char_index(s, i)) { return false }
+        if !is_hiragana(char_at_char_index(s, i)) {
+            return false
+        }
         i = i + 1
     }
     true
 }
 
 fn is_kana(c: i32) -> bool {
-    (c >= 0x3040 && c <= 0x309F)
-        || (c >= 0x30A0 && c <= 0x30FF)
-        || (c >= 0x31F0 && c <= 0x31FF)
-        || (c >= 0xFF65 && c <= 0xFF9F)
+    c >= 12352 && c <= 12447 || c >= 12448 && c <= 12543 || c >= 12784 && c <= 12799 || c >= 65381 && c <= 65439
 }
 
 fn has_kana(s: String) -> bool {
     let mut i = 0
     while i < str_char_count(s) {
-        if is_kana(char_at_char_index(s, i)) { return true }
+        if is_kana(char_at_char_index(s, i)) {
+            return true
+        }
         i = i + 1
     }
     false
@@ -457,44 +490,33 @@ fn has_kana(s: String) -> bool {
 fn has_kanji(s: String) -> bool {
     let mut i = 0
     while i < str_char_count(s) {
-        if is_kanji(char_at_char_index(s, i)) { return true }
+        if is_kanji(char_at_char_index(s, i)) {
+            return true
+        }
         i = i + 1
     }
     false
 }
 
 fn is_kana_or_punct(c: i32) -> bool {
-    (c >= 0x3040 && c <= 0x309F)
-        || (c >= 0x30A0 && c <= 0x30FF)
-        || (c >= 0x31F0 && c <= 0x31FF)
-        || (c >= 0xFF65 && c <= 0xFF9F)
-        || (c >= 0x3000 && c <= 0x303F)
-        || (c >= 0xFE30 && c <= 0xFE4F)
-        || (c >= 0xFF00 && c <= 0xFF60)
-        || (c >= 0xFFE0 && c <= 0xFFE6)
-        || c == 0x02CA || c == 0x02C7 || c == 0x02CB || c == 0x02D9
-        || (c >= 0x31A0 && c <= 0x31BF)
-        || (c >= 0x3100 && c <= 0x312F)
-        || (c >= 0xAC00 && c <= 0xD7AF)
-        || (c >= 0x1100 && c <= 0x11FF)
-        || (c >= 0x3130 && c <= 0x318F)
-        || (c >= 0x0100 && c <= 0x024F)
-        || (c >= 0x1E00 && c <= 0x1EFF)
-        || c == 0x20   // space
+    c >= 12352 && c <= 12447 || c >= 12448 && c <= 12543 || c >= 12784 && c <= 12799 || c >= 65381 && c <= 65439 || c >= 12288 && c <= 12351 || c >= 65072 && c <= 65103 || c >= 65280 && c <= 65376 || c >= 65504 && c <= 65510 || c == 714 || c == 711 || c == 715 || c == 729 || c >= 12704 && c <= 12735 || c >= 12544 && c <= 12591 || c >= 44032 && c <= 55215 || c >= 4352 && c <= 4607 || c >= 12592 && c <= 12687 || c >= 256 && c <= 591 || c >= 7680 && c <= 7935 || c == 32
 }
 
 fn is_purely_kana_or_punct(s: String) -> bool {
-    if str_char_count(s) == 0 { return false }
+    if str_char_count(s) == 0 {
+        return false
+    }
     let mut i = 0
     while i < str_char_count(s) {
-        if !is_kana_or_punct(char_at_char_index(s, i)) { return false }
+        if !is_kana_or_punct(char_at_char_index(s, i)) {
+            return false
+        }
         i = i + 1
     }
     true
 }
 
 // ── Footnote helpers ──────────────────────────────────────────────────────────
-
 struct FnDef {
     id: String,
     content: String,
@@ -509,10 +531,9 @@ fn collect_fn_defs(lines: Vec<String>) -> Vec<FnDef> {
             let rest = substring(t, 2, len(t))
             let colon_idx = str_find(rest, "]: ")
             match colon_idx {
-                Some(ci) => {
+                Option::Some(ci) => {
                     let id = substring(rest, 0, ci)
                     if len(id) > 0 && is_none(str_find(id, " ")) {
-                        // check not already defined
                         let mut already = false
                         let mut j = 0
                         while j < len(defs) {
@@ -522,14 +543,12 @@ fn collect_fn_defs(lines: Vec<String>) -> Vec<FnDef> {
                             j = j + 1
                         }
                         if !already {
-                            push(defs, FnDef {
-                                id: id,
-                                content: substring(rest, ci + 3, len(rest)),
-                            })
+                            push(defs, FnDef { id: id, content: substring(rest, ci + 3, len(rest)) })
                         }
                     }
                 },
-                None => {},
+                None => {
+                },
             }
         }
         i = i + 1
@@ -551,7 +570,9 @@ fn fn_defs_find(defs: Vec<FnDef>, id: String) -> Option<String> {
 fn fn_refs_contains(refs: Vec<String>, id: String) -> bool {
     let mut i = 0
     while i < len(refs) {
-        if get_unchecked(refs, i) == id { return true }
+        if get_unchecked(refs, i) == id {
+            return true
+        }
         i = i + 1
     }
     false
@@ -560,30 +581,26 @@ fn fn_refs_contains(refs: Vec<String>, id: String) -> bool {
 fn fn_refs_position(refs: Vec<String>, id: String) -> Option<i32> {
     let mut i = 0
     while i < len(refs) {
-        if get_unchecked(refs, i) == id { return Some(i) }
+        if get_unchecked(refs, i) == id {
+            return Some(i)
+        }
         i = i + 1
     }
     None
 }
 
-fn emit_fn_section(
-    fn_defs: Vec<FnDef>,
-    fn_refs: Vec<String>,
-    events: Vec<Event>,
-    warnings: Vec<Warning>,
-    ctx: ParseCtx,
-) {
+fn emit_fn_section(fn_defs: Vec<FnDef>, fn_refs: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, ctx: ParseCtx) {
     let mut i = 0
     while i < len(fn_defs) {
         let def = get(fn_defs, i)
         if !fn_refs_contains(fn_refs, def.id) {
-            ctx_warn(ctx, warnings, FOOTNOTE_UNUSED_DEF(),
-                concat("Footnote '[^", concat(def.id, concat("' is defined but never referenced.", ""))),
-                0)
+            ctx_warn(ctx, warnings, FOOTNOTE_UNUSED_DEF(), concat("Footnote '[^", concat(def.id, concat("' is defined but never referenced.", ""))), 0)
         }
         i = i + 1
     }
-    if len(fn_refs) == 0 { return }
+    if len(fn_refs) == 0 {
+        return
+    }
     push(events, Event::Start(Tag::FootnoteSection))
     let mut idx = 0
     while idx < len(fn_refs) {
@@ -591,13 +608,14 @@ fn emit_fn_section(
         let num = idx + 1
         let content = fn_defs_find(fn_defs, id)
         match content {
-            Some(c) => {
+            Option::Some(c) => {
                 push(events, Event::Start(Tag::FootnoteItem(num)))
                 let mut nested_refs: Vec<String> = Vec_new_String()
                 parse_inline(c, events, warnings, ctx, false, fn_defs, nested_refs)
                 push(events, Event::End(Tag::FootnoteItem(num)))
             },
-            None => {},
+            None => {
+            },
         }
         idx = idx + 1
     }
@@ -605,230 +623,229 @@ fn emit_fn_section(
 }
 
 // ── Block parser ──────────────────────────────────────────────────────────────
-
-fn parse_blocks(
-    lines: Vec<String>,
-    events: Vec<Event>,
-    warnings: Vec<Warning>,
-    ctx: ParseCtx,
-    root: bool,
-    fn_defs: Vec<FnDef>,
-    fn_refs: Vec<String>,
-) {
+fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, ctx: ParseCtx, root: bool, fn_defs: Vec<FnDef>, fn_refs: Vec<String>) {
     let mut i = 0
     let mut section_stack: Vec<i32> = Vec_new_i32()
-
     while i < len(lines) {
         let line = get(lines, i)
         let tline = trim_start(line)
-
-        // Blank
         if len(tline) == 0 {
             i = i + 1
-            // blank line — no action needed
-        } else if starts_with(tline, "[^") && is_some(str_find(tline, "]: ")) {
-            // Footnote definition — skip
-            i = i + 1
-        } else if starts_with(tline, "@[") {
-            // Card link: @[type](url)
-            let bracket_end = str_find(substring(tline, 2, len(tline)), "]")
-            match bracket_end {
-                Some(be) => {
-                    let type_name = substring(tline, 2, 2 + be)
-                    let after = substring(tline, 2 + be + 1, len(tline))
-                    if type_name == "card" {
-                        if starts_with(after, "(") && ends_with(after, ")") {
-                            let url = substring(after, 1, len(after) - 1)
-                            if !starts_with(url, "http://") && !starts_with(url, "https://") {
-                                ctx_warn(ctx, warnings, CARD_NON_HTTP(),
-                                    concat("Card link URL '", concat(url, "' should start with http:// or https://")),
-                                    0)
-                            }
-                            push(events, Event::CardLink(url))
-                        } else {
-                            ctx_warn(ctx, warnings, CARD_MALFORMED(),
-                                concat("Malformed @[card] syntax near '",
-                                    concat(substring(tline, 0, min_i32(len(tline), 40)), "'.")),
-                                0)
-                        }
-                    } else {
-                        ctx_warn(ctx, warnings, CARD_UNKNOWN_TYPE(),
-                            concat("Unknown embed type '", concat(type_name, "': only 'card' is supported.")),
-                            0)
-                    }
-                },
-                None => {},
-            }
-            i = i + 1
-        } else if starts_with(tline, "```") {
-            // Code fence
-            let info = trim(substring(tline, 3, len(tline)))
-            let colon = str_find(info, ":")
-            let lang = match colon {
-                Some(c) => substring(info, 0, c),
-                None => info,
-            }
-            let filename = match colon {
-                Some(c) => substring(info, c + 1, len(info)),
-                None => "",
-            }
-            push(events, Event::BlockId(fnv1a(tline)))
-            push(events, Event::Start(Tag::CodeBlock(lang, filename)))
-            i = i + 1
-            while i < len(lines) && !starts_with(trim_start(get(lines, i)), "```") {
-                push(events, Event::Text(get(lines, i)))
-                push(events, Event::Text("\n"))
+        } else {
+            if starts_with(tline, "[^") && is_some(str_find(tline, "]: ")) {
                 i = i + 1
-            }
-            if i < len(lines) { i = i + 1 }
-            push(events, Event::End(Tag::CodeBlock(lang, filename)))
-        } else if starts_with(tline, "#") {
-            // Heading
-            let mut level = 0
-            while level < len(tline) && char_at(tline, level) == 35 {
-                level = level + 1
-            }
-            if level > 0 && level <= 6 {
-                let valid = level == len(tline) || char_at(tline, level) == 32
-                if valid {
-                    if root {
-                        close_sections_until(events, section_stack, level)
-                        push(events, Event::Start(Tag::Section(level)))
-                        push(section_stack, level)
+            } else {
+                if starts_with(tline, "@[") {
+                    let bracket_end = str_find(substring(tline, 2, len(tline)), "]")
+                    match bracket_end {
+                        Option::Some(be) => {
+                            let type_name = substring(tline, 2, 2 + be)
+                            let after = substring(tline, 2 + be + 1, len(tline))
+                            if type_name == "card" {
+                                if starts_with(after, "(") && ends_with(after, ")") {
+                                    let url = substring(after, 1, len(after) - 1)
+                                    if !starts_with(url, "http://") && !starts_with(url, "https://") {
+                                        ctx_warn(ctx, warnings, CARD_NON_HTTP(), concat("Card link URL '", concat(url, "' should start with http:// or https://")), 0)
+                                    }
+                                    push(events, Event::CardLink(url))
+                                } else {
+                                    ctx_warn(ctx, warnings, CARD_MALFORMED(), concat("Malformed @[card] syntax near '", concat(substring(tline, 0, min_i32(len(tline), 40)), "'.")), 0)
+                                }
+                            } else {
+                                ctx_warn(ctx, warnings, CARD_UNKNOWN_TYPE(), concat("Unknown embed type '", concat(type_name, "': only 'card' is supported.")), 0)
+                            }
+                        },
+                        None => {
+                        },
                     }
-                    push(events, Event::BlockId(fnv1a(tline)))
-                    push(events, Event::Start(Tag::Heading(level)))
-                    parse_inline(
-                        trim(substring(tline, level, len(tline))),
-                        events, warnings, ctx, false, fn_defs, fn_refs)
-                    push(events, Event::End(Tag::Heading(level)))
                     i = i + 1
                 } else {
-                    i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
-                }
-            } else {
-                i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
-            }
-        } else if starts_with(line, "---") && all_chars_eq(line, 45) {
-            // Thematic break
-            if root && len(line) == 3 {
-                pop_section(events, section_stack)
-            }
-            push(events, Event::Rule)
-            i = i + 1
-        } else if starts_with(line, ";;;") {
-            // Section close
-            if root {
-                let count = count_occurrences(line, ";;;")
-                let mut k = 0
-                while k < count {
-                    pop_section(events, section_stack)
-                    k = k + 1
-                }
-            }
-            i = i + 1
-        } else if starts_with(line, ">") {
-            // Blockquote
-            let mut bq_lines: Vec<String> = Vec_new_String()
-            let mut j = i
-            while j < len(lines) {
-                let ln = get(lines, j)
-                if starts_with(ln, ">") {
-                    let mut content = substring(ln, 1, len(ln))
-                    if starts_with(content, " ") {
-                        content = substring(content, 1, len(content))
-                    }
-                    push(bq_lines, content)
-                    j = j + 1
-                } else if len(trim(ln)) == 0 && j > i && j + 1 < len(lines) && starts_with(get(lines, j + 1), ">") {
-                    push(bq_lines, "")
-                    j = j + 1
-                } else {
-                    break
-                }
-            }
-
-            let src_hash = fnv1a_lines(bq_lines)
-            push(events, Event::BlockId(src_hash))
-            push(events, Event::Start(Tag::Blockquote))
-            parse_blocks(bq_lines, events, warnings, ctx, false, fn_defs, fn_refs)
-            push(events, Event::End(Tag::Blockquote))
-            i = j
-        } else if is_table_line(line) && i + 1 < len(lines) && is_table_line(get(lines, i + 1)) {
-            // Table
-            let sep_line = trim(get(lines, i + 1))
-            if is_some(str_find(sep_line, "-|")) || is_some(str_find(sep_line, "|-")) {
-                let head = parse_table_cells(line)
-                let sep = parse_table_cells(get(lines, i + 1))
-                let aligns = parse_alignments(sep)
-
-                push(events, Event::BlockId(fnv1a(line)))
-                push(events, Event::Start(Tag::Table(clone(aligns))))
-                push(events, Event::Start(Tag::TableHead))
-                push(events, Event::Start(Tag::TableRow))
-                let mut ci = 0
-                while ci < len(head) {
-                    let a = if ci < len(aligns) { get(aligns, ci) } else { Alignment::AlignNone }
-                    push(events, Event::Start(Tag::TableCell(clone(a))))
-                    parse_inline(get(head, ci), events, warnings, ctx, false, fn_defs, fn_refs)
-                    push(events, Event::End(Tag::TableCell(a)))
-                    ci = ci + 1
-                }
-                push(events, Event::End(Tag::TableRow))
-                push(events, Event::End(Tag::TableHead))
-
-                let mut j = i + 2
-                while j < len(lines) && is_table_line(get(lines, j)) {
-                    push(events, Event::Start(Tag::TableRow))
-                    let row = parse_table_cells(get(lines, j))
-                    let mut ci2 = 0
-                    while ci2 < len(row) {
-                        let a2 = if ci2 < len(aligns) { get(aligns, ci2) } else { Alignment::AlignNone }
-                        push(events, Event::Start(Tag::TableCell(clone(a2))))
-                        parse_inline(get(row, ci2), events, warnings, ctx, false, fn_defs, fn_refs)
-                        push(events, Event::End(Tag::TableCell(a2)))
-                        ci2 = ci2 + 1
-                    }
-                    push(events, Event::End(Tag::TableRow))
-                    j = j + 1
-                }
-                push(events, Event::End(Tag::Table(aligns)))
-                i = j
-            } else {
-                i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
-            }
-        } else if is_ul_line(tline) || is_ol_line(tline) {
-            // List
-            let is_ol = is_ol_line(tline)
-            push(events, Event::BlockId(fnv1a(tline)))
-            push(events, Event::Start(Tag::List(is_ol)))
-            let mut j = i
-            while j < len(lines) {
-                let l2 = trim_start(get(lines, j))
-                let matches_type = if is_ol { is_ol_line(l2) } else { is_ul_line(l2) }
-                if matches_type {
-                    let content = if is_ul_line(l2) {
-                        substring(l2, 2, len(l2))
+                    if starts_with(tline, "```") {
+                        let info = trim(substring(tline, 3, len(tline)))
+                        let colon = str_find(info, ":")
+                        let lang = match colon {
+                            Option::Some(c) => substring(info, 0, c),
+                            None => info,
+                        }
+                        let filename = match colon {
+                            Option::Some(c) => substring(info, c + 1, len(info)),
+                            None => "",
+                        }
+                        push(events, Event::BlockId(fnv1a(tline)))
+                        push(events, Event::Start(Tag::CodeBlock(lang, filename)))
+                        i = i + 1
+                        while i < len(lines) && !starts_with(trim_start(get(lines, i)), "```") {
+                            push(events, Event::Text(get(lines, i)))
+                            push(events, Event::Text("\n"))
+                            i = i + 1
+                        }
+                        if i < len(lines) {
+                            i = i + 1
+                        }
+                        push(events, Event::End(Tag::CodeBlock(lang, filename)))
                     } else {
-                        let digs = count_leading_digits(l2)
-                        substring(l2, digs + 2, len(l2))
+                        if starts_with(tline, "#") {
+                            let mut level = 0
+                            while level < len(tline) && char_at(tline, level) == 35 {
+                                level = level + 1
+                            }
+                            if level > 0 && level <= 6 {
+                                let valid = level == len(tline) || char_at(tline, level) == 32
+                                if valid {
+                                    if root {
+                                        close_sections_until(events, section_stack, level)
+                                        push(events, Event::Start(Tag::Section(level)))
+                                        push(section_stack, level)
+                                    }
+                                    push(events, Event::BlockId(fnv1a(tline)))
+                                    push(events, Event::Start(Tag::Heading(level)))
+                                    parse_inline(trim(substring(tline, level, len(tline))), events, warnings, ctx, false, fn_defs, fn_refs)
+                                    push(events, Event::End(Tag::Heading(level)))
+                                    i = i + 1
+                                } else {
+                                    i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
+                                }
+                            } else {
+                                i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
+                            }
+                        } else {
+                            if starts_with(line, "---") && all_chars_eq(line, 45) {
+                                if root && len(line) == 3 {
+                                    pop_section(events, section_stack)
+                                }
+                                push(events, Event::Rule)
+                                i = i + 1
+                            } else {
+                                if starts_with(line, ";;;") {
+                                    if root {
+                                        let count = count_occurrences(line, ";;;")
+                                        let mut k = 0
+                                        while k < count {
+                                            pop_section(events, section_stack)
+                                            k = k + 1
+                                        }
+                                    }
+                                    i = i + 1
+                                } else {
+                                    if starts_with(line, ">") {
+                                        let mut bq_lines: Vec<String> = Vec_new_String()
+                                        let mut j = i
+                                        while j < len(lines) {
+                                            let ln = get(lines, j)
+                                            if starts_with(ln, ">") {
+                                                let mut content = substring(ln, 1, len(ln))
+                                                if starts_with(content, " ") {
+                                                    content = substring(content, 1, len(content))
+                                                }
+                                                push(bq_lines, content)
+                                                j = j + 1
+                                            } else {
+                                                if len(trim(ln)) == 0 && j > i && j + 1 < len(lines) && starts_with(get(lines, j + 1), ">") {
+                                                    push(bq_lines, "")
+                                                    j = j + 1
+                                                } else {
+                                                    break
+                                                }
+                                            }
+                                        }
+                                        let src_hash = fnv1a_lines(bq_lines)
+                                        push(events, Event::BlockId(src_hash))
+                                        push(events, Event::Start(Tag::Blockquote))
+                                        parse_blocks(bq_lines, events, warnings, ctx, false, fn_defs, fn_refs)
+                                        push(events, Event::End(Tag::Blockquote))
+                                        i = j
+                                    } else {
+                                        if is_table_line(line) && i + 1 < len(lines) && is_table_line(get(lines, i + 1)) {
+                                            let sep_line = trim(get(lines, i + 1))
+                                            if is_some(str_find(sep_line, "-|")) || is_some(str_find(sep_line, "|-")) {
+                                                let head = parse_table_cells(line)
+                                                let sep = parse_table_cells(get(lines, i + 1))
+                                                let aligns = parse_alignments(sep)
+                                                push(events, Event::BlockId(fnv1a(line)))
+                                                push(events, Event::Start(Tag::Table(clone(aligns))))
+                                                push(events, Event::Start(Tag::TableHead))
+                                                push(events, Event::Start(Tag::TableRow))
+                                                let mut ci = 0
+                                                while ci < len(head) {
+                                                    let a = if ci < len(aligns) {
+                                                        get(aligns, ci)
+                                                    } else {
+                                                        Alignment::AlignNone
+                                                    }
+                                                    push(events, Event::Start(Tag::TableCell(clone(a))))
+                                                    parse_inline(get(head, ci), events, warnings, ctx, false, fn_defs, fn_refs)
+                                                    push(events, Event::End(Tag::TableCell(a)))
+                                                    ci = ci + 1
+                                                }
+                                                push(events, Event::End(Tag::TableRow))
+                                                push(events, Event::End(Tag::TableHead))
+                                                let mut j = i + 2
+                                                while j < len(lines) && is_table_line(get(lines, j)) {
+                                                    push(events, Event::Start(Tag::TableRow))
+                                                    let row = parse_table_cells(get(lines, j))
+                                                    let mut ci2 = 0
+                                                    while ci2 < len(row) {
+                                                        let a2 = if ci2 < len(aligns) {
+                                                            get(aligns, ci2)
+                                                        } else {
+                                                            Alignment::AlignNone
+                                                        }
+                                                        push(events, Event::Start(Tag::TableCell(clone(a2))))
+                                                        parse_inline(get(row, ci2), events, warnings, ctx, false, fn_defs, fn_refs)
+                                                        push(events, Event::End(Tag::TableCell(a2)))
+                                                        ci2 = ci2 + 1
+                                                    }
+                                                    push(events, Event::End(Tag::TableRow))
+                                                    j = j + 1
+                                                }
+                                                push(events, Event::End(Tag::Table(aligns)))
+                                                i = j
+                                            } else {
+                                                i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
+                                            }
+                                        } else {
+                                            if is_ul_line(tline) || is_ol_line(tline) {
+                                                let is_ol = is_ol_line(tline)
+                                                push(events, Event::BlockId(fnv1a(tline)))
+                                                push(events, Event::Start(Tag::List(is_ol)))
+                                                let mut j = i
+                                                while j < len(lines) {
+                                                    let l2 = trim_start(get(lines, j))
+                                                    let matches_type = if is_ol {
+                                                        is_ol_line(l2)
+                                                    } else {
+                                                        is_ul_line(l2)
+                                                    }
+                                                    if matches_type {
+                                                        let content = if is_ul_line(l2) {
+                                                            substring(l2, 2, len(l2))
+                                                        } else {
+                                                            let digs = count_leading_digits(l2)
+                                                            substring(l2, digs + 2, len(l2))
+                                                        }
+                                                        push(events, Event::Start(Tag::Item))
+                                                        parse_inline(content, events, warnings, ctx, false, fn_defs, fn_refs)
+                                                        push(events, Event::End(Tag::Item))
+                                                        j = j + 1
+                                                    } else {
+                                                        break
+                                                    }
+                                                }
+                                                push(events, Event::End(Tag::List(is_ol)))
+                                                i = j
+                                            } else {
+                                                i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                    push(events, Event::Start(Tag::Item))
-                    parse_inline(content, events, warnings, ctx, false, fn_defs, fn_refs)
-                    push(events, Event::End(Tag::Item))
-                    j = j + 1
-                } else {
-                    break
                 }
             }
-            push(events, Event::End(Tag::List(is_ol)))
-            i = j
-        } else {
-            // Paragraph
-            i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
         }
     }
-
     if root {
         while len(section_stack) > 0 {
             pop_section(events, section_stack)
@@ -837,11 +854,9 @@ fn parse_blocks(
 }
 
 // ── Block parser helpers ─────────────────────────────────────────────────────
-
 fn pop_section(events: Vec<Event>, stack: Vec<i32>) {
     if len(stack) > 0 {
         let level = get_unchecked(stack, len(stack) - 1)
-        // remove last element
         let _ = pop(stack)
         push(events, Event::End(Tag::Section(level)))
     }
@@ -882,7 +897,9 @@ fn count_leading_digits(s: String) -> i32 {
 fn all_chars_eq(s: String, c: i32) -> bool {
     let mut i = 0
     while i < str_char_count(s) {
-        if char_at_char_index(s, i) != c { return false }
+        if char_at_char_index(s, i) != c {
+            return false
+        }
         i = i + 1
     }
     str_char_count(s) > 0
@@ -920,8 +937,16 @@ fn fnv1a_lines(lines: Vec<String>) -> i32 {
 
 fn parse_table_cells(line: String) -> Vec<String> {
     let t = trim(line)
-    let t2 = if starts_with(t, "|") { substring(t, 1, len(t)) } else { t }
-    let t3 = if ends_with(t2, "|") { substring(t2, 0, len(t2) - 1) } else { t2 }
+    let t2 = if starts_with(t, "|") {
+        substring(t, 1, len(t))
+    } else {
+        t
+    }
+    let t3 = if ends_with(t2, "|") {
+        substring(t2, 0, len(t2) - 1)
+    } else {
+        t2
+    }
     let parts = split(t3, "|")
     let mut result: Vec<String> = Vec_new_String()
     let mut i = 0
@@ -941,12 +966,16 @@ fn parse_alignments(sep_cells: Vec<String>) -> Vec<Alignment> {
         let right = ends_with(s, ":")
         if left && right {
             push(aligns, Alignment::Center)
-        } else if left {
-            push(aligns, Alignment::Left)
-        } else if right {
-            push(aligns, Alignment::Right)
         } else {
-            push(aligns, Alignment::AlignNone)
+            if left {
+                push(aligns, Alignment::Left)
+            } else {
+                if right {
+                    push(aligns, Alignment::Right)
+                } else {
+                    push(aligns, Alignment::AlignNone)
+                }
+            }
         }
         i = i + 1
     }
@@ -954,29 +983,10 @@ fn parse_alignments(sep_cells: Vec<String>) -> Vec<Alignment> {
 }
 
 fn is_block_start(line: String, tline: String) -> bool {
-    len(tline) == 0
-        || starts_with(tline, "```")
-        || starts_with(tline, "#")
-        || (starts_with(line, "---") && all_chars_eq(line, 45))
-        || starts_with(line, ";;;")
-        || starts_with(line, ">")
-        || is_table_line(line)
-        || starts_with(tline, "- ")
-        || starts_with(tline, "* ")
-        || is_ol_line(tline)
-        || starts_with(tline, "@[")
-        || (starts_with(tline, "[^") && is_some(str_find(tline, "]: ")))
+    len(tline) == 0 || starts_with(tline, "```") || starts_with(tline, "#") || starts_with(line, "---") && all_chars_eq(line, 45) || starts_with(line, ";;;") || starts_with(line, ">") || is_table_line(line) || starts_with(tline, "- ") || starts_with(tline, "* ") || is_ol_line(tline) || starts_with(tline, "@[") || starts_with(tline, "[^") && is_some(str_find(tline, "]: "))
 }
 
-fn parse_paragraph(
-    lines: Vec<String>,
-    start: i32,
-    events: Vec<Event>,
-    warnings: Vec<Warning>,
-    ctx: ParseCtx,
-    fn_defs: Vec<FnDef>,
-    fn_refs: Vec<String>,
-) -> i32 {
+fn parse_paragraph(lines: Vec<String>, start: i32, events: Vec<Event>, warnings: Vec<Warning>, ctx: ParseCtx, fn_defs: Vec<FnDef>, fn_refs: Vec<String>) -> i32 {
     let mut para: Vec<String> = Vec_new_String()
     let mut j = start
     while j < len(lines) {
@@ -989,7 +999,6 @@ fn parse_paragraph(
             j = j + 1
         }
     }
-
     if len(para) > 0 {
         let para_hash = fnv1a_lines(para)
         push(events, Event::BlockId(para_hash))
@@ -1008,381 +1017,332 @@ fn parse_paragraph(
 }
 
 // ── Inline parser ─────────────────────────────────────────────────────────────
-
-fn parse_inline(
-    text: String,
-    events: Vec<Event>,
-    warnings: Vec<Warning>,
-    ctx: ParseCtx,
-    in_annotation: bool,
-    fn_defs: Vec<FnDef>,
-    fn_refs: Vec<String>,
-) {
+fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: ParseCtx, in_annotation: bool, fn_defs: Vec<FnDef>, fn_refs: Vec<String>) {
     let mut pos = 0
     while pos < len(text) {
         let remaining = substring(text, pos, len(text))
-
-        // $$ math display
         if starts_with(remaining, "$$") {
             let end = str_find(substring(remaining, 2, len(remaining)), "$$")
             match end {
-                Some(e) => {
+                Option::Some(e) => {
                     push(events, Event::MathDisplay(substring(remaining, 2, 2 + e)))
                     pos = pos + 2 + e + 2
                 },
                 None => {
-                    ctx_warn(ctx, warnings, MATH_UNCLOSED_DISPLAY(),
-                        "Unclosed '$$' math block: no matching '$$' found.", pos)
-                    pos = pos + 1
-                },
-            }
-        // $ math inline
-        } else if starts_with(remaining, "$") && !starts_with(remaining, "$$") {
-            let end = str_find(substring(remaining, 1, len(remaining)), "$")
-            match end {
-                Some(e) => {
-                    push(events, Event::MathInline(substring(remaining, 1, 1 + e)))
-                    pos = pos + 1 + e + 1
-                },
-                None => {
-                    ctx_warn(ctx, warnings, MATH_UNCLOSED_INLINE(),
-                        "Unclosed '$' math expression: no matching '$' found.", pos)
-                    pos = pos + 1
-                },
-            }
-        // `code`
-        } else if starts_with(remaining, "`") {
-            let end = str_find(substring(remaining, 1, len(remaining)), "`")
-            match end {
-                Some(e) => {
-                    push(events, Event::Start(Tag::Code))
-                    push(events, Event::Text(substring(remaining, 1, 1 + e)))
-                    push(events, Event::End(Tag::Code))
-                    pos = pos + 1 + e + 1
-                },
-                None => {
-                    push(events, Event::Text(substring(remaining, 0, 1)))
-                    pos = pos + 1
-                },
-            }
-        // ~~strike~~
-        } else if starts_with(remaining, "~~") {
-            let end = str_find(substring(remaining, 2, len(remaining)), "~~")
-            match end {
-                Some(e) => {
-                    push(events, Event::Start(Tag::Strikethrough))
-                    parse_inline(substring(remaining, 2, 2 + e),
-                        events, warnings, ctx, in_annotation, fn_defs, fn_refs)
-                    push(events, Event::End(Tag::Strikethrough))
-                    pos = pos + 2 + e + 2
-                },
-                None => {
-                    push(events, Event::Text(substring(remaining, 0, 2)))
-                    pos = pos + 2
-                },
-            }
-        // **bold**
-        } else if starts_with(remaining, "**") {
-            let end = str_find(substring(remaining, 2, len(remaining)), "**")
-            match end {
-                Some(e) => {
-                    push(events, Event::Start(Tag::Strong))
-                    parse_inline(substring(remaining, 2, 2 + e),
-                        events, warnings, ctx, in_annotation, fn_defs, fn_refs)
-                    push(events, Event::End(Tag::Strong))
-                    pos = pos + 2 + e + 2
-                },
-                None => {
-                    push(events, Event::Text(substring(remaining, 0, 2)))
-                    pos = pos + 2
-                },
-            }
-        // *em*
-        } else if starts_with(remaining, "*") && !starts_with(remaining, "**") {
-            let end = str_find(substring(remaining, 1, len(remaining)), "*")
-            match end {
-                Some(e) => {
-                    push(events, Event::Start(Tag::Emphasis))
-                    parse_inline(substring(remaining, 1, 1 + e),
-                        events, warnings, ctx, in_annotation, fn_defs, fn_refs)
-                    push(events, Event::End(Tag::Emphasis))
-                    pos = pos + 1 + e + 1
-                },
-                None => {
-                    push(events, Event::Text(substring(remaining, 0, 1)))
-                    pos = pos + 1
-                },
-            }
-        // \n → hard break
-        } else if starts_with(remaining, "\\n") {
-            push(events, Event::HardBreak)
-            pos = pos + 2
-        // Escape: \X → literal X
-        } else if starts_with(remaining, "\\") && len(remaining) >= 2 {
-            let ch = char_at(remaining, 1)
-            let ch_len = char_byte_len(ch)
-            push(events, Event::Text(substring(remaining, 1, 1 + ch_len)))
-            pos = pos + 1 + ch_len
-        // ![alt](src) image
-        } else if starts_with(remaining, "![") {
-            let close_alt = find_matching_bracket(remaining, 1)
-            match close_alt {
-                Some(ca) => {
-                    if ca + 1 < len(remaining) && char_at(remaining, ca + 1) == 40 {
-                        let cp = str_find(substring(remaining, ca + 2, len(remaining)), ")")
-                        match cp {
-                            Some(p) => {
-                                let close_src = ca + 2 + p
-                                let alt = substring(remaining, 2, ca)
-                                let src = substring(remaining, ca + 2, close_src)
-                                push(events, Event::Start(Tag::Image(src, alt)))
-                                push(events, Event::End(Tag::Image(src, alt)))
-                                pos = pos + close_src + 1
-                            },
-                            None => {
-                                push(events, Event::Text(substring(remaining, 0, 1)))
-                                pos = pos + 1
-                            },
-                        }
-                    } else {
-                        push(events, Event::Text(substring(remaining, 0, 1)))
-                        pos = pos + 1
-                    }
-                },
-                None => {
-                    push(events, Event::Text(substring(remaining, 0, 1)))
-                    pos = pos + 1
-                },
-            }
-        // Footnote reference: [^id]
-        } else if starts_with(remaining, "[^") {
-            let bracket_end = str_find(substring(remaining, 2, len(remaining)), "]")
-            match bracket_end {
-                Some(be) => {
-                    let id = substring(remaining, 2, 2 + be)
-                    if len(id) > 0 && is_none(str_find(id, " ")) {
-                        let total_len = 2 + be + 1
-                        let has_def = is_some(fn_defs_find(fn_defs, id))
-                        if has_def {
-                            let existing = fn_refs_position(fn_refs, id)
-                            let num = match existing {
-                                Some(p) => p + 1,
-                                None => {
-                                    push(fn_refs, id)
-                                    len(fn_refs)
-                                },
-                            }
-                            push(events, Event::FootnoteRef(num))
-                        } else {
-                            ctx_warn(ctx, warnings, FOOTNOTE_UNDEFINED_REF(),
-                                concat("Footnote reference '[^", concat(id, "]' has no matching definition.")),
-                                pos)
-                            push(events, Event::Text(substring(remaining, 0, total_len)))
-                        }
-                        pos = pos + total_len
-                    } else {
-                        push(events, Event::Text(substring(remaining, 0, 1)))
-                        pos = pos + 1
-                    }
-                },
-                None => {
-                    push(events, Event::Text(substring(remaining, 0, 1)))
-                    pos = pos + 1
-                },
-            }
-        // [content](url) link  or  [base/reading] ruby
-        } else if starts_with(remaining, "[") {
-            let close_bracket = find_matching_bracket(remaining, 0)
-            match close_bracket {
-                Some(cb) => {
-                    let content = substring(remaining, 1, cb)
-                    // [text](url) link
-                    if cb + 1 < len(remaining) && char_at(remaining, cb + 1) == 40 {
-                        let cp = str_find(substring(remaining, cb + 2, len(remaining)), ")")
-                        match cp {
-                            Some(p) => {
-                                let close_paren = cb + 2 + p
-                                let href = substring(remaining, cb + 2, close_paren)
-                                push(events, Event::Start(Tag::Link(href)))
-                                parse_inline(content, events, warnings, ctx, in_annotation, fn_defs, fn_refs)
-                                push(events, Event::End(Tag::Link(href)))
-                                pos = pos + close_paren + 1
-                            },
-                            None => {
-                                push(events, Event::Text(substring(remaining, 0, 1)))
-                                pos = pos + 1
-                            },
-                        }
-                    } else {
-                        // [base/ruby]
-                        let slash = find_slash_at_depth_zero(content)
-                        match slash {
-                            Some(si) => {
-                                let base = substring(content, 0, si)
-                                let ruby = substring(content, si + 1, len(content))
-                                let token = substring(remaining, 0, cb + 1)
-
-                                // Lint checks
-                                if len(base) == 0 {
-                                    ctx_warn(ctx, warnings, RUBY_EMPTY_BASE(),
-                                        concat("Ruby '[", concat(content, "': base text is empty.")),
-                                        pos)
-                                }
-                                if len(ruby) == 0 {
-                                    ctx_warn(ctx, warnings, RUBY_EMPTY_READING(),
-                                        concat("Ruby '[", concat(content, "': reading is empty.")),
-                                        pos)
-                                }
-                                if len(base) > 0 && len(ruby) > 0 && base == ruby {
-                                    ctx_warn(ctx, warnings, RUBY_SELF_REFERENTIAL(),
-                                        concat("Ruby '[", concat(base, concat("/", concat(ruby, "': base and reading are identical.")))),
-                                        pos)
-                                }
-                                if is_purely_katakana(base) && is_purely_hiragana(ruby) {
-                                    ctx_warn(ctx, warnings, RUBY_KATAKANA_HIRAGANA(),
-                                        concat("Ruby '[", concat(base, concat("/", concat(ruby,
-                                            "': katakana base with hiragana reading.")))),
-                                        pos)
-                                } else if len(base) > 0 && has_kana(base) {
-                                    ctx_warn(ctx, warnings, RUBY_KANA_BASE(),
-                                        concat("Ruby '[", concat(base, concat("/", concat(ruby,
-                                            "': base text contains kana.")))),
-                                        pos)
-                                }
-                                if len(ruby) > 0 && has_kanji(ruby) {
-                                    ctx_warn(ctx, warnings, RUBY_KANJI_READING(),
-                                        concat("Ruby '[", concat(base, concat("/", concat(ruby,
-                                            "': reading contains kanji.")))),
-                                        pos)
-                                }
-
-                                push(events, Event::Start(Tag::Ruby(ruby)))
-                                parse_inline(base, events, warnings, ctx, true, fn_defs, fn_refs)
-                                push(events, Event::End(Tag::Ruby(ruby)))
-                                pos = pos + cb + 1
-                            },
-                            None => {
-                                // No slash found — check for malformed
-                                if is_some(str_find(content, "/")) {
-                                    ctx_warn(ctx, warnings, RUBY_MALFORMED(),
-                                        concat("Possibly malformed ruby syntax '[",
-                                            concat(substring(content, 0, min_i32(len(content), 30)), "'].")),
-                                        pos)
-                                }
-                                push(events, Event::Text(substring(remaining, 0, 1)))
-                                pos = pos + 1
-                            },
-                        }
-                    }
-                },
-                None => {
-                    // No matching ]
-                    if is_some(str_find(substring(remaining, 1, len(remaining)), "/"))
-                        || is_some(str_find(substring(remaining, 1, len(remaining)), "]"))
-                    {
-                        ctx_warn(ctx, warnings, RUBY_MALFORMED(),
-                            concat("Possibly malformed ruby syntax near '",
-                                concat(substring(remaining, 0, min_i32(len(remaining), 30)), "'.")),
-                            pos)
-                    }
-                    push(events, Event::Text(substring(remaining, 0, 1)))
-                    pos = pos + 1
-                },
-            }
-        // {base/note1/note2…}
-        } else if starts_with(remaining, "{") {
-            let close_brace = find_matching_brace(remaining)
-            match close_brace {
-                Some(end) => {
-                    let content = substring(remaining, 1, end)
-                    let parts = split_at_depth_zero(content, 47)
-                    if len(parts) >= 2 {
-                        let base = get(parts, 0)
-                        let mut notes: Vec<String> = Vec_new_String()
-                        let mut ni = 1
-                        while ni < len(parts) {
-                            push(notes, get(parts, ni))
-                            ni = ni + 1
-                        }
-
-                        // Lint checks
-                        if len(base) == 0 {
-                            ctx_warn(ctx, warnings, ANNO_EMPTY_BASE(),
-                                concat("Anno '", concat(content, "': base text is empty.")),
-                                pos)
-                        }
-                        if len(notes) == 1 && contains_kanji(base) && is_purely_kana_or_punct(get(notes, 0)) {
-                            ctx_warn(ctx, warnings, ANNO_LOOKS_LIKE_RUBY(),
-                                concat("Anno '{", concat(base, concat("/", concat(get(notes, 0),
-                                    "}' looks like a Ruby reading.")))),
-                                pos)
-                        }
-
-                        push(events, Event::Start(Tag::Anno(clone(notes))))
-                        parse_inline(base, events, warnings, ctx, true, fn_defs, fn_refs)
-                        let mut nidx = 0
-                        while nidx < len(notes) {
-                            push(events, Event::Start(Tag::AnnoNote))
-                            parse_inline(get(notes, nidx), events, warnings, ctx, true, fn_defs, fn_refs)
-                            push(events, Event::End(Tag::AnnoNote))
-                            nidx = nidx + 1
-                        }
-                        push(events, Event::End(Tag::Anno(notes)))
-                        pos = pos + end + 1
-                    } else {
-                        // {text} with no / — plain text
-                        push(events, Event::Text(substring(remaining, 0, 1)))
-                        pos = pos + 1
-                    }
-                },
-                None => {
-                    ctx_warn(ctx, warnings, ANNO_MALFORMED(),
-                        concat("Possibly malformed anno syntax near '",
-                            concat(substring(remaining, 0, min_i32(len(remaining), 30)), "'.")),
-                        pos)
-                    push(events, Event::Text(substring(remaining, 0, 1)))
+                    ctx_warn(ctx, warnings, MATH_UNCLOSED_DISPLAY(), "Unclosed '$$' math block: no matching '$$' found.", pos)
                     pos = pos + 1
                 },
             }
         } else {
-            // Plain text up to next special character
-            let next_special = find_next_special(remaining)
-            if next_special == 0 {
-                let ch = char_at(remaining, 0)
-                let ch_len = char_byte_len(ch)
-                let t = substring(remaining, 0, ch_len)
-                if !in_annotation && contains_kanji(t) {
-                    ctx_warn(ctx, warnings, KANJI_NO_RUBY(),
-                        concat("Kanji without ruby: '", concat(trim(t), "'")),
-                        pos)
+            if starts_with(remaining, "$") && !starts_with(remaining, "$$") {
+                let end = str_find(substring(remaining, 1, len(remaining)), "$")
+                match end {
+                    Option::Some(e) => {
+                        push(events, Event::MathInline(substring(remaining, 1, 1 + e)))
+                        pos = pos + 1 + e + 1
+                    },
+                    None => {
+                        ctx_warn(ctx, warnings, MATH_UNCLOSED_INLINE(), "Unclosed '$' math expression: no matching '$' found.", pos)
+                        pos = pos + 1
+                    },
                 }
-                push(events, Event::Text(t))
-                pos = pos + ch_len
             } else {
-                let t = substring(remaining, 0, next_special)
-                if !in_annotation && contains_kanji(t) {
-                    ctx_warn(ctx, warnings, KANJI_NO_RUBY(),
-                        concat("Kanji without ruby: '", concat(trim(t), "'")),
-                        pos)
+                if starts_with(remaining, "`") {
+                    let end = str_find(substring(remaining, 1, len(remaining)), "`")
+                    match end {
+                        Option::Some(e) => {
+                            push(events, Event::Start(Tag::Code))
+                            push(events, Event::Text(substring(remaining, 1, 1 + e)))
+                            push(events, Event::End(Tag::Code))
+                            pos = pos + 1 + e + 1
+                        },
+                        None => {
+                            push(events, Event::Text(substring(remaining, 0, 1)))
+                            pos = pos + 1
+                        },
+                    }
+                } else {
+                    if starts_with(remaining, "~~") {
+                        let end = str_find(substring(remaining, 2, len(remaining)), "~~")
+                        match end {
+                            Option::Some(e) => {
+                                push(events, Event::Start(Tag::Strikethrough))
+                                parse_inline(substring(remaining, 2, 2 + e), events, warnings, ctx, in_annotation, fn_defs, fn_refs)
+                                push(events, Event::End(Tag::Strikethrough))
+                                pos = pos + 2 + e + 2
+                            },
+                            None => {
+                                push(events, Event::Text(substring(remaining, 0, 2)))
+                                pos = pos + 2
+                            },
+                        }
+                    } else {
+                        if starts_with(remaining, "**") {
+                            let end = str_find(substring(remaining, 2, len(remaining)), "**")
+                            match end {
+                                Option::Some(e) => {
+                                    push(events, Event::Start(Tag::Strong))
+                                    parse_inline(substring(remaining, 2, 2 + e), events, warnings, ctx, in_annotation, fn_defs, fn_refs)
+                                    push(events, Event::End(Tag::Strong))
+                                    pos = pos + 2 + e + 2
+                                },
+                                None => {
+                                    push(events, Event::Text(substring(remaining, 0, 2)))
+                                    pos = pos + 2
+                                },
+                            }
+                        } else {
+                            if starts_with(remaining, "*") && !starts_with(remaining, "**") {
+                                let end = str_find(substring(remaining, 1, len(remaining)), "*")
+                                match end {
+                                    Option::Some(e) => {
+                                        push(events, Event::Start(Tag::Emphasis))
+                                        parse_inline(substring(remaining, 1, 1 + e), events, warnings, ctx, in_annotation, fn_defs, fn_refs)
+                                        push(events, Event::End(Tag::Emphasis))
+                                        pos = pos + 1 + e + 1
+                                    },
+                                    None => {
+                                        push(events, Event::Text(substring(remaining, 0, 1)))
+                                        pos = pos + 1
+                                    },
+                                }
+                            } else {
+                                if starts_with(remaining, "\\n") {
+                                    push(events, Event::HardBreak)
+                                    pos = pos + 2
+                                } else {
+                                    if starts_with(remaining, "\\") && len(remaining) >= 2 {
+                                        let ch = char_at(remaining, 1)
+                                        let ch_len = char_byte_len(ch)
+                                        push(events, Event::Text(substring(remaining, 1, 1 + ch_len)))
+                                        pos = pos + 1 + ch_len
+                                    } else {
+                                        if starts_with(remaining, "![") {
+                                            let close_alt = find_matching_bracket(remaining, 1)
+                                            match close_alt {
+                                                Option::Some(ca) => {
+                                                    if ca + 1 < len(remaining) && char_at(remaining, ca + 1) == 40 {
+                                                        let cp = str_find(substring(remaining, ca + 2, len(remaining)), ")")
+                                                        match cp {
+                                                            Option::Some(p) => {
+                                                                let close_src = ca + 2 + p
+                                                                let alt = substring(remaining, 2, ca)
+                                                                let src = substring(remaining, ca + 2, close_src)
+                                                                push(events, Event::Start(Tag::Image(src, alt)))
+                                                                push(events, Event::End(Tag::Image(src, alt)))
+                                                                pos = pos + close_src + 1
+                                                            },
+                                                            None => {
+                                                                push(events, Event::Text(substring(remaining, 0, 1)))
+                                                                pos = pos + 1
+                                                            },
+                                                        }
+                                                    } else {
+                                                        push(events, Event::Text(substring(remaining, 0, 1)))
+                                                        pos = pos + 1
+                                                    }
+                                                },
+                                                None => {
+                                                    push(events, Event::Text(substring(remaining, 0, 1)))
+                                                    pos = pos + 1
+                                                },
+                                            }
+                                        } else {
+                                            if starts_with(remaining, "[^") {
+                                                let bracket_end = str_find(substring(remaining, 2, len(remaining)), "]")
+                                                match bracket_end {
+                                                    Option::Some(be) => {
+                                                        let id = substring(remaining, 2, 2 + be)
+                                                        if len(id) > 0 && is_none(str_find(id, " ")) {
+                                                            let total_len = 2 + be + 1
+                                                            let has_def = is_some(fn_defs_find(fn_defs, id))
+                                                            if has_def {
+                                                                let existing = fn_refs_position(fn_refs, id)
+                                                                let num = match existing {
+                                                                    Option::Some(p) => p + 1,
+                                                                    None => {
+                                                                        push(fn_refs, id)
+                                                                        len(fn_refs)
+                                                                    },
+                                                                }
+                                                                push(events, Event::FootnoteRef(num))
+                                                            } else {
+                                                                ctx_warn(ctx, warnings, FOOTNOTE_UNDEFINED_REF(), concat("Footnote reference '[^", concat(id, "]' has no matching definition.")), pos)
+                                                                push(events, Event::Text(substring(remaining, 0, total_len)))
+                                                            }
+                                                            pos = pos + total_len
+                                                        } else {
+                                                            push(events, Event::Text(substring(remaining, 0, 1)))
+                                                            pos = pos + 1
+                                                        }
+                                                    },
+                                                    None => {
+                                                        push(events, Event::Text(substring(remaining, 0, 1)))
+                                                        pos = pos + 1
+                                                    },
+                                                }
+                                            } else {
+                                                if starts_with(remaining, "[") {
+                                                    let close_bracket = find_matching_bracket(remaining, 0)
+                                                    match close_bracket {
+                                                        Option::Some(cb) => {
+                                                            let content = substring(remaining, 1, cb)
+                                                            if cb + 1 < len(remaining) && char_at(remaining, cb + 1) == 40 {
+                                                                let cp = str_find(substring(remaining, cb + 2, len(remaining)), ")")
+                                                                match cp {
+                                                                    Option::Some(p) => {
+                                                                        let close_paren = cb + 2 + p
+                                                                        let href = substring(remaining, cb + 2, close_paren)
+                                                                        push(events, Event::Start(Tag::Link(href)))
+                                                                        parse_inline(content, events, warnings, ctx, in_annotation, fn_defs, fn_refs)
+                                                                        push(events, Event::End(Tag::Link(href)))
+                                                                        pos = pos + close_paren + 1
+                                                                    },
+                                                                    None => {
+                                                                        push(events, Event::Text(substring(remaining, 0, 1)))
+                                                                        pos = pos + 1
+                                                                    },
+                                                                }
+                                                            } else {
+                                                                let slash = find_slash_at_depth_zero(content)
+                                                                match slash {
+                                                                    Option::Some(si) => {
+                                                                        let base = substring(content, 0, si)
+                                                                        let ruby = substring(content, si + 1, len(content))
+                                                                        let token = substring(remaining, 0, cb + 1)
+                                                                        if len(base) == 0 {
+                                                                            ctx_warn(ctx, warnings, RUBY_EMPTY_BASE(), concat("Ruby '[", concat(content, "': base text is empty.")), pos)
+                                                                        }
+                                                                        if len(ruby) == 0 {
+                                                                            ctx_warn(ctx, warnings, RUBY_EMPTY_READING(), concat("Ruby '[", concat(content, "': reading is empty.")), pos)
+                                                                        }
+                                                                        if len(base) > 0 && len(ruby) > 0 && base == ruby {
+                                                                            ctx_warn(ctx, warnings, RUBY_SELF_REFERENTIAL(), concat("Ruby '[", concat(base, concat("/", concat(ruby, "': base and reading are identical.")))), pos)
+                                                                        }
+                                                                        if is_purely_katakana(base) && is_purely_hiragana(ruby) {
+                                                                            ctx_warn(ctx, warnings, RUBY_KATAKANA_HIRAGANA(), concat("Ruby '[", concat(base, concat("/", concat(ruby, "': katakana base with hiragana reading.")))), pos)
+                                                                        } else {
+                                                                            if len(base) > 0 && has_kana(base) {
+                                                                                ctx_warn(ctx, warnings, RUBY_KANA_BASE(), concat("Ruby '[", concat(base, concat("/", concat(ruby, "': base text contains kana.")))), pos)
+                                                                            }
+                                                                        }
+                                                                        if len(ruby) > 0 && has_kanji(ruby) {
+                                                                            ctx_warn(ctx, warnings, RUBY_KANJI_READING(), concat("Ruby '[", concat(base, concat("/", concat(ruby, "': reading contains kanji.")))), pos)
+                                                                        }
+                                                                        push(events, Event::Start(Tag::Ruby(ruby)))
+                                                                        parse_inline(base, events, warnings, ctx, true, fn_defs, fn_refs)
+                                                                        push(events, Event::End(Tag::Ruby(ruby)))
+                                                                        pos = pos + cb + 1
+                                                                    },
+                                                                    None => {
+                                                                        if is_some(str_find(content, "/")) {
+                                                                            ctx_warn(ctx, warnings, RUBY_MALFORMED(), concat("Possibly malformed ruby syntax '[", concat(substring(content, 0, min_i32(len(content), 30)), "'].")), pos)
+                                                                        }
+                                                                        push(events, Event::Text(substring(remaining, 0, 1)))
+                                                                        pos = pos + 1
+                                                                    },
+                                                                }
+                                                            }
+                                                        },
+                                                        None => {
+                                                            if is_some(str_find(substring(remaining, 1, len(remaining)), "/")) || is_some(str_find(substring(remaining, 1, len(remaining)), "]")) {
+                                                                ctx_warn(ctx, warnings, RUBY_MALFORMED(), concat("Possibly malformed ruby syntax near '", concat(substring(remaining, 0, min_i32(len(remaining), 30)), "'.")), pos)
+                                                            }
+                                                            push(events, Event::Text(substring(remaining, 0, 1)))
+                                                            pos = pos + 1
+                                                        },
+                                                    }
+                                                } else {
+                                                    if starts_with(remaining, "{") {
+                                                        let close_brace = find_matching_brace(remaining)
+                                                        match close_brace {
+                                                            Option::Some(end) => {
+                                                                let content = substring(remaining, 1, end)
+                                                                let parts = split_at_depth_zero(content, 47)
+                                                                if len(parts) >= 2 {
+                                                                    let base = get(parts, 0)
+                                                                    let mut notes: Vec<String> = Vec_new_String()
+                                                                    let mut ni = 1
+                                                                    while ni < len(parts) {
+                                                                        push(notes, get(parts, ni))
+                                                                        ni = ni + 1
+                                                                    }
+                                                                    if len(base) == 0 {
+                                                                        ctx_warn(ctx, warnings, ANNO_EMPTY_BASE(), concat("Anno '", concat(content, "': base text is empty.")), pos)
+                                                                    }
+                                                                    if len(notes) == 1 && contains_kanji(base) && is_purely_kana_or_punct(get(notes, 0)) {
+                                                                        ctx_warn(ctx, warnings, ANNO_LOOKS_LIKE_RUBY(), concat("Anno '{", concat(base, concat("/", concat(get(notes, 0), "}' looks like a Ruby reading.")))), pos)
+                                                                    }
+                                                                    push(events, Event::Start(Tag::Anno(clone(notes))))
+                                                                    parse_inline(base, events, warnings, ctx, true, fn_defs, fn_refs)
+                                                                    let mut nidx = 0
+                                                                    while nidx < len(notes) {
+                                                                        push(events, Event::Start(Tag::AnnoNote))
+                                                                        parse_inline(get(notes, nidx), events, warnings, ctx, true, fn_defs, fn_refs)
+                                                                        push(events, Event::End(Tag::AnnoNote))
+                                                                        nidx = nidx + 1
+                                                                    }
+                                                                    push(events, Event::End(Tag::Anno(notes)))
+                                                                    pos = pos + end + 1
+                                                                } else {
+                                                                    push(events, Event::Text(substring(remaining, 0, 1)))
+                                                                    pos = pos + 1
+                                                                }
+                                                            },
+                                                            None => {
+                                                                ctx_warn(ctx, warnings, ANNO_MALFORMED(), concat("Possibly malformed anno syntax near '", concat(substring(remaining, 0, min_i32(len(remaining), 30)), "'.")), pos)
+                                                                push(events, Event::Text(substring(remaining, 0, 1)))
+                                                                pos = pos + 1
+                                                            },
+                                                        }
+                                                    } else {
+                                                        let next_special = find_next_special(remaining)
+                                                        if next_special == 0 {
+                                                            let ch = char_at(remaining, 0)
+                                                            let ch_len = char_byte_len(ch)
+                                                            let t = substring(remaining, 0, ch_len)
+                                                            if !in_annotation && contains_kanji(t) {
+                                                                ctx_warn(ctx, warnings, KANJI_NO_RUBY(), concat("Kanji without ruby: '", concat(trim(t), "'")), pos)
+                                                            }
+                                                            push(events, Event::Text(t))
+                                                            pos = pos + ch_len
+                                                        } else {
+                                                            let t = substring(remaining, 0, next_special)
+                                                            if !in_annotation && contains_kanji(t) {
+                                                                ctx_warn(ctx, warnings, KANJI_NO_RUBY(), concat("Kanji without ruby: '", concat(trim(t), "'")), pos)
+                                                            }
+                                                            push(events, Event::Text(t))
+                                                            pos = pos + next_special
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-                push(events, Event::Text(t))
-                pos = pos + next_special
             }
         }
     }
 }
 
 // ── Inline parser helpers ────────────────────────────────────────────────────
-
 fn find_matching_bracket(text: String, start: i32) -> Option<i32> {
     let mut bracket = 0
     let mut i = start
     while i < len(text) {
         let c = char_at(text, i)
-        if c == 91 { bracket = bracket + 1 }
+        if c == 91 {
+            bracket = bracket + 1
+        }
         if c == 93 {
             bracket = bracket - 1
-            if bracket == 0 { return Some(i) }
+            if bracket == 0 {
+                return Some(i)
+            }
         }
         i = i + 1
     }
@@ -1394,10 +1354,14 @@ fn find_matching_brace(text: String) -> Option<i32> {
     let mut i = 0
     while i < len(text) {
         let c = char_at(text, i)
-        if c == 123 { depth = depth + 1 }
+        if c == 123 {
+            depth = depth + 1
+        }
         if c == 125 {
             depth = depth - 1
-            if depth == 0 { return Some(i) }
+            if depth == 0 {
+                return Some(i)
+            }
         }
         i = i + 1
     }
@@ -1409,9 +1373,15 @@ fn find_slash_at_depth_zero(content: String) -> Option<i32> {
     let mut i = 0
     while i < len(content) {
         let c = char_at(content, i)
-        if c == 91 { blk = blk + 1 }
-        if c == 93 { blk = blk - 1 }
-        if c == 47 && blk == 0 { return Some(i) }
+        if c == 91 {
+            blk = blk + 1
+        }
+        if c == 93 {
+            blk = blk - 1
+        }
+        if c == 47 && blk == 0 {
+            return Some(i)
+        }
         i = i + 1
     }
     None
@@ -1424,8 +1394,12 @@ fn split_at_depth_zero(content: String, sep: i32) -> Vec<String> {
     let mut i = 0
     while i < len(content) {
         let c = char_at(content, i)
-        if c == 91 { blk = blk + 1 }
-        if c == 93 { blk = blk - 1 }
+        if c == 91 {
+            blk = blk + 1
+        }
+        if c == 93 {
+            blk = blk - 1
+        }
         if c == sep && blk == 0 {
             push(parts, substring(content, last, i))
             last = i + 1
@@ -1440,8 +1414,7 @@ fn find_next_special(text: String) -> i32 {
     let mut i = 0
     while i < len(text) {
         let c = char_at(text, i)
-        if c == 36 || c == 91 || c == 123 || c == 96
-            || c == 92 || c == 42 || c == 126 || c == 33 {
+        if c == 36 || c == 91 || c == 123 || c == 96 || c == 92 || c == 42 || c == 126 || c == 33 {
             return i
         }
         i = i + 1
@@ -1454,5 +1427,47 @@ fn is_ascii_digit(c: i32) -> bool {
 }
 
 fn min_i32(a: i32, b: i32) -> i32 {
-    if a < b { a } else { b }
+    if a < b {
+        a
+    } else {
+        b
+    }
 }
+// Find closing --- line
+// binary search for last line_start <= offset
+// Strip front matter first
+// space
+// check not already defined
+// Blank
+// blank line — no action needed
+// Footnote definition — skip
+// Card link: @[type](url)
+// Code fence
+// Heading
+// Thematic break
+// Section close
+// Blockquote
+// Table
+// List
+// Paragraph
+// remove last element
+// $$ math display
+// $ math inline
+// `code`
+// ~~strike~~
+// **bold**
+// *em*
+// \n → hard break
+// Escape: \X → literal X
+// ![alt](src) image
+// Footnote reference: [^id]
+// [content](url) link  or  [base/reading] ruby
+// [text](url) link
+// [base/ruby]
+// Lint checks
+// No slash found — check for malformed
+// No matching ]
+// {base/note1/note2…}
+// Lint checks
+// {text} with no / — plain text
+// Plain text up to next special character

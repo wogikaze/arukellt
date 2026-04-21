@@ -1,7 +1,6 @@
 // std::core::convert — type conversion functions
 //
 // Unified namespace for type conversions (wraps existing intrinsics).
-
 pub fn i32_to_string(x: i32) -> String {
     __intrinsic_i32_to_string(x)
 }

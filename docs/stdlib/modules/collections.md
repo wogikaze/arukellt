@@ -40,10 +40,7 @@ let exists = hashmap_contains(map, 42)  // true
 - Manifest-backed functions: 18
 - Stability: experimental 18
 
-Experimental compiler-oriented collections.
-
-Provides Arena, SlotMap, and Interner suitable for compiler/IDE toolchain
-use. All APIs are Experimental and may change in v4+.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Arena (bump allocator)
 
@@ -140,28 +137,13 @@ Return the number of interned strings.
 - Manifest-backed functions: 22
 - Stability: stable 22
 
-Hash-based collection helpers.
-
-The current implementation uses open addressing with linear probing and a
-monomorphic `i32 -> i32` map representation.
-
-## STOP_IF note
-
-True generic HashMap<K,V> / HashSet<T> require trait-based hashing and
-equality which are not yet supported at the Arukellt runtime level.
-All new functions below are monomorphic (i32 key / i32 value / i32 element)
-per the impl-stdlib STOP_IF policy documented in issue #044.
-
-## Layout
-
-`Vec<i32>` backing store: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]
-flags: 0 = empty, 1 = occupied
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `hashmap_new` | `() -> Vec<i32>` | `stable` | - |
+| `hashmap_new` | `() -> Vec<i32>` | `stable` | Hash-based collection helpers. |
 | `hashmap_get` | `(Vec<i32>, i32) -> i32` | `stable` | - |
 | `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
 | `hashmap_set` | `(Vec<i32>, i32, i32) -> ()` | `stable` | - |
@@ -190,10 +172,7 @@ flags: 0 = empty, 1 = occupied
 - Manifest-backed functions: 31
 - Stability: stable 31
 
-Linear collection helpers such as deque and priority queue.
-
-The current implementations are monomorphic `i32` containers backed by
-vectors.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Deque (ring buffer)
 
@@ -319,15 +298,13 @@ Copy all deque elements (front to back) into a new Vec<i32>.
 - Manifest-backed functions: 37
 - Stability: experimental 27, stable 10
 
-Ordered collection helpers backed by sorted vectors.
-
-The current surface provides a sorted map and bitset-style utilities.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `sorted_map_new` | `() -> Vec<i32>` | `stable` | - |
+| `sorted_map_new` | `() -> Vec<i32>` | `stable` | Ordered collection helpers backed by sorted vectors. |
 | `sorted_map_len` | `(Vec<i32>) -> i32` | `stable` | - |
 | `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `stable` | - |
 | `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `stable` | - |

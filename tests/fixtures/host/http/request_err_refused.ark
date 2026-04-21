@@ -5,7 +5,7 @@ use std::host::stdio
 
 fn main() {
     match http::request("POST", "http://127.0.0.1:1/", "") {
-        Ok(_body) => stdio::println("unexpected ok"),
-        Err(e) => stdio::println(e),
+        Result::Ok(_body) => stdio::println("unexpected ok"),
+        Result::Err(e) => stdio::println(e),
     }
 }

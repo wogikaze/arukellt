@@ -1,6 +1,7 @@
 use std::host::stdio
+
 trait Printable {
-    fn show(self) -> String
+    fn show(self: Printable) -> String
 }
 
 struct Point {
@@ -9,7 +10,7 @@ struct Point {
 }
 
 impl Printable for Point {
-    fn show(self) -> String {
+    fn show(self: Point) -> String {
         concat("Point(", concat(i32_to_string(self.x), concat(", ", concat(i32_to_string(self.y), ")"))))
     }
 }

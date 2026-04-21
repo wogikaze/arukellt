@@ -1,6 +1,5 @@
 // Issue #499 (slice): pipe-delimited closure literals `|params| body` and `|| body`
 // parse in the selfhost frontend; MIR lowers captures via lambda lifting (see typecheck_closure_capture.ark).
-
 use std::host::stdio
 
 fn main() {

@@ -1,15 +1,14 @@
-//! FFT and simple spectral helpers over split-complex vectors.
-//!
-//! The public surface uses two parallel `Vec<f64>` buffers: one for the real
-//! part and one for the imaginary part. Lengths must match and the transform
-//! size must be a power of two.
-
+/// FFT and simple spectral helpers over split-complex vectors.
+/// 
+/// The public surface uses two parallel `Vec<f64>` buffers: one for the real
+/// part and one for the imaginary part. Lengths must match and the transform
+/// size must be a power of two.
 pub fn pi() -> f64 {
-    3.14159265358979323846
+    3.141592653589793
 }
 
 pub fn tau() -> f64 {
-    6.28318530717958647692
+    6.283185307179586
 }
 
 fn i32_to_f64(n: i32) -> f64 {
@@ -52,7 +51,11 @@ fn require_power_of_two(n: i32) {
 }
 
 fn abs_f64(x: f64) -> f64 {
-    if x < 0.0 { 0.0 - x } else { x }
+    if x < 0.0 {
+        0.0 - x
+    } else {
+        x
+    }
 }
 
 fn reduce_angle(x: f64) -> f64 {
@@ -76,7 +79,7 @@ pub fn sin_approx(x: f64) -> f64 {
     let y7 = y5 * y2
     let y9 = y7 * y2
     let y11 = y9 * y2
-    y - (y3 / 6.0) + (y5 / 120.0) - (y7 / 5040.0) + (y9 / 362880.0) - (y11 / 39916800.0)
+    y - y3 / 6.0 + y5 / 120.0 - y7 / 5040.0 + y9 / 362880.0 - y11 / 39916800.0
 }
 
 pub fn cos_approx(x: f64) -> f64 {
@@ -86,7 +89,7 @@ pub fn cos_approx(x: f64) -> f64 {
     let y6 = y4 * y2
     let y8 = y6 * y2
     let y10 = y8 * y2
-    1.0 - (y2 / 2.0) + (y4 / 24.0) - (y6 / 720.0) + (y8 / 40320.0) - (y10 / 3628800.0)
+    1.0 - y2 / 2.0 + y4 / 24.0 - y6 / 720.0 + y8 / 40320.0 - y10 / 3628800.0
 }
 
 fn bit_reverse(index: i32, bits: i32) -> i32 {
@@ -94,7 +97,7 @@ fn bit_reverse(index: i32, bits: i32) -> i32 {
     let mut rev = 0
     let mut i = 0
     while i < bits {
-        rev = rev * 2 + (x % 2)
+        rev = rev * 2 + x % 2
         x = x / 2
         i = i + 1
     }
@@ -164,16 +167,17 @@ fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, V
     require_same_length(real_in, imag_in)
     let n = len(real_in)
     require_power_of_two(n)
-
     let real = reorder_bit_reversed(real_in)
     let imag = reorder_bit_reversed(imag_in)
-
     let mut size = 2
     while size <= n {
         let half = size / 2
         let base_angle = tau() / i32_to_f64(size)
-        let step_angle = if inverse { base_angle } else { 0.0 - base_angle }
-
+        let step_angle = if inverse {
+            base_angle
+        } else {
+            0.0 - base_angle
+        }
         let mut start = 0
         while start < n {
             let mut j = 0
@@ -181,30 +185,24 @@ fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, V
                 let angle = step_angle * i32_to_f64(j)
                 let wr = cos_approx(angle)
                 let wi = sin_approx(angle)
-
                 let even = start + j
                 let odd = even + half
-
                 let odd_r = get_unchecked(real, odd)
                 let odd_i = get_unchecked(imag, odd)
                 let t_r = wr * odd_r - wi * odd_i
                 let t_i = wr * odd_i + wi * odd_r
-
                 let even_r = get_unchecked(real, even)
                 let even_i = get_unchecked(imag, even)
-
                 set(real, even, even_r + t_r)
                 set(imag, even, even_i + t_i)
                 set(real, odd, even_r - t_r)
                 set(imag, odd, even_i - t_i)
-
                 j = j + 1
             }
             start = start + size
         }
         size = size * 2
     }
-
     if inverse {
         let scale = 1.0 / i32_to_f64(n)
         let mut i = 0
@@ -214,7 +212,6 @@ fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, V
             i = i + 1
         }
     }
-
     let out = (real, imag)
     out
 }

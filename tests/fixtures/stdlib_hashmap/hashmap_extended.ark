@@ -2,30 +2,21 @@ use std::collections::hash
 use std::host::stdio
 
 fn main() {
-    // hashmap_with_capacity
     let m: Vec<i32> = hash::hashmap_with_capacity(4)
     hash::hashmap_set(m, 10, 100)
     hash::hashmap_set(m, 20, 200)
     stdio::println(i32_to_string(hash::hashmap_size(m)))
-
-    // hashmap_is_empty on fresh map
     let empty: Vec<i32> = hash::hashmap_new()
     stdio::println(bool_to_string(hash::hashmap_is_empty(empty)))
-
-    // hashmap_get_option — present key
     hash::hashmap_set(empty, 5, 50)
     match hash::hashmap_get_option(empty, 5) {
-        Some(v) => stdio::println(i32_to_string(v)),
-        None    => stdio::println(String_from("none")),
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
     }
-
-    // hashmap_get_option — absent key
     match hash::hashmap_get_option(empty, 99) {
-        Some(v) => stdio::println(i32_to_string(v)),
-        None    => stdio::println(String_from("none")),
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
     }
-
-    // hashmap_keys and hashmap_values
     let m2: Vec<i32> = hash::hashmap_new()
     hash::hashmap_set(m2, 1, 10)
     hash::hashmap_set(m2, 2, 20)
@@ -33,21 +24,23 @@ fn main() {
     stdio::println(i32_to_string(hash::hashmap_size(m2)))
     stdio::println(i32_to_string(len(hash::hashmap_keys(m2))))
     stdio::println(i32_to_string(len(hash::hashmap_values(m2))))
-
-    // hashmap_remove — existing key
     match hash::hashmap_remove(m2, 2) {
-        Some(v) => stdio::println(i32_to_string(v)),
-        None    => stdio::println(String_from("none")),
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
     }
     stdio::println(i32_to_string(hash::hashmap_size(m2)))
-
-    // hashmap_remove — absent key
     match hash::hashmap_remove(m2, 99) {
-        Some(v) => stdio::println(i32_to_string(v)),
-        None    => stdio::println(String_from("none")),
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
     }
-
-    // hashmap_clear
     hash::hashmap_clear(m2)
     stdio::println(bool_to_string(hash::hashmap_is_empty(m2)))
 }
+// hashmap_with_capacity
+// hashmap_is_empty on fresh map
+// hashmap_get_option — present key
+// hashmap_get_option — absent key
+// hashmap_keys and hashmap_values
+// hashmap_remove — existing key
+// hashmap_remove — absent key
+// hashmap_clear

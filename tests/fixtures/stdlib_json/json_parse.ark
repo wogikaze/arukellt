@@ -1,54 +1,50 @@
-use std::json
 use std::host::stdio
+use std::json
 
 fn main() {
-    // Parse null
     match json::parse("null") {
-        Ok(v) => stdio::println(bool_to_string(json::is_null(v))),
-        Err(e) => stdio::println(concat("error:", e)),
+        Result::Ok(v) => stdio::println(bool_to_string(json::is_null(v))),
+        Result::Err(e) => stdio::println(concat("error:", e)),
     }
-
-    // Parse bool true
     match json::parse("true") {
-        Ok(v) => {
+        Result::Ok(v) => {
             match json::json_as_bool(v) {
-                Some(b) => stdio::println(bool_to_string(b)),
+                Option::Some(b) => stdio::println(bool_to_string(b)),
                 None => stdio::println("not bool"),
             }
-        }
-        Err(e) => stdio::println(concat("error:", e)),
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
     }
-
-    // Parse bool false
     match json::parse("false") {
-        Ok(v) => {
+        Result::Ok(v) => {
             match json::json_as_bool(v) {
-                Some(b) => stdio::println(bool_to_string(b)),
+                Option::Some(b) => stdio::println(bool_to_string(b)),
                 None => stdio::println("not bool"),
             }
-        }
-        Err(e) => stdio::println(concat("error:", e)),
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
     }
-
-    // Parse string
     match json::parse("\"hello\"") {
-        Ok(v) => {
+        Result::Ok(v) => {
             match json::json_as_string(v) {
-                Some(s) => stdio::println(s),
+                Option::Some(s) => stdio::println(s),
                 None => stdio::println("not string"),
             }
-        }
-        Err(e) => stdio::println(concat("error:", e)),
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
     }
-
-    // Parse integer
     match json::parse("42") {
-        Ok(v) => {
+        Result::Ok(v) => {
             match json::json_as_i32(v) {
-                Some(n) => stdio::println(i32_to_string(n)),
+                Option::Some(n) => stdio::println(i32_to_string(n)),
                 None => stdio::println("not number"),
             }
-        }
-        Err(e) => stdio::println(concat("error:", e)),
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
     }
 }
+// Parse null
+// Parse bool true
+// Parse bool false
+// Parse string
+// Parse integer

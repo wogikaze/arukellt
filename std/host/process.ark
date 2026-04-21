@@ -1,5 +1,4 @@
-//! Host process-control helpers.
-
+/// Host process-control helpers.
 /// Requests process termination with the given exit code.
 pub fn exit(code: i32) {
     __intrinsic_process_exit(code)

@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn main() {
     let a = 1000000u32
     let b = 999999u32

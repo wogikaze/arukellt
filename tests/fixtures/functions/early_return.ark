@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn classify(x: i32) -> String {
     if x < 0 {
         return String_from("negative")

@@ -1,5 +1,5 @@
 trait Display {
-    fn display(self) -> String
+    fn display(self: Display) -> String
 }
 
 fn main() {

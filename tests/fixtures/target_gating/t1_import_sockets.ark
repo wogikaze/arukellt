@@ -3,4 +3,5 @@
 // Gating: This should be rejected when --target wasm32-wasi-p1 is used
 use std::host::sockets
 
-fn main() {}
+fn main() {
+}

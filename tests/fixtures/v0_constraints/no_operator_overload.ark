@@ -4,7 +4,7 @@ struct Vec2 {
 }
 
 impl Add for Vec2 {
-    fn add(self, other: Vec2) -> Vec2 {
+    fn add(self: Vec2, other: Vec2) -> Vec2 {
         Vec2 { x: self.x + other.x, y: self.y + other.y }
     }
 }

@@ -1,5 +1,5 @@
-use std::text
 use std::host::stdio
+use std::text
 
 fn main() {
     let input: String = String_from("line1\nline2\nline3")

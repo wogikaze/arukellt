@@ -8,4 +8,5 @@ pub fn safe_div(a: i32, b: i32) -> Result<i32, String> {
     }
 }
 
-fn main() {}
+fn main() {
+}

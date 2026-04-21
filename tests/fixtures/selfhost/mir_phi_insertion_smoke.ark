@@ -1,5 +1,5 @@
-use std::host::stdio
 use std::host::process
+use std::host::stdio
 
 struct PhiArg {
     pred_block: i32,
@@ -60,7 +60,6 @@ fn try_insert_simple_join_phi(join_block: Block, pred0: Block, pred1: Block, ssa
         stdio::eprintln(String_from("pred1 frontier missing join"))
         process::exit(1)
     }
-
     let phi = Phi_new(ssa_name, 3, dest_vt)
     phi_add_arg(phi, pred0.id, 1)
     phi_add_arg(phi, pred1.id, 2)
@@ -85,30 +84,13 @@ fn format_phi(phi: Phi) -> String {
 }
 
 fn main() {
-    let then_block = Block {
-        id: 1,
-        preds: Vec_new_i32(),
-        dom_frontier: Vec_new_i32(),
-        last_value: 1,
-    }
-    let else_block = Block {
-        id: 2,
-        preds: Vec_new_i32(),
-        dom_frontier: Vec_new_i32(),
-        last_value: 2,
-    }
-    let join_block = Block {
-        id: 3,
-        preds: Vec_new_i32(),
-        dom_frontier: Vec_new_i32(),
-        last_value: 0 - 1,
-    }
-
+    let then_block = Block { id: 1, preds: Vec_new_i32(), dom_frontier: Vec_new_i32(), last_value: 1 }
+    let else_block = Block { id: 2, preds: Vec_new_i32(), dom_frontier: Vec_new_i32(), last_value: 2 }
+    let join_block = Block { id: 3, preds: Vec_new_i32(), dom_frontier: Vec_new_i32(), last_value: 0 - 1 }
     push(join_block.preds, then_block.id)
     push(join_block.preds, else_block.id)
     push(then_block.dom_frontier, join_block.id)
     push(else_block.dom_frontier, join_block.id)
-
     let phi = try_insert_simple_join_phi(join_block, then_block, else_block, String_from("join_val"), 1)
     stdio::println(String_from("diamond join bb3"))
     stdio::println(concat(String_from("const.i32 -> "), format_ssa_value(String_from("join_val"), 1)))

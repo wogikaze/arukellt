@@ -7,7 +7,7 @@ fn main() {
     stdio::println(convert::bool_to_string(true))
     let parsed = convert::parse_i32("123")
     match parsed {
-        Some(v) => stdio::println(i32_to_string(v)),
+        Option::Some(v) => stdio::println(i32_to_string(v)),
         None => stdio::println("parse failed"),
     }
 }

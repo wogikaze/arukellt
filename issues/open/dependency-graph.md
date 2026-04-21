@@ -28,6 +28,7 @@ graph LR
   I429["429 429-playground-wasm-package-runtime-wrapper"]
   I436["436 436-playground-docs-site-integration"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
+  I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I468["468 468-playground-build-and-publish-path-proof"]
   I469["469 469-extension-playground-surface-points-to-repo-proved-endpoint"]
   I470["470 470-playground-feature-claims-match-implementation"]
@@ -66,6 +67,7 @@ graph LR
   I554["554 Release: Extension Live Editor Tests"]
   I555["555 Release: Pre-Release CI Checks"]
   I556["556 Release: Selfhost Bootstrap Check"]
+  I558["558 558-expand-selfhost-cli-parity-runner-beyond-help-version"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -143,6 +145,7 @@ graph LR
 - **429** depends on: none; blocks: none
 - **436** depends on: none; blocks: none
 - **437** depends on: 431; blocks: none
+- **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **468** depends on: none; blocks: none
 - **469** depends on: none; blocks: none
 - **470** depends on: none; blocks: none
@@ -181,6 +184,7 @@ graph LR
 - **554** depends on: none; blocks: none
 - **555** depends on: none; blocks: none
 - **556** depends on: none; blocks: none
+- **558** depends on: none; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136

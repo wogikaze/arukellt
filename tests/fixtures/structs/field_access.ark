@@ -1,4 +1,5 @@
 use std::host::stdio
+
 struct Person {
     name: String,
     age: i32,

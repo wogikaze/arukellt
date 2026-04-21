@@ -1,11 +1,9 @@
-//! Eager sequence helpers over `Vec<i32>`.
-//!
-//! Provides map/filter/take/skip/fold as functional stubs over Vec<i32>,
-//! alongside search, aggregation, and deduplication helpers.
-//! Lazy generic Seq<T> pipelines are deferred to a future release.
-
+/// Eager sequence helpers over `Vec<i32>`.
+/// 
+/// Provides map/filter/take/skip/fold as functional stubs over Vec<i32>,
+/// alongside search, aggregation, and deduplication helpers.
+/// Lazy generic Seq<T> pipelines are deferred to a future release.
 // ─── Transformation operations ──────────────────────────────────────────────
-
 /// Apply `f` to every element of `v` and collect the results.
 pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
     let n: i32 = len(v)
@@ -38,7 +36,11 @@ pub fn take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
     let sz: i32 = len(v)
     let result: Vec<i32> = Vec_new_i32()
     let mut i: i32 = 0
-    let limit: i32 = if n < sz { n } else { sz }
+    let limit: i32 = if n < sz {
+        n
+    } else {
+        sz
+    }
     while i < limit {
         push(result, get_unchecked(v, i))
         i = i + 1
@@ -50,7 +52,11 @@ pub fn take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
 pub fn skip_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
     let sz: i32 = len(v)
     let result: Vec<i32> = Vec_new_i32()
-    let start: i32 = if n < sz { n } else { sz }
+    let start: i32 = if n < sz {
+        n
+    } else {
+        sz
+    }
     let mut i: i32 = start
     while i < sz {
         push(result, get_unchecked(v, i))
@@ -72,13 +78,12 @@ pub fn fold_i32_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
 }
 
 // ─── Query operations ────────────────────────────────────────────────────────
-
 pub fn binary_search(v: Vec<i32>, target: i32) -> i32 {
     let mut lo: i32 = 0
     let mut hi: i32 = len(v)
     let mut result: i32 = 0 - 1
     while lo < hi {
-        let mid: i32 = (lo + hi) / 2
+        let mid: i32 = lo + hi / 2
         let val: i32 = get_unchecked(v, mid)
         if val == target {
             result = mid

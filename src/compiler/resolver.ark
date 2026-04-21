@@ -2,23 +2,45 @@
 //
 // Walks the AST and builds a scope chain, binding each identifier
 // to its declaration. Reports undefined and duplicate names.
-
 use std::host::stdio
 
-// ── Symbol Tags ──────────────────────────────────────────────────────────────
+fn SYM_LOCAL() -> i32 {
+    1
+}
 
-fn SYM_LOCAL() -> i32 { 1 }
-fn SYM_PARAM() -> i32 { 2 }
-fn SYM_FN() -> i32 { 3 }
-fn SYM_STRUCT() -> i32 { 4 }
-fn SYM_ENUM() -> i32 { 5 }
-fn SYM_VARIANT() -> i32 { 6 }
-fn SYM_IMPORT() -> i32 { 7 }
-fn SYM_BUILTIN() -> i32 { 8 }
-fn SYM_MODULE() -> i32 { 9 }
+fn SYM_PARAM() -> i32 {
+    2
+}
+
+fn SYM_FN() -> i32 {
+    3
+}
+
+fn SYM_STRUCT() -> i32 {
+    4
+}
+
+fn SYM_ENUM() -> i32 {
+    5
+}
+
+fn SYM_VARIANT() -> i32 {
+    6
+}
+
+fn SYM_IMPORT() -> i32 {
+    7
+}
+
+fn SYM_BUILTIN() -> i32 {
+    8
+}
+
+fn SYM_MODULE() -> i32 {
+    9
+}
 
 // ── Symbol ───────────────────────────────────────────────────────────────────
-
 struct Symbol {
     name: String,
     kind: i32,
@@ -37,7 +59,6 @@ fn Symbol_new_pub(name: String, kind: i32, depth: i32, index: i32) -> Symbol {
 }
 
 // ── Scope ────────────────────────────────────────────────────────────────────
-
 struct Scope {
     symbols: Vec<Symbol>,
     parent_depth: i32,
@@ -48,7 +69,6 @@ fn Scope_new(parent: i32) -> Scope {
 }
 
 // ── Resolve Context ──────────────────────────────────────────────────────────
-
 struct ResolveCtx {
     scopes: Vec<Scope>,
     current_depth: i32,
@@ -58,16 +78,8 @@ struct ResolveCtx {
 }
 
 fn ResolveCtx_new() -> ResolveCtx {
-    let mut ctx = ResolveCtx {
-        scopes: Vec_new_Scope(),
-        current_depth: 0,
-        error_count: 0,
-        errors: Vec_new_String(),
-        next_decl_index: 0,
-    }
-    // Push global scope
+    let mut ctx = ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), next_decl_index: 0 }
     push(ctx.scopes, Scope_new(0 - 1))
-    // Register builtins
     register_builtins(ctx)
     ctx
 }
@@ -75,7 +87,6 @@ fn ResolveCtx_new() -> ResolveCtx {
 fn push_scope(ctx: ResolveCtx) {
     ctx.current_depth = ctx.current_depth + 1
     if ctx.current_depth < len(ctx.scopes) {
-        // Reuse existing scope at this depth — clear old symbols
         let scope = get_unchecked(ctx.scopes, ctx.current_depth)
         scope.symbols = Vec_new_Symbol()
     } else {
@@ -90,27 +101,19 @@ fn pop_scope(ctx: ResolveCtx) {
 fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
     let idx = ctx.next_decl_index
     ctx.next_decl_index = ctx.next_decl_index + 1
-    // Add to current scope
     let scope = get_unchecked(ctx.scopes, ctx.current_depth)
-    // Check for duplicates at current depth.
-    // Shadowing is allowed for:
-    //   - Local variable re-binding (let x = ...; let x = ...;)
-    //   - User-defined functions/structs/enums shadowing builtin modules
     let sym_count = len(scope.symbols)
     let mut i = 0
     while i < sym_count {
         let existing = get_unchecked(scope.symbols, i)
         if eq(clone(existing.name), clone(name)) && existing.scope_depth == ctx.current_depth {
-            // Allow shadowing of local variables and parameters
             if kind == SYM_LOCAL() || kind == SYM_PARAM() {
-                // Overwrite in-place to shadow the existing binding
                 existing.kind = kind
                 existing.decl_index = idx
                 existing.is_pub = is_pub
                 return
             }
-            // Allow user-defined fn/struct/enum to shadow a builtin module
-            if (kind == SYM_FN() || kind == SYM_STRUCT() || kind == SYM_ENUM()) && existing.kind == SYM_MODULE() {
+            if kind == SYM_FN() || kind == SYM_STRUCT() || kind == SYM_ENUM() && existing.kind == SYM_MODULE() {
                 existing.kind = kind
                 existing.decl_index = idx
                 existing.is_pub = is_pub
@@ -138,7 +141,6 @@ fn define_with_vis(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
 }
 
 fn lookup(ctx: ResolveCtx, name: String) -> i32 {
-    // Search from current scope to global
     let mut depth = ctx.current_depth
     while depth >= 0 {
         let scope = get_unchecked(ctx.scopes, depth)
@@ -153,7 +155,7 @@ fn lookup(ctx: ResolveCtx, name: String) -> i32 {
         }
         depth = depth - 1
     }
-    0 - 1  // not found
+    0 - 1
 }
 
 // Return the symbol kind for a name, or -1 if not found.
@@ -202,7 +204,6 @@ fn resolve_error(ctx: ResolveCtx, msg: String) {
 // ── Path Helpers ─────────────────────────────────────────────────────────────
 // These helpers extract the module and symbol components of a qualified path
 // like "mymod::fn_name".
-
 // Returns the module part of "module::symbol", or the full path if no "::" is found.
 fn path_module_part(path: String) -> String {
     let pos = index_of(clone(path), String_from("::"))
@@ -226,11 +227,11 @@ fn path_symbol_part(path: String) -> String {
 pub fn use_module_short_name(path: String) -> String {
     let n = len(path)
     let mut last_sep = 0 - 1
-    let mut i = n - 2  // need at least 2 chars for "::"
+    let mut i = n - 2
     while i >= 0 {
         if eq(substring(path, i, i + 2), String_from("::")) {
             last_sep = i
-            i = 0 - 1  // break
+            i = 0 - 1
         } else {
             i = i - 1
         }
@@ -256,7 +257,6 @@ pub fn register_module_export(ctx: ResolveCtx, module_name: String, symbol_name:
 }
 
 // ── Builtin Registration ─────────────────────────────────────────────────────
-
 fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("println"), SYM_BUILTIN())
     define(ctx, String_from("print"), SYM_BUILTIN())
@@ -341,12 +341,10 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("pad_right"), SYM_BUILTIN())
     define(ctx, String_from("format_i32"), SYM_BUILTIN())
     define(ctx, String_from("format_bool"), SYM_BUILTIN())
-    // Built-in enum variant constructors
     define(ctx, String_from("Some"), SYM_BUILTIN())
     define(ctx, String_from("None"), SYM_BUILTIN())
     define(ctx, String_from("Ok"), SYM_BUILTIN())
     define(ctx, String_from("Err"), SYM_BUILTIN())
-    // Modules
     define(ctx, String_from("stdio"), SYM_MODULE())
     define(ctx, String_from("fs"), SYM_MODULE())
     define(ctx, String_from("process"), SYM_MODULE())
@@ -360,13 +358,10 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("convert"), SYM_MODULE())
     define(ctx, String_from("string"), SYM_MODULE())
     define(ctx, String_from("collections"), SYM_MODULE())
-    // parse_i64 (same as parse_i32 in selfhost, i32-limited)
     define(ctx, String_from("parse_i64"), SYM_BUILTIN())
-    // Intrinsic names used directly in fixtures
     define(ctx, String_from("__intrinsic_println"), SYM_BUILTIN())
     define(ctx, String_from("__intrinsic_i32_to_string"), SYM_BUILTIN())
     define(ctx, String_from("__intrinsic_f64_to_string"), SYM_BUILTIN())
-    // Type conversion intrinsics
     define(ctx, String_from("i8_to_i32"), SYM_BUILTIN())
     define(ctx, String_from("i16_to_i32"), SYM_BUILTIN())
     define(ctx, String_from("u8_to_i32"), SYM_BUILTIN())
@@ -378,7 +373,6 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("f32_to_f64"), SYM_BUILTIN())
     define(ctx, String_from("f64_to_f32"), SYM_BUILTIN())
     define(ctx, String_from("f32_to_string"), SYM_BUILTIN())
-    // HOF intrinsics
     define(ctx, String_from("map_i32_i32"), SYM_BUILTIN())
     define(ctx, String_from("map_i64_i64"), SYM_BUILTIN())
     define(ctx, String_from("map_f64_f64"), SYM_BUILTIN())
@@ -402,7 +396,6 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("sort_i64"), SYM_BUILTIN())
     define(ctx, String_from("sort_f64"), SYM_BUILTIN())
     define(ctx, String_from("sort_String"), SYM_BUILTIN())
-    // HashMap intrinsics (monomorphized)
     define(ctx, String_from("HashMap_i32_i32_new"), SYM_BUILTIN())
     define(ctx, String_from("HashMap_i32_i32_insert"), SYM_BUILTIN())
     define(ctx, String_from("HashMap_i32_i32_get"), SYM_BUILTIN())
@@ -434,39 +427,123 @@ fn register_builtins(ctx: ResolveCtx) {
 }
 
 // ── AST Node Kind Constants (from parser) ────────────────────────────────────
+fn NK_INT_LIT() -> i32 {
+    1
+}
 
-fn NK_INT_LIT() -> i32 { 1 }
-fn NK_IDENT() -> i32 { 5 }
-fn NK_BINARY() -> i32 { 6 }
-fn NK_UNARY() -> i32 { 7 }
-fn NK_CALL() -> i32 { 8 }
-fn NK_FIELD_ACCESS() -> i32 { 9 }
-fn NK_PATH() -> i32 { 16 }
-fn NK_STRUCT_LIT() -> i32 { 11 }
-fn NK_IF_EXPR() -> i32 { 13 }
-fn NK_MATCH_EXPR() -> i32 { 14 }
-fn NK_BLOCK() -> i32 { 20 }
-fn NK_ASSIGN() -> i32 { 18 }
-fn NK_METHOD_CALL() -> i32 { 21 }
-fn NK_LET() -> i32 { 30 }
-fn NK_RETURN() -> i32 { 31 }
-fn NK_WHILE() -> i32 { 34 }
-fn NK_LOOP() -> i32 { 35 }
-fn NK_FOR() -> i32 { 36 }
-fn NK_EXPR_STMT() -> i32 { 37 }
-fn NK_FN_DECL() -> i32 { 50 }
-fn NK_STRUCT_DECL() -> i32 { 51 }
-fn NK_ENUM_DECL() -> i32 { 52 }
-fn NK_USE() -> i32 { 54 }
-fn NK_TRAIT_DECL() -> i32 { 55 }
-fn NK_IMPL_DECL() -> i32 { 56 }
-fn NK_TUPLE() -> i32 { 17 }
-fn NK_PAT_IDENT() -> i32 { 70 }
-fn NK_PAT_WILDCARD() -> i32 { 71 }
-fn NK_PAT_VARIANT() -> i32 { 73 }
+fn NK_IDENT() -> i32 {
+    5
+}
+
+fn NK_BINARY() -> i32 {
+    6
+}
+
+fn NK_UNARY() -> i32 {
+    7
+}
+
+fn NK_CALL() -> i32 {
+    8
+}
+
+fn NK_FIELD_ACCESS() -> i32 {
+    9
+}
+
+fn NK_PATH() -> i32 {
+    16
+}
+
+fn NK_STRUCT_LIT() -> i32 {
+    11
+}
+
+fn NK_IF_EXPR() -> i32 {
+    13
+}
+
+fn NK_MATCH_EXPR() -> i32 {
+    14
+}
+
+fn NK_BLOCK() -> i32 {
+    20
+}
+
+fn NK_ASSIGN() -> i32 {
+    18
+}
+
+fn NK_METHOD_CALL() -> i32 {
+    21
+}
+
+fn NK_LET() -> i32 {
+    30
+}
+
+fn NK_RETURN() -> i32 {
+    31
+}
+
+fn NK_WHILE() -> i32 {
+    34
+}
+
+fn NK_LOOP() -> i32 {
+    35
+}
+
+fn NK_FOR() -> i32 {
+    36
+}
+
+fn NK_EXPR_STMT() -> i32 {
+    37
+}
+
+fn NK_FN_DECL() -> i32 {
+    50
+}
+
+fn NK_STRUCT_DECL() -> i32 {
+    51
+}
+
+fn NK_ENUM_DECL() -> i32 {
+    52
+}
+
+fn NK_USE() -> i32 {
+    54
+}
+
+fn NK_TRAIT_DECL() -> i32 {
+    55
+}
+
+fn NK_IMPL_DECL() -> i32 {
+    56
+}
+
+fn NK_TUPLE() -> i32 {
+    17
+}
+
+fn NK_PAT_IDENT() -> i32 {
+    70
+}
+
+fn NK_PAT_WILDCARD() -> i32 {
+    71
+}
+
+fn NK_PAT_VARIANT() -> i32 {
+    73
+}
 
 // ── AST Node (duplicated from parser for standalone compilation) ─────────────
-
 struct Span {
     start: i32,
     end: i32,
@@ -486,7 +563,6 @@ struct AstNode {
 }
 
 // ── Module Declarations (for multi-file resolution) ──────────────────────────
-
 pub struct ModuleDecls {
     name: String,
     decls: Vec<AstNode>,
@@ -497,7 +573,6 @@ pub fn ModuleDecls_new(name: String, decls: Vec<AstNode>) -> ModuleDecls {
 }
 
 // ── Resolve Module ───────────────────────────────────────────────────────────
-
 /// Resolve a single module without any imported module declarations.
 /// Backward-compatible wrapper; prefer resolve_program for multi-file compilation.
 pub fn resolve_module(decls: Vec<AstNode>) -> ResolveCtx {
@@ -509,140 +584,138 @@ pub fn resolve_module(decls: Vec<AstNode>) -> ResolveCtx {
 /// so that qualified name resolution (e.g. mymath::add) works.
 pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> ResolveCtx {
     let ctx = ResolveCtx_new()
-
-    // Register symbols from imported modules.
     let mod_count = len(modules)
     let mut mi = 0
     while mi < mod_count {
         let m = get_unchecked(modules, mi)
-        // Define the module name in global scope (override the hardcoded builtin if present)
         let existing = lookup(ctx, clone(m.name))
         if existing < 0 {
             define(ctx, clone(m.name), SYM_MODULE())
         }
-        // Scan module decls for fn/struct/enum and register them as module exports
         let mdecl_count = len(m.decls)
         let mut di = 0
         while di < mdecl_count {
             let d = get_unchecked(m.decls, di)
             if d.kind == NK_FN_DECL() {
                 register_module_export(ctx, clone(m.name), clone(d.text), SYM_FN(), d.is_pub)
-            } else if d.kind == NK_STRUCT_DECL() {
-                register_module_export(ctx, clone(m.name), clone(d.text), SYM_STRUCT(), d.is_pub)
-            } else if d.kind == NK_ENUM_DECL() {
-                register_module_export(ctx, clone(m.name), clone(d.text), SYM_ENUM(), d.is_pub)
+            } else {
+                if d.kind == NK_STRUCT_DECL() {
+                    register_module_export(ctx, clone(m.name), clone(d.text), SYM_STRUCT(), d.is_pub)
+                } else {
+                    if d.kind == NK_ENUM_DECL() {
+                        register_module_export(ctx, clone(m.name), clone(d.text), SYM_ENUM(), d.is_pub)
+                    }
+                }
             }
             di = di + 1
         }
         mi = mi + 1
     }
-
     let count = len(decls)
-
-    // First pass: register all top-level names, preserving pub/private visibility.
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)
         if d.kind == NK_FN_DECL() {
             define_with_vis(ctx, clone(d.text), SYM_FN(), d.is_pub)
-        } else if d.kind == NK_STRUCT_DECL() {
-            define_with_vis(ctx, clone(d.text), SYM_STRUCT(), d.is_pub)
-        } else if d.kind == NK_ENUM_DECL() {
-            define_with_vis(ctx, clone(d.text), SYM_ENUM(), d.is_pub)
-        } else if d.kind == NK_IMPL_DECL() {
-            // Register each method as StructName::method_name
-            let struct_name = clone(d.text)
-            let mcount = len(d.children)
-            let mut mi = 0
-            while mi < mcount {
-                let method = get_unchecked(d.children, mi)
-                let mangled = concat(clone(struct_name), concat(String_from("::"), clone(method.text)))
-                define_with_vis(ctx, mangled, SYM_FN(), d.is_pub)
-                mi = mi + 1
-            }
-        } else if d.kind == NK_USE() {
-            let existing_use = lookup(ctx, clone(d.text))
-            if existing_use < 0 {
-                define(ctx, clone(d.text), SYM_IMPORT())
-            }
-            // Also register the short name (last path segment) as SYM_MODULE so
-            // that qualified paths like `bytes::foo` resolve the module part.
-            // If an alias is present (stored in type_ann[0]), use it instead.
-            let short_name = if len(d.type_ann) > 0 {
-                let alias_node = get_unchecked(d.type_ann, 0)
-                clone(alias_node.text)
+        } else {
+            if d.kind == NK_STRUCT_DECL() {
+                define_with_vis(ctx, clone(d.text), SYM_STRUCT(), d.is_pub)
             } else {
-                use_module_short_name(clone(d.text))
-            }
-            let existing_mod = lookup(ctx, clone(short_name))
-            if existing_mod < 0 {
-                define(ctx, clone(short_name), SYM_MODULE())
-            }
-            // Handle destructure children: use base::{a, b, ...}
-            let num_children = len(d.children)
-            let mut ci = 0
-            while ci < num_children {
-                let child = get_unchecked(d.children, ci)
-                if child.kind == NK_USE() {
-                    let existing_child = lookup(ctx, clone(child.text))
-                    if existing_child < 0 {
-                        define(ctx, clone(child.text), SYM_IMPORT())
-                    }
-                    let child_short = use_module_short_name(clone(child.text))
-                    let existing_child_mod = lookup(ctx, clone(child_short))
-                    if existing_child_mod < 0 {
-                        define(ctx, clone(child_short), SYM_MODULE())
+                if d.kind == NK_ENUM_DECL() {
+                    define_with_vis(ctx, clone(d.text), SYM_ENUM(), d.is_pub)
+                } else {
+                    if d.kind == NK_IMPL_DECL() {
+                        let struct_name = clone(d.text)
+                        let mcount = len(d.children)
+                        let mut mi = 0
+                        while mi < mcount {
+                            let method = get_unchecked(d.children, mi)
+                            let mangled = concat(clone(struct_name), concat(String_from("::"), clone(method.text)))
+                            define_with_vis(ctx, mangled, SYM_FN(), d.is_pub)
+                            mi = mi + 1
+                        }
+                    } else {
+                        if d.kind == NK_USE() {
+                            let existing_use = lookup(ctx, clone(d.text))
+                            if existing_use < 0 {
+                                define(ctx, clone(d.text), SYM_IMPORT())
+                            }
+                            let short_name = if len(d.type_ann) > 0 {
+                                let alias_node = get_unchecked(d.type_ann, 0)
+                                clone(alias_node.text)
+                            } else {
+                                use_module_short_name(clone(d.text))
+                            }
+                            let existing_mod = lookup(ctx, clone(short_name))
+                            if existing_mod < 0 {
+                                define(ctx, clone(short_name), SYM_MODULE())
+                            }
+                            let num_children = len(d.children)
+                            let mut ci = 0
+                            while ci < num_children {
+                                let child = get_unchecked(d.children, ci)
+                                if child.kind == NK_USE() {
+                                    let existing_child = lookup(ctx, clone(child.text))
+                                    if existing_child < 0 {
+                                        define(ctx, clone(child.text), SYM_IMPORT())
+                                    }
+                                    let child_short = use_module_short_name(clone(child.text))
+                                    let existing_child_mod = lookup(ctx, clone(child_short))
+                                    if existing_child_mod < 0 {
+                                        define(ctx, clone(child_short), SYM_MODULE())
+                                    }
+                                }
+                                ci = ci + 1
+                            }
+                        }
                     }
                 }
-                ci = ci + 1
             }
         }
         i = i + 1
     }
-
-    // Second pass: resolve bodies
     let mut j = 0
     while j < count {
         let d = get_unchecked(decls, j)
         if d.kind == NK_FN_DECL() {
             resolve_fn(ctx, d)
-        } else if d.kind == NK_ENUM_DECL() {
-            resolve_enum(ctx, d)
-        } else if d.kind == NK_IMPL_DECL() {
-            // Resolve each method body, registering self as a param
-            let struct_name = clone(d.text)
-            let mcount = len(d.children)
-            let mut mi = 0
-            while mi < mcount {
-                let method = get_unchecked(d.children, mi)
-                push_scope(ctx)
-                let m_child_count = len(method.children)
-                let mut pi = 0
-                while pi < m_child_count - 1 {
-                    let param = get_unchecked(method.children, pi)
-                    if param.kind == NK_IDENT() {
-                        define(ctx, clone(param.text), SYM_PARAM())
+        } else {
+            if d.kind == NK_ENUM_DECL() {
+                resolve_enum(ctx, d)
+            } else {
+                if d.kind == NK_IMPL_DECL() {
+                    let struct_name = clone(d.text)
+                    let mcount = len(d.children)
+                    let mut mi = 0
+                    while mi < mcount {
+                        let method = get_unchecked(d.children, mi)
+                        push_scope(ctx)
+                        let m_child_count = len(method.children)
+                        let mut pi = 0
+                        while pi < m_child_count - 1 {
+                            let param = get_unchecked(method.children, pi)
+                            if param.kind == NK_IDENT() {
+                                define(ctx, clone(param.text), SYM_PARAM())
+                            }
+                            pi = pi + 1
+                        }
+                        if m_child_count > 0 {
+                            let m_body = get_unchecked(method.children, m_child_count - 1)
+                            resolve_node(ctx, m_body)
+                        }
+                        pop_scope(ctx)
+                        mi = mi + 1
                     }
-                    pi = pi + 1
                 }
-                if m_child_count > 0 {
-                    let m_body = get_unchecked(method.children, m_child_count - 1)
-                    resolve_node(ctx, m_body)
-                }
-                pop_scope(ctx)
-                mi = mi + 1
             }
         }
         j = j + 1
     }
-
     ctx
 }
 
 fn resolve_fn(ctx: ResolveCtx, node: AstNode) {
     push_scope(ctx)
-
-    // Register parameters
     let child_count = len(node.children)
     let mut i = 0
     while i < child_count - 1 {
@@ -652,13 +725,10 @@ fn resolve_fn(ctx: ResolveCtx, node: AstNode) {
         }
         i = i + 1
     }
-
-    // Resolve body (last child is block)
     if child_count > 0 {
         let body = get_unchecked(node.children, child_count - 1)
         resolve_node(ctx, body)
     }
-
     pop_scope(ctx)
 }
 
@@ -668,7 +738,6 @@ fn resolve_enum(ctx: ResolveCtx, node: AstNode) {
     while i < child_count {
         let variant = get_unchecked(node.children, i)
         let full_name = concat(clone(node.text), concat(String_from("::"), clone(variant.text)))
-        // Variants inherit the visibility of their parent enum.
         define_with_vis(ctx, full_name, SYM_VARIANT(), node.is_pub)
         i = i + 1
     }
@@ -680,7 +749,6 @@ fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
         return
     }
     if pat.kind == NK_PAT_VARIANT() {
-        // Recurse into sub-patterns (e.g. Ok(x) has x as a child)
         let child_count = len(pat.children)
         let mut i = 0
         while i < child_count {
@@ -690,14 +758,12 @@ fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
         }
         return
     }
-    // NK_PAT_WILDCARD, NK_PAT_LITERAL: no bindings
 }
 
 fn resolve_node(ctx: ResolveCtx, node: AstNode) {
     if node.kind == NK_IDENT() {
         let idx = lookup(ctx, clone(node.text))
         if idx < 0 {
-            // Allow Vec_new_* as implicit builtins
             let name = clone(node.text)
             let name_len = len(name)
             let mut is_builtin = false
@@ -712,59 +778,34 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         }
         return
     }
-
     if node.kind == NK_FIELD_ACCESS() {
-        // Resolve the receiver (children[0]) but NOT the field name (node.text)
         if len(node.children) > 0 {
             let receiver = get_unchecked(node.children, 0)
             resolve_node(ctx, receiver)
         }
         return
     }
-
     if node.kind == NK_PATH() {
-        // Cross-module path expression: "module::symbol"
-        // 1. Verify the module is in scope.
-        // 2. If the qualified name "module::symbol" is pre-registered (via
-        //    register_module_export), enforce its visibility: private symbols
-        //    from other modules must not be accessed.
         let path = clone(node.text)
         let module_part = path_module_part(clone(path))
         let symbol_part = path_symbol_part(clone(path))
-
-        // Verify the module name is defined.
         let mod_idx = lookup(ctx, clone(module_part))
         if mod_idx < 0 {
             resolve_error(ctx, concat(String_from("undefined module: "), clone(module_part)))
             return
         }
-
-        // Check visibility when the qualified symbol is pre-registered.
         let sym_idx = lookup(ctx, clone(path))
         if sym_idx >= 0 {
-            // Enum variants are always accessible when the enum is in scope;
-            // skip the visibility check if the left-hand side is an enum type.
             let mod_kind = lookup_kind(ctx, clone(module_part))
             if mod_kind != SYM_ENUM() {
                 if !lookup_is_pub(ctx, clone(path)) {
-                    resolve_error(ctx, concat(
-                        String_from("visibility error: `"),
-                        concat(clone(symbol_part),
-                        concat(String_from("` is private and cannot be accessed from module `"),
-                        concat(clone(module_part), String_from("`"))))
-                    ))
+                    resolve_error(ctx, concat(String_from("visibility error: `"), concat(clone(symbol_part), concat(String_from("` is private and cannot be accessed from module `"), concat(clone(module_part), String_from("`"))))))
                 }
             }
         }
-        // If sym_idx < 0 the qualified name is not pre-registered (e.g. std:: modules,
-        // or the driver did not call register_module_export for this import yet).
-        // In that case, access is allowed — graceful degradation until the driver
-        // populates the module export table.
         return
     }
-
     if node.kind == NK_STRUCT_LIT() {
-        // Verify struct name exists, resolve field values but not field names
         let idx = lookup(ctx, clone(node.text))
         if idx < 0 {
             resolve_error(ctx, concat(String_from("undefined struct: "), clone(node.text)))
@@ -773,8 +814,6 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         let mut i = 0
         while i < field_count {
             let field = get_unchecked(node.children, i)
-            // field.text = field name (don't resolve)
-            // field.children[0] = field value (resolve)
             if len(field.children) > 0 {
                 let val = get_unchecked(field.children, 0)
                 resolve_node(ctx, val)
@@ -783,9 +822,7 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         }
         return
     }
-
     if node.kind == NK_METHOD_CALL() {
-        // Resolve receiver (children[0]) and arguments, but not method name (node.text)
         let child_count = len(node.children)
         if child_count > 0 {
             let receiver = get_unchecked(node.children, 0)
@@ -799,21 +836,17 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         }
         return
     }
-
     if node.kind == NK_LET() {
-        // Resolve initializer before defining the binding
         let child_count = len(node.children)
         if child_count > 0 {
             let init = get_unchecked(node.children, 0)
             resolve_node(ctx, init)
         }
-        // Skip defining wildcard `_` bindings (they are intentionally unused)
         if !eq(clone(node.text), "_") {
             define(ctx, clone(node.text), SYM_LOCAL())
         }
         return
     }
-
     if node.kind == NK_BLOCK() {
         push_scope(ctx)
         let child_count = len(node.children)
@@ -826,17 +859,13 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         pop_scope(ctx)
         return
     }
-
     if node.kind == NK_FOR() {
         push_scope(ctx)
-        // Resolve iterator
         if len(node.children) > 0 {
             let iter = get_unchecked(node.children, 0)
             resolve_node(ctx, iter)
         }
-        // Define loop variable
         define(ctx, clone(node.text), SYM_LOCAL())
-        // Resolve body
         if len(node.children) > 1 {
             let body = get_unchecked(node.children, 1)
             resolve_node(ctx, body)
@@ -844,9 +873,7 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         pop_scope(ctx)
         return
     }
-
     if node.kind == NK_MATCH_EXPR() {
-        // children[0] = scrutinee, rest are arms
         let child_count = len(node.children)
         if child_count > 0 {
             let scrutinee = get_unchecked(node.children, 0)
@@ -855,7 +882,6 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         let mut arm_idx = 1
         while arm_idx < child_count {
             let arm = get_unchecked(node.children, arm_idx)
-            // arm is NK_TUPLE with children[0]=pattern, children[1]=body
             push_scope(ctx)
             if len(arm.children) > 0 {
                 let pat = get_unchecked(arm.children, 0)
@@ -870,8 +896,6 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         }
         return
     }
-
-    // Default: recurse into children
     let child_count = len(node.children)
     let mut i = 0
     while i < child_count {
@@ -882,7 +906,6 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
 }
 
 // ── Dump ─────────────────────────────────────────────────────────────────────
-
 pub fn dump_scope(ctx: ResolveCtx) {
     let scope_count = len(ctx.scopes)
     let mut i = 0
@@ -910,190 +933,186 @@ pub fn dump_scope(ctx: ResolveCtx) {
 }
 
 fn sym_kind_name(kind: i32) -> String {
-    if kind == SYM_LOCAL() { return String_from("local") }
-    if kind == SYM_PARAM() { return String_from("param") }
-    if kind == SYM_FN() { return String_from("fn") }
-    if kind == SYM_STRUCT() { return String_from("struct") }
-    if kind == SYM_ENUM() { return String_from("enum") }
-    if kind == SYM_VARIANT() { return String_from("variant") }
-    if kind == SYM_IMPORT() { return String_from("import") }
-    if kind == SYM_BUILTIN() { return String_from("builtin") }
-    if kind == SYM_MODULE() { return String_from("module") }
+    if kind == SYM_LOCAL() {
+        return String_from("local")
+    }
+    if kind == SYM_PARAM() {
+        return String_from("param")
+    }
+    if kind == SYM_FN() {
+        return String_from("fn")
+    }
+    if kind == SYM_STRUCT() {
+        return String_from("struct")
+    }
+    if kind == SYM_ENUM() {
+        return String_from("enum")
+    }
+    if kind == SYM_VARIANT() {
+        return String_from("variant")
+    }
+    if kind == SYM_IMPORT() {
+        return String_from("import")
+    }
+    if kind == SYM_BUILTIN() {
+        return String_from("builtin")
+    }
+    if kind == SYM_MODULE() {
+        return String_from("module")
+    }
     String_from("unknown")
 }
 
 // ── Entry Point ──────────────────────────────────────────────────────────────
-
 fn main() {
     let ctx = ResolveCtx_new()
-    // Test: define and lookup
     define(ctx, String_from("x"), SYM_LOCAL())
     define(ctx, String_from("add"), SYM_FN())
-
     let idx_x = lookup(ctx, String_from("x"))
     let idx_add = lookup(ctx, String_from("add"))
     let idx_missing = lookup(ctx, String_from("missing"))
-
     stdio::println(concat(String_from("x found: "), to_string(idx_x >= 0)))
     stdio::println(concat(String_from("add found: "), to_string(idx_add >= 0)))
     stdio::println(concat(String_from("missing found: "), to_string(idx_missing >= 0)))
-
-    // Test scoping
     push_scope(ctx)
     define(ctx, String_from("y"), SYM_LOCAL())
     let idx_y = lookup(ctx, String_from("y"))
     stdio::println(concat(String_from("y found (inner): "), to_string(idx_y >= 0)))
     pop_scope(ctx)
-
     let idx_y2 = lookup(ctx, String_from("y"))
     stdio::println(concat(String_from("y found (outer): "), to_string(idx_y2 >= 0)))
-
     stdio::println(String_from("Resolver OK."))
-
-    // ── Visibility Enforcement Tests ─────────────────────────────────────────
-    // Test that cross-module visibility is enforced:
-    //   - pub symbols are accessible (no error)
-    //   - private symbols produce a visibility error
-
     let vctx = ResolveCtx_new()
-    // Register "mymod" as an imported module
     define(vctx, String_from("mymod"), SYM_IMPORT())
-    // Register exports: one pub, one private
     register_module_export(vctx, String_from("mymod"), String_from("pub_fn"), SYM_FN(), true)
     register_module_export(vctx, String_from("mymod"), String_from("priv_fn"), SYM_FN(), false)
-
-    // Build a NK_PATH node for "mymod::pub_fn" and resolve it — should not add an error.
-    let pub_node = AstNode {
-        kind: NK_PATH(),
-        span: Span { start: 0, end: 0 },
-        text: String_from("mymod::pub_fn"),
-        int_val: 0,
-        float_val: 0.0,
-        op: 0,
-        children: Vec_new_AstNode(),
-        type_ann: Vec_new_AstNode(),
-        is_mut: false,
-        is_pub: false,
-    }
+    let pub_node = AstNode { kind: NK_PATH(), span: Span { start: 0, end: 0 }, text: String_from("mymod::pub_fn"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
     let errors_before_pub = vctx.error_count
     resolve_node(vctx, pub_node)
     let pub_ok = vctx.error_count == errors_before_pub
     stdio::println(concat(String_from("pub access OK: "), bool_to_string(pub_ok)))
-
-    // Build a NK_PATH node for "mymod::priv_fn" and resolve it — should add one error.
-    let priv_node = AstNode {
-        kind: NK_PATH(),
-        span: Span { start: 0, end: 0 },
-        text: String_from("mymod::priv_fn"),
-        int_val: 0,
-        float_val: 0.0,
-        op: 0,
-        children: Vec_new_AstNode(),
-        type_ann: Vec_new_AstNode(),
-        is_mut: false,
-        is_pub: false,
-    }
+    let priv_node = AstNode { kind: NK_PATH(), span: Span { start: 0, end: 0 }, text: String_from("mymod::priv_fn"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
     let errors_before_priv = vctx.error_count
     resolve_node(vctx, priv_node)
     let priv_blocked = vctx.error_count > errors_before_priv
     stdio::println(concat(String_from("private access blocked: "), bool_to_string(priv_blocked)))
-
-    // Build a NK_PATH for an unregistered path — should succeed (graceful degradation).
-    let unknown_node = AstNode {
-        kind: NK_PATH(),
-        span: Span { start: 0, end: 0 },
-        text: String_from("mymod::unknown_fn"),
-        int_val: 0,
-        float_val: 0.0,
-        op: 0,
-        children: Vec_new_AstNode(),
-        type_ann: Vec_new_AstNode(),
-        is_mut: false,
-        is_pub: false,
-    }
+    let unknown_node = AstNode { kind: NK_PATH(), span: Span { start: 0, end: 0 }, text: String_from("mymod::unknown_fn"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
     let errors_before_unknown = vctx.error_count
     resolve_node(vctx, unknown_node)
     let unknown_ok = vctx.error_count == errors_before_unknown
     stdio::println(concat(String_from("unregistered access OK (graceful): "), bool_to_string(unknown_ok)))
-
     stdio::println(String_from("Visibility OK."))
-
-    // ── Module Import Resolution Tests ───────────────────────────────────────
-    // Test resolve_program: register imported module declarations and verify
-    // qualified name resolution works.
-
     let mut mod_decls: Vec<AstNode> = Vec_new_AstNode()
-    // Simulate a pub fn "add" in module "mymath"
-    let add_fn = AstNode {
-        kind: NK_FN_DECL(),
-        span: Span { start: 0, end: 0 },
-        text: String_from("add"),
-        int_val: 0,
-        float_val: 0.0,
-        op: 0,
-        children: Vec_new_AstNode(),
-        type_ann: Vec_new_AstNode(),
-        is_mut: false,
-        is_pub: true,
-    }
+    let add_fn = AstNode { kind: NK_FN_DECL(), span: Span { start: 0, end: 0 }, text: String_from("add"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: true }
     push(mod_decls, add_fn)
-    // Simulate a private fn "internal" in module "mymath"
-    let priv_fn_decl = AstNode {
-        kind: NK_FN_DECL(),
-        span: Span { start: 0, end: 0 },
-        text: String_from("internal"),
-        int_val: 0,
-        float_val: 0.0,
-        op: 0,
-        children: Vec_new_AstNode(),
-        type_ann: Vec_new_AstNode(),
-        is_mut: false,
-        is_pub: false,
-    }
+    let priv_fn_decl = AstNode { kind: NK_FN_DECL(), span: Span { start: 0, end: 0 }, text: String_from("internal"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
     push(mod_decls, priv_fn_decl)
-
     let mut modules: Vec<ModuleDecls> = Vec_new_ModuleDecls()
     push(modules, ModuleDecls_new(String_from("mymath"), mod_decls))
-
-    // Main module: use mymath, call mymath::add
     let mut main_decls: Vec<AstNode> = Vec_new_AstNode()
-    let use_node = AstNode {
-        kind: NK_USE(),
-        span: Span { start: 0, end: 0 },
-        text: String_from("mymath"),
-        int_val: 0,
-        float_val: 0.0,
-        op: 0,
-        children: Vec_new_AstNode(),
-        type_ann: Vec_new_AstNode(),
-        is_mut: false,
-        is_pub: false,
-    }
+    let use_node = AstNode { kind: NK_USE(), span: Span { start: 0, end: 0 }, text: String_from("mymath"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
     push(main_decls, use_node)
-
     let mctx = resolve_program(main_decls, modules)
-
-    // mymath::add should be resolvable
     let add_idx = lookup(mctx, String_from("mymath::add"))
     let add_found = add_idx >= 0
     stdio::println(concat(String_from("mymath::add resolved: "), bool_to_string(add_found)))
-
-    // mymath::add should be pub
     let add_pub = lookup_is_pub(mctx, String_from("mymath::add"))
     stdio::println(concat(String_from("mymath::add is pub: "), bool_to_string(add_pub)))
-
-    // mymath::internal should be registered but private
     let internal_idx = lookup(mctx, String_from("mymath::internal"))
     let internal_found = internal_idx >= 0
     stdio::println(concat(String_from("mymath::internal registered: "), bool_to_string(internal_found)))
     let internal_pub = lookup_is_pub(mctx, String_from("mymath::internal"))
     let internal_private = !internal_pub
     stdio::println(concat(String_from("mymath::internal is private: "), bool_to_string(internal_private)))
-
-    // Module "mymath" itself should be in scope
     let mod_kind = lookup_kind(mctx, String_from("mymath"))
     let mod_is_module = mod_kind == SYM_MODULE()
     stdio::println(concat(String_from("mymath is SYM_MODULE: "), bool_to_string(mod_is_module)))
-
     stdio::println(String_from("Module Import OK."))
 }
+// ── Symbol Tags ──────────────────────────────────────────────────────────────
+// Push global scope
+// Register builtins
+// Reuse existing scope at this depth — clear old symbols
+// Add to current scope
+// Check for duplicates at current depth.
+// Shadowing is allowed for:
+//   - Local variable re-binding (let x = ...; let x = ...;)
+//   - User-defined functions/structs/enums shadowing builtin modules
+// Allow shadowing of local variables and parameters
+// Overwrite in-place to shadow the existing binding
+// Allow user-defined fn/struct/enum to shadow a builtin module
+// Search from current scope to global
+// not found
+// need at least 2 chars for "::"
+// break
+// Built-in enum variant constructors
+// Modules
+// parse_i64 (same as parse_i32 in selfhost, i32-limited)
+// Intrinsic names used directly in fixtures
+// Type conversion intrinsics
+// HOF intrinsics
+// HashMap intrinsics (monomorphized)
+// Register symbols from imported modules.
+// Define the module name in global scope (override the hardcoded builtin if present)
+// Scan module decls for fn/struct/enum and register them as module exports
+// First pass: register all top-level names, preserving pub/private visibility.
+// Register each method as StructName::method_name
+// Also register the short name (last path segment) as SYM_MODULE so
+// that qualified paths like `bytes::foo` resolve the module part.
+// If an alias is present (stored in type_ann[0]), use it instead.
+// Handle destructure children: use base::{a, b, ...}
+// Second pass: resolve bodies
+// Resolve each method body, registering self as a param
+// Register parameters
+// Resolve body (last child is block)
+// Variants inherit the visibility of their parent enum.
+// Recurse into sub-patterns (e.g. Ok(x) has x as a child)
+// NK_PAT_WILDCARD, NK_PAT_LITERAL: no bindings
+// Allow Vec_new_* as implicit builtins
+// Resolve the receiver (children[0]) but NOT the field name (node.text)
+// Cross-module path expression: "module::symbol"
+// 1. Verify the module is in scope.
+// 2. If the qualified name "module::symbol" is pre-registered (via
+//    register_module_export), enforce its visibility: private symbols
+//    from other modules must not be accessed.
+// Verify the module name is defined.
+// Check visibility when the qualified symbol is pre-registered.
+// Enum variants are always accessible when the enum is in scope;
+// skip the visibility check if the left-hand side is an enum type.
+// If sym_idx < 0 the qualified name is not pre-registered (e.g. std:: modules,
+// or the driver did not call register_module_export for this import yet).
+// In that case, access is allowed — graceful degradation until the driver
+// populates the module export table.
+// Verify struct name exists, resolve field values but not field names
+// field.text = field name (don't resolve)
+// field.children[0] = field value (resolve)
+// Resolve receiver (children[0]) and arguments, but not method name (node.text)
+// Resolve initializer before defining the binding
+// Skip defining wildcard `_` bindings (they are intentionally unused)
+// Resolve iterator
+// Define loop variable
+// Resolve body
+// children[0] = scrutinee, rest are arms
+// arm is NK_TUPLE with children[0]=pattern, children[1]=body
+// Default: recurse into children
+// Test: define and lookup
+// Test scoping
+// ── Visibility Enforcement Tests ─────────────────────────────────────────
+// Test that cross-module visibility is enforced:
+//   - pub symbols are accessible (no error)
+//   - private symbols produce a visibility error
+// Register "mymod" as an imported module
+// Register exports: one pub, one private
+// Build a NK_PATH node for "mymod::pub_fn" and resolve it — should not add an error.
+// Build a NK_PATH node for "mymod::priv_fn" and resolve it — should add one error.
+// Build a NK_PATH for an unregistered path — should succeed (graceful degradation).
+// ── Module Import Resolution Tests ───────────────────────────────────────
+// Test resolve_program: register imported module declarations and verify
+// qualified name resolution works.
+// Simulate a pub fn "add" in module "mymath"
+// Simulate a private fn "internal" in module "mymath"
+// Main module: use mymath, call mymath::add
+// mymath::add should be resolvable
+// mymath::add should be pub
+// mymath::internal should be registered but private
+// Module "mymath" itself should be in scope

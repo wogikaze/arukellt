@@ -1,10 +1,8 @@
-//! String sub-module — qualified string operations under `std::text::string`.
-//!
-//! Contains relocated prelude string functions and new string APIs.
-//! Prefer using these via `use std::text` and calling `text::split(...)` etc.
-
+/// String sub-module — qualified string operations under `std::text::string`.
+/// 
+/// Contains relocated prelude string functions and new string APIs.
+/// Prefer using these via `use std::text` and calling `text::split(...)` etc.
 // --- Relocated from prelude ---
-
 /// Splits `s` on `sep` and returns the resulting parts.
 pub fn split(s: String, sep: String) -> Vec<String> {
     __intrinsic_split(s, sep)
@@ -46,7 +44,6 @@ pub fn to_upper(s: String) -> String {
 }
 
 // --- New APIs ---
-
 /// Returns the length of the string in bytes.
 pub fn len_bytes(s: String) -> i32 {
     len(s)
@@ -56,31 +53,32 @@ pub fn len_bytes(s: String) -> i32 {
 /// For ASCII strings this equals len_bytes. For multi-byte UTF-8 this
 /// counts Unicode scalar values.
 pub fn len_chars(s: String) -> i32 {
-    // Current runtime measures bytes; provides best-effort char count
-    // by scanning for UTF-8 lead bytes.
     let n = len(s)
-    if n == 0 { return 0 }
+    if n == 0 {
+        return 0
+    }
     let mut count = 0
     let mut i = 0
     while i < n {
         let byte_val = char_at(s, i)
-        // Count bytes that are NOT continuation bytes (0x80..0xBF)
         if byte_val < 128 {
             count = count + 1
             i = i + 1
-        } else if byte_val >= 192 {
-            count = count + 1
-            // Skip continuation bytes
-            if byte_val < 224 {
-                i = i + 2
-            } else if byte_val < 240 {
-                i = i + 3
-            } else {
-                i = i + 4
-            }
         } else {
-            // Stray continuation byte — skip
-            i = i + 1
+            if byte_val >= 192 {
+                count = count + 1
+                if byte_val < 224 {
+                    i = i + 2
+                } else {
+                    if byte_val < 240 {
+                        i = i + 3
+                    } else {
+                        i = i + 4
+                    }
+                }
+            } else {
+                i = i + 1
+            }
         }
     }
     count
@@ -94,9 +92,15 @@ pub fn is_empty(s: String) -> bool {
 /// Extracts a byte-range substring. Returns the slice if boundaries are valid.
 pub fn slice_bytes(s: String, start: i32, end: i32) -> String {
     let n = len(s)
-    if start < 0 { return "" }
-    if end > n { return "" }
-    if start > end { return "" }
+    if start < 0 {
+        return ""
+    }
+    if end > n {
+        return ""
+    }
+    if start > end {
+        return ""
+    }
     __intrinsic_string_slice(s, start, end)
 }
 
@@ -183,7 +187,6 @@ pub fn from_utf8(bytes: Vec<i32>) -> String {
     while i < n {
         let b = get(bytes, i)
         let ch = __intrinsic_i32_to_string(b)
-        // Convert byte value to character via char_to_string
         result = __intrinsic_concat(result, char_to_string(b))
         i = i + 1
     }
@@ -201,3 +204,9 @@ pub fn to_utf8_bytes(s: String) -> Vec<i32> {
     }
     result
 }
+// Current runtime measures bytes; provides best-effort char count
+// by scanning for UTF-8 lead bytes.
+// Count bytes that are NOT continuation bytes (0x80..0xBF)
+// Skip continuation bytes
+// Stray continuation byte — skip
+// Convert byte value to character via char_to_string

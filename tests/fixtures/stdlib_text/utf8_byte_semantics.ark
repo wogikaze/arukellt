@@ -1,43 +1,34 @@
 use std::host::stdio
 use std::text
 
-// UTF-8 byte length vs perceived character count
-// Arukellt len() measures BYTES, not Unicode scalars.
 fn main() {
-    // ASCII: 1 byte per char
     let ascii = "hello"
     stdio::println(i32_to_string(len(ascii)))
-
-    // Empty string: 0 bytes
     stdio::println(i32_to_string(len("")))
-
-    // Single space: 1 byte
     stdio::println(i32_to_string(len(" ")))
-
-    // Newline: 1 byte
     stdio::println(i32_to_string(len("\n")))
-
-    // Tab: 1 byte
     stdio::println(i32_to_string(len("\t")))
-
-    // Byte-level slice of ASCII works as expected
     let world = slice(ascii, 0, 3)
     stdio::println(world)
-
-    // Slice from middle
     let mid = slice(ascii, 1, 4)
     stdio::println(mid)
-
-    // Slice entire string
     let full = slice(ascii, 0, 5)
     stdio::println(full)
-
-    // Slice empty range
     let empty = slice(ascii, 2, 2)
     stdio::println(i32_to_string(len(empty)))
-
-    // text::len_bytes matches len
     stdio::println(i32_to_string(text::len_bytes("abc")))
     stdio::println(bool_to_string(text::is_empty("")))
     stdio::println(bool_to_string(text::is_empty("a")))
 }
+// UTF-8 byte length vs perceived character count
+// Arukellt len() measures BYTES, not Unicode scalars.
+// ASCII: 1 byte per char
+// Empty string: 0 bytes
+// Single space: 1 byte
+// Newline: 1 byte
+// Tab: 1 byte
+// Byte-level slice of ASCII works as expected
+// Slice from middle
+// Slice entire string
+// Slice empty range
+// text::len_bytes matches len

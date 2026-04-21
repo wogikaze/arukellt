@@ -2,7 +2,6 @@
 // 1. ArrayRepeat [expr; count]
 // 2. Struct base ..base
 // 3. Match guards pattern if cond =>
-
 use std::host::stdio
 
 struct Point {
@@ -11,7 +10,7 @@ struct Point {
 }
 
 trait Show {
-    fn show(self) -> String
+    fn show(self: Show) -> String
 }
 
 struct Label {
@@ -19,7 +18,7 @@ struct Label {
 }
 
 impl Show for Label {
-    fn show(self) -> String {
+    fn show(self: Label) -> String {
         self.text
     }
 }
@@ -29,18 +28,13 @@ fn render<T: Show>(item: T) -> String {
 }
 
 fn main() {
-    // 1. ArrayRepeat
     let zeros = [0; 5]
     stdio::println(zeros[0])
     stdio::println(zeros[4])
-
-    // 2. Struct base expression
     let p1 = Point { x: 10, y: 20 }
     let p2 = Point { x: 30, ..p1 }
     stdio::println(p2.x)
     stdio::println(p2.y)
-
-    // 3. Match guards
     let val = 7
     let msg = match val {
         n if n > 10 => "big",
@@ -48,8 +42,10 @@ fn main() {
         _ => "other",
     }
     stdio::println(msg)
-
-    // 4. Trait decl signature + impl Trait for Type + generic bound
     let label = Label { text: String_from("trait-ok") }
     stdio::println(render(label))
 }
+// 1. ArrayRepeat
+// 2. Struct base expression
+// 3. Match guards
+// 4. Trait decl signature + impl Trait for Type + generic bound

@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn is_even(x: i32) -> bool {
     x % 2 == 0
 }
@@ -13,20 +14,17 @@ fn main() {
     push(v, 2)
     push(v, 3)
     push(v, 4)
-
     let has_even: bool = any_i32(v, is_even)
     if has_even {
         stdio::println(String_from("has even: true"))
     } else {
         stdio::println(String_from("has even: false"))
     }
-
     let found = find_i32(v, is_even)
     match found {
-        Some(x) => stdio::println(f"first even: {x}"),
+        Option::Some(x) => stdio::println(concat("first even: ", to_string(x))),
         None => stdio::println(String_from("none")),
     }
-
     let empty = Vec_new_i32()
     let any_empty: bool = any_i32(empty, is_even)
     if any_empty {
@@ -34,10 +32,9 @@ fn main() {
     } else {
         stdio::println(String_from("empty has even: false"))
     }
-
     let find_neg = find_i32(v, is_negative)
     match find_neg {
-        Some(x) => stdio::println(f"found negative: {x}"),
+        Option::Some(x) => stdio::println(concat("found negative: ", to_string(x))),
         None => stdio::println(String_from("no negatives")),
     }
 }

@@ -1,6 +1,7 @@
 use std::host::stdio
+
 trait Greet {
-    fn greet(self) -> String
+    fn greet(self: Greet) -> String
 }
 
 struct Dog {
@@ -8,7 +9,7 @@ struct Dog {
 }
 
 impl Greet for Dog {
-    fn greet(self) -> String {
+    fn greet(self: Dog) -> String {
         concat(String_from("Woof! I'm "), self.name)
     }
 }

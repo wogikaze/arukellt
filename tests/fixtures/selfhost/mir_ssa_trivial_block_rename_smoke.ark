@@ -1,8 +1,8 @@
 use std::host::stdio
 
 fn main() {
-    // Single-block CFG: param + one pure def (see run_ssa_trivial_block_rename_smoke in mir.ark).
     stdio::println(String_from("ssa(param)=p.0"))
     stdio::println(String_from("ssa(local)=t.1"))
     stdio::println(String_from("MIR SSA trivial-block rename smoke OK."))
 }
+// Single-block CFG: param + one pure def (see run_ssa_trivial_block_rename_smoke in mir.ark).

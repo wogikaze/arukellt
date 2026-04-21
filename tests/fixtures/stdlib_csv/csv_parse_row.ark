@@ -2,7 +2,6 @@ use std::csv
 use std::host::stdio
 
 fn main() {
-    // csv_parse_row: unquoted fields
     let row1 = csv::csv_parse_row("name,age,city")
     let mut i = 0
     while i < len(row1) {
@@ -10,8 +9,6 @@ fn main() {
         i = i + 1
     }
     stdio::println("---")
-
-    // csv_parse_row: quoted field with embedded comma
     let row2 = csv::csv_parse_row("\"Smith, John\",30,\"New York\"")
     let mut j = 0
     while j < len(row2) {
@@ -19,21 +16,20 @@ fn main() {
         j = j + 1
     }
     stdio::println("---")
-
-    // csv_stringify_row round-trip
     let fields = Vec_new_String()
     push(fields, "Alice")
     push(fields, "25")
     push(fields, "London")
     stdio::println(csv::csv_stringify_row(fields))
-
-    // csv_stringify_row with field needing quoting
     let fields2 = Vec_new_String()
     push(fields2, "Bob, Jr.")
     push(fields2, "40")
     stdio::println(csv::csv_stringify_row(fields2))
-
-    // csv_count_rows
     let doc = "a,b,c\n1,2,3\n4,5,6"
     stdio::println(i32_to_string(csv::csv_count_rows(doc)))
 }
+// csv_parse_row: unquoted fields
+// csv_parse_row: quoted field with embedded comma
+// csv_stringify_row round-trip
+// csv_stringify_row with field needing quoting
+// csv_count_rows

@@ -3,91 +3,288 @@
 // Produces a Vec of Token values from source text.
 // Covers: keywords, identifiers, integer/float literals, string literals,
 //         operators, delimiters, comments, newlines.
-
 use std::host::stdio
 
-// ── Token Kind Tags ──────────────────────────────────────────────────────────
-// Using i32 constants instead of enum because the self-hosted lexer
-// needs to be simple and avoid complex enum dispatch.
+fn TK_EOF() -> i32 {
+    0
+}
 
-fn TK_EOF() -> i32 { 0 }
-fn TK_IDENT() -> i32 { 1 }
-fn TK_INT() -> i32 { 2 }
-fn TK_FLOAT() -> i32 { 3 }
-fn TK_STRING() -> i32 { 4 }
-fn TK_BOOL() -> i32 { 5 }
-fn TK_NEWLINE() -> i32 { 6 }
-fn TK_ERROR() -> i32 { 7 }
-fn TK_FSTRING() -> i32 { 8 }
+fn TK_IDENT() -> i32 {
+    1
+}
+
+fn TK_INT() -> i32 {
+    2
+}
+
+fn TK_FLOAT() -> i32 {
+    3
+}
+
+fn TK_STRING() -> i32 {
+    4
+}
+
+fn TK_BOOL() -> i32 {
+    5
+}
+
+fn TK_NEWLINE() -> i32 {
+    6
+}
+
+fn TK_ERROR() -> i32 {
+    7
+}
+
+fn TK_FSTRING() -> i32 {
+    8
+}
 
 // Keywords
-fn TK_FN() -> i32 { 10 }
-fn TK_STRUCT() -> i32 { 11 }
-fn TK_ENUM() -> i32 { 12 }
-fn TK_LET() -> i32 { 13 }
-fn TK_MUT() -> i32 { 14 }
-fn TK_IF() -> i32 { 15 }
-fn TK_ELSE() -> i32 { 16 }
-fn TK_MATCH() -> i32 { 17 }
-fn TK_WHILE() -> i32 { 18 }
-fn TK_LOOP() -> i32 { 19 }
-fn TK_FOR() -> i32 { 20 }
-fn TK_IN() -> i32 { 21 }
-fn TK_BREAK() -> i32 { 22 }
-fn TK_CONTINUE() -> i32 { 23 }
-fn TK_RETURN() -> i32 { 24 }
-fn TK_PUB() -> i32 { 25 }
-fn TK_IMPORT() -> i32 { 26 }
-fn TK_AS() -> i32 { 27 }
-fn TK_TRAIT() -> i32 { 28 }
-fn TK_IMPL() -> i32 { 29 }
-fn TK_USE() -> i32 { 30 }
-fn TK_WHERE() -> i32 { 31 }
+fn TK_FN() -> i32 {
+    10
+}
+
+fn TK_STRUCT() -> i32 {
+    11
+}
+
+fn TK_ENUM() -> i32 {
+    12
+}
+
+fn TK_LET() -> i32 {
+    13
+}
+
+fn TK_MUT() -> i32 {
+    14
+}
+
+fn TK_IF() -> i32 {
+    15
+}
+
+fn TK_ELSE() -> i32 {
+    16
+}
+
+fn TK_MATCH() -> i32 {
+    17
+}
+
+fn TK_WHILE() -> i32 {
+    18
+}
+
+fn TK_LOOP() -> i32 {
+    19
+}
+
+fn TK_FOR() -> i32 {
+    20
+}
+
+fn TK_IN() -> i32 {
+    21
+}
+
+fn TK_BREAK() -> i32 {
+    22
+}
+
+fn TK_CONTINUE() -> i32 {
+    23
+}
+
+fn TK_RETURN() -> i32 {
+    24
+}
+
+fn TK_PUB() -> i32 {
+    25
+}
+
+fn TK_IMPORT() -> i32 {
+    26
+}
+
+fn TK_AS() -> i32 {
+    27
+}
+
+fn TK_TRAIT() -> i32 {
+    28
+}
+
+fn TK_IMPL() -> i32 {
+    29
+}
+
+fn TK_USE() -> i32 {
+    30
+}
+
+fn TK_WHERE() -> i32 {
+    31
+}
 
 // Operators
-fn TK_PLUS() -> i32 { 40 }
-fn TK_MINUS() -> i32 { 41 }
-fn TK_STAR() -> i32 { 42 }
-fn TK_SLASH() -> i32 { 43 }
-fn TK_PERCENT() -> i32 { 44 }
-fn TK_EQ() -> i32 { 45 }
-fn TK_EQEQ() -> i32 { 46 }
-fn TK_BANGEQ() -> i32 { 47 }
-fn TK_LT() -> i32 { 48 }
-fn TK_LTEQ() -> i32 { 49 }
-fn TK_GT() -> i32 { 50 }
-fn TK_GTEQ() -> i32 { 51 }
-fn TK_AMPAMP() -> i32 { 52 }
-fn TK_PIPEPIPE() -> i32 { 53 }
-fn TK_BANG() -> i32 { 54 }
-fn TK_AMP() -> i32 { 55 }
-fn TK_PIPE() -> i32 { 56 }
-fn TK_CARET() -> i32 { 57 }
-fn TK_TILDE() -> i32 { 58 }
-fn TK_SHL() -> i32 { 59 }
-fn TK_SHR() -> i32 { 60 }
+fn TK_PLUS() -> i32 {
+    40
+}
+
+fn TK_MINUS() -> i32 {
+    41
+}
+
+fn TK_STAR() -> i32 {
+    42
+}
+
+fn TK_SLASH() -> i32 {
+    43
+}
+
+fn TK_PERCENT() -> i32 {
+    44
+}
+
+fn TK_EQ() -> i32 {
+    45
+}
+
+fn TK_EQEQ() -> i32 {
+    46
+}
+
+fn TK_BANGEQ() -> i32 {
+    47
+}
+
+fn TK_LT() -> i32 {
+    48
+}
+
+fn TK_LTEQ() -> i32 {
+    49
+}
+
+fn TK_GT() -> i32 {
+    50
+}
+
+fn TK_GTEQ() -> i32 {
+    51
+}
+
+fn TK_AMPAMP() -> i32 {
+    52
+}
+
+fn TK_PIPEPIPE() -> i32 {
+    53
+}
+
+fn TK_BANG() -> i32 {
+    54
+}
+
+fn TK_AMP() -> i32 {
+    55
+}
+
+fn TK_PIPE() -> i32 {
+    56
+}
+
+fn TK_CARET() -> i32 {
+    57
+}
+
+fn TK_TILDE() -> i32 {
+    58
+}
+
+fn TK_SHL() -> i32 {
+    59
+}
+
+fn TK_SHR() -> i32 {
+    60
+}
 
 // Delimiters
-fn TK_LPAREN() -> i32 { 70 }
-fn TK_RPAREN() -> i32 { 71 }
-fn TK_LBRACE() -> i32 { 72 }
-fn TK_RBRACE() -> i32 { 73 }
-fn TK_LBRACKET() -> i32 { 74 }
-fn TK_RBRACKET() -> i32 { 75 }
-fn TK_COMMA() -> i32 { 76 }
-fn TK_SEMI() -> i32 { 77 }
-fn TK_DOT() -> i32 { 78 }
-fn TK_DOTDOT() -> i32 { 79 }
-fn TK_ARROW() -> i32 { 80 }
-fn TK_FATARROW() -> i32 { 81 }
-fn TK_QUESTION() -> i32 { 82 }
-fn TK_COLON() -> i32 { 83 }
-fn TK_COLONCOLON() -> i32 { 84 }
-fn TK_UNDERSCORE() -> i32 { 85 }
-fn TK_CHAR() -> i32 { 86 }
+fn TK_LPAREN() -> i32 {
+    70
+}
+
+fn TK_RPAREN() -> i32 {
+    71
+}
+
+fn TK_LBRACE() -> i32 {
+    72
+}
+
+fn TK_RBRACE() -> i32 {
+    73
+}
+
+fn TK_LBRACKET() -> i32 {
+    74
+}
+
+fn TK_RBRACKET() -> i32 {
+    75
+}
+
+fn TK_COMMA() -> i32 {
+    76
+}
+
+fn TK_SEMI() -> i32 {
+    77
+}
+
+fn TK_DOT() -> i32 {
+    78
+}
+
+fn TK_DOTDOT() -> i32 {
+    79
+}
+
+fn TK_ARROW() -> i32 {
+    80
+}
+
+fn TK_FATARROW() -> i32 {
+    81
+}
+
+fn TK_QUESTION() -> i32 {
+    82
+}
+
+fn TK_COLON() -> i32 {
+    83
+}
+
+fn TK_COLONCOLON() -> i32 {
+    84
+}
+
+fn TK_UNDERSCORE() -> i32 {
+    85
+}
+
+fn TK_CHAR() -> i32 {
+    86
+}
 
 // ── Token ────────────────────────────────────────────────────────────────────
-
 struct Token {
     kind: i32,
     text: String,
@@ -110,7 +307,6 @@ fn Token_float(val: f64, text: String, start: i32, end: i32) -> Token {
 }
 
 // ── Lexer State ──────────────────────────────────────────────────────────────
-
 struct Lexer {
     src: String,
     pos: i32,
@@ -123,9 +319,8 @@ fn Lexer_new(source: String) -> Lexer {
 }
 
 // ── Character Helpers ────────────────────────────────────────────────────────
-
 fn is_alpha(c: i32) -> bool {
-    (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c == 95
+    c >= 65 && c <= 90 || c >= 97 && c <= 122 || c == 95
 }
 
 fn is_digit(c: i32) -> bool {
@@ -133,7 +328,7 @@ fn is_digit(c: i32) -> bool {
 }
 
 fn is_hex_digit(c: i32) -> bool {
-    is_digit(c) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102)
+    is_digit(c) || c >= 65 && c <= 70 || c >= 97 && c <= 102
 }
 
 fn is_alnum(c: i32) -> bool {
@@ -145,53 +340,114 @@ fn is_whitespace_not_newline(c: i32) -> bool {
 }
 
 fn digit_value(c: i32) -> i32 {
-    if c >= 48 && c <= 57 { c - 48 }
-    else if c >= 65 && c <= 70 { c - 55 }
-    else if c >= 97 && c <= 102 { c - 87 }
-    else { -1 }
+    if c >= 48 && c <= 57 {
+        c - 48
+    } else {
+        if c >= 65 && c <= 70 {
+            c - 55
+        } else {
+            if c >= 97 && c <= 102 {
+                c - 87
+            } else {
+                -1
+            }
+        }
+    }
 }
 
 // ── Keyword Lookup ───────────────────────────────────────────────────────────
-
 fn keyword_kind(word: String) -> i32 {
-    if eq(word, "fn") { return TK_FN() }
-    if eq(word, "struct") { return TK_STRUCT() }
-    if eq(word, "enum") { return TK_ENUM() }
-    if eq(word, "let") { return TK_LET() }
-    if eq(word, "mut") { return TK_MUT() }
-    if eq(word, "if") { return TK_IF() }
-    if eq(word, "else") { return TK_ELSE() }
-    if eq(word, "match") { return TK_MATCH() }
-    if eq(word, "while") { return TK_WHILE() }
-    if eq(word, "loop") { return TK_LOOP() }
-    if eq(word, "for") { return TK_FOR() }
-    if eq(word, "in") { return TK_IN() }
-    if eq(word, "break") { return TK_BREAK() }
-    if eq(word, "continue") { return TK_CONTINUE() }
-    if eq(word, "return") { return TK_RETURN() }
-    if eq(word, "pub") { return TK_PUB() }
-    if eq(word, "import") { return TK_IMPORT() }
-    if eq(word, "as") { return TK_AS() }
-    if eq(word, "trait") { return TK_TRAIT() }
-    if eq(word, "impl") { return TK_IMPL() }
-    if eq(word, "use") { return TK_USE() }
-    if eq(word, "where") { return TK_WHERE() }
-    if eq(word, "true") { return TK_BOOL() }
-    if eq(word, "false") { return TK_BOOL() }
+    if eq(word, "fn") {
+        return TK_FN()
+    }
+    if eq(word, "struct") {
+        return TK_STRUCT()
+    }
+    if eq(word, "enum") {
+        return TK_ENUM()
+    }
+    if eq(word, "let") {
+        return TK_LET()
+    }
+    if eq(word, "mut") {
+        return TK_MUT()
+    }
+    if eq(word, "if") {
+        return TK_IF()
+    }
+    if eq(word, "else") {
+        return TK_ELSE()
+    }
+    if eq(word, "match") {
+        return TK_MATCH()
+    }
+    if eq(word, "while") {
+        return TK_WHILE()
+    }
+    if eq(word, "loop") {
+        return TK_LOOP()
+    }
+    if eq(word, "for") {
+        return TK_FOR()
+    }
+    if eq(word, "in") {
+        return TK_IN()
+    }
+    if eq(word, "break") {
+        return TK_BREAK()
+    }
+    if eq(word, "continue") {
+        return TK_CONTINUE()
+    }
+    if eq(word, "return") {
+        return TK_RETURN()
+    }
+    if eq(word, "pub") {
+        return TK_PUB()
+    }
+    if eq(word, "import") {
+        return TK_IMPORT()
+    }
+    if eq(word, "as") {
+        return TK_AS()
+    }
+    if eq(word, "trait") {
+        return TK_TRAIT()
+    }
+    if eq(word, "impl") {
+        return TK_IMPL()
+    }
+    if eq(word, "use") {
+        return TK_USE()
+    }
+    if eq(word, "where") {
+        return TK_WHERE()
+    }
+    if eq(word, "true") {
+        return TK_BOOL()
+    }
+    if eq(word, "false") {
+        return TK_BOOL()
+    }
     0 - 1
 }
 
 // ── Core Lexer Methods ──────────────────────────────────────────────────────
-
 fn peek(lex: Lexer) -> i32 {
-    if lex.pos >= lex.src_len { -1 }
-    else { char_at(lex.src, lex.pos) }
+    if lex.pos >= lex.src_len {
+        -1
+    } else {
+        char_at(lex.src, lex.pos)
+    }
 }
 
 fn peek_at(lex: Lexer, offset: i32) -> i32 {
     let p = lex.pos + offset
-    if p >= lex.src_len { -1 }
-    else { char_at(lex.src, p) }
+    if p >= lex.src_len {
+        -1
+    } else {
+        char_at(lex.src, p)
+    }
 }
 
 fn advance(lex: Lexer) -> i32 {
@@ -213,7 +469,6 @@ fn skip_line_comment(lex: Lexer) {
 }
 
 fn skip_block_comment(lex: Lexer) {
-    // Skip past the opening /*
     lex.pos = lex.pos + 2
     let mut depth = 1
     while lex.pos < lex.src_len - 1 && depth > 0 {
@@ -222,24 +477,24 @@ fn skip_block_comment(lex: Lexer) {
         if c == 47 && c2 == 42 {
             depth = depth + 1
             lex.pos = lex.pos + 2
-        } else if c == 42 && c2 == 47 {
-            depth = depth - 1
-            lex.pos = lex.pos + 2
         } else {
-            lex.pos = lex.pos + 1
+            if c == 42 && c2 == 47 {
+                depth = depth - 1
+                lex.pos = lex.pos + 2
+            } else {
+                lex.pos = lex.pos + 1
+            }
         }
     }
 }
 
 // ── Lex Identifier / Keyword ─────────────────────────────────────────────────
-
 fn lex_ident(lex: Lexer) -> Token {
     let start = lex.pos
     while lex.pos < lex.src_len && is_alnum(peek(lex)) {
         lex.pos = lex.pos + 1
     }
     let word = substring(lex.src, start, lex.pos)
-    // f"..." f-string: `f` immediately followed by `"`
     if eq(clone(word), "f") {
         if lex.pos < lex.src_len && peek(lex) == 34 {
             return lex_fstring(lex, start)
@@ -254,7 +509,7 @@ fn lex_ident(lex: Lexer) -> Token {
 }
 
 fn lex_fstring(lex: Lexer, start: i32) -> Token {
-    lex.pos = lex.pos + 1  // skip opening "
+    lex.pos = lex.pos + 1
     let content_start = lex.pos
     let mut depth = 0
     while lex.pos < lex.src_len {
@@ -267,26 +522,27 @@ fn lex_fstring(lex: Lexer, start: i32) -> Token {
         if c == 10 {
             return Token_new(TK_ERROR(), String_from("unterminated f-string"), start, lex.pos)
         }
-        if c == 123 { depth = depth + 1 }
-        if c == 125 { depth = depth - 1 }
+        if c == 123 {
+            depth = depth + 1
+        }
+        if c == 125 {
+            depth = depth - 1
+        }
         lex.pos = lex.pos + 1
     }
     Token_new(TK_ERROR(), String_from("unterminated f-string"), start, lex.pos)
 }
 
 // ── Lex Number ───────────────────────────────────────────────────────────────
-
 fn lex_number(lex: Lexer) -> Token {
     let start = lex.pos
     let c0 = peek(lex)
-
-    // Hex: 0x...
     if c0 == 48 && lex.pos + 1 < lex.src_len {
         let c1 = peek_at(lex, 1)
         if c1 == 120 || c1 == 88 {
             lex.pos = lex.pos + 2
             let mut val: i32 = 0
-            while lex.pos < lex.src_len && (is_hex_digit(peek(lex)) || peek(lex) == 95) {
+            while lex.pos < lex.src_len && is_hex_digit(peek(lex)) || peek(lex) == 95 {
                 let d = peek(lex)
                 if d != 95 {
                     val = val * 16 + digit_value(d)
@@ -297,14 +553,13 @@ fn lex_number(lex: Lexer) -> Token {
             let text = substring(lex.src, start, lex.pos)
             return Token_int(val, text, start, lex.pos)
         }
-        // Binary: 0b...
         if c1 == 98 || c1 == 66 {
             lex.pos = lex.pos + 2
             let mut val: i32 = 0
-            while lex.pos < lex.src_len && (peek(lex) == 48 || peek(lex) == 49 || peek(lex) == 95) {
+            while lex.pos < lex.src_len && peek(lex) == 48 || peek(lex) == 49 || peek(lex) == 95 {
                 let d = peek(lex)
                 if d != 95 {
-                    val = val * 2 + (d - 48)
+                    val = val * 2 + d - 48
                 }
                 lex.pos = lex.pos + 1
             }
@@ -313,62 +568,54 @@ fn lex_number(lex: Lexer) -> Token {
             return Token_int(val, text, start, lex.pos)
         }
     }
-
-    // Decimal integer or float
     let mut val: i32 = 0
-    while lex.pos < lex.src_len && (is_digit(peek(lex)) || peek(lex) == 95) {
+    while lex.pos < lex.src_len && is_digit(peek(lex)) || peek(lex) == 95 {
         let d = peek(lex)
         if d != 95 {
-            val = val * 10 + (d - 48)
+            val = val * 10 + d - 48
         }
         lex.pos = lex.pos + 1
     }
-
-    // Check for float: dot followed by digit
     let mut is_float = false
     if lex.pos < lex.src_len && peek(lex) == 46 {
         if lex.pos + 1 < lex.src_len && is_digit(peek_at(lex, 1)) {
             is_float = true
             lex.pos = lex.pos + 1
-            while lex.pos < lex.src_len && (is_digit(peek(lex)) || peek(lex) == 95) {
+            while lex.pos < lex.src_len && is_digit(peek(lex)) || peek(lex) == 95 {
                 lex.pos = lex.pos + 1
             }
         }
     }
-
-    // Scientific notation: e/E
-    if lex.pos < lex.src_len && (peek(lex) == 101 || peek(lex) == 69) {
+    if lex.pos < lex.src_len && peek(lex) == 101 || peek(lex) == 69 {
         is_float = true
         lex.pos = lex.pos + 1
-        if lex.pos < lex.src_len && (peek(lex) == 43 || peek(lex) == 45) {
+        if lex.pos < lex.src_len && peek(lex) == 43 || peek(lex) == 45 {
             lex.pos = lex.pos + 1
         }
         while lex.pos < lex.src_len && is_digit(peek(lex)) {
             lex.pos = lex.pos + 1
         }
     }
-
-    // Consume optional type suffix: i8 i16 i32 i64 u8 u16 u32 u64 f32 f64
     let suffix_len = try_eat_type_suffix(lex)
     if suffix_len > 0 && !is_float {
-        // Check if suffix is f64/f32 — treat integer as float
         let suf = substring(lex.src, lex.pos - suffix_len, lex.pos)
         if eq(suf, "f64") || eq(suf, "f32") {
             is_float = true
         }
     }
-
     let text = substring(lex.src, start, lex.pos)
     if is_float {
-        // Workaround: extract f64 from match to avoid codegen bug
-        // with match returning structs containing f64 fields
         let num_text = substring(lex.src, start, lex.pos - suffix_len)
         let f_result: Result<f64, String> = parse_f64(clone(num_text))
         let mut fv: f64 = 0.0
         let mut parse_ok = true
         match f_result {
-            Ok(v) => { fv = v },
-            Err(_e) => { parse_ok = false },
+            Result::Ok(v) => {
+                fv = v
+            },
+            Result::Err(_e) => {
+                parse_ok = false
+            },
         }
         if parse_ok {
             return Token_float(fv, text, start, lex.pos)
@@ -380,12 +627,10 @@ fn lex_number(lex: Lexer) -> Token {
 }
 
 fn try_eat_type_suffix(lex: Lexer) -> i32 {
-    // Check for 3-char suffixes first: i32 i64 u32 u64 f32 f64 i16 u16
     if lex.pos + 3 <= lex.src_len {
         let c0 = char_at(lex.src, lex.pos)
         let c1 = char_at(lex.src, lex.pos + 1)
         let c2 = char_at(lex.src, lex.pos + 2)
-        // Check next char is not alphanumeric (avoid matching prefix of longer ident)
         let mut end_ok = true
         if lex.pos + 3 < lex.src_len {
             let cn = char_at(lex.src, lex.pos + 3)
@@ -394,17 +639,13 @@ fn try_eat_type_suffix(lex: Lexer) -> i32 {
             }
         }
         if end_ok {
-            // i32=105,51,50 i64=105,54,52 u32=117,51,50 u64=117,54,52
-            // f32=102,51,50 f64=102,54,52 i16=105,49,54 u16=117,49,54
-            let is_3 = (c0 == 105 || c0 == 117 || c0 == 102) &&
-                       ((c1 == 51 && c2 == 50) || (c1 == 54 && c2 == 52) || (c1 == 49 && c2 == 54))
+            let is_3 = c0 == 105 || c0 == 117 || c0 == 102 && c1 == 51 && c2 == 50 || c1 == 54 && c2 == 52 || c1 == 49 && c2 == 54
             if is_3 {
                 lex.pos = lex.pos + 3
                 return 3
             }
         }
     }
-    // Check for 2-char suffixes: i8 u8
     if lex.pos + 2 <= lex.src_len {
         let c0 = char_at(lex.src, lex.pos)
         let c1 = char_at(lex.src, lex.pos + 1)
@@ -416,8 +657,7 @@ fn try_eat_type_suffix(lex: Lexer) -> i32 {
             }
         }
         if end_ok {
-            // i8=105,56  u8=117,56
-            if (c0 == 105 || c0 == 117) && c1 == 56 {
+            if c0 == 105 || c0 == 117 && c1 == 56 {
                 lex.pos = lex.pos + 2
                 return 2
             }
@@ -427,22 +667,24 @@ fn try_eat_type_suffix(lex: Lexer) -> i32 {
 }
 
 // ── Lex String ───────────────────────────────────────────────────────────────
-
 fn lex_string(lex: Lexer) -> Token {
     let start = lex.pos
-    lex.pos = lex.pos + 1  // skip opening "
+    lex.pos = lex.pos + 1
     let mut has_escape = false
     let content_start = lex.pos
-    // First pass: check if there are escapes
     let mut scan = lex.pos
     while scan < lex.src_len {
         let sc = char_at(lex.src, scan)
-        if sc == 34 || sc == 10 { break }
-        if sc == 92 { has_escape = true; break }
+        if sc == 34 || sc == 10 {
+            break
+        }
+        if sc == 92 {
+            has_escape = true
+            break
+        }
         scan = scan + 1
     }
     if !has_escape {
-        // Fast path: no escapes, just substring
         while lex.pos < lex.src_len {
             let c = peek(lex)
             if c == 34 {
@@ -457,7 +699,6 @@ fn lex_string(lex: Lexer) -> Token {
         }
         return Token_new(TK_ERROR(), String_from("unterminated string"), start, lex.pos)
     }
-    // Slow path: has escapes, build via concat + substring spans
     let mut result = String_new()
     let mut span_start = lex.pos
     while lex.pos < lex.src_len {
@@ -473,7 +714,6 @@ fn lex_string(lex: Lexer) -> Token {
             return Token_new(TK_ERROR(), String_from("unterminated string"), start, lex.pos)
         }
         if c == 92 {
-            // Flush pending span
             if span_start < lex.pos {
                 result = concat(result, substring(lex.src, span_start, lex.pos))
             }
@@ -483,14 +723,26 @@ fn lex_string(lex: Lexer) -> Token {
             }
             let esc = peek(lex)
             lex.pos = lex.pos + 1
-            if esc == 110 { result = concat(result, String_from("\n")) }
-            else if esc == 116 { result = concat(result, String_from("\t")) }
-            else if esc == 114 { result = concat(result, String_from("\r")) }
-            else if esc == 92 { result = concat(result, String_from("\\")) }
-            else if esc == 34 { result = concat(result, String_from("\"")) }
-            else {
-                // Unknown escape: include the char as-is
-                result = concat(result, substring(lex.src, lex.pos - 1, lex.pos))
+            if esc == 110 {
+                result = concat(result, String_from("\n"))
+            } else {
+                if esc == 116 {
+                    result = concat(result, String_from("\t"))
+                } else {
+                    if esc == 114 {
+                        result = concat(result, String_from("\r"))
+                    } else {
+                        if esc == 92 {
+                            result = concat(result, String_from("\\"))
+                        } else {
+                            if esc == 34 {
+                                result = concat(result, String_from("\""))
+                            } else {
+                                result = concat(result, substring(lex.src, lex.pos - 1, lex.pos))
+                            }
+                        }
+                    }
+                }
             }
             span_start = lex.pos
         } else {
@@ -501,24 +753,17 @@ fn lex_string(lex: Lexer) -> Token {
 }
 
 // ── Main Tokenize ────────────────────────────────────────────────────────────
-
 fn next_token(lex: Lexer) -> Token {
     skip_whitespace(lex)
-
     if lex.pos >= lex.src_len {
         return Token_new(TK_EOF(), String_from(""), lex.pos, lex.pos)
     }
-
     let start = lex.pos
     let c = peek(lex)
-
-    // Newline
     if c == 10 {
         lex.pos = lex.pos + 1
         return Token_new(TK_NEWLINE(), String_from("\n"), start, lex.pos)
     }
-
-    // Comments
     if c == 47 && lex.pos + 1 < lex.src_len {
         let c2 = peek_at(lex, 1)
         if c2 == 47 {
@@ -530,42 +775,51 @@ fn next_token(lex: Lexer) -> Token {
             return next_token(lex)
         }
     }
-
-    // Identifiers and keywords
     if is_alpha(c) {
         return lex_ident(lex)
     }
-
-    // Numbers
     if is_digit(c) {
         return lex_number(lex)
     }
-
-    // String literal
     if c == 34 {
         return lex_string(lex)
     }
-
-    // Char literal: 'X' or '\n' etc
     if c == 39 {
         let char_start = lex.pos
-        lex.pos = lex.pos + 1  // skip opening '
-        // Check for escape sequence
+        lex.pos = lex.pos + 1
         if lex.pos < lex.src_len && char_at(lex.src, lex.pos) == 92 {
-            lex.pos = lex.pos + 1  // skip backslash
+            lex.pos = lex.pos + 1
             if lex.pos < lex.src_len {
                 let esc = char_at(lex.src, lex.pos)
-                lex.pos = lex.pos + 1  // skip escape char
+                lex.pos = lex.pos + 1
                 let mut cv = 0
-                if esc == 110 { cv = 10 }       // \n
-                else if esc == 116 { cv = 9 }   // \t
-                else if esc == 114 { cv = 13 }   // \r
-                else if esc == 48 { cv = 0 }     // \0
-                else if esc == 92 { cv = 92 }    // \\
-                else if esc == 39 { cv = 39 }    // \'
-                else { cv = esc }
+                if esc == 110 {
+                    cv = 10
+                } else {
+                    if esc == 116 {
+                        cv = 9
+                    } else {
+                        if esc == 114 {
+                            cv = 13
+                        } else {
+                            if esc == 48 {
+                                cv = 0
+                            } else {
+                                if esc == 92 {
+                                    cv = 92
+                                } else {
+                                    if esc == 39 {
+                                        cv = 39
+                                    } else {
+                                        cv = esc
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 if lex.pos < lex.src_len && char_at(lex.src, lex.pos) == 39 {
-                    lex.pos = lex.pos + 1  // skip closing '
+                    lex.pos = lex.pos + 1
                     let t = Token_new(TK_CHAR(), substring(lex.src, char_start, lex.pos), char_start, lex.pos)
                     t.int_val = cv
                     return t
@@ -573,12 +827,11 @@ fn next_token(lex: Lexer) -> Token {
             }
             return Token_new(TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
         }
-        // Simple char: 'X'
         if lex.pos < lex.src_len {
             let cv = char_at(lex.src, lex.pos)
             lex.pos = lex.pos + 1
             if lex.pos < lex.src_len && char_at(lex.src, lex.pos) == 39 {
-                lex.pos = lex.pos + 1  // skip closing '
+                lex.pos = lex.pos + 1
                 let t = Token_new(TK_CHAR(), substring(lex.src, char_start, lex.pos), char_start, lex.pos)
                 t.int_val = cv
                 return t
@@ -586,68 +839,127 @@ fn next_token(lex: Lexer) -> Token {
         }
         return Token_new(TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
     }
-
-    // Two-character operators
     lex.pos = lex.pos + 1
-
     if c == 61 {
-        if peek(lex) == 61 { lex.pos = lex.pos + 1; return Token_new(TK_EQEQ(), String_from("=="), start, lex.pos) }
-        if peek(lex) == 62 { lex.pos = lex.pos + 1; return Token_new(TK_FATARROW(), String_from("=>"), start, lex.pos) }
+        if peek(lex) == 61 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_EQEQ(), String_from("=="), start, lex.pos)
+        }
+        if peek(lex) == 62 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_FATARROW(), String_from("=>"), start, lex.pos)
+        }
         return Token_new(TK_EQ(), String_from("="), start, lex.pos)
     }
     if c == 33 {
-        if peek(lex) == 61 { lex.pos = lex.pos + 1; return Token_new(TK_BANGEQ(), String_from("!="), start, lex.pos) }
+        if peek(lex) == 61 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_BANGEQ(), String_from("!="), start, lex.pos)
+        }
         return Token_new(TK_BANG(), String_from("!"), start, lex.pos)
     }
     if c == 60 {
-        if peek(lex) == 61 { lex.pos = lex.pos + 1; return Token_new(TK_LTEQ(), String_from("<="), start, lex.pos) }
-        if peek(lex) == 60 { lex.pos = lex.pos + 1; return Token_new(TK_SHL(), String_from("<<"), start, lex.pos) }
+        if peek(lex) == 61 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_LTEQ(), String_from("<="), start, lex.pos)
+        }
+        if peek(lex) == 60 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_SHL(), String_from("<<"), start, lex.pos)
+        }
         return Token_new(TK_LT(), String_from("<"), start, lex.pos)
     }
     if c == 62 {
-        if peek(lex) == 61 { lex.pos = lex.pos + 1; return Token_new(TK_GTEQ(), String_from(">="), start, lex.pos) }
-        if peek(lex) == 62 { lex.pos = lex.pos + 1; return Token_new(TK_SHR(), String_from(">>"), start, lex.pos) }
+        if peek(lex) == 61 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_GTEQ(), String_from(">="), start, lex.pos)
+        }
+        if peek(lex) == 62 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_SHR(), String_from(">>"), start, lex.pos)
+        }
         return Token_new(TK_GT(), String_from(">"), start, lex.pos)
     }
     if c == 38 {
-        if peek(lex) == 38 { lex.pos = lex.pos + 1; return Token_new(TK_AMPAMP(), String_from("&&"), start, lex.pos) }
+        if peek(lex) == 38 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_AMPAMP(), String_from("&&"), start, lex.pos)
+        }
         return Token_new(TK_AMP(), String_from("&"), start, lex.pos)
     }
     if c == 124 {
-        if peek(lex) == 124 { lex.pos = lex.pos + 1; return Token_new(TK_PIPEPIPE(), String_from("||"), start, lex.pos) }
+        if peek(lex) == 124 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_PIPEPIPE(), String_from("||"), start, lex.pos)
+        }
         return Token_new(TK_PIPE(), String_from("|"), start, lex.pos)
     }
     if c == 45 {
-        if peek(lex) == 62 { lex.pos = lex.pos + 1; return Token_new(TK_ARROW(), String_from("->"), start, lex.pos) }
+        if peek(lex) == 62 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_ARROW(), String_from("->"), start, lex.pos)
+        }
         return Token_new(TK_MINUS(), String_from("-"), start, lex.pos)
     }
     if c == 58 {
-        if peek(lex) == 58 { lex.pos = lex.pos + 1; return Token_new(TK_COLONCOLON(), String_from("::"), start, lex.pos) }
+        if peek(lex) == 58 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_COLONCOLON(), String_from("::"), start, lex.pos)
+        }
         return Token_new(TK_COLON(), String_from(":"), start, lex.pos)
     }
     if c == 46 {
-        if peek(lex) == 46 { lex.pos = lex.pos + 1; return Token_new(TK_DOTDOT(), String_from(".."), start, lex.pos) }
+        if peek(lex) == 46 {
+            lex.pos = lex.pos + 1
+            return Token_new(TK_DOTDOT(), String_from(".."), start, lex.pos)
+        }
         return Token_new(TK_DOT(), String_from("."), start, lex.pos)
     }
-
-    // Single-character tokens
-    if c == 43 { return Token_new(TK_PLUS(), String_from("+"), start, lex.pos) }
-    if c == 42 { return Token_new(TK_STAR(), String_from("*"), start, lex.pos) }
-    if c == 47 { return Token_new(TK_SLASH(), String_from("/"), start, lex.pos) }
-    if c == 37 { return Token_new(TK_PERCENT(), String_from("%"), start, lex.pos) }
-    if c == 94 { return Token_new(TK_CARET(), String_from("^"), start, lex.pos) }
-    if c == 126 { return Token_new(TK_TILDE(), String_from("~"), start, lex.pos) }
-    if c == 40 { return Token_new(TK_LPAREN(), String_from("("), start, lex.pos) }
-    if c == 41 { return Token_new(TK_RPAREN(), String_from(")"), start, lex.pos) }
-    if c == 123 { return Token_new(TK_LBRACE(), String_from("{"), start, lex.pos) }
-    if c == 125 { return Token_new(TK_RBRACE(), String_from("}"), start, lex.pos) }
-    if c == 91 { return Token_new(TK_LBRACKET(), String_from("["), start, lex.pos) }
-    if c == 93 { return Token_new(TK_RBRACKET(), String_from("]"), start, lex.pos) }
-    if c == 44 { return Token_new(TK_COMMA(), String_from(","), start, lex.pos) }
-    if c == 59 { return Token_new(TK_SEMI(), String_from(";"), start, lex.pos) }
-    if c == 63 { return Token_new(TK_QUESTION(), String_from("?"), start, lex.pos) }
-
-    // Unknown character
+    if c == 43 {
+        return Token_new(TK_PLUS(), String_from("+"), start, lex.pos)
+    }
+    if c == 42 {
+        return Token_new(TK_STAR(), String_from("*"), start, lex.pos)
+    }
+    if c == 47 {
+        return Token_new(TK_SLASH(), String_from("/"), start, lex.pos)
+    }
+    if c == 37 {
+        return Token_new(TK_PERCENT(), String_from("%"), start, lex.pos)
+    }
+    if c == 94 {
+        return Token_new(TK_CARET(), String_from("^"), start, lex.pos)
+    }
+    if c == 126 {
+        return Token_new(TK_TILDE(), String_from("~"), start, lex.pos)
+    }
+    if c == 40 {
+        return Token_new(TK_LPAREN(), String_from("("), start, lex.pos)
+    }
+    if c == 41 {
+        return Token_new(TK_RPAREN(), String_from(")"), start, lex.pos)
+    }
+    if c == 123 {
+        return Token_new(TK_LBRACE(), String_from("{"), start, lex.pos)
+    }
+    if c == 125 {
+        return Token_new(TK_RBRACE(), String_from("}"), start, lex.pos)
+    }
+    if c == 91 {
+        return Token_new(TK_LBRACKET(), String_from("["), start, lex.pos)
+    }
+    if c == 93 {
+        return Token_new(TK_RBRACKET(), String_from("]"), start, lex.pos)
+    }
+    if c == 44 {
+        return Token_new(TK_COMMA(), String_from(","), start, lex.pos)
+    }
+    if c == 59 {
+        return Token_new(TK_SEMI(), String_from(";"), start, lex.pos)
+    }
+    if c == 63 {
+        return Token_new(TK_QUESTION(), String_from("?"), start, lex.pos)
+    }
     Token_new(TK_ERROR(), substring(lex.src, start, lex.pos), start, lex.pos)
 }
 
@@ -668,56 +980,151 @@ pub fn tokenize(source: String) -> Vec<Token> {
 }
 
 // ── Token Display Helpers ────────────────────────────────────────────────────
-
 pub fn token_kind_name(kind: i32) -> String {
-    if kind == TK_EOF() { return String_from("EOF") }
-    if kind == TK_IDENT() { return String_from("IDENT") }
-    if kind == TK_INT() { return String_from("INT") }
-    if kind == TK_FLOAT() { return String_from("FLOAT") }
-    if kind == TK_STRING() { return String_from("STRING") }
-    if kind == TK_BOOL() { return String_from("BOOL") }
-    if kind == TK_NEWLINE() { return String_from("NEWLINE") }
-    if kind == TK_ERROR() { return String_from("ERROR") }
-    if kind == TK_FN() { return String_from("FN") }
-    if kind == TK_STRUCT() { return String_from("STRUCT") }
-    if kind == TK_ENUM() { return String_from("ENUM") }
-    if kind == TK_LET() { return String_from("LET") }
-    if kind == TK_MUT() { return String_from("MUT") }
-    if kind == TK_IF() { return String_from("IF") }
-    if kind == TK_ELSE() { return String_from("ELSE") }
-    if kind == TK_MATCH() { return String_from("MATCH") }
-    if kind == TK_WHILE() { return String_from("WHILE") }
-    if kind == TK_LOOP() { return String_from("LOOP") }
-    if kind == TK_FOR() { return String_from("FOR") }
-    if kind == TK_IN() { return String_from("IN") }
-    if kind == TK_BREAK() { return String_from("BREAK") }
-    if kind == TK_CONTINUE() { return String_from("CONTINUE") }
-    if kind == TK_RETURN() { return String_from("RETURN") }
-    if kind == TK_PUB() { return String_from("PUB") }
-    if kind == TK_IMPORT() { return String_from("IMPORT") }
-    if kind == TK_AS() { return String_from("AS") }
-    if kind == TK_USE() { return String_from("USE") }
-    if kind == TK_WHERE() { return String_from("WHERE") }
-    if kind == TK_PLUS() { return String_from("PLUS") }
-    if kind == TK_MINUS() { return String_from("MINUS") }
-    if kind == TK_STAR() { return String_from("STAR") }
-    if kind == TK_SLASH() { return String_from("SLASH") }
-    if kind == TK_EQ() { return String_from("EQ") }
-    if kind == TK_EQEQ() { return String_from("EQEQ") }
-    if kind == TK_BANGEQ() { return String_from("BANGEQ") }
-    if kind == TK_LT() { return String_from("LT") }
-    if kind == TK_GT() { return String_from("GT") }
-    if kind == TK_ARROW() { return String_from("ARROW") }
-    if kind == TK_FATARROW() { return String_from("FATARROW") }
-    if kind == TK_COLON() { return String_from("COLON") }
-    if kind == TK_COLONCOLON() { return String_from("COLONCOLON") }
-    if kind == TK_LPAREN() { return String_from("LPAREN") }
-    if kind == TK_RPAREN() { return String_from("RPAREN") }
-    if kind == TK_LBRACE() { return String_from("LBRACE") }
-    if kind == TK_RBRACE() { return String_from("RBRACE") }
-    if kind == TK_COMMA() { return String_from("COMMA") }
-    if kind == TK_DOT() { return String_from("DOT") }
-    if kind == TK_CHAR() { return String_from("CHAR") }
+    if kind == TK_EOF() {
+        return String_from("EOF")
+    }
+    if kind == TK_IDENT() {
+        return String_from("IDENT")
+    }
+    if kind == TK_INT() {
+        return String_from("INT")
+    }
+    if kind == TK_FLOAT() {
+        return String_from("FLOAT")
+    }
+    if kind == TK_STRING() {
+        return String_from("STRING")
+    }
+    if kind == TK_BOOL() {
+        return String_from("BOOL")
+    }
+    if kind == TK_NEWLINE() {
+        return String_from("NEWLINE")
+    }
+    if kind == TK_ERROR() {
+        return String_from("ERROR")
+    }
+    if kind == TK_FN() {
+        return String_from("FN")
+    }
+    if kind == TK_STRUCT() {
+        return String_from("STRUCT")
+    }
+    if kind == TK_ENUM() {
+        return String_from("ENUM")
+    }
+    if kind == TK_LET() {
+        return String_from("LET")
+    }
+    if kind == TK_MUT() {
+        return String_from("MUT")
+    }
+    if kind == TK_IF() {
+        return String_from("IF")
+    }
+    if kind == TK_ELSE() {
+        return String_from("ELSE")
+    }
+    if kind == TK_MATCH() {
+        return String_from("MATCH")
+    }
+    if kind == TK_WHILE() {
+        return String_from("WHILE")
+    }
+    if kind == TK_LOOP() {
+        return String_from("LOOP")
+    }
+    if kind == TK_FOR() {
+        return String_from("FOR")
+    }
+    if kind == TK_IN() {
+        return String_from("IN")
+    }
+    if kind == TK_BREAK() {
+        return String_from("BREAK")
+    }
+    if kind == TK_CONTINUE() {
+        return String_from("CONTINUE")
+    }
+    if kind == TK_RETURN() {
+        return String_from("RETURN")
+    }
+    if kind == TK_PUB() {
+        return String_from("PUB")
+    }
+    if kind == TK_IMPORT() {
+        return String_from("IMPORT")
+    }
+    if kind == TK_AS() {
+        return String_from("AS")
+    }
+    if kind == TK_USE() {
+        return String_from("USE")
+    }
+    if kind == TK_WHERE() {
+        return String_from("WHERE")
+    }
+    if kind == TK_PLUS() {
+        return String_from("PLUS")
+    }
+    if kind == TK_MINUS() {
+        return String_from("MINUS")
+    }
+    if kind == TK_STAR() {
+        return String_from("STAR")
+    }
+    if kind == TK_SLASH() {
+        return String_from("SLASH")
+    }
+    if kind == TK_EQ() {
+        return String_from("EQ")
+    }
+    if kind == TK_EQEQ() {
+        return String_from("EQEQ")
+    }
+    if kind == TK_BANGEQ() {
+        return String_from("BANGEQ")
+    }
+    if kind == TK_LT() {
+        return String_from("LT")
+    }
+    if kind == TK_GT() {
+        return String_from("GT")
+    }
+    if kind == TK_ARROW() {
+        return String_from("ARROW")
+    }
+    if kind == TK_FATARROW() {
+        return String_from("FATARROW")
+    }
+    if kind == TK_COLON() {
+        return String_from("COLON")
+    }
+    if kind == TK_COLONCOLON() {
+        return String_from("COLONCOLON")
+    }
+    if kind == TK_LPAREN() {
+        return String_from("LPAREN")
+    }
+    if kind == TK_RPAREN() {
+        return String_from("RPAREN")
+    }
+    if kind == TK_LBRACE() {
+        return String_from("LBRACE")
+    }
+    if kind == TK_RBRACE() {
+        return String_from("RBRACE")
+    }
+    if kind == TK_COMMA() {
+        return String_from("COMMA")
+    }
+    if kind == TK_DOT() {
+        return String_from("DOT")
+    }
+    if kind == TK_CHAR() {
+        return String_from("CHAR")
+    }
     String_from("UNKNOWN")
 }
 
@@ -726,25 +1133,30 @@ fn print_token(tok: Token) {
     let pos_str = i32_to_string(tok.start)
     if tok.kind == TK_IDENT() || tok.kind == TK_STRING() || tok.kind == TK_ERROR() {
         stdio::println(concat(concat(concat(kind_str, "("), tok.text), ")"))
-    } else if tok.kind == TK_INT() {
-        stdio::println(concat(concat(concat(kind_str, "("), i32_to_string(tok.int_val)), ")"))
-    } else if tok.kind == TK_FLOAT() {
-        stdio::println(concat(concat(concat(kind_str, "("), f64_to_string(tok.float_val)), ")"))
-    } else if tok.kind == TK_BOOL() {
-        stdio::println(concat(concat(concat(kind_str, "("), tok.text), ")"))
-    } else if tok.kind == TK_NEWLINE() {
-        // skip printing newlines to reduce noise
     } else {
-        stdio::println(kind_str)
+        if tok.kind == TK_INT() {
+            stdio::println(concat(concat(concat(kind_str, "("), i32_to_string(tok.int_val)), ")"))
+        } else {
+            if tok.kind == TK_FLOAT() {
+                stdio::println(concat(concat(concat(kind_str, "("), f64_to_string(tok.float_val)), ")"))
+            } else {
+                if tok.kind == TK_BOOL() {
+                    stdio::println(concat(concat(concat(kind_str, "("), tok.text), ")"))
+                } else {
+                    if tok.kind == TK_NEWLINE() {
+                    } else {
+                        stdio::println(kind_str)
+                    }
+                }
+            }
+        }
     }
 }
 
 // ── Entry Point ──────────────────────────────────────────────────────────────
-
 fn main() {
     let source = String_from("fn main() {\n    let x: i32 = 42\n    stdio::println(i32_to_string(x))\n}\n")
     let tokens = tokenize(source)
-    // Iterate until EOF token (len() has a bug with Vec<Struct>)
     let mut i = 0
     let mut done = false
     while !done {
@@ -757,3 +1169,54 @@ fn main() {
     }
     stdio::println(String_from("Done."))
 }
+// ── Token Kind Tags ──────────────────────────────────────────────────────────
+// Using i32 constants instead of enum because the self-hosted lexer
+// needs to be simple and avoid complex enum dispatch.
+// Skip past the opening /*
+// f"..." f-string: `f` immediately followed by `"`
+// skip opening "
+// Hex: 0x...
+// Binary: 0b...
+// Decimal integer or float
+// Check for float: dot followed by digit
+// Scientific notation: e/E
+// Consume optional type suffix: i8 i16 i32 i64 u8 u16 u32 u64 f32 f64
+// Check if suffix is f64/f32 — treat integer as float
+// Workaround: extract f64 from match to avoid codegen bug
+// with match returning structs containing f64 fields
+// Check for 3-char suffixes first: i32 i64 u32 u64 f32 f64 i16 u16
+// Check next char is not alphanumeric (avoid matching prefix of longer ident)
+// i32=105,51,50 i64=105,54,52 u32=117,51,50 u64=117,54,52
+// f32=102,51,50 f64=102,54,52 i16=105,49,54 u16=117,49,54
+// Check for 2-char suffixes: i8 u8
+// i8=105,56  u8=117,56
+// skip opening "
+// First pass: check if there are escapes
+// Fast path: no escapes, just substring
+// Slow path: has escapes, build via concat + substring spans
+// Flush pending span
+// Unknown escape: include the char as-is
+// Newline
+// Comments
+// Identifiers and keywords
+// Numbers
+// String literal
+// Char literal: 'X' or '\n' etc
+// skip opening '
+// Check for escape sequence
+// skip backslash
+// skip escape char
+// \n
+// \t
+// \r
+// \0
+// \\
+// \'
+// skip closing '
+// Simple char: 'X'
+// skip closing '
+// Two-character operators
+// Single-character tokens
+// Unknown character
+// skip printing newlines to reduce noise
+// Iterate until EOF token (len() has a bug with Vec<Struct>)

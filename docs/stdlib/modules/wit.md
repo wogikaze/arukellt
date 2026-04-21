@@ -37,16 +37,13 @@ let name = wit_type_name(t)   // "u32"
 - Manifest-backed functions: 16
 - Stability: experimental 16
 
-Experimental WIT helpers.
-
-The current surface exposes WIT primitive types as a typed enum plus
-explicit integer conversions for interop and introspection.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
-| `WitType` | `enum` | - |
+| `WitType` | `enum` | Experimental WIT helpers. |
 
 ### Public API
 

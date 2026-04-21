@@ -1,7 +1,6 @@
-//! Host random helpers backed by the current entropy intrinsic.
-//!
-//! Deterministic seeded utilities live in `std::random`.
-
+/// Host random helpers backed by the current entropy intrinsic.
+/// 
+/// Deterministic seeded utilities live in `std::random`.
 /// Returns a host-provided random `i32`.
 pub fn random_i32() -> i32 {
     __intrinsic_random_i32()
@@ -16,7 +15,7 @@ pub fn random_i32_range(lo: i32, hi: i32) -> i32 {
     } else {
         let val = r % range
         if val < 0 {
-            lo + (val + range)
+            lo + val + range
         } else {
             lo + val
         }

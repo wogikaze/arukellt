@@ -34,15 +34,13 @@ let fields = csv_split_line("name,age,city")
 - Manifest-backed functions: 7
 - Stability: experimental 7
 
-CSV parser/serializer for std::csv.
-
-Supports RFC 4180 quoted fields and basic multi-row documents.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `csv_split_line` | `(String) -> Vec<String>` | `experimental` | Split a single CSV line on commas (no quote handling). |
+| `csv_split_line` | `(String) -> Vec<String>` | `experimental` | CSV parser/serializer for std::csv. |
 | `csv_parse_row` | `(String) -> Vec<String>` | `experimental` | Parse a single CSV line into fields, handling RFC 4180 quoted fields. |
 | `csv_stringify_row` | `(Vec<String>) -> String` | `experimental` | Serialize a row of fields back to a CSV line. |
 | `csv_count_rows` | `(String) -> i32` | `experimental` | Count the number of non-empty lines in a CSV string. |

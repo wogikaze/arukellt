@@ -1,10 +1,9 @@
-//! std::cli — command-line argument helpers.
-//!
-//! All functions that take an explicit `args` parameter accept any
-//! `Vec<String>` (typically produced by `env::args()` or `parse_args()`).
-//! Functions without an explicit `args` parameter read from the process
-//! argument vector directly.
-
+/// std::cli — command-line argument helpers.
+/// 
+/// All functions that take an explicit `args` parameter accept any
+/// `Vec<String>` (typically produced by `env::args()` or `parse_args()`).
+/// Functions without an explicit `args` parameter read from the process
+/// argument vector directly.
 /// Returns the full process argument vector (excluding argv[0]).
 pub fn parse_args() -> Vec<String> {
     __intrinsic_args()
@@ -22,7 +21,7 @@ pub fn arg_at(index: i32) -> Option<String> {
 }
 
 /// Returns `true` when the process argument vector contains `flag` verbatim.
-///
+/// 
 /// Typical usage: `cli::has_flag("--verbose")`.
 pub fn has_flag(flag: String) -> bool {
     let values = __intrinsic_args()
@@ -37,7 +36,7 @@ pub fn has_flag(flag: String) -> bool {
 }
 
 /// Returns `true` when `args` contains `name` verbatim.
-///
+/// 
 /// Unlike `has_flag`, this takes an explicit argument vector so the caller
 /// can pass a filtered or synthetic list.
 pub fn flag(args: Vec<String>, name: String) -> bool {
@@ -53,7 +52,7 @@ pub fn flag(args: Vec<String>, name: String) -> bool {
 
 /// Looks for `name` or `name=<value>` in `args` and returns the associated
 /// value, or `None` when not found.
-///
+/// 
 /// Supported forms:
 /// - `--flag value`  (next element)
 /// - `--flag=value`  (embedded `=`)

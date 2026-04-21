@@ -51,16 +51,13 @@ match content {
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-Host standard I/O helpers backed by the current print intrinsics.
-
-These APIs are explicitly host-bound. They are not part of the pure
-standard-library surface and must be imported from `std::host::stdio`.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `print` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stdout without appending a newline. |
+| `print` | `(String) -> ()` | `stable` | ✅ impl | Host standard I/O helpers backed by the current print intrinsics. |
 | `println` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stdout and appends a newline. |
 | `eprintln` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stderr. |
 
@@ -68,7 +65,7 @@ standard-library surface and must be imported from `std::host::stdio`.
 
 Write a string to standard output without appending a newline.
 
-*Example — Print without newlines:*
+_Example — Print without newlines:_
 
 ```ark
 print("hello ")
@@ -79,7 +76,7 @@ print("world")
 
 Write a string to standard output followed by a newline.
 
-*Example — Basic hello-world output:*
+_Example — Basic hello-world output:_
 
 ```ark
 println("Hello, world!")
@@ -91,7 +88,7 @@ Expected output: `Hello, world!`
 
 Write a string to standard error followed by a newline.
 
-*Example — Write a diagnostic message to stderr:*
+_Example — Write a diagnostic message to stderr:_
 
 ```ark
 eprintln("Error: something went wrong")
@@ -105,15 +102,13 @@ eprintln("Error: something went wrong")
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-Host filesystem helpers backed by the current WASI filesystem intrinsics.
-
-These APIs perform host I/O. Pure path manipulation remains in `std::path`.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
+| `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Host filesystem helpers backed by the current WASI filesystem intrinsics. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
 | `exists` | `(String) -> bool` | `stable` | ✅ impl | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
@@ -129,7 +124,7 @@ Read the entire contents of a file at the given path and return them as a UTF-8 
 
 **Errors:** Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8.
 
-*Example — Read a text file and print it:*
+_Example — Read a text file and print it:_
 
 ```ark
 let txt = fs::read_to_string("data.txt")
@@ -182,32 +177,13 @@ Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 - Manifest-backed functions: 3
 - Stability: stable 3
 
-Small host-backed file helpers — a **partial bridge**, not a full filesystem API.
-
-`std::fs` tracks a narrow, stable-shaped subset of the same WASI filesystem
-intrinsics behind `std::host::fs` (`read_string` / `write_string` plus an
-`exists` read probe). Prefer `std::host::fs` for the full host rollout surface
-(`read_to_string`, `write_bytes`, experimental fd helpers, and future additions).
-This namespace exists so call sites can depend on a compact API while
-`std::host::*` continues to evolve.
-
-There is no in-tree directory listing, metadata API, or streaming I/O yet; do
-not treat this as a complete POSIX-style facade. Broader
-`wasi:filesystem/types`-class coverage remains future work.
-
-Paths are plain `String` values using `/` as the separator (POSIX/WASI
-convention). For pure path manipulation helpers see `std::path`.
-
-**Probe notice**: `exists` is a **read probe** / readable-file check: it
-succeeds only when the same read operation as `read_string` succeeds. It is not
-a general path-existence or metadata query. Directories, missing paths,
-and unreadable paths may return `false`.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `read_string` | `(String) -> Result<String, String>` | `stable` | Reads the entire contents of a file into a UTF-8 string. |
+| `read_string` | `(String) -> Result<String, String>` | `stable` | Small host-backed file helpers — a partial bridge, not a full filesystem API. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, creating or truncating it. |
 | `exists` | `(String) -> bool` | `stable` | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
 
@@ -239,10 +215,7 @@ Read probe / readable-file check: true when a full read succeeds (same intrinsic
 - Manifest-backed functions: 9
 - Stability: stable 9
 
-Pure string-based path manipulation helpers.
-
-Paths are represented as `String` values and always use `/` as the
-separator to match POSIX and WASI conventions.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
@@ -278,13 +251,13 @@ Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> 
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-Host process-control helpers.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `exit` | `(i32) -> ()` | `stable` | ✅ impl | Requests process termination with the given exit code. |
+| `exit` | `(i32) -> ()` | `stable` | ✅ impl | Host process-control helpers. |
 | `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately with exit code 134 (SIGABRT convention). |
 
 #### `exit`
@@ -303,16 +276,13 @@ Abort the process immediately with an abnormal-termination signal (non-zero exit
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-Host environment helpers.
-
-Backed by WASI args_sizes_get / args_get for CLI argument access
-and WASI environ_sizes_get / environ_get for environment variable lookup.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `args` | `() -> Vec<String>` | `stable` | ✅ impl | Returns the process argument vector (excluding argv[0]). |
+| `args` | `() -> Vec<String>` | `stable` | ✅ impl | Host environment helpers. |
 | `arg_count` | `() -> i32` | `stable` | ✅ impl | Returns the number of process arguments (excluding argv[0]). |
 | `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ impl | Returns the argument at the given index when in range. |
 | `var` | `(String) -> Option<String>` | `stable` | ✅ impl | Looks up an environment variable by name. |
@@ -338,7 +308,7 @@ Look up an environment variable by name. Returns None if the variable is not set
 
 **Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
 
-*Example — Read the HOME environment variable:*
+_Example — Read the HOME environment variable:_
 
 ```ark
 let home = env::var("HOME")
@@ -357,15 +327,13 @@ Return true if the given flag (e.g. "--verbose") was passed as a command-line ar
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-Host clock helpers.
-
-Clock reads are host-bound. Pure duration math lives in `std::time`.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `monotonic_now` | `() -> i64` | `stable` | ✅ impl | Returns a monotonic timestamp in nanoseconds. |
+| `monotonic_now` | `() -> i64` | `stable` | ✅ impl | Host clock helpers. |
 | `now_ms` | `() -> i64` | `stable` | ✅ impl | Returns the current wall-clock time in milliseconds since the Unix epoch. |
 
 #### `monotonic_now`
@@ -388,15 +356,13 @@ Return the current wall-clock time in milliseconds since the Unix epoch.
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-Host random helpers backed by the current entropy intrinsic.
-
-Deterministic seeded utilities live in `std::random`.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `random_i32` | `() -> i32` | `stable` | ✅ impl | Returns a host-provided random i32. |
+| `random_i32` | `() -> i32` | `stable` | ✅ impl | Host random helpers backed by the current entropy intrinsic. |
 | `random_i32_range` | `(i32, i32) -> i32` | `stable` | ✅ impl | Returns a host-provided random value in [lo, hi). |
 | `random_bool` | `() -> bool` | `stable` | ✅ impl | Returns a host-provided random boolean. |
 | `next_f64` | `() -> f64` | `stable` | ✅ impl | Returns a host-provided random f64 in the range [0.0, 1.0). |
@@ -415,7 +381,7 @@ Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i
 
 **Errors:** Panics at runtime if lo >= hi.
 
-*Example — Roll a six-sided die (1–6):*
+_Example — Roll a six-sided die (1–6):_
 
 ```ark
 let n = random::random_i32_range(1, 7)

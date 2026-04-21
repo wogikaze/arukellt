@@ -2,16 +2,16 @@ use std::host::env
 use std::host::stdio
 
 fn main() {
-    // PATH is virtually always set on Unix systems
     let v = env::var("PATH")
     match v {
-        Some(s) => stdio::println("found PATH"),
+        Option::Some(s) => stdio::println("found PATH"),
         None => stdio::println("PATH not found"),
     }
-    // Nonexistent variable
     let w = env::var("ARUKELLT_NONEXISTENT_XYZ")
     match w {
-        Some(s) => stdio::println("unexpected"),
+        Option::Some(s) => stdio::println("unexpected"),
         None => stdio::println("none as expected"),
     }
 }
+// PATH is virtually always set on Unix systems
+// Nonexistent variable

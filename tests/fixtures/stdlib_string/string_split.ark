@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn main() {
     let s: String = String_from("a,b,c")
     let parts: Vec<String> = split(s, String_from(","))

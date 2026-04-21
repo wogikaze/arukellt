@@ -2,7 +2,6 @@
 // Used by resolver_visibility_error fixture (issue #310: selfhost visibility enforcement).
 // Provides a pub function and a private function.
 // The importing module incorrectly tries to call the private function.
-
 pub fn public_api() -> i32 {
     1
 }

@@ -17,17 +17,13 @@ struct Context {
 }
 
 fn main() {
-    let ctx = Context {
-        container: Container { items: Vec_new_Item() },
-        current: Item { name: String_from("first"), value: 10 },
-    }
+    let ctx = Context { container: Container { items: Vec_new_Item() }, current: Item { name: String_from("first"), value: 10 } }
     stdio::println(i32_to_string(len(ctx.container.items)))
     push(ctx.container.items, ctx.current)
     stdio::println(i32_to_string(len(ctx.container.items)))
     let i0 = get_unchecked(ctx.container.items, 0)
     stdio::println(i0.name)
     stdio::println(i32_to_string(i0.value))
-    // Push a second item
     ctx.current = Item { name: String_from("second"), value: 20 }
     push(ctx.container.items, ctx.current)
     stdio::println(i32_to_string(len(ctx.container.items)))
@@ -35,3 +31,4 @@ fn main() {
     stdio::println(i1.name)
     stdio::println(i32_to_string(i1.value))
 }
+// Push a second item

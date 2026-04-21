@@ -1,3 +1,5 @@
 use std::host::stdio
 
-fn main() { stdio::println("ok") }
+fn main() {
+    stdio::println("ok")
+}

@@ -1,30 +1,27 @@
-use std::text
 use std::host::stdio
+use std::text
 
 fn main() {
-    // builder_new + builder_append + builder_build
     let sb = text::builder_new()
     let sb = text::builder_append(sb, "Hello")
     let sb = text::builder_append(sb, ", ")
     let sb = text::builder_append(sb, "world")
     stdio::println(text::builder_build(sb))
-
-    // builder_append_line
     let sb2 = text::builder_new()
     let sb2 = text::builder_append_line(sb2, "line1")
     let sb2 = text::builder_append_line(sb2, "line2")
     let sb2 = text::builder_append(sb2, "line3")
     stdio::println(text::builder_build(sb2))
-
-    // builder_len
     let sb3 = text::builder_new()
     stdio::println(i32_to_string(text::builder_len(sb3)))
     let sb3 = text::builder_append(sb3, "abc")
     stdio::println(i32_to_string(text::builder_len(sb3)))
-
-    // builder_append_char
     let sb4 = text::builder_new()
     let sb4 = text::builder_append(sb4, "Hi")
     let sb4 = text::builder_append_char(sb4, '!')
     stdio::println(text::builder_build(sb4))
 }
+// builder_new + builder_append + builder_build
+// builder_append_line
+// builder_len
+// builder_append_char

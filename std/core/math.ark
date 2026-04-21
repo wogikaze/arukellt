@@ -1,7 +1,6 @@
 // std::core::math — mathematical functions
 //
 // Wrappers around compiler intrinsics for math operations.
-
 pub fn abs(x: i32) -> i32 {
     __intrinsic_abs(x)
 }
@@ -33,10 +32,12 @@ pub fn sqrt(x: f64) -> f64 {
 pub fn clamp(x: i32, lo: i32, hi: i32) -> i32 {
     if x < lo {
         lo
-    } else if x > hi {
-        hi
     } else {
-        x
+        if x > hi {
+            hi
+        } else {
+            x
+        }
     }
 }
 
@@ -53,11 +54,15 @@ pub fn pow_i32(base: i32, exp: i32) -> i32 {
 pub fn gcd(a: i32, b: i32) -> i32 {
     let mut x = a
     let mut y = b
-    if x < 0 { x = 0 - x }
-    if y < 0 { y = 0 - y }
+    if x < 0 {
+        x = 0 - x
+    }
+    if y < 0 {
+        y = 0 - y
+    }
     while y != 0 {
         let t = y
-        y = x - (x / y) * y
+        y = x - x / y * y
         x = t
     }
     x

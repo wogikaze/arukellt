@@ -1,15 +1,17 @@
-//! Deterministic pseudo-random helper functions.
-//!
-//! Host entropy lives in `std::host::random`. This module only provides
-//! seeded helpers so callers can reason about reproducibility.
-
+/// Deterministic pseudo-random helper functions.
+/// 
+/// Host entropy lives in `std::host::random`. This module only provides
+/// seeded helpers so callers can reason about reproducibility.
 pub fn seeded_random(seed_val: i32) -> i32 {
-    let s = if seed_val == 0 { 42 } else { seed_val }
-    // xorshift32 inline
+    let s = if seed_val == 0 {
+        42
+    } else {
+        seed_val
+    }
     let mut x = s
-    x = x ^ (x * 8192)
-    x = x ^ (x / 131072)
-    x = x ^ (x * 32)
+    x = x ^ x * 8192
+    x = x ^ x / 131072
+    x = x ^ x * 32
     if x == 0 {
         1
     } else {
@@ -25,7 +27,7 @@ pub fn seeded_range(seed_val: i32, lo: i32, hi: i32) -> i32 {
     } else {
         let val = r % range
         if val < 0 {
-            lo + (val + range)
+            lo + val + range
         } else {
             lo + val
         }
@@ -40,8 +42,11 @@ pub fn shuffle_i32(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
         push(result, get_unchecked(v, i))
         i = i + 1
     }
-    // Fisher-Yates shuffle
-    let mut seed = if seed_val == 0 { 42 } else { seed_val }
+    let mut seed = if seed_val == 0 {
+        42
+    } else {
+        seed_val
+    }
     let mut j = n - 1
     while j > 0 {
         seed = seeded_random(seed)
@@ -53,3 +58,5 @@ pub fn shuffle_i32(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
     }
     result
 }
+// xorshift32 inline
+// Fisher-Yates shuffle

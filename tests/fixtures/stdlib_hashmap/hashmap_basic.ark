@@ -1,11 +1,12 @@
 use std::host::stdio
+
 fn main() {
     let m = HashMap_i32_i32_new()
     HashMap_i32_i32_insert(m, 1, 100)
     HashMap_i32_i32_insert(m, 2, 200)
     HashMap_i32_i32_insert(m, 3, 300)
     match HashMap_i32_i32_get(m, 2) {
-        Some(v) => stdio::println(v),
+        Option::Some(v) => stdio::println(v),
         None => stdio::println(-1),
     }
     stdio::println(HashMap_i32_i32_len(m))
@@ -13,7 +14,7 @@ fn main() {
         stdio::println(String_from("found"))
     }
     match HashMap_i32_i32_get(m, 99) {
-        Some(v) => stdio::println(v),
+        Option::Some(v) => stdio::println(v),
         None => stdio::println(String_from("not found")),
     }
 }

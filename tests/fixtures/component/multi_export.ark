@@ -11,4 +11,5 @@ pub fn negate(x: i32) -> i32 {
     0 - x
 }
 
-fn main() {}
+fn main() {
+}

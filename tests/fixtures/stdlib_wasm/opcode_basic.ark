@@ -1,5 +1,5 @@
-use std::wasm
 use std::host::stdio
+use std::wasm
 
 fn main() {
     stdio::println(i32_to_string(wasm::op_unreachable()))

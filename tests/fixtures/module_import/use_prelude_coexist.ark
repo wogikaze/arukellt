@@ -7,16 +7,16 @@
 use std::text::string
 
 fn main() {
-    // Module-qualified call via `use std::text::string`
     let parts = string::split("a,b,c", ",")
-    // Prelude function `len` works alongside module import
     let n = len(parts)
-    // Prelude function `concat` still available
     let greeting = concat("hello", " world")
-    // Prelude function for vec creation
     let mut v: Vec<i32> = Vec_new_i32()
     push(v, 10)
     push(v, 20)
     let vlen = len(v)
     __intrinsic_println(concat(concat(__intrinsic_i32_to_string(n), ","), concat(greeting, concat(",", __intrinsic_i32_to_string(vlen)))))
 }
+// Module-qualified call via `use std::text::string`
+// Prelude function `len` works alongside module import
+// Prelude function `concat` still available
+// Prelude function for vec creation

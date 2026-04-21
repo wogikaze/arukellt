@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn main() {
     let a: String = String_from("test")
     let b: String = String_from("test")

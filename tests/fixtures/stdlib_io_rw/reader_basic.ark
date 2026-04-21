@@ -1,41 +1,47 @@
-use std::io
 use std::bytes
 use std::host::stdio
+use std::io
 
 fn main() {
-    // Build bytes: "Hello\nWorld"
     let data: Vec<i32> = bytes::bytes_new()
-    bytes::bytes_push(data, 72)   // H
-    bytes::bytes_push(data, 101)  // e
-    bytes::bytes_push(data, 108)  // l
-    bytes::bytes_push(data, 108)  // l
-    bytes::bytes_push(data, 111)  // o
-    bytes::bytes_push(data, 10)   // \n
-    bytes::bytes_push(data, 87)   // W
-    bytes::bytes_push(data, 111)  // o
-    bytes::bytes_push(data, 114)  // r
-    bytes::bytes_push(data, 108)  // l
-    bytes::bytes_push(data, 100)  // d
-
+    bytes::bytes_push(data, 72)
+    bytes::bytes_push(data, 101)
+    bytes::bytes_push(data, 108)
+    bytes::bytes_push(data, 108)
+    bytes::bytes_push(data, 111)
+    bytes::bytes_push(data, 10)
+    bytes::bytes_push(data, 87)
+    bytes::bytes_push(data, 111)
+    bytes::bytes_push(data, 114)
+    bytes::bytes_push(data, 108)
+    bytes::bytes_push(data, 100)
     let r: Vec<i32> = io::reader_from_bytes(data)
-
-    // reader_eof should be false
     stdio::println(bool_to_string(io::reader_eof(r)))
-
-    // read 5 bytes -> "Hello"
     let res: Result<Vec<i32>, String> = io::reader_read(r, 5)
     match res {
-        Ok(chunk) => stdio::println(bytes::string_from_bytes(chunk)),
-        Err(e) => stdio::println(e),
+        Result::Ok(chunk) => stdio::println(bytes::string_from_bytes(chunk)),
+        Result::Err(e) => stdio::println(e),
     }
-
-    // read_line -> "World" (skips the \n)
     let res2: Result<String, String> = io::reader_read_line(r)
     match res2 {
-        Ok(line) => stdio::println(line),
-        Err(e) => stdio::println(e),
+        Result::Ok(line) => stdio::println(line),
+        Result::Err(e) => stdio::println(e),
     }
-
-    // reader_eof should now be true
     stdio::println(bool_to_string(io::reader_eof(r)))
 }
+// Build bytes: "Hello\nWorld"
+// H
+// e
+// l
+// l
+// o
+// \n
+// W
+// o
+// r
+// l
+// d
+// reader_eof should be false
+// read 5 bytes -> "Hello"
+// read_line -> "World" (skips the \n)
+// reader_eof should now be true

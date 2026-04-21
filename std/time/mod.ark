@@ -1,30 +1,29 @@
-//! Pure duration helpers.
-//!
-//! Host clock reads live in `std::host::clock`. This module only provides
-//! pure arithmetic over timestamps supplied by the caller.
-
+/// Pure duration helpers.
+/// 
+/// Host clock reads live in `std::host::clock`. This module only provides
+/// pure arithmetic over timestamps supplied by the caller.
 pub fn duration_ms(start: i64, end: i64) -> i64 {
     let diff = end - start
-    if diff < 0_i64 {
-        0_i64
+    if diff < 0i64 {
+        0i64
     } else {
-        diff / 1000000_i64
+        diff / 1000000i64
     }
 }
 
 pub fn duration_us(start: i64, end: i64) -> i64 {
     let diff = end - start
-    if diff < 0_i64 {
-        0_i64
+    if diff < 0i64 {
+        0i64
     } else {
-        diff / 1000_i64
+        diff / 1000i64
     }
 }
 
 pub fn duration_ns(start: i64, end: i64) -> i64 {
     let diff = end - start
-    if diff < 0_i64 {
-        0_i64
+    if diff < 0i64 {
+        0i64
     } else {
         diff
     }

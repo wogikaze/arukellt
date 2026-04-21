@@ -3,7 +3,6 @@
 // Currently these delegate to compiler intrinsics. When the module system
 // supports `import collections::string`, users will be able to import
 // individual functions instead of relying on prelude auto-import.
-
 pub fn concat(a: String, b: String) -> String {
     __intrinsic_concat(a, b)
 }

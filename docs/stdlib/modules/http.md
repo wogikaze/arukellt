@@ -40,15 +40,13 @@ match body {
 
 > 🎯 **Target:** `wasm32-wasi-p1, wasm32-wasi-p2` · ✅ **Status:** implemented
 
-HTTP client helpers backed by the arukellt_host runtime.
-
-These APIs use TCP-based HTTP/1.1 via host-provided functions.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `request` | `(String, String, String) -> Result<String, String>` | `provisional` | ✅ impl | Sends an HTTP request with the given method, URL, and body. |
+| `request` | `(String, String, String) -> Result<String, String>` | `provisional` | ✅ impl | HTTP client helpers backed by the arukellt_host runtime. |
 | `get` | `(String) -> Result<String, String>` | `provisional` | ✅ impl | Sends an HTTP GET request to the given URL. |
 
 #### `request`
@@ -59,7 +57,7 @@ Send an HTTP request with a given method, URL, and body. Returns the response bo
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
-*Example — POST JSON to an API endpoint:*
+_Example — POST JSON to an API endpoint:_
 
 ```ark
 let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\"}")
@@ -73,7 +71,7 @@ Send an HTTP GET request to the given URL and return the response body as a stri
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
-*Example — Fetch a URL and print its body:*
+_Example — Fetch a URL and print its body:_
 
 ```ark
 let body = http::get("http://example.com")

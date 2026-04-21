@@ -1,4 +1,5 @@
 use std::host::stdio
+
 enum Inner {
     A,
     B(i32),

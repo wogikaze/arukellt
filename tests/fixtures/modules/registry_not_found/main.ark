@@ -4,4 +4,5 @@
 // mock registry, the compiler emits E0121 (package not found in registry).
 use my_reg_pkg
 
-fn main() {}
+fn main() {
+}

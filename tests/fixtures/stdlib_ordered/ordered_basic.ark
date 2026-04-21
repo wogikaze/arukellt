@@ -12,8 +12,6 @@ fn main() {
     stdio::println(i32_to_string(ordered::sorted_map_get(m, 30)))
     stdio::println(bool_to_string(ordered::sorted_map_contains(m, 20)))
     stdio::println(bool_to_string(ordered::sorted_map_contains(m, 99)))
-
-    // BitSet
     let bs: Vec<i32> = ordered::bitset_new()
     ordered::bitset_mark(bs, 5)
     ordered::bitset_mark(bs, 42)
@@ -22,3 +20,4 @@ fn main() {
     ordered::bitset_unmark(bs, 5)
     stdio::println(bool_to_string(ordered::bitset_test(bs, 5)))
 }
+// BitSet

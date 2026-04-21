@@ -2,7 +2,6 @@
 //
 // Tests that unit-variant enums can be exported through the Component Model
 // by using canonical ABI adapter functions (i32 ↔ GC enum ref conversion).
-
 enum Color {
     Red,
     Green,
@@ -25,4 +24,5 @@ pub fn color_to_value(c: Color) -> i32 {
     }
 }
 
-fn main() {}
+fn main() {
+}

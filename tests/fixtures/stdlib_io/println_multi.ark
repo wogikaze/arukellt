@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn main() {
     stdio::println("line 1")
     stdio::println("line 2")

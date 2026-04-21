@@ -8,4 +8,5 @@ pub fn first_or_zero(v: Vec<i32>) -> i32 {
     }
 }
 
-fn main() {}
+fn main() {
+}

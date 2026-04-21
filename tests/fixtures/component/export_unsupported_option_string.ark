@@ -5,4 +5,5 @@ pub fn maybe_greet(name: String) -> Option<String> {
     Some(name)
 }
 
-fn main() {}
+fn main() {
+}

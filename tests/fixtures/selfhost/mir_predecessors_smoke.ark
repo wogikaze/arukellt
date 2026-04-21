@@ -1,7 +1,6 @@
 // Focused regression for issue #503 slice B.
 // Exercises deterministic predecessor computation from succ0/succ1 on a
 // small diamond CFG without widening into full CFG lowering or SSA.
-
 use std::host::stdio
 
 struct Block {
@@ -11,11 +10,7 @@ struct Block {
 }
 
 fn Block_new() -> Block {
-    Block {
-        succ0: 0 - 1,
-        succ1: 0 - 1,
-        preds: Vec_new_i32(),
-    }
+    Block { succ0: 0 - 1, succ1: 0 - 1, preds: Vec_new_i32() }
 }
 
 fn add_pred(block: Block, pred_id: i32) {
@@ -49,7 +44,6 @@ fn compute_predecessors(blocks: Vec<Block>) {
         block.preds = Vec_new_i32()
         i = i + 1
     }
-
     i = 0
     while i < count {
         let block = get_unchecked(blocks, i)
@@ -81,19 +75,14 @@ fn main() {
     push(blocks, Block_new())
     push(blocks, Block_new())
     push(blocks, Block_new())
-
     let entry = get_unchecked(blocks, 0)
     entry.succ0 = 1
     entry.succ1 = 2
-
     let then_bb = get_unchecked(blocks, 1)
     then_bb.succ0 = 3
-
     let else_bb = get_unchecked(blocks, 2)
     else_bb.succ0 = 3
-
     compute_predecessors(blocks)
-
     let mut i = 0
     while i < len(blocks) {
         let block = get_unchecked(blocks, i)

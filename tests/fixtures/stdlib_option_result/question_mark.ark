@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn parse_and_double(s: String) -> Result<i32, String> {
     let val: i32 = parse_i32(s)?
     Ok(val * 2)
@@ -6,11 +7,11 @@ fn parse_and_double(s: String) -> Result<i32, String> {
 
 fn main() {
     match parse_and_double(String_from("21")) {
-        Ok(val) => stdio::println(i32_to_string(val)),
-        Err(e) => stdio::println(e),
+        Result::Ok(val) => stdio::println(i32_to_string(val)),
+        Result::Err(e) => stdio::println(e),
     }
     match parse_and_double(String_from("abc")) {
-        Ok(val) => stdio::println(i32_to_string(val)),
-        Err(e) => stdio::println(e),
+        Result::Ok(val) => stdio::println(i32_to_string(val)),
+        Result::Err(e) => stdio::println(e),
     }
 }

@@ -4,15 +4,13 @@ use std::host::stdio
 use std::text
 
 fn main() {
-    // New API: text::concat instead of prelude concat()
     let s: String = text::concat("Hello", ", Arukellt!")
     stdio::println(s)
-
-    // New API: text::split instead of prelude split()
     let parts: Vec<String> = text::split("one,two,three", ",")
     stdio::println(i32_to_string(len(parts)))
-
-    // New API: text::join instead of prelude join()
     let rejoined: String = text::join(parts, " | ")
     stdio::println(rejoined)
 }
+// New API: text::concat instead of prelude concat()
+// New API: text::split instead of prelude split()
+// New API: text::join instead of prelude join()

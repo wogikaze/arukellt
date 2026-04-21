@@ -1,4 +1,5 @@
 use std::host::stdio
+
 fn main() {
     stdio::println(i32_to_string(10 + 3))
     stdio::println(i32_to_string(10 - 3))

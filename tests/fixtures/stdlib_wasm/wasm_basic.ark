@@ -1,5 +1,5 @@
-use std::wasm
 use std::host::stdio
+use std::wasm
 
 fn main() {
     let magic: Vec<i32> = wasm::wasm_magic()

@@ -6,9 +6,8 @@ use std::host::stdio
 
 fn main() {
     match sockets::connect("this.host.does.not.exist.invalid", 80) {
-        Ok(_fd) => stdio::println("unexpected ok"),
-        Err(e) => {
-            // DNS error message prefix is OS-specific; just check it starts with "connect:"
+        Result::Ok(_fd) => stdio::println("unexpected ok"),
+        Result::Err(e) => {
             if starts_with(e, "connect:") {
                 stdio::println("dns error")
             } else {
@@ -17,3 +16,4 @@ fn main() {
         },
     }
 }
+// DNS error message prefix is OS-specific; just check it starts with "connect:"

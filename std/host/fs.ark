@@ -1,7 +1,6 @@
-//! Host filesystem helpers backed by the current WASI filesystem intrinsics.
-//!
-//! These APIs perform host I/O. Pure path manipulation remains in `std::path`.
-
+/// Host filesystem helpers backed by the current WASI filesystem intrinsics.
+/// 
+/// These APIs perform host I/O. Pure path manipulation remains in `std::path`.
 /// Reads a UTF-8 text file into memory.
 pub fn read_to_string(path: String) -> Result<String, String> {
     __intrinsic_fs_read_file(path)
@@ -18,13 +17,13 @@ pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
 }
 
 /// Read probe / readable-file check: `true` when a full read succeeds; not a path-existence query.
-///
+/// 
 /// Uses the same intrinsic as `read_to_string`. Directories, missing paths, and unreadable paths may
 /// return `false`.
 pub fn exists(path: String) -> bool {
     match __intrinsic_fs_read_file(path) {
-        Ok(_) => true,
-        Err(_) => false,
+        Result::Ok(_) => true,
+        Result::Err(_) => false,
     }
 }
 

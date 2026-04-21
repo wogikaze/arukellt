@@ -10,4 +10,5 @@ pub fn has_read(p: Perms) -> bool {
     p.read
 }
 
-fn main() {}
+fn main() {
+}

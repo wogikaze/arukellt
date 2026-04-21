@@ -39,15 +39,12 @@ let elapsed = duration_ms(t0, t1)  // milliseconds
 - Manifest-backed functions: 3
 - Stability: stable 3
 
-Pure duration helpers.
-
-Host clock reads live in `std::host::clock`. This module only provides
-pure arithmetic over timestamps supplied by the caller.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `duration_ms` | `(i64, i64) -> i64` | `stable` | - |
+| `duration_ms` | `(i64, i64) -> i64` | `stable` | Pure duration helpers. |
 | `duration_us` | `(i64, i64) -> i64` | `stable` | - |
 | `duration_ns` | `(i64, i64) -> i64` | `stable` | - |

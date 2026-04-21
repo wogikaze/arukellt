@@ -9,4 +9,5 @@ pub fn get_handle_id(h: Handle) -> i32 {
     h.id
 }
 
-fn main() {}
+fn main() {
+}

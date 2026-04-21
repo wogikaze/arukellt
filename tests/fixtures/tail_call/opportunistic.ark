@@ -1,16 +1,16 @@
 use std::host::stdio
 
 /// Tail-recursive countdown using an explicit let binding.
-///
+/// 
 /// Unlike deep_recursion.ark (which uses an if-expression that the desugar pass
 /// converts to a TailCall terminator), this function uses an early-return guard
 /// followed by an explicit `let result = …; result` pattern.
-///
+/// 
 /// At the MIR level this produces:
-///   stmts: [IfStmt { cond: n<=0, then: [Return(0)], else: [] },
-///           Call { dest: Some(Local(r)), func: countdown_let_id, args: [n-1] }]
-///   terminator: Return(Some(Place(Local(r))))
-///
+/// stmts: [IfStmt { cond: n<=0, then: [Return(0)], else: [] },
+/// Call { dest: Some(Local(r)), func: countdown_let_id, args: [n-1] }]
+/// terminator: Return(Some(Place(Local(r))))
+/// 
 /// The MIR tail-call detection pass only rewrites Terminator::Return(Some(Call(…)))
 /// and therefore does NOT convert this to TailCall.  Without the opportunistic
 /// `try_emit_let_call_tail_return` detection added in #090, 100 000 recursive

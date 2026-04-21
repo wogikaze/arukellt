@@ -1,33 +1,29 @@
-use std::io
 use std::bytes
 use std::host::stdio
+use std::io
 
 fn main() {
-    // Memory writer
     let w: Vec<i32> = io::writer_new()
-
-    // write_str
     let r1: Result<i32, String> = io::writer_write_str(w, "hello")
     match r1 {
-        Ok(n) => stdio::println(i32_to_string(n)),
-        Err(e) => stdio::println(e),
+        Result::Ok(n) => stdio::println(i32_to_string(n)),
+        Result::Err(e) => stdio::println(e),
     }
-
-    // write more
     let r2: Result<i32, String> = io::writer_write_str(w, " world")
     match r2 {
-        Ok(n) => stdio::println(i32_to_string(n)),
-        Err(e) => stdio::println(e),
+        Result::Ok(n) => stdio::println(i32_to_string(n)),
+        Result::Err(e) => stdio::println(e),
     }
-
-    // to_bytes and string_from_bytes
     let b: Vec<i32> = io::writer_to_bytes(w)
     stdio::println(bytes::string_from_bytes(b))
-
-    // flush is a no-op but should return Ok
     let rf: Result<(), String> = io::writer_flush(w)
     match rf {
-        Ok(_) => stdio::println("flush ok"),
-        Err(e) => stdio::println(e),
+        Result::Ok(_) => stdio::println("flush ok"),
+        Result::Err(e) => stdio::println(e),
     }
 }
+// Memory writer
+// write_str
+// write more
+// to_bytes and string_from_bytes
+// flush is a no-op but should return Ok

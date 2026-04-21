@@ -1,5 +1,5 @@
-use std::seq
 use std::host::stdio
+use std::seq
 
 fn main() {
     let v: Vec<i32> = Vec_new_i32()
@@ -8,20 +8,17 @@ fn main() {
     push(v, 4)
     push(v, 1)
     push(v, 5)
-
     stdio::println(i32_to_string(seq::sum_i32(v)))
     stdio::println(i32_to_string(seq::min_i32(v)))
     stdio::println(i32_to_string(seq::max_i32(v)))
     stdio::println(bool_to_string(seq::seq_contains(v, 4)))
     stdio::println(bool_to_string(seq::seq_contains(v, 9)))
     stdio::println(i32_to_string(seq::count_eq(v, 1)))
-
-    // binary search on sorted vec
     sort_i32(v)
     let idx: i32 = seq::binary_search(v, 4)
     stdio::println(i32_to_string(idx))
-
-    // unique
     let u: Vec<i32> = seq::unique(v)
     stdio::println(i32_to_string(len(u)))
 }
+// binary search on sorted vec
+// unique

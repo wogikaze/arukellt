@@ -1,15 +1,16 @@
-use std::test
 use std::host::stdio
+use std::test
 
 fn add_one(x: i32) -> i32 {
     x + 1
 }
 
 fn main() {
-    // bench() writes timing to stderr; stdout stays deterministic.
-    test::bench("noop", 10, || {})
+    test::bench("noop", 10, || {
+    })
     test::bench("add_loop", 5, || {
         let _v = add_one(42)
     })
     stdio::println("bench ok")
 }
+// bench() writes timing to stderr; stdout stays deterministic.

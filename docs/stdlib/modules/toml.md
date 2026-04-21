@@ -35,23 +35,7 @@ let value = toml_parse_line("name = \"arukellt\"")
 - Manifest-backed functions: 8
 - Stability: experimental 8
 
-TOML parser/serializer for std::toml.
-
-This module intentionally supports only a bounded TOML subset:
-blank lines, comment lines, and simple `key = value` entries (one
-assignment per non-comment line). Table headers, arrays of tables,
-empty keys or values, lines without `=`, unclosed quoted values, and
-other unsupported or malformed grammar are rejected by `toml_parse`
-with `Err(String)`.
-
-### Value representation
-
-`TomlValue` is a tagged struct.  Array and Table variants store their
-raw serialized text to avoid recursive type constraints.
-
-### Primitive helpers (legacy)
-
-`toml_parse_line` is preserved for backward compatibility.
+_No module doc comment yet. Add `//!` comments in the source file to describe this module._
 
 ### Public Types
 
@@ -63,7 +47,7 @@ raw serialized text to avoid recursive type constraints.
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `toml_parse_line` | `(String) -> String` | `experimental` | Filter a single TOML source line: returns the line unchanged for key=value |
+| `toml_parse_line` | `(String) -> String` | `experimental` | TOML parser/serializer for std::toml. |
 | `toml_parse` | `(String) -> Result<TomlValue, String>` | `experimental` | Parse a multi-line TOML document made of blank lines, comment lines, |
 | `toml_stringify` | `(TomlValue) -> String` | `experimental` | Serialize a TomlValue back to text. |
 | `toml_as_string` | `(TomlValue) -> Option<String>` | `experimental` | - |

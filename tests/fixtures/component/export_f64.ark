@@ -4,7 +4,8 @@ pub fn square(x: f64) -> f64 {
 }
 
 pub fn average(a: f64, b: f64) -> f64 {
-    (a + b) / 2.0
+    a + b / 2.0
 }
 
-fn main() {}
+fn main() {
+}

@@ -2,36 +2,29 @@ use std::host::stdio
 
 fn main() {
     let m = HashMap_new_String_i32()
-
     HashMap_String_i32_insert(m, "apple", 3)
     HashMap_String_i32_insert(m, "banana", 7)
     HashMap_String_i32_insert(m, "cherry", 1)
-
-    // Update existing key
     HashMap_String_i32_insert(m, "banana", 42)
-
-    // len
     stdio::println(i32_to_string(HashMap_String_i32_len(m)))
-
-    // get existing key
     match HashMap_String_i32_get(m, "apple") {
-        Some(v) => stdio::println(i32_to_string(v)),
-        None    => stdio::println("not found"),
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
     }
-
-    // get updated key
     match HashMap_String_i32_get(m, "banana") {
-        Some(v) => stdio::println(i32_to_string(v)),
-        None    => stdio::println("not found"),
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
     }
-
-    // get missing key
     match HashMap_String_i32_get(m, "durian") {
-        Some(v) => stdio::println(i32_to_string(v)),
-        None    => stdio::println("not found"),
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
     }
-
-    // contains_key
     stdio::println(bool_to_string(HashMap_String_i32_contains_key(m, "cherry")))
     stdio::println(bool_to_string(HashMap_String_i32_contains_key(m, "mango")))
 }
+// Update existing key
+// len
+// get existing key
+// get updated key
+// get missing key
+// contains_key

@@ -3,20 +3,14 @@ use std::host::stdio
 
 fn main() {
     let pq: Vec<i32> = linear::pq_new()
-
-    // pq_clear on empty
     linear::pq_clear(pq)
     stdio::println(bool_to_string(linear::pq_is_empty(pq)))
-
-    // push and peek
     linear::pq_push(pq, 50)
     linear::pq_push(pq, 10)
     linear::pq_push(pq, 30)
     linear::pq_push(pq, 5)
     stdio::println(i32_to_string(linear::pq_len(pq)))
     stdio::println(i32_to_string(linear::pq_peek(pq)))
-
-    // pop in order (min-heap: smallest first)
     let a: i32 = linear::pq_pop(pq)
     let b: i32 = linear::pq_pop(pq)
     let c: i32 = linear::pq_pop(pq)
@@ -24,9 +18,11 @@ fn main() {
     stdio::println(i32_to_string(b))
     stdio::println(i32_to_string(c))
     stdio::println(i32_to_string(linear::pq_len(pq)))
-
-    // pq_clear
     linear::pq_push(pq, 99)
     linear::pq_clear(pq)
     stdio::println(bool_to_string(linear::pq_is_empty(pq)))
 }
+// pq_clear on empty
+// push and peek
+// pop in order (min-heap: smallest first)
+// pq_clear

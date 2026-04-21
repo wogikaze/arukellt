@@ -1,6 +1,5 @@
 use std::host::stdio
 
-// Count occurrences of a character in a string.
 fn count_chars(s: String, c: i32) -> i32 {
     let n: i32 = len(s)
     let mut count: i32 = 0
@@ -34,20 +33,19 @@ fn count_json_strings(s: String) -> i32 {
 }
 
 fn main() {
-    // Build a ~10 KB JSON array: 400 objects of the form
-    // {"key":"value","num":42}  (24 chars each, 400 * 24 = 9600 chars total)
     let mut s: String = String_from("")
     let mut i: i32 = 0
     while i < 400 {
         s = concat(s, String_from("{\"key\":\"value\",\"num\":42}"))
         i = i + 1
     }
-
     let total_len: i32 = len(s)
     let objects: i32 = count_chars(s, 123)
     let strings: i32 = count_json_strings(s)
-
     stdio::println(i32_to_string(total_len))
     stdio::println(i32_to_string(objects))
     stdio::println(i32_to_string(strings))
 }
+// Count occurrences of a character in a string.
+// Build a ~10 KB JSON array: 400 objects of the form
+// {"key":"value","num":42}  (24 chars each, 400 * 24 = 9600 chars total)

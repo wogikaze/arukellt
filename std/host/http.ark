@@ -1,7 +1,6 @@
-//! HTTP client helpers backed by the arukellt_host runtime.
-//!
-//! These APIs use TCP-based HTTP/1.1 via host-provided functions.
-
+/// HTTP client helpers backed by the arukellt_host runtime.
+/// 
+/// These APIs use TCP-based HTTP/1.1 via host-provided functions.
 /// Sends an HTTP request with the given method, URL, and body.
 /// Returns the response body or an error string.
 pub fn request(method: String, url: String, body: String) -> Result<String, String> {

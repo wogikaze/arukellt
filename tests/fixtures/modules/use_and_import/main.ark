@@ -1,6 +1,7 @@
-use std::host::stdio
-import math
 use std::core
+use std::host::stdio
+
+import math
 
 fn main() {
     let a: i32 = math::add(10, 20)
