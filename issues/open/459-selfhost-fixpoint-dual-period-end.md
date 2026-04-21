@@ -90,7 +90,7 @@ Do not close #459 on fixpoint alone. Close it only when parity gates are satisfi
 
 ## Summary
 
-`docs/current-state.md` では selfhost Stage 2 fixpoint が未到達（`sha256(s1) ≠ sha256(s2)`）、fixture / CLI / diagnostic parity が未着手である。本 issue は「selfhost をもっと進める」ではなく「Rust 実装との二重管理を終わらせる条件を満たし、実際に終わらせる」issue として立てる。完了後は `src/compiler/*.ark` が source of truth となり、Rust 側は bootstrap・IDE 補助に必要な最小限のみ残す。
+`docs/current-state.md` と `bash scripts/run/verify-bootstrap.sh --check` の canonical state では selfhost fixpoint は到達済み（`sha256(s2) = sha256(s3)`）。本 issue の未完了は fixpoint そのものではなく、dual-period を終了するための fixture / CLI / diagnostic parity である。完了後は `src/compiler/*.ark` が source of truth となり、Rust 側は bootstrap・IDE 補助に必要な最小限のみ残す。
 
 ---
 
@@ -100,14 +100,16 @@ Do not close #459 on fixpoint alone. Close it only when parity gates are satisfi
 |-------|------|------|
 | Stage 0 | ✅ | Rust コンパイラが `src/compiler/*.ark` をコンパイルして `arukellt-s1.wasm` を生成できる |
 | Stage 1 | ✅ | `arukellt-s1.wasm` が自身のソースをコンパイルして `arukellt-s2.wasm` を生成できる |
-| Stage 2 fixpoint | 🔴 | `sha256(arukellt-s1.wasm) = sha256(arukellt-s2.wasm)` が未達成 |
-| fixture parity | 🔴 | 同じ fixture を Rust コンパイラと ark コンパイラで実行した結果が一致しない |
-| CLI parity | 🔴 | `arukellt` (Rust) と `arukellt-s1` (ark) が同じ CLI 出力を返さない |
-| diagnostic parity | 🔴 | 同じソースに対して Rust / ark コンパイラが出す診断が一致しない |
+| Stage 2 fixpoint | ✅ | `sha256(arukellt-s2.wasm) = sha256(arukellt-s3.wasm)` が `verify-bootstrap.sh --check` で確認済み |
+| fixture parity | 🟡 | selfhost parity は進行中。最新セッション報告では `PASS 761 / FAIL 10 / SKIP 15` |
+| CLI parity | 🔴 | `arukellt` (Rust) と `arukellt-s1` (ark) の CLI 出力一致は未完了 |
+| diagnostic parity | 🔴 | Rust / ark コンパイラの診断一致は未完了 |
 
 ---
 
 ## 詳細実装内容
+
+> Audit note (2025-07-14): The detailed step list below is partially stale. The original Phase 1 fixpoint work is no longer the active blocker because the canonical bootstrap verifier now reports `stage2-fixpoint: reached`. Keep this section as historical implementation context; use the Progress section and the table above as the current source of truth.
 
 ### Step 1: fixpoint 不一致の原因特定
 
