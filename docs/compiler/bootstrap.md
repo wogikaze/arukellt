@@ -25,13 +25,16 @@ Stage 0 (Rust compiler)
 Stage 1 (arukellt-s1.wasm under wasmtime)
   └─ compiles src/compiler/main.ark → arukellt-s2.wasm   (first self-compile)
 
-Stage 2 (fixpoint check)
-  └─ sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)
+Stage 2 (fixpoint check — standard bootstrap fixpoint)
+  └─ arukellt-s2.wasm compiles main.ark → arukellt-s3.wasm
+  └─ sha256(arukellt-s2.wasm) == sha256(arukellt-s3.wasm)
 ```
 
-If `arukellt-s1.wasm` and `arukellt-s2.wasm` are byte-identical, the compiler
-is a **fixpoint**: it reproduces itself when it compiles itself.  This is the
-strongest practical proof of compiler correctness short of formal verification.
+This is the **standard bootstrap fixpoint**: the selfhost compiler (`s2`) reproduces
+itself (`s3`) byte-for-byte. Note that `s1 ≠ s2` is expected — the Rust emitter and
+selfhost emitter produce different binary encodings for the same source (e.g. the Rust
+emitter includes a function names section; the selfhost emitter uses index-only encoding).
+The fixpoint `s2 == s3` proves the selfhost is deterministic and self-consistent.
 
 ## Prerequisites
 
@@ -63,7 +66,7 @@ scripts/run/verify-bootstrap.sh --stage 0
 **Related progress:** Selfhost closure literal parsing and related slices are
 tracked in issue **#499** (for example commit `6610945`). That is incremental
 parser/front-end alignment work; it does **not** by itself mean Stage 2 fixpoint
-(`sha256(s1) == sha256(s2)`)—see
+(`sha256(s2) == sha256(s3)`)—see
 [current-state.md — Self-Hosting Bootstrap Status](../current-state.md#self-hosting-bootstrap-status).
 
 ## Verification Stages
@@ -88,8 +91,9 @@ remains available for smoke checks, but it does not report bootstrap attainment.
 
 ### Stage 2 — Fixpoint check
 
-Compare `sha256(arukellt-s1.wasm)` with `sha256(arukellt-s2.wasm)`.
-Identical checksums prove the compiler is a fixpoint.
+Run `arukellt-s2.wasm` to compile `main.ark` → `arukellt-s3.wasm`.
+Compare `sha256(arukellt-s2.wasm)` with `sha256(arukellt-s3.wasm)`.
+Identical checksums prove the selfhost compiler is a fixpoint.
 
 ### Determinism requirement
 
@@ -110,7 +114,7 @@ and `issues/open/266-selfhost-completion-definition.md`.
 **Repository bootstrap gate (this script).** A **full** invocation with no
 partial flags runs Stage 0 → 1 → 2 in order.  The script exits **0** only if
 every executed stage records success internally and Stage 2 proves
-`sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)`.  That gate shows a
+`sha256(arukellt-s2.wasm) == sha256(arukellt-s3.wasm)`.  That gate shows a
 **fixpoint for the unified selfhost compiler** built from
 `src/compiler/main.ark`; it does **not** by itself prove fixture parity, CLI
 parity, diagnostic parity, or Rust compiler retirement.
@@ -238,7 +242,7 @@ Exit code 0 means identical output; exit code 1 means divergence.
 
 ### Investigate fixpoint failures
 
-When Stage 2 reports that `arukellt-s1.wasm ≠ arukellt-s2.wasm`:
+When Stage 2 reports that `arukellt-s2.wasm ≠ arukellt-s3.wasm` (non-determinism in selfhost):
 
 1. **Find the divergent phase** — run `scripts/run/compare-outputs.sh` for
    each phase (`tokens`, `ast`, `hir`, `mir`, `wasm`) against a small
@@ -283,7 +287,7 @@ The bootstrap check is available via `scripts/run/verify-bootstrap.sh`:
 | Context | Command | Notes |
 |---------|---------|-------|
 | Fast smoke (local layered gates, etc.) | `scripts/run/verify-bootstrap.sh --stage1-only` | Stage 0 only; does not prove bootstrap attainment |
-| CI `selfhost-bootstrap` job | `scripts/run/verify-bootstrap.sh --check` | Runs Stages 0 → 1 → 2; the workflow asserts Stage 0 and Stage 1 report `reached`; Stage 2 fixpoint may still fail while `sha256(s1) ≠ sha256(s2)` (see [current-state.md](../current-state.md#self-hosting-bootstrap-status)) |
+| CI `selfhost-bootstrap` job | `scripts/run/verify-bootstrap.sh --check` | Runs Stages 0 → 1 → 2; the workflow asserts Stage 0 and Stage 1 report `reached`; Stage 2 fixpoint is reached; `sha256(s2) == sha256(s3)` (see [current-state.md](../current-state.md#self-hosting-bootstrap-status)) |
 | Local dev | `scripts/run/verify-bootstrap.sh --stage 0` | Single stage |
 
 The `--stage1-only` flag is suitable for fast smoke checks. A **full**
@@ -298,7 +302,7 @@ rejects partial-mode flags.
 | Script | Purpose | Issue |
 |--------|---------|-------|
 | `scripts/run/verify-bootstrap.sh` | Stage 0→1→2 fixpoint verification | #154, #181, #182 |
-| `python scripts/manager.py selfhost fixpoint` | sha256 fixpoint check (s1 vs s2) | #459 |
+| `python scripts/manager.py selfhost fixpoint` | sha256 fixpoint check (s2 vs s3) | #459 |
 | `python scripts/manager.py selfhost fixture-parity` | Run "run:" fixtures through s1.wasm; compare stdout to Rust output | #459 |
 | `python scripts/manager.py selfhost diag-parity` | Run "diag:" fixtures through s1.wasm; check expected error pattern appears | #459 |
 | `scripts/run/compare-outputs.sh` | Phase output diff (Rust vs selfhost) | #174 |
@@ -307,17 +311,14 @@ rejects partial-mode flags.
 ### How to Run the Fixpoint Check
 
 ```bash
-# Build s1.wasm and s2.wasm then compare sha256
-python scripts/manager.py selfhost fixpoint
+# Full bootstrap verification: Rust→s1, s1→s2, s2→s3, check sha256(s2)==sha256(s3)
+bash scripts/run/verify-bootstrap.sh --check
 
-# Compare pre-built cached artifacts (faster, suitable for CI)
-python scripts/manager.py selfhost fixpoint --no-build
+# Machine-readable output
+bash scripts/run/verify-bootstrap.sh --check
 
-# Run fixture output parity (requires .build/selfhost/arukellt-s1.wasm)
-python scripts/manager.py selfhost fixture-parity
-
-# Run diagnostic parity (requires .build/selfhost/arukellt-s1.wasm)
-python scripts/manager.py selfhost diag-parity
+# Stage 0 only (smoke check)
+bash scripts/run/verify-bootstrap.sh --stage1-only
 
 # Run all selfhost checks via the full harness pass
 bash scripts/manager.py --full
@@ -367,7 +368,7 @@ simultaneously and be verified by CI on every merge to `master`:
 |-----------|-------------|----------------------------|
 | **Stage 0 compile** | Rust compiler compiles `src/compiler/main.ark` to `.bootstrap-build/arukellt-s1.wasm` with zero errors | `scripts/run/verify-bootstrap.sh --stage1-only` |
 | **Stage 1 compile** | `arukellt-s1.wasm` compiles the same `main.ark` to `.bootstrap-build/arukellt-s2.wasm` with zero errors | `scripts/run/verify-bootstrap.sh` Stage 1 |
-| **Stage 2 fixpoint** | `sha256(s1) == sha256(s2)` — compiler reproduces itself byte-for-byte | `scripts/run/verify-bootstrap.sh` Stage 2 |
+| **Stage 2 fixpoint** | `sha256(s2) == sha256(s3)` — selfhost compiler reproduces itself byte-for-byte | `scripts/run/verify-bootstrap.sh` Stage 2 |
 | **Fixture parity** | Selfhost compiler passes all 575+ fixture tests identically to the Rust compiler | `python scripts/manager.py selfhost parity` |
 | **CLI parity** | `arukellt-s1.wasm compile <file>` stdout/stderr matches `arukellt compile <file>` for all fixture inputs | `python scripts/manager.py selfhost parity --mode --cli` |
 | **Diagnostic parity** | Error message text, line/column positions, and exit codes match for all error fixtures | `python scripts/manager.py selfhost parity --mode --diag` |

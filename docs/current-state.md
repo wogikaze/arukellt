@@ -144,6 +144,7 @@ Unknown symbols produce a "Did you mean?" list of fuzzy candidates. Module paths
 
 ## Recent Milestones
 
+- **Selfhost Phase 1 fixpoint achieved** — `sha256(s2) == sha256(s3)` passes (`attainment: reached`). The selfhost compiler (`src/compiler/main.ark`) reproducibly compiles itself. Multi-file module loading, qualified call resolution, and cross-module type handling are all working. See [Self-Hosting Bootstrap Status](#self-hosting-bootstrap-status).
 - **`arukellt doc` subcommand added (issue 456)** — stdlib manifest lookup via `arukellt doc <symbol>`. Supports `--json`, `--target`, and fuzzy-match "did you mean?" for unknown symbols.
 - **HTTP T1 linker path confirmed (issue 446)** — `std::host::http` (`http::get`, `http::request`) is now available on both T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) via `register_http_host_fns`. The compile-time E0500 gate was removed from `T3_ONLY_MODULES`; a T3 GC-native match-arm type-inference fix (`detect_specialized_result` propagation for qualified callee paths) enables correct T3 Wasm emission. Error-case fixtures `get_err_dns.ark` and `request_err_refused.ark` pass on both targets.
 - **GC-native T3 emitter complete** — the v1 GC-native track closed on 2026-03-27
@@ -259,27 +260,28 @@ The selfhost compiler records generic call specializations in the typechecker (`
 
 | Stage | Description | Status |
 |-------|-------------|--------|
-| **Stage 0** | Rust compiler compiles all `src/compiler/*.ark` files individually | ✅ **Verified** (CI + `verify-bootstrap.sh --stage1-only`) |
-| **Stage 1** | `arukellt-s1.wasm` (selfhost compiler) compiles its own sources | ✅ **Verified** — 9/9 files compile, 377158 bytes |
-| **Stage 2** | `sha256(s1) == sha256(s2)` fixpoint | 🔴 **Not reached** — `sha256(s1) ≠ sha256(s2)` (see below) |
-| **Fixture parity** | Selfhost compiler passes all harness fixtures | 🟡 **CI scripted** — `check-selfhost-fixture-parity.sh` wired into `--full`; s1.wasm compile errors expected until multi-file module loading is fixed |
-| **CLI parity** | Selfhost CLI output matches Rust output for identical inputs | 🔴 **Blocked** — requires fixture parity |
-| **Diagnostic parity** | Error messages are identical between Rust and selfhost | 🟡 **CI scripted** — `check-selfhost-diagnostic-parity.sh` wired into `--full`; Rust baseline confirmed; s1.wasm gap expected |
+| **Stage 0** | Rust compiler compiles `src/compiler/main.ark` (unified binary) | ✅ **Verified** — s1.wasm 567736 bytes |
+| **Stage 1** | `arukellt-s1.wasm` (selfhost compiler) compiles its own sources → s2 | ✅ **Verified** — s2.wasm 536522 bytes |
+| **Stage 2** | `sha256(s2) == sha256(s3)` fixpoint (selfhost reproduces itself) | ✅ **Reached** — `attainment: reached` |
+| **Fixture parity** | Selfhost compiler passes all harness fixtures | 🟡 **In progress** — 214/349 selfhost pass; many stdlib stubs not yet implemented |
+| **CLI parity** | Selfhost CLI output matches Rust output for identical inputs | 🟡 **Partial** — requires fixture parity completion |
+| **Diagnostic parity** | Error messages are identical between Rust and selfhost | 🟡 **CI scripted** — `check-selfhost-diagnostic-parity.sh` wired into `--full` |
 
 ### Fixpoint status
 
-Stage 0 and Stage 1 compile successfully (`stage0-compile: reached`, `stage1-self-compile: reached`).
-Fixpoint has **not** been reached:
+All three stages pass (`stage0-compile: reached`, `stage1-self-compile: reached`,
+`stage2-fixpoint: reached`, `attainment: reached`).
+
+The fixpoint criterion is `sha256(s2) == sha256(s3)` — the standard bootstrap fixpoint
+where the selfhost compiler reproduces itself from its own output. Note: `s1 ≠ s2` is
+expected (Rust emitter and selfhost emitter produce different encodings for the same
+source); `s2 == s3` proves the selfhost is deterministic and self-consistent.
 
 ```
-sha256(s1) = a9bdbe3abe1778e8e5c6d30f3d181922c185935050701bafa77f7e363bab0ce3  (377158 bytes)
-sha256(s2) = 59fe5d256d065952d75d719eed9c6ba8c2e35bcc9fafdfce06adf28b993964a5  ( 21863 bytes)
+sha256(s2) = sha256(s3) = 1236fd2387b2f1b4a84db54f0b1011bf0e2f77b250dd11fa642fc3264751d931
+s1: 567736 bytes (Rust emitter, named functions)
+s2/s3: 536522 bytes (selfhost emitter, index-only encoding)
 ```
-
-Root cause (tracked in issue #459 — not fixed in this slice):
-- s1.wasm does **not** implement multi-file module loading; `use driver`, `use lexer`, etc. are ignored.
-- All cross-module calls are lowered to `i32.const 0` stubs in `emitter.ark`.
-- s2.wasm contains only ~24 functions (CLI stubs) vs s1.wasm's ~556 (full compiler).
 
 CI checks added in issue #459 (via `python scripts/manager.py selfhost`):
 - `selfhost fixpoint` — sha256 fixpoint check
@@ -292,7 +294,7 @@ All three are wired into `verify-harness.sh --full` (and individually via `--fix
 
 ### Dual-period policy
 
-The dual-period continues while fixpoint and parity criteria remain unmet.
+The dual-period continues until fixture and diagnostic parity criteria are fully met.
 Both the Rust compiler and the selfhost sources are maintained in parallel.
 See [When the Dual Period Ends](docs/compiler/bootstrap.md#when-the-dual-period-ends)
 in bootstrap.md for the exact criteria that close this period.

@@ -8,8 +8,9 @@
 #             to a single wasm artifact (wasm32-wasi-p1).
 #   Stage 1 — First self-compile: run Stage 0 output under wasmtime with the repo
 #             root mounted; compile the same `main.ark` to a second wasm artifact.
-#   Stage 2 — Fixpoint gate: byte identity of Stage 0 vs Stage 1 outputs
-#             (SHA-256 digest equality on the two wasm files).
+#   Stage 2 — Fixpoint gate: run s2 to produce s3, then check sha256(s2)==sha256(s3).
+#             This is the standard bootstrap fixpoint (selfhost reproduces itself).
+#             s1 ≠ s2 is expected (Rust vs selfhost emitter differ in encoding).
 #
 # Executable contract (issue #154 acceptance #2: artifact naming, comparison, failure/diff):
 #
@@ -18,12 +19,14 @@
 #     BUILD_DIR=".bootstrap-build"
 #     Stage 0 output: ".bootstrap-build/arukellt-s1.wasm"
 #     Stage 1 output: ".bootstrap-build/arukellt-s2.wasm"
-#     Stage stderr logs: ".bootstrap-build/stage0.stderr", ".bootstrap-build/stage1.stderr"
+#     Stage 2 output: ".bootstrap-build/arukellt-s3.wasm"
+#     Stage stderr logs: ".bootstrap-build/stage0.stderr", ".bootstrap-build/stage1.stderr",
+#                        ".bootstrap-build/stage2.stderr"
 #
 #   Comparison method (Stage 2 only for the fixpoint gate):
-#     Run sha256sum on each wasm file and compare the first field (hex digest).
-#     Fixpoint holds iff digests are equal (implies byte-identical files). No other
-#     structural or semantic comparison is performed here.
+#     Compile main.ark with s2 → s3, then run sha256sum on s2 and s3 and compare
+#     the first field (hex digest). Fixpoint holds iff sha256(s2)==sha256(s3)
+#     (implies byte-identical s2 and s3). No other structural comparison is done.
 #
 #   Failure and diff policy:
 #     - Full gate (no partial flags): exit 0 only if every executed stage succeeds
@@ -171,6 +174,7 @@ mkdir -p "$BUILD_DIR"
 
 S1_WASM="${BUILD_DIR}/arukellt-s1.wasm"
 S2_WASM="${BUILD_DIR}/arukellt-s2.wasm"
+S3_WASM="${BUILD_DIR}/arukellt-s3.wasm"
 MAIN_SRC="${SELFHOST_DIR}/main.ark"
 
 # ── Pre-flight ────────────────────────────────────────────────────────────────
@@ -295,51 +299,76 @@ stage1() {
 }
 run_stage 1 "Compile selfhost sources (arukellt-s1.wasm)" stage1
 
-# ── Stage 2: Fixpoint check — sha256(s1) == sha256(s2) ───────────────────────
+# ── Stage 2: Fixpoint check — sha256(s2) == sha256(s3) ───────────────────────
+# Standard bootstrap fixpoint: compile main.ark with s2 to produce s3, then
+# verify s2 and s3 are byte-identical. This proves the selfhost compiler is
+# self-consistent and deterministic. s1 ≠ s2 is expected (Rust emitter and
+# selfhost emitter use different encodings); s2 == s3 is the true fixpoint.
 
 stage2() {
-    local missing=0
-    if [[ ! -f "$S1_WASM" ]]; then
-        echo -e "  ${RED}Missing: arukellt-s1.wasm (Stage 0 output)${NC}" >&2
-        missing=1
-    fi
     if [[ ! -f "$S2_WASM" ]]; then
         echo -e "  ${RED}Missing: arukellt-s2.wasm (Stage 1 output)${NC}" >&2
-        missing=1
-    fi
-    if [[ "$missing" -ne 0 ]]; then
-        echo -e "  ${RED}FAIL${NC}  Cannot run fixpoint check: prerequisite artifacts missing" >&2
-        echo "  Hint:  Fix earlier stage failures first." >&2
+        echo "  Hint:  Fix Stage 1 failures first." >&2
         return 1
     fi
 
-    local hash1 hash2
-    hash1="$(sha256sum "$S1_WASM" | awk '{print $1}')"
+    if ! command -v wasmtime &>/dev/null; then
+        echo -e "  ${RED}FAIL${NC}  wasmtime not found in PATH" >&2
+        return 1
+    fi
+
+    # Step A: run s2 to compile main.ark → s3
+    local rel_src="${MAIN_SRC#$REPO_ROOT/}"
+    local rel_out="${S3_WASM#$REPO_ROOT/}"
+    local stderr_file="${BUILD_DIR}/stage2.stderr"
+    local -a wt_env=()
+    if [[ -n "${MIR_LOWER_TRACE:-}" ]]; then
+        wt_env+=(--env "MIR_LOWER_TRACE=${MIR_LOWER_TRACE}")
+    fi
+    echo -e "  Compiling main.ark → arukellt-s3.wasm (via s2)..."
+    if ! timeout 120 wasmtime run --dir="${REPO_ROOT}"         "${wt_env[@]}"         "$S2_WASM" -- compile "$rel_src" --target wasm32-wasi-p1         -o "$rel_out" 2>"$stderr_file"; then
+        local exit_code=$?
+        echo -e "  ${RED}FAIL${NC}  main.ark did not compile with s2 (exit ${exit_code})" >&2
+        if [[ -s "$stderr_file" ]]; then
+            echo "  stderr:" >&2
+            sed 's/^/    /' "$stderr_file" >&2
+        fi
+        return 1
+    fi
+    local s3_size
+    s3_size=$(wc -c < "$S3_WASM")
+    echo -e "  ${GREEN}OK${NC}  arukellt-s3.wasm (${s3_size} bytes)"
+
+    # Step B: compare sha256(s2) == sha256(s3)
+    local hash2 hash3
     hash2="$(sha256sum "$S2_WASM" | awk '{print $1}')"
+    hash3="$(sha256sum "$S3_WASM" | awk '{print $1}')"
 
-    echo "  s1: ${hash1}"
     echo "  s2: ${hash2}"
+    echo "  s3: ${hash3}"
 
-    if [[ "$hash1" = "$hash2" ]]; then
-        echo -e "  ${GREEN}Fixpoint reached — binaries are identical${NC}"
+    if [[ "$hash2" = "$hash3" ]]; then
+        echo -e "  ${GREEN}Fixpoint reached — s2 and s3 are identical${NC}"
+        local s2_size
+        s2_size=$(wc -c < "$S2_WASM")
+        echo "  (s1: $(wc -c < "$S1_WASM") bytes differs from s2/s3: ${s2_size} bytes — expected, Rust vs selfhost emitter)"
         return 0
     else
-        echo -e "  ${RED}Fixpoint NOT reached — binaries differ${NC}"
+        echo -e "  ${RED}Fixpoint NOT reached — s2 and s3 differ${NC}"
         echo
-        local s1_size s2_size
-        s1_size=$(wc -c < "$S1_WASM")
+        local s2_size
         s2_size=$(wc -c < "$S2_WASM")
-        echo "  s1 size: ${s1_size} bytes"
         echo "  s2 size: ${s2_size} bytes"
+        echo "  s3 size: ${s3_size} bytes"
         echo
         echo "  Debug steps:"
         echo "    1. Run scripts/run/compare-outputs.sh <phase> <fixture> for each phase"
-        echo "    2. Find the first phase where outputs diverge"
+        echo "    2. Find the first phase where s2 and s3 outputs diverge (non-determinism)"
         echo "    3. Fix the selfhost source and re-run this script"
         return 1
     fi
 }
-run_stage 2 "Fixpoint check (sha256 comparison)" stage2
+run_stage 2 "Fixpoint check (sha256(s2)==sha256(s3))" stage2
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
