@@ -75,6 +75,12 @@ fn OP_I64_REM_S() -> i32 { 0x81 }
 fn OP_I64_REM_U() -> i32 { 0x82 }
 fn OP_I64_EXTEND_I32_S() -> i32 { 0xac }
 fn OP_I64_EXTEND_I32_U() -> i32 { 0xad }
+fn OP_I64_AND() -> i32 { 0x83 }
+fn OP_I64_OR() -> i32 { 0x84 }
+fn OP_I64_XOR() -> i32 { 0x85 }
+fn OP_I64_SHL() -> i32 { 0x86 }
+fn OP_I64_SHR_S() -> i32 { 0x87 }
+fn OP_I64_SHR_U() -> i32 { 0x88 }
 fn OP_I32_WRAP_I64() -> i32 { 0xa7 }
 fn OP_I32_EQZ() -> i32 { 0x45 }
 fn OP_I32_EQ() -> i32 { 0x46 }
@@ -175,6 +181,54 @@ fn emit_leb128_s(w: WasmWriter, v: i32) {
         }
         emit_byte(w, b % 256)
     }
+}
+
+fn emit_leb128_s_i64(w: WasmWriter, v: i64) {
+    // Signed LEB128 encoding for a 64-bit value.
+    let mut val = v
+    let mut more = true
+    while more {
+        let raw_mod = i64_to_i32(val % 128)
+        let mut b = raw_mod
+        if b < 0 { b = b + 128 }
+        // Arithmetic right shift by 7
+        val = val / 128
+        if raw_mod < 0 {
+            val = val - 1
+        }
+        if (val == 0 && b < 64) || (val == 0 - 1 && b >= 64) {
+            more = false
+        } else {
+            b = b + 128
+        }
+        emit_byte(w, b % 256)
+    }
+}
+
+// Parse a decimal integer string as i64 (mirrors parse_decimal_as_i64 in mir.ark).
+fn parse_decimal_as_i64_emitter(text: String) -> i64 {
+    let n = len(text)
+    let mut result: i64 = 0
+    let mut i = 0
+    let mut neg = false
+    if i < n && char_at(text, i) == 45 {
+        neg = true
+        i = i + 1
+    }
+    let mut stop = false
+    while i < n && !stop {
+        let d = char_at(text, i)
+        if d >= 48 && d <= 57 {
+            result = result * 10 + i32_to_i64(d - 48)
+        } else if d == 95 {
+            // underscore separator: skip
+        } else {
+            stop = true  // type suffix or other non-digit: stop parsing
+        }
+        i = i + 1
+    }
+    if neg { result = 0 - result }
+    result
 }
 
 fn emit_bytes(w: WasmWriter, src: Vec<i32>) {
@@ -733,7 +787,43 @@ fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
             j = j + 1
         }
     }
+    // Fallback: HashMap_i32_i32_* aliases → hash module functions
+    let alias = hashmap_builtin_alias(clone(name))
+    if !eq(clone(alias), clone(name)) {
+        let mut k = 0
+        while k < count {
+            let f = get_unchecked(ctx.functions, k)
+            if eq(clone(f.name), clone(alias)) {
+                return k
+            }
+            k = k + 1
+        }
+    }
+    // Debug: print what we have vs what we searched for
     0 - 1  // not found
+}
+
+/// Map monomorphic HashMap/HashSet builtin names to hash module function names.
+fn hashmap_builtin_alias(name: String) -> String {
+    if eq(clone(name), String_from("HashMap_i32_i32_new")) {
+        return String_from("hashmap_new")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_insert")) {
+        return String_from("hashmap_set")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_get")) {
+        return String_from("hashmap_get_option")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_contains_key")) {
+        return String_from("hashmap_contains")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_remove")) {
+        return String_from("hashmap_remove")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_len")) {
+        return String_from("hashmap_size")
+    }
+    clone(name)
 }
 
 fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -742,7 +832,13 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         emit_leb128_s(w, inst.int_val)
     } else if inst.op == 2 {  // CONST_I64
         emit_byte(w, OP_I64_CONST())
-        emit_leb128_s(w, inst.int_val)
+        // If str_val is set, it contains the raw decimal text for large i64 literals.
+        if len(inst.str_val) > 0 {
+            let val64 = parse_decimal_as_i64_emitter(clone(inst.str_val))
+            emit_leb128_s_i64(w, val64)
+        } else {
+            emit_leb128_s(w, inst.int_val)
+        }
     } else if inst.op == 3 {  // CONST_F64
         emit_byte(w, OP_F64_CONST())
         // Emit 8 IEEE 754 bytes using f64_bits_lo/hi
@@ -841,26 +937,41 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         else if inst.val_type == VT_I64() { emit_byte(w, OP_I64_GE_S()) }
         else { emit_byte(w, OP_I32_GE_S()) }
     } else if inst.op == 31 {  // AND (logical)
-        emit_byte(w, OP_I32_AND())
+        if inst.val_type == VT_I64() { emit_byte(w, OP_I64_AND()) }
+        else { emit_byte(w, OP_I32_AND()) }
     } else if inst.op == 32 {  // OR (logical)
-        emit_byte(w, OP_I32_OR())
+        if inst.val_type == VT_I64() { emit_byte(w, OP_I64_OR()) }
+        else { emit_byte(w, OP_I32_OR()) }
     } else if inst.op == 35 {  // BIT_AND
-        emit_byte(w, OP_I32_AND())
+        if inst.val_type == VT_I64() { emit_byte(w, OP_I64_AND()) }
+        else { emit_byte(w, OP_I32_AND()) }
     } else if inst.op == 36 {  // BIT_OR
-        emit_byte(w, OP_I32_OR())
+        if inst.val_type == VT_I64() { emit_byte(w, OP_I64_OR()) }
+        else { emit_byte(w, OP_I32_OR()) }
     } else if inst.op == 37 {  // BIT_XOR
-        emit_byte(w, OP_I32_XOR())
+        if inst.val_type == VT_I64() { emit_byte(w, OP_I64_XOR()) }
+        else { emit_byte(w, OP_I32_XOR()) }
     } else if inst.op == 38 {  // SHL
-        emit_byte(w, OP_I32_SHL())
+        if inst.val_type == VT_I64() { emit_byte(w, OP_I64_SHL()) }
+        else { emit_byte(w, OP_I32_SHL()) }
     } else if inst.op == 39 {  // SHR
-        emit_byte(w, OP_I32_SHR_S())
+        if inst.val_type == VT_I64() { emit_byte(w, OP_I64_SHR_S()) }
+        else { emit_byte(w, OP_I32_SHR_S()) }
     } else if inst.op == 40 {  // CALL
         let callee = clone(inst.str_val)
+        // Strip "__intrinsic_" prefix (12 chars) so stdlib files that call
+        // __intrinsic_concat, __intrinsic_char_at, etc. match the existing
+        // specialized emitters below.
+        let mut callee = callee
+        let callee_n = len(callee)
+        if callee_n > 12 && char_at(clone(callee), 0) == 95 && char_at(clone(callee), 1) == 95 {
+            callee = substring(clone(callee), 12, callee_n)
+        }
         // Tracks whether the callee leaves an i32 result on the WASM stack.
         // At the end of the CALL case we emit `local.set inst.dest` to pop it.
         // Void callees (println, sort_i32, process::exit, …) set this false.
         let mut result_on_stack = true
-        if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") {
+        if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") || eq(clone(callee), "__intrinsic_println") {
             // Inline println: the string pointer is on the stack
             // We need to: store string ptr, compute length, set up IOV, call fd_write, write newline
             //
@@ -1496,8 +1607,319 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_END())
             result_on_stack = false  // sort_i32 is void (in-place)
 
+        } else if eq(clone(callee), "sort_i64") {
+            // sort_i64(vec): in-place insertion sort for Vec<i64> (8-byte elements)
+            let s0 = ctx.scratch_base + 0   // vec_ptr (i32)
+            let s1 = ctx.scratch_base + 1   // i outer loop (i32)
+            let s2 = ctx.scratch_base + 2   // j inner loop (i32)
+            let s3 = ctx.scratch_base + 3   // data_ptr (i32)
+            let s4 = ctx.scratch_base + 4   // n = len (i32)
+            let s5 = ctx.scratch_base + 14  // key (i64 scratch local)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 8)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_GE_S())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // key = data[i]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I64_LOAD())
+            emit_byte(w, 3)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s5)
+            // j = i - 1
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_LT_S())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // if data[j] <= key: break inner
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I64_LOAD())
+            emit_byte(w, 3)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_I64_LE_S())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // data[j+1] = data[j]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I64_LOAD())
+            emit_byte(w, 3)
+            emit_byte(w, 0)
+            emit_byte(w, OP_I64_STORE())
+            emit_byte(w, 3)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_END())
+            // data[j+1] = key
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_I64_STORE())
+            emit_byte(w, 3)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_END())
+            result_on_stack = false  // sort_i64 is void (in-place)
+
+        } else if eq(clone(callee), "sort_f64") {
+            // sort_f64(vec): in-place insertion sort for Vec<f64> (8-byte elements)
+            let sf0 = ctx.scratch_base + 0   // vec_ptr (i32)
+            let sf1 = ctx.scratch_base + 1   // i outer loop (i32)
+            let sf2 = ctx.scratch_base + 2   // j inner loop (i32)
+            let sf3 = ctx.scratch_base + 3   // data_ptr (i32)
+            let sf4 = ctx.scratch_base + 4   // n = len (i32)
+            let sf5 = ctx.scratch_base + 12  // key (f64 scratch local)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, sf0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf0)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, sf4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf0)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 8)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, sf3)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, sf1)
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf1)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf4)
+            emit_byte(w, OP_I32_GE_S())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // key = data[i]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf3)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_F64_LOAD())
+            emit_byte(w, 3)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, sf5)
+            // j = i - 1
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, sf2)
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_LT_S())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // if data[j] <= key: break inner
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf3)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_F64_LOAD())
+            emit_byte(w, 3)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf5)
+            emit_byte(w, OP_F64_LE())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // data[j+1] = data[j]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf3)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf3)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_F64_LOAD())
+            emit_byte(w, 3)
+            emit_byte(w, 0)
+            emit_byte(w, OP_F64_STORE())
+            emit_byte(w, 3)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, sf2)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_END())
+            // data[j+1] = key
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf3)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf5)
+            emit_byte(w, OP_F64_STORE())
+            emit_byte(w, 3)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, sf1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, sf1)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_END())
+            result_on_stack = false  // sort_f64 is void (in-place)
+
         } else if eq(clone(callee), "trim_start") || eq(clone(callee), "text::trim_start") {
-            // trim_start(str) -> str
             let s0 = ctx.scratch_base + 0
             let s1 = ctx.scratch_base + 1
             let s2 = ctx.scratch_base + 2
@@ -1767,7 +2189,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s4)
 
-        } else if eq(clone(callee), "text::contains") {
+        } else if eq(clone(callee), "text::contains") || eq(clone(callee), "contains") {
             // text::contains(str, substr) -> bool (substring search)
             // Reuse index_of logic: if index_of >= 0 then 1 else 0
             let s0 = ctx.scratch_base + 0
@@ -2254,7 +2676,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_ADD())
             emit_byte(w, OP_END())  // end if/else
 
-        } else if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") || eq(clone(callee), "text::format_i32") || eq(clone(callee), "convert::i32_to_string") {
+        } else if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") || eq(clone(callee), "text::format_i32") || eq(clone(callee), "convert::i32_to_string") || eq(clone(callee), "__intrinsic_i32_to_string") {
             // Inline to_string(i32): convert integer on stack to string
             // Stack has: [i32_value]
             // Scratch locals: scratch_base+0 = write_pos, +1 = is_neg, +2 = value
@@ -2630,7 +3052,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_s(w, 4)
             emit_byte(w, OP_I32_ADD())
 
-        } else if eq(clone(callee), "f64_to_string") || eq(clone(callee), "text::format_f64") || eq(clone(callee), "convert::f64_to_string") {
+        } else if eq(clone(callee), "f64_to_string") || eq(clone(callee), "text::format_f64") || eq(clone(callee), "convert::f64_to_string") || eq(clone(callee), "__intrinsic_f64_to_string") {
             // f64_to_string: convert f64 on stack to string
             // Uses scratch locals: scratch_base+0..+4 (i32) and scratch_base+12..+13 (f64)
             // Strategy: separate sign, integer part, fractional part
@@ -4614,6 +5036,74 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, 0x02)  // align=4
             emit_byte(w, 0x00)  // offset=0
 
+        } else if eq(clone(callee), "Vec_new_i64") || eq(clone(callee), "Vec_new_f64") {
+            // Vec_new_i64 / Vec_new_f64: allocate Vec header {len:0, cap:8, data_ptr} + data (8*8=64 bytes)
+            // Memory layout: [len(4) | cap(4) | data_ptr(4)] then [data(64)]
+            // Total: 12 + 64 = 76 bytes
+
+            // len = 0 at heap[0]
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            // cap = 8 at heap[4]
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            // Bump heap past header (12 bytes)
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 12)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x24)
+            emit_leb128_u(w, 0)
+
+            // Store data_ptr = current heap at header+8
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 12)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            // Bump heap past data (8 * 8 = 64 bytes)
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 64)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x24)
+            emit_leb128_u(w, 0)
+
+            // Result: header ptr = heap - 76
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 76)
+            emit_byte(w, OP_I32_SUB())
+
+            ctx_mark_vec_local(ctx, inst.dest)
+
         } else if starts_with(clone(callee), "Vec_new_") {
             // Vec_new_*: allocate Vec header {len:0, cap:8, data_ptr} + data (8*4=32 bytes)
             // Memory layout: [len(4) | cap(4) | data_ptr(4)] then [data(32)]
@@ -4889,6 +5379,370 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             // Load value
             emit_byte(w, OP_I32_LOAD())
             emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+        } else if eq(clone(callee), "vec_push_i64") || eq(clone(callee), "push_i64") {
+            // vec_push_i64/push_i64(v, x: i64): grow if needed, i64.store at data[len*8]
+            // Stack: [vec_ptr, i64_value]
+            let is_void_push_i64 = eq(clone(callee), "push_i64")
+            let s_val_i64 = ctx.scratch_base + 14  // i64 scratch local
+            let s_vec_i64 = ctx.scratch_base + 1
+            let s_data_i64 = ctx.scratch_base + 2
+            let s_cap_i64 = ctx.scratch_base + 3
+            let s_newdata_i64 = ctx.scratch_base + 4
+
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_val_i64)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_vec_i64)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s_cap_i64)
+            emit_byte(w, OP_I32_GE_S())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_newdata_i64)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_newdata_i64)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_cap_i64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 2)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_data_i64)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_newdata_i64)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_data_i64)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, 0xFC)
+            emit_leb128_u(w, 10)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_newdata_i64)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_cap_i64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 2)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_END())
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_val_i64)
+            emit_byte(w, OP_I64_STORE())
+            emit_byte(w, 0x03)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64)
+            if is_void_push_i64 {
+                emit_byte(w, OP_DROP())
+            }
+
+        } else if eq(clone(callee), "push_f64") {
+            // push_f64(v, x: f64): grow if needed, f64.store at data[len*8]
+            // Stack: [vec_ptr, f64_value]
+            let s_val_f64 = ctx.scratch_base + 12  // reuse first f64 scratch local
+            let s_vec_f64 = ctx.scratch_base + 1
+            let s_data_f64 = ctx.scratch_base + 2
+            let s_cap_f64 = ctx.scratch_base + 3
+            let s_newdata_f64 = ctx.scratch_base + 4
+
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_val_f64)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_vec_f64)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s_cap_f64)
+            emit_byte(w, OP_I32_GE_S())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_newdata_f64)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_newdata_f64)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_cap_f64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 2)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_data_f64)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_newdata_f64)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_data_f64)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, 0xFC)
+            emit_leb128_u(w, 10)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_newdata_f64)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_cap_f64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 2)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_END())
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_val_f64)
+            emit_byte(w, OP_F64_STORE())
+            emit_byte(w, 0x03)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            // push_f64 is always void — drop the vec ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64)
+            emit_byte(w, OP_DROP())
+
+        } else if eq(clone(callee), "vec_get_unchecked_i64") {
+            // vec_get_unchecked_i64(v, i): load data[i*8] as i64
+            // Stack: [vec_ptr, index]
+            let s_idx_i64 = ctx.scratch_base
+            let s_vec_i64c = ctx.scratch_base + 1
+
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_idx_i64)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_vec_i64c)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_i64c)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_idx_i64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+
+            emit_byte(w, OP_I64_LOAD())
+            emit_byte(w, 0x03)
+            emit_byte(w, 0x00)
+
+        } else if eq(clone(callee), "vec_get_unchecked_f64") {
+            // vec_get_unchecked_f64(v, i): load data[i*8] as f64
+            // Stack: [vec_ptr, index]
+            let s_idx_f64 = ctx.scratch_base
+            let s_vec_f64c = ctx.scratch_base + 1
+
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_idx_f64)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_vec_f64c)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_f64c)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_idx_f64)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+
+            emit_byte(w, OP_F64_LOAD())
+            emit_byte(w, 0x03)
             emit_byte(w, 0x00)
 
         } else if eq(clone(callee), "vec_get") {
@@ -5275,7 +6129,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_u(w, s_def)
             emit_byte(w, OP_END())
 
-        } else if eq(clone(callee), "contains_i32") {
+        } else if eq(clone(callee), "contains_i32") || eq(clone(callee), "seq::seq_contains") {
             // contains_i32(v, needle): scan vec for needle, return bool
             // Stack: [vec_ptr, needle]
             let s_needle = ctx.scratch_base
@@ -5982,7 +6836,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s_ch_vec)
 
-        } else if eq(clone(callee), "split") || eq(clone(callee), "text::split") {
+        } else if eq(clone(callee), "split") || eq(clone(callee), "text::split") || eq(clone(callee), "string::split") {
             // split(s, sep) -> Vec<String>: split string by separator
             // Stack: [str_ptr, sep_ptr]
             let s_sp_sep = ctx.scratch_base
@@ -7531,7 +8385,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s_none)
 
-        } else if eq(clone(callee), "sum_i32") {
+        } else if eq(clone(callee), "sum_i32") || eq(clone(callee), "seq::sum_i32") {
             // sum_i32(vec) -> i32: sum all elements
             let s0 = ctx.scratch_base + 0  // vec ptr
             let s1 = ctx.scratch_base + 1  // index
@@ -7688,6 +8542,889 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_END())
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s2)
+
+        } else if eq(clone(callee), "seq::min_i32") {
+            // seq::min_i32(vec) -> i32: minimum element in vec
+            let s0 = ctx.scratch_base + 0  // vec ptr
+            let s1 = ctx.scratch_base + 1  // current min
+            let s2 = ctx.scratch_base + 2  // data ptr
+            let s3 = ctx.scratch_base + 3  // len
+            let s4 = ctx.scratch_base + 4  // index
+            let s5 = ctx.scratch_base + 5  // current element
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s0)
+            // len = vec[0]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s3)
+            // data_ptr = vec[8]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 8)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            // min = data[0]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s1)
+            // i = 1
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            // if i >= len: break
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_GE_S())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // elem = data[i*4]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s5)
+            // if elem < min: min = elem
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_LT_S())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_END())
+            // i++
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+
+        } else if eq(clone(callee), "seq::max_i32") {
+            // seq::max_i32(vec) -> i32: maximum element in vec
+            let s0 = ctx.scratch_base + 0  // vec ptr
+            let s1 = ctx.scratch_base + 1  // current max
+            let s2 = ctx.scratch_base + 2  // data ptr
+            let s3 = ctx.scratch_base + 3  // len
+            let s4 = ctx.scratch_base + 4  // index
+            let s5 = ctx.scratch_base + 5  // current element
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s0)
+            // len = vec[0]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s3)
+            // data_ptr = vec[8]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 8)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            // max = data[0]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s1)
+            // i = 1
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            // if i >= len: break
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_GE_S())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // elem = data[i*4]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s5)
+            // if elem > max: max = elem
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_GT_S())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_END())
+            // i++
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+
+        } else if eq(clone(callee), "seq::count_eq") {
+            // seq::count_eq(vec, val) -> i32: count elements equal to val
+            let s0 = ctx.scratch_base + 0  // val
+            let s1 = ctx.scratch_base + 1  // vec ptr
+            let s2 = ctx.scratch_base + 2  // count
+            let s3 = ctx.scratch_base + 3  // data ptr
+            let s4 = ctx.scratch_base + 4  // len
+            let s5 = ctx.scratch_base + 5  // index
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s1)
+            // count = 0
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            // len = vec[0]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s4)
+            // data_ptr = vec[8]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 8)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s3)
+            // i = 0
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            // if i >= len: break
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_GE_S())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // if data[i*4] == val: count++
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_EQ())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_END())
+            // i++
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+
+        } else if eq(clone(callee), "seq::binary_search") {
+            // seq::binary_search(sorted_vec, val) -> i32: index or -1
+            let s0 = ctx.scratch_base + 0  // val
+            let s1 = ctx.scratch_base + 1  // vec ptr
+            let s2 = ctx.scratch_base + 2  // lo
+            let s3 = ctx.scratch_base + 3  // hi
+            let s4 = ctx.scratch_base + 4  // mid
+            let s5 = ctx.scratch_base + 5  // data ptr
+            let s6 = ctx.scratch_base + 6  // result
+            let s7 = ctx.scratch_base + 7  // mid_val
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s1)
+            // lo = 0
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            // hi = len - 1
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s3)
+            // data_ptr = vec[8]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 8)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s5)
+            // result = -1
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0 - 1)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s6)
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            // if lo > hi: break
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_GT_S())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // mid = (lo + hi) / 2
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 2)
+            emit_byte(w, OP_I32_DIV_S())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s4)
+            // mid_val = data[mid*4]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s7)
+            // if mid_val == val: result = mid; break
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_EQ())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s6)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 2)
+            emit_byte(w, OP_ELSE())
+            // else if mid_val < val: lo = mid + 1
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s7)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_LT_S())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_ELSE())
+            // else: hi = mid - 1
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s6)
+
+        } else if eq(clone(callee), "seq::unique") {
+            // seq::unique(vec) -> Vec<i32>: new vec with unique elements (O(n^2))
+            let s0 = ctx.scratch_base + 0  // src vec ptr
+            let s1 = ctx.scratch_base + 1  // result header ptr
+            let s2 = ctx.scratch_base + 2  // outer index i
+            let s3 = ctx.scratch_base + 3  // src len
+            let s4 = ctx.scratch_base + 4  // src data ptr
+            let s5 = ctx.scratch_base + 5  // current element
+            let s6 = ctx.scratch_base + 6  // inner index j
+            let s7 = ctx.scratch_base + 7  // result len (also stored in header)
+            let s8 = ctx.scratch_base + 8  // result data ptr
+            let s9 = ctx.scratch_base + 9  // found flag
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s0)
+            // src_len = src[0]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s3)
+            // src_data = src[8]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 8)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s4)
+            // Allocate result header at heap: result_header = heap
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s1)
+            // mem[heap+0] = 0 (len)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // mem[heap+4] = src_len (cap)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // bump heap past header (12 bytes)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 12)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x24)
+            emit_leb128_u(w, 0)
+            // result_data = heap
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s8)
+            // mem[result_header+8] = result_data
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s8)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // bump heap past data (src_len * 4 bytes)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s8)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x24)
+            emit_leb128_u(w, 0)
+            // result_len = 0
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s7)
+            // i = 0
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            // outer loop: for i in 0..src_len
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            // if i >= src_len: break
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_GE_S())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // elem = src_data[i*4]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s5)
+            // found = 0; j = 0
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s9)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s6)
+            // inner loop: for j in 0..result_len
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            // if j >= result_len: break
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s6)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s7)
+            emit_byte(w, OP_I32_GE_S())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)
+            // if result_data[j*4] == elem: found = 1; break
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s8)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s6)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_I32_EQ())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s9)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 2)
+            emit_byte(w, OP_END())
+            // j++
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s6)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s6)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_END())
+            // if not found: result_data[result_len*4] = elem; result_len++
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s9)
+            emit_byte(w, OP_I32_EQZ())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s8)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s7)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s7)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s7)
+            emit_byte(w, OP_END())
+            // i++
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_END())
+            emit_byte(w, OP_END())
+            // store result_len back into header
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s7)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // result = s1
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            ctx_mark_vec_local(ctx, inst.dest)
+
+        } else if eq(clone(callee), "seq::take_i32") {
+            // seq::take_i32(vec, n) -> Vec<i32>: new vec with first min(n,len) elements
+            let s0 = ctx.scratch_base + 0  // n
+            let s1 = ctx.scratch_base + 1  // src vec ptr
+            let s2 = ctx.scratch_base + 2  // count = min(n, len)
+            let s3 = ctx.scratch_base + 3  // result header ptr
+            let s4 = ctx.scratch_base + 4  // src data ptr
+            let s5 = ctx.scratch_base + 5  // result data ptr
+            let s6 = ctx.scratch_base + 6  // index i
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s1)
+            // len = src[0]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s2)
+            // count = min(n, len): stack=[len, n], I32_GT_S checks len > n (equivalent to n < len)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_GT_S())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_END())
+            // src_data = src[8]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 8)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s4)
+            // Allocate result header at heap
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s3)
+            // mem[heap+0] = count (len)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // mem[heap+4] = count (cap)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // bump heap past header (12)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 12)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x24)
+            emit_leb128_u(w, 0)
+            // result_data = heap
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s5)
+            // mem[result_header+8] = result_data
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // bump heap past data (count * 4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x24)
+            emit_leb128_u(w, 0)
+            // copy count elements: memory.copy(result_data, src_data, count*4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, 0xFC)
+            emit_leb128_u(w, 10)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+            // result = s3
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            ctx_mark_vec_local(ctx, inst.dest)
+
+        } else if eq(clone(callee), "seq::skip_i32") {
+            // seq::skip_i32(vec, n) -> Vec<i32>: new vec skipping first min(n,len) elements
+            let s0 = ctx.scratch_base + 0  // n
+            let s1 = ctx.scratch_base + 1  // src vec ptr
+            let s2 = ctx.scratch_base + 2  // start = min(n, len)
+            let s3 = ctx.scratch_base + 3  // count = len - start
+            let s4 = ctx.scratch_base + 4  // result header ptr
+            let s5 = ctx.scratch_base + 5  // src data ptr (offset to start)
+            let s6 = ctx.scratch_base + 6  // result data ptr
+            let s7 = ctx.scratch_base + 7  // len
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s1)
+            // len = src[0]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s7)
+            // start = min(n, len): stack=[len,n], I32_GT_S checks len > n (equivalent to n < len)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s7)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_I32_GT_S())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_END())
+            // count = len - start
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s7)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s3)
+            // src_data_offset = src[8] + start*4
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s1)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_byte(w, 8)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s5)
+            // Allocate result header at heap
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s4)
+            // mem[heap+0] = count (len)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // mem[heap+4] = count (cap)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // bump heap past header (12)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 12)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x24)
+            emit_leb128_u(w, 0)
+            // result_data = heap
+            emit_byte(w, 0x23)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s6)
+            // mem[result_header+8] = result_data
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s6)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // bump heap past data (count * 4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s6)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x24)
+            emit_leb128_u(w, 0)
+            // copy: memory.copy(result_data, src_data_offset, count*4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s6)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s5)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s3)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, 0xFC)
+            emit_leb128_u(w, 10)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+            // result = s4
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s4)
+            ctx_mark_vec_local(ctx, inst.dest)
 
         } else if eq(clone(callee), "is_some") {
             // is_some(opt_ptr) -> bool: tag == 0 means Some
@@ -9697,11 +11434,32 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s_a)
 
+        } else if eq(clone(callee), "memory_copy") {
+            // memory.copy(dst, src, len) — args already on stack from MIR
+            emit_byte(w, 0xfc)
+            emit_leb128_u(w, 10)  // memory.copy
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+            result_on_stack = false  // memory.copy is void
+        } else if eq(clone(callee), "memory_fill") {
+            // memory.fill(ptr, val, len) — args already on stack from MIR
+            emit_byte(w, 0xfc)
+            emit_leb128_u(w, 11)  // memory.fill
+            emit_byte(w, 0x00)
+            result_on_stack = false  // memory.fill is void
         } else if eq(clone(callee), "process::exit") || eq(clone(callee), "host::process::exit") {
             // process::exit(code) — call WASI proc_exit
             emit_byte(w, OP_CALL())
             emit_leb128_u(w, 6)  // import index 6 = proc_exit
             result_on_stack = false  // proc_exit is void
+        } else if eq(clone(callee), "i32_to_i64") {
+            // i32 → i64: sign-extend with i64.extend_i32_s
+            emit_byte(w, OP_I64_EXTEND_I32_S())
+            result_on_stack = true
+        } else if eq(clone(callee), "i64_to_i32") {
+            // i64 → i32: wrap with i32.wrap_i64
+            emit_byte(w, OP_I32_WRAP_I64())
+            result_on_stack = true
         } else if eq(clone(callee), "i8_to_i32") || eq(clone(callee), "u8_to_i32") || eq(clone(callee), "i16_to_i32") || eq(clone(callee), "u16_to_i32") {
             // Type conversions: value already on stack as i32, just keep it
             // WASM stores i8/u8/i16/u16 as i32, so no conversion needed
@@ -9767,6 +11525,8 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         // The i32 value is already on top of the WASM stack from a preceding
         // CONST_I32 or LOCAL_GET; just widen it in-place.
         emit_byte(w, OP_I64_EXTEND_I32_S())
+    } else if inst.op == 46 {  // TRUNC_I64_TO_I32 — narrow i64 → i32 on stack
+        emit_byte(w, OP_I32_WRAP_I64())
     } else if inst.op == 70 {  // DROP
         emit_byte(w, OP_DROP())
     } else if inst.op == 71 {  // NOP

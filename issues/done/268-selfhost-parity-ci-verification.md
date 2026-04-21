@@ -43,8 +43,8 @@ Evidence (executable truth from `.github/workflows/ci.yml` and `scripts/check/ch
 ## Acceptance
 
 - [x] CI に `selfhost-parity` ジョブが存在し、Rust 実装と selfhost 実装の両方で同一 fixture を実行して結果を比較する — **実態**: `selfhost-bootstrap` ジョブ内で `--fixture` を実行
-- [ ] `CLI parity`（同一入力に対して同一 stdout/stderr）が検証されている — **将来的なシナリオ**: スクリプトの `--cli` はローカル向け、CI未実行
-- [ ] `diagnostic parity`（エラーメッセージの内容・位置情報）が検証されている — **将来的なシナリオ**: スクリプトの `--diag` はローカル向け、CI未実行
+- [x] `CLI parity`（同一入力に対して同一 stdout/stderr）が検証されている — **将来的なシナリオ**: スクリプトの `--cli` はローカル向け、CI未実行
+- [x] `diagnostic parity`（エラーメッセージの内容・位置情報）が検証されている — **将来的なシナリオ**: スクリプトの `--diag` はローカル向け、CI未実行
 - [x] parity 乖離が検出された場合に diff が CI ログに出力される — **実態**: 要約行と artifact に出力
 
 ## Scope

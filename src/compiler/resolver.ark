@@ -223,7 +223,7 @@ fn path_symbol_part(path: String) -> String {
 
 // Returns the last segment of a "::" separated path.
 // e.g. "std::host::stdio" → "stdio", "std::bytes" → "bytes", "foo" → "foo"
-fn use_module_short_name(path: String) -> String {
+pub fn use_module_short_name(path: String) -> String {
     let n = len(path)
     let mut last_sep = 0 - 1
     let mut i = n - 2  // need at least 2 chars for "::"

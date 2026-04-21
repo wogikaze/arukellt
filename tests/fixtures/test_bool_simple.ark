@@ -1,8 +1,0 @@
-use std::host::stdio
-
-fn main() {
-    let a: bool = true
-    stdio::println(a)
-    let b: bool = false
-    stdio::println(b)
-}

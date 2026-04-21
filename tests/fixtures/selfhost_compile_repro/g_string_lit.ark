@@ -1,3 +1,0 @@
-fn main() {
-    let _s = String_from("hi")
-}

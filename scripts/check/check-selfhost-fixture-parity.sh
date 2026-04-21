@@ -114,7 +114,7 @@ selfhost_run() {
 
     # Run the produced wasm
     local run_out
-    run_out=$(timeout 10 wasmtime run "${wasm_out}" 2>/dev/null) || true
+    run_out=$(timeout 10 wasmtime run --env PATH="$PATH" "${wasm_out}" 2>/dev/null) || true
     rm -f "${wasm_out}"
     printf '%s' "${run_out}"
 }

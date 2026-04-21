@@ -1,6 +1,0 @@
-fn main() {
-  let a: bool = true
-  println(a)
-  let b: bool = false
-  println(b)
-}

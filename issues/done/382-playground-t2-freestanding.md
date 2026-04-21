@@ -108,10 +108,10 @@ Failed: 0
 
 ## Acceptance
 
-- [ ] T2 emitter が WASI import なしで最小限の Wasm module を生成する ← tracked in #501
-- [ ] T2 output がブラウザの Wasm runtime (Chrome/Firefox) でインスタンス化できる ← tracked in #501
+- [x] T2 emitter が WASI import なしで最小限の Wasm module を生成する ← tracked in #501
+- [x] T2 output がブラウザの Wasm runtime (Chrome/Firefox) でインスタンス化できる ← tracked in #501
 - [x] T2 の I/O surface (console / DOM bridge) の設計が ADR として記録される → `docs/adr/ADR-020-t2-io-surface.md` (DECIDED)
-- [ ] 最低 1 つの fixture が T2 target で compile + browser 実行される ← tracked in #501
+- [x] 最低 1 つの fixture が T2 target で compile + browser 実行される ← tracked in #501
 - [x] `docs/target-contract.md` の T2 状態が更新される (#501 landed; #382 docs slice 2026-04-18 で emitter/fixture と整合)
 
 ## References

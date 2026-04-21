@@ -1,4 +1,4 @@
-use std::env
+use std::host::env
 use std::host::stdio
 
 fn main() {
@@ -6,12 +6,15 @@ fn main() {
     stdio::println(i32_to_string(len(a)))
     stdio::println(i32_to_string(env::arg_count()))
 
-    // var_or_default: unknown var should return the default
-    let d = env::var_or_default("ARUKELLT_NONEXISTENT_ENV_VAR_XYZ", "default_val")
+    // var with default: use match on env::var
+    let d = match env::var("ARUKELLT_NONEXISTENT_ENV_VAR_XYZ") {
+        Some(s) => s,
+        None => String_from("default_val"),
+    }
     stdio::println(d)
 
-    // get_var: unknown var should return None
-    let w = env::get_var("ARUKELLT_NONEXISTENT_ENV_VAR_XYZ")
+    // var: unknown var should return None
+    let w = env::var("ARUKELLT_NONEXISTENT_ENV_VAR_XYZ")
     match w {
         Some(s) => stdio::println("unexpected"),
         None => stdio::println("none"),

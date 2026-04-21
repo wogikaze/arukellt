@@ -794,7 +794,9 @@ fn parse_prefix(p: Parser) -> AstNode {
     // Literals
     if t.kind == TK_INT() {
         p.pos = p.pos + 1
-        return AstNode_int(t.int_val, tok_span(t))
+        let node = AstNode_int(t.int_val, tok_span(t))
+        node.text = clone(t.text)  // preserve raw text for i64 literal reconstruction
+        return node
     }
     if t.kind == TK_FLOAT() {
         p.pos = p.pos + 1
@@ -982,6 +984,17 @@ fn parse_prefix(p: Parser) -> AstNode {
     // Block expression
     if t.kind == TK_LBRACE() {
         return parse_block(p)
+    }
+
+    // return/break/continue in expression position (e.g. match arm bodies)
+    if t.kind == TK_RETURN() {
+        return parse_return(p)
+    }
+    if t.kind == TK_BREAK() {
+        return parse_break(p)
+    }
+    if t.kind == TK_CONTINUE() {
+        return parse_continue(p)
     }
 
     error(p, concat(String_from("unexpected token in expression: "), to_string(t.kind)))

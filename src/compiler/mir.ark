@@ -42,6 +42,7 @@ fn MIR_CALL() -> i32 { 40 }
 fn MIR_CALL_INDIRECT() -> i32 { 41 }
 fn MIR_RETURN() -> i32 { 42 }
 fn MIR_EXTEND_I32_TO_I64() -> i32 { 45 }
+fn MIR_TRUNC_I64_TO_I32() -> i32 { 46 }
 fn MIR_BR() -> i32 { 50 }
 fn MIR_BR_IF() -> i32 { 51 }
 fn MIR_BR_TABLE() -> i32 { 52 }
@@ -127,6 +128,40 @@ fn MirInst_const_i32(val: i32, dest: i32) -> MirInst {
         int_val: val, float_val: 0.0, str_val: String_new(),
         val_type: VT_I32(),
     }
+}
+
+fn MirInst_const_i64_text(text: String, dest: i32) -> MirInst {
+    MirInst {
+        op: MIR_CONST_I64(), dest: dest, arg0: 0 - 1, arg1: 0 - 1,
+        int_val: 0, float_val: 0.0, str_val: text,
+        val_type: VT_I64(),
+    }
+}
+
+// Parse a decimal integer string as i64. Stops at the first non-digit character.
+fn parse_decimal_as_i64(text: String) -> i64 {
+    let n = len(text)
+    let mut result: i64 = 0
+    let mut i = 0
+    let mut neg = false
+    if i < n && char_at(text, i) == 45 {
+        neg = true
+        i = i + 1
+    }
+    let mut stop = false
+    while i < n && !stop {
+        let d = char_at(text, i)
+        if d >= 48 && d <= 57 {
+            result = result * 10 + i32_to_i64(d - 48)
+        } else if d == 95 {
+            // underscore separator: skip (e.g. 1_000_000)
+        } else {
+            stop = true  // type suffix or other non-digit: stop parsing
+        }
+        i = i + 1
+    }
+    if neg { result = 0 - result }
+    result
 }
 
 fn MirInst_const_string(val: String, dest: i32) -> MirInst {
@@ -1060,22 +1095,44 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
             j = j + 1
         }
     }
+    // Strip __intrinsic_ prefix so stdlib wrappers like __intrinsic_print are
+    // treated the same as their bare names below.
+    let mut bare_name = clone(name)
+    if len(bare_name) > 12 && char_at(bare_name, 0) == 95 && char_at(bare_name, 1) == 95 {
+        bare_name = substring(bare_name, 12, len(bare_name))
+    }
     // Known void stdlib/built-in functions
     let is_void_builtin =
-        eq(clone(name), "stdio::println") || eq(clone(name), "println") ||
-        eq(clone(name), "stdio::print")   || eq(clone(name), "print")   ||
-        eq(clone(name), "stdio::eprintln") || eq(clone(name), "eprintln") ||
-        eq(clone(name), "stdio::eprint")  || eq(clone(name), "eprint")  ||
-        eq(clone(name), "process::exit")  || eq(clone(name), "host::process::exit") ||
-        eq(clone(name), "push_char")      || eq(clone(name), "push")    ||
-        eq(clone(name), "push_byte")      ||
-        eq(clone(name), "sort_i32")       ||
-        eq(clone(name), "reverse_String") ||
-        eq(clone(name), "assert")         || eq(clone(name), "assert_eq") ||
-        eq(clone(name), "assert_ne")      || eq(clone(name), "assert_eq_str") ||
-        eq(clone(name), "assert_eq_i64")
+        eq(clone(bare_name), "stdio::println") || eq(clone(bare_name), "println") ||
+        eq(clone(bare_name), "stdio::print")   || eq(clone(bare_name), "print")   ||
+        eq(clone(bare_name), "stdio::eprintln") || eq(clone(bare_name), "eprintln") ||
+        eq(clone(bare_name), "stdio::eprint")  || eq(clone(bare_name), "eprint")  ||
+        eq(clone(bare_name), "process::exit")  || eq(clone(bare_name), "host::process::exit") ||
+        eq(clone(bare_name), "push_char")      || eq(clone(bare_name), "push")    ||
+        eq(clone(bare_name), "push_byte")      || eq(clone(bare_name), "push_i64") ||
+        eq(clone(bare_name), "push_f64")       ||
+        eq(clone(bare_name), "sort_i32")       ||
+        eq(clone(bare_name), "sort_i64")       ||
+        eq(clone(bare_name), "sort_f64")       ||
+        eq(clone(bare_name), "reverse_String") ||
+        eq(clone(bare_name), "assert")         || eq(clone(bare_name), "assert_eq") ||
+        eq(clone(bare_name), "assert_ne")      || eq(clone(bare_name), "assert_eq_str") ||
+        eq(clone(bare_name), "assert_eq_i64") ||
+        eq(clone(bare_name), "memory_copy")   || eq(clone(bare_name), "memory_fill") ||
+        // HashMap/HashSet insert/set functions are void
+        eq(clone(bare_name), "HashMap_i32_i32_insert") ||
+        eq(clone(bare_name), "HashMap_i32_String_insert") ||
+        eq(clone(bare_name), "HashMap_String_i32_insert") ||
+        eq(clone(bare_name), "HashMap_String_String_insert") ||
+        eq(clone(bare_name), "hashmap_set") || eq(clone(bare_name), "hashmap_clear") ||
+        eq(clone(bare_name), "hashset_insert") || eq(clone(bare_name), "hashset_remove") ||
+        eq(clone(bare_name), "hashset_str_insert") || eq(clone(bare_name), "hashset_str_remove")
     if is_void_builtin {
         return VT_VOID()
+    }
+    // i64-returning builtin conversions
+    if eq(clone(bare_name), "i32_to_i64") || eq(clone(bare_name), "u32_to_u64") {
+        return VT_I64()
     }
     // Unknown function: assume non-void (safe default for stdlib/builtins)
     VT_I32()
@@ -1734,6 +1791,33 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let kind = node.kind
 
     if kind == NK_INT_LIT() {
+        // Detect whether this literal should be emitted as i64.
+        // Cases that need i64:
+        //   1. Explicit i64/u64 suffix:  "10000000000u64", "42i64"
+        // Emit as CONST_I64 only when the decimal value actually overflows i32.
+        // Suffix-annotated literals (100i64, 9001_i64) that fit in i32 stay as i32 —
+        // the selfhost type system tracks locals as i32 and can't widen them yet.
+        let raw_text = clone(node.text)
+        let raw_len = len(raw_text)
+        let mut is_i64_literal = false
+
+        // Overflow detection: skip hex/binary, parse decimal (stops at suffix), compare with truncated i32.
+        let is_hex_or_bin = raw_len >= 2 && char_at(raw_text, 0) == 48 &&
+            (char_at(raw_text, 1) == 120 || char_at(raw_text, 1) == 88 ||
+             char_at(raw_text, 1) == 98  || char_at(raw_text, 1) == 66)
+        if !is_hex_or_bin {
+            let as_i64 = parse_decimal_as_i64(clone(raw_text))
+            let as_i32_ext = i32_to_i64(node.int_val)
+            if as_i64 != as_i32_ext {
+                is_i64_literal = true
+            }
+        }
+
+        if is_i64_literal {
+            let dest = ctx_fresh_local(ctx, VT_I64())
+            ctx_emit(ctx, MirInst_const_i64_text(raw_text, dest))
+            return dest
+        }
         let dest = ctx_fresh_local(ctx, VT_I32())
         ctx_emit(ctx, MirInst_const_i32(node.int_val, dest))
         return dest
@@ -2105,11 +2189,773 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 }
             }
 
+            // HOF inline expansion for map_i64_i64, filter_i64, fold_i64_i64
+            let hof_callee_text = clone(callee.text)
+            let is_map_i64_i64 = eq(clone(hof_callee_text), "map_i64_i64")
+            let is_filter_i64 = eq(clone(hof_callee_text), "filter_i64")
+            let is_fold_i64_i64 = eq(clone(hof_callee_text), "fold_i64_i64")
+            if is_map_i64_i64 || is_filter_i64 || is_fold_i64_i64 {
+                let hof_min_children = if is_fold_i64_i64 { 4 } else { 3 }
+                if child_count >= hof_min_children {
+                    let hof_cb_child_idx = if is_fold_i64_i64 { 3 } else { 2 }
+                    let hof_cb_child = get_unchecked(node.children, hof_cb_child_idx)
+                    let hof_fn_name = clone(hof_cb_child.text)
+
+                    // Lower and save vec ptr
+                    let hof_vec_child = get_unchecked(node.children, 1)
+                    let hof_vec_local = lower_expr(ctx, hof_vec_child)
+                    let hof_set_vec = MirInst_new(MIR_LOCAL_SET())
+                    hof_set_vec.arg0 = hof_vec_local
+                    ctx_emit(ctx, hof_set_vec)
+                    ctx_set_local_type(ctx, hof_vec_local, String_from("vec:i64"))
+
+                    // n = vec_len(vec)
+                    let hof_get_v_len = MirInst_new(MIR_LOCAL_GET())
+                    hof_get_v_len.arg0 = hof_vec_local
+                    ctx_emit(ctx, hof_get_v_len)
+                    let hof_n_local = ctx_fresh_local(ctx, VT_I32())
+                    let hof_len_call = MirInst_new(MIR_CALL())
+                    hof_len_call.str_val = String_from("vec_len")
+                    hof_len_call.int_val = 1
+                    hof_len_call.dest = hof_n_local
+                    ctx_emit(ctx, hof_len_call)
+                    let hof_set_n = MirInst_new(MIR_LOCAL_SET())
+                    hof_set_n.arg0 = hof_n_local
+                    ctx_emit(ctx, hof_set_n)
+
+                    // idx = 0
+                    let hof_idx_local = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_const_i32(0, hof_idx_local))
+                    let hof_set_idx0 = MirInst_new(MIR_LOCAL_SET())
+                    hof_set_idx0.arg0 = hof_idx_local
+                    ctx_emit(ctx, hof_set_idx0)
+
+                    // map/filter: allocate result vec
+                    let hof_result_local = ctx_fresh_local(ctx, VT_I32())
+                    if !is_fold_i64_i64 {
+                        let hof_new_call = MirInst_new(MIR_CALL())
+                        hof_new_call.str_val = String_from("Vec_new_i64")
+                        hof_new_call.int_val = 0
+                        hof_new_call.dest = hof_result_local
+                        ctx_emit(ctx, hof_new_call)
+                        let hof_set_result = MirInst_new(MIR_LOCAL_SET())
+                        hof_set_result.arg0 = hof_result_local
+                        ctx_emit(ctx, hof_set_result)
+                        ctx_set_local_type(ctx, hof_result_local, String_from("vec:i64"))
+                    }
+
+                    // fold: lower init, save as acc (i64)
+                    let hof_acc_local = ctx_fresh_local(ctx, VT_I64())
+                    if is_fold_i64_i64 {
+                        let hof_init_child = get_unchecked(node.children, 2)
+                        let hof_init_idx = lower_expr(ctx, hof_init_child)
+                        if ctx_local_vt(ctx, hof_init_idx) == VT_I32() {
+                            let hof_ext = MirInst_new(MIR_EXTEND_I32_TO_I64())
+                            hof_ext.dest = hof_acc_local
+                            hof_ext.arg0 = hof_init_idx
+                            ctx_emit(ctx, hof_ext)
+                        }
+                        let hof_set_acc0 = MirInst_new(MIR_LOCAL_SET())
+                        hof_set_acc0.arg0 = hof_acc_local
+                        ctx_emit(ctx, hof_set_acc0)
+                    }
+
+                    // BLOCK + LOOP
+                    ctx_emit(ctx, MirInst_new(MIR_BLOCK()))
+                    ctx.nesting_depth = ctx.nesting_depth + 1
+                    ctx_emit(ctx, MirInst_new(MIR_LOOP()))
+                    ctx.nesting_depth = ctx.nesting_depth + 1
+
+                    // if idx >= n: br 1 (exit loop)
+                    let hof_g1 = MirInst_new(MIR_LOCAL_GET())
+                    hof_g1.arg0 = hof_idx_local
+                    ctx_emit(ctx, hof_g1)
+                    let hof_g2 = MirInst_new(MIR_LOCAL_GET())
+                    hof_g2.arg0 = hof_n_local
+                    ctx_emit(ctx, hof_g2)
+                    let hof_cmp_dest = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_binop(MIR_GTEQ(), hof_cmp_dest, hof_idx_local, hof_n_local))
+                    let hof_br_brk = MirInst_new(MIR_BR_IF())
+                    hof_br_brk.int_val = 1
+                    ctx_emit(ctx, hof_br_brk)
+
+                    // elem = vec_get_unchecked_i64(vec, idx)
+                    let hof_gv = MirInst_new(MIR_LOCAL_GET())
+                    hof_gv.arg0 = hof_vec_local
+                    ctx_emit(ctx, hof_gv)
+                    let hof_gi = MirInst_new(MIR_LOCAL_GET())
+                    hof_gi.arg0 = hof_idx_local
+                    ctx_emit(ctx, hof_gi)
+                    let hof_elem_local = ctx_fresh_local(ctx, VT_I64())
+                    let hof_gu = MirInst_new(MIR_CALL())
+                    hof_gu.str_val = String_from("vec_get_unchecked_i64")
+                    hof_gu.int_val = 2
+                    hof_gu.dest = hof_elem_local
+                    ctx_emit(ctx, hof_gu)
+                    let hof_set_elem = MirInst_new(MIR_LOCAL_SET())
+                    hof_set_elem.arg0 = hof_elem_local
+                    ctx_emit(ctx, hof_set_elem)
+
+                    // map: mapped = callback(elem); push_i64(result, mapped)
+                    if is_map_i64_i64 {
+                        let hof_ge = MirInst_new(MIR_LOCAL_GET())
+                        hof_ge.arg0 = hof_elem_local
+                        ctx_emit(ctx, hof_ge)
+                        let hof_mapped = ctx_fresh_local(ctx, VT_I64())
+                        let hof_map_cb = MirInst_new(MIR_CALL())
+                        hof_map_cb.str_val = clone(hof_fn_name)
+                        hof_map_cb.int_val = 1
+                        hof_map_cb.dest = hof_mapped
+                        ctx_emit(ctx, hof_map_cb)
+                        let hof_set_mapped = MirInst_new(MIR_LOCAL_SET())
+                        hof_set_mapped.arg0 = hof_mapped
+                        ctx_emit(ctx, hof_set_mapped)
+                        let hof_gr = MirInst_new(MIR_LOCAL_GET())
+                        hof_gr.arg0 = hof_result_local
+                        ctx_emit(ctx, hof_gr)
+                        let hof_gm = MirInst_new(MIR_LOCAL_GET())
+                        hof_gm.arg0 = hof_mapped
+                        ctx_emit(ctx, hof_gm)
+                        let hof_push_m = MirInst_new(MIR_CALL())
+                        hof_push_m.str_val = String_from("push_i64")
+                        hof_push_m.int_val = 2
+                        let hof_push_dest_m = ctx_fresh_local(ctx, VT_I32())
+                        hof_push_m.dest = hof_push_dest_m
+                        ctx_emit(ctx, hof_push_m)
+                    }
+
+                    // filter: if callback(elem) { push_i64(result, elem) }
+                    if is_filter_i64 {
+                        let hof_fge = MirInst_new(MIR_LOCAL_GET())
+                        hof_fge.arg0 = hof_elem_local
+                        ctx_emit(ctx, hof_fge)
+                        let hof_cond = ctx_fresh_local(ctx, VT_I32())
+                        let hof_fcb = MirInst_new(MIR_CALL())
+                        hof_fcb.str_val = clone(hof_fn_name)
+                        hof_fcb.int_val = 1
+                        hof_fcb.dest = hof_cond
+                        ctx_emit(ctx, hof_fcb)
+                        let hof_set_cond = MirInst_new(MIR_LOCAL_SET())
+                        hof_set_cond.arg0 = hof_cond
+                        ctx_emit(ctx, hof_set_cond)
+                        let hof_gcond = MirInst_new(MIR_LOCAL_GET())
+                        hof_gcond.arg0 = hof_cond
+                        ctx_emit(ctx, hof_gcond)
+                        ctx_emit(ctx, MirInst_new(MIR_IF()))
+                        ctx.nesting_depth = ctx.nesting_depth + 1
+                        let hof_fgr = MirInst_new(MIR_LOCAL_GET())
+                        hof_fgr.arg0 = hof_result_local
+                        ctx_emit(ctx, hof_fgr)
+                        let hof_fge2 = MirInst_new(MIR_LOCAL_GET())
+                        hof_fge2.arg0 = hof_elem_local
+                        ctx_emit(ctx, hof_fge2)
+                        let hof_push_f = MirInst_new(MIR_CALL())
+                        hof_push_f.str_val = String_from("push_i64")
+                        hof_push_f.int_val = 2
+                        let hof_push_dest_f = ctx_fresh_local(ctx, VT_I32())
+                        hof_push_f.dest = hof_push_dest_f
+                        ctx_emit(ctx, hof_push_f)
+                        ctx_emit(ctx, MirInst_new(MIR_END()))
+                        ctx.nesting_depth = ctx.nesting_depth - 1
+                    }
+
+                    // fold: acc = callback(acc, elem)
+                    if is_fold_i64_i64 {
+                        let hof_ga = MirInst_new(MIR_LOCAL_GET())
+                        hof_ga.arg0 = hof_acc_local
+                        ctx_emit(ctx, hof_ga)
+                        let hof_ge2 = MirInst_new(MIR_LOCAL_GET())
+                        hof_ge2.arg0 = hof_elem_local
+                        ctx_emit(ctx, hof_ge2)
+                        let hof_acc_new = ctx_fresh_local(ctx, VT_I64())
+                        let hof_fold_cb = MirInst_new(MIR_CALL())
+                        hof_fold_cb.str_val = clone(hof_fn_name)
+                        hof_fold_cb.int_val = 2
+                        hof_fold_cb.dest = hof_acc_new
+                        ctx_emit(ctx, hof_fold_cb)
+                        let hof_set_acc_new = MirInst_new(MIR_LOCAL_SET())
+                        hof_set_acc_new.arg0 = hof_acc_local
+                        ctx_emit(ctx, hof_set_acc_new)
+                    }
+
+                    // idx = idx + 1
+                    let hof_one = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_const_i32(1, hof_one))
+                    let hof_set_one = MirInst_new(MIR_LOCAL_SET())
+                    hof_set_one.arg0 = hof_one
+                    ctx_emit(ctx, hof_set_one)
+                    let hof_gi2 = MirInst_new(MIR_LOCAL_GET())
+                    hof_gi2.arg0 = hof_idx_local
+                    ctx_emit(ctx, hof_gi2)
+                    let hof_go = MirInst_new(MIR_LOCAL_GET())
+                    hof_go.arg0 = hof_one
+                    ctx_emit(ctx, hof_go)
+                    let hof_add_dest = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_binop(MIR_ADD(), hof_add_dest, hof_idx_local, hof_one))
+                    let hof_set_idx_inc = MirInst_new(MIR_LOCAL_SET())
+                    hof_set_idx_inc.arg0 = hof_idx_local
+                    ctx_emit(ctx, hof_set_idx_inc)
+
+                    // BR 0 (loop back)
+                    let hof_br_loop = MirInst_new(MIR_BR())
+                    hof_br_loop.int_val = 0
+                    ctx_emit(ctx, hof_br_loop)
+
+                    // END loop, END block
+                    ctx_emit(ctx, MirInst_new(MIR_END()))
+                    ctx.nesting_depth = ctx.nesting_depth - 1
+                    ctx_emit(ctx, MirInst_new(MIR_END()))
+                    ctx.nesting_depth = ctx.nesting_depth - 1
+
+                    // Return result
+                    if is_fold_i64_i64 {
+                        let hof_get_acc = MirInst_new(MIR_LOCAL_GET())
+                        hof_get_acc.arg0 = hof_acc_local
+                        ctx_emit(ctx, hof_get_acc)
+                        return hof_acc_local
+                    } else {
+                        let hof_get_res = MirInst_new(MIR_LOCAL_GET())
+                        hof_get_res.arg0 = hof_result_local
+                        ctx_emit(ctx, hof_get_res)
+                        return hof_result_local
+                    }
+                }
+            }
+
+            // HOF inline expansion for map_i32_i32, filter_i32, fold_i32_i32
+            // String variants (map_String_String, filter_String) use same i32-pointer logic
+            let is_map_i32_i32 = eq(clone(hof_callee_text), "map_i32_i32") || eq(clone(hof_callee_text), "map_String_String") || eq(clone(hof_callee_text), "seq::map_i32_i32")
+            let is_filter_i32 = eq(clone(hof_callee_text), "filter_i32") || eq(clone(hof_callee_text), "filter_String") || eq(clone(hof_callee_text), "seq::filter_i32")
+            let is_fold_i32_i32 = eq(clone(hof_callee_text), "fold_i32_i32") || eq(clone(hof_callee_text), "seq::fold_i32_i32")
+            if is_map_i32_i32 || is_filter_i32 || is_fold_i32_i32 {
+                let hof32_min_children = if is_fold_i32_i32 { 4 } else { 3 }
+                if child_count >= hof32_min_children {
+                    let hof32_cb_idx = if is_fold_i32_i32 { 3 } else { 2 }
+                    let hof32_cb_node = get_unchecked(node.children, hof32_cb_idx)
+                    let hof32_fn_name = clone(hof32_cb_node.text)
+
+                    // Lower and save vec ptr
+                    let hof32_vec_child = get_unchecked(node.children, 1)
+                    let hof32_vec_local = lower_expr(ctx, hof32_vec_child)
+                    let hof32_set_vec = MirInst_new(MIR_LOCAL_SET())
+                    hof32_set_vec.arg0 = hof32_vec_local
+                    ctx_emit(ctx, hof32_set_vec)
+                    ctx_set_local_type(ctx, hof32_vec_local, String_from("vec:i32"))
+
+                    // n = vec_len(vec)
+                    let hof32_get_v_len = MirInst_new(MIR_LOCAL_GET())
+                    hof32_get_v_len.arg0 = hof32_vec_local
+                    ctx_emit(ctx, hof32_get_v_len)
+                    let hof32_n_local = ctx_fresh_local(ctx, VT_I32())
+                    let hof32_len_call = MirInst_new(MIR_CALL())
+                    hof32_len_call.str_val = String_from("vec_len")
+                    hof32_len_call.int_val = 1
+                    hof32_len_call.dest = hof32_n_local
+                    ctx_emit(ctx, hof32_len_call)
+                    let hof32_set_n = MirInst_new(MIR_LOCAL_SET())
+                    hof32_set_n.arg0 = hof32_n_local
+                    ctx_emit(ctx, hof32_set_n)
+
+                    // idx = 0
+                    let hof32_idx_local = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_const_i32(0, hof32_idx_local))
+                    let hof32_set_idx0 = MirInst_new(MIR_LOCAL_SET())
+                    hof32_set_idx0.arg0 = hof32_idx_local
+                    ctx_emit(ctx, hof32_set_idx0)
+
+                    // map/filter: allocate result vec
+                    let hof32_result_local = ctx_fresh_local(ctx, VT_I32())
+                    if !is_fold_i32_i32 {
+                        let hof32_new_call = MirInst_new(MIR_CALL())
+                        hof32_new_call.str_val = String_from("Vec_new_i32")
+                        hof32_new_call.int_val = 0
+                        hof32_new_call.dest = hof32_result_local
+                        ctx_emit(ctx, hof32_new_call)
+                        let hof32_set_result = MirInst_new(MIR_LOCAL_SET())
+                        hof32_set_result.arg0 = hof32_result_local
+                        ctx_emit(ctx, hof32_set_result)
+                        ctx_set_local_type(ctx, hof32_result_local, String_from("vec:i32"))
+                        // String HOF variants: tag result vec as vec:String so element type
+                        // propagates as String (not i32) to callers using get_unchecked
+                        if eq(clone(hof_callee_text), "map_String_String") || eq(clone(hof_callee_text), "filter_String") {
+                            ctx_set_local_type(ctx, hof32_result_local, String_from("vec:String"))
+                        }
+                    }
+
+                    // fold: lower init, save as acc (i32)
+                    let hof32_acc_local = ctx_fresh_local(ctx, VT_I32())
+                    if is_fold_i32_i32 {
+                        let hof32_init_child = get_unchecked(node.children, 2)
+                        let hof32_init_idx = lower_expr(ctx, hof32_init_child)
+                        let hof32_set_acc0 = MirInst_new(MIR_LOCAL_SET())
+                        hof32_set_acc0.arg0 = hof32_acc_local
+                        ctx_emit(ctx, hof32_set_acc0)
+                    }
+
+                    // BLOCK + LOOP
+                    ctx_emit(ctx, MirInst_new(MIR_BLOCK()))
+                    ctx.nesting_depth = ctx.nesting_depth + 1
+                    ctx_emit(ctx, MirInst_new(MIR_LOOP()))
+                    ctx.nesting_depth = ctx.nesting_depth + 1
+
+                    // if idx >= n: br 1 (exit loop)
+                    let hof32_g1 = MirInst_new(MIR_LOCAL_GET())
+                    hof32_g1.arg0 = hof32_idx_local
+                    ctx_emit(ctx, hof32_g1)
+                    let hof32_g2 = MirInst_new(MIR_LOCAL_GET())
+                    hof32_g2.arg0 = hof32_n_local
+                    ctx_emit(ctx, hof32_g2)
+                    let hof32_cmp_dest = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_binop(MIR_GTEQ(), hof32_cmp_dest, hof32_idx_local, hof32_n_local))
+                    let hof32_br_brk = MirInst_new(MIR_BR_IF())
+                    hof32_br_brk.int_val = 1
+                    ctx_emit(ctx, hof32_br_brk)
+
+                    // elem = get_unchecked(vec, idx)
+                    let hof32_gv = MirInst_new(MIR_LOCAL_GET())
+                    hof32_gv.arg0 = hof32_vec_local
+                    ctx_emit(ctx, hof32_gv)
+                    let hof32_gi = MirInst_new(MIR_LOCAL_GET())
+                    hof32_gi.arg0 = hof32_idx_local
+                    ctx_emit(ctx, hof32_gi)
+                    let hof32_elem_local = ctx_fresh_local(ctx, VT_I32())
+                    let hof32_gu = MirInst_new(MIR_CALL())
+                    hof32_gu.str_val = String_from("get_unchecked")
+                    hof32_gu.int_val = 2
+                    hof32_gu.dest = hof32_elem_local
+                    ctx_emit(ctx, hof32_gu)
+                    let hof32_set_elem = MirInst_new(MIR_LOCAL_SET())
+                    hof32_set_elem.arg0 = hof32_elem_local
+                    ctx_emit(ctx, hof32_set_elem)
+
+                    // map: mapped = callback(elem); push(result, mapped)
+                    if is_map_i32_i32 {
+                        let hof32_ge = MirInst_new(MIR_LOCAL_GET())
+                        hof32_ge.arg0 = hof32_elem_local
+                        ctx_emit(ctx, hof32_ge)
+                        let hof32_mapped = ctx_fresh_local(ctx, VT_I32())
+                        let hof32_map_cb = MirInst_new(MIR_CALL())
+                        hof32_map_cb.str_val = clone(hof32_fn_name)
+                        hof32_map_cb.int_val = 1
+                        hof32_map_cb.dest = hof32_mapped
+                        ctx_emit(ctx, hof32_map_cb)
+                        let hof32_set_mapped = MirInst_new(MIR_LOCAL_SET())
+                        hof32_set_mapped.arg0 = hof32_mapped
+                        ctx_emit(ctx, hof32_set_mapped)
+                        let hof32_gr = MirInst_new(MIR_LOCAL_GET())
+                        hof32_gr.arg0 = hof32_result_local
+                        ctx_emit(ctx, hof32_gr)
+                        let hof32_gm = MirInst_new(MIR_LOCAL_GET())
+                        hof32_gm.arg0 = hof32_mapped
+                        ctx_emit(ctx, hof32_gm)
+                        let hof32_push_m = MirInst_new(MIR_CALL())
+                        hof32_push_m.str_val = String_from("push")
+                        hof32_push_m.int_val = 2
+                        let hof32_push_dest_m = ctx_fresh_local(ctx, VT_I32())
+                        hof32_push_m.dest = hof32_push_dest_m
+                        ctx_emit(ctx, hof32_push_m)
+                    }
+
+                    // filter: if callback(elem) { push(result, elem) }
+                    if is_filter_i32 {
+                        let hof32_fge = MirInst_new(MIR_LOCAL_GET())
+                        hof32_fge.arg0 = hof32_elem_local
+                        ctx_emit(ctx, hof32_fge)
+                        let hof32_cond = ctx_fresh_local(ctx, VT_I32())
+                        let hof32_fcb = MirInst_new(MIR_CALL())
+                        hof32_fcb.str_val = clone(hof32_fn_name)
+                        hof32_fcb.int_val = 1
+                        hof32_fcb.dest = hof32_cond
+                        ctx_emit(ctx, hof32_fcb)
+                        let hof32_set_cond = MirInst_new(MIR_LOCAL_SET())
+                        hof32_set_cond.arg0 = hof32_cond
+                        ctx_emit(ctx, hof32_set_cond)
+                        let hof32_gcond = MirInst_new(MIR_LOCAL_GET())
+                        hof32_gcond.arg0 = hof32_cond
+                        ctx_emit(ctx, hof32_gcond)
+                        ctx_emit(ctx, MirInst_new(MIR_IF()))
+                        ctx.nesting_depth = ctx.nesting_depth + 1
+                        let hof32_fgr = MirInst_new(MIR_LOCAL_GET())
+                        hof32_fgr.arg0 = hof32_result_local
+                        ctx_emit(ctx, hof32_fgr)
+                        let hof32_fge2 = MirInst_new(MIR_LOCAL_GET())
+                        hof32_fge2.arg0 = hof32_elem_local
+                        ctx_emit(ctx, hof32_fge2)
+                        let hof32_push_f = MirInst_new(MIR_CALL())
+                        hof32_push_f.str_val = String_from("push")
+                        hof32_push_f.int_val = 2
+                        let hof32_push_dest_f = ctx_fresh_local(ctx, VT_I32())
+                        hof32_push_f.dest = hof32_push_dest_f
+                        ctx_emit(ctx, hof32_push_f)
+                        ctx_emit(ctx, MirInst_new(MIR_END()))
+                        ctx.nesting_depth = ctx.nesting_depth - 1
+                    }
+
+                    // fold: acc = callback(acc, elem)
+                    if is_fold_i32_i32 {
+                        let hof32_ga = MirInst_new(MIR_LOCAL_GET())
+                        hof32_ga.arg0 = hof32_acc_local
+                        ctx_emit(ctx, hof32_ga)
+                        let hof32_ge2 = MirInst_new(MIR_LOCAL_GET())
+                        hof32_ge2.arg0 = hof32_elem_local
+                        ctx_emit(ctx, hof32_ge2)
+                        let hof32_acc_new = ctx_fresh_local(ctx, VT_I32())
+                        let hof32_fold_cb = MirInst_new(MIR_CALL())
+                        hof32_fold_cb.str_val = clone(hof32_fn_name)
+                        hof32_fold_cb.int_val = 2
+                        hof32_fold_cb.dest = hof32_acc_new
+                        ctx_emit(ctx, hof32_fold_cb)
+                        let hof32_set_acc_new = MirInst_new(MIR_LOCAL_SET())
+                        hof32_set_acc_new.arg0 = hof32_acc_local
+                        ctx_emit(ctx, hof32_set_acc_new)
+                    }
+
+                    // idx = idx + 1
+                    let hof32_one = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_const_i32(1, hof32_one))
+                    let hof32_set_one = MirInst_new(MIR_LOCAL_SET())
+                    hof32_set_one.arg0 = hof32_one
+                    ctx_emit(ctx, hof32_set_one)
+                    let hof32_gi2 = MirInst_new(MIR_LOCAL_GET())
+                    hof32_gi2.arg0 = hof32_idx_local
+                    ctx_emit(ctx, hof32_gi2)
+                    let hof32_go = MirInst_new(MIR_LOCAL_GET())
+                    hof32_go.arg0 = hof32_one
+                    ctx_emit(ctx, hof32_go)
+                    let hof32_add_dest = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_binop(MIR_ADD(), hof32_add_dest, hof32_idx_local, hof32_one))
+                    let hof32_set_idx_inc = MirInst_new(MIR_LOCAL_SET())
+                    hof32_set_idx_inc.arg0 = hof32_idx_local
+                    ctx_emit(ctx, hof32_set_idx_inc)
+
+                    // BR 0 (loop back)
+                    let hof32_br_loop = MirInst_new(MIR_BR())
+                    hof32_br_loop.int_val = 0
+                    ctx_emit(ctx, hof32_br_loop)
+
+                    // END loop, END block
+                    ctx_emit(ctx, MirInst_new(MIR_END()))
+                    ctx.nesting_depth = ctx.nesting_depth - 1
+                    ctx_emit(ctx, MirInst_new(MIR_END()))
+                    ctx.nesting_depth = ctx.nesting_depth - 1
+
+                    // Return result
+                    if is_fold_i32_i32 {
+                        let hof32_get_acc = MirInst_new(MIR_LOCAL_GET())
+                        hof32_get_acc.arg0 = hof32_acc_local
+                        ctx_emit(ctx, hof32_get_acc)
+                        return hof32_acc_local
+                    } else {
+                        let hof32_get_res = MirInst_new(MIR_LOCAL_GET())
+                        hof32_get_res.arg0 = hof32_result_local
+                        ctx_emit(ctx, hof32_get_res)
+                        return hof32_result_local
+                    }
+                }
+            }
+
+            // HOF inline expansion for map_f64_f64, filter_f64
+            let is_map_f64_f64 = eq(clone(hof_callee_text), "map_f64_f64")
+            let is_filter_f64 = eq(clone(hof_callee_text), "filter_f64")
+            if is_map_f64_f64 || is_filter_f64 {
+                if child_count >= 3 {
+                    let hof_f64_cb_node = get_unchecked(node.children, 2)
+                    let hof_f64_fn_name = clone(hof_f64_cb_node.text)
+
+                    // Lower and save vec ptr
+                    let hof_f64_vec_child = get_unchecked(node.children, 1)
+                    let hof_f64_vec_local = lower_expr(ctx, hof_f64_vec_child)
+                    let hof_f64_set_vec = MirInst_new(MIR_LOCAL_SET())
+                    hof_f64_set_vec.arg0 = hof_f64_vec_local
+                    ctx_emit(ctx, hof_f64_set_vec)
+                    ctx_set_local_type(ctx, hof_f64_vec_local, String_from("vec:f64"))
+
+                    // n = vec_len(vec)
+                    let hof_f64_get_v_len = MirInst_new(MIR_LOCAL_GET())
+                    hof_f64_get_v_len.arg0 = hof_f64_vec_local
+                    ctx_emit(ctx, hof_f64_get_v_len)
+                    let hof_f64_n_local = ctx_fresh_local(ctx, VT_I32())
+                    let hof_f64_len_call = MirInst_new(MIR_CALL())
+                    hof_f64_len_call.str_val = String_from("vec_len")
+                    hof_f64_len_call.int_val = 1
+                    hof_f64_len_call.dest = hof_f64_n_local
+                    ctx_emit(ctx, hof_f64_len_call)
+                    let hof_f64_set_n = MirInst_new(MIR_LOCAL_SET())
+                    hof_f64_set_n.arg0 = hof_f64_n_local
+                    ctx_emit(ctx, hof_f64_set_n)
+
+                    // idx = 0
+                    let hof_f64_idx_local = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_const_i32(0, hof_f64_idx_local))
+                    let hof_f64_set_idx0 = MirInst_new(MIR_LOCAL_SET())
+                    hof_f64_set_idx0.arg0 = hof_f64_idx_local
+                    ctx_emit(ctx, hof_f64_set_idx0)
+
+                    // allocate result vec
+                    let hof_f64_result_local = ctx_fresh_local(ctx, VT_I32())
+                    let hof_f64_new_call = MirInst_new(MIR_CALL())
+                    hof_f64_new_call.str_val = String_from("Vec_new_f64")
+                    hof_f64_new_call.int_val = 0
+                    hof_f64_new_call.dest = hof_f64_result_local
+                    ctx_emit(ctx, hof_f64_new_call)
+                    let hof_f64_set_result = MirInst_new(MIR_LOCAL_SET())
+                    hof_f64_set_result.arg0 = hof_f64_result_local
+                    ctx_emit(ctx, hof_f64_set_result)
+                    ctx_set_local_type(ctx, hof_f64_result_local, String_from("vec:f64"))
+
+                    // BLOCK + LOOP
+                    ctx_emit(ctx, MirInst_new(MIR_BLOCK()))
+                    ctx.nesting_depth = ctx.nesting_depth + 1
+                    ctx_emit(ctx, MirInst_new(MIR_LOOP()))
+                    ctx.nesting_depth = ctx.nesting_depth + 1
+
+                    // if idx >= n: br 1
+                    let hof_f64_g1 = MirInst_new(MIR_LOCAL_GET())
+                    hof_f64_g1.arg0 = hof_f64_idx_local
+                    ctx_emit(ctx, hof_f64_g1)
+                    let hof_f64_g2 = MirInst_new(MIR_LOCAL_GET())
+                    hof_f64_g2.arg0 = hof_f64_n_local
+                    ctx_emit(ctx, hof_f64_g2)
+                    let hof_f64_cmp_dest = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_binop(MIR_GTEQ(), hof_f64_cmp_dest, hof_f64_idx_local, hof_f64_n_local))
+                    let hof_f64_br_brk = MirInst_new(MIR_BR_IF())
+                    hof_f64_br_brk.int_val = 1
+                    ctx_emit(ctx, hof_f64_br_brk)
+
+                    // elem = vec_get_unchecked_f64(vec, idx)
+                    let hof_f64_gv = MirInst_new(MIR_LOCAL_GET())
+                    hof_f64_gv.arg0 = hof_f64_vec_local
+                    ctx_emit(ctx, hof_f64_gv)
+                    let hof_f64_gi = MirInst_new(MIR_LOCAL_GET())
+                    hof_f64_gi.arg0 = hof_f64_idx_local
+                    ctx_emit(ctx, hof_f64_gi)
+                    let hof_f64_elem_local = ctx_fresh_local(ctx, VT_F64())
+                    let hof_f64_gu = MirInst_new(MIR_CALL())
+                    hof_f64_gu.str_val = String_from("vec_get_unchecked_f64")
+                    hof_f64_gu.int_val = 2
+                    hof_f64_gu.dest = hof_f64_elem_local
+                    ctx_emit(ctx, hof_f64_gu)
+                    let hof_f64_set_elem = MirInst_new(MIR_LOCAL_SET())
+                    hof_f64_set_elem.arg0 = hof_f64_elem_local
+                    ctx_emit(ctx, hof_f64_set_elem)
+
+                    // map: mapped = callback(elem); push_f64(result, mapped)
+                    if is_map_f64_f64 {
+                        let hof_f64_ge = MirInst_new(MIR_LOCAL_GET())
+                        hof_f64_ge.arg0 = hof_f64_elem_local
+                        ctx_emit(ctx, hof_f64_ge)
+                        let hof_f64_mapped = ctx_fresh_local(ctx, VT_F64())
+                        let hof_f64_map_cb = MirInst_new(MIR_CALL())
+                        hof_f64_map_cb.str_val = clone(hof_f64_fn_name)
+                        hof_f64_map_cb.int_val = 1
+                        hof_f64_map_cb.dest = hof_f64_mapped
+                        ctx_emit(ctx, hof_f64_map_cb)
+                        let hof_f64_set_mapped = MirInst_new(MIR_LOCAL_SET())
+                        hof_f64_set_mapped.arg0 = hof_f64_mapped
+                        ctx_emit(ctx, hof_f64_set_mapped)
+                        let hof_f64_gr = MirInst_new(MIR_LOCAL_GET())
+                        hof_f64_gr.arg0 = hof_f64_result_local
+                        ctx_emit(ctx, hof_f64_gr)
+                        let hof_f64_gm = MirInst_new(MIR_LOCAL_GET())
+                        hof_f64_gm.arg0 = hof_f64_mapped
+                        ctx_emit(ctx, hof_f64_gm)
+                        let hof_f64_push_m = MirInst_new(MIR_CALL())
+                        hof_f64_push_m.str_val = String_from("push_f64")
+                        hof_f64_push_m.int_val = 2
+                        let hof_f64_push_dest_m = ctx_fresh_local(ctx, VT_I32())
+                        hof_f64_push_m.dest = hof_f64_push_dest_m
+                        ctx_emit(ctx, hof_f64_push_m)
+                    }
+
+                    // filter: if callback(elem) { push_f64(result, elem) }
+                    if is_filter_f64 {
+                        let hof_f64_fge = MirInst_new(MIR_LOCAL_GET())
+                        hof_f64_fge.arg0 = hof_f64_elem_local
+                        ctx_emit(ctx, hof_f64_fge)
+                        let hof_f64_cond = ctx_fresh_local(ctx, VT_I32())
+                        let hof_f64_fcb = MirInst_new(MIR_CALL())
+                        hof_f64_fcb.str_val = clone(hof_f64_fn_name)
+                        hof_f64_fcb.int_val = 1
+                        hof_f64_fcb.dest = hof_f64_cond
+                        ctx_emit(ctx, hof_f64_fcb)
+                        let hof_f64_set_cond = MirInst_new(MIR_LOCAL_SET())
+                        hof_f64_set_cond.arg0 = hof_f64_cond
+                        ctx_emit(ctx, hof_f64_set_cond)
+                        let hof_f64_gcond = MirInst_new(MIR_LOCAL_GET())
+                        hof_f64_gcond.arg0 = hof_f64_cond
+                        ctx_emit(ctx, hof_f64_gcond)
+                        ctx_emit(ctx, MirInst_new(MIR_IF()))
+                        ctx.nesting_depth = ctx.nesting_depth + 1
+                        let hof_f64_fgr = MirInst_new(MIR_LOCAL_GET())
+                        hof_f64_fgr.arg0 = hof_f64_result_local
+                        ctx_emit(ctx, hof_f64_fgr)
+                        let hof_f64_fge2 = MirInst_new(MIR_LOCAL_GET())
+                        hof_f64_fge2.arg0 = hof_f64_elem_local
+                        ctx_emit(ctx, hof_f64_fge2)
+                        let hof_f64_push_f = MirInst_new(MIR_CALL())
+                        hof_f64_push_f.str_val = String_from("push_f64")
+                        hof_f64_push_f.int_val = 2
+                        let hof_f64_push_dest_f = ctx_fresh_local(ctx, VT_I32())
+                        hof_f64_push_f.dest = hof_f64_push_dest_f
+                        ctx_emit(ctx, hof_f64_push_f)
+                        ctx_emit(ctx, MirInst_new(MIR_END()))
+                        ctx.nesting_depth = ctx.nesting_depth - 1
+                    }
+
+                    // idx = idx + 1
+                    let hof_f64_one = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_const_i32(1, hof_f64_one))
+                    let hof_f64_set_one = MirInst_new(MIR_LOCAL_SET())
+                    hof_f64_set_one.arg0 = hof_f64_one
+                    ctx_emit(ctx, hof_f64_set_one)
+                    let hof_f64_gi2 = MirInst_new(MIR_LOCAL_GET())
+                    hof_f64_gi2.arg0 = hof_f64_idx_local
+                    ctx_emit(ctx, hof_f64_gi2)
+                    let hof_f64_go = MirInst_new(MIR_LOCAL_GET())
+                    hof_f64_go.arg0 = hof_f64_one
+                    ctx_emit(ctx, hof_f64_go)
+                    let hof_f64_add_dest = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_binop(MIR_ADD(), hof_f64_add_dest, hof_f64_idx_local, hof_f64_one))
+                    let hof_f64_set_idx_inc = MirInst_new(MIR_LOCAL_SET())
+                    hof_f64_set_idx_inc.arg0 = hof_f64_idx_local
+                    ctx_emit(ctx, hof_f64_set_idx_inc)
+
+                    // BR 0 (loop back)
+                    let hof_f64_br_loop = MirInst_new(MIR_BR())
+                    hof_f64_br_loop.int_val = 0
+                    ctx_emit(ctx, hof_f64_br_loop)
+
+                    // END loop, END block
+                    ctx_emit(ctx, MirInst_new(MIR_END()))
+                    ctx.nesting_depth = ctx.nesting_depth - 1
+                    ctx_emit(ctx, MirInst_new(MIR_END()))
+                    ctx.nesting_depth = ctx.nesting_depth - 1
+
+                    // Return result
+                    let hof_f64_get_res = MirInst_new(MIR_LOCAL_GET())
+                    hof_f64_get_res.arg0 = hof_f64_result_local
+                    ctx_emit(ctx, hof_f64_get_res)
+                    return hof_f64_result_local
+                }
+            }
+
+            // HOF inline expansion for map_option_i32_i32
+            let is_map_option_i32 = eq(clone(hof_callee_text), "map_option_i32_i32")
+            if is_map_option_i32 {
+                if child_count >= 3 {
+                    let mopt_cb_node = get_unchecked(node.children, 2)
+                    let mopt_fn_name = clone(mopt_cb_node.text)
+
+                    // Lower option argument
+                    let mopt_opt_child = get_unchecked(node.children, 1)
+                    let mopt_opt_local = lower_expr(ctx, mopt_opt_child)
+                    let mopt_set_opt = MirInst_new(MIR_LOCAL_SET())
+                    mopt_set_opt.arg0 = mopt_opt_local
+                    ctx_emit(ctx, mopt_set_opt)
+
+                    // Read tag from option (offset 0): LOCAL_GET → STRUCT_GET → LOCAL_SET
+                    let mopt_tag_local = ctx_fresh_local(ctx, VT_I32())
+                    let mopt_get_opt1 = MirInst_new(MIR_LOCAL_GET())
+                    mopt_get_opt1.arg0 = mopt_opt_local
+                    ctx_emit(ctx, mopt_get_opt1)
+                    let mopt_sget_tag = MirInst_new(MIR_STRUCT_GET())
+                    mopt_sget_tag.int_val = 0
+                    ctx_emit(ctx, mopt_sget_tag)
+                    let mopt_set_tag = MirInst_new(MIR_LOCAL_SET())
+                    mopt_set_tag.arg0 = mopt_tag_local
+                    ctx_emit(ctx, mopt_set_tag)
+
+                    // Allocate new option: 8 bytes (tag + payload)
+                    let mopt_new_local = ctx_fresh_local(ctx, VT_I32())
+                    let mopt_alloc = MirInst_new(MIR_STRUCT_NEW())
+                    mopt_alloc.dest = mopt_new_local
+                    mopt_alloc.int_val = 8
+                    ctx_emit(ctx, mopt_alloc)
+
+                    // Push NOT(tag) as if-condition: tag==0 (Some) → NOT → 1 → enter if
+                    let mopt_get_tag1 = MirInst_new(MIR_LOCAL_GET())
+                    mopt_get_tag1.arg0 = mopt_tag_local
+                    ctx_emit(ctx, mopt_get_tag1)
+                    let mopt_not = MirInst_new(MIR_NOT())
+                    mopt_not.dest = mopt_tag_local
+                    mopt_not.arg0 = mopt_tag_local
+                    ctx_emit(ctx, mopt_not)
+
+                    ctx_emit(ctx, MirInst_new(MIR_IF()))
+                    ctx.nesting_depth = ctx.nesting_depth + 1
+
+                    // Some branch: read payload, call callback, store result in new_opt
+                    let mopt_payload_local = ctx_fresh_local(ctx, VT_I32())
+                    let mopt_get_opt2 = MirInst_new(MIR_LOCAL_GET())
+                    mopt_get_opt2.arg0 = mopt_opt_local
+                    ctx_emit(ctx, mopt_get_opt2)
+                    let mopt_sget_payload = MirInst_new(MIR_STRUCT_GET())
+                    mopt_sget_payload.int_val = 4
+                    ctx_emit(ctx, mopt_sget_payload)
+                    let mopt_set_payload = MirInst_new(MIR_LOCAL_SET())
+                    mopt_set_payload.arg0 = mopt_payload_local
+                    ctx_emit(ctx, mopt_set_payload)
+
+                    let mopt_result_local = ctx_fresh_local(ctx, VT_I32())
+                    let mopt_get_pl = MirInst_new(MIR_LOCAL_GET())
+                    mopt_get_pl.arg0 = mopt_payload_local
+                    ctx_emit(ctx, mopt_get_pl)
+                    let mopt_cb_call = MirInst_new(MIR_CALL())
+                    mopt_cb_call.str_val = clone(mopt_fn_name)
+                    mopt_cb_call.int_val = 1
+                    mopt_cb_call.dest = mopt_result_local
+                    ctx_emit(ctx, mopt_cb_call)
+                    let mopt_set_result = MirInst_new(MIR_LOCAL_SET())
+                    mopt_set_result.arg0 = mopt_result_local
+                    ctx_emit(ctx, mopt_set_result)
+
+                    // Store tag=0 (Some) in new_opt at offset 0
+                    let mopt_tag_zero = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_const_i32(0, mopt_tag_zero))
+                    let mopt_sset_tag = MirInst_new(MIR_STRUCT_SET())
+                    mopt_sset_tag.arg0 = mopt_new_local
+                    mopt_sset_tag.arg1 = mopt_tag_zero
+                    mopt_sset_tag.int_val = 0
+                    ctx_emit(ctx, mopt_sset_tag)
+
+                    // Store result in new_opt at offset 4
+                    let mopt_get_res = MirInst_new(MIR_LOCAL_GET())
+                    mopt_get_res.arg0 = mopt_result_local
+                    ctx_emit(ctx, mopt_get_res)
+                    let mopt_sset_payload = MirInst_new(MIR_STRUCT_SET())
+                    mopt_sset_payload.arg0 = mopt_new_local
+                    mopt_sset_payload.arg1 = mopt_result_local
+                    mopt_sset_payload.int_val = 4
+                    ctx_emit(ctx, mopt_sset_payload)
+
+                    ctx_emit(ctx, MirInst_new(MIR_ELSE()))
+
+                    // None branch: store tag=1 in new_opt at offset 0
+                    let mopt_tag_one = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_const_i32(1, mopt_tag_one))
+                    let mopt_sset_none = MirInst_new(MIR_STRUCT_SET())
+                    mopt_sset_none.arg0 = mopt_new_local
+                    mopt_sset_none.arg1 = mopt_tag_one
+                    mopt_sset_none.int_val = 0
+                    ctx_emit(ctx, mopt_sset_none)
+
+                    ctx_emit(ctx, MirInst_new(MIR_END()))
+                    ctx.nesting_depth = ctx.nesting_depth - 1
+
+                    // Return new option ptr
+                    let mopt_get_new = MirInst_new(MIR_LOCAL_GET())
+                    mopt_get_new.arg0 = mopt_new_local
+                    ctx_emit(ctx, mopt_get_new)
+                    return mopt_new_local
+                }
+            }
+
             let call_inst = MirInst_new(MIR_CALL())
             call_inst.str_val = clone(callee.text)
-            let is_println = eq(clone(callee.text), "stdio::println") || eq(clone(callee.text), "println") || eq(clone(callee.text), "stdio::print") || eq(clone(callee.text), "print") || eq(clone(callee.text), "stdio::eprintln") || eq(clone(callee.text), "eprintln")
-            // Lower arguments and track first arg index for type dispatch
+            let is_println = eq(clone(callee.text), "stdio::println") || eq(clone(callee.text), "println") || eq(clone(callee.text), "stdio::print") || eq(clone(callee.text), "print") || eq(clone(callee.text), "stdio::eprintln") || eq(clone(callee.text), "eprintln") || eq(clone(callee.text), "__intrinsic_println")
+            // Lower arguments and track first/second arg index for type dispatch
             let mut first_arg_idx = 0 - 1
+            let mut second_arg_idx = 0 - 1
             let mut a = 1
             while a < child_count {
                 let arg = get_unchecked(node.children, a)
@@ -2150,7 +2996,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         }
                     }
                     if needs_convert {
-                        // Wrap with to_string / char_to_string / bool_to_string
+                        // Wrap with to_string / char_to_string / bool_to_string / i64_to_string
                         let wrap_inst = MirInst_new(MIR_CALL())
                         let wrap_lt = ctx_get_local_type(ctx, arg_idx)
                         if eq(clone(wrap_lt), "char") || arg.kind == NK_CHAR_LIT() {
@@ -2159,6 +3005,8 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                             wrap_inst.str_val = String_from("bool_to_string")
                         } else if eq(clone(wrap_lt), "f64") || arg.kind == NK_FLOAT_LIT() {
                             wrap_inst.str_val = String_from("f64_to_string")
+                        } else if eq(clone(wrap_lt), "i64") || eq(clone(wrap_lt), "u64") || ctx_local_vt(ctx, arg_idx) == VT_I64() {
+                            wrap_inst.str_val = String_from("i64_to_string")
                         } else {
                             wrap_inst.str_val = String_from("to_string")
                         }
@@ -2171,6 +3019,9 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 }
                 if a == 1 {
                     first_arg_idx = arg_idx
+                }
+                if a == 2 {
+                    second_arg_idx = arg_idx
                 }
                 a = a + 1
             }
@@ -2202,7 +3053,15 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             if eq(clone(call_inst.str_val), "push") {
                 if first_arg_idx >= 0 {
                     let arg_type_push = ctx_get_local_type(ctx, first_arg_idx)
-                    if starts_with(clone(arg_type_push), "vec:") {
+                    if eq(clone(arg_type_push), "vec:i64") {
+                        call_inst.str_val = String_from("push_i64")
+                        // Extend i32 value to i64 if needed (e.g. push(v, 10) literal)
+                        if second_arg_idx >= 0 && ctx_local_vt(ctx, second_arg_idx) == VT_I32() {
+                            ctx_emit(ctx, MirInst_new(MIR_EXTEND_I32_TO_I64()))
+                        }
+                    } else if eq(clone(arg_type_push), "vec:f64") {
+                        call_inst.str_val = String_from("push_f64")
+                    } else if starts_with(clone(arg_type_push), "vec:") {
                         call_inst.str_val = String_from("vec_push")
                     }
                 }
@@ -2210,7 +3069,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             if eq(clone(call_inst.str_val), "get_unchecked") {
                 if first_arg_idx >= 0 {
                     let arg_type_get = ctx_get_local_type(ctx, first_arg_idx)
-                    if starts_with(clone(arg_type_get), "vec:") {
+                    if eq(clone(arg_type_get), "vec:i64") {
+                        call_inst.str_val = String_from("vec_get_unchecked_i64")
+                    } else if eq(clone(arg_type_get), "vec:f64") {
+                        call_inst.str_val = String_from("vec_get_unchecked_f64")
+                    } else if starts_with(clone(arg_type_get), "vec:") {
                         call_inst.str_val = String_from("vec_get_unchecked")
                     }
                 }
@@ -2237,6 +3100,8 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let call_ret_vt = ctx_fn_return_vt(ctx, clone(callee_name))
             let mut dest_vt = VT_I32()
             if call_ret_vt == VT_I64() { dest_vt = VT_I64() }
+            if eq(clone(callee_name), "vec_get_unchecked_i64") { dest_vt = VT_I64() }
+            if eq(clone(callee_name), "vec_get_unchecked_f64") { dest_vt = VT_F64() }
             let dest = ctx_fresh_local(ctx, dest_vt)
             call_inst.dest = dest
             call_inst.int_val = child_count - 1
@@ -2245,11 +3110,26 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 ctx_set_local_type(ctx, dest, concat("vec:", elem_ty))
             }
             // Track vec-returning builtins
-            if eq(clone(callee_name), "text::chars") || eq(clone(callee_name), "chars") || eq(clone(callee_name), "split") || eq(clone(callee_name), "text::split") {
+            if eq(clone(callee_name), "text::chars") || eq(clone(callee_name), "chars") || eq(clone(callee_name), "split") || eq(clone(callee_name), "text::split") || eq(clone(callee_name), "string::split") {
                 ctx_set_local_type(ctx, dest, String_from("vec:string"))
             }
+            if eq(clone(callee_name), "env::args") {
+                ctx_set_local_type(ctx, dest, String_from("vec:String"))
+            }
+            if eq(clone(callee_name), "hashmap_keys") || eq(clone(callee_name), "hash::hashmap_keys") || eq(clone(callee_name), "hashmap_values") || eq(clone(callee_name), "hash::hashmap_values") || eq(clone(callee_name), "hashset_to_vec") || eq(clone(callee_name), "hash::hashset_to_vec") {
+                ctx_set_local_type(ctx, dest, String_from("vec:i32"))
+            }
+            if eq(clone(callee_name), "hashmap_get_option") || eq(clone(callee_name), "hash::hashmap_get_option") || eq(clone(callee_name), "HashMap_i32_i32_get") || eq(clone(callee_name), "hashmap_remove") || eq(clone(callee_name), "hash::hashmap_remove") || eq(clone(callee_name), "HashMap_i32_i32_remove") {
+                ctx_set_local_type(ctx, dest, String_from("Option_i32"))
+            }
+            if eq(clone(callee_name), "hashmap_size") || eq(clone(callee_name), "hash::hashmap_size") || eq(clone(callee_name), "HashMap_i32_i32_len") || eq(clone(callee_name), "hashset_size") || eq(clone(callee_name), "hash::hashset_size") || eq(clone(callee_name), "HashMap_i32_i32_size") {
+                ctx_set_local_type(ctx, dest, String_from("i32"))
+            }
+            if eq(clone(callee_name), "hashmap_contains") || eq(clone(callee_name), "hash::hashmap_contains") || eq(clone(callee_name), "HashMap_i32_i32_contains_key") || eq(clone(callee_name), "hashmap_is_empty") || eq(clone(callee_name), "hash::hashmap_is_empty") || eq(clone(callee_name), "hashset_contains") || eq(clone(callee_name), "hash::hashset_contains") {
+                ctx_set_local_type(ctx, dest, String_from("bool"))
+            }
             // Track string-returning functions
-            if eq(clone(callee_name), "String_from") || eq(clone(callee_name), "concat") || eq(clone(callee_name), "clone") || eq(clone(callee_name), "to_string") || eq(clone(callee_name), "char_to_string") || eq(clone(callee_name), "bool_to_string") || eq(clone(callee_name), "f64_to_string") || eq(clone(callee_name), "substring") || eq(clone(callee_name), "trim") || eq(clone(callee_name), "to_uppercase") || eq(clone(callee_name), "to_lowercase") || eq(clone(callee_name), "replace") || eq(clone(callee_name), "string::repeat") {
+            if eq(clone(callee_name), "String_from") || eq(clone(callee_name), "concat") || eq(clone(callee_name), "clone") || eq(clone(callee_name), "to_string") || eq(clone(callee_name), "char_to_string") || eq(clone(callee_name), "bool_to_string") || eq(clone(callee_name), "f64_to_string") || eq(clone(callee_name), "substring") || eq(clone(callee_name), "trim") || eq(clone(callee_name), "to_uppercase") || eq(clone(callee_name), "to_lowercase") || eq(clone(callee_name), "replace") || eq(clone(callee_name), "string::repeat") || eq(clone(callee_name), "__intrinsic_i32_to_string") || eq(clone(callee_name), "__intrinsic_f64_to_string") {
                 ctx_set_local_type(ctx, dest, String_from("string"))
             }
             // Propagate element type from vec_get_unchecked result
@@ -2312,7 +3192,12 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             // Then block
             let then_body = get_unchecked(node.children, 1)
             let then_result = lower_expr(ctx, then_body)
+            // Upgrade result local type if then-branch produces i64 or f64
             if then_result >= 0 {
+                let then_vt = ctx_local_vt(ctx, then_result)
+                if then_vt == VT_I64() || then_vt == VT_F64() {
+                    ctx_set_local_vt(ctx, result, then_vt)
+                }
                 let set_inst = MirInst_new(MIR_LOCAL_SET())
                 set_inst.arg0 = result
                 set_inst.arg1 = then_result
@@ -2325,7 +3210,12 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 ctx_emit(ctx, MirInst_new(MIR_ELSE()))
                 let else_body = get_unchecked(node.children, 2)
                 else_result = lower_expr(ctx, else_body)
+                // Upgrade result local type if else-branch produces i64 or f64 and then-branch didn't
                 if else_result >= 0 {
+                    let else_vt = ctx_local_vt(ctx, else_result)
+                    if else_vt == VT_I64() || else_vt == VT_F64() {
+                        ctx_set_local_vt(ctx, result, else_vt)
+                    }
                     let set_inst2 = MirInst_new(MIR_LOCAL_SET())
                     set_inst2.arg0 = result
                     set_inst2.arg1 = else_result
@@ -2383,6 +3273,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let scrut_type = ctx_get_local_type(ctx, scrut_idx)
             let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") || eq(clone(scrut_type), "Option_f64")
             let scrut_ok_is_i64 = eq(clone(scrut_type), "Result_i64") || eq(clone(scrut_type), "Option_i64")
+            let scrut_ok_is_i32 = eq(clone(scrut_type), "Option_i32") || eq(clone(scrut_type), "Result_i32")
 
             // For payload enum match, extract the tag from the heap once
             let mut compare_idx = scrut_idx
@@ -2453,6 +3344,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                             if field_is_f64 { bind_vt = VT_F64() }
                             else if field_is_i64 { bind_vt = VT_I64() }
                             let bind_local = ctx_alloc_local(ctx, clone(bind_pat.text), bind_vt)
+                            if bind_vt == VT_I32() && scrut_ok_is_i32 && bi == 0 {
+                                if eq(clone(variant_name), "Ok") || eq(clone(variant_name), "Result::Ok") || eq(clone(variant_name), "Some") || eq(clone(variant_name), "Option::Some") {
+                                    ctx_set_local_type(ctx, bind_local, String_from("i32"))
+                                }
+                            }
                             let get_s2 = MirInst_new(MIR_LOCAL_GET())
                             get_s2.arg0 = scrut_idx
                             ctx_emit(ctx, get_s2)
@@ -2477,6 +3373,10 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     }
                     let arm_result = lower_expr(ctx, body)
                     if arm_result >= 0 {
+                        let arm_vt = ctx_local_vt(ctx, arm_result)
+                        if arm_vt == VT_I64() || arm_vt == VT_F64() {
+                            ctx_set_local_vt(ctx, result, arm_vt)
+                        }
                         let set_inst = MirInst_new(MIR_LOCAL_SET())
                         set_inst.arg0 = result
                         set_inst.arg1 = arm_result
@@ -2547,6 +3447,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                                 if field_is_f64_2 { bind_vt2 = VT_F64() }
                                 else if field_is_i64_2 { bind_vt2 = VT_I64() }
                                 let bind_local2 = ctx_alloc_local(ctx, clone(bind_pat2.text), bind_vt2)
+                                if bind_vt2 == VT_I32() && scrut_ok_is_i32 && bi2 == 0 {
+                                    if eq(clone(variant_name2), "Ok") || eq(clone(variant_name2), "Result::Ok") || eq(clone(variant_name2), "Some") || eq(clone(variant_name2), "Option::Some") {
+                                        ctx_set_local_type(ctx, bind_local2, String_from("i32"))
+                                    }
+                                }
                                 let get_s3 = MirInst_new(MIR_LOCAL_GET())
                                 get_s3.arg0 = scrut_idx
                                 ctx_emit(ctx, get_s3)
@@ -2574,6 +3479,10 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
 
                     let arm_result = lower_expr(ctx, body)
                     if arm_result >= 0 {
+                        let arm_vt2 = ctx_local_vt(ctx, arm_result)
+                        if arm_vt2 == VT_I64() || arm_vt2 == VT_F64() {
+                            ctx_set_local_vt(ctx, result, arm_vt2)
+                        }
                         let set_inst = MirInst_new(MIR_LOCAL_SET())
                         set_inst.arg0 = result
                         set_inst.arg1 = arm_result
@@ -2970,6 +3879,39 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         return dest
     }
 
+    // return/break/continue in expression position (e.g. match arm body: Ok(v) => return x)
+    if kind == NK_RETURN() {
+        let child_count = len(node.children)
+        if child_count >= 1 {
+            let expr = get_unchecked(node.children, 0)
+            let val_idx = lower_expr(ctx, expr)
+            let ret_inst = MirInst_new(MIR_RETURN())
+            ret_inst.arg0 = val_idx
+            ctx_emit(ctx, ret_inst)
+        } else {
+            ctx_emit(ctx, MirInst_new(MIR_RETURN()))
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_BREAK() {
+        if ctx.loop_break_depth >= 0 {
+            let br_inst = MirInst_new(MIR_BR())
+            br_inst.int_val = ctx.nesting_depth - ctx.loop_break_depth
+            ctx_emit(ctx, br_inst)
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_CONTINUE() {
+        if ctx.loop_continue_depth >= 0 {
+            let br_inst = MirInst_new(MIR_BR())
+            br_inst.int_val = ctx.nesting_depth - ctx.loop_continue_depth
+            ctx_emit(ctx, br_inst)
+        }
+        return 0 - 1
+    }
+
     // Unknown expression: emit NOP
     ctx_emit(ctx, MirInst_new(MIR_NOP()))
     0 - 1
@@ -3007,6 +3949,25 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                 }
             }
         }
+        // Evaluate the RHS BEFORE allocating the new local so that any use of the
+        // same name on the RHS (shadowing re-bind: `let x = f(x)`) still resolves
+        // to the old binding rather than the uninitialized new one.
+        let child_count = len(node.children)
+        let mut pre_val_idx = 0 - 1
+        let mut pre_init_kind = 0 - 1
+        if child_count >= 1 {
+            let pre_init = get_unchecked(node.children, 0)
+            pre_init_kind = pre_init.kind
+            pre_val_idx = lower_expr(ctx, pre_init)
+            // Infer vt from evaluated result when annotation was absent
+            if vt == VT_I32() && ta_count == 0 && pre_val_idx >= 0 {
+                let inferred_vt = ctx_local_vt(ctx, pre_val_idx)
+                if inferred_vt == VT_F64() || inferred_vt == VT_I64() {
+                    vt = inferred_vt
+                }
+            }
+        }
+
         let local_idx = ctx_alloc_local(ctx, clone(node.text), vt)
 
         // Check type annotation for primitive types and struct types
@@ -3052,10 +4013,9 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             }
         }
 
-        let child_count = len(node.children)
         if child_count >= 1 {
             let init = get_unchecked(node.children, 0)
-            let val_idx = lower_expr(ctx, init)
+            let val_idx = pre_val_idx
             if val_idx >= 0 {
                 // Post-correct local VT if init is f64 but local was allocated as i32
                 if ctx_local_vt(ctx, val_idx) == VT_F64() && ctx_local_vt(ctx, local_idx) == VT_I32() {
@@ -3083,18 +4043,18 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                 }
                 // Infer type from literal kind when no annotation and no propagated type
                 if ta_count == 0 && len(ctx_get_local_type(ctx, local_idx)) == 0 {
-                    if init.kind == NK_INT_LIT() {
+                    if pre_init_kind == NK_INT_LIT() {
                         ctx_set_local_type(ctx, local_idx, String_from("i32"))
-                    } else if init.kind == NK_FLOAT_LIT() {
+                    } else if pre_init_kind == NK_FLOAT_LIT() {
                         ctx_set_local_type(ctx, local_idx, String_from("f64"))
-                    } else if init.kind == NK_BOOL_LIT() {
+                    } else if pre_init_kind == NK_BOOL_LIT() {
                         ctx_set_local_type(ctx, local_idx, String_from("bool"))
-                    } else if init.kind == NK_CHAR_LIT() {
+                    } else if pre_init_kind == NK_CHAR_LIT() {
                         ctx_set_local_type(ctx, local_idx, String_from("char"))
                     }
                 }
             }
-            if init.kind == NK_CLOSURE() {
+            if pre_init_kind == NK_CLOSURE() {
                 if !eq(clone(node.text), String_from("_")) {
                     closure_flush_pending_bind(ctx, clone(node.text))
                 } else {
@@ -3516,6 +4476,24 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                     rvt = VT_I64()
                 } else if rt_tag == 7 || rt_tag == 8 || rt_tag == 0 {
                     rvt = VT_VOID()
+                } else if rt_tag == 10 {
+                    // TY_VEC=10: record "vec:elem_type" so len/push/get_unchecked dispatch correctly
+                    let vec_type_args = tf.return_type.type_args
+                    if len(vec_type_args) > 0 {
+                        let vec_elem = get_unchecked(vec_type_args, 0)
+                        let elem_tag = vec_elem.tag
+                        if elem_tag == 5 {
+                            rtn = String_from("vec:String")
+                        } else if elem_tag == 1 {
+                            rtn = String_from("vec:i32")
+                        } else if elem_tag == 2 {
+                            rtn = String_from("vec:i64")
+                        } else if elem_tag == 3 {
+                            rtn = String_from("vec:f64")
+                        } else {
+                            rtn = String_from("vec:i32")
+                        }
+                    }
                 } else if rt_tag == 21 || rt_tag == 22 {
                     // TY_STRUCT=21, TY_ENUM=22: record the struct/enum name
                     rtn = clone(tf.return_type.name)

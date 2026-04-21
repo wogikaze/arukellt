@@ -25,7 +25,7 @@
 Documentation of queue state only (no policy change).
 
 - **Bootstrap table / fixpoint evidence:** [Self-Hosting Bootstrap Status](../../docs/current-state.md#self-hosting-bootstrap-status) in `docs/current-state.md` (Stage 0–1 verified; Stage 2 fixpoint not reached; fixture / CLI / diagnostic parity rows as listed there, including current `sha256(s1)` / `sha256(s2)` snapshot).
-- **Parity / migration audit threads:** [#249](249-migration-v4-to-v5-selfhost-bootstrap.md) (v4→v5 selfhost bootstrap migration alignment), [#268](268-selfhost-parity-ci-verification.md) (fixture, CLI, and diagnostic parity CI harness).
+- **Parity / migration audit threads:** [#249](249-migration-v4-to-v5-selfhost-bootstrap.md) (v4→v5 selfhost bootstrap migration alignment), [#268](../done/268-selfhost-parity-ci-verification.md) (fixture, CLI, and diagnostic parity CI harness).
 - **Remaining Stage 2 gap:** Fixpoint still open — `sha256(s1) ≠ sha256(s2)` because selfhost `s1` does not implement multi-file module loading; cross-module `use` is ignored and calls are stubbed in `emitter.ark`, so `s2` stays a tiny stub build versus full `s1` (as described under **Fixpoint status** in `docs/current-state.md`).
 
 ## Closed by audit — 2026-04-03

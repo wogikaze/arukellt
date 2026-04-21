@@ -4869,18 +4869,21 @@ impl EmitCtx {
                     }
                     "substring" => {
                         // substring(s: String, start: i32, end: i32) -> String
-                        // Same as slice — copy bytes [start..end] to new heap allocation
+                        // Evaluates s once (into SCRATCH+20) to avoid scratch clobbering when
+                        // s is a complex inline operand (e.g. clone(x)) that shares NWRITTEN/SCRATCH
+                        // with this operation.  Then uses memory.copy for the bulk copy.
                         let ma = MemArg {
                             offset: 0,
                             align: 2,
                             memory_index: 0,
                         };
-                        let ma0 = MemArg {
-                            offset: 0,
-                            align: 0,
-                            memory_index: 0,
-                        };
-                        // Compute new_len = end - start, save to SCRATCH+16
+                        // Evaluate s once and save to SCRATCH+20 (s_ptr).
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Compute new_len = end - start, save to SCRATCH+16.
                         f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
                         if let Some(end_arg) = args.get(2) {
                             self.emit_operand(f, end_arg);
@@ -4890,57 +4893,33 @@ impl EmitCtx {
                         }
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Store(ma));
-                        // Pre-grow
+                        // Pre-grow to ensure heap can hold len+4 bytes.
                         self.emit_pre_alloc_grow_from_scratch(f, (SCRATCH + 16) as i32);
-                        // Write new_len at heap_ptr
+                        // Write new_len at heap_ptr (length prefix).
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Store(ma));
-                        // Use NWRITTEN as loop counter i = 0
-                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                        f.instruction(&Instruction::I32Const(0));
-                        f.instruction(&Instruction::I32Store(ma));
-                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
-                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
-                        // if i >= new_len, break
-                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                        f.instruction(&Instruction::I32Load(ma));
-                        f.instruction(&Instruction::GlobalGet(0));
-                        f.instruction(&Instruction::I32Load(ma)); // new_len
-                        f.instruction(&Instruction::I32GeU);
-                        f.instruction(&Instruction::BrIf(1));
-                        // dst = heap + 4 + i
+                        // memory.copy(dst=heap+4, src=s_ptr+start, len=new_len)
+                        // dst = heap + 4
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
-                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        // src = SCRATCH+20 (s_ptr) + start
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
                         f.instruction(&Instruction::I32Load(ma));
-                        f.instruction(&Instruction::I32Add);
-                        // src = s + start + i
-                        if let Some(s) = args.first() {
-                            self.emit_operand(f, s);
-                        }
                         if let Some(start_arg) = args.get(1) {
                             self.emit_operand(f, start_arg);
                         }
                         f.instruction(&Instruction::I32Add);
-                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        // len = new_len
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
                         f.instruction(&Instruction::I32Load(ma));
-                        f.instruction(&Instruction::I32Add);
-                        f.instruction(&Instruction::I32Load8U(ma0));
-                        f.instruction(&Instruction::I32Store8(ma0));
-                        // i++
-                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                        f.instruction(&Instruction::I32Load(ma));
-                        f.instruction(&Instruction::I32Const(1));
-                        f.instruction(&Instruction::I32Add);
-                        f.instruction(&Instruction::I32Store(ma));
-                        f.instruction(&Instruction::Br(0));
-                        f.instruction(&Instruction::End);
-                        f.instruction(&Instruction::End);
-                        // result = heap + 4
+                        f.instruction(&Instruction::MemoryCopy {
+                            src_mem: 0,
+                            dst_mem: 0,
+                        });
+                        // result = heap + 4  (left on WASM stack for caller)
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
