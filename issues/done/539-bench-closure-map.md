@@ -47,7 +47,7 @@ Benchmark fixture exists, is registered in the runner, and baseline is updated.
 
 ## Close note
 
-Implemented in commit on branch `feat/539-bench-closure-map`. Benchmark compiles and produces
+Implemented in commit `698c8e8a` on branch `feat/539-bench-closure-map`. Benchmark compiles and produces
 deterministic output `6017000` (map: `x * 3 + 7` over 2000 elements, reduce: sum). Closures
 with lexical captures work as expected via the production Rust compiler. Feature matrix updated
 to mark closures/higher-order functions as covered.
