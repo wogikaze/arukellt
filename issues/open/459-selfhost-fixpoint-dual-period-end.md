@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-04-02
-**Updated**: 2026-04-18
+**Updated**: 2025-07-14
 **ID**: 459
 **Depends on**: 445, 446, 447, 448, 449
 **Track**: compiler, selfhost
@@ -21,13 +21,68 @@
 
 **Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
-## Progress — 2026-04-18
+## Progress — 2026-04-21
 
-Documentation of queue state only (no policy change).
+Queue state update with explicit Phase 1 task list.
 
-- **Bootstrap table / fixpoint evidence:** [Self-Hosting Bootstrap Status](../../docs/current-state.md#self-hosting-bootstrap-status) in `docs/current-state.md` (Stage 0–1 verified; Stage 2 fixpoint not reached; fixture / CLI / diagnostic parity rows as listed there, including current `sha256(s1)` / `sha256(s2)` snapshot).
-- **Parity / migration audit threads:** [#249](249-migration-v4-to-v5-selfhost-bootstrap.md) (v4→v5 selfhost bootstrap migration alignment), [#268](../done/268-selfhost-parity-ci-verification.md) (fixture, CLI, and diagnostic parity CI harness).
-- **Remaining Stage 2 gap:** Fixpoint still open — `sha256(s1) ≠ sha256(s2)` because selfhost `s1` does not implement multi-file module loading; cross-module `use` is ignored and calls are stubbed in `emitter.ark`, so `s2` stays a tiny stub build versus full `s1` (as described under **Fixpoint status** in `docs/current-state.md`).
+- **Bootstrap table / fixpoint evidence:** [Self-Hosting Bootstrap Status](../../docs/current-state.md#self-hosting-bootstrap-status) in `docs/current-state.md` (Stage 0 complete; Stage 1 self-compile reached; Stage 2 fixpoint not reached).
+- **Current fixpoint evidence:** `stage1-self-compile: reached`, `stage2-fixpoint: not-reached`; `s1` = 567,736 bytes, `s2` = 536,522 bytes.
+- **Parity status:** Fixture parity is in progress (`PASS 761 / FAIL 10 / SKIP 15` per latest session note). This is Phase 2 side work; it does not change the Phase 1 gate.
+- **Remaining Stage 2 gap:** Fixpoint is still blocked by selfhost architectural gaps, not by trusted-base fixture bugs.
+
+### Phase 1 task list (must finish before Phase 2+ is treated as meaningful)
+
+#### Task 1 — `src/compiler/driver.ark`: recursive module loading
+
+Goal: selfhost compiler must follow `use` declarations and load the full multi-file compiler source tree instead of compiling only the entry file.
+
+Required scope:
+- resolve `use foo` / `use foo::bar` against sibling module files under `src/compiler/`
+- recursively load discovered modules
+- maintain a visited set to avoid duplicate loads
+- make module discovery / load order deterministic
+- fail explicitly on missing module files instead of silently emitting partial output
+
+Repo evidence required for closure:
+- `src/compiler/driver.ark` contains deterministic recursive module loading
+- selfhost compile of `src/compiler/main.ark` includes imported compiler modules instead of entry-file-only stubs
+
+#### Task 2 — `src/compiler/mir.ark` + `src/compiler/emitter.ark`: qualified call resolution
+
+Goal: cross-module calls such as `lexer::tokenize` must lower and emit as real function references, not stubbed or dropped calls.
+
+Required scope:
+- resolve qualified names to the correct function symbol during selfhost lowering
+- preserve deterministic symbol / function index allocation
+- ensure emitted calls target the resolved cross-module function body
+- prove that `lexer::tokenize`-style calls survive MIR and reach final wasm output
+
+Repo evidence required for closure:
+- no stubbed cross-module call path remains in selfhost compiler for compiler-internal modules
+- MIR / emitter path for qualified calls is explicit and deterministic
+
+#### Task 3 — fixpoint verification
+
+Goal: after Task 1 and Task 2, prove Stage 2 fixpoint is actually reached.
+
+Required verification:
+- `bash scripts/run/verify-bootstrap.sh --check`
+- output shows `stage1-self-compile: reached`
+- output shows `stage2-fixpoint: reached`
+- `sha256(s1) == sha256(s2)`
+
+Audit note:
+- `scripts/check/check-selfhost-fixpoint.sh` does not exist; `verify-bootstrap.sh --check` is the canonical verifier for this phase.
+
+### What this progress update is NOT
+
+- It is NOT a claim that Phase 1 moved forward in this session.
+- It is NOT a claim that fixture parity progress reduces the fixpoint blocker.
+- It is NOT a claim that Stage 2 is waiting on benchmarks or docs.
+
+### Immediate gate
+
+Do not treat Phase 2+ progress as selfhost architectural progress until Task 1–3 above are complete.
 
 ## Closed by audit — 2026-04-03
 
