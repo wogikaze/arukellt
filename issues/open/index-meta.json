@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T18:13:29Z",
+  "generated_at": "2026-04-21T19:28:27Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -725,31 +725,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "504",
-      "path": "504-selfhost-trait-syntax.md",
-      "title": "504 — Selfhost: trait/interface syntax and impl-block infrastructure",
-      "track": "selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "yes",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "495",
-        "512"
-      ],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {
@@ -1640,30 +1615,6 @@
       }
     },
     {
-      "id": "539",
-      "path": "539-bench-closure-map.md",
-      "title": "539 — Benchmark: closure map (higher-order functions)",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "499"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "495",
       "path": "495-selfhost-trait-bounds.md",
       "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
@@ -1688,6 +1639,30 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#312, #504"
+      }
+    },
+    {
+      "id": "539",
+      "path": "539-bench-closure-map.md",
+      "title": "539 — Benchmark: closure map (higher-order functions)",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "499"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
       }
     },
     {

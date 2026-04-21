@@ -36,7 +36,6 @@ graph LR
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
   I500["500 500-playground-wasm-typecheck-export"]
-  I504["504 504 — Selfhost: trait/interface syntax and impl-block infrastructure"]
   I513["513 Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する"]
   I514["514 Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する"]
   I515["515 Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる"]
@@ -75,8 +74,8 @@ graph LR
   I510["510 T3 emitter: WASI P2 import-table switch (full P2-native component)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
-  I539["539 539 — Benchmark: closure map (higher-order functions)"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
+  I539["539 539 — Benchmark: closure map (higher-order functions)"]
   I542["542 542 — Benchmark: error chain (Result / error propagation)"]
   I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
@@ -97,9 +96,8 @@ graph LR
   I074 --> I510
   I125 --> I126
   I285 --> I508
-  I499 --> I539
   I312 --> I495
-  I504 --> I495
+  I499 --> I539
   I515 --> I542
   I513 --> I518
   I517 --> I518
@@ -111,7 +109,6 @@ graph LR
   I074 --> I121
   I124 --> I121
   I510 --> I121
-  I504 --> I512
   I495 --> I512
   I076 --> I543
   I036 --> I037
@@ -149,7 +146,6 @@ graph LR
 - **494** depends on: 493, 503; blocks: none
 - **499** depends on: none; blocks: 539
 - **500** depends on: none; blocks: none
-- **504** depends on: none; blocks: 495, 512
 - **513** depends on: none; blocks: 518
 - **514** depends on: none; blocks: none
 - **515** depends on: none; blocks: 542
@@ -188,8 +184,8 @@ graph LR
 - **510** depends on: 074; blocks: 076, 121
 - **126** depends on: 125; blocks: none
 - **508** depends on: 285; blocks: none
-- **539** depends on: 499; blocks: none
 - **495** depends on: 312, 504; blocks: 512
+- **539** depends on: 499; blocks: none
 - **542** depends on: 515; blocks: none
 - **518** depends on: 513, 517; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
