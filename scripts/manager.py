@@ -586,9 +586,19 @@ def _build_gate_subparser(sub_domain: argparse._SubParsersAction) -> None:  # ty
 
 
 def main() -> int:
+    argv = list(sys.argv[1:])
+
+    # Normalize selfhost parity mode values so documented invocations like
+    # `selfhost parity --mode --cli` work under argparse.
+    if len(argv) >= 4 and argv[0] == "selfhost" and argv[1] == "parity":
+        for i in range(len(argv) - 1):
+            if argv[i] == "--mode" and argv[i + 1] in {"--fixture", "--cli", "--diag"}:
+                argv[i] = f"--mode={argv[i + 1]}"
+                del argv[i + 1]
+                break
+
     # Pre-scan argv for out-of-scope flags and give a clear error before argparse
     # touches anything, so we don't get confusing "unrecognized arguments" messages.
-    argv = list(sys.argv[1:])
     if len(argv) > 0 and argv[0] == "verify":
         for raw in argv[1:]:
             flag = raw.split("=")[0]  # strip =value if any
@@ -599,13 +609,6 @@ def main() -> int:
                     file=sys.stderr,
                 )
                 return 2
-
-    if argv[:4] == ["selfhost", "parity", "--mode", "--fixture"]:
-        argv[2:4] = ["--mode=--fixture"]
-    elif argv[:4] == ["selfhost", "parity", "--mode", "--cli"]:
-        argv[2:4] = ["--mode=--cli"]
-    elif argv[:4] == ["selfhost", "parity", "--mode", "--diag"]:
-        argv[2:4] = ["--mode=--diag"]
 
     parser = build_parser()
     args = parser.parse_args(argv)
