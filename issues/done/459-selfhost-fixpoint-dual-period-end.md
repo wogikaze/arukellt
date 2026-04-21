@@ -34,8 +34,6 @@ Gate requires FAIL=0 and exit 0, not SKIP=0. Both conditions satisfied.
 
 ---
 
-
-
 Dual-period parity gate status after Phase 3 / Phase 4 / Phase 5 work on
 branch `fix/selfhost-emitter-invalid-wasm`:
 
