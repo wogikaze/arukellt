@@ -435,10 +435,13 @@ impl TypeAlloc {
 fn branch_hints_from_emit_records(records: &[(u32, u32, u32)]) -> BranchHints {
     let mut by_fn: BTreeMap<u32, Vec<wasm_encoder::BranchHint>> = BTreeMap::new();
     for &(fn_idx, offset, taken) in records {
-        by_fn.entry(fn_idx).or_default().push(wasm_encoder::BranchHint {
-            branch_func_offset: offset,
-            branch_hint_value: taken,
-        });
+        by_fn
+            .entry(fn_idx)
+            .or_default()
+            .push(wasm_encoder::BranchHint {
+                branch_func_offset: offset,
+                branch_hint_value: taken,
+            });
     }
     let mut out = BranchHints::new();
     for (fn_idx, hints) in by_fn {
@@ -780,16 +783,33 @@ impl Ctx {
             {
                 continue;
             }
+            // Skip synthetic error-type args produced by the typechecker for unresolvable
+            // generics (e.g. "<error>" in "Result<<error>, <error>>"). These contain `<`
+            // even after splitting, indicating they are not valid concrete types.
+            if args
+                .iter()
+                .any(|arg| arg.starts_with('<') || arg.contains('<'))
+            {
+                continue;
+            }
             let Some(enum_name) = nominalize_generic_type_name(type_name.as_str()) else {
                 continue;
             };
-            if !matches!(
-                enum_name.as_str(),
-                "Result_i64_String" | "Result_f64_String" | "Result_String_String"
-            ) {
+            if enum_name == "Result" || self.enum_defs.contains_key(enum_name.as_str()) {
                 continue;
             }
-            if enum_name == "Result" || self.enum_defs.contains_key(enum_name.as_str()) {
+            // The generic "Result" is hardcoded as Ok(i32)/Err(String) in the WASM GC
+            // type section. Generating a specialization with the same structure (e.g.
+            // Result<i32,String>, Result<(),String>, Result<bool,String>) would produce an
+            // incompatible duplicate in a separate rec group. Skip these: code already
+            // uses the generic "Result" type for all Result<scalar, String> combinations.
+            // We use an explicit primitive list (not field_valtype) because enum_base_types
+            // is not populated yet when this function is called.
+            let ok_is_i32_primitive = matches!(
+                args[0].as_str(),
+                "i32" | "()" | "bool" | "u8" | "u16" | "u32" | "i8" | "i16" | "char"
+            );
+            if ok_is_i32_primitive && args[1] == "String" {
                 continue;
             }
             pending.push((
@@ -1132,7 +1152,7 @@ pub fn emit(
         strip_name_section: strip_debug,
         branch_hint_records: Vec::new(),
         current_emit_fn_idx: 0,
-        wasi_version: wasi_version,
+        wasi_version,
     };
     ctx.emit_module(mir)
 }
@@ -1191,10 +1211,12 @@ impl Ctx {
         // Phase 2: Register function type signatures
         let fd_write_ty = self.types.add_func(&[ValType::I32; 4], &[ValType::I32]);
         self.fd_write_ty = fd_write_ty;
-        
+
         // P2 function type signatures
         // wasi:cli/stdout@0.2.0 write_and_flush: (stream: i32, ptr: i32, len: i32) -> result
-        let p2_write_and_flush_ty = self.types.add_func(&[ValType::I32, ValType::I32, ValType::I32], &[ValType::I32]);
+        let p2_write_and_flush_ty = self
+            .types
+            .add_func(&[ValType::I32, ValType::I32, ValType::I32], &[ValType::I32]);
         self.wasi_p2_write_and_flush = p2_write_and_flush_ty;
         // wasi:cli/stdout@0.2.0 drop_output_stream: (stream: i32) -> ()
         let p2_drop_output_stream_ty = self.types.add_func(&[ValType::I32], &[]);
@@ -1982,7 +2004,7 @@ impl Ctx {
         // Export section
         let mut exports = ExportSection::new();
         exports.export("memory", ExportKind::Memory, 0);
-        
+
         // For P2 native mode, export run instead of _start (for wasi:cli/command world)
         if self.wasi_version == ark_target::WasiVersion::P2 {
             if let Some(&start_idx) = self.fn_map.get("_start") {

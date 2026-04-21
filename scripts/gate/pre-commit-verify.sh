@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # scripts/gate/pre-commit-verify.sh — Pre-commit gate: cargo fmt check + markdownlint.
+# DO NOT bypass this hook with --no-verify. The hook exists to protect the repository.
+# If you think you have a legitimate reason, you do not. Fix the error instead.
 # Run directly or via .git/hooks/pre-commit (installed by scripts/gate/install-git-hooks.sh).
 set -euo pipefail
 

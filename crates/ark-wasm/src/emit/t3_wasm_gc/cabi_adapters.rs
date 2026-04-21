@@ -254,6 +254,7 @@ impl Ctx {
             };
 
             let mut needs_adapter = false;
+            let mut can_adapt = true;
             let mut param_adaptations = Vec::new();
             let mut flat_params: Vec<ValType> = Vec::new();
 
@@ -283,8 +284,11 @@ impl Ctx {
                         flat_params.push(ValType::I32); // len
                         needs_adapter = true;
                     } else {
-                        param_adaptations.push(ParamAdaptation::Scalar);
-                        flat_params.push(ValType::I32);
+                        // Vec<String> and other GC-ref Vecs can't be represented
+                        // in a flat scalar ABI. Skip adapter for this function so
+                        // the native GC function is exported directly instead.
+                        can_adapt = false;
+                        break;
                     }
                 } else if type_name.starts_with("Option<") && type_name.ends_with('>') {
                     let inner = &type_name[7..type_name.len() - 1];
@@ -601,7 +605,7 @@ impl Ctx {
                 Some(ReturnAdaptation::Scalar)
             };
 
-            if !needs_adapter {
+            if !needs_adapter || !can_adapt {
                 continue;
             }
 

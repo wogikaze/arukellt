@@ -111,7 +111,11 @@ impl Ctx {
             f.instruction(&Instruction::Drop);
         } else {
             // P1: set up IOV structure at [IOV_BASE, IOV_LEN], call fd_write
-            let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+            let ma0 = MemArg {
+                offset: 0,
+                align: 0,
+                memory_index: 0,
+            };
             // mem[IOV_BASE] = ptr
             f.instruction(&Instruction::I32Const(IOV_BASE as i32));
             f.instruction(&Instruction::LocalGet(1));
@@ -1814,10 +1818,11 @@ impl Ctx {
                     MirStmt::Assign(Place::Local(dst), Rvalue::Use(op)) => {
                         match op {
                             Operand::Place(Place::Local(src)) => {
-                                let ename_opt = func
-                                    .enum_typed_locals
+                                // Prefer extra_enum (specialized, e.g. "Option_String") over
+                                // func.enum_typed_locals (generic, e.g. "Option").
+                                let ename_opt = extra_enum
                                     .get(&src.0)
-                                    .or_else(|| extra_enum.get(&src.0))
+                                    .or_else(|| func.enum_typed_locals.get(&src.0))
                                     .cloned();
                                 if let Some(ename) = ename_opt {
                                     extra_enum.entry(dst.0).or_insert(ename);
@@ -1850,8 +1855,18 @@ impl Ctx {
                                     self.struct_vec_locals.entry(dst.0).or_insert(svn);
                                 }
                             }
-                            Operand::EnumInit { enum_name, .. } => {
-                                extra_enum.entry(dst.0).or_insert_with(|| enum_name.clone());
+                            Operand::EnumInit {
+                                enum_name, variant, ..
+                            } => {
+                                // For Ok/Err variants, use the specialized Result enum name
+                                // (e.g. "Result_i32_AppError") so the local gets the right GC type.
+                                let effective = if matches!(variant.as_str(), "Ok" | "Err") {
+                                    self.current_result_enum_name()
+                                        .unwrap_or_else(|| enum_name.clone())
+                                } else {
+                                    enum_name.clone()
+                                };
+                                extra_enum.entry(dst.0).or_insert_with(|| effective);
                             }
                             Operand::EnumPayload {
                                 object,
@@ -1863,14 +1878,30 @@ impl Ctx {
                                 // The payload type comes from enum_variant_field_types
                                 let effective_enum_name =
                                     if matches!(enum_name.as_str(), "Result" | "Option") {
-                                        if let Operand::Place(Place::Local(src)) = &**object {
-                                            func.enum_typed_locals
-                                                .get(&src.0)
-                                                .or_else(|| extra_enum.get(&src.0))
-                                                .cloned()
-                                                .unwrap_or_else(|| enum_name.clone())
-                                        } else {
-                                            enum_name.clone()
+                                        match &**object {
+                                            Operand::Place(Place::Local(src)) => {
+                                                // Prefer extra_enum (specialized, e.g. "Option_String")
+                                                // over func.enum_typed_locals (may be generic "Option").
+                                                extra_enum
+                                                    .get(&src.0)
+                                                    .or_else(|| func.enum_typed_locals.get(&src.0))
+                                                    .cloned()
+                                                    .unwrap_or_else(|| enum_name.clone())
+                                            }
+                                            Operand::Call(fn_name, _) => {
+                                                // Look up the specialized return type from fn_ret_type_names
+                                                // so Ok(s) from `read_data() -> Result<String,String>`
+                                                // uses "Result_String_String" not generic "Result".
+                                                self.fn_ret_type_names
+                                                    .get(fn_name)
+                                                    .and_then(|ret_name| {
+                                                        self.result_enum_name_for_type_name(
+                                                            ret_name,
+                                                        )
+                                                    })
+                                                    .unwrap_or_else(|| enum_name.clone())
+                                            }
+                                            _ => enum_name.clone(),
                                         }
                                     } else {
                                         enum_name.clone()
@@ -1897,10 +1928,9 @@ impl Ctx {
                                             self.result_enum_name_for_type_name(ret_name)
                                         })
                                     }
-                                    Operand::Place(Place::Local(src)) => func
-                                        .enum_typed_locals
+                                    Operand::Place(Place::Local(src)) => extra_enum
                                         .get(&src.0)
-                                        .or_else(|| extra_enum.get(&src.0))
+                                        .or_else(|| func.enum_typed_locals.get(&src.0))
                                         .cloned(),
                                     _ => None,
                                 };
@@ -2011,7 +2041,7 @@ impl Ctx {
                                             .entry(dst.0)
                                             .or_insert_with(|| "Option_String".to_string());
                                     }
-                                    "HashMap_i32_i32_new" => {
+                                    "HashMap_i32_i32_new" | "HashMap_new_i32_i32" => {
                                         extra_struct
                                             .entry(dst.0)
                                             .or_insert_with(|| "__hashmap_i32_i32".to_string());
@@ -2026,10 +2056,30 @@ impl Ctx {
                                             .entry(dst.0)
                                             .or_insert_with(|| "__hashmap_str_i32".to_string());
                                     }
+                                    "HashMap_new_i32_String" => {
+                                        extra_struct
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "__hashmap_i32_str".to_string());
+                                    }
+                                    "HashMap_new_String_String" => {
+                                        extra_struct
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "__hashmap_str_str".to_string());
+                                    }
                                     "HashMap_String_i32_get" => {
                                         extra_enum
                                             .entry(dst.0)
                                             .or_insert_with(|| "Option".to_string());
+                                    }
+                                    "HashMap_i32_String_get" => {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Option_String".to_string());
+                                    }
+                                    "HashMap_String_String_get" => {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Option_String".to_string());
                                     }
                                     // get_unchecked on Vec<Struct> → result is a struct
                                     "get_unchecked" | "get" => {
@@ -2171,7 +2221,7 @@ impl Ctx {
                                     .entry(dst.0)
                                     .or_insert_with(|| "Option".to_string());
                             }
-                            "HashMap_i32_i32_new" => {
+                            "HashMap_i32_i32_new" | "HashMap_new_i32_i32" => {
                                 extra_struct
                                     .entry(dst.0)
                                     .or_insert_with(|| "__hashmap_i32_i32".to_string());
@@ -2181,10 +2231,35 @@ impl Ctx {
                                     .entry(dst.0)
                                     .or_insert_with(|| "Option".to_string());
                             }
+                            "HashMap_String_i32_get" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Option".to_string());
+                            }
+                            "HashMap_i32_String_get" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Option_String".to_string());
+                            }
+                            "HashMap_String_String_get" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Option_String".to_string());
+                            }
                             "HashMap_new_String_i32" => {
                                 extra_struct
                                     .entry(dst.0)
                                     .or_insert_with(|| "__hashmap_str_i32".to_string());
+                            }
+                            "HashMap_new_i32_String" => {
+                                extra_struct
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "__hashmap_i32_str".to_string());
+                            }
+                            "HashMap_new_String_String" => {
+                                extra_struct
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "__hashmap_str_str".to_string());
                             }
                             // get_unchecked on Vec<Struct> → result is a struct; get on Vec<String> → Option_String
                             "get_unchecked" | "get" => {
@@ -2250,7 +2325,6 @@ impl Ctx {
                 merged_enum.entry(*k).or_insert_with(|| v.clone());
             }
         }
-
         // Merge vec sets: propagated from assignment scan + type scan
         let vec_sets = Some((
             &extra_vec_i32,
@@ -3524,10 +3598,7 @@ mod tests {
             if let Payload::CodeSectionEntry(body) = payload {
                 let mut reader = body.get_operators_reader().expect("operators reader");
                 while !reader.eof() {
-                    if matches!(
-                        reader.read().expect("operator"),
-                        Operator::If { .. }
-                    ) {
+                    if matches!(reader.read().expect("operator"), Operator::If { .. }) {
                         if_op_count += 1;
                     }
                 }
