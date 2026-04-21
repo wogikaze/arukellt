@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T06:13:13Z",
+  "generated_at": "2026-04-21T06:15:59Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -1071,7 +1071,7 @@
     {
       "id": "531",
       "path": "531-scripts-consolidation-to-python-manager.md",
-      "title": "Scripts Consolidation to Single Python Manager",
+      "title": "Scripts Consolidation Epic: Python CLI Refactoring",
       "track": "main",
       "status": "open",
       "blocks_v1": "none",
@@ -1083,7 +1083,7 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 48
+        "unchecked": 15
       },
       "orchestration": {
         "class": null,

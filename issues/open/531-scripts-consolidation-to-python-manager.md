@@ -1,168 +1,119 @@
-# Scripts Consolidation to Single Python Manager
+# Scripts Consolidation Epic: Python CLI Refactoring
 
-> **Status:** Implementation-ready
+> **Status:** Implementation-ready (Epic)
 > **Track:** tooling
+> **Type:** Epic
 > **Blocks:** none
 > **Acceptance:** 0 checked / 5 open
 
-## Problem
+## Why this must exist
 
 The `scripts/` directory currently contains 35 scripts (29 shell + 6 Python) with significant redundancy and inconsistency:
 
 **Current state:**
 - 29 shell scripts (`.sh`) and 6 Python scripts (`.py`)
 - Many shell scripts are thin wrappers around Python calls
-- Selfhost checks split across 4 separate scripts: `check-selfhost-parity.sh`, `check-selfhost-fixpoint.sh`, `check-selfhost-fixture-parity.sh`, `check-selfhost-diagnostic-parity.sh`
-- Gate scripts duplicated: `ci-full-local.sh`, `pre-commit-verify.sh`, `pre-push-verify.sh` all call `verify-harness.sh`
-- 90% of actual logic is already in Python, yet shell scripts persist as entry points
-
-**Issues:**
-- Inconsistent interface (some use `bash scripts/xxx.sh`, others `python3 scripts/yyy.py`)
+- Selfhost checks split across 4 separate scripts
+- Gate scripts duplicated across 3 files
+- Inconsistent interfaces (some use `bash scripts/xxx.sh`, others `python3 scripts/yyy.py`)
 - Maintenance burden: changes spread across multiple files
 - Shell script portability concerns (bash version differences)
-- No single source of truth for CLI interface
-- Difficult to test shell scripts in isolation
 
-## Solution
+**Strategic decision:**
+This is an **epic**, not a single implementation issue. We will:
+1. First establish common Python library infrastructure
+2. Migrate one domain at a time (verify → selfhost → docs → perf → gate)
+3. Keep shell scripts as thin entry points during transition
+4. Remove shell scripts only after deprecation completes
 
-Consolidate all scripts into a single Python CLI manager with test-driven development.
+## First Phase: Verify Migration (Issue #532)
 
-### Architecture
+**Scope (Phase 1 only):**
+- Establish shared Python library (`scripts/lib/`)
+- Create CLI skeleton (`scripts/manager.py`)
+- Migrate verify domain only (verify-harness.sh + check-docs-*.py)
+- Keep other domains (selfhost, docs, perf, gate) as-is for now
 
-**New entry point:** `scripts/manager.py`
-
-**CLI interface:**
+**CLI design (subcommand-based):**
 ```bash
-python scripts/manager.py verify --quick
-python scripts/manager.py verify --fixtures
-python scripts/manager.py verify --docs
-python scripts/manager.py verify --size --wat
-python scripts/manager.py verify --component
-
-python scripts/manager.py selfhost --fixpoint
-python scripts/manager.py selfhost --parity --fixture
-python scripts/manager.py selfhost --parity --diag
-
-python scripts/manager.py docs --check
-python scripts/manager.py docs --regenerate
-
-python scripts/manager.py perf --baseline
-python scripts/manager.py perf --gate
-
-python scripts/manager.py gate --local
-python scripts/manager.py gate --pre-commit
-python scripts/manager.py gate --pre-push
+python scripts/manager.py verify quick
+python scripts/manager.py verify fixtures
+python scripts/manager.py verify docs
+python scripts/manager.py verify size
+python scripts/manager.py verify wat
+python scripts/manager.py verify component
 ```
 
-**Internal structure:**
-```
-scripts/manager.py
-├── CLI argument parsing (argparse or click)
-├── Command handlers:
-│   ├── verify: consolidate verify-harness.sh logic
-│   ├── selfhost: consolidate selfhost check scripts
-│   ├── docs: consolidate doc check/generation
-│   ├── perf: consolidate perf gate/baseline
-│   └── gate: consolidate gate scripts
-└── Shared utilities:
-    ├── subprocess helpers (for cargo, wasmtime, etc.)
-    ├── file operations
-    └── test harness integration
-```
+**Exit conditions for Phase 1:**
+- [ ] `scripts/lib/` created with subprocess helpers, file ops, test harness integration
+- [ ] `scripts/manager.py verify` subcommands pass behavioral contract tests
+- [ ] CI updated to use `python scripts/manager.py verify` where applicable
+- [ ] Shell scripts for verify kept as thin wrappers (forward to manager.py)
+- [ ] Documentation updated for verify commands only
 
-### Migration Strategy (Test-Driven)
+**Follow-up issues (to be created after Phase 1):**
+- Issue #533: Selfhost domain migration
+- Issue #534: Docs domain migration
+- Issue #535: Perf domain migration
+- Issue #536: Gate domain migration
+- Issue #537: Shell script removal (after deprecation)
 
-**Phase 1: Test infrastructure**
-- [ ] Create `scripts/tests/test_manager.py` with pytest
-- [ ] Add tests for each existing script's behavior
-- [ ] Capture current shell script exit codes and outputs as test expectations
+## Technical Decisions
 
-**Phase 2: Implement verify command**
-- [ ] Implement `manager.py verify --quick` (matches verify-harness.sh --quick)
-- [ ] Add test: verify_quick_success
-- [ ] Implement `manager.py verify --fixtures` (matches verify-harness.sh --fixtures)
-- [ ] Add test: verify_fixtures_success
-- [ ] Implement remaining verify flags (--docs, --size, --wat, --component)
-- [ ] Add tests for each flag
+**Python version floor:** Python 3.10 (matches CI environment)
 
-**Phase 3: Implement selfhost command**
-- [ ] Implement `manager.py selfhost --fixpoint` (matches check-selfhost-fixpoint.sh)
-- [ ] Add test: selfhost_fixpoint_success
-- [ ] Implement `manager.py selfhost --parity --fixture` (matches check-selfhost-fixture-parity.sh)
-- [ ] Add test: selfhost_parity_fixture_success
-- [ ] Implement `manager.py selfhost --parity --diag` (matches check-selfhost-diagnostic-parity.sh)
-- [ ] Add test: selfhost_parity_diag_success
+**Dependency policy:** Standard library only (no external deps like click)
 
-**Phase 4: Implement docs command**
-- [ ] Implement `manager.py docs --check` (consolidates check-docs-*.py calls)
-- [ ] Add test: docs_check_success
-- [ ] Implement `manager.py docs --regenerate` (matches generate-docs.py)
-- [ ] Add test: docs_regenerate_success
+**Windows support:** Out of scope for Phase 1; Linux/macOS only (matches current shell scripts)
 
-**Phase 5: Implement perf command**
-- [ ] Implement `manager.py perf --baseline` (matches update-baselines.sh)
-- [ ] Add test: perf_baseline_success
-- [ ] Implement `manager.py perf --gate` (matches perf-gate.sh)
-- [ ] Add test: perf_gate_success
+**Logging policy:** Preserve current stdout/stderr separation; no centralized logging yet
 
-**Phase 6: Implement gate command**
-- [ ] Implement `manager.py gate --local` (matches ci-full-local.sh)
-- [ ] Add test: gate_local_success
-- [ ] Implement `manager.py gate --pre-commit` (matches pre-commit-verify.sh)
-- [ ] Add test: gate_precommit_success
-- [ ] Implement `manager.py gate --pre-push` (matches pre-push-verify.sh)
-- [ ] Add test: gate_prepush_success
+**Dry-run:** Add `--dry-run` flag to verify commands in Phase 1
 
-**Phase 7: CI migration**
-- [ ] Update `.github/workflows/ci.yml` to use `python scripts/manager.py`
-- [ ] Update `.github/workflows/playground-ci.yml` if affected
-- [ ] Test CI with new manager.py
-- [ ] Ensure all CI jobs pass
+**Backward compatibility:** Keep shell scripts as thin wrappers during transition; forward exit codes and args
 
-**Phase 8: Deprecate shell scripts**
-- [ ] Add deprecation warnings to shell scripts pointing to manager.py
-- [ ] Update documentation (README.md, docs/process/*)
-- [ ] Update AGENTS.md with new command patterns
-- [ ] Wait 1-2 weeks for adoption
+**Test strategy:** Behavioral contracts (exit codes, stdout/stderr on success/failure), not coverage metrics
 
-**Phase 9: Remove shell scripts**
-- [ ] Delete all deprecated shell scripts
-- [ ] Update .gitignore if needed
-- [ ] Final verification that all workflows use manager.py
-
-## Files
+## Files (Phase 1)
 
 **Create:**
-- `scripts/manager.py` (new unified CLI)
-- `scripts/tests/test_manager.py` (test suite)
-- `scripts/tests/__init__.py` (test package)
+- `scripts/lib/__init__.py`
+- `scripts/lib/subprocess.py` (helpers for cargo, wasmtime, etc.)
+- `scripts/lib/files.py` (file operations)
+- `scripts/lib/harness.py` (test harness integration)
+- `scripts/manager.py` (CLI skeleton with verify subcommands only)
+- `scripts/tests/test_manager.py` (behavioral contract tests for verify)
 
 **Modify:**
-- `.github/workflows/ci.yml` (update script calls)
-- `README.md` (update command examples)
-- `docs/process/bootstrap-verification.md` (if references scripts)
-- `AGENTS.md` (update command patterns)
+- `.github/workflows/ci.yml` (update verify calls to use manager.py)
+- `scripts/run/verify-harness.sh` (convert to thin wrapper: exec python scripts/manager.py verify "$@")
 
-**Delete (Phase 9):**
-- All shell scripts in `scripts/check/` (except those requiring shell-specific ops)
-- All shell scripts in `scripts/gate/`
-- All shell scripts in `scripts/run/` (except verify-bootstrap.sh if needed)
-- Root-level scripts: `compare-benchmarks.sh`, `update-baselines.sh`, `update-target-status.sh` (if not shell-dependent)
+**Keep unchanged (Phase 1):**
+- All selfhost scripts
+- All docs scripts (except those called by verify)
+- All perf scripts
+- All gate scripts
 
-**Keep as shell (if truly needed):**
-- `scripts/update-target-status.sh` (if requires git operations better suited to shell)
-- Any scripts requiring specific shell built-ins not easily replicated in Python
+## Acceptance Criteria (Phase 1)
 
-## Acceptance Criteria
+- [ ] Shared library (`scripts/lib/`) created and tested
+- [ ] `manager.py verify quick` passes behavioral contract test
+- [ ] `manager.py verify fixtures` passes behavioral contract test
+- [ ] `manager.py verify docs` passes behavioral contract test
+- [ ] `manager.py verify size` passes behavioral contract test
+- [ ] `manager.py verify wat` passes behavioral contract test
+- [ ] `manager.py verify component` passes behavioral contract test
+- [ ] CI workflows using verify updated to call manager.py
+- [ ] verify-harness.sh converted to thin wrapper (forwarding to manager.py)
+- [ ] Documentation updated for verify commands
 
-- [ ] All existing shell script behaviors have corresponding tests
-- [ ] `manager.py` passes all tests
-- [ ] CI workflows updated and passing with manager.py
-- [ ] Documentation updated with new command patterns
-- [ ] Shell scripts deprecated with warnings
-- [ ] Shell scripts removed after deprecation period
-- [ ] No functionality lost in migration
-- [ ] Test coverage > 80% for manager.py
+**Behavioral contract test definition:**
+- Exit code matches shell script on success/failure
+- stdout content matches shell script on success (for commands with output)
+- stderr content matches shell script on failure (error messages)
+- Environment variables honored (ARUKELLT_BIN, ARUKELLT_TARGET, etc.)
+- Working directory behavior preserved
+- Signal handling (Ctrl+C) exits cleanly
 
 ## Dependencies
 
@@ -172,9 +123,19 @@ scripts/manager.py
 
 - None
 
+## Follow-up Issues
+
+After Phase 1 completes, create:
+- Issue #533: Selfhost domain migration (selfhost fixpoint, parity fixture, parity diag)
+- Issue #534: Docs domain migration (docs check, docs regenerate)
+- Issue #535: Perf domain migration (perf baseline, perf gate)
+- Issue #536: Gate domain migration (gate local, gate pre-commit, gate pre-push)
+- Issue #537: Shell script removal (after all domains migrated + deprecation period)
+
 ## Orchestration Notes
 
-- Test-driven development is mandatory: write test first, then implement
-- Each command should be independently testable
-- Maintain backward compatibility during migration phase
-- Use existing Python utilities (argparse, subprocess, pathlib)
+- Test-driven development: write behavioral contract test first, then implement
+- Each subcommand independently testable
+- Maintain backward compatibility via shell wrappers during transition
+- Use standard library only (argparse, subprocess, pathlib, tempfile, shutil)
+- Phase 1 is intentionally scoped to verify only; do not expand scope
