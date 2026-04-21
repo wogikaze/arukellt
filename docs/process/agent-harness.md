@@ -15,8 +15,7 @@ This is a short pointer document for developers and agents working in this repos
 python3 scripts/manager.py verify --quick
 ```
 
-All verification is routed through `scripts/manager.py`. The shell script
-`scripts/run/verify-harness.sh` is kept as an optional local convenience wrapper.
+All verification is routed through `scripts/manager.py`.
 
 ### Verify subcommands
 
