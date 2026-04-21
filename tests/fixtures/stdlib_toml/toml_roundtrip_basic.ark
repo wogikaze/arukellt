@@ -1,0 +1,23 @@
+use std::host::stdio
+use std::toml
+
+/// Parity/differential: basic table round-trip.
+///
+/// Normalization rule: toml_parse stores the raw source text verbatim as the
+/// table payload (tag=5).  toml_stringify for tag != 0 returns v.raw unchanged.
+/// Therefore parse → stringify must reproduce the original document exactly
+/// (no whitespace normalisation, no key reordering).
+fn main() {
+    let doc = "name = \"arukellt\"\ncount = 42"
+    match toml::toml_parse(doc) {
+        Result::Ok(table) => {
+            let back = toml::toml_stringify(table)
+            if eq(back, doc) {
+                stdio::println("roundtrip ok")
+            } else {
+                stdio::println("roundtrip mismatch")
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+}

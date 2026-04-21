@@ -1,8 +1,8 @@
 # Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する
 
-**Status**: implementation-ready
+**Status**: done
 **Created**: 2026-04-18
-**Updated**: 2026-04-18
+**Updated**: 2026-04-22
 **ID**: 527
 **Depends on**: none
 **Track**: stdlib
@@ -46,10 +46,10 @@
 
 ## Acceptance
 
-- [ ] valid TOML round-trip corpus is defined for representative tables and nested values
-- [ ] invalid TOML cases are added to prove reject behavior for malformed inputs
-- [ ] differential comparison rules against a reference TOML implementation or normalized corpus are documented
-- [ ] the corpus is wired through the existing harness or a thin Rust test module without changing production TOML behavior
+- [x] valid TOML round-trip corpus is defined for representative tables and nested values
+- [x] invalid TOML cases are added to prove reject behavior for malformed inputs
+- [x] differential comparison rules against a reference TOML implementation or normalized corpus are documented
+- [x] the corpus is wired through the existing harness or a thin Rust test module without changing production TOML behavior
 
 ## Required verification
 
@@ -62,3 +62,16 @@
 - valid and invalid TOML corpora are both present in repo
 - reference comparison rules are explicit enough to prevent contract drift
 - the issue can be closed by citing repo evidence for the corpus and harness wiring
+
+## Close note
+
+Closed by `feat/527-toml-differential-tests`.
+
+Three parity/differential fixtures added to `tests/fixtures/stdlib_toml/` and registered in `tests/fixtures/manifest.txt`:
+
+- `toml_roundtrip_basic.ark` — basic table round-trip: documents that `toml_parse` → `toml_stringify` on a tag=5 table value preserves the raw source text exactly (no normalisation).
+- `toml_roundtrip_values.ark` — value-level round-trip for all four primitive types (string, integer, boolean, float), with inline normalization rules in comments.
+- `toml_parity_nested_section.ark` — differential contract: multi-section `[table]` docs valid in full TOML 1.0 are rejected by the bounded subset; flat key=value docs are accepted by both.
+
+`std/toml/mod.ark` was not modified (production behavior unchanged).
+All 3 new fixtures pass (`python scripts/manager.py verify fixtures`: 748 PASS vs 745 PASS on baseline).

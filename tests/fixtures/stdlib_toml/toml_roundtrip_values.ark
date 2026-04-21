@@ -1,0 +1,39 @@
+use std::host::stdio
+use std::toml
+
+/// Parity/differential: value-level round-trip for each primitive type.
+///
+/// Normalization rules for individual values:
+///   string (tag=0): toml_stringify re-adds surrounding double quotes.
+///                   "hello world" → toml_get raw="hello world" → stringify → "\"hello world\""
+///   integer (tag=1): toml_stringify returns raw decimal text unchanged.
+///   boolean (tag=3): toml_stringify returns raw "true"/"false" unchanged.
+///   float   (tag=2): toml_stringify returns raw decimal text unchanged.
+///
+/// These rules define the comparison contract for differential testing against
+/// a reference TOML implementation: when the reference produces the same
+/// serialised primitive text, the subset parser is in parity for that value.
+fn main() {
+    let doc = "title = \"hello world\"\nport = 8080\nflag = false\nratio = 1.5"
+    match toml::toml_parse(doc) {
+        Result::Ok(table) => {
+            match toml::toml_get(table, "title") {
+                Option::Some(v) => stdio::println(toml::toml_stringify(v)),
+                None => stdio::println("missing title"),
+            }
+            match toml::toml_get(table, "port") {
+                Option::Some(v) => stdio::println(toml::toml_stringify(v)),
+                None => stdio::println("missing port"),
+            }
+            match toml::toml_get(table, "flag") {
+                Option::Some(v) => stdio::println(toml::toml_stringify(v)),
+                None => stdio::println("missing flag"),
+            }
+            match toml::toml_get(table, "ratio") {
+                Option::Some(v) => stdio::println(toml::toml_stringify(v)),
+                None => stdio::println("missing ratio"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+}
