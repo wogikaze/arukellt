@@ -1,8 +1,8 @@
 # selfhost Stage 2 fixpoint 達成と dual-period 終了計画
 
-**Status**: done
+**Status**: open
 **Created**: 2026-04-02
-**Updated**: 2025-07-14
+**Updated**: 2026-04-22
 **ID**: 459
 **Depends on**: 445, 446, 447, 448, 449
 **Track**: compiler, selfhost
@@ -21,6 +21,17 @@
 
 **Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
+## Reopened by audit — 2026-04-22
+
+**Reason**: #459 still has unresolved dual-period blockers. CLI parity is only green for the narrow current runner (`--version`, `--help`), fixture parity remains in progress, and diagnostic parity remains open. Additional CLI gap tracking is split into #557 and #558.
+
+**Audit evidence**:
+- `issues/open/557-selfhost-cli-top-level-command-surface-parity.md`
+- `issues/open/558-expand-selfhost-cli-parity-runner-beyond-help-version.md`
+- `python3 scripts/manager.py selfhost parity --mode --cli` passes only the narrow current CLI gate
+
+**Action**: Moved from `issues/done/` → `issues/open/` because dual-period exit criteria are not yet met.
+
 ## Progress — 2026-04-21
 
 Canonical queue-state sync.
@@ -28,7 +39,7 @@ Canonical queue-state sync.
 - **Bootstrap evidence:** `bash scripts/run/verify-bootstrap.sh --check` now reports `stage0-compile: reached`, `stage1-self-compile: reached`, `stage2-fixpoint: reached`, `attainment: reached`.
 - **Current fixpoint evidence:** `s2` = 536,522 bytes, `s3` = 536,522 bytes, `sha256(s2) == sha256(s3)`.
 - **Important interpretation:** `s1 != s2` is no longer the Phase 1 blocker. The canonical verifier defines fixpoint as `sha256(s2) == sha256(s3)` because `s1` is emitted by the Rust trusted-base compiler while `s2/s3` are emitted by the selfhost compiler.
-- **Parity status:** Fixture parity remains in progress. CLI parity is reached for the current canonical runner (`--version`, `--help`). Diagnostic parity still blocks dual-period exit.
+- **Parity status:** Fixture parity remains in progress. CLI parity is reached only for the current narrow canonical runner (`--version`, `--help`). Remaining CLI work is split into #557 (truthful selfhost command surface) and #558 (broader CLI parity measurement). Diagnostic parity still blocks dual-period exit.
 
 ### Phase 1 status
 
