@@ -8,7 +8,12 @@
 
 # Playground: parser / formatter / diagnostics の Wasm package と JS wrapper を作る
 
-**Status**: done
+> **Status:** Implementation-ready
+> **Track:** playground
+> **Type:** Implementation
+
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 429

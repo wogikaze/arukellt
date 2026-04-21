@@ -8,7 +8,11 @@
 
 # Playground: build と publish path を repo 証拠で固定する
 
-**Status**: done
+> **Status:** Implementation-ready
+> **Track:** playground
+> **Type:** Implementation
+
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 **Created**: 2026-04-03
 **Updated**: 2026-04-03
 **ID**: 468

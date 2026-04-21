@@ -1,6 +1,6 @@
 # Stdlib collections/hash: property と differential tests を map / set invariant で拡張する
 
-**Status**: open
+**Status**: implementation-ready
 **Created**: 2026-04-18
 **Updated**: 2026-04-18
 **ID**: 528
@@ -10,6 +10,8 @@
 **Orchestration upstream**: —
 **Blocks v{N}**: none
 **Source**: follow-up extraction from `#519`
+
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ## Summary
 

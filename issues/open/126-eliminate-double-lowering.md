@@ -10,6 +10,8 @@
 **Orchestration upstream**: #125
 **Blocks v4 exit**: no (compile-time optimization)
 
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+
 ---
 
 ## Reopened by audit — 2026-04-03

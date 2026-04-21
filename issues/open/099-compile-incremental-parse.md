@@ -5,7 +5,9 @@
 **Updated**: 2026-04-03
 **ID**: 099
 **Depends on**: —
-**Track**: compile-speed
+**Track**: compiler
+**Type**: Implementation
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
 **Blocks v4 exit**: no

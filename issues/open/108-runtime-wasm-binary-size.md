@@ -11,6 +11,7 @@
 **Orchestration class**: verification-ready
 **Orchestration upstream**: —
 **Blocks v4 exit**: yes
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ---
 

@@ -9,6 +9,8 @@
 **Blocks v1 exit**: no
 **Priority**: 10
 
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+
 
 ## Completed — 2026-04-15
 

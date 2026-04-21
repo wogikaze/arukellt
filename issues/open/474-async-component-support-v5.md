@@ -1,6 +1,6 @@
 # Async Component Support (v5/T5)
 
-**Status**: open
+**Status**: Implementation-ready
 **Created**: 2026-04-03
 **Updated**: 2026-04-03
 **ID**: 474
@@ -9,6 +9,7 @@
 **Orchestration class**: blocked-by-upstream
 **Orchestration upstream**: #74
 **Blocks v4 exit**: no
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ---
 

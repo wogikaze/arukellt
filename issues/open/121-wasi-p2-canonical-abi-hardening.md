@@ -1,5 +1,11 @@
 # WASI P2: Canonical ABI ハンドリングの堅牢化
 
+> **Status:** Implementation-ready
+> **Track:** component
+> **Type:** Implementation
+
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+
 **Status**: open
 **Created**: 2026-03-28
 **Updated**: 2026-03-28

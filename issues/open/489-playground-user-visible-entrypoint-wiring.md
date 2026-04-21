@@ -10,12 +10,14 @@
 
 **Status**: done
 **Created**: 2026-04-13
-**Updated**: 2026-04-15
+**Updated**: 2026-04-21
 **ID**: 489
 **Depends on**: 437, 438, 464
 **Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 40
+
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ## Created by audit — 2026-04-13
 

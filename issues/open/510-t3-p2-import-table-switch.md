@@ -9,6 +9,8 @@
 **Orchestration upstream**: #74
 **Blocks v4 exit**: no
 
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+
 **Status note**: Deferred — requires WASI P2 ABI design for the T3 bridge layer.
 
 ---

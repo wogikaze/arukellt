@@ -17,6 +17,8 @@
 **Blocks v1 exit**: no
 **Priority**: 6
 
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+
 ## Summary
 
 playground の docs claim を current repo implementation に揃える。特に `type checking available`、`browser で使える` などの user-visible claim は、callable surface と entrypoint proof がない限り current-state として書かせない。

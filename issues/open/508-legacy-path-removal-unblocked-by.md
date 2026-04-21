@@ -11,6 +11,8 @@
 **Orchestration upstream**: #285
 **Priority**: 4
 
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+
 ## Summary
 
 Issue #285 (legacy lowering path deprecation) cannot be fully completed because

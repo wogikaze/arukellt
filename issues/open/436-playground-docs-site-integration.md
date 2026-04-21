@@ -9,13 +9,16 @@
 # Playground: docs site への統合と navigation を実装する
 
 **Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Created**: 2026-04-03
+**Updated**: 2026-04-21
 **ID**: 436
-**Depends on**: 431
+**Depends on**: 437, 438, 464
 **Track**: playground
-**Blocks v1 exit**: no
-**Priority**: 9
+**Orchestration class**: verification-ready
+**Orchestration upstream**: —
+**Blocks v4 exit**: no
+
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ## Summary
 

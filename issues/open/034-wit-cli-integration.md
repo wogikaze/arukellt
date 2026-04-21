@@ -6,6 +6,7 @@
 **ID**: 034
 **Depends on**: 030, 031, 028b
 **Track**: component-model
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
 **Blocks v{N}**: none

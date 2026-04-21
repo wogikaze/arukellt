@@ -10,7 +10,7 @@
 **Orchestration upstream**: —
 **Blocks v5**: yes
 **Priority**: 11
-
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ## Reopened by audit — 2026-04-13
 

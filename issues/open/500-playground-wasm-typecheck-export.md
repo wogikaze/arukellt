@@ -6,10 +6,13 @@
 - **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
 - **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
 
-# 500 — Playground WASM: expose typecheck API surface
+# 500 — Playground: Wasm typecheck export
 
-**Track:** playground
-**Status:** done
+> **Status:** Implementation-ready
+> **Track:** playground
+> **Type:** Implementation
+
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 **Created:** 2026-04-14
 **Updated:** 2026-04-14
 **Source:** audit — issues/open/472-playground-type-checker-product-claim.md
