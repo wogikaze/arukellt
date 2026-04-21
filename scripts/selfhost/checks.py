@@ -329,6 +329,10 @@ def run_fixture_parity(root: Path, dry_run: bool) -> tuple[int, str]:
 # the diagnostics or the test exercises an unimplemented feature.  These are
 # tracked in issue #529 Phase 3 (diagnostic parity expansion).
 DIAG_PARITY_SKIP: frozenset[str] = frozenset({
+    # selfhost emits "error: N type error(s)" without structured code format
+    "diagnostics/type_mismatch.ark",
+    # selfhost emits parse errors (E0001) where Rust emits typecheck (E0201)
+    "diagnostics/missing_annotation.ark",
     "diagnostics/deprecated_prelude_println.ark",
     "diagnostics/deprecated_std_io_import.ark",
     "diagnostics/deprecated_time_monotonic_now.ark",

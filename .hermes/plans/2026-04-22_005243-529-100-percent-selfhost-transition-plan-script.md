@@ -79,6 +79,7 @@ python3 scripts/manager.py selfhost parity --mode --cli
 ```
 
 追加確認:
+
 ```bash
 wasmtime run .build/selfhost/arukellt-s1.wasm -- init 2>&1
 echo "exit: $?"
@@ -168,6 +169,7 @@ grep '✗\|FAIL' /tmp/fixture-parity-baseline.txt | grep '\.ark' | sort
 ```
 
 カテゴリと対応する selfhost ファイル:
+
 | カテゴリ | 対象ファイル |
 |----------|--------------|
 | stdlib_sort | `src/compiler/emitter.ark` |
@@ -221,6 +223,7 @@ grep 'PASS=\|FAIL=\|SKIP=' /tmp/diag-parity-baseline.txt
 ```
 
 **現在の SKIP リスト** (24件):
+
 ```python
 # scripts/selfhost/checks.py の DIAG_PARITY_SKIP より
 diagnostics/deprecated_prelude_println.ark
@@ -308,6 +311,7 @@ python3 scripts/manager.py verify quick
 ```
 
 すべて PASS したら:
+
 ```bash
 # issues/open/459-selfhost-fixpoint-dual-period-end.md に証拠を記録してから
 mv issues/open/459-selfhost-fixpoint-dual-period-end.md issues/done/

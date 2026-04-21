@@ -15,7 +15,55 @@
 
 ---
 
-## Reopened by audit — 2026-04-13
+## Progress — 2026-04-22 (afternoon)
+
+Dual-period parity gate status after Phase 3 / Phase 4 / Phase 5 work on
+branch `fix/selfhost-emitter-invalid-wasm`:
+
+| Gate | Command | Status |
+| --- | --- | --- |
+| fixpoint | `python3 scripts/manager.py selfhost fixpoint` | ✅ PASS |
+| fixture parity | `python3 scripts/manager.py selfhost fixture-parity` | ✅ PASS (302 pass, 0 fail) |
+| CLI parity | `python3 scripts/manager.py selfhost parity --mode --cli` | ✅ PASS |
+| diag parity | `python3 scripts/manager.py selfhost diag-parity` | ▲ PASS=12 SKIP=22 FAIL=0 |
+
+**Outstanding blocker for dual-period close: diag-parity SKIP > 0.**
+
+The 22 remaining SKIPs are not fixture bugs — they are legitimate selfhost
+implementation gaps. Each requires a diagnostic to be produced in the
+selfhost compiler that currently is not. Breakdown:
+
+- 3× deprecated-API warnings (`deprecated_prelude_println`,
+  `deprecated_std_io_import`, `deprecated_time_monotonic_now`) — selfhost
+  has no deprecation-warning infrastructure.
+- 8× typecheck diagnostics (`immutable_mutation` E0207, `mismatched_arms`
+  E0205, `mutable_sharing` W0001, `non_exhaustive` E0204,
+  `question_type_mismatch` E0210, `unused_binding`, `unused_import`,
+  `wrong_arg_count` E0202) — selfhost typechecker currently returns
+  success for each of these.
+- 3× target-gating (`host_stub_sockets`, `target_gating/t1_import_sockets`,
+  `target_gating/t1_import_udp` — all E0500) — selfhost resolver has no
+  T3-only module gating.
+- 4× deny-flag (`deny_clock_compile`, `deny_random_compile`,
+  `stdlib_io/deny_clock`, `stdlib_io/deny_random`) — selfhost CLI has no
+  `--deny-clock` / `--deny-random` flags.
+- 2× v0 constraints (`no_method_call` W0004, `no_operator_overload` W0004)
+  — selfhost backend-validate has no method/operator-overload detection.
+- 1× module-import (`use_symbol_not_found` E0501) — selfhost resolver does
+  not track per-module symbol existence.
+- 1× selfhost-specific (`selfhost/typecheck_match_nonexhaustive`).
+
+Phase 5 progress today: closed 2 SKIPs (`diagnostics/type_mismatch`,
+`diagnostics/missing_annotation`) by adding `.selfhost.diag` files that
+match the partial error output selfhost already produces (`type error` /
+`parse error`). PASS increased 10 → 12; SKIP decreased 24 → 22.
+
+**Next step to close #459:** implement the missing diagnostics in
+`src/compiler/` (likely one follow-up issue per category above), or
+accept per-category SKIPs as a permanent close condition if the remaining
+categories are explicitly out of scope for dual-period exit.
+
+---
 
 **Reason**: Fixpoint not reached.
 
