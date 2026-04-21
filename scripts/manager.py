@@ -588,8 +588,9 @@ def _build_gate_subparser(sub_domain: argparse._SubParsersAction) -> None:  # ty
 def main() -> int:
     # Pre-scan argv for out-of-scope flags and give a clear error before argparse
     # touches anything, so we don't get confusing "unrecognized arguments" messages.
-    if len(sys.argv) > 1 and sys.argv[1] == "verify":
-        for raw in sys.argv[2:]:
+    argv = list(sys.argv[1:])
+    if len(argv) > 0 and argv[0] == "verify":
+        for raw in argv[1:]:
             flag = raw.split("=")[0]  # strip =value if any
             if flag in _VERIFY_OUT_OF_SCOPE_FLAGS:
                 print(
@@ -599,8 +600,15 @@ def main() -> int:
                 )
                 return 2
 
+    if argv[:4] == ["selfhost", "parity", "--mode", "--fixture"]:
+        argv[2:4] = ["--mode=--fixture"]
+    elif argv[:4] == ["selfhost", "parity", "--mode", "--cli"]:
+        argv[2:4] = ["--mode=--cli"]
+    elif argv[:4] == ["selfhost", "parity", "--mode", "--diag"]:
+        argv[2:4] = ["--mode=--diag"]
+
     parser = build_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # Propagate global --dry-run down (argparse already puts both in same namespace
     # for nested parsers, but guard in case of future restructuring).
