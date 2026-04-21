@@ -40,8 +40,7 @@ Generated artifacts:
 - `issues/open/index.md` — dependency-aware issue index (includes orchestration columns when set in issue headers)
 - `issues/open/index-meta.json` — machine-readable export (deps, acceptance counts, orchestration)
 - `issues/open/dependency-graph.md` — Mermaid graph + adjacency lists
-- `scripts/gen/generate-issue-index.sh` — shell entrypoint for regeneration
-- `scripts/gen/sync-issue-orchestration-fields.py` — optional bulk import of orchestration fields from a TSV into issue headers
+- `python3 scripts/gen/generate-issue-index.py` — entrypoint for regeneration
 
 ## Workflow
 

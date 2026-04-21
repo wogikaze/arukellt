@@ -49,7 +49,6 @@ graph LR
   I527["527 Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する"]
   I528["528 Stdlib collections/hash: property と differential tests を map / set invariant で拡張する"]
   I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
-  I530["530 530-selfhost-parity-ci-gates"]
   I531["531 Scripts Consolidation Epic: Python CLI Refactoring"]
   I540["540 540 — Benchmark: enum dispatch (pattern matching)"]
   I541["541 541 — Benchmark: struct graph (nested structs / recursive types)"]
@@ -164,7 +163,6 @@ graph LR
 - **527** depends on: none; blocks: none
 - **528** depends on: none; blocks: none
 - **529** depends on: none; blocks: none
-- **530** depends on: none; blocks: none
 - **531** depends on: none; blocks: none
 - **540** depends on: none; blocks: none
 - **541** depends on: none; blocks: none
