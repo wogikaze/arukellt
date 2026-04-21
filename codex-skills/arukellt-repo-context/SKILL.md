@@ -44,7 +44,7 @@ If behavior changes and generated docs or issue indexes are affected, run:
 ```bash
 python3 scripts/gen/generate-docs.py
 python3 scripts/check/check-docs-consistency.py
-bash scripts/gen/generate-issue-index.sh
+python3 scripts/gen/generate-issue-index.py
 ```
 
 ## Tooling Notes
@@ -56,8 +56,5 @@ bash scripts/gen/generate-issue-index.sh
 ## Bundled Skill Sources
 
 Task-specialized Arukellt implementation skills are mirrored from `.github/agents/*.agent.md`
-into `codex-skills/`. Install them into Codex discovery with:
-
-```bash
-bash scripts/util/install-codex-skills.sh
-```
+into `codex-skills/`. Copy or symlink the `codex-skills/*` directories into
+`$CODEX_HOME/skills` manually; the previous installer script was removed.

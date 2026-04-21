@@ -56,7 +56,7 @@ roadmap-v4.md §2 の「hello.wasm 1KB 以下」目標を達成するための
 ## 現状分析タスク
 
 1. 現在の `hello.wasm` のバイナリサイズを計測
-2. `wasm-objdump -h`（または `scripts/run/wasm-size-analysis.sh`）でセクション別サイズ内訳を取得
+2. `wasm-objdump -h` でセクション別サイズ内訳を取得
 3. 最大のセクション (通常: type, code, data) について削減策を立案
 
 ## 受け入れ条件

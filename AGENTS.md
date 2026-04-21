@@ -82,18 +82,7 @@ For tracked issue work, that normally means:
 
 - Repo-local Codex skill sources live under `codex-skills/`.
 - These are mirrored from `.github/agents/*.agent.md` plus shared repo context guidance.
-- Install or refresh them into Codex auto-discovery with:
-
-```bash
-bash scripts/util/install-codex-skills.sh
-```
-
-- Installed copies use the `arukellt-` directory prefix inside `$CODEX_HOME/skills` or `~/.codex/skills`.
-- To let `codex2` reuse the same installed skills via symlink instead of copying them again:
-
-```bash
-CODEX_HOME=~/.codex2 bash scripts/util/install-codex-skills.sh --link-from-codex
-```
+- The `scripts/util/install-codex-skills.sh` installer was removed; copy or symlink the `codex-skills/*` directories into `$CODEX_HOME/skills` (or `~/.codex/skills`) manually if needed.
 
 ## Markdown Navigation
 

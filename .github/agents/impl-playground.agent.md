@@ -44,7 +44,7 @@ Primary paths include:
 
 Allowed adjacent paths:
 - `docs/_sidebar.md`, `docs/README.md` (navigation wiring)
-- `scripts/gen/generate-issue-index.sh` (run-only for governance slices)
+- `python3 scripts/gen/generate-issue-index.py` (run-only for governance slices)
 - `scripts/gen/generate-docs.py` (run-only)
 - `scripts/check/check-docs-consistency.py` (run-only)
 
@@ -79,7 +79,7 @@ You do **NOT** work on:
    - Run all REQUIRED_VERIFICATION commands
    - Confirm output paths exist after any build step
    - Run `python3 scripts/check/check-docs-consistency.py` when docs change
-   - Run `bash scripts/gen/generate-issue-index.sh` for governance slices
+   - Run `python3 scripts/gen/generate-issue-index.py` for governance slices
 
 5. **Commit discipline**
    - One focused commit per slice

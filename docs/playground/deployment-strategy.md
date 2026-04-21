@@ -9,7 +9,7 @@
 > - Browser entrypoint: `docs/playground/index.html` (issue #466 — done)
 > - Docs route wiring: `docs/_sidebar.md` links to playground page (issue #467 — done)
 > - Build & publish path: `.github/workflows/pages.yml` runs `npm run build:app` and deploys `./docs` including playground assets (issue #468 — done)
-> - Wasm content-hash cache busting: `scripts/gen/stamp-playground-assets.sh` produces `ark_playground_wasm_bg-<hash12>.wasm` and `wasm/asset-manifest.json`; `docs/playground/index.html` reads the manifest at runtime to load the content-addressed Wasm URL (issue #437 — done)
+> - ~~Wasm content-hash cache busting via `scripts/gen/stamp-playground-assets.sh`~~ (**the script does NOT exist on disk** despite being referenced by `playground/package.json build:app` with `|| true`; cache-busting is therefore not active; issue #437 reopened by audit)
 >
 > The following remain **target-state only** (not yet repo-proved):
 > - `npm run dev` (no local dev-server script exists in `playground/package.json`)

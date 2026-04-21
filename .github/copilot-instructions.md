@@ -11,7 +11,7 @@ Prefer these files in this order when they are relevant:
 3. `issues/open/dependency-graph.md` for dependency ordering
 4. `issues/done/` for completed tracked work
 5. `docs/adr/` for design rationale
-6. `scripts/run/verify-harness.sh` for the verification contract
+6. `python scripts/manager.py verify (see scripts/manager.py)` for the verification contract
 
 ## Markdown reading
 
@@ -31,8 +31,8 @@ Use `dive` to inspect structure, `dive --path` to drill down, and `read` only fo
 
 Use:
 
-- `bash scripts/run/verify-harness.sh --quick` for a quick pass
-- `bash scripts/run/verify-harness.sh` for a full pass
+- `python scripts/manager.py verify quick` for a quick pass
+- `python scripts/manager.py verify` for a full pass
 
 ## Tooling
 

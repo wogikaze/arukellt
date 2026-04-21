@@ -9,7 +9,7 @@ This document defines the responsibilities and update workflows for
 
 | Concept    | Location | Content | Governance |
 |------------|----------|---------|------------|
-| **Snapshot** | `tests/snapshots/` | Deterministic compiler output (MIR dumps, diagnostic messages) | Updated via `scripts/run/update-snapshots.sh`; committed alongside the code change that caused the diff |
+| **Snapshot** | `tests/snapshots/` | Deterministic compiler output (MIR dumps, diagnostic messages) | Updated manually (no dedicated update script today`; committed alongside the code change that caused the diff |
 | **Baseline** | `tests/baselines/` | Quantitative performance data (compile time, binary size, runtime) | Updated via `scripts/util/collect-baseline.py`; reviewed before commit to confirm regressions are intentional |
 
 ## When to Update
@@ -23,7 +23,7 @@ or rewording a diagnostic message.
 **Workflow:**
 
 1. Make the code change.
-2. Run `bash scripts/run/update-snapshots.sh`.
+2. Regenerate by rerunning the harness (no dedicated update script exists today).
 3. Run `git diff tests/snapshots/` and confirm every difference is
    expected.
 4. Commit the updated snapshot files in the same PR as the code change.

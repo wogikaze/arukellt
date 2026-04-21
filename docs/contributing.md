@@ -127,12 +127,13 @@ python scripts/manager.py verify fixtures
 bash scripts/manager.py --full
 ```
 
-Heavy checks also belong in CI and can be installed locally as a pre-push hook via:
+Heavy checks also belong in CI. The pre-commit hook can be installed via:
 
 ```bash
-bash scripts/gate/install-git-hooks.sh
-bash scripts/gate/pre-push-verify.sh
+mise run hooks:install
 ```
+
+No pre-push hook script exists today; run `python scripts/manager.py verify --full` manually before pushing.
 
 ## Perf Policy
 

@@ -106,7 +106,7 @@ by [ADR-019](../adr/ADR-019-anchor-permalink-policy.md). Key rules:
 - S1 headings (`##`) in normative docs MUST NOT be renamed after merge without a redirect alias.
 - Use `<a id="stable-id"></a>` before headings that are externally linked.
 - When a document is moved, add a Docsify alias to `docs/index.html`.
-- `scripts/check-links.sh` is the v1 canonical link-checker (file references only; anchor fragments are v2).
+- `scripts/check/check-links.sh` is the v1 canonical link-checker (file references only; anchor fragments are v2).
 
 ## Feature Maturity
 

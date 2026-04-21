@@ -57,7 +57,7 @@ Test execution and verification scripts.
 | `compare-outputs.sh` | Shell | Compare Rust and selfhost compiler outputs for a given phase | `scripts/run/compare-outputs.sh <phase> [fixture.ark]` |
 | `smoke-test-binary.sh` | Shell | Minimal smoke tests for a release binary | `./scripts/run/smoke-test-binary.sh [path-to-arukellt]` |
 | `test-opt-equivalence.sh` | Shell | Verify optimization passes preserve semantics | `bash scripts/run/test-opt-equivalence.sh [--quick] [--fixture X]` |
-| `test-package-workspace.sh` | Shell | Package-workspace manifest validation tests | `bash scripts/test-package-workspace.sh` |
+| `test-package-workspace.sh` | Shell | Package-workspace manifest validation tests | `bash scripts/run/test-package-workspace.sh` |
 | `verify-bootstrap.sh` | Shell | Bootstrap fixpoint verification for self-hosting | `bash scripts/run/verify-bootstrap.sh [--no-build]` |
 | `wat-roundtrip.sh` | Shell | WAT roundtrip verification (compile → wasm2wat → wat2wasm) | `bash scripts/run/wat-roundtrip.sh` |
 

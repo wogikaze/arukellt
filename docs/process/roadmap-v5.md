@@ -162,7 +162,8 @@ wasmtime run phase1.wasm -- tests/fixtures/basic/hello.ark  # AST を出力
 arukellt compile src/compiler/*.ark -o arukellt-s1.wasm
 
 # Stage 1 で全 fixture を確認
-scripts/run-with-s1.sh cargo test -p arukellt --test harness
+# (Stage-1 harness runner is planned; today run manually via wasmtime on arukellt-s1.wasm)
+cargo test -p arukellt --test harness
 
 # fixpoint 検証
 scripts/run/verify-bootstrap.sh

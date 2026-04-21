@@ -189,7 +189,7 @@ v5 完了時に揃っているべきドキュメントの全リスト:
 
 - MIR dump: `ARUKELLT_DUMP_PHASES=mir` の出力を `tests/snapshots/mir/` に固定 (v4 で追加)
 - diagnostics output: エラーメッセージの期待値を `tests/snapshots/diagnostics/` に固定
-- 更新方法: `scripts/run/update-snapshots.sh` で一括更新、diff をコミットに含める
+- 更新方法: ハーネスを再実行して手動で `.expected` / スナップショットを更新し、diff をコミットに含める（専用の一括更新スクリプトは未実装）
 
 ### 性能回帰テスト
 
@@ -218,22 +218,8 @@ v5 完了時に揃っているべきドキュメントの全リスト:
 
 #### 再現ビルドゲートの使い方
 
-```bash
-# 単独実行
-bash scripts/gate/check-reproducible-build.sh
-
-# 詳細ログ付き
-bash scripts/gate/check-reproducible-build.sh --verbose
-
-# 別 fixture / target を指定
-bash scripts/gate/check-reproducible-build.sh --fixture src/compiler/main.ark --target wasm32-wasi-p1
-
-# verify-harness から呼び出す
-bash scripts/manager.py --repro
-bash scripts/manager.py --full  # --repro を含む
-```
-
-差分が出た場合、スクリプトは SHA-256 チェックサム・WAT diff（wabt が存在する場合）・バイナリ diff を出力する。
+再現ビルドゲートは設計のみで、専用スクリプト (`scripts/gate/check-reproducible-build.sh`) は未実装。
+手動での bit-exact 比較は `arukellt compile` を 2 回実行し `sha256sum` で照合する形で対応する。
 
 ### セルフホスト検証
 

@@ -30,7 +30,7 @@
 ----------|---------|
 | Deploy 手順または workflow | `.github/workflows/pages.yml` — pushes `master` → builds playground JS + deploys `./docs` to GitHub Pages via `actions/deploy-pages@v4` |
 | Preview 環境または preview 手順 | `docs/playground/deployment-strategy.md` §5.2 — local preview procedure: `cd playground && npm run build:app`, then `python3 -m http.server` in `docs/`; PR preview workflow is target-state (documented, not automated) |
-| Asset versioning / cache busting | `scripts/gen/stamp-playground-assets.sh` — computes SHA-256 of `ark_playground_wasm_bg.wasm` (first 12 hex chars), copies to `ark_playground_wasm_bg-<hash12>.wasm`, writes `docs/playground/wasm/asset-manifest.json`; `docs/playground/index.html` fetches the manifest at runtime and passes the hashed URL to `createPlayground` |
+| Asset versioning / cache busting | **NOT IMPLEMENTED** — `scripts/gen/stamp-playground-assets.sh` is referenced from `playground/package.json build:app` with `\|\| true`, but the script itself does NOT exist on disk. Cache-busting is not active. |
 | Smoke test | `.github/workflows/playground-ci.yml` jobs `playground-bundle-size` and `playground-wasm-size` both run `npm run build:app` and gate on asset size — pass = build compiles clean within budget |
 
 **Gap note**: JS bundle files (served from `docs/playground/dist/`) use fixed filenames because there is no bundler (esbuild/Vite) in the pipeline. GitHub Pages' ~10-minute TTL provides adequate cache freshness for JS. Full JS content-hash filenames require a proper bundler; that work is not in this issue's scope.
@@ -60,7 +60,7 @@ playground の frontend と Wasm assets をどこに配置し、preview 環境�
 - [x] preview 環境または preview 手順が定義される。
       *Evidence: `docs/playground/deployment-strategy.md` §5.2 — local dev preview procedure documents `npm run build:app` + `python3 -m http.server` workflow.*
 - [x] asset versioning / cache busting が実装される。
-      *Evidence: `scripts/gen/stamp-playground-assets.sh` — content-hashes Wasm binary, writes `asset-manifest.json`; `docs/playground/index.html` reads manifest to load hashed Wasm URL. Called from `playground/package.json` `build:app`.*
+      *Evidence (stale — flagged by 2026-04-22 script inventory audit): `playground/package.json build:app` attempts to run `scripts/gen/stamp-playground-assets.sh` (with `|| true` fallback), but the script does NOT exist on disk. Cache-busting is not active. This acceptance is not actually satisfied.*
 - [x] 最低限の smoke test がある。
       *Evidence: `.github/workflows/playground-ci.yml` runs full `npm run build:app` in both size-gate jobs on every PR touching playground paths.*
 
@@ -69,7 +69,7 @@ playground の frontend と Wasm assets をどこに配置し、preview 環境�
 - `docs/index.html`
 - `.github/workflows/ci.yml`
 - `docs/README.md`
-- `scripts/gen/stamp-playground-assets.sh`
+- `scripts/gen/stamp-playground-assets.sh` (does NOT exist on disk; referenced only)
 - `.github/workflows/pages.yml`
 - `.github/workflows/playground-ci.yml`
 - `docs/playground/deployment-strategy.md`

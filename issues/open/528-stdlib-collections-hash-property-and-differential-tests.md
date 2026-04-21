@@ -59,7 +59,7 @@
 
 - focused collections/hash property or differential test run
 - `python scripts/manager.py verify fixtures`
-- `bash scripts/gen/generate-issue-index.sh`
+- `python3 scripts/gen/generate-issue-index.py`
 
 ## Close gate
 

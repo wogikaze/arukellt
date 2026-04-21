@@ -17,7 +17,7 @@
 |----------|---------|--------------|
 | Baseline JSON under `tests/baselines/` | Yes | `python3 scripts/util/collect-baseline.py` |
 | Generated docs / landing pages / status blocks | Yes | `python3 scripts/gen/generate-docs.py` |
-| Issue queue indexes under `issues/open/` | Yes | `bash scripts/gen/generate-issue-index.sh` |
+| Issue queue indexes under `issues/open/` | Yes | `python3 scripts/gen/generate-issue-index.py` |
 | CLI help text | No | built from source |
 
 ## Target Support Policy

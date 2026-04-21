@@ -35,7 +35,7 @@ work order authorizes closure, and regenerate queue indexes.
 ## ALLOWED_ADJACENT_PATHS
 
 - `docs/**` only when the work order names them as closure evidence
-- `scripts/gen/generate-issue-index.sh`
+- `python3 scripts/gen/generate-issue-index.py`
 - `scripts/check/**` when a docs consistency check is required by the work order
 
 ## OUT_OF_SCOPE

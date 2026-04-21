@@ -115,7 +115,7 @@ Each was moved from `issues/done/` → `issues/open/`, Status set to `open`, Upd
 | ID | Title | Source |
 |---|---|---|
 | 487 | Package registry resolution | `docs/module-resolution.md` L160: "a package registry, which is not yet implemented" |
-| 488 | Generator and checker path drift | `scripts/check/check-docs-consistency.py` references `scripts/generate-issue-index.sh` instead of `scripts/gen/generate-issue-index.sh` |
+| 488 | Generator and checker path drift | `scripts/check/check-docs-consistency.py` references `python3 scripts/gen/generate-issue-index.py` instead of `python3 scripts/gen/generate-issue-index.py` |
 | 489 | Playground user-visible entrypoint wiring | `playground/src/` components exist but `docs/playground/index.html` does not wire them |
 | 490 | pub use / pub import re-export | `docs/module-resolution.md` L213: "not yet implemented; tracked in #234" but #234's scope covers visibility only, not re-export |
 
@@ -137,7 +137,7 @@ The remaining 349 issues in `issues/done/` were verified as genuinely complete. 
 |---|---|---|
 | `docs/module-resolution.md` L160 | Says "package registry not yet implemented" but no open issue | Fixed: created #487 |
 | `docs/module-resolution.md` L213 | Says re-export "tracked in #234" but #234 doesn't cover it | Fixed: created #490 |
-| `scripts/check/check-docs-consistency.py` | References `scripts/generate-issue-index.sh` (stale path) | Fixed: created #488 |
+| `scripts/check/check-docs-consistency.py` | References `python3 scripts/gen/generate-issue-index.py` (stale path) | Fixed: created #488 |
 | `extensions/arukellt-all-in-one/package.json` | Claims test explorer, sidebar refresh — both are placeholders | Covered by reopened #441, #469 |
 | `docs/playground/index.html` | Does not import playground WASM module or wire components | Fixed: created #489 |
 | `AGENTS.md` | Lists correct `scripts/gen/` paths | No action needed |
@@ -148,7 +148,7 @@ The remaining 349 issues in `issues/done/` were verified as genuinely complete. 
 
 | Check | File | Finding |
 |---|---|---|
-| Stage 2 fixpoint | `scripts/check/check-selfhost-fixpoint.sh` | `sha256(s1) ≠ sha256(s2)` — exits non-zero |
+| Stage 2 fixpoint | `python scripts/manager.py selfhost fixpoint` | `sha256(s1) ≠ sha256(s2)` — exits non-zero |
 | CoreHIR lowerer | `crates/ark-mir/src/lower/mod.rs` | `lower_if_expr` / `lower_loop_expr` / `lower_try_expr` / `lower_match_expr` return empty MIR |
 | DAP evaluate | `crates/ark-dap/src/lib.rs` | Returns `body: None, success: false` |
 | CLI dispatch | `crates/arukellt/src/main.rs` | No `explain`, `sandbox`, `project-explain` subcommands |
@@ -161,7 +161,7 @@ The remaining 349 issues in `issues/done/` were verified as genuinely complete. 
 
 ## 7. Dependency Graph Updates
 
-The issue index and dependency graph at `issues/open/index.md` and `issues/open/dependency-graph.md` have been regenerated via `scripts/gen/generate-issue-index.sh` to reflect:
+The issue index and dependency graph at `issues/open/index.md` and `issues/open/dependency-graph.md` have been regenerated via `python3 scripts/gen/generate-issue-index.py` to reflect:
 
 - 44 issues moved into `issues/open/`
 - 4 new issues (487–490) added
