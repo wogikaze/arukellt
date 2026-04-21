@@ -245,6 +245,20 @@ pub fn hex_val_char(ch: String) -> i32 {
     }
 }
 
+/// Return the nibble value (0–15) of a single hex character, or None if the
+/// character is not a valid hex digit.
+///
+/// # Migration
+/// Prefer this over `hex_val_char` which returns the legacy -1 error sentinel.
+pub fn try_hex_val_char(ch: String) -> Option<i32> {
+    let v = hex_val_char(ch)
+    if v < 0 {
+        None
+    } else {
+        Some(v)
+    }
+}
+
 pub fn hex_decode(s: String) -> Vec<i32> {
     let result: Vec<i32> = Vec_new_i32()
     let n: i32 = len(s)
@@ -554,6 +568,88 @@ pub fn read_bytes(c: Vec<i32>, n: i32) -> Vec<i32> {
             i = i + 1
         }
         result
+    }
+}
+
+// ─── ByteCursor Option-returning variants (preferred over sentinel returns) ───
+//
+// # no-sentinel-i32 rule
+// New public APIs in std::bytes must NOT return a raw i32 sentinel (-1) to
+// signal absence or failure.  Use the `try_*` variants below instead.
+// The legacy `read_u8` / `read_u16_le` / ... functions are kept only as
+// backward-compatible adapters for existing call sites.
+
+/// Read one byte from the cursor and advance its position.
+/// Returns None if no bytes remain.
+pub fn try_read_u8(c: Vec<i32>) -> Option<i32> {
+    if cursor_remaining(c) < 1 {
+        None
+    } else {
+        let pos = get_unchecked(c, 0)
+        let byte = get_unchecked(c, pos + 1)
+        set(c, 0, pos + 1)
+        Some(byte)
+    }
+}
+
+/// Read two bytes little-endian from the cursor.
+/// Returns None if fewer than 2 bytes remain.
+pub fn try_read_u16_le(c: Vec<i32>) -> Option<i32> {
+    if cursor_remaining(c) < 2 {
+        None
+    } else {
+        let b0 = read_u8(c) & 255
+        let b1 = read_u8(c) & 255
+        Some(b0 + b1 * 256)
+    }
+}
+
+/// Read four bytes little-endian from the cursor.
+/// Returns None if fewer than 4 bytes remain.
+pub fn try_read_u32_le(c: Vec<i32>) -> Option<i32> {
+    if cursor_remaining(c) < 4 {
+        None
+    } else {
+        let b0 = read_u8(c) & 255
+        let b1 = read_u8(c) & 255
+        let b2 = read_u8(c) & 255
+        let b3 = read_u8(c) & 255
+        Some(b0 + b1 * 256 + b2 * 65536 + b3 * 16777216)
+    }
+}
+
+// NOTE: try_read_u64_le (Option<i64>) is deferred: the current runtime has a
+// code-generation bug where user-constructed Some(i64_value) produces invalid
+// Wasm (type mismatch i32/i64).  Use read_u64_le (legacy -1 sentinel) until
+// the compiler issue is resolved.
+
+/// Read four bytes big-endian from the cursor.
+/// Returns None if fewer than 4 bytes remain.
+pub fn try_read_u32_be(c: Vec<i32>) -> Option<i32> {
+    if cursor_remaining(c) < 4 {
+        None
+    } else {
+        let b0 = read_u8(c) & 255
+        let b1 = read_u8(c) & 255
+        let b2 = read_u8(c) & 255
+        let b3 = read_u8(c) & 255
+        Some(b0 * 16777216 + b1 * 65536 + b2 * 256 + b3)
+    }
+}
+
+/// Read n bytes from the cursor into a new byte buffer.
+/// Returns None if fewer than n bytes remain.
+pub fn try_read_bytes(c: Vec<i32>, n: i32) -> Option<Vec<i32>> {
+    if cursor_remaining(c) < n {
+        None
+    } else {
+        let result: Vec<i32> = Vec_new_i32()
+        let mut i = 0
+        while i < n {
+            push(result, read_u8(c))
+            i = i + 1
+        }
+        Some(result)
     }
 }
 

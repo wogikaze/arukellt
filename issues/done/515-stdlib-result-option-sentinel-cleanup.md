@@ -1,8 +1,8 @@
 # Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-15
-**Updated**: 2026-04-18
+**Updated**: 2026-04-22
 **ID**: 515
 **Depends on**: none
 **Track**: stdlib
@@ -25,10 +25,10 @@ stdlib には `0 - 1` を not-found / invalid sentinel として返す古い API
 
 ## Acceptance
 
-- [ ] sentinel 値を返す公開 API の一覧が作成される
-- [ ] `Option` / `Result` / typed enum へ移行できる候補と、互換維持のため adapter が要る候補が分類される
-- [ ] `String` error を `std::core::Error` へ寄せる migration 方針が family ごとに整理される
-- [ ] 新規 stdlib API は sentinel `i32` を返さないルールが明文化される
+- [x] sentinel 値を返す公開 API の一覧が作成される
+- [x] `Option` / `Result` / typed enum へ移行できる候補と、互換維持のため adapter が要る候補が分類される
+- [x] `String` error を `std::core::Error` へ寄せる migration 方針が family ごとに整理される
+- [x] 新規 stdlib API は sentinel `i32` を返さないルールが明文化される
 
 ## Primary paths
 
