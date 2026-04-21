@@ -10,6 +10,13 @@
 
 **Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
 
+
+## Audit classification
+
+- **Date**: 2026-04-21
+- **Classification**: superseded-by-existing-open
+- **Reason**: Superseded by active open issues #051 (std::time / random surface), #074 (WASI P2 native component), and #510 (T3 P2 import-table switch). Keep this rejected issue only as historical proposal context.
+
 ## Summary
 
 WASI Preview 2 の `wasi:clocks`・`wasi:random`・`wasi:io` パッケージを

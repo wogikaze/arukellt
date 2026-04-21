@@ -66,6 +66,8 @@ graph LR
   I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
+  I076["076 WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング"]
+  I121["121 WASI P2: Canonical ABI ハンドリングの堅牢化"]
   I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I044 --> I054
@@ -86,6 +88,11 @@ graph LR
   I077 --> I136
   I139 --> I136
   I475 --> I485
+  I074 --> I076
+  I510 --> I076
+  I074 --> I121
+  I124 --> I121
+  I510 --> I121
   I504 --> I512
   I495 --> I512
   I036 --> I037
@@ -99,7 +106,7 @@ graph LR
 - **045** depends on: 039, 041; blocks: none
 - **047** depends on: 039, 041; blocks: none
 - **051** depends on: 039, 040; blocks: none
-- **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476, 510
+- **074** depends on: none; blocks: 076, 077, 121, 124, 139, 474, 475, 476, 510
 - **099** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
 - **112** depends on: 109; blocks: none
@@ -141,18 +148,20 @@ graph LR
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136
-- **124** depends on: 074; blocks: none
+- **124** depends on: 074; blocks: 121
 - **139** depends on: 074, 137; blocks: 136
 - **474** depends on: 035, done), 074; blocks: none
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
-- **510** depends on: 074; blocks: none
+- **510** depends on: 074; blocks: 076, 121
 - **126** depends on: 125; blocks: none
 - **508** depends on: 285; blocks: none
 - **495** depends on: 312, 504; blocks: 512
 - **518** depends on: 513, 517; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
+- **076** depends on: 074, 510; blocks: none
+- **121** depends on: 074, 124, 510; blocks: none
 - **512** depends on: 504, 495; blocks: none
 
 ### Blocked

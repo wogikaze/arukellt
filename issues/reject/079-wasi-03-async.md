@@ -10,6 +10,13 @@
 
 **Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
 
+
+## Audit classification
+
+- **Date**: 2026-04-21
+- **Classification**: superseded-by-existing-open
+- **Reason**: Superseded by active open issue #474 (async component support), which tracks the broader async WIT / async WASI P2 product surface.
+
 ## Summary
 
 WASI 0.3.0-rc (`docs/spec/spec-WASI-0.3.0-rc/OVERVIEW.md`) で導入される

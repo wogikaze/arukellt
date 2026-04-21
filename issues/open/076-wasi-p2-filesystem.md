@@ -4,11 +4,21 @@
 **Created**: 2026-03-28
 **Updated**: 2026-03-28
 **ID**: 076
-**Depends on**: 074
+**Depends on**: 074, 510
 **Track**: wasi-feature
 **Blocks v4 exit**: no
 
 **Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+
+
+## Reopened by audit
+
+- **Date**: 2026-04-21
+- **Reason**: WASI Preview 2 filesystem capability is product-critical host functionality and is not explicitly tracked by an active open issue. Existing issues (#074, #510, #524) only cover native component plumbing, import-table switching, or a narrow fs semantics/doc slice.
+- **Audit evidence**:
+  - No dedicated active open issue tracked this product gap.
+  - The capability is required for the WASI P2 / component product surface, not merely future speculation.
+  - Reject placement was inconsistent with current product direction.
 
 ## Summary
 

@@ -10,6 +10,13 @@
 
 **Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
 
+
+## Audit classification
+
+- **Date**: 2026-04-21
+- **Classification**: superseded-by-existing-open
+- **Reason**: Superseded by active open issue #139 (std::host::sockets facade and T3 runtime verification), which already tracks the product-facing P2 sockets surface.
+
 ## Summary
 
 WASI Preview 2 の `wasi:sockets/tcp`・`wasi:sockets/udp`・`wasi:sockets/ip-name-lookup` を

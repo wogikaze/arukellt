@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-20T17:41:36Z",
+  "generated_at": "2026-04-21T03:20:52Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -169,7 +169,9 @@
       "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [
+        "076",
         "077",
+        "121",
         "124",
         "139",
         "474",
@@ -1159,7 +1161,9 @@
       "depends_on": [
         "074"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "121"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -1290,7 +1294,10 @@
       "depends_on": [
         "074"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "076",
+        "121"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -1449,6 +1456,57 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#475"
+      }
+    },
+    {
+      "id": "076",
+      "path": "076-wasi-p2-filesystem.md",
+      "title": "WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "510"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "121",
+      "path": "121-wasi-p2-canonical-abi-hardening.md",
+      "title": "WASI P2: Canonical ABI ハンドリングの堅牢化",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "124",
+        "510"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
       }
     },
     {

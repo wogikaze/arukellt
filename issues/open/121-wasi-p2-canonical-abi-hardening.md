@@ -4,11 +4,21 @@
 **Created**: 2026-03-28
 **Updated**: 2026-03-28
 **ID**: 121
-**Depends on**: 074
+**Depends on**: 074, 124, 510
 **Track**: wasi-feature
 **Blocks v4 exit**: no
 
 **Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+
+
+## Reopened by audit
+
+- **Date**: 2026-04-21
+- **Reason**: Canonical ABI lift/lower completeness is an active product gap for WASI P2 native/component work. Existing open issues (#074, #124, #510) depend on this but no dedicated active issue tracks the close gate.
+- **Audit evidence**:
+  - No dedicated active open issue tracked this product gap.
+  - The capability is required for the WASI P2 / component product surface, not merely future speculation.
+  - Reject placement was inconsistent with current product direction.
 
 ## Summary
 
