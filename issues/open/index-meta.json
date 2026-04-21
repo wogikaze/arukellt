@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T04:48:03Z",
+  "generated_at": "2026-04-21T06:13:13Z",
   "generator": "scripts/gen/generate-issue-index.sh",
   "open_issues": [
     {
@@ -1062,6 +1062,28 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 4
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "531",
+      "path": "531-scripts-consolidation-to-python-manager.md",
+      "title": "Scripts Consolidation to Single Python Manager",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 48
       },
       "orchestration": {
         "class": null,
