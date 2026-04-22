@@ -1133,6 +1133,12 @@ fn intern_string(m: MirModule, s: String) -> i32 {
 struct MonoInstance {
     fn_name: String,
     mangled_name: String,
+    type_args: Vec<TypeInfo>,
+}
+
+struct MonoCallSite {
+    span_start: i32,
+    mangled_name: String,
 }
 
 struct TypeCheckResult {
@@ -1140,6 +1146,7 @@ struct TypeCheckResult {
     errors: Vec<String>,
     typed_fns: Vec<TypedFn>,
     mono_instances: Vec<MonoInstance>,
+    mono_call_sites: Vec<MonoCallSite>,
 }
 
 struct TypedFn {

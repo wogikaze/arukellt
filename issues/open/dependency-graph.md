@@ -47,7 +47,6 @@ graph LR
   I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
   I571["571 571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)"]
   I572["572 572 — Phase 7: Delete `crates/ark-lsp`"]
-  I587["587 587 — Selfhost s2 rebuild regression: type errors on every fixture from current `src/compiler/main.ark`"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -174,7 +173,6 @@ graph LR
 - **563** depends on: 559; blocks: 564
 - **571** depends on: 568; blocks: 573
 - **572** depends on: 569, 570; blocks: 579, 582
-- **587** depends on: none; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136
