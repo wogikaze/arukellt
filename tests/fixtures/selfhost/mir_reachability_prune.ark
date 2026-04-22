@@ -1,0 +1,45 @@
+// Issue #312 slice-d regression: reachability/liveness pruning of
+// unused MonoInstances.
+//
+// Setup (intentionally exercises the prune path):
+//
+// - `tally<T>(v: Vec<T>) -> i32` is generic and gets specialized by
+//   slice-c into `tally__Vec_i32_` and `tally__Vec_String_` because
+//   the typechecker records *every* generic call site it walks during
+//   `infer_expr`, regardless of whether that call site is reachable
+//   from `main`.
+//
+// - `dead_caller` is a non-generic helper that calls `tally<String>`.
+//   Nothing in `main` (or anything reachable from `main`) ever calls
+//   `dead_caller`, so after the slice-d reachability pass both
+//   `dead_caller` and the `tally__Vec_String_` MonoInstance must be
+//   pruned from the emitted MIR module.
+//
+// - The `i32` instance, called directly from `main`, must survive.
+//
+// Behavioural witness: the program prints the i32-side count (3).
+// A regression that re-emitted the dead `tally__Vec_String_` would
+// not change stdout, but the wasm function table would grow; future
+// `dump_mir` checks can read `MirModule.mono_pruned_count` to assert
+// pruning fired (slice-d emits a stable "MIR mono pruned: N
+// function(s)" line on the dump path).
+use std::host::stdio
+
+fn tally<T>(v: Vec<T>) -> i32 {
+    len(v)
+}
+
+fn dead_caller() -> i32 {
+    let mut words: Vec<String> = Vec_new_String()
+    push(words, String_from("alpha"))
+    push(words, String_from("beta"))
+    tally(words)
+}
+
+fn main() {
+    let mut nums: Vec<i32> = Vec_new_i32()
+    push(nums, 10)
+    push(nums, 20)
+    push(nums, 30)
+    stdio::println(i32_to_string(tally(nums)))
+}

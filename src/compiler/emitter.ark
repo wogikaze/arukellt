@@ -11336,7 +11336,7 @@ fn main() {
 }
 
 fn MirModule_new() -> MirModule {
-    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String() }
+    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String(), mono_pruned_count: 0 }
 }
 
 fn MirFunction_new(name: String) -> MirFunction {

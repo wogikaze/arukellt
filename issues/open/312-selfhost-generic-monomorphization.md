@@ -49,7 +49,7 @@
 - [ ] `Vec<i32>` と `Vec<String>` が異なる具象型として扱われる — **Open**: distinct `type_args` unify for concrete uses; nested generic parameters are not fully instantiated (`instantiate_type`); MIR does not specialize on `mono_instances`.
 - [ ] generic fn の呼び出しで型引数が推論される — **Open**: partial for `NK_CALL`; generic `NK_METHOD_CALL` does not record monomorph instances; shallow instantiation as above.
 - [x] monomorphization 後の typed function list が backend に渡される — **Done (slice-c)**: `lower_to_mir` now emits one specialized `MirFunction` per `MonoInstance` and rewrites generic call sites (via per-call-site `mono_call_sites` span map) to dispatch to the mangled specialization. Generic-source bodies with ≥1 instantiation are skipped from `module.functions`.
-- [ ] 未使用の generic instantiation が codegen に含まれない — **Open**: depends on a real specialization / reachability pass; not implemented for selfhost.
+- [x] 未使用の generic instantiation が codegen に含まれない — **Done (slice-d)**: `mir_prune_unreachable` runs at the tail of `lower_to_mir`, walking the MIR call graph from `main`/`_start` over `MIR_CALL.str_val` edges and dropping every `MirFunction` (specialized mono variants and their dead non-mono callers alike) that no reachable function transitively calls.  Pruned count is recorded on `MirModule.mono_pruned_count` and surfaced via `dump_mir` ("MIR mono pruned: N function(s)") for regression visibility.
 
 ## References
 

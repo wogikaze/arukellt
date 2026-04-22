@@ -1104,10 +1104,15 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
 struct MirModule {
     functions: Vec<MirFunction>,
     string_constants: Vec<String>,
+    // Slice-d (#312): count of MirFunction entries dropped by the
+    // reachability pass invoked at the tail of `lower_to_mir`.  Exposed
+    // via `dump_mir` so future regression checks (and the slice-d
+    // fixture harness) can observe that pruning fires when expected.
+    mono_pruned_count: i32,
 }
 
 fn MirModule_new() -> MirModule {
-    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String() }
+    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String(), mono_pruned_count: 0 }
 }
 
 fn intern_string(m: MirModule, s: String) -> i32 {
@@ -4809,6 +4814,123 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     lower_expr(ctx, node)
 }
 
+// ── Slice-d (#312) Reachability Pruning ─────────────────────────────────────
+// Walk the MIR call graph from `main` (and `_start` if present), marking
+// every function transitively reachable through MIR_CALL.str_val edges.
+// Functions not reached are dropped from the emitted module.  This drops
+// unused MonoInstance specializations emitted by slice-c, plus any other
+// dead user-defined function (so dangling calls cannot resolve to a
+// pruned mono via a dead non-mono caller).  Returns the number of pruned
+// functions.  Builtins, wasm imports, and runtime helpers are not in
+// `m.functions` and are unaffected by this pass.
+fn mir_collect_callees_into(f: MirFunction, out: Vec<String>) {
+    let bn = len(f.blocks)
+    let mut bi = 0
+    while bi < bn {
+        let b = get_unchecked(f.blocks, bi)
+        let in_count = len(b.instructions)
+        let mut ii = 0
+        while ii < in_count {
+            let inst = get_unchecked(b.instructions, ii)
+            if inst.op == MIR_CALL() {
+                if len(inst.str_val) > 0 {
+                    push(out, clone(inst.str_val))
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+}
+
+fn mir_find_fn_index(funcs: Vec<MirFunction>, name: String) -> i32 {
+    let n = len(funcs)
+    let mut k = 0
+    while k < n {
+        let f = get_unchecked(funcs, k)
+        if eq(clone(f.name), clone(name)) {
+            return k
+        }
+        k = k + 1
+    }
+    return 0 - 1
+}
+
+fn vec_str_contains(v: Vec<String>, s: String) -> i32 {
+    let n = len(v)
+    let mut k = 0
+    while k < n {
+        if eq(clone(get_unchecked(v, k)), clone(s)) {
+            return 1
+        }
+        k = k + 1
+    }
+    return 0
+}
+
+fn mir_prune_unreachable(m: MirModule) -> i32 {
+    let fn_count = len(m.functions)
+    if fn_count == 0 {
+        return 0
+    }
+    let reachable_names = Vec_new_String()
+    let worklist = Vec_new_String()
+    let main_idx = mir_find_fn_index(m.functions, String_from("main"))
+    if main_idx >= 0 {
+        push(reachable_names, String_from("main"))
+        push(worklist, String_from("main"))
+    }
+    let start_idx = mir_find_fn_index(m.functions, String_from("_start"))
+    if start_idx >= 0 {
+        if vec_str_contains(reachable_names, String_from("_start")) == 0 {
+            push(reachable_names, String_from("_start"))
+            push(worklist, String_from("_start"))
+        }
+    }
+    if len(worklist) == 0 {
+        // No entry point — keep everything to preserve current behaviour
+        // for fixtures that exercise sub-modules without a `main`.
+        return 0
+    }
+    let mut wi = 0
+    while wi < len(worklist) {
+        let cur = clone(get_unchecked(worklist, wi))
+        wi = wi + 1
+        let fidx = mir_find_fn_index(m.functions, clone(cur))
+        if fidx >= 0 {
+            let f = get_unchecked(m.functions, fidx)
+            let callees = Vec_new_String()
+            mir_collect_callees_into(f, callees)
+            let cn = len(callees)
+            let mut ci = 0
+            while ci < cn {
+                let callee = clone(get_unchecked(callees, ci))
+                if vec_str_contains(reachable_names, clone(callee)) == 0 {
+                    if mir_find_fn_index(m.functions, clone(callee)) >= 0 {
+                        push(reachable_names, clone(callee))
+                        push(worklist, callee)
+                    }
+                }
+                ci = ci + 1
+            }
+        }
+    }
+    let new_funcs = Vec_new_MirFunction()
+    let mut pruned = 0
+    let mut fi = 0
+    while fi < fn_count {
+        let f = get_unchecked(m.functions, fi)
+        if vec_str_contains(reachable_names, clone(f.name)) == 1 {
+            push(new_funcs, f)
+        } else {
+            pruned = pruned + 1
+        }
+        fi = fi + 1
+    }
+    m.functions = new_funcs
+    pruned
+}
+
 pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
     let m = MirModule_new()
     let decl_count = len(decls)
@@ -5354,6 +5476,15 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
         }
         mi_pass = mi_pass + 1
     }
+    // Slice-d (#312): reachability/liveness pruning of unused MonoInstances.
+    // After slice-c emits one specialized MirFunction per recorded
+    // MonoInstance, walk the MIR call graph from `main` (and `_start`
+    // if present) and drop any MirFunction — including specialized
+    // mono variants — that no reachable function transitively calls.
+    // Records the pruned count on the module for observability via
+    // `dump_mir` / regression checks.
+    let pruned = mir_prune_unreachable(ctx.module)
+    ctx.module.mono_pruned_count = pruned
     ctx.module
 }
 
@@ -5363,6 +5494,11 @@ pub fn dump_mir(m: MirModule) {
     mir_ssa_rename_module(m)
     let fn_count = len(m.functions)
     stdio::eprintln(concat(String_from("MIR module: "), concat(to_string(fn_count), String_from(" function(s)"))))
+    if m.mono_pruned_count > 0 {
+        // Slice-d (#312): observable stat for the reachability pruning
+        // pass.  Stable string lets fixtures grep for it.
+        stdio::eprintln(concat(String_from("MIR mono pruned: "), concat(to_string(m.mono_pruned_count), String_from(" function(s)"))))
+    }
     let mut i = 0
     while i < fn_count {
         let f = get_unchecked(m.functions, i)

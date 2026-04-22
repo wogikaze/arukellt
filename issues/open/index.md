@@ -113,7 +113,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 205 | [205-docs-and-codebase-intelligence-surfaces](205-docs-and-codebase-intelligence-surfaces.md) | main | none | none | none | 3 checked / 0 open | — | — | |
 | 214 | [Extension quality / packaging / marketplace readiness](214-extension-quality-packaging-and-marketplace.md) | parallel | none | 184, 185, 186, 187, 188 | none | 3 checked / 0 open | blocked-by-upstream | #188 | |
 | 285 | [Legacy lowering path を隔離・撤去する](285-legacy-path-deprecation.md) | corehir | none | 284 | none | 5 checked / 5 open | implementation-ready | — | |
-| 312 | [Selfhost に generic instantiation と monomorphization を実装する](312-selfhost-generic-monomorphization.md) | selfhost-frontend | v5 | 311 | 495 | 1 checked / 3 open | implementation-ready | — | |
+| 312 | [Selfhost に generic instantiation と monomorphization を実装する](312-selfhost-generic-monomorphization.md) | selfhost-frontend | v5 | 311 | 495 | 2 checked / 2 open | implementation-ready | — | |
 | 436 | [436-playground-docs-site-integration](436-playground-docs-site-integration.md) | main | none | none | none | 4 checked / 0 open | — | — | |
 | 437 | [Playground: deployment / preview environment / asset cache 戦略を整える](437-playground-deploy-preview-cache.md) | playground | none | 431 | none | 4 checked / 0 open | — | — | |
 | 468 | [468-playground-build-and-publish-path-proof](468-playground-build-and-publish-path-proof.md) | main | none | none | none | 3 checked / 0 open | — | — | |
