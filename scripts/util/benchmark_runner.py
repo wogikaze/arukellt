@@ -106,11 +106,11 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         runtime_args=("run", "--dir=."),
     ),
     BenchmarkCase(
-        name="closure_map",
-        source="benchmarks/bench_cpu_closure_map.ark",
-        expected="benchmarks/bench_cpu_closure_map.expected",
-        description="Closure-based map+reduce over Vec<i32> (2000 elements, captured bindings)",
-        tags=("cpu-bound", "closure-heavy", "allocation-heavy", "iteration"),
+        name="enum_dispatch",
+        source="benchmarks/bench_cpu_enum_dispatch.ark",
+        expected="benchmarks/bench_cpu_enum_dispatch.expected",
+        description="Enum variant dispatch via match (100,000 iterations, 5 variants)",
+        tags=("cpu-bound", "match-heavy", "allocation-heavy", "iteration"),
     ),
 )
 

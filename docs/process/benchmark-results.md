@@ -34,10 +34,10 @@ Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced 
 
 ## Current Run
 
-- Mode: `full`
-- Generated at: `2026-04-21T18:56:47+00:00`
+- Mode: `update-baseline`
+- Generated at: `2026-04-21T18:23:39+00:00`
 - Target: `wasm32-wasi-p1`
-- Compiler: `target/debug/arukellt`
+- Compiler: `target/release/arukellt`
 
 ## Tool Availability
 
@@ -51,21 +51,23 @@ Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced 
 
 | Benchmark | Tags | Compile ms | Run ms | Binary bytes | Compile RSS KB | Run RSS KB | Correctness |
 |-----------|------|------------|--------|--------------|----------------|------------|-------------|
-| fib | cpu-bound, loop, scalar | 168.424 | 64.412 | 1082 | 27136 | 19200 | pass |
-| binary_tree | recursion-heavy, allocation-light, call-heavy | 147.655 | 64.707 | 1066 | 27136 | 19200 | pass |
-| vec_ops | allocation-heavy, container, iteration | 43.868 | 11.675 | 2072 | 27508 | 19328 | pass |
-| string_concat | string-heavy, allocation-heavy, gc-pressure | 40.687 | 11.397 | 1337 | 27392 | 19072 | pass |
-| parse_tree_distance | parse, allocation-heavy, container, iteration | 51.653 | 36.350 | 7376 | 28928 | 27648 | fail |
+| fib | cpu-bound, loop, scalar | 14.340 | 12.558 | 1082 | 12160 | 19072 | pass |
+| binary_tree | recursion-heavy, allocation-light, call-heavy | 13.959 | 16.703 | 1066 | 12160 | 19072 | pass |
+| vec_ops | allocation-heavy, container, iteration | 14.703 | 12.592 | 2072 | 12268 | 19200 | pass |
+| string_concat | string-heavy, allocation-heavy, gc-pressure | 16.552 | 12.222 | 1337 | 12160 | 19200 | pass |
+| parse_tree_distance | parse, allocation-heavy, container, iteration | 17.582 | 41.014 | 7376 | 13312 | 27776 | fail |
+| enum_dispatch | cpu-bound, match-heavy, allocation-heavy, iteration | 17.124 | 13.791 | 1644 | 12288 | 19776 | pass |
 
 ## Compile Latency Breakdown (ms)
 
 | Benchmark | lex | parse | resolve | typecheck | lower | opt | emit | total |
 |-----------|-----|-------|---------|-----------|-------|-----|------|-------|
-| fib | 0.000 | 0.000 | 6.600 | 11.200 | 33.600 | 47.100 | 2.300 | 117.700 |
-| binary_tree | 0.000 | 0.000 | 6.800 | 7.500 | 41.500 | 30.600 | 2.000 | 116.500 |
-| vec_ops | 0.000 | 0.000 | 3.500 | 3.700 | 12.000 | 10.600 | 1.500 | 32.700 |
-| string_concat | 0.000 | 0.000 | 3.200 | 3.900 | 9.700 | 10.300 | 1.400 | 30.100 |
-| parse_tree_distance | 0.000 | 0.000 | 4.900 | 6.600 | 10.600 | 14.100 | 3.300 | 41.200 |
+| fib | 0.000 | 0.000 | 1.500 | 1.000 | 4.400 | 0.800 | 0.300 | 8.800 |
+| binary_tree | 0.000 | 0.000 | 1.500 | 1.000 | 4.100 | 0.800 | 0.300 | 8.200 |
+| vec_ops | 0.000 | 0.000 | 1.900 | 1.100 | 4.200 | 0.800 | 0.300 | 8.700 |
+| string_concat | 0.000 | 0.000 | 1.600 | 1.100 | 4.800 | 0.900 | 0.300 | 9.600 |
+| parse_tree_distance | 0.000 | 0.000 | 2.400 | 1.800 | 4.800 | 1.100 | 0.500 | 11.300 |
+| enum_dispatch | 0.000 | 0.000 | 1.600 | 2.900 | 5.000 | 0.900 | 0.300 | 11.300 |
 
 ## Wasm Section Breakdown (bytes)
 
@@ -78,6 +80,7 @@ Section sizes parsed directly from the .wasm binary header using pure-Python LEB
 | vec_ops | 116 | 35 | 14 | 1633 | 103 | 19 | 82 | unavailable |
 | string_concat | 116 | 35 | 15 | 943 | 62 | 19 | 76 | unavailable |
 | parse_tree_distance | 121 | 242 | 21 | 6596 | 110 | 19 | 182 | unavailable |
+| enum_dispatch | 116 | 35 | 13 | 1302 | 29 | 19 | 61 | unavailable |
 
 ## Threshold Policy
 
@@ -93,11 +96,12 @@ Benchmarks with CV > 5.0% are flagged as **unstable** — high variance may indi
 
 | Benchmark | Compile CV% | Compile Stable | Runtime CV% | Runtime Stable |
 |-----------|-------------|----------------|-------------|----------------|
-| fib | 17.61 | ✗ unstable | 37.85 | ✗ unstable |
-| binary_tree | 22.74 | ✗ unstable | 27.53 | ✗ unstable |
-| vec_ops | 15.12 | ✗ unstable | 7.24 | ✗ unstable |
-| string_concat | 2.02 | ✓ | 4.36 | ✓ |
-| parse_tree_distance | 9.19 | ✗ unstable | 2.31 | ✓ |
+| fib | 4.77 | ✓ | 7.14 | ✗ unstable |
+| binary_tree | 4.40 | ✓ | 5.07 | ✗ unstable |
+| vec_ops | 1.45 | ✓ | 10.58 | ✗ unstable |
+| string_concat | 8.37 | ✗ unstable | 5.48 | ✗ unstable |
+| parse_tree_distance | 5.64 | ✗ unstable | 13.54 | ✗ unstable |
+| enum_dispatch | 7.97 | ✗ unstable | 9.97 | ✗ unstable |
 
 ## Baseline Comparison
 
@@ -105,11 +109,12 @@ Baseline source: `tests/baselines/perf/baselines.json`
 
 | Benchmark | Compile Δ | Run Δ | Size Δ | Status |
 |-----------|-----------|-------|--------|--------|
-| fib | +1140.14% | +472.55% | +16.22% | fail |
-| binary_tree | +989.79% | +336.80% | +17.53% | fail |
-| vec_ops | +135.77% | +8.11% | +9.11% | fail |
-| string_concat | +111.77% | +4.78% | +14.27% | fail |
-| parse_tree_distance | +83.19% | -19.82% | +4.74% | fail |
+| fib | +5.59% | +11.63% | +16.22% | fail |
+| binary_tree | +3.03% | +12.75% | +17.53% | fail |
+| vec_ops | -20.98% | +16.60% | +9.11% | fail |
+| string_concat | -13.85% | +12.37% | +14.27% | fail |
+| parse_tree_distance | -37.65% | -9.53% | +4.74% | pass |
+| enum_dispatch | n/a | n/a | n/a | skipped |
 
 ### Wasm Section Δ vs Baseline (bytes)
 
@@ -123,9 +128,9 @@ Positive delta = size grew. Negative = shrank. `n/a` = section absent in one sid
 | string_concat | +87 (+10.2%) | 76 | +0 (+0.0%) | +1 (+4.5%) | +0 (+0.0%) | +1 (+7.1%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
 | parse_tree_distance | +147 (+2.3%) | 182 | +0 (+0.0%) | +1 (+2.9%) | +0 (+0.0%) | +1 (+5.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
 
-- Pass: 6
-- Fail: 9
-- Skipped: 0
+- Pass: 9
+- Fail: 6
+- Skipped: 3
 
 ## Schema
 
@@ -143,11 +148,12 @@ RSS peaks are sourced from `/usr/bin/time -f %M` (null when the tool is absent).
 
 | Benchmark | Tags | Compiler RSS KB | Runtime RSS KB | GC pauses |
 |-----------|------|-----------------|----------------|-----------|
-| fib | cpu-bound, loop, scalar | 27136 | 19200 | unavailable |
-| binary_tree | recursion-heavy, allocation-light, call-heavy | 27136 | 19200 | unavailable |
-| vec_ops | allocation-heavy, container, iteration | 27508 | 19328 | unavailable |
-| string_concat | string-heavy, allocation-heavy, gc-pressure | 27392 | 19072 | unavailable |
-| parse_tree_distance | parse, allocation-heavy, container, iteration | 28928 | 27648 | unavailable |
+| fib | cpu-bound, loop, scalar | 12160 | 19072 | unavailable |
+| binary_tree | recursion-heavy, allocation-light, call-heavy | 12160 | 19072 | unavailable |
+| vec_ops | allocation-heavy, container, iteration | 12268 | 19200 | unavailable |
+| string_concat | string-heavy, allocation-heavy, gc-pressure | 12160 | 19200 | unavailable |
+| parse_tree_distance | parse, allocation-heavy, container, iteration | 13312 | 27776 | unavailable |
+| enum_dispatch | cpu-bound, match-heavy, allocation-heavy, iteration | 12288 | 19776 | unavailable |
 
 ## Runtime Latency Breakdown (ms)
 
@@ -156,8 +162,9 @@ Guest execution time = median total − startup overhead.
 
 | Benchmark | startup | guest | p50 | p95 | p99 | stddev |
 |-----------|---------|-------|-----|-----|-----|--------|
-| fib | 24.192 | 40.220 | 64.412 | 92.487 | 103.633 | 21.780 |
-| binary_tree | 24.192 | 40.515 | 64.707 | 84.470 | 86.984 | 17.187 |
-| vec_ops | 24.192 | 0.000 | 11.675 | 13.332 | 14.013 | 0.866 |
-| string_concat | 24.192 | 0.000 | 11.397 | 11.876 | 12.464 | 0.495 |
-| parse_tree_distance | 24.192 | 12.158 | 36.350 | 37.740 | 38.123 | 0.842 |
+| fib | 12.279 | 0.279 | 12.558 | 14.020 | 14.688 | 0.906 |
+| binary_tree | 12.279 | 4.424 | 16.703 | 17.852 | 17.962 | 0.840 |
+| vec_ops | 12.279 | 0.313 | 12.592 | 14.055 | 16.230 | 1.330 |
+| string_concat | 12.279 | 0.000 | 12.222 | 12.995 | 13.227 | 0.667 |
+| parse_tree_distance | 12.279 | 28.735 | 41.014 | 52.581 | 54.537 | 5.682 |
+| enum_dispatch | 12.279 | 1.512 | 13.791 | 16.349 | 16.394 | 1.382 |

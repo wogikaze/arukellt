@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T19:05:51Z",
+  "generated_at": "2026-04-21T18:45:46Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -799,6 +799,30 @@
       }
     },
     {
+      "id": "515",
+      "path": "515-stdlib-result-option-sentinel-cleanup.md",
+      "title": "Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "542"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
       "id": "516",
       "path": "516-stdlib-raw-helper-boundary-and-facades.md",
       "title": "Stdlib: raw helper と推奨 facade の境界を再設計する",
@@ -999,6 +1023,28 @@
       }
     },
     {
+      "id": "530",
+      "path": "530-selfhost-parity-ci-gates.md",
+      "title": "530-selfhost-parity-ci-gates",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "531",
       "path": "531-scripts-consolidation-to-python-manager.md",
       "title": "Scripts Consolidation Epic: Python CLI Refactoring",
@@ -1021,28 +1067,6 @@
       }
     },
     {
-      "id": "540",
-      "path": "540-bench-enum-dispatch.md",
-      "title": "540 — Benchmark: enum dispatch (pattern matching)",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "541",
       "path": "541-bench-struct-graph.md",
       "title": "541 — Benchmark: struct graph (nested structs / recursive types)",
@@ -1054,30 +1078,6 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "542",
-      "path": "542-bench-error-chain.md",
-      "title": "542 — Benchmark: error chain (Result / error propagation)",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "515"
-      ],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
@@ -1346,6 +1346,28 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 8
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "556",
+      "path": "556-release-selfhost-bootstrap-check.md",
+      "title": "Release: Selfhost Bootstrap Check",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 1
       },
       "orchestration": {
         "class": null,
@@ -1688,6 +1710,30 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#312, #504"
+      }
+    },
+    {
+      "id": "542",
+      "path": "542-bench-error-chain.md",
+      "title": "542 — Benchmark: error chain (Result / error propagation)",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "515"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
       }
     },
     {
