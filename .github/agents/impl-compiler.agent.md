@@ -22,9 +22,8 @@ You specialize in:
 - Emitter source-of-truth cleanup when explicitly assigned
 
 Primary paths usually include:
-- `crates/ark-mir/**`
+- `src/compiler/mir.ark` (MIR data structures, lowering, validation, optimization — selfhost is sole MIR authority since #561 retired the Rust `crates/ark-mir/` crate)
 - `src/compiler/emitter.ark` and adjacent selfhost emitter sources
-- `crates/ark-mir/**`
 - `crates/ark-typecheck/**`
 - `crates/ark-hir/**`
 - `crates/ark-resolve/**` (reachability / lazy resolution when explicitly assigned)

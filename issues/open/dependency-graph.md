@@ -44,7 +44,6 @@ graph LR
   I553["553 Release: Binary Distribution"]
   I554["554 Release: Extension Live Editor Tests"]
   I555["555 Release: Pre-Release CI Checks"]
-  I561["561 561 — Phase 5: Delete `crates/ark-mir`"]
   I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
   I568["568 568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)"]
   I587["587 587 — Selfhost s2 rebuild regression: type errors on every fixture from current `src/compiler/main.ark`"]
@@ -93,7 +92,6 @@ graph LR
   I125 --> I126
   I495 --> I512
   I529 --> I508
-  I561 --> I564
   I563 --> I564
   I568 --> I569
   I568 --> I571
@@ -181,7 +179,6 @@ graph LR
 - **553** depends on: none; blocks: none
 - **554** depends on: none; blocks: none
 - **555** depends on: none; blocks: none
-- **561** depends on: 559; blocks: 564
 - **563** depends on: 559; blocks: 564
 - **568** depends on: 565, 566, 567; blocks: 569, 571
 - **587** depends on: none; blocks: none

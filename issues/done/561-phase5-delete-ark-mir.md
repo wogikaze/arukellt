@@ -144,3 +144,115 @@ cargo check --workspace: rc=0
 false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
 remaining references (if any): <list with justification>
 ```
+
+## Resolution
+
+Closed by deleting `crates/ark-mir/` (Rust MIR data structures, lowering,
+validation, and optimization passes) and all workspace plumbing that
+named it. Workspace `members`, `default-members`,
+`[workspace.dependencies]`, and `Cargo.lock` were updated. `cargo check
+--workspace` succeeds with no `--exclude` arguments. Selfhost
+`src/compiler/mir.ark` is now the sole MIR / lowering / optimization /
+validation source of truth.
+
+### Pre-deletion baselines (master `436353a6`)
+
+- `selfhost fixpoint`: rc=0 (1 skipped — pre-existing condition unchanged)
+- `selfhost fixture-parity`: PASS=0 FAIL=0 SKIP=364 (rc=1, pre-existing
+  PASS<10 floor failure unrelated to MIR crate)
+- `selfhost parity --mode --cli`: PASS=1 FAIL=0 (rc=0)
+- `selfhost diag-parity`: 1 check passed (rc=0)
+- `manager.py verify`: 15 passed / 4 failed (pre-existing failures:
+  fixture manifest sync, issues/done/ unchecked checkboxes, doc-example
+  binary missing, broken internal links — all pre-existing, identical to
+  the #586 baseline, none introduced by this slice)
+
+### Post-deletion baselines
+
+- `selfhost fixpoint`: rc=0 (1 skipped — identical)
+- `selfhost fixture-parity`: PASS=0 FAIL=0 SKIP=364 (identical)
+- `selfhost parity --mode --cli`: PASS=1 FAIL=0 (identical)
+- `selfhost diag-parity`: 1 check passed (identical)
+- `manager.py verify`: 15 passed / 4 failed (identical — same 4
+  pre-existing failures, no new failures introduced)
+- `cargo check --workspace`: rc=0 (clean workspace, no `--exclude`
+  needed)
+
+### Reference scan
+
+```
+$ rg -l 'ark_mir|ark-mir' --glob '!issues/done/**' --glob '!target/**'
+```
+
+returns only files that document the **removal** itself or are explicit
+historical / immutable records. Cleaned (active-truth) files now phrase
+the references as "retired in #561" disposition notes:
+
+- `Cargo.lock` — regenerated (drops `ark-mir` package entry)
+- `Cargo.toml` — `members`, `default-members`, `[workspace.dependencies]`
+- `README.md` — workspace overview line rewritten to span
+  `ark-lexer`〜`ark-hir` and document the #560/#561/#562/#586 retirements
+- `crates/arukellt/Cargo.toml`, `crates/arukellt/src/main.rs` — shell's
+  "no compiler-core dependency" comment updated to drop the dead
+  `ark-driver`/`ark-mir` examples and reference the retirement issues
+- `docs/current-state.md` — Phase 5 progress paragraph updated; v4
+  optimization paragraphs now point at selfhost `src/compiler/`
+- `docs/contributing.md` — project-structure crate listing
+- `docs/directory-ownership.md` — table row removed
+- `docs/compiler/bootstrap.md` — Deletion Candidates table marks MIR as
+  "removed in #561"
+- `docs/compiler/pipeline.md` — pipeline diagram, lowering paragraph,
+  crate-map list, T3 gating reference all redirected to selfhost
+- `docs/compiler/ir-spec.md` — Source-of-truth banner and per-section
+  source pointers redirected to selfhost `src/compiler/mir.ark`
+- `docs/compiler/optimization.md` — pass-location paragraph redirected
+- `docs/compiler/legacy-path-status.md` — retirement banner prepended
+  noting the file is now a historical record of the pre-retirement
+  legacy-fallback state
+- `docs/compiler/README.md` — auto-regenerated index entry refresh
+- `docs/design/INTERFACE-COREHIR.md` — desugaring-pass pointer redirected
+- `codex-skills/impl-compiler/SKILL.md`,
+  `codex-skills/impl-component-model/SKILL.md`,
+  `.github/agents/impl-compiler.agent.md`,
+  `.github/agents/impl-component-model.agent.md` — primary-paths lists
+  redirected to `src/compiler/mir.ark`
+
+Historical / immutable records preserved verbatim per the precedent set
+by #560 and #586:
+
+- `docs/adr/ADR-028-corehir-lowering-resolution.md` (ADRs are immutable)
+- `docs/migration/v3-to-v4.md` (v3→v4 migration record)
+- `docs/process/roadmap-v1.md`, `roadmap-v4.md`, `roadmap-v5.md`,
+  `roadmap-cross-cutting.md`, `std-task.md`,
+  `false-done-audit-2026-04-13.md`, `wasm-size-reduction.md`
+  (historical roadmaps, dated audits, and task records)
+- `issues/done/**`, `issues/reject/**`, and other issue files describing
+  the retirement itself
+
+### False-done checklist
+
+1. ✓ `test ! -d crates/ark-mir` — directory absent
+2. ✓ `grep -F "crates/ark-mir" Cargo.toml` empty
+3. ✓ `grep -RIn "\bark-mir\b" crates/*/Cargo.toml` empty
+4. ✓ `rg -l "\bark_mir\b" crates/ src/` empty
+5. ✓ `rg -l "\bark-mir\b" scripts/ .github/workflows/` empty
+6. ✓ `rg -l "\bark_mir\b\|\bark-mir\b" docs/` returns only the
+   enumerated cleaned-or-historical paths above
+7. ✓ All 4 canonical gates: numeric Δ identical (FAIL=0, SKIP_delta=0)
+8. ✓ `cargo check --workspace`: rc=0
+9. ✓ Single commit; `git show --stat` confined to PRIMARY / ALLOWED
+   ADJACENT paths
+10. ✓ `python3 scripts/gen/generate-docs.py` rerun; `manager.py verify`
+    docs-consistency check returns to baseline PASS
+
+### Commit
+
+`<PENDING — fast-forward merge to master>`
+
+### Confirmation
+
+`rg "ark_mir|ark-mir"` outside `issues/done/` and the historical
+ADR/roadmap/migration files enumerated above returns only files that
+document the **removal** itself. No active Rust crate, script, or CI
+workflow references `ark-mir`. Selfhost `src/compiler/mir.ark` is the
+sole MIR authority going forward.

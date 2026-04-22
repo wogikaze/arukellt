@@ -26,7 +26,7 @@ Individual passes can be disabled with `--no-pass <name>` (e.g. `--no-pass cse`)
 
 ## MIR Optimization Passes
 
-All MIR passes live in `crates/ark-mir/src/opt/`. The pipeline runs up to 3 fixed-point
+All MIR passes live in selfhost `src/compiler/mir.ark` (the prior Rust `crates/ark-mir/src/opt/` was retired in #561). The pipeline runs up to 3 fixed-point
 rounds; iteration stops early when a round produces no changes.
 
 ### Default pass order

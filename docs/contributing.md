@@ -56,7 +56,6 @@ crates/
   ark-resolve/      # name resolution, imports, module loading
   ark-typecheck/    # type checking
   ark-hir/          # shared HIR crate
-  ark-mir/          # MIR lowering / validation / optimization
   ark-target/       # target registry + backend planning
   ark-diagnostics/  # diagnostics registry + rendering
   ark-driver/       # session / orchestration

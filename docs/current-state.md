@@ -246,7 +246,7 @@ catches GC reference types that bypass WIT-level checks (W0004).
 
 The v4 optimization pipeline is fully implemented and active. See [docs/compiler/optimization.md](docs/compiler/optimization.md) for the complete reference.
 
-- **20 MIR passes** implemented in `crates/ark-mir/src/opt/`, running up to 3 fixed-point rounds
+- **20 MIR passes** implemented in selfhost `src/compiler/passes/` (the Rust `crates/ark-mir/src/opt/` source was retired in #561 — selfhost is now the source of truth), running up to 3 fixed-point rounds
 - **`--opt-level` 0/1/2** controls which passes run; default is O1 (9 safe passes)
 - **Dead function elimination** removes unreachable stdlib functions at O1+ (T1/T2 only — disabled for T3; see below)
 - **T3 backend peephole**: `local.set`/`local.get` → `local.tee` conversion at O1+
@@ -267,7 +267,8 @@ stabilize fixture tests. Issue #486 replaced the blanket override with per-pass 
 - Dead function elimination remains **disabled for T3** — WASI-exported functions that
   are not called from the Arukellt entry point would be incorrectly removed
 - Six O2/O3 passes remain gated via `T3_GATED_PASSES` in `session.rs` until each is
-  independently verified GC-safe (see `crates/ark-mir/src/passes/README.md`)
+  independently verified GC-safe (see selfhost `src/compiler/passes/README.md`; the
+  prior Rust `crates/ark-mir/src/passes/README.md` was retired with the crate in #561)
 
 The #122 opt-level separation work established the `passes/` directory and the unified
 `fn run(module: &mut MirModule, level: OptLevel) -> PassStats` interface that #486 builds on.
@@ -375,7 +376,8 @@ Selfhost gates (`scripts/manager.py selfhost {fixpoint,fixture-parity,parity,dia
 are **selfhost-native** per ADR-029 (#585): they bootstrap from the committed
 pinned-reference wasm at `bootstrap/arukellt-selfhost.wasm` and never call any
 Rust binary. With #583 landed, the `crates/arukellt` shell no longer depends
-on `ark-driver`, `ark-mir`, or `ark-stdlib`. Phase 5 has begun:
-`crates/ark-driver` was removed in #560 and the legacy Rust Wasm emitter
-crate was removed in #562; remaining Rust core crates
-(`ark-mir`, `ark-stdlib`, `ark-typecheck`) are tracked by #561, #563, and #564.
+on `ark-driver`, `ark-mir`, or `ark-stdlib`. Phase 5 has progressed:
+`crates/ark-driver` was removed in #560, the legacy Rust Wasm emitter crate
+was removed in #562, the T4 LLVM scaffold was removed in #586, and
+`crates/ark-mir` was removed in #561. Remaining Rust core crates
+(`ark-stdlib`, `ark-typecheck`) are tracked by #563 and #564.

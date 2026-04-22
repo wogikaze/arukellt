@@ -5,8 +5,9 @@
 //! locates the selfhost compiler wasm and runs it under `wasmtime`,
 //! forwarding all CLI arguments and exit codes verbatim.
 //!
-//! This binary intentionally has **no** dependency on `ark-driver`,
-//! `ark-mir`, `ark-stdlib`, or any other compiler-core crate.
+//! This binary intentionally has **no** dependency on `ark-stdlib` or any
+//! other compiler-core crate. (`ark-driver` was removed in #560 and
+//! `ark-mir` in #561.)
 //! All compiler behaviour lives in `src/compiler/main.ark` (the selfhost
 //! source), compiled to `bootstrap/arukellt-selfhost.wasm` (the pinned
 //! reference; see `bootstrap/PROVENANCE.md`) or to

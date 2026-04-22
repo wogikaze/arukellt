@@ -6,7 +6,7 @@ This note is implementation-facing only. It freezes the frontend handoff expecte
 
 CoreHIR is **the default** compile path for all CLI commands (`compile`, `build`, `run`).
 
-A desugaring pass (`crates/ark-mir/src/opt/desugar.rs`) runs as a pre-optimization step and
+A desugaring pass (historically `crates/ark-mir/src/opt/desugar.rs`; now in selfhost `src/compiler/mir.ark` after the Rust crate was retired in #561) runs as a pre-optimization step and
 converts `IfExpr`, `LoopExpr`, and `TryExpr` operands into statement form (`IfStmt`,
 `WhileStmt`, `Assign` with temporaries). This ensures `validate_backend_legal_module` passes.
 

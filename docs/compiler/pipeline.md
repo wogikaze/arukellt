@@ -11,7 +11,7 @@ source (.ark)
   → ark-parser
   → ark-resolve
   → ark-typecheck
-  → ark-mir
+  → MIR (selfhost `src/compiler/mir.ark` + lowering/passes — the Rust `crates/ark-mir` crate was retired in #561)
   → selfhost emitter (src/compiler/emitter.ark)
 ```
 
@@ -49,9 +49,10 @@ Lex
 ## MIR lowering: legacy fallback state (2026-04-15)
 
 The `LowerToMIR` step is currently implemented entirely via the **legacy AST lowerer**
-(`lower_to_mir` in `crates/ark-mir/src/lower/func.rs`). The CoreHIR lowerer
-(`lower_hir_to_mir`) is a placeholder returning empty MIR; every compilation therefore
-falls back to the legacy path.
+in selfhost `src/compiler/lower/`. (The historical Rust `crates/ark-mir/src/lower/func.rs`
+implementation was retired with the crate in #561; selfhost is now the source of truth.)
+The CoreHIR lowerer (`lower_hir_to_mir`) is a placeholder returning empty MIR; every
+compilation therefore falls back to the legacy path.
 
 - `MirSelection::Legacy` and `OptimizedLegacy` are **deprecated** (since 0.1.0)
 - The `test` command compiles with `MirSelection::OptimizedCoreHir` unconditionally
@@ -69,7 +70,7 @@ falls back to the legacy path.
 - `crates/ark-resolve`
 - `crates/ark-typecheck`
 - `crates/ark-hir`
-- `crates/ark-mir`
+- MIR (selfhost `src/compiler/mir.ark`; the Rust `crates/ark-mir` crate was retired in #561)
 - `src/compiler/emitter.ark` (selfhost Wasm emitter)
 - `crates/ark-target`
 - `crates/ark-diagnostics`
@@ -125,7 +126,8 @@ present before #486 has been removed.
 Several O2/O3 passes remain gated for T3 (`T3_GATED_PASSES`) until each is
 independently verified GC-safe: `escape_analysis`, `type_narrowing`, `loop_unroll`,
 `licm`, `bounds_check_elim`, `inline_small_leaf`, `aggregate_simplify`, `gc_hint`,
-`branch_hint_infer`. See `crates/ark-mir/src/passes/README.md` for unlock conditions.
+`branch_hint_infer`. See selfhost `src/compiler/passes/README.md` for unlock conditions
+(the prior Rust `crates/ark-mir/src/passes/README.md` was retired with the crate in #561).
 
 Full documentation: [optimization.md](optimization.md)
 

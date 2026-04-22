@@ -22,7 +22,7 @@ You specialize in:
 - Minimal docs reflection when the component contract changes and the assignment requires it
 
 Primary paths usually include:
-- `crates/ark-mir/src/component/**` (when component lowering moves into MIR)
+- `src/compiler/mir.ark` component-lowering surface (selfhost owns MIR; the Rust `crates/ark-mir/src/component/` was retired with the crate in #561)
 - `src/compiler/component.ark` and related selfhost component sources
 - `docs/stdlib/modules/wit.md`
 - `docs/stdlib/modules/component.md`

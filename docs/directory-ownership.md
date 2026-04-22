@@ -20,7 +20,6 @@
 | `crates/ark-parser/` | product | — | Lexer, parser, AST, formatter |
 | `crates/ark-resolve/` | product | — | Name resolution and module loading |
 | `crates/ark-typecheck/` | product | — | Type checking and inference |
-| `crates/ark-mir/` | product | — | MIR lowering and optimization |
 | `crates/ark-diagnostics/` | product | — | Diagnostic codes and messages |
 | `crates/ark-driver/` | product | — | Compilation driver and session |
 | `crates/ark-manifest/` | product | — | `ark.toml` manifest parsing |

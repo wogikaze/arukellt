@@ -1,5 +1,15 @@
 # Legacy Lowering Path Status
 
+> **Retirement note (2026-04-22, #561)**: This document describes the legacy MIR
+> lowering surface as it existed inside the **now-deleted** Rust `crates/ark-mir/`.
+> That entire crate was removed in #561; the symbols and file paths below
+> (`crates/ark-mir/src/lower/func.rs`, `…/facade.rs`, etc.) no longer exist on
+> disk. The selfhost MIR / lowering implementation in `src/compiler/mir.ark` is
+> now the source of truth. This file is preserved as a historical record of the
+> pre-retirement legacy-fallback state and is no longer the operational status
+> document for MIR lowering. See `docs/compiler/pipeline.md` for the current
+> picture.
+
 **Updated**: 2026-04-18
 **Related issue**: [issues/open/285-legacy-path-deprecation.md](../../issues/open/285-legacy-path-deprecation.md)
 **Blocker issue**: [issues/open/508-legacy-path-removal-unblocked-by.md](../../issues/open/508-legacy-path-removal-unblocked-by.md)

@@ -4,8 +4,10 @@ This document describes the intermediate representations (IRs) used by the
 Arukellt compiler, from parsed source through to Wasm output. It is the
 authoritative reference for re-implementing the IR in another language.
 
-> **Source of truth**: `crates/ark-mir/src/mir.rs`, `crates/ark-mir/src/lower/`,
-> `crates/ark-mir/src/validate.rs`, `crates/ark-mir/src/opt/`,
+> **Source of truth**: selfhost `src/compiler/mir.ark` (and the lowering /
+> validation / optimization passes inside it). The Rust `crates/ark-mir`
+> implementation that previously held these surfaces was retired in #561;
+> selfhost is now the single MIR authority. Frontend surfaces remain in
 > `crates/ark-parser/src/ast.rs`, `crates/ark-hir/src/hir.rs`,
 > `crates/ark-typecheck/src/types.rs`.
 
@@ -43,13 +45,13 @@ Resolver ──► Resolved AST  (crates/ark-resolve)
 Type-checker ──► Typed HIR / CoreHIR  (crates/ark-typecheck, crates/ark-hir)
   │
   ▼
-MIR Lowering ──► MirModule  (crates/ark-mir — lower/)
+MIR Lowering ──► MirModule  (selfhost src/compiler/mir.ark — lower/)
   │
   ▼
-MIR Optimization ──► Optimized MirModule  (crates/ark-mir — opt/)
+MIR Optimization ──► Optimized MirModule  (selfhost src/compiler/mir.ark — opt/)
   │
   ▼
-MIR Validation ──► Validated MirModule  (crates/ark-mir — validate.rs)
+MIR Validation ──► Validated MirModule  (selfhost src/compiler/mir.ark — validate)
   │
   ▼
 Wasm Emitter ──► .wasm binary  (selfhost: src/compiler/emitter.ark)
@@ -61,9 +63,9 @@ Wasm Emitter ──► .wasm binary  (selfhost: src/compiler/emitter.ark)
 | Parser | Tokens | `ast::Module` | `ark-parser` |
 | Resolver | `ast::Module` | Resolved AST with name bindings | `ark-resolve` |
 | Type-checker | Resolved AST | `hir::Program` with typed nodes | `ark-typecheck` / `ark-hir` |
-| MIR lowering | `hir::Program` or `ast::Module` | `MirModule` | `ark-mir` |
-| MIR optimization | `MirModule` | Optimized `MirModule` | `ark-mir` |
-| MIR validation | `MirModule` | Validated `MirModule` | `ark-mir` |
+| MIR lowering | `hir::Program` or `ast::Module` | `MirModule` | selfhost `src/compiler/mir.ark` |
+| MIR optimization | `MirModule` | Optimized `MirModule` | selfhost `src/compiler/mir.ark` |
+| MIR validation | `MirModule` | Validated `MirModule` | selfhost `src/compiler/mir.ark` |
 | Wasm emit | `MirModule` | `.wasm` binary | selfhost emitter (`src/compiler/emitter.ark`) |
 
 Two lowering paths exist:
@@ -615,7 +617,7 @@ struct TypeId(pub u32);
 
 ## 5. MIR Data Structures
 
-Defined in `crates/ark-mir/src/mir.rs`.
+Defined in selfhost `src/compiler/mir.ark` (the prior Rust `crates/ark-mir/src/mir.rs` was retired in #561).
 
 ### 5.1 MirModule
 
@@ -1033,7 +1035,7 @@ struct MirStats {
 
 ## 6. HIR → MIR Lowering Rules
 
-Lowering is implemented in `crates/ark-mir/src/lower/`. Two paths exist:
+Lowering is implemented in selfhost `src/compiler/mir.ark` (lowering surface; the prior Rust `crates/ark-mir/src/lower/` was retired in #561). Two paths exist:
 the **legacy** path (AST → MIR) and the **CoreHIR** path (typed HIR → MIR).
 Both produce the same `MirModule` structure.
 
@@ -1194,7 +1196,7 @@ During lowering, the `TypeTable` is populated:
 
 ## 7. MIR Optimization Passes
 
-Implemented in `crates/ark-mir/src/opt/`. The optimizer runs up to 3 rounds
+Implemented in selfhost `src/compiler/mir.ark` (optimization passes; the prior Rust `crates/ark-mir/src/opt/` was retired in #561). The optimizer runs up to 3 rounds
 (`MAX_OPT_ROUNDS = 3`) of the full pass pipeline. Each round runs all passes in
 order; if no pass changes anything, iteration stops early.
 
@@ -1298,7 +1300,7 @@ The optimizer supports several modes:
 
 ## 8. MIR Validation Rules
 
-Implemented in `crates/ark-mir/src/validate.rs`.
+Implemented in selfhost `src/compiler/mir.ark` (validation surface; the prior Rust `crates/ark-mir/src/validate.rs` was retired in #561).
 
 ### 8.1 Validation Entry Points
 

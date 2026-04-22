@@ -71,16 +71,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ark-mir"
-version = "0.1.0"
-dependencies = [
- "ark-diagnostics",
- "ark-hir",
- "ark-parser",
- "ark-typecheck",
-]
-
-[[package]]
 name = "ark-parser"
 version = "0.1.0"
 dependencies = [
