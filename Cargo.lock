@@ -36,23 +36,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ark-driver"
-version = "0.1.0"
-dependencies = [
- "ark-diagnostics",
- "ark-hir",
- "ark-lexer",
- "ark-mir",
- "ark-parser",
- "ark-resolve",
- "ark-target",
- "ark-typecheck",
- "ark-wasm",
- "serde",
- "tempfile",
-]
-
-[[package]]
 name = "ark-hir"
 version = "0.1.0"
 dependencies = [
@@ -83,7 +66,6 @@ name = "ark-lsp"
 version = "0.1.0"
 dependencies = [
  "ark-diagnostics",
- "ark-driver",
  "ark-lexer",
  "ark-manifest",
  "ark-parser",

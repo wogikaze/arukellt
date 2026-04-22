@@ -12,7 +12,6 @@ ark-parser = { path = "../ark-parser" }
 ark-resolve = { path = "../ark-resolve" }
 ark-typecheck = { path = "../ark-typecheck" }
 ark-diagnostics = { path = "../ark-diagnostics" }
-ark-driver = { workspace = true }
 ark-manifest = { path = "../ark-manifest" }
 ark-stdlib = { path = "../ark-stdlib" }
 tower-lsp = "0.20"

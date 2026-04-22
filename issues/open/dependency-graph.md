@@ -44,7 +44,6 @@ graph LR
   I553["553 Release: Binary Distribution"]
   I554["554 Release: Extension Live Editor Tests"]
   I555["555 Release: Pre-Release CI Checks"]
-  I560["560 560 — Phase 5: Delete `crates/ark-driver`"]
   I561["561 561 — Phase 5: Delete `crates/ark-mir`"]
   I562["562 562 — Phase 5: Delete `crates/ark-wasm`"]
   I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
@@ -96,7 +95,6 @@ graph LR
   I125 --> I126
   I312 --> I495
   I529 --> I508
-  I560 --> I564
   I561 --> I564
   I562 --> I564
   I563 --> I564
@@ -188,7 +186,6 @@ graph LR
 - **553** depends on: none; blocks: none
 - **554** depends on: none; blocks: none
 - **555** depends on: none; blocks: none
-- **560** depends on: 559; blocks: 564
 - **561** depends on: 559; blocks: 564
 - **562** depends on: 559; blocks: 564
 - **563** depends on: 559; blocks: 564

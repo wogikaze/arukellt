@@ -13,7 +13,6 @@ members = [
     "crates/ark-diagnostics",
     "crates/ark-stdlib",
     "crates/ark-target",
-    "crates/ark-driver",
     "crates/ark-manifest",
     "crates/ark-dap",
     "crates/arukellt",
@@ -32,7 +31,6 @@ default-members = [
     "crates/ark-diagnostics",
     "crates/ark-stdlib",
     "crates/ark-target",
-    "crates/ark-driver",
     "crates/ark-manifest",
     "crates/ark-dap",
     "crates/arukellt",
@@ -56,7 +54,6 @@ ark-diagnostics = { path = "crates/ark-diagnostics" }
 ark-target = { path = "crates/ark-target" }
 ark-llvm = { path = "crates/ark-llvm" }
 ark-stdlib = { path = "crates/ark-stdlib" }
-ark-driver = { path = "crates/ark-driver" }
 ark-manifest = { path = "crates/ark-manifest" }
 ark-dap = { path = "crates/ark-dap" }
 ark-playground-wasm = { path = "crates/ark-playground-wasm" }

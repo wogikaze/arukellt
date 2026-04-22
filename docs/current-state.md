@@ -14,7 +14,7 @@ The legacy path remains available as an opt-in fallback via `--mir-select legacy
 - **corehir** (default): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
 - **legacy** (opt-in fallback): `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm`
 - Component path (v2): `... → MIR → WasmEmit → WIT generation → wasm-tools component embed → wasm-tools component new` (default wrap passes `--adapt wasi_snapshot_preview1=…` to `component new` when a Preview 1 adapter module is discoverable; see [target-contract.md](target-contract.md#component-output-separate-guarantee-tier))
-- Shared orchestration entry point: `ark-driver::Session`
+- Shared orchestration entry point: selfhost driver (`src/compiler/driver.ark`); the legacy `crates/ark-driver` Rust crate was removed in #560 (Phase 5).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
@@ -375,5 +375,6 @@ Selfhost gates (`scripts/manager.py selfhost {fixpoint,fixture-parity,parity,dia
 are **selfhost-native** per ADR-029 (#585): they bootstrap from the committed
 pinned-reference wasm at `bootstrap/arukellt-selfhost.wasm` and never call any
 Rust binary. With #583 landed, the `crates/arukellt` shell no longer depends
-on `ark-driver`, `ark-mir`, `ark-wasm`, or `ark-stdlib`, so the Phase 5
-deletion issues (#560–#564) can now retire the Rust core crates as true leaves.
+on `ark-driver`, `ark-mir`, `ark-wasm`, or `ark-stdlib`. Phase 5 has begun:
+`crates/ark-driver` was removed in #560; remaining Rust core crates
+(`ark-mir`, `ark-wasm`, `ark-stdlib`, `ark-typecheck`) are tracked by #561–#564.
