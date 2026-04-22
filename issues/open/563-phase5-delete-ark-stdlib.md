@@ -119,3 +119,36 @@ cargo check --workspace: rc=0
 false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
 remaining references (if any): <list with justification>
 ```
+
+## Status (slice attempt 2026-04-22)
+
+Pre-deletion invariant **failed**: live consumers of `ark_stdlib` symbols still exist outside the crate itself. Per the slice STOP_IF / FORBIDDEN_PATHS protocol, no deletion was performed; only this status note is committed.
+
+Reverse-dependency scan: `rg -n "ark[-_]stdlib" --glob '!Cargo.lock' --glob '!issues/done/**' --glob '!docs/adr/**'`
+
+Active Rust consumers blocking deletion:
+
+- `crates/arukellt/Cargo.toml:20` — `ark-stdlib = { workspace = true }` (workspace dep)
+- `crates/arukellt/src/cmd_doc.rs` — heavy use of `StdlibManifest`, `ManifestFunction`, `ManifestModule` across the entire `arukellt doc` subcommand (manifest load, search, JSON emit, tests). Roughly 20+ call sites.
+- `crates/ark-lsp/Cargo.toml:17` — `ark-stdlib = { path = "../ark-stdlib" }`
+- `crates/ark-lsp/src/server.rs` — pervasive use of `StdlibManifest` for hover, completion, diagnostics, and tests (~10+ method signatures plus load/repo lookup at startup).
+
+`crates/arukellt` is in this slice's FORBIDDEN_PATHS, so its consumers cannot be migrated here. `crates/ark-lsp` is not explicitly forbidden, but its consumption surface is large enough that migration is its own work item, not a side-effect of crate deletion.
+
+Doc / metadata references (informational; not blockers):
+
+- `docs/compiler/bootstrap.md`, `docs/compiler/pipeline.md`, `docs/contributing.md`, `docs/directory-ownership.md`, `docs/process/std-task.md`
+- `Cargo.toml` workspace `members` + `[workspace.dependencies]` line for `ark-stdlib`
+- `issues/open/dependency-graph.md`, `issues/open/index.md`, `issues/open/index-meta.json`, `issues/open/529-100-percent-selfhost-transition-plan.md`
+
+### Recommended sequencing
+
+Before this slice can run, the following migrations must land as their own focused issues (one per consumer crate, retirement-track):
+
+1. **Migrate `crates/arukellt::cmd_doc`** off `ark_stdlib::StdlibManifest`. Either:
+   - Re-point `arukellt doc` at the selfhost-produced manifest artifact / docs JSON, or
+   - Inline a minimal manifest reader local to `crates/arukellt` and drop the workspace dep.
+2. **Migrate `crates/ark-lsp` server** off `ark_stdlib::StdlibManifest`. The LSP needs a structured manifest for hover/completion; pick a single replacement path (selfhost-emitted JSON, or a small in-tree TOML reader) and convert all call sites in one pass.
+3. Once both consumer crates have zero `ark_stdlib` references and zero `ark-stdlib` Cargo deps, re-run this slice to delete `crates/ark-stdlib/`, the workspace member line, the workspace-dep line, the doc references, and regenerate `Cargo.lock`.
+
+No commit was made other than this status note; `crates/ark-stdlib/` and `Cargo.toml` are unchanged. Issue remains **open**.
