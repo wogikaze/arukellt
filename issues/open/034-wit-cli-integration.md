@@ -41,6 +41,12 @@ The change keeps `--wit` paths on the CLI/config objects and leaves resolver bin
 component emission, and all other component-model pipeline work untouched.
 This issue remains open for the remaining pipeline slice.
 
+Implemented the selfhost emit-mode acceptance slice for `--emit component`.
+The CLI now short-circuits `component` with a targeted not-yet-wired error,
+and the driver keeps an explicit `component` fallback instead of falling
+through as a generic unsupported emit mode. Actual component generation and
+WIT resolver binding remain out of scope.
+
 ## Summary
 
 Complete the end-to-end CLI workflow for Component Model usage. Add `--wit <path>`

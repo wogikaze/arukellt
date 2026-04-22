@@ -416,7 +416,11 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
             result.output_bytes = wasm_bytes
             result
         } else {
-            CompileResult_err(PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
+            if eq(clone(emit_mode), "component") {
+                CompileResult_err(PHASE_EMIT(), String_from("component emit mode is not yet wired in the selfhost driver"))
+            } else {
+                CompileResult_err(PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
+            }
         }
     }
 }

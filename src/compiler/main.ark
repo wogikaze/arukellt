@@ -410,6 +410,11 @@ fn main() {
 
 // ── Command: compile / parse / check ─────────────────────────────────────────
 fn cmd_compile(opts: CliOptions) {
+    if eq(clone(opts.emit_mode), "component") {
+        stdio::eprintln(String_from("error: component emit mode is not yet wired in the selfhost driver"))
+        process::exit(1)
+        return
+    }
     let config = driver::DriverConfig_default()
     config.target = clone(opts.target)
     config.opt_level = opts.opt_level
