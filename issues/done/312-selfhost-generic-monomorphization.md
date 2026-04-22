@@ -186,3 +186,90 @@ Issue remains **open**. Three acceptance bullets still pending.
   still pending.
 - 未使用の generic instantiation が codegen に含まれない — depends on
   real reachability pass. (slice-d)
+
+## Status (slice-d, 2026-04-22)
+
+**Done in this slice (reachability/liveness pruning of unused MonoInstances):**
+
+- New `mir_prune_unreachable(m: MirModule) -> i32` pass added to
+  `src/compiler/mir.ark`.  Runs at the tail of `lower_to_mir` after
+  slice-c's specialized-MirFunction emission post-pass.  Walks the
+  MIR call graph from `main` (and `_start` if present) over
+  `MIR_CALL.str_val` edges, marking transitively-reachable
+  functions, and drops every `MirFunction` not in the reachable set.
+- The pass intentionally prunes both unreachable mono specializations
+  *and* unreachable non-mono helpers in the same step, so the wasm
+  validator never has to resolve a dangling call into a pruned mono
+  (which would happen if a dead non-mono caller — itself the only
+  recorder of a MonoInstance via `infer_expr` — were left in
+  `module.functions` while its mono callee was dropped).  Builtins,
+  wasm imports, and runtime helpers are not in `module.functions`
+  and are unaffected.
+- New `MirModule.mono_pruned_count: i32` field records the number of
+  pruned MirFunctions.  `dump_mir` now emits a stable diagnostic
+  line — `MIR mono pruned: N function(s)` — when the count is
+  non-zero, providing the regression-observable stat the slice-d
+  acceptance bullet asks for.
+
+**Evidence:**
+
+- New runtime fixture `tests/fixtures/selfhost/mir_reachability_prune.ark`
+  (registered in `tests/fixtures/manifest.txt` under `run:`).
+  Exercises the prune path:
+  - `tally<T>` is generic; `main` calls `tally(Vec<i32>)` so the
+    typechecker records `tally__Vec_i32_`.
+  - `dead_caller` (a non-generic helper that nothing reachable from
+    `main` ever calls) calls `tally(Vec<String>)`, recording
+    `tally__Vec_String_` via the same `record_mono_call` path.
+  - Slice-d's reachability pass treats `main` as the only root; both
+    `dead_caller` and `tally__Vec_String_` fall out of the reachable
+    set and are pruned, while `tally__Vec_i32_` survives.
+  - Behavioural witness: program prints `3` (the surviving i32
+    instance counts the three pushed elements).
+- Pinned compiler still compiles and runs the fixture end-to-end:
+  `wasmtime run --dir . bootstrap/arukellt-selfhost.wasm -- compile
+   tests/fixtures/selfhost/mir_reachability_prune.ark
+   --target wasm32-wasi-p1 -o <out>` → wasm runs with stdout `3`.
+- All canonical selfhost gates green:
+  - `python3 scripts/manager.py selfhost fixpoint` → PASS
+  - `python3 scripts/manager.py selfhost fixture-parity` → PASS
+  - `python3 scripts/manager.py selfhost diag-parity` → PASS
+- `python3 scripts/manager.py verify` → 15/19 checks pass (matches
+  master baseline; the 4 pre-existing failures — fixture-manifest
+  drift on `hello_world.ark`, `issues/done/` audit, doc-example
+  parser regressions, broken internal links — are unchanged by this
+  slice and are tracked outside #312).
+
+## Resolution
+
+#312 selfhost generic monomorphization is closed by the slice-a/b/c/d
+sequence:
+
+- **slice-a (1dfa4b3e)**: deep `instantiate_type` + deep
+  `mono_type_key` + `resolve_type_deep` so nested generic
+  instantiations (`f<Vec<i32>>` vs `f<i32>`) produce distinct mangled
+  names, with the regression fixture
+  `tests/fixtures/generics_v1/nested_generic_call.ark`.
+- **slice-b (57f4e617)**: regression fixture
+  `tests/fixtures/generics_v1/generic_method_call.ark` exercising the
+  `NK_METHOD_CALL` monomorph-recording path.
+- **slice-c (cba27c9e)**: MIR-level monomorphization in
+  `src/compiler/mir.ark` — emits one specialized `MirFunction` per
+  `MonoInstance`, rewrites generic call sites via the per-call-site
+  `mono_call_sites` span map, and skips emission of generic source
+  bodies that have ≥1 instantiation.  Regression fixture
+  `tests/fixtures/generics_v1/mir_specialization.ark`.
+- **slice-d (a4a66520)**: reachability/liveness pruning of unused
+  MonoInstances via `mir_prune_unreachable`, observable via
+  `MirModule.mono_pruned_count` / `dump_mir`.  Regression fixture
+  `tests/fixtures/selfhost/mir_reachability_prune.ark`.
+
+Final verification numbers (slice-d worktree):
+
+- `python3 scripts/manager.py selfhost fixpoint` → PASS (1/1)
+- `python3 scripts/manager.py selfhost fixture-parity` → PASS (1/1)
+- `python3 scripts/manager.py selfhost diag-parity` → PASS (1/1)
+- `python3 scripts/manager.py verify` → 15/19 (matches master
+  baseline; pre-existing failures unrelated to #312)
+
+All four acceptance bullets are now ticked.  Issue closed.

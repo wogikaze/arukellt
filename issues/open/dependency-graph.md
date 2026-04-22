@@ -22,7 +22,6 @@ graph LR
   I205["205 205-docs-and-codebase-intelligence-surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
   I285["285 Legacy lowering path を隔離・撤去する"]
-  I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I436["436 436-playground-docs-site-integration"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
   I468["468 468-playground-build-and-publish-path-proof"]
@@ -30,6 +29,7 @@ graph LR
   I470["470 470-playground-feature-claims-match-implementation"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I489["489 489-playground-user-visible-entrypoint-wiring"]
+  I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I500["500 500-playground-wasm-typecheck-export"]
   I520["520 Stdlib: allocation / complexity / perf footgun を family 横断で監査する"]
   I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
@@ -57,7 +57,7 @@ graph LR
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I510["510 T3 emitter: WASI P2 import-table switch (full P2-native component)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
-  I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
+  I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
   I564["564 564 — Phase 5: Delete `crates/arukellt`"]
   I569["569 569 — Phase 6/C1: src/ide/lsp.ark — initialize / didOpen / didChange / publishDiagnostics"]
@@ -66,7 +66,6 @@ graph LR
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I076["076 WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング"]
   I121["121 WASI P2: Canonical ABI ハンドリングの堅牢化"]
-  I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I580["580 580 — Phase 7: Delete `crates/ark-manifest`"]
   I570["570 570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers"]
@@ -91,7 +90,7 @@ graph LR
   I074 --> I476
   I074 --> I510
   I125 --> I126
-  I312 --> I495
+  I495 --> I512
   I529 --> I508
   I561 --> I564
   I563 --> I564
@@ -105,7 +104,6 @@ graph LR
   I074 --> I121
   I124 --> I121
   I510 --> I121
-  I495 --> I512
   I564 --> I574
   I564 --> I580
   I569 --> I570
@@ -160,7 +158,6 @@ graph LR
 - **205** depends on: none; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
 - **285** depends on: 284; blocks: none
-- **312** depends on: 311; blocks: 495
 - **436** depends on: none; blocks: none
 - **437** depends on: 431; blocks: none
 - **468** depends on: none; blocks: none
@@ -168,6 +165,7 @@ graph LR
 - **470** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **489** depends on: none; blocks: none
+- **495** depends on: 312, 504; blocks: 512
 - **500** depends on: none; blocks: none
 - **520** depends on: none; blocks: none
 - **529** depends on: none; blocks: 508
@@ -195,7 +193,7 @@ graph LR
 - **476** depends on: 035, done), 074; blocks: none
 - **510** depends on: 074; blocks: 076, 121
 - **126** depends on: 125; blocks: none
-- **495** depends on: 312, 504; blocks: 512
+- **512** depends on: 504, 495; blocks: none
 - **508** depends on: 529; blocks: none
 - **564** depends on: 559, 560, 561, 562, 563; blocks: 574, 575, 576, 577, 578, 579, 580, 581
 - **569** depends on: 568; blocks: 570, 572
@@ -204,7 +202,6 @@ graph LR
 - **485** depends on: 475; blocks: none
 - **076** depends on: 074, 510; blocks: 543
 - **121** depends on: 074, 124, 510; blocks: none
-- **512** depends on: 504, 495; blocks: none
 - **574** depends on: 564; blocks: 575, 582
 - **580** depends on: 564; blocks: 582
 - **570** depends on: 569; blocks: 572

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T09:57:10Z",
+  "generated_at": "2026-04-22T09:57:32Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -404,32 +404,6 @@
       }
     },
     {
-      "id": "312",
-      "path": "312-selfhost-generic-monomorphization.md",
-      "title": "Selfhost に generic instantiation と monomorphization を実装する",
-      "track": "selfhost-frontend",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "yes",
-      "depends_on": [
-        "311"
-      ],
-      "blocks_issue_ids": [
-        "495"
-      ],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "436",
       "path": "436-playground-docs-site-integration.md",
       "title": "436-playground-docs-site-integration",
@@ -586,6 +560,33 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "495",
+      "path": "495-selfhost-trait-bounds.md",
+      "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
+      "track": "selfhost",
+      "status": "blocked-by-upstream",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
+      "depends_on": [
+        "312",
+        "504"
+      ],
+      "blocks_issue_ids": [
+        "512"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#312, #504"
       }
     },
     {
@@ -1243,30 +1244,28 @@
       }
     },
     {
-      "id": "495",
-      "path": "495-selfhost-trait-bounds.md",
-      "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
-      "track": "selfhost",
-      "status": "blocked-by-upstream",
+      "id": "512",
+      "path": "512-stdlib-trait-oriented-reuse-surface.md",
+      "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
+      "track": "stdlib",
+      "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "yes",
       "depends_on": [
-        "312",
-        "504"
+        "504",
+        "495"
       ],
-      "blocks_issue_ids": [
-        "512"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 4
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#312, #504"
+        "upstream_notes": "#495, #504"
       }
     },
     {
@@ -1485,31 +1484,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "512",
-      "path": "512-stdlib-trait-oriented-reuse-surface.md",
-      "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "yes",
-      "depends_on": [
-        "504",
-        "495"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#495, #504"
       }
     },
     {
