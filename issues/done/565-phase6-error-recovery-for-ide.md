@@ -92,3 +92,36 @@ gates (baseline → post):
 new tests added: <paths>
 false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
 ```
+
+## Close note
+
+```text
+commit: <to be filled by merge>
+acceptance:
+  - [x] `lex_program` returns LexResult { tokens, diagnostics } with no early abort
+        (src/compiler/lexer.ark public entry point, codes LEX_E_UNTERMINATED_STRING..LEX_E_UNKNOWN_CHAR)
+  - [x] new fixture tests/fixtures/selfhost/lexer_recovery_multi.ark with
+        .diag (`found `Error``) and .selfhost.diag (`2 lexer error(s)`); fixture
+        contains 2 recovered lex errors (unterminated string + unknown `@`)
+  - [x] Existing well-formed fixtures unaffected (tokenize() unchanged; lex_program
+        is a strict superset; fixture-parity = 314 PASS / 0 FAIL)
+  - [x] No selfhost SKIP added to scripts/selfhost/checks.py
+  - [x] 4 canonical gates green; FAIL=0; SKIP delta=0
+gates (baseline → post):
+  fixpoint:        PASS                → PASS
+  fixture parity:  PASS=314 FAIL=0 SKIP=47 → PASS=314 FAIL=0 SKIP=47
+  diag parity:     PASS=12 FAIL=0 SKIP=22  → PASS=13 FAIL=0 SKIP=22
+  parity --cli:    PASS                → PASS
+new tests added:
+  - tests/fixtures/selfhost/lexer_recovery_multi.ark
+  - tests/fixtures/selfhost/lexer_recovery_multi.diag
+  - tests/fixtures/selfhost/lexer_recovery_multi.selfhost.diag
+diag codes added (frontend phase, lexer-reserved range 1..=10):
+  - LEX_E_UNTERMINATED_STRING  = 1
+  - LEX_E_UNTERMINATED_CHAR    = 2
+  - LEX_E_UNTERMINATED_FSTRING = 3
+  - LEX_E_UNTERMINATED_ESCAPE  = 4
+  - LEX_E_INVALID_NUMBER       = 5
+  - LEX_E_UNKNOWN_CHAR         = 6
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8(no docs touched) 9✓
+```

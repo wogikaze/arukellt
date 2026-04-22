@@ -979,6 +979,89 @@ pub fn tokenize(source: String) -> Vec<Token> {
     tokens
 }
 
+// ── Lex Diagnostic Codes (issue #565: error recovery for IDE) ────────────────
+// Stable numeric codes the IDE/LSP layer can consume. Codes 1..=10 are reserved
+// for the lexer; 11..=99 reserved for future frontend phases.
+pub fn LEX_E_UNTERMINATED_STRING() -> i32 {
+    1
+}
+
+pub fn LEX_E_UNTERMINATED_CHAR() -> i32 {
+    2
+}
+
+pub fn LEX_E_UNTERMINATED_FSTRING() -> i32 {
+    3
+}
+
+pub fn LEX_E_UNTERMINATED_ESCAPE() -> i32 {
+    4
+}
+
+pub fn LEX_E_INVALID_NUMBER() -> i32 {
+    5
+}
+
+pub fn LEX_E_UNKNOWN_CHAR() -> i32 {
+    6
+}
+
+// LexDiagnostic — span-tagged lexical error suitable for IDE/LSP consumption.
+// `start` and `end` are byte offsets into the source string.
+pub struct LexDiagnostic {
+    code: i32,
+    message: String,
+    start: i32,
+    end: i32,
+}
+
+// LexResult — bundles the (best-effort) token stream with the diagnostic
+// vector produced during recovery. The IDE-side entry point is `lex_program`.
+pub struct LexResult {
+    tokens: Vec<Token>,
+    diagnostics: Vec<LexDiagnostic>,
+}
+
+fn classify_lex_error(message: String) -> i32 {
+    if eq(clone(message), String_from("unterminated string")) {
+        return LEX_E_UNTERMINATED_STRING()
+    }
+    if eq(clone(message), String_from("unterminated escape")) {
+        return LEX_E_UNTERMINATED_ESCAPE()
+    }
+    if eq(clone(message), String_from("unterminated char literal")) {
+        return LEX_E_UNTERMINATED_CHAR()
+    }
+    if eq(clone(message), String_from("unterminated f-string")) {
+        return LEX_E_UNTERMINATED_FSTRING()
+    }
+    if starts_with(clone(message), String_from("invalid")) {
+        return LEX_E_INVALID_NUMBER()
+    }
+    LEX_E_UNKNOWN_CHAR()
+}
+
+// Public IDE-facing entry point. Lexes `source` end-to-end, never aborting on
+// recoverable lexical errors. For each TK_ERROR token produced by `tokenize`,
+// emits a structured `LexDiagnostic` carrying a stable code and span. The
+// returned token stream is the same one `tokenize` returns (TK_ERROR tokens
+// included, so well-formed inputs remain byte-identical to the legacy path).
+pub fn lex_program(source: String) -> LexResult {
+    let toks = tokenize(clone(source))
+    let mut diags: Vec<LexDiagnostic> = Vec_new_LexDiagnostic()
+    let n = len(toks)
+    let mut i = 0
+    while i < n {
+        let t = get_unchecked(toks, i)
+        if t.kind == TK_ERROR() {
+            let code = classify_lex_error(clone(t.text))
+            push(diags, LexDiagnostic { code: code, message: clone(t.text), start: t.start, end: t.end })
+        }
+        i = i + 1
+    }
+    LexResult { tokens: toks, diagnostics: diags }
+}
+
 // ── Token Display Helpers ────────────────────────────────────────────────────
 pub fn token_kind_name(kind: i32) -> String {
     if kind == TK_EOF() {

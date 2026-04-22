@@ -241,6 +241,7 @@ run:selfhost/typecheck_mono_vec.ark
 run:selfhost/typecheck_match_exhaustive.ark
 run:selfhost/typecheck_closure_capture.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
+diag:selfhost/lexer_recovery_multi.ark
 diag:diagnostics/parse_missing_rbrace.ark
 diag:diagnostics/parse_bad_token.ark
 diag:diagnostics/resolve_undefined_fn.ark
