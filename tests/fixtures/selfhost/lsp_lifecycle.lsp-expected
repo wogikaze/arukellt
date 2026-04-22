@@ -1,6 +1,6 @@
-Content-Length: 210
+Content-Length: 257
 
-{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 964
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 964
 
 {"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///example.ark","diagnostics":[{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 1, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 70, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 71, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 72, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 73, got 0"}]}}Content-Length: 116
 

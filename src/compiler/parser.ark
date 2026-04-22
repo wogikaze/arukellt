@@ -1706,6 +1706,7 @@ fn parse_let(p: Parser) -> AstNode {
     }
     let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
+    node.span = Span_new(node.span.start, name.end)
     if peek_kind(p) == TK_COLON() {
         p.pos = p.pos + 1
         skip_newlines(p)
@@ -1836,6 +1837,10 @@ fn parse_fn_decl(p: Parser) -> AstNode {
     let node = AstNode_new(NK_FN_DECL(), tok_span(t))
     let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
+    // Extend decl span to cover the keyword + name (issue #570 hover/def
+    // ranges). Without this the span would be the `fn` keyword alone,
+    // making the hover highlight skip the function name itself.
+    node.span = Span_new(node.span.start, name.end)
     parse_generic_params(p, node.type_ann)
     expect_token(p, TK_LPAREN())
     let mut first = true
@@ -1881,6 +1886,7 @@ fn parse_struct_decl(p: Parser) -> AstNode {
     let node = AstNode_new(NK_STRUCT_DECL(), tok_span(t))
     let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
+    node.span = Span_new(node.span.start, name.end)
     parse_generic_params(p, node.type_ann)
     skip_newlines(p)
     expect_token(p, TK_LBRACE())
@@ -1918,6 +1924,7 @@ fn parse_enum_decl(p: Parser) -> AstNode {
     let node = AstNode_new(NK_ENUM_DECL(), tok_span(t))
     let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
+    node.span = Span_new(node.span.start, name.end)
     parse_generic_params(p, node.type_ann)
     skip_newlines(p)
     expect_token(p, TK_LBRACE())

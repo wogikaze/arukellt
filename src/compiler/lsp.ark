@@ -340,6 +340,32 @@ struct LspPosition {
     character: i32,
 }
 
+// Convert an LSP {line, character} pair (UTF-8 byte column) back to a byte
+// offset within `text`. Returns `len(text)` when the requested line or
+// column overruns the document. Counterpart of `offset_to_position`.
+fn position_to_offset(text: String, line: i32, character: i32) -> i32 {
+    let n = len(text)
+    let mut p = 0
+    let mut cur_line = 0
+    while cur_line < line && p < n {
+        let c = char_at(text, p)
+        p = p + 1
+        if c == 10 {
+            cur_line = cur_line + 1
+        }
+    }
+    let mut col = 0
+    while col < character && p < n {
+        let c = char_at(text, p)
+        if c == 10 {
+            return p
+        }
+        p = p + 1
+        col = col + 1
+    }
+    p
+}
+
 fn offset_to_position(text: String, offset: i32) -> LspPosition {
     let n = len(text)
     let lim = if offset < n {
@@ -376,7 +402,7 @@ fn quote_string(s: String) -> String {
 fn build_initialize_response(id: i32) -> String {
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"diagnosticProvider\":{\"interFileDependencies\":false,\"workspaceDiagnostics\":false}},\"serverInfo\":{\"name\":\"arukellt-lsp\",\"version\":\"0.1.0\"}}}"))
+    body = concat(body, String_from(",\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"hoverProvider\":true,\"definitionProvider\":true,\"diagnosticProvider\":{\"interFileDependencies\":false,\"workspaceDiagnostics\":false}},\"serverInfo\":{\"name\":\"arukellt-lsp\",\"version\":\"0.1.0\"}}}"))
     body
 }
 
@@ -479,6 +505,14 @@ fn handle_message(state: LspState, body: String) {
         handle_did_change(state, clone(body))
         return
     }
+    if eq(clone(method), "textDocument/hover") {
+        handle_hover(state, clone(body))
+        return
+    }
+    if eq(clone(method), "textDocument/definition") {
+        handle_definition(state, clone(body))
+        return
+    }
     // Unknown method — silently ignore for MVP. Real server would reply
     // with MethodNotFound for requests; notifications may be dropped.
 }
@@ -509,6 +543,125 @@ fn handle_did_change(state: LspState, body: String) {
 fn publish_for(state: LspState, uri: String, text: String) {
     let snap = analysis::analyze(clone(uri), clone(text))
     append_framed(state, build_publish_diagnostics(clone(uri), clone(text), snap))
+}
+
+// ── Hover & definition (issue #570) ─────────────────────────────────────────
+// Both handlers extract `params.textDocument.uri` and `params.position`,
+// resolve the identifier at that position via `analysis::symbol_at`, and
+// reply with a JSON-RPC response. When no symbol is found they return
+// `null`, which is the LSP idiom for "nothing to show here".
+
+fn build_null_response(id: i32) -> String {
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = concat(body, to_string(id))
+    body = concat(body, String_from(",\"result\":null}"))
+    body
+}
+
+fn extract_position_field(body: String, key: String) -> i32 {
+    // Find the `"position"` key, then pull `key` (line | character) from
+    // the object that follows. We piggy-back on `extract_int_field` by
+    // searching only the substring starting at the position object.
+    let p = find_key_pos(clone(body), String_from("position"), 0)
+    if p < 0 {
+        return 0
+    }
+    let q = find_key_pos(clone(body), key, p)
+    if q < 0 {
+        return 0
+    }
+    let r = json_skip_ws(clone(body), q)
+    let n = len(body)
+    if r >= n || char_at(body, r) != 58 {
+        return 0
+    }
+    json_parse_int_at(clone(body), r + 1)
+}
+
+fn lookup_doc_text(state: LspState, uri: String) -> String {
+    let idx = doc_index_of(state, clone(uri))
+    if idx < 0 {
+        return String_new()
+    }
+    let d = get_unchecked(state.docs, idx)
+    clone(d.text)
+}
+
+fn build_hover_response(id: i32, markdown: String, start: LspPosition, end: LspPosition) -> String {
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = concat(body, to_string(id))
+    body = concat(body, String_from(",\"result\":{\"contents\":{\"kind\":\"markdown\",\"value\":"))
+    body = concat(body, quote_string(markdown))
+    body = concat(body, String_from("},\"range\":{\"start\":{\"line\":"))
+    body = concat(body, to_string(start.line))
+    body = concat(body, String_from(",\"character\":"))
+    body = concat(body, to_string(start.character))
+    body = concat(body, String_from("},\"end\":{\"line\":"))
+    body = concat(body, to_string(end.line))
+    body = concat(body, String_from(",\"character\":"))
+    body = concat(body, to_string(end.character))
+    body = concat(body, String_from("}}}}"))
+    body
+}
+
+fn build_definition_response(id: i32, uri: String, start: LspPosition, end: LspPosition) -> String {
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = concat(body, to_string(id))
+    body = concat(body, String_from(",\"result\":{\"uri\":"))
+    body = concat(body, quote_string(uri))
+    body = concat(body, String_from(",\"range\":{\"start\":{\"line\":"))
+    body = concat(body, to_string(start.line))
+    body = concat(body, String_from(",\"character\":"))
+    body = concat(body, to_string(start.character))
+    body = concat(body, String_from("},\"end\":{\"line\":"))
+    body = concat(body, to_string(end.line))
+    body = concat(body, String_from(",\"character\":"))
+    body = concat(body, to_string(end.character))
+    body = concat(body, String_from("}}}}"))
+    body
+}
+
+fn handle_hover(state: LspState, body: String) {
+    let id = extract_int_field(clone(body), String_from("id"))
+    let uri = extract_string_field(clone(body), String_from("uri"))
+    let line = extract_position_field(clone(body), String_from("line"))
+    let character = extract_position_field(clone(body), String_from("character"))
+    let text = lookup_doc_text(state, clone(uri))
+    if len(text) == 0 {
+        append_framed(state, build_null_response(id))
+        return
+    }
+    let offset = position_to_offset(clone(text), line, character)
+    let info = analysis::symbol_at(clone(text), offset)
+    if !info.found {
+        append_framed(state, build_null_response(id))
+        return
+    }
+    let md = analysis::render_hover_markdown(info)
+    let start = offset_to_position(clone(text), info.decl_start)
+    let end = offset_to_position(clone(text), info.decl_end)
+    append_framed(state, build_hover_response(id, md, start, end))
+}
+
+fn handle_definition(state: LspState, body: String) {
+    let id = extract_int_field(clone(body), String_from("id"))
+    let uri = extract_string_field(clone(body), String_from("uri"))
+    let line = extract_position_field(clone(body), String_from("line"))
+    let character = extract_position_field(clone(body), String_from("character"))
+    let text = lookup_doc_text(state, clone(uri))
+    if len(text) == 0 {
+        append_framed(state, build_null_response(id))
+        return
+    }
+    let offset = position_to_offset(clone(text), line, character)
+    let info = analysis::symbol_at(clone(text), offset)
+    if !info.found {
+        append_framed(state, build_null_response(id))
+        return
+    }
+    let start = offset_to_position(clone(text), info.decl_start)
+    let end = offset_to_position(clone(text), info.decl_end)
+    append_framed(state, build_definition_response(id, uri, start, end))
 }
 
 // ── Frame parsing ────────────────────────────────────────────────────────────

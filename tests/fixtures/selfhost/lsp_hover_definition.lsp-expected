@@ -1,0 +1,11 @@
+Content-Length: 257
+
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 114
+
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///hover.ark","diagnostics":[]}}Content-Length: 175
+
+{"jsonrpc":"2.0","id":2,"result":{"contents":{"kind":"markdown","value":"```ark\nfn answer()\n```"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":9}}}}Content-Length: 135
+
+{"jsonrpc":"2.0","id":3,"result":{"uri":"file:///hover.ark","range":{"start":{"line":0,"character":0},"end":{"line":0,"character":9}}}}Content-Length: 38
+
+{"jsonrpc":"2.0","id":4,"result":null}

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T10:21:48Z",
+  "generated_at": "2026-04-22T10:32:28Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -926,32 +926,6 @@
       }
     },
     {
-      "id": "570",
-      "path": "570-phase6-hover--definition-handlers.md",
-      "title": "570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers",
-      "track": "selfhost-frontend",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "569"
-      ],
-      "blocks_issue_ids": [
-        "572"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#569"
-      }
-    },
-    {
       "id": "571",
       "path": "571-phase6-debug-adapter-scaffold-deferred-priority.md",
       "title": "571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)",
@@ -975,6 +949,34 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#568"
+      }
+    },
+    {
+      "id": "572",
+      "path": "572-phase7-delete-ark-lsp.md",
+      "title": "572 — Phase 7: Delete `crates/ark-lsp`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "569",
+        "570"
+      ],
+      "blocks_issue_ids": [
+        "579",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#569, #570"
       }
     },
     {
@@ -1346,34 +1348,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#559, #560, #561, #562, #563"
-      }
-    },
-    {
-      "id": "572",
-      "path": "572-phase7-delete-ark-lsp.md",
-      "title": "572 — Phase 7: Delete `crates/ark-lsp`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "569",
-        "570"
-      ],
-      "blocks_issue_ids": [
-        "579",
-        "582"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 14
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#569, #570"
       }
     },
     {

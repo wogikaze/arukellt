@@ -93,3 +93,53 @@ gates (baseline → post):
 new tests added: <paths>
 false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
 ```
+
+## Resolution
+
+Implemented `textDocument/hover` and `textDocument/definition` for the
+selfhost LSP server.
+
+**Entry-point functions**:
+- `analysis::symbol_at(text, offset) -> SymbolInfo` (src/compiler/analysis.ark)
+- `analysis::render_hover_markdown(info) -> String` (src/compiler/analysis.ark)
+- `lsp::handle_hover(state, body)` (src/compiler/lsp.ark)
+- `lsp::handle_definition(state, body)` (src/compiler/lsp.ark)
+- `lsp::position_to_offset(text, line, character) -> i32` (src/compiler/lsp.ark)
+
+The dispatcher in `lsp::handle_message` now routes `textDocument/hover` and
+`textDocument/definition` request methods to these handlers. Both reply with
+`null` when the position does not resolve to a known top-level declaration,
+as per LSP convention. The `initialize` capability advertisement now sets
+`hoverProvider: true` and `definitionProvider: true`.
+
+Position lookup walks the partial AST returned by `parser::parse_program` to
+locate the deepest `NK_IDENT` node whose span contains the requested byte
+offset, then resolves the matching name against the top-level decl list
+(`fn` / `struct` / `enum` / `let`). Minimum-viable span plumbing was added in
+`parser::parse_fn_decl`, `parse_struct_decl`, `parse_enum_decl`, and
+`parse_let` so each decl span covers the full `<keyword> <name>` range —
+without it the hover/definition range would highlight only the keyword
+token.
+
+**Fixture**: `tests/fixtures/selfhost/lsp_hover_definition.lsp-script` plus
+its golden `lsp_hover_definition.lsp-expected`. The script opens a small
+two-fn module, requests hover then definition on the `answer()` call site,
+and asserts:
+- hover response contains `{"contents":{"kind":"markdown","value":"\`\`\`ark\nfn answer()\n\`\`\`"}, …}`
+- definition response contains `{"uri":"file:///hover.ark","range":{ … }}`
+  pointing at the defining `fn answer` range
+
+The existing `scripts/check/check-lsp-lifecycle.py` gate already iterates
+all `tests/fixtures/selfhost/lsp_*.lsp-script` files, so the new fixture
+is picked up without changes to the gate. The lifecycle golden was updated
+to absorb the new `hoverProvider`/`definitionProvider` capability advert.
+
+**Gate confirmation**:
+- `python scripts/check/check-lsp-lifecycle.py` → 2 script(s) pass (rc=0)
+- `python scripts/manager.py selfhost fixture-parity` → PASS=1 FAIL=0 SKIP=0 (rc=0)
+- `python scripts/manager.py selfhost diag-parity` → PASS=1 FAIL=0 SKIP=0 (rc=0)
+- `python scripts/manager.py selfhost fixpoint` → SKIP=1 (pre-existing baseline)
+- `python scripts/manager.py verify quick` → 17 PASS / 4 FAIL / 21 total
+  (same 4 pre-existing failures on master baseline: fixture-manifest sync,
+  issues/done unchecked-checkbox scan, doc example check, broken internal
+  links — none introduced by this slice)

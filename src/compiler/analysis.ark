@@ -200,3 +200,177 @@ pub fn snapshot_summary(snap: AnalysisSnapshot) -> String {
     }
     out
 }
+
+// ── Position queries (issue #570) ────────────────────────────────────────────
+// The hover and definition LSP handlers in src/compiler/lsp.ark consume
+// these helpers. `symbol_at` returns the declaration that an identifier at
+// `offset` refers to, by walking the partial AST produced by
+// parser::parse_program. The returned `SymbolInfo.found` flag is `false`
+// when the offset is outside any identifier or refers to a name with no
+// matching top-level decl (e.g. a builtin).
+//
+// The decl-kind constants below mirror the integer tags in
+// src/compiler/parser.ark::NK_*. They are duplicated here (rather than
+// imported) because those constants are not currently `pub` and this
+// slice deliberately avoids touching parser.ark beyond what's strictly
+// required.
+fn AT_NK_IDENT() -> i32 {
+    5
+}
+
+fn AT_NK_LET() -> i32 {
+    30
+}
+
+fn AT_NK_FN_DECL() -> i32 {
+    50
+}
+
+fn AT_NK_STRUCT_DECL() -> i32 {
+    51
+}
+
+fn AT_NK_ENUM_DECL() -> i32 {
+    52
+}
+
+pub struct SymbolInfo {
+    found: bool,
+    name: String,
+    kind: i32,
+    decl_start: i32,
+    decl_end: i32,
+    signature: String,
+}
+
+fn SymbolInfo_none() -> SymbolInfo {
+    SymbolInfo { found: false, name: String_new(), kind: 0, decl_start: 0, decl_end: 0, signature: String_new() }
+}
+
+// Render a brief signature string for a top-level decl (used by hover).
+// Output is plain text suitable for embedding inside an ```ark code fence.
+fn render_signature(decl: AstNode) -> String {
+    if decl.kind == AT_NK_FN_DECL() {
+        let mut sig = String_from("fn ")
+        sig = concat(sig, clone(decl.text))
+        sig = concat(sig, String_from("("))
+        // children = params... + body block. The block is the last child.
+        let cn = len(decl.children)
+        let last = if cn > 0 {
+            cn - 1
+        } else {
+            0
+        }
+        let mut i = 0
+        let mut first = true
+        while i < last {
+            let p = get_unchecked(decl.children, i)
+            if !first {
+                sig = concat(sig, String_from(", "))
+            }
+            first = false
+            sig = concat(sig, clone(p.text))
+            i = i + 1
+        }
+        sig = concat(sig, String_from(")"))
+        return sig
+    }
+    if decl.kind == AT_NK_STRUCT_DECL() {
+        return concat(String_from("struct "), clone(decl.text))
+    }
+    if decl.kind == AT_NK_ENUM_DECL() {
+        return concat(String_from("enum "), clone(decl.text))
+    }
+    if decl.kind == AT_NK_LET() {
+        return concat(String_from("let "), clone(decl.text))
+    }
+    clone(decl.text)
+}
+
+// Recursive search: locate an NK_IDENT node whose span contains `offset`
+// and return its name. Returns the empty string when no identifier matches.
+fn find_ident_at_in(node: AstNode, offset: i32) -> String {
+    if node.kind == AT_NK_IDENT() {
+        if node.span.start <= offset && offset < node.span.end {
+            return clone(node.text)
+        }
+    }
+    let cn = len(node.children)
+    let mut i = 0
+    while i < cn {
+        let c = get_unchecked(node.children, i)
+        let r = find_ident_at_in(c, offset)
+        if len(r) > 0 {
+            return r
+        }
+        i = i + 1
+    }
+    let tn = len(node.type_ann)
+    let mut j = 0
+    while j < tn {
+        let c = get_unchecked(node.type_ann, j)
+        let r = find_ident_at_in(c, offset)
+        if len(r) > 0 {
+            return r
+        }
+        j = j + 1
+    }
+    String_new()
+}
+
+fn find_ident_in_decls(decls: Vec<AstNode>, offset: i32) -> String {
+    let n = len(decls)
+    let mut i = 0
+    while i < n {
+        let d = get_unchecked(decls, i)
+        let r = find_ident_at_in(d, offset)
+        if len(r) > 0 {
+            return r
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn find_decl_by_name(decls: Vec<AstNode>, name: String) -> SymbolInfo {
+    let n = len(decls)
+    let mut i = 0
+    while i < n {
+        let d = get_unchecked(decls, i)
+        let k = d.kind
+        let is_decl = k == AT_NK_FN_DECL() || k == AT_NK_STRUCT_DECL() || k == AT_NK_ENUM_DECL() || k == AT_NK_LET()
+        if is_decl && eq(clone(d.text), clone(name)) {
+            return SymbolInfo { found: true, name: name, kind: k, decl_start: d.span.start, decl_end: d.span.end, signature: render_signature(d) }
+        }
+        i = i + 1
+    }
+    SymbolInfo_none()
+}
+
+// Public entry point for LSP position queries. Re-runs lex + parse on the
+// supplied document text and resolves the identifier at `offset` (a byte
+// offset into `text`) to its defining top-level declaration. Cheap enough
+// for per-request use given selfhost's current parser performance; can be
+// memoised against `LspDoc` once the LSP server gains a richer cache.
+pub fn symbol_at(text: String, offset: i32) -> SymbolInfo {
+    let lex_result = lexer::lex_program(clone(text))
+    let parse_result = parser::parse_program(lex_result.tokens)
+    let name = find_ident_in_decls(parse_result.decls, offset)
+    if len(name) == 0 {
+        return SymbolInfo_none()
+    }
+    find_decl_by_name(parse_result.decls, name)
+}
+
+// Hover-friendly markdown rendering for a `SymbolInfo`. Returns the empty
+// string when the symbol is not found, which the LSP layer maps to a
+// `null` hover response.
+pub fn render_hover_markdown(info: SymbolInfo) -> String {
+    if !info.found {
+        return String_new()
+    }
+    let mut out = String_from("```ark\n")
+    out = concat(out, clone(info.signature))
+    out = concat(out, String_from("\n```"))
+    out
+}
