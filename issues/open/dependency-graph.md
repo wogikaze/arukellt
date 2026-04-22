@@ -47,6 +47,7 @@ graph LR
   I561["561 561 — Phase 5: Delete `crates/ark-mir`"]
   I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
   I568["568 568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)"]
+  I587["587 587 — Selfhost s2 rebuild regression: type errors on every fixture from current `src/compiler/main.ark`"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -183,6 +184,7 @@ graph LR
 - **561** depends on: 559; blocks: 564
 - **563** depends on: 559; blocks: 564
 - **568** depends on: 565, 566, 567; blocks: 569, 571
+- **587** depends on: none; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136

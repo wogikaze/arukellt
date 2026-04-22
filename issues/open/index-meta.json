@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T09:57:32Z",
+  "generated_at": "2026-04-22T10:00:12Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -978,6 +978,28 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#565, #566, #567"
+      }
+    },
+    {
+      "id": "587",
+      "path": "587-selfhost-s2-rebuild-regression.md",
+      "title": "587 — Selfhost s2 rebuild regression: type errors on every fixture from current `src/compiler/main.ark`",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes (silently — current verification passes only via stale cache)",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "investigation-required",
+        "upstream_notes": "—"
       }
     },
     {
