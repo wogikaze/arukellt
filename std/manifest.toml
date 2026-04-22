@@ -131,7 +131,8 @@ intrinsic = "__intrinsic_concat"
 params = ["String", "String"]
 returns = "String"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::text::concat"
 doc_category = "string"
 doc = "Concatenate two strings and return the result."
 availability = { t1 = true, t3 = true }
@@ -1265,7 +1266,8 @@ kind = "builtin"
 params = []
 returns = "HashMap<i32, i32>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_i32_i32_new"
 doc_category = "collections"
 
 [[functions]]
@@ -1274,7 +1276,8 @@ kind = "builtin"
 params = ["HashMap<i32, i32>", "i32", "i32"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_i32_i32_insert"
 doc_category = "collections"
 
 [[functions]]
@@ -1283,7 +1286,8 @@ kind = "builtin"
 params = ["HashMap<i32, i32>", "i32"]
 returns = "Option<i32>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::collections::hash_map"
 doc_category = "collections"
 
 [[functions]]
@@ -1292,7 +1296,8 @@ kind = "builtin"
 params = ["HashMap<i32, i32>", "i32"]
 returns = "bool"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::collections::hash_map"
 doc_category = "collections"
 
 [[functions]]
@@ -1301,7 +1306,8 @@ kind = "builtin"
 params = ["HashMap<i32, i32>"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::collections::hash_map"
 doc_category = "collections"
 
 # ── HashMap<String, i32> ───────────────────────
@@ -1312,7 +1318,8 @@ kind = "builtin"
 params = []
 returns = "HashMap<String, i32>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_str_i32_new"
 doc_category = "collections"
 
 [[functions]]
@@ -1321,7 +1328,8 @@ kind = "builtin"
 params = ["HashMap<String, i32>", "String", "i32"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_str_i32_insert"
 doc_category = "collections"
 
 [[functions]]
@@ -1330,7 +1338,8 @@ kind = "builtin"
 params = ["HashMap<String, i32>", "String"]
 returns = "Option<i32>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_str_i32_get"
 doc_category = "collections"
 
 [[functions]]
@@ -1339,7 +1348,8 @@ kind = "builtin"
 params = ["HashMap<String, i32>", "String"]
 returns = "bool"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_str_i32_contains"
 doc_category = "collections"
 
 [[functions]]
@@ -1348,7 +1358,8 @@ kind = "builtin"
 params = ["HashMap<String, i32>"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_str_i32_len"
 doc_category = "collections"
 
 [[functions]]
@@ -1357,7 +1368,8 @@ kind = "builtin"
 params = []
 returns = "HashMap<i32, String>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_i32_str_new"
 doc_category = "collections"
 
 [[functions]]
@@ -1366,7 +1378,8 @@ kind = "builtin"
 params = ["HashMap<i32, String>", "i32", "String"]
 returns = "unit"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_i32_str_insert"
 doc_category = "collections"
 
 [[functions]]
@@ -1375,7 +1388,8 @@ kind = "builtin"
 params = ["HashMap<i32, String>", "i32"]
 returns = "Option<String>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_i32_str_get"
 doc_category = "collections"
 
 [[functions]]
@@ -1384,7 +1398,8 @@ kind = "builtin"
 params = ["HashMap<i32, String>", "i32"]
 returns = "bool"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_i32_str_contains"
 doc_category = "collections"
 
 [[functions]]
@@ -1393,7 +1408,8 @@ kind = "builtin"
 params = ["HashMap<i32, String>"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_i32_str_len"
 doc_category = "collections"
 
 [[functions]]
@@ -1402,7 +1418,8 @@ kind = "builtin"
 params = []
 returns = "HashMap<String, String>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_str_str_new"
 doc_category = "collections"
 
 [[functions]]
@@ -1411,7 +1428,8 @@ kind = "builtin"
 params = ["HashMap<String, String>", "String", "String"]
 returns = "unit"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_str_str_insert"
 doc_category = "collections"
 
 [[functions]]
@@ -1420,7 +1438,8 @@ kind = "builtin"
 params = ["HashMap<String, String>", "String"]
 returns = "Option<String>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_str_str_get"
 doc_category = "collections"
 
 [[functions]]
@@ -1429,7 +1448,8 @@ kind = "builtin"
 params = ["HashMap<String, String>", "String"]
 returns = "bool"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_str_str_contains"
 doc_category = "collections"
 
 [[functions]]
@@ -1438,7 +1458,8 @@ kind = "builtin"
 params = ["HashMap<String, String>"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "hashmap_str_str_len"
 doc_category = "collections"
 
 # ── Intrinsics (no public wrapper) ───────────
@@ -4871,10 +4892,11 @@ doc = "Look up an environment variable by name."
 name = "get_var"
 module = "std::env"
 doc_category = "env"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "var"
 params = ["String"]
 returns = "Option<String>"
-doc = "Alias for env::var."
+doc = "Alias for env::var. Use var instead."
 
 [[functions]]
 name = "var_or_default"

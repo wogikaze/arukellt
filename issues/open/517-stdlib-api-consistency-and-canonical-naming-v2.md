@@ -96,10 +96,10 @@ Inventory rows below use **`path:line`** for the `pub fn` that defines the symbo
 
 ## Acceptance
 
-- [ ] family ごとの canonical function naming policy が再定義される
-- [ ] alias と historical names の整理対象が一覧化される
-- [ ] rename / deprecation / keep-as-is の 3 分類が各 API に付与される
-- [ ] generated docs と search index に必要な metadata 拡張の要否が判断される
+- [x] family ごとの canonical function naming policy が再定義される
+- [x] alias と historical names の整理対象が一覧化される
+- [x] rename / deprecation / keep-as-is の 3 分類が各 API に付与される
+- [x] generated docs と search index に必要な metadata 拡張の要否が判断される
 
 ## Primary paths
 

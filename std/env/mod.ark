@@ -28,6 +28,7 @@ pub fn var(name: String) -> Option<String> {
 }
 
 /// Alias for `var` matching the work-order naming convention.
+/// @deprecated Use `var` instead.
 pub fn get_var(name: String) -> Option<String> {
     __intrinsic_env_var(name)
 }
