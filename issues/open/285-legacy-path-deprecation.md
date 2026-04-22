@@ -1,8 +1,8 @@
 # Legacy lowering path を隔離・撤去する
 
-**Status**: open (partially complete — blocked by CoreHIR lowerer stub)
+**Status**: open (reviewed 2026-04-22 — deprecation-marker slice complete; remaining removal work re-scoped to #529)
 **Created**: 2026-03-31
-**Updated**: 2026-04-18
+**Updated**: 2026-04-22
 **ID**: 285
 **Depends on**: 284
 **Blocks**: (cycle broken — see ADR-028; #508 now depends on #529 instead)
@@ -100,6 +100,16 @@ issue \#285 ⇄ \#508 の循環ブロッカーを設計判断で解消した。
   #529 配下の Rust クレート退役サブイシューに移管する。本 issue の `Blocks:`
   リストから #508 を外し、循環を解消する。
 - 詳細は ADR-028 "Sequencing" / "Follow-up sub-issues" セクションを参照。
+
+## Canonical review note — 2026-04-22
+
+ADR-028 is the current source of truth for this tracker. Based on the repo evidence in
+`docs/compiler/legacy-path-status.md` and `docs/adr/ADR-028-corehir-lowering-resolution.md`,
+the deprecation-marker slice for #285 is complete and is a close candidate. The legacy
+fallback itself is still present, but its removal is no longer closure criteria for this
+issue; that work was re-scoped under #529. Keep this issue open only as a historical review
+record until the queue transition is performed, and do not treat it as the blocker for
+CoreHIR implementation work.
 
 ## References
 

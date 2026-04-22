@@ -1,6 +1,6 @@
 # 562 — Phase 5: Delete `crates/ark-wasm`
 
-**Status**: open
+**Status**: blocked-by-upstream
 **Created**: 2026-04-22
 **Updated**: 2026-04-22
 **ID**: 562
@@ -31,6 +31,20 @@ Record numeric values; do **not** start the deletion if any item is missing.
 - [ ] `python scripts/manager.py verify` rc=0 (record baseline)
 - [ ] No remaining `cargo run -p ark-wasm`-style invocation anywhere reachable from `scripts/` or `.github/workflows/` (verified by `rg "ark-wasm" scripts/ .github/workflows/`)
 - [ ] All consumers of `ark_wasm` symbols outside the crate itself have already been migrated to selfhost (`src/`) or to a remaining crate (verified by `rg "ark_wasm" crates/ src/ scripts/` showing only the crate itself plus explicitly-allowed comments)
+
+## Status note
+
+2026-04-22 pre-deletion scan result: blocked by an active downstream crate consumer.
+
+Active consumer:
+
+- `crates/ark-stdlib/Cargo.toml:7` depends on `ark-wasm = { workspace = true }`
+
+Exact commands run:
+
+- `rg -n "ark[-_]wasm|ark_wasm" crates/ src/ scripts/ .github/workflows/ docs/ --glob '!issues/done/**'`
+- `rg -n "ark-wasm" scripts/ .github/workflows/`
+- `rg -n "ark-wasm|ark_wasm" crates/*/Cargo.toml`
 
 ## Acceptance
 

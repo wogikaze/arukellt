@@ -1,22 +1,25 @@
-# コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)
+# Selfhost compiler: incremental parse design slice
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-22
 **ID**: 099
 **Depends on**: —
 **Track**: compiler
-**Type**: Implementation
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
-**Orchestration class**: implementation-ready
+**Type**: Design-ready
+**Implementation target**: Use Ark source in `src/compiler/*.ark` per the selfhost transition plan.
+**Primary paths**: `src/compiler/*.ark`
+**Allowed adjacent paths**: `docs/compiler/`, `docs/current-state.md`
+**Required verification**: `python3 scripts/manager.py verify`
+**Orchestration class**: design-ready
 **Orchestration upstream**: —
 **Blocks v4 exit**: no
 
-**Status note**: Compiler architecture improvement — deferred to v5+. hello.ark already compiles in 4.2ms.
+**Status note**: Compiler architecture slice for the selfhost compiler. This issue now defines an incremental parse design target and no longer points at Rust-crate implementation details.
 
 ---
 
-## Reopened by audit — 2026-04-03
+## Reopened by audit - 2026-04-03
 
 **Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
@@ -28,18 +31,25 @@
 
 ## Summary
 
-`arukellt compile --watch` モードや LSP (`ark-lsp`) での繰り返しコンパイルで、
-変更のないファイルの AST・MIR をキャッシュして再利用する
-インクリメンタルコンパイルの基盤を設計・実装する。
+Selfhost compiler work for incremental parsing: define how unchanged source modules are detected, how parse results are reused, and how dependent compilation units are invalidated in the Ark compiler sources under `src/compiler/*.ark`.
 
-## 受け入れ条件
+## Dispatchable slice
 
-1. `ark-driver/src/session.rs` にコンパイルキャッシュ (`HashMap<PathBuf, (mtime, AstModule)>`) を追加
-2. ファイル mtime が変わっていない場合、前回の AST を再利用
-3. 変更ファイルに依存する下流モジュールのみを再コンパイル
-4. `--watch` フラグ: ファイル変更を監視して自動再コンパイル (notify crate)
-5. 2回目のコンパイルが変更なしの場合に 80% 以上の時間削減
+This issue is ready to hand to a selfhost compiler implementation agent as a narrow design slice.
 
-## 参照
+## Acceptance criteria
 
-- roadmap-v4.md §2 (コンパイル時間目標)
+1. The issue scope names `src/compiler/*.ark` as the implementation path for incremental parse work.
+2. The acceptance text describes parse reuse and invalidation in selfhost terms, not Rust-crate cache plumbing.
+3. The issue does not require implementing compiler caching, mtime-based reuse, or watch-mode plumbing.
+4. The verification line points at the current repo manager check: `python3 scripts/manager.py verify`.
+5. Any companion doc wording, if added later, stays within `docs/compiler/` or `docs/current-state.md`.
+
+## Notes
+
+- This slice is design-ready only.
+- Do not treat old `crates/*` wording as the active implementation target for this issue.
+
+## Blocker note - 2026-04-22
+
+STOP_IF: the requested parser-cache skeleton lives in `src/compiler/*.ark`, which is selfhost frontend work rather than compiler-core work. Implementing even a minimal cache API here would require crossing into the selfhost parser/driver/module graph, and the issue text does not define a safe, bounded data-structure-only slice. Leave product code unchanged and hand this to the selfhost lane instead.

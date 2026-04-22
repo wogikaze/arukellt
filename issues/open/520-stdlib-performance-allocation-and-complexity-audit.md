@@ -58,6 +58,24 @@ Recommended family pattern: scan the CSV document once, keep row/field spans, an
 
 Recommended family pattern: keep bytes as bytes through the I/O layer, buffer at the boundary, and only materialize `String` values once per logical record.
 
+### `std::bytes`
+
+| Hotspot | Axis | Evidence | Recommended replacement pattern | Benchmark target |
+|---|---|---|---|---|
+| `bytes_from_string` walks the source string byte-by-byte and performs an unused one-byte `slice` on every iteration before pushing raw bytes | repeated parse, needless allocation | `std/bytes/mod.ark:24-34` | Replace with a direct byte-view conversion path that pushes raw bytes without materializing per-character slices | Yes |
+| `string_from_bytes` rebuilds output with `concat` once per byte | `concat` chains, needless allocation | `std/bytes/mod.ark:37-47` | Replace with builder-style accumulation or buffered emission, then materialize the final `String` once | Yes |
+| `bytes_concat` linearly scans both input buffers and copies them into a fresh allocation | linear scan, needless allocation | `std/bytes/mod.ark:80-95` | Replace with pre-sized buffer assembly or a shared extend helper that reserves once and copies once | Yes |
+| `bytes_slice` linearly scans the requested range and always allocates a fresh buffer | linear scan, needless allocation | `std/bytes/mod.ark:98-106` | Replace with a span/view-style helper where possible, or keep slicing at a single boundary copy site only | Yes |
+| `hex_decode` slices out one-character strings for every nibble and re-parses them through `hex_val_char` | repeated parse, linear scan | `std/bytes/mod.ark:262-278` | Replace with direct nibble decoding over the source string, avoiding per-character slice materialization | Yes |
+| `base64_encode` appends every output character with repeated `concat` calls | `concat` chains, needless allocation | `std/bytes/mod.ark:927-961` | Replace with `std::text::builder` or another buffered emission path that appends each 4-byte block once | Yes |
+| `base64_decode` slices out each 1-byte chunk before decoding, repeating the parse work for every quartet | repeated parse, linear scan | `std/bytes/mod.ark:964-986` | Replace with direct indexed decoding over the source string so each quartet is scanned once | Yes |
+
+Recommended family pattern: keep byte-oriented helpers in byte space until the boundary, use pre-sized buffers or extend helpers for buffer assembly, and avoid per-character string materialization in decode paths.
+
+### Progress
+
+- `std::bytes` perf-footgun inventory slice completed for concat, linear scan, needless allocation, and repeated parse cases.
+
 ### Replacement pattern cross-check
 
 - `std/text/string.ark` already exposes the building blocks that later implementation work should prefer: `split`, `join`, `concat`, `replace`, `lines`, `chars`, `from_utf8`, `to_utf8_bytes`, and `index_of`.

@@ -20,6 +20,31 @@
 
 Only attempt after `lower_hir_to_mir` is fully selfhost-driven and `crates/ark-driver` no longer depends on `crates/ark-mir` for lowering.
 
+## Pre-deletion scan note
+
+Status: blocked-by-upstream. The repository scan still shows live `ark_mir` consumers outside `crates/ark-mir`, so this issue is not ready for deletion yet.
+
+Active consumers from the scan:
+
+- `crates/ark-llvm/Cargo.toml:10` (`ark-mir = { path = "../ark-mir" }`)
+- `crates/ark-llvm/src/emit.rs:7` (`use ark_mir::mir::*;`)
+- `crates/ark-wasm/Cargo.toml:7` (`ark-mir = { workspace = true }`)
+- `crates/ark-wasm/src/component/wit_parse.rs:563`
+- `crates/ark-wasm/src/component/mod.rs:22`
+- `crates/ark-wasm/src/emit/mod.rs:14`
+- `crates/ark-wasm/src/emit/t1/mod.rs:13`
+- `crates/ark-wasm/src/emit/t2_freestanding.rs:9`
+- `crates/ark-wasm/src/emit/t3/mod.rs:29`
+- `crates/ark-wasm/src/emit/t3/helpers.rs:6`
+- `crates/ark-wasm/src/emit/t3_wasm_gc/*`
+
+Commands run:
+
+```bash
+rg -n "ark[-_]mir|ark_mir" crates/ src/ scripts/ .github/workflows/ docs/ --glob '!issues/done/**'
+rg -n "ark_mir|ark-mir" Cargo.toml Cargo.lock crates/*/Cargo.toml
+```
+
 ## Pre-deletion invariants (must hold before starting)
 
 Record numeric values; do **not** start the deletion if any item is missing.
