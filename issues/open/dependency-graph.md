@@ -38,8 +38,6 @@ graph LR
   I520["520 Stdlib: allocation / complexity / perf footgun を family 横断で監査する"]
   I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
   I531["531 Scripts Consolidation Epic: Python CLI Refactoring"]
-  I541["541 541 — Benchmark: struct graph (nested structs / recursive types)"]
-  I542["542 542 — Benchmark: error chain (Result / error propagation)"]
   I544["544 544 — Benchmark suite reorganization and docs integration"]
   I545["545 545 — Benchmark: real-world workloads"]
   I546["546 Release: Binary Smoke Tests"]
@@ -205,8 +203,6 @@ graph LR
 - **520** depends on: none; blocks: none
 - **529** depends on: none; blocks: 508
 - **531** depends on: none; blocks: none
-- **541** depends on: none; blocks: none
-- **542** depends on: 515; blocks: none
 - **544** depends on: none; blocks: none
 - **545** depends on: none; blocks: none
 - **546** depends on: none; blocks: none

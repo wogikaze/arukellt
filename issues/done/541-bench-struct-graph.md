@@ -1,6 +1,9 @@
 # 541 — Benchmark: struct graph (nested structs / recursive types)
 
-**Status**: open
+**Status**: done
+
+**Closed**: 2026-04-22
+**Close commit**: 80bd25e4
 **Created**: 2026-04-21
 **ID**: 541
 **Depends on**: none
@@ -27,13 +30,13 @@ docs/benchmarks/feature-matrix.md identifies **struct-heavy allocation** and **n
 
 ## Acceptance
 
-- [ ] `benchmarks/bench_memory_struct_graph.ark` created with nested structs and recursive types
-- [ ] `benchmarks/bench_memory_struct_graph.expected` created with correct stdout
-- [ ] Benchmark registered in `scripts/util/benchmark_runner.py` `BENCHMARKS` tuple
-- [ ] Tags: `allocation-heavy`, `struct-heavy`, `recursion-heavy`, `container`
-- [ ] `mise bench` passes for the new benchmark
-- [ ] `mise bench:update-baseline` includes the new benchmark
-- [ ] docs/benchmarks/feature-matrix.md updated to mark struct-heavy as covered
+- [x] `benchmarks/bench_memory_struct_graph.ark` created with nested structs and recursive types
+- [x] `benchmarks/bench_memory_struct_graph.expected` created with correct stdout
+- [x] Benchmark registered in `scripts/util/benchmark_runner.py` `BENCHMARKS` tuple
+- [x] Tags: `allocation-heavy`, `struct-heavy`, `recursion-heavy`, `container`
+- [x] `mise bench` passes for the new benchmark
+- [x] `mise bench:update-baseline` includes the new benchmark
+- [x] docs/benchmarks/feature-matrix.md updated to mark struct-heavy as covered
 
 ## Required verification
 

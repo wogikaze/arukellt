@@ -1,6 +1,9 @@
 # 542 — Benchmark: error chain (Result / error propagation)
 
-**Status**: open
+**Status**: done
+**Closed**: 2026-04-22
+**Close commit**: 72e3cc14
+**Acceptance**: all YES
 **Created**: 2026-04-21
 **ID**: 542
 **Depends on**: 515
@@ -27,13 +30,13 @@ docs/benchmarks/feature-matrix.md identifies **error paths / Result handling** a
 
 ## Acceptance
 
-- [ ] `benchmarks/bench_compute_error_chain.ark` created with Result and error propagation
-- [ ] `benchmarks/bench_compute_error_chain.expected` created with correct stdout
-- [ ] Benchmark registered in `scripts/util/benchmark_runner.py` `BENCHMARKS` tuple
-- [ ] Tags: `cpu-bound`, `error-heavy`, `match-heavy`, `iteration`
-- [ ] `mise bench` passes for the new benchmark
-- [ ] `mise bench:update-baseline` includes the new benchmark
-- [ ] docs/benchmarks/feature-matrix.md updated to mark error paths as covered
+- [x] `benchmarks/bench_compute_error_chain.ark` created with Result and error propagation
+- [x] `benchmarks/bench_compute_error_chain.expected` created with correct stdout
+- [x] Benchmark registered in `scripts/util/benchmark_runner.py` `BENCHMARKS` tuple
+- [x] Tags: `cpu-bound`, `error-heavy`, `match-heavy`, `iteration`
+- [x] `mise bench` passes for the new benchmark
+- [x] `mise bench:update-baseline` includes the new benchmark
+- [x] docs/benchmarks/feature-matrix.md updated to mark error paths as covered
 
 ## Required verification
 
