@@ -39,13 +39,27 @@ match sock {
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ⚠️ **T3 only** · ✅ **Status:** implemented
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Host TCP socket helpers via the `arukellt_host` Wasmtime linker.
+
+This module is **provisional and minimal**: it currently exposes only
+`connect`, with no in-tree read / write / close surface. Full socket fd
+lifecycle management is deferred (see issue chain under #074 / #139 and
+`docs/stdlib/604-contract-honesty-gap-ledger.md`).
+
+Honesty caveats:
+
+- These APIs are host-bound and only available on `wasm32-wasi-p2` (T3)
+targets. On T1 (`wasm32-wasi-p1`) a compile-time error (E0500) is emitted
+by the resolver.
+- `connect` returns a fixed file descriptor value of `3` on success in the
+current minimum implementation; this is **not** a real fd table entry and
+should not be passed to other fd-shaped APIs.
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `connect` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ impl | TCP socket helpers via the arukellt_host Wasmtime linker. |
+| `connect` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ impl | Opens a TCP connection to the given host and port. |
 
 #### `connect`
 

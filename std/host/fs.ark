@@ -1,6 +1,23 @@
-/// Host filesystem helpers backed by the current WASI filesystem intrinsics.
-/// 
-/// These APIs perform host I/O. Pure path manipulation remains in `std::path`.
+//! Host filesystem helpers backed by the current WASI filesystem intrinsics.
+//!
+//! These APIs perform real host I/O and require runtime directory access (e.g.
+//! `--dir`) on every call. Pure path manipulation lives in `std::path`; a
+//! smaller stable-shaped bridge over the same intrinsics lives in `std::fs`.
+//!
+//! This module is **not** a complete filesystem facade. There is no directory
+//! listing, metadata, or streaming I/O surface in-tree yet, and the `fd_*`
+//! helpers are explicitly experimental and currently T1 (WASI P1) only.
+//!
+//! Honesty caveats (see `docs/stdlib/604-contract-honesty-gap-ledger.md`):
+//!
+//! - `exists(path)` is a **read probe / readable-file check**, not a general
+//!   path-existence query. It is implemented on top of
+//!   `__intrinsic_fs_read_file`, so directories, missing paths, and any other
+//!   unreadable paths return `false`. True path semantics are tracked under
+//!   issue #605.
+//! - `fd_seek`, `fd_tell`, and `fd_fdstat_errno` operate on raw WASI P1 file
+//!   descriptors and are experimental.
+
 /// Reads a UTF-8 text file into memory.
 pub fn read_to_string(path: String) -> Result<String, String> {
     __intrinsic_fs_read_file(path)

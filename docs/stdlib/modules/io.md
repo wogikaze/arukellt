@@ -102,13 +102,31 @@ eprintln("Error: something went wrong")
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Host filesystem helpers backed by the current WASI filesystem intrinsics.
+
+These APIs perform real host I/O and require runtime directory access (e.g.
+`--dir`) on every call. Pure path manipulation lives in `std::path`; a
+smaller stable-shaped bridge over the same intrinsics lives in `std::fs`.
+
+This module is **not** a complete filesystem facade. There is no directory
+listing, metadata, or streaming I/O surface in-tree yet, and the `fd_*`
+helpers are explicitly experimental and currently T1 (WASI P1) only.
+
+Honesty caveats (see `docs/stdlib/604-contract-honesty-gap-ledger.md`):
+
+- `exists(path)` is a **read probe / readable-file check**, not a general
+path-existence query. It is implemented on top of
+`__intrinsic_fs_read_file`, so directories, missing paths, and any other
+unreadable paths return `false`. True path semantics are tracked under
+issue #605.
+- `fd_seek`, `fd_tell`, and `fd_fdstat_errno` operate on raw WASI P1 file
+descriptors and are experimental.
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Host filesystem helpers backed by the current WASI filesystem intrinsics. |
+| `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
 | `exists` | `(String) -> bool` | `stable` | ✅ impl | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |

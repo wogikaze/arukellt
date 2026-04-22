@@ -114,6 +114,7 @@ All 20 module pages carry curated overviews.
 |------|---------|
 | [514-implementation-quality-audit.md](514-implementation-quality-audit.md) | Status: complete |
 | [518-docs-example-style-audit.md](518-docs-example-style-audit.md) | Status: complete |
+| [604-contract-honesty-gap-ledger.md](604-contract-honesty-gap-ledger.md) | This ledger captures the Phase 0 baseline for issue #604 before broad API-surface changes. |
 | [generation-schema.md](generation-schema.md) | This schema is enforced at generation time. |
 | [modernization/511-numeric-tag-inventory.md](modernization/511-numeric-tag-inventory.md) | This artifact inventories the current public numeric-tag sum-type surfaces in |
 | [modernization/514-parser-host-quality-audit.md](modernization/514-parser-host-quality-audit.md) | This note is a companion to 514-quality-audit-matrix.md. It is intentionally limited to the family surfaces that still need a follow-up-ready audit trail for the parser and host sides of issue 514: |

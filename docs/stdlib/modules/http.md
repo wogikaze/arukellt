@@ -40,13 +40,28 @@ match body {
 
 > 🎯 **Target:** `wasm32-wasi-p1, wasm32-wasi-p2` · ✅ **Status:** implemented
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Host HTTP client helpers backed by the `arukellt_host` runtime.
+
+These APIs are **partial**: they expose a TCP-based HTTP/1.1 surface via
+host-provided functions. They are not a full HTTP client and are subject
+to the constraints documented in
+`docs/stdlib/604-contract-honesty-gap-ledger.md`:
+
+- **HTTPS is not supported** by the current capability surface; only
+plaintext HTTP/1.1 over TCP is reachable from this module.
+- Only the verbs explicitly exposed (`request`, `get`) are available; there
+is no header customization, streaming body, or response-status surface
+beyond the returned body string today.
+- Network access requires the host to be invoked with the appropriate
+networking capability flags; without them every call returns `Err`.
+
+For the broader host capability picture see `docs/capability-surface.md`.
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `request` | `(String, String, String) -> Result<String, String>` | `provisional` | ✅ impl | HTTP client helpers backed by the arukellt_host runtime. |
+| `request` | `(String, String, String) -> Result<String, String>` | `provisional` | ✅ impl | Sends an HTTP request with the given method, URL, and body. |
 | `get` | `(String) -> Result<String, String>` | `provisional` | ✅ impl | Sends an HTTP GET request to the given URL. |
 
 #### `request`
