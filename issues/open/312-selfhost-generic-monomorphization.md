@@ -100,8 +100,11 @@
   typechecker now distinguishes them in `mono_instances`; MIR
   specialization on `mono_instances` is still pending.
 - generic fn の呼び出しで型引数が推論される — partial: `NK_CALL` and
-  `NK_METHOD_CALL` both record monomorph instances now; an
-  end-to-end nested-method-call regression fixture is still pending.
+  `NK_METHOD_CALL` both record monomorph instances now; the missing
+  regression coverage is now provided by
+  `tests/fixtures/generics_v1/generic_method_call.ark`, which exercises
+  a generic method call and verifies the recorded instantiation
+  through the fixture harness.
 - monomorphization 後の typed function list が backend に渡される —
   `lower_to_mir` still ignores `mono_instances`; backend still sees one
   MIR function per generic source decl. (slice-c)
@@ -109,6 +112,22 @@
   real specialization + reachability pass. (slice-d)
 
 Issue remains **open**. Three acceptance bullets still pending.
+
+## Status (method-call regression fixture, 2026-04-22)
+
+**Done in this slice:**
+
+- Added `tests/fixtures/generics_v1/generic_method_call.ark` and
+  registered it in `tests/fixtures/manifest.txt` under `run:`,
+  `t3-compile:`, and `t3-run:`.
+- The fixture calls a generic method twice with distinct inferred type
+  arguments (`i32` and `String`), covering the `NK_METHOD_CALL`
+  monomorph-recording path that was previously only noted as a follow-up.
+
+**Issue progress note:**
+
+- The method-call regression gap described in the slice-a follow-up note
+  is now covered by a focused selfhost fixture.
 
 ## Status (slice-c, 2026-04-22)
 

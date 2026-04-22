@@ -1,0 +1,23 @@
+// Issue #312 regression: a generic method call must infer its type argument
+// and feed the monomorphization bookkeeping path.  This covers NK_METHOD_CALL
+// rather than the direct NK_CALL cases already exercised by the other
+// generics_v1 fixtures.
+use std::host::stdio
+
+struct Picker {
+    token: i32,
+}
+
+impl Picker {
+    fn echo<T>(self: Picker, value: T) -> T {
+        value
+    }
+}
+
+fn main() {
+    let picker = Picker { token: 0 }
+    let n: i32 = picker.echo(7)
+    stdio::println(to_string(n))
+    let s: String = picker.echo(String_from("method mono"))
+    stdio::println(s)
+}
