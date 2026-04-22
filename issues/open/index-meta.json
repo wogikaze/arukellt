@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T20:18:16Z",
+  "generated_at": "2026-04-21T19:01:17Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -380,6 +380,28 @@
       }
     },
     {
+      "id": "249",
+      "path": "249-migration-v4-to-v5-selfhost-bootstrap.md",
+      "title": "migration guide v4→v5: self-hosted compiler bootstrap",
+      "track": "compiler/selfhost",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 7,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
       "id": "285",
       "path": "285-legacy-path-deprecation.md",
       "title": "Legacy lowering path を隔離・撤去する",
@@ -653,30 +675,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "499",
-      "path": "499-selfhost-closure-capture-lowering.md",
-      "title": "499 — Selfhost compiler: closure capture environment lowering",
-      "track": "selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "yes",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "539"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1001,6 +999,28 @@
       }
     },
     {
+      "id": "530",
+      "path": "530-selfhost-parity-ci-gates.md",
+      "title": "530-selfhost-parity-ci-gates",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "531",
       "path": "531-scripts-consolidation-to-python-manager.md",
       "title": "Scripts Consolidation Epic: Python CLI Refactoring",
@@ -1020,6 +1040,30 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "539",
+      "path": "539-bench-closure-map.md",
+      "title": "539 — Benchmark: closure map (higher-order functions)",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "499"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
       }
     },
     {
@@ -1331,6 +1375,28 @@
       }
     },
     {
+      "id": "556",
+      "path": "556-release-selfhost-bootstrap-check.md",
+      "title": "Release: Selfhost Bootstrap Check",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 1
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "054",
       "path": "054-std-wit-component.md",
       "title": "std::wit + std::component: WIT 型、resource handle、canonical ABI",
@@ -1615,30 +1681,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#285"
-      }
-    },
-    {
-      "id": "539",
-      "path": "539-bench-closure-map.md",
-      "title": "539 — Benchmark: closure map (higher-order functions)",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "499"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {
