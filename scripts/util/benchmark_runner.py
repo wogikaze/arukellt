@@ -112,6 +112,13 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         description="Enum variant dispatch via match (100,000 iterations, 5 variants)",
         tags=("cpu-bound", "match-heavy", "allocation-heavy", "iteration"),
     ),
+    BenchmarkCase(
+        name="struct_graph",
+        source="benchmarks/bench_memory_struct_graph.ark",
+        expected="benchmarks/bench_memory_struct_graph.expected",
+        description="Nested struct allocation with recursive graph traversal (depth 10, 20 roots)",
+        tags=("allocation-heavy", "struct-heavy", "recursion-heavy", "container"),
+    ),
 )
 
 MODE_PRESETS: dict[str, dict[str, Any]] = {

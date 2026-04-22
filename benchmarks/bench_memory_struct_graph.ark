@@ -1,0 +1,61 @@
+// Memory benchmark: nested struct allocation and recursive struct graph traversal.
+// Exercises allocation of composite structs (Vec2 -> Rect -> BBox) and a
+// depth-limited binary-tree recursion to measure nested struct allocation
+// throughput.  Covers: allocation-heavy, struct-heavy, recursion-heavy, container.
+use std::host::stdio
+
+struct Vec2 {
+    x: i32,
+    y: i32,
+}
+
+struct Rect {
+    min: Vec2,
+    max: Vec2,
+}
+
+struct BBox {
+    bounds: Rect,
+    id: i32,
+}
+
+fn make_vec2(x: i32, y: i32) -> Vec2 {
+    Vec2 { x: x, y: y }
+}
+
+fn make_rect(x0: i32, y0: i32, x1: i32, y1: i32) -> Rect {
+    Rect { min: make_vec2(x0, y0), max: make_vec2(x1, y1) }
+}
+
+fn rect_area(r: Rect) -> i32 {
+    (r.max.x - r.min.x) * (r.max.y - r.min.y)
+}
+
+fn make_bbox(id: i32) -> BBox {
+    BBox { bounds: make_rect(id, id, id + 10, id + 10), id: id }
+}
+
+// Recursive struct graph: each call allocates a BBox (nested struct), then
+// recurses left/right building a binary tree of struct allocations.
+fn graph_sum(depth: i32, seed: i32) -> i32 {
+    let node: BBox = make_bbox(seed - seed / 1000 * 1000)
+    let area: i32 = rect_area(node.bounds)
+    if depth == 0 {
+        area
+    } else {
+        let left: i32 = graph_sum(depth - 1, seed * 2)
+        let right: i32 = graph_sum(depth - 1, seed * 2 + 1)
+        area + left + right
+    }
+}
+
+fn main() {
+    let mut total: i32 = 0
+    let mut i: i32 = 0
+    while i < 20 {
+        total = total + graph_sum(10, i + 1)
+        i = i + 1
+    }
+    stdio::println(i32_to_string(total))
+    stdio::println("done")
+}

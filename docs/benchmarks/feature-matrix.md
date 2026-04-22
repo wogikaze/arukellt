@@ -14,6 +14,7 @@ Cross-reference of benchmarks against language features they exercise.
 | `string-ops.ark` (legacy) | string | — | — | — | — | ✔ | — | — | — | ✔ | — | — |
 | `struct-create.ark` (legacy) | memory | — | — | ✔ | — | — | — | — | — | ✔ | — | — |
 | `bench_cpu_enum_dispatch.ark` | compute | — | ✔ | — | — | — | — | ✔ | ✔ | ✔ | ✔ | ✔ |
+| `bench_memory_struct_graph.ark` | memory | ✔ | ✔ | ✔ | — | — | — | — | — | ✔ | ✔ | — |
 | `parser.ark` (sample) | application | ✔ | ✔ | ✔ | ✔ | ✔ | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 
 ### Legend
@@ -31,8 +32,8 @@ The following language features have **no dedicated benchmark**:
 | **Enum / pattern matching** | `bench_cpu_enum_dispatch.ark` (dedicated dispatch benchmark) | Covered |
 | **Error paths / Result handling** | None | Medium |
 | **I/O-heavy workloads** | Only trivial `println` calls | Medium |
-| **Struct-heavy allocation** | Only `struct-create.ark` (legacy, trivial) | Medium |
-| **Nested structs / composite types** | Only `parser.ark` (not in bench suite) | Medium |
+| **Struct-heavy allocation** | `bench_memory_struct_graph.ark` (nested structs, recursive graph) | Covered |
+| **Nested structs / composite types** | `bench_memory_struct_graph.ark` (Vec2→Rect→BBox, depth-10 recursion) | Covered |
 | **Host function calls (FFI)** | Only `stdio::println` | Low |
 | **Imports / modules** | Only `use std::host::stdio` | Low |
 
