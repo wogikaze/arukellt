@@ -7,14 +7,20 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 HOOKS_DIR="$REPO_ROOT/.git/hooks"
-TARGET="$HOOKS_DIR/pre-commit"
+PRE_COMMIT_TARGET="$HOOKS_DIR/pre-commit"
+PRE_PUSH_TARGET="$HOOKS_DIR/pre-push"
 
 if [ "${1:-}" = "--remove" ]; then
-  if [ -f "$TARGET" ]; then
-    rm "$TARGET"
-    echo "Removed $TARGET"
-  else
-    echo "No hook installed at $TARGET"
+  removed=0
+  for target in "$PRE_COMMIT_TARGET" "$PRE_PUSH_TARGET"; do
+    if [ -f "$target" ]; then
+      rm "$target"
+      echo "Removed $target"
+      removed=1
+    fi
+  done
+  if [ "$removed" -eq 0 ]; then
+    echo "No repository-managed hooks installed in $HOOKS_DIR"
   fi
   exit 0
 fi
@@ -24,10 +30,18 @@ if [ ! -d "$HOOKS_DIR" ]; then
   exit 1
 fi
 
-cat > "$TARGET" <<'EOF'
+cat > "$PRE_COMMIT_TARGET" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 exec bash "$(git rev-parse --show-toplevel)/scripts/gate/pre-commit-verify.sh"
 EOF
-chmod +x "$TARGET"
-echo "Installed pre-commit hook -> $TARGET"
+chmod +x "$PRE_COMMIT_TARGET"
+echo "Installed pre-commit hook -> $PRE_COMMIT_TARGET"
+
+cat > "$PRE_PUSH_TARGET" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+exec bash "$(git rev-parse --show-toplevel)/scripts/gate/pre-push-branch-policy.sh" "$@"
+EOF
+chmod +x "$PRE_PUSH_TARGET"
+echo "Installed pre-push hook -> $PRE_PUSH_TARGET"

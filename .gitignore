@@ -1,4 +1,5 @@
 .worktrees/
+wt/
 target/
 
 # Python bytecache
