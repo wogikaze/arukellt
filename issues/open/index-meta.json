@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T18:48:48Z",
+  "generated_at": "2026-04-21T19:24:23Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -693,9 +693,7 @@
       "blocks_v4": "none",
       "blocks_v5": "yes",
       "depends_on": [],
-      "blocks_issue_ids": [
-        "539"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 5
@@ -960,6 +958,28 @@
       "id": "527",
       "path": "527-stdlib-toml-parity-and-differential-tests.md",
       "title": "Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する",
+      "track": "stdlib",
+      "status": "implementation-ready",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "528",
+      "path": "528-stdlib-collections-hash-property-and-differential-tests.md",
+      "title": "Stdlib collections/hash: property と differential tests を map / set invariant で拡張する",
       "track": "stdlib",
       "status": "implementation-ready",
       "blocks_v1": "none",
@@ -1331,28 +1351,6 @@
       }
     },
     {
-      "id": "556",
-      "path": "556-release-selfhost-bootstrap-check.md",
-      "title": "Release: Selfhost Bootstrap Check",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "054",
       "path": "054-std-wit-component.md",
       "title": "std::wit + std::component: WIT 型、resource handle、canonical ABI",
@@ -1637,30 +1635,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#285"
-      }
-    },
-    {
-      "id": "539",
-      "path": "539-bench-closure-map.md",
-      "title": "539 — Benchmark: closure map (higher-order functions)",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "499"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {
