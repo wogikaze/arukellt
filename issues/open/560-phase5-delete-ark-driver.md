@@ -117,3 +117,73 @@ cargo check --workspace: rc=0
 false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
 remaining references (if any): <list with justification>
 ```
+
+## Blocker recorded 2026-04-22 (impl-selfhost-retirement)
+
+Deletion **NOT performed**. Pre-deletion invariant 7 (no remaining
+consumers of `ark_driver` symbols outside the crate) FAILS at master
+HEAD `62f0b80a`:
+
+```
+$ rg -n 'ark_driver' crates/ src/ scripts/
+crates/ark-driver/tests/wit_import_roundtrip.rs:8:use ark_driver::{MirSelection, Session};
+crates/arukellt/src/commands.rs:7:use ark_driver::{MirSelection, OptLevel, Session};
+```
+
+`crates/arukellt/src/commands.rs` (the legacy Rust CLI binary, ~1599
+LOC) is an active reverse-dependency. It threads
+`ark_driver::Session`, `MirSelection`, and `OptLevel` through every
+`cmd_compile` / `cmd_build` / `cmd_run` / `cmd_check` / `cmd_test`
+invocation. The Rust CLI is still the binary served behind
+`ARUKELLT_USE_RUST=1` after #559.
+
+Other reverse-dependencies discovered:
+
+- `crates/arukellt/Cargo.toml:11` — `ark-driver = { workspace = true }`
+  (real, drives `commands.rs`).
+- `crates/ark-lsp/Cargo.toml:15` — `ark-driver = { workspace = true }`
+  (declared but `crates/ark-lsp/src/` contains zero `ark_driver`
+  imports; appears to be a dead manifest entry safe to drop in a
+  follow-up).
+- `scripts/check/check-panic-audit.sh:8` — lists
+  `crates/ark-driver/src/` in its `DIRS` array.
+
+Triggered STOP rule (issue STOP_IF item 1 / orchestrator STOP_IF item
+1): "Any non-deletable cross-crate dependency on ark-driver discovered.
+Document it in the issue file as a remaining blocker, do NOT close,
+and stop."
+
+### Required upstream work before #560 can resume
+
+A focused migration issue is needed (suggest **#560-pre / blocker
+slice**) covering:
+
+1. Decide the fate of the legacy Rust CLI under `ARUKELLT_USE_RUST=1`
+   now that selfhost is canonical:
+   - **(a)** Migrate `crates/arukellt/src/commands.rs` off
+     `ark_driver::Session` onto direct calls into `ark-parser`,
+     `ark-resolve`, `ark-typecheck`, `ark-mir`, `ark-wasm` (i.e. inline
+     the small portion of session orchestration the CLI actually uses);
+     **or**
+   - **(b)** Retire `ARUKELLT_USE_RUST=1` entirely as part of Phase 5
+     (delete `crates/arukellt` + `crates/ark-lsp` Rust binaries,
+     document removal in `docs/current-state.md`), which is a much
+     larger slice that should be its own #529 sub-phase.
+2. Drop the dead `ark-driver = { workspace = true }` line from
+   `crates/ark-lsp/Cargo.toml` (no `src/` consumer found).
+3. Update `scripts/check/check-panic-audit.sh` `DIRS` array to drop
+   `crates/ark-driver/src/`.
+
+Once those are merged and `rg -n 'ark_driver' crates/ src/ scripts/`
+returns only `crates/ark-driver/**` itself, #560 can proceed.
+
+### Pre-deletion invariant baseline (recorded for future resume)
+
+Not collected this attempt — STOP triggered before invariant capture.
+The next attempt must capture all five baseline numbers per the
+"Pre-deletion invariants" section above.
+
+### Status
+- Worktree `wt/560-del-driver` removed without commits.
+- Branch `feat/560-delete-ark-driver` deleted (no work landed).
+- Master HEAD unchanged (`62f0b80a`).
