@@ -2,13 +2,15 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-22
 **ID**: 044
-**Depends on**: 039, 041
+**Depends on**: 039, 041, 312
 **Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #312
 **Blocks v3 exit**: yes
+
+**Status note**: FROZEN — generic `HashMap<K,V>` / `HashSet<T>` depends on #312 generic monomorphization. Do not re-dispatch this lane until #312 is actually complete and accepted.
 
 ---
 
@@ -30,6 +32,13 @@ True generic `HashMap<K,V>` and `HashSet<T>` require the compiler to be able to
 monomorphize generic type parameters at call sites.  
 The impl-stdlib agent hit this blocker (STOP_IF) during Wave 2 dispatch.  
 **Do not re-dispatch until #312 (selfhost generic monomorphization) is done.**
+
+## Operational lane — 2026-04-22
+
+This issue is in the **generic-blocked stdlib lane**. Keep it frozen together
+with #054 and #055 while #312 remains incomplete. Do not treat this as part of
+the blocker-free stdlib lane (#045, #047, #051); those issues can continue
+independently.
 
 ## Summary
 

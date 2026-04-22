@@ -10,7 +10,7 @@
 **Orchestration upstream**: #74
 **Blocks v{N}**: none
 
-**Status note**: P2-only capability. T1 では compile-time error が正しい挙動。
+**Status note**: BLOCKED — P2-only capability downstream of the #074 WASI P2 native parent gate. T1 では compile-time error が正しい挙動。
 
 ---
 

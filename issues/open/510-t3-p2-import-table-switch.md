@@ -2,16 +2,17 @@
 
 **Status**: open
 **Created**: 2026-04-15
+**Updated**: 2026-04-22
 **ID**: 510
-**Depends on**: 074
+**Depends on**: —
 **Track**: wasi-feature
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #74
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: #074-parent-gate
 **Blocks v4 exit**: no
 
 **Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
-**Status note**: Deferred — requires WASI P2 ABI design for the T3 bridge layer.
+**Status note**: Leaf close-gate issue for #074. This unblocks the parent P2 native gate; it is not downstream of #074.
 
 ---
 

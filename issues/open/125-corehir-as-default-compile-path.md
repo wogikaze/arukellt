@@ -12,6 +12,8 @@
 
 **Status note**: BLOCKED — CoreHIR path fails 378/410 fixtures. Legacy path must remain default.
 
+**Operational lane**: trusted-base compiler default-path correction. Keep separate from #285/#508/#529 legacy removal and from #099 selfhost frontend design.
+
 ---
 
 ## Reopened by audit — 2026-04-03
@@ -37,6 +39,19 @@ pub fn compile(&mut self, path: &Path, target: TargetId) -> Result<Vec<u8>, Stri
 
 計画されているパイプライン `Check+BuildCoreHIR → LowerToMIR` では CoreHIR が primary path だが、
 `compile()` は Legacy を使い続けている。この不整合を解消し、CoreHIR をデフォルトにする。
+
+## Responsibility split — 2026-04-22
+
+This issue is **not** the same compiler blocker as #285/#508/#529 or #099.
+
+- #125 owns the trusted-base compiler default route: make CoreHIR the default
+  only after the failing fixture count is fixed (`378/410 fixtures failing` in
+  the current blocker note).
+- #126 depends on this issue and owns the follow-up double-lowering cleanup.
+- #285/#508/#529 own legacy removal and the selfhost transition plan.
+- #099 belongs to the selfhost frontend design lane.
+
+Do not use #125 to prioritize legacy deletion or selfhost parser design work.
 
 ## 現状
 

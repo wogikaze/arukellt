@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T10:42:39Z",
+  "generated_at": "2026-04-22T14:27:00Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -66,7 +66,8 @@
       "blocks_v5": "none",
       "depends_on": [
         "039",
-        "041"
+        "041",
+        "312"
       ],
       "blocks_issue_ids": [
         "054",
@@ -77,8 +78,8 @@
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#312"
       }
     },
     {
@@ -157,42 +158,10 @@
       }
     },
     {
-      "id": "074",
-      "path": "074-wasi-p2-native-component.md",
-      "title": "WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "076",
-        "077",
-        "121",
-        "124",
-        "139",
-        "474",
-        "475",
-        "476",
-        "510"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "099",
       "path": "099-compile-incremental-parse.md",
       "title": "Selfhost compiler: incremental parse design slice",
-      "track": "compiler",
+      "track": "selfhost-frontend",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
@@ -612,6 +581,32 @@
       }
     },
     {
+      "id": "510",
+      "path": "510-t3-p2-import-table-switch.md",
+      "title": "T3 emitter: WASI P2 import-table switch (full P2-native component)",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "074",
+        "076",
+        "121"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#074-parent-gate"
+      }
+    },
+    {
       "id": "520",
       "path": "520-stdlib-performance-allocation-and-complexity-audit.md",
       "title": "Stdlib: allocation / complexity / perf footgun を family 横断で監査する",
@@ -952,6 +947,116 @@
       }
     },
     {
+      "id": "588",
+      "path": "588-language-surface-uplift-plan.md",
+      "title": "Language Surface Uplift Plan (Operational Guide)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "589",
+      "path": "589-type-system-stage-up-plan.md",
+      "title": "Type System Stage-Up Plan (HM Core + Coherent Traits) (Operational Guide)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "590",
+      "path": "590-stdlib-core-platform-baseline-plan.md",
+      "title": "Stdlib Core Platform Baseline Plan (Operational Guide)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 17
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "591",
+      "path": "591-optimization-uplift-plan.md",
+      "title": "Optimization Uplift Plan (Compile / Run / Size) (Operational Guide)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "592",
+      "path": "592-error-handling-convergence-plan.md",
+      "title": "Error Handling Convergence Plan (Operational Guide)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "054",
       "path": "054-std-wit-component.md",
       "title": "std::wit + std::component: WIT 型、resource handle、canonical ABI",
@@ -974,7 +1079,7 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#39, #44"
+        "upstream_notes": "#39, #44, #312-through-#44"
       }
     },
     {
@@ -1000,7 +1105,282 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#39, #44"
+        "upstream_notes": "#39, #44, #312-through-#44"
+      }
+    },
+    {
+      "id": "126",
+      "path": "126-eliminate-double-lowering.md",
+      "title": "`run_frontend()` の二重 lower を解消 (遅延 lower)",
+      "track": "pipeline-refactor",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "125"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#125"
+      }
+    },
+    {
+      "id": "512",
+      "path": "512-stdlib-trait-oriented-reuse-surface.md",
+      "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
+      "depends_on": [
+        "504",
+        "495"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#495, #504"
+      }
+    },
+    {
+      "id": "121",
+      "path": "121-wasi-p2-canonical-abi-hardening.md",
+      "title": "WASI P2: Canonical ABI ハンドリングの堅牢化",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "510"
+      ],
+      "blocks_issue_ids": [
+        "074"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#074-parent-gate"
+      }
+    },
+    {
+      "id": "508",
+      "path": "508-legacy-path-removal-unblocked-by.md",
+      "title": "Legacy path removal is blocked by CoreHIR lowerer stub",
+      "track": "corehir",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "529"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#529"
+      }
+    },
+    {
+      "id": "564",
+      "path": "564-phase5-delete-arukellt.md",
+      "title": "564 — Phase 5: Delete `crates/arukellt`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "559",
+        "560",
+        "561",
+        "562",
+        "563"
+      ],
+      "blocks_issue_ids": [
+        "574",
+        "575",
+        "576",
+        "577",
+        "578",
+        "579",
+        "580",
+        "581"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#559, #560, #561, #562, #563"
+      }
+    },
+    {
+      "id": "573",
+      "path": "573-phase7-delete-ark-dap.md",
+      "title": "573 — Phase 7: Delete `crates/ark-dap`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "571"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#571"
+      }
+    },
+    {
+      "id": "074",
+      "path": "074-wasi-p2-native-component.md",
+      "title": "WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "510",
+        "121"
+      ],
+      "blocks_issue_ids": [
+        "076",
+        "077",
+        "124",
+        "139",
+        "474",
+        "475",
+        "476"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#510, #121"
+      }
+    },
+    {
+      "id": "574",
+      "path": "574-phase7-delete-ark-lexer.md",
+      "title": "574 — Phase 7: Delete `crates/ark-lexer`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564"
+      ],
+      "blocks_issue_ids": [
+        "575",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#564"
+      }
+    },
+    {
+      "id": "580",
+      "path": "580-phase7-delete-ark-manifest.md",
+      "title": "580 — Phase 7: Delete `crates/ark-manifest`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#564"
+      }
+    },
+    {
+      "id": "076",
+      "path": "076-wasi-p2-filesystem.md",
+      "title": "WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "510"
+      ],
+      "blocks_issue_ids": [
+        "543"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
       }
     },
     {
@@ -1044,9 +1424,7 @@
       "depends_on": [
         "074"
       ],
-      "blocks_issue_ids": [
-        "121"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -1164,109 +1542,9 @@
       }
     },
     {
-      "id": "510",
-      "path": "510-t3-p2-import-table-switch.md",
-      "title": "T3 emitter: WASI P2 import-table switch (full P2-native component)",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074"
-      ],
-      "blocks_issue_ids": [
-        "076",
-        "121"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#74"
-      }
-    },
-    {
-      "id": "126",
-      "path": "126-eliminate-double-lowering.md",
-      "title": "`run_frontend()` の二重 lower を解消 (遅延 lower)",
-      "track": "pipeline-refactor",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "125"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#125"
-      }
-    },
-    {
-      "id": "512",
-      "path": "512-stdlib-trait-oriented-reuse-surface.md",
-      "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "yes",
-      "depends_on": [
-        "504",
-        "495"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#495, #504"
-      }
-    },
-    {
-      "id": "508",
-      "path": "508-legacy-path-removal-unblocked-by.md",
-      "title": "Legacy path removal is blocked by CoreHIR lowerer stub",
-      "track": "corehir",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "529"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#529"
-      }
-    },
-    {
-      "id": "564",
-      "path": "564-phase5-delete-arukellt.md",
-      "title": "564 — Phase 5: Delete `crates/arukellt`",
+      "id": "575",
+      "path": "575-phase7-delete-ark-parser.md",
+      "title": "575 — Phase 7: Delete `crates/ark-parser`",
       "track": "selfhost-retirement",
       "status": "open",
       "blocks_v1": "none",
@@ -1275,46 +1553,13 @@
       "blocks_v4": "none",
       "blocks_v5": "no",
       "depends_on": [
-        "559",
-        "560",
-        "561",
-        "562",
-        "563"
+        "564",
+        "574"
       ],
       "blocks_issue_ids": [
-        "574",
-        "575",
         "576",
-        "577",
-        "578",
         "579",
-        "580",
-        "581"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 14
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#559, #560, #561, #562, #563"
-      }
-    },
-    {
-      "id": "573",
-      "path": "573-phase7-delete-ark-dap.md",
-      "title": "573 — Phase 7: Delete `crates/ark-dap`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "571"
-      ],
-      "blocks_issue_ids": [
+        "581",
         "582"
       ],
       "acceptance": {
@@ -1322,8 +1567,32 @@
         "unchecked": 14
       },
       "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #574"
+      }
+    },
+    {
+      "id": "543",
+      "path": "543-bench-file-io.md",
+      "title": "543 — Benchmark: file I/O (I/O-heavy workloads)",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "076"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": "#571"
+        "upstream_notes": "—"
       }
     },
     {
@@ -1375,166 +1644,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#475"
-      }
-    },
-    {
-      "id": "076",
-      "path": "076-wasi-p2-filesystem.md",
-      "title": "WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074",
-        "510"
-      ],
-      "blocks_issue_ids": [
-        "543"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "121",
-      "path": "121-wasi-p2-canonical-abi-hardening.md",
-      "title": "WASI P2: Canonical ABI ハンドリングの堅牢化",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074",
-        "124",
-        "510"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "574",
-      "path": "574-phase7-delete-ark-lexer.md",
-      "title": "574 — Phase 7: Delete `crates/ark-lexer`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "564"
-      ],
-      "blocks_issue_ids": [
-        "575",
-        "582"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 14
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "#564"
-      }
-    },
-    {
-      "id": "580",
-      "path": "580-phase7-delete-ark-manifest.md",
-      "title": "580 — Phase 7: Delete `crates/ark-manifest`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "564"
-      ],
-      "blocks_issue_ids": [
-        "582"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 14
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "#564"
-      }
-    },
-    {
-      "id": "543",
-      "path": "543-bench-file-io.md",
-      "title": "543 — Benchmark: file I/O (I/O-heavy workloads)",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "076"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "575",
-      "path": "575-phase7-delete-ark-parser.md",
-      "title": "575 — Phase 7: Delete `crates/ark-parser`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "564",
-        "574"
-      ],
-      "blocks_issue_ids": [
-        "576",
-        "579",
-        "581",
-        "582"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 14
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#564, #574"
       }
     },
     {

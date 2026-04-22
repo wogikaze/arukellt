@@ -10,7 +10,7 @@
 **Orchestration upstream**: #74
 **Blocks v{N}**: none
 
-**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+**Status note**: BLOCKED — downstream of the #074 WASI P2 native parent gate. Runtime maturity is not the active blocker.
 
 ---
 

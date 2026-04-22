@@ -2,13 +2,15 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-18
+**Updated**: 2026-04-22
 **ID**: 055
 **Depends on**: 039, 042, 044
 **Track**: stdlib
 **Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #39, #44
+**Orchestration upstream**: #39, #44, #312-through-#44
 **Blocks v3 exit**: no (Experimental — json のみ Stable 候補)
+
+**Status note**: FROZEN — depends on #044, which is blocked by #312 generic monomorphization. Do not re-dispatch until #044 is unfrozen.
 
 ---
 
@@ -44,6 +46,12 @@
 実務データ形式 (JSON, TOML, CSV) のパーサとシリアライザを実装する。
 設定ファイル読み込み、データ交換、CLI ツール出力に使用。
 JSON は Stable 候補、TOML/CSV は Experimental。
+
+## Operational lane — 2026-04-22
+
+This issue is in the **generic-blocked stdlib lane** through #044. It should not
+be bundled with blocker-free stdlib issues (#045, #047, #051) for dispatch or
+priority decisions.
 
 ## 受け入れ条件
 

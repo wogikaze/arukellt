@@ -2,13 +2,15 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-22
 **ID**: 045
 **Depends on**: 039, 041
 **Track**: stdlib
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
 **Blocks v3 exit**: yes
+
+**Status note**: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.
 
 ---
 
@@ -26,6 +28,11 @@
 
 両端操作が可能な Deque\<T\> と、優先度付きヒープ PriorityQueue\<T\> を実装する。
 BFS、スケジューラ、shortest path 等のアルゴリズム基盤として必要。
+
+## Operational lane — 2026-04-22
+
+This issue is in the **blocker-free stdlib lane**. Do not hold it behind #312
+unless a new STOP_IF is found in this issue's own implementation work.
 
 ## 受け入れ条件
 

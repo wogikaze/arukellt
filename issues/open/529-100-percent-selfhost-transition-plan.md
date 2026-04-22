@@ -13,6 +13,19 @@
 
 **Key Constraint:** First goal is NOT "delete Rust" but "selfhost compiler can reproduce itself".
 
+## Responsibility split — 2026-04-22
+
+\#529 owns the **legacy removal / selfhost transition** lane, including #285 and
+\#508 after ADR-028. Keep this lane separate from:
+
+- #125/#126: trusted-base compiler default-path correction and double-lowering
+  cleanup.
+- #099: selfhost frontend incremental-parse design.
+
+Do not collapse these into one generic "compiler blocked" bucket. The selfhost
+transition lane can proceed or wait on fixpoint/parity evidence independently of
+the trusted-base default-route decision.
+
 ---
 
 ## Execution Phases

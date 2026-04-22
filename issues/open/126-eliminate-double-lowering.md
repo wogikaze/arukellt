@@ -10,7 +10,9 @@
 **Orchestration upstream**: #125
 **Blocks v4 exit**: no (compile-time optimization)
 
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+**Implementation target**: Trusted-base compiler route named below while it remains active; do not turn this into #529 selfhost-retirement work.
+
+**Status note**: Trusted-base compiler cleanup blocked on #125. Keep separate from #285/#508/#529 legacy removal and from #099 selfhost frontend design.
 
 ---
 
@@ -39,6 +41,12 @@ let corehir_mir = if corehir_valid {
 
 `compile()` が `MirSelection::Legacy` のときは `corehir_mir` は使われない (逆も同様)。
 不要な lower によりコンパイル時間が最大2倍になっている。
+
+## Responsibility split — 2026-04-22
+
+This issue is the performance/cleanup follow-up to #125 after the trusted-base
+compiler default path is corrected. It should not be grouped with #285/#508/#529
+legacy removal or #099 selfhost frontend design work for dispatch decisions.
 
 ## 受け入れ条件
 

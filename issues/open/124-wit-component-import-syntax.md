@@ -12,7 +12,7 @@
 
 **Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
-**Status note**: BLOCKED — depends on #074 (WASI P2 native component). Deferred to v5+.
+**Status note**: BLOCKED — downstream of the #074 WASI P2 native parent gate. Do not dispatch until #074 has P2 import-table, minimum Canonical ABI, and validate/run evidence.
 
 ---
 

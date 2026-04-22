@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-04-15
-**Updated**: 2026-04-18
+**Updated**: 2026-04-22
 **ID**: 508
 **Depends on**: 529
 **Blocks**: completion of issue 285 acceptance item "all fixtures pass legacy-less"
@@ -12,6 +12,8 @@
 **Priority**: 4
 
 **Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+
+**Operational lane**: legacy removal / selfhost transition. Keep separate from #125/#126 trusted-base compiler default-path correction and from #099 selfhost frontend design.
 
 ## Summary
 
@@ -79,6 +81,13 @@ issue \#285 ⇄ \#508 の循環ブロッカーを設計判断で解消した。
   ADR-028 "Contract for `lower_hir_to_mir` (frozen until retirement)" を参照。
 
 クローズ条件は ADR-028 "Done criteria" セクションに移譲する。
+
+## Responsibility split — 2026-04-22
+
+\#508 is a legacy-removal blocker record under #529. It is not the same lane as
+\#125/#126, which correct the trusted-base compiler default path, and it is not
+the selfhost frontend parser/design lane owned by #099. Do not group these as one
+generic "compiler blockage" when choosing dispatch order.
 
 ## References
 

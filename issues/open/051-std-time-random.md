@@ -2,13 +2,15 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-22
 **ID**: 051
 **Depends on**: 039, 040
 **Track**: stdlib
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
 **Blocks v3 exit**: yes
+
+**Status note**: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.
 
 ---
 
@@ -26,6 +28,11 @@
 
 時刻取得 (WASI clock)、期間計算、乱数生成を実装する。
 ベンチマーク・テスト・一意 ID 生成・シャッフル等に必要。
+
+## Operational lane — 2026-04-22
+
+This issue is in the **blocker-free stdlib lane**. Do not hold it behind #312
+unless a new STOP_IF is found in this issue's own implementation work.
 
 ## Partial progress — 2026-04-22
 

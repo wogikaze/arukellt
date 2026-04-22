@@ -2,15 +2,15 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-22
 **ID**: 074
-**Depends on**: —
+**Depends on**: 510, 121
 **Track**: wasi-feature
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #510, #121
 **Blocks v4 exit**: no
 
-**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+**Status note**: Parent close gate for WASI P2 native. Do not close until P2 import-table switching, the minimum Canonical ABI surface, and P2 validate/run evidence are all present.
 
 ---
 
@@ -44,6 +44,45 @@ P2 ネイティブでは Core Wasm が直接 `wasi:io/streams` 等をインポ�
 2. Core Wasm に `wasi:cli/environment@0.2.x` 等を直接 import するセクション生成
 3. P1 アダプタなしで wasmtime 17+ で実行可能
 4. バイナリサイズが P1 アダプタ版より 80KB 以上削減されることを確認
+
+## Close gate — 2026-04-22
+
+This issue is the parent gate for the WASI P2 native component surface. It is not
+a small "adapter bypass" issue anymore, and it must not be closed while the P2
+native path only compiles a narrow stdio-free subset.
+
+Closure requires all of the following evidence:
+
+1. **P2 import-table switch**: #510 is complete, and the T3 emitter selects P2
+   imports for `--wasi-version p2` without leaving `wasi_snapshot_preview1`
+   call signatures in the P2 path.
+2. **Minimum Canonical ABI**: #121 is complete for the types used by the native
+   P2 smoke path, including string/list lowering needed by stdio and host calls.
+   Full future/stream/resource coverage may stay in downstream capability
+   issues, but the parent gate must include enough Canonical ABI to validate and
+   run the CLI command world.
+3. **P2 stdio bridge**: the print helper architecture is compatible with the P2
+   import signatures. The known P1 iovec/retptr vs P2 direct-parameter mismatch
+   must be resolved, not documented around.
+4. **Component export shape**: the emitted component exports the required
+   `wasi:cli/run` interface shape for `wasi:cli/command`, not only a bare
+   function renamed from `main`.
+5. **Validation and runtime proof**: a fixture using stdio compiles with
+   `--target wasm32-wasi-p2 --wasi-version p2 --emit component`, passes
+   `wasm-tools validate`, and runs under wasmtime without a P1 adapter.
+6. **Regression proof**: the P1 adapter path remains green and
+   `python3 scripts/manager.py verify` passes.
+
+Downstream capability work stays downstream:
+
+- #124 may continue to track Arukellt source syntax and package binding for
+  external WIT imports after this parent gate is green.
+- #076, #077, and #139 may continue to track filesystem, HTTP, and sockets
+  capability facades after this parent gate is green.
+
+Operational rule: if an implementation slice only improves adapter bypass or
+non-stdio P2 component generation, record it as partial progress here. Do not
+close #074 until the close-gate checklist above is satisfied.
 
 ## 実装タスク
 

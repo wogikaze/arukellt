@@ -5,7 +5,7 @@
 **Updated**: 2026-04-22
 **ID**: 099
 **Depends on**: —
-**Track**: compiler
+**Track**: selfhost-frontend
 **Type**: Design-ready
 **Implementation target**: Use Ark source in `src/compiler/*.ark` per the selfhost transition plan.
 **Primary paths**: `src/compiler/*.ark`
@@ -15,7 +15,7 @@
 **Orchestration upstream**: —
 **Blocks v4 exit**: no
 
-**Status note**: Compiler architecture slice for the selfhost compiler. This issue now defines an incremental parse design target and no longer points at Rust-crate implementation details.
+**Status note**: Selfhost frontend design lane. Do not group with #125/#126 trusted-base compiler default-path work or #285/#508/#529 legacy-removal work.
 
 ---
 
@@ -53,3 +53,10 @@ This issue is ready to hand to a selfhost compiler implementation agent as a nar
 ## Blocker note - 2026-04-22
 
 STOP_IF: the requested parser-cache skeleton lives in `src/compiler/*.ark`, which is selfhost frontend work rather than compiler-core work. Implementing even a minimal cache API here would require crossing into the selfhost parser/driver/module graph, and the issue text does not define a safe, bounded data-structure-only slice. Leave product code unchanged and hand this to the selfhost lane instead.
+
+## Responsibility split — 2026-04-22
+
+\#099 is **selfhost frontend design** work. It should be dispatched to the
+selfhost frontend lane when a bounded design/implementation slice exists. It is
+not blocked by, and should not block, #125/#126 trusted-base compiler default
+path correction or #285/#508/#529 legacy removal / selfhost transition planning.

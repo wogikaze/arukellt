@@ -2,13 +2,15 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-22
 **ID**: 054
 **Depends on**: 039, 044, 053
 **Track**: stdlib
 **Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #39, #44
+**Orchestration upstream**: #39, #44, #312-through-#44
 **Blocks v3 exit**: no (Experimental)
+
+**Status note**: FROZEN — depends on #044, which is blocked by #312 generic monomorphization. Do not re-dispatch until #044 is unfrozen.
 
 ---
 
@@ -31,6 +33,12 @@ canonical ABI の lift/lower ヘルパーを Arukellt の stdlib として実装
 ## 安定性ラベル
 
 **Experimental** — Component Model spec の進化に追随して変更される。
+
+## Operational lane — 2026-04-22
+
+This issue is in the **generic-blocked stdlib lane** through #044. It should not
+be bundled with blocker-free stdlib issues (#045, #047, #051) for dispatch or
+priority decisions.
 
 ## 受け入れ条件
 

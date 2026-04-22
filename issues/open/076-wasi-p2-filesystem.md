@@ -8,7 +8,7 @@
 **Track**: wasi-feature
 **Blocks v4 exit**: no
 
-**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+**Status note**: BLOCKED — downstream of the #074 WASI P2 native parent gate and #510 import-table switch. Runtime maturity is not the active blocker.
 
 ## Reopened by audit
 

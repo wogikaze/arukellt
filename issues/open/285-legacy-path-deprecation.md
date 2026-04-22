@@ -14,6 +14,8 @@
 
 **Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
+**Operational lane**: legacy removal / selfhost transition record. Keep separate from #125/#126 trusted-base compiler default-path correction and from #099 selfhost frontend design.
+
 ## Reopened by audit — 2026-04-13
 
 **Reason**: Legacy fallback still active.
@@ -37,10 +39,10 @@ falls through to `lower_corehir_via_legacy` → `lower_hir_fallback`.
 - Re-run acceptance: all fixtures pass with no legacy path; then remove deprecated
   legacy entrypoints per `docs/compiler/legacy-path-migration.md`.
 
-**Blocker:** [#508 — `issues/open/508-legacy-path-removal-unblocked-by.md`](508-legacy-path-removal-unblocked-by.md).
-
-Orchestration note: #508 **depends on** this issue for deprecation/markers; it **blocks**
-the remaining unchecked items here (fallback removal, legacy-less fixtures).
+**Blocker history:** [#508 — `issues/open/508-legacy-path-removal-unblocked-by.md`](508-legacy-path-removal-unblocked-by.md)
+previously held the fallback-removal work. As of 2026-04-22 / ADR-028, that
+work is re-scoped under #529 and no longer makes #285 the active compiler
+implementation blocker.
 
 ## Progress update — 2026-04-15
 
@@ -86,9 +88,9 @@ CoreHIR がデフォルトになった後、legacy path (`lower_to_mir` in `func
 ## Acceptance
 
 - [x] `lower_to_mir()` に `#[deprecated]` マークを付与
-- [ ] `lower_corehir_with_fallback` のフォールバック経路を除去 — **blocked by #508**
+- [ ] `lower_corehir_with_fallback` のフォールバック経路を除去 — **re-scoped to #529 via ADR-028**
 - [x] `--mir-select legacy` 使用時に deprecation warning を出す（1 リリース後に除去）
-- [ ] 全 fixture が legacy なしで pass する — **blocked by #508**
+- [ ] 全 fixture が legacy なしで pass する — **re-scoped to #529 via ADR-028**
 
 ## Resolution path — 2026-04-22 (ADR-028)
 
@@ -110,6 +112,13 @@ fallback itself is still present, but its removal is no longer closure criteria 
 issue; that work was re-scoped under #529. Keep this issue open only as a historical review
 record until the queue transition is performed, and do not treat it as the blocker for
 CoreHIR implementation work.
+
+## Responsibility split — 2026-04-22
+
+\#285 belongs to the **legacy removal / selfhost transition** lane. It is a
+deprecation-marker and historical review record after ADR-028, not the
+trusted-base compiler default-path blocker (#125/#126) and not the selfhost
+frontend parser/design lane (#099).
 
 ## Reviewer checklist — close-candidate only
 
