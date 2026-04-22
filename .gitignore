@@ -26,6 +26,10 @@ tests/component-interop/**/*.wasm
 !docs/playground/wasm/*.js
 !docs/playground/wasm/*.d.ts
 
+# Allow the pinned-reference selfhost wasm (ADR-029 / #585). This is the
+# trusted bootstrap base for the four selfhost gates; see bootstrap/PROVENANCE.md.
+!bootstrap/*.wasm
+
 # root-level scratch/temp files
 /_test_*.ark
 /archive.zip

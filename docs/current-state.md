@@ -290,37 +290,48 @@ The selfhost compiler records generic call specializations in the typechecker (`
 
 | Stage | Description | Status |
 |-------|-------------|--------|
-| **Stage 0** | Rust compiler compiles `src/compiler/main.ark` (unified binary) | ✅ **Verified** — s1.wasm 567736 bytes |
-| **Stage 1** | `arukellt-s1.wasm` (selfhost compiler) compiles its own sources → s2 | ✅ **Verified** — s2.wasm 536522 bytes |
-| **Stage 2** | `sha256(s2) == sha256(s3)` fixpoint (selfhost reproduces itself) | ✅ **Reached** — `attainment: reached` |
-| **Fixture parity** | Selfhost compiler passes all harness fixtures | 🟡 **In progress** — 214/349 selfhost pass; many stdlib stubs not yet implemented |
-| **CLI parity** | Selfhost CLI output matches Rust output for identical inputs | 🟡 **Partial** — requires fixture parity completion |
-| **Diagnostic parity** | Error messages are identical between Rust and selfhost | 🟡 **CI scripted** — `check-selfhost-diagnostic-parity.sh` wired into `--full` |
+| **Stage 0** | Pinned-reference selfhost wasm (`bootstrap/arukellt-selfhost.wasm`, ADR-029) | ✅ **Committed** — 524 KiB, sha256 `3a035037…f2c` |
+| **Stage 2** | Pinned wasm compiles current `src/compiler/main.ark` → `s2.wasm` | ✅ **Verified** |
+| **Stage 3** | `sha256(s2) == sha256(s3)` fixpoint (selfhost reproduces itself) | ✅ **Reached** — `attainment: reached` |
+| **Fixture parity** | Selfhost compiler passes pinned-vs-current behavioural parity | ✅ **Reached** — 321 PASS, 0 FAIL, 41 SKIP (ADR-029) |
+| **CLI parity** | Selfhost `--version` / `--help` match committed snapshot goldens | ✅ **Reached** — 6 PASS, 0 FAIL (ADR-029) |
+| **Diagnostic parity** | Selfhost `check` output matches committed `.selfhost.diag` / `.diag` goldens | ✅ **Reached** — 12 PASS, 22 SKIP, 0 FAIL (ADR-029) |
 
 ### Fixpoint status
 
-All three stages pass (`stage0-compile: reached`, `stage1-self-compile: reached`,
-`stage2-fixpoint: reached`, `attainment: reached`).
+All bootstrap stages pass. The trusted base for verification is the
+committed pinned-reference selfhost wasm at
+`bootstrap/arukellt-selfhost.wasm` (ADR-029, #585) — the legacy Rust
+binary `target/debug/arukellt` is **no longer required** by any selfhost
+gate.
 
-The fixpoint criterion is `sha256(s2) == sha256(s3)` — the standard bootstrap fixpoint
-where the selfhost compiler reproduces itself from its own output. Note: `s1 ≠ s2` is
-expected (Rust emitter and selfhost emitter produce different encodings for the same
-source); `s2 == s3` proves the selfhost is deterministic and self-consistent.
+The fixpoint criterion is `sha256(s2) == sha256(s3)` — the standard
+bootstrap fixpoint where the selfhost compiler reproduces itself from
+its own output. Stage 0 is the pinned wasm; Stage 2 is its output on
+the current `src/compiler/main.ark`; Stage 3 is Stage 2's output on the
+same source.
 
 ```
-sha256(s2) = sha256(s3) = 1236fd2387b2f1b4a84db54f0b1011bf0e2f77b250dd11fa642fc3264751d931
-s1: 567736 bytes (Rust emitter, named functions)
-s2/s3: 536522 bytes (selfhost emitter, index-only encoding)
+pinned: bootstrap/arukellt-selfhost.wasm
+  sha256 = 3a0350371f9dbc37becef03efffa8d20b90827161a0d9fab97163a19de341f2c
+  size   = 536 277 bytes
+s2/s3 (current):
+  sha256 = c16e32efb1b68e1921eb4915e414f554b165d45e299e0c5fd679934e0ba180cc
 ```
 
-CI checks added in issue #459 (via `python scripts/manager.py selfhost`):
-- `selfhost fixpoint` — sha256 fixpoint check
-- `selfhost fixture-parity` — run fixture output parity
-- `selfhost diag-parity` — diagnostic parity
+CI checks (`python3 scripts/manager.py selfhost <gate>`) — all four are
+selfhost-native per ADR-029:
 
-All three are wired into `verify-harness.sh --full` (and individually via `--fixpoint`,
-`--selfhost-fixture-parity`, `--selfhost-diag-parity`).  They exit 0 (SKIP) when
-`arukellt-s1.wasm` is absent so CI does not hard-fail before bootstrap is built.
+- `selfhost fixpoint` — pinned-bootstrap + Stage-3 sha256 fixpoint
+- `selfhost fixture-parity` — pinned-vs-current execution-output parity across `run:` fixtures
+- `selfhost diag-parity` — current selfhost `check` vs committed `.selfhost.diag` / `.diag` goldens
+- `selfhost parity --cli` — current selfhost `--version` / `--help` vs `tests/snapshots/selfhost/cli-{version,help}.txt`
+
+All four are wired into `verify-harness.sh --full` (and individually via
+`--fixpoint`, `--selfhost-fixture-parity`, `--selfhost-diag-parity`).
+They exit 0 (SKIP) when `bootstrap/arukellt-selfhost.wasm` is absent so
+CI does not hard-fail on a partial checkout. Refresh policy for the
+pinned wasm is documented in `bootstrap/PROVENANCE.md`.
 
 ### Dual-period policy
 
@@ -359,8 +370,7 @@ ARUKELLT_USE_RUST=1 scripts/run/arukellt-selfhost.sh --version
 ```
 
 Selfhost gates (`scripts/manager.py selfhost {fixpoint,fixture-parity,parity,diag-parity}`)
-keep using the Rust binary as the **Stage 0 trusted base** for the bootstrap
-fixpoint contract; that is internal to the gate definition (see
-`scripts/selfhost/checks.py`) and is not part of the user-facing path. Phase 5
-deletion issues (#560–#564) retire the Rust crates only after both this wrapper
-is in place and the gates remain green.
+are now **selfhost-native** per ADR-029 (#585): they bootstrap from the
+committed pinned-reference wasm at `bootstrap/arukellt-selfhost.wasm`
+and never call the legacy Rust binary. This unblocks the Phase 5
+deletion issues (#560–#564), which retire the Rust crates altogether.

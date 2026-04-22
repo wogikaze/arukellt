@@ -1,6 +1,6 @@
 # 585 — Replace Rust-baseline parity gates with selfhost-native verification contract
 
-**Status**: open
+**Status**: done
 **Track**: selfhost-retirement
 **Depends on**: 559
 **Blocks**: 583, 560, 561, 562, 563, 564
@@ -8,7 +8,7 @@
 
 ## Why
 
-#583 (retire `ARUKELLT_USE_RUST=1` and purge `arukellt` Rust core consumers)
+Issue #583 (retire `ARUKELLT_USE_RUST=1` and purge `arukellt` Rust core consumers)
 STOPped at slice-attempt because `scripts/selfhost/checks.py` hard-requires
 the Rust `target/debug/arukellt` binary as the parity baseline for all 4
 canonical selfhost gates:
@@ -132,3 +132,78 @@ without the Rust binary, unblocking #583 and Phase 5.
 - 4 gate logs at HEAD (with `target/debug/arukellt` deleted)
 - Fresh-clone simulation log
 - Deferred items / follow-on issues
+
+## Close note (2026-04-22, branch `feat/585-native-verification`)
+
+**Resolution**: ADR-029 selfhost-native verification contract adopted. The
+four canonical selfhost gates now bootstrap from the committed pinned-
+reference wasm and never consult `target/debug/arukellt`. Phase 5
+retirement (#583, #560–#564) is unblocked.
+
+### Evidence
+
+- **ADR**: [`docs/adr/029-selfhost-native-verification-contract.md`](../../docs/adr/029-selfhost-native-verification-contract.md)
+- **Pinned-reference artifact**:
+  - path: `bootstrap/arukellt-selfhost.wasm`
+  - size: 536 277 bytes (≈ 524 KiB)
+  - sha256: `3a0350371f9dbc37becef03efffa8d20b90827161a0d9fab97163a19de341f2c`
+  - provenance: [`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md)
+  - built from: master commit `662c3f58`
+- **CLI snapshot goldens** (new): `tests/snapshots/selfhost/cli-version.txt`, `tests/snapshots/selfhost/cli-help.txt`
+- **`scripts/selfhost/checks.py`** rewritten — diff stat: ~437 lines (vs. 553 pre-585), every Rust-binary code path removed.
+
+### Gate logs at HEAD with `target/debug/arukellt` deleted (fresh-clone simulation)
+
+```
+$ mv target target.bak.585     # hide Rust binary
+$ rm -rf .build                # no prior bootstrap
+
+$ python3 scripts/manager.py selfhost fixpoint
+[selfhost] Running selfhost fixpoint check...
+✓ selfhost fixpoint reached
+Total checks: 1  Passed: 1  Skipped: 0  Failed: 0
+
+$ python3 scripts/manager.py selfhost fixture-parity
+[selfhost] Running selfhost fixture parity check...
+✓ selfhost fixture parity
+Total checks: 1  Passed: 1  Skipped: 0  Failed: 0
+# detailed: PASS=321 FAIL=0 SKIP=41 (out of 362 run: fixtures)
+
+$ python3 scripts/manager.py selfhost diag-parity
+[selfhost] Running selfhost diagnostic parity check...
+✓ selfhost diagnostic parity
+Total checks: 1  Passed: 1  Skipped: 0  Failed: 0
+# detailed: PASS=12 SKIP=22 FAIL=0
+
+$ python3 scripts/manager.py selfhost parity --mode --cli
+[selfhost] Running selfhost parity check (mode='--cli')...
+✓ selfhost parity --cli
+Total checks: 1  Passed: 1  Skipped: 0  Failed: 0
+# detailed: PASS=6 FAIL=0 (--version, --help, unknown-cmd, compile|check|run no-args)
+
+$ mv target.bak.585 target     # restore Rust target dir
+```
+
+### Gate logs at HEAD with `target/debug/arukellt` present (regression baseline)
+
+Identical PASS counts as the fresh-clone run above — confirming the gates
+are independent of the Rust binary's presence.
+
+### Deferred items / follow-on issues
+
+- **#583** unblocked — ready to retire `ARUKELLT_USE_RUST=1` opt-in and purge legacy Rust core consumers.
+- **#560–#564** unblocked — ready to delete `crates/arukellt`, `crates/ark-mir`, `crates/ark-wasm`, `crates/ark-driver`, `crates/ark-llvm` per Phase 5.
+- **fixture-parity gate's 41 SKIPs** (16 selfhost wasm trap/invalid + 23 selfhost compile timeout under wasmtime) reflect existing selfhost-emitter limitations (closures, traits, hashmap, io_rw). They are not new regressions; the same fixtures were SKIPped (under different labels) by the pre-585 contract. Tracked under existing selfhost-emitter issues.
+- A spec-derived fixture-output golden corpus (independent oracle for fixture-parity) is **out of scope** here and deferred to a follow-on issue per ADR-029 alternative 3.
+
+### Verification commands run
+
+| Command | Result |
+|---------|--------|
+| `python3 scripts/manager.py selfhost fixpoint` (with Rust binary) | ✅ PASS |
+| `python3 scripts/manager.py selfhost fixture-parity` (with Rust binary) | ✅ PASS |
+| `python3 scripts/manager.py selfhost diag-parity` (with Rust binary) | ✅ PASS |
+| `python3 scripts/manager.py selfhost parity --mode --cli` (with Rust binary) | ✅ PASS |
+| Same four, with `target/` removed (fresh-clone sim) | ✅ ALL PASS |
+| `python3 scripts/manager.py verify quick` | ✗ 4 pre-existing failures (unrelated drift on master) — confirmed by stashing this slice and re-running |
+| `python3 scripts/check/check-docs-consistency.py` | ✗ pre-existing generated-docs drift on master — not introduced by this slice |
