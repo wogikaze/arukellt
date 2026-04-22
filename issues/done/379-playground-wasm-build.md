@@ -1,16 +1,20 @@
 
-## Reopened by audit
+## Closed
 
-- **Date**: 2026-04-21
-- **Reason**: wasm-pack build never executed; crates/ark-playground-wasm/pkg/ missing; no .wasm binary in repo
-- **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
-- **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
+- **Date**: 2026-04-22
+- **Commit**: 0e79ab44cad4b74d7790a5fa7f3bc8192802fe60
+- **Branch**: feat/379-playground-wasm-build
+- **Close note**: wasm-pack build succeeded for `crates/ark-playground-wasm` targeting
+  `wasm32-unknown-unknown`. Built binary (568 KB post wasm-opt) committed to
+  `docs/playground/wasm/`. CI workflow (`pages.yml`) updated to rebuild and copy
+  wasm on every deploy. Playground-ci size gate updated from 300 KB → 600 KB to
+  match actual measured output.
 
 # Playground: parser / formatter を Wasm に build しブラウザで動かす
 
 **Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Updated**: 2026-04-22
 **ID**: 379
 **Depends on**: 378
 **Track**: playground
