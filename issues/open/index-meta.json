@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T07:03:32Z",
+  "generated_at": "2026-04-22T07:11:58Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -395,8 +395,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 2,
-        "unchecked": 2
+        "checked": 5,
+        "unchecked": 5
       },
       "orchestration": {
         "class": "implementation-ready",
