@@ -4,11 +4,11 @@
 **Created**: 2026-04-15
 **Updated**: 2026-04-18
 **ID**: 508
-**Depends on**: 285
+**Depends on**: 529
 **Blocks**: completion of issue 285 acceptance item "all fixtures pass legacy-less"
 **Track**: corehir
 **Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #285
+**Orchestration upstream**: #529
 **Priority**: 4
 
 **Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
@@ -63,6 +63,22 @@ lowerer implementation work (probably a large chunk of the corehir track).
 - [ ] All T1 + T3 fixtures pass with `MirSelection::CoreHir` (no legacy fallback)
 - [ ] `lower_to_mir`, `lower_legacy_only`, and related deprecated functions can be deleted
 - [ ] Issue #285 acceptance items previously blocked are re-checked and closed
+
+## Resolution path — 2026-04-22 (ADR-028)
+
+[ADR-028](../../docs/adr/ADR-028-corehir-lowering-resolution.md) で
+issue \#285 ⇄ \#508 の循環ブロッカーを設計判断で解消した。
+
+要点:
+
+- Rust 側 `lower_hir_to_mir` は実装しない (退役予定コードへの新規投資を回避)。
+- Rust legacy lowering の撤去は #529 100% selfhost transition のクレート
+  退役ステップに統合される。
+- 本 issue (#508) の `Depends on:` を `285` から `529` に張り替え、循環は解消。
+- `lower_hir_to_mir` は #529 退役完了まで現状の no-op スタブとして凍結。
+  ADR-028 "Contract for `lower_hir_to_mir` (frozen until retirement)" を参照。
+
+クローズ条件は ADR-028 "Done criteria" セクションに移譲する。
 
 ## References
 

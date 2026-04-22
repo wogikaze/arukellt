@@ -5,7 +5,7 @@
 **Updated**: 2026-04-18
 **ID**: 285
 **Depends on**: 284
-**Blocks**: 508
+**Blocks**: (cycle broken — see ADR-028; #508 now depends on #529 instead)
 **Track**: corehir
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: —
@@ -89,6 +89,17 @@ CoreHIR がデフォルトになった後、legacy path (`lower_to_mir` in `func
 - [ ] `lower_corehir_with_fallback` のフォールバック経路を除去 — **blocked by #508**
 - [x] `--mir-select legacy` 使用時に deprecation warning を出す（1 リリース後に除去）
 - [ ] 全 fixture が legacy なしで pass する — **blocked by #508**
+
+## Resolution path — 2026-04-22 (ADR-028)
+
+[ADR-028](../../docs/adr/ADR-028-corehir-lowering-resolution.md) で
+issue \#285 ⇄ \#508 の循環ブロッカーを設計判断で解消した。
+
+- Deprecation marker 部分は完了済みのため、本 issue は近日中にクローズ予定。
+- 残アクセプタンス項目 (fallback 除去 / fixture が legacy なしで pass) は
+  #529 配下の Rust クレート退役サブイシューに移管する。本 issue の `Blocks:`
+  リストから #508 を外し、循環を解消する。
+- 詳細は ADR-028 "Sequencing" / "Follow-up sub-issues" セクションを参照。
 
 ## References
 
