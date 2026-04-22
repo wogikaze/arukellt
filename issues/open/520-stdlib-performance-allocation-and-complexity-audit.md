@@ -95,6 +95,17 @@ Recommended family pattern: keep byte-oriented helpers in byte space until the b
 - [ ] `text::builder`, buffered I/O, pre-sized vec, better search strategy など推奨置換パターンが決まる
 - [ ] benchmark へ繋げるべき hotspot が特定される
 
+## Reviewer verdict
+
+- close-candidate: yes
+- checklist:
+  - [x] `std::json`, `std::csv`, `std::io`, `std::bytes` の 4 family が inventory に入っている
+  - [x] `concat` 連鎖, linear scan, needless allocation, repeated parse の 4 類型で分類されている
+  - [x] `std::text::builder`, buffered I/O, pre-sized vec, better search strategy などの replacement pattern が明示されている
+  - [x] benchmark に繋げる hotspot が family ごとに列挙されている
+  - [x] `std/text/` で replacement family の根拠が確認できる
+  - [x] code fix は不要で、今回は audit inventory のみをレビュー対象としている
+
 ## Primary paths
 
 - `std/json/mod.ark`
