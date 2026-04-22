@@ -17,6 +17,21 @@ docs/release-checklist.md — Pre-release section
 - [ ] `cargo test -p ark-lsp --test lsp_e2e -- --test-threads=1` passes
 - [ ] LSP protocol compliance verified (initialize, shutdown, completion, hover, definition)
 
+## Verification Evidence
+
+- 2026-04-22: `cargo test -p ark-lsp --test lsp_e2e -- --test-threads=1`
+  - Result: PASS
+  - Summary: `34 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out`
+  - Notes: `snapshot_definition_shadowed_let_points_to_inner` remains ignored in the suite; no LSP E2E failures were observed. `ark-wasm` emitted two pre-existing `unused_assignments` warnings during the test build, but they did not affect the result.
+
+## Verdict
+
+- Command validity: PASS
+- LSP protocol compliance evidence: PASS from the E2E suite
+- Close gate status: NO
+- Blockers: None for the requested verification command
+- DONE_WHEN: no
+
 ## Required Verification
 
 - Run LSP E2E test suite
