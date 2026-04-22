@@ -48,6 +48,7 @@ graph LR
   I562["562 562 — Phase 5: Delete `crates/ark-wasm`"]
   I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
   I567["567 567 — Phase 6/A3: Selfhost resolver / typechecker — incremental diagnostic accumulation"]
+  I586["586 586 — Phase 5: Delete `crates/ark-llvm`"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -190,6 +191,7 @@ graph LR
 - **562** depends on: 559; blocks: 564
 - **563** depends on: 559; blocks: 564
 - **567** depends on: 566; blocks: 568
+- **586** depends on: 559; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136
