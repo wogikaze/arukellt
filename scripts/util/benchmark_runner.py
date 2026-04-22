@@ -119,6 +119,13 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         description="Nested struct allocation with recursive graph traversal (depth 10, 20 roots)",
         tags=("allocation-heavy", "struct-heavy", "recursion-heavy", "container"),
     ),
+    BenchmarkCase(
+        name="error_chain",
+        source="benchmarks/bench_compute_error_chain.ark",
+        expected="benchmarks/bench_compute_error_chain.expected",
+        description="Result/error propagation chain (50,000 iterations, ~20% Err paths)",
+        tags=("cpu-bound", "error-heavy", "match-heavy", "iteration"),
+    ),
 )
 
 MODE_PRESETS: dict[str, dict[str, Any]] = {

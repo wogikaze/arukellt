@@ -30,7 +30,7 @@ The following language features have **no dedicated benchmark**:
 |---------|-----------------|:------------:|
 | **Closures / higher-order functions** | None | High |
 | **Enum / pattern matching** | `bench_cpu_enum_dispatch.ark` (dedicated dispatch benchmark) | Covered |
-| **Error paths / Result handling** | None | Medium |
+| **Error paths / Result handling** | `bench_compute_error_chain.ark` (Result / error propagation chain) | Covered |
 | **I/O-heavy workloads** | Only trivial `println` calls | Medium |
 | **Struct-heavy allocation** | `bench_memory_struct_graph.ark` (nested structs, recursive graph) | Covered |
 | **Nested structs / composite types** | `bench_memory_struct_graph.ark` (Vec2→Rect→BBox, depth-10 recursion) | Covered |

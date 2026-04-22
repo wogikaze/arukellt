@@ -81,9 +81,9 @@ Wave 3 extends the slice to an additional non-trivial join shape:
 
 ## Acceptance
 
-- [ ] Selfhost MIR pipeline produces SSA-form IR with phi nodes at join points
-- [ ] At least one fixture demonstrates SSA phi elimination for a simple branch
-- [ ] `cargo test` passes
+- [x] Selfhost MIR pipeline produces SSA-form IR with phi nodes at join points
+- [x] At least one fixture demonstrates SSA phi elimination for a simple branch
+- [x] `cargo test` passes
 
 ## Required verification
 
