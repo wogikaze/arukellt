@@ -3,6 +3,13 @@
 > **Status:** Implementation Guide — ready for execution with verification checkpoints
 > **For agentic workers:** Execute phase-by-phase. Each phase has mandatory verification steps.
 
+> ⚠️ **DO NOT IMPLEMENT DIRECTLY.** This is an operational guide umbrella. Dispatch child issues:
+> - **#604** `604-stdlib-baseline-contract-honesty.md` — contract honesty (implementation-ready)
+> - **#605** `605-stdlib-baseline-host-platform.md` — host platform `std::host::*` (depends: 604)
+> - **#606** `606-stdlib-baseline-structured-data.md` — JSON/TOML/structured data (depends: 604)
+> - **#607** `607-stdlib-baseline-hash-hardening.md` — hash hardening (depends: 604)
+> - **#608** `608-stdlib-baseline-docs-bench.md` — docs + bench rollout (depends: 604/605/606/607, closes #590)
+
 **Goal:** Raise the Arukellt standard library by one full stage: from a selfhost-capable, partly experimental, partly raw-facing library into a **practical core-platform stdlib** for ordinary CLI tools, compiler tooling, and small applications.
 
 This plan does **NOT** aim for immediate parity with Python/Go/Rust/Java breadth.  

@@ -3,6 +3,10 @@
 > **Status:** Implementation Guide — ready for execution with verification checkpoints
 > **For agentic workers:** Execute phase-by-phase. Each phase has mandatory verification steps.
 
+> ⚠️ **DO NOT IMPLEMENT DIRECTLY.** This is an operational guide umbrella. Dispatch child issues:
+> - **#593** `593-selfhost-phase1-multi-file-fixpoint.md` — Phase 1: multi-file fixpoint (implementation-ready)
+> - **#594** `594-selfhost-phase2-fixture-diag-parity.md` — Phase 2: fixture + diag parity (depends: 593)
+
 **Goal:** Transition the Arukellt compiler and IDE tooling from a dual-period Rust/Arukellt architecture to a 100% Arukellt-hosted architecture, culminating in the complete deletion of the Rust `crates/` directory.
 
 **Work Streams (DO NOT MIX):**

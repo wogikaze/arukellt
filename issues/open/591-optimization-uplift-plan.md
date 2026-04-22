@@ -3,6 +3,12 @@
 > **Status:** Implementation Guide — ready for execution with verification checkpoints
 > **For agentic workers:** Execute phase-by-phase. Each phase has mandatory verification steps.
 
+> ⚠️ **DO NOT IMPLEMENT DIRECTLY.** This is an operational guide umbrella. Dispatch child issues:
+> - **#609** `609-opt-measurement-repair.md` — measurement truth repair / Phase 0 (implementation-ready)
+> - **#610** `610-opt-lower-bottleneck.md` — lowering bottleneck / Phase 2 (depends: 609)
+> - **#611** `611-opt-t3-unlock.md` — T3 runtime unlock / Phase 3 (depends: 609)
+> - **#612** `612-opt-binary-size.md` — binary size squeeze / Phase 4 (depends: 609/611)
+
 **Goal:** Raise Arukellt by one optimization tier: from **“already strong on tiny binaries and reasonable on T1, but still conservative / partially unverified on T3”** to **“measured, cross-language-grounded, lowering-optimized, T3-safe, and further compacted by default.”**
 
 **Work Streams (DO NOT MIX):**

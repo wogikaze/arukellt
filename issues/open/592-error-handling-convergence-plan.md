@@ -3,6 +3,11 @@
 > **Status:** Implementation Guide — ready for subissue decomposition with verification checkpoints
 > **For agentic workers:** Do not implement this umbrella directly. Split into focused stdlib, compiler diagnostics, panic/ICE, docs, and fixture subissues before execution.
 
+> ⚠️ **DO NOT IMPLEMENT DIRECTLY.** This is an operational guide umbrella. Dispatch child issues:
+> - **#613** `613-errhandle-stdlib-result-surface.md` — stdlib Result surface (implementation-ready)
+> - **#614** `614-errhandle-compiler-diagnostics.md` — compiler structured diagnostics (implementation-ready)
+> - **#615** `615-errhandle-panic-ice-policy.md` — panic/ICE policy (implementation-ready)
+
 **Goal:** Converge Arukellt error handling into three explicit lanes:
 1. runtime/user-recoverable failure uses typed `Result<T, Error>`
 2. compiler feedback uses structured diagnostics

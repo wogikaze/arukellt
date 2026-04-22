@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T14:27:00Z",
+  "generated_at": "2026-04-22T15:33:39Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -640,9 +640,7 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [],
-      "blocks_issue_ids": [
-        "508"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 10
@@ -1057,6 +1055,224 @@
       }
     },
     {
+      "id": "593",
+      "path": "593-selfhost-phase1-multi-file-fixpoint.md",
+      "title": "Selfhost Phase 1: Multi-File Fixpoint",
+      "track": "selfhost",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "508",
+        "594"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "595",
+      "path": "595-lang-uplift-multiclauses.md",
+      "title": "Language Surface Uplift: Multi-Clause Function Definitions",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "596",
+        "597",
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "598",
+      "path": "598-lang-uplift-comprehensions.md",
+      "title": "Language Surface Uplift: Expression-Level Comprehensions",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "600",
+      "path": "600-typesys-soundness-floor.md",
+      "title": "Type System Stage-Up: Soundness Floor",
+      "track": "selfhost / typechecker",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "601"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "604",
+      "path": "604-stdlib-baseline-contract-honesty.md",
+      "title": "Stdlib Baseline: Contract and Facade Honesty",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "605",
+        "606",
+        "607",
+        "608"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "609",
+      "path": "609-opt-measurement-repair.md",
+      "title": "Optimization Uplift: Measurement Truth Repair",
+      "track": "benchmark / docs",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "610",
+        "611",
+        "612"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "613",
+      "path": "613-errhandle-stdlib-result-surface.md",
+      "title": "Error Handling Convergence: Stdlib Result Surface",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "614",
+      "path": "614-errhandle-compiler-diagnostics.md",
+      "title": "Error Handling Convergence: Compiler Structured Diagnostics",
+      "track": "compiler / selfhost",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "615",
+      "path": "615-errhandle-panic-ice-policy.md",
+      "title": "Error Handling Convergence: Panic / ICE Policy",
+      "track": "compiler / runtime / cli",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "054",
       "path": "054-std-wit-component.md",
       "title": "std::wit + std::component: WIT 型、resource handle、canonical ABI",
@@ -1184,30 +1400,6 @@
       }
     },
     {
-      "id": "508",
-      "path": "508-legacy-path-removal-unblocked-by.md",
-      "title": "Legacy path removal is blocked by CoreHIR lowerer stub",
-      "track": "corehir",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "529"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#529"
-      }
-    },
-    {
       "id": "564",
       "path": "564-phase5-delete-arukellt.md",
       "title": "564 — Phase 5: Delete `crates/arukellt`",
@@ -1268,6 +1460,261 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "#571"
+      }
+    },
+    {
+      "id": "508",
+      "path": "508-legacy-path-removal-unblocked-by.md",
+      "title": "Legacy path removal is blocked by CoreHIR lowerer stub",
+      "track": "corehir",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "593"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#529"
+      }
+    },
+    {
+      "id": "594",
+      "path": "594-selfhost-phase2-fixture-diag-parity.md",
+      "title": "Selfhost Phase 2: Fixture and Diagnostic Parity",
+      "track": "selfhost",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "593"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "596",
+      "path": "596-lang-uplift-guards.md",
+      "title": "Language Surface Uplift: Function-Level Guards",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595"
+      ],
+      "blocks_issue_ids": [
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "597",
+      "path": "597-lang-uplift-where.md",
+      "title": "Language Surface Uplift: Real `where` Clauses",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595"
+      ],
+      "blocks_issue_ids": [
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "601",
+      "path": "601-typesys-type-schemes.md",
+      "title": "Type System Stage-Up: Type Schemes and Controlled Let-Generalization",
+      "track": "selfhost / typechecker",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "600"
+      ],
+      "blocks_issue_ids": [
+        "602",
+        "603"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "605",
+      "path": "605-stdlib-baseline-host-platform.md",
+      "title": "Stdlib Baseline: Host Core-Platform Baseline",
+      "track": "stdlib / wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "604"
+      ],
+      "blocks_issue_ids": [
+        "608"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "606",
+      "path": "606-stdlib-baseline-structured-data.md",
+      "title": "Stdlib Baseline: Structured Data and Semantics Baseline",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "604"
+      ],
+      "blocks_issue_ids": [
+        "608"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "607",
+      "path": "607-stdlib-baseline-hash-hardening.md",
+      "title": "Stdlib Baseline: Collections Hash Hardening",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "604"
+      ],
+      "blocks_issue_ids": [
+        "608"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "610",
+      "path": "610-opt-lower-bottleneck.md",
+      "title": "Optimization Uplift: Lowering Bottleneck Reduction",
+      "track": "compiler / selfhost",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "609"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "611",
+      "path": "611-opt-t3-unlock.md",
+      "title": "Optimization Uplift: T3-Safe Runtime Unlock",
+      "track": "compiler / runtime-perf",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "609"
+      ],
+      "blocks_issue_ids": [
+        "612"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
       }
     },
     {
@@ -1354,6 +1801,111 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "#564"
+      }
+    },
+    {
+      "id": "599",
+      "path": "599-lang-uplift-docs-rollout.md",
+      "title": "Language Surface Uplift: Docs, Fixtures, and Rollout",
+      "track": "docs / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595",
+        "596",
+        "597",
+        "598"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "602",
+      "path": "602-typesys-qualified-constraints.md",
+      "title": "Type System Stage-Up: Qualified Constraints and Coherent Trait Solving",
+      "track": "selfhost / typechecker",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "601"
+      ],
+      "blocks_issue_ids": [
+        "603"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "608",
+      "path": "608-stdlib-baseline-docs-bench.md",
+      "title": "Stdlib Baseline: Docs, Verification, and Benchmark Closeout",
+      "track": "stdlib / docs",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "604",
+        "605",
+        "606",
+        "607"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "612",
+      "path": "612-opt-binary-size.md",
+      "title": "Optimization Uplift: Binary Size Squeeze",
+      "track": "compiler / runtime-perf",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "609",
+        "611"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
       }
     },
     {
@@ -1569,6 +2121,31 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#564, #574"
+      }
+    },
+    {
+      "id": "603",
+      "path": "603-typesys-lowering-contract.md",
+      "title": "Type System Stage-Up: Monomorphization and Lowering Contract Closure",
+      "track": "selfhost / typechecker / lowering",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "601",
+        "602"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
       }
     },
     {

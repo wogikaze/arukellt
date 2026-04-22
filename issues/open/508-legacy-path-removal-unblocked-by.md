@@ -4,7 +4,7 @@
 **Created**: 2026-04-15
 **Updated**: 2026-04-22
 **ID**: 508
-**Depends on**: 529
+**Depends on**: 593
 **Blocks**: completion of issue 285 acceptance item "all fixtures pass legacy-less"
 **Track**: corehir
 **Orchestration class**: blocked-by-upstream

@@ -3,6 +3,12 @@
 > **Status:** Design / Implementation Guide — ready for phased execution with verification checkpoints
 > **For agentic workers:** Execute phase-by-phase. Do not mix soundness work, solver semantics, and lowering work in the same slice.
 
+> ⚠️ **DO NOT IMPLEMENT DIRECTLY.** This is an operational guide umbrella. Dispatch child issues:
+> - **#600** `600-typesys-soundness-floor.md` — soundness floor (implementation-ready)
+> - **#601** `601-typesys-type-schemes.md` — type schemes / prenex HM (depends: 600)
+> - **#602** `602-typesys-qualified-constraints.md` — qualified constraints (depends: 601)
+> - **#603** `603-typesys-lowering-contract.md` — type lowering contract (depends: 601/602, closes #312)
+
 **Goal:** Raise Arukellt’s type system one stage from a Rust-leaning, substitution-based local inference engine into a **principled static polymorphism core**:
 - keep Arukellt’s current strengths: selfhost-first implementation, explicit item signatures, static dispatch, deterministic monomorphization
 - adopt the best high-leverage ideas from Haskell: internal type schemes, let-generalization, qualified constraints
