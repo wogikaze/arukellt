@@ -41,3 +41,4 @@
 | [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: Source module paths vs WIT package identifiers — collision policy and syntax exploration | Archive | ステータス: PROPOSED (draft) |
 | [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: Arukellt source imports vs WIT package syntax — problem, options, recommendation stub | Archive | ステータス: PROPOSED (draft) |
 | [ADR-027-v3-selfhost-completion-skip-v4.md](ADR-027-v3-selfhost-completion-skip-v4.md) | ADR-027: v3完了時点でのセルフホスト完了とv4スキップ | Archive | ステータス: ACCEPTED (2026-04-19) — v4（最適化）をスキップしv3完了時点でセルフホスト完了 |
+| [ADR-028-corehir-lowering-resolution.md](ADR-028-corehir-lowering-resolution.md) | ADR-028: CoreHIR lowering circular blocker — re-route via #529 selfhost retirement | Archive | ステータス: DECIDED (2026-04-22) — Rust 側 lower_hir_to_mir は実装せず、Rust legacy |

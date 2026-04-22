@@ -70,6 +70,36 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
 | Tuples (generic) | `__tupleN_any` structs with `anyref` fields; `ref.i31` boxing/unboxing |
 | Closures | Parameter-passing captures; `call_indirect` for HOF dispatch |
 
+## Performance Snapshot
+
+Current benchmark measurements (target: `wasm32-wasi-p1`, mode: `full`, 5 iterations).
+Full results and history are tracked in [`docs/process/benchmark-results.md`](process/benchmark-results.md).
+
+Run benchmarks locally with:
+
+```bash
+mise bench            # full measurement (release build)
+mise bench:compare    # compare against stored baseline
+```
+
+### Benchmark Suite (bench_<suite>_<name>.ark)
+
+| Benchmark | Suite | Compile ms | Run ms | Binary bytes | Correctness |
+|-----------|-------|------------|--------|--------------|-------------|
+| fib | cpu (legacy) | ~14 | ~11 | 1,082 | pass |
+| binary_tree | cpu (legacy) | ~13 | ~16 | 1,066 | pass |
+| vec_ops | cpu (legacy) | ~14 | ~12 | 2,072 | pass |
+| string_concat | cpu (legacy) | ~13 | ~12 | 1,337 | pass |
+| enum_dispatch | cpu | ~16 | ~13 | 1,644 | pass |
+| closure_map | cpu | ~14 | ~12 | n/a | pass |
+| struct_graph | memory | ~15 | ~13 | 1,505 | pass |
+| error_chain | compute | ~16 | ~13 | n/a | pass |
+| parse_tree_distance | parse | ~18 | ~37 | 7,376 | pass |
+
+Legacy fixtures (`fib`, `binary_tree`, `vec_ops`, `string_concat`) live under `benchmarks/legacy/`
+and are retained for cross-language C/Rust comparison. New benchmarks follow the
+`bench_<suite>_<name>.ark` naming convention.
+
 <!-- BEGIN GENERATED:CURRENT_STATE_PERF -->
 ## Baseline and Perf Gates
 
