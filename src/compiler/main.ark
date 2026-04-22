@@ -59,6 +59,7 @@ struct CliOptions {
     opt_level: i32,
     dump_phases: String,
     emit_mode: String,
+    wit_paths: Vec<String>,
     json_output: bool,
     show_help: bool,
     show_version: bool,
@@ -67,7 +68,7 @@ struct CliOptions {
 }
 
 fn CliOptions_default() -> CliOptions {
-    CliOptions { command: CMD_UNKNOWN(), input_file: String_new(), output_file: String_new(), target: String_from("wasm32-wasi-p2"), opt_level: 0, dump_phases: String_new(), emit_mode: String_from("wasm"), json_output: false, show_help: false, show_version: false, has_error: false, error_msg: String_new() }
+    CliOptions { command: CMD_UNKNOWN(), input_file: String_new(), output_file: String_new(), target: String_from("wasm32-wasi-p2"), opt_level: 0, dump_phases: String_new(), emit_mode: String_from("wasm"), wit_paths: Vec_new_String(), json_output: false, show_help: false, show_version: false, has_error: false, error_msg: String_new() }
 }
 
 // ── Argument Parsing ─────────────────────────────────────────────────────────
@@ -193,32 +194,39 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
                         opts.emit_mode = clone(get_unchecked(argv, i))
                     }
                 } else {
-                    if eq(clone(arg), "-o") {
+                    if eq(clone(arg), "--wit") {
                         i = i + 1
                         if i < argc {
-                            opts.output_file = clone(get_unchecked(argv, i))
+                            push(opts.wit_paths, clone(get_unchecked(argv, i)))
                         }
                     } else {
-                        if eq(clone(arg), "--dump-phases") {
+                        if eq(clone(arg), "-o") {
                             i = i + 1
                             if i < argc {
-                                opts.dump_phases = clone(get_unchecked(argv, i))
+                                opts.output_file = clone(get_unchecked(argv, i))
                             }
                         } else {
-                            if eq(clone(arg), "--help") {
-                                opts.show_help = true
+                            if eq(clone(arg), "--dump-phases") {
+                                i = i + 1
+                                if i < argc {
+                                    opts.dump_phases = clone(get_unchecked(argv, i))
+                                }
                             } else {
-                                if eq(clone(arg), "--json") {
-                                    opts.json_output = true
+                                if eq(clone(arg), "--help") {
+                                    opts.show_help = true
                                 } else {
-                                    if eq(clone(arg), "--version") {
-                                        opts.show_version = true
+                                    if eq(clone(arg), "--json") {
+                                        opts.json_output = true
                                     } else {
-                                        if len(opts.input_file) == 0 {
-                                            opts.input_file = clone(arg)
+                                        if eq(clone(arg), "--version") {
+                                            opts.show_version = true
                                         } else {
-                                            opts.has_error = true
-                                            opts.error_msg = concat(String_from("unexpected argument: "), clone(arg))
+                                            if len(opts.input_file) == 0 {
+                                                opts.input_file = clone(arg)
+                                            } else {
+                                                opts.has_error = true
+                                                opts.error_msg = concat(String_from("unexpected argument: "), clone(arg))
+                                            }
                                         }
                                     }
                                 }
@@ -406,6 +414,7 @@ fn cmd_compile(opts: CliOptions) {
     config.target = clone(opts.target)
     config.opt_level = opts.opt_level
     config.emit_mode = clone(opts.emit_mode)
+    config.wit_paths = clone(opts.wit_paths)
     config.dump_tokens = should_dump(opts, String_from("tokens"))
     config.dump_ast = should_dump(opts, String_from("ast"))
     config.dump_hir = should_dump(opts, String_from("hir"))
@@ -463,6 +472,7 @@ fn cmd_run(opts: CliOptions) {
     config.target = clone(opts.target)
     config.opt_level = opts.opt_level
     config.emit_mode = String_from("wasm")
+    config.wit_paths = clone(opts.wit_paths)
     let result = driver::compile_file(clone(input_file), config)
     if !result.success {
         let err_count = len(result.error_messages)
@@ -542,6 +552,7 @@ fn cmd_build(opts: CliOptions) {
             config.target = clone(opts.target)
             config.opt_level = opts.opt_level
             config.emit_mode = clone(opts.emit_mode)
+            config.wit_paths = clone(opts.wit_paths)
             let result = driver::compile_file(clone(entry), config)
             if result.success {
                 let mut out_path = String_new()
@@ -590,6 +601,7 @@ fn cmd_test(opts: CliOptions) {
         let config = driver::DriverConfig_default()
         config.target = clone(opts.target)
         config.check_only = true
+        config.wit_paths = clone(opts.wit_paths)
         let result = driver::compile_file(clone(input_file), config)
         if result.success {
             stdio::println(concat(String_from("  PASS  "), clone(input_file)))

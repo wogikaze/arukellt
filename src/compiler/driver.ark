@@ -63,6 +63,7 @@ struct DriverConfig {
     target: String,
     opt_level: i32,
     emit_mode: String,
+    wit_paths: Vec<String>,
     dump_tokens: bool,
     dump_ast: bool,
     dump_hir: bool,
@@ -74,7 +75,7 @@ struct DriverConfig {
 }
 
 pub fn DriverConfig_default() -> DriverConfig {
-    DriverConfig { target: String_from("wasm32-wasi-p2"), opt_level: 0, emit_mode: String_from("wasm"), dump_tokens: false, dump_ast: false, dump_hir: false, dump_mir: false, dump_wasm: false, parse_only: false, check_only: false, source_dir: String_from(".") }
+    DriverConfig { target: String_from("wasm32-wasi-p2"), opt_level: 0, emit_mode: String_from("wasm"), wit_paths: Vec_new_String(), dump_tokens: false, dump_ast: false, dump_hir: false, dump_mir: false, dump_wasm: false, parse_only: false, check_only: false, source_dir: String_from(".") }
 }
 
 // ── File Loading ─────────────────────────────────────────────────────────────
@@ -487,7 +488,16 @@ fn main() {
                         i = i + 1
                     }
                 } else {
-                    i = i + 1
+                    if eq(clone(flag), String_from("--wit")) {
+                        if i + 1 < argc {
+                            push(config.wit_paths, get_unchecked(args, i + 1))
+                            i = i + 2
+                        } else {
+                            i = i + 1
+                        }
+                    } else {
+                        i = i + 1
+                    }
                 }
             }
         }

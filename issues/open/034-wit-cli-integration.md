@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-13
+**Updated**: 2026-04-22
 **ID**: 034
 **Depends on**: 030, 031, 028b
 **Track**: component-model
@@ -22,6 +22,24 @@
 The remaining `--wit` pipeline gap is tracked concretely in [#028b](../done/028b-wit-import-pipeline-wiring.md).
 Treat this issue as blocked on #028b for the import-binding path; other CLI/docs claims still
 require evidence review before close.
+
+## Evidence review — 2026-04-22
+
+Checked the current selfhost sources in `src/compiler/main.ark` and `src/compiler/driver.ark`.
+The reopened acceptance is not yet satisfied in the selfhost-target repo state:
+
+- `parse_args` accepts `--target`, `--opt-level`, `--emit`, `-o`, `--dump-phases`, `--help`, `--json`, and `--version`, but there is no `--wit` flag parsing or storage.
+- `cmd_compile` forwards only `target`, `opt_level`, and `emit_mode` into `driver::compile_file`; no WIT import list reaches the resolver/session/component pipeline.
+- `driver::compile_source` only recognizes `emit_mode` values `wat` and `wasm`; there is no component emit branch or `.component.wasm` output path.
+
+The docs under `docs/current-state.md`, `docs/migration/v1-to-v2.md`, and `docs/platform/abi.md` still describe component support, but the selfhost CLI/component implementation evidence does not match those claims yet. Leave this issue open until the actual CLI threading and component workflow are present in `src/compiler/`.
+
+## Partial slice — 2026-04-22
+
+Implemented only the selfhost CLI parsing/storage surface for repeated `--wit <path>` flags.
+The change keeps `--wit` paths on the CLI/config objects and leaves resolver binding,
+component emission, and all other component-model pipeline work untouched.
+This issue remains open for the remaining pipeline slice.
 
 ## Summary
 
