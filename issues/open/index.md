@@ -25,7 +25,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 5. [047 — std::collections: Arena、SlotMap、Interner ／ std::text: Rope](047-std-collections-compiler.md)
 6. [051 — std::time + std::random: 時刻・期間・乱数](051-std-time-random.md)
 7. [074 — WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成](074-wasi-p2-native-component.md)
-8. [099 — コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)](099-compile-incremental-parse.md)
+8. [099 — Selfhost compiler: incremental parse design slice](099-compile-incremental-parse.md)
 9. [108 — 実行時性能: hello.wasm 1KB 以下 達成プラン](108-runtime-wasm-binary-size.md)
 10. [112 — ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト](112-bench-compare-langs.md)
 11. [123 — import 構文と WIT パッケージ識別子の統一方針決定](123-import-syntax-unification.md)
@@ -106,7 +106,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 047 | [std::collections: Arena、SlotMap、Interner ／ std::text: Rope](047-std-collections-compiler.md) | stdlib | none | 039, 041 | none | 0 checked / 0 open | implementation-ready | — | |
 | 051 | [std::time + std::random: 時刻・期間・乱数](051-std-time-random.md) | stdlib | none | 039, 040 | none | 0 checked / 0 open | implementation-ready | — | |
 | 074 | [WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成](074-wasi-p2-native-component.md) | wasi-feature | none | none | 076, 077, 121, 124, 139, 474, 475, 476, 510 | 0 checked / 0 open | implementation-ready | — | |
-| 099 | [コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)](099-compile-incremental-parse.md) | compiler | none | none | none | 0 checked / 0 open | implementation-ready | — | |
+| 099 | [Selfhost compiler: incremental parse design slice](099-compile-incremental-parse.md) | compiler | none | none | none | 0 checked / 0 open | design-ready | — | |
 | 108 | [実行時性能: hello.wasm 1KB 以下 達成プラン](108-runtime-wasm-binary-size.md) | runtime-perf | none | 091, 092, 088, 089 | none | 0 checked / 0 open | verification-ready | — | |
 | 112 | [ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト](112-bench-compare-langs.md) | benchmark | none | 109 | none | 0 checked / 0 open | implementation-ready | — | |
 | 123 | [import 構文と WIT パッケージ識別子の統一方針決定](123-import-syntax-unification.md) | language-design | none | none | none | 0 checked / 0 open | design-ready | — | |
@@ -115,7 +115,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 205 | [205-docs-and-codebase-intelligence-surfaces](205-docs-and-codebase-intelligence-surfaces.md) | main | none | none | none | 3 checked / 0 open | — | — | |
 | 214 | [Extension quality / packaging / marketplace readiness](214-extension-quality-packaging-and-marketplace.md) | parallel | none | 184, 185, 186, 187, 188 | none | 3 checked / 0 open | blocked-by-upstream | #188 | |
 | 285 | [Legacy lowering path を隔離・撤去する](285-legacy-path-deprecation.md) | corehir | none | 284 | none | 2 checked / 2 open | implementation-ready | — | |
-| 312 | [Selfhost に generic instantiation と monomorphization を実装する](312-selfhost-generic-monomorphization.md) | selfhost-frontend | v5 | 311 | 495 | 0 checked / 4 open | implementation-ready | — | |
+| 312 | [Selfhost に generic instantiation と monomorphization を実装する](312-selfhost-generic-monomorphization.md) | selfhost-frontend | v5 | 311 | 495 | 1 checked / 3 open | implementation-ready | — | |
 | 436 | [436-playground-docs-site-integration](436-playground-docs-site-integration.md) | main | none | none | none | 4 checked / 0 open | — | — | |
 | 437 | [Playground: deployment / preview environment / asset cache 戦略を整える](437-playground-deploy-preview-cache.md) | playground | none | 431 | none | 4 checked / 0 open | — | — | |
 | 468 | [468-playground-build-and-publish-path-proof](468-playground-build-and-publish-path-proof.md) | main | none | none | none | 3 checked / 0 open | — | — | |

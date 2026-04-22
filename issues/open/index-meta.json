@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T05:47:07Z",
+  "generated_at": "2026-04-22T07:03:32Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -191,7 +191,7 @@
     {
       "id": "099",
       "path": "099-compile-incremental-parse.md",
-      "title": "コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)",
+      "title": "Selfhost compiler: incremental parse design slice",
       "track": "compiler",
       "status": "open",
       "blocks_v1": "none",
@@ -206,7 +206,7 @@
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "design-ready",
         "upstream_notes": "—"
       }
     },
@@ -384,7 +384,7 @@
       "path": "285-legacy-path-deprecation.md",
       "title": "Legacy lowering path を隔離・撤去する",
       "track": "corehir",
-      "status": "open (partially complete — blocked by CoreHIR lowerer stub)",
+      "status": "open (reviewed 2026-04-22 — deprecation-marker slice complete; remaining removal work re-scoped to #529)",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
@@ -421,8 +421,8 @@
         "495"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 4
+        "checked": 1,
+        "unchecked": 3
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -929,7 +929,7 @@
       "path": "562-phase5-delete-ark-wasm.md",
       "title": "562 — Phase 5: Delete `crates/ark-wasm`",
       "track": "selfhost-retirement",
-      "status": "open",
+      "status": "blocked-by-upstream",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",

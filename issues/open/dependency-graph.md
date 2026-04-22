@@ -13,7 +13,7 @@ graph LR
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I051["051 std::time + std::random: 時刻・期間・乱数"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
-  I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
+  I099["099 Selfhost compiler: incremental parse design slice"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
