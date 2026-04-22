@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T04:29:48Z",
+  "generated_at": "2026-04-22T04:40:02Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -1116,6 +1116,30 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "583",
+      "path": "583-phase5-prereq-retire-arukellt-rust-legacy.md",
+      "title": "583 — Phase 5 prerequisite: retire ARUKELLT_USE_RUST opt-in and purge `arukellt` Rust core consumers",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "559"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "source-of-truth-transition",
+        "upstream_notes": null
       }
     },
     {
