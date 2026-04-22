@@ -242,6 +242,7 @@ run:selfhost/typecheck_match_exhaustive.ark
 run:selfhost/typecheck_closure_capture.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 diag:selfhost/lexer_recovery_multi.ark
+diag:selfhost/parser_recovery_decls.ark
 diag:diagnostics/parse_missing_rbrace.ark
 diag:diagnostics/parse_bad_token.ark
 diag:diagnostics/resolve_undefined_fn.ark

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T05:38:03Z",
+  "generated_at": "2026-04-22T05:43:13Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -1003,9 +1003,9 @@
       }
     },
     {
-      "id": "566",
-      "path": "566-phase6-partial-ast-recovery.md",
-      "title": "566 — Phase 6/A2: Selfhost parser.ark — partial AST recovery",
+      "id": "567",
+      "path": "567-phase6-incremental-diagnostic-accumulation.md",
+      "title": "567 — Phase 6/A3: Selfhost resolver / typechecker — incremental diagnostic accumulation",
       "track": "selfhost-frontend",
       "status": "open",
       "blocks_v1": "none",
@@ -1014,10 +1014,9 @@
       "blocks_v4": "none",
       "blocks_v5": "no",
       "depends_on": [
-        "565"
+        "566"
       ],
       "blocks_issue_ids": [
-        "567",
         "568"
       ],
       "acceptance": {
@@ -1026,7 +1025,7 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#565"
+        "upstream_notes": "#566"
       }
     },
     {
@@ -1381,9 +1380,9 @@
       }
     },
     {
-      "id": "567",
-      "path": "567-phase6-incremental-diagnostic-accumulation.md",
-      "title": "567 — Phase 6/A3: Selfhost resolver / typechecker — incremental diagnostic accumulation",
+      "id": "568",
+      "path": "568-phase6-analysis-api-surface-text--ast---symbols---diagnostics.md",
+      "title": "568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)",
       "track": "selfhost-frontend",
       "status": "open",
       "blocks_v1": "none",
@@ -1392,18 +1391,21 @@
       "blocks_v4": "none",
       "blocks_v5": "no",
       "depends_on": [
-        "566"
+        "565",
+        "566",
+        "567"
       ],
       "blocks_issue_ids": [
-        "568"
+        "569",
+        "571"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 5
+        "unchecked": 6
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#566"
+        "upstream_notes": "#565, #566, #567"
       }
     },
     {
@@ -1589,9 +1591,9 @@
       }
     },
     {
-      "id": "568",
-      "path": "568-phase6-analysis-api-surface-text--ast---symbols---diagnostics.md",
-      "title": "568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)",
+      "id": "569",
+      "path": "569-phase6-initialize---didopen---didchange---publishdiagnostics.md",
+      "title": "569 — Phase 6/C1: src/ide/lsp.ark — initialize / didOpen / didChange / publishDiagnostics",
       "track": "selfhost-frontend",
       "status": "open",
       "blocks_v1": "none",
@@ -1600,13 +1602,11 @@
       "blocks_v4": "none",
       "blocks_v5": "no",
       "depends_on": [
-        "565",
-        "566",
-        "567"
+        "568"
       ],
       "blocks_issue_ids": [
-        "569",
-        "571"
+        "570",
+        "572"
       ],
       "acceptance": {
         "checked": 0,
@@ -1614,7 +1614,33 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#565, #566, #567"
+        "upstream_notes": "#568"
+      }
+    },
+    {
+      "id": "571",
+      "path": "571-phase6-debug-adapter-scaffold-deferred-priority.md",
+      "title": "571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "568"
+      ],
+      "blocks_issue_ids": [
+        "573"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#568"
       }
     },
     {
@@ -1672,88 +1698,6 @@
       }
     },
     {
-      "id": "569",
-      "path": "569-phase6-initialize---didopen---didchange---publishdiagnostics.md",
-      "title": "569 — Phase 6/C1: src/ide/lsp.ark — initialize / didOpen / didChange / publishDiagnostics",
-      "track": "selfhost-frontend",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "568"
-      ],
-      "blocks_issue_ids": [
-        "570",
-        "572"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#568"
-      }
-    },
-    {
-      "id": "571",
-      "path": "571-phase6-debug-adapter-scaffold-deferred-priority.md",
-      "title": "571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)",
-      "track": "selfhost-frontend",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "568"
-      ],
-      "blocks_issue_ids": [
-        "573"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#568"
-      }
-    },
-    {
-      "id": "576",
-      "path": "576-phase7-delete-ark-resolve.md",
-      "title": "576 — Phase 7: Delete `crates/ark-resolve`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "564",
-        "575"
-      ],
-      "blocks_issue_ids": [
-        "577",
-        "579",
-        "582"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 14
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#564, #575"
-      }
-    },
-    {
       "id": "570",
       "path": "570-phase6-hover--definition-handlers.md",
       "title": "570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers",
@@ -1806,9 +1750,9 @@
       }
     },
     {
-      "id": "577",
-      "path": "577-phase7-delete-ark-typecheck.md",
-      "title": "577 — Phase 7: Delete `crates/ark-typecheck`",
+      "id": "576",
+      "path": "576-phase7-delete-ark-resolve.md",
+      "title": "576 — Phase 7: Delete `crates/ark-resolve`",
       "track": "selfhost-retirement",
       "status": "open",
       "blocks_v1": "none",
@@ -1818,12 +1762,11 @@
       "blocks_v5": "no",
       "depends_on": [
         "564",
-        "576"
+        "575"
       ],
       "blocks_issue_ids": [
-        "578",
+        "577",
         "579",
-        "581",
         "582"
       ],
       "acceptance": {
@@ -1832,7 +1775,7 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#564, #576"
+        "upstream_notes": "#564, #575"
       }
     },
     {
@@ -1864,6 +1807,36 @@
       }
     },
     {
+      "id": "577",
+      "path": "577-phase7-delete-ark-typecheck.md",
+      "title": "577 — Phase 7: Delete `crates/ark-typecheck`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "576"
+      ],
+      "blocks_issue_ids": [
+        "578",
+        "579",
+        "581",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #576"
+      }
+    },
+    {
       "id": "578",
       "path": "578-phase7-delete-ark-hir.md",
       "title": "578 — Phase 7: Delete `crates/ark-hir`",
@@ -1888,34 +1861,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#564, #577"
-      }
-    },
-    {
-      "id": "581",
-      "path": "581-phase7-delete-ark-target.md",
-      "title": "581 — Phase 7: Delete `crates/ark-target`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "564",
-        "575",
-        "577"
-      ],
-      "blocks_issue_ids": [
-        "582"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 14
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#564, #575, #577"
       }
     },
     {
@@ -1946,6 +1891,34 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#564, #572, #575, #576, #577"
+      }
+    },
+    {
+      "id": "581",
+      "path": "581-phase7-delete-ark-target.md",
+      "title": "581 — Phase 7: Delete `crates/ark-target`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "575",
+        "577"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #575, #577"
       }
     },
     {

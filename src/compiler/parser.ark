@@ -226,6 +226,19 @@ fn NK_TYPE_RESULT() -> i32 {
     95
 }
 
+// Error recovery node kinds (#566).
+// NK_ERROR represents a syntactic construct that could not be parsed; the
+// parser inserts this node and continues so downstream IDE consumers
+// (resolver/typechecker/LSP) get a partial AST instead of a truncated one.
+// NK_MISSING represents an expected token/sub-construct that was absent.
+fn NK_ERROR() -> i32 {
+    96
+}
+
+fn NK_MISSING() -> i32 {
+    97
+}
+
 // Binary operators
 fn OP_ADD() -> i32 {
     1
@@ -356,6 +369,15 @@ fn AstNode_int(val: i32, span: Span) -> AstNode {
 
 fn AstNode_float(val: f64, span: Span) -> AstNode {
     AstNode { kind: NK_FLOAT_LIT(), span: span, text: String_new(), int_val: 0, float_val: val, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
+}
+
+// Error / Missing node constructors (#566 partial-AST recovery).
+fn AstNode_error(text: String, span: Span) -> AstNode {
+    AstNode { kind: NK_ERROR(), span: span, text: text, int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
+}
+
+fn AstNode_missing(text: String, span: Span) -> AstNode {
+    AstNode { kind: NK_MISSING(), span: span, text: text, int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
 }
 
 // ── Parse Error ──────────────────────────────────────────────────────────────
@@ -1535,7 +1557,7 @@ fn parse_prefix(p: Parser) -> AstNode {
     }
     error(p, concat(String_from("unexpected token in expression: "), to_string(t.kind)))
     p.pos = p.pos + 1
-    AstNode_leaf(NK_IDENT(), String_from("_error"), tok_span(t))
+    AstNode_error(String_from("expr"), tok_span(t))
 }
 
 // ── If Expression ────────────────────────────────────────────────────────────
@@ -2062,6 +2084,48 @@ fn parse_import_decl(p: Parser) -> AstNode {
 }
 
 // ── Top-level Module ─────────────────────────────────────────────────────────
+// Returns true if `kind` can start a top-level declaration (#566 recovery).
+fn is_decl_start(kind: i32) -> bool {
+    if kind == TK_FN() {
+        return true
+    }
+    if kind == TK_PUB() {
+        return true
+    }
+    if kind == TK_STRUCT() {
+        return true
+    }
+    if kind == TK_ENUM() {
+        return true
+    }
+    if kind == TK_TRAIT() {
+        return true
+    }
+    if kind == TK_IMPL() {
+        return true
+    }
+    if kind == TK_USE() {
+        return true
+    }
+    if kind == TK_IMPORT() {
+        return true
+    }
+    false
+}
+
+// Synchronise to the next plausible top-level declaration start (#566).
+// Used by parse_module after a parse error to avoid producing a cascade of
+// spurious diagnostics. Stops at EOF or a known declaration-start keyword.
+fn sync_to_decl_start(p: Parser) {
+    while !at_eof(p) {
+        let k = peek_kind(p)
+        if is_decl_start(k) {
+            return
+        }
+        p.pos = p.pos + 1
+    }
+}
+
 pub fn parse_module(p: Parser) -> Vec<AstNode> {
     let mut decls: Vec<AstNode> = Vec_new_AstNode()
     skip_newlines(p)
@@ -2070,11 +2134,37 @@ pub fn parse_module(p: Parser) -> Vec<AstNode> {
         if at_eof(p) {
             break
         }
+        let err_before = len(p.errors)
+        let pos_before = p.pos
         let d = parse_decl(p)
         push(decls, d)
+        // If parse_decl emitted an error AND failed to advance to a decl
+        // boundary, sync forward so the next iteration sees a fresh decl
+        // start. This guarantees partial-AST recovery (#566).
+        if len(p.errors) > err_before {
+            if p.pos == pos_before {
+                p.pos = p.pos + 1
+            }
+            sync_to_decl_start(p)
+        }
         skip_newlines(p)
     }
     decls
+}
+
+// ── Parse program (#566) ─────────────────────────────────────────────────────
+// Public entry point returning a partial-AST + diagnostics shape.
+// `decls` is always populated (possibly with NK_ERROR / NK_MISSING nodes);
+// `errors` carries the recoverable parse diagnostics.
+struct ParseProgramResult {
+    decls: Vec<AstNode>,
+    errors: Vec<ParseError>,
+}
+
+pub fn parse_program(tokens: Vec<Token>) -> ParseProgramResult {
+    let p = Parser_new(tokens)
+    let decls = parse_module(p)
+    ParseProgramResult { decls: decls, errors: p.errors }
 }
 
 // ── AST Display Helpers ──────────────────────────────────────────────────────
@@ -2204,6 +2294,12 @@ fn node_kind_name(kind: i32) -> String {
     }
     if kind == NK_TYPE_TUPLE() {
         return String_from("TypeTuple")
+    }
+    if kind == NK_ERROR() {
+        return String_from("Error")
+    }
+    if kind == NK_MISSING() {
+        return String_from("Missing")
     }
     String_from("Unknown")
 }

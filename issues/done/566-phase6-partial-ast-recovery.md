@@ -1,6 +1,6 @@
 # 566 — Phase 6/A2: Selfhost parser.ark — partial AST recovery
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-22
 **Updated**: 2026-04-22
 **ID**: 566
@@ -20,11 +20,11 @@ Building on #565, the selfhost parser must produce a partial AST (with explicit 
 
 ## Acceptance
 
-- [ ] `parse_program` returns `(MaybePartialAst, Vec<Diagnostic>)` and never aborts the whole tree on a single recoverable syntax error
-- [ ] Error / Missing AST node variants exist and are emitted with span info
-- [ ] At least one new `tests/fixtures/selfhost/parser_recovery_*.ark` fixture covers a recovery path with a `.diag` expectation
-- [ ] Well-formed fixtures still produce byte-identical AST dumps
-- [ ] 4 canonical gates green with FAIL=0 and SKIP delta = 0
+- [x] `parse_program` returns `(MaybePartialAst, Vec<Diagnostic>)` and never aborts the whole tree on a single recoverable syntax error
+- [x] Error / Missing AST node variants exist and are emitted with span info
+- [x] At least one new `tests/fixtures/selfhost/parser_recovery_*.ark` fixture covers a recovery path with a `.diag` expectation
+- [x] Well-formed fixtures still produce byte-identical AST dumps
+- [x] 4 canonical gates green with FAIL=0 and SKIP delta = 0
 
 ## Required verification (close gate)
 
@@ -90,5 +90,28 @@ gates (baseline → post):
   fixture parity:  PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
   diag parity:     PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
 new tests added: <paths>
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
+```
+
+## Close note
+
+```text
+commit: <filled-after-merge>
+acceptance:
+  - parse_program: src/compiler/parser.ark — `pub fn parse_program(tokens) -> ParseProgramResult { decls, errors }`; partial-AST + diagnostics shape; never aborts (sync_to_decl_start recovery)
+  - Error/Missing variants: NK_ERROR (96), NK_MISSING (97) constants + AstNode_error / AstNode_missing constructors with Span; rendered "Error" / "Missing" by node_kind_name
+  - Recovery strategy: parse_module records (errors, pos) before each parse_decl; on error without forward progress it bumps and synchronises to the next decl-start keyword (fn/pub/struct/enum/trait/impl/use/import)
+  - New fixture: tests/fixtures/selfhost/parser_recovery_decls.{ark,diag,selfhost.diag} — three valid `fn` decls separated by ") ) )" garbage; recovery yields exactly 1 parse error and parser still emits all three FnDecl nodes
+  - Well-formed inputs unchanged: NK_ERROR/NK_MISSING are only produced on error paths; existing 321 run: fixtures byte-identical (fixture-parity PASS=321)
+gates (baseline → post):
+  fixpoint:        rc=0 → rc=0
+  fixture parity:  PASS=321 FAIL=0 SKIP=41 → PASS=321 FAIL=0 SKIP=41
+  diag parity:     PASS=13  FAIL=0 SKIP=22 → PASS=14  FAIL=0 SKIP=22  (+1 new fixture)
+  cli parity:      rc=0 → rc=0
+new tests added:
+  - tests/fixtures/selfhost/parser_recovery_decls.ark
+  - tests/fixtures/selfhost/parser_recovery_decls.diag
+  - tests/fixtures/selfhost/parser_recovery_decls.selfhost.diag
+  - tests/fixtures/manifest.txt (registered new diag: entry)
 false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
 ```
