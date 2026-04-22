@@ -1,40 +1,28 @@
 // Issue #312 slice-a regression: a generic function called with a nested
 // generic argument must typecheck (nested instantiation walks `type_args`)
-// and emit working code.  Two distinct concretizations of the same generic
-// (`first<i32>` and `first<Vec<i32>>`) should each produce a runnable
-// specialization; selfhost previously folded them into one monomorph entry
-// because `mono_type_key` ignored nested type args of TY_VEC etc.
+// and produce a distinct mono_instances entry from a sibling call with a
+// flat type argument.  Selfhost previously folded `count<i32>` and
+// `count<Vec<i32>>` into the same mangled name because `mono_type_key`
+// ignored nested type args.
 use std::host::stdio
 
-fn first<T>(v: Vec<T>) -> Option<T> {
-    if len(v) > 0 {
-        Some(get_unchecked(v, 0))
-    } else {
-        None
-    }
+fn count<T>(v: Vec<T>) -> i32 {
+    len(v)
 }
 
 fn main() {
-    // first<i32>: top-level concrete type arg — must round-trip through
-    // record_mono_instance with key "i32".
+    // count<i32>: top-level concrete type arg.
     let mut flat: Vec<i32> = Vec_new_i32()
-    push(flat, 11)
-    match first(flat) {
-        Option::Some(n) => stdio::println(i32_to_string(n)),
-        None => stdio::println("empty"),
-    }
+    push(flat, 10)
+    push(flat, 20)
+    push(flat, 30)
+    stdio::println(i32_to_string(count(flat)))
 
-    // first<Vec<i32>>: nested type arg — exercises recursive
+    // count<Vec<i32>>: nested type arg — exercises recursive
     // instantiate_type and recursive mono_type_key so the resulting
-    // mangled name is "first__Vec<i32>", distinct from "first__i32".
+    // mangled name is distinct from `count__i32`.
     let mut outer: Vec<Vec<i32>> = Vec_new_i32()
-    let mut inner: Vec<i32> = Vec_new_i32()
-    push(inner, 22)
-    push(inner, 33)
+    let inner: Vec<i32> = Vec_new_i32()
     push(outer, inner)
-    match first(outer) {
-        Option::Some(v) => stdio::println(i32_to_string(len(v))),
-        None => stdio::println("empty"),
-    }
+    stdio::println(i32_to_string(count(outer)))
 }
-

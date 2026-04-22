@@ -58,3 +58,54 @@
 - `src/compiler/hir.ark` — HIR generic parameter
 - `crates/ark-mir/src/lower/` — Rust MIR lowering / specialization (not `mod.rs` alone)
 - `crates/ark-typecheck/src/checker/` — Rust generic instantiation
+
+## Status (slice-a, 2026-04-22)
+
+**Done in this slice (nested generic instantiation correctness):**
+
+- `instantiate_type` is now fully recursive over composite shapes
+  (walks `TypeInfo.type_args` for non-`TY_TYPE_VAR` heads); the prior
+  audit note about a "top-level only" substitution is now stale
+  (`src/compiler/typechecker.ark`, `instantiate_type`).
+- Made `mono_type_key` recurse into `type_args` so that
+  `f<Vec<i32>>` and `f<i32>` (and any other distinct nested
+  concretizations) produce distinct mangled names rather than
+  collapsing into `f__Vec` / `f__i32` heads only
+  (`src/compiler/typechecker.ark`, `mono_type_key`).
+- Added `resolve_type_deep` and routed both the `NK_CALL` and
+  `NK_METHOD_CALL` monomorph-recording sites through it, so any nested
+  fresh type variables that end up bound during call-site inference
+  are fully resolved before being handed to `record_mono_instance`
+  (`src/compiler/typechecker.ark`, `resolve_type_deep`,
+  `infer_expr` NK_CALL / NK_METHOD_CALL arms).
+
+**Evidence:**
+
+- New runtime fixture exercising a nested generic call:
+  `tests/fixtures/generics_v1/nested_generic_call.ark` (registered in
+  `tests/fixtures/manifest.txt` under `run:`, `t3-compile:`, and
+  `t3-run:` sections). Calls `count<i32>(Vec<i32>)` and
+  `count<Vec<i32>>(Vec<Vec<i32>>)` — these are now distinct
+  `mono_instances` entries with mangled keys `count__i32` and
+  `count__Vec<i32>`.
+- All four canonical selfhost gates green:
+  - `python3 scripts/manager.py selfhost fixpoint` → PASS
+  - `python3 scripts/manager.py selfhost fixture-parity` → PASS
+  - `python3 scripts/manager.py selfhost parity --mode --cli` → PASS
+  - `python3 scripts/manager.py selfhost diag-parity` → PASS
+
+**Remaining acceptance bullets (still Open — separate slices):**
+
+- `Vec<i32>` と `Vec<String>` が異なる具象型として扱われる — partial:
+  typechecker now distinguishes them in `mono_instances`; MIR
+  specialization on `mono_instances` is still pending.
+- generic fn の呼び出しで型引数が推論される — partial: `NK_CALL` and
+  `NK_METHOD_CALL` both record monomorph instances now; an
+  end-to-end nested-method-call regression fixture is still pending.
+- monomorphization 後の typed function list が backend に渡される —
+  `lower_to_mir` still ignores `mono_instances`; backend still sees one
+  MIR function per generic source decl. (slice-c)
+- 未使用の generic instantiation が codegen に含まれない — depends on
+  real specialization + reachability pass. (slice-d)
+
+Issue remains **open**. Three acceptance bullets still pending.
