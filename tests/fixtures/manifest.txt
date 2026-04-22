@@ -129,6 +129,7 @@ run:control/while_counter.ark
 run:diagnostics/method_syntax.ark
 run:diagnostics/nested_generic.ark
 run:diagnostics/operator_overload.ark
+run:diagnostics/structured_value.ark
 run:diagnostics/trait_def.ark
 run:display_trait/display_struct.ark
 run:enums/enum_struct_variant.ark
