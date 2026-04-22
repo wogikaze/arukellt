@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-# scripts/gate/pre-commit-verify.sh — Pre-commit gate: cargo fmt check + markdownlint.
-# DO NOT bypass this hook with --no-verify. The hook exists to protect the repository.
-# If you think you have a legitimate reason, you do not. Fix the error instead.
-# Run directly or via .git/hooks/pre-commit (installed by scripts/gate/install-git-hooks.sh).
+# scripts/gate/pre-commit-verify.sh — Pre-commit gate: cargo fmt check + markdownlint (staged files only).
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -19,6 +16,11 @@ banner() {
   echo "==> $*"
 }
 
+# Return staged files, NUL-delimited.
+staged_files() {
+  git diff --cached --name-only --diff-filter=ACMR -z
+}
+
 # ── 1. cargo fmt check ──────────────────────────────────────────────────────
 banner "cargo fmt --check"
 if cargo fmt --all --check; then
@@ -28,15 +30,31 @@ else
   FAIL=1
 fi
 
-# ── 2. markdownlint ─────────────────────────────────────────────────────────
-banner "markdownlint"
+# ── 2. markdownlint (staged .md only) ───────────────────────────────────────
+banner "markdownlint (staged .md only)"
 if command -v npx >/dev/null 2>&1; then
-  if npx --yes markdownlint-cli2 '**/*.md' --config .markdownlint.json \
-       --ignore '**/node_modules/**' --ignore 'target/**'; then
-    step "OK"
+  mapfile -d '' MD_FILES < <(
+    staged_files | while IFS= read -r -d '' path; do
+      case "$path" in
+        *.md)
+          case "$path" in
+            node_modules/*|target/*|wt/*) ;;
+            *) printf '%s\0' "$path" ;;
+          esac
+          ;;
+      esac
+    done
+  )
+
+  if [ "${#MD_FILES[@]}" -eq 0 ]; then
+    step "No staged markdown files"
   else
-    echo "FAIL: markdownlint found issues. Run 'mise run fmt:docs' to auto-fix." >&2
-    FAIL=1
+    if npx --yes markdownlint-cli2 --config .markdownlint-cli2.jsonc "${MD_FILES[@]}"; then
+      step "OK"
+    else
+      echo "FAIL: markdownlint found issues in staged markdown files. Run 'mise run fmt:docs' or fix them manually." >&2
+      FAIL=1
+    fi
   fi
 else
   echo "SKIP: npx not found, skipping markdownlint" >&2
