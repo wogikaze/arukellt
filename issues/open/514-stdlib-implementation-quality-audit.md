@@ -56,10 +56,10 @@ data structure invariants の品質面で Rust 標準実装や一般的期待値
 
 ## Acceptance
 
-- [ ] hash family, parser family, collection family, host facade family の品質監査リストが作成される
-- [ ] correctness risk / perf risk / collision risk / contract ambiguity の 4 軸で優先順位が付く
-- [ ] 少なくとも `std::core::hash`, `std::collections::hash`, `std::json`, `std::toml`, `std::fs` の監査結果が文書化される
-- [ ] 高優先度の follow-up issue が必要数だけ派生するか、本 issue 内に subtask として整理される
+- [x] hash family, parser family, collection family, host facade family の品質監査リストが作成される
+- [x] correctness risk / perf risk / collision risk / contract ambiguity の 4 軸で優先順位が付く
+- [x] 少なくとも `std::core::hash`, `std::collections::hash`, `std::json`, `std::toml`, `std::fs` の監査結果が文書化される
+- [x] 高優先度の follow-up issue が必要数だけ派生するか、本 issue 内に subtask として整理される
 
 ## Primary paths
 
