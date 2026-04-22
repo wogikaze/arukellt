@@ -31,14 +31,12 @@ graph LR
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I489["489 489-playground-user-visible-entrypoint-wiring"]
   I500["500 500-playground-wasm-typecheck-export"]
-  I513["513 Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する"]
   I514["514 Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する"]
   I516["516 Stdlib: raw helper と推奨 facade の境界を再設計する"]
-  I517["517 Stdlib: canonical naming / module layering / surface consistency の第2監査"]
+  I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
   I520["520 Stdlib: allocation / complexity / perf footgun を family 横断で監査する"]
   I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
   I531["531 Scripts Consolidation Epic: Python CLI Refactoring"]
-  I544["544 544 — Benchmark suite reorganization and docs integration"]
   I545["545 545 — Benchmark: real-world workloads"]
   I546["546 Release: Binary Smoke Tests"]
   I547["547 Release: Determinism Check"]
@@ -66,7 +64,6 @@ graph LR
   I510["510 T3 emitter: WASI P2 import-table switch (full P2-native component)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
-  I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
   I564["564 564 — Phase 5: Delete `crates/arukellt`"]
   I566["566 566 — Phase 6/A2: Selfhost parser.ark — partial AST recovery"]
@@ -104,8 +101,6 @@ graph LR
   I074 --> I510
   I125 --> I126
   I312 --> I495
-  I513 --> I518
-  I517 --> I518
   I529 --> I508
   I560 --> I564
   I561 --> I564
@@ -190,14 +185,12 @@ graph LR
 - **473** depends on: 032, done); blocks: none
 - **489** depends on: none; blocks: none
 - **500** depends on: none; blocks: none
-- **513** depends on: none; blocks: 518
 - **514** depends on: none; blocks: none
 - **516** depends on: none; blocks: none
-- **517** depends on: none; blocks: 518
+- **518** depends on: 513, 517; blocks: none
 - **520** depends on: none; blocks: none
 - **529** depends on: none; blocks: 508
 - **531** depends on: none; blocks: none
-- **544** depends on: none; blocks: none
 - **545** depends on: none; blocks: none
 - **546** depends on: none; blocks: none
 - **547** depends on: none; blocks: none
@@ -225,7 +218,6 @@ graph LR
 - **510** depends on: 074; blocks: 076, 121
 - **126** depends on: 125; blocks: none
 - **495** depends on: 312, 504; blocks: 512
-- **518** depends on: 513, 517; blocks: none
 - **508** depends on: 529; blocks: none
 - **564** depends on: 559, 560, 561, 562, 563; blocks: 574, 575, 576, 577, 578, 579, 580, 581
 - **566** depends on: 565; blocks: 567, 568

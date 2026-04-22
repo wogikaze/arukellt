@@ -58,3 +58,10 @@ The `benchmarks/` directory needs better organization and clearer result present
 ## Close gate
 
 Directory structure reorganized, docs integration improved, and all benchmark modes work correctly.
+
+## Closed
+
+- Status: done
+- Date: 2026-04-22
+- Commit: b531b7eb
+- Acceptance: all YES

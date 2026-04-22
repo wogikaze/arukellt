@@ -47,3 +47,10 @@ prelude intrinsic 露出を一段隠す方針へ寄せる。
 
 - `issues/done/361-stdlib-prelude-dedup.md`
 - `issues/done/394-stdlib-prelude-surface-audit.md`
+
+## Closed
+
+- Status: done
+- Date: 2026-04-22
+- Commit: 01e808f2
+- Acceptance: all 4 [x]

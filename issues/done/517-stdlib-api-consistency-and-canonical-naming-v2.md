@@ -113,3 +113,10 @@ Inventory rows below use **`path:line`** for the `pub fn` that defines the symbo
 
 - `issues/done/359-stdlib-monomorphic-deprecation.md`
 - `issues/done/399-stdlib-docs-canonical-name-search-index.md`
+
+## Closed
+
+- Status: done
+- Date: 2026-04-22
+- Commit: 4667a7a6
+- Acceptance: all [x]

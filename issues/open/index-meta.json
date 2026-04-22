@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T04:21:09Z",
+  "generated_at": "2026-04-22T04:29:48Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -611,30 +611,6 @@
       }
     },
     {
-      "id": "513",
-      "path": "513-stdlib-prelude-safety-and-wrapper-surface.md",
-      "title": "Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "518"
-      ],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "514",
       "path": "514-stdlib-implementation-quality-audit.md",
       "title": "Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する",
@@ -679,9 +655,9 @@
       }
     },
     {
-      "id": "517",
-      "path": "517-stdlib-api-consistency-and-canonical-naming-v2.md",
-      "title": "Stdlib: canonical naming / module layering / surface consistency の第2監査",
+      "id": "518",
+      "path": "518-stdlib-docs-examples-as-canonical-style.md",
+      "title": "Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する",
       "track": "stdlib",
       "status": "open",
       "blocks_v1": "none",
@@ -689,17 +665,18 @@
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "518"
+      "depends_on": [
+        "513",
+        "517"
       ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 4
       },
       "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#513, #517"
       }
     },
     {
@@ -768,28 +745,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "544",
-      "path": "544-bench-suite-reorg-and-docs-integration.md",
-      "title": "544 — Benchmark suite reorganization and docs integration",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {
@@ -1451,31 +1406,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#312, #504"
-      }
-    },
-    {
-      "id": "518",
-      "path": "518-stdlib-docs-examples-as-canonical-style.md",
-      "title": "Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "513",
-        "517"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#513, #517"
       }
     },
     {
