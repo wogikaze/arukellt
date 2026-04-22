@@ -50,6 +50,7 @@ graph LR
   I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
   I565["565 565 — Phase 6/A1: Selfhost lexer.ark — error recovery for IDE"]
   I583["583 583 — Phase 5 prerequisite: retire ARUKELLT_USE_RUST opt-in and purge `arukellt` Rust core consumers"]
+  I585["585 585 — Replace Rust-baseline parity gates with selfhost-native verification contract"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -201,6 +202,7 @@ graph LR
 - **563** depends on: 559; blocks: 564
 - **565** depends on: none; blocks: 566, 568
 - **583** depends on: 559; blocks: none
+- **585** depends on: 559; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136
