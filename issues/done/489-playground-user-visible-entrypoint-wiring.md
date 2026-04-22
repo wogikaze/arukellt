@@ -8,7 +8,7 @@
 
 # Playground user-visible entrypoint wiring
 
-**Status**: done
+**Status**: open
 **Created**: 2026-04-13
 **Updated**: 2026-04-21
 **ID**: 489

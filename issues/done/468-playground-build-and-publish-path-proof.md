@@ -8,7 +8,7 @@
 
 # Playground: build と publish path を repo 証拠で固定する
 
-> **Status:** Implementation-ready
+> **Status:** open
 > **Track:** playground
 > **Type:** Implementation
 

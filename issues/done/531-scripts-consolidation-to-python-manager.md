@@ -1,6 +1,6 @@
 # Scripts Consolidation Epic: Python CLI Refactoring
 
-> **Status:** Phase 1 complete (Epic in progress)
+> **Status:** open
 > **Track:** tooling
 > **Type:** Epic
 > **Blocks:** none

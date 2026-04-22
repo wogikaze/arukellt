@@ -8,7 +8,7 @@
 
 # Extension: playground surface は repo で証明できる endpoint だけを指す
 
-**Status**: done
+**Status**: open
 **Created**: 2026-04-03
 **Updated**: 2026-04-21
 **ID**: 469

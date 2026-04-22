@@ -8,7 +8,7 @@
 
 # 500 — Playground: Wasm typecheck export
 
-> **Status:** Implementation-ready
+> **Status:** open
 > **Track:** playground
 > **Type:** Implementation
 
