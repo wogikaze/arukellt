@@ -298,3 +298,39 @@ The dual-period continues until fixture and diagnostic parity criteria are fully
 Both the Rust compiler and the selfhost sources are maintained in parallel.
 See [When the Dual Period Ends](docs/compiler/bootstrap.md#when-the-dual-period-ends)
 in bootstrap.md for the exact criteria that close this period.
+
+### Selfhost-first execution path (Phase 5 prerequisite, #559)
+
+The user-facing `arukellt` CLI is now invoked through a thin wrapper that runs
+the **selfhost wasm by default** under `wasmtime`. The legacy Rust binary is
+reachable only via an explicit opt-in environment variable.
+
+Wrapper artifact: [`scripts/run/arukellt-selfhost.sh`](../scripts/run/arukellt-selfhost.sh).
+
+Resolution order:
+
+1. `ARUKELLT_USE_RUST=1` → execute the Rust binary (legacy opt-in).
+2. Otherwise: execute `.build/selfhost/arukellt-s2.wasm` (or
+   `.bootstrap-build/arukellt-s2.wasm`, or `$ARUKELLT_SELFHOST_WASM`) under
+   `wasmtime run --dir=<repo_root>`.
+3. Transitional fallback: if `wasmtime` or the selfhost wasm is missing, the
+   wrapper falls back to the Rust binary with a one-line stderr warning so the
+   developer loop is never broken before `make bootstrap` has been run.
+
+Examples:
+
+```bash
+# Default (selfhost wasm via wasmtime)
+scripts/run/arukellt-selfhost.sh --help
+scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark -o hello.wasm
+
+# Explicit legacy Rust path (opt-in, e.g. for emitter-side debugging)
+ARUKELLT_USE_RUST=1 scripts/run/arukellt-selfhost.sh --version
+```
+
+Selfhost gates (`scripts/manager.py selfhost {fixpoint,fixture-parity,parity,diag-parity}`)
+keep using the Rust binary as the **Stage 0 trusted base** for the bootstrap
+fixpoint contract; that is internal to the gate definition (see
+`scripts/selfhost/checks.py`) and is not part of the user-facing path. Phase 5
+deletion issues (#560–#564) retire the Rust crates only after both this wrapper
+is in place and the gates remain green.

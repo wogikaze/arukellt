@@ -50,7 +50,10 @@ graph LR
   I553["553 Release: Binary Distribution"]
   I554["554 Release: Extension Live Editor Tests"]
   I555["555 Release: Pre-Release CI Checks"]
-  I559["559 559 — Phase 5 prerequisite: selfhost-first execution path & verify/CI switch"]
+  I560["560 560 — Phase 5: Delete `crates/ark-driver`"]
+  I561["561 561 — Phase 5: Delete `crates/ark-mir`"]
+  I562["562 562 — Phase 5: Delete `crates/ark-wasm`"]
+  I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
   I565["565 565 — Phase 6/A1: Selfhost lexer.ark — error recovery for IDE"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
@@ -65,32 +68,28 @@ graph LR
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
-  I560["560 560 — Phase 5: Delete `crates/ark-driver`"]
-  I561["561 561 — Phase 5: Delete `crates/ark-mir`"]
-  I562["562 562 — Phase 5: Delete `crates/ark-wasm`"]
-  I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
+  I564["564 564 — Phase 5: Delete `crates/arukellt`"]
   I566["566 566 — Phase 6/A2: Selfhost parser.ark — partial AST recovery"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I076["076 WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング"]
   I121["121 WASI P2: Canonical ABI ハンドリングの堅牢化"]
   I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
-  I564["564 564 — Phase 5: Delete `crates/arukellt`"]
-  I567["567 567 — Phase 6/A3: Selfhost resolver / typechecker — incremental diagnostic accumulation"]
-  I543["543 543 — Benchmark: file I/O (I/O-heavy workloads)"]
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I580["580 580 — Phase 7: Delete `crates/ark-manifest`"]
-  I568["568 568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)"]
+  I567["567 567 — Phase 6/A3: Selfhost resolver / typechecker — incremental diagnostic accumulation"]
+  I543["543 543 — Benchmark: file I/O (I/O-heavy workloads)"]
   I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
+  I568["568 568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)"]
+  I576["576 576 — Phase 7: Delete `crates/ark-resolve`"]
   I569["569 569 — Phase 6/C1: src/ide/lsp.ark — initialize / didOpen / didChange / publishDiagnostics"]
   I571["571 571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)"]
-  I576["576 576 — Phase 7: Delete `crates/ark-resolve`"]
+  I577["577 577 — Phase 7: Delete `crates/ark-typecheck`"]
   I570["570 570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers"]
   I573["573 573 — Phase 7: Delete `crates/ark-dap`"]
-  I577["577 577 — Phase 7: Delete `crates/ark-typecheck`"]
-  I572["572 572 — Phase 7: Delete `crates/ark-lsp`"]
   I578["578 578 — Phase 7: Delete `crates/ark-hir`"]
   I581["581 581 — Phase 7: Delete `crates/ark-target`"]
+  I572["572 572 — Phase 7: Delete `crates/ark-lsp`"]
   I579["579 579 — Phase 7: Delete `crates/ark-diagnostics`"]
   I582["582 582 — Phase 7 final: remove `Cargo.toml` and `Cargo.lock`"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
@@ -108,10 +107,10 @@ graph LR
   I513 --> I518
   I517 --> I518
   I529 --> I508
-  I559 --> I560
-  I559 --> I561
-  I559 --> I562
-  I559 --> I563
+  I560 --> I564
+  I561 --> I564
+  I562 --> I564
+  I563 --> I564
   I565 --> I566
   I077 --> I136
   I139 --> I136
@@ -122,35 +121,30 @@ graph LR
   I124 --> I121
   I510 --> I121
   I495 --> I512
-  I559 --> I564
-  I560 --> I564
-  I561 --> I564
-  I562 --> I564
-  I563 --> I564
-  I566 --> I567
-  I076 --> I543
   I564 --> I574
   I564 --> I580
+  I566 --> I567
+  I076 --> I543
+  I564 --> I575
+  I574 --> I575
   I565 --> I568
   I566 --> I568
   I567 --> I568
-  I564 --> I575
-  I574 --> I575
-  I568 --> I569
-  I568 --> I571
   I564 --> I576
   I575 --> I576
-  I569 --> I570
-  I571 --> I573
+  I568 --> I569
+  I568 --> I571
   I564 --> I577
   I576 --> I577
-  I569 --> I572
-  I570 --> I572
+  I569 --> I570
+  I571 --> I573
   I564 --> I578
   I577 --> I578
   I564 --> I581
   I575 --> I581
   I577 --> I581
+  I569 --> I572
+  I570 --> I572
   I564 --> I579
   I572 --> I579
   I575 --> I579
@@ -215,7 +209,10 @@ graph LR
 - **553** depends on: none; blocks: none
 - **554** depends on: none; blocks: none
 - **555** depends on: none; blocks: none
-- **559** depends on: none; blocks: 560, 561, 562, 563, 564
+- **560** depends on: 559; blocks: 564
+- **561** depends on: 559; blocks: 564
+- **562** depends on: 559; blocks: 564
+- **563** depends on: 559; blocks: 564
 - **565** depends on: none; blocks: 566, 568
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
@@ -230,32 +227,28 @@ graph LR
 - **495** depends on: 312, 504; blocks: 512
 - **518** depends on: 513, 517; blocks: none
 - **508** depends on: 529; blocks: none
-- **560** depends on: 559; blocks: 564
-- **561** depends on: 559; blocks: 564
-- **562** depends on: 559; blocks: 564
-- **563** depends on: 559; blocks: 564
+- **564** depends on: 559, 560, 561, 562, 563; blocks: 574, 575, 576, 577, 578, 579, 580, 581
 - **566** depends on: 565; blocks: 567, 568
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
 - **076** depends on: 074, 510; blocks: 543
 - **121** depends on: 074, 124, 510; blocks: none
 - **512** depends on: 504, 495; blocks: none
-- **564** depends on: 559, 560, 561, 562, 563; blocks: 574, 575, 576, 577, 578, 579, 580, 581
-- **567** depends on: 566; blocks: 568
-- **543** depends on: 076; blocks: none
 - **574** depends on: 564; blocks: 575, 582
 - **580** depends on: 564; blocks: 582
-- **568** depends on: 565, 566, 567; blocks: 569, 571
+- **567** depends on: 566; blocks: 568
+- **543** depends on: 076; blocks: none
 - **575** depends on: 564, 574; blocks: 576, 579, 581, 582
+- **568** depends on: 565, 566, 567; blocks: 569, 571
+- **576** depends on: 564, 575; blocks: 577, 579, 582
 - **569** depends on: 568; blocks: 570, 572
 - **571** depends on: 568; blocks: 573
-- **576** depends on: 564, 575; blocks: 577, 579, 582
+- **577** depends on: 564, 576; blocks: 578, 579, 581, 582
 - **570** depends on: 569; blocks: 572
 - **573** depends on: 571; blocks: 582
-- **577** depends on: 564, 576; blocks: 578, 579, 581, 582
-- **572** depends on: 569, 570; blocks: 579, 582
 - **578** depends on: 564, 577; blocks: 582
 - **581** depends on: 564, 575, 577; blocks: 582
+- **572** depends on: 569, 570; blocks: 579, 582
 - **579** depends on: 564, 572, 575, 576, 577; blocks: 582
 - **582** depends on: 572, 573, 574, 575, 576, 577, 578, 579, 580, 581; blocks: none
 
