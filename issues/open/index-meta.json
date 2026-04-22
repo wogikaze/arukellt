@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T18:45:46Z",
+  "generated_at": "2026-04-22T03:34:53Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -380,28 +380,6 @@
       }
     },
     {
-      "id": "249",
-      "path": "249-migration-v4-to-v5-selfhost-bootstrap.md",
-      "title": "migration guide v4→v5: self-hosted compiler bootstrap",
-      "track": "compiler/selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 7,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "285",
       "path": "285-legacy-path-deprecation.md",
       "title": "Legacy lowering path を隔離・撤去する",
@@ -451,50 +429,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "379",
-      "path": "379-playground-wasm-build.md",
-      "title": "379-playground-wasm-build",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "429",
-      "path": "429-playground-wasm-package-runtime-wrapper.md",
-      "title": "429-playground-wasm-package-runtime-wrapper",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
       }
     },
     {
@@ -682,30 +616,6 @@
       }
     },
     {
-      "id": "499",
-      "path": "499-selfhost-closure-capture-lowering.md",
-      "title": "499 — Selfhost compiler: closure capture environment lowering",
-      "track": "selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "yes",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "539"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "500",
       "path": "500-playground-wasm-typecheck-export.md",
       "title": "500-playground-wasm-typecheck-export",
@@ -725,31 +635,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "504",
-      "path": "504-selfhost-trait-syntax.md",
-      "title": "504 — Selfhost: trait/interface syntax and impl-block infrastructure",
-      "track": "selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "yes",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "495",
-        "512"
-      ],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {
@@ -789,30 +674,6 @@
       "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "515",
-      "path": "515-stdlib-result-option-sentinel-cleanup.md",
-      "title": "Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "542"
-      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 4
@@ -935,72 +796,6 @@
       }
     },
     {
-      "id": "526",
-      "path": "526-stdlib-json-parity-and-differential-tests.md",
-      "title": "Stdlib JSON: parity と differential tests を round-trip corpus で拡張する",
-      "track": "stdlib",
-      "status": "implementation-ready",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "527",
-      "path": "527-stdlib-toml-parity-and-differential-tests.md",
-      "title": "Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する",
-      "track": "stdlib",
-      "status": "implementation-ready",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "528",
-      "path": "528-stdlib-collections-hash-property-and-differential-tests.md",
-      "title": "Stdlib collections/hash: property と differential tests を map / set invariant で拡張する",
-      "track": "stdlib",
-      "status": "implementation-ready",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "529",
       "path": "529-100-percent-selfhost-transition-plan.md",
       "title": "100% Self-Hosting Transition Plan (Operational Guide)",
@@ -1016,28 +811,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 10
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "530",
-      "path": "530-selfhost-parity-ci-gates.md",
-      "title": "530-selfhost-parity-ci-gates",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
       },
       "orchestration": {
         "class": null,
@@ -1078,6 +851,30 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "542",
+      "path": "542-bench-error-chain.md",
+      "title": "542 — Benchmark: error chain (Result / error propagation)",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "515"
+      ],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
@@ -1353,25 +1150,56 @@
       }
     },
     {
-      "id": "556",
-      "path": "556-release-selfhost-bootstrap-check.md",
-      "title": "Release: Selfhost Bootstrap Check",
-      "track": "main",
+      "id": "559",
+      "path": "559-phase5-selfhost-first-execution-path.md",
+      "title": "559 — Phase 5 prerequisite: selfhost-first execution path & verify/CI switch",
+      "track": "selfhost-retirement",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
       "blocks_v4": "none",
-      "blocks_v5": "none",
+      "blocks_v5": "no",
       "depends_on": [],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "560",
+        "561",
+        "562",
+        "563",
+        "564"
+      ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 1
+        "unchecked": 7
       },
       "orchestration": {
-        "class": null,
-        "upstream_notes": null
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "565",
+      "path": "565-phase6-error-recovery-for-ide.md",
+      "title": "565 — Phase 6/A1: Selfhost lexer.ark — error recovery for IDE",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "566",
+        "568"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
       }
     },
     {
@@ -1662,30 +1490,6 @@
       }
     },
     {
-      "id": "539",
-      "path": "539-bench-closure-map.md",
-      "title": "539 — Benchmark: closure map (higher-order functions)",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "499"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "495",
       "path": "495-selfhost-trait-bounds.md",
       "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
@@ -1713,30 +1517,6 @@
       }
     },
     {
-      "id": "542",
-      "path": "542-bench-error-chain.md",
-      "title": "542 — Benchmark: error chain (Result / error propagation)",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "515"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "518",
       "path": "518-stdlib-docs-examples-as-canonical-style.md",
       "title": "Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する",
@@ -1759,6 +1539,137 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#513, #517"
+      }
+    },
+    {
+      "id": "560",
+      "path": "560-phase5-delete-ark-driver.md",
+      "title": "560 — Phase 5: Delete `crates/ark-driver`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "559"
+      ],
+      "blocks_issue_ids": [
+        "564"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#559"
+      }
+    },
+    {
+      "id": "561",
+      "path": "561-phase5-delete-ark-mir.md",
+      "title": "561 — Phase 5: Delete `crates/ark-mir`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "559"
+      ],
+      "blocks_issue_ids": [
+        "564"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#559"
+      }
+    },
+    {
+      "id": "562",
+      "path": "562-phase5-delete-ark-wasm.md",
+      "title": "562 — Phase 5: Delete `crates/ark-wasm`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "559"
+      ],
+      "blocks_issue_ids": [
+        "564"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#559"
+      }
+    },
+    {
+      "id": "563",
+      "path": "563-phase5-delete-ark-stdlib.md",
+      "title": "563 — Phase 5: Delete `crates/ark-stdlib`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "559"
+      ],
+      "blocks_issue_ids": [
+        "564"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#559"
+      }
+    },
+    {
+      "id": "566",
+      "path": "566-phase6-partial-ast-recovery.md",
+      "title": "566 — Phase 6/A2: Selfhost parser.ark — partial AST recovery",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "565"
+      ],
+      "blocks_issue_ids": [
+        "567",
+        "568"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#565"
       }
     },
     {
@@ -1891,6 +1802,69 @@
       }
     },
     {
+      "id": "564",
+      "path": "564-phase5-delete-arukellt.md",
+      "title": "564 — Phase 5: Delete `crates/arukellt`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "559",
+        "560",
+        "561",
+        "562",
+        "563"
+      ],
+      "blocks_issue_ids": [
+        "574",
+        "575",
+        "576",
+        "577",
+        "578",
+        "579",
+        "580",
+        "581"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#559, #560, #561, #562, #563"
+      }
+    },
+    {
+      "id": "567",
+      "path": "567-phase6-incremental-diagnostic-accumulation.md",
+      "title": "567 — Phase 6/A3: Selfhost resolver / typechecker — incremental diagnostic accumulation",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "566"
+      ],
+      "blocks_issue_ids": [
+        "568"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#566"
+      }
+    },
+    {
       "id": "543",
       "path": "543-bench-file-io.md",
       "title": "543 — Benchmark: file I/O (I/O-heavy workloads)",
@@ -1912,6 +1886,428 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "574",
+      "path": "574-phase7-delete-ark-lexer.md",
+      "title": "574 — Phase 7: Delete `crates/ark-lexer`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564"
+      ],
+      "blocks_issue_ids": [
+        "575",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#564"
+      }
+    },
+    {
+      "id": "580",
+      "path": "580-phase7-delete-ark-manifest.md",
+      "title": "580 — Phase 7: Delete `crates/ark-manifest`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#564"
+      }
+    },
+    {
+      "id": "568",
+      "path": "568-phase6-analysis-api-surface-text--ast---symbols---diagnostics.md",
+      "title": "568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "565",
+        "566",
+        "567"
+      ],
+      "blocks_issue_ids": [
+        "569",
+        "571"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#565, #566, #567"
+      }
+    },
+    {
+      "id": "575",
+      "path": "575-phase7-delete-ark-parser.md",
+      "title": "575 — Phase 7: Delete `crates/ark-parser`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "574"
+      ],
+      "blocks_issue_ids": [
+        "576",
+        "579",
+        "581",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #574"
+      }
+    },
+    {
+      "id": "569",
+      "path": "569-phase6-initialize---didopen---didchange---publishdiagnostics.md",
+      "title": "569 — Phase 6/C1: src/ide/lsp.ark — initialize / didOpen / didChange / publishDiagnostics",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "568"
+      ],
+      "blocks_issue_ids": [
+        "570",
+        "572"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#568"
+      }
+    },
+    {
+      "id": "571",
+      "path": "571-phase6-debug-adapter-scaffold-deferred-priority.md",
+      "title": "571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "568"
+      ],
+      "blocks_issue_ids": [
+        "573"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#568"
+      }
+    },
+    {
+      "id": "576",
+      "path": "576-phase7-delete-ark-resolve.md",
+      "title": "576 — Phase 7: Delete `crates/ark-resolve`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "575"
+      ],
+      "blocks_issue_ids": [
+        "577",
+        "579",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #575"
+      }
+    },
+    {
+      "id": "570",
+      "path": "570-phase6-hover--definition-handlers.md",
+      "title": "570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "569"
+      ],
+      "blocks_issue_ids": [
+        "572"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#569"
+      }
+    },
+    {
+      "id": "573",
+      "path": "573-phase7-delete-ark-dap.md",
+      "title": "573 — Phase 7: Delete `crates/ark-dap`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "571"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#571"
+      }
+    },
+    {
+      "id": "577",
+      "path": "577-phase7-delete-ark-typecheck.md",
+      "title": "577 — Phase 7: Delete `crates/ark-typecheck`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "576"
+      ],
+      "blocks_issue_ids": [
+        "578",
+        "579",
+        "581",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #576"
+      }
+    },
+    {
+      "id": "572",
+      "path": "572-phase7-delete-ark-lsp.md",
+      "title": "572 — Phase 7: Delete `crates/ark-lsp`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "569",
+        "570"
+      ],
+      "blocks_issue_ids": [
+        "579",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#569, #570"
+      }
+    },
+    {
+      "id": "578",
+      "path": "578-phase7-delete-ark-hir.md",
+      "title": "578 — Phase 7: Delete `crates/ark-hir`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "577"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #577"
+      }
+    },
+    {
+      "id": "581",
+      "path": "581-phase7-delete-ark-target.md",
+      "title": "581 — Phase 7: Delete `crates/ark-target`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "575",
+        "577"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #575, #577"
+      }
+    },
+    {
+      "id": "579",
+      "path": "579-phase7-delete-ark-diagnostics.md",
+      "title": "579 — Phase 7: Delete `crates/ark-diagnostics`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "572",
+        "575",
+        "576",
+        "577"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #572, #575, #576, #577"
+      }
+    },
+    {
+      "id": "582",
+      "path": "582-phase7-remove-cargo-workspace.md",
+      "title": "582 — Phase 7 final: remove `Cargo.toml` and `Cargo.lock`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "572",
+        "573",
+        "574",
+        "575",
+        "576",
+        "577",
+        "578",
+        "579",
+        "580",
+        "581"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#572, #573, #574, #575, #576, #577, #578, #579, #580, #581"
       }
     }
   ],
