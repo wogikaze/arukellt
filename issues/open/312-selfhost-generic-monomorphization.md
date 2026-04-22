@@ -48,7 +48,7 @@
 
 - [ ] `Vec<i32>` と `Vec<String>` が異なる具象型として扱われる — **Open**: distinct `type_args` unify for concrete uses; nested generic parameters are not fully instantiated (`instantiate_type`); MIR does not specialize on `mono_instances`.
 - [ ] generic fn の呼び出しで型引数が推論される — **Open**: partial for `NK_CALL`; generic `NK_METHOD_CALL` does not record monomorph instances; shallow instantiation as above.
-- [ ] monomorphization 後の typed function list が backend に渡される — **Open**: `lower_to_mir` ignores `mono_instances`; backend still sees one MIR function per generic source decl.
+- [x] monomorphization 後の typed function list が backend に渡される — **Done (slice-c)**: `lower_to_mir` now emits one specialized `MirFunction` per `MonoInstance` and rewrites generic call sites (via per-call-site `mono_call_sites` span map) to dispatch to the mangled specialization. Generic-source bodies with ≥1 instantiation are skipped from `module.functions`.
 - [ ] 未使用の generic instantiation が codegen に含まれない — **Open**: depends on a real specialization / reachability pass; not implemented for selfhost.
 
 ## References
@@ -109,3 +109,61 @@
   real specialization + reachability pass. (slice-d)
 
 Issue remains **open**. Three acceptance bullets still pending.
+
+## Status (slice-c, 2026-04-22)
+
+**Done in this slice (MIR-level monomorphization):**
+
+- Extended `MonoInstance` with concrete `type_args: Vec<TypeInfo>` and added a
+  per-call-site `MonoCallSite { span_start, mangled_name }` recording so MIR
+  can rewrite generic call targets without re-running inference. Both lists
+  are exposed on `TypeCheckResult` (`src/compiler/typechecker.ark`,
+  `MonoInstance`, `MonoCallSite`, `record_mono_call`).
+- `lower_to_mir` now consumes both lists (#312 acceptance bullet 3):
+  - Pre-registers each specialized name (wasm-safe form via
+    `mono_safe_name` — replaces `<>,` with `_`) into `fn_names`/
+    `fn_return_vts`/`fn_return_type_names`, inheriting the generic
+    source's return-type metadata so call dispatch finds the
+    specialized target.
+  - Skips emitting the generic source `MirFunction` whenever the source
+    has ≥1 recorded `MonoInstance` (only specialized forms reach
+    codegen; matches the issue's "non-emitted stub" guidance).
+  - Post-pass after the main lower loop re-runs the per-decl lowering
+    pipeline once per `MonoInstance`, producing one `MirFunction` per
+    concrete instantiation with `name = mono_safe_name(mangled)`.
+  - At every `NK_CALL` emit, `ctx_mono_lookup_call` keys by call AST
+    `node.span.start` and rewrites `call_inst.str_val` to the
+    specialized mangled name when the typechecker recorded one for that
+    site (`src/compiler/mir.ark`).
+
+**Evidence:**
+
+- New runtime fixture exercising distinct concrete instantiations
+  (`Vec<i32>` vs `Vec<String>`) of one generic function:
+  `tests/fixtures/generics_v1/mir_specialization.ark` (registered in
+  `tests/fixtures/manifest.txt` under `run:`, `t3-compile:`, and
+  `t3-run:` sections).  After slice-c the MIR module exposes
+  `count_items__Vec_i32_` and `count_items__Vec_String_` as separate
+  functions and the two `count_items(...)` call sites in `main`
+  dispatch to the matching specialization.
+- All four canonical selfhost gates green:
+  - `python3 scripts/manager.py selfhost fixpoint` → PASS
+  - `python3 scripts/manager.py selfhost fixture-parity` → PASS
+  - `python3 scripts/manager.py selfhost diag-parity` → PASS
+  - `python3 scripts/manager.py selfhost parity --mode --cli` → PASS
+
+**Remaining acceptance bullets (still Open — slice-d and follow-ups):**
+
+- `Vec<i32>` と `Vec<String>` が異なる具象型として扱われる — partial:
+  the typechecker distinguishes them in `mono_instances`, the MIR layer
+  now emits distinct specialized functions per instantiation, and call
+  sites resolve to them.  Remaining work: deeper substitution of `T`
+  inside specialized bodies (e.g. propagating concrete vec elem types
+  through every local for backend-specific dispatch beyond the
+  `vec:T → vec_*` shape) is left for a follow-up; the body that this
+  slice emits is the type-erased form of the generic source.
+- generic fn の呼び出しで型引数が推論される — slice-a covered
+  recording; an end-to-end nested-method-call regression fixture is
+  still pending.
+- 未使用の generic instantiation が codegen に含まれない — depends on
+  real reachability pass. (slice-d)

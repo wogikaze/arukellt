@@ -164,6 +164,7 @@ run:generics/vec_generic.ark
 run:generics_v1/generic_struct.ark
 run:generics_v1/nested_generics.ark
 run:generics_v1/nested_generic_call.ark
+run:generics_v1/mir_specialization.ark
 run:generics_v1/nested_option.ark
 run:generics_v1/trait_bound.ark
 run:hello/empty_main.ark
@@ -521,6 +522,7 @@ t3-compile:generics/vec_generic.ark
 t3-compile:generics_v1/generic_struct.ark
 t3-compile:generics_v1/nested_generics.ark
 t3-compile:generics_v1/nested_generic_call.ark
+t3-compile:generics_v1/mir_specialization.ark
 t3-compile:generics_v1/nested_option.ark
 t3-compile:generics_v1/trait_bound.ark
 t3-compile:hello/empty_main.ark
@@ -690,6 +692,7 @@ t3-run:generics/vec_generic.ark
 t3-run:generics_v1/generic_struct.ark
 t3-run:generics_v1/nested_generics.ark
 t3-run:generics_v1/nested_generic_call.ark
+t3-run:generics_v1/mir_specialization.ark
 t3-run:generics_v1/nested_option.ark
 t3-run:generics_v1/trait_bound.ark
 t3-run:hello/empty_main.ark

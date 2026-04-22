@@ -1443,10 +1443,17 @@ struct LowerCtx {
     closure_bind_caps: Vec<String>,
     closure_bind_extra: Vec<i32>,
     local_type_start: i32,
+    // Slice-c (#312): per-call-site mono mapping (span_start → mangled name)
+    // and the deduped MonoInstance list.  Populated by lower_to_mir from
+    // TypeCheckResult so NK_CALL emit can rewrite generic call targets.
+    mono_call_spans: Vec<i32>,
+    mono_call_names: Vec<String>,
+    mono_inst_fn_names: Vec<String>,
+    mono_inst_mangled: Vec<String>,
 }
 
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
-    LowerCtx { module: m, func: MirFunction_new(String_from("")), cur_block: 0, local_names: Vec_new_String(), local_indices: Vec_new_i32(), fn_names: Vec_new_String(), fn_indices: Vec_new_i32(), fn_return_vts: Vec_new_i32(), fn_return_type_names: Vec_new_String(), loop_exit_block: 0 - 1, loop_cond_block: 0 - 1, nesting_depth: 0, loop_break_depth: 0 - 1, loop_continue_depth: 0 - 1, loop_break_local: 0 - 1, struct_names: Vec_new_String(), struct_field_counts: Vec_new_i32(), struct_all_fields: Vec_new_String(), struct_field_types: Vec_new_String(), local_types: Vec_new_String(), local_type_indices: Vec_new_i32(), variant_names: Vec_new_String(), variant_tags: Vec_new_i32(), payload_variants: Vec_new_String(), closure_counter: 0, closure_last_synth: String_new(), closure_last_caps: String_new(), closure_last_extra: 0, closure_bind_names: Vec_new_String(), closure_bind_synth: Vec_new_String(), closure_bind_caps: Vec_new_String(), closure_bind_extra: Vec_new_i32(), local_type_start: 0 }
+    LowerCtx { module: m, func: MirFunction_new(String_from("")), cur_block: 0, local_names: Vec_new_String(), local_indices: Vec_new_i32(), fn_names: Vec_new_String(), fn_indices: Vec_new_i32(), fn_return_vts: Vec_new_i32(), fn_return_type_names: Vec_new_String(), loop_exit_block: 0 - 1, loop_cond_block: 0 - 1, nesting_depth: 0, loop_break_depth: 0 - 1, loop_continue_depth: 0 - 1, loop_break_local: 0 - 1, struct_names: Vec_new_String(), struct_field_counts: Vec_new_i32(), struct_all_fields: Vec_new_String(), struct_field_types: Vec_new_String(), local_types: Vec_new_String(), local_type_indices: Vec_new_i32(), variant_names: Vec_new_String(), variant_tags: Vec_new_i32(), payload_variants: Vec_new_String(), closure_counter: 0, closure_last_synth: String_new(), closure_last_caps: String_new(), closure_last_extra: 0, closure_bind_names: Vec_new_String(), closure_bind_synth: Vec_new_String(), closure_bind_caps: Vec_new_String(), closure_bind_extra: Vec_new_i32(), local_type_start: 0, mono_call_spans: Vec_new_i32(), mono_call_names: Vec_new_String(), mono_inst_fn_names: Vec_new_String(), mono_inst_mangled: Vec_new_String() }
 }
 
 // Look up return VT for a named function (VT_VOID=0 if not found or void, VT_I32=1, VT_F64=3)
@@ -1532,6 +1539,53 @@ fn ctx_fn_exists(ctx: LowerCtx, name: String) -> i32 {
     let mut i = 0
     while i < fc {
         if eq(clone(get_unchecked(ctx.fn_names, i)), clone(name)) {
+            return 1
+        }
+        i = i + 1
+    }
+    0
+}
+
+// ── Slice-c (#312) Mono Helpers ─────────────────────────────────────────────
+// Convert a typechecker-mangled name (which may contain `<>,` from
+// mono_type_key) to a wasm-safe identifier suitable for MirFunction.name and
+// `(func $...)` in WAT.  Replaces `<`/`>`/`,` with `_`.
+fn mono_safe_name(s: String) -> String {
+    let n = len(s)
+    let mut out = String_from("")
+    let mut i = 0
+    while i < n {
+        let c = substring(clone(s), i, i + 1)
+        if eq(clone(c), String_from("<")) || eq(clone(c), String_from(">")) || eq(clone(c), String_from(",")) {
+            out = concat(out, String_from("_"))
+        } else {
+            out = concat(out, c)
+        }
+        i = i + 1
+    }
+    out
+}
+
+// Look up a per-call-site mangled name by call AST node span.start.
+// Returns the wasm-safe specialized name, or "" if no specialization.
+fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32) -> String {
+    let n = len(ctx.mono_call_spans)
+    let mut i = 0
+    while i < n {
+        if get_unchecked(ctx.mono_call_spans, i) == span_start {
+            return mono_safe_name(clone(get_unchecked(ctx.mono_call_names, i)))
+        }
+        i = i + 1
+    }
+    String_from("")
+}
+
+// Returns 1 if `fn_name` has at least one recorded mono instance.
+fn ctx_has_mono_instance(ctx: LowerCtx, fn_name: String) -> i32 {
+    let n = len(ctx.mono_inst_fn_names)
+    let mut i = 0
+    while i < n {
+        if eq(clone(get_unchecked(ctx.mono_inst_fn_names, i)), clone(fn_name)) {
             return 1
         }
         i = i + 1
@@ -3301,6 +3355,12 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             }
             let call_inst = MirInst_new(MIR_CALL())
             call_inst.str_val = clone(callee.text)
+            // Slice-c (#312): rewrite generic call sites to specialized
+            // mangled names recorded by the typechecker (per-call-site).
+            let spec_name = ctx_mono_lookup_call(ctx, node.span.start)
+            if len(spec_name) > 0 {
+                call_inst.str_val = spec_name
+            }
             let is_println = eq(clone(callee.text), "stdio::println") || eq(clone(callee.text), "println") || eq(clone(callee.text), "stdio::print") || eq(clone(callee.text), "print") || eq(clone(callee.text), "stdio::eprintln") || eq(clone(callee.text), "eprintln") || eq(clone(callee.text), "__intrinsic_println")
             let mut first_arg_idx = 0 - 1
             let mut second_arg_idx = 0 - 1
@@ -4897,10 +4957,64 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
         }
         d = d + 1
     }
+    // Slice-c (#312): pre-register specialized fn names so ctx_fn_return_vt /
+    // _type_name lookups succeed when NK_CALL emit rewrites a generic callee
+    // to its mangled specialization.  Inherits return vt + type-name from
+    // the original generic source decl (sufficient because the supported
+    // type substitutions in this slice all map to VT_I32-class returns).
+    let mi_pre = len(check_result.mono_instances)
+    let mut mi_pi = 0
+    while mi_pi < mi_pre {
+        let mi_p = get_unchecked(check_result.mono_instances, mi_pi)
+        let mut src_idx = 0 - 1
+        let mut sd2 = 0
+        let mut src_decl_idx = 0
+        while sd2 < decl_count {
+            let dd = get_unchecked(decls, sd2)
+            if dd.kind == NK_FN_DECL() {
+                if eq(clone(dd.text), clone(mi_p.fn_name)) {
+                    src_idx = src_decl_idx
+                    sd2 = decl_count
+                } else {
+                    src_decl_idx = src_decl_idx + 1
+                }
+            }
+            sd2 = sd2 + 1
+        }
+        let safe_name = mono_safe_name(clone(mi_p.mangled_name))
+        push(fn_names, clone(safe_name))
+        if src_idx >= 0 && src_idx < len(fn_return_vts) {
+            push(fn_return_vts, get_unchecked(fn_return_vts, src_idx))
+            push(fn_return_type_names, clone(get_unchecked(fn_return_type_names, src_idx)))
+        } else {
+            push(fn_return_vts, VT_I32())
+            push(fn_return_type_names, String_from(""))
+        }
+        mi_pi = mi_pi + 1
+    }
     let mut ctx = LowerCtx_new(m)
     ctx.fn_names = fn_names
     ctx.fn_return_vts = fn_return_vts
     ctx.fn_return_type_names = fn_return_type_names
+    // Slice-c (#312): copy per-call-site mono mapping + deduped instance
+    // list into the LowerCtx so NK_CALL emit can rewrite generic call
+    // targets and the post-pass can emit specialized MirFunctions.
+    let mcs_count = len(check_result.mono_call_sites)
+    let mut mcs_i = 0
+    while mcs_i < mcs_count {
+        let mcs = get_unchecked(check_result.mono_call_sites, mcs_i)
+        push(ctx.mono_call_spans, mcs.span_start)
+        push(ctx.mono_call_names, clone(mcs.mangled_name))
+        mcs_i = mcs_i + 1
+    }
+    let mi_count_init = len(check_result.mono_instances)
+    let mut mi_init_i = 0
+    while mi_init_i < mi_count_init {
+        let mi_e = get_unchecked(check_result.mono_instances, mi_init_i)
+        push(ctx.mono_inst_fn_names, clone(mi_e.fn_name))
+        push(ctx.mono_inst_mangled, clone(mi_e.mangled_name))
+        mi_init_i = mi_init_i + 1
+    }
     ctx_register_builtin_variants(ctx)
     let mut sd = 0
     while sd < decl_count {
@@ -5047,7 +5161,12 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                 ctx_emit(ctx, MirInst_new(MIR_RETURN()))
             }
             mir_lower_trace_ctx(mir_tr, ctx, 4)
-            push(ctx.module.functions, ctx.func)
+            // Slice-c (#312): if this generic source has ≥1 mono instance,
+            // skip emitting the generic body (only specialized variants
+            // reach codegen).  fn_names entry remains for ordering.
+            if ctx_has_mono_instance(ctx, clone(decl.text)) == 0 {
+                push(ctx.module.functions, ctx.func)
+            }
             fn_idx = fn_idx + 1
         }
         if decl.kind == NK_IMPL_DECL() {
@@ -5128,6 +5247,112 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
             }
         }
         i = i + 1
+    }
+    // Slice-c (#312): emit specialized MirFunctions for each MonoInstance.
+    // Re-runs the same lowering pipeline as the generic source decl but
+    // with override_name = wasm-safe mangled.  The body is identical to the
+    // generic source's MIR (type-erased at this layer); the value of this
+    // pass is that backend emit produces one wasm function per concrete
+    // instantiation, satisfying the third acceptance bullet of #312.  Per
+    // the issue, deeper type substitution (and unused-instantiation pruning,
+    // slice-d) are OUT of scope for slice-c.
+    let mi_total = len(check_result.mono_instances)
+    let mut mi_pass = 0
+    while mi_pass < mi_total {
+        let mi_e = get_unchecked(check_result.mono_instances, mi_pass)
+        let mut decl_idx = 0 - 1
+        let mut dd_i = 0
+        while dd_i < decl_count {
+            let dd = get_unchecked(decls, dd_i)
+            if dd.kind == NK_FN_DECL() {
+                if eq(clone(dd.text), clone(mi_e.fn_name)) {
+                    decl_idx = dd_i
+                    dd_i = decl_count
+                }
+            }
+            dd_i = dd_i + 1
+        }
+        if decl_idx >= 0 {
+            let decl = get_unchecked(decls, decl_idx)
+            let safe_name = mono_safe_name(clone(mi_e.mangled_name))
+            // Find the original generic source's typed_fn for return type.
+            let mut tf_idx = 0 - 1
+            let mut tf_i = 0
+            let mut fn_decl_seen = 0
+            while tf_i < decl_count {
+                let tdd = get_unchecked(decls, tf_i)
+                if tdd.kind == NK_FN_DECL() {
+                    if eq(clone(tdd.text), clone(mi_e.fn_name)) {
+                        tf_idx = fn_decl_seen
+                        tf_i = decl_count
+                    } else {
+                        fn_decl_seen = fn_decl_seen + 1
+                    }
+                }
+                tf_i = tf_i + 1
+            }
+            let mf_spec = MirFunction_new(clone(safe_name))
+            ctx.func = mf_spec
+            ctx.local_names = Vec_new_String()
+            ctx.local_indices = Vec_new_i32()
+            ctx.local_types = Vec_new_String()
+            ctx.local_type_indices = Vec_new_i32()
+            ctx.local_type_start = len(ctx.local_types)
+            let child_count = len(decl.children)
+            let body_idx = child_count - 1
+            let mut p = 0
+            while p < body_idx {
+                let param = get_unchecked(decl.children, p)
+                if param.kind == NK_IDENT() {
+                    let mut pvt = VT_I32()
+                    if len(param.type_ann) >= 1 {
+                        let pta = get_unchecked(param.type_ann, 0)
+                        if eq(clone(pta.text), "f64") {
+                            pvt = VT_F64()
+                        } else {
+                            if eq(clone(pta.text), "i64") {
+                                pvt = VT_I64()
+                            }
+                        }
+                    }
+                    let param_local = ctx_alloc_local(ctx, clone(param.text), pvt)
+                    ctx_push_func_param(ctx, MirLocal { name: clone(param.text), val_type: pvt, ssa_name: clone(param.text), ssa_version: 0 - 1 })
+                    if len(param.type_ann) >= 1 {
+                        let p_ty = get_unchecked(param.type_ann, 0)
+                        if p_ty.kind == 91 {
+                            if eq(clone(p_ty.text), "Vec") && len(p_ty.children) >= 2 {
+                                let p_elem = get_unchecked(p_ty.children, 1)
+                                ctx_set_local_type(ctx, param_local, concat(String_from("vec:"), clone(p_elem.text)))
+                            }
+                        } else {
+                            if p_ty.kind == 90 {
+                                let p_ty_name = clone(p_ty.text)
+                                if !eq(clone(p_ty_name), "i32") && !eq(clone(p_ty_name), "f64") && !eq(clone(p_ty_name), "i64") && !eq(clone(p_ty_name), "bool") && !eq(clone(p_ty_name), "String") && !eq(clone(p_ty_name), "u8") && !eq(clone(p_ty_name), "char") && len(p_ty_name) > 1 {
+                                    ctx_set_local_type(ctx, param_local, p_ty_name)
+                                }
+                            }
+                        }
+                    }
+                }
+                p = p + 1
+            }
+            if tf_idx >= 0 && tf_idx < len(check_result.typed_fns) {
+                let tf_spec = get_unchecked(check_result.typed_fns, tf_idx)
+                ctx_apply_fn_return_type_for_rt_tag(ctx, tf_spec.return_type.tag)
+            }
+            let entry = ctx_alloc_block(ctx)
+            ctx.cur_block = entry
+            if body_idx >= 0 {
+                let body = get_unchecked(decl.children, body_idx)
+                let result = lower_expr(ctx, body)
+                if result >= 0 && ctx.func.return_type == VT_VOID() {
+                    ctx_emit(ctx, MirInst_new(MIR_DROP()))
+                }
+                ctx_emit(ctx, MirInst_new(MIR_RETURN()))
+            }
+            push(ctx.module.functions, ctx.func)
+        }
+        mi_pass = mi_pass + 1
     }
     ctx.module
 }

@@ -260,11 +260,12 @@ struct TypeEnv {
     errors: Vec<String>,
     error_count: i32,
     mono_instances: Vec<MonoInstance>,
+    mono_call_sites: Vec<MonoCallSite>,
     trait_impls: Vec<TraitImplInfo>,
 }
 
 fn TypeEnv_new() -> TypeEnv {
-    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), trait_impls: Vec_new_TraitImplInfo() }
+    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite(), trait_impls: Vec_new_TraitImplInfo() }
 }
 
 struct TraitImplInfo {
@@ -273,8 +274,22 @@ struct TraitImplInfo {
 }
 
 // ── Monomorphization Instance Tracking ──────────────────────────────────────
+// MonoInstance records a deduplicated specialization of a generic function:
+// (fn_name, mangled_name, type_args).  Slice-c (#312) adds `type_args` so the
+// MIR layer can derive a wasm-safe specialized name and substitute concrete
+// types when emitting the specialized variant.
 struct MonoInstance {
     fn_name: String,
+    mangled_name: String,
+    type_args: Vec<TypeInfo>,
+}
+
+// MonoCallSite maps a single generic call expression to the mangled name of
+// the specialization it should dispatch to.  Identified by the call AST
+// node's `span.start` offset (unique per source position).  Slice-c (#312)
+// uses this map to rewrite NK_CALL emit targets to the specialized fn id.
+struct MonoCallSite {
+    span_start: i32,
     mangled_name: String,
 }
 
@@ -327,7 +342,48 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
         }
         j = j + 1
     }
-    push(env.mono_instances, MonoInstance { fn_name: fn_name, mangled_name: mangled })
+    push(env.mono_instances, MonoInstance { fn_name: fn_name, mangled_name: mangled, type_args: resolved_types })
+}
+
+// Slice-c (#312): record both the deduplicated MonoInstance entry and a
+// per-call-site MonoCallSite mapping in one pass.  The MIR layer reads the
+// per-call-site list to rewrite NK_CALL targets to specialized fn ids and
+// the deduplicated list to emit specialized MirFunctions.
+fn record_mono_call(env: TypeEnv, span_start: i32, fn_name: String, resolved_types: Vec<TypeInfo>) {
+    let mut mangled = clone(fn_name)
+    let count = len(resolved_types)
+    let mut i = 0
+    while i < count {
+        let ty = get_unchecked(resolved_types, i)
+        mangled = concat(mangled, concat(String_from("__"), mono_type_key(ty)))
+        i = i + 1
+    }
+    push(env.mono_call_sites, MonoCallSite { span_start: span_start, mangled_name: clone(mangled) })
+    let mi_count = len(env.mono_instances)
+    let mut j = 0
+    while j < mi_count {
+        let mi = get_unchecked(env.mono_instances, j)
+        if eq(clone(mi.mangled_name), clone(mangled)) {
+            return
+        }
+        j = j + 1
+    }
+    push(env.mono_instances, MonoInstance { fn_name: fn_name, mangled_name: mangled, type_args: resolved_types })
+}
+
+// Slice-c (#312): record per-call-site specialization mapping so MIR can
+// rewrite call targets without re-running inference.  span_start is the
+// unique start offset of the call AST node within the compiled source.
+fn record_mono_call_site(env: TypeEnv, span_start: i32, fn_name: String, resolved_types: Vec<TypeInfo>) {
+    let mut mangled = clone(fn_name)
+    let count = len(resolved_types)
+    let mut i = 0
+    while i < count {
+        let ty = get_unchecked(resolved_types, i)
+        mangled = concat(mangled, concat(String_from("__"), mono_type_key(ty)))
+        i = i + 1
+    }
+    push(env.mono_call_sites, MonoCallSite { span_start: span_start, mangled_name: mangled })
 }
 
 fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> bool {
@@ -1045,7 +1101,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             rv = rv + 1
         }
         enforce_fn_sig_bounds(env, infer_env, sig, var_types)
-        record_mono_instance(env, clone(callee.text), resolved_type_args)
+        record_mono_call(env, node.span.start, clone(callee.text), resolved_type_args)
         return ret_ty
     }
     if node.kind == NK_METHOD_CALL() {
@@ -1114,7 +1170,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             rv = rv + 1
         }
         enforce_fn_sig_bounds(env, infer_env, sig, var_types)
-        record_mono_instance(env, clone(node.text), resolved_type_args)
+        record_mono_call(env, node.span.start, clone(node.text), resolved_type_args)
         return ret_ty
     }
     if node.kind == NK_MATCH_EXPR() {
@@ -1255,6 +1311,7 @@ struct TypeCheckResult {
     errors: Vec<String>,
     typed_fns: Vec<TypedFn>,
     mono_instances: Vec<MonoInstance>,
+    mono_call_sites: Vec<MonoCallSite>,
 }
 
 struct TypedFn {
@@ -1263,7 +1320,7 @@ struct TypedFn {
 }
 
 pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeCheckResult {
-    let result = TypeCheckResult { error_count: 0, errors: Vec_new_String(), typed_fns: Vec_new_TypedFn(), mono_instances: Vec_new_MonoInstance() }
+    let result = TypeCheckResult { error_count: 0, errors: Vec_new_String(), typed_fns: Vec_new_TypedFn(), mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite() }
     let env = TypeEnv_new()
     result.error_count = resolve_ctx.error_count
     result.errors = resolve_ctx.errors
@@ -1337,6 +1394,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         e = e + 1
     }
     result.mono_instances = env.mono_instances
+    result.mono_call_sites = env.mono_call_sites
     result
 }
 
