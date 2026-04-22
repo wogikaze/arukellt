@@ -1,8 +1,10 @@
 # Stdlib: raw helper と推奨 facade の境界を再設計する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-15
-**Updated**: 2026-04-16
+**Updated**: 2026-04-22
+**Closed**: 2026-04-22
+**Commit**: ebb57f4b
 **ID**: 516
 **Depends on**: none
 **Track**: stdlib

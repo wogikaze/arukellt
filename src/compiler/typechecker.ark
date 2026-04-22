@@ -282,10 +282,31 @@ fn mono_type_key(ty: TypeInfo) -> String {
     if ty.tag == TY_TYPE_VAR() {
         return concat(String_from("?"), clone(ty.name))
     }
+    let mut base = String_from("")
     if ty.tag == TY_STRUCT() || ty.tag == TY_ENUM() {
-        return clone(ty.name)
+        base = clone(ty.name)
+    } else {
+        base = type_tag_name(ty.tag)
     }
-    type_tag_name(ty.tag)
+    let arg_count = len(ty.type_args)
+    if arg_count == 0 {
+        return base
+    }
+    // Recurse into nested type arguments so distinct concretizations such as
+    // `f<Vec<i32>>` and `f<Vec<String>>` produce distinct mangled keys
+    // (#312 slice-a — nested generic monomorphization).
+    let mut result = concat(base, String_from("<"))
+    let mut i = 0
+    while i < arg_count {
+        let arg = get_unchecked(ty.type_args, i)
+        if i > 0 {
+            result = concat(result, String_from(","))
+        }
+        result = concat(result, mono_type_key(arg))
+        i = i + 1
+    }
+    result = concat(result, String_from(">"))
+    result
 }
 
 fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
@@ -417,6 +438,26 @@ fn resolve_type(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
         i = i + 1
     }
     ty
+}
+
+// Walk the type structure and resolve every nested TY_TYPE_VAR.  Used when
+// recording monomorphization instances so that nested generic concretizations
+// (e.g. T -> Vec<i32>) receive a fully resolved key rather than carrying a
+// dangling fresh variable inside their `type_args`. (#312 slice-a)
+fn resolve_type_deep(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
+    let head = resolve_type(env, ty)
+    let arg_count = len(head.type_args)
+    if arg_count == 0 {
+        return head
+    }
+    let res = TypeInfo { tag: head.tag, name: clone(head.name), type_args: Vec_new_TypeInfo() }
+    let mut i = 0
+    while i < arg_count {
+        let arg = get_unchecked(head.type_args, i)
+        push(res.type_args, resolve_type_deep(env, arg))
+        i = i + 1
+    }
+    res
 }
 
 fn type_tag_name(tag: i32) -> String {
@@ -999,7 +1040,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         let mut rv = 0
         while rv < tp_count {
             let tv_raw = get_unchecked(var_types, rv)
-            let resolved_tv = resolve_type(infer_env, tv_raw)
+            let resolved_tv = resolve_type_deep(infer_env, tv_raw)
             push(resolved_type_args, resolved_tv)
             rv = rv + 1
         }
@@ -1068,7 +1109,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         let mut rv = 0
         while rv < tp_count {
             let tv_raw = get_unchecked(var_types, rv)
-            let resolved_tv = resolve_type(infer_env, tv_raw)
+            let resolved_tv = resolve_type_deep(infer_env, tv_raw)
             push(resolved_type_args, resolved_tv)
             rv = rv + 1
         }

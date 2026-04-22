@@ -1,8 +1,10 @@
 # Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-15
-**Updated**: 2026-04-16
+**Updated**: 2026-04-22
+**Closed**: 2026-04-22
+**Commit**: 873f2da0
 **ID**: 514
 **Depends on**: none
 **Track**: stdlib

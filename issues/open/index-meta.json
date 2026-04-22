@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T04:40:02Z",
+  "generated_at": "2026-04-22T04:49:28Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -611,75 +611,6 @@
       }
     },
     {
-      "id": "514",
-      "path": "514-stdlib-implementation-quality-audit.md",
-      "title": "Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "516",
-      "path": "516-stdlib-raw-helper-boundary-and-facades.md",
-      "title": "Stdlib: raw helper と推奨 facade の境界を再設計する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "518",
-      "path": "518-stdlib-docs-examples-as-canonical-style.md",
-      "title": "Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "513",
-        "517"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#513, #517"
-      }
-    },
-    {
       "id": "520",
       "path": "520-stdlib-performance-allocation-and-complexity-audit.md",
       "title": "Stdlib: allocation / complexity / perf footgun を family 横断で監査する",
@@ -745,28 +676,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "545",
-      "path": "545-bench-real-world-workloads.md",
-      "title": "545 — Benchmark: real-world workloads",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {

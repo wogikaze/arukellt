@@ -31,13 +31,9 @@ graph LR
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I489["489 489-playground-user-visible-entrypoint-wiring"]
   I500["500 500-playground-wasm-typecheck-export"]
-  I514["514 Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する"]
-  I516["516 Stdlib: raw helper と推奨 facade の境界を再設計する"]
-  I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
   I520["520 Stdlib: allocation / complexity / perf footgun を family 横断で監査する"]
   I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
   I531["531 Scripts Consolidation Epic: Python CLI Refactoring"]
-  I545["545 545 — Benchmark: real-world workloads"]
   I546["546 Release: Binary Smoke Tests"]
   I547["547 Release: Determinism Check"]
   I548["548 Release: LSP E2E Tests"]
@@ -186,13 +182,9 @@ graph LR
 - **473** depends on: 032, done); blocks: none
 - **489** depends on: none; blocks: none
 - **500** depends on: none; blocks: none
-- **514** depends on: none; blocks: none
-- **516** depends on: none; blocks: none
-- **518** depends on: 513, 517; blocks: none
 - **520** depends on: none; blocks: none
 - **529** depends on: none; blocks: 508
 - **531** depends on: none; blocks: none
-- **545** depends on: none; blocks: none
 - **546** depends on: none; blocks: none
 - **547** depends on: none; blocks: none
 - **548** depends on: none; blocks: none

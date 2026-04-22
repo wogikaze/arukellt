@@ -1,6 +1,6 @@
 # 545 — Benchmark: real-world workloads
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-21
 **ID**: 545
 **Depends on**: none

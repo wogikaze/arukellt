@@ -1,8 +1,10 @@
 # Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-15
-**Updated**: 2026-04-15
+**Updated**: 2026-04-22
+**Closed**: 2026-04-22
+**Commit**: b15af079
 **ID**: 518
 **Depends on**: 513, 517
 **Track**: stdlib
