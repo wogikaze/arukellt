@@ -30,6 +30,18 @@ docs/release-checklist.md — Binary distribution section
 
 All binary distribution requirements must be satisfied.
 
+## Verification Evidence
+
+- `target/release/arukellt` exists and is executable: `test -x target/release/arukellt` passed.
+- Binary size: `529864` bytes, which is below the `50 MB` limit.
+- SHA256: `098e3719eaa425494f469b5d8a24a3bfc6900c4e9feffcfb8ab35e4491314df3`.
+- `Cargo.toml` package version: `0.1.0`.
+- Git tag state: no release tag is available in this checkout (`git describe --tags --abbrev=0` returned `NO_TAG`).
+
+## Verdict
+
+Blocked. The binary distribution evidence is present, but the release tag gate cannot be completed because no git tag is available to compare against the `Cargo.toml` version.
+
 ## Primary Paths
 
 - `Cargo.toml` (version configuration)
