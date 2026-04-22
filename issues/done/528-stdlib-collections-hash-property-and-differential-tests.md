@@ -1,8 +1,8 @@
 # Stdlib collections/hash: property と differential tests を map / set invariant で拡張する
 
-**Status**: implementation-ready
+**Status**: done
 **Created**: 2026-04-18
-**Updated**: 2026-04-18
+**Updated**: 2026-04-22
 **ID**: 528
 **Depends on**: none
 **Track**: stdlib
@@ -50,10 +50,18 @@
 
 ## Acceptance
 
-- [ ] property invariants are defined for at least disjoint-key insert commutativity and insert/remove balance
-- [ ] differential replay is defined against a reference snapshot that does not depend on iteration order
-- [ ] a deterministic seed / snapshot normalization rule is documented for the test harness
-- [ ] the corpus or Rust test module is wired into the repo without changing production hash behavior
+- [x] property invariants are defined for at least disjoint-key insert commutativity and insert/remove balance
+- [x] differential replay is defined against a reference snapshot that does not depend on iteration order
+- [x] a deterministic seed / snapshot normalization rule is documented for the test harness
+- [x] the corpus or Rust test module is wired into the repo without changing production hash behavior
+
+## Evidence
+
+- `tests/fixtures/stdlib_hashmap/property_disjoint_commutativity.ark` — disjoint-key insert commutativity (A vs B under reversed insertion order with fixed-probe snapshot).
+- `tests/fixtures/stdlib_hashmap/property_insert_remove_balance.ark` — insert N=16 then remove N=16 leaves `size == 0`, `is_empty == true`, every key absent.
+- `tests/fixtures/stdlib_hashmap/property_snapshot_normalized.ark` — differential replay: two maps built with different insertion orders produce byte-identical stdout under the documented normalization rule (collect `hashmap_keys` → inline ascending insertion sort → emit `key`/`value` lines in sorted order).
+- Registered in `tests/fixtures/manifest.txt` under the `run:` section for `stdlib_hashmap`.
+- Zero diff under `std/collections/hash*.ark` and `std/core/hash.ark` in the slice commit (acceptance item 4).
 
 ## Required verification
 
@@ -66,3 +74,9 @@
 - invariant coverage is repo-provable from the new tests
 - differential comparison avoids iteration-order flakiness
 - the issue can be closed by citing corpus / harness evidence from repo state
+
+## Close note
+
+Closed by commit `e791a84a` on branch `feat/528-stdlib-hash-property-tests`.
+All four acceptance criteria met: three property/differential fixtures added and
+passing, registered in manifest, no production hash source changed.

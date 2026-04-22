@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T19:24:21Z",
+  "generated_at": "2026-04-21T18:48:48Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -957,9 +957,9 @@
       }
     },
     {
-      "id": "528",
-      "path": "528-stdlib-collections-hash-property-and-differential-tests.md",
-      "title": "Stdlib collections/hash: property と differential tests を map / set invariant で拡張する",
+      "id": "527",
+      "path": "527-stdlib-toml-parity-and-differential-tests.md",
+      "title": "Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する",
       "track": "stdlib",
       "status": "implementation-ready",
       "blocks_v1": "none",
@@ -1324,6 +1324,28 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 8
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "556",
+      "path": "556-release-selfhost-bootstrap-check.md",
+      "title": "Release: Selfhost Bootstrap Check",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 1
       },
       "orchestration": {
         "class": null,

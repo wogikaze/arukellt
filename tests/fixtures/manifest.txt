@@ -286,6 +286,9 @@ run:stdlib_hashmap/hashmap_string_i32.ark
 run:stdlib_hashmap/hashmap_i32_string.ark
 run:stdlib_hashmap/hashmap_string_string.ark
 run:stdlib_hashmap/hashset_string_basic.ark
+run:stdlib_hashmap/property_disjoint_commutativity.ark
+run:stdlib_hashmap/property_insert_remove_balance.ark
+run:stdlib_hashmap/property_snapshot_normalized.ark
 run:stdlib_hof_i64_f64/filter_f64.ark
 run:stdlib_hof_i64_f64/filter_i64.ark
 run:stdlib_hof_i64_f64/fold_i64.ark
