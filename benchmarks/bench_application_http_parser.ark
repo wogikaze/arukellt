@@ -1,0 +1,75 @@
+// Application benchmark: HTTP header line parser.
+// Simulates parsing a stream of HTTP request header lines by dispatching on
+// the first character of a fixed token, building a simple struct record per
+// header, and accumulating a deterministic checksum.  No actual networking or
+// I/O — pure computation over 20,000 synthetic header "strings" represented as
+// integer tokens.  Exercises enum dispatch, struct allocation, and branching.
+use std::host::stdio
+
+enum HeaderKind {
+    ContentType {
+        value: i32,
+    },
+    ContentLength {
+        bytes: i32,
+    },
+    Authorization {
+        token: i32,
+    },
+    Accept {
+        mask: i32,
+    },
+    Unknown,
+}
+
+struct Header {
+    kind: HeaderKind,
+    seq: i32,
+}
+
+fn parse_header(token: i32, seq: i32) -> Header {
+    let kind: i32 = token - token / 5 * 5
+    let h: HeaderKind = if kind == 0 {
+        HeaderKind::ContentType { value: token * 7 + 1 }
+    } else {
+        if kind == 1 {
+            HeaderKind::ContentLength { bytes: token * 3 + 42 }
+        } else {
+            if kind == 2 {
+                HeaderKind::Authorization { token: token + seq }
+            } else {
+                if kind == 3 {
+                    HeaderKind::Accept { mask: token - seq }
+                } else {
+                    HeaderKind::Unknown
+                }
+            }
+        }
+    }
+    Header { kind: h, seq: seq }
+}
+
+fn header_value(h: Header) -> i32 {
+    match h.kind {
+        HeaderKind::ContentType { value } => value,
+        HeaderKind::ContentLength { bytes } => bytes,
+        HeaderKind::Authorization { token } => token,
+        HeaderKind::Accept { mask } => mask,
+        HeaderKind::Unknown => 0,
+    }
+}
+
+fn main() {
+    let mut sum: i32 = 0
+    let mut i: i32 = 0
+    while i < 20000 {
+        let h: Header = parse_header(i + 1, i)
+        let v: i32 = header_value(h)
+        sum = sum + v
+        if sum > 1000000 {
+            sum = sum - 1000000
+        }
+        i = i + 1
+    }
+    stdio::println(i32_to_string(sum))
+}

@@ -34,8 +34,8 @@ Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced 
 
 ## Current Run
 
-- Mode: `compare`
-- Generated at: `2026-04-22T04:26:29+00:00`
+- Mode: `update-baseline`
+- Generated at: `2026-04-22T04:46:08+00:00`
 - Target: `wasm32-wasi-p1`
 - Compiler: `/home/wogikaze/arukellt/target/release/arukellt`
 
@@ -51,29 +51,35 @@ Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced 
 
 | Benchmark | Tags | Compile ms | Run ms | Binary bytes | Compile RSS KB | Run RSS KB | Correctness |
 |-----------|------|------------|--------|--------------|----------------|------------|-------------|
-| fib | cpu-bound, loop, scalar | 17.399 | 12.936 | 993 | 12032 | 19328 | pass |
-| binary_tree | recursion-heavy, allocation-light, call-heavy | 14.754 | 17.015 | 977 | 11904 | 19072 | pass |
-| vec_ops | allocation-heavy, container, iteration | 14.716 | 12.260 | 1983 | 12032 | 18944 | pass |
-| string_concat | string-heavy, allocation-heavy, gc-pressure | 13.355 | 13.160 | 1248 | 12032 | 19200 | pass |
-| parse_tree_distance | parse, allocation-heavy, container, iteration | 16.134 | 36.603 | 7287 | 13312 | 27904 | fail |
-| enum_dispatch | cpu-bound, match-heavy, allocation-heavy, iteration | 19.771 | 14.448 | 1555 | 12288 | 19584 | pass |
-| struct_graph | allocation-heavy, struct-heavy, recursion-heavy, container | 18.214 | 13.937 | 1416 | 12288 | 20096 | pass |
-| error_chain | cpu-bound, error-heavy, match-heavy, iteration | 14.355 | 14.287 | 1771 | 12288 | 19904 | pass |
-| closure_map | cpu-bound, closure-heavy, iteration, allocation-light | 14.038 | 11.816 | 2013 | 12160 | 19072 | pass |
+| fib | cpu-bound, loop, scalar | 14.394 | 10.793 | 993 | 12032 | 19200 | pass |
+| binary_tree | recursion-heavy, allocation-light, call-heavy | 14.084 | 18.558 | 977 | 12032 | 19136 | pass |
+| vec_ops | allocation-heavy, container, iteration | 21.474 | 12.035 | 1983 | 12160 | 19136 | pass |
+| string_concat | string-heavy, allocation-heavy, gc-pressure | 14.213 | 11.718 | 1248 | 12032 | 19200 | pass |
+| parse_tree_distance | parse, allocation-heavy, container, iteration | 22.696 | 36.291 | 7287 | 13312 | 28032 | fail |
+| enum_dispatch | cpu-bound, match-heavy, allocation-heavy, iteration | 14.664 | 13.933 | 1555 | 12160 | 19776 | pass |
+| struct_graph | allocation-heavy, struct-heavy, recursion-heavy, container | 17.546 | 12.358 | 1416 | 12288 | 20352 | pass |
+| error_chain | cpu-bound, error-heavy, match-heavy, iteration | 15.861 | 12.181 | 1771 | 12288 | 19904 | pass |
+| closure_map | cpu-bound, closure-heavy, iteration, allocation-light | 14.587 | 10.311 | 2013 | 11904 | 19072 | pass |
+| http_parser | application, enum-heavy, match-heavy, struct-heavy, iteration | 14.001 | 11.318 | 1657 | 12288 | 19060 | pass |
+| log_processor | application, enum-heavy, allocation-heavy, iteration, match-heavy | 15.149 | 11.788 | 1906 | 12288 | 19328 | pass |
+| config_loader | application, struct-heavy, error-heavy, match-heavy, allocation-heavy | 17.128 | 11.020 | 1841 | 12416 | 19128 | pass |
 
 ## Compile Latency Breakdown (ms)
 
 | Benchmark | lex | parse | resolve | typecheck | lower | opt | emit | total |
 |-----------|-----|-------|---------|-----------|-------|-----|------|-------|
-| fib | 0.000 | 0.000 | 2.100 | 1.400 | 5.300 | 0.900 | 0.400 | 10.700 |
-| binary_tree | 0.000 | 0.000 | 1.600 | 1.100 | 4.900 | 0.800 | 0.300 | 9.100 |
-| vec_ops | 0.000 | 0.000 | 1.500 | 1.200 | 4.500 | 1.000 | 0.300 | 9.100 |
-| string_concat | 0.000 | 0.000 | 1.500 | 1.000 | 4.100 | 0.800 | 0.300 | 8.300 |
-| parse_tree_distance | 0.000 | 0.000 | 2.100 | 1.700 | 4.600 | 1.100 | 0.400 | 10.600 |
-| enum_dispatch | 0.000 | 0.000 | 2.000 | 3.000 | 5.000 | 1.200 | 0.300 | 12.000 |
-| struct_graph | 0.000 | 0.000 | 1.900 | 1.700 | 5.700 | 0.900 | 0.300 | 11.400 |
-| error_chain | 0.000 | 0.000 | 1.600 | 1.200 | 4.400 | 0.800 | 0.300 | 8.900 |
-| closure_map | 0.000 | 0.000 | 1.400 | 1.200 | 4.300 | 0.900 | 0.300 | 8.700 |
+| fib | 0.000 | 0.000 | 1.600 | 1.200 | 4.300 | 0.800 | 0.300 | 8.800 |
+| binary_tree | 0.000 | 0.000 | 1.500 | 1.100 | 4.300 | 0.900 | 0.300 | 8.300 |
+| vec_ops | 0.000 | 0.000 | 1.900 | 1.700 | 7.000 | 1.700 | 0.400 | 13.900 |
+| string_concat | 0.000 | 0.000 | 1.600 | 1.100 | 4.200 | 0.900 | 0.300 | 8.700 |
+| parse_tree_distance | 0.000 | 0.000 | 2.500 | 2.500 | 7.500 | 1.400 | 0.600 | 15.300 |
+| enum_dispatch | 0.000 | 0.000 | 1.400 | 2.400 | 4.200 | 0.900 | 0.300 | 9.500 |
+| struct_graph | 0.000 | 0.000 | 1.800 | 1.600 | 5.700 | 1.200 | 0.400 | 11.600 |
+| error_chain | 0.000 | 0.000 | 1.800 | 1.700 | 5.200 | 1.100 | 0.300 | 10.400 |
+| closure_map | 0.000 | 0.000 | 1.600 | 1.300 | 4.400 | 0.900 | 0.300 | 8.900 |
+| http_parser | 0.000 | 0.000 | 1.600 | 1.400 | 4.400 | 0.900 | 0.300 | 8.800 |
+| log_processor | 0.000 | 0.000 | 1.600 | 1.200 | 4.600 | 0.900 | 0.300 | 9.000 |
+| config_loader | 0.000 | 0.000 | 1.900 | 2.200 | 4.900 | 1.100 | 0.400 | 10.900 |
 
 ## Wasm Section Breakdown (bytes)
 
@@ -90,6 +96,9 @@ Section sizes parsed directly from the .wasm binary header using pure-Python LEB
 | struct_graph | 116 | 35 | 16 | 1008 | 40 | 19 | 110 | unavailable |
 | error_chain | 116 | 35 | 14 | 1337 | 91 | 19 | 89 | unavailable |
 | closure_map | 116 | 35 | 14 | 1636 | 29 | 19 | 94 | unavailable |
+| http_parser | 116 | 35 | 13 | 1293 | 29 | 19 | 83 | unavailable |
+| log_processor | 116 | 35 | 13 | 1546 | 29 | 19 | 79 | unavailable |
+| config_loader | 116 | 35 | 13 | 1450 | 57 | 19 | 82 | unavailable |
 
 ## Threshold Policy
 
@@ -105,15 +114,18 @@ Benchmarks with CV > 5.0% are flagged as **unstable** — high variance may indi
 
 | Benchmark | Compile CV% | Compile Stable | Runtime CV% | Runtime Stable |
 |-----------|-------------|----------------|-------------|----------------|
-| fib | 13.19 | ✗ unstable | 10.95 | ✗ unstable |
-| binary_tree | 6.26 | ✗ unstable | 7.08 | ✗ unstable |
-| vec_ops | 14.21 | ✗ unstable | 10.11 | ✗ unstable |
-| string_concat | 4.35 | ✓ | 23.03 | ✗ unstable |
-| parse_tree_distance | 2.83 | ✓ | 4.69 | ✓ |
-| enum_dispatch | 18.39 | ✗ unstable | 9.03 | ✗ unstable |
-| struct_graph | 15.70 | ✗ unstable | 6.95 | ✗ unstable |
-| error_chain | 7.94 | ✗ unstable | 11.53 | ✗ unstable |
-| closure_map | 6.70 | ✗ unstable | 3.82 | ✓ |
+| fib | 2.89 | ✓ | 5.42 | ✗ unstable |
+| binary_tree | 12.82 | ✗ unstable | 13.39 | ✗ unstable |
+| vec_ops | 22.24 | ✗ unstable | 9.94 | ✗ unstable |
+| string_concat | 13.47 | ✗ unstable | 13.52 | ✗ unstable |
+| parse_tree_distance | 20.77 | ✗ unstable | 6.41 | ✗ unstable |
+| enum_dispatch | 6.71 | ✗ unstable | 10.34 | ✗ unstable |
+| struct_graph | 7.52 | ✗ unstable | 4.76 | ✓ |
+| error_chain | 15.93 | ✗ unstable | 7.96 | ✗ unstable |
+| closure_map | 12.83 | ✗ unstable | 6.28 | ✗ unstable |
+| http_parser | 2.61 | ✓ | 6.49 | ✗ unstable |
+| log_processor | 7.78 | ✗ unstable | 13.79 | ✗ unstable |
+| config_loader | 9.50 | ✗ unstable | 5.81 | ✗ unstable |
 
 ## Baseline Comparison
 
@@ -121,15 +133,18 @@ Baseline source: `tests/baselines/perf/baselines.json`
 
 | Benchmark | Compile Δ | Run Δ | Size Δ | Status |
 |-----------|-----------|-------|--------|--------|
-| fib | +26.99% | +12.62% | -8.23% | fail |
-| binary_tree | +11.49% | +4.95% | -8.35% | pass |
-| vec_ops | +8.65% | +6.22% | -4.30% | pass |
-| string_concat | +3.45% | +13.01% | -6.66% | fail |
-| parse_tree_distance | -11.17% | -1.77% | -1.21% | pass |
-| enum_dispatch | +21.72% | +11.64% | -5.41% | fail |
-| struct_graph | +21.87% | +4.50% | -5.91% | fail |
-| error_chain | -5.70% | -6.25% | -4.78% | pass |
+| fib | +5.06% | -6.03% | -8.23% | pass |
+| binary_tree | +6.42% | +14.47% | -8.35% | fail |
+| vec_ops | +58.55% | +4.27% | -4.30% | fail |
+| string_concat | +10.09% | +0.63% | -6.66% | pass |
+| parse_tree_distance | +24.96% | -2.60% | -1.21% | fail |
+| enum_dispatch | -9.72% | +7.66% | -5.41% | pass |
+| struct_graph | +17.40% | -7.34% | -5.91% | pass |
+| error_chain | +4.20% | -20.07% | -4.78% | pass |
 | closure_map | n/a | n/a | n/a | skipped |
+| http_parser | n/a | n/a | n/a | skipped |
+| log_processor | n/a | n/a | n/a | skipped |
+| config_loader | n/a | n/a | n/a | skipped |
 
 ### Wasm Section Δ vs Baseline (bytes)
 
@@ -146,9 +161,9 @@ Positive delta = size grew. Negative = shrank. `n/a` = section absent in one sid
 | struct_graph | -87 (-8.0%) | +0 (+0.0%) | +0 (+0.0%) | -1 (-4.0%) | +0 (+0.0%) | -1 (-5.9%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
 | error_chain | -87 (-6.1%) | +0 (+0.0%) | +0 (+0.0%) | -1 (-4.3%) | +0 (+0.0%) | -1 (-6.7%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
 
-- Pass: 18
-- Fail: 6
-- Skipped: 3
+- Pass: 21
+- Fail: 3
+- Skipped: 12
 
 ## Schema
 
@@ -166,15 +181,18 @@ RSS peaks are sourced from `/usr/bin/time -f %M` (null when the tool is absent).
 
 | Benchmark | Tags | Compiler RSS KB | Runtime RSS KB | GC pauses |
 |-----------|------|-----------------|----------------|-----------|
-| fib | cpu-bound, loop, scalar | 12032 | 19328 | unavailable |
-| binary_tree | recursion-heavy, allocation-light, call-heavy | 11904 | 19072 | unavailable |
-| vec_ops | allocation-heavy, container, iteration | 12032 | 18944 | unavailable |
+| fib | cpu-bound, loop, scalar | 12032 | 19200 | unavailable |
+| binary_tree | recursion-heavy, allocation-light, call-heavy | 12032 | 19136 | unavailable |
+| vec_ops | allocation-heavy, container, iteration | 12160 | 19136 | unavailable |
 | string_concat | string-heavy, allocation-heavy, gc-pressure | 12032 | 19200 | unavailable |
-| parse_tree_distance | parse, allocation-heavy, container, iteration | 13312 | 27904 | unavailable |
-| enum_dispatch | cpu-bound, match-heavy, allocation-heavy, iteration | 12288 | 19584 | unavailable |
-| struct_graph | allocation-heavy, struct-heavy, recursion-heavy, container | 12288 | 20096 | unavailable |
+| parse_tree_distance | parse, allocation-heavy, container, iteration | 13312 | 28032 | unavailable |
+| enum_dispatch | cpu-bound, match-heavy, allocation-heavy, iteration | 12160 | 19776 | unavailable |
+| struct_graph | allocation-heavy, struct-heavy, recursion-heavy, container | 12288 | 20352 | unavailable |
 | error_chain | cpu-bound, error-heavy, match-heavy, iteration | 12288 | 19904 | unavailable |
-| closure_map | cpu-bound, closure-heavy, iteration, allocation-light | 12160 | 19072 | unavailable |
+| closure_map | cpu-bound, closure-heavy, iteration, allocation-light | 11904 | 19072 | unavailable |
+| http_parser | application, enum-heavy, match-heavy, struct-heavy, iteration | 12288 | 19060 | unavailable |
+| log_processor | application, enum-heavy, allocation-heavy, iteration, match-heavy | 12288 | 19328 | unavailable |
+| config_loader | application, struct-heavy, error-heavy, match-heavy, allocation-heavy | 12416 | 19128 | unavailable |
 
 ## Runtime Latency Breakdown (ms)
 
@@ -183,12 +201,15 @@ Guest execution time = median total − startup overhead.
 
 | Benchmark | startup | guest | p50 | p95 | p99 | stddev |
 |-----------|---------|-------|-----|-----|-----|--------|
-| fib | 15.354 | 0.000 | 12.936 | 15.212 | 17.074 | 1.430 |
-| binary_tree | 15.354 | 1.661 | 17.015 | 19.375 | 19.524 | 1.213 |
-| vec_ops | 15.354 | 0.000 | 12.260 | 15.270 | 15.320 | 1.293 |
-| string_concat | 15.354 | 0.000 | 13.160 | 21.593 | 22.017 | 3.282 |
-| parse_tree_distance | 15.354 | 21.249 | 36.603 | 38.365 | 42.141 | 1.727 |
-| enum_dispatch | 15.354 | 0.000 | 14.448 | 16.935 | 18.621 | 1.330 |
-| struct_graph | 15.354 | 0.000 | 13.937 | 15.896 | 16.151 | 0.982 |
-| error_chain | 15.354 | 0.000 | 14.287 | 18.208 | 18.227 | 1.726 |
-| closure_map | 15.354 | 0.000 | 11.816 | 12.853 | 13.017 | 0.458 |
+| fib | 11.434 | 0.000 | 10.793 | 12.177 | 12.184 | 0.586 |
+| binary_tree | 11.434 | 7.124 | 18.558 | 22.402 | 22.761 | 2.466 |
+| vec_ops | 11.434 | 0.601 | 12.035 | 14.117 | 15.621 | 1.215 |
+| string_concat | 11.434 | 0.284 | 11.718 | 15.068 | 16.024 | 1.638 |
+| parse_tree_distance | 11.434 | 24.857 | 36.291 | 41.530 | 42.260 | 2.373 |
+| enum_dispatch | 11.434 | 2.499 | 13.933 | 16.238 | 16.547 | 1.457 |
+| struct_graph | 11.434 | 0.924 | 12.358 | 13.330 | 13.520 | 0.594 |
+| error_chain | 11.434 | 0.747 | 12.181 | 14.532 | 14.643 | 0.983 |
+| closure_map | 11.434 | 0.000 | 10.311 | 11.708 | 12.065 | 0.658 |
+| http_parser | 11.434 | 0.000 | 11.318 | 12.326 | 12.984 | 0.740 |
+| log_processor | 11.434 | 0.354 | 11.788 | 15.581 | 16.284 | 1.727 |
+| config_loader | 11.434 | 0.000 | 11.020 | 11.697 | 12.355 | 0.635 |

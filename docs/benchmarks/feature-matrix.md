@@ -15,6 +15,11 @@ Cross-reference of benchmarks against language features they exercise.
 | `struct-create.ark` (legacy) | memory | — | — | ✔ | — | — | — | — | — | ✔ | — | — |
 | `bench_cpu_enum_dispatch.ark` | compute | — | ✔ | — | — | — | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `bench_memory_struct_graph.ark` | memory | ✔ | ✔ | ✔ | — | — | — | — | — | ✔ | ✔ | — |
+| `bench_compute_error_chain.ark` | compute | — | ✔ | — | — | — | — | ✔ | ✔ | ✔ | ✔ | ✔ |
+| `bench_cpu_closure_map.ark` | compute | — | ✔ | — | ✔ | — | ✔ | — | — | ✔ | ✔ | ✔ |
+| `bench_application_http_parser.ark` | application | — | ✔ | ✔ | — | — | — | ✔ | ✔ | ✔ | ✔ | ✔ |
+| `bench_application_log_processor.ark` | application | — | ✔ | ✔ | ✔ | — | — | ✔ | ✔ | ✔ | ✔ | ✔ |
+| `bench_application_config_loader.ark` | application | — | ✔ | ✔ | — | — | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `parser.ark` (sample) | application | ✔ | ✔ | ✔ | ✔ | ✔ | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 
 ### Legend

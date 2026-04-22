@@ -1,0 +1,77 @@
+// Application benchmark: log line processor.
+// Simulates iterating over a buffer of synthetic log records, classifying
+// each by severity level (DEBUG/INFO/WARN/ERROR) via enum dispatch, counting
+// occurrences per level, and accumulating a checksum from the numeric fields.
+// Exercises Vec iteration, enum match, struct fields, and integer arithmetic.
+// No I/O beyond the final println.
+use std::host::stdio
+
+enum LogLevel {
+    Debug,
+    Info,
+    Warn,
+    Error,
+}
+
+struct LogRecord {
+    level: LogLevel,
+    code: i32,
+    value: i32,
+}
+
+fn classify(i: i32) -> LogLevel {
+    let bucket: i32 = i - i / 4 * 4
+    if bucket == 0 {
+        LogLevel::Debug
+    } else {
+        if bucket == 1 {
+            LogLevel::Info
+        } else {
+            if bucket == 2 {
+                LogLevel::Warn
+            } else {
+                LogLevel::Error
+            }
+        }
+    }
+}
+
+fn level_weight(level: LogLevel) -> i32 {
+    match level {
+        LogLevel::Debug => 1,
+        LogLevel::Info => 2,
+        LogLevel::Warn => 4,
+        LogLevel::Error => 8,
+    }
+}
+
+fn main() {
+    // Build a Vec of log records
+    let mut records: Vec<LogRecord> = Vec_new_LogRecord()
+    let mut i: i32 = 0
+    while i < 5000 {
+        let lvl: LogLevel = classify(i)
+        let rec: LogRecord = LogRecord { level: lvl, code: i + 100, value: i * 3 + 7 }
+        push(records, rec)
+        i = i + 1
+    }
+
+    // Process: accumulate weighted sum, count errors
+    let mut sum: i32 = 0
+    let mut errors: i32 = 0
+    let mut j: i32 = 0
+    while j < len(records) {
+        let rec: LogRecord = get_unchecked(records, j)
+        let w: i32 = level_weight(rec.level)
+        sum = sum + rec.value * w
+        if w == 8 {
+            errors = errors + 1
+        }
+        if sum > 1000000 {
+            sum = sum - 1000000
+        }
+        j = j + 1
+    }
+    stdio::println(i32_to_string(sum))
+    stdio::println(i32_to_string(errors))
+}
