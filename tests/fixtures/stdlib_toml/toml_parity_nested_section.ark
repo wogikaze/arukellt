@@ -1,0 +1,38 @@
+use std::host::stdio
+use std::toml
+
+/// Parity/differential: nested table sections and other constructs valid in
+/// the full TOML 1.0 spec but rejected by this bounded subset.
+///
+/// Differential contract (this subset vs full TOML spec):
+///   REJECTED by subset   |  VALID in full TOML 1.0
+///   ---------------------|---------------------------
+///   [section] headers    |  table sections
+///   [[array of tables]]  |  array of tables
+///   key without value    |  (not valid in full TOML either)
+///   empty value          |  (not valid in full TOML either)
+///
+/// All inputs below return Err("unsupported TOML subset").
+/// A flat key=value document with no headers is ACCEPTED by both.
+fn main() {
+    // full TOML multi-section doc — rejected by subset
+    let multi = "[database]\nhost = \"localhost\"\nport = 5432\n\n[server]\nhost = \"example.com\""
+    match toml::toml_parse(multi) {
+        Result::Ok(_) => stdio::println("unexpected ok"),
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    // single [section] header — rejected by subset
+    let single_section = "[package]\nname = \"arukellt\""
+    match toml::toml_parse(single_section) {
+        Result::Ok(_) => stdio::println("unexpected ok"),
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    // flat doc with no section header — accepted by both subset and full TOML
+    let flat = "host = \"localhost\"\nport = 5432"
+    match toml::toml_parse(flat) {
+        Result::Ok(_) => stdio::println("flat ok"),
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+}

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-21T19:14:14Z",
+  "generated_at": "2026-04-21T19:24:21Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -935,9 +935,9 @@
       }
     },
     {
-      "id": "527",
-      "path": "527-stdlib-toml-parity-and-differential-tests.md",
-      "title": "Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する",
+      "id": "526",
+      "path": "526-stdlib-json-parity-and-differential-tests.md",
+      "title": "Stdlib JSON: parity と differential tests を round-trip corpus で拡張する",
       "track": "stdlib",
       "status": "implementation-ready",
       "blocks_v1": "none",
@@ -994,28 +994,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 10
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "530",
-      "path": "530-selfhost-parity-ci-gates.md",
-      "title": "530-selfhost-parity-ci-gates",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
       },
       "orchestration": {
         "class": null,
@@ -1346,28 +1324,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 8
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "556",
-      "path": "556-release-selfhost-bootstrap-check.md",
-      "title": "Release: Selfhost Bootstrap Check",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 1
       },
       "orchestration": {
         "class": null,
