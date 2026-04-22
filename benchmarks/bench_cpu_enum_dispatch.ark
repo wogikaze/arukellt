@@ -1,0 +1,51 @@
+use std::host::stdio
+
+enum Op {
+    Add,
+    Sub,
+    Mul,
+    Neg,
+    Noop,
+}
+
+fn apply(op: Op, acc: i32, x: i32) -> i32 {
+    match op {
+        Op::Add => acc + x,
+        Op::Sub => acc - x,
+        Op::Mul => acc * x,
+        Op::Neg => -acc,
+        Op::Noop => acc,
+    }
+}
+
+fn op_of(i: i32) -> Op {
+    let r: i32 = i - (i / 5) * 5
+    if r == 0 {
+        Op::Add
+    } else {
+        if r == 1 {
+            Op::Sub
+        } else {
+            if r == 2 {
+                Op::Mul
+            } else {
+                if r == 3 {
+                    Op::Neg
+                } else {
+                    Op::Noop
+                }
+            }
+        }
+    }
+}
+
+fn main() {
+    let mut acc: i32 = 0
+    let mut i: i32 = 1
+    while i <= 2000 {
+        let x: i32 = i - (i / 7) * 7 + 1
+        acc = apply(op_of(i), acc, x)
+        i = i + 1
+    }
+    stdio::println(i32_to_string(acc))
+}
