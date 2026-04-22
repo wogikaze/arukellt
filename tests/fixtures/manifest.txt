@@ -328,6 +328,11 @@ run:stdlib_json/json_parse_trailing_object_garbage.ark
 run:stdlib_json/json_pretty.ark
 run:stdlib_json/json_roundtrip.ark
 run:stdlib_json/json_stringify.ark
+run:stdlib_json/json_rt_nested_object.ark
+run:stdlib_json/json_rt_array.ark
+run:stdlib_json/json_rt_scalars.ark
+run:stdlib_json/json_rt_string_escape.ark
+run:stdlib_json/json_differential.ark
 run:stdlib_linear/linear_basic.ark
 run:stdlib_linear/deque_ops.ark
 run:stdlib_linear/pq_ops.ark

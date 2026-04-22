@@ -1,0 +1,63 @@
+use std::host::stdio
+use std::json
+
+fn main() {
+    // null scalar
+    match json::parse("null") {
+        Result::Ok(v) => {
+            stdio::println(bool_to_string(json::is_null(v)))
+            stdio::println(json::stringify(v))
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+    // bool true
+    match json::parse("true") {
+        Result::Ok(v) => {
+            match json::json_as_bool(v) {
+                Option::Some(b) => stdio::println(bool_to_string(b)),
+                None => stdio::println("not bool"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+    // bool false
+    match json::parse("false") {
+        Result::Ok(v) => {
+            match json::json_as_bool(v) {
+                Option::Some(b) => stdio::println(bool_to_string(b)),
+                None => stdio::println("not bool"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+    // number zero
+    match json::parse("0") {
+        Result::Ok(v) => {
+            match json::json_as_i32(v) {
+                Option::Some(n) => stdio::println(i32_to_string(n)),
+                None => stdio::println("not number"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+    // negative number
+    match json::parse("-42") {
+        Result::Ok(v) => {
+            match json::json_as_i32(v) {
+                Option::Some(n) => stdio::println(i32_to_string(n)),
+                None => stdio::println("not number"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+    // type checks
+    match json::parse("null") {
+        Result::Ok(v) => stdio::println(bool_to_string(json::is_bool(v))),
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+    match json::parse("true") {
+        Result::Ok(v) => stdio::println(bool_to_string(json::is_bool(v))),
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+}
+// scalar edge cases: null, bool, number, type predicate checks
