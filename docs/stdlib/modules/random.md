@@ -43,6 +43,6 @@ _No module doc comment yet. Add `//!` comments in the source file to describe th
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `seeded_random` | `(i32) -> i32` | `stable` | Deterministic pseudo-random helper functions. |
-| `seeded_range` | `(i32, i32, i32) -> i32` | `stable` | - |
-| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | - |
+| `seeded_random` | `(i32) -> i32` | `stable` | Generate the next deterministic pseudo-random value from a seed. |
+| `seeded_range` | `(i32, i32, i32) -> i32` | `stable` | Map a seed to a deterministic value in [lo, hi). |
+| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Return a shuffled copy of v using the deterministic seeded RNG. |

@@ -27,6 +27,14 @@
 時刻取得 (WASI clock)、期間計算、乱数生成を実装する。
 ベンチマーク・テスト・一意 ID 生成・シャッフル等に必要。
 
+## Partial progress — 2026-04-22
+
+This slice is limited to the deterministic `std::random` surface:
+
+- `std/random/mod.ark` now uses xorshift32-style seeded generation for reproducible outputs.
+- `random_basic`, `random_range`, `random_seed`, and `shuffle` fixtures now pin exact seeded results and range edge behavior.
+- `std::time` / WASI clock / sleep work is intentionally untouched in this slice.
+
 ## 受け入れ条件
 
 ### std::time

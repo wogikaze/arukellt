@@ -10,14 +10,12 @@ fn main() {
     push(v, 50)
     let shuffled = random::shuffle_i32(v, 42)
     assert_eq(len(shuffled), 5)
-    let mut sum = 0
-    let mut i = 0
-    while i < len(shuffled) {
-        sum = sum + get_unchecked(shuffled, i)
-        i = i + 1
-    }
-    assert_eq(sum, 150)
+    assert_eq(get_unchecked(shuffled, 0), 30)
+    assert_eq(get_unchecked(shuffled, 1), 40)
+    assert_eq(get_unchecked(shuffled, 2), 20)
+    assert_eq(get_unchecked(shuffled, 3), 50)
+    assert_eq(get_unchecked(shuffled, 4), 10)
     stdio::println("shuffle ok")
 }
 // Same length
-// Contains all original elements (sum check)
+// Exact permutation is reproducible for a fixed seed
