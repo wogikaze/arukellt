@@ -1,6 +1,6 @@
-# ADR-026: Arukellt source imports vs WIT package syntax — problem, options, recommendation stub
+# ADR-026: Arukellt source imports vs WIT package syntax — decision record
 
-ステータス: **PROPOSED** (draft)
+ステータス: **DECIDED** — source imports stay Layer S (`use` + `::`); WIT identifiers stay Layer C boundary data
 **Date**: 2026-04-18
 **Track**: language-design (issue [#123](../../issues/open/123-import-syntax-unification.md))
 
@@ -28,11 +28,21 @@ Normative split for current behavior: [ADR-009-import-syntax.md](ADR-009-import-
 
 Elaboration, collision notes, and syntax sketches: [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md).
 
-## Recommendation (stub)
+## Decision record
 
-**Not decided in this draft.** Expectation: any final syntax for Layer C in `.ark` should remain **consistent with ADR-009** (two layers, no silent mapping between `std::…` and `wasi:…`) unless a future ADR explicitly supersedes ADR-009 after breaking-change process ([ADR-016-breaking-change-process.md](ADR-016-breaking-change-process.md)).
+This ADR records the same decision as ADR-009 and does not reopen the layer split:
 
-Concrete spelling of future `import "…"` / attributes / manifest-only workflows is tracked with issue [#124](../../issues/open/124-wit-component-import-syntax.md) and implementation work, not with this note.
+- Layer S remains the source-language import surface: `use path::to::module`
+- Layer C remains the component-boundary surface for WIT identifiers
+- No silent mapping is defined between `std::…` source paths and `wasi:…` identifiers
+
+The deferred implementation work is intentionally separate:
+
+- source-level syntax for Layer C imports
+- parser / lowering support for any `import "…"` or attribute-based bridge
+- migration away from legacy `import <single_identifier>` source imports
+
+Those items stay tracked with issue [#124](../../issues/open/124-wit-component-import-syntax.md) and implementation work, not with this record.
 
 ## WIT-related paths in this repository
 

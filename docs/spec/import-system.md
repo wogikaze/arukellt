@@ -18,6 +18,8 @@ Layer S is the source-language module import surface.
 - Canonical form: `use path::to::module`
 - Path separator: `::`
 - Purpose: resolve Arukellt modules (stdlib and source modules) during source compilation.
+- Layer S does not use WIT package identifiers as module paths.
+- `std::...` names remain source-level Arukellt imports, not WIT boundary IDs.
 
 Example:
 
@@ -32,6 +34,7 @@ Layer C is the external component-boundary import surface.
 - Planned keyword: `import`
 - Planned identifier space: WIT/component identifiers (for example `namespace:package/interface@version`)
 - Purpose: declare component-boundary dependencies, not source-module paths.
+- WIT identifiers belong to the component boundary contract, not to Layer S path resolution.
 
 Layer C is not the same namespace as Layer S and must not be interpreted as `::` module resolution.
 
@@ -55,6 +58,7 @@ The following is planned/deferred and not yet implemented as a stable source fea
 
 - Layer C source syntax for component-boundary imports (for example string-literal `import` forms targeting WIT identifiers).
 - Full remapping of legacy source `import <single_identifier>` to `use`-only source imports.
+- Source-level remapping of Arukellt module names to WIT package identifiers such as `arukellt:std/io`.
 
 Until those changes land, do not treat `import` as active component-boundary syntax in user code.
 
@@ -64,6 +68,7 @@ This contract does not redefine Arukellt source module paths to WIT package synt
 
 - `std::...` (Layer S) is not rewritten into `namespace:package/...`.
 - WIT package identifiers belong to Layer C boundary contracts.
+- The spec does not require any current parser changes to support this split.
 
 ## 5. Cross References
 

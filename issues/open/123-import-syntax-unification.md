@@ -300,3 +300,22 @@ Documentation-only slice for issue #123:
 - Added: [`docs/adr/ADR-026-import-vs-wit-package-syntax.md`](../../docs/adr/ADR-026-import-vs-wit-package-syntax.md) (**Status: Proposed (draft)**) — problem statement (`std::` vs `wasi:`), option summary, **recommendation stub** (explicitly not decided here; defers to ADR-009 unless superseded), and **in-repo WIT fixture / spec paths** (`docs/spec/import-system.md`, `tests/fixtures/component/*.wit`, JCO sample).
 - Cross-link: [`docs/module-resolution.md`](../../docs/module-resolution.md) (one sentence under `import` resolution).
 - **Note:** ADR-021 is already allocated (`playground-share-url-format`); this work uses the next free ADR number (**026**), not 021.
+
+---
+
+## Acceptance slice evidence — 2026-04-22 (Layer S vs Layer C decision record)
+
+This note records the documentation-only completion slice for issue #123.
+It does not claim parser or compiler implementation work.
+
+- Updated: `docs/spec/import-system.md`
+  - states that Layer S source imports stay on `use path::to::module`
+  - states that WIT identifiers belong to Layer C and are not source paths
+  - lists deferred implementation work separately from the current contract
+- Updated: `docs/adr/ADR-026-import-vs-wit-package-syntax.md`
+  - converted the draft into a decision record
+  - records the Layer S / Layer C split and the deferred Layer C syntax work
+- Verification to run for this slice:
+  - `python3 scripts/gen/generate-docs.py`
+  - `python3 scripts/check/check-docs-consistency.py`
+  - `markdownlint` if available
