@@ -7,7 +7,7 @@
 **Depends on**: —
 **Blocks**: 074, 076, 121
 **Track**: wasi-feature
-**Orchestration class**: implementation-ready
+**Orchestration class**: blocked-by-upstream
 **Orchestration upstream**: #074-parent-gate
 **Blocks v4 exit**: no
 
