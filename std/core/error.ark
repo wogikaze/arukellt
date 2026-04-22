@@ -1,5 +1,17 @@
 /// Shared error types for manifest-backed stdlib modules.
 /// Shared error variants used across stdlib modules.
+///
+/// # no-sentinel-i32 rule
+///
+/// New public stdlib APIs MUST NOT return a raw `i32` value of `-1` (i.e.
+/// `0 - 1`) to signal absence or failure.  Use the preferred surface instead:
+///
+/// - absence / EOF → `Option<T>` with `None`
+/// - distinguishable failures → `Result<T, Error>` using the variants below
+///
+/// Existing `-1`-returning functions are kept only as backward-compatible
+/// adapters.  When adding new APIs, always provide a `try_*` / `Option`-first
+/// variant and document the legacy form as deprecated.
 pub enum Error {
     InvalidArgument(String),
     IndexOutOfBounds {

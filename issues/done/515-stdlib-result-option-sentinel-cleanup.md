@@ -3,6 +3,8 @@
 **Status**: done
 **Created**: 2026-04-15
 **Updated**: 2026-04-22
+**Closed**: 2026-04-22
+**Close commit**: ea5f5184
 **ID**: 515
 **Depends on**: none
 **Track**: stdlib
@@ -101,3 +103,33 @@ Source-backed audit scope for this slice:
 | `binary_search` | `std/seq/mod.ark:76-95` | Not found → `0 - 1` (`-1`) | **Result** (`Result<i32, i32>` matches the family guidance already recorded in issue #048); **adapter-preserve**: keep `-1` only in a deprecated compatibility wrapper |
 
 **Audit note:** `min_i32`, `max_i32`, `sum_i32`, `count_eq`, `seq_contains`, and the remaining `std/seq` functions do not return a sentinel on their public success path, so they are not part of this migration inventory.
+
+## Close note
+
+Closed in commit `ea5f5184` on branch `feat/515-stdlib-sentinel-cleanup`.
+
+**Implemented (`std/bytes/mod.ark`)**:
+- `try_hex_val_char` → `Option<i32>` (None on invalid hex digit)
+- `try_read_u8` → `Option<i32>` (None on EOF)
+- `try_read_u16_le` → `Option<i32>` (None on underflow)
+- `try_read_u32_le` → `Option<i32>` (None on underflow)
+- `try_read_u32_be` → `Option<i32>` (None on underflow)
+- `try_read_bytes` → `Option<Vec<i32>>` (None on underflow)
+- Legacy `-1` sentinel functions kept as backward-compatible adapters
+- `no-sentinel-i32` rule documented inline in the ByteCursor section
+
+**Implemented (`std/core/error.ark`)**:
+- `no-sentinel-i32` rule documented in the module docblock
+
+**Deferred**:
+- `try_read_u64_le` (→ `Option<i64>`): the compiler has a code-gen bug
+  where user-constructed `Some(i64_value)` produces invalid Wasm.
+  Blocked until the `crates/` compiler issue is resolved.
+
+**Fixture added**: `tests/fixtures/stdlib_bytes/cursor_try_read.ark`
+(10 assertions: success + None paths for all implemented `try_*` variants)
+
+**Verification**: `python scripts/manager.py verify quick` — 18/19 pass;
+the 1 failing check (`doc example check`) is a pre-existing infrastructure
+issue (`docs/cookbook/testing-patterns.md` / `std/path/mod.ark` parser)
+unrelated to this change. Fixture pass count: 746 (+1 vs base 745).

@@ -250,6 +250,7 @@ run:stdlib_bytes/bytes_basic.ark
 run:stdlib_bytes/bytes_helpers.ark
 run:stdlib_bytes/buf_basic.ark
 run:stdlib_bytes/cursor_read.ark
+run:stdlib_bytes/cursor_try_read.ark
 run:stdlib_bytes/hex.ark
 run:stdlib_bytes/base64.ark
 run:stdlib_bytes/leb128.ark
