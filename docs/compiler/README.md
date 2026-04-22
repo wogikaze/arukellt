@@ -23,5 +23,6 @@
 | [legacy-path-migration.md](legacy-path-migration.md) | Legacy Path Deprecation Migration | Current state first: the canonical pipeline is described in ../current-state.md. |
 | [legacy-path-status.md](legacy-path-status.md) | Legacy Lowering Path Status | Retirement note (2026-04-22, #561): This document describes the legacy MIR |
 | [optimization.md](optimization.md) | Optimization Passes | Current-first reference for the v4 optimization pipeline. |
+| [panic-ice-policy.md](panic-ice-policy.md) | Panic / ICE Policy | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [pipeline.md](pipeline.md) | コンパイルパイプライン | Current reality first: 実装の現在地は ../current-state.md を基準にしてください。 |
 | [t3-rmw-optimization.md](t3-rmw-optimization.md) | T3 Backend: Read-Modify-Write Optimization Analysis | Resolved: T3 backend already generates optimal RMW code for struct fields. |
