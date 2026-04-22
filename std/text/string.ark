@@ -14,6 +14,7 @@ pub fn join(parts: Vec<String>, sep: String) -> String {
 }
 
 /// Concatenates two strings.
+/// @deprecated Use `std::text::concat` instead.
 pub fn concat(a: String, b: String) -> String {
     __intrinsic_concat(a, b)
 }
