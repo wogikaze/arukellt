@@ -23,7 +23,6 @@ graph LR
   I214["214 Extension quality / packaging / marketplace readiness"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
-  I429["429 429-playground-wasm-package-runtime-wrapper"]
   I436["436 436-playground-docs-site-integration"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
   I468["468 468-playground-build-and-publish-path-proof"]
@@ -129,7 +128,6 @@ graph LR
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
 - **285** depends on: 284; blocks: 508
 - **312** depends on: 311; blocks: 495
-- **429** depends on: none; blocks: none
 - **436** depends on: none; blocks: none
 - **437** depends on: 431; blocks: none
 - **468** depends on: none; blocks: none
