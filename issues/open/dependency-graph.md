@@ -36,7 +36,6 @@ graph LR
   I516["516 Stdlib: raw helper と推奨 facade の境界を再設計する"]
   I517["517 Stdlib: canonical naming / module layering / surface consistency の第2監査"]
   I520["520 Stdlib: allocation / complexity / perf footgun を family 横断で監査する"]
-  I524["524 Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する"]
   I529["529 100% Self-Hosting Transition Plan (Operational Guide)"]
   I531["531 Scripts Consolidation Epic: Python CLI Refactoring"]
   I541["541 541 — Benchmark: struct graph (nested structs / recursive types)"]
@@ -204,7 +203,6 @@ graph LR
 - **516** depends on: none; blocks: none
 - **517** depends on: none; blocks: 518
 - **520** depends on: none; blocks: none
-- **524** depends on: none; blocks: none
 - **529** depends on: none; blocks: 508
 - **531** depends on: none; blocks: none
 - **541** depends on: none; blocks: none
