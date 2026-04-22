@@ -133,6 +133,27 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         description="Closure capture and map over 2,000-element Vec (cpu-bound, allocation-light)",
         tags=("cpu-bound", "closure-heavy", "iteration", "allocation-light"),
     ),
+    BenchmarkCase(
+        name="http_parser",
+        source="benchmarks/bench_application_http_parser.ark",
+        expected="benchmarks/bench_application_http_parser.expected",
+        description="HTTP header line parser — enum dispatch and struct allocation (20,000 headers)",
+        tags=("application", "enum-heavy", "match-heavy", "struct-heavy", "iteration"),
+    ),
+    BenchmarkCase(
+        name="log_processor",
+        source="benchmarks/bench_application_log_processor.ark",
+        expected="benchmarks/bench_application_log_processor.expected",
+        description="Log line processor — Vec iteration, enum severity dispatch (5,000 records)",
+        tags=("application", "enum-heavy", "allocation-heavy", "iteration", "match-heavy"),
+    ),
+    BenchmarkCase(
+        name="config_loader",
+        source="benchmarks/bench_application_config_loader.ark",
+        expected="benchmarks/bench_application_config_loader.expected",
+        description="Config loader — nested structs, Result error handling (10,000 entries)",
+        tags=("application", "struct-heavy", "error-heavy", "match-heavy", "allocation-heavy"),
+    ),
 )
 
 MODE_PRESETS: dict[str, dict[str, Any]] = {
