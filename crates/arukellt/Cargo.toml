@@ -3,40 +3,15 @@ name = "arukellt"
 version.workspace = true
 edition.workspace = true
 
+# Per #583 (ADR-029, #585) the `arukellt` crate is now a **thin wasm-runner
+# shell**. All compiler behaviour lives in the selfhost compiler
+# (`src/compiler/main.ark` → `bootstrap/arukellt-selfhost.wasm`). This binary
+# only locates the selfhost wasm and execs it under `wasmtime`; it has no
+# dependency on `ark-driver`, `ark-mir`, `ark-wasm`, `ark-stdlib`, or any
+# other compiler-core crate.
+
 [[bin]]
 name = "arukellt"
 path = "src/main.rs"
 
 [dependencies]
-ark-driver = { workspace = true }
-ark-lexer = { workspace = true }
-ark-parser = { workspace = true }
-ark-resolve = { workspace = true }
-ark-typecheck = { workspace = true }
-ark-mir = { workspace = true }
-ark-wasm = { workspace = true }
-ark-diagnostics = { workspace = true }
-ark-target = { workspace = true }
-ark-stdlib = { workspace = true }
-ark-manifest = { workspace = true }
-ark-dap = { workspace = true }
-toml = { workspace = true }
-clap = { workspace = true }
-wasmtime = { workspace = true }
-wasmparser = { workspace = true }
-wasmtime-wasi = "30"
-serde = { workspace = true }
-serde_json = { workspace = true }
-strsim = "0.11"
-ark-lsp = { path = "../ark-lsp" }
-tokio = { version = "1", features = ["full"] }
-
-[dependencies.ark-llvm]
-workspace = true
-optional = true
-
-[features]
-llvm = ["dep:ark-llvm"]
-
-[dev-dependencies]
-tempfile = "3"

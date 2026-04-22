@@ -1,6 +1,6 @@
 # 583 — Phase 5 prerequisite: retire ARUKELLT_USE_RUST opt-in and purge `arukellt` Rust core consumers
 
-**Status**: open
+**Status**: done
 **Track**: selfhost-retirement
 **Depends on**: 559
 **Blocks**: 560, 561, 562, 563, 564
@@ -32,21 +32,21 @@ This slice retires the opt-in entirely so Phase 5 deletions become real leaves.
 
 ## Acceptance
 
-- [ ] `ARUKELLT_USE_RUST=1` opt-in is retired from `scripts/run/arukellt-selfhost.sh`
+- [x] `ARUKELLT_USE_RUST=1` opt-in is retired from `scripts/run/arukellt-selfhost.sh`
   (or the wrapper hard-fails with a clear "use selfhost path" message when set).
-- [ ] `crates/arukellt/src/commands.rs` legacy compile/build/run/check/test
+- [x] `crates/arukellt/src/commands.rs` legacy compile/build/run/check/test
   command paths are deleted (or stubbed to return a "use selfhost CLI" error).
-- [ ] `crates/arukellt/src/cmd_doc.rs` no longer depends on `ark_stdlib::StdlibManifest`
+- [x] `crates/arukellt/src/cmd_doc.rs` no longer depends on `ark_stdlib::StdlibManifest`
   (either delete the doc subcommand and route to selfhost-emitted docs JSON, OR
   inline a minimal local TOML reader, OR delete the subcommand entirely if
   selfhost provides equivalent).
-- [ ] `crates/arukellt/Cargo.toml` no longer depends on `ark-driver`, `ark-mir`,
+- [x] `crates/arukellt/Cargo.toml` no longer depends on `ark-driver`, `ark-mir`,
   `ark-wasm`, `ark-stdlib`.
-- [ ] `cargo build --workspace --exclude ark-llvm` succeeds.
-- [ ] All 4 canonical selfhost gates PASS.
-- [ ] `rg -n "ark_driver|ark_mir|ark_wasm" crates/arukellt/` returns 0 hits.
-- [ ] `rg -n "ark_stdlib" crates/arukellt/` returns 0 hits.
-- [ ] `docs/current-state.md` updated to note the opt-in retirement.
+- [x] `cargo build --workspace --exclude ark-llvm` succeeds.
+- [x] All 4 canonical selfhost gates PASS.
+- [x] `rg -n "ark_driver|ark_mir|ark_wasm" crates/arukellt/` returns 0 hits.
+- [x] `rg -n "ark_stdlib" crates/arukellt/` returns 0 hits.
+- [x] `docs/current-state.md` updated to note the opt-in retirement.
 
 ## Required verification
 
@@ -103,6 +103,12 @@ This slice retires the opt-in entirely so Phase 5 deletions become real leaves.
 - 4 gate logs
 - `rg ark_driver|ark_mir|ark_wasm|ark_stdlib crates/arukellt/` → 0 hits
 - `arukellt --help` (via wrapper) sample output
+
+## Status note 2025-XX (impl-selfhost-retirement attempt — STOPPED, superseded)
+
+The block below records the original STOPPED attempt; it remained in place
+for traceability after #585 unblocked the slice. See the **Close note**
+section at the bottom of this file for the resolution.
 
 ## Status note 2025-XX (impl-selfhost-retirement attempt — STOPPED)
 
@@ -202,3 +208,132 @@ $ python3 scripts/manager.py selfhost diag-parity   # baseline (Rust bin built)
 No source files in `crates/arukellt/`, `scripts/run/arukellt-selfhost.sh`,
 or `docs/current-state.md` were modified by this attempt. Only this
 status note is committed.
+
+## Close note 2026-04-22 (DONE — unblocked by #585 / ADR-029)
+
+#585 (master commit `c5a67f3c`, ADR-029) replaced the Rust-baseline
+parity contract in `scripts/selfhost/checks.py` with a selfhost-native
+contract anchored on `bootstrap/arukellt-selfhost.wasm` and
+`tests/snapshots/selfhost/cli-{help,version}.txt`. With that contract
+landed the four canonical selfhost gates no longer consult
+`target/{debug,release}/arukellt`, which removed the structural blocker
+described in the STOPPED note above. This slice was then completed
+under the unchanged `FORBIDDEN_PATHS` (no edits to `src/compiler/*.ark`,
+sibling `crates/ark-*` source trees, or `scripts/selfhost/checks.py`).
+
+### Functional retirement
+
+The `arukellt` crate is preserved as a **thin wasm-runner shell**
+(per "False-done prevention" allowance) — its `Cargo.toml` no longer
+depends on any compiler-core crate, and `src/main.rs` is a 183-line
+shim that locates the selfhost wasm and execs it under `wasmtime`.
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| Crate deps on `ark-driver`/`ark-mir`/`ark-wasm`/`ark-stdlib` | Yes | **None** |
+| `commands.rs` (compile/build/run/check/test/lsp/...) | 1599 LOC | **deleted** |
+| `cmd_doc.rs` (StdlibManifest reader) | 773 LOC | **deleted** |
+| `native.rs` (in-process MIR/wasm pipeline) | 218 LOC | **deleted** |
+| `runtime.rs` (wasmtime-WASI host) | 585 LOC | **deleted** |
+| Crate integration tests (8 files) | 1771 LOC | **deleted** |
+| `ARUKELLT_USE_RUST=1` opt-in (wrapper) | Falls through to legacy bin | **Hard-fails with pointer to ADR-029** |
+| Selfhost wrapper transitional Rust fallback | Active | **Removed** (selfhost is the only path) |
+| Wrapper resolution order | RustBin → wasm → RustBin | wasm only (`ARUKELLT_SELFHOST_WASM` → `.build/...s2.wasm` → `.bootstrap-build/...s2.wasm` → `bootstrap/arukellt-selfhost.wasm`) |
+
+Total source removed: **4 944 LOC** (3 175 lib + 1 769 tests) replaced
+by **183 LOC** of shim.
+
+### Files changed
+
+```text
+M crates/arukellt/Cargo.toml          (28 → 17 lines; all compiler-core deps removed)
+M crates/arukellt/src/main.rs         (579 → 183 lines; rewritten as wasmtime shim)
+D crates/arukellt/src/cmd_doc.rs      (773 LOC)
+D crates/arukellt/src/commands.rs     (1 599 LOC)
+D crates/arukellt/src/native.rs       (218 LOC)
+D crates/arukellt/src/runtime.rs      (585 LOC)
+D crates/arukellt/tests/component_cli.rs
+D crates/arukellt/tests/doc_command.rs
+D crates/arukellt/tests/harness.rs
+D crates/arukellt/tests/init_templates.rs
+D crates/arukellt/tests/lazy_resolve_cli.rs
+D crates/arukellt/tests/package_workspace.rs
+D crates/arukellt/tests/t2_scaffold.rs
+D crates/arukellt/tests/test_filter.rs
+M scripts/run/arukellt-selfhost.sh    (ARUKELLT_USE_RUST=1 now hard-fails; Rust fallback removed)
+M docs/current-state.md               (#559 “selfhost-first” section reframed as “selfhost-only”)
+M Cargo.lock                          (deps pruned)
+M README.md, docs/{README.md,adr/README.md,language/README.md,
+                    process/README.md,stdlib/README.md}
+                                       (`scripts/gen/generate-docs.py` regen,
+                                        unrelated drift, kept consistent)
+```
+
+### Wrapper / shim semantics
+
+```text
+$ scripts/run/arukellt-selfhost.sh --help          # exec selfhost wasm via wasmtime
+$ ARUKELLT_USE_RUST=1 scripts/run/arukellt-selfhost.sh --version
+arukellt-selfhost: ARUKELLT_USE_RUST is set, but the legacy Rust CLI has
+been retired (#583, ADR-029). Selfhost is now the only execution path.
+…
+$ exit 2
+```
+
+The Rust shim (`target/debug/arukellt`) keeps existing scripts that
+shell out directly to the binary working transparently — it forwards
+all CLI args to the selfhost wasm via
+`wasmtime run --dir=/::/ <wasm> -- <args>`, with `cwd=/` and a path
+rewrite that strips leading `/` and resolves relative paths against
+the user’s original cwd. This preserves invocations such as
+`target/debug/arukellt check /tmp/foo.ark` and
+`benchmarks/parity-check.sh` without touching sibling-slice files.
+
+### Verification (all PASS)
+
+```text
+$ cargo build --workspace --exclude ark-llvm
+…
+warning: `ark-wasm` (lib) generated 2 warnings  # pre-existing, unrelated
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 22.74s
+
+$ python3 scripts/manager.py selfhost fixpoint
+✓ selfhost fixpoint reached                     (PASS)
+
+$ python3 scripts/manager.py selfhost fixture-parity
+✓ selfhost fixture parity                       (PASS)
+
+$ python3 scripts/manager.py selfhost diag-parity
+✓ selfhost diagnostic parity                    (PASS)
+
+$ python3 scripts/manager.py selfhost parity --mode --cli
+✓ selfhost parity --cli                         (PASS)
+
+$ scripts/run/arukellt-selfhost.sh --help
+The Arukellt compiler
+
+Usage: arukellt <COMMAND>
+…
+
+$ rg -n 'ark_driver|ark_mir|ark_wasm|ark_stdlib' crates/arukellt/src/
+(no output — 0 hits)
+
+$ python3 scripts/check/check-docs-consistency.py
+docs consistency OK (0 issues)
+
+$ python3 scripts/manager.py verify quick
+Total checks: 19  Passed: 16  Failed: 3
+# 3 remaining failures (broken-internal-links, doc-example check
+# 4-block residual, and one unrelated harness check) are pre-existing
+# on master at c5a67f3c and outside #583’s PRIMARY/ALLOWED paths.
+# Net delta vs master baseline: +1 passing top-level check
+# (15→16) and doc-example sub-failures dropped 16→4.
+```
+
+### Phase 5 unblock confirmation
+
+`crates/arukellt` no longer pins any of the soon-to-be-deleted core
+crates. Phase 5 (#560 ark-driver, #561 ark-mir, #562 ark-wasm,
+#563 ark-stdlib, #564 ark-llvm) can now proceed: each Rust core crate
+is reachable only via its own internal API surface (no consumer in
+`crates/arukellt`).

@@ -340,37 +340,40 @@ Both the Rust compiler and the selfhost sources are maintained in parallel.
 See [When the Dual Period Ends](docs/compiler/bootstrap.md#when-the-dual-period-ends)
 in bootstrap.md for the exact criteria that close this period.
 
-### Selfhost-first execution path (Phase 5 prerequisite, #559)
+### Selfhost-only execution path (#559, #583, ADR-029)
 
 The user-facing `arukellt` CLI is now invoked through a thin wrapper that runs
-the **selfhost wasm by default** under `wasmtime`. The legacy Rust binary is
-reachable only via an explicit opt-in environment variable.
+the **selfhost wasm exclusively** under `wasmtime`. Per #583 the legacy
+`ARUKELLT_USE_RUST=1` opt-in has been **retired** and the `crates/arukellt`
+Rust core consumers (`commands.rs`, `cmd_doc.rs`, `native.rs`, `runtime.rs`)
+have been deleted; the `arukellt` crate now exists only as a thin wasm-runner
+shell that locates the selfhost wasm and execs it under `wasmtime`.
 
 Wrapper artifact: [`scripts/run/arukellt-selfhost.sh`](../scripts/run/arukellt-selfhost.sh).
 
-Resolution order:
+Resolution order (selfhost wasm only):
 
-1. `ARUKELLT_USE_RUST=1` → execute the Rust binary (legacy opt-in).
-2. Otherwise: execute `.build/selfhost/arukellt-s2.wasm` (or
-   `.bootstrap-build/arukellt-s2.wasm`, or `$ARUKELLT_SELFHOST_WASM`) under
-   `wasmtime run --dir=<repo_root>`.
-3. Transitional fallback: if `wasmtime` or the selfhost wasm is missing, the
-   wrapper falls back to the Rust binary with a one-line stderr warning so the
-   developer loop is never broken before `make bootstrap` has been run.
+1. `$ARUKELLT_SELFHOST_WASM` (explicit override).
+2. `.build/selfhost/arukellt-s2.wasm` (fresh build).
+3. `.bootstrap-build/arukellt-s2.wasm` (bootstrap intermediate).
+4. `bootstrap/arukellt-selfhost.wasm` (committed pinned reference; see
+   `bootstrap/PROVENANCE.md`).
+
+If `wasmtime` is unavailable, or no selfhost wasm can be located, the wrapper
+hard-fails with a clear diagnostic — there is no longer a Rust fallback.
+Setting `ARUKELLT_USE_RUST=1` now exits non-zero with a pointer to this notice.
 
 Examples:
 
 ```bash
-# Default (selfhost wasm via wasmtime)
+# Selfhost wasm via wasmtime (the only execution path)
 scripts/run/arukellt-selfhost.sh --help
 scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark -o hello.wasm
-
-# Explicit legacy Rust path (opt-in, e.g. for emitter-side debugging)
-ARUKELLT_USE_RUST=1 scripts/run/arukellt-selfhost.sh --version
 ```
 
 Selfhost gates (`scripts/manager.py selfhost {fixpoint,fixture-parity,parity,diag-parity}`)
-are now **selfhost-native** per ADR-029 (#585): they bootstrap from the
-committed pinned-reference wasm at `bootstrap/arukellt-selfhost.wasm`
-and never call the legacy Rust binary. This unblocks the Phase 5
-deletion issues (#560–#564), which retire the Rust crates altogether.
+are **selfhost-native** per ADR-029 (#585): they bootstrap from the committed
+pinned-reference wasm at `bootstrap/arukellt-selfhost.wasm` and never call any
+Rust binary. With #583 landed, the `crates/arukellt` shell no longer depends
+on `ark-driver`, `ark-mir`, `ark-wasm`, or `ark-stdlib`, so the Phase 5
+deletion issues (#560–#564) can now retire the Rust core crates as true leaves.
