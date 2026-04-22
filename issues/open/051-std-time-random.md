@@ -34,6 +34,7 @@ This slice is limited to the deterministic `std::random` surface:
 - `std/random/mod.ark` now uses xorshift32-style seeded generation for reproducible outputs.
 - `random_basic`, `random_range`, `random_seed`, and `shuffle` fixtures now pin exact seeded results and range edge behavior.
 - `std::time` / WASI clock / sleep work is intentionally untouched in this slice.
+- The `stdlib_time/duration.ark` fixture is now focused on `duration_ms(start, end)` only.
 
 ## 受け入れ条件
 
