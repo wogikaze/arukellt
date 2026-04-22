@@ -2418,9 +2418,9 @@ availability = { t1 = true, t3 = true, note = "Requires the --dir capability fla
 [[functions]]
 name = "read_to_string"
 module = "std::host::fs"
-stability = "stable"
+stability = "provisional"
 params = ["String"]
-returns = "Result<String, String>"
+returns = "Result<String, FsError>"
 intrinsic = "__intrinsic_fs_read_file"
 doc_category = "host_fs"
 doc = "Read the entire contents of a file at the given path and return them as a UTF-8 string."
@@ -2431,9 +2431,9 @@ examples = [{code = "let txt = fs::read_to_string(\"data.txt\")\nmatch txt { Ok(
 [[functions]]
 name = "write_string"
 module = "std::host::fs"
-stability = "stable"
+stability = "provisional"
 params = ["String", "String"]
-returns = "Result<(), String>"
+returns = "Result<(), FsError>"
 intrinsic = "__intrinsic_fs_write_file"
 doc_category = "host_fs"
 doc = "Write a UTF-8 string to the given file path, creating or truncating the file."
@@ -2443,9 +2443,9 @@ availability = { t1 = true, t3 = true, note = "Requires the --dir capability fla
 [[functions]]
 name = "write_bytes"
 module = "std::host::fs"
-stability = "stable"
+stability = "provisional"
 params = ["String", "Vec<i32>"]
-returns = "Result<(), String>"
+returns = "Result<(), FsError>"
 intrinsic = "__intrinsic_fs_write_bytes"
 doc_category = "host_fs"
 doc = "Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path."
@@ -5012,7 +5012,7 @@ module = "std::json"
 doc_category = "json"
 stability = "experimental"
 params = ["String"]
-returns = "Result<JsonValue, String>"
+returns = "Result<JsonValue, JsonParseError>"
 doc = "Parse a full JSON document and reject trailing non-whitespace after the first top-level value."
 
 [[functions]]

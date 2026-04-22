@@ -24,9 +24,9 @@ and are the explicit targets of the next slice.
 
 ### `std::host::fs` (top 3)
 
-1. `std::host::fs::read_to_string(path) -> Result<String, String>` — file read failures must distinguish `NotFound` / `PermissionDenied` / `IoError` / `Utf8Error`.
-2. `std::host::fs::write_string(path, contents) -> Result<(), String>` — write failures must distinguish `PermissionDenied` / `IoError` / `NotFound` (parent dir).
-3. `std::host::fs::write_bytes(path, bytes) -> Result<(), String>` — same failure taxonomy as `write_string`.
+1. `std::host::fs::read_to_string(path) -> Result<String, FsError>` — file read failures now map to typed `FsError` variants (`NotFound`, `PermissionDenied`, `Utf8Error`, `IoError`).
+2. `std::host::fs::write_string(path, contents) -> Result<(), FsError>` — write failures now map to typed `FsError` variants (`PermissionDenied`, `NotFound`, `IoError`).
+3. `std::host::fs::write_bytes(path, bytes) -> Result<(), FsError>` — same typed `FsError` taxonomy as `write_string`.
 
 ### `std::json` (top 3)
 
@@ -35,7 +35,7 @@ top-1. The other two slots are reserved for the parallel converters in
 `std::toml` and `std::csv` because they share the same parser-error taxonomy
 and should be migrated together.
 
-1. `std::json::parse(s) -> Result<JsonValue, String>` — must report `Error::ParseError { kind, input }` with structured position info (later: line/column).
+1. `std::json::parse(s) -> Result<JsonValue, JsonParseError>` — now returns typed parse variants (`EmptyInput`, `InvalidLiteral`, `TrailingCharacters`, `UnexpectedCharacter`).
 2. `std::toml::toml_parse(s) -> Result<TomlValue, String>` — same `Error::ParseError` taxonomy.
 3. `std::csv::csv_parse_with_header(s) -> Result<Vec<String>, String>` — same `Error::ParseError` taxonomy plus row/column index.
 
@@ -45,10 +45,10 @@ and should be migrated together.
 
 | Module | Function signature | Current error type | Recommended typed-error replacement | Priority |
 | --- | --- | --- | --- | --- |
-| `std::host::fs` | `read_to_string(path: String) -> Result<String, String>` | `String` | `Result<String, Error>` (`NotFound` / `PermissionDenied` / `IoError` / `Utf8Error`) | **high** |
-| `std::host::fs` | `write_string(path: String, contents: String) -> Result<(), String>` | `String` | `Result<(), Error>` (`PermissionDenied` / `IoError` / `NotFound`) | **high** |
-| `std::host::fs` | `write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String>` | `String` | `Result<(), Error>` (`PermissionDenied` / `IoError` / `NotFound`) | **high** |
-| `std::json` | `parse(s: String) -> Result<JsonValue, String>` | `String` | `Result<JsonValue, Error>` (`Error::ParseError { kind: "json", input }`) | **high** |
+| `std::host::fs` | `read_to_string(path: String) -> Result<String, FsError>` | `FsError` | Converted (`NotFound` / `PermissionDenied` / `Utf8Error` / `IoError`) | **high** |
+| `std::host::fs` | `write_string(path: String, contents: String) -> Result<(), FsError>` | `FsError` | Converted (`PermissionDenied` / `NotFound` / `IoError`) | **high** |
+| `std::host::fs` | `write_bytes(path: String, bytes: Vec<i32>) -> Result<(), FsError>` | `FsError` | Converted (same taxonomy as `write_string`) | **high** |
+| `std::json` | `parse(s: String) -> Result<JsonValue, JsonParseError>` | `JsonParseError` | Converted (`EmptyInput` / `InvalidLiteral` / `TrailingCharacters` / `UnexpectedCharacter`) | **high** |
 | `std::toml` | `toml_parse(s: String) -> Result<TomlValue, String>` | `String` | `Result<TomlValue, Error>` (`Error::ParseError { kind: "toml", input }`) | med |
 | `std::csv` | `csv_parse_with_header(s: String) -> Result<Vec<String>, String>` | `String` | `Result<Vec<String>, Error>` (`Error::ParseError { kind: "csv", input }`) | med |
 | `std::fs` | `read_string(path: String) -> Result<String, String>` | `String` | follow `std::host::fs::read_to_string` (delegates) | med |

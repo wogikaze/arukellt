@@ -249,17 +249,33 @@ fn find_value_end(s: String, pos: i32) -> i32 {
     }
 }
 
+pub enum JsonParseError {
+    EmptyInput,
+    InvalidLiteral(String),
+    TrailingCharacters,
+    UnexpectedCharacter(i32),
+}
+
+pub fn parse_error_message(err: JsonParseError) -> String {
+    match err {
+        JsonParseError::EmptyInput => "empty input",
+        JsonParseError::InvalidLiteral(kind) => concat("invalid ", kind),
+        JsonParseError::TrailingCharacters => "trailing characters",
+        JsonParseError::UnexpectedCharacter(_) => "unexpected character",
+    }
+}
+
 // ─── Public parse / stringify ────────────────────────────────────────────────
 /// Parse a full JSON document from `s` and reject trailing non-whitespace after
 /// the first top-level value.
 /// 
 /// Leading and trailing whitespace is ignored, but any non-whitespace
 /// characters after the first top-level value cause an error.
-pub fn parse(s: String) -> Result<JsonValue, String> {
+pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
     let pos = skip_ws(s, 0)
     let n = len(s)
     if pos >= n {
-        return Err("empty input")
+        return Err(JsonParseError::EmptyInput)
     }
     let c = char_at(s, pos)
     if c == 110 {
@@ -270,10 +286,10 @@ pub fn parse(s: String) -> Result<JsonValue, String> {
                 if after == n {
                     return Ok(JsonValue { tag: 0, raw: "null" })
                 }
-                return Err("trailing characters")
+                return Err(JsonParseError::TrailingCharacters)
             }
         }
-        Err("invalid null")
+        Err(JsonParseError::InvalidLiteral("null"))
     } else {
         if c == 116 {
             if n >= pos + 4 {
@@ -283,10 +299,10 @@ pub fn parse(s: String) -> Result<JsonValue, String> {
                     if after == n {
                         return Ok(JsonValue { tag: 1, raw: "true" })
                     }
-                    return Err("trailing characters")
+                    return Err(JsonParseError::TrailingCharacters)
                 }
             }
-            Err("invalid true")
+            Err(JsonParseError::InvalidLiteral("true"))
         } else {
             if c == 102 {
                 if n >= pos + 5 {
@@ -296,10 +312,10 @@ pub fn parse(s: String) -> Result<JsonValue, String> {
                         if after == n {
                             return Ok(JsonValue { tag: 1, raw: "false" })
                         }
-                        return Err("trailing characters")
+                        return Err(JsonParseError::TrailingCharacters)
                     }
                 }
-                Err("invalid false")
+                Err(JsonParseError::InvalidLiteral("false"))
             } else {
                 if c == 34 {
                     let end = find_string_end(s, pos + 1)
@@ -307,7 +323,7 @@ pub fn parse(s: String) -> Result<JsonValue, String> {
                     if after == n {
                         Ok(JsonValue { tag: 3, raw: slice(s, pos, end) })
                     } else {
-                        Err("trailing characters")
+                        Err(JsonParseError::TrailingCharacters)
                     }
                 } else {
                     if c == 91 {
@@ -316,7 +332,7 @@ pub fn parse(s: String) -> Result<JsonValue, String> {
                         if after == n {
                             Ok(JsonValue { tag: 4, raw: slice(s, pos, end) })
                         } else {
-                            Err("trailing characters")
+                            Err(JsonParseError::TrailingCharacters)
                         }
                     } else {
                         if c == 123 {
@@ -325,7 +341,7 @@ pub fn parse(s: String) -> Result<JsonValue, String> {
                             if after == n {
                                 Ok(JsonValue { tag: 5, raw: slice(s, pos, end) })
                             } else {
-                                Err("trailing characters")
+                                Err(JsonParseError::TrailingCharacters)
                             }
                         } else {
                             if c >= 48 && c <= 57 || c == 45 {
@@ -334,10 +350,10 @@ pub fn parse(s: String) -> Result<JsonValue, String> {
                                 if after == n {
                                     Ok(JsonValue { tag: 2, raw: slice(s, pos, end) })
                                 } else {
-                                    Err("trailing characters")
+                                    Err(JsonParseError::TrailingCharacters)
                                 }
                             } else {
-                                Err("unexpected character")
+                                Err(JsonParseError::UnexpectedCharacter(c))
                             }
                         }
                     }
