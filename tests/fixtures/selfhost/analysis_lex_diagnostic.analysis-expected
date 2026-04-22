@@ -1,0 +1,4 @@
+analysis tests/fixtures/selfhost/analysis_lex_diagnostic.ark
+decls=1 symbols=1 typed=1 diagnostics=2
+lex: [LEX0006 error tests/fixtures/selfhost/analysis_lex_diagnostic.ark:1:8] unknown character
+parse: unexpected token in expression: 7

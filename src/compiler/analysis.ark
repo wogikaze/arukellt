@@ -14,6 +14,7 @@
 // Source pipeline mirrors `driver::compile_source` but stops after
 // typechecking and accumulates diagnostics across phases instead of
 // returning at the first failing phase.
+use diagnostics
 use lexer
 use parser
 use resolver
@@ -118,12 +119,37 @@ pub fn analyze(uri: String, text: String) -> AnalysisSnapshot {
     let snap = AnalysisSnapshot_new(uri)
 
     // Phase 1: lex (#565 recovery — never aborts).
+    // Structured-diagnostic emission (#614): for each recoverable lex
+    // error, build a fully populated `Diagnostic` value (code/severity/
+    // span/message) via lexer::lex_diagnostics_emit_one, then render it
+    // into the snapshot so all four structured fields appear in the
+    // textual summary. The legacy `LexDiagnostic` byte-offset stream is
+    // still consumed downstream by the rest of the pipeline.
     let lex_result = lexer::lex_program(clone(text))
-    let lex_diag_count = len(lex_result.diagnostics)
+    let lex_legacy_count = len(lex_result.diagnostics)
     let mut li = 0
-    while li < lex_diag_count {
+    while li < lex_legacy_count {
         let ld = get_unchecked(lex_result.diagnostics, li)
-        snapshot_push(snap, AnalysisDiagnostic_new(PHASE_LEX(), clone(ld.message), ld.start, ld.end))
+        let dline = lexer::lex_offset_to_line(clone(text), ld.start)
+        let dcol = lexer::lex_offset_to_column(clone(text), ld.start)
+        let dfile = clone(snap.uri)
+        let dmsg = clone(ld.message)
+        let dcode = lexer::lex_diag_code_string(ld.code)
+        let dspan = DiagnosticSpan { file: dfile, line: dline, column: dcol }
+        let d = Diagnostic { code: dcode, severity: SEV_ERROR(), span: dspan, message: dmsg }
+        let mut rmsg = String_from("[")
+        rmsg = concat(rmsg, clone(d.code))
+        rmsg = concat(rmsg, String_from(" "))
+        rmsg = concat(rmsg, severity_name(d.severity))
+        rmsg = concat(rmsg, String_from(" "))
+        rmsg = concat(rmsg, clone(d.span.file))
+        rmsg = concat(rmsg, String_from(":"))
+        rmsg = concat(rmsg, to_string(d.span.line))
+        rmsg = concat(rmsg, String_from(":"))
+        rmsg = concat(rmsg, to_string(d.span.column))
+        rmsg = concat(rmsg, String_from("] "))
+        rmsg = concat(rmsg, lexer::lex_diag_code_message(ld.code))
+        snapshot_push(snap, AnalysisDiagnostic_new(PHASE_LEX(), rmsg, ld.start, ld.end))
         li = li + 1
     }
 
@@ -372,5 +398,29 @@ pub fn render_hover_markdown(info: SymbolInfo) -> String {
     let mut out = String_from("```ark\n")
     out = concat(out, clone(info.signature))
     out = concat(out, String_from("\n```"))
+    out
+}
+
+// ── Structured lex-diagnostic renderer (issue #614) ──────────────────────────
+// Renders a `Diagnostic` (from src/compiler/diagnostics.ark) into a single
+// deterministic line that surfaces all four structured fields. Used by
+// `analyze` so analysis goldens can prove the new lex code path emitted a
+// fully-populated Diagnostic value (code, severity, span, message).
+//
+// Format:
+//   [<code> <severity> <file>:<line>:<col>] <message>
+fn render_lex_diagnostic(d: Diagnostic) -> String {
+    let mut out = String_from("[")
+    out = concat(out, clone(d.code))
+    out = concat(out, String_from(" "))
+    out = concat(out, severity_name(d.severity))
+    out = concat(out, String_from(" "))
+    out = concat(out, clone(d.span.file))
+    out = concat(out, String_from(":"))
+    out = concat(out, to_string(d.span.line))
+    out = concat(out, String_from(":"))
+    out = concat(out, to_string(d.span.column))
+    out = concat(out, String_from("] "))
+    out = concat(out, clone(d.message))
     out
 }

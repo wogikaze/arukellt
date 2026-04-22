@@ -249,6 +249,7 @@ diag:selfhost/lexer_recovery_multi.ark
 diag:selfhost/parser_recovery_decls.ark
 # Issue #568 — selfhost analysis API surface (text → AST → symbols → diagnostics)
 run:selfhost/analysis_clean.ark
+diag:selfhost/analysis_lex_diagnostic.ark
 diag:selfhost/analysis_multi_phase.ark
 diag:selfhost/multi_diag_unresolved.ark
 diag:selfhost/multi_diag_dup.ark

@@ -5,6 +5,8 @@
 //         operators, delimiters, comments, newlines.
 use std::host::stdio
 
+use diagnostics
+
 fn TK_EOF() -> i32 {
     0
 }
@@ -1303,3 +1305,145 @@ fn main() {
 // Unknown character
 // skip printing newlines to reduce noise
 // Iterate until EOF token (len() has a bug with Vec<Struct>)
+
+// ── Structured Diagnostic emission (issue #614) ──────────────────────────────
+// Bridges the lex-recovery `LexDiagnostic` (from #565, byte-offset spans only)
+// onto the cross-phase `Diagnostic` value introduced in c677f409. Each
+// returned `Diagnostic` carries a stable `LEXxxxx` code, `error` severity,
+// a {file,line,col} span computed from the source text, and the raw lex
+// message — proving the lexer phase can emit fully-populated structured
+// diagnostics without disturbing the existing string-based path used by
+// `tokenize` / `lex_program`.
+//
+// Line and column are 1-based and counted in source bytes (matching the
+// rest of the selfhost lexer, which is byte-indexed).
+
+pub fn LEX_CODE_PREFIX() -> String {
+    String_from("LEX")
+}
+
+pub fn lex_diag_code_message(code: i32) -> String {
+    if code == LEX_E_UNTERMINATED_STRING() {
+        return String_from("unterminated string")
+    }
+    if code == LEX_E_UNTERMINATED_CHAR() {
+        return String_from("unterminated char literal")
+    }
+    if code == LEX_E_UNTERMINATED_FSTRING() {
+        return String_from("unterminated f-string")
+    }
+    if code == LEX_E_UNTERMINATED_ESCAPE() {
+        return String_from("unterminated escape")
+    }
+    if code == LEX_E_INVALID_NUMBER() {
+        return String_from("invalid number literal")
+    }
+    if code == LEX_E_UNKNOWN_CHAR() {
+        return String_from("unknown character")
+    }
+    String_from("lex error")
+}
+
+pub fn lex_diag_code_string(code: i32) -> String {
+    if code == LEX_E_UNTERMINATED_STRING() {
+        return String_from("LEX0001")
+    }
+    if code == LEX_E_UNTERMINATED_CHAR() {
+        return String_from("LEX0002")
+    }
+    if code == LEX_E_UNTERMINATED_FSTRING() {
+        return String_from("LEX0003")
+    }
+    if code == LEX_E_UNTERMINATED_ESCAPE() {
+        return String_from("LEX0004")
+    }
+    if code == LEX_E_INVALID_NUMBER() {
+        return String_from("LEX0005")
+    }
+    if code == LEX_E_UNKNOWN_CHAR() {
+        return String_from("LEX0006")
+    }
+    String_from("LEX0000")
+}
+
+// Compute a 1-based (line, column) span by walking the source up to `offset`.
+// Newline (0x0A) advances line and resets column to 1; every other byte
+// advances column by one. Carriage returns are counted as columns.
+fn lex_offset_to_span(file: String, source: String, offset: i32) -> DiagnosticSpan {
+    let n = len(source)
+    let mut bound = offset
+    if bound > n {
+        bound = n
+    }
+    let mut line = 1
+    let mut col = 1
+    let mut i = 0
+    while i < bound {
+        let c = char_at(source, i)
+        if c == 10 {
+            line = line + 1
+            col = 1
+        } else {
+            col = col + 1
+        }
+        i = i + 1
+    }
+    DiagnosticSpan_new(file, line, col)
+}
+
+// Public structured-diagnostic entry point for the lexer phase.
+//
+// Returns one `Diagnostic` per recoverable lex error. `code`, `severity`,
+// `span` and `message` are all guaranteed populated (no defaulted fields)
+// for every emitted instance.
+pub fn lex_diagnostics(source: String, file: String) -> Vec<Diagnostic> {
+    let lex_result = lex_program(clone(source))
+    let mut out: Vec<Diagnostic> = Vec_new_Diagnostic()
+    let n = len(lex_result.diagnostics)
+    let mut i = 0
+    while i < n {
+        let ld = get_unchecked(lex_result.diagnostics, i)
+        let offset = ld.start
+        let mline = lex_offset_to_line(clone(source), offset)
+        let mcol = lex_offset_to_column(clone(source), offset)
+        let mfile = clone(file)
+        // Derive message from the stable LEX code instead of cloning the
+        // legacy LexDiagnostic.message string. The code-derived form is
+        // guaranteed to be a stable String literal usable downstream.
+        let mmsg = lex_diag_code_message(ld.code)
+        let mcode = lex_diag_code_string(ld.code)
+        let mspan = DiagnosticSpan { file: mfile, line: mline, column: mcol }
+        let d = Diagnostic { code: mcode, severity: SEV_ERROR(), span: mspan, message: mmsg }
+        push(out, d)
+        i = i + 1
+    }
+    out
+}
+
+pub fn lex_offset_to_line(source: String, offset: i32) -> i32 {
+    let n = len(source)
+    let mut bound = offset
+    if bound > n { bound = n }
+    let mut line = 1
+    let mut i = 0
+    while i < bound {
+        let c = char_at(source, i)
+        if c == 10 { line = line + 1 }
+        i = i + 1
+    }
+    line
+}
+
+pub fn lex_offset_to_column(source: String, offset: i32) -> i32 {
+    let n = len(source)
+    let mut bound = offset
+    if bound > n { bound = n }
+    let mut col = 1
+    let mut i = 0
+    while i < bound {
+        let c = char_at(source, i)
+        if c == 10 { col = 1 } else { col = col + 1 }
+        i = i + 1
+    }
+    col
+}
