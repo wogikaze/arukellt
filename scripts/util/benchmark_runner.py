@@ -71,29 +71,29 @@ class BenchmarkCase:
 BENCHMARKS: tuple[BenchmarkCase, ...] = (
     BenchmarkCase(
         name="fib",
-        source="benchmarks/fib.ark",
-        expected="benchmarks/fib.expected",
+        source="benchmarks/legacy/fib.ark",
+        expected="benchmarks/legacy/fib.expected",
         description="Iterative Fibonacci(35)",
         tags=("cpu-bound", "loop", "scalar"),
     ),
     BenchmarkCase(
         name="binary_tree",
-        source="benchmarks/binary_tree.ark",
-        expected="benchmarks/binary_tree.expected",
+        source="benchmarks/legacy/binary_tree.ark",
+        expected="benchmarks/legacy/binary_tree.expected",
         description="Recursive node counting (depth 20)",
         tags=("recursion-heavy", "allocation-light", "call-heavy"),
     ),
     BenchmarkCase(
         name="vec_ops",
-        source="benchmarks/vec_ops.ark",
-        expected="benchmarks/vec_ops.expected",
+        source="benchmarks/legacy/vec_ops.ark",
+        expected="benchmarks/legacy/vec_ops.expected",
         description="Vec push/sum/contains (1k elements)",
         tags=("allocation-heavy", "container", "iteration"),
     ),
     BenchmarkCase(
         name="string_concat",
-        source="benchmarks/string_concat.ark",
-        expected="benchmarks/string_concat.expected",
+        source="benchmarks/legacy/string_concat.ark",
+        expected="benchmarks/legacy/string_concat.expected",
         description="String concat in loop (100 iterations)",
         tags=("string-heavy", "allocation-heavy", "gc-pressure"),
     ),
@@ -125,6 +125,13 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         expected="benchmarks/bench_compute_error_chain.expected",
         description="Result/error propagation chain (50,000 iterations, ~20% Err paths)",
         tags=("cpu-bound", "error-heavy", "match-heavy", "iteration"),
+    ),
+    BenchmarkCase(
+        name="closure_map",
+        source="benchmarks/bench_cpu_closure_map.ark",
+        expected="benchmarks/bench_cpu_closure_map.expected",
+        description="Closure capture and map over 2,000-element Vec (cpu-bound, allocation-light)",
+        tags=("cpu-bound", "closure-heavy", "iteration", "allocation-light"),
     ),
 )
 
@@ -629,7 +636,7 @@ def measure_startup_probe(
 
     Returns median wall-clock time in ms, or None if unavailable.
     """
-    startup_source = ROOT / "benchmarks" / "startup.ark"
+    startup_source = ROOT / "benchmarks" / "legacy" / "startup.ark"
     if not startup_source.exists() or wasmtime_bin is None:
         return None
     wasm_path = work_dir / "startup-probe.wasm"
