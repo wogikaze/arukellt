@@ -15,6 +15,8 @@ name: CI
 #  component-interop       component-interop             push only     component emit / host interop smoke
 #  perf                    perf-baseline                 push only     baseline snapshot collection
 #  bootstrap               selfhost-bootstrap            yes*          Stage 0/1 required; Stage 2 informational; fixture parity sub-step (--fixture only, || true); CLI parity + diag parity merge-blocking (#530)
+#  selfhost-parity         selfhost-cli-parity           yes           selfhost CLI parity gate (#530)
+#  selfhost-parity         selfhost-diag-parity          yes           selfhost diagnostic parity gate (#530)
 #  editor-tooling          extension-tests               yes           VS Code extension workflow tests
 #  editor-tooling          lsp-e2e                       yes           LSP protocol unit + end-to-end tests
 #  target-contract drift   target-contract-drift-check   yes           docs/target-contract.md matches CI truth
@@ -435,6 +437,96 @@ jobs:
             cli-parity-results.txt
             diag-parity-results.txt
 
+  # ── Layer 9b: Selfhost CLI parity (merge-blocking, #530) ────────────────
+  selfhost-cli-parity:
+    name: "Selfhost CLI parity (merge gate, #530)"
+    runs-on: ubuntu-latest
+    needs: [selfhost-bootstrap]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
+
+      - name: Build release arukellt
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/target-selfhost
+        run: cargo build --release -p arukellt
+
+      - name: Selfhost CLI parity check
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
+        run: |
+          python3 scripts/manager.py selfhost parity --mode --cli 2>&1 \
+            | tee cli-parity-results.txt
+
+      - name: Upload cli-parity results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfhost-cli-parity-${{ github.sha }}
+          path: cli-parity-results.txt
+
+  # ── Layer 9c: Selfhost diagnostic parity (merge-blocking, #530) ─────────
+  selfhost-diag-parity:
+    name: "Selfhost diagnostic parity (merge gate, #530)"
+    runs-on: ubuntu-latest
+    needs: [selfhost-bootstrap]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
+
+      - name: Build release arukellt
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/target-selfhost
+        run: cargo build --release -p arukellt
+
+      - name: Selfhost diagnostic parity check
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
+        run: |
+          python3 scripts/manager.py selfhost diag-parity 2>&1 \
+            | tee diag-parity-results.txt
+
+      - name: Upload diag-parity results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfhost-diag-parity-${{ github.sha }}
+          path: diag-parity-results.txt
+
   # ── Layer 10: VS Code extension tests (merge gate) ─────────────────────
   extension-tests:
     name: "VS Code extension tests"
@@ -530,7 +622,7 @@ jobs:
   # ── Final gate ───────────────────────────────────────────────────────────
   verify:
     name: "Final Gate"
-    needs: [unit-tests, verification-harness-quick, fixture-primary, integration, packaging, determinism, selfhost-bootstrap, extension-tests, lsp-e2e]
+    needs: [unit-tests, verification-harness-quick, fixture-primary, integration, packaging, determinism, selfhost-bootstrap, selfhost-cli-parity, selfhost-diag-parity, extension-tests, lsp-e2e]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All required CI layers passed (unit + verification-harness-quick + fixture/T3 + integration + packaging + determinism + selfhost-bootstrap + extension-tests + lsp-e2e)"
+      - run: echo "All required CI layers passed (unit + verification-harness-quick + fixture/T3 + integration + packaging + determinism + selfhost-bootstrap + selfhost-cli-parity + selfhost-diag-parity + extension-tests + lsp-e2e)"
