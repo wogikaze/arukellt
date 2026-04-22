@@ -86,15 +86,20 @@ mise bench:compare    # compare against stored baseline
 
 | Benchmark | Suite | Compile ms | Run ms | Binary bytes | Correctness |
 |-----------|-------|------------|--------|--------------|-------------|
-| fib | cpu (legacy) | ~14 | ~11 | 1,082 | pass |
-| binary_tree | cpu (legacy) | ~13 | ~16 | 1,066 | pass |
-| vec_ops | cpu (legacy) | ~14 | ~12 | 2,072 | pass |
-| string_concat | cpu (legacy) | ~13 | ~12 | 1,337 | pass |
-| enum_dispatch | cpu | ~16 | ~13 | 1,644 | pass |
-| closure_map | cpu | ~14 | ~12 | n/a | pass |
-| struct_graph | memory | ~15 | ~13 | 1,505 | pass |
-| error_chain | compute | ~16 | ~13 | n/a | pass |
-| parse_tree_distance | parse | ~18 | ~37 | 7,376 | pass |
+| fib | cpu | ~14 | ~11 | 993 | pass |
+| binary_tree | cpu | ~14 | ~19 | 977 | pass |
+| vec_ops | cpu | ~21 | ~12 | 1,983 | pass |
+| string_concat | cpu | ~14 | ~12 | 1,248 | pass |
+| enum_dispatch | cpu | ~15 | ~14 | 1,555 | pass |
+| closure_map | cpu | ~15 | ~10 | 2,013 | pass |
+| struct_graph | memory | ~18 | ~12 | 1,416 | pass |
+| error_chain | compute | ~16 | ~12 | 1,771 | pass |
+| parse_tree_distance | parse | ~23 | ~36 | 7,287 | pass |
+| http_parser | application | ~14 | ~11 | 1,657 | pass |
+| log_processor | application | ~15 | ~12 | 1,906 | pass |
+| config_loader | application | ~17 | ~11 | 1,841 | pass |
+
+Source: `tests/baselines/perf/baselines.json` (generated 2026-04-22, wasm32-wasi-p1, selfhost compiler).
 
 Legacy fixtures (`fib`, `binary_tree`, `vec_ops`, `string_concat`) live under `benchmarks/legacy/`
 and are retained for cross-language C/Rust comparison. New benchmarks follow the
@@ -117,11 +122,13 @@ and are retained for cross-language C/Rust comparison. New benchmarks follow the
 
 ### Binary Size (T1 vs T3 GC-native)
 
-| Source | T1 size | T3 size | Reduction |
-|--------|---------|---------|-----------|
-| hello.ark | 12,229 B | 954 B | 92% |
-| vec.ark | 13,261 B | 1,866 B | 86% |
-| closure.ark | 12,222 B | 995 B | 92% |
+| Source | T1 size | T3 size | Notes |
+|--------|---------|---------|-------|
+| hello.ark | 494 B | 494 B | Both targets use same linear-memory emitter at default opt |
+| vec.ark | 2,382 B | 2,382 B | Vec ops, same target path |
+| closure.ark | n/a | n/a | Compile fails (ICE) — pre-existing, tracked in issue backlog |
+
+Canonical hello.ark sizes at opt-level 2 from [`docs/process/wasm-size-reduction.md`](process/wasm-size-reduction.md): T1=534 B, T3=918 B.
 
 <!-- BEGIN GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 ## Diagnostics and Validation

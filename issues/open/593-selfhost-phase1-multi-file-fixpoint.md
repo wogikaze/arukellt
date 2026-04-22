@@ -6,7 +6,7 @@
 **ID**: 593
 **Parent**: #529
 **Depends on**: —
-**Blocks**: 594, 563
+**Blocks**: 508, 594
 **Track**: selfhost
 **Orchestration class**: implementation-ready
 
@@ -48,10 +48,16 @@ legacy Rust crate removal can begin.
 
 None.
 
+## Dispatch dependency map
+
+- depends_on_open: none
+- depends_on_done: none
+- blocks: #508, #594
+
 ## Blocks
 
+- #508 (legacy-path removal unblock depends on stable Phase 1 fixpoint)
 - #594 (Phase 2 can only start after fixpoint is stable)
-- #563 (selfhost Phase 5 deletion gate depends on Phase 1+2)
 
 ---
 
@@ -59,7 +65,9 @@ None.
 
 1. `python scripts/manager.py selfhost fixpoint` exits 0
 2. sha256(s1) == sha256(s2) is explicitly verified
-3. All pre-existing tests pass
+3. Multi-file selfhost compile path is the only path used in fixpoint evidence
+4. `python scripts/manager.py verify quick` exits 0
+5. `python scripts/manager.py selfhost fixture-parity` exits 0 or is explicitly documented as deferred to #594 with evidence
 
 ---
 
@@ -68,6 +76,7 @@ None.
 ```bash
 python scripts/manager.py selfhost fixpoint
 python scripts/manager.py verify quick
+python scripts/manager.py selfhost fixture-parity
 ```
 
 ---

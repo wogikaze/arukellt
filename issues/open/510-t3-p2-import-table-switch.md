@@ -5,6 +5,7 @@
 **Updated**: 2026-04-22
 **ID**: 510
 **Depends on**: —
+**Blocks**: 074, 076, 121
 **Track**: wasi-feature
 **Orchestration class**: implementation-ready
 **Orchestration upstream**: #074-parent-gate
@@ -26,6 +27,12 @@ requires the T3 emitter to import P2 interface names directly.
 
 This issue tracks the specific switch points identified during the 074
 STOP_IF pass on 2026-04-15.
+
+## Dispatch dependency map
+
+- depends_on_open: none
+- depends_on_done: none
+- blocks: #074, #076, #121
 
 ## Why deferred
 
@@ -73,17 +80,26 @@ RuntimeModel::T3WasmGcP2 if wasi_version == WasiVersion::P2 => {
 }
 ```
 
-## Acceptance conditions for this issue
+## Acceptance
 
-1. `crates/ark-wasm/src/emit/t3_wasm_gc/mod.rs` import block branches on a
-   `p2_native: bool` parameter: P1 path unchanged, P2 path emits
-   `wasi:cli/stdout@0.2.0` etc. with the Canonical ABI call convention.
-2. `build_backend_plan` passes `WasiVersion` through to the `ImportPlan`
-   builder.
-3. A fixture compiled with `--target wasm32-wasi-p2 --wasi-version p2` and
-   `--emit component` passes `wasm-tools validate` without errors.
-4. Binary size is ≥ 80 KB smaller than the P1-adapter variant.
-5. `python scripts/manager.py verify` passes.
+1. T3 emitter import-table generation has an explicit P2-native branch while keeping P1 behavior unchanged.
+2. `WasiVersion` is propagated through backend planning into import-table selection logic.
+3. `--target wasm32-wasi-p2 --wasi-version p2 --emit component` output validates with `wasm-tools validate`.
+4. The issue body explicitly documents how this issue unblocks `#121` and the `#510 -> #121 -> #074` chain.
+5. Regression checks pass for both P1 and P2 paths under existing verification gates.
+
+## Required verification
+
+```bash
+python scripts/manager.py verify quick
+python scripts/manager.py verify
+python scripts/manager.py docs check
+```
+
+Manual checks:
+
+- Verify `issues/open/dependency-graph.md` keeps `#510 -> #121 -> #074`
+- Verify `issues/open/index-meta.json` lists blocks for `#510` as `074, 076, 121`
 
 ## What was done in issue 074 (parent)
 

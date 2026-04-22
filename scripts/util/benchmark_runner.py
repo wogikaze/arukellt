@@ -468,7 +468,7 @@ def measure_compile(
         except FileNotFoundError:
             pass
         output = run_measured(
-            [str(compiler), "compile", "--time", "--target", target, "-o", str(wasm_path), str(ROOT / case.source)],
+            [str(compiler), "compile", "--target", target, "-o", str(wasm_path), str(ROOT / case.source)],
             cwd=ROOT,
             time_bin=time_bin,
         )
@@ -1515,8 +1515,7 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
     lines.append("```bash")
     lines.append("bash scripts/compare-benchmarks.sh")
     lines.append("# equivalent:")
-    lines.append("bash scripts/run/run-benchmarks.sh --compare-lang c,rust,go \\")
-    lines.append("  --compare-write-md docs/process/benchmark-results.md --compare-c-ratio-gate")
+    lines.append("python3 scripts/util/benchmark_runner.py --mode compare --output-md docs/process/benchmark-results.md")
     lines.append("```")
     lines.append("")
     lines.append(
@@ -1572,10 +1571,12 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
             )
         )
     lines.append("")
-    # Compile latency breakdown table
+    # Compile latency breakdown table — prefer current run, fall back to baseline
     phase_order = ["lex", "parse", "resolve", "typecheck", "lower", "opt", "emit", "total"]
     present_phases: list[str] = []
-    for bench in current["benchmarks"]:
+    phase_source_label = "current run"
+    phase_benchmarks = current["benchmarks"]
+    for bench in phase_benchmarks:
         pm = bench["compile"].get("phase_ms") or {}
         for ph in phase_order:
             if ph in pm and ph not in present_phases:
@@ -1583,17 +1584,41 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
         for ph in pm:
             if ph not in phase_order and ph not in present_phases:
                 present_phases.append(ph)
+    # If current run has no phase data, fall back to baseline
+    if not present_phases and baseline_path is not None and baseline_path.exists():
+        try:
+            import json as _json
+            baseline_data = _json.loads(baseline_path.read_text())
+            baseline_benches = baseline_data.get("benchmarks", [])
+            for bench in baseline_benches:
+                pm = bench.get("compile", {}).get("phase_ms") or {}
+                for ph in phase_order:
+                    if ph in pm and ph not in present_phases:
+                        present_phases.append(ph)
+                for ph in pm:
+                    if ph not in phase_order and ph not in present_phases:
+                        present_phases.append(ph)
+            if present_phases:
+                phase_benchmarks = baseline_benches
+                phase_source_label = f"baseline ({baseline_data.get('generated_at', 'unknown')})"
+        except Exception:
+            pass
+    for ph in pm:
+            if ph not in phase_order and ph not in present_phases:
+                present_phases.append(ph)
     if present_phases:
-        lines.append("## Compile Latency Breakdown (ms)")
+        lines.append(f"## Compile Latency Breakdown (ms, {phase_source_label})")
         lines.append("")
         header = "| Benchmark | " + " | ".join(present_phases) + " |"
         separator = "|-----------|" + "|".join("-" * (len(ph) + 2) for ph in present_phases) + "|"
         lines.append(header)
         lines.append(separator)
-        for bench in current["benchmarks"]:
-            pm = bench["compile"].get("phase_ms") or {}
+        for bench in phase_benchmarks:
+            pm = bench["compile"].get("phase_ms") or {} if "compile" in bench else bench.get("compile", {}).get("phase_ms") or {}
+            if not pm:
+                continue
             row = "| {} | {} |".format(
-                bench["name"],
+                bench.get("name", "?"),
                 " | ".join(format_ms(pm.get(ph)) for ph in present_phases),
             )
             lines.append(row)
@@ -1784,7 +1809,7 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
                 )
             )
         lines.append("")
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines).rstrip("\n") + "\n"
 
 
 def render_text(

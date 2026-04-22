@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T15:33:39Z",
+  "generated_at": "2026-04-22T17:12:00Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -1181,20 +1181,44 @@
       }
     },
     {
-      "id": "609",
-      "path": "609-opt-measurement-repair.md",
-      "title": "Optimization Uplift: Measurement Truth Repair",
-      "track": "benchmark / docs",
+      "id": "610",
+      "path": "610-opt-lower-bottleneck.md",
+      "title": "Optimization Uplift: Lowering Bottleneck Reduction",
+      "track": "compiler / selfhost",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
+      "depends_on": [
+        "609"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "611",
+      "path": "611-opt-t3-unlock.md",
+      "title": "Optimization Uplift: T3-Safe Runtime Unlock",
+      "track": "compiler / runtime-perf",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "609"
+      ],
       "blocks_issue_ids": [
-        "610",
-        "611",
         "612"
       ],
       "acceptance": {
@@ -1202,7 +1226,7 @@
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },
@@ -1668,33 +1692,9 @@
       }
     },
     {
-      "id": "610",
-      "path": "610-opt-lower-bottleneck.md",
-      "title": "Optimization Uplift: Lowering Bottleneck Reduction",
-      "track": "compiler / selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "609"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "611",
-      "path": "611-opt-t3-unlock.md",
-      "title": "Optimization Uplift: T3-Safe Runtime Unlock",
+      "id": "612",
+      "path": "612-opt-binary-size.md",
+      "title": "Optimization Uplift: Binary Size Squeeze",
       "track": "compiler / runtime-perf",
       "status": "open",
       "blocks_v1": "none",
@@ -1703,11 +1703,10 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "609"
+        "609",
+        "611"
       ],
-      "blocks_issue_ids": [
-        "612"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -1872,31 +1871,6 @@
         "605",
         "606",
         "607"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "612",
-      "path": "612-opt-binary-size.md",
-      "title": "Optimization Uplift: Binary Size Squeeze",
-      "track": "compiler / runtime-perf",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "609",
-        "611"
       ],
       "blocks_issue_ids": [],
       "acceptance": {

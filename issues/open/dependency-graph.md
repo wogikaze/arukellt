@@ -56,7 +56,8 @@ graph LR
   I598["598 Language Surface Uplift: Expression-Level Comprehensions"]
   I600["600 Type System Stage-Up: Soundness Floor"]
   I604["604 Stdlib Baseline: Contract and Facade Honesty"]
-  I609["609 Optimization Uplift: Measurement Truth Repair"]
+  I610["610 Optimization Uplift: Lowering Bottleneck Reduction"]
+  I611["611 Optimization Uplift: T3-Safe Runtime Unlock"]
   I613["613 Error Handling Convergence: Stdlib Result Surface"]
   I614["614 Error Handling Convergence: Compiler Structured Diagnostics"]
   I615["615 Error Handling Convergence: Panic / ICE Policy"]
@@ -75,15 +76,13 @@ graph LR
   I605["605 Stdlib Baseline: Host Core-Platform Baseline"]
   I606["606 Stdlib Baseline: Structured Data and Semantics Baseline"]
   I607["607 Stdlib Baseline: Collections Hash Hardening"]
-  I610["610 Optimization Uplift: Lowering Bottleneck Reduction"]
-  I611["611 Optimization Uplift: T3-Safe Runtime Unlock"]
+  I612["612 Optimization Uplift: Binary Size Squeeze"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I580["580 580 — Phase 7: Delete `crates/ark-manifest`"]
   I599["599 Language Surface Uplift: Docs, Fixtures, and Rollout"]
   I602["602 Type System Stage-Up: Qualified Constraints and Coherent Trait Solving"]
   I608["608 Stdlib Baseline: Docs, Verification, and Benchmark Closeout"]
-  I612["612 Optimization Uplift: Binary Size Squeeze"]
   I076["076 WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
@@ -118,8 +117,7 @@ graph LR
   I604 --> I605
   I604 --> I606
   I604 --> I607
-  I609 --> I610
-  I609 --> I611
+  I611 --> I612
   I510 --> I074
   I121 --> I074
   I564 --> I574
@@ -133,8 +131,6 @@ graph LR
   I605 --> I608
   I606 --> I608
   I607 --> I608
-  I609 --> I612
-  I611 --> I612
   I074 --> I076
   I510 --> I076
   I074 --> I077
@@ -228,7 +224,8 @@ graph LR
 - **598** depends on: none; blocks: 599
 - **600** depends on: none; blocks: 601
 - **604** depends on: none; blocks: 605, 606, 607, 608
-- **609** depends on: none; blocks: 610, 611, 612
+- **610** depends on: 609; blocks: none
+- **611** depends on: 609; blocks: 612
 - **613** depends on: none; blocks: none
 - **614** depends on: none; blocks: none
 - **615** depends on: none; blocks: none
@@ -247,15 +244,13 @@ graph LR
 - **605** depends on: 604; blocks: 608
 - **606** depends on: 604; blocks: 608
 - **607** depends on: 604; blocks: 608
-- **610** depends on: 609; blocks: none
-- **611** depends on: 609; blocks: 612
+- **612** depends on: 609, 611; blocks: none
 - **074** depends on: 510, 121; blocks: 076, 077, 124, 139, 474, 475, 476
 - **574** depends on: 564; blocks: 575, 582
 - **580** depends on: 564; blocks: 582
 - **599** depends on: 595, 596, 597, 598; blocks: none
 - **602** depends on: 601; blocks: 603
 - **608** depends on: 604, 605, 606, 607; blocks: none
-- **612** depends on: 609, 611; blocks: none
 - **076** depends on: 074, 510; blocks: 543
 - **077** depends on: 074, 137; blocks: 136
 - **124** depends on: 074; blocks: none

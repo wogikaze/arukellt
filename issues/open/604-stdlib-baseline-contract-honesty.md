@@ -72,20 +72,28 @@ Targeted families: `std::host::fs`, `std::json`, `std::toml`, `std::collections:
 
 None.
 
+## Dispatch dependency map
+
+- depends_on_open: none
+- depends_on_done: none
+- blocks: #605, #606, #607, #608
+
 ## Blocks
 
 - #605 (host platform work must start from honest API surface)
 - #606 (structured data work must start from honest contracts)
 - #607 (hash hardening must start from honest facade/raw split)
+- #608 (docs/verification closeout must start from honest contracts)
 
 ---
 
 ## Acceptance
 
-1. Phase 0 gap ledger is written and committed (one table: API name → actual behavior)
-2. Targeted modules have real `//!` module doc comments (no more `_No module doc comment yet_`)
-3. `std::host::fs::exists` behavior is explicitly documented or renamed to reflect read-probe semantics
-4. `std/manifest.toml` stability labels match actual implementation for targeted families
+1. Phase 0 gap ledger is committed and covers all targeted families with `API -> actual behavior -> disposition` columns.
+2. Targeted modules have real `//!` module doc comments and generated docs no longer contain `_No module doc comment yet_` for those modules.
+3. `std::host::fs::exists` semantics are explicitly documented as read-probe semantics or renamed/deprecated accordingly.
+4. `std::json` and `std::toml` partial surfaces are explicitly marked as partial/experimental in docs and manifest labels.
+5. `std/manifest.toml` stability labels match actual implementation state for all targeted families.
 
 ---
 
@@ -95,6 +103,7 @@ None.
 python3 scripts/gen/generate-docs.py
 python scripts/manager.py verify quick
 python scripts/manager.py verify fixtures
+python scripts/manager.py docs check
 ```
 
 ---

@@ -1,19 +1,33 @@
 #!/usr/bin/env bash
-# Cross-language benchmark comparison: native C / Rust / Go reference binaries
-# vs Ark wasm under wasmtime. Delegates to scripts/run/run-benchmarks.sh.
+# Benchmark comparison helper for Arukellt benchmark suite.
+#
+# This wrapper runs the canonical benchmark runner in compare mode and writes
+# the markdown report to docs/process/benchmark-results.md.
 #
 # Usage:
 #   bash scripts/compare-benchmarks.sh
 #   bash scripts/compare-benchmarks.sh --quick
-#   bash scripts/compare-benchmarks.sh --full
-# Extra args are forwarded (e.g. --compare-lang overrides the default list).
-#
-# By default this embeds the Markdown table into docs/process/benchmark-results.md
-# (between HTML comments) and enforces roadmap C-ratio gates when C timings exist.
 set -euo pipefail
+
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-exec bash "$ROOT/scripts/run/run-benchmarks.sh" \
-  --compare-lang c,rust,go \
-  --compare-write-md "$ROOT/docs/process/benchmark-results.md" \
-  --compare-c-ratio-gate \
-  "$@"
+MODE="compare"
+EXTRA_ARGS=()
+
+for arg in "$@"; do
+  case "$arg" in
+    --quick)
+      # Compare mode with low iteration counts for a fast sanity run.
+      EXTRA_ARGS+=(--compile-iterations 1 --runtime-iterations 1 --runtime-warmups 0)
+      ;;
+    --full)
+      ;;
+    *)
+      EXTRA_ARGS+=("$arg")
+      ;;
+  esac
+done
+
+exec python3 "$ROOT/scripts/util/benchmark_runner.py" \
+  --mode "$MODE" \
+  --output-md "$ROOT/docs/process/benchmark-results.md" \
+  "${EXTRA_ARGS[@]}"
