@@ -1,0 +1,10 @@
+// Issue #567 — selfhost resolver incremental diagnostic accumulation.
+//
+// Three references to undefined names. The resolver MUST NOT bail at the
+// first error: all three diagnostics must reach the CLI in one run so that
+// LSP/IDE consumers can surface every problem per edit.
+fn main() {
+    foo()
+    bar()
+    baz()
+}
