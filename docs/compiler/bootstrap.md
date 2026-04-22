@@ -417,7 +417,7 @@ All Rust crates currently in the workspace will be deleted once their Arukellt e
 | `ark-diagnostics` | Shared diagnostics | Arukellt diagnostics system is complete |
 | `ark-manifest` | Project manifest | Arukellt manifest parser is complete |
 | `ark-target` | Compilation targets | Arukellt target definitions are complete |
-| `ark-lsp` | Language Server | Arukellt LSP implementation is complete |
+| ~~`ark-lsp`~~ | ~~Language Server~~ | **Removed in #572 (Phase 7 of #529).** Selfhost `src/compiler/lsp.ark` invoked via `arukellt lsp` is the source of truth. |
 | `ark-dap` | Debug Adapter | Arukellt DAP implementation is complete |
 
 ### When the Dual Period Ends

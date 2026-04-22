@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T10:40:59Z",
+  "generated_at": "2026-04-22T10:42:39Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -949,34 +949,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#568"
-      }
-    },
-    {
-      "id": "572",
-      "path": "572-phase7-delete-ark-lsp.md",
-      "title": "572 — Phase 7: Delete `crates/ark-lsp`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "569",
-        "570"
-      ],
-      "blocks_issue_ids": [
-        "579",
-        "582"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 14
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#569, #570"
       }
     },
     {

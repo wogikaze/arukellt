@@ -60,8 +60,9 @@ crates/
   ark-diagnostics/  # diagnostics registry + rendering
   ark-driver/       # session / orchestration
   ark-stdlib/       # stdlib support crate
-  ark-lsp/          # LSP scaffold
   arukellt/         # CLI entry point
+  # (Rust ark-lsp removed in #572; selfhost LSP via `arukellt lsp` →
+  #  src/compiler/lsp.ark)
 extensions/
   arukellt-all-in-one/  # VS Code extension bootstrap
 std/                # source-backed stdlib wrappers and manifest

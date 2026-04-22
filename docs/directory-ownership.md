@@ -24,7 +24,6 @@
 | `crates/ark-driver/` | product | — | Compilation driver and session |
 | `crates/ark-manifest/` | product | — | `ark.toml` manifest parsing |
 | `crates/ark-stdlib/` | product | — | Stdlib manifest metadata API |
-| `crates/ark-lsp/` | internal | — | LSP server (scaffold, not shipped) |
 | `std/` | product | — | Standard library source and manifest |
 | `std/manifest.toml` | product | — | Canonical stdlib API definition |
 | `src/compiler/` | product | — | Selfhost compiler sources (`.ark`) |
@@ -64,4 +63,4 @@ These files are auto-generated. Run the generator instead of editing manually:
 
 | Directory | Reason | How to Include |
 |-----------|--------|----------------|
-| `crates/ark-lsp/` | Scaffold, not CI-tested | `cargo build -p ark-lsp` |
+| _(none)_ | The Rust `crates/ark-lsp` was retired in #572 (Phase 7 of #529); selfhost LSP via `arukellt lsp` is the source of truth. | — |

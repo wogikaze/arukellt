@@ -51,8 +51,8 @@ arukellt compile docs/examples/hello.ark --target wasm32-wasi-p2 -o /tmp/h2.wasm
 sha256sum /tmp/h1.wasm /tmp/h2.wasm  # must match
 
 # 5. Panic audit (included in verify-harness.sh --quick)
-# no panic/unwrap in: crates/arukellt/src/, crates/ark-lsp/src/,
-#   crates/ark-manifest/src/, crates/ark-driver/src/
+# no panic/unwrap in: crates/arukellt/src/, crates/ark-manifest/src/
+# (crates/ark-lsp removed in #572; crates/ark-driver removed earlier in #529)
 ```
 
 ## Guarantee Tiers

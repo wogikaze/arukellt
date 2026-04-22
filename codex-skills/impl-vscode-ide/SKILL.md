@@ -21,7 +21,7 @@ You specialize in:
 - Editor regression snapshots and VS Code API / LSP end-to-end tests
 
 Primary paths usually include:
-- `crates/ark-lsp/**`
+- `src/compiler/lsp.ark`, `src/compiler/analysis.ark` (selfhost LSP — source of truth since #572 retired the Rust `crates/ark-lsp` crate)
 - `extensions/arukellt-all-in-one/src/**`
 - VS Code E2E fixture / test paths
 - Editor behavior regression paths

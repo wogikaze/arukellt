@@ -46,7 +46,6 @@ graph LR
   I555["555 Release: Pre-Release CI Checks"]
   I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
   I571["571 571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)"]
-  I572["572 572 — Phase 7: Delete `crates/ark-lsp`"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -110,14 +109,12 @@ graph LR
   I564 --> I578
   I577 --> I578
   I564 --> I579
-  I572 --> I579
   I575 --> I579
   I576 --> I579
   I577 --> I579
   I564 --> I581
   I575 --> I581
   I577 --> I581
-  I572 --> I582
   I573 --> I582
   I574 --> I582
   I575 --> I582
@@ -172,7 +169,6 @@ graph LR
 - **555** depends on: none; blocks: none
 - **563** depends on: 559; blocks: 564
 - **571** depends on: 568; blocks: 573
-- **572** depends on: 569, 570; blocks: 579, 582
 - **054** depends on: 039, 044, 053; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **077** depends on: 074, 137; blocks: 136

@@ -17,8 +17,8 @@ Items marked **CI** are automated; items marked **Manual** require human verific
 - [ ] **CI** — Binary smoke: `arukellt check tests/fixtures/type_error.diag` exits non-zero
 - [ ] **CI** — Determinism: same source produces identical `.wasm` across two builds
 - [ ] **CI** — Selfhost: `bash scripts/run/verify-bootstrap.sh --stage1-only` passes
-- [ ] **CI** — LSP unit tests: `cargo test -p ark-lsp --lib` passes
-- [ ] **CI** — LSP E2E tests: `cargo test -p ark-lsp --test lsp_e2e -- --test-threads=1` passes
+- [ ] **CI** — Selfhost LSP: `python scripts/manager.py verify quick` LSP gates (#568, #569) pass
+  (Rust `ark-lsp` crate retired in #572; selfhost `src/compiler/lsp.ark` via `arukellt lsp` is the source of truth.)
 
 ## Binary distribution
 

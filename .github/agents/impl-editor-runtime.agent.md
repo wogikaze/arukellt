@@ -22,7 +22,7 @@ You specialize in:
 
 Primary paths usually include:
 - `extensions/arukellt-all-in-one/src/**`
-- `crates/ark-lsp/**` when launch/debug requests pass through the language server
+- `src/compiler/lsp.ark`, `src/compiler/analysis.ark` when launch/debug requests pass through the selfhost language server (since #572 retired the Rust `crates/ark-lsp` crate)
 - Editor run/debug fixture or integration test paths
 - Minimal CLI/runtime bridge paths explicitly named in the work order
 

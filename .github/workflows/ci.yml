@@ -562,35 +562,11 @@ jobs:
       - name: Run extension tests
         run: cd extensions/arukellt-all-in-one && xvfb-run -a npm test
 
-  # ── Layer 11: LSP protocol E2E tests (merge gate) ──────────────────────
-  lsp-e2e:
-    name: "LSP E2E tests"
-    runs-on: ubuntu-latest
-    needs: [unit-tests]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-
-      - name: Build CLI binary (needed for E2E tests)
-        run: cargo build -p arukellt
-
-      - name: LSP unit tests
-        run: cargo test -p ark-lsp --lib
-
-      - name: LSP E2E tests
-        run: cargo test -p ark-lsp --test lsp_e2e -- --test-threads=1
+  # ── Layer 11: (removed) Rust ark-lsp E2E tests ─────────────────────────
+  # The Rust LSP server crate (`crates/ark-lsp`) was deleted in #572 (Phase 7
+  # of #529). The selfhost LSP (`src/compiler/lsp.ark`, exposed as
+  # `arukellt lsp`) is the source of truth. Editor-extension E2E coverage is
+  # provided by the VS Code extension job above.
 
   # ── Layer 12: Target-contract drift check (merge gate) ──────────────────
   #

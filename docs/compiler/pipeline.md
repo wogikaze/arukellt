@@ -76,7 +76,7 @@ compilation therefore falls back to the legacy path.
 - `crates/ark-diagnostics`
 - `crates/ark-driver`
 - `crates/ark-stdlib`
-- `crates/ark-lsp`
+- LSP (selfhost `src/compiler/lsp.ark`; the Rust `crates/ark-lsp` crate was retired in #572)
 - `crates/arukellt`
 
 ## Session / Artifact Graph 方針

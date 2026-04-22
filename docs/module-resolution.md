@@ -93,9 +93,11 @@ Given a starting directory `start_dir` (typically the current working directory)
 This is the algorithm in `Manifest::find_root(start_dir)` and
 `Manifest::find_and_load(start_dir)` in `crates/ark-manifest/src/lib.rs`.
 
-**CLI and LSP use the same algorithm.** Since `ark-lsp` now depends on
-`ark-manifest`, both tools call `Manifest::find_root` with the same starting
-directory, guaranteeing identical results (implemented in #238).
+**CLI and LSP use the same algorithm.** Both `arukellt compile` and the
+selfhost LSP (`arukellt lsp`, source: `src/compiler/lsp.ark`) call
+`Manifest::find_root` with the same starting directory, guaranteeing
+identical results (originally implemented in #238; the previous Rust
+`ark-lsp` crate that proved this contract was retired in #572).
 
 ### 3.2 Single-file mode
 

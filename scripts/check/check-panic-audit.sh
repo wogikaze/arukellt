@@ -5,7 +5,7 @@
 #         and any code inside #[cfg(test)] module blocks.
 set -uo pipefail
 
-DIRS=(crates/arukellt/src/ crates/ark-lsp/src/ crates/ark-manifest/src/)
+DIRS=(crates/arukellt/src/ crates/ark-manifest/src/)
 PATTERN='\.unwrap()\|panic!\|todo!()\|unimplemented!()'
 EXCLUDE='lock().unwrap\|#\[test\]\|//\|expect('
 

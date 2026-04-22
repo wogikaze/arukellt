@@ -94,9 +94,11 @@ function lspHoverPlainText(h) {
 
 /**
  * Minimal JSON-RPC/LSP over stdio (Content-Length framing), same protocol as
- * `crates/ark-lsp/tests/lsp_e2e.rs`. Used here because `vscode.executeDefinitionProvider`
- * and vscode-languageclient `sendRequest` can stall under @vscode/test-electron when the
- * server uses TextDocumentSyncKind.Full.
+ * the selfhost `arukellt lsp` server (`src/compiler/lsp.ark`). The previous
+ * Rust `crates/ark-lsp/tests/lsp_e2e.rs` harness was retired with the crate
+ * in #572. Used here because `vscode.executeDefinitionProvider` and
+ * vscode-languageclient `sendRequest` can stall under @vscode/test-electron
+ * when the server uses TextDocumentSyncKind.Full.
  */
 class LspPipeSession {
   /**
@@ -544,7 +546,8 @@ suite("Test Controller (#274)", () => {
 
 // ============================================================
 // #453 — Go to Definition E2E (verifies #450 identifier-only span)
-// JSON-RPC to `arukellt lsp` (see crates/ark-lsp/tests/lsp_e2e.rs). VS Code API
+// JSON-RPC to `arukellt lsp` (selfhost LSP at `src/compiler/lsp.ark`; the
+// Rust `crates/ark-lsp` E2E harness was retired in #572). VS Code API
 // `vscode.executeDefinitionProvider` stalls under @vscode/test-electron here.
 // Placed before stub LSP suite so the subprocess is not affected by stub config.
 // ============================================================

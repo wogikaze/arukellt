@@ -30,7 +30,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - `crates/ark-lexer` 〜 `crates/ark-mir` — 主要コンパイラパイプライン（Rust 側）。Wasm 出力は selfhost (`src/compiler/emitter.ark`) が担当
 - `crates/ark-driver` — 共有 analysis/session 層
 - `crates/ark-target` — ターゲット定義
-- `crates/ark-lsp` — LSP scaffold
+- LSP — selfhost (`src/compiler/lsp.ark`)、`arukellt lsp` で起動。Rust `crates/ark-lsp` は #572 (Phase 7 of #529) で削除済み。
 - `extensions/arukellt-all-in-one` — VS Code extension bootstrap
 - `std/` — source-backed stdlib wrappers
 - `tests/fixtures/` — manifest-driven end-to-end fixtures
