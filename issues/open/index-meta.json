@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T17:38:17Z",
+  "generated_at": "2026-04-22T18:32:25Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -1154,21 +1154,20 @@
       }
     },
     {
-      "id": "604",
-      "path": "604-stdlib-baseline-contract-honesty.md",
-      "title": "Stdlib Baseline: Contract and Facade Honesty",
-      "track": "stdlib",
+      "id": "605",
+      "path": "605-stdlib-baseline-host-platform.md",
+      "title": "Stdlib Baseline: Host Core-Platform Baseline",
+      "track": "stdlib / wasi-feature",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
+      "depends_on": [
+        "604"
+      ],
       "blocks_issue_ids": [
-        "605",
-        "606",
-        "607",
         "608"
       ],
       "acceptance": {
@@ -1176,7 +1175,59 @@
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "606",
+      "path": "606-stdlib-baseline-structured-data.md",
+      "title": "Stdlib Baseline: Structured Data and Semantics Baseline",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "604"
+      ],
+      "blocks_issue_ids": [
+        "608"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "607",
+      "path": "607-stdlib-baseline-hash-hardening.md",
+      "title": "Stdlib Baseline: Collections Hash Hardening",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "604"
+      ],
+      "blocks_issue_ids": [
+        "608"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },
@@ -1614,10 +1665,10 @@
       }
     },
     {
-      "id": "605",
-      "path": "605-stdlib-baseline-host-platform.md",
-      "title": "Stdlib Baseline: Host Core-Platform Baseline",
-      "track": "stdlib / wasi-feature",
+      "id": "608",
+      "path": "608-stdlib-baseline-docs-bench.md",
+      "title": "Stdlib Baseline: Docs, Verification, and Benchmark Closeout",
+      "track": "stdlib / docs",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
@@ -1625,63 +1676,12 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "604"
+        "604",
+        "605",
+        "606",
+        "607"
       ],
-      "blocks_issue_ids": [
-        "608"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "606",
-      "path": "606-stdlib-baseline-structured-data.md",
-      "title": "Stdlib Baseline: Structured Data and Semantics Baseline",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "604"
-      ],
-      "blocks_issue_ids": [
-        "608"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "607",
-      "path": "607-stdlib-baseline-hash-hardening.md",
-      "title": "Stdlib Baseline: Collections Hash Hardening",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "604"
-      ],
-      "blocks_issue_ids": [
-        "608"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -1846,33 +1846,6 @@
       "blocks_issue_ids": [
         "603"
       ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "608",
-      "path": "608-stdlib-baseline-docs-bench.md",
-      "title": "Stdlib Baseline: Docs, Verification, and Benchmark Closeout",
-      "track": "stdlib / docs",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "604",
-        "605",
-        "606",
-        "607"
-      ],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0

@@ -33,10 +33,26 @@ pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
     __intrinsic_fs_write_bytes(path, bytes)
 }
 
-/// Read probe / readable-file check: `true` when a full read succeeds; not a path-existence query.
-/// 
-/// Uses the same intrinsic as `read_to_string`. Directories, missing paths, and unreadable paths may
-/// return `false`.
+/// Read-probe semantics — **not** a general path-existence query.
+///
+/// This function attempts a full UTF-8 file read via the same intrinsic as
+/// `read_to_string` (`__intrinsic_fs_read_file`) and returns `true` only when
+/// that read succeeds end-to-end. The result is **best-effort**:
+///
+/// - A `false` result does **not** distinguish between *missing file*,
+///   *permission denied*, *not a regular file* (e.g. a directory or a broken
+///   symlink), *invalid UTF-8 contents*, or *I/O error mid-read*. All of these
+///   collapse to `false`.
+/// - A `true` result means the host could open the path and read it through to
+///   EOF as UTF-8 at the moment of the call. It does **not** imply the path is
+///   writable, that subsequent reads will succeed, or that the file is a
+///   regular file.
+/// - For non-UTF-8 files this returns `false` even when the path does exist.
+///
+/// True path-existence semantics (an lstat/access-style probe that cleanly
+/// separates *missing* from *unreadable*) are tracked under issue #605. Until
+/// that lands, `exists` is intentionally kept as a thin readability probe and
+/// must not be used as a general "does this path exist?" predicate.
 pub fn exists(path: String) -> bool {
     match __intrinsic_fs_read_file(path) {
         Result::Ok(_) => true,

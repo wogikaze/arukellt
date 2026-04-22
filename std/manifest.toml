@@ -1918,6 +1918,14 @@ availability = { t1 = true, t3 = true }
 
 # === std::text (extended) ===
 
+# === std::text ===
+
+[[modules]]
+name = "std::text"
+stability = "stable"
+family = "text"
+doc = "String manipulation helpers. Operations are largely byte-oriented or ASCII-aware (case folding, char iteration, len_chars, pad, format) — they do NOT implement full Unicode segmentation, normalization, or grapheme-cluster semantics. Multi-byte UTF-8 input is preserved by the byte-level helpers (slice_bytes, len_bytes, split, join, concat, contains, starts_with, ends_with) but case mapping and char counting are not Unicode-correct."
+
 [[functions]]
 name = "len_bytes"
 module = "std::text"
@@ -2398,6 +2406,15 @@ availability = { t1 = true, t3 = true, note = "Requires the --dir capability fla
 
 # === std::host::fs ===
 
+# === std::host::fs ===
+
+[[modules]]
+name = "std::host::fs"
+stability = "stable"
+family = "host"
+doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, write_string, write_bytes are stable whole-file I/O. exists is intentionally a best-effort read-probe (NOT a general path-existence predicate) — see #605 and the function-level docs in std/host/fs.ark. The fd_seek/fd_tell/fd_fdstat_errno helpers are explicitly experimental and T1-only."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
 [[functions]]
 name = "read_to_string"
 module = "std::host::fs"
@@ -2442,7 +2459,7 @@ stability = "stable"
 params = ["String"]
 returns = "bool"
 doc_category = "host_fs"
-doc = "Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_to_string); not a path-existence query. Directories, missing paths, and unreadable paths may return false."
+doc = "Read-probe semantics — NOT a general path-existence query. Attempts a full UTF-8 file read via the same intrinsic as read_to_string and returns true only when that read succeeds end-to-end. Best-effort: a false result does not distinguish missing file vs permission denied vs not-a-regular-file (e.g. directory or broken symlink) vs invalid UTF-8 vs mid-read I/O error — all collapse to false. A true result implies readability at call time, not writability or stability of subsequent reads. True path-existence semantics are tracked under issue #605."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]
@@ -3076,6 +3093,14 @@ params = ["Vec<i32>"]
 returns = "i64"
 
 # === std::collections::hash ===
+
+# === std::collections::hash ===
+
+[[modules]]
+name = "std::collections::hash"
+stability = "stable"
+family = "collections"
+doc = "HashMap<i32,i32> and HashSet<i32> monomorphic surface (i32-keyed, i32-valued). Raw bucket layout and user-facing helpers are still co-located; deeper hardening, generic key/value support, and raw/facade separation are tracked under issue #607."
 
 [[functions]]
 name = "hashmap_new"
@@ -4276,6 +4301,14 @@ returns = "String"
 
 # === std::json ===
 
+# === std::json ===
+
+[[modules]]
+name = "std::json"
+stability = "experimental"
+family = "data"
+doc = "Bounded JSON parser/serializer over a tagged JsonValue. Whole-document parse rejects trailing non-whitespace; nested object/array access re-parses raw text rather than maintaining structural state. Subset-only by design; full RFC 8259 coverage and zero-copy access are out of scope for this baseline."
+
 [[functions]]
 name = "json_stringify_i32"
 module = "std::json"
@@ -4325,6 +4358,14 @@ params = ["String"]
 returns = "bool"
 
 # === std::toml ===
+
+# === std::toml ===
+
+[[modules]]
+name = "std::toml"
+stability = "experimental"
+family = "data"
+doc = "Bounded TOML parser/serializer. Supports simple top-level key=value pairs (with comments and blank lines); arrays of tables, inline tables, dotted keys, datetimes, and most other TOML grammar return Err. Partial subset by design; not a conforming TOML 1.0 implementation."
 
 [[functions]]
 name = "toml_parse_line"

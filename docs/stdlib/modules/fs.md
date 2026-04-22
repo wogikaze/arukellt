@@ -71,7 +71,7 @@ descriptors and are experimental.
 | `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
-| `exists` | `(String) -> bool` | `stable` | ✅ impl | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
+| `exists` | `(String) -> bool` | `stable` | ✅ impl | Read-probe semantics — not a general path-existence query. |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ impl | Seeks within an open file descriptor. |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ impl | Returns the current file offset for an open file descriptor. |
 | `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ impl | Returns the errno from fd_fdstat_get for an open file descriptor. |
@@ -109,7 +109,7 @@ Write a byte sequence (Vec<i32> where each element is 0–255) to the given file
 
 #### `exists`
 
-Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_to_string); not a path-existence query. Directories, missing paths, and unreadable paths may return false.
+Read-probe semantics — NOT a general path-existence query. Attempts a full UTF-8 file read via the same intrinsic as read_to_string and returns true only when that read succeeds end-to-end. Best-effort: a false result does not distinguish missing file vs permission denied vs not-a-regular-file (e.g. directory or broken symlink) vs invalid UTF-8 vs mid-read I/O error — all collapse to false. A true result implies readability at call time, not writability or stability of subsequent reads. True path-existence semantics are tracked under issue #605.
 
 **Availability:** Requires the --dir capability flag at runtime.
 
