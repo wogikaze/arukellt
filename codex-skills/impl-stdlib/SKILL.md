@@ -55,7 +55,7 @@ Scope Enforcement:
 
 Verification Defaults:
 Always run: `python scripts/manager.py verify quick`
-For stdlib runtime/API changes: also run `cargo test --workspace --exclude ark-llvm` and `python scripts/manager.py verify fixtures`
+For stdlib runtime/API changes: also run `cargo test --workspace` and `python scripts/manager.py verify fixtures`
 For generator/manifest/docs consistency: also run `python3 scripts/check/check-docs-consistency.py`
 If generated docs sources changed: also run `python3 scripts/gen/generate-docs.py`
 

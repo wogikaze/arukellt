@@ -56,7 +56,7 @@ You do NOT work on:
 
 5. **Run Required Verification**
    - Always run: `python scripts/manager.py verify quick`
-   - For compiler/runtime/selfhost code changes, also run: `cargo test --workspace --exclude ark-llvm`
+   - For compiler/runtime/selfhost code changes, also run: `cargo test --workspace`
    - For behavior/fixture changes, also run: `python scripts/manager.py verify fixtures`
    - If work order specifies additional verification, run only those commands
    - Report exact commands run and their results
@@ -92,7 +92,7 @@ Files changed: <list>
 Tests/fixtures added or updated: <list>
 Verification commands and results:
   - python scripts/manager.py verify quick: [PASS/FAIL]
-  - cargo test --workspace --exclude ark-llvm: [PASS/FAIL]
+  - cargo test --workspace: [PASS/FAIL]
   - python scripts/manager.py verify fixtures: [PASS/FAIL]
 Completed: yes/no
 Blockers: <list or 'None'>

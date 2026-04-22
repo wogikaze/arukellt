@@ -76,7 +76,6 @@ falls back to the legacy path.
 - `crates/ark-driver`
 - `crates/ark-stdlib`
 - `crates/ark-lsp`
-- `crates/ark-llvm`
 - `crates/arukellt`
 
 ## Session / Artifact Graph 方針

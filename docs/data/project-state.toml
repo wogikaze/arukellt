@@ -64,7 +64,7 @@ tier = "T4"
 adr_tier = "scaffold"
 status = "scaffold"
 run_supported = false
-role = "Scaffold: ark-llvm exists, requires LLVM 18, no tests"
+role = "Not started: T4 native backend has no implementation; ark-llvm scaffold removed (#586)"
 
 [[target_profiles]]
 id = "wasm32-wasi-p3"
@@ -81,7 +81,7 @@ fixture_failures = 0
 fixture_manifest_count = 733
 checks_passed = 19
 checks_total = 19
-unit_tests_note = "current count is verified by `cargo test --workspace --exclude ark-llvm`"
+unit_tests_note = "current count is verified by `cargo test --workspace`"
 
 [perf]
 check_budget_pct = 10

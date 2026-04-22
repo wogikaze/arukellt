@@ -50,7 +50,6 @@ python3 scripts/gen/generate-issue-index.py
 ## Tooling Notes
 
 - Prefer `ig` for code search
-- `ark-llvm` is present but excluded from default verification because it requires LLVM 18
 - Generated docs and manifest-backed stdlib reference pages should be regenerated, not hand-maintained
 
 ## Bundled Skill Sources

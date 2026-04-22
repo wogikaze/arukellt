@@ -7,7 +7,6 @@ members = [
     "crates/ark-typecheck",
     "crates/ark-hir",
     "crates/ark-mir",
-    "crates/ark-llvm",
     "crates/ark-lsp",
     "crates/ark-diagnostics",
     "crates/ark-stdlib",
@@ -17,7 +16,6 @@ members = [
     "crates/arukellt",
     "crates/ark-playground-wasm",
 ]
-# ark-llvm requires LLVM 18 native libraries; exclude from default build
 default-members = [
     "crates/ark-lexer",
     "crates/ark-parser",
@@ -49,7 +47,6 @@ ark-hir = { path = "crates/ark-hir" }
 ark-mir = { path = "crates/ark-mir" }
 ark-diagnostics = { path = "crates/ark-diagnostics" }
 ark-target = { path = "crates/ark-target" }
-ark-llvm = { path = "crates/ark-llvm" }
 ark-stdlib = { path = "crates/ark-stdlib" }
 ark-manifest = { path = "crates/ark-manifest" }
 ark-dap = { path = "crates/ark-dap" }

@@ -29,8 +29,8 @@ pub enum TargetId {
     /// T3: Wasm GC + WASI Preview 2 + Component Model (canonical target)
     Wasm32WasiP2,
     /// T4: Native via LLVM (subordinate to Wasm semantics)
-    /// STATUS: scaffold — `crates/ark-llvm` exists but is excluded from the default build
-    /// (requires LLVM 18) and has no test infrastructure.
+    /// STATUS: not-started — the Rust `crates/ark-llvm` scaffold was removed in #586.
+    /// Any future T4 backend will be re-built selfhost-native (#529 Phase 7 strategy).
     Native,
     /// T5: Wasm GC + WASI Preview 3 (future, async-first)
     /// STATUS: not-started — no code, no tests, no scaffold.

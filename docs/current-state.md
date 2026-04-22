@@ -25,7 +25,7 @@ The legacy path remains available as an opt-in fallback via `--mir-select legacy
 | `wasm32-wasi-p1` | T1 | supported | stable | Yes | Supported: full fixture coverage, AtCoder/competition target |
 | `wasm32-freestanding` | T2 | scaffold | scaffold | No | Scaffold: minimal core Wasm emitter proof and validator pass; no runtime execution support yet |
 | `wasm32-wasi-p2` | T3 | primary | stable | Yes | Primary (ADR-013): canonical GC-native path, all CI gates apply |
-| `native` | T4 | scaffold | scaffold | No | Scaffold: ark-llvm exists, requires LLVM 18, no test infrastructure |
+| `native` | T4 | scaffold | not-implemented | No | Not implemented: ark-llvm scaffold removed in #586. Future T4 backend will be selfhost-native (#529 Phase 7). |
 | `wasm32-wasi-p3` | T5 | not-started | not-started | No | Not started: target id exists but no backend, runtime, or scaffold code |
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
 
@@ -43,7 +43,7 @@ and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 <!-- BEGIN GENERATED:CURRENT_STATE_TEST_HEALTH -->
 ## Test Health
 
-- Unit tests: current count is verified by `cargo test --workspace --exclude ark-llvm`
+- Unit tests: current count is verified by `cargo test --workspace`
 - Fixture harness: 641 passed, 0 failed, 28 skipped (manifest-driven)
 - Fixture manifest: 733 entries
 - Wasm validation is a hard error (W0004)
@@ -238,7 +238,7 @@ catches GC reference types that bypass WIT-level checks (W0004).
 
 - `--deny-clock` and `--deny-random` are enforced at **compile time** via MIR scan (`mir_uses_capability`). Detection is transitive. These flags apply to the `run` subcommand; the `compile` subcommand does not accept them (compile only emits Wasm bytes, no runtime policy is applied).
 - No `--dir` flag means no filesystem access (module contract: [stdlib/modules/fs.md](stdlib/modules/fs.md))
-- `ark-llvm` is excluded from default builds (requires LLVM 18)
+- T4 (`native`) has no backend: the Rust `ark-llvm` scaffold was removed (#586). Any future native backend will be selfhost-native per #529 Phase 7.
 - some historical docs remain archived / historical and should not override current-state
 - **Host module target-gating**: `std::host::http` is available on all targets (T1 and T3) via the Wasmtime linker (issue 446). `std::host::sockets` remains T3-only (wasm32-wasi-p2); importing it on T1 produces an E0500 compile-time error (issue 448). `std::host::http` uses TCP HTTP/1.1; HTTPS is not supported.
 

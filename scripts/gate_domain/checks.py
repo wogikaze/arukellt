@@ -132,9 +132,9 @@ def run_pre_push(root: Path, dry_run: bool) -> tuple[int, str]:
         emit("\n── Rust checks ──")
         for cmd in [
             ["cargo", "fmt", "--check", "--all"],
-            ["cargo", "clippy", "--workspace", "--exclude", "ark-llvm",
+            ["cargo", "clippy", "--workspace",
              "--exclude", "ark-lsp", "--all-targets", "--", "-D", "warnings"],
-            ["cargo", "test", "--workspace", "--exclude", "ark-llvm", "--exclude", "ark-lsp"],
+            ["cargo", "test", "--workspace", "--exclude", "ark-lsp"],
         ]:
             rc, out = _run(cmd, root, env=env)
             out_lines.append(out)
@@ -361,9 +361,9 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
     step(1, "Unit (fmt + clippy + test)")
     for cmd_args in [
         ["cargo", "fmt", "--check", "--all"],
-        ["cargo", "clippy", "--workspace", "--exclude", "ark-llvm",
+        ["cargo", "clippy", "--workspace",
          "--exclude", "ark-lsp", "--all-targets", "--", "-D", "warnings"],
-        ["cargo", "test", "--workspace", "--exclude", "ark-llvm", "--exclude", "ark-lsp"],
+        ["cargo", "test", "--workspace", "--exclude", "ark-lsp"],
     ]:
         rc, out = _run(cmd_args, root, env=env)
         out_lines.append(out)

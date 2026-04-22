@@ -30,7 +30,7 @@ contract remains the single docs source for target verification status.
 | `wasm32-wasi-p1` | T1 | supported | stable | Yes | Supported: full fixture coverage, AtCoder/competition target |
 | `wasm32-freestanding` | T2 | scaffold | scaffold | No | Scaffold: minimal core Wasm emitter proof and validator pass; no runtime execution support yet |
 | `wasm32-wasi-p2` | T3 | primary | stable | Yes | Primary (ADR-013): canonical GC-native path, all CI gates apply |
-| `native` | T4 | scaffold | scaffold | No | Scaffold: ark-llvm exists, requires LLVM 18, no test infrastructure |
+| `native` | T4 | scaffold | not-implemented | No | Not implemented: ark-llvm scaffold removed in #586. Future T4 backend will be selfhost-native (#529 Phase 7). |
 | `wasm32-wasi-p3` | T5 | not-started | not-started | No | Not started: target id exists but no backend, runtime, or scaffold code |
 <!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
 
@@ -99,20 +99,20 @@ not require T2 and is not blocked on it (see ADR-017).
 
 ### T4 — native (LLVM backend)
 
-**Status: scaffold**
+**Status: not-implemented**
 
-The `crates/ark-llvm` crate exists and can emit basic LLVM IR for simple programs,
-but it is excluded from the default build (`--exclude ark-llvm`) because it requires
-LLVM 18.  No test infrastructure is wired up; correctness is unknown.  The crate is
-kept for future native-target work but should not be advertised as functional.
+The Rust `crates/ark-llvm` scaffold was removed in #586 (Phase 5 selfhost
+retirement). T4 has no current backend, no tests, and no scaffold code. If a
+future native target is desired, it will be built selfhost-native per #529
+Phase 7 strategy (no Rust crate revival).
 
 | Surface | Status | Detail |
 |---------|--------|--------|
 | parse / typecheck | guaranteed | shared frontend |
-| compile | scaffold | `crates/ark-llvm` exists, excluded from default build (requires LLVM 18) |
-| run | none | no test infrastructure |
-| emit | scaffold | basic LLVM IR emission exists |
-| determinism | none | not applicable until compile is functional |
+| compile | not-implemented | no backend (Rust scaffold removed in #586) |
+| run | none | no backend |
+| emit | none | no backend |
+| determinism | n/a | not applicable until a backend exists |
 
 ### T5 — interpreter / WASI P3
 

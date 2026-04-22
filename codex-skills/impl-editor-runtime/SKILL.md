@@ -63,7 +63,7 @@ You do **NOT** work on:
 
 6. **Run required verification**
    - Always run: `python scripts/manager.py verify quick`
-   - For Rust/LSP changes: also run `cargo test --workspace --exclude ark-llvm`
+   - For Rust/LSP changes: also run `cargo test --workspace`
    - For extension/editor integration: run the explicit editor, extension, or VS Code E2E command from the work order
    - For docs/help updates tied to launch UX: also run `python3 scripts/check/check-docs-consistency.py` when relevant
 
@@ -87,7 +87,7 @@ Files changed: <list>
 Tests/checks added or updated: <list>
 Verification commands and results:
   - python scripts/manager.py verify quick: [PASS/FAIL]
-  - cargo test --workspace --exclude ark-llvm: [PASS/FAIL if run]
+  - cargo test --workspace: [PASS/FAIL if run]
   - <editor or VS Code E2E command>: [PASS/FAIL if run]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
 Completed: yes/no

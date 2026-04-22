@@ -53,7 +53,7 @@ Execution methodology:
 
 7. **Run REQUIRED_VERIFICATION**
    - Always run: `python scripts/manager.py verify quick`
-   - For Rust/Wasm/package changes: also run `cargo test --workspace --exclude ark-llvm`
+   - For Rust/Wasm/package changes: also run `cargo test --workspace`
    - For docs/ADR/playground scope changes: also run `python3 scripts/check/check-docs-consistency.py`
    - For frontend/browser slices: run the project's explicit browser or package smoke command if provided
    - For share/permalink: ensure round-trip test passes

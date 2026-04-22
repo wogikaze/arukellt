@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T09:44:22Z",
+  "generated_at": "2026-04-22T09:48:03Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -977,30 +977,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#565, #566, #567"
-      }
-    },
-    {
-      "id": "586",
-      "path": "586-phase5-delete-ark-llvm.md",
-      "title": "586 — Phase 5: Delete `crates/ark-llvm`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "559"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 15
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "#559"
       }
     },
     {

@@ -84,7 +84,7 @@ These work but the API or behavior may change without a deprecation cycle:
 ### Not guaranteed
 
 - `--target wasm32-freestanding` (T2: not started)
-- `--target native` (T4: ark-llvm scaffold, requires LLVM 18)
+- `--target native` (T4: not implemented; ark-llvm scaffold removed in #586)
 - `--target wasm32-wasi-p3` (T5: spec not finalized)
 
 ## Stability Policy

@@ -11,7 +11,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - CLI default target: `wasm32-wasi-p1`
 - Canonical target: `wasm32-wasi-p2`
 - Component/WIT target: `wasm32-wasi-p2`
-- Unit tests: current count is verified by `cargo test --workspace --exclude ark-llvm`
+- Unit tests: current count is verified by `cargo test --workspace`
 - Fixture harness: 641 passed, 28 skipped / 816 entries
 - Verification: `bash scripts/run/verify-harness.sh (fast local gate; use --full for full local verification)` — 19/19 checks pass
 - Stdlib manifest-backed public API: 594 functions
@@ -32,7 +32,6 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - `crates/ark-target` — ターゲット定義
 - `crates/ark-lsp` — LSP scaffold
 - `extensions/arukellt-all-in-one` — VS Code extension bootstrap
-- `crates/ark-llvm` — LLVM backend scaffold（既定ビルド外）
 - `std/` — source-backed stdlib wrappers
 - `tests/fixtures/` — manifest-driven end-to-end fixtures
 - `docs/` — 利用者向け・設計向けドキュメント

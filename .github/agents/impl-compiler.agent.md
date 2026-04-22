@@ -68,7 +68,7 @@ You do **NOT** work on:
 
 6. **Run required verification**
    - Always run: `python scripts/manager.py verify quick`
-   - For compiler crate changes: also run `cargo test --workspace --exclude ark-llvm`
+   - For compiler crate changes: also run `cargo test --workspace`
    - For fixture/regression changes: also run `python scripts/manager.py verify fixtures`
    - If the work order specifies target-specific or regression commands, run them too
 
@@ -93,7 +93,7 @@ Files changed: <list>
 Tests/fixtures added or updated: <list>
 Verification commands and results:
   - python scripts/manager.py verify quick: [PASS/FAIL]
-  - cargo test --workspace --exclude ark-llvm: [PASS/FAIL]
+  - cargo test --workspace: [PASS/FAIL]
   - python scripts/manager.py verify fixtures: [PASS/FAIL]
 Completed: yes/no
 Blockers: <list or 'None'>

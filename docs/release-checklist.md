@@ -5,9 +5,9 @@ Items marked **CI** are automated; items marked **Manual** require human verific
 
 ## Pre-release
 
-- [ ] **CI** — `cargo test --workspace --exclude ark-llvm` passes
+- [ ] **CI** — `cargo test --workspace` passes
 - [ ] **CI** — `cargo test -p arukellt --test harness` passes (all fixtures green)
-- [ ] **CI** — `cargo clippy --workspace --exclude ark-llvm -- -D warnings` clean
+- [ ] **CI** — `cargo clippy --workspace -- -D warnings` clean
 - [ ] **CI** — `cargo fmt --all -- --check` clean
 - [ ] **CI** — `python scripts/manager.py verify quick` passes
 - [ ] **CI** — `bash scripts/manager.py --component` passes (component interop)

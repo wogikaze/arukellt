@@ -66,7 +66,7 @@ You do **NOT** work on:
 
 6. **Run required verification**
    - Always run: `python scripts/manager.py verify quick`
-   - For runtime/code changes: also run `cargo test --workspace --exclude ark-llvm`
+   - For runtime/code changes: also run `cargo test --workspace`
    - For fixture behavior: also run `python scripts/manager.py verify fixtures`
    - For docs/current behavior changes: also run `python3 scripts/check/check-docs-consistency.py`
    - If the work order specifies more, run only those additional commands
@@ -91,7 +91,7 @@ Files changed: <list>
 Fixtures/tests/checks added or updated: <list>
 Verification commands and results:
   - python scripts/manager.py verify quick: [PASS/FAIL]
-  - cargo test --workspace --exclude ark-llvm: [PASS/FAIL]
+  - cargo test --workspace: [PASS/FAIL]
   - python scripts/manager.py verify fixtures: [PASS/FAIL]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
 Completed: yes/no

@@ -75,7 +75,6 @@ For tracked issue work, that normally means:
 ## Tooling Notes
 
 - Prefer `ig` for code search.
-- `ark-llvm` is present in the workspace but excluded from normal default verification because it requires LLVM 18.
 - Generated docs and manifest-backed stdlib reference pages should be regenerated, not hand-maintained.
 
 ## Codex Skills

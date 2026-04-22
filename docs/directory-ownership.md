@@ -26,7 +26,6 @@
 | `crates/ark-manifest/` | product | — | `ark.toml` manifest parsing |
 | `crates/ark-stdlib/` | product | — | Stdlib manifest metadata API |
 | `crates/ark-lsp/` | internal | — | LSP server (scaffold, not shipped) |
-| `crates/ark-llvm/` | internal | — | LLVM backend (requires LLVM 18, excluded from default build) |
 | `std/` | product | — | Standard library source and manifest |
 | `std/manifest.toml` | product | — | Canonical stdlib API definition |
 | `src/compiler/` | product | — | Selfhost compiler sources (`.ark`) |
@@ -66,5 +65,4 @@ These files are auto-generated. Run the generator instead of editing manually:
 
 | Directory | Reason | How to Include |
 |-----------|--------|----------------|
-| `crates/ark-llvm/` | Requires LLVM 18 | `cargo build -p ark-llvm` |
 | `crates/ark-lsp/` | Scaffold, not CI-tested | `cargo build -p ark-lsp` |

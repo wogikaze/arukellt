@@ -65,7 +65,7 @@ You do **NOT** work on:
 
 6. **Run required verification**
    - Always run: `python scripts/manager.py verify quick`
-   - For Rust CLI changes: also run `cargo test --workspace --exclude ark-llvm`
+   - For Rust CLI changes: also run `cargo test --workspace`
    - For command snapshots/integration tests: run the explicit snapshot or integration command in the work order
    - For user-facing help/docs changes: also run `python3 scripts/check/check-docs-consistency.py` when relevant
 
@@ -89,7 +89,7 @@ Files changed: <list>
 Tests/checks added or updated: <list>
 Verification commands and results:
   - python scripts/manager.py verify quick: [PASS/FAIL]
-  - cargo test --workspace --exclude ark-llvm: [PASS/FAIL if run]
+  - cargo test --workspace: [PASS/FAIL if run]
   - <snapshot or integration command>: [PASS/FAIL if run]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
 Completed: yes/no

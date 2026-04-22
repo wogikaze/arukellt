@@ -35,10 +35,10 @@ bash scripts/manager.py --full
 
 ```bash
 cargo fmt --all --check
-cargo clippy --workspace --exclude ark-llvm -- -D warnings
-cargo test --workspace --exclude ark-llvm
+cargo clippy --workspace -- -D warnings
+cargo test --workspace
 python scripts/manager.py verify
-cargo test --workspace --exclude ark-llvm
+cargo test --workspace
 python scripts/manager.py verify fixtures
 bash scripts/manager.py --full
 python3 scripts/gen/generate-docs.py
@@ -62,7 +62,6 @@ crates/
   ark-driver/       # session / orchestration
   ark-stdlib/       # stdlib support crate
   ark-lsp/          # LSP scaffold
-  ark-llvm/         # LLVM backend scaffold (excluded from default verification)
   arukellt/         # CLI entry point
 extensions/
   arukellt-all-in-one/  # VS Code extension bootstrap
@@ -121,7 +120,7 @@ It covers, among other checks:
 Run heavier groups explicitly when needed:
 
 ```bash
-cargo test --workspace --exclude ark-llvm
+cargo test --workspace
 python scripts/manager.py verify fixtures
 bash scripts/manager.py --full
 ```

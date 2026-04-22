@@ -63,7 +63,7 @@ You do **NOT** work on:
 
 6. **Run required verification**
    - Always run: `python scripts/manager.py verify quick`
-   - For Rust/component code changes: also run `cargo test --workspace --exclude ark-llvm`
+   - For Rust/component code changes: also run `cargo test --workspace`
    - For fixture or contract changes: also run `python scripts/manager.py verify fixtures` when relevant
    - For docs contract updates: also run `python3 scripts/check/check-docs-consistency.py`
    - Run any explicit component/WIT verification commands from the work order
@@ -88,7 +88,7 @@ Files changed: <list>
 Tests/fixtures/checks added or updated: <list>
 Verification commands and results:
   - python scripts/manager.py verify quick: [PASS/FAIL]
-  - cargo test --workspace --exclude ark-llvm: [PASS/FAIL if run]
+  - cargo test --workspace: [PASS/FAIL if run]
   - python scripts/manager.py verify fixtures: [PASS/FAIL if run]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
 Completed: yes/no
