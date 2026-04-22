@@ -32,9 +32,12 @@ docs/release-checklist.md — Extension distribution section
     - `Go to Definition (#450 / #453) function definition range is function name only`
       - `Should find definition of greet`: expected `true`, actual `false`.
     - `Hover (#451 / #453) known function name produces meaningful hover content`
-      - Hover text was ```arukellt
-let result: String
-```
+      - Hover text was:
+
+        ```arukellt
+        let result: String
+        ```
+
       - Expected hover content to include function name or signature.
 
 ## Close Candidate
