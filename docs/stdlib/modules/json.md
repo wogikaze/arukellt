@@ -39,7 +39,26 @@ let parsed = json_parse_i32("42")    // 42
 - Manifest-backed functions: 22
 - Stability: experimental 22
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+JSON parser/serializer for `std::json`.
+
+**Status: partial / experimental — see #604 / #606.**
+
+This module is not a full JSON DOM. It provides a bounded set of
+stringify/parse helpers plus a tagged `JsonValue` whose Array and
+Object variants store their *raw JSON text* to avoid recursive type
+constraints. Nested access through `json_get` / `json_get_index`
+therefore re-parses the raw text on demand rather than walking a
+pre-built tree.
+
+### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+
+- Only the documented primitive helpers and the `JsonValue` surface are
+stable subsets; deeply nested structures, schema validation, and
+streaming parse are out of scope here.
+- Legacy primitive stringify/parse helpers (`json_stringify_i32`,
+`json_parse_i32`, etc.) are preserved for backward compatibility
+with existing fixtures and are not a complete typed serializer.
+- A full structured JSON facade is tracked under #606.
 
 ### Public Types
 
@@ -51,7 +70,7 @@ _No module doc comment yet. Add `//!` comments in the source file to describe th
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `json_stringify_i32` | `(i32) -> String` | `experimental` | JSON parser/serializer for std::json. |
+| `json_stringify_i32` | `(i32) -> String` | `experimental` | Stringify an i32 as a JSON number. |
 | `json_stringify_bool` | `(bool) -> String` | `experimental` | Stringify a bool as a JSON boolean literal. |
 | `json_stringify_string` | `(String) -> String` | `experimental` | Stringify a string by wrapping it in double quotes. |
 | `json_null` | `() -> String` | `experimental` | Return the JSON null literal. |

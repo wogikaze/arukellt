@@ -39,12 +39,24 @@ let elapsed = duration_ms(t0, t1)  // milliseconds
 - Manifest-backed functions: 3
 - Stability: stable 3
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Pure duration helpers.
+
+This module is intentionally **pure**: it only provides arithmetic
+over timestamps supplied by the caller. It does not read the host
+clock and requires no host capability.
+
+### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+
+- Host clock reads live in `std::host::clock` and are deliberately
+*not* re-exported from this module.
+- There is no calendar, timezone, or formatted-date surface here.
+- All inputs are caller-supplied `i64` timestamps; the semantics of
+those timestamps are the caller's responsibility.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `duration_ms` | `(i64, i64) -> i64` | `stable` | Pure duration helpers. |
+| `duration_ms` | `(i64, i64) -> i64` | `stable` | - |
 | `duration_us` | `(i64, i64) -> i64` | `stable` | - |
 | `duration_ns` | `(i64, i64) -> i64` | `stable` | - |

@@ -1,20 +1,27 @@
-/// TOML parser/serializer for std::toml.
-/// 
-/// This module intentionally supports only a bounded TOML subset:
-/// blank lines, comment lines, and simple `key = value` entries (one
-/// assignment per non-comment line). Table headers, arrays of tables,
-/// empty keys or values, lines without `=`, unclosed quoted values, and
-/// other unsupported or malformed grammar are rejected by `toml_parse`
-/// with `Err(String)`.
-/// 
-/// ## Value representation
-/// 
-/// `TomlValue` is a tagged struct.  Array and Table variants store their
-/// raw serialized text to avoid recursive type constraints.
-/// 
-/// ## Primitive helpers (legacy)
-/// 
-/// `toml_parse_line` is preserved for backward compatibility.
+//! TOML parser/serializer for `std::toml`.
+//!
+//! **Status: partial / experimental — see #604 / #606.**
+//!
+//! This module intentionally supports only a bounded TOML subset:
+//! blank lines, comment lines, and simple `key = value` entries (one
+//! assignment per non-comment line). Table headers, arrays of tables,
+//! empty keys or values, lines without `=`, unclosed quoted values, and
+//! other unsupported or malformed grammar are rejected by `toml_parse`
+//! with `Err(String)`.
+//!
+//! ## Value representation
+//!
+//! `TomlValue` is a tagged struct. Array and Table variants store their
+//! raw serialized text to avoid recursive type constraints.
+//!
+//! ## Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+//!
+//! - This is *not* a full TOML 1.0 implementation. Anything beyond the
+//!   `key = value` subset above is rejected, not silently accepted.
+//! - `toml_parse_line` is preserved for backward compatibility with
+//!   existing fixtures.
+//! - A complete structured TOML facade is tracked under #606.
+
 // ─── Legacy ──────────────────────────────────────────────────────────────────
 /// Filter a single TOML source line: returns the line unchanged for key=value
 /// lines and returns `""` for comments and blank lines.

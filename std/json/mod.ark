@@ -1,16 +1,24 @@
-/// JSON parser/serializer for std::json.
-/// 
-/// ## Value representation
-/// 
-/// `JsonValue` is a tagged struct.  Array and Object variants store their
-/// raw JSON text to avoid recursive type constraints (STOP_IF: use
-/// iteration with explicit stack).  Use `json_get` / `json_get_index` to
-/// access nested values — those functions re-parse the raw text on demand.
-/// 
-/// ## Primitive helpers (legacy)
-/// 
-/// The original stringify/parse helpers are preserved for backward
-/// compatibility with existing fixtures.
+//! JSON parser/serializer for `std::json`.
+//!
+//! **Status: partial / experimental — see #604 / #606.**
+//!
+//! This module is not a full JSON DOM. It provides a bounded set of
+//! stringify/parse helpers plus a tagged `JsonValue` whose Array and
+//! Object variants store their *raw JSON text* to avoid recursive type
+//! constraints. Nested access through `json_get` / `json_get_index`
+//! therefore re-parses the raw text on demand rather than walking a
+//! pre-built tree.
+//!
+//! ## Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+//!
+//! - Only the documented primitive helpers and the `JsonValue` surface are
+//!   stable subsets; deeply nested structures, schema validation, and
+//!   streaming parse are out of scope here.
+//! - Legacy primitive stringify/parse helpers (`json_stringify_i32`,
+//!   `json_parse_i32`, etc.) are preserved for backward compatibility
+//!   with existing fixtures and are not a complete typed serializer.
+//! - A full structured JSON facade is tracked under #606.
+
 // ─── Legacy primitive helpers ────────────────────────────────────────────────
 /// Stringify an i32 as a JSON number.
 pub fn json_stringify_i32(val: i32) -> String {
