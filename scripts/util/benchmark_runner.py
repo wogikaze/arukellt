@@ -112,6 +112,13 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         description="Enum variant dispatch via match (100,000 iterations, 5 variants)",
         tags=("cpu-bound", "match-heavy", "allocation-heavy", "iteration"),
     ),
+    BenchmarkCase(
+        name="error_chain",
+        source="benchmarks/bench_compute_error_chain.ark",
+        expected="benchmarks/bench_compute_error_chain.expected",
+        description="Result/error propagation chain (50,000 iterations, ~20% Err paths)",
+        tags=("cpu-bound", "error-heavy", "match-heavy", "iteration"),
+    ),
 )
 
 MODE_PRESETS: dict[str, dict[str, Any]] = {

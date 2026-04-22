@@ -29,7 +29,7 @@ The following language features have **no dedicated benchmark**:
 |---------|-----------------|:------------:|
 | **Closures / higher-order functions** | None | High |
 | **Enum / pattern matching** | `bench_cpu_enum_dispatch.ark` (dedicated dispatch benchmark) | Covered |
-| **Error paths / Result handling** | None | Medium |
+| **Error paths / Result handling** | `bench_compute_error_chain.ark` (Result / error propagation chain) | Covered |
 | **I/O-heavy workloads** | Only trivial `println` calls | Medium |
 | **Struct-heavy allocation** | Only `struct-create.ark` (legacy, trivial) | Medium |
 | **Nested structs / composite types** | Only `parser.ark` (not in bench suite) | Medium |
