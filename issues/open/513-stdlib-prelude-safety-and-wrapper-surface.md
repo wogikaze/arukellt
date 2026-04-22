@@ -32,8 +32,8 @@ prelude intrinsic 露出を一段隠す方針へ寄せる。
 
 - [x] 「user-facing sample / docs / cookbook では prelude 直叩きを避ける」ルールが明文化される
 - [x] stdlib 内部で module facade に置き換えられる prelude call site の棚卸しが作られる
-- [ ] `std::text`, `std::core::convert`, `std::io` など wrapper を優先すべき family が列挙される
-- [ ] deprecated prelude helper を docs example から段階削除する migration plan がある
+- [x] `std::text`, `std::core::convert`, `std::io` など wrapper を優先すべき family が列挙される
+- [x] deprecated prelude helper を docs example から段階削除する migration plan がある
 
 ## Primary paths
 
