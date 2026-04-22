@@ -1,6 +1,6 @@
 # Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-18
 **Updated**: 2026-04-18
 **ID**: 524
@@ -50,10 +50,10 @@
 
 ## Acceptance
 
-- [ ] repo chooses one semantics explicitly: true path-existence check or probe-style helper
-- [ ] chosen semantics is implemented or renamed/documented consistently
-- [ ] fixtures cover at least one file, one missing path, and one non-file or unreadable-path edge
-- [ ] docs/reference/examples no longer imply stronger semantics than the implementation provides
+- [x] repo chooses one semantics explicitly: true path-existence check or probe-style helper
+- [x] chosen semantics is implemented or renamed/documented consistently
+- [x] fixtures cover at least one file, one missing path, and one non-file or unreadable-path edge
+- [x] docs/reference/examples no longer imply stronger semantics than the implementation provides
 
 ## Required verification
 
