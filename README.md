@@ -12,7 +12,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - Canonical target: `wasm32-wasi-p2`
 - Component/WIT target: `wasm32-wasi-p2`
 - Unit tests: current count is verified by `cargo test --workspace`
-- Fixture harness: 641 passed, 28 skipped / 817 entries
+- Fixture harness: 641 passed, 28 skipped / 819 entries
 - Verification: `bash scripts/run/verify-harness.sh (fast local gate; use --full for full local verification)` — 19/19 checks pass
 - Stdlib manifest-backed public API: 594 functions
 <!-- END GENERATED:README_STATUS -->
@@ -27,12 +27,11 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 ## Workspace overview
 
 - `crates/arukellt` — CLI (`check` / `compile` / `run`)
-- `crates/ark-lexer` 〜 `crates/ark-hir` — 主要コンパイラフロントエンド（Rust 側）。MIR 以降（lowering / 最適化 / Wasm 出力）は selfhost (`src/compiler/`, `src/compiler/emitter.ark`) が担当。Rust 側の `ark-mir` は #561 で、`ark-driver` は #560 で、Wasm emitter crate は #562 で、T4 LLVM scaffold は #586 で削除済み
+- `crates/ark-lexer` 〜 `crates/ark-mir` — 主要コンパイラパイプライン（Rust 側）。Wasm 出力は selfhost (`src/compiler/emitter.ark`) が担当
 - `crates/ark-driver` — 共有 analysis/session 層
 - `crates/ark-target` — ターゲット定義
 - `crates/ark-lsp` — LSP scaffold
 - `extensions/arukellt-all-in-one` — VS Code extension bootstrap
-- `crates/ark-llvm` — LLVM backend scaffold（既定ビルド外）
 - `std/` — source-backed stdlib wrappers
 - `tests/fixtures/` — manifest-driven end-to-end fixtures
 - `docs/` — 利用者向け・設計向けドキュメント

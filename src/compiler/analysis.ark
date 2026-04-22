@@ -1,0 +1,202 @@
+// Arukellt Selfhost — Analysis API (issue #568)
+//
+// Single-call entry point that, given a source text + module identity,
+// produces a self-describing analysis snapshot containing:
+//   - decls         (AST, possibly partial after parser recovery)
+//   - symbol_count  (resolved symbols, best-effort if upstream errored)
+//   - typed_fn_count (type-annotated functions)
+//   - diagnostics   (accumulated lex + parse + resolve + typecheck)
+//
+// Pipeline never short-circuits: every phase runs regardless of upstream
+// failures so future LSP / DAP handlers (#569, #570) receive a complete
+// snapshot per edit. No file I/O is performed; inputs are pure text.
+//
+// Source pipeline mirrors `driver::compile_source` but stops after
+// typechecking and accumulates diagnostics across phases instead of
+// returning at the first failing phase.
+use lexer
+use parser
+use resolver
+use typechecker
+
+// ── Diagnostic phase tags ────────────────────────────────────────────────────
+pub fn PHASE_LEX() -> i32 {
+    1
+}
+
+pub fn PHASE_PARSE() -> i32 {
+    2
+}
+
+pub fn PHASE_RESOLVE() -> i32 {
+    3
+}
+
+pub fn PHASE_TYPECHECK() -> i32 {
+    4
+}
+
+fn phase_tag(phase: i32) -> String {
+    if phase == PHASE_LEX() {
+        return String_from("lex")
+    }
+    if phase == PHASE_PARSE() {
+        return String_from("parse")
+    }
+    if phase == PHASE_RESOLVE() {
+        return String_from("resolve")
+    }
+    if phase == PHASE_TYPECHECK() {
+        return String_from("typecheck")
+    }
+    String_from("unknown")
+}
+
+// ── Structured diagnostic record ─────────────────────────────────────────────
+pub struct AnalysisDiagnostic {
+    phase: i32,
+    message: String,
+    start: i32,
+    end: i32,
+}
+
+fn AnalysisDiagnostic_new(phase: i32, msg: String, start: i32, end: i32) -> AnalysisDiagnostic {
+    AnalysisDiagnostic { phase: phase, message: msg, start: start, end: end }
+}
+
+// ── Snapshot record ──────────────────────────────────────────────────────────
+// Self-describing analysis output. Fields are deliberately primitive
+// (or vectors of primitives / records owned by this module) so callers
+// outside src/compiler/ can consume the snapshot without pulling in
+// the full AST type vocabulary. Future revisions may expand this with
+// richer typed views once selfhost generic-arg-by-qualified-name lands.
+pub struct AnalysisSnapshot {
+    uri: String,
+    decl_count: i32,
+    symbol_count: i32,
+    typed_fn_count: i32,
+    diagnostic_count: i32,
+    diagnostics: Vec<AnalysisDiagnostic>,
+}
+
+fn AnalysisSnapshot_new(uri: String) -> AnalysisSnapshot {
+    AnalysisSnapshot { uri: uri, decl_count: 0, symbol_count: 0, typed_fn_count: 0, diagnostic_count: 0, diagnostics: Vec_new_AnalysisDiagnostic() }
+}
+
+fn snapshot_push(snap: AnalysisSnapshot, diag: AnalysisDiagnostic) {
+    push(snap.diagnostics, diag)
+    snap.diagnostic_count = snap.diagnostic_count + 1
+}
+
+// ── Counters ─────────────────────────────────────────────────────────────────
+fn count_user_symbols(ctx: ResolveCtx) -> i32 {
+    // Global scope (depth 0) holds builtins, prelude module aliases, and
+    // user-defined top-level symbols. A symbol counts as "user-defined"
+    // when its kind is not SYM_BUILTIN (=8) and not SYM_MODULE (=9).
+    if len(ctx.scopes) == 0 {
+        return 0
+    }
+    let scope = get_unchecked(ctx.scopes, 0)
+    let total = len(scope.symbols)
+    let mut user = 0
+    let mut i = 0
+    while i < total {
+        let sym = get_unchecked(scope.symbols, i)
+        if sym.kind != 8 && sym.kind != 9 {
+            user = user + 1
+        }
+        i = i + 1
+    }
+    user
+}
+
+// ── Analysis entry point ─────────────────────────────────────────────────────
+// Pure (no fs / process / network). All inputs are pass-by-value text;
+// returns a fully-populated `AnalysisSnapshot` with diagnostics from
+// every phase that ran.
+pub fn analyze(uri: String, text: String) -> AnalysisSnapshot {
+    let snap = AnalysisSnapshot_new(uri)
+
+    // Phase 1: lex (#565 recovery — never aborts).
+    let lex_result = lexer::lex_program(clone(text))
+    let lex_diag_count = len(lex_result.diagnostics)
+    let mut li = 0
+    while li < lex_diag_count {
+        let ld = get_unchecked(lex_result.diagnostics, li)
+        snapshot_push(snap, AnalysisDiagnostic_new(PHASE_LEX(), clone(ld.message), ld.start, ld.end))
+        li = li + 1
+    }
+
+    // Phase 2: parse (#566 recovery — produces partial AST).
+    let parse_result = parser::parse_program(lex_result.tokens)
+    snap.decl_count = len(parse_result.decls)
+    let parse_err_count = len(parse_result.errors)
+    let mut pi = 0
+    while pi < parse_err_count {
+        let pe = get_unchecked(parse_result.errors, pi)
+        snapshot_push(snap, AnalysisDiagnostic_new(PHASE_PARSE(), clone(pe.message), pe.span.start, pe.span.end))
+        pi = pi + 1
+    }
+
+    // Phase 3: resolve (#567 accumulating diagnostics; runs on partial AST).
+    let empty_modules = Vec_new_ModuleDecls()
+    let resolve_ctx = resolver::resolve_program(parse_result.decls, empty_modules)
+    snap.symbol_count = count_user_symbols(resolve_ctx)
+    let res_err_count = len(resolve_ctx.errors)
+    let mut ri = 0
+    while ri < res_err_count {
+        let re = get_unchecked(resolve_ctx.errors, ri)
+        snapshot_push(snap, AnalysisDiagnostic_new(PHASE_RESOLVE(), clone(re), 0, 0))
+        ri = ri + 1
+    }
+
+    // Phase 4: typecheck (best-effort; consumes the same partial AST).
+    // typecheck_module copies resolver errors into its own result, so we
+    // skip the prefix that we've already emitted under PHASE_RESOLVE.
+    let check_result = typechecker::typecheck_module(parse_result.decls, resolve_ctx)
+    snap.typed_fn_count = len(check_result.typed_fns)
+    let tc_err_total = len(check_result.errors)
+    let mut ti = res_err_count
+    while ti < tc_err_total {
+        let te = get_unchecked(check_result.errors, ti)
+        snapshot_push(snap, AnalysisDiagnostic_new(PHASE_TYPECHECK(), clone(te), 0, 0))
+        ti = ti + 1
+    }
+
+    snap
+}
+
+// ── Snapshot rendering ───────────────────────────────────────────────────────
+// Deterministic textual summary used by the `analyze` CLI subcommand and
+// fixture goldens. Format:
+//
+//   analysis <uri>
+//   decls=<N> symbols=<N> typed=<N> diagnostics=<N>
+//   <phase>: <message>
+//   <phase>: <message>
+//   ...
+pub fn snapshot_summary(snap: AnalysisSnapshot) -> String {
+    let mut out = String_from("analysis ")
+    out = concat(out, clone(snap.uri))
+    out = concat(out, String_from("\n"))
+    out = concat(out, String_from("decls="))
+    out = concat(out, to_string(snap.decl_count))
+    out = concat(out, String_from(" symbols="))
+    out = concat(out, to_string(snap.symbol_count))
+    out = concat(out, String_from(" typed="))
+    out = concat(out, to_string(snap.typed_fn_count))
+    out = concat(out, String_from(" diagnostics="))
+    out = concat(out, to_string(snap.diagnostic_count))
+    out = concat(out, String_from("\n"))
+    let dn = len(snap.diagnostics)
+    let mut i = 0
+    while i < dn {
+        let d = get_unchecked(snap.diagnostics, i)
+        out = concat(out, phase_tag(d.phase))
+        out = concat(out, String_from(": "))
+        out = concat(out, clone(d.message))
+        out = concat(out, String_from("\n"))
+        i = i + 1
+    }
+    out
+}

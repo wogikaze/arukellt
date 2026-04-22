@@ -8,6 +8,7 @@ use std::host::fs
 use std::host::process
 use std::host::stdio
 
+use analysis
 use driver
 
 fn CMD_PARSE() -> i32 {
@@ -48,6 +49,13 @@ fn CMD_UNKNOWN() -> i32 {
 
 fn CMD_NOT_YET() -> i32 {
     10
+}
+
+// Issue #568 — IDE analysis API entry point. Hidden subcommand
+// (`ide-analyze`); not listed in `--help` because it exists to drive
+// the analysis API for tests/fixtures and future LSP wiring (#569).
+fn CMD_IDE_ANALYZE() -> i32 {
+    11
 }
 
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
@@ -123,6 +131,10 @@ fn parse_command(name: String) -> i32 {
     }
     if eq(name, "analyze") {
         return CMD_NOT_YET()
+    }
+    // Issue #568 — IDE analysis API entry point (hidden subcommand).
+    if eq(name, "ide-analyze") {
+        return CMD_IDE_ANALYZE()
     }
     if eq(name, "doc") {
         return CMD_NOT_YET()
@@ -402,9 +414,35 @@ fn main() {
             if command == CMD_RUN() {
                 cmd_run(opts)
             } else {
-                cmd_compile(opts)
+                if command == CMD_IDE_ANALYZE() {
+                    cmd_ide_analyze(opts)
+                } else {
+                    cmd_compile(opts)
+                }
             }
         }
+    }
+}
+
+// ── Command: ide-analyze (issue #568) ────────────────────────────────────────
+// Hidden subcommand that drives the analysis API end-to-end:
+//   1. read the input file
+//   2. call analysis::analyze(uri, text)
+//   3. print analysis::snapshot_summary on stdout
+// Always exits 0 — diagnostics are payload, not a hard failure (the LSP
+// client decides how to surface them).
+fn cmd_ide_analyze(opts: CliOptions) {
+    let input_file = clone(opts.input_file)
+    let source_result = fs::read_to_string(clone(input_file))
+    match source_result {
+        Result::Ok(text) => {
+            let snap = analysis::analyze(clone(input_file), text)
+            stdio::print(analysis::snapshot_summary(snap))
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error: failed to read "), concat(clone(input_file), concat(String_from(": "), e))))
+            process::exit(1)
+        },
     }
 }
 

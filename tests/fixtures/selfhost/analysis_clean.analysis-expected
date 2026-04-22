@@ -1,0 +1,2 @@
+analysis tests/fixtures/selfhost/analysis_clean.ark
+decls=2 symbols=2 typed=2 diagnostics=0

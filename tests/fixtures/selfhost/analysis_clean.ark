@@ -1,0 +1,14 @@
+// Issue #568 — selfhost analysis API happy-path fixture.
+//
+// Clean source: lex + parse + resolve + typecheck all succeed.
+// Used by `manager.py verify` analysis-api gate to assert that
+// `ide::api::analyze` returns a snapshot with non-zero AST/symbol/type
+// counts and zero diagnostics.
+fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+fn main() {
+    let x = add(1, 2)
+    stdio::println(to_string(x))
+}

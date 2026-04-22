@@ -1,0 +1,17 @@
+// Issue #568 — selfhost analysis API multi-phase recovery fixture.
+//
+// Triggers a parse error (stray `) ) )` between top-level decls) AND a
+// type error (let x: i32 = "hello"). The selfhost analysis API
+// (`analysis::analyze`) must accumulate both diagnostics in one call,
+// reporting them under their respective phase tags. The legacy `check`
+// pipeline short-circuits at the parse error; the analysis API does not.
+fn first() -> i32 {
+    1
+}
+
+) ) )
+
+fn second() -> i32 {
+    let x: i32 = "hello"
+    x
+}

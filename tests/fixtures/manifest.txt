@@ -246,6 +246,9 @@ run:selfhost/typecheck_closure_capture.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 diag:selfhost/lexer_recovery_multi.ark
 diag:selfhost/parser_recovery_decls.ark
+# Issue #568 — selfhost analysis API surface (text → AST → symbols → diagnostics)
+run:selfhost/analysis_clean.ark
+diag:selfhost/analysis_multi_phase.ark
 diag:selfhost/multi_diag_unresolved.ark
 diag:selfhost/multi_diag_dup.ark
 diag:diagnostics/parse_missing_rbrace.ark

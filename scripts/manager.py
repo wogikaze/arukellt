@@ -194,6 +194,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "doc example check (ark blocks in docs/)",
             "python3 scripts/check/check-doc-examples.py docs/",
         ),
+        (
+            "selfhost analysis API gate (#568)",
+            "python3 scripts/check/check-analysis-api.py",
+        ),
     ]
 
     bg_results: list[tuple[str, int, str]] = []
