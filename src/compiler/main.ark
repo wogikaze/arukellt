@@ -10,6 +10,7 @@ use std::host::stdio
 
 use analysis
 use driver
+use lsp
 
 fn CMD_PARSE() -> i32 {
     1
@@ -56,6 +57,15 @@ fn CMD_NOT_YET() -> i32 {
 // the analysis API for tests/fixtures and future LSP wiring (#569).
 fn CMD_IDE_ANALYZE() -> i32 {
     11
+}
+
+// Issue #569 — LSP lifecycle entry point. The `lsp` subcommand replays
+// a Content-Length-framed JSON-RPC script (from a file, since the
+// current selfhost runtime cannot read stdin; see std/io/mod.ark) and
+// prints the framed response stream to stdout. Future work wires this
+// to real stdin once the read intrinsic is available.
+fn CMD_LSP() -> i32 {
+    12
 }
 
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
@@ -121,7 +131,7 @@ fn parse_command(name: String) -> i32 {
         return CMD_NOT_YET()
     }
     if eq(name, "lsp") {
-        return CMD_NOT_YET()
+        return CMD_LSP()
     }
     if eq(name, "debug-adapter") {
         return CMD_NOT_YET()
@@ -417,10 +427,36 @@ fn main() {
                 if command == CMD_IDE_ANALYZE() {
                     cmd_ide_analyze(opts)
                 } else {
-                    cmd_compile(opts)
+                    if command == CMD_LSP() {
+                        cmd_lsp(opts)
+                    } else {
+                        cmd_compile(opts)
+                    }
                 }
             }
         }
+    }
+}
+
+// ── Command: lsp (issue #569) ────────────────────────────────────────────────
+// Replays a Content-Length-framed JSON-RPC script (read from
+// `opts.input_file`) through the selfhost LSP core and prints the
+// framed response stream to stdout. This is the file-driven flavor of
+// the future stdin-driven server entry point — see src/compiler/lsp.ark
+// for the rationale (selfhost cannot read stdin in the current runtime).
+// Always exits 0; output bytes are the test surface.
+fn cmd_lsp(opts: CliOptions) {
+    let input_file = clone(opts.input_file)
+    let source_result = fs::read_to_string(clone(input_file))
+    match source_result {
+        Result::Ok(text) => {
+            let out = lsp::run_session(text)
+            stdio::print(out)
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error: failed to read "), concat(clone(input_file), concat(String_from(": "), e))))
+            process::exit(1)
+        },
     }
 }
 

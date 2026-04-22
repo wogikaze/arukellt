@@ -198,6 +198,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "selfhost analysis API gate (#568)",
             "python3 scripts/check/check-analysis-api.py",
         ),
+        (
+            "selfhost LSP lifecycle gate (#569)",
+            "python3 scripts/check/check-lsp-lifecycle.py",
+        ),
     ]
 
     bg_results: list[tuple[str, int, str]] = []
