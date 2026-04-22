@@ -319,3 +319,22 @@ It does not claim parser or compiler implementation work.
   - `python3 scripts/gen/generate-docs.py`
   - `python3 scripts/check/check-docs-consistency.py`
   - `markdownlint` if available
+
+---
+
+## Close review — 2026-04-22
+
+Reviewed the documentation-only slice for issue #123 against the acceptance items in this issue.
+
+- ADR-009 present and `DECIDED`: yes
+- `docs/spec/import-system.md` documents the Layer S / Layer C split: yes
+- `import <single_identifier>` deprecation timeline is documented: yes, in ADR-009 and this issue note
+- Parser/compiler implementation required for this doc slice: no
+- Full issue ready to move to `done`: no
+
+Verification:
+
+- `python3 scripts/check/check-docs-consistency.py` passed
+- `markdownlint` not available in this workspace
+
+Conclusion: this is a close candidate for the docs acceptance slice only. The issue remains open because the implementation work tracked by the issue is not being completed in this review.

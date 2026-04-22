@@ -111,6 +111,18 @@ issue; that work was re-scoped under #529. Keep this issue open only as a histor
 record until the queue transition is performed, and do not treat it as the blocker for
 CoreHIR implementation work.
 
+## Reviewer checklist — close-candidate only
+
+- [x] ADR-028 explicitly marks the deprecation-marker slice complete and re-scopes the
+  remaining fallback-removal work to #529.
+- [x] `docs/compiler/legacy-path-status.md` still describes the legacy fallback as present
+  and deprecated, which matches a marker-only close candidate.
+- [x] `docs/compiler/legacy-path-migration.md` frames the remaining work as staged removal,
+  not as already-completed fallback deletion.
+- [ ] False-done risk: legacy fallback has been removed from the code path.
+- [ ] False-done risk: all fixtures pass without the legacy fallback.
+- [ ] False-done risk: #285 is ready to move to `issues/done/` now.
+
 ## References
 
 - `crates/ark-mir/src/lower/func.rs`
