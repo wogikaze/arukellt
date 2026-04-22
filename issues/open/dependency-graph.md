@@ -30,7 +30,6 @@ graph LR
   I470["470 470-playground-feature-claims-match-implementation"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I489["489 489-playground-user-visible-entrypoint-wiring"]
-  I494["494 494 — Selfhost MIR: SSA formation pass"]
   I500["500 500-playground-wasm-typecheck-export"]
   I513["513 Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する"]
   I514["514 Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する"]
@@ -67,9 +66,9 @@ graph LR
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I510["510 T3 emitter: WASI P2 import-table switch (full P2-native component)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
-  I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I518["518 Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する"]
+  I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
   I560["560 560 — Phase 5: Delete `crates/ark-driver`"]
   I561["561 561 — Phase 5: Delete `crates/ark-mir`"]
   I562["562 562 — Phase 5: Delete `crates/ark-wasm`"]
@@ -109,10 +108,10 @@ graph LR
   I074 --> I476
   I074 --> I510
   I125 --> I126
-  I285 --> I508
   I312 --> I495
   I513 --> I518
   I517 --> I518
+  I529 --> I508
   I559 --> I560
   I559 --> I561
   I559 --> I562
@@ -191,7 +190,7 @@ graph LR
 - **204** depends on: none; blocks: none
 - **205** depends on: none; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
-- **285** depends on: 284; blocks: 508
+- **285** depends on: 284; blocks: none
 - **312** depends on: 311; blocks: 495
 - **436** depends on: none; blocks: none
 - **437** depends on: 431; blocks: none
@@ -200,7 +199,6 @@ graph LR
 - **470** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **489** depends on: none; blocks: none
-- **494** depends on: 493, 503; blocks: none
 - **500** depends on: none; blocks: none
 - **513** depends on: none; blocks: 518
 - **514** depends on: none; blocks: none
@@ -209,7 +207,7 @@ graph LR
 - **520** depends on: none; blocks: none
 - **523** depends on: none; blocks: none
 - **524** depends on: none; blocks: none
-- **529** depends on: none; blocks: none
+- **529** depends on: none; blocks: 508
 - **531** depends on: none; blocks: none
 - **541** depends on: none; blocks: none
 - **542** depends on: 515; blocks: none
@@ -237,9 +235,9 @@ graph LR
 - **476** depends on: 035, done), 074; blocks: none
 - **510** depends on: 074; blocks: 076, 121
 - **126** depends on: 125; blocks: none
-- **508** depends on: 285; blocks: none
 - **495** depends on: 312, 504; blocks: 512
 - **518** depends on: 513, 517; blocks: none
+- **508** depends on: 529; blocks: none
 - **560** depends on: 559; blocks: 564
 - **561** depends on: 559; blocks: 564
 - **562** depends on: 559; blocks: 564

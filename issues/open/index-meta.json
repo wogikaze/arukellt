@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T03:34:53Z",
+  "generated_at": "2026-04-22T03:58:20Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -393,9 +393,7 @@
       "depends_on": [
         "284"
       ],
-      "blocks_issue_ids": [
-        "508"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 2,
         "unchecked": 2
@@ -591,31 +589,6 @@
       }
     },
     {
-      "id": "494",
-      "path": "494-selfhost-mir-ssa-formation.md",
-      "title": "494 — Selfhost MIR: SSA formation pass",
-      "track": "selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "yes",
-      "depends_on": [
-        "493",
-        "503"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "500",
       "path": "500-playground-wasm-typecheck-export.md",
       "title": "500-playground-wasm-typecheck-export",
@@ -807,7 +780,9 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "508"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 10
@@ -1466,30 +1441,6 @@
       }
     },
     {
-      "id": "508",
-      "path": "508-legacy-path-removal-unblocked-by.md",
-      "title": "Legacy path removal is blocked by CoreHIR lowerer stub",
-      "track": "corehir",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "285"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#285"
-      }
-    },
-    {
       "id": "495",
       "path": "495-selfhost-trait-bounds.md",
       "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
@@ -1539,6 +1490,30 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#513, #517"
+      }
+    },
+    {
+      "id": "508",
+      "path": "508-legacy-path-removal-unblocked-by.md",
+      "title": "Legacy path removal is blocked by CoreHIR lowerer stub",
+      "track": "corehir",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "529"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#529"
       }
     },
     {
