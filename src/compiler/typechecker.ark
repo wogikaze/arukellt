@@ -756,7 +756,18 @@ fn instantiate_type(ty: TypeInfo, names: Vec<String>, types: Vec<TypeInfo>) -> T
             i = i + 1
         }
     }
-    ty
+    if len(ty.type_args) == 0 {
+        return ty
+    }
+    let inst = TypeInfo { tag: ty.tag, name: clone(ty.name), type_args: Vec_new_TypeInfo() }
+    let arg_count = len(ty.type_args)
+    let mut a = 0
+    while a < arg_count {
+        let arg = get_unchecked(ty.type_args, a)
+        push(inst.type_args, instantiate_type(arg, names, types))
+        a = a + 1
+    }
+    inst
 }
 
 // ── Type Check Context ───────────────────────────────────────────────────────
@@ -1053,7 +1064,16 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         }
         let inst_ret = instantiate_type(sig.return_type, var_names, var_types)
         let ret_ty = resolve_type(infer_env, inst_ret)
+        let resolved_type_args = Vec_new_TypeInfo()
+        let mut rv = 0
+        while rv < tp_count {
+            let tv_raw = get_unchecked(var_types, rv)
+            let resolved_tv = resolve_type(infer_env, tv_raw)
+            push(resolved_type_args, resolved_tv)
+            rv = rv + 1
+        }
         enforce_fn_sig_bounds(env, infer_env, sig, var_types)
+        record_mono_instance(env, clone(node.text), resolved_type_args)
         return ret_ty
     }
     if node.kind == NK_MATCH_EXPR() {
@@ -1361,6 +1381,11 @@ fn main() {
     push(inst_types, TypeInfo_simple(TY_I32()))
     let inst_result = instantiate_type(tv_t, inst_names, inst_types)
     stdio::println(concat(String_from("instantiate T->i32: "), type_tag_name(inst_result.tag)))
+    let nested_vec_t = TypeInfo_simple(TY_VEC())
+    push(nested_vec_t.type_args, TypeInfo_named(TY_TYPE_VAR(), String_from("T")))
+    let nested_inst = instantiate_type(nested_vec_t, inst_names, inst_types)
+    let nested_arg = get_unchecked(nested_inst.type_args, 0)
+    stdio::println(concat(String_from("instantiate Vec<T>->Vec<i32>: "), type_tag_name(nested_arg.tag)))
     let test_sigs = Vec_new_FnSig()
     let id_params = Vec_new_TypeInfo()
     push(id_params, TypeInfo_named(TY_TYPE_VAR(), String_from("T")))
