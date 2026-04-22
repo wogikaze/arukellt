@@ -22,10 +22,10 @@ You specialize in:
 - Emitter source-of-truth cleanup when explicitly assigned
 
 Primary paths usually include:
-- `crates/ark-wasm/**`
 - `crates/ark-mir/**`
 - `crates/ark-typecheck/**`
 - `crates/ark-hir/**`
+- `src/compiler/emitter.ark` and adjacent selfhost emitter sources
 - Compiler regression fixture / validation test paths
 
 You do **NOT** work on:

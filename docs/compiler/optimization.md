@@ -72,7 +72,8 @@ than surfacing as backend errors.
 
 ## Backend Optimizations (T3 — `wasm32-wasi-p2`)
 
-Backend optimizations are applied during Wasm emission in `crates/ark-wasm/src/emit/t3/`.
+Backend optimizations are applied during Wasm emission in the selfhost emitter
+(`src/compiler/emitter.ark`).
 
 ### Peephole optimization (`peephole.rs`)
 

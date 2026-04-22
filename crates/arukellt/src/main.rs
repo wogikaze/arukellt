@@ -6,7 +6,7 @@
 //! forwarding all CLI arguments and exit codes verbatim.
 //!
 //! This binary intentionally has **no** dependency on `ark-driver`,
-//! `ark-mir`, `ark-wasm`, `ark-stdlib`, or any other compiler-core crate.
+//! `ark-mir`, `ark-stdlib`, or any other compiler-core crate.
 //! All compiler behaviour lives in `src/compiler/main.ark` (the selfhost
 //! source), compiled to `bootstrap/arukellt-selfhost.wasm` (the pinned
 //! reference; see `bootstrap/PROVENANCE.md`) or to

@@ -32,11 +32,11 @@ The legacy path remains available as an opt-in fallback via `--mir-select legacy
 ### `wasm32-freestanding` (T2)
 
 `wasm32-freestanding` is **implemented for compile-only** in `crates/ark-target`
-(`implemented: true`, `run_supported: false`). The backend scaffold
-`crates/ark-wasm/src/emit/t2_freestanding.rs` emits a minimal core Wasm module
-(linear memory plus empty `_start`, no WASI imports). Regression proof:
-`cargo test -p arukellt --test t2_scaffold` against
-`tests/fixtures/t2/t2_scaffold.ark` with `wasmparser` validation. Full target
+(`implemented: true`, `run_supported: false`). The minimal core Wasm scaffold
+(linear memory plus empty `_start`, no WASI imports) is emitted by the
+selfhost emitter (`src/compiler/emitter.ark`). Regression proof:
+`tests/fixtures/t2/t2_scaffold.ark` exercised through the selfhost gates with
+`wasmparser` validation. Full target
 verification contract and roadmap context: [target-contract.md](target-contract.md)
 and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 
@@ -375,6 +375,7 @@ Selfhost gates (`scripts/manager.py selfhost {fixpoint,fixture-parity,parity,dia
 are **selfhost-native** per ADR-029 (#585): they bootstrap from the committed
 pinned-reference wasm at `bootstrap/arukellt-selfhost.wasm` and never call any
 Rust binary. With #583 landed, the `crates/arukellt` shell no longer depends
-on `ark-driver`, `ark-mir`, `ark-wasm`, or `ark-stdlib`. Phase 5 has begun:
-`crates/ark-driver` was removed in #560; remaining Rust core crates
-(`ark-mir`, `ark-wasm`, `ark-stdlib`, `ark-typecheck`) are tracked by #561–#564.
+on `ark-driver`, `ark-mir`, or `ark-stdlib`. Phase 5 has begun:
+`crates/ark-driver` was removed in #560 and the legacy Rust Wasm emitter
+crate was removed in #562; remaining Rust core crates
+(`ark-mir`, `ark-stdlib`, `ark-typecheck`) are tracked by #561, #563, and #564.

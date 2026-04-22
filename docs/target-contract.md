@@ -71,11 +71,12 @@ contract remains the single docs source for target verification status.
 
 T2 is defined (ADR-007 / ADR-013) as a **Wasm GC, WASI-free** browser-oriented
 target. The current implementation is still a **plumbing scaffold**: emitter
-code lives in `crates/ark-wasm/src/emit/t2_freestanding.rs` and emits a minimal
-**core Wasm** module (one page of linear memory, empty `_start`, **no** imports)
-to prove the target and validation path before full MIR → Wasm GC lowering lands.
+code lives in the selfhost emitter (`src/compiler/emitter.ark`) and emits a
+minimal **core Wasm** module (one page of linear memory, empty `_start`,
+**no** imports) to prove the target and validation path before full MIR →
+Wasm GC lowering lands.
 
-Repo-visible proof is `cargo test -p arukellt --test t2_scaffold`, which runs
+Repo-visible proof is exercised through the selfhost gates, which run
 `arukellt compile --target wasm32-freestanding` on the manifest fixture
 `tests/fixtures/t2/t2_scaffold.ark` (also listed as `run:t2/t2_scaffold.ark` in
 `tests/fixtures/manifest.txt`), then runs `wasmparser::Validator::validate_all`

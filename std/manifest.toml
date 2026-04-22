@@ -5,7 +5,7 @@
 #   - crates/ark-resolve/src/resolve.rs   (PRELUDE_FUNCTIONS, PRELUDE_TYPES, PRELUDE_VALUES)
 #   - crates/ark-typecheck/src/checker.rs (register_builtins — FnSig registrations)
 #   - std/prelude.ark                     (wrapper functions)
-#   - crates/ark-wasm/src/emit/t1_wasm32_p1.rs (FN_* constants, emitter dispatch)
+#   - src/compiler/emitter.ark            (selfhost emitter dispatch)
 #
 # Discrepancies found during initial audit (documented, not fixed):
 #   - f32_to_string: registered in checker.rs but NOT in PRELUDE_FUNCTIONS (resolve.rs)

@@ -25,9 +25,9 @@ v1 で確立した GC-native T3 バックエンドの上に、Wasm Component Mod
 
 | 対象 | 変更内容 |
 |------|---------|
-| `crates/ark-wasm/src/component/wit.rs` | WIT 型マッピングの完全定義 |
-| `crates/ark-wasm/src/component/canonical_abi.rs` | GC ref ↔ linear memory のリフト/ロワリング |
-| `crates/ark-wasm/src/emit/mod.rs` | `EmitKind::Component` の hard error 解除 |
+| `src/compiler/component_wit.ark` (selfhost) | WIT 型マッピングの完全定義 |
+| `src/compiler/component_canonical_abi.ark` (selfhost) | GC ref ↔ linear memory のリフト/ロワリング |
+| `src/compiler/emitter.ark` (selfhost) | `EmitKind::Component` の hard error 解除 |
 | `crates/ark-driver/src/session.rs` | `compile_wit()` の完全実装 |
 | `crates/ark-target/src/lib.rs` | `BackendPlan` に `EmitKind::Component` ルーティング追加 |
 | `tests/e2e/` (新規) | Component 相互運用テスト |
@@ -86,17 +86,17 @@ v2 での設計選択:
 
 ## 6. 実装タスク
 
-1. **`crates/ark-wasm/src/component/wit.rs` の拡張**  
+1. **`src/compiler/component_wit.ark` (selfhost) の拡張**  
    - 既存マッピング (s32, s64, f64, bool, char, string, list, option, result, record, variant) に `resource`, `tuple`, `flags`, `enum (WIT)`, `borrow<T>`, `own<T>` を追加。
    - 非対応型 (closure, TypeVar, raw ref) のエラーメッセージを `ark-diagnostics` の診断コード (W5001 等) として定義。
 
-2. **`crates/ark-wasm/src/component/canonical_abi.rs` の実装**  
+2. **`src/compiler/component_canonical_abi.ark` (selfhost) の実装**  
    - GC `(ref $string)` → canonical ABI string (linear memory utf-8) のリフト関数
    - canonical ABI string → GC `(ref $string)` のロワリング関数 (`array.new_data` を使用)
    - `Vec<T>` ↔ `list<T>` の変換 (GC struct ↔ linear memory list representation)
    - `Result<T, E>` ↔ `result<T, E>` の変換
 
-3. **`crates/ark-wasm/src/emit/mod.rs` の `EmitKind::Component` 解禁**  
+3. **`src/compiler/emitter.ark` (selfhost) の `EmitKind::Component` 解禁**  
    - hard error コードを削除し、`compile_wit()` 経由のルートを有効化。
    - component wrapping ロジックを呼び出す (ADR-008 の判断に従い Option A/B を実装)。
 
@@ -181,8 +181,8 @@ v3 が開始できる前提条件:
 
 | 成果物 | パス |
 |--------|------|
-| WIT 型マッピング完全定義 | `crates/ark-wasm/src/component/wit.rs` |
-| canonical ABI 変換ロジック | `crates/ark-wasm/src/component/canonical_abi.rs` |
+| WIT 型マッピング完全定義 | `src/compiler/component_wit.ark` (selfhost) |
+| canonical ABI 変換ロジック | `src/compiler/component_canonical_abi.ark` (selfhost) |
 | Component e2e テスト | `tests/e2e/` |
 | Component Model ADR | `docs/adr/ADR-008-component-model.md` |
 | 移行ガイド | `docs/migration/v1-to-v2.md` |

@@ -7,7 +7,7 @@ edition.workspace = true
 # shell**. All compiler behaviour lives in the selfhost compiler
 # (`src/compiler/main.ark` → `bootstrap/arukellt-selfhost.wasm`). This binary
 # only locates the selfhost wasm and execs it under `wasmtime`; it has no
-# dependency on `ark-driver`, `ark-mir`, `ark-wasm`, `ark-stdlib`, or any
+# dependency on `ark-driver`, `ark-mir`, `ark-stdlib`, or any
 # other compiler-core crate.
 
 [[bin]]

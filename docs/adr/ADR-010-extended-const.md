@@ -22,7 +22,7 @@ wasmtime 29+ および主要ランタイムは Extended Const をデフォルト
 
 **T3 emitter に extended const のインフラを追加する。**
 
-- `crates/ark-wasm/src/emit/t3/const_expr.rs` に型安全なビルダーヘルパーを実装
+- selfhost emitter (`src/compiler/emitter.ark`) に extended const のための型安全なビルダーヘルパーを実装（旧 Rust プロトタイプは #562 で削除）
 - `opt_level >= 2` のとき、heap pointer グローバルの初期値を extended const で出力:
   `(i32.add (i32.const DATA_START) (i32.const data_size))`
 - `opt_level < 2` または `data_size == 0` の場合は従来の `(i32.const offset)` を維持

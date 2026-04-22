@@ -27,7 +27,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 ## Workspace overview
 
 - `crates/arukellt` — CLI (`check` / `compile` / `run`)
-- `crates/ark-lexer` 〜 `crates/ark-wasm` — 主要コンパイラパイプライン
+- `crates/ark-lexer` 〜 `crates/ark-mir` — 主要コンパイラパイプライン（Rust 側）。Wasm 出力は selfhost (`src/compiler/emitter.ark`) が担当
 - `crates/ark-driver` — 共有 analysis/session 層
 - `crates/ark-target` — ターゲット定義
 - `crates/ark-lsp` — LSP scaffold

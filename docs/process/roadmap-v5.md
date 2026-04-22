@@ -40,7 +40,7 @@ v4 までに確立した最適化済みコンパイラと安定 stdlib の上で
 | TypeChecker (`ark-typecheck`) | Phase 2 | 最も複雑、ユニフィケーション要 |
 | HIR (`ark-hir`) | Phase 2 | データ構造変換 |
 | MIR (`ark-mir`) + 最適化パス | Phase 2 | 最適化パス含む |
-| Wasm Emitter (`ark-wasm`) | Phase 3 | バイナリ出力、最も低レベル |
+| Wasm Emitter (selfhost: `src/compiler/emitter.ark`) | Phase 3 | バイナリ出力、最も低レベル |
 | LLVM Backend (`ark-llvm`) | **非対象** | LLVM C API 依存、FFI 必須 |
 
 ---

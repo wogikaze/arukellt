@@ -234,7 +234,7 @@ v5 完了時に揃っているべきドキュメントの全リスト:
 
 **v1 完了時**:
 - GC 型表現 (`struct`, `array`, `br_on_cast`) は v2 の canonical ABI 変換を効率的に行えるか?
-  → 確認: `crates/ark-wasm/src/component/wit.rs` の既存マッピングと GC-native 型が矛盾しないこと
+  → 確認: `src/compiler/component_wit.ark` (selfhost) の既存マッピングと GC-native 型が矛盾しないこと
 - `GcTypeRegistry` の型インデックス割り当てが `canonical_abi.rs` の変換ロジックと整合できるか?
   → 確認: ADR-008 の前提調査として実施
 

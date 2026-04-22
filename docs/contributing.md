@@ -57,7 +57,6 @@ crates/
   ark-typecheck/    # type checking
   ark-hir/          # shared HIR crate
   ark-mir/          # MIR lowering / validation / optimization
-  ark-wasm/         # Wasm backend + component / WIT emit
   ark-target/       # target registry + backend planning
   ark-diagnostics/  # diagnostics registry + rendering
   ark-driver/       # session / orchestration

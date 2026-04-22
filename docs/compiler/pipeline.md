@@ -12,7 +12,7 @@ source (.ark)
   → ark-resolve
   → ark-typecheck
   → ark-mir
-  → ark-wasm
+  → selfhost emitter (src/compiler/emitter.ark)
 ```
 
 現在の user-visible な主経路は `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm` です。
@@ -70,7 +70,7 @@ falls back to the legacy path.
 - `crates/ark-typecheck`
 - `crates/ark-hir`
 - `crates/ark-mir`
-- `crates/ark-wasm`
+- `src/compiler/emitter.ark` (selfhost Wasm emitter)
 - `crates/ark-target`
 - `crates/ark-diagnostics`
 - `crates/ark-driver`

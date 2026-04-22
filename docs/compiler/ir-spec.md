@@ -52,7 +52,7 @@ MIR Optimization ──► Optimized MirModule  (crates/ark-mir — opt/)
 MIR Validation ──► Validated MirModule  (crates/ark-mir — validate.rs)
   │
   ▼
-Wasm Emitter ──► .wasm binary  (crates/ark-wasm — emit/t3/)
+Wasm Emitter ──► .wasm binary  (selfhost: src/compiler/emitter.ark)
 ```
 
 | Phase | Input | Output | Crate |
@@ -64,7 +64,7 @@ Wasm Emitter ──► .wasm binary  (crates/ark-wasm — emit/t3/)
 | MIR lowering | `hir::Program` or `ast::Module` | `MirModule` | `ark-mir` |
 | MIR optimization | `MirModule` | Optimized `MirModule` | `ark-mir` |
 | MIR validation | `MirModule` | Validated `MirModule` | `ark-mir` |
-| Wasm emit | `MirModule` | `.wasm` binary | `ark-wasm` |
+| Wasm emit | `MirModule` | `.wasm` binary | selfhost emitter (`src/compiler/emitter.ark`) |
 
 Two lowering paths exist:
 
@@ -1405,7 +1405,7 @@ struct MirValidationError {
 
 ## 9. MIR → Wasm Mapping
 
-The T3 backend (`crates/ark-wasm/src/emit/t3/`) emits Wasm GC instructions.
+The T3 backend (selfhost emitter, `src/compiler/emitter.ark`) emits Wasm GC instructions.
 Linear memory (1 page) is reserved exclusively for WASI I/O marshaling.
 
 ### 9.1 Type Mapping

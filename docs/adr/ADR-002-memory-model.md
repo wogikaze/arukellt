@@ -227,7 +227,9 @@ pure arena と pure RC の二者択一より、これが最も実用的。
 
 ## Implementation Status (2026-03-27)
 
-GC-native codegen is **complete** in the T3 emitter (`crates/ark-wasm/src/emit/t3/`).
+GC-native codegen is **complete** in the selfhost emitter
+(`src/compiler/emitter.ark`; the Rust prototype crate that previously lived at
+`crates/<wasm-emit>` was removed in #562).
 542 fixture tests pass (124 t3-run, 161 t3-compile). `verify-harness.sh` exits 0.
 
 ### Builtins fully ported to GC-native

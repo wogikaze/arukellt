@@ -22,8 +22,8 @@ You specialize in:
 - Minimal docs reflection when the component contract changes and the assignment requires it
 
 Primary paths usually include:
-- `crates/ark-wasm/src/component/**`
-- Adjacent component-related paths under `crates/ark-wasm/**`
+- `crates/ark-mir/src/component/**` (when component lowering moves into MIR)
+- `src/compiler/component.ark` and related selfhost component sources
 - `docs/stdlib/modules/wit.md`
 - `docs/stdlib/modules/component.md`
 - Component fixture / regression paths named in the work order

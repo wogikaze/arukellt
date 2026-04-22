@@ -30,7 +30,7 @@ bridge mode の問題:
 
 | 対象 | 変更内容 |
 |------|---------|
-| `crates/ark-wasm/src/emit/t3_wasm_gc.rs` | GC-native emitter の全面書き換え |
+| `src/compiler/emitter.ark` (selfhost T3 emitter) | GC-native emitter の全面書き換え |
 | `crates/ark-mir/src/lower.rs` | MIR 型情報の整合確認、`is_i64_operand_mir` 等の修正 |
 | `std/manifest.toml`, `std/prelude.ark` | Vec / HashMap など GC-native builtins の追加 |
 | `tests/fixtures/manifest.txt` | 新規 fixture の登録 |
@@ -147,7 +147,7 @@ scripts/manager.py
 v2 が開始できる前提条件:
 
 1. v1 の全完了条件が yes/✅ であること
-2. `crates/ark-wasm/src/component/wit.rs` の既存 WIT 型マッピング (s32/s64/f64/bool/char/string/list/option/result/record/variant) が GC-native 型表現と矛盾しないことを確認すること
+2. `src/compiler/component_wit.ark` (selfhost) の既存 WIT 型マッピング (s32/s64/f64/bool/char/string/list/option/result/record/variant) が GC-native 型表現と矛盾しないことを確認すること
 3. `GcTypeRegistry` の型インデックス割り当てが `canonical_abi.rs` の変換ロジックと整合できることを確認すること (ADR-008 の前提調査)
 4. `MirModule.type_table` の `struct_defs`, `enum_defs` が WIT type mapping の拡張に十分なフィールドを持つことを確認すること
 
@@ -155,7 +155,7 @@ v2 が開始できる前提条件:
 
 | 成果物 | パス |
 |--------|------|
-| GC-native T3 emitter | `crates/ark-wasm/src/emit/t3_wasm_gc.rs` |
+| GC-native T3 emitter | `src/compiler/emitter.ark` (selfhost T3 emitter) |
 | GcTypeRegistry | `t3_wasm_gc.rs` 内の `Ctx` struct |
 | 型テーブル (struct/enum) | `MirModule.type_table` |
 | 346 fixture baseline | `tests/fixtures/` |
@@ -165,7 +165,7 @@ v2 が開始できる前提条件:
 
 ## 10. この版で特に気をつけること
 
-1. **`is_i64_operand_mir` / `is_f64_operand_mir` の誤判定**: `parse_i64`, `parse_f64` は `Result<T, String>` を返すため i64/f64 ではない。これらを i64/f64 operand 判定に含めると emit が壊れる (`crates/ark-mir/src/lower.rs`, `crates/ark-wasm/src/emit/t1_wasm32_p1.rs`)。
+1. **`is_i64_operand_mir` / `is_f64_operand_mir` の誤判定**: `parse_i64`, `parse_f64` は `Result<T, String>` を返すため i64/f64 ではない。これらを i64/f64 operand 判定に含めると emit が壊れる (`crates/ark-mir/src/lower.rs`, `src/compiler/emitter.ark` (selfhost T1 emitter))。
 2. **`struct.new` の引数順序**: Wasm GC の `struct.new $T` はフィールドを型定義の順に stack から pop する。MIR の `StructInit { fields: Vec<(String, Operand)> }` はフィールド名付きだが、emit 時に型定義順に並び替えが必要。
 3. **enum base type の singleton**: `None` / `()` のような引数なし variant は `struct.new $Variant` を毎回呼ぶのではなく、global に singleton を持つとアロケーションを削減できる (v1 では任意最適化)。
 4. **pre-scan の漏れ**: T3 emitter は 2 パス (pre-scan → emit)。pre-scan で検出した型情報 (extra_struct, extra_enum) が emit 時に参照されるため、新しい builtin を追加したときは必ず pre-scan 側も更新する。

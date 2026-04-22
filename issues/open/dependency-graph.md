@@ -45,7 +45,6 @@ graph LR
   I554["554 Release: Extension Live Editor Tests"]
   I555["555 Release: Pre-Release CI Checks"]
   I561["561 561 — Phase 5: Delete `crates/ark-mir`"]
-  I562["562 562 — Phase 5: Delete `crates/ark-wasm`"]
   I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
   I568["568 568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)"]
   I586["586 586 — Phase 5: Delete `crates/ark-llvm`"]
@@ -96,7 +95,6 @@ graph LR
   I312 --> I495
   I529 --> I508
   I561 --> I564
-  I562 --> I564
   I563 --> I564
   I568 --> I569
   I568 --> I571
@@ -186,7 +184,6 @@ graph LR
 - **554** depends on: none; blocks: none
 - **555** depends on: none; blocks: none
 - **561** depends on: 559; blocks: 564
-- **562** depends on: 559; blocks: 564
 - **563** depends on: 559; blocks: 564
 - **568** depends on: 565, 566, 567; blocks: 569, 571
 - **586** depends on: 559; blocks: none

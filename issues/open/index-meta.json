@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-22T09:42:36Z",
+  "generated_at": "2026-04-22T09:44:22Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -904,32 +904,6 @@
       "title": "561 — Phase 5: Delete `crates/ark-mir`",
       "track": "selfhost-retirement",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "no",
-      "depends_on": [
-        "559"
-      ],
-      "blocks_issue_ids": [
-        "564"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 14
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "#559"
-      }
-    },
-    {
-      "id": "562",
-      "path": "562-phase5-delete-ark-wasm.md",
-      "title": "562 — Phase 5: Delete `crates/ark-wasm`",
-      "track": "selfhost-retirement",
-      "status": "blocked-by-upstream",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",

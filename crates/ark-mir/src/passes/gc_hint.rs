@@ -3,7 +3,8 @@
 //! Detects short-lived struct allocations — objects that are allocated and last
 //! used within the same basic block (or loop iteration body) without escaping —
 //! and inserts a [`MirStmt::GcHint`] annotation immediately after each such
-//! allocation.  Downstream backends (e.g. `ark-wasm`) can use these hints to
+//! allocation.  Downstream backends (e.g. the selfhost emitter
+//! `src/compiler/emitter.ark`) can use these hints to
 //! reduce GC pressure when the runtime supports the optimisation; if the
 //! runtime ignores the hint the observable execution result is identical.
 //!

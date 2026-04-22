@@ -22,7 +22,8 @@ You specialize in:
 - Emitter source-of-truth cleanup when explicitly assigned
 
 Primary paths usually include:
-- `crates/ark-wasm/**`
+- `crates/ark-mir/**`
+- `src/compiler/emitter.ark` and adjacent selfhost emitter sources
 - `crates/ark-mir/**`
 - `crates/ark-typecheck/**`
 - `crates/ark-hir/**`

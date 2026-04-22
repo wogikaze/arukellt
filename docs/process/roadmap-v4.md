@@ -31,7 +31,7 @@ v3 までに確立した言語仕様と stdlib の上で、コンパイル時間
 |------|---------|
 | `crates/ark-mir/src/passes/` (新規) | MIR 最適化パスの実装 (各パスを独立ファイルで) |
 | `crates/ark-mir/src/mir.rs` | `MirStats.optimization_trace` フィールド追加 |
-| `crates/ark-wasm/src/emit/t3_wasm_gc.rs` | バックエンドレベル最適化 |
+| `src/compiler/emitter.ark` (selfhost T3 emitter) | バックエンドレベル最適化 |
 | `crates/arukellt/src/main.rs` | `--opt-level 0/1/2` フラグ、`--time` フラグ追加 |
 | `crates/ark-driver/src/session.rs` | `--opt-level` を最適化パスに伝播 |
 | `benchmarks/` | 新規ベンチマーク追加 (binary_tree, json_parse 等) |
@@ -77,7 +77,7 @@ v3 までに確立した言語仕様と stdlib の上で、コンパイル時間
 
 ### 5.3 バックエンド最適化 (T3)
 
-`crates/ark-wasm/src/emit/t3_wasm_gc.rs` での Wasm バイナリ改善:
+`src/compiler/emitter.ark` (selfhost T3 emitter) での Wasm バイナリ改善:
 - 不要な `local.get`/`local.set` ペアの削除 (peephole)
 - 同一文字列リテラルの data segment dedup
 - 定数条件 `if` の除去

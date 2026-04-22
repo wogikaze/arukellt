@@ -63,7 +63,7 @@ WIT 生成時に正確な型情報を得るには、core Wasm バイナリの型
 
 ## 関連ファイル
 
-- `crates/ark-wasm/src/component/wit.rs` — 型マッピング定義 (`type_to_wit`)
-- `crates/ark-wasm/src/component/mod.rs` — WIT 生成・検証
-- `crates/ark-wasm/src/component/canonical_abi.rs` — canonical ABI 分類
+- `src/compiler/component_wit.ark` — 型マッピング定義 (`type_to_wit`)
+- `src/compiler/component.ark` — WIT 生成・検証
+- `src/compiler/component_canonical_abi.ark` — canonical ABI 分類
 - `tests/fixtures/component/` — fixture ファイル群

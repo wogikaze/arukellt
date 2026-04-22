@@ -59,7 +59,7 @@ Component Model バイナリ (.component.wasm) に変換する方法を決定す
 
 ## 影響
 
-- `crates/ark-wasm/src/component/wrap.rs` — wrapping 実装
+- `src/compiler/component.ark` — wrapping 実装（旧 Rust プロトタイプは #562 で削除）
 - `crates/ark-driver/src/session.rs` — `compile_component()` メソッド追加
 - `crates/arukellt/src/commands.rs` — `--emit component` CLI ルーティング
 - `crates/ark-target/src/plan.rs` — `EmitCapability::Component` 追加

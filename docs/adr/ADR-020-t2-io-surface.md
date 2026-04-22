@@ -2,7 +2,7 @@
 
 ステータス: **DECIDED** — Import-based bridge（1ページlinear memory region）を採用
 **Created**: 2026-04-20
-**Scope**: T2 codegen target, playground v2 browser execution, `crates/ark-wasm` (future), `docs/target-contract.md`
+**Scope**: T2 codegen target, playground v2 browser execution, selfhost emitter (`src/compiler/emitter.ark`), `docs/target-contract.md`
 
 ---
 
@@ -216,7 +216,7 @@ This ADR explicitly scopes T2 as a **v2 playground target**:
 1. **`docs/target-contract.md`** T2 row is updated from "not-started" to
    "ADR written, emitter not started."  No other changes to that document.
 
-2. **`crates/ark-wasm` (future)** — When the T2 emitter work order begins,
+2. **Selfhost emitter (`src/compiler/emitter.ark`)** — When the T2 emitter work order begins,
    the emitter must emit the two `arukellt_io` imports and export `"memory"`.
    The 1-page linear memory allocation must be consistent with T3's layout
    so that shared lower-level helpers (string serialisation, scratch buffers)
