@@ -247,6 +247,7 @@ run:selfhost/typecheck_closure_capture.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 diag:selfhost/lexer_recovery_multi.ark
 diag:selfhost/parser_recovery_decls.ark
+diag:selfhost/json_diag_code_presence.ark
 # Issue #568 — selfhost analysis API surface (text → AST → symbols → diagnostics)
 run:selfhost/analysis_clean.ark
 diag:selfhost/analysis_lex_diagnostic.ark
@@ -314,8 +315,11 @@ run:stdlib_io/f64_to_string.ark
 run:stdlib_io/fs_deny_access.ark
 run:stdlib_io/fs_deny_overrides_dir.ark
 run:stdlib_io/fs_read_error.ark
+run:stdlib_io/fs_read_to_string_typed_error.ark
 run:stdlib_io/fs_read_write.ark
 run:stdlib_io/fs_readonly_write.ark
+run:stdlib_io/fs_write_bytes_typed_error.ark
+run:stdlib_io/fs_write_string_typed_error.ark
 run:stdlib_fs/exists_probe_contract.ark
 run:stdlib_io/i32_to_string.ark
 run:stdlib_io/parse_int.ark
@@ -340,6 +344,7 @@ run:stdlib_json/json_escape.ark
 run:stdlib_json/json_nested.ark
 run:stdlib_json/json_parse.ark
 run:stdlib_json/json_parse_multiple_values.ark
+run:stdlib_json/json_parse_typed_error.ark
 run:stdlib_json/json_parse_trailing_garbage.ark
 run:stdlib_json/json_parse_trailing_object_garbage.ark
 run:stdlib_json/json_pretty.ark
