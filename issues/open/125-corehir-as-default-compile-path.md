@@ -7,10 +7,10 @@
 **Depends on**: —
 **Track**: pipeline-refactor
 **Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #529-or-target-pipeline
+**Orchestration upstream**: #617
 **Blocks v4 exit**: yes
 
-**Status note**: BLOCKED — The #529 100% selfhost transition ported the compiler using the `Legacy` pipeline baseline (`Lexer -> ... -> MIR`). The `CoreHIR` architecture (the refactor target) does not yet exist natively in the new compiler. This conversion is structurally blocked until CoreHIR is rebuilt.
+**Status note**: BLOCKED — The #529 100% selfhost transition ported the compiler using the `Legacy` pipeline baseline (`Lexer -> ... -> MIR`). The `CoreHIR` architecture (the refactor target) tracked by `#617` does not yet exist natively in the new compiler. This default-path switch is structurally blocked until #617 builds the CoreHIR lowerer.
 
 **Operational lane**: trusted-base compiler default-path correction. Keep separate from #285/#508/#529 legacy removal and from #099 selfhost frontend design.
 

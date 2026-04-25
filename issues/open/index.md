@@ -124,7 +124,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 099 | [Selfhost compiler: incremental parse design slice](099-compile-incremental-parse.md) | selfhost-frontend | none | none | none | 0 checked / 0 open | design-ready | — | |
 | 112 | [ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト](112-bench-compare-langs.md) | benchmark | none | 109 | none | 0 checked / 0 open | implementation-ready | — | |
 | 123 | [import 構文と WIT パッケージ識別子の統一方針決定](123-import-syntax-unification.md) | language-design | none | none | none | 0 checked / 0 open | design-ready | — | |
-| 125 | [`compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)](125-corehir-as-default-compile-path.md) | pipeline-refactor | none | 529 | 126 | 0 checked / 5 open | blocked-by-upstream | #529 | |
+| 125 | [`compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)](125-corehir-as-default-compile-path.md) | pipeline-refactor | v4 | 617 | 126 | 0 checked / 5 open | blocked-by-upstream | #617 | |
 | 204 | [204-project-explain-build-explain-and-script-sandbox-surface](204-project-explain-build-explain-and-script-sandbox-surface.md) | main | none | none | none | 3 checked / 0 open | — | — | |
 | 205 | [205-docs-and-codebase-intelligence-surfaces](205-docs-and-codebase-intelligence-surfaces.md) | main | none | none | none | 3 checked / 0 open | — | — | |
 | 214 | [Extension quality / packaging / marketplace readiness](214-extension-quality-packaging-and-marketplace.md) | parallel | none | 184, 185, 186, 187, 188 | none | 3 checked / 0 open | blocked-by-upstream | #188 | |
