@@ -13,19 +13,40 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MODE="compare"
 EXTRA_ARGS=()
 
-for arg in "$@"; do
-  case "$arg" in
+COMPARE_LANG=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     --quick)
       # Compare mode with low iteration counts for a fast sanity run.
       EXTRA_ARGS+=(--compile-iterations 1 --runtime-iterations 1 --runtime-warmups 0)
+      shift
       ;;
     --full)
+      shift
+      ;;
+    --compare-lang)
+      COMPARE_LANG="$2"
+      shift 2
       ;;
     *)
-      EXTRA_ARGS+=("$arg")
+      EXTRA_ARGS+=("$1")
+      shift
       ;;
   esac
 done
+
+if [[ "$COMPARE_LANG" == *"grain"* ]]; then
+  echo "Compiling Grain benchmark..."
+  grain compile "$ROOT/benchmarks/fib.grain" -o "$ROOT/benchmarks/fib_grain.wasm" || true
+  if command -v hyperfine >/dev/null; then
+    echo "Running cross-language benchmark with hyperfine..."
+    hyperfine --warmup 1 "wasmtime $ROOT/benchmarks/legacy/fib.wasm" "wasmtime $ROOT/benchmarks/fib_grain.wasm"
+  else
+    echo "Hyperfine not installed. Skipping cross-language hyperfine comparison."
+  fi
+fi
+
 
 exec python3 "$ROOT/scripts/util/benchmark_runner.py" \
   --mode "$MODE" \
