@@ -10,12 +10,32 @@ Ensure same source produces identical `.wasm` across two builds for release veri
 
 ## Verification Evidence
 
+### Release-binary determinism (2026-04-25) — PASS
+
+Command used:
+
+```
+./target/release/arukellt compile tests/fixtures/hello_world.ark -o /tmp/out1.wasm
+./target/release/arukellt compile tests/fixtures/hello_world.ark -o /tmp/out2.wasm
+sha256sum /tmp/out1.wasm /tmp/out2.wasm
+```
+
+Result:
+
+```
+86b057edc6dd72e0bf12214f0aecf90531af44b43df0eb64ff5fc053a4de8f69  /tmp/out1.wasm
+86b057edc6dd72e0bf12214f0aecf90531af44b43df0eb64ff5fc053a4de8f69  /tmp/out2.wasm
+```
+
+Both hashes are identical — release-binary compilation is deterministic.
+
+### Selfhost fixpoint (prior evidence, 2026-04-22) — PASS
+
 - `python3 scripts/manager.py selfhost fixpoint` is the current canonical determinism command on the available selfhost surface.
 - Result on 2026-04-22: PASS, exit 0.
 - Reported hashes:
   - `sha256(arukellt-s2.wasm) = c16e32efb1b68e1921eb4915e414f554b165d45e299e0c5fd679934e0ba180cc`
   - pinned base `bootstrap/arukellt-selfhost.wasm = 3a0350371f9dbc37becef03efffa8d20b90827161a0d9fab97163a19de341f2c`
-- Limitation: this proves the selfhost bootstrap fixpoint (`sha256(s2) == sha256(s3)`), not the original release-binary `.wasm` determinism wording in this issue.
 
 ## Checklist Source
 
@@ -23,8 +43,8 @@ docs/release-checklist.md — Pre-release section
 
 ## Acceptance
 
-- [ ] Same source produces identical `.wasm` across two builds
-- [ ] SHA256 checksums of two builds match exactly
+- [x] Same source produces identical `.wasm` across two builds
+- [x] SHA256 checksums of two builds match exactly
 
 ## Required Verification
 
