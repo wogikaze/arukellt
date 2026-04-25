@@ -1,184 +1,5 @@
 # ADR-031: Import Syntax and WIT Package Identifier Unification
 
-**Status**: DECIDED
-**Date**: 2026-04-25
-**Track**: language-design
-**Issue**: [#123](../../issues/open/123-import-syntax-unification.md)
-**Supersedes**: none (refines and consolidates ADR-009, ADR-025, ADR-026)
-
----
-
-## Context
-
-Arukellt has two syntactically distinct module reference surfaces that risk conflation
-as the language targets Component Model output:
-
-| Surface | Example | Separator | Where it appears |
-|---------|---------|-----------|-----------------|
-| Layer S source import | `use std::io` | `::` | `.ark` source files |
-| Layer S local file import | `import math` | single identifier | `.ark` source files |
-| Layer C WIT package identifier | `wasi:cli/stdin@0.2.10` | `:` `/` `@` | `.wit` files, CLI flags |
-
-Three problems arise as Layer C declarations move closer to source:
-
-1. **Conceptual confusion** - LLMs and new contributors conflate `std::io` and
-  `wasi:io/streams`. They are not equivalent: `std::io` is an Arukellt stdlib path;
-  `wasi:io/streams` is a WebAssembly Component Model package identifier.
-2. **Undefined syntax** - no source-level syntax exists for referencing an external WIT
-  interface from Arukellt source (needed for Component Model output; tracked by issue #124).
-3. **Two import surfaces** - `import math` (local file) and `use std::io` (stdlib path)
-  coexist with no clear rule, creating a which-keyword question for every new module.
-
-### Current parser state (v3)
-
-Both `import` and `use` are live keywords with separate parse paths.
-`TokenKind::Import` handles `import foo` (single identifier, local file);
-`TokenKind::Use` handles `use std::io::something` (:: separated path, stdlib).
-
----
-
-## WIT Package Identifier Syntax (reference)
-
-Per the WebAssembly Component Model / WIT specification, WIT identifiers take the form
-`namespace:package-name/interface-name@semver.{symbols}`.
-
-Example: `wasi:io/poll@0.2.10.{pollable}` where `:` separates namespace from package,
-`/` separates package from interface, `@` marks the version, and `.{}` enumerates symbols.
-
----
-
-## Options Considered
-
-### Option A - Adopt WIT package identifier syntax wholesale
-
-Replace `use std::io` with `use arukellt:std/io` throughout; all imports use
-`namespace:package/module` format.
-
-**Cons (decisive):**
-- Breaking change to all 409 existing test fixtures
-- `arukellt:std/io` is verbose and redundant (analogous to `rust:std/io` in Rust)
-- WIT `namespace:package` is for cross-organisation registry identity, not intra-language modules
-- Self-hosting readability degrades
-
-**Verdict: Rejected.**
-
-### Option B - Arukellt-native imports; WIT IDs at the toolchain boundary (status quo + docs)
-
-Keep `use` + `::` for Layer S. Express WIT identifiers via strings, attributes, or external
-`.wit` files and CLI flags.
-
-**Pros:** Zero breaking change; matches Rust/Go/Python/JS pattern; visual distinction
-(`::` vs `:` `/`) signals layers; ADR-006 compliant; self-hosting compatible.
-
-**Cons:** Two concepts need documentation; inline Layer C syntax deferred to v4.
-
-**Verdict: Chosen.**
-
-### Option C - `wit import` compound keyword for Layer C only
-
-Add `wit import "wasi:cli/stdin"` as a distinct keyword form.
-
-**Verdict:** Partially folded in - Option B v4 delivery achieves the same disambiguation
-with the single `import` keyword.
-
-### Option D - Unify source keywords; reserve `import` for Layer C
-
-Deprecate `import <single-id>` in favour of `use`, freeing `import` for Component Model use.
-
-**Pros:** Eliminates keyword confusion; `import` explicitly signals external boundary.
-
-**Verdict: Adopted as the v4 migration path (combined with Option B).**
-
----
-
-## Decision
-
-**Chosen: Option B + Option D combined.**
-
-1. `use path::to::module` confirmed as Layer S syntax - no changes to existing source.
-2. `import <single-id>` deprecated in v4, removed in v5; migrates to `use <id>`; diagnostic: W0101.
-3. `import` keyword reserved for Layer C in v4; string form `import "wasi:cli/stdin@0.2.10"`
-  is the current candidate (see issue #124).
-4. WIT package identifiers remain Layer C boundary data - not valid `use` path segments.
-5. **Layer naming is canonical:**
-  - **Layer S (Source)**: `use` + `::` separated paths
-  - **Layer C (Component)**: `import` + WIT identifier form (v4+)
-
----
-
-## Rationale
-
-The WIT `namespace:package/interface@version` format was designed for cross-organisation package
-identity in the WebAssembly Component Model ecosystem. Applying it to stdlib references would
-produce `arukellt:std/io::writeln_stdout()` - a form that conveys registry identity rather than
-module location, inconsistent with how every major Component Model language works:
-
-| Language | Source import | WIT boundary |
-|----------|--------------|--------------|
-| Rust (cargo-component) | `use crate::...` | wit-bindgen generates code; WIT not in source |
-| Go (WASI) | `import "path/to/pkg"` | WIT in external tooling |
-| Python (componentize-py) | `import module` | WIT in external files |
-| JavaScript (componentize-js) | ESM `import` | WIT in external `.wit` files |
-
-In every case, source-level import syntax is unchanged and WIT is tooling-boundary data.
-Arukellt adopts the same separation.
-
----
-
-## Migration Impact
-
-### Existing code (v3)
-
-**No changes required.** All `use std::...` and `import <local>` source syntax continues to
-compile and pass diagnostics in v3.
-
-### v4 migration
-
-| Syntax | v4 behaviour | Affected scope |
-|--------|-------------|----------------|
-| `use std::io` | No warning | All stdlib / host imports |
-| `use path::to::module` | No warning | All `use` path imports |
-| `import math` (local file) | W0101 deprecation warning; still compiles | Local file imports only |
-| `import "wasi:cli/stdin"` | New Layer C syntax (`--emit component`) | New code only |
-
-### v5
-
-`import <single-identifier>` removed. Any remaining occurrences are hard errors.
-
----
-
-## Implementation Timeline
-
-| Phase | Item | Tracking |
-|-------|------|---------|
-| v3 (done) | `docs/spec/import-system.md` documents Layer S / Layer C split | Done |
-| v3 (done) | `--wit <path>` CLI flag accepted (binding generation deferred) | Done (issue #124 Phase 1) |
-| v4 | W0101 deprecation for `import <single-identifier>` | issue #123 impl work |
-| v4 | `import "ns:pkg/interface@ver"` syntax + parser support | issue #124 |
-| v5 | Remove `import <single-identifier>` parse path | post-v4 |
-
----
-
-## Consequences
-
-- `use` is the stable Arukellt source module import keyword and will not be redefined.
-- `import` is the Component Model / WIT boundary keyword from v4 onward.
-- The `std::` prefix is an Arukellt source namespace, not a WIT namespace.
-- Tooling and documentation must describe `use` and `import` as distinct layers, not synonyms.
-
----
-
-## Related
-
-- [ADR-009-import-syntax.md](ADR-009-import-syntax.md) - primary decision record (DECIDED)
-- [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) - collision policy and syntax exploration (draft)
-- [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) - decision record (DECIDED)
-- [ADR-006-abi-policy.md](ADR-006-abi-policy.md) - ABI layers
-- [../spec/import-system.md](../spec/import-system.md) - normative Layer S / Layer C contract page
-- [../module-resolution.md](../module-resolution.md) - Layer S resolution behaviour
-- Issue [#074](../../issues/open/074-wasi-p2-native-component.md) - WASI p2 native component
-- Issue [#124](../../issues/open/124-wit-component-import-syntax.md) - WIT component import syntax
-
 **Status**: DECIDED — Two-layer separation confirmed; `use` reserved for Layer S, `import` reserved for Layer C
 **Date**: 2026-04-25
 **Track**: language-design
@@ -197,6 +18,7 @@ conflation as the language targets Component Model output:
 | **Layer S — source import** | `use std::io` | `::` | `.ark` source files |
 | **Layer S — local file import** | `import math` | (single identifier) | `.ark` source files |
 | **Layer C — WIT package identifier** | `wasi:cli/stdin@0.2.10` | `:` `/` `@` | `.wit` files, CLI flags, manifests |
+
 These surfaces do not collide lexically today because WIT text lives in `.wit` files and
 tooling, not inside `use` paths. However, three problems emerge as Layer C declarations move
 closer to source:
@@ -247,6 +69,7 @@ Structure: `namespace:package-name/interface-name@semver.{symbols}`
 ---
 
 ## Options Considered
+
 ### Option A — Adopt WIT package identifier syntax wholesale
 
 Replace Arukellt source `::` paths with the WIT `namespace:package/module` format for all imports.
@@ -297,6 +120,7 @@ use std::host::fs             // Layer S -- host-bound stdlib module (unchanged)
 **Verdict**: **Chosen** (see Decision section).
 
 ### Option C — `wit import` dedicated keyword
+
 Introduce a compound keyword for Layer C imports alongside the existing `use`/`import` keywords:
 
 ```ark
@@ -350,7 +174,6 @@ is reserved from v3 onwards for the Layer C surface.
 
 **Chosen direction: Option B + Option D combined.**
 
-
 1. **`use path::to::module` confirmed as Layer S source import syntax** — no change to existing
    source files or fixtures.
 
@@ -364,7 +187,6 @@ is reserved from v3 onwards for the Layer C surface.
    valid `use` path segments.
 
 5. **Layer naming is canonical**:
-
 
 The WIT `namespace:package/interface@version` format was designed for cross-organisation package
 identity in the WebAssembly Component Model ecosystem. Applying it to intra-language standard
