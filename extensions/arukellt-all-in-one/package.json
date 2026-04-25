@@ -29,8 +29,6 @@
     "onCommand:arukellt.showSetupDoctor",
     "onCommand:arukellt.showCommandGraph",
     "onCommand:arukellt.showEnvironmentDiff",
-    "onCommand:arukellt.openDocs",
-    "onCommand:arukellt.explainCode",
     "onCommand:arukellt.showPipeline",
     "onCommand:arukellt.securityReview",
     "onCommand:arukellt.buildComponent",
@@ -99,14 +97,6 @@
       {
         "command": "arukellt.showEnvironmentDiff",
         "title": "Arukellt: Show Environment Diff"
-      },
-      {
-        "command": "arukellt.openDocs",
-        "title": "Arukellt: Open Documentation"
-      },
-      {
-        "command": "arukellt.explainCode",
-        "title": "Arukellt: Explain Code"
       },
       {
         "command": "arukellt.showPipeline",

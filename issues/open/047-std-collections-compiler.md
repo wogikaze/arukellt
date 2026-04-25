@@ -6,8 +6,8 @@
 **ID**: 047
 **Depends on**: 039, 041
 **Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #529
 **Blocks v3 exit**: no (Experimental)
 
 **Status note**: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.

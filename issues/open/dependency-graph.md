@@ -168,10 +168,10 @@ graph LR
 ## Adjacency list
 
 - **034** depends on: 030, 031, 028b, 616; blocks: none
-- **036** depends on: 033; blocks: none
+- **036** depends on: 033, 616; blocks: none
 - **044** depends on: 039, 041, 312; blocks: 054, 055
 - **045** depends on: 039, 041, 529; blocks: none
-- **047** depends on: 039, 041; blocks: none
+- **047** depends on: 039, 041, 529; blocks: none
 - **051** depends on: 039, 040, 529; blocks: none
 - **099** depends on: none; blocks: none
 - **112** depends on: 109; blocks: none
