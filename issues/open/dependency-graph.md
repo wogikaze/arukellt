@@ -13,7 +13,6 @@ graph LR
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I051["051 std::time + std::random: 時刻・期間・乱数"]
   I099["099 Selfhost compiler: incremental parse design slice"]
-  I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
@@ -176,7 +175,6 @@ graph LR
 - **047** depends on: 039, 041; blocks: none
 - **051** depends on: 039, 040; blocks: none
 - **099** depends on: none; blocks: none
-- **108** depends on: 091, 092, 088, 089; blocks: none
 - **112** depends on: 109; blocks: none
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
