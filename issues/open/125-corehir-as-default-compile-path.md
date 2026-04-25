@@ -1,16 +1,16 @@
 # `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)
 
-**Status**: done
+**Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-25
 **ID**: 125
 **Depends on**: —
 **Track**: pipeline-refactor
 **Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: CoreHIR-default-blocked (issue body: fixtures failing)
+**Orchestration upstream**: #529-or-target-pipeline
 **Blocks v4 exit**: yes
 
-**Status note**: CLOSED (OBSOLETE) — The #529 100% selfhost transition completely replaced the compiler pipeline with `src/compiler/*.ark`. The dual `MirSelection::Legacy` vs `CoreHIR` mechanism was structurally eradicated. This issue is Overtaken By Events.
+**Status note**: BLOCKED — The #529 100% selfhost transition ported the compiler using the `Legacy` pipeline baseline (`Lexer -> ... -> MIR`). The `CoreHIR` architecture (the refactor target) does not yet exist natively in the new compiler. This conversion is structurally blocked until CoreHIR is rebuilt.
 
 **Operational lane**: trusted-base compiler default-path correction. Keep separate from #285/#508/#529 legacy removal and from #099 selfhost frontend design.
 
@@ -79,7 +79,3 @@ Do not use #125 to prioritize legacy deletion or selfhost parser design work.
 - `crates/ark-driver/src/session.rs:410`
 - `crates/ark-driver/src/session.rs:316-340` (run_frontend — 二重 lower)
 - `INTERFACE-COREHIR.md`
-
-## Close note — 2026-04-25
-
-Resolved as **Obsolete (Overtaken By Events)**. The #529 100% selfhost transition completely deleted the Rust crates (`crates/ark-driver`, `crates/ark-mir`, etc) and replaced them with `src/compiler/*.ark`. The new compiler features a unified single-lowering pipeline out of the box and maintains no internal structural distinction between "Legacy" and "CoreHIR" pathways. The architectural mismatch described in this issue was fixed structurally by eradication.
