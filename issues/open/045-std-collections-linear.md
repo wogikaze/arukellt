@@ -6,8 +6,8 @@
 **ID**: 045
 **Depends on**: 039, 041
 **Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #529
 **Blocks v3 exit**: yes
 
 **Status note**: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.
@@ -29,10 +29,10 @@
 両端操作が可能な Deque\<T\> と、優先度付きヒープ PriorityQueue\<T\> を実装する。
 BFS、スケジューラ、shortest path 等のアルゴリズム基盤として必要。
 
-## Operational lane — 2026-04-22
+## Operational lane — 2026-04-25
 
-This issue is in the **blocker-free stdlib lane**. Do not hold it behind #312
-unless a new STOP_IF is found in this issue's own implementation work.
+**BLOCKED:** This issue hit a STOP_IF during Wave 2 dispatch. The selfhost compiler transition (#529) removed `ark-wasm/src/emit`, and the new pure-Ark `src/compiler/emitter.ark` lacks the requisite core GC intrinsic translation rules (ring buffer semantics) to emit these collections natively. Execution is frozen until #529 or downstream emitter roadmap restores intrinsic capabilities.
+
 
 ## 受け入れ条件
 

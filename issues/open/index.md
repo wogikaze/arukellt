@@ -115,12 +115,12 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 
 | ID | Title | Track | Blocks v{N} | Depends on | Blocks | Acceptance | Orchestration | Orch notes | |
 |----|-------|-------|-------------|------------|--------|------------|---------------|------------|-|
-| 034 | [CLI --wit flag, --emit component workflow, docs](034-wit-cli-integration.md) | component-model | none | 030, 031, 028b | none | 9 checked / 0 open | implementation-ready | — | |
+| 034 | [CLI --wit flag, --emit component workflow, docs](034-wit-cli-integration.md) | component-model | none | 030, 031, 028b, 616 | none | 9 checked / 0 open | blocked-by-upstream | #616 | |
 | 036 | [jco JavaScript interop smoke test](036-jco-javascript-interop.md) | component-model | none | 033 | none | 4 checked / 0 open | blocked-by-upstream | 037-external-jco | |
 | 044 | [std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>](044-std-collections-hash.md) | stdlib | none | 039, 041, 312 | 054, 055 | 0 checked / 0 open | blocked-by-upstream | #312 | |
-| 045 | [std::collections: Deque、PriorityQueue](045-std-collections-linear.md) | stdlib | none | 039, 041 | none | 0 checked / 0 open | implementation-ready | — | |
+| 045 | [std::collections: Deque、PriorityQueue](045-std-collections-linear.md) | stdlib | none | 039, 041, 529 | none | 0 checked / 0 open | blocked-by-upstream | #529 | |
 | 047 | [std::collections: Arena、SlotMap、Interner ／ std::text: Rope](047-std-collections-compiler.md) | stdlib | none | 039, 041 | none | 0 checked / 0 open | implementation-ready | — | |
-| 051 | [std::time + std::random: 時刻・期間・乱数](051-std-time-random.md) | stdlib | none | 039, 040 | none | 0 checked / 0 open | implementation-ready | — | |
+| 051 | [std::time + std::random: 時刻・期間・乱数](051-std-time-random.md) | stdlib | none | 039, 040, 529 | none | 0 checked / 0 open | blocked-by-upstream | #529 | |
 | 099 | [Selfhost compiler: incremental parse design slice](099-compile-incremental-parse.md) | selfhost-frontend | none | none | none | 0 checked / 0 open | design-ready | — | |
 | 112 | [ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト](112-bench-compare-langs.md) | benchmark | none | 109 | none | 0 checked / 0 open | implementation-ready | — | |
 | 123 | [import 構文と WIT パッケージ識別子の統一方針決定](123-import-syntax-unification.md) | language-design | none | none | none | 0 checked / 0 open | design-ready | — | |

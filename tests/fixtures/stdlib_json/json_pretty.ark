@@ -4,42 +4,42 @@ use std::json
 fn main() {
     match json::parse("null") {
         Result::Ok(v) => stdio::println(json::stringify_pretty(v, 2)),
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("true") {
         Result::Ok(v) => stdio::println(json::stringify_pretty(v, 2)),
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("\"hello\"") {
         Result::Ok(v) => stdio::println(json::stringify_pretty(v, 2)),
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("[1,2,3]") {
         Result::Ok(v) => stdio::println(json::stringify_pretty(v, 2)),
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("{\"k\":1}") {
         Result::Ok(v) => stdio::println(json::stringify_pretty(v, 2)),
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("{\"a\":[1,2],\"b\":{\"c\":3}}") {
         Result::Ok(v) => stdio::println(json::stringify_pretty(v, 2)),
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("42") {
         Result::Ok(v) => {
             stdio::println(bool_to_string(json::is_number(v)))
             stdio::println(bool_to_string(json::is_null(v)))
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("[1,2,3]") {
         Result::Ok(v) => stdio::println(bool_to_string(json::is_array(v))),
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("{\"k\":1}") {
         Result::Ok(v) => stdio::println(bool_to_string(json::is_object(v))),
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
 }
 // is_* type predicates

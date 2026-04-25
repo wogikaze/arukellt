@@ -4,7 +4,7 @@ use std::json
 fn main() {
     match json::parse("null") {
         Result::Ok(v) => stdio::println(bool_to_string(json::is_null(v))),
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("true") {
         Result::Ok(v) => {
@@ -13,7 +13,7 @@ fn main() {
                 None => stdio::println("not bool"),
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("false") {
         Result::Ok(v) => {
@@ -22,7 +22,7 @@ fn main() {
                 None => stdio::println("not bool"),
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("\"hello\"") {
         Result::Ok(v) => {
@@ -31,7 +31,7 @@ fn main() {
                 None => stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("42") {
         Result::Ok(v) => {
@@ -40,7 +40,7 @@ fn main() {
                 None => stdio::println("not number"),
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
 }
 // Parse null

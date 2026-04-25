@@ -1,0 +1,4 @@
+// #614 acceptance fixture: parse failure used to assert coded diagnostics.
+fn main() {
+    let x =
+}

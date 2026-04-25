@@ -423,7 +423,7 @@ Current public API names, sorted alphabetically.
 | `read_bytes` | `std::bytes` | `stable` | Bytes |
 | `read_stdin_line` | `std::io` | `stable` | Io |
 | `read_string` | `std::fs` | `stable` | Fs |
-| `read_to_string` | `std::host::fs` | `stable` | Host Fs |
+| `read_to_string` | `std::host::fs` | `provisional` | Host Fs |
 | `read_u16_le` | `std::bytes` | `stable` | Bytes |
 | `read_u32_be` | `std::bytes` | `stable` | Bytes |
 | `read_u32_le` | `std::bytes` | `stable` | Bytes |
@@ -580,9 +580,9 @@ Current public API names, sorted alphabetically.
 | `wit_type_u8` | `std::wit` | `experimental` | Wit |
 | `with_extension` | `std::path` | `stable` | Path |
 | `write_all` | `std::io` | `stable` | Io |
-| `write_bytes` | `std::host::fs` | `stable` | Host Fs |
+| `write_bytes` | `std::host::fs` | `provisional` | Host Fs |
 | `write_string` | `std::fs` | `stable` | Fs |
-| `write_string` | `std::host::fs` | `stable` | Host Fs |
+| `write_string` | `std::host::fs` | `provisional` | Host Fs |
 | `write_string` | `std::io` | `stable` | Io |
 | `writer_flush` | `std::io` | `stable` | Io |
 | `writer_new` | `std::io` | `stable` | Io |
@@ -1058,7 +1058,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
 | `read_string` | ✅ `stable` | `std::fs` | Fs |
-| `read_to_string` | ✅ `stable` | `std::host::fs` | Host Fs |
+| `read_to_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `read_u16_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u32_be` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u32_le` | ✅ `stable` | `std::bytes` | Bytes |
@@ -1217,9 +1217,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `wit_type_u8` | ✅ `experimental` | `std::wit` | Wit |
 | `with_extension` | ✅ `stable` | `std::path` | Path |
 | `write_all` | ✅ `stable` | `std::io` | Io |
-| `write_bytes` | ✅ `stable` | `std::host::fs` | Host Fs |
+| `write_bytes` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `write_string` | ✅ `stable` | `std::fs` | Fs |
-| `write_string` | ✅ `stable` | `std::host::fs` | Host Fs |
+| `write_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `write_string` | ✅ `stable` | `std::io` | Io |
 | `writer_flush` | ✅ `stable` | `std::io` | Io |
 | `writer_new` | ✅ `stable` | `std::io` | Io |

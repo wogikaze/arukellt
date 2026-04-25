@@ -383,14 +383,14 @@ fn phase_error_code(phase: i32) -> String {
 }
 
 fn format_error_json_diag(file: String, phase: i32, msg: String) -> String {
-    let span = DiagnosticSpan_new(clone(file), 0, 0)
-    let diag = Diagnostic_new(phase_error_code(phase), SEV_ERROR(), span, msg)
-    diagnostic_to_json(diag)
+    let span = diagnostics::DiagnosticSpan_new(clone(file), 0, 0)
+    let diag = diagnostics::Diagnostic_new(phase_error_code(phase), diagnostics::SEV_ERROR(), span, msg)
+    diagnostics::diagnostic_to_json(diag)
 }
 
 fn format_error_json(file: String, phase: i32, messages: Vec<String>) -> String {
     let mut out = String_from("{\"file\":\"")
-    out = concat(out, concat(diag_json_escape(clone(file)), String_from("\",\"phase\":")))
+    out = concat(out, concat(diagnostics::diag_json_escape(clone(file)), String_from("\",\"phase\":")))
     out = concat(out, concat(to_string(phase), String_from(",\"diagnostics\":[")))
     let count = len(messages)
     let mut i = 0

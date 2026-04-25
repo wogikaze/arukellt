@@ -4,11 +4,11 @@
 **Created**: 2026-03-28
 **Updated**: 2026-04-22
 **ID**: 034
-**Depends on**: 030, 031, 028b
+**Depends on**: 030, 031, 028b, 616
 **Track**: component-model
 **Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #616
 **Blocks v{N}**: none
 
 ## Reopened by audit — 2026-04-13
@@ -48,6 +48,9 @@ through as a generic unsupported emit mode. Actual component generation and
 WIT resolver binding remain out of scope.
 
 ## Summary
+
+**BLOCKED:** This issue is structurally blocked by [#616](616-selfhost-component-emit-infra.md) (Component emission infrastructure missing in the newly unified selfhost compiler). Do not dispatch until the emitter logic is capable of generating Wasm components.
+
 
 Complete the end-to-end CLI workflow for Component Model usage. Add `--wit <path>`
 flag for import binding, update `--emit component` to produce `.component.wasm`,

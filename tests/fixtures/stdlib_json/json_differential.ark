@@ -36,10 +36,10 @@ fn main() {
                 Result::Ok(v2) => {
                     stdio::println(bool_to_string(json::is_object(v2)))
                 },
-                Result::Err(e) => stdio::println(concat("differential re-parse error:", e)),
+                Result::Err(e) => stdio::println(concat("differential re-parse error:", json::parse_error_message(e))),
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
 }
 // differential test: mixed-type object stringify output re-parses correctly

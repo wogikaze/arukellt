@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-25T06:01:57Z",
+  "generated_at": "2026-04-25T06:08:39Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -384,28 +384,6 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "468",
-      "path": "468-playground-build-and-publish-path-proof.md",
-      "title": "468-playground-build-and-publish-path-proof",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
         "unchecked": 0
       },
       "orchestration": {

@@ -98,7 +98,7 @@ eprintln("Error: something went wrong")
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
 - Manifest-backed functions: 7
-- Stability: experimental 3, stable 4
+- Stability: experimental 3, provisional 3, stable 1
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
@@ -122,13 +122,19 @@ issue #605.
 - `fd_seek`, `fd_tell`, and `fd_fdstat_errno` operate on raw WASI P1 file
 descriptors and are experimental.
 
+### Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `FsError` | `enum` | - |
+
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
-| `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
+| `read_to_string` | `(String) -> Result<String, FsError>` | `provisional` | ✅ impl | Reads a UTF-8 text file into memory. |
+| `write_string` | `(String, String) -> Result<(), FsError>` | `provisional` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), FsError>` | `provisional` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
 | `exists` | `(String) -> bool` | `stable` | ✅ impl | Read-probe semantics — not a general path-existence query. |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ impl | Seeks within an open file descriptor. |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ impl | Returns the current file offset for an open file descriptor. |

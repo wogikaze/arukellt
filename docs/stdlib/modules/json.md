@@ -65,6 +65,7 @@ with existing fixtures and are not a complete typed serializer.
 | Name | Kind | Summary |
 |------|------|---------|
 | `JsonValue` | `struct` | Tagged container for a JSON value. |
+| `JsonParseError` | `enum` | - |
 
 ### Public API
 
@@ -76,7 +77,7 @@ with existing fixtures and are not a complete typed serializer.
 | `json_null` | `() -> String` | `experimental` | Return the JSON null literal. |
 | `json_parse_i32` | `(String) -> i32` | `experimental` | Parse a decimal integer from a JSON number string. |
 | `json_parse_bool` | `(String) -> bool` | `experimental` | Parse "true"/"false" into a bool. |
-| `parse` | `(String) -> Result<JsonValue, String>` | `experimental` | Parse a full JSON document from s and reject trailing non-whitespace after |
+| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | Parse a full JSON document from s and reject trailing non-whitespace after |
 | `stringify` | `(JsonValue) -> String` | `experimental` | Serialize a JsonValue back to its JSON text. |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | Serialize a JsonValue with newlines and indentation for arrays and objects. |
 | `is_null` | `(JsonValue) -> bool` | `experimental` | - |

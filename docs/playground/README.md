@@ -63,6 +63,7 @@ the browser-side implementation work and remaining product-proof gaps.
 
 | Document | Summary |
 |----------|---------|
+| [build-path-proof.md](build-path-proof.md) | Issue: #468 |
 | [deployment-strategy.md](deployment-strategy.md) | Status: DRAFT |
 | [diagnostics-worker-performance-budget.md](diagnostics-worker-performance-budget.md) | Status: DRAFT |
 | [examples-catalog.md](examples-catalog.md) | The playground ships a curated catalog of example programs defined in |
