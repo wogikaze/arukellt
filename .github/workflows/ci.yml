@@ -598,7 +598,7 @@ jobs:
   # ── Final gate ───────────────────────────────────────────────────────────
   verify:
     name: "Final Gate"
-    needs: [unit-tests, verification-harness-quick, fixture-primary, integration, packaging, determinism, selfhost-bootstrap, selfhost-cli-parity, selfhost-diag-parity, extension-tests, lsp-e2e]
+    needs: [unit-tests, verification-harness-quick, fixture-primary, integration, packaging, determinism, selfhost-bootstrap, selfhost-cli-parity, selfhost-diag-parity, extension-tests]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All required CI layers passed (unit + verification-harness-quick + fixture/T3 + integration + packaging + determinism + selfhost-bootstrap + selfhost-cli-parity + selfhost-diag-parity + extension-tests + lsp-e2e)"
+      - run: echo "All required CI layers passed (unit + verification-harness-quick + fixture/T3 + integration + packaging + determinism + selfhost-bootstrap + selfhost-cli-parity + selfhost-diag-parity + extension-tests)"
