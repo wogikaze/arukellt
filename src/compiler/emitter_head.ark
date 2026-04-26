@@ -1,0 +1,2000 @@
+use std::host::stdio
+fn SEC_TYPE() -> i32 {
+1
+}
+fn SEC_IMPORT() -> i32 {
+2
+}
+fn SEC_FUNCTION() -> i32 {
+3
+}
+fn SEC_TABLE() -> i32 {
+4
+}
+fn SEC_MEMORY() -> i32 {
+5
+}
+fn SEC_GLOBAL() -> i32 {
+6
+}
+fn SEC_EXPORT() -> i32 {
+7
+}
+fn SEC_START() -> i32 {
+8
+}
+fn SEC_ELEMENT() -> i32 {
+9
+}
+fn SEC_CODE() -> i32 {
+10
+}
+fn SEC_DATA() -> i32 {
+11
+}
+fn WASM_I32() -> i32 {
+127
+}
+fn WASM_I64() -> i32 {
+126
+}
+fn WASM_F32() -> i32 {
+125
+}
+fn WASM_F64() -> i32 {
+124
+}
+fn WASM_FUNCREF() -> i32 {
+112
+}
+fn WASM_EXTERNREF() -> i32 {
+111
+}
+fn OP_UNREACHABLE() -> i32 {
+0
+}
+fn OP_NOP() -> i32 {
+1
+}
+fn OP_BLOCK() -> i32 {
+2
+}
+fn OP_LOOP() -> i32 {
+3
+}
+fn OP_IF() -> i32 {
+4
+}
+fn OP_ELSE() -> i32 {
+5
+}
+fn OP_END() -> i32 {
+11
+}
+fn OP_BR() -> i32 {
+12
+}
+fn OP_BR_IF() -> i32 {
+13
+}
+fn OP_RETURN() -> i32 {
+15
+}
+fn OP_CALL() -> i32 {
+16
+}
+fn OP_DROP() -> i32 {
+26
+}
+fn OP_SELECT() -> i32 {
+27
+}
+fn OP_LOCAL_GET() -> i32 {
+32
+}
+fn OP_LOCAL_SET() -> i32 {
+33
+}
+fn OP_LOCAL_TEE() -> i32 {
+34
+}
+fn OP_GLOBAL_GET() -> i32 {
+35
+}
+fn OP_GLOBAL_SET() -> i32 {
+36
+}
+fn OP_I32_LOAD() -> i32 {
+40
+}
+fn OP_F64_LOAD() -> i32 {
+43
+}
+fn OP_I32_LOAD8_U() -> i32 {
+45
+}
+fn OP_I32_STORE() -> i32 {
+54
+}
+fn OP_F64_STORE() -> i32 {
+57
+}
+fn OP_I32_STORE8() -> i32 {
+58
+}
+fn OP_I32_CONST() -> i32 {
+65
+}
+fn OP_I64_CONST() -> i32 {
+66
+}
+fn OP_F64_CONST() -> i32 {
+68
+}
+fn OP_I64_LOAD() -> i32 {
+41
+}
+fn OP_I64_STORE() -> i32 {
+55
+}
+fn OP_I64_EQZ() -> i32 {
+80
+}
+fn OP_I64_EQ() -> i32 {
+81
+}
+fn OP_I64_NE() -> i32 {
+82
+}
+fn OP_I64_LT_S() -> i32 {
+83
+}
+fn OP_I64_GT_S() -> i32 {
+85
+}
+fn OP_I64_LE_S() -> i32 {
+87
+}
+fn OP_I64_GE_S() -> i32 {
+89
+}
+fn OP_I64_ADD() -> i32 {
+124
+}
+fn OP_I64_SUB() -> i32 {
+125
+}
+fn OP_I64_MUL() -> i32 {
+126
+}
+fn OP_I64_DIV_S() -> i32 {
+127
+}
+fn OP_I64_DIV_U() -> i32 {
+128
+}
+fn OP_I64_REM_S() -> i32 {
+129
+}
+fn OP_I64_REM_U() -> i32 {
+130
+}
+fn OP_I64_EXTEND_I32_S() -> i32 {
+172
+}
+fn OP_I64_EXTEND_I32_U() -> i32 {
+173
+}
+fn OP_I64_AND() -> i32 {
+131
+}
+fn OP_I64_OR() -> i32 {
+132
+}
+fn OP_I64_XOR() -> i32 {
+133
+}
+fn OP_I64_SHL() -> i32 {
+134
+}
+fn OP_I64_SHR_S() -> i32 {
+135
+}
+fn OP_I64_SHR_U() -> i32 {
+136
+}
+fn OP_I32_WRAP_I64() -> i32 {
+167
+}
+fn OP_I32_EQZ() -> i32 {
+69
+}
+fn OP_I32_EQ() -> i32 {
+70
+}
+fn OP_I32_NE() -> i32 {
+71
+}
+fn OP_I32_LT_S() -> i32 {
+72
+}
+fn OP_I32_GT_S() -> i32 {
+74
+}
+fn OP_I32_GT_U() -> i32 {
+75
+}
+fn OP_I32_LE_S() -> i32 {
+76
+}
+fn OP_I32_GE_S() -> i32 {
+78
+}
+fn OP_I32_ADD() -> i32 {
+106
+}
+fn OP_I32_SUB() -> i32 {
+107
+}
+fn OP_I32_MUL() -> i32 {
+108
+}
+fn OP_I32_DIV_S() -> i32 {
+109
+}
+fn OP_I32_DIV_U() -> i32 {
+110
+}
+fn OP_I32_REM_S() -> i32 {
+111
+}
+fn OP_I32_REM_U() -> i32 {
+112
+}
+fn OP_I32_AND() -> i32 {
+113
+}
+fn OP_I32_OR() -> i32 {
+114
+}
+fn OP_I32_XOR() -> i32 {
+115
+}
+fn OP_I32_SHL() -> i32 {
+116
+}
+fn OP_I32_SHR_S() -> i32 {
+117
+}
+fn OP_I32_LT_U() -> i32 {
+73
+}
+fn OP_I32_GE_U() -> i32 {
+79
+}
+fn OP_I32_LE_U() -> i32 {
+77
+}
+fn OP_F64_CONVERT_I32_U() -> i32 {
+184
+}
+fn OP_F64_EQ() -> i32 {
+97
+}
+fn OP_F64_NE() -> i32 {
+98
+}
+fn OP_F64_LT() -> i32 {
+99
+}
+fn OP_F64_GT() -> i32 {
+100
+}
+fn OP_F64_LE() -> i32 {
+101
+}
+fn OP_F64_GE() -> i32 {
+102
+}
+fn OP_F64_ADD() -> i32 {
+160
+}
+fn OP_F64_SUB() -> i32 {
+161
+}
+fn OP_F64_MUL() -> i32 {
+162
+}
+fn OP_F64_DIV() -> i32 {
+163
+}
+fn OP_F64_NEG() -> i32 {
+154
+}
+fn OP_F64_ABS() -> i32 {
+153
+}
+fn OP_F64_FLOOR() -> i32 {
+156
+}
+fn OP_F64_TRUNC() -> i32 {
+159
+}
+fn OP_I32_TRUNC_F64_S() -> i32 {
+170
+}
+fn OP_F64_CONVERT_I32_S() -> i32 {
+183
+}
+struct WasmWriter {
+bytes: Vec<i32>,
+}
+fn WasmWriter_new() -> WasmWriter {
+WasmWriter { bytes: Vec_new_i32() }
+}
+fn emit_byte(w: WasmWriter, b: i32) {
+push(w.bytes, b % 256)
+}
+fn emit_u32_le(w: WasmWriter, v: i32) {
+emit_byte(w, v % 256)
+emit_byte(w, v / 256 % 256)
+emit_byte(w, v / 65536 % 256)
+emit_byte(w, v / 16777216 % 256)
+}
+fn emit_leb128_u(w: WasmWriter, v: i32) {
+let mut val = v
+if val < 0 {
+val = 0
+}
+let mut done = false
+while !done {
+let mut b = val % 128
+val = val / 128
+if val != 0 {
+b = b + 128
+}
+emit_byte(w, b)
+if val == 0 {
+done = true
+}
+}
+}
+fn emit_leb128_s(w: WasmWriter, v: i32) {
+let mut val = v
+let mut more = true
+while more {
+let raw_mod = val % 128
+let mut b = raw_mod
+if b < 0 {
+b = b + 128
+}
+val = val / 128
+if raw_mod < 0 {
+val = val - 1
+}
+if val == 0 && b < 64 || val == 0 - 1 && b >= 64 {
+more = false
+} else {
+b = b + 128
+}
+emit_byte(w, b % 256)
+}
+}
+fn emit_leb128_s_i64(w: WasmWriter, v: i64) {
+let mut val = v
+let mut more = true
+while more {
+let raw_mod = i64_to_i32(val % 128)
+let mut b = raw_mod
+if b < 0 {
+b = b + 128
+}
+val = val / 128
+if raw_mod < 0 {
+val = val - 1
+}
+if val == 0 && b < 64 || val == 0 - 1 && b >= 64 {
+more = false
+} else {
+b = b + 128
+}
+emit_byte(w, b % 256)
+}
+}
+fn parse_decimal_as_i64_emitter(text: String) -> i64 {
+let n = len(text)
+let mut result: i64 = 0
+let mut i = 0
+let mut neg = false
+if i < n && char_at(text, i) == 45 {
+neg = true
+i = i + 1
+}
+let mut stop = false
+while i < n && !stop {
+let d = char_at(text, i)
+if d >= 48 && d <= 57 {
+result = result * 10 + i32_to_i64(d - 48)
+} else {
+if d == 95 {
+} else {
+stop = true
+}
+}
+i = i + 1
+}
+if neg {
+result = 0 - result
+}
+result
+}
+fn emit_bytes(w: WasmWriter, src: Vec<i32>) {
+let count = len(src)
+let mut i = 0
+while i < count {
+let b = get_unchecked(src, i)
+emit_byte(w, b)
+i = i + 1
+}
+}
+fn emit_f64(w: WasmWriter, val: f64) {
+let lo = f64_bits_lo(val)
+let hi = f64_bits_hi(val)
+emit_u32_le(w, lo)
+emit_u32_le(w, hi)
+}
+fn emit_string(w: WasmWriter, s: String) {
+let slen = len(s)
+emit_leb128_u(w, slen)
+let mut i = 0
+while i < slen {
+emit_byte(w, char_at(s, i))
+i = i + 1
+}
+}
+fn writer_size(w: WasmWriter) -> i32 {
+len(w.bytes)
+}
+fn emit_section(out: WasmWriter, section_id: i32, contents: WasmWriter) {
+emit_byte(out, section_id)
+emit_leb128_u(out, writer_size(contents))
+emit_bytes(out, contents.bytes)
+}
+fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32, wasi_version: String) -> Vec<i32> {
+let out = WasmWriter_new()
+emit_byte(out, 0)
+emit_byte(out, 97)
+emit_byte(out, 115)
+emit_byte(out, 109)
+emit_u32_le(out, 1)
+let fn_count = len(mir.functions)
+let str_count = len(mir.string_constants)
+let string_offsets = Vec_new_i32()
+let string_lengths = Vec_new_i32()
+let mut data_offset = DATA_START()
+let mut si = 0
+while si < str_count {
+let s = get_unchecked(mir.string_constants, si)
+let slen = len(s)
+push(string_offsets, data_offset + 4)
+push(string_lengths, slen)
+data_offset = data_offset + 4 + slen
+si = si + 1
+}
+let mut true_idx = 0 - 1
+let mut false_idx = 0 - 1
+let mut bi = 0
+while bi < str_count {
+let bs = get_unchecked(mir.string_constants, bi)
+if eq(clone(bs), "true") {
+true_idx = bi
+}
+if eq(clone(bs), "false") {
+false_idx = bi
+}
+bi = bi + 1
+}
+if true_idx < 0 {
+true_idx = len(mir.string_constants)
+push(mir.string_constants, String_from("true"))
+push(string_offsets, data_offset + 4)
+push(string_lengths, 4)
+data_offset = data_offset + 4 + 4
+}
+if false_idx < 0 {
+false_idx = len(mir.string_constants)
+push(mir.string_constants, String_from("false"))
+push(string_offsets, data_offset + 4)
+push(string_lengths, 5)
+data_offset = data_offset + 4 + 5
+}
+let mut ctx = SelfEmitCtx { functions: mir.functions, string_offsets: string_offsets, string_lengths: string_lengths, string_values: mir.string_constants, scratch_base: 0, true_str_idx: true_idx, false_str_idx: false_idx, vec_locals: Vec_new_i32(), peek_next_op: 0 - 1, peek_next_dest: 0 - 1 }
+let mut needs_wrapper = 0
+let mut main_check_idx = 0
+while main_check_idx < fn_count {
+let mf = get_unchecked(mir.functions, main_check_idx)
+if eq(clone(mf.name), "main") || eq(clone(mf.name), "_start") {
+if mf.return_type != 0 {
+needs_wrapper = 1
+}
+}
+main_check_idx = main_check_idx + 1
+}
+let type_sec = WasmWriter_new()
+emit_leb128_u(type_sec, fn_count + NUM_WASI_TYPES() + needs_wrapper)
+emit_byte(type_sec, 96)
+emit_leb128_u(type_sec, 4)
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, WASM_I32())
+emit_leb128_u(type_sec, 1)
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, 96)
+emit_leb128_u(type_sec, 2)
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, WASM_I32())
+emit_leb128_u(type_sec, 1)
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, 96)
+emit_leb128_u(type_sec, 9)
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, WASM_I64())
+emit_byte(type_sec, WASM_I64())
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, WASM_I32())
+emit_leb128_u(type_sec, 1)
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, 96)
+emit_leb128_u(type_sec, 1)
+emit_byte(type_sec, WASM_I32())
+emit_leb128_u(type_sec, 1)
+emit_byte(type_sec, WASM_I32())
+emit_byte(type_sec, 96)
+emit_leb128_u(type_sec, 1)
+emit_byte(type_sec, WASM_I32())
+emit_leb128_u(type_sec, 0)
+let mut i = 0
+while i < fn_count {
+let f = get_unchecked(mir.functions, i)
+emit_byte(type_sec, 96)
+let param_count = len(f.params)
+emit_leb128_u(type_sec, param_count)
+let mut p = 0
+while p < param_count {
+let param = get_unchecked(f.params, p)
+emit_byte(type_sec, val_type_to_wasm(param.val_type))
+p = p + 1
+}
+if f.return_type == 0 {
+emit_leb128_u(type_sec, 0)
+} else {
+emit_leb128_u(type_sec, 1)
+emit_byte(type_sec, val_type_to_wasm(f.return_type))
+}
+i = i + 1
+}
+if needs_wrapper == 1 {
+emit_byte(type_sec, 96)
+emit_leb128_u(type_sec, 0)
+emit_leb128_u(type_sec, 0)
+}
+emit_section(out, SEC_TYPE(), type_sec)
+let import_sec = WasmWriter_new()
+emit_leb128_u(import_sec, NUM_WASI_IMPORTS())
+if eq(clone(wasi_version), String_from("p2")) {
+emit_string(import_sec, String_from("wasi:cli/stdout@0.2.0"))
+emit_string(import_sec, String_from("write"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 0)
+emit_string(import_sec, String_from("wasi:cli/environment@0.2.0"))
+emit_string(import_sec, String_from("args-sizes"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 1)
+emit_string(import_sec, String_from("wasi:cli/environment@0.2.0"))
+emit_string(import_sec, String_from("arguments"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 1)
+emit_string(import_sec, String_from("wasi:filesystem/types@0.2.0"))
+emit_string(import_sec, String_from("open-at"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 2)
+emit_string(import_sec, String_from("wasi:cli/stdin@0.2.0"))
+emit_string(import_sec, String_from("read"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 0)
+emit_string(import_sec, String_from("wasi:filesystem/types@0.2.0"))
+emit_string(import_sec, String_from("close"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 3)
+emit_string(import_sec, String_from("wasi:cli/exit@0.2.0"))
+emit_string(import_sec, String_from("exit"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 4)
+} else {
+let wasi_module = String_from("wasi_snapshot_preview1")
+emit_string(import_sec, clone(wasi_module))
+emit_string(import_sec, String_from("fd_write"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 0)
+emit_string(import_sec, clone(wasi_module))
+emit_string(import_sec, String_from("args_sizes_get"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 1)
+emit_string(import_sec, clone(wasi_module))
+emit_string(import_sec, String_from("args_get"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 1)
+emit_string(import_sec, clone(wasi_module))
+emit_string(import_sec, String_from("path_open"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 2)
+emit_string(import_sec, clone(wasi_module))
+emit_string(import_sec, String_from("fd_read"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 0)
+emit_string(import_sec, clone(wasi_module))
+emit_string(import_sec, String_from("fd_close"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 3)
+emit_string(import_sec, clone(wasi_module))
+emit_string(import_sec, String_from("proc_exit"))
+emit_byte(import_sec, 0)
+emit_leb128_u(import_sec, 4)
+}
+emit_section(out, SEC_IMPORT(), import_sec)
+let func_sec = WasmWriter_new()
+emit_leb128_u(func_sec, fn_count + needs_wrapper)
+let mut fi = 0
+while fi < fn_count {
+emit_leb128_u(func_sec, fi + NUM_WASI_TYPES())
+fi = fi + 1
+}
+if needs_wrapper == 1 {
+emit_leb128_u(func_sec, fn_count + NUM_WASI_TYPES())
+}
+emit_section(out, SEC_FUNCTION(), func_sec)
+let mem_sec = WasmWriter_new()
+emit_leb128_u(mem_sec, 1)
+emit_byte(mem_sec, 0)
+emit_leb128_u(mem_sec, 1024)
+emit_section(out, SEC_MEMORY(), mem_sec)
+let global_sec = WasmWriter_new()
+emit_leb128_u(global_sec, 1)
+emit_byte(global_sec, WASM_I32())
+emit_byte(global_sec, 1)
+emit_byte(global_sec, OP_I32_CONST())
+let heap_start = (data_offset + 7) / 8 * 8
+emit_leb128_s(global_sec, heap_start)
+emit_byte(global_sec, OP_END())
+emit_section(out, SEC_GLOBAL(), global_sec)
+let export_sec = WasmWriter_new()
+let mut export_count = 1
+let mut main_idx = 0 - 1
+let mut mi = 0
+while mi < fn_count {
+let f = get_unchecked(mir.functions, mi)
+if eq(clone(f.name), "main") || eq(clone(f.name), "_start") {
+main_idx = mi
+}
+mi = mi + 1
+}
+if main_idx >= 0 {
+export_count = export_count + 1
+}
+emit_leb128_u(export_sec, export_count)
+emit_string(export_sec, String_from("memory"))
+emit_byte(export_sec, 2)
+emit_leb128_u(export_sec, 0)
+if main_idx >= 0 {
+emit_string(export_sec, String_from("_start"))
+emit_byte(export_sec, 0)
+if needs_wrapper == 1 {
+emit_leb128_u(export_sec, fn_count + NUM_WASI_IMPORTS())
+} else {
+emit_leb128_u(export_sec, main_idx + NUM_WASI_IMPORTS())
+}
+}
+emit_section(out, SEC_EXPORT(), export_sec)
+let code_sec = WasmWriter_new()
+emit_leb128_u(code_sec, fn_count + needs_wrapper)
+let mut ci = 0
+while ci < fn_count {
+let f = get_unchecked(mir.functions, ci)
+let body = WasmWriter_new()
+let local_count = len(f.locals)
+let param_count = len(f.params)
+let body_local_count = local_count - param_count
+let extra_locals = 12
+let extra_f64_locals = 2
+let extra_i64_locals = 1
+emit_leb128_u(body, body_local_count + extra_locals + extra_f64_locals + extra_i64_locals)
+let mut li = param_count
+while li < local_count {
+let loc = get_unchecked(f.locals, li)
+emit_leb128_u(body, 1)
+emit_byte(body, val_type_to_wasm(loc.val_type))
+li = li + 1
+}
+let mut ei = 0
+while ei < extra_locals {
+emit_leb128_u(body, 1)
+emit_byte(body, WASM_I32())
+ei = ei + 1
+}
+let mut efi = 0
+while efi < extra_f64_locals {
+emit_leb128_u(body, 1)
+emit_byte(body, WASM_F64())
+efi = efi + 1
+}
+let mut eii = 0
+while eii < extra_i64_locals {
+emit_leb128_u(body, 1)
+emit_byte(body, WASM_I64())
+eii = eii + 1
+}
+ctx.scratch_base = local_count
+ctx.vec_locals = Vec_new_i32()
+let block_count = len(f.blocks)
+let mut bi = 0
+while bi < block_count {
+let block = get_unchecked(f.blocks, bi)
+let inst_count = len(block.instructions)
+let mut ii = 0
+while ii < inst_count {
+let inst = get_unchecked(block.instructions, ii)
+if ii + 1 < inst_count {
+let peek = get_unchecked(block.instructions, ii + 1)
+ctx.peek_next_op = peek.op
+if peek.arg1 >= 0 {
+ctx.peek_next_dest = peek.arg1
+} else {
+ctx.peek_next_dest = peek.arg0
+}
+} else {
+ctx.peek_next_op = 0 - 1
+ctx.peek_next_dest = 0 - 1
+}
+emit_mir_inst_ctx(body, inst, ctx)
+ii = ii + 1
+}
+bi = bi + 1
+}
+emit_byte(body, OP_END())
+emit_leb128_u(code_sec, writer_size(body))
+emit_bytes(code_sec, body.bytes)
+ci = ci + 1
+}
+if needs_wrapper == 1 {
+let wrapper_body = WasmWriter_new()
+emit_leb128_u(wrapper_body, 0)
+emit_byte(wrapper_body, OP_CALL())
+emit_leb128_u(wrapper_body, main_idx + NUM_WASI_IMPORTS())
+emit_byte(wrapper_body, OP_DROP())
+emit_byte(wrapper_body, OP_END())
+emit_leb128_u(code_sec, writer_size(wrapper_body))
+emit_bytes(code_sec, wrapper_body.bytes)
+}
+emit_section(out, SEC_CODE(), code_sec)
+let final_str_count = len(mir.string_constants)
+if final_str_count > 0 {
+let data_sec = WasmWriter_new()
+emit_leb128_u(data_sec, 1)
+emit_byte(data_sec, 0)
+emit_byte(data_sec, OP_I32_CONST())
+emit_leb128_s(data_sec, DATA_START())
+emit_byte(data_sec, OP_END())
+let mut total_data = 0
+let mut ds = 0
+while ds < final_str_count {
+let s = get_unchecked(mir.string_constants, ds)
+total_data = total_data + 4 + len(s)
+ds = ds + 1
+}
+emit_leb128_u(data_sec, total_data)
+let mut ds2 = 0
+while ds2 < final_str_count {
+let s = get_unchecked(mir.string_constants, ds2)
+let slen = len(s)
+emit_byte(data_sec, slen % 256)
+emit_byte(data_sec, slen / 256 % 256)
+emit_byte(data_sec, slen / 65536 % 256)
+emit_byte(data_sec, slen / 16777216 % 256)
+let mut ci2 = 0
+while ci2 < slen {
+emit_byte(data_sec, char_at(s, ci2))
+ci2 = ci2 + 1
+}
+ds2 = ds2 + 1
+}
+emit_section(out, SEC_DATA(), data_sec)
+}
+out.bytes
+}
+fn SCRATCH_IOV() -> i32 {
+0
+}
+fn SCRATCH_NWRITTEN() -> i32 {
+8
+}
+fn SCRATCH_I32BUF() -> i32 {
+16
+}
+fn SCRATCH_NEWLINE() -> i32 {
+36
+}
+fn SCRATCH_CHARBUF() -> i32 {
+40
+}
+fn SCRATCH_P_STR() -> i32 {
+48
+}
+fn SCRATCH_P_LEN() -> i32 {
+52
+}
+fn SCRATCH_P_I() -> i32 {
+56
+}
+fn SCRATCH_P_NEG() -> i32 {
+60
+}
+fn SCRATCH_P_RES() -> i32 {
+64
+}
+fn SCRATCH_P_ERR() -> i32 {
+68
+}
+fn SCRATCH_P_BYTE() -> i32 {
+72
+}
+fn SCRATCH_ARGC() -> i32 {
+76
+}
+fn SCRATCH_ARGV_SIZE() -> i32 {
+80
+}
+fn SCRATCH_FS_FD() -> i32 {
+84
+}
+fn SCRATCH_FS_PATHPTR() -> i32 {
+88
+}
+fn SCRATCH_FS_PATHLEN() -> i32 {
+92
+}
+fn SCRATCH_FS_NREAD() -> i32 {
+96
+}
+fn SCRATCH_FS_BUFSTART() -> i32 {
+100
+}
+fn SCRATCH_FS_STRPTR() -> i32 {
+104
+}
+fn SCRATCH_PF_RESULT() -> i32 {
+112
+}
+fn SCRATCH_PF_DIVISOR() -> i32 {
+120
+}
+fn SCRATCH_PF_SAWDOT() -> i32 {
+48
+}
+fn SCRATCH_PF_DECCOUNT() -> i32 {
+52
+}
+fn FS_BUF_SIZE() -> i32 {
+4096
+}
+fn NUM_WASI_IMPORTS() -> i32 {
+7
+}
+fn NUM_WASI_TYPES() -> i32 {
+5
+}
+fn DATA_START() -> i32 {
+128
+}
+struct SelfEmitCtx {
+functions: Vec<MirFunction>,
+string_offsets: Vec<i32>,
+string_lengths: Vec<i32>,
+string_values: Vec<String>,
+scratch_base: i32,
+true_str_idx: i32,
+false_str_idx: i32,
+vec_locals: Vec<i32>,
+peek_next_op: i32,
+peek_next_dest: i32,
+}
+fn ctx_mark_vec_local(ctx: SelfEmitCtx, local_idx: i32) {
+let count = len(ctx.vec_locals)
+let mut i = 0
+while i < count {
+if get_unchecked(ctx.vec_locals, i) == local_idx {
+return
+}
+i = i + 1
+}
+push(ctx.vec_locals, local_idx)
+}
+fn ctx_is_vec_local(ctx: SelfEmitCtx, local_idx: i32) -> bool {
+let count = len(ctx.vec_locals)
+let mut i = 0
+while i < count {
+if get_unchecked(ctx.vec_locals, i) == local_idx {
+return true
+}
+i = i + 1
+}
+false
+}
+fn strip_module_prefix(name: String) -> String {
+let n = len(name)
+let mut i = n - 1
+while i >= 0 {
+if char_at(name, i) == 58 {
+return substring(name, i + 1, n)
+}
+i = i - 1
+}
+clone(name)
+}
+fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
+let count = len(ctx.functions)
+let mut i = 0
+while i < count {
+let f = get_unchecked(ctx.functions, i)
+if eq(clone(f.name), clone(name)) {
+return i
+}
+i = i + 1
+}
+let short_name = strip_module_prefix(clone(name))
+if !eq(clone(short_name), clone(name)) {
+let mut j = 0
+while j < count {
+let f = get_unchecked(ctx.functions, j)
+if eq(clone(f.name), clone(short_name)) {
+return j
+}
+j = j + 1
+}
+}
+let alias = hashmap_builtin_alias(clone(name))
+if !eq(clone(alias), clone(name)) {
+let mut k = 0
+while k < count {
+let f = get_unchecked(ctx.functions, k)
+if eq(clone(f.name), clone(alias)) {
+return k
+}
+k = k + 1
+}
+}
+0 - 1
+}
+fn hashmap_builtin_alias(name: String) -> String {
+if eq(clone(name), String_from("HashMap_i32_i32_new")) {
+return String_from("hashmap_new")
+}
+if eq(clone(name), String_from("HashMap_i32_i32_insert")) {
+return String_from("hashmap_set")
+}
+if eq(clone(name), String_from("HashMap_i32_i32_get")) {
+return String_from("hashmap_get_option")
+}
+if eq(clone(name), String_from("HashMap_i32_i32_contains_key")) {
+return String_from("hashmap_contains")
+}
+if eq(clone(name), String_from("HashMap_i32_i32_remove")) {
+return String_from("hashmap_remove")
+}
+if eq(clone(name), String_from("HashMap_i32_i32_len")) {
+return String_from("hashmap_size")
+}
+clone(name)
+}
+fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+if inst.op == 1 {
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, inst.int_val)
+} else {
+if inst.op == 2 {
+emit_byte(w, OP_I64_CONST())
+if len(inst.str_val) > 0 {
+let val64 = parse_decimal_as_i64_emitter(clone(inst.str_val))
+emit_leb128_s_i64(w, val64)
+} else {
+emit_leb128_s(w, inst.int_val)
+}
+} else {
+if inst.op == 3 {
+emit_byte(w, OP_F64_CONST())
+let lo = f64_bits_lo(inst.float_val)
+let hi = f64_bits_hi(inst.float_val)
+emit_u32_le(w, lo)
+emit_u32_le(w, hi)
+} else {
+if inst.op == 5 {
+let str_count = len(ctx.string_offsets)
+let mut found = false
+let mut si = 0
+while si < str_count && !found {
+si = si + 1
+}
+let target_str = clone(inst.str_val)
+let mut str_idx = 0 - 1
+let mut si2 = 0
+let sc2 = len(ctx.string_offsets)
+while si2 < sc2 {
+si2 = si2 + 1
+}
+if inst.arg0 >= 0 {
+str_idx = inst.arg0
+}
+if str_idx >= 0 && str_idx < len(ctx.string_offsets) {
+let offset = get_unchecked(ctx.string_offsets, str_idx)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, offset)
+} else {
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 0)
+}
+} else {
+if inst.op == 10 {
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, inst.arg0)
+} else {
+if inst.op == 11 {
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, inst.arg0)
+} else {
+if inst.op == 20 {
+if inst.val_type == VT_F64() {
+emit_byte(w, OP_F64_ADD())
+} else {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_ADD())
+} else {
+emit_byte(w, OP_I32_ADD())
+}
+}
+} else {
+if inst.op == 21 {
+if inst.val_type == VT_F64() {
+emit_byte(w, OP_F64_SUB())
+} else {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_SUB())
+} else {
+emit_byte(w, OP_I32_SUB())
+}
+}
+} else {
+if inst.op == 22 {
+if inst.val_type == VT_F64() {
+emit_byte(w, OP_F64_MUL())
+} else {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_MUL())
+} else {
+emit_byte(w, OP_I32_MUL())
+}
+}
+} else {
+if inst.op == 23 {
+if inst.val_type == VT_F64() {
+emit_byte(w, OP_F64_DIV())
+} else {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_DIV_S())
+} else {
+emit_byte(w, OP_I32_DIV_S())
+}
+}
+} else {
+if inst.op == 24 {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_REM_S())
+} else {
+emit_byte(w, OP_I32_REM_S())
+}
+} else {
+if inst.op == 25 {
+if inst.val_type == VT_F64() {
+emit_byte(w, OP_F64_EQ())
+} else {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_EQ())
+} else {
+emit_byte(w, OP_I32_EQ())
+}
+}
+} else {
+if inst.op == 26 {
+if inst.val_type == VT_F64() {
+emit_byte(w, OP_F64_NE())
+} else {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_NE())
+} else {
+emit_byte(w, OP_I32_NE())
+}
+}
+} else {
+if inst.op == 27 {
+if inst.val_type == VT_F64() {
+emit_byte(w, OP_F64_LT())
+} else {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_LT_S())
+} else {
+emit_byte(w, OP_I32_LT_S())
+}
+}
+} else {
+if inst.op == 28 {
+if inst.val_type == VT_F64() {
+emit_byte(w, OP_F64_LE())
+} else {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_LE_S())
+} else {
+emit_byte(w, OP_I32_LE_S())
+}
+}
+} else {
+if inst.op == 29 {
+if inst.val_type == VT_F64() {
+emit_byte(w, OP_F64_GT())
+} else {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_GT_S())
+} else {
+emit_byte(w, OP_I32_GT_S())
+}
+}
+} else {
+if inst.op == 30 {
+if inst.val_type == VT_F64() {
+emit_byte(w, OP_F64_GE())
+} else {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_GE_S())
+} else {
+emit_byte(w, OP_I32_GE_S())
+}
+}
+} else {
+if inst.op == 31 {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_AND())
+} else {
+emit_byte(w, OP_I32_AND())
+}
+} else {
+if inst.op == 32 {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_OR())
+} else {
+emit_byte(w, OP_I32_OR())
+}
+} else {
+if inst.op == 35 {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_AND())
+} else {
+emit_byte(w, OP_I32_AND())
+}
+} else {
+if inst.op == 36 {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_OR())
+} else {
+emit_byte(w, OP_I32_OR())
+}
+} else {
+if inst.op == 37 {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_XOR())
+} else {
+emit_byte(w, OP_I32_XOR())
+}
+} else {
+if inst.op == 38 {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_SHL())
+} else {
+emit_byte(w, OP_I32_SHL())
+}
+} else {
+if inst.op == 39 {
+if inst.val_type == VT_I64() {
+emit_byte(w, OP_I64_SHR_S())
+} else {
+emit_byte(w, OP_I32_SHR_S())
+}
+} else {
+if inst.op == 40 {
+let callee = clone(inst.str_val)
+let mut callee = callee
+let callee_n = len(callee)
+if callee_n > 12 && char_at(clone(callee), 0) == 95 && char_at(clone(callee), 1) == 95 {
+callee = substring(clone(callee), 12, callee_n)
+}
+let mut result_on_stack = true
+if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") || eq(clone(callee), "__intrinsic_println") {
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV())
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV() + 4)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_NWRITTEN())
+emit_byte(w, OP_CALL())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_DROP())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_NEWLINE())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 10)
+emit_byte(w, 58)
+emit_byte(w, 0)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_NEWLINE())
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV() + 4)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_NWRITTEN())
+emit_byte(w, OP_CALL())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_DROP())
+result_on_stack = false
+} else {
+if eq(clone(callee), "stdio::print") || eq(clone(callee), "print") {
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV())
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV() + 4)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_NWRITTEN())
+emit_byte(w, OP_CALL())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_DROP())
+result_on_stack = false
+} else {
+if eq(clone(callee), "String_from") || eq(clone(callee), "clone") {
+let _nop = 0
+} else {
+if eq(clone(callee), "stdio::eprintln") || eq(clone(callee), "eprintln") {
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV())
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV() + 4)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_NWRITTEN())
+emit_byte(w, OP_CALL())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_DROP())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_NEWLINE())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 10)
+emit_byte(w, 58)
+emit_byte(w, 0)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_NEWLINE())
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV() + 4)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_IOV())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, SCRATCH_NWRITTEN())
+emit_byte(w, OP_CALL())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_DROP())
+result_on_stack = false
+} else {
+if eq(clone(callee), "bool_to_string") || eq(clone(callee), "text::format_bool") || eq(clone(callee), "convert::bool_to_string") {
+let s_tmp = ctx.scratch_base + 2
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s_tmp)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_tmp)
+emit_byte(w, 4)
+emit_byte(w, 127)
+let true_offset = get_unchecked(ctx.string_offsets, ctx.true_str_idx)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, true_offset)
+emit_byte(w, 5)
+let false_offset = get_unchecked(ctx.string_offsets, ctx.false_str_idx)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, false_offset)
+emit_byte(w, 11)
+} else {
+if eq(clone(callee), "len") {
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+} else {
+if eq(clone(callee), "eq") {
+let s_a = ctx.scratch_base
+let s_b = ctx.scratch_base + 1
+let s_la = ctx.scratch_base + 2
+let s_i = ctx.scratch_base + 3
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s_b)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s_a)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_a)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s_la)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_b)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_la)
+emit_byte(w, 71)
+emit_byte(w, 4)
+emit_byte(w, 127)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 0)
+emit_byte(w, 5)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 0)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s_i)
+emit_byte(w, 2)
+emit_byte(w, 64)
+emit_byte(w, 3)
+emit_byte(w, 64)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_i)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_la)
+emit_byte(w, 78)
+emit_byte(w, 13)
+emit_leb128_u(w, 1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_a)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_i)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, 45)
+emit_byte(w, 0)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_b)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_i)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, 45)
+emit_byte(w, 0)
+emit_byte(w, 0)
+emit_byte(w, 71)
+emit_byte(w, 4)
+emit_byte(w, 64)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 0)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, 12)
+emit_leb128_u(w, 2)
+emit_byte(w, 11)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_i)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s_i)
+emit_byte(w, 12)
+emit_leb128_u(w, 0)
+emit_byte(w, 11)
+emit_byte(w, 11)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_i)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_la)
+emit_byte(w, 78)
+emit_byte(w, 11)
+} else {
+if eq(clone(callee), "concat") || eq(clone(callee), "text::concat") {
+let s_a = ctx.scratch_base
+let s_b = ctx.scratch_base + 1
+let s_la = ctx.scratch_base + 2
+let s_rp = ctx.scratch_base + 3
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s_b)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s_a)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_a)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s_la)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_b)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_la)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_GLOBAL_GET())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_GLOBAL_GET())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s_rp)
+emit_byte(w, OP_GLOBAL_GET())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_GLOBAL_SET())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_rp)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_a)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_la)
+emit_byte(w, 252)
+emit_leb128_u(w, 10)
+emit_byte(w, 0)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_rp)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_la)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_b)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, inst.dest)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_la)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, 252)
+emit_leb128_u(w, 10)
+emit_byte(w, 0)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s_rp)
+} else {
+if eq(clone(callee), "sort_i32") {
+let s0 = ctx.scratch_base + 0
+let s1 = ctx.scratch_base + 1
+let s2 = ctx.scratch_base + 2
+let s3 = ctx.scratch_base + 3
+let s4 = ctx.scratch_base + 4
+let s5 = ctx.scratch_base + 5
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s0)
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s4)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s0)
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 8)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_BLOCK())
+emit_byte(w, 64)
+emit_byte(w, OP_LOOP())
+emit_byte(w, 64)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s4)
+emit_byte(w, OP_I32_GE_S())
+emit_byte(w, OP_BR_IF())
+emit_leb128_u(w, 1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s5)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_BLOCK())
+emit_byte(w, 64)
+emit_byte(w, OP_LOOP())
+emit_byte(w, 64)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 0)
+emit_byte(w, OP_I32_LT_S())
+emit_byte(w, OP_BR_IF())
+emit_leb128_u(w, 1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s5)
+emit_byte(w, OP_I32_LE_S())
+emit_byte(w, OP_BR_IF())
+emit_leb128_u(w, 1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_BR())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_END())
+emit_byte(w, OP_END())
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 4)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s5)
+emit_byte(w, OP_I32_STORE())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_BR())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_END())
+emit_byte(w, OP_END())
+result_on_stack = false
+} else {
+if eq(clone(callee), "sort_i64") {
+let s0 = ctx.scratch_base + 0
+let s1 = ctx.scratch_base + 1
+let s2 = ctx.scratch_base + 2
+let s3 = ctx.scratch_base + 3
+let s4 = ctx.scratch_base + 4
+let s5 = ctx.scratch_base + 14
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s0)
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s4)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s0)
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 8)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_BLOCK())
+emit_byte(w, 64)
+emit_byte(w, OP_LOOP())
+emit_byte(w, 64)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s4)
+emit_byte(w, OP_I32_GE_S())
+emit_byte(w, OP_BR_IF())
+emit_leb128_u(w, 1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 8)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_I64_LOAD())
+emit_byte(w, 3)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s5)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_BLOCK())
+emit_byte(w, 64)
+emit_byte(w, OP_LOOP())
+emit_byte(w, 64)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 0)
+emit_byte(w, OP_I32_LT_S())
+emit_byte(w, OP_BR_IF())
+emit_leb128_u(w, 1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 8)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_I64_LOAD())
+emit_byte(w, 3)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s5)
+emit_byte(w, OP_I64_LE_S())
+emit_byte(w, OP_BR_IF())
+emit_leb128_u(w, 1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 8)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 8)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_I64_LOAD())
+emit_byte(w, 3)
+emit_byte(w, 0)
+emit_byte(w, OP_I64_STORE())
+emit_byte(w, 3)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_BR())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_END())
+emit_byte(w, OP_END())
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 8)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s5)
+emit_byte(w, OP_I64_STORE())
+emit_byte(w, 3)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, s1)
+emit_byte(w, OP_BR())
+emit_leb128_u(w, 0)
+emit_byte(w, OP_END())
+emit_byte(w, OP_END())
+result_on_stack = false
+} else {
+if eq(clone(callee), "sort_f64") {
+let sf0 = ctx.scratch_base + 0
+let sf1 = ctx.scratch_base + 1
+let sf2 = ctx.scratch_base + 2
+let sf3 = ctx.scratch_base + 3
+let sf4 = ctx.scratch_base + 4
+let sf5 = ctx.scratch_base + 12
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, sf0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf0)
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, sf4)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf0)
+emit_byte(w, OP_I32_LOAD())
+emit_byte(w, 2)
+emit_byte(w, 8)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, sf3)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, sf1)
+emit_byte(w, OP_BLOCK())
+emit_byte(w, 64)
+emit_byte(w, OP_LOOP())
+emit_byte(w, 64)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf4)
+emit_byte(w, OP_I32_GE_S())
+emit_byte(w, OP_BR_IF())
+emit_leb128_u(w, 1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 8)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_F64_LOAD())
+emit_byte(w, 3)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, sf5)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf1)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 1)
+emit_byte(w, OP_I32_SUB())
+emit_byte(w, OP_LOCAL_SET())
+emit_leb128_u(w, sf2)
+emit_byte(w, OP_BLOCK())
+emit_byte(w, 64)
+emit_byte(w, OP_LOOP())
+emit_byte(w, 64)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 0)
+emit_byte(w, OP_I32_LT_S())
+emit_byte(w, OP_BR_IF())
+emit_leb128_u(w, 1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf2)
+emit_byte(w, OP_I32_CONST())
+emit_leb128_s(w, 8)
+emit_byte(w, OP_I32_MUL())
+emit_byte(w, OP_I32_ADD())
+emit_byte(w, OP_F64_LOAD())
+emit_byte(w, 3)
+emit_byte(w, 0)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf5)
+emit_byte(w, OP_F64_LE())
+emit_byte(w, OP_BR_IF())
+emit_leb128_u(w, 1)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf3)
+emit_byte(w, OP_LOCAL_GET())
+emit_leb128_u(w, sf2)
+emit_byte(w, OP_I32_CONST())

@@ -1,576 +1,489 @@
-// Arukellt Selfhost — Compilation Driver
-//
-// Orchestrates the compilation pipeline:
-//   source → tokens → AST → (resolve → typecheck → HIR → MIR → Wasm)
-// Error propagation stops at first phase failure.
 use std::host::env
 use std::host::fs
 use std::host::process
 use std::host::stdio
-
 use emitter
 use lexer
 use mir
 use parser
 use resolver
 use typechecker
-
 fn PHASE_LEX() -> i32 {
-    1
+1
 }
-
 fn PHASE_PARSE() -> i32 {
-    2
+2
 }
-
 fn PHASE_RESOLVE() -> i32 {
-    3
+3
 }
-
 fn PHASE_TYPECHECK() -> i32 {
-    4
+4
 }
-
 fn PHASE_LOWER() -> i32 {
-    5
+5
 }
-
 fn PHASE_EMIT() -> i32 {
-    6
+6
 }
-
-// ── Compilation Result ───────────────────────────────────────────────────────
 struct CompileResult {
-    success: bool,
-    phase_reached: i32,
-    error_count: i32,
-    error_messages: Vec<String>,
-    output_bytes: Vec<i32>,
+success: bool,
+phase_reached: i32,
+error_count: i32,
+error_messages: Vec<String>,
+output_bytes: Vec<i32>,
 }
-
 fn CompileResult_ok(phase: i32) -> CompileResult {
-    CompileResult { success: true, phase_reached: phase, error_count: 0, error_messages: Vec_new_String(), output_bytes: Vec_new_i32() }
+CompileResult { success: true, phase_reached: phase, error_count: 0, error_messages: Vec_new_String(), output_bytes: Vec_new_i32() }
 }
-
 fn CompileResult_err(phase: i32, msg: String) -> CompileResult {
-    let mut msgs: Vec<String> = Vec_new_String()
-    push(msgs, msg)
-    CompileResult { success: false, phase_reached: phase, error_count: 1, error_messages: msgs, output_bytes: Vec_new_i32() }
+let mut msgs: Vec<String> = Vec_new_String()
+push(msgs, msg)
+CompileResult { success: false, phase_reached: phase, error_count: 1, error_messages: msgs, output_bytes: Vec_new_i32() }
 }
-
-// ── Driver Configuration ─────────────────────────────────────────────────────
 struct DriverConfig {
-    target: String,
-    opt_level: i32,
-    emit_mode: String,
-    wasi_version: String,
-    wit_paths: Vec<String>,
-    dump_tokens: bool,
-    dump_ast: bool,
-    dump_hir: bool,
-    dump_mir: bool,
-    dump_wasm: bool,
-    parse_only: bool,
-    check_only: bool,
-    source_dir: String,
+target: String,
+opt_level: i32,
+emit_mode: String,
+wasi_version: String,
+wit_paths: Vec<String>,
+dump_tokens: bool,
+dump_ast: bool,
+dump_hir: bool,
+dump_mir: bool,
+dump_wasm: bool,
+parse_only: bool,
+check_only: bool,
+source_dir: String,
 }
-
 pub fn DriverConfig_default() -> DriverConfig {
-    DriverConfig { target: String_from("wasm32-wasi-p2"), opt_level: 0, emit_mode: String_from("wasm"), wasi_version: String_from("p1"), wit_paths: Vec_new_String(), dump_tokens: false, dump_ast: false, dump_hir: false, dump_mir: false, dump_wasm: false, parse_only: false, check_only: false, source_dir: String_from(".") }
+DriverConfig { target: String_from("wasm32-wasi-p2"), opt_level: 0, emit_mode: String_from("wasm"), wasi_version: String_from("p1"), wit_paths: Vec_new_String(), dump_tokens: false, dump_ast: false, dump_hir: false, dump_mir: false, dump_wasm: false, parse_only: false, check_only: false, source_dir: String_from(".") }
 }
-
-// ── File Loading ─────────────────────────────────────────────────────────────
 fn load_source(path: String) -> Result<String, String> {
-    fs::read_to_string(path)
+fs::read_to_string(path)
 }
-
-// ── Module Loading ───────────────────────────────────────────────────────────
-// Loads imported modules referenced by `use` declarations.
-// Handles local .ark files, circular import detection, and stdlib recognition.
-/// Returns true if the use path is a stdlib import (starts with "std::").
 fn is_stdlib_path(path: String) -> bool {
-    let n = len(path)
-    if n < 5 {
-        return false
-    }
-    eq(substring(path, 0, 5), String_from("std::"))
+let n = len(path)
+if n < 5 {
+return false
 }
-
-/// Returns the parent directory of a file path (everything before the last '/').
+eq(substring(path, 0, 5), String_from("std::"))
+}
 fn parent_dir(path: String) -> String {
-    let n = len(path)
-    let mut last_slash = 0 - 1
-    let mut i = n - 1
-    while i >= 0 {
-        if eq(substring(path, i, i + 1), String_from("/")) {
-            last_slash = i
-            i = 0 - 1
-        } else {
-            i = i - 1
-        }
-    }
-    if last_slash < 0 {
-        String_from(".")
-    } else {
-        if last_slash == 0 {
-            String_from("/")
-        } else {
-            substring(path, 0, last_slash)
-        }
-    }
+let n = len(path)
+let mut last_slash = 0 - 1
+let mut i = n - 1
+while i >= 0 {
+if eq(substring(path, i, i + 1), String_from("/")) {
+last_slash = i
+i = 0 - 1
+} else {
+i = i - 1
 }
-
-// Module loading state: tracks loaded and in-progress modules for cycle detection.
-// ModuleDecls is defined here (structurally identical to resolver::ModuleDecls)
-// because the Ark parser does not support qualified type names in generic params.
+}
+if last_slash < 0 {
+String_from(".")
+} else {
+if last_slash == 0 {
+String_from("/")
+} else {
+substring(path, 0, last_slash)
+}
+}
+}
 struct ModuleDecls {
-    name: String,
-    decls: Vec<AstNode>,
+name: String,
+decls: Vec<AstNode>,
 }
-
 struct LoadState {
-    loaded_names: Vec<String>,
-    loading_stack: Vec<String>,
-    modules: Vec<ModuleDecls>,
-    errors: Vec<String>,
+loaded_names: Vec<String>,
+loading_stack: Vec<String>,
+modules: Vec<ModuleDecls>,
+errors: Vec<String>,
 }
-
 fn LoadState_new() -> LoadState {
-    LoadState { loaded_names: Vec_new_String(), loading_stack: Vec_new_String(), modules: Vec_new_ModuleDecls(), errors: Vec_new_String() }
+LoadState { loaded_names: Vec_new_String(), loading_stack: Vec_new_String(), modules: Vec_new_ModuleDecls(), errors: Vec_new_String() }
 }
-
-/// Check if a name is in a string vector.
 fn vec_has(v: Vec<String>, name: String) -> bool {
-    let count = len(v)
-    let mut i = 0
-    while i < count {
-        if eq(clone(get_unchecked(v, i)), clone(name)) {
-            return true
-        }
-        i = i + 1
-    }
-    false
+let count = len(v)
+let mut i = 0
+while i < count {
+if eq(clone(get_unchecked(v, i)), clone(name)) {
+return true
 }
-
-/// Convert a stdlib import path to a relative file path.
-/// "std::core::cmp" → "std/core/cmp.ark"
+i = i + 1
+}
+false
+}
 fn stdlib_path_to_file(path: String) -> String {
-    let n = len(path)
-    let mut result = String_from("")
-    let mut i = 0
-    let mut seg_start = 0
-    while i < n {
-        if char_at(path, i) == 58 && i + 1 < n && char_at(path, i + 1) == 58 {
-            result = concat(clone(result), concat(substring(clone(path), seg_start, i), String_from("/")))
-            i = i + 2
-            seg_start = i
-        } else {
-            i = i + 1
-        }
-    }
-    concat(clone(result), concat(substring(clone(path), seg_start, n), String_from(".ark")))
+let n = len(path)
+let mut result = String_from("")
+let mut i = 0
+let mut seg_start = 0
+while i < n {
+if char_at(path, i) == 58 && i + 1 < n && char_at(path, i + 1) == 58 {
+result = concat(clone(result), concat(substring(clone(path), seg_start, i), String_from("/")))
+i = i + 2
+seg_start = i
+} else {
+i = i + 1
 }
-
-/// Try to load a stdlib module from the std/ directory.
-/// Silently skips if no file is found (host-only intrinsic modules).
+}
+concat(clone(result), concat(substring(clone(path), seg_start, n), String_from(".ark")))
+}
 fn load_stdlib_module(stdlib_path: String, state: LoadState) {
-    if vec_has(state.loaded_names, clone(stdlib_path)) {
-        return
-    }
-    if vec_has(state.loading_stack, clone(stdlib_path)) {
-        return
-    }
-    let short_name = resolver::use_module_short_name(clone(stdlib_path))
-    let primary = stdlib_path_to_file(clone(stdlib_path))
-    let source_res = fs::read_to_string(clone(primary))
-    match source_res {
-        Result::Ok(src) => {
-            load_stdlib_source(clone(stdlib_path), clone(short_name), src, state)
-        },
-        Result::Err(_) => {
-            let n = len(primary)
-            let mod_path = concat(substring(clone(primary), 0, n - 4), String_from("/mod.ark"))
-            let mod_res = fs::read_to_string(clone(mod_path))
-            match mod_res {
-                Result::Ok(src) => {
-                    load_stdlib_source(clone(stdlib_path), clone(short_name), src, state)
-                },
-                Result::Err(_) => {
-                },
-            }
-        },
-    }
+if vec_has(state.loaded_names, clone(stdlib_path)) {
+return
 }
-
+if vec_has(state.loading_stack, clone(stdlib_path)) {
+return
+}
+let short_name = resolver::use_module_short_name(clone(stdlib_path))
+let primary = stdlib_path_to_file(clone(stdlib_path))
+let source_res = fs::read_to_string(clone(primary))
+match source_res {
+Result::Ok(src) => {
+load_stdlib_source(clone(stdlib_path), clone(short_name), src, state)
+},
+Result::Err(_) => {
+let n = len(primary)
+let mod_path = concat(substring(clone(primary), 0, n - 4), String_from("/mod.ark"))
+let mod_res = fs::read_to_string(clone(mod_path))
+match mod_res {
+Result::Ok(src) => {
+load_stdlib_source(clone(stdlib_path), clone(short_name), src, state)
+},
+Result::Err(_) => {
+},
+}
+},
+}
+}
 fn load_stdlib_source(stdlib_path: String, short_name: String, source: String, state: LoadState) {
-    push(state.loading_stack, clone(stdlib_path))
-    let tokens: Vec<Token> = lexer::tokenize(clone(source))
-    let p = parser::Parser_new(tokens)
-    let mod_decls: Vec<AstNode> = parser::parse_module(p)
-    push(state.loaded_names, clone(stdlib_path))
-    push(state.modules, ModuleDecls { name: clone(short_name), decls: mod_decls })
-    load_imported_modules(mod_decls, String_from("."), state)
+push(state.loading_stack, clone(stdlib_path))
+let tokens: Vec<Token> = lexer::tokenize(clone(source))
+let p = parser::Parser_new(tokens)
+let mod_decls: Vec<AstNode> = parser::parse_module(p)
+push(state.loaded_names, clone(stdlib_path))
+push(state.modules, ModuleDecls { name: clone(short_name), decls: mod_decls })
+load_imported_modules(mod_decls, String_from("."), state)
 }
-
-/// Scan declarations for use statements and load referenced local modules.
-/// Recursively loads transitive imports. Detects circular imports.
 fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState) {
-    let count = len(decls)
-    let mut i = 0
-    while i < count {
-        let d = get_unchecked(decls, i)
-        if d.kind == 54 {
-            let use_path = clone(d.text)
-            if is_stdlib_path(clone(use_path)) {
-                load_stdlib_module(clone(use_path), state)
-            } else {
-                load_single_module(clone(use_path), clone(base_dir), state)
-            }
-            let num_children = len(d.children)
-            let mut ci = 0
-            while ci < num_children {
-                let child = get_unchecked(d.children, ci)
-                if child.kind == 54 {
-                    let child_path = clone(child.text)
-                    if is_stdlib_path(clone(child_path)) {
-                        load_stdlib_module(clone(child_path), state)
-                    } else {
-                        load_single_module(clone(child_path), clone(base_dir), state)
-                    }
-                }
-                ci = ci + 1
-            }
-        }
-        i = i + 1
-    }
+let count = len(decls)
+let mut i = 0
+while i < count {
+let d = get_unchecked(decls, i)
+if d.kind == 54 {
+let use_path = clone(d.text)
+if is_stdlib_path(clone(use_path)) {
+load_stdlib_module(clone(use_path), state)
+} else {
+load_single_module(clone(use_path), clone(base_dir), state)
 }
-
-/// Load a single module by name from the given directory.
+let num_children = len(d.children)
+let mut ci = 0
+while ci < num_children {
+let child = get_unchecked(d.children, ci)
+if child.kind == 54 {
+let child_path = clone(child.text)
+if is_stdlib_path(clone(child_path)) {
+load_stdlib_module(clone(child_path), state)
+} else {
+load_single_module(clone(child_path), clone(base_dir), state)
+}
+}
+ci = ci + 1
+}
+}
+i = i + 1
+}
+}
 fn load_single_module(module_name: String, base_dir: String, state: LoadState) {
-    if vec_has(state.loaded_names, clone(module_name)) {
-        return
-    }
-    if vec_has(state.loading_stack, clone(module_name)) {
-        push(state.errors, concat(String_from("circular import detected: "), clone(module_name)))
-        return
-    }
-    push(state.loading_stack, clone(module_name))
-    let file_path = concat(clone(base_dir), concat(String_from("/"), concat(clone(module_name), String_from(".ark"))))
-    let source_result = fs::read_to_string(file_path)
-    match source_result {
-        Result::Ok(source) => {
-            let tokens: Vec<Token> = lexer::tokenize(clone(source))
-            let p = parser::Parser_new(tokens)
-            let mod_decls: Vec<AstNode> = parser::parse_module(p)
-            push(state.loaded_names, clone(module_name))
-            push(state.modules, ModuleDecls { name: clone(module_name), decls: mod_decls })
-            load_imported_modules(mod_decls, clone(base_dir), state)
-        },
-        Result::Err(e) => {
-            push(state.errors, concat(String_from("failed to load module `"), concat(clone(module_name), concat(String_from("`: "), fs::fs_error_message(e)))))
-        },
-    }
-    let stack_len = len(state.loading_stack)
-    if stack_len > 0 {
-        pop(state.loading_stack)
-    }
+if vec_has(state.loaded_names, clone(module_name)) {
+return
 }
-
-// ── Pipeline Orchestration ───────────────────────────────────────────────────
+if vec_has(state.loading_stack, clone(module_name)) {
+push(state.errors, concat(String_from("circular import detected: "), clone(module_name)))
+return
+}
+push(state.loading_stack, clone(module_name))
+let file_path = concat(clone(base_dir), concat(String_from("/"), concat(clone(module_name), String_from(".ark"))))
+let source_result = fs::read_to_string(file_path)
+match source_result {
+Result::Ok(source) => {
+let tokens: Vec<Token> = lexer::tokenize(clone(source))
+let p = parser::Parser_new(tokens)
+let mod_decls: Vec<AstNode> = parser::parse_module(p)
+push(state.loaded_names, clone(module_name))
+push(state.modules, ModuleDecls { name: clone(module_name), decls: mod_decls })
+load_imported_modules(mod_decls, clone(base_dir), state)
+},
+Result::Err(e) => {
+push(state.errors, concat(String_from("failed to load module `"), concat(clone(module_name), concat(String_from("`: "), fs::fs_error_message(e)))))
+},
+}
+let stack_len = len(state.loading_stack)
+if stack_len > 0 {
+pop(state.loading_stack)
+}
+}
 pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
-    let tokens: Vec<Token> = lexer::tokenize(clone(source))
-    let token_count = len(tokens)
-    if config.dump_tokens {
-        stdio::eprintln(String_from("=== TOKENS ==="))
-        let mut i = 0
-        while i < token_count {
-            let tok = get_unchecked(tokens, i)
-            stdio::eprintln(concat(lexer::token_kind_name(tok.kind), concat(String_from(" "), clone(tok.text))))
-            i = i + 1
-        }
-    }
-    let mut lex_errors = 0
-    let mut i = 0
-    while i < token_count {
-        let tok = get_unchecked(tokens, i)
-        if tok.kind == 7 {
-            lex_errors = lex_errors + 1
-        }
-        i = i + 1
-    }
-    if lex_errors > 0 {
-        return CompileResult_err(PHASE_LEX(), concat(to_string(lex_errors), String_from(" lexer error(s)")))
-    }
-    let parser = parser::Parser_new(tokens)
-    let decls: Vec<AstNode> = parser::parse_module(parser)
-    if config.dump_ast {
-        stdio::eprintln(String_from("=== AST ==="))
-        let decl_count = len(decls)
-        let mut j = 0
-        while j < decl_count {
-            let d = get_unchecked(decls, j)
-            parser::print_ast(d, 0)
-            j = j + 1
-        }
-    }
-    let parse_error_count = len(parser.errors)
-    if parse_error_count > 0 {
-        let mut result = CompileResult_err(PHASE_PARSE(), concat(to_string(parse_error_count), String_from(" parse error(s)")))
-        let mut k = 0
-        while k < parse_error_count {
-            let pe = get_unchecked(parser.errors, k)
-            push(result.error_messages, clone(pe.message))
-            k = k + 1
-        }
-        result.error_count = parse_error_count
-        return result
-    }
-    if config.parse_only {
-        return CompileResult_ok(PHASE_PARSE())
-    }
-    let load_state = LoadState_new()
-    load_imported_modules(decls, clone(config.source_dir), load_state)
-    if contains(clone(source), String_from("HashMap_")) || contains(clone(source), String_from("HashSet_")) {
-        load_stdlib_module(String_from("std::collections::hash"), load_state)
-    }
-    if len(load_state.errors) > 0 {
-        let mut result = CompileResult_err(PHASE_RESOLVE(), String_from("module loading error(s)"))
-        let mut le = 0
-        while le < len(load_state.errors) {
-            push(result.error_messages, clone(get_unchecked(load_state.errors, le)))
-            le = le + 1
-        }
-        result.error_count = len(load_state.errors)
-        return result
-    }
-    let resolve_ctx = resolver::resolve_program(decls, load_state.modules)
-    if config.dump_hir {
-        stdio::eprintln(String_from("=== HIR (post-resolve) ==="))
-        resolver::dump_scope(resolve_ctx)
-    }
-    if resolve_ctx.error_count > 0 {
-        let mut result = CompileResult_err(PHASE_RESOLVE(), concat(to_string(resolve_ctx.error_count), String_from(" resolve error(s)")))
-        let mut ei = 0
-        while ei < len(resolve_ctx.errors) {
-            push(result.error_messages, clone(get_unchecked(resolve_ctx.errors, ei)))
-            ei = ei + 1
-        }
-        result.error_count = resolve_ctx.error_count
-        return result
-    }
-    let all_decls = Vec_new_AstNode()
-    let combined_mc = len(load_state.modules)
-    let mut combined_mi = 0
-    while combined_mi < combined_mc {
-        let combined_md = get_unchecked(load_state.modules, combined_mi)
-        let combined_dc = len(combined_md.decls)
-        let mut combined_dk = 0
-        while combined_dk < combined_dc {
-            push(all_decls, get_unchecked(combined_md.decls, combined_dk))
-            combined_dk = combined_dk + 1
-        }
-        combined_mi = combined_mi + 1
-    }
-    let main_dc = len(decls)
-    let mut main_dk = 0
-    while main_dk < main_dc {
-        push(all_decls, get_unchecked(decls, main_dk))
-        main_dk = main_dk + 1
-    }
-    let check_result = typechecker::typecheck_module(all_decls, resolve_ctx)
-    if config.dump_hir {
-        stdio::eprintln(String_from("=== TYPED HIR ==="))
-        typechecker::dump_typed_hir(check_result)
-    }
-    if check_result.error_count > 0 {
-        return CompileResult_err(PHASE_TYPECHECK(), concat(to_string(check_result.error_count), String_from(" type error(s)")))
-    }
-    if config.check_only {
-        return CompileResult_ok(PHASE_TYPECHECK())
-    }
-    let mir_module = mir::lower_to_mir(all_decls, check_result)
-    if config.dump_mir {
-        stdio::eprintln(String_from("=== MIR ==="))
-        mir::dump_mir(mir_module)
-    }
-    let emit_mode = clone(config.emit_mode)
-    if eq(clone(emit_mode), "wat") {
-        let wat_text = emitter::emit_wat(mir_module, clone(config.target), config.opt_level, clone(config.wasi_version))
-        let mut result = CompileResult_ok(PHASE_EMIT())
-        let wat_len = len(wat_text)
-        let mut wat_bytes: Vec<i32> = Vec_new_i32()
-        let mut wi = 0
-        while wi < wat_len {
-            push(wat_bytes, char_at(wat_text, wi))
-            wi = wi + 1
-        }
-        result.output_bytes = wat_bytes
-        result
-    } else {
-        if eq(clone(emit_mode), "wasm") {
-            let wasm_bytes = emitter::emit_wasm(mir_module, clone(config.target), config.opt_level, clone(config.wasi_version))
-            if config.dump_wasm {
-                stdio::eprintln(String_from("=== WASM ==="))
-                stdio::eprintln(concat(String_from("output size: "), concat(to_string(len(wasm_bytes)), String_from(" bytes"))))
-            }
-            let mut result = CompileResult_ok(PHASE_EMIT())
-            result.output_bytes = wasm_bytes
-            result
-        } else {
-            if eq(clone(emit_mode), "component") {
-                CompileResult_err(PHASE_EMIT(), String_from("component emit mode is not yet wired in the selfhost driver"))
-            } else {
-                CompileResult_err(PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
-            }
-        }
-    }
+let tokens: Vec<Token> = lexer::tokenize(clone(source))
+let token_count = len(tokens)
+if config.dump_tokens {
+stdio::eprintln(String_from("=== TOKENS ==="))
+let mut i = 0
+while i < token_count {
+let tok = get_unchecked(tokens, i)
+stdio::eprintln(concat(lexer::token_kind_name(tok.kind), concat(String_from(" "), clone(tok.text))))
+i = i + 1
 }
-
-// ── Compile File ─────────────────────────────────────────────────────────────
+}
+let mut lex_errors = 0
+let mut i = 0
+while i < token_count {
+let tok = get_unchecked(tokens, i)
+if tok.kind == 7 {
+lex_errors = lex_errors + 1
+}
+i = i + 1
+}
+if lex_errors > 0 {
+return CompileResult_err(PHASE_LEX(), concat(to_string(lex_errors), String_from(" lexer error(s)")))
+}
+let parser = parser::Parser_new(tokens)
+let decls: Vec<AstNode> = parser::parse_module(parser)
+if config.dump_ast {
+stdio::eprintln(String_from("=== AST ==="))
+let decl_count = len(decls)
+let mut j = 0
+while j < decl_count {
+let d = get_unchecked(decls, j)
+parser::print_ast(d, 0)
+j = j + 1
+}
+}
+let parse_error_count = len(parser.errors)
+if parse_error_count > 0 {
+let mut result = CompileResult_err(PHASE_PARSE(), concat(to_string(parse_error_count), String_from(" parse error(s)")))
+let mut k = 0
+while k < parse_error_count {
+let pe = get_unchecked(parser.errors, k)
+push(result.error_messages, clone(pe.message))
+k = k + 1
+}
+result.error_count = parse_error_count
+return result
+}
+if config.parse_only {
+return CompileResult_ok(PHASE_PARSE())
+}
+let load_state = LoadState_new()
+load_imported_modules(decls, clone(config.source_dir), load_state)
+if contains(clone(source), String_from("HashMap_")) || contains(clone(source), String_from("HashSet_")) {
+load_stdlib_module(String_from("std::collections::hash"), load_state)
+}
+if len(load_state.errors) > 0 {
+let mut result = CompileResult_err(PHASE_RESOLVE(), String_from("module loading error(s)"))
+let mut le = 0
+while le < len(load_state.errors) {
+push(result.error_messages, clone(get_unchecked(load_state.errors, le)))
+le = le + 1
+}
+result.error_count = len(load_state.errors)
+return result
+}
+let resolve_ctx = resolver::resolve_program(decls, load_state.modules)
+if config.dump_hir {
+stdio::eprintln(String_from("=== HIR (post-resolve) ==="))
+resolver::dump_scope(resolve_ctx)
+}
+if resolve_ctx.error_count > 0 {
+let mut result = CompileResult_err(PHASE_RESOLVE(), concat(to_string(resolve_ctx.error_count), String_from(" resolve error(s)")))
+let mut ei = 0
+while ei < len(resolve_ctx.errors) {
+push(result.error_messages, clone(get_unchecked(resolve_ctx.errors, ei)))
+ei = ei + 1
+}
+result.error_count = resolve_ctx.error_count
+return result
+}
+let all_decls = Vec_new_AstNode()
+let combined_mc = len(load_state.modules)
+let mut combined_mi = 0
+while combined_mi < combined_mc {
+let combined_md = get_unchecked(load_state.modules, combined_mi)
+let combined_dc = len(combined_md.decls)
+let mut combined_dk = 0
+while combined_dk < combined_dc {
+push(all_decls, get_unchecked(combined_md.decls, combined_dk))
+combined_dk = combined_dk + 1
+}
+combined_mi = combined_mi + 1
+}
+let main_dc = len(decls)
+let mut main_dk = 0
+while main_dk < main_dc {
+push(all_decls, get_unchecked(decls, main_dk))
+main_dk = main_dk + 1
+}
+let check_result = typechecker::typecheck_module(all_decls, resolve_ctx)
+if config.dump_hir {
+stdio::eprintln(String_from("=== TYPED HIR ==="))
+typechecker::dump_typed_hir(check_result)
+}
+if check_result.error_count > 0 {
+return CompileResult_err(PHASE_TYPECHECK(), concat(to_string(check_result.error_count), String_from(" type error(s)")))
+}
+if config.check_only {
+return CompileResult_ok(PHASE_TYPECHECK())
+}
+let mir_module = mir::lower_to_mir(all_decls, check_result)
+if config.dump_mir {
+stdio::eprintln(String_from("=== MIR ==="))
+mir::dump_mir(mir_module)
+}
+let emit_mode = clone(config.emit_mode)
+if eq(clone(emit_mode), "wat") {
+let wat_text = emitter::emit_wat(mir_module, clone(config.target), config.opt_level, clone(config.wasi_version))
+let mut result = CompileResult_ok(PHASE_EMIT())
+let wat_len = len(wat_text)
+let mut wat_bytes: Vec<i32> = Vec_new_i32()
+let mut wi = 0
+while wi < wat_len {
+push(wat_bytes, char_at(wat_text, wi))
+wi = wi + 1
+}
+result.output_bytes = wat_bytes
+result
+} else {
+if eq(clone(emit_mode), "wasm") {
+let wasm_bytes = emitter::emit_wasm(mir_module, clone(config.target), config.opt_level, clone(config.wasi_version))
+if config.dump_wasm {
+stdio::eprintln(String_from("=== WASM ==="))
+stdio::eprintln(concat(String_from("output size: "), concat(to_string(len(wasm_bytes)), String_from(" bytes"))))
+}
+let mut result = CompileResult_ok(PHASE_EMIT())
+result.output_bytes = wasm_bytes
+result
+} else {
+if eq(clone(emit_mode), "component") {
+CompileResult_err(PHASE_EMIT(), String_from("component emit mode is not yet wired in the selfhost driver"))
+} else {
+CompileResult_err(PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
+}
+}
+}
+}
 pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
-    let cloned_path = clone(path)
-    config.source_dir = parent_dir(clone(cloned_path))
-    let source_result = load_source(cloned_path)
-    match source_result {
-        Result::Ok(source) => {
-            compile_source(source, config)
-        },
-        Result::Err(e) => {
-            CompileResult_err(0, concat(String_from("failed to read file: "), fs::fs_error_message(e)))
-        },
-    }
+let cloned_path = clone(path)
+config.source_dir = parent_dir(clone(cloned_path))
+let source_result = load_source(cloned_path)
+match source_result {
+Result::Ok(source) => {
+compile_source(source, config)
+},
+Result::Err(e) => {
+CompileResult_err(0, concat(String_from("failed to read file: "), fs::fs_error_message(e)))
+},
 }
-
-// ── Entry Point ──────────────────────────────────────────────────────────────
+}
 fn main() {
-    let args = env::args()
-    let argc = env::arg_count()
-    let mut arg_start = 0
-    if argc > 0 {
-        let first = get_unchecked(args, 0)
-        if eq(clone(first), String_from("--")) {
-            arg_start = 1
-        }
-    }
-    if argc - arg_start < 4 {
-        stdio::eprintln(String_from("usage: arukellt compile <input> --target <target> -o <output>"))
-        process::exit(1)
-    }
-    let subcommand = get_unchecked(args, arg_start)
-    if !eq(clone(subcommand), String_from("compile")) {
-        stdio::eprintln(concat(String_from("unknown subcommand: "), clone(subcommand)))
-        process::exit(1)
-    }
-    let input_path = get_unchecked(args, arg_start + 1)
-    let config = DriverConfig_default()
-    let mut output_path = String_from("")
-    let mut has_output = false
-    let mut i = arg_start + 2
-    while i < argc {
-        let flag = get_unchecked(args, i)
-        if eq(clone(flag), String_from("-o")) {
-            if i + 1 < argc {
-                output_path = get_unchecked(args, i + 1)
-                has_output = true
-                i = i + 2
-            } else {
-                i = i + 1
-            }
-        } else {
-            if eq(clone(flag), String_from("--target")) {
-                if i + 1 < argc {
-                    config.target = get_unchecked(args, i + 1)
-                    i = i + 2
-                } else {
-                    i = i + 1
-                }
-            } else {
-                if eq(clone(flag), String_from("--emit")) {
-                    if i + 1 < argc {
-                        config.emit_mode = get_unchecked(args, i + 1)
-                        i = i + 2
-                    } else {
-                        i = i + 1
-                    }
-                } else {
-                    if eq(clone(flag), String_from("--wit")) {
-                        if i + 1 < argc {
-                            push(config.wit_paths, get_unchecked(args, i + 1))
-                            i = i + 2
-                        } else {
-                            i = i + 1
-                        }
-                    } else {
-                        if eq(clone(flag), String_from("--wasi-version")) {
-                            if i + 1 < argc {
-                                config.wasi_version = get_unchecked(args, i + 1)
-                                i = i + 2
-                            } else {
-                                i = i + 1
-                            }
-                        } else {
-                            i = i + 1
-                        }
-                    }
-                }
-            }
-        }
-    }
-    if !has_output {
-        stdio::eprintln(String_from("error: missing -o <output> flag"))
-        process::exit(1)
-    }
-    let result = compile_file(clone(input_path), config)
-    if result.success {
-        match fs::write_bytes(clone(output_path), result.output_bytes) {
-            Result::Ok(_) => {
-            },
-            Result::Err(e) => {
-                stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
-                process::exit(1)
-            },
-        }
-    } else {
-        let err_count = result.error_count
-        let mut j = 0
-        while j < err_count {
-            let msg = get_unchecked(result.error_messages, j)
-            stdio::eprintln(concat(String_from("error: "), clone(msg)))
-            j = j + 1
-        }
-        process::exit(1)
-    }
+let args = env::args()
+let argc = env::arg_count()
+let mut arg_start = 0
+if argc > 0 {
+let first = get_unchecked(args, 0)
+if eq(clone(first), String_from("--")) {
+arg_start = 1
 }
-// ── Pipeline Phase Tags ──────────────────────────────────────────────────────
-// break
-// NK_USE
-// Handle destructure children: use base::{a, b, ...}
-// NK_USE
-// Already loaded — skip
-// Circular import detection
-// Push onto loading stack
-// Construct file path: base_dir/module_name.ark
-// Lex
-// Parse
-// Record as loaded
-// Recursively load imports from this module
-// Pop from loading stack
-// Phase 1: Lex
-// Check for lexer errors
-// TK_ERROR
-// Phase 2: Parse
-// Phase 3: Resolve (name binding)
-// Load imported modules from use declarations
-// Auto-import std::collections::hash when HashMap_* or HashSet_* builtins are used
-// without an explicit import. These monomorphic builtins delegate to the hash module.
-// Report module loading errors
-// Build combined declaration list: imported modules first, then main module.
-// This allows MIR lowering to include all functions needed for cross-module calls.
-// Phase 4: Type check (using combined declarations for cross-module type info)
-// Phase 5: Lower to MIR (using combined declarations)
-// Phase 6: Emit Wasm
-// WAT text output
-// Convert WAT string to byte vector
-// Set source_dir from the file's parent directory for module resolution
-// Expect: compile <input> [--target <target>] [--emit <mode>] -o <output>
-// Skip any leading `--` separator that wasmtime passes as argv
+}
+if argc - arg_start < 4 {
+stdio::eprintln(String_from("usage: arukellt compile <input> --target <target> -o <output>"))
+process::exit(1)
+}
+let subcommand = get_unchecked(args, arg_start)
+if !eq(clone(subcommand), String_from("compile")) {
+stdio::eprintln(concat(String_from("unknown subcommand: "), clone(subcommand)))
+process::exit(1)
+}
+let input_path = get_unchecked(args, arg_start + 1)
+let config = DriverConfig_default()
+let mut output_path = String_from("")
+let mut has_output = false
+let mut i = arg_start + 2
+while i < argc {
+let flag = get_unchecked(args, i)
+if eq(clone(flag), String_from("-o")) {
+if i + 1 < argc {
+output_path = get_unchecked(args, i + 1)
+has_output = true
+i = i + 2
+} else {
+i = i + 1
+}
+} else {
+if eq(clone(flag), String_from("--target")) {
+if i + 1 < argc {
+config.target = get_unchecked(args, i + 1)
+i = i + 2
+} else {
+i = i + 1
+}
+} else {
+if eq(clone(flag), String_from("--emit")) {
+if i + 1 < argc {
+config.emit_mode = get_unchecked(args, i + 1)
+i = i + 2
+} else {
+i = i + 1
+}
+} else {
+if eq(clone(flag), String_from("--wit")) {
+if i + 1 < argc {
+push(config.wit_paths, get_unchecked(args, i + 1))
+i = i + 2
+} else {
+i = i + 1
+}
+} else {
+if eq(clone(flag), String_from("--wasi-version")) {
+if i + 1 < argc {
+config.wasi_version = get_unchecked(args, i + 1)
+i = i + 2
+} else {
+i = i + 1
+}
+} else {
+i = i + 1
+}
+}
+}
+}
+}
+}
+if !has_output {
+stdio::eprintln(String_from("error: missing -o <output> flag"))
+process::exit(1)
+}
+let result = compile_file(clone(input_path), config)
+if result.success {
+match fs::write_bytes(clone(output_path), result.output_bytes) {
+Result::Ok(_) => {
+},
+Result::Err(e) => {
+stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
+process::exit(1)
+},
+}
+} else {
+let err_count = result.error_count
+let mut j = 0
+while j < err_count {
+let msg = get_unchecked(result.error_messages, j)
+stdio::eprintln(concat(String_from("error: "), clone(msg)))
+j = j + 1
+}
+process::exit(1)
+}
+}

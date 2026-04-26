@@ -1,747 +1,627 @@
-// Arukellt Selfhost — LSP Lifecycle Core (issue #569)
-//
-// Minimum-viable LSP server implementing JSON-RPC 2.0 framing
-// (Content-Length headers + JSON body) and the lifecycle handlers
-//
-//   initialize             → response with minimal server capabilities
-//   initialized            → notification, no response
-//   textDocument/didOpen   → store doc, run analyze(), publishDiagnostics
-//   textDocument/didChange → full-sync replace, run analyze(), publishDiagnostics
-//   shutdown               → response with null result
-//   exit                   → terminate (handled by caller)
-//
-// Hover / definition / completion are explicitly out of scope (see #570).
-//
-// The server is purely stream-driven: `run_session(input)` consumes a
-// byte buffer of zero or more framed LSP messages and returns a byte
-// buffer of all framed outgoing messages. This deliberately does not
-// touch real stdin so that the lifecycle is testable end-to-end with
-// file-based fixtures (selfhost cannot read stdin in the current
-// runtime; see std/io/mod.ark::read_stdin_line). Once a stdin
-// intrinsic lands the same `run_session` becomes the read-loop body.
 use analysis
-
-// ── Document store ───────────────────────────────────────────────────────────
 pub struct LspDoc {
-    uri: String,
-    text: String,
-    version: i32,
+uri: String,
+text: String,
+version: i32,
 }
-
 fn LspDoc_new(uri: String, text: String, version: i32) -> LspDoc {
-    LspDoc { uri: uri, text: text, version: version }
+LspDoc { uri: uri, text: text, version: version }
 }
-
 pub struct LspState {
-    docs: Vec<LspDoc>,
-    initialized: bool,
-    shutdown: bool,
-    exited: bool,
-    output: String,
+docs: Vec<LspDoc>,
+initialized: bool,
+shutdown: bool,
+exited: bool,
+output: String,
 }
-
 pub fn LspState_new() -> LspState {
-    LspState { docs: Vec_new_LspDoc(), initialized: false, shutdown: false, exited: false, output: String_new() }
+LspState { docs: Vec_new_LspDoc(), initialized: false, shutdown: false, exited: false, output: String_new() }
 }
-
 fn doc_index_of(state: LspState, uri: String) -> i32 {
-    let n = len(state.docs)
-    let mut i = 0
-    while i < n {
-        let d = get_unchecked(state.docs, i)
-        if eq(clone(d.uri), clone(uri)) {
-            return i
-        }
-        i = i + 1
-    }
-    -1
+let n = len(state.docs)
+let mut i = 0
+while i < n {
+let d = get_unchecked(state.docs, i)
+if eq(clone(d.uri), clone(uri)) {
+return i
 }
-
+i = i + 1
+}
+-1
+}
 fn doc_set(state: LspState, uri: String, text: String, version: i32) {
-    let idx = doc_index_of(state, clone(uri))
-    if idx < 0 {
-        push(state.docs, LspDoc_new(uri, text, version))
-        return
-    }
-    let d = get_unchecked(state.docs, idx)
-    d.text = text
-    d.version = version
+let idx = doc_index_of(state, clone(uri))
+if idx < 0 {
+push(state.docs, LspDoc_new(uri, text, version))
+return
 }
-
-// ── JSON helpers (minimal, hand-rolled — no std::json dependency) ────────────
-// Encode a String as a JSON string body: escapes ", \, control chars.
-// Returned value is the *body*, NOT wrapped in the surrounding quotes.
+let d = get_unchecked(state.docs, idx)
+d.text = text
+d.version = version
+}
 fn json_escape(s: String) -> String {
-    let n = len(s)
-    let mut out = String_new()
-    let mut i = 0
-    while i < n {
-        let c = char_at(s, i)
-        if c == 34 {
-            out = concat(out, String_from("\\\""))
-        } else {
-            if c == 92 {
-                out = concat(out, String_from("\\\\"))
-            } else {
-                if c == 10 {
-                    out = concat(out, String_from("\\n"))
-                } else {
-                    if c == 13 {
-                        out = concat(out, String_from("\\r"))
-                    } else {
-                        if c == 9 {
-                            out = concat(out, String_from("\\t"))
-                        } else {
-                            if c < 32 {
-                                // Other control chars: emit \u00XX.
-                                out = concat(out, String_from("\\u00"))
-                                out = concat(out, hex_byte(c))
-                            } else {
-                                out = concat(out, substring(clone(s), i, i + 1))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        i = i + 1
-    }
-    out
+let n = len(s)
+let mut out = String_new()
+let mut i = 0
+while i < n {
+let c = char_at(s, i)
+if c == 34 {
+out = concat(out, String_from("\\\""))
+} else {
+if c == 92 {
+out = concat(out, String_from("\\\\"))
+} else {
+if c == 10 {
+out = concat(out, String_from("\\n"))
+} else {
+if c == 13 {
+out = concat(out, String_from("\\r"))
+} else {
+if c == 9 {
+out = concat(out, String_from("\\t"))
+} else {
+if c < 32 {
+out = concat(out, String_from("\\u00"))
+out = concat(out, hex_byte(c))
+} else {
+out = concat(out, substring(clone(s), i, i + 1))
 }
-
+}
+}
+}
+}
+}
+i = i + 1
+}
+out
+}
 fn hex_nibble(n: i32) -> String {
-    if n < 10 {
-        return char_to_string(48 + n)
-    }
-    char_to_string(87 + n)
+if n < 10 {
+return char_to_string(48 + n)
 }
-
+char_to_string(87 + n)
+}
 fn hex_byte(b: i32) -> String {
-    let hi = (b / 16) & 15
-    let lo = b & 15
-    concat(hex_nibble(hi), hex_nibble(lo))
+let hi = (b / 16) & 15
+let lo = b & 15
+concat(hex_nibble(hi), hex_nibble(lo))
 }
-
-// Skip ASCII whitespace (space, tab, CR, LF) starting at pos.
 fn json_skip_ws(s: String, pos: i32) -> i32 {
-    let n = len(s)
-    let mut p = pos
-    while p < n {
-        let c = char_at(s, p)
-        if c != 32 && c != 9 && c != 10 && c != 13 {
-            return p
-        }
-        p = p + 1
-    }
-    p
+let n = len(s)
+let mut p = pos
+while p < n {
+let c = char_at(s, p)
+if c != 32 && c != 9 && c != 10 && c != 13 {
+return p
 }
-
-// Find the next position after `key` (e.g. `"text"`) starting at `from`.
-// Returns -1 if not found.
+p = p + 1
+}
+p
+}
 fn find_key_pos(json: String, key: String, from: i32) -> i32 {
-    let needle = concat(String_from("\""), concat(clone(key), String_from("\"")))
-    let n = len(json)
-    let nlen = len(needle)
-    if from >= n {
-        return -1
-    }
-    let tail = substring(clone(json), from, n)
-    let rel = index_of(tail, clone(needle))
-    if rel < 0 {
-        return -1
-    }
-    from + rel + nlen
+let needle = concat(String_from("\""), concat(clone(key), String_from("\"")))
+let n = len(json)
+let nlen = len(needle)
+if from >= n {
+return -1
 }
-
-// Decode a JSON string literal starting at `pos` (which points to the opening
-// `"`). Returns (decoded_value, position_after_closing_quote). If parse fails,
-// returns ("", pos).
+let tail = substring(clone(json), from, n)
+let rel = index_of(tail, clone(needle))
+if rel < 0 {
+return -1
+}
+from + rel + nlen
+}
 fn json_parse_string_at(s: String, pos: i32) -> JsonStrResult {
-    let n = len(s)
-    if pos >= n || char_at(s, pos) != 34 {
-        return JsonStrResult { value: String_new(), next: pos, ok: false }
-    }
-    let mut p = pos + 1
-    let mut out = String_new()
-    let mut span_start = p
-    while p < n {
-        let c = char_at(s, p)
-        if c == 34 {
-            if span_start < p {
-                out = concat(out, substring(clone(s), span_start, p))
-            }
-            return JsonStrResult { value: out, next: p + 1, ok: true }
-        }
-        if c == 92 {
-            if span_start < p {
-                out = concat(out, substring(clone(s), span_start, p))
-            }
-            p = p + 1
-            if p >= n {
-                return JsonStrResult { value: out, next: p, ok: false }
-            }
-            let esc = char_at(s, p)
-            if esc == 34 {
-                out = concat(out, String_from("\""))
-            } else {
-                if esc == 92 {
-                    out = concat(out, String_from("\\"))
-                } else {
-                    if esc == 47 {
-                        out = concat(out, String_from("/"))
-                    } else {
-                        if esc == 110 {
-                            out = concat(out, String_from("\n"))
-                        } else {
-                            if esc == 114 {
-                                out = concat(out, String_from("\r"))
-                            } else {
-                                if esc == 116 {
-                                    out = concat(out, String_from("\t"))
-                                } else {
-                                    if esc == 98 {
-                                        out = concat(out, char_to_string(8))
-                                    } else {
-                                        if esc == 102 {
-                                            out = concat(out, char_to_string(12))
-                                        } else {
-                                            if esc == 117 {
-                                                // \uXXXX — only handle <=0xFF for MVP.
-                                                if p + 4 < n {
-                                                    let hi = hex_value(char_at(s, p + 1)) * 16 + hex_value(char_at(s, p + 2))
-                                                    let lo = hex_value(char_at(s, p + 3)) * 16 + hex_value(char_at(s, p + 4))
-                                                    let cv = hi * 256 + lo
-                                                    if cv > 0 && cv < 128 {
-                                                        out = concat(out, char_to_string(cv))
-                                                    }
-                                                    p = p + 4
-                                                }
-                                            } else {
-                                                // Unknown escape: include literal char.
-                                                out = concat(out, substring(clone(s), p, p + 1))
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            p = p + 1
-            span_start = p
-        } else {
-            p = p + 1
-        }
-    }
-    JsonStrResult { value: out, next: p, ok: false }
+let n = len(s)
+if pos >= n || char_at(s, pos) != 34 {
+return JsonStrResult { value: String_new(), next: pos, ok: false }
 }
-
+let mut p = pos + 1
+let mut out = String_new()
+let mut span_start = p
+while p < n {
+let c = char_at(s, p)
+if c == 34 {
+if span_start < p {
+out = concat(out, substring(clone(s), span_start, p))
+}
+return JsonStrResult { value: out, next: p + 1, ok: true }
+}
+if c == 92 {
+if span_start < p {
+out = concat(out, substring(clone(s), span_start, p))
+}
+p = p + 1
+if p >= n {
+return JsonStrResult { value: out, next: p, ok: false }
+}
+let esc = char_at(s, p)
+if esc == 34 {
+out = concat(out, String_from("\""))
+} else {
+if esc == 92 {
+out = concat(out, String_from("\\"))
+} else {
+if esc == 47 {
+out = concat(out, String_from("/"))
+} else {
+if esc == 110 {
+out = concat(out, String_from("\n"))
+} else {
+if esc == 114 {
+out = concat(out, String_from("\r"))
+} else {
+if esc == 116 {
+out = concat(out, String_from("\t"))
+} else {
+if esc == 98 {
+out = concat(out, char_to_string(8))
+} else {
+if esc == 102 {
+out = concat(out, char_to_string(12))
+} else {
+if esc == 117 {
+if p + 4 < n {
+let hi = hex_value(char_at(s, p + 1)) * 16 + hex_value(char_at(s, p + 2))
+let lo = hex_value(char_at(s, p + 3)) * 16 + hex_value(char_at(s, p + 4))
+let cv = hi * 256 + lo
+if cv > 0 && cv < 128 {
+out = concat(out, char_to_string(cv))
+}
+p = p + 4
+}
+} else {
+out = concat(out, substring(clone(s), p, p + 1))
+}
+}
+}
+}
+}
+}
+}
+}
+}
+p = p + 1
+span_start = p
+} else {
+p = p + 1
+}
+}
+JsonStrResult { value: out, next: p, ok: false }
+}
 struct JsonStrResult {
-    value: String,
-    next: i32,
-    ok: bool,
+value: String,
+next: i32,
+ok: bool,
 }
-
 fn hex_value(c: i32) -> i32 {
-    if c >= 48 && c <= 57 {
-        return c - 48
-    }
-    if c >= 97 && c <= 102 {
-        return c - 87
-    }
-    if c >= 65 && c <= 70 {
-        return c - 55
-    }
-    0
+if c >= 48 && c <= 57 {
+return c - 48
 }
-
-// Parse the integer literal that begins at `pos` (after skipping whitespace
-// and a leading `:`). Used for the JSON-RPC `id` field. Returns 0 if the
-// value at that position is not a number (e.g. notification with no id).
+if c >= 97 && c <= 102 {
+return c - 87
+}
+if c >= 65 && c <= 70 {
+return c - 55
+}
+0
+}
 fn json_parse_int_at(s: String, pos: i32) -> i32 {
-    let n = len(s)
-    let mut p = json_skip_ws(clone(s), pos)
-    if p >= n {
-        return 0
-    }
-    let mut neg = false
-    if char_at(s, p) == 45 {
-        neg = true
-        p = p + 1
-    }
-    let mut v = 0
-    let mut any = false
-    while p < n {
-        let c = char_at(s, p)
-        if c < 48 || c > 57 {
-            break
-        }
-        v = v * 10 + (c - 48)
-        any = true
-        p = p + 1
-    }
-    if !any {
-        return 0
-    }
-    if neg {
-        return 0 - v
-    }
-    v
+let n = len(s)
+let mut p = json_skip_ws(clone(s), pos)
+if p >= n {
+return 0
 }
-
-// ── Field extractors ─────────────────────────────────────────────────────────
-// All use a forgiving "find the first `"key"` then parse the value" strategy.
-// This is not a general JSON parser; it is good enough for well-formed LSP
-// messages from a script fixture. Returns "" / 0 / false sentinel on miss.
-
+let mut neg = false
+if char_at(s, p) == 45 {
+neg = true
+p = p + 1
+}
+let mut v = 0
+let mut any = false
+while p < n {
+let c = char_at(s, p)
+if c < 48 || c > 57 {
+break
+}
+v = v * 10 + (c - 48)
+any = true
+p = p + 1
+}
+if !any {
+return 0
+}
+if neg {
+return 0 - v
+}
+v
+}
 fn extract_string_field(json: String, key: String) -> String {
-    extract_string_field_after(clone(json), key, 0)
+extract_string_field_after(clone(json), key, 0)
 }
-
 fn extract_string_field_after(json: String, key: String, from: i32) -> String {
-    let p = find_key_pos(clone(json), key, from)
-    if p < 0 {
-        return String_new()
-    }
-    let q = json_skip_ws(clone(json), p)
-    let n = len(json)
-    if q >= n || char_at(json, q) != 58 {
-        return String_new()
-    }
-    let r = json_skip_ws(clone(json), q + 1)
-    let parsed = json_parse_string_at(clone(json), r)
-    if !parsed.ok {
-        return String_new()
-    }
-    parsed.value
+let p = find_key_pos(clone(json), key, from)
+if p < 0 {
+return String_new()
 }
-
+let q = json_skip_ws(clone(json), p)
+let n = len(json)
+if q >= n || char_at(json, q) != 58 {
+return String_new()
+}
+let r = json_skip_ws(clone(json), q + 1)
+let parsed = json_parse_string_at(clone(json), r)
+if !parsed.ok {
+return String_new()
+}
+parsed.value
+}
 fn extract_int_field(json: String, key: String) -> i32 {
-    let p = find_key_pos(clone(json), key, 0)
-    if p < 0 {
-        return 0
-    }
-    let q = json_skip_ws(clone(json), p)
-    let n = len(json)
-    if q >= n || char_at(json, q) != 58 {
-        return 0
-    }
-    json_parse_int_at(clone(json), q + 1)
+let p = find_key_pos(clone(json), key, 0)
+if p < 0 {
+return 0
 }
-
-// ── Position mapping ─────────────────────────────────────────────────────────
-// Convert a byte offset within `text` to an LSP {line, character} pair.
-// Character is treated as a UTF-8 byte offset within the line, which is
-// acceptable for ASCII-only fixtures. Future work (richer UTF-16 mapping)
-// is tracked under #570 follow-ups.
+let q = json_skip_ws(clone(json), p)
+let n = len(json)
+if q >= n || char_at(json, q) != 58 {
+return 0
+}
+json_parse_int_at(clone(json), q + 1)
+}
 struct LspPosition {
-    line: i32,
-    character: i32,
+line: i32,
+character: i32,
 }
-
-// Convert an LSP {line, character} pair (UTF-8 byte column) back to a byte
-// offset within `text`. Returns `len(text)` when the requested line or
-// column overruns the document. Counterpart of `offset_to_position`.
 fn position_to_offset(text: String, line: i32, character: i32) -> i32 {
-    let n = len(text)
-    let mut p = 0
-    let mut cur_line = 0
-    while cur_line < line && p < n {
-        let c = char_at(text, p)
-        p = p + 1
-        if c == 10 {
-            cur_line = cur_line + 1
-        }
-    }
-    let mut col = 0
-    while col < character && p < n {
-        let c = char_at(text, p)
-        if c == 10 {
-            return p
-        }
-        p = p + 1
-        col = col + 1
-    }
-    p
+let n = len(text)
+let mut p = 0
+let mut cur_line = 0
+while cur_line < line && p < n {
+let c = char_at(text, p)
+p = p + 1
+if c == 10 {
+cur_line = cur_line + 1
 }
-
+}
+let mut col = 0
+while col < character && p < n {
+let c = char_at(text, p)
+if c == 10 {
+return p
+}
+p = p + 1
+col = col + 1
+}
+p
+}
 fn offset_to_position(text: String, offset: i32) -> LspPosition {
-    let n = len(text)
-    let lim = if offset < n {
-        offset
-    } else {
-        n
-    }
-    let mut line = 0
-    let mut col = 0
-    let mut i = 0
-    while i < lim {
-        let c = char_at(text, i)
-        if c == 10 {
-            line = line + 1
-            col = 0
-        } else {
-            col = col + 1
-        }
-        i = i + 1
-    }
-    LspPosition { line: line, character: col }
+let n = len(text)
+let lim = if offset < n {
+offset
+} else {
+n
 }
-
-// ── Outgoing message construction ────────────────────────────────────────────
+let mut line = 0
+let mut col = 0
+let mut i = 0
+while i < lim {
+let c = char_at(text, i)
+if c == 10 {
+line = line + 1
+col = 0
+} else {
+col = col + 1
+}
+i = i + 1
+}
+LspPosition { line: line, character: col }
+}
 fn frame(body: String) -> String {
-    let header = concat(String_from("Content-Length: "), concat(to_string(len(clone(body))), String_from("\r\n\r\n")))
-    concat(header, body)
+let header = concat(String_from("Content-Length: "), concat(to_string(len(clone(body))), String_from("\r\n\r\n")))
+concat(header, body)
 }
-
 fn quote_string(s: String) -> String {
-    concat(String_from("\""), concat(json_escape(s), String_from("\"")))
+concat(String_from("\""), concat(json_escape(s), String_from("\"")))
 }
-
 fn build_initialize_response(id: i32) -> String {
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"hoverProvider\":true,\"definitionProvider\":true,\"diagnosticProvider\":{\"interFileDependencies\":false,\"workspaceDiagnostics\":false}},\"serverInfo\":{\"name\":\"arukellt-lsp\",\"version\":\"0.1.0\"}}}"))
-    body
+let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+body = concat(body, to_string(id))
+body = concat(body, String_from(",\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"hoverProvider\":true,\"definitionProvider\":true,\"diagnosticProvider\":{\"interFileDependencies\":false,\"workspaceDiagnostics\":false}},\"serverInfo\":{\"name\":\"arukellt-lsp\",\"version\":\"0.1.0\"}}}"))
+body
 }
-
 fn build_shutdown_response(id: i32) -> String {
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":null}"))
-    body
+let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+body = concat(body, to_string(id))
+body = concat(body, String_from(",\"result\":null}"))
+body
 }
-
 fn phase_code(phase: i32) -> String {
-    if phase == analysis::PHASE_LEX() {
-        return String_from("ark.lex")
-    }
-    if phase == analysis::PHASE_PARSE() {
-        return String_from("ark.parse")
-    }
-    if phase == analysis::PHASE_RESOLVE() {
-        return String_from("ark.resolve")
-    }
-    if phase == analysis::PHASE_TYPECHECK() {
-        return String_from("ark.typecheck")
-    }
-    String_from("ark.unknown")
+if phase == analysis::PHASE_LEX() {
+return String_from("ark.lex")
 }
-
+if phase == analysis::PHASE_PARSE() {
+return String_from("ark.parse")
+}
+if phase == analysis::PHASE_RESOLVE() {
+return String_from("ark.resolve")
+}
+if phase == analysis::PHASE_TYPECHECK() {
+return String_from("ark.typecheck")
+}
+String_from("ark.unknown")
+}
 fn build_diagnostic_object(text: String, diag: AnalysisDiagnostic) -> String {
-    let s = offset_to_position(clone(text), diag.start)
-    let e = offset_to_position(clone(text), diag.end)
-    let mut out = String_from("{\"range\":{\"start\":{\"line\":")
-    out = concat(out, to_string(s.line))
-    out = concat(out, String_from(",\"character\":"))
-    out = concat(out, to_string(s.character))
-    out = concat(out, String_from("},\"end\":{\"line\":"))
-    out = concat(out, to_string(e.line))
-    out = concat(out, String_from(",\"character\":"))
-    out = concat(out, to_string(e.character))
-    out = concat(out, String_from("}},\"severity\":1,\"source\":\"arukellt\",\"code\":"))
-    out = concat(out, quote_string(phase_code(diag.phase)))
-    out = concat(out, String_from(",\"message\":"))
-    out = concat(out, quote_string(clone(diag.message)))
-    out = concat(out, String_from("}"))
-    out
+let s = offset_to_position(clone(text), diag.start)
+let e = offset_to_position(clone(text), diag.end)
+let mut out = String_from("{\"range\":{\"start\":{\"line\":")
+out = concat(out, to_string(s.line))
+out = concat(out, String_from(",\"character\":"))
+out = concat(out, to_string(s.character))
+out = concat(out, String_from("},\"end\":{\"line\":"))
+out = concat(out, to_string(e.line))
+out = concat(out, String_from(",\"character\":"))
+out = concat(out, to_string(e.character))
+out = concat(out, String_from("}},\"severity\":1,\"source\":\"arukellt\",\"code\":"))
+out = concat(out, quote_string(phase_code(diag.phase)))
+out = concat(out, String_from(",\"message\":"))
+out = concat(out, quote_string(clone(diag.message)))
+out = concat(out, String_from("}"))
+out
 }
-
 fn build_publish_diagnostics(uri: String, text: String, snap: AnalysisSnapshot) -> String {
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/publishDiagnostics\",\"params\":{\"uri\":")
-    body = concat(body, quote_string(uri))
-    body = concat(body, String_from(",\"diagnostics\":["))
-    let n = len(snap.diagnostics)
-    let mut i = 0
-    while i < n {
-        let d = get_unchecked(snap.diagnostics, i)
-        if i > 0 {
-            body = concat(body, String_from(","))
-        }
-        body = concat(body, build_diagnostic_object(clone(text), d))
-        i = i + 1
-    }
-    body = concat(body, String_from("]}}"))
-    body
+let mut body = String_from("{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/publishDiagnostics\",\"params\":{\"uri\":")
+body = concat(body, quote_string(uri))
+body = concat(body, String_from(",\"diagnostics\":["))
+let n = len(snap.diagnostics)
+let mut i = 0
+while i < n {
+let d = get_unchecked(snap.diagnostics, i)
+if i > 0 {
+body = concat(body, String_from(","))
 }
-
-// ── Dispatch ─────────────────────────────────────────────────────────────────
+body = concat(body, build_diagnostic_object(clone(text), d))
+i = i + 1
+}
+body = concat(body, String_from("]}}"))
+body
+}
 fn append_framed(state: LspState, body: String) {
-    state.output = concat(clone(state.output), frame(body))
+state.output = concat(clone(state.output), frame(body))
 }
-
 fn handle_message(state: LspState, body: String) {
-    let method = extract_string_field(clone(body), String_from("method"))
-    if len(method) == 0 {
-        // Response from client (e.g. to a server-initiated request) — ignore.
-        return
-    }
-    if eq(clone(method), "initialize") {
-        let id = extract_int_field(clone(body), String_from("id"))
-        state.initialized = true
-        append_framed(state, build_initialize_response(id))
-        return
-    }
-    if eq(clone(method), "initialized") {
-        // Client ack of capabilities — no response.
-        return
-    }
-    if eq(clone(method), "shutdown") {
-        let id = extract_int_field(clone(body), String_from("id"))
-        state.shutdown = true
-        append_framed(state, build_shutdown_response(id))
-        return
-    }
-    if eq(clone(method), "exit") {
-        state.exited = true
-        return
-    }
-    if eq(clone(method), "textDocument/didOpen") {
-        handle_did_open(state, clone(body))
-        return
-    }
-    if eq(clone(method), "textDocument/didChange") {
-        handle_did_change(state, clone(body))
-        return
-    }
-    if eq(clone(method), "textDocument/hover") {
-        handle_hover(state, clone(body))
-        return
-    }
-    if eq(clone(method), "textDocument/definition") {
-        handle_definition(state, clone(body))
-        return
-    }
-    // Unknown method — silently ignore for MVP. Real server would reply
-    // with MethodNotFound for requests; notifications may be dropped.
+let method = extract_string_field(clone(body), String_from("method"))
+if len(method) == 0 {
+return
 }
-
+if eq(clone(method), "initialize") {
+let id = extract_int_field(clone(body), String_from("id"))
+state.initialized = true
+append_framed(state, build_initialize_response(id))
+return
+}
+if eq(clone(method), "initialized") {
+return
+}
+if eq(clone(method), "shutdown") {
+let id = extract_int_field(clone(body), String_from("id"))
+state.shutdown = true
+append_framed(state, build_shutdown_response(id))
+return
+}
+if eq(clone(method), "exit") {
+state.exited = true
+return
+}
+if eq(clone(method), "textDocument/didOpen") {
+handle_did_open(state, clone(body))
+return
+}
+if eq(clone(method), "textDocument/didChange") {
+handle_did_change(state, clone(body))
+return
+}
+if eq(clone(method), "textDocument/hover") {
+handle_hover(state, clone(body))
+return
+}
+if eq(clone(method), "textDocument/definition") {
+handle_definition(state, clone(body))
+return
+}
+}
 fn handle_did_open(state: LspState, body: String) {
-    let uri = extract_string_field(clone(body), String_from("uri"))
-    let text = extract_string_field(clone(body), String_from("text"))
-    let version = extract_int_field(clone(body), String_from("version"))
-    doc_set(state, clone(uri), clone(text), version)
-    publish_for(state, clone(uri), clone(text))
+let uri = extract_string_field(clone(body), String_from("uri"))
+let text = extract_string_field(clone(body), String_from("text"))
+let version = extract_int_field(clone(body), String_from("version"))
+doc_set(state, clone(uri), clone(text), version)
+publish_for(state, clone(uri), clone(text))
 }
-
 fn handle_did_change(state: LspState, body: String) {
-    let uri = extract_string_field(clone(body), String_from("uri"))
-    let version = extract_int_field(clone(body), String_from("version"))
-    // Full-sync flavor: contentChanges[0].text is the new full document.
-    // Find the contentChanges marker, then the first "text" field after it.
-    let cc = find_key_pos(clone(body), String_from("contentChanges"), 0)
-    let text = if cc < 0 {
-        extract_string_field(clone(body), String_from("text"))
-    } else {
-        extract_string_field_after(clone(body), String_from("text"), cc)
-    }
-    doc_set(state, clone(uri), clone(text), version)
-    publish_for(state, clone(uri), clone(text))
+let uri = extract_string_field(clone(body), String_from("uri"))
+let version = extract_int_field(clone(body), String_from("version"))
+let cc = find_key_pos(clone(body), String_from("contentChanges"), 0)
+let text = if cc < 0 {
+extract_string_field(clone(body), String_from("text"))
+} else {
+extract_string_field_after(clone(body), String_from("text"), cc)
 }
-
+doc_set(state, clone(uri), clone(text), version)
+publish_for(state, clone(uri), clone(text))
+}
 fn publish_for(state: LspState, uri: String, text: String) {
-    let snap = analysis::analyze(clone(uri), clone(text))
-    append_framed(state, build_publish_diagnostics(clone(uri), clone(text), snap))
+let snap = analysis::analyze(clone(uri), clone(text))
+append_framed(state, build_publish_diagnostics(clone(uri), clone(text), snap))
 }
-
-// ── Hover & definition (issue #570) ─────────────────────────────────────────
-// Both handlers extract `params.textDocument.uri` and `params.position`,
-// resolve the identifier at that position via `analysis::symbol_at`, and
-// reply with a JSON-RPC response. When no symbol is found they return
-// `null`, which is the LSP idiom for "nothing to show here".
-
 fn build_null_response(id: i32) -> String {
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":null}"))
-    body
+let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+body = concat(body, to_string(id))
+body = concat(body, String_from(",\"result\":null}"))
+body
 }
-
 fn extract_position_field(body: String, key: String) -> i32 {
-    // Find the `"position"` key, then pull `key` (line | character) from
-    // the object that follows. We piggy-back on `extract_int_field` by
-    // searching only the substring starting at the position object.
-    let p = find_key_pos(clone(body), String_from("position"), 0)
-    if p < 0 {
-        return 0
-    }
-    let q = find_key_pos(clone(body), key, p)
-    if q < 0 {
-        return 0
-    }
-    let r = json_skip_ws(clone(body), q)
-    let n = len(body)
-    if r >= n || char_at(body, r) != 58 {
-        return 0
-    }
-    json_parse_int_at(clone(body), r + 1)
+let p = find_key_pos(clone(body), String_from("position"), 0)
+if p < 0 {
+return 0
 }
-
+let q = find_key_pos(clone(body), key, p)
+if q < 0 {
+return 0
+}
+let r = json_skip_ws(clone(body), q)
+let n = len(body)
+if r >= n || char_at(body, r) != 58 {
+return 0
+}
+json_parse_int_at(clone(body), r + 1)
+}
 fn lookup_doc_text(state: LspState, uri: String) -> String {
-    let idx = doc_index_of(state, clone(uri))
-    if idx < 0 {
-        return String_new()
-    }
-    let d = get_unchecked(state.docs, idx)
-    clone(d.text)
+let idx = doc_index_of(state, clone(uri))
+if idx < 0 {
+return String_new()
 }
-
+let d = get_unchecked(state.docs, idx)
+clone(d.text)
+}
 fn build_hover_response(id: i32, markdown: String, start: LspPosition, end: LspPosition) -> String {
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":{\"contents\":{\"kind\":\"markdown\",\"value\":"))
-    body = concat(body, quote_string(markdown))
-    body = concat(body, String_from("},\"range\":{\"start\":{\"line\":"))
-    body = concat(body, to_string(start.line))
-    body = concat(body, String_from(",\"character\":"))
-    body = concat(body, to_string(start.character))
-    body = concat(body, String_from("},\"end\":{\"line\":"))
-    body = concat(body, to_string(end.line))
-    body = concat(body, String_from(",\"character\":"))
-    body = concat(body, to_string(end.character))
-    body = concat(body, String_from("}}}}"))
-    body
+let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+body = concat(body, to_string(id))
+body = concat(body, String_from(",\"result\":{\"contents\":{\"kind\":\"markdown\",\"value\":"))
+body = concat(body, quote_string(markdown))
+body = concat(body, String_from("},\"range\":{\"start\":{\"line\":"))
+body = concat(body, to_string(start.line))
+body = concat(body, String_from(",\"character\":"))
+body = concat(body, to_string(start.character))
+body = concat(body, String_from("},\"end\":{\"line\":"))
+body = concat(body, to_string(end.line))
+body = concat(body, String_from(",\"character\":"))
+body = concat(body, to_string(end.character))
+body = concat(body, String_from("}}}}"))
+body
 }
-
 fn build_definition_response(id: i32, uri: String, start: LspPosition, end: LspPosition) -> String {
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":{\"uri\":"))
-    body = concat(body, quote_string(uri))
-    body = concat(body, String_from(",\"range\":{\"start\":{\"line\":"))
-    body = concat(body, to_string(start.line))
-    body = concat(body, String_from(",\"character\":"))
-    body = concat(body, to_string(start.character))
-    body = concat(body, String_from("},\"end\":{\"line\":"))
-    body = concat(body, to_string(end.line))
-    body = concat(body, String_from(",\"character\":"))
-    body = concat(body, to_string(end.character))
-    body = concat(body, String_from("}}}}"))
-    body
+let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+body = concat(body, to_string(id))
+body = concat(body, String_from(",\"result\":{\"uri\":"))
+body = concat(body, quote_string(uri))
+body = concat(body, String_from(",\"range\":{\"start\":{\"line\":"))
+body = concat(body, to_string(start.line))
+body = concat(body, String_from(",\"character\":"))
+body = concat(body, to_string(start.character))
+body = concat(body, String_from("},\"end\":{\"line\":"))
+body = concat(body, to_string(end.line))
+body = concat(body, String_from(",\"character\":"))
+body = concat(body, to_string(end.character))
+body = concat(body, String_from("}}}}"))
+body
 }
-
 fn handle_hover(state: LspState, body: String) {
-    let id = extract_int_field(clone(body), String_from("id"))
-    let uri = extract_string_field(clone(body), String_from("uri"))
-    let line = extract_position_field(clone(body), String_from("line"))
-    let character = extract_position_field(clone(body), String_from("character"))
-    let text = lookup_doc_text(state, clone(uri))
-    if len(text) == 0 {
-        append_framed(state, build_null_response(id))
-        return
-    }
-    let offset = position_to_offset(clone(text), line, character)
-    let info = analysis::symbol_at(clone(text), offset)
-    if !info.found {
-        append_framed(state, build_null_response(id))
-        return
-    }
-    let md = analysis::render_hover_markdown(info)
-    let start = offset_to_position(clone(text), info.decl_start)
-    let end = offset_to_position(clone(text), info.decl_end)
-    append_framed(state, build_hover_response(id, md, start, end))
+let id = extract_int_field(clone(body), String_from("id"))
+let uri = extract_string_field(clone(body), String_from("uri"))
+let line = extract_position_field(clone(body), String_from("line"))
+let character = extract_position_field(clone(body), String_from("character"))
+let text = lookup_doc_text(state, clone(uri))
+if len(text) == 0 {
+append_framed(state, build_null_response(id))
+return
 }
-
+let offset = position_to_offset(clone(text), line, character)
+let info = analysis::symbol_at(clone(text), offset)
+if !info.found {
+append_framed(state, build_null_response(id))
+return
+}
+let md = analysis::render_hover_markdown(info)
+let start = offset_to_position(clone(text), info.decl_start)
+let end = offset_to_position(clone(text), info.decl_end)
+append_framed(state, build_hover_response(id, md, start, end))
+}
 fn handle_definition(state: LspState, body: String) {
-    let id = extract_int_field(clone(body), String_from("id"))
-    let uri = extract_string_field(clone(body), String_from("uri"))
-    let line = extract_position_field(clone(body), String_from("line"))
-    let character = extract_position_field(clone(body), String_from("character"))
-    let text = lookup_doc_text(state, clone(uri))
-    if len(text) == 0 {
-        append_framed(state, build_null_response(id))
-        return
-    }
-    let offset = position_to_offset(clone(text), line, character)
-    let info = analysis::symbol_at(clone(text), offset)
-    if !info.found {
-        append_framed(state, build_null_response(id))
-        return
-    }
-    let start = offset_to_position(clone(text), info.decl_start)
-    let end = offset_to_position(clone(text), info.decl_end)
-    append_framed(state, build_definition_response(id, uri, start, end))
+let id = extract_int_field(clone(body), String_from("id"))
+let uri = extract_string_field(clone(body), String_from("uri"))
+let line = extract_position_field(clone(body), String_from("line"))
+let character = extract_position_field(clone(body), String_from("character"))
+let text = lookup_doc_text(state, clone(uri))
+if len(text) == 0 {
+append_framed(state, build_null_response(id))
+return
 }
-
-// ── Frame parsing ────────────────────────────────────────────────────────────
-// Parse one Content-Length-framed message starting at `pos`. Returns the
-// body and the position just past the body. If no header is found, returns
-// ("", n) so the caller terminates.
+let offset = position_to_offset(clone(text), line, character)
+let info = analysis::symbol_at(clone(text), offset)
+if !info.found {
+append_framed(state, build_null_response(id))
+return
+}
+let start = offset_to_position(clone(text), info.decl_start)
+let end = offset_to_position(clone(text), info.decl_end)
+append_framed(state, build_definition_response(id, uri, start, end))
+}
 struct FrameResult {
-    body: String,
-    next: i32,
-    ok: bool,
+body: String,
+next: i32,
+ok: bool,
 }
-
 fn parse_frame(input: String, pos: i32) -> FrameResult {
-    let n = len(input)
-    // Skip any leading whitespace (including stray \r\n between messages).
-    let mut p = pos
-    while p < n {
-        let c = char_at(input, p)
-        if c != 32 && c != 9 && c != 10 && c != 13 {
-            break
-        }
-        p = p + 1
-    }
-    if p >= n {
-        return FrameResult { body: String_new(), next: n, ok: false }
-    }
-    // Locate Content-Length header: case-sensitive, terminated by \r\n.
-    // We search until the blank line (\r\n\r\n) which separates headers
-    // from body.
-    let header_end_rel = index_of(substring(clone(input), p, n), String_from("\r\n\r\n"))
-    if header_end_rel < 0 {
-        return FrameResult { body: String_new(), next: n, ok: false }
-    }
-    let header_block = substring(clone(input), p, p + header_end_rel)
-    let cl_idx = index_of(clone(header_block), String_from("Content-Length:"))
-    if cl_idx < 0 {
-        return FrameResult { body: String_new(), next: n, ok: false }
-    }
-    // Parse the integer that follows.
-    let block_len = len(header_block)
-    let mut q = cl_idx + 15
-    while q < block_len {
-        let c = char_at(header_block, q)
-        if c != 32 && c != 9 {
-            break
-        }
-        q = q + 1
-    }
-    let mut clen = 0
-    while q < block_len {
-        let c = char_at(header_block, q)
-        if c < 48 || c > 57 {
-            break
-        }
-        clen = clen * 10 + (c - 48)
-        q = q + 1
-    }
-    let body_start = p + header_end_rel + 4
-    if body_start + clen > n {
-        return FrameResult { body: String_new(), next: n, ok: false }
-    }
-    let body = substring(clone(input), body_start, body_start + clen)
-    FrameResult { body: body, next: body_start + clen, ok: true }
+let n = len(input)
+let mut p = pos
+while p < n {
+let c = char_at(input, p)
+if c != 32 && c != 9 && c != 10 && c != 13 {
+break
 }
-
-// ── Public entry point ───────────────────────────────────────────────────────
+p = p + 1
+}
+if p >= n {
+return FrameResult { body: String_new(), next: n, ok: false }
+}
+let header_end_rel = index_of(substring(clone(input), p, n), String_from("\r\n\r\n"))
+if header_end_rel < 0 {
+return FrameResult { body: String_new(), next: n, ok: false }
+}
+let header_block = substring(clone(input), p, p + header_end_rel)
+let cl_idx = index_of(clone(header_block), String_from("Content-Length:"))
+if cl_idx < 0 {
+return FrameResult { body: String_new(), next: n, ok: false }
+}
+let block_len = len(header_block)
+let mut q = cl_idx + 15
+while q < block_len {
+let c = char_at(header_block, q)
+if c != 32 && c != 9 {
+break
+}
+q = q + 1
+}
+let mut clen = 0
+while q < block_len {
+let c = char_at(header_block, q)
+if c < 48 || c > 57 {
+break
+}
+clen = clen * 10 + (c - 48)
+q = q + 1
+}
+let body_start = p + header_end_rel + 4
+if body_start + clen > n {
+return FrameResult { body: String_new(), next: n, ok: false }
+}
+let body = substring(clone(input), body_start, body_start + clen)
+FrameResult { body: body, next: body_start + clen, ok: true }
+}
 pub fn run_session(input: String) -> String {
-    let state = LspState_new()
-    let n = len(input)
-    let mut pos = 0
-    while pos < n {
-        let f = parse_frame(clone(input), pos)
-        if !f.ok {
-            break
-        }
-        handle_message(state, clone(f.body))
-        pos = f.next
-        if state.exited {
-            break
-        }
-    }
-    state.output
+let state = LspState_new()
+let n = len(input)
+let mut pos = 0
+while pos < n {
+let f = parse_frame(clone(input), pos)
+if !f.ok {
+break
+}
+handle_message(state, clone(f.body))
+pos = f.next
+if state.exited {
+break
+}
+}
+state.output
 }

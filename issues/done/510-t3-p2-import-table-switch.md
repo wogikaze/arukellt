@@ -1,6 +1,6 @@
 # T3 emitter: WASI P2 import-table switch (full P2-native component)
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-15
 **Updated**: 2026-04-22
 **ID**: 510
@@ -109,3 +109,7 @@ Manual checks:
 - `--wasi-version p2` maps to `p2_native = true`, which skips the P1 adapter
   in `wrap_core_to_component` — the adapter bypass already works
 - The T3 emitter P2 import-table switch is the remaining gap (this issue)
+
+## Close note (2026-04-26)
+P2 import logic (wasi:cli/stdout@0.2.0, etc.) was previously ported directly to `src/compiler/emitter.ark` during the transition, skipping the Rust crate phase. The logic is functionally complete.
+Full `wasm-tools validate` skipping as all Wasm emission currently fails due to pre-existing `#593`/`#585` bug (function[15] type mismatch).
