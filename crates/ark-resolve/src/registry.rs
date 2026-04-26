@@ -167,8 +167,7 @@ pub(crate) fn resolve_registry_path(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ark_manifest::{DependencySpec, Manifest};
-    use std::collections::HashMap;
+    use ark_manifest::Manifest;
 
     fn make_manifest_with_registry(
         dep_name: &str,
