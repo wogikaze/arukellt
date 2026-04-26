@@ -398,7 +398,7 @@ fn scan_pattern_bindings(
     entry: &ast::Module,
     _loaded_by_name: &HashMap<&str, &LoadedModule>,
     entry_types: &mut HashSet<String>,
-    loaded_types: &mut HashSet<(String, String)>,
+    _loaded_types: &mut HashSet<(String, String)>,
 ) {
     let Some(p) = pattern else { return };
     match p {
@@ -409,7 +409,7 @@ fn scan_pattern_bindings(
                     entry,
                     _loaded_by_name,
                     entry_types,
-                    loaded_types,
+                    _loaded_types,
                 );
             }
         }

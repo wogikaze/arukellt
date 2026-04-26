@@ -202,6 +202,7 @@ pub(crate) fn resolve_import_path(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn load_module_recursive<F>(
     module_name: String,
     path: PathBuf,
@@ -286,6 +287,7 @@ fn load_module_recursive<F>(
 /// Handles all three import kinds:
 /// - `Simple` / `ModulePath`: load the single module file.
 /// - `DestructureImport { names }`: load each `base::name` sub-module separately.
+#[allow(clippy::too_many_arguments)]
 fn load_single_import<F>(
     import: &ast::Import,
     current_path: &Path,
@@ -349,13 +351,11 @@ fn load_single_import<F>(
             // Registry fallback: if the path was not resolved locally or in
             // stdlib, and the module is a declared registry dependency, invoke
             // the registry resolver (ADR-023, E012x range).
-            if !import_path.exists() {
-                if let Some(reg) = registry {
-                    if reg.is_registry_dep(&target_module_name) {
-                        import_path =
-                            resolve_registry_path(&target_module_name, reg, import.span, sink);
-                    }
-                }
+            if !import_path.exists()
+                && let Some(reg) = registry
+                && reg.is_registry_dep(&target_module_name)
+            {
+                import_path = resolve_registry_path(&target_module_name, reg, import.span, sink);
             }
 
             // `use a::b::item` / `pub use a::b::item` item-import fallback:

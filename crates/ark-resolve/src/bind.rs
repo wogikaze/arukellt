@@ -78,10 +78,10 @@ fn bind_module_impl(
     item_filter: Option<&dyn Fn(&ast::Item) -> bool>,
 ) {
     for item in &module.items {
-        if let Some(pred) = item_filter {
-            if !pred(item) {
-                continue;
-            }
+        if let Some(pred) = item_filter
+            && !pred(item)
+        {
+            continue;
         }
         match item {
             ast::Item::FnDef(f) => {
@@ -231,10 +231,10 @@ fn bind_module_with_qualifier_impl(
     item_filter: Option<&dyn Fn(&ast::Item) -> bool>,
 ) {
     for item in &module.items {
-        if let Some(pred) = item_filter {
-            if !pred(item) {
-                continue;
-            }
+        if let Some(pred) = item_filter
+            && !pred(item)
+        {
+            continue;
         }
         match item {
             ast::Item::FnDef(f) if f.is_pub => {
