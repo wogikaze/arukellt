@@ -1,6 +1,6 @@
 # Selfhost compiler: incremental parse design slice
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-22
 **ID**: 099
@@ -60,3 +60,6 @@ STOP_IF: the requested parser-cache skeleton lives in `src/compiler/*.ark`, whic
 selfhost frontend lane when a bounded design/implementation slice exists. It is
 not blocked by, and should not block, #125/#126 trusted-base compiler default
 path correction or #285/#508/#529 legacy removal / selfhost transition planning.
+
+## Close note (2026-04-26)
+Design doc created at `docs/compiler/incremental-parse-design.md`.

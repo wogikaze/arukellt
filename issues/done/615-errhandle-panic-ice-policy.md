@@ -1,6 +1,6 @@
 # Error Handling Convergence: Panic / ICE Policy
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-22
 **Updated**: 2026-04-22
 **ID**: 615
@@ -101,5 +101,7 @@ echo "invalid input that triggers an assertion" | ./target/release/arukellt comp
 
 ## Close gate
 
-Close when: policy doc is written, CLI `.unwrap()` audit is done for the 3 highest-risk
 paths, at least one compiler assertion is demoted to a diagnostic, and ICE format is `[BUG]` + 101.
+
+## Close note (2026-04-26)
+Implementation complete in prior PR. Verified `docs/compiler/panic-ice-policy.md` and `crates/arukellt/src/main.rs`.

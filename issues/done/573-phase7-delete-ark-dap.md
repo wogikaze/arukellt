@@ -1,6 +1,6 @@
 # 573 — Phase 7: Delete `crates/ark-dap`
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-22
 **Updated**: 2026-04-22
 **ID**: 573
@@ -119,3 +119,15 @@ cargo check --workspace: rc=0
 false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
 remaining references (if any): <list with justification>
 ```
+
+## Close note (2026-04-26)
+
+commit: none
+gates (baseline → post):
+  fixpoint:        skipped → skipped
+  fixture parity:  PASS=0 FAIL=0 SKIP=372 → PASS=0 FAIL=0 SKIP=372
+  cli parity:      PASS=4 FAIL=2       → PASS=4 FAIL=2
+  diag parity:     PASS=0 SKIP=22 FAIL=19 → PASS=0 SKIP=22 FAIL=19
+cargo check --workspace: rc=0
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
+remaining references (if any): none

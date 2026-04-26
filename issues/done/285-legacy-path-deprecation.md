@@ -1,6 +1,6 @@
 # Legacy lowering path を隔離・撤去する
 
-**Status**: open (reviewed 2026-04-22 — deprecation-marker slice complete; remaining removal work re-scoped to #529)
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-04-22
 **ID**: 285
@@ -139,3 +139,6 @@ frontend parser/design lane (#099).
 - `docs/compiler/legacy-path-migration.md`
 - `docs/compiler/legacy-path-status.md`
 - `issues/open/508-legacy-path-removal-unblocked-by.md`
+
+## Close note (2026-04-26)
+Closed per ADR-028. Remaining acceptance items moved to #529. All deprecation markers and reviewer checklist verified.
