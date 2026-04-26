@@ -79,11 +79,11 @@ pub(crate) fn compute_reachability(graph: &ModuleGraph, loaded: &[LoadedModule])
     } else {
         let mut any_pub = false;
         for item in &graph.entry_module.items {
-            if let Item::FnDef(f) = item {
-                if f.is_pub {
-                    queue.push_back(FnSlot::Entry(f.name.clone()));
-                    any_pub = true;
-                }
+            if let Item::FnDef(f) = item
+                && f.is_pub
+            {
+                queue.push_back(FnSlot::Entry(f.name.clone()));
+                any_pub = true;
             }
         }
         if !any_pub {
@@ -210,10 +210,10 @@ fn record_named_type(
             }
         }
         FnSlot::Loaded { module, .. } => {
-            if let Some(m) = loaded_by_name.get(module.as_str()) {
-                if type_named(&m.ast, name) {
-                    loaded_types.insert((module.clone(), name.to_string()));
-                }
+            if let Some(m) = loaded_by_name.get(module.as_str())
+                && type_named(&m.ast, name)
+            {
+                loaded_types.insert((module.clone(), name.to_string()));
             }
         }
     }
@@ -396,7 +396,7 @@ fn scan_block(
 fn scan_pattern_bindings(
     pattern: &Option<Pattern>,
     entry: &ast::Module,
-    loaded_by_name: &HashMap<&str, &LoadedModule>,
+    _loaded_by_name: &HashMap<&str, &LoadedModule>,
     entry_types: &mut HashSet<String>,
     loaded_types: &mut HashSet<(String, String)>,
 ) {
@@ -407,17 +407,15 @@ fn scan_pattern_bindings(
                 scan_pattern_bindings(
                     &Some(sub.clone()),
                     entry,
-                    loaded_by_name,
+                    _loaded_by_name,
                     entry_types,
                     loaded_types,
                 );
             }
         }
-        Pattern::Struct { name, .. } => {
+        Pattern::Struct { name, .. } if type_named(entry, name) => {
             // Struct pattern names a type; treat like Named in entry-only context.
-            if type_named(entry, name) {
-                entry_types.insert(name.clone());
-            }
+            entry_types.insert(name.clone());
         }
         Pattern::Enum { .. } | Pattern::Or { .. } => {
             // Conservative: skip nested enum/or type extraction for this slice.
