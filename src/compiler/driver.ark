@@ -180,7 +180,7 @@ fn load_stdlib_module(stdlib_path: String, state: LoadState) {
     if vec_has(state.loading_stack, clone(stdlib_path)) {
         return
     }
-    let short_name = use_module_short_name(clone(stdlib_path))
+    let short_name = resolver::use_module_short_name(clone(stdlib_path))
     let primary = stdlib_path_to_file(clone(stdlib_path))
     let source_res = fs::read_to_string(clone(primary))
     match source_res {
