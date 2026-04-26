@@ -18,25 +18,79 @@
 //! - `fd_seek`, `fd_tell`, and `fd_fdstat_errno` operate on raw WASI P1 file
 //!   descriptors and are experimental.
 
+pub enum FsError {
+    NotFound(String),
+    PermissionDenied(String),
+    Utf8Error,
+    IoError(String),
+}
+
+pub fn fs_error_message(err: FsError) -> String {
+    match err {
+        FsError::NotFound(path) => concat("not found: ", path),
+        FsError::PermissionDenied(path) => concat("permission denied: ", path),
+        FsError::Utf8Error => "invalid utf-8",
+        FsError::IoError(msg) => msg,
+    }
+}
+
+fn classify_fs_error(raw: String, path: String, op: String) -> FsError {
+    if contains(raw, "No such file") || contains(raw, "not found") || contains(raw, "ENOENT") {
+        return FsError::NotFound(path)
+    }
+    if contains(raw, "Permission denied") || contains(raw, "permission denied") || contains(raw, "EACCES") || contains(raw, "EPERM") {
+        return FsError::PermissionDenied(path)
+    }
+    if contains(raw, "UTF-8") || contains(raw, "utf-8") || contains(raw, "utf8") {
+        return FsError::Utf8Error
+    }
+    FsError::IoError(concat(concat(op, ": "), raw))
+}
+
 /// Reads a UTF-8 text file into memory.
-pub fn read_to_string(path: String) -> Result<String, String> {
-    __intrinsic_fs_read_file(path)
+pub fn read_to_string(path: String) -> Result<String, FsError> {
+    match __intrinsic_fs_read_file(clone(path)) {
+        Result::Ok(text) => Ok(text),
+        Result::Err(raw) => Err(classify_fs_error(raw, path, "read")),
+    }
 }
 
 /// Writes a UTF-8 string to a file, replacing any existing contents.
-pub fn write_string(path: String, contents: String) -> Result<(), String> {
-    __intrinsic_fs_write_file(path, contents)
+pub fn write_string(path: String, contents: String) -> Result<(), FsError> {
+    match __intrinsic_fs_write_file(clone(path), contents) {
+        Result::Ok(_) => Ok(()),
+        Result::Err(raw) => Err(classify_fs_error(raw, path, "write")),
+    }
 }
 
 /// Writes a byte array to a file, replacing any existing contents.
-pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
-    __intrinsic_fs_write_bytes(path, bytes)
+pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), FsError> {
+    match __intrinsic_fs_write_bytes(clone(path), bytes) {
+        Result::Ok(_) => Ok(()),
+        Result::Err(raw) => Err(classify_fs_error(raw, path, "write")),
+    }
 }
 
-/// Read probe / readable-file check: `true` when a full read succeeds; not a path-existence query.
-/// 
-/// Uses the same intrinsic as `read_to_string`. Directories, missing paths, and unreadable paths may
-/// return `false`.
+/// Read-probe semantics — **not** a general path-existence query.
+///
+/// This function attempts a full UTF-8 file read via the same intrinsic as
+/// `read_to_string` (`__intrinsic_fs_read_file`) and returns `true` only when
+/// that read succeeds end-to-end. The result is **best-effort**:
+///
+/// - A `false` result does **not** distinguish between *missing file*,
+///   *permission denied*, *not a regular file* (e.g. a directory or a broken
+///   symlink), *invalid UTF-8 contents*, or *I/O error mid-read*. All of these
+///   collapse to `false`.
+/// - A `true` result means the host could open the path and read it through to
+///   EOF as UTF-8 at the moment of the call. It does **not** imply the path is
+///   writable, that subsequent reads will succeed, or that the file is a
+///   regular file.
+/// - For non-UTF-8 files this returns `false` even when the path does exist.
+///
+/// True path-existence semantics (an lstat/access-style probe that cleanly
+/// separates *missing* from *unreadable*) are tracked under issue #605. Until
+/// that lands, `exists` is intentionally kept as a thin readability probe and
+/// must not be used as a general "does this path exist?" predicate.
 pub fn exists(path: String) -> bool {
     match __intrinsic_fs_read_file(path) {
         Result::Ok(_) => true,

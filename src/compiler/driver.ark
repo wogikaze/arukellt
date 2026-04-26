@@ -63,6 +63,7 @@ struct DriverConfig {
     target: String,
     opt_level: i32,
     emit_mode: String,
+    wasi_version: String,
     wit_paths: Vec<String>,
     dump_tokens: bool,
     dump_ast: bool,
@@ -75,7 +76,7 @@ struct DriverConfig {
 }
 
 pub fn DriverConfig_default() -> DriverConfig {
-    DriverConfig { target: String_from("wasm32-wasi-p2"), opt_level: 0, emit_mode: String_from("wasm"), wit_paths: Vec_new_String(), dump_tokens: false, dump_ast: false, dump_hir: false, dump_mir: false, dump_wasm: false, parse_only: false, check_only: false, source_dir: String_from(".") }
+    DriverConfig { target: String_from("wasm32-wasi-p2"), opt_level: 0, emit_mode: String_from("wasm"), wasi_version: String_from("p1"), wit_paths: Vec_new_String(), dump_tokens: false, dump_ast: false, dump_hir: false, dump_mir: false, dump_wasm: false, parse_only: false, check_only: false, source_dir: String_from(".") }
 }
 
 // ── File Loading ─────────────────────────────────────────────────────────────
@@ -179,7 +180,7 @@ fn load_stdlib_module(stdlib_path: String, state: LoadState) {
     if vec_has(state.loading_stack, clone(stdlib_path)) {
         return
     }
-    let short_name = use_module_short_name(clone(stdlib_path))
+    let short_name = resolver::use_module_short_name(clone(stdlib_path))
     let primary = stdlib_path_to_file(clone(stdlib_path))
     let source_res = fs::read_to_string(clone(primary))
     match source_res {
@@ -266,7 +267,7 @@ fn load_single_module(module_name: String, base_dir: String, state: LoadState) {
             load_imported_modules(mod_decls, clone(base_dir), state)
         },
         Result::Err(e) => {
-            push(state.errors, concat(String_from("failed to load module `"), concat(clone(module_name), concat(String_from("`: "), e))))
+            push(state.errors, concat(String_from("failed to load module `"), concat(clone(module_name), concat(String_from("`: "), fs::fs_error_message(e)))))
         },
     }
     let stack_len = len(state.loading_stack)
@@ -394,7 +395,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     }
     let emit_mode = clone(config.emit_mode)
     if eq(clone(emit_mode), "wat") {
-        let wat_text = emitter::emit_wat(mir_module, clone(config.target), config.opt_level)
+        let wat_text = emitter::emit_wat(mir_module, clone(config.target), config.opt_level, clone(config.wasi_version))
         let mut result = CompileResult_ok(PHASE_EMIT())
         let wat_len = len(wat_text)
         let mut wat_bytes: Vec<i32> = Vec_new_i32()
@@ -407,7 +408,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         result
     } else {
         if eq(clone(emit_mode), "wasm") {
-            let wasm_bytes = emitter::emit_wasm(mir_module, clone(config.target), config.opt_level)
+            let wasm_bytes = emitter::emit_wasm(mir_module, clone(config.target), config.opt_level, clone(config.wasi_version))
             if config.dump_wasm {
                 stdio::eprintln(String_from("=== WASM ==="))
                 stdio::eprintln(concat(String_from("output size: "), concat(to_string(len(wasm_bytes)), String_from(" bytes"))))
@@ -435,7 +436,7 @@ pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
             compile_source(source, config)
         },
         Result::Err(e) => {
-            CompileResult_err(0, concat(String_from("failed to read file: "), e))
+            CompileResult_err(0, concat(String_from("failed to read file: "), fs::fs_error_message(e)))
         },
     }
 }
@@ -500,7 +501,16 @@ fn main() {
                             i = i + 1
                         }
                     } else {
-                        i = i + 1
+                        if eq(clone(flag), String_from("--wasi-version")) {
+                            if i + 1 < argc {
+                                config.wasi_version = get_unchecked(args, i + 1)
+                                i = i + 2
+                            } else {
+                                i = i + 1
+                            }
+                        } else {
+                            i = i + 1
+                        }
                     }
                 }
             }
@@ -516,7 +526,7 @@ fn main() {
             Result::Ok(_) => {
             },
             Result::Err(e) => {
-                stdio::eprintln(concat(String_from("error writing output: "), e))
+                stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
                 process::exit(1)
             },
         }

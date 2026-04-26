@@ -2,15 +2,15 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-25
 **ID**: 125
 **Depends on**: —
 **Track**: pipeline-refactor
 **Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: CoreHIR-default-blocked (issue body: fixtures failing)
+**Orchestration upstream**: #617
 **Blocks v4 exit**: yes
 
-**Status note**: BLOCKED — CoreHIR path fails 378/410 fixtures. Legacy path must remain default.
+**Status note**: BLOCKED — The #529 100% selfhost transition ported the compiler using the `Legacy` pipeline baseline (`Lexer -> ... -> MIR`). The `CoreHIR` architecture (the refactor target) tracked by `#617` does not yet exist natively in the new compiler. This default-path switch is structurally blocked until #617 builds the CoreHIR lowerer.
 
 **Operational lane**: trusted-base compiler default-path correction. Keep separate from #285/#508/#529 legacy removal and from #099 selfhost frontend design.
 

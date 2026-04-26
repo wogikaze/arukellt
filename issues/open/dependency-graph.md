@@ -13,7 +13,6 @@ graph LR
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I051["051 std::time + std::random: 時刻・期間・乱数"]
   I099["099 Selfhost compiler: incremental parse design slice"]
-  I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
@@ -23,7 +22,6 @@ graph LR
   I285["285 Legacy lowering path を隔離・撤去する"]
   I436["436 436-playground-docs-site-integration"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
-  I468["468 468-playground-build-and-publish-path-proof"]
   I469["469 469-extension-playground-surface-points-to-repo-proved-endpoint"]
   I470["470 470-playground-feature-claims-match-implementation"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
@@ -55,7 +53,9 @@ graph LR
   I595["595 Language Surface Uplift: Multi-Clause Function Definitions"]
   I598["598 Language Surface Uplift: Expression-Level Comprehensions"]
   I600["600 Type System Stage-Up: Soundness Floor"]
-  I604["604 Stdlib Baseline: Contract and Facade Honesty"]
+  I605["605 Stdlib Baseline: Host Core-Platform Baseline"]
+  I606["606 Stdlib Baseline: Structured Data and Semantics Baseline"]
+  I607["607 Stdlib Baseline: Collections Hash Hardening"]
   I610["610 Optimization Uplift: Lowering Bottleneck Reduction"]
   I611["611 Optimization Uplift: T3-Safe Runtime Unlock"]
   I613["613 Error Handling Convergence: Stdlib Result Surface"]
@@ -73,16 +73,13 @@ graph LR
   I596["596 Language Surface Uplift: Function-Level Guards"]
   I597["597 Language Surface Uplift: Real `where` Clauses"]
   I601["601 Type System Stage-Up: Type Schemes and Controlled Let-Generalization"]
-  I605["605 Stdlib Baseline: Host Core-Platform Baseline"]
-  I606["606 Stdlib Baseline: Structured Data and Semantics Baseline"]
-  I607["607 Stdlib Baseline: Collections Hash Hardening"]
+  I608["608 Stdlib Baseline: Docs, Verification, and Benchmark Closeout"]
   I612["612 Optimization Uplift: Binary Size Squeeze"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I580["580 580 — Phase 7: Delete `crates/ark-manifest`"]
   I599["599 Language Surface Uplift: Docs, Fixtures, and Rollout"]
   I602["602 Type System Stage-Up: Qualified Constraints and Coherent Trait Solving"]
-  I608["608 Stdlib Baseline: Docs, Verification, and Benchmark Closeout"]
   I076["076 WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
@@ -114,9 +111,9 @@ graph LR
   I595 --> I596
   I595 --> I597
   I600 --> I601
-  I604 --> I605
-  I604 --> I606
-  I604 --> I607
+  I605 --> I608
+  I606 --> I608
+  I607 --> I608
   I611 --> I612
   I510 --> I074
   I121 --> I074
@@ -127,10 +124,6 @@ graph LR
   I597 --> I599
   I598 --> I599
   I601 --> I602
-  I604 --> I608
-  I605 --> I608
-  I606 --> I608
-  I607 --> I608
   I074 --> I076
   I510 --> I076
   I074 --> I077
@@ -174,24 +167,22 @@ graph LR
 
 ## Adjacency list
 
-- **034** depends on: 030, 031, 028b; blocks: none
-- **036** depends on: 033; blocks: none
+- **034** depends on: 030, 031, 028b, 616; blocks: none
+- **036** depends on: 033, 616; blocks: none
 - **044** depends on: 039, 041, 312; blocks: 054, 055
-- **045** depends on: 039, 041; blocks: none
-- **047** depends on: 039, 041; blocks: none
-- **051** depends on: 039, 040; blocks: none
+- **045** depends on: 039, 041, 529; blocks: none
+- **047** depends on: 039, 041, 529; blocks: none
+- **051** depends on: 039, 040, 529; blocks: none
 - **099** depends on: none; blocks: none
-- **108** depends on: 091, 092, 088, 089; blocks: none
 - **112** depends on: 109; blocks: none
 - **123** depends on: none; blocks: none
-- **125** depends on: none; blocks: 126
+- **125** depends on: 617; blocks: 126
 - **204** depends on: none; blocks: none
 - **205** depends on: none; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
 - **285** depends on: 284; blocks: none
 - **436** depends on: none; blocks: none
 - **437** depends on: 431; blocks: none
-- **468** depends on: none; blocks: none
 - **469** depends on: none; blocks: none
 - **470** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
@@ -223,7 +214,9 @@ graph LR
 - **595** depends on: none; blocks: 596, 597, 599
 - **598** depends on: none; blocks: 599
 - **600** depends on: none; blocks: 601
-- **604** depends on: none; blocks: 605, 606, 607, 608
+- **605** depends on: 604; blocks: 608
+- **606** depends on: 604; blocks: 608
+- **607** depends on: 604; blocks: 608
 - **610** depends on: 609; blocks: none
 - **611** depends on: 609; blocks: 612
 - **613** depends on: none; blocks: none
@@ -241,16 +234,13 @@ graph LR
 - **596** depends on: 595; blocks: 599
 - **597** depends on: 595; blocks: 599
 - **601** depends on: 600; blocks: 602, 603
-- **605** depends on: 604; blocks: 608
-- **606** depends on: 604; blocks: 608
-- **607** depends on: 604; blocks: 608
+- **608** depends on: 604, 605, 606, 607; blocks: none
 - **612** depends on: 609, 611; blocks: none
 - **074** depends on: 510, 121; blocks: 076, 077, 124, 139, 474, 475, 476
 - **574** depends on: 564; blocks: 575, 582
 - **580** depends on: 564; blocks: 582
 - **599** depends on: 595, 596, 597, 598; blocks: none
 - **602** depends on: 601; blocks: 603
-- **608** depends on: 604, 605, 606, 607; blocks: none
 - **076** depends on: 074, 510; blocks: 543
 - **077** depends on: 074, 137; blocks: 136
 - **124** depends on: 074; blocks: none

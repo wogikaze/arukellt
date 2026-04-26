@@ -594,7 +594,7 @@ fn emit_section(out: WasmWriter, section_id: i32, contents: WasmWriter) {
 }
 
 // ── Wasm Module Emitter ──────────────────────────────────────────────────────
-fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
+fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32, wasi_version: String) -> Vec<i32> {
     let out = WasmWriter_new()
     emit_byte(out, 0)
     emit_byte(out, 97)
@@ -719,36 +719,71 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     }
     emit_section(out, SEC_TYPE(), type_sec)
     let import_sec = WasmWriter_new()
-    let wasi_module = String_from("wasi_snapshot_preview1")
     emit_leb128_u(import_sec, NUM_WASI_IMPORTS())
-    emit_string(import_sec, clone(wasi_module))
-    emit_string(import_sec, String_from("fd_write"))
-    emit_byte(import_sec, 0)
-    emit_leb128_u(import_sec, 0)
-    emit_string(import_sec, clone(wasi_module))
-    emit_string(import_sec, String_from("args_sizes_get"))
-    emit_byte(import_sec, 0)
-    emit_leb128_u(import_sec, 1)
-    emit_string(import_sec, clone(wasi_module))
-    emit_string(import_sec, String_from("args_get"))
-    emit_byte(import_sec, 0)
-    emit_leb128_u(import_sec, 1)
-    emit_string(import_sec, clone(wasi_module))
-    emit_string(import_sec, String_from("path_open"))
-    emit_byte(import_sec, 0)
-    emit_leb128_u(import_sec, 2)
-    emit_string(import_sec, clone(wasi_module))
-    emit_string(import_sec, String_from("fd_read"))
-    emit_byte(import_sec, 0)
-    emit_leb128_u(import_sec, 0)
-    emit_string(import_sec, clone(wasi_module))
-    emit_string(import_sec, String_from("fd_close"))
-    emit_byte(import_sec, 0)
-    emit_leb128_u(import_sec, 3)
-    emit_string(import_sec, clone(wasi_module))
-    emit_string(import_sec, String_from("proc_exit"))
-    emit_byte(import_sec, 0)
-    emit_leb128_u(import_sec, 4)
+    // T3 emitter: P2-native branch (#510) -- import-table name switch only.
+    // Call-site ABI rewrites are deferred to #121.
+    if eq(clone(wasi_version), String_from("p2")) {
+        // WASI Preview 2 native import names
+        emit_string(import_sec, String_from("wasi:cli/stdout@0.2.0"))
+        emit_string(import_sec, String_from("write"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 0)
+        emit_string(import_sec, String_from("wasi:cli/environment@0.2.0"))
+        emit_string(import_sec, String_from("args-sizes"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 1)
+        emit_string(import_sec, String_from("wasi:cli/environment@0.2.0"))
+        emit_string(import_sec, String_from("arguments"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 1)
+        emit_string(import_sec, String_from("wasi:filesystem/types@0.2.0"))
+        emit_string(import_sec, String_from("open-at"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 2)
+        emit_string(import_sec, String_from("wasi:cli/stdin@0.2.0"))
+        emit_string(import_sec, String_from("read"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 0)
+        emit_string(import_sec, String_from("wasi:filesystem/types@0.2.0"))
+        emit_string(import_sec, String_from("close"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 3)
+        emit_string(import_sec, String_from("wasi:cli/exit@0.2.0"))
+        emit_string(import_sec, String_from("exit"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 4)
+    } else {
+        // WASI Preview 1 -- wasi_snapshot_preview1 (default, unchanged)
+        let wasi_module = String_from("wasi_snapshot_preview1")
+        emit_string(import_sec, clone(wasi_module))
+        emit_string(import_sec, String_from("fd_write"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 0)
+        emit_string(import_sec, clone(wasi_module))
+        emit_string(import_sec, String_from("args_sizes_get"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 1)
+        emit_string(import_sec, clone(wasi_module))
+        emit_string(import_sec, String_from("args_get"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 1)
+        emit_string(import_sec, clone(wasi_module))
+        emit_string(import_sec, String_from("path_open"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 2)
+        emit_string(import_sec, clone(wasi_module))
+        emit_string(import_sec, String_from("fd_read"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 0)
+        emit_string(import_sec, clone(wasi_module))
+        emit_string(import_sec, String_from("fd_close"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 3)
+        emit_string(import_sec, clone(wasi_module))
+        emit_string(import_sec, String_from("proc_exit"))
+        emit_byte(import_sec, 0)
+        emit_leb128_u(import_sec, 4)
+    }
     emit_section(out, SEC_IMPORT(), import_sec)
     let func_sec = WasmWriter_new()
     emit_leb128_u(func_sec, fn_count + needs_wrapper)
@@ -11117,8 +11152,8 @@ fn val_type_to_wasm(vt: i32) -> i32 {
 }
 
 // ── Public API (used by driver) ──────────────────────────────────────────────
-pub fn emit_wasm(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
-    emit_wasm_module(mir, target, opt_level)
+pub fn emit_wasm(mir: MirModule, target: String, opt_level: i32, wasi_version: String) -> Vec<i32> {
+    emit_wasm_module(mir, target, opt_level, wasi_version)
 }
 
 // ── WAT Text Emitter ─────────────────────────────────────────────────────────
@@ -11257,10 +11292,15 @@ fn mir_op_to_wat(inst: MirInst) -> String {
     concat(String_from(";; unknown op "), to_string(inst.op))
 }
 
-pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {
+pub fn emit_wat(mir: MirModule, target: String, opt_level: i32, wasi_version: String) -> String {
     let mut out = String_from("(module\n")
     let fn_count = len(mir.functions)
-    out = concat(out, String_from("  (import \"wasi_snapshot_preview1\" \"fd_write\" (func (param i32 i32 i32 i32) (result i32)))\n"))
+    // WAT output: P2 or P1 import name (#510)
+    if eq(clone(wasi_version), String_from("p2")) {
+        out = concat(out, String_from("  (import \"wasi:cli/stdout@0.2.0\" \"write\" (func (param i32 i32 i32 i32) (result i32)))\n"))
+    } else {
+        out = concat(out, String_from("  (import \"wasi_snapshot_preview1\" \"fd_write\" (func (param i32 i32 i32 i32) (result i32)))\n"))
+    }
     out = concat(out, String_from("  (memory (export \"memory\") 1)\n"))
     let mut fi = 0
     while fi < fn_count {
@@ -11318,7 +11358,7 @@ fn main() {
     let di = MirInst_new(70)
     emit_inst(f, entry, di)
     push(m.functions, f)
-    let bytes = emit_wasm_module(m, String_from("wasm32-wasi-p2"), 0)
+    let bytes = emit_wasm_module(m, String_from("wasm32-wasi-p2"), 0, String_from("p2"))
     let size = len(bytes)
     stdio::println(concat(String_from("Wasm output: "), concat(to_string(size), String_from(" bytes"))))
     if size >= 4 {

@@ -1,4 +1,4 @@
-use crate::{AbiSurface, EmitKind, MemoryModel, TargetId, TargetProfile, WasiProfile};
+use crate::{AbiSurface, EmitKind, MemoryModel, TargetId, TargetProfile, WasiProfile, WasiVersion};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RuntimeModel {
@@ -61,12 +61,17 @@ pub struct BackendPlan {
     pub layout_class: LayoutClass,
     pub capability: EmitCapability,
     pub profile: TargetProfile,
+    pub wasi_version: WasiVersion,
     pub imports: Vec<ImportPlan>,
     pub exports: Vec<ExportPlan>,
     pub requires_backend_validation: bool,
 }
 
-pub fn build_backend_plan(target: TargetId, emit_kind: EmitKind) -> Result<BackendPlan, String> {
+pub fn build_backend_plan(
+    target: TargetId,
+    emit_kind: EmitKind,
+    wasi_version: WasiVersion,
+) -> Result<BackendPlan, String> {
     let profile = target.profile();
 
     // Component emit requires a target with component_model support
@@ -152,11 +157,52 @@ pub fn build_backend_plan(target: TargetId, emit_kind: EmitKind) -> Result<Backe
     }];
 
     match runtime_model {
-        RuntimeModel::T1LinearP1 | RuntimeModel::T3WasmGcP2 => {
+        RuntimeModel::T1LinearP1 => {
+            // T1: always WASI Preview 1
             imports.push(ImportPlan {
                 module: "wasi_snapshot_preview1".to_string(),
                 name: "fd_write".to_string(),
             });
+        }
+        RuntimeModel::T3WasmGcP2 => {
+            // T3: branch on wasi_version (#510)
+            if wasi_version == WasiVersion::P2 {
+                // P2-native: WASI Preview 2 interface import names
+                imports.push(ImportPlan {
+                    module: "wasi:cli/stdout@0.2.0".to_string(),
+                    name: "write".to_string(),
+                });
+                imports.push(ImportPlan {
+                    module: "wasi:cli/environment@0.2.0".to_string(),
+                    name: "args-sizes".to_string(),
+                });
+                imports.push(ImportPlan {
+                    module: "wasi:cli/environment@0.2.0".to_string(),
+                    name: "arguments".to_string(),
+                });
+                imports.push(ImportPlan {
+                    module: "wasi:filesystem/types@0.2.0".to_string(),
+                    name: "open-at".to_string(),
+                });
+                imports.push(ImportPlan {
+                    module: "wasi:cli/stdin@0.2.0".to_string(),
+                    name: "read".to_string(),
+                });
+                imports.push(ImportPlan {
+                    module: "wasi:filesystem/types@0.2.0".to_string(),
+                    name: "close".to_string(),
+                });
+                imports.push(ImportPlan {
+                    module: "wasi:cli/exit@0.2.0".to_string(),
+                    name: "exit".to_string(),
+                });
+            } else {
+                // P1 fallback for T3 (wasi_snapshot_preview1, unchanged)
+                imports.push(ImportPlan {
+                    module: "wasi_snapshot_preview1".to_string(),
+                    name: "fd_write".to_string(),
+                });
+            }
         }
         RuntimeModel::T2Freestanding => {
             exports.push(ExportPlan {
@@ -179,6 +225,7 @@ pub fn build_backend_plan(target: TargetId, emit_kind: EmitKind) -> Result<Backe
         layout_class,
         capability,
         profile,
+        wasi_version,
         imports,
         exports,
         requires_backend_validation: !matches!(emit_kind, EmitKind::Wit),
@@ -215,7 +262,8 @@ mod tests {
 
     #[test]
     fn t1_core_wasm_plan_uses_linear_runtime() {
-        let plan = build_backend_plan(TargetId::Wasm32WasiP1, EmitKind::CoreWasm).unwrap();
+        let plan = build_backend_plan(TargetId::Wasm32WasiP1, EmitKind::CoreWasm, WasiVersion::P1)
+            .unwrap();
         assert_eq!(plan.runtime_model, RuntimeModel::T1LinearP1);
         assert_eq!(plan.capability, EmitCapability::CoreWasm);
         assert!(plan_matches_target_profile(&plan));
@@ -223,14 +271,20 @@ mod tests {
 
     #[test]
     fn t3_core_wasm_plan_uses_completed_runtime() {
-        let plan = build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::CoreWasm).unwrap();
+        let plan = build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::CoreWasm, WasiVersion::P1)
+            .unwrap();
         assert_eq!(plan.runtime_model, RuntimeModel::T3WasmGcP2);
         assert!(plan_matches_target_profile(&plan));
     }
 
     #[test]
     fn t2_core_wasm_plan_uses_scaffold_runtime() {
-        let plan = build_backend_plan(TargetId::Wasm32Freestanding, EmitKind::CoreWasm).unwrap();
+        let plan = build_backend_plan(
+            TargetId::Wasm32Freestanding,
+            EmitKind::CoreWasm,
+            WasiVersion::P1,
+        )
+        .unwrap();
         assert_eq!(plan.runtime_model, RuntimeModel::T2Freestanding);
         assert!(plan.exports.iter().any(|export| export.name == "memory"));
         assert!(plan_matches_target_profile(&plan));
@@ -238,7 +292,8 @@ mod tests {
 
     #[test]
     fn component_emit_plan_uses_component_capability() {
-        let plan = build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::Component).unwrap();
+        let plan = build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::Component, WasiVersion::P1)
+            .unwrap();
         assert_eq!(plan.capability, EmitCapability::Component);
         assert_eq!(plan.runtime_model, RuntimeModel::T3WasmGcP2);
         assert!(plan_matches_target_profile(&plan));
@@ -246,7 +301,8 @@ mod tests {
 
     #[test]
     fn component_emit_rejected_for_t1() {
-        let err = build_backend_plan(TargetId::Wasm32WasiP1, EmitKind::Component).unwrap_err();
+        let err = build_backend_plan(TargetId::Wasm32WasiP1, EmitKind::Component, WasiVersion::P1)
+            .unwrap_err();
         assert!(err.contains("component model requires"));
     }
 }

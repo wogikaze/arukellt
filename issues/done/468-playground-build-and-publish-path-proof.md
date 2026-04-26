@@ -93,3 +93,16 @@ deploy proof は product entrypoint と別層であり、future deploy plan を 
 ## False-done risk if merged incorrectly
 
 high — prose-only deployment strategy が shipped infrastructure に見えてしまう。
+
+---
+
+## Closed -- 2026-04-25
+
+Evidence: wasm compiled and publish path proven in commit 1be20b32.
+- Build: cd playground && npm run build:wasm -- exit 0
+- Artifact: crates/ark-playground-wasm/pkg/ark_playground_wasm_bg.wasm (568248 bytes)
+- App build: npm run build:app -- exit 0; output in docs/playground/wasm/ and docs/playground/dist/
+- Deploy: .github/workflows/pages.yml uses upload-pages-artifact@v3 with path ./docs
+- Proof record: docs/playground/build-path-proof.md in HEAD
+
+Close gate met: concrete files enumerated; workflow/build/output alignment confirmed.

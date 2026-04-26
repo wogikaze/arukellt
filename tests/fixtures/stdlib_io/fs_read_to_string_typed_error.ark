@@ -1,0 +1,14 @@
+use std::host::fs
+use std::host::stdio
+
+fn main() {
+    match fs::read_to_string("typed_missing_read.txt") {
+        Result::Ok(_) => stdio::println("unexpected-ok"),
+        Result::Err(err) => match err {
+            fs::FsError::NotFound(path) => stdio::println(concat("not-found:", path)),
+            fs::FsError::PermissionDenied(path) => stdio::println(concat("permission-denied:", path)),
+            fs::FsError::Utf8Error => stdio::println("utf8-error"),
+            fs::FsError::IoError(msg) => stdio::println(concat("io-error:", msg)),
+        },
+    }
+}

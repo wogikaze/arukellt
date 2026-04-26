@@ -1,0 +1,1 @@
+{"code":"E0001","severity":"error","span":{"file":"foo.ark","line":3,"col":7},"message":"unexpected token"}

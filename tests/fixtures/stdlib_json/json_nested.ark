@@ -23,7 +23,7 @@ fn main() {
                 None => stdio::println("key not found"),
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("[10,20,30]") {
         Result::Ok(arr) => {
@@ -46,7 +46,7 @@ fn main() {
                 None => stdio::println("index not found"),
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
 }
 // json_get: access object field

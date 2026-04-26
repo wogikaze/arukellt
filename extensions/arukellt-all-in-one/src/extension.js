@@ -448,8 +448,8 @@ function parseStderrDiagnostics(stderr) {
     const resolved = path.isAbsolute(filePath)
       ? filePath
       : (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
-          ? path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, filePath)
-          : filePath)
+        ? path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, filePath)
+        : filePath)
     const uri = vscode.Uri.file(resolved)
     const key = uri.toString()
     if (!diagnosticsMap.has(key)) diagnosticsMap.set(key, { uri, diags: [] })
@@ -544,8 +544,8 @@ async function buildComponent() {
         const base = path.basename(file, '.ark')
         const outputs = [
           { ext: '.wasm', label: 'Component Wasm' },
-          { ext: '.wit',  label: 'WIT interface'  },
-          { ext: '.wat',  label: 'WAT text'        },
+          { ext: '.wit', label: 'WIT interface' },
+          { ext: '.wat', label: 'WAT text' },
         ]
         for (const out of outputs) {
           const outPath = path.join(dir, base + out.ext)
@@ -768,12 +768,6 @@ function registerCommands(context) {
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.showSetupDoctor', showSetupDoctor))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.showCommandGraph', showCommandGraph))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.showEnvironmentDiff', showEnvironmentDiff))
-  context.subscriptions.push(vscode.commands.registerCommand('arukellt.openDocs', (name) => {
-    vscode.window.showInformationMessage(`Opening documentation for ${name}...`)
-  }))
-  context.subscriptions.push(vscode.commands.registerCommand('arukellt.explainCode', (name) => {
-    vscode.window.showInformationMessage(`Explaining code for ${name}...`)
-  }))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.showPipeline', showPipeline))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.securityReview', showSecurityReview))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.showOutput', () => {

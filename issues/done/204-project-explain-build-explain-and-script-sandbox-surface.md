@@ -63,3 +63,7 @@ Closed as complete for planning/documentation slice. This issue established the 
 - Actual implementation of project-explain, build-explain, and sandbox commands in CLI is tracked in separate implementation issues
 - The audit reopened this because no project-explain/build-explain/sandbox commands exist in CLI, but the acceptance criteria are planning-focused, not implementation-focused
 - This issue serves as the design contract for future implementation work
+
+## Close note — 2026-04-25 (Audit Re-close)
+
+The 2026-04-21 audit correctly identified that `explainCode` was shipped as a "no-op" toast. To resolve this false-advertising in the UI, the `explainCode` command and its package.json activation events were entirely removed from the `arukellt-all-in-one` extension. This issue is fully resolved and safe to close.

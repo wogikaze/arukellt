@@ -38,10 +38,10 @@ fn main() {
                         None => stdio::println("index not found"),
                     }
                 },
-                Result::Err(e) => stdio::println(concat("re-parse error:", e)),
+                Result::Err(e) => stdio::println(concat("re-parse error:", json::parse_error_message(e))),
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
 }
 // array round-trip: parse → index → stringify → re-parse → index

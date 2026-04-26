@@ -9,6 +9,7 @@ use std::host::process
 use std::host::stdio
 
 use analysis
+use diagnostics
 use driver
 use lsp
 
@@ -359,9 +360,37 @@ fn format_error_phased(file: String, phase: i32, msg: String) -> String {
     concat(clone(file), concat(String_from(": "), concat(phase_error_tag(phase), msg)))
 }
 
+fn phase_error_code(phase: i32) -> String {
+    if phase == 1 {
+        return String_from("E0001")
+    }
+    if phase == 2 {
+        return String_from("E0001")
+    }
+    if phase == 3 {
+        return String_from("E0100")
+    }
+    if phase == 4 {
+        return String_from("E0200")
+    }
+    if phase == 5 {
+        return String_from("E0400")
+    }
+    if phase == 6 {
+        return String_from("E0500")
+    }
+    String_from("E0000")
+}
+
+fn format_error_json_diag(file: String, phase: i32, msg: String) -> String {
+    let span = diagnostics::DiagnosticSpan_new(clone(file), 0, 0)
+    let diag = diagnostics::Diagnostic_new(phase_error_code(phase), diagnostics::SEV_ERROR(), span, msg)
+    diagnostics::diagnostic_to_json(diag)
+}
+
 fn format_error_json(file: String, phase: i32, messages: Vec<String>) -> String {
     let mut out = String_from("{\"file\":\"")
-    out = concat(out, concat(clone(file), String_from("\",\"phase\":")))
+    out = concat(out, concat(diagnostics::diag_json_escape(clone(file)), String_from("\",\"phase\":")))
     out = concat(out, concat(to_string(phase), String_from(",\"diagnostics\":[")))
     let count = len(messages)
     let mut i = 0
@@ -370,7 +399,7 @@ fn format_error_json(file: String, phase: i32, messages: Vec<String>) -> String 
             out = concat(out, String_from(","))
         }
         let msg = get_unchecked(messages, i)
-        out = concat(out, concat(String_from("{\"severity\":\"error\",\"message\":\""), concat(clone(msg), String_from("\"}"))))
+        out = concat(out, format_error_json_diag(clone(file), phase, clone(msg)))
         i = i + 1
     }
     out = concat(out, String_from("]}"))
@@ -454,7 +483,7 @@ fn cmd_lsp(opts: CliOptions) {
             stdio::print(out)
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error: failed to read "), concat(clone(input_file), concat(String_from(": "), e))))
+            stdio::eprintln(concat(String_from("error: failed to read "), concat(clone(input_file), concat(String_from(": "), fs::fs_error_message(e)))))
             process::exit(1)
         },
     }
@@ -476,7 +505,7 @@ fn cmd_ide_analyze(opts: CliOptions) {
             stdio::print(analysis::snapshot_summary(snap))
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error: failed to read "), concat(clone(input_file), concat(String_from(": "), e))))
+            stdio::eprintln(concat(String_from("error: failed to read "), concat(clone(input_file), concat(String_from(": "), fs::fs_error_message(e)))))
             process::exit(1)
         },
     }
@@ -519,7 +548,7 @@ fn cmd_compile(opts: CliOptions) {
                     }
                 },
                 Result::Err(e) => {
-                    stdio::eprintln(concat(String_from("error writing output: "), e))
+                    stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
                     process::exit(1)
                 },
             }
@@ -588,7 +617,7 @@ fn cmd_run(opts: CliOptions) {
             stdio::eprintln(String_from("run: execute with `wasmtime <output.wasm>`"))
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error writing output: "), e))
+            stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
             process::exit(1)
         },
     }
@@ -650,7 +679,7 @@ fn cmd_build(opts: CliOptions) {
                         stdio::eprintln(concat(String_from("built "), concat(clone(entry), concat(String_from(" -> "), concat(clone(out_path), concat(String_from(" ("), concat(to_string(len(result.output_bytes)), String_from(" bytes)"))))))))
                     },
                     Result::Err(e) => {
-                        stdio::eprintln(concat(String_from("error writing output: "), e))
+                        stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
                         process::exit(1)
                     },
                 }
@@ -666,7 +695,7 @@ fn cmd_build(opts: CliOptions) {
             }
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error: cannot read "), concat(clone(manifest_path), concat(String_from(": "), e))))
+            stdio::eprintln(concat(String_from("error: cannot read "), concat(clone(manifest_path), concat(String_from(": "), fs::fs_error_message(e)))))
             process::exit(1)
         },
     }

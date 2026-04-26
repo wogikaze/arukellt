@@ -581,16 +581,15 @@ fn main() {
 use std::host::fs
 use std::host::stdio
 fn main() {
-    let w: Result<(), String> = fs::write_string("test_output.txt", "hello from arukellt")
+    let w = fs::write_string("test_output.txt", "hello from arukellt")
     match w {
-        Ok(_) => stdio::println(String_from("write ok")),
-        Err(e) => stdio::println(e),
+        Result::Ok(_) => stdio::println(String_from("write ok")),
+        Result::Err(e) => stdio::println(fs::fs_error_message(e)),
     }
-
-    let r: Result<String, String> = fs::read_to_string("test_output.txt")
+    let r = fs::read_to_string("test_output.txt")
     match r {
-        Ok(content) => stdio::println(content),
-        Err(e) => stdio::println(e),
+        Result::Ok(content) => stdio::println(content),
+        Result::Err(e) => stdio::println(fs::fs_error_message(e)),
     }
 }
 ```

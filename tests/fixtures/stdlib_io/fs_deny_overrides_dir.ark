@@ -2,7 +2,7 @@ use std::host::fs
 use std::host::stdio
 
 fn main() {
-    let r: Result<String, String> = fs::read_to_string("test.txt")
+    let r = fs::read_to_string("test.txt")
     match r {
         Result::Ok(content) => stdio::println(content),
         Result::Err(e) => stdio::println("deny-fs overrides dir"),

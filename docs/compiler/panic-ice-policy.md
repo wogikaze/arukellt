@@ -105,6 +105,107 @@ runtime trap を起こすケース。
 - [ADR-015: No-Panic Quality Standard for User-Facing Paths](../adr/ADR-015-no-panic-in-user-paths.md)
   — `unwrap` / `expect` / `panic!` の禁止パターンと許容パターン
 
+## Audit notes (#615 implementation slice)
+
+This section records the empirical audit performed during the #615
+implementation slice and is intentionally kept terse — it is the
+auditable trail that closes acceptance criteria #2, #3, #4.
+
+### CLI structured-error sites (criterion #2 — already in compliance)
+
+The `arukellt` CLI shim (`crates/arukellt/src/main.rs`) was audited for
+bare `.unwrap()` / `.expect()` / `panic!` on user-input paths. The two
+genuinely fallible host-interaction paths already use the structured
+`eprintln!("...") + ExitCode::from(...)` pattern required by §4:
+
+- `crates/arukellt/src/main.rs:135-145` — selfhost wasm not found.
+  Emits a multi-line `arukellt: selfhost wasm not found.` message
+  pointing the user at the build script and the `ARUKELLT_SELFHOST_WASM`
+  override, then returns `ExitCode::from(127)`.
+- `crates/arukellt/src/main.rs:181-187` — `wasmtime` binary not on
+  `PATH`. Emits `arukellt: failed to invoke wasmtime (is it on PATH?)`
+  with an install hint and returns `ExitCode::from(127)`.
+
+The other `unwrap_or` / `unwrap_or_else` call sites in the shim are on
+infallible-fallback paths (default cwd, default exit code clamping) and
+are not user-input failures, so §4 does not require them to change.
+
+Criterion #2 is therefore satisfied by **existing** code; no rewrite was
+needed for this slice.
+
+### ICE output format (criterion #4 — implemented)
+
+`crates/arukellt/src/main.rs` now provides:
+
+- `report_ice(reason: &str) -> ExitCode` — emits the policy-mandated
+  `[BUG] internal compiler error: <reason>` line, the issue-report URL,
+  and the `RUST_BACKTRACE=1` hint, then returns `ExitCode::from(101)`.
+- `classify_child_exit(code: Option<i32>) -> Result<u8, String>` —
+  classifies the wasmtime child's exit. Signal-killed (`None`) and
+  shell-encoded fatal-signal exits (132/133/134/136/138/139) are routed
+  to `report_ice`. Code `101` is passed through verbatim, trusting any
+  upstream `[BUG]` line emitted by the selfhost compiler itself so the
+  shim never double-prepends.
+- `ARUKELLT_ICE_SMOKE` env-var hook — when set, `main()` short-circuits
+  to `report_ice(...)` before launching wasmtime. This makes the policy
+  format end-to-end testable without having to actually crash the
+  compiler.
+
+Smoke test (recorded for the #615 slice):
+
+```text
+$ ARUKELLT_ICE_SMOKE=1 ./target/release/arukellt --help
+[BUG] internal compiler error: ARUKELLT_ICE_SMOKE hook fired (synthetic ICE for policy smoke test)
+  please report this at: https://github.com/wogikaze/arukellt/issues/new
+  hint: re-run with RUST_BACKTRACE=1 for a full trace
+$ echo $?
+101
+```
+
+Unit-test coverage lives at the bottom of `crates/arukellt/src/main.rs`
+(`mod tests`) and asserts each branch of `classify_child_exit`.
+
+### Compiler-side assertion → diagnostic conversion (criterion #3)
+
+**Status: blocked / not applicable in the current tree.**
+
+The work order for this slice asked for at least one compiler-side
+`panic!` / `unreachable!` / `assert!` reachable from user input to be
+converted into a structured diagnostic. An audit of the current
+compiler-core surface found nothing eligible:
+
+- The legacy Rust compiler driver (`ark-driver`) and MIR crate
+  (`ark-mir`) were retired in #560 / #561, so the historical Rust call
+  sites that did contain raw `panic!` / `unreachable!` no longer exist
+  in the tree.
+- The active selfhost compiler (`src/compiler/*.ark`) does not have a
+  Rust-style `panic!` macro at all — by construction it cannot use one.
+  The only `assert` / `assert_eq` etc. tokens in `src/compiler/` are
+  *builtin name registrations* in `resolver.ark` (so user code can call
+  them), not actual call sites in the compiler.
+- The remaining Rust compiler-core crates still in the workspace
+  (`ark-lexer`, `ark-parser`, `ark-resolve`, `ark-typecheck`,
+  `ark-hir`, `ark-diagnostics`) contain only:
+  - `assert!` / `assert_eq!` inside `#[cfg(test)]` modules (not user
+    paths),
+  - two `unreachable!()` in `crates/ark-lexer/src/scan.rs:265,282`
+    inside `lex_doc_comment`. Both are guarded by the caller's
+    pre-check that the next two bytes are `///` or `//!`, so they are
+    structurally unreachable from any user input.
+  - a `panic!` in `crates/ark-resolve/build.rs:13` that runs at *build*
+    time, not at user-compile time.
+
+There is therefore no compiler-side assertion in the current tree that
+fires on valid user input and that this slice could honestly demote to
+a structured diagnostic. Per the work order's `STOP_IF` clause this
+criterion is recorded as **blocked-not-applicable** and is folded into
+the broader compiler-core hygiene tracked separately.
+
+If a future change reintroduces a Rust-side compiler invariant on the
+user-input path (e.g. a new MIR validator written in Rust rather than
+selfhost), it should be added under this section as a new conversion
+candidate.
+
 ## このスライスの範囲外 (将来の #615 スライス)
 
 このドキュメントは [#615](../../issues/) の acceptance criterion #1 のみを

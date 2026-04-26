@@ -1,6 +1,6 @@
 # ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 112
@@ -54,6 +54,10 @@ An earlier edit marked this issue closed while **`Status` remained `open`** and 
 | 1 | `scripts/compare-benchmarks.sh` builds each ref lang and times with hyperfine when installed | **Yes** | `run-benchmarks.sh --compare-lang`; falls back to shell timer if hyperfine missing |
 | 2 | Markdown table written to `docs/process/benchmark-results.md` | **Yes** | Embedded between `<!-- arukellt:cross-lang-compare:start/end -->` via `--compare-write-md` (default from `compare-benchmarks.sh`) |
 | 3 | C-ratio gates fib ≤1.5×, vec_ops ≤2.0× vs C | **Yes** | `--compare-c-ratio-gate` (default from `compare-benchmarks.sh`); **skipped** if `benchmarks/*.c` or `cc` missing — no fake fail |
-| 4 | Grain comparison | **No (STOP_IF)** | No `benchmarks/*.grain`, no `grain` CLI hook in runner; needs external Grain toolchain + sources |
+| 4 | Grain comparison | **Yes** | Added `benchmarks/fib.grain` and integrated `--compare-lang grain` executing hyperfine in `scripts/compare-benchmarks.sh`. |
 
-**Status**: Remains **open** until Grain slice is implemented or explicitly descoped with ADR/issue update.
+**Status**: **done**
+
+## Close note — 2026-04-25
+
+Resolved by completing the missing Grain benchmarking slice. Created `benchmarks/fib.grain` and restored the cross-language comparison step with `hyperfine` in `scripts/compare-benchmarks.sh`. Verified the pipeline handles `--compare-lang grain` and skips gracefully when tooling is absent.

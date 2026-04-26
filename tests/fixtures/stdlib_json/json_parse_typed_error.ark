@@ -1,0 +1,14 @@
+use std::host::stdio
+use std::json
+
+fn main() {
+    match json::parse("tru") {
+        Result::Ok(v) => stdio::println(json::stringify(v)),
+        Result::Err(err) => match err {
+            json::JsonParseError::EmptyInput => stdio::println("empty-input"),
+            json::JsonParseError::InvalidLiteral(kind) => stdio::println(concat("invalid-literal:", kind)),
+            json::JsonParseError::TrailingCharacters => stdio::println("trailing-characters"),
+            json::JsonParseError::UnexpectedCharacter(ch) => stdio::println(concat("unexpected-char:", i32_to_string(ch))),
+        },
+    }
+}

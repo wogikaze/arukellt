@@ -39,25 +39,45 @@ let parsed = json_parse_i32("42")    // 42
 - Manifest-backed functions: 22
 - Stability: experimental 22
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+JSON parser/serializer for `std::json`.
+
+**Status: partial / experimental — see #604 / #606.**
+
+This module is not a full JSON DOM. It provides a bounded set of
+stringify/parse helpers plus a tagged `JsonValue` whose Array and
+Object variants store their *raw JSON text* to avoid recursive type
+constraints. Nested access through `json_get` / `json_get_index`
+therefore re-parses the raw text on demand rather than walking a
+pre-built tree.
+
+### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+
+- Only the documented primitive helpers and the `JsonValue` surface are
+stable subsets; deeply nested structures, schema validation, and
+streaming parse are out of scope here.
+- Legacy primitive stringify/parse helpers (`json_stringify_i32`,
+`json_parse_i32`, etc.) are preserved for backward compatibility
+with existing fixtures and are not a complete typed serializer.
+- A full structured JSON facade is tracked under #606.
 
 ### Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
 | `JsonValue` | `struct` | Tagged container for a JSON value. |
+| `JsonParseError` | `enum` | - |
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `json_stringify_i32` | `(i32) -> String` | `experimental` | JSON parser/serializer for std::json. |
+| `json_stringify_i32` | `(i32) -> String` | `experimental` | Stringify an i32 as a JSON number. |
 | `json_stringify_bool` | `(bool) -> String` | `experimental` | Stringify a bool as a JSON boolean literal. |
 | `json_stringify_string` | `(String) -> String` | `experimental` | Stringify a string by wrapping it in double quotes. |
 | `json_null` | `() -> String` | `experimental` | Return the JSON null literal. |
 | `json_parse_i32` | `(String) -> i32` | `experimental` | Parse a decimal integer from a JSON number string. |
 | `json_parse_bool` | `(String) -> bool` | `experimental` | Parse "true"/"false" into a bool. |
-| `parse` | `(String) -> Result<JsonValue, String>` | `experimental` | Parse a full JSON document from s and reject trailing non-whitespace after |
+| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | Parse a full JSON document from s and reject trailing non-whitespace after |
 | `stringify` | `(JsonValue) -> String` | `experimental` | Serialize a JsonValue back to its JSON text. |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | Serialize a JsonValue with newlines and indentation for arrays and objects. |
 | `is_null` | `(JsonValue) -> bool` | `experimental` | - |

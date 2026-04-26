@@ -7,8 +7,8 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 389 | Backward-compatible within a major version. Safe for production use. |
-| [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
+| [stable](#stable-apis) | 386 | Backward-compatible within a major version. Safe for production use. |
+| [provisional](#provisional-apis) | 8 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 175 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 25 | Superseded — see migration guidance. |
 
@@ -463,13 +463,13 @@ match home { Some(p) => println(p), None => println("not set") }
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `exists` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_to_string);… |
+| `exists` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | Read-probe semantics — NOT a general path-existence query. Attempts a full UTF-8 file read via the s… |
 | `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
 | `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
-| `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
-| `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
+| `read_to_string` | `(String) -> Result<String, FsError>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), FsError>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
+| `write_string` | `(String, String) -> Result<(), FsError>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
 
 ### `read_to_string` — `std::host::fs`
 
@@ -665,7 +665,7 @@ Expected output: `Hello, world!`
 | `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `parse` | `(String) -> Result<JsonValue, String>` | `std::json` | `experimental` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
+| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `std::json` | `experimental` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
 | `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged. |
 
@@ -1147,7 +1147,7 @@ Expected output: `hello world`
 | `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - | - |
 | `exists` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); no… |
-| `exists` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_to_string);… |
+| `exists` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | Read-probe semantics — NOT a general path-existence query. Attempts a full UTF-8 file read via the s… |
 | `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
 | `exit` | `(i32) -> ()` | `std::process` | `stable` | `builtin` | no | - | Terminate the process with the given exit code. |
 | `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
@@ -1308,7 +1308,6 @@ Expected output: `hello world`
 | `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
 | `read_stdin_line` | `() -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
-| `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
 | `read_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
 | `read_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
 | `read_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes little-endian from a ByteCursor. Returns -1 on underflow. |
@@ -1391,9 +1390,7 @@ Expected output: `hello world`
 | `var_or_default` | `(String, String) -> String` | `std::env` | `stable` | `builtin` | no | - | Return the environment variable value, or the default when absent. |
 | `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
-| `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
 | `write_string` | `(Vec<i32>, String) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `writer_new` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
@@ -1411,8 +1408,11 @@ Expected output: `hello world`
 | `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
 | `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `builtin` | no | - | - |
 | `get` | `(String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p1, wasm32-wasi-p2)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:… |
+| `read_to_string` | `(String) -> Result<String, FsError>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
 | `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p1, wasm32-wasi-p2)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
 | `send` | `(String, i32, String) -> Result<i32, String>` | `std::host::udp` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_udp_send` | Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success. |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), FsError>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
+| `write_string` | `(String, String) -> Result<(), FsError>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
 
 ## Experimental APIs
 
@@ -1531,7 +1531,7 @@ Expected output: `hello world`
 | `op_nop` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: nop (0x01). |
 | `op_return` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: return (0x0f). |
 | `op_unreachable` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: unreachable (0x00). |
-| `parse` | `(String) -> Result<JsonValue, String>` | `std::json` | `experimental` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
+| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `std::json` | `experimental` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
 | `reftype_externref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Reference type byte for externref. |
 | `reftype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Reference type byte for funcref. |
 | `rope_delete` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Delete bytes [start, end) from the Rope, returning the new Rope. |

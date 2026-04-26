@@ -1,0 +1,148 @@
+// Arukellt Selfhost — Structured Diagnostics (issue #614)
+//
+// Minimal structured diagnostic model for the self-hosted compiler.
+// Phase 1 (this file) defines the data type, a constructor, and a
+// JSON serialization helper. Phase migration of parser/typechecker
+// onto this struct is tracked separately under #614 follow-up slices.
+//
+// JSON shape:
+//   {"code":"E0001","severity":"error","span":{"file":"foo.ark","line":3,"col":7},"message":"bad token"}
+//
+// Severity is encoded as a small i32 tag (selfhost convention) with
+// stringification routed through `severity_name`. The Diagnostic value
+// itself is plain data with no behaviour beyond construction and
+// serialization, so consumers (CLI JSON output, fixture expectations,
+// future LSP mapping) can match on stable fields.
+
+// ── Severity tags ────────────────────────────────────────────────────────────
+
+pub fn SEV_ERROR() -> i32 {
+    1
+}
+
+pub fn SEV_WARNING() -> i32 {
+    2
+}
+
+pub fn SEV_NOTE() -> i32 {
+    3
+}
+
+pub fn severity_name(sev: i32) -> String {
+    if sev == SEV_ERROR() {
+        return String_from("error")
+    }
+    if sev == SEV_WARNING() {
+        return String_from("warning")
+    }
+    if sev == SEV_NOTE() {
+        return String_from("note")
+    }
+    String_from("unknown")
+}
+
+// ── Span ────────────────────────────────────────────────────────────────────
+struct DiagnosticSpan {
+    file: String,
+    line: i32,
+    column: i32,
+}
+
+pub fn DiagnosticSpan_new(file: String, line: i32, column: i32) -> DiagnosticSpan {
+    DiagnosticSpan { file: file, line: line, column: column }
+}
+
+// ── Diagnostic ──────────────────────────────────────────────────────────────
+struct Diagnostic {
+    code: String,
+    severity: i32,
+    span: DiagnosticSpan,
+    message: String,
+}
+
+// Constructor.
+pub fn Diagnostic_new(code: String, severity: i32, span: DiagnosticSpan, message: String) -> Diagnostic {
+    Diagnostic { code: code, severity: severity, span: span, message: message }
+}
+
+// ── JSON serialization helpers ──────────────────────────────────────────────
+
+// Escape a String for inclusion as a JSON string body (no surrounding quotes).
+// Handles ", \, \n, \r, \t, and control chars below U+0020.
+pub fn diag_json_escape(s: String) -> String {
+    let n = len(s)
+    let mut out = String_new()
+    let mut i = 0
+    while i < n {
+        let c = char_at(s, i)
+        if c == 34 {
+            out = concat(out, String_from("\\\""))
+        } else {
+            if c == 92 {
+                out = concat(out, String_from("\\\\"))
+            } else {
+                if c == 10 {
+                    out = concat(out, String_from("\\n"))
+                } else {
+                    if c == 13 {
+                        out = concat(out, String_from("\\r"))
+                    } else {
+                        if c == 9 {
+                            out = concat(out, String_from("\\t"))
+                        } else {
+                            if c < 32 {
+                                out = concat(out, String_from("\\u00"))
+                                out = concat(out, diag_hex_byte(c))
+                            } else {
+                                out = concat(out, substring(clone(s), i, i + 1))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn diag_hex_nibble(n: i32) -> String {
+    if n < 10 {
+        return char_to_string(48 + n)
+    }
+    char_to_string(87 + n)
+}
+
+fn diag_hex_byte(b: i32) -> String {
+    let hi = (b / 16) & 15
+    let lo = b & 15
+    concat(diag_hex_nibble(hi), diag_hex_nibble(lo))
+}
+
+// Serialize a DiagnosticSpan to its JSON object form.
+fn diagnostic_span_to_json(span: DiagnosticSpan) -> String {
+    let mut out = String_from("{\"file\":\"")
+    out = concat(out, diag_json_escape(clone(span.file)))
+    out = concat(out, String_from("\",\"line\":"))
+    out = concat(out, i32_to_string(span.line))
+    out = concat(out, String_from(",\"col\":"))
+    out = concat(out, i32_to_string(span.column))
+    out = concat(out, String_from("}"))
+    out
+}
+
+// Serialize a Diagnostic to its JSON object form.
+//
+//   {"code":"...","severity":"...","span":{...},"message":"..."}
+pub fn diagnostic_to_json(diag: Diagnostic) -> String {
+    let mut out = String_from("{\"code\":\"")
+    out = concat(out, diag_json_escape(clone(diag.code)))
+    out = concat(out, String_from("\",\"severity\":\""))
+    out = concat(out, diag_json_escape(severity_name(diag.severity)))
+    out = concat(out, String_from("\",\"span\":"))
+    out = concat(out, diagnostic_span_to_json(diag.span))
+    out = concat(out, String_from(",\"message\":\""))
+    out = concat(out, diag_json_escape(clone(diag.message)))
+    out = concat(out, String_from("\"}"))
+    out
+}

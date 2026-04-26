@@ -42,13 +42,28 @@ let label   = pad_right(format_i32(42), 6, " ")  // "42    "
 - Manifest-backed functions: 34
 - Stability: experimental 2, stable 32
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Extended string operations beyond the prelude.
+
+This module provides string inspection, trimming, replacement, line
+splitting, padding, formatting, string building, and relocated
+prelude string functions.
+
+### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+
+- Operations here are largely **byte / ASCII oriented**. They are
+not full Unicode-aware text routines: indices, lengths, and
+slicing speak in bytes unless an API explicitly says otherwise
+(for example, `len_chars` provides a best-effort scalar count).
+- Multi-byte aware helpers are best-effort and may produce results
+that differ from a full Unicode segmentation library.
+- String building helpers (`StringBuilder`, rope) are utility
+surfaces, not a guaranteed-stable text-processing facade.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `len_bytes` | `(String) -> i32` | `stable` | Extended string operations beyond the prelude. |
+| `len_bytes` | `(String) -> i32` | `stable` | Returns the length of the string in bytes. |
 | `len_chars` | `(String) -> i32` | `stable` | Returns the number of characters (best-effort Unicode scalar count). |
 | `is_empty` | `(String) -> bool` | `stable` | Returns true when the string has zero bytes. |
 | `repeat` | `(String, i32) -> String` | `stable` | - |

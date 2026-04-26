@@ -30,6 +30,51 @@ const PINNED_WASM_REL: &str = "bootstrap/arukellt-selfhost.wasm";
 const STAGE2_WASM_REL: &str = ".build/selfhost/arukellt-s2.wasm";
 const BOOTSTRAP_WASM_REL: &str = ".bootstrap-build/arukellt-s2.wasm";
 
+/// Exit status used for Internal Compiler Errors (ICE) per the
+/// panic/ICE policy (`docs/compiler/panic-ice-policy.md` section 1).
+const ICE_EXIT_STATUS: u8 = 101;
+
+/// Render an ICE message to stderr in the format mandated by the
+/// panic/ICE policy:
+///   `[BUG] internal compiler error: <reason>`
+/// followed by a report URL and a backtrace hint. Returns the policy
+/// exit status (101) so call sites can `return report_ice(...)`.
+///
+/// Invoked by the CLI shim when it detects that the spawned selfhost
+/// compiler terminated abnormally (signal, abort, segfault, or wasmtime
+/// trap) and therefore could not have produced its own structured
+/// `[BUG]` line. When the child exits with code 101 itself, the
+/// upstream emitter is trusted and the code is passed through verbatim
+/// without prepending another `[BUG]` line.
+fn report_ice(reason: &str) -> ExitCode {
+    eprintln!("[BUG] internal compiler error: {reason}");
+    eprintln!("  please report this at: https://github.com/wogikaze/arukellt/issues/new");
+    eprintln!("  hint: re-run with RUST_BACKTRACE=1 for a full trace");
+    ExitCode::from(ICE_EXIT_STATUS)
+}
+
+/// Classify a child process exit status into either a normal exit code
+/// (passed through) or an ICE reason string (caller emits `[BUG]`).
+///
+/// Returns `Ok(code)` when the child exited normally, including code
+/// 101 (the child already emitted its own `[BUG]` line and the shim
+/// must not double-prepend).
+/// Returns `Err(reason)` when the shim itself must emit a `[BUG]` line
+/// because the child died abnormally (signal-killed or fatal-signal exit).
+fn classify_child_exit(code: Option<i32>) -> Result<u8, String> {
+    match code {
+        None => Err("selfhost compiler terminated by signal (no exit code)".to_string()),
+        Some(101) => Ok(101),
+        // Conventional Unix shell encoding for fatal signals (128 + signo):
+        // SIGILL=4 (132), SIGTRAP=5 (133), SIGABRT=6 (134), SIGFPE=8 (136),
+        // SIGBUS=10 (138), SIGSEGV=11 (139).
+        Some(n @ (132 | 133 | 134 | 136 | 138 | 139)) => Err(format!(
+            "selfhost compiler aborted (exit {n}, fatal signal)"
+        )),
+        Some(n) => Ok(u8::try_from(n & 0xFF).unwrap_or(1)),
+    }
+}
+
 fn find_repo_root() -> PathBuf {
     // Walk upward from the binary's directory looking for a workspace marker.
     if let Ok(exe) = env::current_exe() {
@@ -126,6 +171,14 @@ fn rewrite_path_arg(user_cwd: &Path, arg: &str) -> String {
 }
 
 fn main() -> ExitCode {
+    // Test/diagnostic hook: when set, emit the policy `[BUG]` ICE format
+    // and exit with status 101 without launching the selfhost compiler.
+    // Used by the panic/ICE policy smoke test (#615) so the format can be
+    // verified end-to-end without having to actually crash the compiler.
+    if env::var("ARUKELLT_ICE_SMOKE").is_ok_and(|v| !v.is_empty()) {
+        return report_ice("ARUKELLT_ICE_SMOKE hook fired (synthetic ICE for policy smoke test)");
+    }
+
     let args: Vec<String> = env::args().skip(1).collect();
     let root = find_repo_root();
 
@@ -174,10 +227,10 @@ fn main() -> ExitCode {
     cmd.arg(&wasm).arg("--").args(&rewritten);
 
     match cmd.status() {
-        Ok(status) => {
-            let code = status.code().unwrap_or(1);
-            ExitCode::from(u8::try_from(code & 0xFF).unwrap_or(1))
-        }
+        Ok(status) => match classify_child_exit(status.code()) {
+            Ok(code) => ExitCode::from(code),
+            Err(reason) => report_ice(&reason),
+        },
         Err(e) => {
             eprintln!(
                 "arukellt: failed to invoke `wasmtime` (is it on PATH?): {e}\n\
@@ -185,5 +238,48 @@ fn main() -> ExitCode {
             );
             ExitCode::from(127)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Regression: signal-killed child (Unix) must be surfaced as an ICE.
+    #[test]
+    fn classify_signal_killed_is_ice() {
+        let r = classify_child_exit(None);
+        assert!(r.is_err(), "signal-killed must be ICE");
+        assert!(
+            r.as_ref().unwrap_err().contains("signal"),
+            "reason should mention signal: {r:?}"
+        );
+    }
+
+    /// Regression: shell-encoded fatal signal exits (128 + signo) must be ICE.
+    #[test]
+    fn classify_fatal_signal_codes_are_ice() {
+        for code in [132, 133, 134, 136, 138, 139] {
+            let r = classify_child_exit(Some(code));
+            assert!(r.is_err(), "exit {code} must be ICE");
+        }
+    }
+
+    /// Regression: normal non-zero exits (compile errors, user errors) must
+    /// pass through and NOT be re-flagged as ICE.
+    #[test]
+    fn classify_normal_exits_pass_through() {
+        assert_eq!(classify_child_exit(Some(0)).ok(), Some(0));
+        assert_eq!(classify_child_exit(Some(1)).ok(), Some(1));
+        assert_eq!(classify_child_exit(Some(2)).ok(), Some(2));
+        assert_eq!(classify_child_exit(Some(127)).ok(), Some(127));
+    }
+
+    /// Regression: when the child already exits with the ICE convention
+    /// (101), trust the upstream `[BUG]` emitter and pass the code
+    /// through without prepending a second `[BUG]` line.
+    #[test]
+    fn classify_child_ice_exit_is_passed_through() {
+        assert_eq!(classify_child_exit(Some(101)).ok(), Some(101));
     }
 }

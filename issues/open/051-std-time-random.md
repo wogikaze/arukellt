@@ -6,8 +6,8 @@
 **ID**: 051
 **Depends on**: 039, 040
 **Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+**Orchestration class**: blocked-by-upstream
+**Orchestration upstream**: #529
 **Blocks v3 exit**: yes
 
 **Status note**: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.
@@ -29,10 +29,9 @@
 時刻取得 (WASI clock)、期間計算、乱数生成を実装する。
 ベンチマーク・テスト・一意 ID 生成・シャッフル等に必要。
 
-## Operational lane — 2026-04-22
+## Operational lane — 2026-04-25
 
-This issue is in the **blocker-free stdlib lane**. Do not hold it behind #312
-unless a new STOP_IF is found in this issue's own implementation work.
+**BLOCKED:** This issue hit a STOP_IF during Wave 2 dispatch. The `#529` selfhost transition removed the `ark-wasm` emitter which contained WASI `clock_time_get` imports. The new pure-Ark emitter does not yet generate WASI P2 clock imports, blocking actual utilization of `std::time`. Execution is frozen until #529 or downstream emitter roadmap restores WASI import synthesis.
 
 ## Partial progress — 2026-04-22
 

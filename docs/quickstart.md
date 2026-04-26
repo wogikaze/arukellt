@@ -121,8 +121,11 @@ fn main() {
 }
 ```
 
-- `fs::read_to_string(path: String) -> Result<String, String>`
-- `fs::write_string(path: String, content: String) -> Result<(), String>`
+- `fs::read_to_string(path: String) -> Result<String, FsError>`
+- `fs::write_string(path: String, content: String) -> Result<(), FsError>`
+
+On error, match on `FsError` variants: `NotFound(String)`, `PermissionDenied(String)`,
+`Utf8Error`, `IoError(String)`. Use `fs::fs_error_message(err)` for a plain string message.
 
 ## 文字列化
 

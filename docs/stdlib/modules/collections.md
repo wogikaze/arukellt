@@ -137,13 +137,35 @@ Return the number of interned strings.
 - Manifest-backed functions: 22
 - Stability: stable 22
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Hash-based collection helpers.
+
+The current implementation uses open addressing with linear probing
+and a **monomorphic `i32 -> i32`** map representation. There is no
+generic `HashMap<K, V>` or `HashSet<T>` here yet.
+
+### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+
+- True generic `HashMap<K, V>` / `HashSet<T>` require trait-based
+hashing and equality which are not yet supported at the Arukellt
+runtime level. All functions below are monomorphic (i32 key /
+i32 value / i32 element) per the impl-stdlib STOP_IF policy
+documented in issue #044.
+- Raw layout helpers and the user-facing facade are still
+co-located in this single module. Splitting the raw layer from
+the facade is tracked under #607; this module intentionally does
+not pre-empt that split.
+
+### Layout
+
+`Vec<i32>` backing store:
+`[capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]`,
+where flags are `0 = empty`, `1 = occupied`.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `hashmap_new` | `() -> Vec<i32>` | `stable` | Hash-based collection helpers. |
+| `hashmap_new` | `() -> Vec<i32>` | `stable` | - |
 | `hashmap_get` | `(Vec<i32>, i32) -> i32` | `stable` | - |
 | `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
 | `hashmap_set` | `(Vec<i32>, i32, i32) -> ()` | `stable` | - |
