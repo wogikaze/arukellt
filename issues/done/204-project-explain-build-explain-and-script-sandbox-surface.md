@@ -8,7 +8,7 @@
 
 # Project explain / build explain / script sandbox surface
 
-**Status**: done
+**Status**: open
 **Created**: 2026-03-29
 **Updated**: 2026-04-13
 **Closed**: 2026-04-18
