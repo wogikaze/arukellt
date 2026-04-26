@@ -21,11 +21,11 @@
 
 ## Acceptance
 
-* [ ] `scripts/run/verify-bootstrap.sh` から skip 条件が除去されている
-* [ ] 全 stage (Stage 0/1/2) が逐次実行される
-* [ ] 失敗時に詳細ログが出力される
-* [ ] Stage 2 fixpoint 達成時に exit 0 で終了する
-* [ ] Stage 2 fixpoint 未達成時に exit non-zero で終了する
+* [x] `scripts/run/verify-bootstrap.sh` から skip 条件が除去されている
+* [x] 全 stage (Stage 0/1/2) が逐次実行される
+* [x] 失敗時に詳細ログが出力される
+* [x] Stage 2 fixpoint 達成時に exit 0 で終了する
+* [x] Stage 2 fixpoint 未達成時に exit non-zero で終了する
 
 ## Scope
 

@@ -1,8 +1,8 @@
-# 545 — Benchmark: real-world workloads
+# 538 — Benchmark: real-world workloads
 
-**Status**: done
+**Status**: open
 **Created**: 2026-04-21
-**ID**: 545
+**ID**: 538
 **Depends on**: none
 **Track**: benchmark
 **Orchestration class**: implementation-ready
@@ -12,7 +12,8 @@
 
 ## Summary
 
-The current benchmark suite consists of microbenchmarks (fib, vec_ops, string_concat). This issue adds comprehensive real-world workloads that better represent actual usage patterns and stress multiple language features together.
+The current benchmark suite consists of microbenchmarks (fib, vec_ops, string
+_concat). This issue adds comprehensive real-world workloads that better represent actual usage patterns and stress multiple language features together.
 
 ## Primary paths
 
@@ -54,13 +55,13 @@ The current benchmark suite consists of microbenchmarks (fib, vec_ops, string_co
 
 ## Acceptance
 
-- [x] At least 3 real-world workload benchmarks created
-- [x] Each benchmark has `.expected` file
-- [x] Benchmarks registered in `scripts/util/benchmark_runner.py`
-- [x] Appropriate tags assigned to each benchmark
-- [x] `mise bench` passes for all new benchmarks
-- [x] `mise bench:update-baseline` includes new benchmarks
-- [x] docs/benchmarks/feature-matrix.md updated with new benchmarks
+- [ ] At least 3 real-world workload benchmarks created
+- [ ] Each benchmark has `.expected` file
+- [ ] Benchmarks registered in `scripts/util/benchmark_runner.py`
+- [ ] Appropriate tags assigned to each benchmark
+- [ ] `mise bench` passes for all new benchmarks
+- [ ] `mise bench:update-baseline` includes new benchmarks
+- [ ] docs/benchmarks/feature-matrix.md updated with new benchmarks
 
 ## Required verification
 
@@ -69,4 +70,5 @@ The current benchmark suite consists of microbenchmarks (fib, vec_ops, string_co
 
 ## Close gate
 
-At least 3 real-world workload benchmarks exist, are registered, and baseline is updated.
+At least 3 real-world workload benchmarks exist, are registered, and baseline
+ is updated.

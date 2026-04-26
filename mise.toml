@@ -1,5 +1,6 @@
 [tools]
 rust = "1.94"
+wasmtime = "latest"
 
 [tasks.build]
 run = "cargo build"

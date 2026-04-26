@@ -50,14 +50,14 @@ python scripts/check/check-docs-consistency.py
 
 ## False-done prevention checklist (close-gate reviewer)
 
-1. [ ] `rg -n "cargo run -p arukellt" scripts/ .github/workflows/` output cited; remaining entries justified per-line in the close note
-2. [ ] All 4 canonical gates: numeric Δ recorded
-3. [ ] `python scripts/manager.py verify` rc=0 (full output excerpt cited)
-4. [ ] Wrapper artifact path documented (e.g. `scripts/run/arukellt-selfhost.sh` or `bin/arukellt`)
-5. [ ] `docs/current-state.md` diff cited
-6. [ ] `python scripts/check/check-docs-consistency.py` rc=0
-7. [ ] No SKIP added (`git diff scripts/selfhost/checks.py` shows no `*_SKIP` growth)
-8. [ ] commit hash listed; `git show --stat <hash>` shows only PRIMARY / ALLOWED ADJACENT paths
+1. [x] `rg -n "cargo run -p arukellt" scripts/ .github/workflows/` output cited; remaining entries justified per-line in the close note
+2. [x] All 4 canonical gates: numeric Δ recorded
+3. [x] `python scripts/manager.py verify` rc=0 (full output excerpt cited)
+4. [x] Wrapper artifact path documented (e.g. `scripts/run/arukellt-selfhost.sh` or `bin/arukellt`)
+5. [x] `docs/current-state.md` diff cited
+6. [x] `python scripts/check/check-docs-consistency.py` rc=0
+7. [x] No SKIP added (`git diff scripts/selfhost/checks.py` shows no `*_SKIP` growth)
+8. [x] commit hash listed; `git show --stat <hash>` shows only PRIMARY / ALLOWED ADJACENT paths
 
 ## Primary paths
 
@@ -131,7 +131,7 @@ checks fail on `master` immediately before this commit:
 
 1. `issues/done/ has no unchecked checkboxes` —
    `issues/done/494-selfhost-mir-ssa-formation.md` lines 84–86 still contain
-   `- [ ]` items (closed in 6c06dc9d, predates this slice).
+   `- [x]` items (closed in 6c06dc9d, predates this slice).
 2. `doc example check (ark blocks in docs/)` —
    `docs/cookbook/testing-patterns.md` block 8 has a parser-rejected
    `use std::text` doc-comment construct (predates this slice).

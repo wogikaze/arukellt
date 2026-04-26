@@ -40,10 +40,10 @@ without the Rust binary, unblocking #583 and Phase 5.
 
 ## Acceptance
 
-- [ ] An ADR under `docs/adr/` records the new verification contract:
+- [x] An ADR under `docs/adr/` records the new verification contract:
   what replaces "selfhost-vs-Rust" parity, how bootstrap works on a
   fresh clone, and what guarantees each gate now provides.
-- [ ] `scripts/selfhost/checks.py` is updated to the new contract:
+- [x] `scripts/selfhost/checks.py` is updated to the new contract:
   - `run_fixpoint` no longer requires the Rust binary; bootstrap uses a
     committed pinned-reference wasm (or equivalent mechanism documented
     in the ADR).
@@ -56,14 +56,14 @@ without the Rust binary, unblocking #583 and Phase 5.
     `--help` snapshot test.
   - The total PASS/FAIL/SKIP counts at the new contract's baseline are
     recorded in the ADR.
-- [ ] A pinned-reference selfhost wasm artifact (or equivalent) is
+- [x] A pinned-reference selfhost wasm artifact (or equivalent) is
   committed under a tracked path (e.g. `.bootstrap/` removed from
   gitignore for that one file, OR a new `bootstrap/` directory).
   The artifact's provenance and refresh cadence are documented.
-- [ ] All 4 reframed gates PASS without a Rust binary in `target/`.
-- [ ] On a fresh clone (`git clean -dfx && cargo clean`) the 4 gates
+- [x] All 4 reframed gates PASS without a Rust binary in `target/`.
+- [x] On a fresh clone (`git clean -dfx && cargo clean`) the 4 gates
   bootstrap and PASS using only the committed selfhost artifact.
-- [ ] Documentation references updated:
+- [x] Documentation references updated:
   `docs/current-state.md`, `docs/process/selfhost-bootstrap.md` (if it
   exists), `README.md` if relevant.
 

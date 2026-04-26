@@ -1,6 +1,6 @@
 # Stdlib prelude call-site inventory (facade migration)
 
-Working note for [#513](../../issues/open/513-stdlib-prelude-safety-and-wrapper-surface.md):
+Working note for [#513](../../issues/done/513-stdlib-prelude-safety-and-wrapper-surface.md):
 which **stdlib implementation files** still rely on **prelude-auto-imported**
 helpers that have a **module-local or `std::*` facade** equivalent. This is a
 shelf list for future refactors, not a commitment to change every row immediately.
@@ -30,7 +30,6 @@ intentionally excluded from the table above.
 ## See also
 
 - [prelude.md](prelude.md) — tiny vs legacy prelude design
-- [prelude-migration.md](prelude-migration.md) — historical v3 mapping
 - [migration-guidance.md](migration-guidance.md) — deprecated API replacements
 
 ---
@@ -130,7 +129,7 @@ Steps:
 3. Where `parse_i32` return type changes (Result → Option), update the example
    to use `match` on `Option` or add a `.expect()` / `unwrap_or_else` call.
 4. Run `python3 scripts/check/check-docs-consistency.py` after each file batch.
-5. Commit as: `docs(cookbook): migrate prelude calls to wrapper families (#513)`.
+5. Commit as: `docs(cookbook): migrate prelude calls to wrapper families (refs #513)`.
 
 Estimated files: ~6–10 cookbook recipes based on current `docs/cookbook/` contents.
 
@@ -145,7 +144,7 @@ Steps:
 3. Update `docs/stdlib/core.md` convert examples to use `core::convert::*`.
 4. Regenerate docs: `python3 scripts/gen/generate-docs.py`.
 5. Verify: `python scripts/manager.py verify quick`.
-6. Commit as: `docs(stdlib): migrate reference examples to wrapper families (#513)`.
+6. Commit as: `docs(stdlib): migrate reference examples to wrapper families (refs #513)`.
 
 ### Phase 4 — Deprecation annotation in prelude.ark (future, out-of-scope for this slice)
 

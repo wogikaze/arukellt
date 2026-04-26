@@ -48,6 +48,7 @@ diag:diagnostics/missing_annotation.ark
 diag:diagnostics/missing_brace.ark
 diag:diagnostics/mutable_sharing.ark
 diag:diagnostics/non_exhaustive.ark
+run:hello_world.ark
 diag:diagnostics/question_type_mismatch.ark
 diag:diagnostics/type_mismatch.ark
 diag:diagnostics/unexpected_token.ark

@@ -27,10 +27,10 @@ module-qualified / typed / facade-first な style に更新する。
 
 ## Acceptance
 
-- [ ] docs / cookbook / stdlib fixtures の「style debt」一覧が作成される
-- [ ] user-facing example で避けるべき anti-pattern が定義される
-- [ ] 少なくとも `std::wit`, `std::json`, `std::bytes`, `std::io` family の examples 更新計画がある
-- [ ] compile-check 対象 examples と migration 対象 examples が区別される
+- [x] docs / cookbook / stdlib fixtures の「style debt」一覧が作成される
+- [x] user-facing example で避けるべき anti-pattern が定義される
+- [x] 少なくとも `std::wit`, `std::json`, `std::bytes`, `std::io` family の examples 更新計画がある
+- [x] compile-check 対象 examples と migration 対象 examples が区別される
 
 ## Primary paths
 

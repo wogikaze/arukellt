@@ -180,8 +180,8 @@ validation source of truth.
 
 ### Reference scan
 
-```
-$ rg -l 'ark_mir|ark-mir' --glob '!issues/done/**' --glob '!target/**'
+```bash
+rg -l 'ark_mir|ark-mir' --glob '!issues/done/**' --glob '!target/**'
 ```
 
 returns only files that document the **removal** itself or are explicit

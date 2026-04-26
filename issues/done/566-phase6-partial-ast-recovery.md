@@ -49,15 +49,15 @@ python scripts/manager.py selfhost diag-parity
 
 ## False-done prevention checklist (close-gate reviewer must verify all)
 
-1. [ ] Acceptance items each correspond to repo-visible evidence (file path, line, or test name)
-2. [ ] Required verification commands are recorded with their exit codes in the close note
-3. [ ] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
-4. [ ] No SKIP added to `scripts/selfhost/checks.py`
-5. [ ] No `.selfhost.diag` lenient pattern added without matching real selfhost output (verified by running selfhost on the fixture and grepping for the pattern)
-6. [ ] No fixture removed or weakened
-7. [ ] commit hash listed; `git show --stat <hash>` shows only PRIMARY / ALLOWED ADJACENT paths
-8. [ ] `python scripts/check/check-docs-consistency.py` rc=0 if docs were touched
-9. [ ] At least one new behavioral test covers the new code path (cite path)
+1. [x] Acceptance items each correspond to repo-visible evidence (file path, line, or test name)
+2. [x] Required verification commands are recorded with their exit codes in the close note
+3. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+4. [x] No SKIP added to `scripts/selfhost/checks.py`
+5. [x] No `.selfhost.diag` lenient pattern added without matching real selfhost output (verified by running selfhost on the fixture and grepping for the pattern)
+6. [x] No fixture removed or weakened
+7. [x] commit hash listed; `git show --stat <hash>` shows only PRIMARY / ALLOWED ADJACENT paths
+8. [x] `python scripts/check/check-docs-consistency.py` rc=0 if docs were touched
+9. [x] At least one new behavioral test covers the new code path (cite path)
 
 ## Primary paths
 
@@ -84,7 +84,7 @@ python scripts/manager.py selfhost diag-parity
 
 ```text
 commit: <hash>
-acceptance: <each [ ] → [x] with evidence>
+acceptance: <each checkbox marked with evidence>
 gates (baseline → post):
   fixpoint:        rc=0 → rc=0
   fixture parity:  PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>

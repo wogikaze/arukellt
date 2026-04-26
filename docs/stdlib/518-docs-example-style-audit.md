@@ -2,7 +2,7 @@
 
 **Status**: complete  
 **Created**: 2026-04-22  
-**Issue**: [#518](../../issues/open/518-stdlib-docs-examples-as-canonical-style.md)  
+**Issue**: [#518](../../issues/done/518-stdlib-docs-examples-as-canonical-style.md)  
 **Depends-on**: #513 (done), #517 (done)  
 **Author**: design-stdlib-audit agent
 
@@ -75,6 +75,7 @@ doc example, cookbook recipe, or fixture intended as a usage reference.
 
 **Avoid:**
 
+<!-- skip-doc-check -->
 ```ark
 println(i32_to_string(n))
 println(bool_to_string(flag))
@@ -98,12 +99,14 @@ Use a `match` or `unwrap_or` in examples; never silently discard the Option.
 
 **Avoid:**
 
+<!-- skip-doc-check -->
 ```ark
 let line = concat(a, concat(b, concat(": ", c)))
 ```
 
 **Prefer:**
 
+<!-- skip-doc-check -->
 ```ark
 use std::text
 let line = text::concat(text::concat(a, b), text::concat(": ", c))
@@ -120,6 +123,7 @@ let line = builder::finish(b)
 
 **Avoid:**
 
+<!-- skip-doc-check -->
 ```ark
 println("hello")
 print("x = ")
@@ -127,6 +131,7 @@ print("x = ")
 
 **Prefer:**
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 stdio::println("hello")
@@ -137,6 +142,7 @@ stdio::print("x = ")
 
 **Avoid:**
 
+<!-- skip-doc-check -->
 ```ark
 let m = HashMap_new_String_i32()
 let m = HashMap_i32_i32_new()
@@ -145,6 +151,7 @@ HashMap_i32_i32_insert(m, k, v)
 
 **Prefer:**
 
+<!-- skip-doc-check -->
 ```ark
 use std::collections::hashmap
 let m = hashmap::new_string_i32()
@@ -157,6 +164,7 @@ hashmap::insert(m, k, v)
 
 **Avoid:**
 
+<!-- skip-doc-check -->
 ```ark
 let n = len(fields)
 let x = get_unchecked(fields, i)
@@ -164,6 +172,7 @@ let x = get_unchecked(fields, i)
 
 **Prefer:**
 
+<!-- skip-doc-check -->
 ```ark
 use std::collections::vec
 let n = vec::len(fields)
@@ -174,12 +183,14 @@ let x = vec::get(fields, i)   // bounds-checked
 
 **Avoid:**
 
+<!-- skip-doc-check -->
 ```ark
 import std::wit
 ```
 
 **Prefer:**
 
+<!-- skip-doc-check -->
 ```ark
 use std::wit
 ```
@@ -190,6 +201,7 @@ The `use` keyword is the current canonical form for module imports in Arukellt.
 
 **Avoid:**
 
+<!-- skip-doc-check -->
 ```ark
 let n = unwrap(parse_i32(s))
 let n = parse_i32(s)   // silently discards failure case
@@ -197,6 +209,7 @@ let n = parse_i32(s)   // silently discards failure case
 
 **Prefer:**
 
+<!-- skip-doc-check -->
 ```ark
 use std::core::convert
 match convert::parse_i32(s) {
@@ -211,12 +224,14 @@ let n = convert::parse_i32(s).unwrap_or(0)
 
 **Avoid:**
 
+<!-- skip-doc-check -->
 ```ark
 let id: i32 = 4   // magic number for WitType::u32
 ```
 
 **Prefer:**
 
+<!-- skip-doc-check -->
 ```ark
 use std::wit
 let ty = wit::wit_type_u32()

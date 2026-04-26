@@ -1,8 +1,9 @@
+use std::text
+
 /// Pure string-based path manipulation helpers.
 /// 
 /// Paths are represented as `String` values and always use `/` as the
 /// separator to match POSIX and WASI conventions.
-use std::text
 
 /// Joins two path segments with a single `/` separator.
 pub fn join(base: String, child: String) -> String {

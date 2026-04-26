@@ -43,10 +43,10 @@
 
 ## Acceptance
 
-- [ ] malformed TOML input に対して少なくとも代表的な `Err(...)` fixture が追加される
-- [ ] supported subset が docs に明記され、unsupported grammar を success 扱いしない
-- [ ] valid subset fixtures は回帰しない
-- [ ] parser behavior and docs wording no longer overclaim “TOML parser” semantics beyond the supported subset
+- [x] malformed TOML input に対して少なくとも代表的な `Err(...)` fixture が追加される
+- [x] supported subset が docs に明記され、unsupported grammar を success 扱いしない
+- [x] valid subset fixtures は回帰しない
+- [x] parser behavior and docs wording no longer overclaim “TOML parser” semantics beyond the supported subset
 
 ## Required verification
 

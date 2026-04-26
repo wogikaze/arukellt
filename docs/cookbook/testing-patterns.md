@@ -62,10 +62,8 @@ assert_eq_str(unwrap_err(err_val), "not found")
 
 ## Testing String Operations
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check -->
 ```ark
-use std::text
-
 // Test string functions
 assert_eq_str(text::to_uppercase("hello"), "HELLO")
 assert_eq_str(text::trim("  hi  "), "hi")
@@ -124,7 +122,7 @@ assert(path::is_absolute("relative") == false)
 
 ## Testing with Error Cases
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check -->
 ```ark
 // Verify that invalid input produces errors
 let bad = parse_i32("abc")

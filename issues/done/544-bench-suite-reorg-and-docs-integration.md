@@ -40,14 +40,14 @@ The `benchmarks/` directory needs better organization and clearer result present
 
 ## Acceptance
 
-- [ ] Legacy fixtures moved to `benchmarks/legacy/`
-- [ ] New benchmark category directories created (`cpu/`, `memory/`, `io/`, `parse/`)
-- [ ] All benchmarks follow `bench_<suite>_<name>.ark` naming convention
-- [ ] `scripts/util/benchmark_runner.py` updated to handle new structure
-- [ ] `docs/process/benchmark-results.md` improved with better presentation
-- [ ] `docs/current-state.md` includes performance snapshot section
-- [ ] `mise bench` works with new structure
-- [ ] `mise bench:update-baseline` works with new structure
+- [x] Legacy fixtures moved to `benchmarks/legacy/`
+- [x] New benchmark category directories created (`cpu/`, `memory/`, `io/`, `parse/`)
+- [x] All benchmarks follow `bench_<suite>_<name>.ark` naming convention
+- [x] `scripts/util/benchmark_runner.py` updated to handle new structure
+- [x] `docs/process/benchmark-results.md` improved with better presentation
+- [x] `docs/current-state.md` includes performance snapshot section
+- [x] `mise bench` works with new structure
+- [x] `mise bench:update-baseline` works with new structure
 
 ## Required verification
 

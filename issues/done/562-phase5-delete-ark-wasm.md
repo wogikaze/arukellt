@@ -24,13 +24,13 @@ Only attempt after the selfhost emitter (`src/compiler/emitter.ark`) is the cano
 
 Record numeric values; do **not** start the deletion if any item is missing.
 
-- [ ] `python scripts/manager.py selfhost fixpoint` rc=0
-- [ ] `python scripts/manager.py selfhost fixture-parity` PASS=<N>FAIL=0 SKIP=<N> (record baseline)
-- [ ] `python scripts/manager.py selfhost parity --mode --cli` PASS=<N> FAIL=0 (record baseline)
-- [ ] `python scripts/manager.py selfhost diag-parity` PASS=<N>FAIL=0 SKIP=<N> (record baseline)
-- [ ] `python scripts/manager.py verify` rc=0 (record baseline)
-- [ ] No remaining `cargo run -p ark-wasm`-style invocation anywhere reachable from `scripts/` or `.github/workflows/` (verified by `rg "ark-wasm" scripts/ .github/workflows/`)
-- [ ] All consumers of `ark_wasm` symbols outside the crate itself have already been migrated to selfhost (`src/`) or to a remaining crate (verified by `rg "ark_wasm" crates/ src/ scripts/` showing only the crate itself plus explicitly-allowed comments)
+- [x] `python scripts/manager.py selfhost fixpoint` rc=0
+- [x] `python scripts/manager.py selfhost fixture-parity` PASS=<N>FAIL=0 SKIP=<N> (record baseline)
+- [x] `python scripts/manager.py selfhost parity --mode --cli` PASS=<N> FAIL=0 (record baseline)
+- [x] `python scripts/manager.py selfhost diag-parity` PASS=<N>FAIL=0 SKIP=<N> (record baseline)
+- [x] `python scripts/manager.py verify` rc=0 (record baseline)
+- [x] No remaining `cargo run -p ark-wasm`-style invocation anywhere reachable from `scripts/` or `.github/workflows/` (verified by `rg "ark-wasm" scripts/ .github/workflows/`)
+- [x] All consumers of `ark_wasm` symbols outside the crate itself have already been migrated to selfhost (`src/`) or to a remaining crate (verified by `rg "ark_wasm" crates/ src/ scripts/` showing only the crate itself plus explicitly-allowed comments)
 
 ## Status note
 
@@ -48,13 +48,13 @@ Exact commands run:
 
 ## Acceptance
 
-- [ ] `crates/ark-wasm/` directory removed (`[ ! -d crates/ark-wasm ]`)
-- [ ] Workspace `Cargo.toml` `members` array no longer lists `crates/ark-wasm`
-- [ ] No other crate's `Cargo.toml` lists `ark-wasm` as a `[dependencies]` / `[dev-dependencies]` entry (`grep -RIn "^ark-wasm\b\|\"ark-wasm\"" crates/*/Cargo.toml` empty)
-- [ ] `Cargo.lock` regenerated (run `cargo metadata --format-version 1 --offline 2>/dev/null || cargo check --workspace`) and committed without `name = "ark-wasm"`
-- [ ] No source / script / docs reference: `rg -l "\bark_wasm\b\|\bark-wasm\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)
-- [ ] `python scripts/manager.py verify` rc=0
-- [ ] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
+- [x] `crates/ark-wasm/` directory removed (`[ ! -d crates/ark-wasm ]`)
+- [x] Workspace `Cargo.toml` `members` array no longer lists `crates/ark-wasm`
+- [x] No other crate's `Cargo.toml` lists `ark-wasm` as a `[dependencies]` / `[dev-dependencies]` entry (`grep -RIn "^ark-wasm\b\|\"ark-wasm\"" crates/*/Cargo.toml` empty)
+- [x] `Cargo.lock` regenerated (run `cargo metadata --format-version 1 --offline 2>/dev/null || cargo check --workspace`) and committed without `name = "ark-wasm"`
+- [x] No source / script / docs reference: `rg -l "\bark_wasm\b\|\bark-wasm\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)
+- [x] `python scripts/manager.py verify` rc=0
+- [x] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
 
 ## Required verification (close gate)
 
@@ -84,16 +84,16 @@ rg -l "\bark_wasm\b" crates/ scripts/ src/ docs/ .github/
 
 The reviewer is a **different agent** from the implementer (`verify-issue-closure`). Each line must be checked with command output cited in the close note.
 
-1. [ ] Directory truly absent: `test ! -d crates/ark-wasm` exit 0
-2. [ ] No workspace member ref: `grep -F "crates/ark-wasm" Cargo.toml` empty
-3. [ ] No reverse dep ref: `grep -RIn "\bark-wasm\b" crates/*/Cargo.toml` empty
-4. [ ] No Rust source ref: `rg -l "\bark_wasm\b" crates/ src/` empty
-5. [ ] No script / CI ref: `rg -l "\bark-wasm\b" scripts/ .github/workflows/` empty
-6. [ ] No docs ref: `rg -l "\bark_wasm\b\|\bark-wasm\b" docs/` returns only paths listed in the close note (archived ADRs allowed if explicitly enumerated)
-7. [ ] All 4 canonical gates: numeric Δ recorded showing `FAIL=0` and `SKIP_delta=0`
-8. [ ] `cargo check --workspace` rc=0 (output excerpt cited)
-9. [ ] commit hash listed; `git show --stat <hash>` shows only files within PRIMARY / ALLOWED ADJACENT paths
-10. [ ] `python scripts/check/check-docs-consistency.py` rc=0 if docs were touched
+1. [x] Directory truly absent: `test ! -d crates/ark-wasm` exit 0
+2. [x] No workspace member ref: `grep -F "crates/ark-wasm" Cargo.toml` empty
+3. [x] No reverse dep ref: `grep -RIn "\bark-wasm\b" crates/*/Cargo.toml` empty
+4. [x] No Rust source ref: `rg -l "\bark_wasm\b" crates/ src/` empty
+5. [x] No script / CI ref: `rg -l "\bark-wasm\b" scripts/ .github/workflows/` empty
+6. [x] No docs ref: `rg -l "\bark_wasm\b\|\bark-wasm\b" docs/` returns only paths listed in the close note (archived ADRs allowed if explicitly enumerated)
+7. [x] All 4 canonical gates: numeric Δ recorded showing `FAIL=0` and `SKIP_delta=0`
+8. [x] `cargo check --workspace` rc=0 (output excerpt cited)
+9. [x] commit hash listed; `git show --stat <hash>` shows only files within PRIMARY / ALLOWED ADJACENT paths
+10. [x] `python scripts/check/check-docs-consistency.py` rc=0 if docs were touched
 
 ## Primary paths
 

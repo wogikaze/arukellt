@@ -242,8 +242,7 @@ Issue remains **open**. Three acceptance bullets still pending.
 
 ## Resolution
 
-#312 selfhost generic monomorphization is closed by the slice-a/b/c/d
-sequence:
+## 312 selfhost generic monomorphization is closed by the slice-a/b/c/d sequence
 
 - **slice-a (1dfa4b3e)**: deep `instantiate_type` + deep
   `mono_type_key` + `resolve_type_deep` so nested generic

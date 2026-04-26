@@ -23,10 +23,10 @@
 
 ## Acceptance
 
-* [ ] テストが `unit / fixture / integration / target-contract / component-interop / package-workspace / bootstrap / editor-tooling / perf / determinism` に明示分類されている
-* [ ] CI 上で各カテゴリが独立したジョブとして構成されている
-* [ ] 失敗時に「どの層が壊れたか」が直ちに分かる
-* [ ] fixture 数ではなく、品質面の網羅率で健康度を語れる
+* [x] テストが `unit / fixture / integration / target-contract / component-interop / package-workspace / bootstrap / editor-tooling / perf / determinism` に明示分類されている
+* [x] CI 上で各カテゴリが独立したジョブとして構成されている
+* [x] 失敗時に「どの層が壊れたか」が直ちに分かる
+* [x] fixture 数ではなく、品質面の網羅率で健康度を語れる
 
 ## Reopen Note
 

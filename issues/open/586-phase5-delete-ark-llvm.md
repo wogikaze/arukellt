@@ -1,6 +1,6 @@
 # 586 — Phase 5: Delete `crates/ark-llvm`
 
-**Status**: done
+**Status**: open
 **Created**: 2026-04-23
 **Updated**: 2026-04-23
 **ID**: 586
