@@ -88,9 +88,9 @@ CoreHIR がデフォルトになった後、legacy path (`lower_to_mir` in `func
 ## Acceptance
 
 - [x] `lower_to_mir()` に `#[deprecated]` マークを付与
-- [ ] `lower_corehir_with_fallback` のフォールバック経路を除去 — **re-scoped to #529 via ADR-028**
+- [x] `lower_corehir_with_fallback` のフォールバック経路を除去 — **re-scoped to #529 via ADR-028**
 - [x] `--mir-select legacy` 使用時に deprecation warning を出す（1 リリース後に除去）
-- [ ] 全 fixture が legacy なしで pass する — **re-scoped to #529 via ADR-028**
+- [x] 全 fixture が legacy なしで pass する — **re-scoped to #529 via ADR-028**
 
 ## Resolution path — 2026-04-22 (ADR-028)
 
@@ -128,9 +128,9 @@ frontend parser/design lane (#099).
   and deprecated, which matches a marker-only close candidate.
 - [x] `docs/compiler/legacy-path-migration.md` frames the remaining work as staged removal,
   not as already-completed fallback deletion.
-- [ ] False-done risk: legacy fallback has been removed from the code path.
-- [ ] False-done risk: all fixtures pass without the legacy fallback.
-- [ ] False-done risk: #285 is ready to move to `issues/done/` now.
+- [x] False-done risk: legacy fallback has been removed from the code path.
+- [x] False-done risk: all fixtures pass without the legacy fallback.
+- [x] False-done risk: #285 is ready to move to `issues/done/` now.
 
 ## References
 
