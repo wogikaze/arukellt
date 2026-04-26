@@ -21,7 +21,8 @@ This issue tracks the implementation of the `src/compiler/corehir.ark` lowering 
 - [ ] Implement `src/compiler/corehir.ark` (AST to CoreHIR translation structures).
 - [ ] Implement CoreHIR to MIR lowering pass (replacing direct AST-to-MIR loops).
 - [ ] Wire the unified pipeline in `driver.ark`.
-- [ ]- Verify all test fixtures pass utilizing the new CoreHIR intermediate path.
+- [ ] Verify all test fixtures pass utilizing the new CoreHIR intermediate path.
 
 ## Downstream Impact
+
 - Unblocks #125 (`compile()` defaults to CoreHIR path).
