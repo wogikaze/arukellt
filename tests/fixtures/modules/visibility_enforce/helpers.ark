@@ -1,0 +1,11 @@
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+fn internal_double(x: i32) -> i32 {
+    x * 2
+}
+
+pub fn double_via_internal(x: i32) -> i32 {
+    internal_double(x)
+}

@@ -1,0 +1,362 @@
+# Recipe-to-fixture manifest for cookbook.md
+#
+# Maps each cookbook recipe to its corresponding test fixture files.
+# CI verifies these links via `python3 scripts/check/check-docs-consistency.py`.
+#
+# Format:
+#   [[recipes]]
+#   id       = "kebab-case-recipe-id"   # unique identifier
+#   section  = "Cookbook section heading"
+#   title    = "Recipe sub-heading"
+#   fixtures = ["tests/fixtures/…/file.ark", …]
+#
+# Rules:
+# - Every fixture path must be relative to the repository root
+# - Every fixture path must exist on disk (CI enforced)
+# - Every 📎 Fixture reference in cookbook.md must appear here
+# - Recipes without fixtures use `fixtures = []`
+
+[metadata]
+version = 1
+cookbook_path = "docs/stdlib/cookbook.md"
+
+# ── Collections — Vec ─────────────────────────────────────────────────────────
+
+[[recipes]]
+id = "vec-create-push"
+section = "Collections — Vec"
+title = "作成と追加"
+fixtures = [
+    "tests/fixtures/stdlib_vec/vec_new.ark",
+    "tests/fixtures/stdlib_vec/vec_push.ark",
+]
+
+[[recipes]]
+id = "vec-get"
+section = "Collections — Vec"
+title = "安全な取得 — get は Option を返す"
+fixtures = [
+    "tests/fixtures/stdlib_vec/vec_get.ark",
+]
+
+[[recipes]]
+id = "vec-pop"
+section = "Collections — Vec"
+title = "pop — 末尾から取り出す"
+fixtures = [
+    "tests/fixtures/stdlib_vec/vec_pop.ark",
+]
+
+[[recipes]]
+id = "vec-get-unchecked"
+section = "Collections — Vec"
+title = "安全でない取得 — get_unchecked"
+fixtures = []
+
+[[recipes]]
+id = "vec-map-filter-fold"
+section = "Collections — Vec"
+title = "map / filter / fold"
+fixtures = [
+    "tests/fixtures/stdlib_vec/vec_map.ark",
+    "tests/fixtures/stdlib_vec/vec_filter.ark",
+    "tests/fixtures/stdlib_vec/vec_fold.ark",
+]
+
+[[recipes]]
+id = "vec-sort-find"
+section = "Collections — Vec"
+title = "sort / find / any / contains / reverse"
+fixtures = [
+    "tests/fixtures/stdlib_vec/vec_sort.ark",
+    "tests/fixtures/stdlib_vec/any_find.ark",
+    "tests/fixtures/stdlib_vec_ops/contains_i32.ark",
+    "tests/fixtures/stdlib_vec_ops/reverse_i32.ark",
+]
+
+[[recipes]]
+id = "vec-sum-remove"
+section = "Collections — Vec"
+title = "sum / remove"
+fixtures = [
+    "tests/fixtures/stdlib_vec_ops/sum_i32.ark",
+    "tests/fixtures/stdlib_vec_ops/remove_i32.ark",
+]
+
+# ── Collections — HashMap ─────────────────────────────────────────────────────
+
+[[recipes]]
+id = "hashmap-basic"
+section = "Collections — HashMap"
+title = "Collections — HashMap"
+fixtures = [
+    "tests/fixtures/stdlib_hashmap/hashmap_basic.ark",
+]
+
+# ── String Operations ─────────────────────────────────────────────────────────
+
+[[recipes]]
+id = "string-create"
+section = "String Operations"
+title = "作成・空チェック・長さ"
+fixtures = [
+    "tests/fixtures/stdlib_string/string_new.ark",
+    "tests/fixtures/stdlib_string/string_len.ark",
+]
+
+[[recipes]]
+id = "string-concat-clone"
+section = "String Operations"
+title = "連結と clone"
+fixtures = [
+    "tests/fixtures/stdlib_string/string_concat.ark",
+    "tests/fixtures/stdlib_string/clone.ark",
+]
+
+[[recipes]]
+id = "string-eq"
+section = "String Operations"
+title = "比較 — eq"
+fixtures = [
+    "tests/fixtures/stdlib_string/string_eq.ark",
+]
+
+[[recipes]]
+id = "string-slice-split-join"
+section = "String Operations"
+title = "slice / split / join"
+fixtures = [
+    "tests/fixtures/stdlib_string/string_slice.ark",
+    "tests/fixtures/stdlib_string/string_split.ark",
+    "tests/fixtures/stdlib_string/string_join.ark",
+]
+
+[[recipes]]
+id = "string-starts-ends"
+section = "String Operations"
+title = "starts_with / ends_with"
+fixtures = [
+    "tests/fixtures/stdlib_string/string_starts_ends.ark",
+]
+
+[[recipes]]
+id = "string-case-push"
+section = "String Operations"
+title = "to_lower / to_upper / push_char"
+fixtures = [
+    "tests/fixtures/stdlib_string/to_lower_upper.ark",
+    "tests/fixtures/stdlib_string/push_char.ark",
+]
+
+# ── Conversion ────────────────────────────────────────────────────────────────
+
+[[recipes]]
+id = "conv-to-string"
+section = "Conversion — 型変換とパース"
+title = "to_string — 多態的な文字列化"
+fixtures = [
+    "tests/fixtures/stdlib_io/to_string.ark",
+]
+
+[[recipes]]
+id = "conv-parse"
+section = "Conversion — 型変換とパース"
+title = "parse_i32 / parse_i64 / parse_f64 — 文字列をパース"
+fixtures = [
+    "tests/fixtures/stdlib_io/parse_int.ark",
+    "tests/fixtures/stdlib_option_result/question_mark.ark",
+]
+
+# ── Math ──────────────────────────────────────────────────────────────────────
+
+[[recipes]]
+id = "math-sqrt"
+section = "Math"
+title = "sqrt — 平方根 (f64)"
+fixtures = [
+    "tests/fixtures/stdlib_math/sqrt.ark",
+]
+
+[[recipes]]
+id = "math-abs-min-max"
+section = "Math"
+title = "abs / min / max"
+fixtures = [
+    "tests/fixtures/stdlib_math/abs_min_max.ark",
+]
+
+[[recipes]]
+id = "math-clamp"
+section = "Math"
+title = "clamp_i32 — 範囲内に制限"
+fixtures = [
+    "tests/fixtures/stdlib_math/clamp_i32.ark",
+]
+
+# ── Option ────────────────────────────────────────────────────────────────────
+
+[[recipes]]
+id = "option-basic"
+section = "Option"
+title = "基本 — Some / None / match"
+fixtures = [
+    "tests/fixtures/stdlib_option_result/some_unwrap.ark",
+    "tests/fixtures/stdlib_option_result/option_match.ark",
+]
+
+[[recipes]]
+id = "option-is-some-none"
+section = "Option"
+title = "is_some / is_none"
+fixtures = []
+
+[[recipes]]
+id = "option-unwrap-or"
+section = "Option"
+title = "unwrap_or — デフォルト付き展開"
+fixtures = [
+    "tests/fixtures/stdlib_option_result/none_unwrap_or.ark",
+]
+
+[[recipes]]
+id = "option-map"
+section = "Option"
+title = "map_option — Option の変換"
+fixtures = [
+    "tests/fixtures/stdlib_option_result/option_map.ark",
+]
+
+# ── Result / Error Handling ───────────────────────────────────────────────────
+
+[[recipes]]
+id = "result-match"
+section = "Result / Error Handling"
+title = "match で処理"
+fixtures = [
+    "tests/fixtures/stdlib_option_result/result_ok_unwrap.ark",
+    "tests/fixtures/stdlib_option_result/result_err_match.ark",
+]
+
+[[recipes]]
+id = "result-propagate"
+section = "Result / Error Handling"
+title = "? で伝播"
+fixtures = [
+    "tests/fixtures/stdlib_option_result/question_mark.ark",
+]
+
+[[recipes]]
+id = "result-is-ok-err"
+section = "Result / Error Handling"
+title = "is_ok / is_err / unwrap_or — エラー判定とデフォルト値"
+fixtures = [
+    "tests/fixtures/stdlib_option_result/error_conventions.ark",
+]
+
+# ── I/O — 標準入出力 ─────────────────────────────────────────────────────────
+
+[[recipes]]
+id = "io-println"
+section = "I/O — 標準入出力"
+title = "println / eprintln"
+fixtures = [
+    "tests/fixtures/stdlib_io/print_hello.ark",
+    "tests/fixtures/stdlib_io/eprintln.ark",
+    "tests/fixtures/stdlib_io/println_multi.ark",
+]
+
+# ── I/O — Filesystem ─────────────────────────────────────────────────────────
+
+[[recipes]]
+id = "io-fs-read-write"
+section = "I/O — Filesystem"
+title = "read_to_string / write_string"
+fixtures = [
+    "tests/fixtures/stdlib_io/fs_read_write.ark",
+]
+
+[[recipes]]
+id = "io-fs-error"
+section = "I/O — Filesystem"
+title = "エラーハンドリング — 存在しないファイル"
+fixtures = [
+    "tests/fixtures/stdlib_io/fs_read_error.ark",
+]
+
+# ── I/O — Environment / Process ──────────────────────────────────────────────
+
+[[recipes]]
+id = "io-env-args"
+section = "I/O — Environment / Process"
+title = "コマンドライン引数"
+fixtures = [
+    "tests/fixtures/stdlib_env/env_basic.ark",
+]
+
+[[recipes]]
+id = "io-env-var"
+section = "I/O — Environment / Process"
+title = "環境変数の取得"
+fixtures = [
+    "tests/fixtures/stdlib_env/env_var_lookup.ark",
+]
+
+[[recipes]]
+id = "io-process-exit"
+section = "I/O — Environment / Process"
+title = "プロセス終了"
+fixtures = [
+    "tests/fixtures/stdlib_process/exit_zero.ark",
+]
+
+# ── I/O — Clock / Random ─────────────────────────────────────────────────────
+
+[[recipes]]
+id = "io-clock-random"
+section = "I/O — Clock / Random"
+title = "I/O — Clock / Random"
+fixtures = [
+    "tests/fixtures/stdlib_io/clock_random.ark",
+]
+
+# ── Integration Recipes ───────────────────────────────────────────────────────
+
+[[recipes]]
+id = "integration-word-counter"
+section = "Integration Recipes"
+title = "単語カウンター — String + Vec"
+fixtures = [
+    "tests/fixtures/integration/word_counter.ark",
+]
+
+[[recipes]]
+id = "integration-sort-vec"
+section = "Integration Recipes"
+title = "Vec ソートと結合 — sort + join"
+fixtures = [
+    "tests/fixtures/integration/sort_vec.ark",
+]
+
+[[recipes]]
+id = "integration-calculator"
+section = "Integration Recipes"
+title = "列挙型 + パターンマッチ — 式の評価"
+fixtures = [
+    "tests/fixtures/integration/calculator.ark",
+]
+
+[[recipes]]
+id = "integration-fibonacci"
+section = "Integration Recipes"
+title = "フィボナッチ数列 — 再帰とループ"
+fixtures = [
+    "tests/fixtures/integration/fibonacci.ark",
+]
+
+[[recipes]]
+id = "integration-linked-list"
+section = "Integration Recipes"
+title = "連結リスト — Enum + Box + 再帰"
+fixtures = [
+    "tests/fixtures/integration/linked_list.ark",
+]

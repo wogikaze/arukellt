@@ -1,2 +1,77 @@
-node_modules
-.superpowers/
+.worktrees/
+wt/
+target/
+
+# Python bytecache
+__pycache__/
+*.pyc
+
+# instant-grep index
+.ig/
+
+# io/fs test artifacts
+_test_io.txt
+test_output.txt
+
+# compiled wasm artifacts in fixture directories
+tests/fixtures/**/*.wasm
+wasi_snapshot_preview1.reactor.wasm
+tests/component-interop/**/*.wasm
+
+# wasm build/test artifacts
+*.wasm
+*.cwasm
+
+# Allow committed playground wasm binary and JS glue in docs/playground/wasm/
+!docs/playground/wasm/*.wasm
+!docs/playground/wasm/*.js
+!docs/playground/wasm/*.d.ts
+
+# Allow the pinned-reference selfhost wasm (ADR-029 / #585). This is the
+# trusted bootstrap base for the four selfhost gates; see bootstrap/PROVENANCE.md.
+!bootstrap/*.wasm
+
+# root-level scratch/temp files
+/_test_*.ark
+/archive.zip
+/test_*.wat
+/check_layout
+/audit-*.json
+
+# benchmark build artifacts (result summaries are tracked separately)
+benchmarks/*.wasm
+benchmarks/*.bench.wasm
+benchmarks/results/*.wasm
+
+# local-only reference specs (not tracked; cause docs-gen drift)
+docs/spec/spec-*/
+
+# bootstrap verification scratch directories
+.bootstrap-build/
+.compare-outputs-scratch/
+
+# local selfhost / tooling scratch outputs
+.build/
+
+# Node.js
+**/node_modules/
+
+# VS Code test downloads
+**/.vscode-test/
+
+# wasm-pack build output
+crates/ark-playground-wasm/pkg/
+
+# playground build:app generated assets (produced by `npm run build:app` in playground/)
+# docs/playground/dist/ is intentionally NOT ignored — CI builds it before pages upload
+# docs/playground/wasm/ is intentionally NOT ignored — wasm-pack output is committed so
+# the playground binary is available without a build step; CI rebuilds on deploy
+docs/playground/dist/benchmarks/results/
+
+# codex local settings
+.codex
+.codex-debug/
+.mcp.json
+
+# Cursor IDE settings
+.cursor/

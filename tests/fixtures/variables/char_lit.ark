@@ -1,0 +1,6 @@
+use std::host::stdio
+
+fn main() {
+    let c: char = 'A'
+    stdio::println(char_to_string(c))
+}

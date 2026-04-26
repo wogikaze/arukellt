@@ -1,0 +1,3 @@
+// Minimal .ark fixture for extension tests
+let x = 42
+print(x)

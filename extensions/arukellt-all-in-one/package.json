@@ -1,0 +1,479 @@
+{
+  "name": "arukellt-all-in-one",
+  "displayName": "Arukellt All-in-One",
+  "description": "VS Code support for Arukellt via the arukellt LSP server.",
+  "version": "0.0.1",
+  "publisher": "arukellt",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wogikaze/arukellt.git",
+    "directory": "extensions/arukellt-all-in-one"
+  },
+  "engines": {
+    "vscode": "^1.113.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Debuggers",
+    "Testing",
+    "Formatters"
+  ],
+  "activationEvents": [
+    "onLanguage:arukellt",
+    "onCommand:arukellt.restartLanguageServer",
+    "onCommand:arukellt.checkCurrentFile",
+    "onCommand:arukellt.compileCurrentFile",
+    "onCommand:arukellt.runCurrentFile",
+    "onCommand:arukellt.showSetupDoctor",
+    "onCommand:arukellt.showCommandGraph",
+    "onCommand:arukellt.showEnvironmentDiff",
+    "onCommand:arukellt.showPipeline",
+    "onCommand:arukellt.securityReview",
+    "onCommand:arukellt.buildComponent",
+    "onCommand:arukellt.buildComponentWit",
+    "onCommand:arukellt.runComponent",
+    "onCommand:arukellt.openInPlayground",
+    "onCommand:arukellt.runMain",
+    "onCommand:arukellt.debugMain",
+    "onCommand:arukellt.runTest",
+    "onCommand:arukellt.debugTest",
+    "onView:arukellt-project"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "arukellt",
+        "aliases": [
+          "Arukellt",
+          "arukellt"
+        ],
+        "extensions": [
+          ".ark"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "arukellt",
+        "scopeName": "source.arukellt",
+        "path": "./syntaxes/arukellt.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "arukellt",
+        "path": "./snippets/arukellt.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "arukellt.restartLanguageServer",
+        "title": "Arukellt: Restart Language Server"
+      },
+      {
+        "command": "arukellt.checkCurrentFile",
+        "title": "Arukellt: Check Current File"
+      },
+      {
+        "command": "arukellt.compileCurrentFile",
+        "title": "Arukellt: Compile Current File"
+      },
+      {
+        "command": "arukellt.runCurrentFile",
+        "title": "Arukellt: Run Current File"
+      },
+      {
+        "command": "arukellt.showSetupDoctor",
+        "title": "Arukellt: Show Setup Doctor"
+      },
+      {
+        "command": "arukellt.showCommandGraph",
+        "title": "Arukellt: Show Command Graph"
+      },
+      {
+        "command": "arukellt.showEnvironmentDiff",
+        "title": "Arukellt: Show Environment Diff"
+      },
+      {
+        "command": "arukellt.showPipeline",
+        "title": "Arukellt: Show Compiler Pipeline"
+      },
+      {
+        "command": "arukellt.securityReview",
+        "title": "Arukellt: Extension Security Review"
+      },
+      {
+        "command": "arukellt.showOutput",
+        "title": "Show Language Server Output",
+        "category": "Arukellt"
+      },
+      {
+        "command": "arukellt.refreshProjectTree",
+        "title": "Refresh Project Tree",
+        "category": "Arukellt",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "arukellt.toggleVerboseLogging",
+        "title": "Toggle Verbose Logging",
+        "category": "Arukellt"
+      },
+      {
+        "command": "arukellt.runScript",
+        "title": "Run Script",
+        "category": "Arukellt"
+      },
+      {
+        "command": "arukellt.buildComponent",
+        "title": "Arukellt: Build Component (wasm32-wasi-p2, all outputs)"
+      },
+      {
+        "command": "arukellt.buildComponentWit",
+        "title": "Arukellt: Build Component – Show WIT Interface"
+      },
+      {
+        "command": "arukellt.runComponent",
+        "title": "Arukellt: Run Component (wasm32-wasi-p2)"
+      },
+      {
+        "command": "arukellt.openInPlayground",
+        "title": "Arukellt: Open in Playground"
+      },
+      {
+        "command": "arukellt.runMain",
+        "title": "Arukellt: Run Main"
+      },
+      {
+        "command": "arukellt.debugMain",
+        "title": "Arukellt: Debug Main"
+      },
+      {
+        "command": "arukellt.runTest",
+        "title": "Arukellt: Run Test"
+      },
+      {
+        "command": "arukellt.debugTest",
+        "title": "Arukellt: Debug Test"
+      }
+    ],
+    "configuration": {
+      "title": "Arukellt",
+      "properties": {
+        "arukellt.server.path": {
+          "type": "string",
+          "default": "arukellt",
+          "description": "Path to the arukellt CLI used to launch the language server.",
+          "scope": "machine"
+        },
+        "arukellt.server.args": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Additional arguments passed before the built-in `lsp` subcommand."
+        },
+        "arukellt.target": {
+          "type": ["string", "null"],
+          "enum": ["wasm32-wasi-p1", "wasm32-wasi-p2", null],
+          "enumDescriptions": [
+            "WASI Preview 1 target (T1) — broadest compatibility.",
+            "WASI Preview 2 / Component Model target (T3) — full component support.",
+            "Auto-detect from ark.toml (default)."
+          ],
+          "default": null,
+          "description": "Default compilation target passed to the LSP server and to check/compile/run commands. null means auto-detect from ark.toml.",
+          "scope": "window"
+        },
+        "arukellt.emit": {
+          "type": "string",
+          "default": "core-wasm",
+          "description": "Default emit kind passed by extension compile commands.",
+          "scope": "resource"
+        },
+        "arukellt.playgroundUrl": {
+          "type": "string",
+          "enum": [
+            "https://wogikaze.github.io/arukellt/playground/"
+          ],
+          "default": "https://wogikaze.github.io/arukellt/playground/",
+          "description": "Base URL used by the 'Open in Playground' command. Only the repo-proved route (docs/playground/index.html on GitHub Pages) is supported.",
+          "scope": "resource"
+        },
+        "arukellt.enableCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Run / Debug / Test CodeLens above functions in .ark files. Set to false to hide all CodeLens entries.",
+          "scope": "window"
+        },
+        "arukellt.hoverDetailLevel": {
+          "type": "string",
+          "enum": ["full", "minimal"],
+          "enumDescriptions": [
+            "All details: type signature, documentation, availability, and usage examples.",
+            "Type signature only."
+          ],
+          "default": "full",
+          "description": "Controls how much information is shown on hover. 'full': signature + docs + availability + examples. 'minimal': signature only.",
+          "scope": "window"
+        },
+        "arukellt.diagnostics.reportLevel": {
+          "type": "string",
+          "enum": ["errors", "warnings", "all"],
+          "enumDescriptions": [
+            "Show only error-severity diagnostics; suppress warnings and hints.",
+            "Show errors and warnings; suppress hints and information.",
+            "Show all diagnostics including warnings and hints (default)."
+          ],
+          "default": "all",
+          "description": "Controls which diagnostic severities are shown in the Problems panel. 'errors': errors only. 'warnings': errors + warnings. 'all': everything.",
+          "scope": "window"
+        },
+        "arukellt.useSelfHostBackend": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use the self-hosted (ark-compiled) compiler backend instead of the Rust backend. Requires Stage 2 fixpoint (Issue 459). When true before Stage 2 is achieved, the extension logs a warning and continues using the Rust backend.",
+          "scope": "window"
+        },
+        "arukellt.check.onSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run arukellt check on file save.",
+          "scope": "resource"
+        }
+      }
+    },
+    "debuggers": [
+      {
+        "type": "arukellt",
+        "label": "Arukellt Debug",
+        "languages": [
+          "arukellt"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Path to the .ark file to debug.",
+                "default": "${file}"
+              },
+              "target": {
+                "type": "string",
+                "description": "Compilation target.",
+                "default": "wasm32-wasi-p1"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Pause on the first statement.",
+                "default": false
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "arukellt",
+            "request": "launch",
+            "name": "Debug Arukellt Program",
+            "program": "${file}"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Arukellt: Launch",
+            "description": "Launch and debug an Arukellt (.ark) file.",
+            "body": {
+              "type": "arukellt",
+              "request": "launch",
+              "name": "Debug Arukellt Program",
+              "program": "^\"\\${file}\""
+            }
+          }
+        ]
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "arukellt",
+          "title": "Arukellt",
+          "icon": "$(code)"
+        }
+      ]
+    },
+    "views": {
+      "arukellt": [
+        {
+          "id": "arukellt-project",
+          "name": "Project",
+          "icon": "$(folder)"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "arukellt-project",
+        "contents": "No Arukellt project found.\n[Initialize Project](command:arukellt.initProject)\nOpen a folder containing ark.toml to get started."
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "arukellt.refreshProjectTree",
+          "when": "view == arukellt-project",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "arukellt.runCurrentFile",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt"
+        },
+        {
+          "command": "arukellt.checkCurrentFile",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt"
+        },
+        {
+          "command": "arukellt.compileCurrentFile",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt"
+        },
+        {
+          "command": "arukellt.buildComponent",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt@4"
+        },
+        {
+          "command": "arukellt.buildComponentWit",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt@5"
+        },
+        {
+          "command": "arukellt.runComponent",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt@6"
+        },
+        {
+          "command": "arukellt.openInPlayground",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt@7"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "arukellt.runCurrentFile",
+          "when": "resourceLangId == arukellt",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "arukellt.runCurrentFile",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt"
+        }
+      ]
+    },
+    "problemMatchers": [
+      {
+        "name": "arukellt",
+        "owner": "arukellt",
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^(error|warning|info)\\[([A-Z]\\d+)\\]: (.+) at (.+):(\\d+):(\\d+)$",
+          "severity": 1,
+          "code": 2,
+          "message": 3,
+          "file": 4,
+          "line": 5,
+          "column": 6
+        }
+      },
+      {
+        "name": "arukellt-watch",
+        "owner": "arukellt",
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^(error|warning|info)\\[([A-Z]\\d+)\\]: (.+) at (.+):(\\d+):(\\d+)$",
+          "severity": 1,
+          "code": 2,
+          "message": 3,
+          "file": 4,
+          "line": 5,
+          "column": 6
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\[watch\\] file change detected",
+          "endsPattern": "^\\[watch\\] compilation (finished|failed)"
+        }
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "arukellt",
+        "required": [
+          "task"
+        ],
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "The Arukellt task to execute (check, compile, run, test, fmt, watch)"
+          },
+          "command": {
+            "type": "string",
+            "description": "The arukellt CLI command to run"
+          },
+          "isBackground": {
+            "type": "boolean",
+            "description": "Whether this is a background (watch) task"
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "node -e \"const ext=require('./src/extension.js'); const result=ext.verifyBootstrap(); if(!result.command){process.exit(1)}\"",
+    "test:playground-endpoint": "node ./test/playground-endpoint-guard.js",
+    "test": "vscode-test",
+    "package": "vsce package",
+    "build": "npm run package"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.110.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.0.0"
+  },
+  "keywords": [
+    "arukellt",
+    "ark",
+    "wasm",
+    "webassembly",
+    "programming-language",
+    "compiler"
+  ],
+  "bugs": {
+    "url": "https://github.com/wogikaze/arukellt/issues"
+  },
+  "homepage": "https://github.com/wogikaze/arukellt"
+}

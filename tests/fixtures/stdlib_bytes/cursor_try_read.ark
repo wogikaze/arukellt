@@ -1,0 +1,96 @@
+use std::bytes
+use std::host::stdio
+
+fn main() {
+    // try_read_u8: success
+    let data1: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data1, 42)
+    let c1: Vec<i32> = bytes::cursor_new(data1)
+    let r1: Option<i32> = bytes::try_read_u8(c1)
+    match r1 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("none"),
+    }
+    // try_read_u8: EOF
+    let r2: Option<i32> = bytes::try_read_u8(c1)
+    match r2 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("none"),
+    }
+    // try_read_u16_le: [10, 0] -> Some(10)
+    let data2: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data2, 10)
+    bytes::bytes_push(data2, 0)
+    let c2: Vec<i32> = bytes::cursor_new(data2)
+    let r3: Option<i32> = bytes::try_read_u16_le(c2)
+    match r3 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("none"),
+    }
+    // try_read_u16_le: exhausted cursor -> None
+    let r4: Option<i32> = bytes::try_read_u16_le(c2)
+    match r4 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("none"),
+    }
+    // try_read_u32_le: [4,3,2,1] -> Some(16909060)
+    let data3: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data3, 4)
+    bytes::bytes_push(data3, 3)
+    bytes::bytes_push(data3, 2)
+    bytes::bytes_push(data3, 1)
+    let c3: Vec<i32> = bytes::cursor_new(data3)
+    let r5: Option<i32> = bytes::try_read_u32_le(c3)
+    match r5 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("none"),
+    }
+    // try_read_u32_be: [1,2,3,4] -> Some(16909060)
+    let data4: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data4, 1)
+    bytes::bytes_push(data4, 2)
+    bytes::bytes_push(data4, 3)
+    bytes::bytes_push(data4, 4)
+    let c4: Vec<i32> = bytes::cursor_new(data4)
+    let r6: Option<i32> = bytes::try_read_u32_be(c4)
+    match r6 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("none"),
+    }
+    // try_hex_val_char: valid -> Some(10)
+    let h1: Option<i32> = bytes::try_hex_val_char("a")
+    match h1 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("none"),
+    }
+    // try_hex_val_char: invalid -> None
+    let h2: Option<i32> = bytes::try_hex_val_char("z")
+    match h2 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("none"),
+    }
+    // try_read_bytes: success - read 2 bytes from 4-byte cursor
+    let data7: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data7, 7)
+    bytes::bytes_push(data7, 8)
+    bytes::bytes_push(data7, 9)
+    bytes::bytes_push(data7, 10)
+    let c7: Vec<i32> = bytes::cursor_new(data7)
+    let r9: Option<Vec<i32>> = bytes::try_read_bytes(c7, 2)
+    match r9 {
+        Option::Some(chunk) => stdio::println(i32_to_string(bytes::bytes_len(chunk))),
+        None => stdio::println("none"),
+    }
+    // try_read_bytes: request more than remaining -> None
+    let r10: Option<Vec<i32>> = bytes::try_read_bytes(c7, 5)
+    match r10 {
+        Option::Some(chunk) => stdio::println(i32_to_string(bytes::bytes_len(chunk))),
+        None => stdio::println("none"),
+    }
+}
+// try_read_u8 success and EOF
+// try_read_u16_le success [10,0] = 10 and exhausted
+// try_read_u32_le [4,3,2,1] = 16909060
+// try_read_u32_be [1,2,3,4] = 16909060
+// try_hex_val_char valid/invalid
+// try_read_bytes success length=2 and insufficient

@@ -1,0 +1,8 @@
+impl Add for Point {
+    fn add(self: Point, other: Point) -> Point {
+        Point { x: self.x + other.x }
+    }
+}
+
+fn main() {
+}

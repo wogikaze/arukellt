@@ -1,0 +1,14 @@
+use std::host::stdio
+use std::path
+
+fn main() {
+    stdio::println(path::stem("hello.txt"))
+    stdio::println(path::stem("foo.tar.gz"))
+    stdio::println(path::stem("noext"))
+    stdio::println(path::with_extension("hello.txt", "rs"))
+    stdio::println(path::with_extension("hello.txt", ""))
+    stdio::println(path::with_extension("noext", "txt"))
+    stdio::println(path::with_extension("/a/b/foo.md", "html"))
+}
+// stem
+// with_extension

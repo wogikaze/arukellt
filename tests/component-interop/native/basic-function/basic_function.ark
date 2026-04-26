@@ -1,0 +1,14 @@
+// Basic function export/import scenario
+// Tests: simple function export, WIT generation, component emit
+
+export fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+export fn greet(name: string) -> string {
+    "Hello, " + name + "!"
+}
+
+export fn is_positive(n: i32) -> bool {
+    n > 0
+}

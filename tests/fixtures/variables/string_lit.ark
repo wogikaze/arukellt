@@ -1,0 +1,6 @@
+use std::host::stdio
+
+fn main() {
+    let s: String = String_from("hello")
+    stdio::println(s)
+}

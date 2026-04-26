@@ -1,0 +1,27 @@
+use std::host::stdio
+
+enum Inner {
+    A,
+    B(i32),
+}
+
+enum Outer {
+    Wrap(Inner),
+    Empty,
+}
+
+fn describe(o: Outer) -> String {
+    match o {
+        Outer::Wrap(inner) => match inner {
+            Inner::A => String_from("wrap-a"),
+            Inner::B(n) => concat(String_from("wrap-b:"), i32_to_string(n)),
+        },
+        Outer::Empty => String_from("empty"),
+    }
+}
+
+fn main() {
+    stdio::println(describe(Outer::Wrap(Inner::A)))
+    stdio::println(describe(Outer::Wrap(Inner::B(7))))
+    stdio::println(describe(Outer::Empty))
+}

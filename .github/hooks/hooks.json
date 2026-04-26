@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionEnd": [
+      {
+        "type": "command",
+        "powershell": "./scripts/session-end-notify.ps1",
+        "cwd": ".github/hooks",
+        "timeoutSec": 15
+      }
+    ]
+  }
+}

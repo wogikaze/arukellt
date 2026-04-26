@@ -1,0 +1,22 @@
+use std::collections::ordered
+use std::host::stdio
+
+fn main() {
+    let m: Vec<i32> = ordered::index_map_new()
+    ordered::index_map_insert(m, 30, 300)
+    ordered::index_map_insert(m, 10, 100)
+    ordered::index_map_insert(m, 20, 200)
+    stdio::println(i32_to_string(ordered::index_map_len(m)))
+    stdio::println(i32_to_string(ordered::index_map_get(m, 30)))
+    stdio::println(i32_to_string(ordered::index_map_get(m, 10)))
+    stdio::println(i32_to_string(ordered::index_map_get(m, 99)))
+    let keys: Vec<i32> = ordered::index_map_keys(m)
+    let mut i: i32 = 0
+    while i < len(keys) {
+        stdio::println(i32_to_string(get_unchecked(keys, i)))
+        i = i + 1
+    }
+    ordered::index_map_insert(m, 10, 999)
+    stdio::println(i32_to_string(ordered::index_map_get(m, 10)))
+    stdio::println(i32_to_string(ordered::index_map_len(m)))
+}

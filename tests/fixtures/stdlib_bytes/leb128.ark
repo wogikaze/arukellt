@@ -1,0 +1,36 @@
+use std::bytes
+use std::host::stdio
+
+fn main() {
+    let leb: Vec<i32> = bytes::leb128_encode_u32(624485)
+    stdio::println(i32_to_string(bytes::bytes_len(leb)))
+    stdio::println(i32_to_string(bytes::bytes_get(leb, 0)))
+    stdio::println(i32_to_string(bytes::bytes_get(leb, 1)))
+    stdio::println(i32_to_string(bytes::bytes_get(leb, 2)))
+    let c1: Vec<i32> = bytes::cursor_new(leb)
+    let dec1: i32 = bytes::leb128_decode_u32(c1)
+    stdio::println(i32_to_string(dec1))
+    let neg: Vec<i32> = bytes::leb128_encode_i32(0 - 1)
+    stdio::println(i32_to_string(bytes::bytes_len(neg)))
+    stdio::println(i32_to_string(bytes::bytes_get(neg, 0)))
+    let c2: Vec<i32> = bytes::cursor_new(neg)
+    let dec2: i32 = bytes::leb128_decode_i32(c2)
+    stdio::println(i32_to_string(dec2))
+    let zero: Vec<i32> = bytes::leb128_encode_u32(0)
+    stdio::println(i32_to_string(bytes::bytes_len(zero)))
+    stdio::println(i32_to_string(bytes::bytes_get(zero, 0)))
+    let one_enc: Vec<i32> = bytes::leb128_encode_u32(1)
+    stdio::println(i32_to_string(bytes::bytes_len(one_enc)))
+    stdio::println(i32_to_string(bytes::bytes_get(one_enc, 0)))
+    let pos: Vec<i32> = bytes::leb128_encode_i32(63)
+    let c3: Vec<i32> = bytes::cursor_new(pos)
+    let dec3: i32 = bytes::leb128_decode_i32(c3)
+    stdio::println(i32_to_string(dec3))
+}
+// LEB128 u32 encode: 624485 -> [0xe5, 0x8e, 0x26]
+// LEB128 u32 decode roundtrip
+// LEB128 i32 encode: -1 -> [0x7f]
+// LEB128 i32 decode: 0x7f -> -1
+// LEB128 u32 encode: single byte value 0 -> [0]
+// LEB128 u32 encode: value 1 -> [1]
+// LEB128 i32 decode: 63 = 0x3f

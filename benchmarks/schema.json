@@ -1,0 +1,345 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "arukellt-bench-v1",
+  "title": "Arukellt Benchmark Result",
+  "description": "Schema for Arukellt benchmark suite output (schema_version: arukellt-bench-v1).",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "mode",
+    "target",
+    "benchmarks"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "arukellt-bench-v1",
+      "description": "Schema version identifier."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of when the results were generated."
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["quick", "full", "compare", "ci", "update-baseline", "reproducibility", "scaling"],
+      "description": "Execution mode used for this run."
+    },
+    "mode_description": {
+      "type": "string",
+      "description": "Human-readable description of the mode."
+    },
+    "target": {
+      "type": "string",
+      "description": "Compilation target (e.g. wasm32-wasi-p1)."
+    },
+    "thresholds": {
+      "type": "object",
+      "description": "Regression thresholds as percentage allowed increase.",
+      "properties": {
+        "compile_ms": { "type": "number" },
+        "run_ms": { "type": "number" },
+        "binary_bytes": { "type": "number" }
+      },
+      "additionalProperties": { "type": "number" }
+    },
+    "compiler": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Relative path to the compiler binary used."
+        }
+      },
+      "required": ["path"]
+    },
+    "environment": {
+      "type": "object",
+      "description": "Host environment metadata.",
+      "properties": {
+        "platform": { "type": "string" },
+        "python": { "type": "string" },
+        "machine": { "type": "string" },
+        "processor": { "type": "string" },
+        "kernel": { "type": "string" }
+      }
+    },
+    "tooling": {
+      "type": "object",
+      "description": "Availability of external tools used during benchmarking.",
+      "additionalProperties": {
+        "$ref": "#/definitions/tool_info"
+      }
+    },
+    "benchmarks": {
+      "type": "array",
+      "description": "Array of individual benchmark results.",
+      "items": {
+        "$ref": "#/definitions/benchmark_result"
+      }
+    }
+  },
+  "definitions": {
+    "tool_info": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "available": { "type": "boolean" },
+        "path": { "type": ["string", "null"] }
+      },
+      "required": ["name", "available"]
+    },
+    "benchmark_result": {
+      "type": "object",
+      "required": ["name", "source", "tags", "compile", "runtime"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Benchmark identifier."
+        },
+        "source": {
+          "type": "string",
+          "description": "Relative path to the .ark source file."
+        },
+        "expected": {
+          "type": "string",
+          "description": "Relative path to the .expected output file."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable benchmark description."
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Workload taxonomy tags."
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["compile", "runtime", "size", "memory"]
+          },
+          "description": "Metric categories collected for this benchmark."
+        },
+        "compile": {
+          "$ref": "#/definitions/compile_metrics"
+        },
+        "runtime": {
+          "$ref": "#/definitions/runtime_metrics"
+        },
+        "memory": {
+          "$ref": "#/definitions/memory_metrics"
+        }
+      }
+    },
+    "compile_metrics": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["ok", "skipped"],
+          "description": "Whether compile metrics were collected."
+        },
+        "iterations": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of compile samples taken."
+        },
+        "samples_ms": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Raw wall-clock compile time samples in milliseconds."
+        },
+        "median_ms": {
+          "type": "number",
+          "description": "Median compile time in milliseconds."
+        },
+        "stddev_ms": {
+          "type": ["number", "null"],
+          "description": "Sample standard deviation of compile time samples in milliseconds."
+        },
+        "cv_pct": {
+          "type": ["number", "null"],
+          "description": "Coefficient of variation (stddev/mean*100) of compile time samples in percent. High CV indicates unstable measurements."
+        },
+        "variance_unstable": {
+          "type": "boolean",
+          "description": "True when cv_pct exceeds the CV_THRESHOLD (default 5%). Benchmarks flagged here should be re-run with more iterations or on a quieter machine."
+        },
+        "max_rss_kb": {
+          "type": ["number", "null"],
+          "description": "Peak resident set size in KiB (null if unavailable)."
+        },
+        "binary_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Output binary size in bytes."
+        },
+        "command": {
+          "type": "string",
+          "description": "Full command line used for compilation."
+        },
+        "phase_ms": {
+          "type": "object",
+          "description": "Per-phase median compile latency in milliseconds, from `arukellt compile --time`. Keys: lex, parse, resolve, typecheck, lower, opt, emit, total.",
+          "properties": {
+            "lex":        { "type": "number", "description": "Lexer phase time (ms)." },
+            "parse":      { "type": "number", "description": "Parser phase time (ms)." },
+            "resolve":    { "type": "number", "description": "Name resolution phase time (ms)." },
+            "typecheck":  { "type": "number", "description": "Type-check phase time (ms)." },
+            "lower":      { "type": "number", "description": "HIR→MIR lowering phase time (ms)." },
+            "opt":        { "type": "number", "description": "MIR optimisation phase time (ms)." },
+            "emit":       { "type": "number", "description": "Wasm emission phase time (ms)." },
+            "total":      { "type": "number", "description": "Total as reported by the compiler (ms)." }
+          },
+          "additionalProperties": { "type": "number" }
+        },
+        "wasm_sections": {
+          "type": "object",
+          "description": "WebAssembly binary section sizes in bytes, parsed directly from the .wasm output file using pure-Python LEB128 decoding. Keys correspond to Wasm section names (type, import, function, table, memory, global, export, start, element, code, data, datacount) plus custom_total for all custom sections combined. symbol_attribution is always 'unavailable' because the Arukellt emitter does not emit a name section.",
+          "properties": {
+            "type":        { "type": "integer", "description": "Type section size in bytes." },
+            "import":      { "type": "integer", "description": "Import section size in bytes." },
+            "function":    { "type": "integer", "description": "Function section size in bytes." },
+            "table":       { "type": "integer", "description": "Table section size in bytes." },
+            "memory":      { "type": "integer", "description": "Memory section size in bytes." },
+            "global":      { "type": "integer", "description": "Global section size in bytes." },
+            "export":      { "type": "integer", "description": "Export section size in bytes." },
+            "start":       { "type": "integer", "description": "Start section size in bytes." },
+            "element":     { "type": "integer", "description": "Element section size in bytes." },
+            "code":        { "type": "integer", "description": "Code section size in bytes (function bodies)." },
+            "data":        { "type": "integer", "description": "Data section size in bytes." },
+            "datacount":   { "type": "integer", "description": "DataCount section size in bytes." },
+            "custom_total":{ "type": "integer", "description": "Sum of all custom section payload sizes in bytes." },
+            "symbol_attribution": {
+              "type": "string",
+              "description": "Function-level symbol attribution status. Always 'unavailable' because the Arukellt emitter does not produce a name custom section."
+            },
+            "error": {
+              "type": "string",
+              "description": "Error message when section parsing failed."
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "runtime_metrics": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["ok", "skipped"],
+          "description": "Whether runtime metrics were collected."
+        },
+        "iterations": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of timed runtime iterations."
+        },
+        "warmups": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of warmup iterations (discarded)."
+        },
+        "samples_ms": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Raw wall-clock runtime samples in milliseconds."
+        },
+        "median_ms": {
+          "type": "number",
+          "description": "Median runtime in milliseconds."
+        },
+        "p50_ms": {
+          "type": ["number", "null"],
+          "description": "50th-percentile (p50) runtime in milliseconds."
+        },
+        "p95_ms": {
+          "type": ["number", "null"],
+          "description": "95th-percentile (p95) runtime in milliseconds."
+        },
+        "p99_ms": {
+          "type": ["number", "null"],
+          "description": "99th-percentile (p99) runtime in milliseconds."
+        },
+        "stddev_ms": {
+          "type": ["number", "null"],
+          "description": "Sample standard deviation of runtime samples in milliseconds."
+        },
+        "cv_pct": {
+          "type": ["number", "null"],
+          "description": "Coefficient of variation (stddev/mean*100) of runtime samples in percent. High CV indicates unstable measurements."
+        },
+        "variance_unstable": {
+          "type": "boolean",
+          "description": "True when cv_pct exceeds the CV_THRESHOLD (default 5%). Benchmarks flagged here should be re-run with more iterations or on a quieter machine."
+        },
+        "startup_ms": {
+          "type": ["number", "null"],
+          "description": "Median wasmtime instantiation + process startup overhead (ms), measured via the startup.ark no-op fixture."
+        },
+        "guest_ms": {
+          "type": ["number", "null"],
+          "description": "Estimated guest-only execution time: median_ms minus startup_ms (floored at 0)."
+        },
+        "max_rss_kb": {
+          "type": ["number", "null"],
+          "description": "Peak resident set size in KiB (null if unavailable)."
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Captured stdout from the benchmark run."
+        },
+        "correctness": {
+          "type": "string",
+          "enum": ["pass", "fail"],
+          "description": "Whether stdout matched the .expected file."
+        },
+        "command": {
+          "type": "string",
+          "description": "Full command line used for runtime execution."
+        }
+      }
+    },
+    "memory_metrics": {
+      "type": "object",
+      "description": "Consolidated memory and GC telemetry for one benchmark. GC pause fields are 'unavailable' because the wasmtime CLI does not expose GC pause statistics. Live-set and allocation-rate metrics likewise require runtime instrumentation not available via the standard CLI.",
+      "properties": {
+        "compiler_rss_peak_kb": {
+          "type": ["integer", "null"],
+          "description": "Peak RSS of the compiler process in KiB, from /usr/bin/time -f %M (null when the tool is absent)."
+        },
+        "runtime_rss_peak_kb": {
+          "type": ["integer", "null"],
+          "description": "Peak RSS of the wasmtime process in KiB (null when the tool is absent)."
+        },
+        "gc_pause_total_ms": {
+          "type": ["number", "string"],
+          "description": "Sum of all GC pause durations in milliseconds, or 'unavailable' when the runtime does not expose this metric."
+        },
+        "gc_pause_max_ms": {
+          "type": ["number", "string"],
+          "description": "Maximum single GC pause in milliseconds, or 'unavailable' when the runtime does not expose this metric."
+        },
+        "gc_pause_count": {
+          "type": ["integer", "string"],
+          "description": "Number of GC pause events, or 'unavailable' when the runtime does not expose this metric."
+        },
+        "gc_note": {
+          "type": "string",
+          "description": "Human-readable explanation of why GC pause data is unavailable (if applicable)."
+        },
+        "alloc_note": {
+          "type": "string",
+          "description": "Human-readable explanation of why allocation-rate / live-set data is unavailable (if applicable)."
+        }
+      }
+    }
+  }
+}

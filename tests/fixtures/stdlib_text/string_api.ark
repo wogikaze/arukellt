@@ -1,0 +1,30 @@
+use std::host::stdio
+use std::text
+
+fn main() {
+    stdio::println(text::slice_bytes("hello world", 0, 5))
+    stdio::println(text::slice_bytes("hello world", 6, 11))
+    stdio::println(text::slice_bytes("hello world", 0, 0))
+    stdio::println(bool_to_string(text::is_empty("")))
+    stdio::println(bool_to_string(text::is_empty("a")))
+    stdio::println(i32_to_string(text::len_bytes("hello")))
+    stdio::println(i32_to_string(text::len_bytes("")))
+    let parts = text::split("a,b,c", ",")
+    stdio::println(i32_to_string(len(parts)))
+    stdio::println(text::join(parts, "-"))
+    stdio::println(text::concat("foo", "bar"))
+    stdio::println(bool_to_string(text::starts_with("hello", "hel")))
+    stdio::println(bool_to_string(text::ends_with("hello", "llo")))
+    stdio::println(text::to_lower("ABC"))
+    stdio::println(text::to_upper("abc"))
+    stdio::println(text::repeat("ab", 3))
+    stdio::println(text::replace("hello world", "world", "arukellt"))
+}
+// slice_bytes: extract substring by byte range
+// is_empty
+// len_bytes
+// relocated: split, join, concat
+// relocated: starts_with, ends_with
+// relocated: to_lower, to_upper
+// repeat
+// replace

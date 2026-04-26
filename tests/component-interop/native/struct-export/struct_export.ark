@@ -1,0 +1,17 @@
+// Struct export/import scenario
+// Tests: struct export, WIT record generation, component emit
+
+export struct Point {
+    x: i32,
+    y: i32,
+}
+
+export fn create_point(x: i32, y: i32) -> Point {
+    Point { x, y }
+}
+
+export fn point_distance(p1: Point, p2: Point) -> f64 {
+    let dx = (p1.x - p2.x) as f64
+    let dy = (p1.y - p2.y) as f64
+    (dx * dx + dy * dy).sqrt()
+}

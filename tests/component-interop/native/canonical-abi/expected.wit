@@ -1,0 +1,20 @@
+// Expected WIT for canonical-abi scenario
+
+package arukellt:component-interop@1.0.0;
+
+interface data-processing {
+  record data {
+    value: s32,
+    name: string,
+  }
+
+  /// Process data structure
+  process-data: func(data: data) -> data;
+
+  /// Sum list of integers
+  sum-list: func(numbers: list<s32>) -> s32;
+}
+
+world canonical-abi {
+  export data-processing;
+}

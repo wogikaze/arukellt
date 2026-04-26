@@ -1,0 +1,21 @@
+// Issue #566 — selfhost parser partial-AST recovery.
+//
+// Two well-formed top-level functions surround a deliberately malformed
+// declaration. The parser must:
+//   1. Emit a parse error for the malformed region.
+//   2. Synchronise to the next `fn` keyword.
+//   3. Continue parsing `second` and `third` so resolver/typechecker /
+//      LSP receive a partial AST instead of a truncated tree.
+fn first() -> i32 {
+    1
+}
+
+) ) )
+
+fn second() -> i32 {
+    2
+}
+
+fn third() -> i32 {
+    3
+}

@@ -1,0 +1,23 @@
+use std::collections::compiler
+use std::host::stdio
+
+fn main() {
+    let i: Vec<String> = compiler::interner_new()
+    let s0: i32 = compiler::interner_intern(i, "hello")
+    let s1: i32 = compiler::interner_intern(i, "world")
+    let s2: i32 = compiler::interner_intern(i, "hello")
+    stdio::println(i32_to_string(compiler::interner_len(i)))
+    stdio::println(i32_to_string(s0))
+    stdio::println(i32_to_string(s1))
+    stdio::println(i32_to_string(s2))
+    let looked_up: Option<String> = compiler::interner_lookup(i, s1)
+    match looked_up {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
+    }
+    let missing: Option<String> = compiler::interner_lookup(i, 99)
+    match missing {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
+    }
+}

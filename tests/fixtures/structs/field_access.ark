@@ -1,0 +1,12 @@
+use std::host::stdio
+
+struct Person {
+    name: String,
+    age: i32,
+}
+
+fn main() {
+    let p: Person = Person { name: String_from("Alice"), age: 30 }
+    stdio::println(p.name)
+    stdio::println(i32_to_string(p.age))
+}

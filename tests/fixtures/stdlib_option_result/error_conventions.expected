@@ -1,0 +1,14 @@
+true
+false
+42
+false
+true
+parse error: bad
+99
+0
+true
+10
+true
+77
+got: 42
+fail: parse error: xyz

@@ -1,0 +1,19 @@
+use std::host::fs
+use std::host::stdio
+
+fn main() {
+    let bytes: Vec<i32> = Vec_new_i32()
+    push(bytes, 120)
+    push(bytes, 121)
+    push(bytes, 122)
+
+    match fs::write_bytes("typed_write_bytes.bin", bytes) {
+        Result::Ok(_) => stdio::println("unexpected-ok"),
+        Result::Err(err) => match err {
+            fs::FsError::NotFound(path) => stdio::println(concat("not-found:", path)),
+            fs::FsError::PermissionDenied(path) => stdio::println(concat("permission-denied:", path)),
+            fs::FsError::Utf8Error => stdio::println("utf8-error"),
+            fs::FsError::IoError(msg) => stdio::println(concat("io-error:", msg)),
+        },
+    }
+}

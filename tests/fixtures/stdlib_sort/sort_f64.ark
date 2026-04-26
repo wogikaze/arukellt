@@ -1,0 +1,21 @@
+use std::host::stdio
+
+fn main() {
+    let mut v: Vec<f64> = Vec_new_f64()
+    let a: f64 = 3.5
+    let b: f64 = 1.2
+    let c: f64 = 5.0
+    let d: f64 = 2.8
+    let e: f64 = 4.1
+    push(v, a)
+    push(v, b)
+    push(v, c)
+    push(v, d)
+    push(v, e)
+    sort_f64(v)
+    let mut i: i32 = 0
+    while i < len(v) {
+        stdio::println(f64_to_string(get_unchecked(v, i)))
+        i = i + 1
+    }
+}

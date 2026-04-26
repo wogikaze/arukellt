@@ -1,0 +1,604 @@
+name: CI
+
+# CI layer structure aligned with docs/test-strategy.md:
+#
+#  Category / layer        Job id                        Merge gate?   Description
+#  ─────────────────────── ───────────────────────────── ───────────── ───────────────────────────────────────
+#  unit                    unit-tests                    yes           clippy + rustfmt + workspace unit/bin tests
+#  fixture / target(T3)    fixture-primary               yes           T3 wasm32-wasi-p2 fixture behavior gate
+#  fixture / target(T1)    fixture-supported             no            T1 wasm32-wasi-p1 supported-target alert lane
+#  integration             integration                   yes           CLI compile/run smoke on known examples
+#  packaging layer         packaging                     yes           release binary entrypoint smoke
+#  determinism             determinism                   yes           byte-exact repeat compile check
+#  verification-harness    verification-harness-quick    yes           verify-harness --quick (manifest + docs hygiene)
+#  docs/size/WAT layer     heavy-checks                  push only     verify-harness --size --wat --docs
+#  component-interop       component-interop             push only     component emit / host interop smoke
+#  perf                    perf-baseline                 push only     baseline snapshot collection
+#  bootstrap               selfhost-bootstrap            yes*          Stage 0/1 required; Stage 2 informational; fixture parity sub-step (--fixture only, || true); CLI parity + diag parity merge-blocking (#530)
+#  selfhost-parity         selfhost-cli-parity           yes           selfhost CLI parity gate (#530)
+#  selfhost-parity         selfhost-diag-parity          yes           selfhost diagnostic parity gate (#530)
+#  editor-tooling          extension-tests               yes           VS Code extension workflow tests
+#  editor-tooling          lsp-e2e                       yes           LSP protocol unit + end-to-end tests
+#  target-contract drift   target-contract-drift-check   yes           docs/target-contract.md matches CI truth
+#
+# * `selfhost-bootstrap` is merge-blocking for Stage 0/1 attainment only.
+# All push-only lanes are informational. `fixture-supported` alerts but does not block.
+
+on:
+  push:
+    branches: [master, "feature/**"]
+  pull_request:
+    branches: [master]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+# ─── Shared setup step (re-used by every job via YAML anchors) ───────────────
+# (GitHub Actions does not support YAML anchors natively; steps are inlined.)
+
+jobs:
+
+  # ── Layer 1: Unit tests (cargo test, no fixture harness) ─────────────────
+  unit-tests:
+    name: "Unit tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Clippy
+        run: cargo clippy --workspace -- -D warnings
+
+      - name: rustfmt check
+        run: cargo fmt --all -- --check
+
+      - name: Unit tests (lib + bin, no harness)
+        run: >
+          cargo test --workspace
+          --lib --bins
+          -- --nocapture
+
+  # ── Verification harness — quick gate (merge gate) ───────────────────────
+  verification-harness-quick:
+    name: "Verification harness — quick gate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Quick harness (manifest + docs hygiene)
+        run: python3 scripts/manager.py verify --quick
+
+  # ── Layer 2: Fixture suite — T3 primary (merge gate) ────────────────────
+  fixture-primary:
+    name: "Fixture suite — T3 primary (wasm32-wasi-p2)"
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build release arukellt
+        run: cargo build --release -p arukellt
+
+      - name: T3 fixtures — run and capture harness output
+        env:
+          ARUKELLT_TARGET: wasm32-wasi-p2
+          ARUKELLT_BIN: ./target/release/arukellt
+        run: |
+          cargo test -p arukellt --test harness -- --nocapture 2>&1 | tee harness-raw.log
+          python3 scripts/gen/gen-harness-report.py harness-raw.log > harness-report.json
+
+      - name: Upload harness report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-report-t3-${{ github.sha }}
+          path: harness-report.json
+
+  # ── Layer 3: Fixture suite — T1 supported (non-blocking) ────────────────
+  fixture-supported:
+    name: "Fixture suite — T1 supported (wasm32-wasi-p1)"
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    # Failure here alerts but does not block merge (T1 is "supported", not "primary")
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: T1 fixtures (run + module-run + diag + module-diag)
+        env:
+          ARUKELLT_TARGET: wasm32-wasi-p1
+        run: cargo test -p arukellt --test harness -- --nocapture
+
+  # ── Layer 4: Integration — CLI smoke (merge gate) ────────────────────────
+  integration:
+    name: "Integration — CLI smoke"
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build release arukellt
+        run: cargo build --release -p arukellt
+
+      - name: CLI smoke — help and version
+        run: |
+          ./target/release/arukellt --help
+          ./target/release/arukellt --version
+
+      - name: CLI smoke — compile + run hello.ark (T3 primary)
+        run: |
+          ./target/release/arukellt run --target wasm32-wasi-p2 docs/examples/hello.ark
+
+      - name: CLI smoke — compile + run hello.ark (T1 supported)
+        run: |
+          ./target/release/arukellt run docs/examples/hello.ark
+
+  # ── Layer 5: Packaging — binary artifact smoke (merge gate) ─────────────
+  packaging:
+    name: "Packaging — binary smoke"
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build release arukellt
+        run: cargo build --release -p arukellt
+
+      - name: Packaging smoke — binary size and entrypoints
+        run: |
+          ls -la target/release/arukellt
+          ./target/release/arukellt --help | head -5
+          ./target/release/arukellt --version
+
+  # ── Layer 6: Determinism (merge gate) ───────────────────────────────────
+  determinism:
+    name: "Determinism — same input same output"
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build release arukellt
+        run: cargo build --release -p arukellt
+
+      - name: Determinism check — T3 compile same output twice
+        run: |
+          ./target/release/arukellt compile --target wasm32-wasi-p2 --output /tmp/det_a.wasm docs/examples/hello.ark
+          ./target/release/arukellt compile --target wasm32-wasi-p2 --output /tmp/det_b.wasm docs/examples/hello.ark
+          sha256sum /tmp/det_a.wasm /tmp/det_b.wasm
+          diff /tmp/det_a.wasm /tmp/det_b.wasm && echo "PASS: deterministic output"
+
+      - name: Determinism check — T1 compile same output twice
+        run: |
+          ./target/release/arukellt compile --output /tmp/det1_a.wasm docs/examples/hello.ark
+          ./target/release/arukellt compile --output /tmp/det1_b.wasm docs/examples/hello.ark
+          sha256sum /tmp/det1_a.wasm /tmp/det1_b.wasm
+          diff /tmp/det1_a.wasm /tmp/det1_b.wasm && echo "PASS: deterministic output"
+
+  # ── Layer 7: Heavy checks (push only, non-blocking) ─────────────────────
+  heavy-checks:
+    name: "Heavy checks (size, WAT, docs)"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: [fixture-primary, fixture-supported, integration, packaging, determinism]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build debug arukellt
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/target-heavy
+        run: cargo build -p arukellt
+
+      - name: Verify harness (size + WAT + docs)
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-heavy/debug/arukellt
+        run: python3 scripts/manager.py verify --size --wat --docs
+
+  # ── Layer 7b: Component interop (push only) ──────────────────────────────
+  component-interop:
+    name: "Component interop"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: [fixture-primary]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
+
+      - name: Install wasm-tools
+        run: cargo install wasm-tools --locked --quiet
+
+      - name: Build arukellt
+        run: cargo build -p arukellt --quiet
+
+      - name: Component interop tests
+        run: python3 scripts/manager.py verify --component
+
+  # ── Layer 8: Perf baseline snapshot (push only) ─────────────────────────
+  perf-baseline:
+    name: "Perf baseline snapshot"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: [fixture-primary]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build release arukellt
+        run: cargo build --release -p arukellt
+
+      - name: Collect perf and fixture baselines
+        run: python3 scripts/util/collect-baseline.py
+
+      - name: Upload baseline artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: baselines
+          path: tests/baselines/*.json
+
+  # ── Layer 9: Selfhost bootstrap — full Stage 0+1+2 with parity ──────────
+  selfhost-bootstrap:
+    name: "Selfhost bootstrap (full)"
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
+
+      - name: Build release arukellt
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/target-selfhost
+        run: cargo build --release -p arukellt
+
+      - name: Run full bootstrap (Stage 0 + Stage 1 + Stage 2)
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
+        run: |
+          # Run full bootstrap — Stage 2 fixpoint may fail (expected until selfhost reaches parity)
+          bash scripts/run/verify-bootstrap.sh --check 2>&1 | tee bootstrap-results.txt || true
+          # Stage 0 and Stage 1 must pass (merge-blocking)
+          grep -q 'stage0-compile: reached' bootstrap-results.txt
+          grep -q 'stage1-compile: reached' bootstrap-results.txt
+
+      - name: Run selfhost fixture parity
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
+        run: bash scripts/check/check-selfhost-parity.sh --fixture 2>&1 | tee parity-results.txt || true
+
+      # ── Merge-blocking CLI parity gate (#530) ─────────────────────────────
+      # Fails the PR if the selfhost compiler's CLI surface diverges from the
+      # reference Rust compiler. No `|| true`: this is required for merge.
+      - name: Selfhost CLI parity (merge-blocking, #530)
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
+        run: |
+          python3 scripts/manager.py selfhost parity --mode --cli 2>&1 \
+            | tee cli-parity-results.txt
+
+      # ── Merge-blocking diagnostic parity gate (#530) ──────────────────────
+      # Fails the PR if the selfhost compiler's diagnostic surface diverges
+      # from the reference Rust compiler. SKIP>0 is acceptable (unimplemented
+      # diagnostics), but any FAIL blocks the merge.
+      - name: Selfhost diagnostic parity (merge-blocking, #530)
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
+        run: |
+          python3 scripts/manager.py selfhost diag-parity 2>&1 \
+            | tee diag-parity-results.txt
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfhost-bootstrap
+          path: |
+            bootstrap-results.txt
+            parity-results.txt
+            cli-parity-results.txt
+            diag-parity-results.txt
+
+  # ── Layer 9b: Selfhost CLI parity (merge-blocking, #530) ────────────────
+  selfhost-cli-parity:
+    name: "Selfhost CLI parity (merge gate, #530)"
+    runs-on: ubuntu-latest
+    needs: [selfhost-bootstrap]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
+
+      - name: Build release arukellt
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/target-selfhost
+        run: cargo build --release -p arukellt
+
+      - name: Selfhost CLI parity check
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
+        run: |
+          python3 scripts/manager.py selfhost parity --mode --cli 2>&1 \
+            | tee cli-parity-results.txt
+
+      - name: Upload cli-parity results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfhost-cli-parity-${{ github.sha }}
+          path: cli-parity-results.txt
+
+  # ── Layer 9c: Selfhost diagnostic parity (merge-blocking, #530) ─────────
+  selfhost-diag-parity:
+    name: "Selfhost diagnostic parity (merge gate, #530)"
+    runs-on: ubuntu-latest
+    needs: [selfhost-bootstrap]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
+
+      - name: Build release arukellt
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/target-selfhost
+        run: cargo build --release -p arukellt
+
+      - name: Selfhost diagnostic parity check
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
+        run: |
+          python3 scripts/manager.py selfhost diag-parity 2>&1 \
+            | tee diag-parity-results.txt
+
+      - name: Upload diag-parity results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfhost-diag-parity-${{ github.sha }}
+          path: diag-parity-results.txt
+
+  # ── Layer 10: VS Code extension tests (merge gate) ─────────────────────
+  extension-tests:
+    name: "VS Code extension tests"
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Build debug arukellt
+        run: cargo build -p arukellt
+
+      - name: Install extension dependencies
+        run: cd extensions/arukellt-all-in-one && npm install
+
+      - name: Run extension tests
+        run: cd extensions/arukellt-all-in-one && xvfb-run -a npm test
+
+  # ── Layer 11: (removed) Rust ark-lsp E2E tests ─────────────────────────
+  # The Rust LSP server crate (`crates/ark-lsp`) was deleted in #572 (Phase 7
+  # of #529). The selfhost LSP (`src/compiler/lsp.ark`, exposed as
+  # `arukellt lsp`) is the source of truth. Editor-extension E2E coverage is
+  # provided by the VS Code extension job above.
+
+  # ── Layer 12: Target-contract drift check (merge gate) ──────────────────
+  #
+  # Runs scripts/update-target-status.sh --dry-run to preview any proposed
+  # changes, then applies them and uses git diff --exit-code to fail if
+  # docs/target-contract.md is out of sync with CI reality.
+  # Triggers: pull_request (all) + push to master only.
+  target-contract-drift-check:
+    name: "Target contract drift check"
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure update-target-status.sh is executable
+        run: chmod +x scripts/update-target-status.sh
+
+      - name: Preview proposed changes (dry-run — informational)
+        run: echo '{}' | bash scripts/update-target-status.sh --dry-run
+
+      - name: Apply target-status updates
+        run: echo '{}' | bash scripts/update-target-status.sh
+
+      - name: Fail if docs/target-contract.md has uncommitted drift
+        run: git diff --exit-code docs/target-contract.md
+
+  # ── Final gate ───────────────────────────────────────────────────────────
+  verify:
+    name: "Final Gate"
+    needs: [unit-tests, verification-harness-quick, fixture-primary, integration, packaging, determinism, selfhost-bootstrap, selfhost-cli-parity, selfhost-diag-parity, extension-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All required CI layers passed (unit + verification-harness-quick + fixture/T3 + integration + packaging + determinism + selfhost-bootstrap + selfhost-cli-parity + selfhost-diag-parity + extension-tests)"

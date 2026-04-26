@@ -1,0 +1,19 @@
+use std::core::hash
+use std::host::stdio
+
+fn main() {
+    let h1 = hash::hash_i32(42)
+    let h2 = hash::hash_i32(42)
+    let h3 = hash::hash_i32(0)
+    let hs1 = hash::hash_string("hello")
+    let hs2 = hash::hash_string("hello")
+    stdio::println(bool_to_string(h1 == h2))
+    stdio::println(bool_to_string(h1 != h3))
+    stdio::println(bool_to_string(hs1 == hs2))
+    let combined = hash::combine(h1, hs1)
+    stdio::println(bool_to_string(combined != 0))
+}
+// Same input should give same hash
+// Different input should (likely) give different hash
+// Same string should hash to same value
+// Combine two hashes

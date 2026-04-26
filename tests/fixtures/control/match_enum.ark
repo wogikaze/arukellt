@@ -1,0 +1,18 @@
+use std::host::stdio
+
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+fn main() {
+    let d: Direction = Direction::South
+    match d {
+        Direction::North => stdio::println("north"),
+        Direction::South => stdio::println("south"),
+        Direction::East => stdio::println("east"),
+        Direction::West => stdio::println("west"),
+    }
+}

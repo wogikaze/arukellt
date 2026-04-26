@@ -1,0 +1,9 @@
+// Fixture: use_destructure.ark
+// Tests that `use std::collections::{vec, hash_map}` is parsed as a valid
+// DestructureImport.  This is a parser-only fixture (slice 1 of issue #039).
+// Resolve and typecheck are NOT exercised here.
+use std::collections::{vec, hash_map}
+
+fn main() {
+}
+// body intentionally empty — only parser acceptance is tested

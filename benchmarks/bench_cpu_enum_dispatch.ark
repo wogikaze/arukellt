@@ -1,0 +1,62 @@
+// CPU benchmark: enum variant dispatch via pattern matching.
+// Builds shapes deterministically based on the loop index so the
+// accumulator is stable (no RNG) and exercises all variants roughly
+// evenly.  The match has 5 arms including a payload-less unit variant
+// to cover dispatch without destructuring.
+use std::host::stdio
+
+enum Shape {
+    Circle {
+        radius: i32,
+    },
+    Square {
+        side: i32,
+    },
+    Rect {
+        width: i32,
+        height: i32,
+    },
+    Triangle {
+        base: i32,
+        height: i32,
+    },
+    Point,
+}
+
+fn area(s: Shape) -> i32 {
+    match s {
+        Shape::Circle { radius } => radius * radius * 3,
+        Shape::Square { side } => side * side,
+        Shape::Rect { width, height } => width * height,
+        Shape::Triangle { base, height } => base * height / 2,
+        Shape::Point => 1,
+    }
+}
+
+fn main() {
+    let mut sum: i32 = 0
+    let mut i: i32 = 0
+    while i < 100000 {
+        let kind: i32 = i - i / 5 * 5
+        let result: i32 = if kind == 0 {
+            area(Shape::Circle { radius: 5 })
+        } else {
+            if kind == 1 {
+                area(Shape::Square { side: 4 })
+            } else {
+                if kind == 2 {
+                    area(Shape::Rect { width: 3, height: 7 })
+                } else {
+                    if kind == 3 {
+                        area(Shape::Triangle { base: 6, height: 8 })
+                    } else {
+                        area(Shape::Point)
+                    }
+                }
+            }
+        }
+        sum = sum + result
+        i = i + 1
+    }
+    stdio::println(i32_to_string(sum))
+}

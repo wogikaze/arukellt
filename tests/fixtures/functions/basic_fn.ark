@@ -1,0 +1,9 @@
+use std::host::stdio
+
+fn greet() {
+    stdio::println("hello from greet")
+}
+
+fn main() {
+    greet()
+}

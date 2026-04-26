@@ -1,0 +1,7 @@
+use std::host::clock
+use std::host::stdio
+
+fn main() {
+    let t = clock::monotonic_now()
+    stdio::println(i64_to_string(t))
+}

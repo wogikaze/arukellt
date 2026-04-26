@@ -1,0 +1,18 @@
+/// Host standard I/O helpers backed by the current print intrinsics.
+/// 
+/// These APIs are explicitly host-bound. They are not part of the pure
+/// standard-library surface and must be imported from `std::host::stdio`.
+/// Writes a string to stdout without appending a newline.
+pub fn print(s: String) {
+    __intrinsic_print(s)
+}
+
+/// Writes a string to stdout and appends a newline.
+pub fn println(s: String) {
+    __intrinsic_println(s)
+}
+
+/// Writes a string to stderr.
+pub fn eprintln(s: String) {
+    __intrinsic_eprintln(s)
+}

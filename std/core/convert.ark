@@ -1,0 +1,30 @@
+// std::core::convert — type conversion functions
+//
+// Unified namespace for type conversions (wraps existing intrinsics).
+pub fn i32_to_string(x: i32) -> String {
+    __intrinsic_i32_to_string(x)
+}
+
+pub fn i64_to_string(x: i64) -> String {
+    __intrinsic_i64_to_string(x)
+}
+
+pub fn f64_to_string(x: f64) -> String {
+    __intrinsic_f64_to_string(x)
+}
+
+pub fn bool_to_string(x: bool) -> String {
+    __intrinsic_bool_to_string(x)
+}
+
+pub fn parse_i32(s: String) -> Option<i32> {
+    __intrinsic_parse_i32(s)
+}
+
+pub fn parse_i64(s: String) -> Option<i64> {
+    __intrinsic_parse_i64(s)
+}
+
+pub fn parse_f64(s: String) -> Option<f64> {
+    __intrinsic_parse_f64(s)
+}

@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    let x: i32 = 3
+    if x > 5 {
+        stdio::println("big")
+    } else {
+        stdio::println("small")
+    }
+}

@@ -1,0 +1,15 @@
+[package]
+name = "arukellt-compiler"
+version = "0.1.0"
+authors = ["wogikaze <kouse2319@gmail.com>"]
+description = "The self-hosted Arukellt compiler (Stage 1)"
+
+[bin]
+name = "arukellt-s1"
+path = "main.ark"
+
+[dependencies]
+# Standard library is included by default
+
+[world]
+name = "arukellt:compiler/driver"

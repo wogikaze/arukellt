@@ -1,0 +1,9 @@
+use std::host::stdio
+
+fn main() {
+    let a: String = String_from("test")
+    let b: String = String_from("test")
+    let c: String = String_from("other")
+    stdio::println(bool_to_string(eq(a, b)))
+    stdio::println(bool_to_string(eq(a, c)))
+}

@@ -1,0 +1,8 @@
+use std::host::stdio
+
+fn main() {
+    stdio::println(abs(-5))
+    stdio::println(abs(3))
+    stdio::println(min(3, 7))
+    stdio::println(max(3, 7))
+}

@@ -1,0 +1,7 @@
+use std::host::stdio
+
+import a
+
+fn main() {
+    stdio::println(a::from_a())
+}

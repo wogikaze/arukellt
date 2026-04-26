@@ -1,0 +1,5710 @@
+# Arukellt Standard Library Manifest
+# Single source of truth for all builtins, intrinsics, and prelude functions.
+#
+# Sources cross-referenced:
+#   - crates/ark-resolve/src/resolve.rs   (PRELUDE_FUNCTIONS, PRELUDE_TYPES, PRELUDE_VALUES)
+#   - crates/ark-typecheck/src/checker.rs (register_builtins — FnSig registrations)
+#   - std/prelude.ark                     (wrapper functions)
+#   - src/compiler/emitter.ark            (selfhost emitter dispatch)
+#
+# Discrepancies found during initial audit (documented, not fixed):
+#   - f32_to_string: registered in checker.rs but NOT in PRELUDE_FUNCTIONS (resolve.rs)
+#   - __intrinsic_string_is_empty: listed in PRELUDE_FUNCTIONS but has no FnSig in checker.rs
+#   - Several builtins in PRELUDE_FUNCTIONS lack FnSig in checker.rs:
+#       unwrap_or_else, clear, is_ok, is_err, Vec_with_capacity_i32,
+#       Vec_with_capacity_String, as_slice, ok_or, ok, err, expect,
+#       map_option_String_String, map_result_i32_i32
+#     These are resolved dynamically or via special-case handling in the type checker.
+
+[metadata]
+version = "0.1.0"
+
+# ─────────────────────────────────────────────
+# Prelude types (auto-imported)
+# ─────────────────────────────────────────────
+
+[[types]]
+name = "Option"
+prelude = true
+stability = "stable"
+generic_params = ["T"]
+
+[[types]]
+name = "Result"
+prelude = true
+stability = "stable"
+generic_params = ["T", "E"]
+
+[[types]]
+name = "String"
+prelude = true
+stability = "stable"
+
+[[types]]
+name = "Vec"
+prelude = true
+generic_params = ["T"]
+
+# ─────────────────────────────────────────────
+# Prelude values (auto-imported)
+# ─────────────────────────────────────────────
+
+[[values]]
+name = "Some"
+prelude = true
+stability = "stable"
+
+[[values]]
+name = "None"
+prelude = true
+
+[[values]]
+name = "Ok"
+prelude = true
+stability = "stable"
+
+[[values]]
+name = "Err"
+prelude = true
+
+[[values]]
+name = "true"
+prelude = true
+stability = "stable"
+
+[[values]]
+name = "false"
+prelude = true
+
+# ─────────────────────────────────────────────
+# Functions
+# ─────────────────────────────────────────────
+#
+# kind:
+#   "builtin"          — direct builtin, no prelude.ark wrapper
+#   "intrinsic"        — __intrinsic_* name only (no public wrapper)
+#   "prelude_wrapper"  — public fn in prelude.ark that calls an __intrinsic_*
+#
+# For prelude_wrapper entries, `intrinsic` names the backing __intrinsic_*.
+# params/returns use Arukellt type syntax.
+
+# ── String construction ──────────────────────
+
+[[functions]]
+name = "String_from"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_string_from"
+params = ["String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "String_new"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_string_new"
+params = []
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+# ── String comparison ────────────────────────
+
+[[functions]]
+name = "eq"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_string_eq"
+params = ["String", "String"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+# ── String operations ────────────────────────
+
+[[functions]]
+name = "concat"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_concat"
+params = ["String", "String"]
+returns = "String"
+prelude = true
+stability = "deprecated"
+deprecated_by = "std::text::concat"
+doc_category = "string"
+doc = "Concatenate two strings and return the result."
+availability = { t1 = true, t3 = true }
+examples = [{code = "let s = concat(\"hello\", \" world\")", description = "Join two string literals", output = "hello world"}]
+
+[[functions]]
+name = "clone"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_string_clone"
+params = ["String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "starts_with"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_starts_with"
+params = ["String", "String"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "ends_with"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_ends_with"
+params = ["String", "String"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "to_lower"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_to_lower"
+params = ["String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "to_upper"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_to_upper"
+params = ["String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "slice"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_string_slice"
+params = ["String", "i32", "i32"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "trim"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_trim"
+params = ["String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "contains"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_contains"
+params = ["String", "String"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "index_of"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_index_of"
+params = ["String", "String"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "char_at"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_char_at"
+params = ["String", "i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "substring"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_substring"
+params = ["String", "i32", "i32"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "replace"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_replace"
+params = ["String", "String", "String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "split"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_split"
+params = ["String", "String"]
+returns = "Vec<String>"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "join"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_join"
+params = ["Vec<String>", "String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "push_char"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_push_char"
+params = ["String", "char"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "is_empty"
+kind = "builtin"
+params = ["String"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+# ── Conversion: to string ────────────────────
+
+[[functions]]
+name = "i32_to_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_string"
+params = ["i32"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "conversion"
+doc = "Convert an i32 integer to its decimal string representation."
+availability = { t1 = true, t3 = true }
+examples = [{code = "println(i32_to_string(42))", description = "Print integer as string", output = "42"}]
+
+[[functions]]
+name = "i64_to_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i64_to_string"
+params = ["i64"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "conversion"
+
+[[functions]]
+name = "f64_bits_lo"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_f64_bits_lo"
+params = ["f64"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "numeric"
+
+[[functions]]
+name = "f64_bits_hi"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_f64_bits_hi"
+params = ["f64"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "numeric"
+
+# --- Scalar type conversion functions (issue #040) ---
+[[functions]]
+name = "u8_to_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_u8_to_i32"
+params = ["u8"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "u16_to_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_u16_to_i32"
+params = ["u16"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i8_to_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i8_to_i32"
+params = ["i8"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i16_to_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i16_to_i32"
+params = ["i16"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i32_to_u8"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_u8"
+params = ["i32"]
+returns = "u8"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i32_to_u16"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_u16"
+params = ["i32"]
+returns = "u16"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i32_to_i8"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_i8"
+params = ["i32"]
+returns = "i8"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i32_to_i16"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_i16"
+params = ["i32"]
+returns = "i16"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "u32_to_u64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_u32_to_u64"
+params = ["u32"]
+returns = "u64"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "u64_to_u32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_u64_to_u32"
+params = ["u64"]
+returns = "u32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i32_to_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_i64"
+params = ["i32"]
+returns = "i64"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i64_to_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i64_to_i32"
+params = ["i64"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "f32_to_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_f32_to_f64"
+params = ["f32"]
+returns = "f64"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "f64_to_f32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_f64_to_f32"
+params = ["f64"]
+returns = "f32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "f64_to_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_f64_to_string"
+params = ["f64"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "conversion"
+
+[[functions]]
+name = "bool_to_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_bool_to_string"
+params = ["bool"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "conversion"
+
+[[functions]]
+name = "char_to_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_char_to_string"
+params = ["char"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "conversion"
+
+# Polymorphic to_string — dispatched by emitter based on argument type
+[[functions]]
+name = "to_string"
+kind = "builtin"
+params = ["any"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "conversion"
+
+# NOTE: f32_to_string has a FnSig in checker.rs but is NOT in PRELUDE_FUNCTIONS (resolve.rs).
+[[functions]]
+name = "f32_to_string"
+kind = "builtin"
+params = ["f32"]
+returns = "String"
+prelude = false
+stability = "provisional"
+doc_category = "conversion"
+
+# ── Conversion: from string (parsing) ────────
+
+[[functions]]
+name = "parse_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_parse_i32"
+params = ["String"]
+returns = "Result<i32, String>"
+prelude = true
+stability = "stable"
+doc_category = "conversion"
+doc = "Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on failure."
+errors = "Returns Err if the string is not a valid decimal integer or is out of i32 range."
+availability = { t1 = true, t3 = true }
+examples = [{code = "match parse_i32(\"42\") { Ok(n) => println(i32_to_string(n)), Err(e) => eprintln(e) }", description = "Parse a numeric string", output = "42"}]
+
+[[functions]]
+name = "parse_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_parse_i64"
+params = ["String"]
+returns = "Result<i64, String>"
+prelude = true
+stability = "stable"
+doc_category = "conversion"
+
+[[functions]]
+name = "parse_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_parse_f64"
+params = ["String"]
+returns = "Result<f64, String>"
+prelude = true
+stability = "stable"
+doc_category = "conversion"
+
+# ── Math ─────────────────────────────────────
+
+[[functions]]
+name = "sqrt"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_sqrt"
+params = ["f64"]
+returns = "f64"
+prelude = true
+stability = "stable"
+doc_category = "math"
+
+[[functions]]
+name = "abs"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_abs"
+params = ["i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "math"
+
+[[functions]]
+name = "min"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_min"
+params = ["i32", "i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "math"
+
+[[functions]]
+name = "max"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_max"
+params = ["i32", "i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "math"
+
+[[functions]]
+name = "clamp_i32"
+kind = "prelude_wrapper"
+params = ["i32", "i32", "i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "math"
+
+# ── Control ──────────────────────────────────
+
+[[functions]]
+name = "panic"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_panic"
+params = ["String"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "control"
+
+# ── Vec constructors ─────────────────────────
+
+[[functions]]
+name = "Vec_new_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_i32"
+params = []
+returns = "Vec<i32>"
+prelude = true
+stability = "deprecated"
+deprecated_by = "Vec::new<i32>"
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_i64"
+params = []
+returns = "Vec<i64>"
+prelude = true
+stability = "deprecated"
+deprecated_by = "Vec::new<i64>"
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_f64"
+params = []
+returns = "Vec<f64>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_String"
+params = []
+returns = "Vec<String>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_i32_with_cap"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_i32_with_cap"
+params = ["i32"]
+returns = "Vec<i32>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_i64_with_cap"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_i64_with_cap"
+params = ["i32"]
+returns = "Vec<i64>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_f64_with_cap"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_f64_with_cap"
+params = ["i32"]
+returns = "Vec<f64>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+# NOTE: Vec_with_capacity_* are in PRELUDE_FUNCTIONS but lack FnSig in checker.rs.
+[[functions]]
+name = "Vec_with_capacity_i32"
+kind = "builtin"
+params = ["i32"]
+returns = "Vec<i32>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_with_capacity_String"
+kind = "builtin"
+params = ["i32"]
+returns = "Vec<String>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+# ── Vec operations (direct builtins) ─────────
+
+[[functions]]
+name = "push"
+kind = "builtin"
+params = ["Vec<T>", "T"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+doc = "Append an element to the end of a Vec, mutating it in place."
+availability = { t1 = true, t3 = true }
+examples = [{code = "let v = Vec_new_i32()\npush(v, 1)\npush(v, 2)", description = "Build a vector by pushing elements"}]
+
+[[functions]]
+name = "pop"
+kind = "builtin"
+params = ["Vec<T>"]
+returns = "Option<T>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+doc = "Remove and return the last element of a Vec. Returns None if the Vec is empty."
+availability = { t1 = true, t3 = true }
+
+[[functions]]
+name = "len"
+kind = "builtin"
+params = ["Vec<T>"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+doc = "Return the number of elements in a Vec."
+availability = { t1 = true, t3 = true }
+examples = [{code = "let v = Vec_new_i32()\npush(v, 10)\nprintln(i32_to_string(len(v)))", description = "Get the length of a vector", output = "1"}]
+
+[[functions]]
+name = "get"
+kind = "builtin"
+params = ["Vec<T>", "i32"]
+returns = "Option<T>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "get_unchecked"
+kind = "builtin"
+params = ["Vec<T>", "i32"]
+returns = "T"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "set"
+kind = "builtin"
+params = ["Vec<T>", "i32", "T"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+# NOTE: clear is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "clear"
+kind = "builtin"
+params = ["Vec<T>"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+# NOTE: as_slice is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "as_slice"
+kind = "builtin"
+params = ["Vec<T>"]
+returns = "Vec<T>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+# ── Vec sorting ──────────────────────────────
+
+[[functions]]
+name = "sort_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_sort_i32"
+params = ["Vec<i32>"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "sort_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_sort_i64"
+params = ["Vec<i64>"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "sort_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_sort_f64"
+params = ["Vec<f64>"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "sort_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_sort_String"
+params = ["Vec<String>"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+# ── Vec higher-order (i32) ───────────────────
+
+[[functions]]
+name = "map_i32_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_map_i32_i32"
+params = ["Vec<i32>", "fn(i32) -> i32"]
+returns = "Vec<i32>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "filter_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_filter_i32"
+params = ["Vec<i32>", "fn(i32) -> bool"]
+returns = "Vec<i32>"
+prelude = true
+stability = "deprecated"
+doc_category = "collections"
+deprecated_by = "filter<i32>"
+
+[[functions]]
+name = "fold_i32_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_fold_i32_i32"
+params = ["Vec<i32>", "i32", "fn(i32, i32) -> i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "any_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_any_i32"
+params = ["Vec<i32>", "fn(i32) -> bool"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "find_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_find_i32"
+params = ["Vec<i32>", "fn(i32) -> bool"]
+returns = "Option<i32>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "contains_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_contains_i32"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "reverse_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_reverse_i32"
+params = ["Vec<i32>"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "remove_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_remove_i32"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "sum_i32"
+kind = "prelude_wrapper"
+params = ["Vec<i32>"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "product_i32"
+kind = "prelude_wrapper"
+params = ["Vec<i32>"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+# ── Vec higher-order (i64) ───────────────────
+
+[[functions]]
+name = "map_i64_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_map_i64_i64"
+params = ["Vec<i64>", "fn(i64) -> i64"]
+returns = "Vec<i64>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "filter_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_filter_i64"
+params = ["Vec<i64>", "fn(i64) -> bool"]
+returns = "Vec<i64>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "fold_i64_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_fold_i64_i64"
+params = ["Vec<i64>", "i64", "fn(i64, i64) -> i64"]
+returns = "i64"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+# ── Vec higher-order (f64) ───────────────────
+
+[[functions]]
+name = "map_f64_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_map_f64_f64"
+params = ["Vec<f64>", "fn(f64) -> f64"]
+returns = "Vec<f64>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "filter_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_filter_f64"
+params = ["Vec<f64>", "fn(f64) -> bool"]
+returns = "Vec<f64>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+# ── Vec higher-order (String) ────────────────
+
+[[functions]]
+name = "map_String_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_map_String_String"
+params = ["Vec<String>", "fn(String) -> String"]
+returns = "Vec<String>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "filter_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_filter_String"
+params = ["Vec<String>", "fn(String) -> bool"]
+returns = "Vec<String>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "contains_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_contains_String"
+params = ["Vec<String>", "String"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "reverse_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_reverse_String"
+params = ["Vec<String>"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+# ── Option/Result operations (direct builtins) ─
+
+[[functions]]
+name = "unwrap"
+kind = "builtin"
+params = ["Option<T>"]
+returns = "T"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+[[functions]]
+name = "unwrap_or"
+kind = "builtin"
+params = ["Option<T>", "T"]
+returns = "T"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+# NOTE: unwrap_or_else is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "unwrap_or_else"
+kind = "builtin"
+params = ["Option<T>", "fn() -> T"]
+returns = "T"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+[[functions]]
+name = "is_some"
+kind = "builtin"
+params = ["Option<T>"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+[[functions]]
+name = "is_none"
+kind = "builtin"
+params = ["Option<T>"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+# NOTE: is_ok is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "is_ok"
+kind = "builtin"
+params = ["Result<T, E>"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+# NOTE: is_err is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "is_err"
+kind = "builtin"
+params = ["Result<T, E>"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+# NOTE: ok_or is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "ok_or"
+kind = "builtin"
+params = ["Option<T>", "E"]
+returns = "Result<T, E>"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+# NOTE: ok is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "ok"
+kind = "builtin"
+params = ["Result<T, E>"]
+returns = "Option<T>"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+# NOTE: err is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "err"
+kind = "builtin"
+params = ["Result<T, E>"]
+returns = "Option<E>"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+# NOTE: expect is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "expect"
+kind = "builtin"
+params = ["Option<T>", "String"]
+returns = "T"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+[[functions]]
+name = "map_option_i32_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_map_option_i32_i32"
+params = ["Option<i32>", "fn(i32) -> i32"]
+returns = "Option<i32>"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+# NOTE: map_option_String_String is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "map_option_String_String"
+kind = "builtin"
+params = ["Option<String>", "fn(String) -> String"]
+returns = "Option<String>"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+# NOTE: map_result_i32_i32 is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "map_result_i32_i32"
+kind = "builtin"
+params = ["Result<i32, E>", "fn(i32) -> i32"]
+returns = "Result<i32, E>"
+prelude = true
+stability = "stable"
+doc_category = "option_result"
+
+# ── Box ──────────────────────────────────────
+
+[[functions]]
+name = "Box_new"
+kind = "builtin"
+params = ["T"]
+returns = "Box<T>"
+prelude = true
+stability = "stable"
+doc_category = "box"
+
+[[functions]]
+name = "unbox"
+kind = "builtin"
+params = ["Box<T>"]
+returns = "T"
+prelude = true
+stability = "stable"
+doc_category = "box"
+
+# ── Assertions ───────────────────────────────
+
+[[functions]]
+name = "assert"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_assert"
+params = ["bool"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "assert"
+
+[[functions]]
+name = "assert_eq"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_assert_eq"
+params = ["i32", "i32"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "assert"
+
+[[functions]]
+name = "assert_ne"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_assert_ne"
+params = ["i32", "i32"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "assert"
+
+[[functions]]
+name = "assert_eq_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_assert_eq_i64"
+params = ["i64", "i64"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "assert"
+
+[[functions]]
+name = "assert_eq_str"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_assert_eq_str"
+params = ["String", "String"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "assert"
+
+# ── HashMap<i32, i32> ───────────────────────
+
+[[functions]]
+name = "HashMap_i32_i32_new"
+kind = "builtin"
+params = []
+returns = "HashMap<i32, i32>"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_i32_i32_new"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_i32_insert"
+kind = "builtin"
+params = ["HashMap<i32, i32>", "i32", "i32"]
+returns = "()"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_i32_i32_insert"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_i32_get"
+kind = "builtin"
+params = ["HashMap<i32, i32>", "i32"]
+returns = "Option<i32>"
+prelude = true
+stability = "deprecated"
+deprecated_by = "std::collections::hash_map"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_i32_contains_key"
+kind = "builtin"
+params = ["HashMap<i32, i32>", "i32"]
+returns = "bool"
+prelude = true
+stability = "deprecated"
+deprecated_by = "std::collections::hash_map"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_i32_len"
+kind = "builtin"
+params = ["HashMap<i32, i32>"]
+returns = "i32"
+prelude = true
+stability = "deprecated"
+deprecated_by = "std::collections::hash_map"
+doc_category = "collections"
+
+# ── HashMap<String, i32> ───────────────────────
+
+[[functions]]
+name = "HashMap_new_String_i32"
+kind = "builtin"
+params = []
+returns = "HashMap<String, i32>"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_str_i32_new"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_i32_insert"
+kind = "builtin"
+params = ["HashMap<String, i32>", "String", "i32"]
+returns = "()"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_str_i32_insert"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_i32_get"
+kind = "builtin"
+params = ["HashMap<String, i32>", "String"]
+returns = "Option<i32>"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_str_i32_get"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_i32_contains_key"
+kind = "builtin"
+params = ["HashMap<String, i32>", "String"]
+returns = "bool"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_str_i32_contains"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_i32_len"
+kind = "builtin"
+params = ["HashMap<String, i32>"]
+returns = "i32"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_str_i32_len"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_new_i32_String"
+kind = "builtin"
+params = []
+returns = "HashMap<i32, String>"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_i32_str_new"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_String_insert"
+kind = "builtin"
+params = ["HashMap<i32, String>", "i32", "String"]
+returns = "unit"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_i32_str_insert"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_String_get"
+kind = "builtin"
+params = ["HashMap<i32, String>", "i32"]
+returns = "Option<String>"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_i32_str_get"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_String_contains_key"
+kind = "builtin"
+params = ["HashMap<i32, String>", "i32"]
+returns = "bool"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_i32_str_contains"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_String_len"
+kind = "builtin"
+params = ["HashMap<i32, String>"]
+returns = "i32"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_i32_str_len"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_new_String_String"
+kind = "builtin"
+params = []
+returns = "HashMap<String, String>"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_str_str_new"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_String_insert"
+kind = "builtin"
+params = ["HashMap<String, String>", "String", "String"]
+returns = "unit"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_str_str_insert"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_String_get"
+kind = "builtin"
+params = ["HashMap<String, String>", "String"]
+returns = "Option<String>"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_str_str_get"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_String_contains_key"
+kind = "builtin"
+params = ["HashMap<String, String>", "String"]
+returns = "bool"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_str_str_contains"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_String_len"
+kind = "builtin"
+params = ["HashMap<String, String>"]
+returns = "i32"
+prelude = true
+stability = "deprecated"
+deprecated_by = "hashmap_str_str_len"
+doc_category = "collections"
+
+# ── Intrinsics (no public wrapper) ───────────
+# __intrinsic_string_is_empty is in PRELUDE_FUNCTIONS but has no
+# prelude.ark wrapper or FnSig in checker.rs. Listed for completeness.
+
+[[functions]]
+name = "__intrinsic_string_is_empty"
+kind = "intrinsic"
+params = ["String"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+# ── Scalar Types (v3) ─────────────
+[[types]]
+name = "u8"
+prelude = true
+stability = "stable"
+
+[[types]]
+name = "u16"
+prelude = true
+
+[[types]]
+name = "u32"
+prelude = true
+stability = "stable"
+
+[[types]]
+name = "u64"
+prelude = true
+
+[[types]]
+name = "i8"
+prelude = true
+stability = "stable"
+
+[[types]]
+name = "i16"
+prelude = true
+
+
+# ── std::core Types (v3) ─────────────
+[[types]]
+name = "Error"
+module = "std::core::error"
+stability = "stable"
+prelude = false
+
+[[types]]
+name = "Ordering"
+module = "std::core"
+stability = "stable"
+prelude = false
+
+[[types]]
+name = "Range"
+module = "std::core"
+stability = "stable"
+prelude = false
+
+[[types]]
+name = "RangeInclusive"
+module = "std::core"
+stability = "stable"
+prelude = false
+
+# ── std::core Functions (v3) ─────────────
+[[functions]]
+name = "range_new"
+module = "std::core"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "Range"
+
+[[functions]]
+name = "range_contains"
+module = "std::core"
+doc_category = "core"
+stability = "stable"
+params = ["Range", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "range_len"
+module = "std::core"
+doc_category = "core"
+stability = "stable"
+params = ["Range"]
+returns = "i32"
+
+[[functions]]
+name = "range_inclusive_new"
+module = "std::core"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "RangeInclusive"
+
+[[functions]]
+name = "range_inclusive_contains"
+module = "std::core"
+doc_category = "core"
+stability = "stable"
+params = ["RangeInclusive", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "cmp_i32"
+module = "std::core"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "Ordering"
+
+[[functions]]
+name = "error_message"
+module = "std::core::error"
+doc_category = "core"
+stability = "stable"
+params = ["Error"]
+returns = "String"
+
+[[functions]]
+name = "cmp"
+module = "std::core::cmp"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "Ordering"
+
+[[functions]]
+name = "min"
+module = "std::core::cmp"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "max"
+module = "std::core::cmp"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "clamp"
+module = "std::core::cmp"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "abs"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32"]
+returns = "i32"
+
+[[functions]]
+name = "min"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "max"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "sqrt"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["f64"]
+returns = "f64"
+
+[[functions]]
+name = "abs_i32"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32"]
+returns = "i32"
+
+[[functions]]
+name = "min_i32"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "max_i32"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "hash_i32"
+module = "std::core::hash"
+doc_category = "core"
+stability = "stable"
+params = ["i32"]
+returns = "i32"
+
+[[functions]]
+name = "hash_string"
+module = "std::core::hash"
+doc_category = "core"
+stability = "stable"
+params = ["String"]
+returns = "i32"
+
+[[functions]]
+name = "combine"
+module = "std::core::hash"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "hash_combine"
+module = "std::core::hash"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+# === std::time ===
+
+[[functions]]
+name = "duration_ms"
+module = "std::time"
+doc_category = "time"
+stability = "stable"
+params = ["i64", "i64"]
+returns = "i64"
+
+[[functions]]
+name = "duration_us"
+module = "std::time"
+doc_category = "time"
+stability = "stable"
+params = ["i64", "i64"]
+returns = "i64"
+
+[[functions]]
+name = "duration_ns"
+module = "std::time"
+doc_category = "time"
+stability = "stable"
+params = ["i64", "i64"]
+returns = "i64"
+
+[[modules]]
+name = "std::time"
+stability = "stable"
+doc = "Pure duration arithmetic over caller-supplied i64 nanosecond timestamps. Host clock reads live in std::host::clock; this module only provides the arithmetic."
+availability = { t1 = true, t3 = true }
+
+# === std::random ===
+
+[[functions]]
+name = "seeded_random"
+module = "std::random"
+doc_category = "random"
+stability = "stable"
+params = ["i32"]
+returns = "i32"
+
+[[functions]]
+name = "seeded_range"
+module = "std::random"
+doc_category = "random"
+stability = "stable"
+params = ["i32", "i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "shuffle_i32"
+module = "std::random"
+doc_category = "random"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+
+[[modules]]
+name = "std::random"
+stability = "stable"
+doc = "Deterministic pseudo-random helpers backed by xorshift32. All functions take an explicit seed so results are reproducible. Host-entropy random numbers live in std::host::random."
+availability = { t1 = true, t3 = true }
+
+# === std::test ===
+
+[[functions]]
+name = "assert_true"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["bool"]
+returns = "()"
+
+[[functions]]
+name = "assert_false"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["bool"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_i32"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_i64"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["i64", "i64"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_f64"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["f64", "f64"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_string"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["String", "String"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_bool"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["bool", "bool"]
+returns = "()"
+
+[[functions]]
+name = "assert_ne_i32"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "()"
+
+[[functions]]
+name = "assert_ne_string"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["String", "String"]
+returns = "()"
+
+[[functions]]
+name = "expect_ok_i32"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["Result<i32, String>"]
+returns = "i32"
+
+[[functions]]
+name = "expect_err_string"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["Result<i32, String>"]
+returns = "String"
+
+[[functions]]
+name = "expect_some_i32"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["Option<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "expect_none_i32"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["Option<i32>"]
+returns = "()"
+
+[[functions]]
+name = "assert_contains"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["String", "String"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_snapshot"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["String", "String"]
+returns = "()"
+
+[[functions]]
+name = "assert_msg"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["bool", "String"]
+returns = "()"
+
+[[functions]]
+name = "bench"
+module = "std::test"
+doc_category = "test"
+stability = "experimental"
+params = ["String", "i32", "fn() -> ()"]
+returns = "()"
+doc = "Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout is unaffected, so fixture expected files remain deterministic."
+availability = { t1 = true, t3 = true }
+
+[[modules]]
+name = "std::test"
+stability = "stable"
+doc = "Typed assertion and expectation helpers for fixture and test code. Includes equality assertions for all primitive types, Result/Option unwrap helpers, string containment checks, snapshot comparison, and bench-lite for quick timing."
+availability = { t1 = true, t3 = true }
+
+# === std::text (extended) ===
+
+# === std::text ===
+
+[[modules]]
+name = "std::text"
+stability = "stable"
+family = "text"
+doc = "String manipulation helpers. Operations are largely byte-oriented or ASCII-aware (case folding, char iteration, len_chars, pad, format) — they do NOT implement full Unicode segmentation, normalization, or grapheme-cluster semantics. Multi-byte UTF-8 input is preserved by the byte-level helpers (slice_bytes, len_bytes, split, join, concat, contains, starts_with, ends_with) but case mapping and char counting are not Unicode-correct."
+
+[[functions]]
+name = "len_bytes"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "i32"
+
+[[functions]]
+name = "is_empty"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "bool"
+
+[[functions]]
+name = "index_of"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_index_of"
+params = ["String", "String"]
+returns = "i32"
+
+[[functions]]
+name = "trim"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "trim_start"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "trim_end"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "replace"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "String", "String"]
+returns = "String"
+
+[[functions]]
+name = "lines"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "Vec<String>"
+
+[[functions]]
+name = "chars"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "Vec<String>"
+
+[[functions]]
+name = "pad_left"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "i32", "String"]
+returns = "String"
+
+[[functions]]
+name = "pad_right"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "i32", "String"]
+returns = "String"
+
+[[functions]]
+name = "format_i32"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["i32"]
+returns = "String"
+
+[[functions]]
+name = "format_i64"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["i64"]
+returns = "String"
+
+[[functions]]
+name = "format_f64"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["f64"]
+returns = "String"
+
+[[functions]]
+name = "format_bool"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["bool"]
+returns = "String"
+
+[[functions]]
+name = "repeat"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "i32"]
+returns = "String"
+
+[[functions]]
+name = "len_chars"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "i32"
+
+[[functions]]
+name = "slice_bytes"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "i32", "i32"]
+returns = "String"
+
+[[functions]]
+name = "from_utf8"
+module = "std::text"
+doc_category = "text"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "String"
+
+[[functions]]
+name = "to_utf8_bytes"
+module = "std::text"
+doc_category = "text"
+stability = "experimental"
+params = ["String"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "split"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_split"
+params = ["String", "String"]
+returns = "Vec<String>"
+
+[[functions]]
+name = "join"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_join"
+params = ["Vec<String>", "String"]
+returns = "String"
+
+[[functions]]
+name = "concat"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_concat"
+params = ["String", "String"]
+returns = "String"
+
+[[functions]]
+name = "starts_with"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_starts_with"
+params = ["String", "String"]
+returns = "bool"
+
+[[functions]]
+name = "ends_with"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_ends_with"
+params = ["String", "String"]
+returns = "bool"
+
+[[functions]]
+name = "contains"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_contains"
+params = ["String", "String"]
+returns = "bool"
+
+[[functions]]
+name = "to_lower"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_to_lower"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "to_upper"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_to_upper"
+params = ["String"]
+returns = "String"
+
+# --- StringBuilder ---
+
+[[functions]]
+name = "builder_new"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = []
+returns = "String"
+
+[[functions]]
+name = "builder_append"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "String"]
+returns = "String"
+
+[[functions]]
+name = "builder_append_char"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "char"]
+returns = "String"
+
+[[functions]]
+name = "builder_append_line"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "String"]
+returns = "String"
+
+[[functions]]
+name = "builder_build"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "builder_len"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "i32"
+
+# === std::host::process ===
+
+[[functions]]
+name = "exit"
+module = "std::host::process"
+stability = "stable"
+params = ["i32"]
+returns = "()"
+doc_category = "host_process"
+doc = "Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure."
+availability = { t1 = true, t3 = true }
+intrinsic = "__intrinsic_process_exit"
+
+[[functions]]
+name = "abort"
+module = "std::host::process"
+stability = "stable"
+params = []
+returns = "()"
+doc_category = "host_process"
+doc = "Abort the process immediately with an abnormal-termination signal (non-zero exit)."
+availability = { t1 = true, t3 = true }
+intrinsic = "__intrinsic_process_abort"
+
+# === std::host::env ===
+
+[[functions]]
+name = "args"
+module = "std::host::env"
+stability = "stable"
+params = []
+returns = "Vec<String>"
+intrinsic = "__intrinsic_args"
+doc_category = "host_env"
+doc = "Return the command-line arguments as a list of strings. The first element is the program name."
+availability = { t1 = true, t3 = true }
+
+[[functions]]
+name = "var"
+module = "std::host::env"
+stability = "stable"
+params = ["String"]
+returns = "Option<String>"
+doc_category = "host_env"
+intrinsic = "__intrinsic_env_var"
+doc = "Look up an environment variable by name. Returns None if the variable is not set."
+errors = "Returns None (not Err) when the variable is absent; no panic is raised."
+availability = { t1 = false, t3 = true, note = "Environment variable access requires WASI Preview 2 component model." }
+examples = [{code = "let home = env::var(\"HOME\")\nmatch home { Some(p) => println(p), None => println(\"not set\") }", description = "Read the HOME environment variable"}]
+
+[[functions]]
+name = "arg_count"
+module = "std::host::env"
+stability = "stable"
+params = []
+returns = "i32"
+intrinsic = "__intrinsic_arg_count"
+doc_category = "host_env"
+doc = "Return the number of command-line arguments (including the program name)."
+availability = { t1 = true, t3 = true }
+
+[[functions]]
+name = "arg_at"
+module = "std::host::env"
+stability = "stable"
+params = ["i32"]
+returns = "Option<String>"
+intrinsic = "__intrinsic_arg_at"
+doc_category = "host_env"
+doc = "Return the command-line argument at the given zero-based index, or None if out of bounds."
+availability = { t1 = true, t3 = true }
+
+[[functions]]
+name = "has_flag"
+module = "std::host::env"
+stability = "stable"
+params = ["String"]
+returns = "bool"
+doc_category = "host_env"
+doc = "Return true if the given flag (e.g. \"--verbose\") was passed as a command-line argument."
+availability = { t1 = true, t3 = true }
+
+# === std::path ===
+
+[[functions]]
+name = "join"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String", "String"]
+returns = "String"
+
+[[functions]]
+name = "parent"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "file_name"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "extension"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "with_extension"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String", "String"]
+returns = "String"
+
+[[functions]]
+name = "is_absolute"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String"]
+returns = "bool"
+
+[[functions]]
+name = "stem"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String"]
+returns = "String"
+doc = "Returns the file stem (file name without final extension). E.g. stem(\"hello.txt\") -> \"hello\"."
+
+[[functions]]
+name = "normalize"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String"]
+returns = "String"
+doc = "Resolves `.` and `..` components and collapses redundant `/` separators."
+
+[[functions]]
+name = "components"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String"]
+returns = "Vec<String>"
+doc = "Returns the non-empty path segments as a vector. E.g. components(\"/usr/bin\") -> [\"usr\", \"bin\"]."
+
+# === std::fs ===
+
+[[functions]]
+name = "read_string"
+module = "std::fs"
+doc_category = "fs"
+stability = "stable"
+params = ["String"]
+returns = "Result<String, String>"
+intrinsic = "__intrinsic_fs_read_file"
+doc = "Read the entire contents of a file into a UTF-8 string."
+errors = "Returns Err if the file does not exist, permission is denied, or content is not valid UTF-8."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "write_string"
+module = "std::fs"
+doc_category = "fs"
+stability = "stable"
+params = ["String", "String"]
+returns = "Result<(), String>"
+intrinsic = "__intrinsic_fs_write_file"
+doc = "Write a UTF-8 string to a file, creating or truncating it."
+errors = "Returns Err if the path is not writable or the parent directory does not exist."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "exists"
+module = "std::fs"
+doc_category = "fs"
+stability = "stable"
+params = ["String"]
+returns = "bool"
+doc = "Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); not a path-existence query. Directories, missing paths, and unreadable paths may return false."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+# === std::host::fs ===
+
+# === std::host::fs ===
+
+[[modules]]
+name = "std::host::fs"
+stability = "stable"
+family = "host"
+doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, write_string, write_bytes are stable whole-file I/O. exists is intentionally a best-effort read-probe (NOT a general path-existence predicate) — see #605 and the function-level docs in std/host/fs.ark. The fd_seek/fd_tell/fd_fdstat_errno helpers are explicitly experimental and T1-only."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "read_to_string"
+module = "std::host::fs"
+stability = "provisional"
+params = ["String"]
+returns = "Result<String, FsError>"
+intrinsic = "__intrinsic_fs_read_file"
+doc_category = "host_fs"
+doc = "Read the entire contents of a file at the given path and return them as a UTF-8 string."
+errors = "Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+examples = [{code = "let txt = fs::read_to_string(\"data.txt\")\nmatch txt { Ok(s) => println(s), Err(e) => eprintln(e) }", description = "Read a text file and print it"}]
+
+[[functions]]
+name = "write_string"
+module = "std::host::fs"
+stability = "provisional"
+params = ["String", "String"]
+returns = "Result<(), FsError>"
+intrinsic = "__intrinsic_fs_write_file"
+doc_category = "host_fs"
+doc = "Write a UTF-8 string to the given file path, creating or truncating the file."
+errors = "Returns Err if the path is not writable or the directory does not exist."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "write_bytes"
+module = "std::host::fs"
+stability = "provisional"
+params = ["String", "Vec<i32>"]
+returns = "Result<(), FsError>"
+intrinsic = "__intrinsic_fs_write_bytes"
+doc_category = "host_fs"
+doc = "Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path."
+errors = "Returns Err if the path is not writable or any byte value is out of range 0–255."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "exists"
+module = "std::host::fs"
+stability = "stable"
+params = ["String"]
+returns = "bool"
+doc_category = "host_fs"
+doc = "Read-probe semantics — NOT a general path-existence query. Attempts a full UTF-8 file read via the same intrinsic as read_to_string and returns true only when that read succeeds end-to-end. Best-effort: a false result does not distinguish missing file vs permission denied vs not-a-regular-file (e.g. directory or broken symlink) vs invalid UTF-8 vs mid-read I/O error — all collapse to false. A true result implies readability at call time, not writability or stability of subsequent reads. True path-existence semantics are tracked under issue #605."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "fd_seek"
+module = "std::host::fs"
+stability = "experimental"
+params = ["i32", "i64", "i32"]
+returns = "i64"
+intrinsic = "__intrinsic_fd_seek"
+doc_category = "host_fs"
+doc = "Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset."
+availability = { t1 = true, t3 = false, note = "T1/WASI P1 only." }
+
+[[functions]]
+name = "fd_tell"
+module = "std::host::fs"
+stability = "experimental"
+params = ["i32"]
+returns = "i64"
+intrinsic = "__intrinsic_fd_tell"
+doc_category = "host_fs"
+doc = "Return the current file offset for an open file descriptor."
+availability = { t1 = true, t3 = false, note = "T1/WASI P1 only." }
+
+[[functions]]
+name = "fd_fdstat_errno"
+module = "std::host::fs"
+stability = "experimental"
+params = ["i32"]
+returns = "i32"
+intrinsic = "__intrinsic_fd_fdstat_get"
+doc_category = "host_fs"
+doc = "Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success)."
+availability = { t1 = true, t3 = false, note = "T1/WASI P1 only." }
+
+# === std::host::stdio ===
+
+[[functions]]
+name = "print"
+module = "std::host::stdio"
+stability = "stable"
+params = ["String"]
+returns = "()"
+intrinsic = "__intrinsic_print"
+doc_category = "host_stdio"
+doc = "Write a string to standard output without appending a newline."
+availability = { t1 = true, t3 = true }
+examples = [{code = "print(\"hello \")\nprint(\"world\")", description = "Print without newlines"}]
+
+[[functions]]
+name = "println"
+module = "std::host::stdio"
+stability = "stable"
+params = ["String"]
+returns = "()"
+intrinsic = "__intrinsic_println"
+doc_category = "host_stdio"
+doc = "Write a string to standard output followed by a newline."
+availability = { t1 = true, t3 = true }
+examples = [{code = "println(\"Hello, world!\")", description = "Basic hello-world output", output = "Hello, world!"}]
+
+[[functions]]
+name = "eprintln"
+module = "std::host::stdio"
+stability = "stable"
+params = ["String"]
+returns = "()"
+intrinsic = "__intrinsic_eprintln"
+doc_category = "host_stdio"
+doc = "Write a string to standard error followed by a newline."
+availability = { t1 = true, t3 = true }
+examples = [{code = "eprintln(\"Error: something went wrong\")", description = "Write a diagnostic message to stderr"}]
+
+# === std::host::clock ===
+
+[[functions]]
+name = "monotonic_now"
+module = "std::host::clock"
+stability = "stable"
+params = []
+returns = "i64"
+intrinsic = "__intrinsic_clock_now"
+doc_category = "host_clock"
+doc = "Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a wall-clock."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-clock capability flag at runtime." }
+
+[[functions]]
+name = "now_ms"
+module = "std::host::clock"
+stability = "stable"
+params = []
+returns = "i64"
+intrinsic = "__intrinsic_clock_now_ms"
+doc_category = "host_clock"
+doc = "Return the current wall-clock time in milliseconds since the Unix epoch."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-clock capability flag at runtime." }
+
+# === std::host::random ===
+
+[[functions]]
+name = "random_i32"
+module = "std::host::random"
+stability = "stable"
+params = []
+returns = "i32"
+intrinsic = "__intrinsic_random_i32"
+doc_category = "host_random"
+doc = "Return a cryptographically-secure random i32 value."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
+
+[[functions]]
+name = "random_i32_range"
+module = "std::host::random"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+intrinsic = "__intrinsic_random_i32"
+doc_category = "host_random"
+doc = "Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < hi."
+errors = "Panics at runtime if lo >= hi."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
+examples = [{code = "let n = random::random_i32_range(1, 7)", description = "Roll a six-sided die (1–6)"}]
+
+[[functions]]
+name = "random_bool"
+module = "std::host::random"
+stability = "stable"
+params = []
+returns = "bool"
+intrinsic = "__intrinsic_random_i32"
+doc_category = "host_random"
+doc = "Return a random boolean value with equal probability of true and false."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
+
+[[functions]]
+name = "next_f64"
+module = "std::host::random"
+stability = "stable"
+params = []
+returns = "f64"
+intrinsic = "__intrinsic_random_next_f64"
+doc_category = "host_random"
+doc = "Return a host-provided random f64 value in the range [0.0, 1.0)."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
+
+[[modules]]
+name = "std::host::clock"
+stability = "stable"
+family = "host"
+doc = "Host clock helpers. monotonic_now returns nanoseconds; now_ms returns milliseconds since the Unix epoch."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-clock capability flag at runtime." }
+
+# === std::host::random (module entry) ===
+
+[[modules]]
+name = "std::host::random"
+stability = "stable"
+family = "host"
+doc = "Host random helpers backed by the current entropy intrinsic. next_f64 returns a value in [0.0, 1.0); random_i32 returns a full i32."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
+
+# === std::host::http ===
+
+[[modules]]
+name = "std::host::http"
+target = ["wasm32-wasi-p1", "wasm32-wasi-p2"]
+stability = "provisional"
+family = "expansion"
+doc = "HTTP client via TCP-based HTTP/1.1 host functions (Wasmtime linker, T1 and T3). Available on both wasm32-wasi-p1 and wasm32-wasi-p2 via register_http_host_fns (issue 446). HTTPS is not supported."
+
+[[functions]]
+name = "request"
+module = "std::host::http"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_http_request"
+params = ["String", "String", "String"]
+returns = "Result<String, String>"
+target = ["wasm32-wasi-p1", "wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_http"
+doc = "Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Available on T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) via Wasmtime linker."
+errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
+availability = { t1 = true, t3 = true, note = "T1+T3 via Wasmtime linker (arukellt_host::http_request). HTTPS not supported." }
+examples = [{code = "let resp = http::request(\"POST\", \"http://api.example.com/data\", \"{\\\"key\\\":\\\"val\\\"}\")", description = "POST JSON to an API endpoint"}]
+
+[[functions]]
+name = "get"
+module = "std::host::http"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_http_get"
+params = ["String"]
+returns = "Result<String, String>"
+target = ["wasm32-wasi-p1", "wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_http"
+doc = "Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Available on T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) via Wasmtime linker."
+errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
+availability = { t1 = true, t3 = true, note = "T1+T3 via Wasmtime linker (arukellt_host::http_get). HTTPS not supported." }
+examples = [{code = "let body = http::get(\"http://example.com\")\nmatch body {\n  Ok(s) => println(s)\n  Err(e) => eprintln(e)\n}", description = "Fetch a URL and print its body"}]
+
+# === std::host::sockets ===
+
+[[modules]]
+name = "std::host::sockets"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+family = "expansion"
+doc = "TCP/UDP sockets via WASI Preview 2 wasi:sockets interfaces"
+
+[[functions]]
+name = "connect"
+module = "std::host::sockets"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_sockets_connect"
+params = ["String", "i32"]
+returns = "Result<i32, String>"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_sockets"
+doc = "Open a TCP connection to the given hostname and port. Returns a socket descriptor on success."
+errors = "Err on DNS resolution failure, connection refused, or network unreachable."
+availability = { t1 = false, t3 = true, note = "TCP connect requires WASI Preview 2 component model (wasi:sockets)." }
+examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }", description = "Connect to a local server on port 8080"}]
+
+[[modules]]
+name = "std::host::udp"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+family = "expansion"
+doc = "UDP datagram helpers via WASI Preview 2 wasi:sockets/udp interface (T3 only)"
+
+[[functions]]
+name = "send"
+module = "std::host::udp"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_udp_send"
+params = ["String", "i32", "String"]
+returns = "Result<i32, String>"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_udp"
+doc = "Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success."
+errors = "Err on DNS resolution failure, invalid port, or network unreachable."
+availability = { t1 = false, t3 = true, note = "UDP datagrams require WASI Preview 2 wasi:sockets/udp interface." }
+
+# === std::bytes ===
+
+[[functions]]
+name = "bytes_new"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "bytes_len"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "bytes_get"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "bytes_push"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "bytes_eq"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "bool"
+
+[[functions]]
+name = "bytes_from_string"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["String"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "string_from_bytes"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "String"
+
+[[functions]]
+name = "bytes_concat"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "bytes_slice"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["Vec<i32>", "i32", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "byte_length"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["String"]
+returns = "i32"
+
+[[functions]]
+name = "hex_encode"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "String"
+
+[[functions]]
+name = "hex_decode"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["String"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "leb128_encode_u32"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "leb128_encode_i32"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "u16_to_le_bytes"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "u16_from_le_bytes"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "u32_to_le_bytes"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "u32_from_le_bytes"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "u32_to_be_bytes"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "u32_from_be_bytes"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "bytes_from_array"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Create an immutable Bytes value from an array of byte values (Vec<i32>, values 0-255). NOTE: Vec<u8> is not a distinct type; Vec<i32> is used."
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_new"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Create a new empty ByteBuf (represented as Vec<i32>)."
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_with_capacity"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime."
+params = ["i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_push_u8"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Push a single byte (0-255) onto a ByteBuf."
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "buf_push_u16_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Push a 16-bit value in little-endian byte order onto a ByteBuf."
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "buf_push_u32_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Push a 32-bit value in little-endian byte order onto a ByteBuf."
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "buf_push_u64_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64."
+params = ["Vec<i32>", "i64"]
+returns = "()"
+
+[[functions]]
+name = "buf_extend"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Append all bytes from a Bytes slice onto a ByteBuf."
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "()"
+
+[[functions]]
+name = "buf_freeze"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Freeze a ByteBuf into an immutable Bytes value. In the current runtime both are Vec<i32>, so this is identity."
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_len"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Return the number of bytes in a ByteBuf."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "cursor_new"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes."
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "cursor_pos"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Return the current byte position of a ByteCursor."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "cursor_remaining"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Return the number of bytes remaining in a ByteCursor."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "read_u8"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read one byte from a ByteCursor and advance the position. Returns -1 on underflow."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "read_u16_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read two bytes little-endian from a ByteCursor. Returns -1 on underflow."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "read_u32_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read four bytes little-endian from a ByteCursor. Returns -1 on underflow."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "read_u64_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow."
+params = ["Vec<i32>"]
+returns = "i64"
+
+[[functions]]
+name = "read_u32_be"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read four bytes big-endian from a ByteCursor. Returns -1 on underflow."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "read_bytes"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow."
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "base64_encode"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Encode a byte buffer as standard base64 (RFC 4648, with padding)."
+params = ["Vec<i32>"]
+returns = "String"
+
+[[functions]]
+name = "base64_decode"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Decode a standard base64 string into a byte buffer. Silently skips invalid characters."
+params = ["String"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "leb128_decode_u32"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Decode an unsigned LEB128 u32 from a ByteCursor. Advances the cursor."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "leb128_decode_i32"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Decode a signed LEB128 i32 from a ByteCursor. Advances the cursor."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "leb128_encode_u64"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Encode a 64-bit unsigned value as LEB128 bytes. x is passed as i64. NOTE: u64 is not a distinct type."
+params = ["i64"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "leb128_decode_u64"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor."
+params = ["Vec<i32>"]
+returns = "i64"
+
+# === std::collections::hash ===
+
+# === std::collections::hash ===
+
+[[modules]]
+name = "std::collections::hash"
+stability = "stable"
+family = "collections"
+doc = "HashMap<i32,i32> and HashSet<i32> monomorphic surface (i32-keyed, i32-valued). Raw bucket layout and user-facing helpers are still co-located; deeper hardening, generic key/value support, and raw/facade separation are tracked under issue #607."
+
+[[functions]]
+name = "hashmap_new"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashmap_get"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "hashmap_contains"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "hashmap_set"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32", "i32"]
+returns = "()"
+
+[[functions]]
+name = "hashmap_size"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+# --- Extended HashMap API (#044 — monomorphic i32→i32 fallback per STOP_IF) ---
+
+[[functions]]
+name = "hashmap_with_capacity"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashmap_get_option"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Option<i32>"
+
+[[functions]]
+name = "hashmap_is_empty"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+
+[[functions]]
+name = "hashmap_clear"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "()"
+
+[[functions]]
+name = "hashmap_keys"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashmap_values"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashmap_remove"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Option<i32>"
+
+# --- HashSet API (#044 — monomorphic i32 element, backed by HashMap<i32,i32>) ---
+
+[[functions]]
+name = "hashset_new"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashset_insert"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "hashset_contains"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "hashset_remove"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "hashset_len"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "hashset_is_empty"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+
+[[functions]]
+name = "hashset_to_vec"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashset_union"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashset_intersection"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashset_difference"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+
+# === std::collections::linear ===
+
+[[functions]]
+name = "deque_new"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "deque_push_back"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "deque_push_front"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "deque_pop_front"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "deque_pop_back"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "deque_len"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "deque_is_empty"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+
+[[functions]]
+name = "pq_new"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "pq_push"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "pq_pop"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "pq_peek"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "pq_len"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "pq_is_empty"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+
+# === std::collections::ordered ===
+
+[[functions]]
+name = "sorted_map_new"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "sorted_map_len"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "sorted_map_find_idx"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "sorted_map_get"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "sorted_map_contains"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "sorted_map_insert"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32", "i32"]
+returns = "()"
+
+[[functions]]
+name = "bitset_new"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "bitset_mark"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "bitset_unmark"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "bitset_test"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+
+# === std::collections::compiler ===
+
+[[functions]]
+name = "arena_new"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "arena_alloc"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "arena_get"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "arena_len"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+
+# === std::seq ===
+
+[[functions]]
+name = "map_i32_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "fn(i32) -> i32"]
+returns = "Vec<i32>"
+doc = "Apply f to every element of v and collect the results."
+
+[[functions]]
+name = "filter_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "fn(i32) -> bool"]
+returns = "Vec<i32>"
+doc = "Keep only elements of v for which f returns true."
+
+[[functions]]
+name = "take_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+doc = "Return the first n elements of v."
+
+[[functions]]
+name = "skip_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+doc = "Return all elements of v after skipping the first n."
+
+[[functions]]
+name = "fold_i32_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "i32", "fn(i32, i32) -> i32"]
+returns = "i32"
+doc = "Reduce v to a single value using f, starting from init."
+
+[[functions]]
+name = "binary_search"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "min_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "max_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "sum_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "seq_reverse"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "seq_contains"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "unique"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "count_eq"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+
+# === std::wasm ===
+
+[[functions]]
+name = "wasm_magic"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "wasm_version"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "section_type"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "section_import"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "section_function"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "section_table"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "section_memory"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "section_global"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "section_export"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "section_start"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "section_element"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "section_code"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "section_data"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "valtype_i32"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "valtype_i64"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "valtype_f32"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "valtype_f64"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "memory_copy"
+module = "std::wasm"
+doc_category = "wasm"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_memory_copy"
+stability = "experimental"
+params = ["i32", "i32", "i32"]
+returns = "()"
+
+[[functions]]
+name = "memory_fill"
+module = "std::wasm"
+doc_category = "wasm"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_memory_fill"
+stability = "experimental"
+params = ["i32", "i32", "i32"]
+returns = "()"
+
+[[functions]]
+name = "valtype_v128"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Value type byte for SIMD v128 (0x7b). Requires SIMD proposal."
+
+[[functions]]
+name = "valtype_funcref"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Value type byte for funcref (0x70). Reference-types proposal."
+
+[[functions]]
+name = "valtype_externref"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Value type byte for externref (0x6f). Reference-types proposal."
+
+[[functions]]
+name = "reftype_funcref"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Reference type byte for funcref."
+
+[[functions]]
+name = "reftype_externref"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Reference type byte for externref."
+
+[[functions]]
+name = "functype_new"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Construct a FuncType from param types and result types (both as Vec<i32> of valtype constants)."
+
+[[functions]]
+name = "functype_param_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of parameter types in a FuncType."
+
+[[functions]]
+name = "functype_result_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of result types in a FuncType."
+
+[[functions]]
+name = "functype_get_param"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Get the valtype constant for the i-th parameter of a FuncType."
+
+[[functions]]
+name = "functype_get_result"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Get the valtype constant for the i-th result of a FuncType."
+
+[[functions]]
+name = "limits_unbounded"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32"]
+returns = "Vec<i32>"
+doc = "Construct a Limits with only a minimum (no maximum)."
+
+[[functions]]
+name = "limits_bounded"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32", "i32"]
+returns = "Vec<i32>"
+doc = "Construct a Limits with both minimum and maximum."
+
+[[functions]]
+name = "limits_min"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the minimum of a Limits."
+
+[[functions]]
+name = "limits_has_max"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "bool"
+doc = "Return true if this Limits has a maximum."
+
+[[functions]]
+name = "limits_max"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the maximum of a Limits (only valid if limits_has_max is true)."
+
+[[functions]]
+name = "module_new"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new empty WasmModuleBuilder."
+
+[[functions]]
+name = "module_add_type"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "i32"
+doc = "Register a FuncType in the module type section. Returns its index."
+
+[[functions]]
+name = "module_add_func"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Add a function with the given type index to the module. Returns its function index."
+
+[[functions]]
+name = "module_add_memory"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "i32"
+doc = "Add a memory with the given Limits to the module. Returns its memory index."
+
+[[functions]]
+name = "module_add_export_func"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "String", "i32"]
+returns = "()"
+doc = "Add a function export to the module."
+
+[[functions]]
+name = "module_type_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the number of registered types in the module builder."
+
+[[functions]]
+name = "module_func_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the number of functions added to the module builder."
+
+[[functions]]
+name = "module_mem_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the number of memories added to the module builder."
+
+[[functions]]
+name = "module_export_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the number of exports added to the module builder."
+
+[[functions]]
+name = "module_encode_header"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Return the Wasm binary magic+version header (8 bytes)."
+
+[[functions]]
+name = "leb128_encode_u32"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32"]
+returns = "Vec<i32>"
+doc = "Encode a u32 as unsigned LEB128. Returns the bytes as Vec<i32>."
+
+[[functions]]
+name = "leb128_size_u32"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32"]
+returns = "i32"
+doc = "Return the number of bytes needed to encode x as unsigned LEB128."
+
+[[functions]]
+name = "op_unreachable"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: unreachable (0x00)."
+
+[[functions]]
+name = "op_nop"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: nop (0x01)."
+
+[[functions]]
+name = "op_end"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: end (0x0b)."
+
+[[functions]]
+name = "op_return"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: return (0x0f)."
+
+[[functions]]
+name = "op_call"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: call (0x10)."
+
+[[functions]]
+name = "op_local_get"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: local.get (0x20)."
+
+[[functions]]
+name = "op_local_set"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: local.set (0x21)."
+
+[[functions]]
+name = "op_local_tee"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: local.tee (0x22)."
+
+[[functions]]
+name = "op_i32_const"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.const (0x41)."
+
+[[functions]]
+name = "op_i64_const"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i64.const (0x42)."
+
+[[functions]]
+name = "op_i32_eqz"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.eqz (0x45)."
+
+[[functions]]
+name = "op_i32_eq"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.eq (0x46)."
+
+[[functions]]
+name = "op_i32_add"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.add (0x6a)."
+
+[[functions]]
+name = "op_i32_sub"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.sub (0x6b)."
+
+[[functions]]
+name = "op_i32_mul"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.mul (0x6c)."
+
+# === std::wit ===
+
+[[functions]]
+name = "wit_type_bool"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_u8"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_u16"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_u32"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_u64"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_s8"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_s16"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_s32"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_s64"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_f32"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_f64"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_char"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_string"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = []
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_id"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = ["WitType"]
+returns = "i32"
+
+[[functions]]
+name = "wit_type_from_id"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = ["i32"]
+returns = "WitType"
+
+[[functions]]
+name = "wit_type_name"
+module = "std::wit"
+doc_category = "wit"
+stability = "experimental"
+params = ["WitType"]
+returns = "String"
+
+# === std::component ===
+
+[[functions]]
+name = "canonical_abi_version"
+module = "std::component"
+doc_category = "component"
+stability = "experimental"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "component_model_version"
+module = "std::component"
+doc_category = "component"
+stability = "experimental"
+params = []
+returns = "String"
+
+# === std::json ===
+
+# === std::json ===
+
+[[modules]]
+name = "std::json"
+stability = "experimental"
+family = "data"
+doc = "Bounded JSON parser/serializer over a tagged JsonValue. Whole-document parse rejects trailing non-whitespace; nested object/array access re-parses raw text rather than maintaining structural state. Subset-only by design; full RFC 8259 coverage and zero-copy access are out of scope for this baseline."
+
+[[functions]]
+name = "json_stringify_i32"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["i32"]
+returns = "String"
+
+[[functions]]
+name = "json_stringify_bool"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["bool"]
+returns = "String"
+
+[[functions]]
+name = "json_stringify_string"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "json_null"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = []
+returns = "String"
+
+[[functions]]
+name = "json_parse_i32"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "i32"
+
+[[functions]]
+name = "json_parse_bool"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "bool"
+
+# === std::toml ===
+
+# === std::toml ===
+
+[[modules]]
+name = "std::toml"
+stability = "experimental"
+family = "data"
+doc = "Bounded TOML parser/serializer. Supports simple top-level key=value pairs (with comments and blank lines); arrays of tables, inline tables, dotted keys, datetimes, and most other TOML grammar return Err. Partial subset by design; not a conforming TOML 1.0 implementation."
+
+[[functions]]
+name = "toml_parse_line"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+
+# === std::csv ===
+
+[[functions]]
+name = "csv_split_line"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["String"]
+returns = "Vec<String>"
+
+# === std::signal ===
+
+[[functions]]
+name = "pi"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = []
+returns = "f64"
+
+[[functions]]
+name = "tau"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = []
+returns = "f64"
+
+[[functions]]
+name = "is_power_of_two"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["i32"]
+returns = "bool"
+
+[[functions]]
+name = "sin_approx"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["f64"]
+returns = "f64"
+
+[[functions]]
+name = "cos_approx"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["f64"]
+returns = "f64"
+
+[[functions]]
+name = "clone_f64"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["Vec<f64>"]
+returns = "Vec<f64>"
+
+[[functions]]
+name = "zeros"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["i32"]
+returns = "Vec<f64>"
+
+[[functions]]
+name = "fft"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["Vec<f64>", "Vec<f64>"]
+returns = "()"
+
+[[functions]]
+name = "ifft"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["Vec<f64>", "Vec<f64>"]
+returns = "()"
+
+[[functions]]
+name = "magnitude"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["Vec<f64>", "Vec<f64>"]
+returns = "Vec<f64>"
+
+[[functions]]
+name = "approx_eq"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["f64", "f64", "f64"]
+returns = "bool"
+
+# === std::io ===
+
+[[functions]]
+name = "reader_from_bytes"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "reader_eof"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+
+[[functions]]
+name = "reader_read"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Result<Vec<i32>, String>"
+
+[[functions]]
+name = "reader_read_exact"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Result<Vec<i32>, String>"
+
+[[functions]]
+name = "reader_read_all"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<Vec<i32>, String>"
+
+[[functions]]
+name = "reader_read_line"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<String, String>"
+
+[[functions]]
+name = "stdin"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "stdout"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "stderr"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "read_stdin_line"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = []
+returns = "Result<String, String>"
+
+[[functions]]
+name = "print_bytes"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "()"
+
+[[functions]]
+name = "writer_new"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "writer_write"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Result<i32, String>"
+
+[[functions]]
+name = "writer_write_str"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "String"]
+returns = "Result<i32, String>"
+
+[[functions]]
+name = "write_all"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Result<(), String>"
+
+[[functions]]
+name = "write_string"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "String"]
+returns = "Result<(), String>"
+
+[[functions]]
+name = "writer_flush"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<(), String>"
+
+[[functions]]
+name = "flush"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<(), String>"
+
+[[functions]]
+name = "writer_to_bytes"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_reader_new"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buffered_reader"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_reader_read_line"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<String, String>"
+
+[[functions]]
+name = "buf_writer_new"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buffered_writer"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_writer_write_str"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "String"]
+returns = "Result<i32, String>"
+
+[[functions]]
+name = "buf_writer_flush"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<(), String>"
+
+[[functions]]
+name = "copy_bytes"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Result<i32, String>"
+
+[[functions]]
+name = "copy"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Result<i32, String>"
+
+# ── std::collections::linear (Deque and PriorityQueue, i32 monomorphic) ──────
+# Generics not yet available; these are i32-only per STOP_IF in issue #045.
+# All Deque functions use a Vec<i32> as a ring-buffer:
+#   layout [head, tail, count, cap, ...data(cap)]
+
+[[functions]]
+name = "deque_new"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new empty Deque backed by a ring buffer (i32, monomorphic)."
+
+[[functions]]
+name = "deque_push_front"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Prepend a value to the front of the deque."
+
+[[functions]]
+name = "deque_push_back"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Append a value to the back of the deque."
+
+[[functions]]
+name = "deque_pop_front"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Remove and return the front element. Panics if empty."
+
+[[functions]]
+name = "deque_pop_back"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Remove and return the back element. Panics if empty."
+
+[[functions]]
+name = "deque_front"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Peek at the front element without removing it. Returns 0 when empty."
+
+[[functions]]
+name = "deque_back"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Peek at the back element without removing it. Returns 0 when empty."
+
+[[functions]]
+name = "deque_len"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of elements in the deque."
+
+[[functions]]
+name = "deque_is_empty"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+doc = "Return true if the deque contains no elements."
+
+[[functions]]
+name = "deque_clear"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "()"
+doc = "Reset the deque to empty (preserves allocated capacity)."
+
+[[functions]]
+name = "deque_to_vec"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Copy all deque elements (front to back) into a new Vec<i32>."
+
+# PriorityQueue — binary min-heap backed by Vec<i32>
+# layout: [count, ...heap_data]
+
+[[functions]]
+name = "pq_new"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new empty PriorityQueue min-heap (i32, monomorphic)."
+
+[[functions]]
+name = "pq_push"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Insert a value into the priority queue."
+
+[[functions]]
+name = "pq_pop"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Remove and return the minimum element. Panics if empty."
+
+[[functions]]
+name = "pq_peek"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the minimum element without removing it. Panics if empty."
+
+[[functions]]
+name = "pq_len"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of elements in the priority queue."
+
+[[functions]]
+name = "pq_is_empty"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+doc = "Return true if the priority queue contains no elements."
+
+[[functions]]
+name = "pq_clear"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "()"
+doc = "Reset the priority queue to empty (preserves allocated storage)."
+
+# ── std::process ──────────────────────────────────────────────────────────────
+
+[[functions]]
+name = "exit"
+module = "std::process"
+doc_category = "process"
+stability = "stable"
+params = ["i32"]
+returns = "()"
+doc = "Terminate the process with the given exit code."
+
+[[functions]]
+name = "abort"
+module = "std::process"
+doc_category = "process"
+stability = "stable"
+params = []
+returns = "()"
+doc = "Terminate the process immediately (exit code 134, SIGABRT convention)."
+
+# ── std::env ─────────────────────────────────────────────────────────────────
+
+[[functions]]
+name = "args"
+module = "std::env"
+doc_category = "env"
+stability = "stable"
+params = []
+returns = "Vec<String>"
+doc = "Return the process argument vector (excluding argv[0])."
+
+[[functions]]
+name = "arg_count"
+module = "std::env"
+doc_category = "env"
+stability = "stable"
+params = []
+returns = "i32"
+doc = "Return the number of process arguments (excluding argv[0])."
+
+[[functions]]
+name = "arg_at"
+module = "std::env"
+doc_category = "env"
+stability = "stable"
+params = ["i32"]
+returns = "Option<String>"
+doc = "Return the argument at the given index, or None when out of range."
+
+[[functions]]
+name = "var"
+module = "std::env"
+doc_category = "env"
+stability = "stable"
+params = ["String"]
+returns = "Option<String>"
+doc = "Look up an environment variable by name."
+
+[[functions]]
+name = "get_var"
+module = "std::env"
+doc_category = "env"
+stability = "deprecated"
+deprecated_by = "var"
+params = ["String"]
+returns = "Option<String>"
+doc = "Alias for env::var. Use var instead."
+
+[[functions]]
+name = "var_or_default"
+module = "std::env"
+doc_category = "env"
+stability = "stable"
+params = ["String", "String"]
+returns = "String"
+doc = "Return the environment variable value, or the default when absent."
+
+# ── std::cli ─────────────────────────────────────────────────────────────────
+
+[[functions]]
+name = "parse_args"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = []
+returns = "Vec<String>"
+doc = "Return the full process argument vector."
+
+[[functions]]
+name = "arg_count"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = []
+returns = "i32"
+doc = "Return the number of process arguments."
+
+[[functions]]
+name = "arg_at"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = ["i32"]
+returns = "Option<String>"
+doc = "Return the argument at index, or None when out of range."
+
+[[functions]]
+name = "has_flag"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = ["String"]
+returns = "bool"
+doc = "Return true when the process argument vector contains the flag verbatim."
+
+[[functions]]
+name = "flag"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = ["Vec<String>", "String"]
+returns = "bool"
+doc = "Return true when args contains name verbatim."
+
+[[functions]]
+name = "option"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = ["Vec<String>", "String"]
+returns = "Option<String>"
+doc = "Return the value associated with the named option, or None."
+
+# ── std::json module functions ────────────────────────────────────────────────
+
+[[functions]]
+name = "parse"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "Result<JsonValue, JsonParseError>"
+doc = "Parse a full JSON document and reject trailing non-whitespace after the first top-level value."
+
+[[functions]]
+name = "stringify"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "String"
+doc = "Serialize a JsonValue back to its JSON text."
+
+[[functions]]
+name = "stringify_pretty"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue", "i32"]
+returns = "String"
+doc = "Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged."
+
+[[functions]]
+name = "is_null"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "is_bool"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "is_number"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "is_string"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "is_array"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "is_object"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "json_as_bool"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "Option<bool>"
+
+[[functions]]
+name = "json_as_string"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "Option<String>"
+
+[[functions]]
+name = "json_as_i32"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "Option<i32>"
+
+[[functions]]
+name = "json_as_f64"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "Option<f64>"
+
+[[functions]]
+name = "json_get"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue", "String"]
+returns = "Option<JsonValue>"
+doc = "Look up a named field in a JSON object value."
+
+[[functions]]
+name = "json_get_index"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue", "i32"]
+returns = "Option<JsonValue>"
+doc = "Return the element at index in a JSON array value."
+
+[[functions]]
+name = "json_encode_string"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+doc = "Encode a plain string as a JSON string literal with escape sequences."
+
+# ── std::toml module functions ────────────────────────────────────────────────
+
+[[functions]]
+name = "toml_parse"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String"]
+returns = "Result<TomlValue, String>"
+doc = "Parse a TOML document (key=value pairs)."
+
+[[functions]]
+name = "toml_stringify"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue"]
+returns = "String"
+doc = "Serialize a TomlValue back to text."
+
+[[functions]]
+name = "toml_get"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue", "String"]
+returns = "Option<TomlValue>"
+doc = "Look up a key in a TOML table value."
+
+[[functions]]
+name = "toml_table_keys"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue"]
+returns = "Vec<String>"
+doc = "Return all keys of a TOML table as a string vector."
+
+[[functions]]
+name = "toml_as_string"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue"]
+returns = "Option<String>"
+
+[[functions]]
+name = "toml_as_int"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue"]
+returns = "Option<i32>"
+
+[[functions]]
+name = "toml_as_bool"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue"]
+returns = "Option<bool>"
+
+# ── std::csv module functions ─────────────────────────────────────────────────
+
+[[functions]]
+name = "csv_parse_row"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["String"]
+returns = "Vec<String>"
+doc = "Parse a single CSV line into fields (handles RFC 4180 quoting)."
+
+[[functions]]
+name = "csv_stringify_row"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["Vec<String>"]
+returns = "String"
+doc = "Serialize a row of fields to a CSV line."
+
+[[functions]]
+name = "csv_count_rows"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["String"]
+returns = "i32"
+doc = "Count the number of non-empty lines in a CSV string."
+
+[[functions]]
+name = "csv_get_row_raw"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "String"
+doc = "Return the raw text of row at row_index (0-based, skipping empty lines)."
+
+[[functions]]
+name = "csv_parse_row_at"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "Vec<String>"
+doc = "Parse row at row_index from a multi-row CSV string."
+
+[[functions]]
+name = "csv_parse_with_header"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["String"]
+returns = "Result<Vec<String>, String>"
+doc = "Parse a CSV document and return the header row fields."
+
+# ── std::collections::ordered module functions ────────────────────────────────
+
+[[functions]]
+name = "btree_new"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new BTreeMap<i32,i32> (sorted-vector backed)."
+
+[[functions]]
+name = "btree_insert"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32", "i32"]
+returns = "()"
+doc = "Insert a key-value pair into a BTreeMap<i32,i32>."
+
+[[functions]]
+name = "btree_get"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Get a value from a BTreeMap<i32,i32>. Returns 0 if not found."
+
+[[functions]]
+name = "btree_remove"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Remove a key from a BTreeMap<i32,i32>."
+
+[[functions]]
+name = "btree_contains_key"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Check if a BTreeMap<i32,i32> contains a key."
+
+[[functions]]
+name = "btree_len"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of entries in a BTreeMap<i32,i32>."
+
+[[functions]]
+name = "btree_keys"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Return all keys of a BTreeMap<i32,i32> in sorted order."
+
+[[functions]]
+name = "btree_range"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32", "i32"]
+returns = "Vec<i32>"
+doc = "Return keys in [start, end) range from a BTreeMap<i32,i32>."
+
+[[functions]]
+name = "btree_set_new"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new BTreeSet<i32> (sorted unique values)."
+
+[[functions]]
+name = "btree_set_insert"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Insert into a BTreeSet<i32>. Returns true if the value was newly inserted."
+
+[[functions]]
+name = "btree_set_contains"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Check if a BTreeSet<i32> contains a value."
+
+[[functions]]
+name = "btree_set_len"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of elements in a BTreeSet<i32>."
+
+[[functions]]
+name = "index_map_new"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new IndexMap<i32,i32> (insertion-order map)."
+
+[[functions]]
+name = "index_map_insert"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32", "i32"]
+returns = "()"
+doc = "Insert a key-value pair into an IndexMap<i32,i32>."
+
+[[functions]]
+name = "index_map_get"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Get a value from an IndexMap<i32,i32>. Returns 0 if not found."
+
+[[functions]]
+name = "index_map_len"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of entries in an IndexMap<i32,i32>."
+
+[[functions]]
+name = "index_map_keys"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Return all keys of an IndexMap<i32,i32> in insertion order."
+
+[[functions]]
+name = "index_set_new"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new IndexSet<i32> (insertion-order unique values)."
+
+[[functions]]
+name = "index_set_insert"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Insert into an IndexSet<i32>. Returns true if the value was newly inserted."
+
+[[functions]]
+name = "index_set_contains"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Check if an IndexSet<i32> contains a value."
+
+[[functions]]
+name = "index_set_len"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of elements in an IndexSet<i32>."
+
+[[functions]]
+name = "bitset_set"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Set a bit in a BitSet (alias for bitset_mark)."
+
+[[functions]]
+name = "bitset_clear"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Clear a bit in a BitSet (alias for bitset_unmark)."
+
+[[functions]]
+name = "bitset_with_capacity"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["i32"]
+returns = "Vec<i32>"
+doc = "Create a new BitSet with the given capacity in bits."
+
+[[functions]]
+name = "bitset_count"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of set bits in a BitSet."
+
+[[functions]]
+name = "bitset_union"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Return the union of two BitSets."
+
+[[functions]]
+name = "bitset_intersection"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Return the intersection of two BitSets."
+
+# ─────────────────────────────────────────────
+# std::collections::compiler — Arena, SlotMap, Interner
+# ─────────────────────────────────────────────
+
+[[functions]]
+name = "arena_new"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new Arena (bump allocator for stable i32 IDs)."
+
+[[functions]]
+name = "arena_alloc"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Allocate a value in the Arena, returning a stable ArenaId."
+
+[[functions]]
+name = "arena_get"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Get the value at the given ArenaId."
+
+[[functions]]
+name = "arena_len"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of allocated entries in the Arena."
+
+[[functions]]
+name = "slotmap_new"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new SlotMap (deletion-safe handle map for i32 values)."
+
+[[functions]]
+name = "slotmap_insert"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Insert a value into the SlotMap, returning a stable SlotKey."
+
+[[functions]]
+name = "slotmap_get"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "Option<i32>"
+doc = "Get the value at the given SlotKey, or None if removed."
+
+[[functions]]
+name = "slotmap_remove"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "Option<i32>"
+doc = "Remove and return the value at the given SlotKey, or None if already removed."
+
+[[functions]]
+name = "slotmap_contains"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Return true if the SlotKey is present and active."
+
+[[functions]]
+name = "slotmap_len"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of active entries in the SlotMap."
+
+[[functions]]
+name = "interner_new"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<String>"
+doc = "Create a new Interner (value<->Symbol bidirectional map)."
+
+[[functions]]
+name = "interner_intern"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<String>", "String"]
+returns = "i32"
+doc = "Intern a String, returning its stable Symbol (i32 ID). Deduplicates."
+
+[[functions]]
+name = "interner_lookup"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<String>", "i32"]
+returns = "Option<String>"
+doc = "Look up the String for a given Symbol, or None if out of range."
+
+[[functions]]
+name = "interner_len"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<String>"]
+returns = "i32"
+doc = "Return the number of interned strings."
+
+# ─────────────────────────────────────────────
+# std::text::rope — Rope for large text editing
+# ─────────────────────────────────────────────
+
+[[functions]]
+name = "rope_new"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = []
+returns = "String"
+doc = "Create a new empty Rope."
+
+[[functions]]
+name = "rope_from_string"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+doc = "Create a Rope from an existing String."
+
+[[functions]]
+name = "rope_len"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String"]
+returns = "i32"
+doc = "Return the byte length of the Rope."
+
+[[functions]]
+name = "rope_to_string"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+doc = "Convert the Rope to a String."
+
+[[functions]]
+name = "rope_insert"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String", "i32", "String"]
+returns = "String"
+doc = "Insert text at byte position pos, returning the new Rope."
+
+[[functions]]
+name = "rope_delete"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String", "i32", "i32"]
+returns = "String"
+doc = "Delete bytes [start, end) from the Rope, returning the new Rope."
+
+[[functions]]
+name = "rope_slice"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String", "i32", "i32"]
+returns = "String"
+doc = "Extract the substring [start, end) from the Rope."
+
+[[functions]]
+name = "rope_line_count"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String"]
+returns = "i32"
+doc = "Count the number of lines (newlines + 1) in the Rope."

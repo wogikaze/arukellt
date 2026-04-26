@@ -1,0 +1,9 @@
+.vscode/**
+.github/**
+.markdownlintignore
+.gitignore
+.vscode-test.mjs
+package-lock.json
+bun.lock
+tests/**
+src/**/*.test.js

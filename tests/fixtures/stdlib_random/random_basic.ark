@@ -1,0 +1,15 @@
+use std::host::stdio
+use std::random
+
+fn main() {
+    let a = random::seeded_random(1)
+    assert_eq(a, 270369)
+    let b = random::seeded_random(1)
+    assert_eq(a, b)
+    let r = random::seeded_range(42, 0, 10)
+    assert_eq(r, 2)
+    stdio::println("random_basic ok")
+}
+// seeded_random(1) is a fixed xorshift32 output
+// seeded_random is deterministic for the same seed
+// seeded_range(42, 0, 10) stays in the half-open interval and is reproducible

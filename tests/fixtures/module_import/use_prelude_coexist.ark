@@ -1,0 +1,22 @@
+// Fixture: use_prelude_coexist.ark
+// Acceptance item 5 of issue #039: verify that prelude auto-import functions
+// (len, concat, push, i32_to_string) coexist with explicit module imports
+// (use std::text::string) without conflict or regression.
+//
+// Expected output: 3,hello world,2
+use std::text::string
+
+fn main() {
+    let parts = string::split("a,b,c", ",")
+    let n = len(parts)
+    let greeting = concat("hello", " world")
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 10)
+    push(v, 20)
+    let vlen = len(v)
+    __intrinsic_println(concat(concat(__intrinsic_i32_to_string(n), ","), concat(greeting, concat(",", __intrinsic_i32_to_string(vlen)))))
+}
+// Module-qualified call via `use std::text::string`
+// Prelude function `len` works alongside module import
+// Prelude function `concat` still available
+// Prelude function for vec creation

@@ -1,0 +1,64 @@
+// Property fixture for issue #528 — disjoint-key insert commutativity.
+//
+// Invariant: inserting a set of disjoint keys into a fresh HashMap yields
+// the same logical map regardless of insertion order.  We build map A with
+// keys inserted in ascending order and map B with the same keys inserted in
+// the reverse order, then take a normalized snapshot (size + value lookup
+// for each key in a fixed probe order) of each map.  The two snapshots must
+// be byte-for-byte identical.
+//
+// The normalized snapshot rule for this fixture:
+//   - the probe order is fixed at source-level (ASCENDING key order)
+//   - iteration order of the underlying map is never observed
+//   - each `println` line is a single integer value, emitted in a fixed
+//     order so the expected stdout cannot drift with hash layout changes
+//
+// This fixture MUST NOT exercise `std/collections/hash*` implementation
+// details beyond the public API surface (see issue #528 acceptance item 4).
+use std::collections::hash
+use std::host::stdio
+
+fn snapshot(label: String, m: Vec<i32>) {
+    stdio::println(label)
+    stdio::println(i32_to_string(hash::hashmap_size(m)))
+    // Fixed probe order (ascending keys) — independent of map iteration order.
+    match hash::hashmap_get_option(m, 10) {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
+    }
+    match hash::hashmap_get_option(m, 20) {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
+    }
+    match hash::hashmap_get_option(m, 30) {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
+    }
+    match hash::hashmap_get_option(m, 40) {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
+    }
+}
+
+fn main() {
+    // Map A: ascending insertion order.
+    let a: Vec<i32> = hash::hashmap_new()
+    hash::hashmap_set(a, 10, 100)
+    hash::hashmap_set(a, 20, 200)
+    hash::hashmap_set(a, 30, 300)
+    hash::hashmap_set(a, 40, 400)
+
+    // Map B: descending (reversed) insertion order over the SAME disjoint keys.
+    let b: Vec<i32> = hash::hashmap_new()
+    hash::hashmap_set(b, 40, 400)
+    hash::hashmap_set(b, 30, 300)
+    hash::hashmap_set(b, 20, 200)
+    hash::hashmap_set(b, 10, 100)
+
+    snapshot(String_from("A"), a)
+    snapshot(String_from("B"), b)
+
+    // Explicit equality check: A and B must agree on size and on every probe.
+    let size_eq: bool = hash::hashmap_size(a) == hash::hashmap_size(b)
+    stdio::println(bool_to_string(size_eq))
+}

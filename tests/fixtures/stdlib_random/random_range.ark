@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::random
+
+fn main() {
+    assert_eq(random::seeded_range(99, 10, 20), 19)
+    assert_eq(random::seeded_range(99, 10, 10), 10)
+    assert_eq(random::seeded_range(99, 12, 8), 12)
+    assert_eq(random::seeded_range(99, -4, 3), 0)
+    stdio::println("random_range ok")
+}

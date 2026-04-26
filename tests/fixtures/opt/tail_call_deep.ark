@@ -1,0 +1,14 @@
+use std::host::stdio
+
+fn countdown(n: i32) -> i32 {
+    if n <= 0 {
+        0
+    } else {
+        countdown(n - 1)
+    }
+}
+
+fn main() {
+    let result = countdown(10)
+    stdio::println(i32_to_string(result))
+}

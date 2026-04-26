@@ -1,0 +1,7 @@
+use std::host::sockets
+use std::host::stdio
+
+fn main() {
+    let conn = sockets::connect("localhost", 8080)
+    stdio::println("done")
+}

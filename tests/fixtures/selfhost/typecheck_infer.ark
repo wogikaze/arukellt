@@ -1,0 +1,39 @@
+// Test: selfhost typechecker literal and binary expression type inference
+// Exercises: int literal → i32, float literal → f64, binary arithmetic,
+//            let binding inference, bool literal → bool, chained binops.
+use std::host::stdio
+
+fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+fn mul(x: i32, y: i32) -> i32 {
+    x * y
+}
+
+fn main() {
+    let x = 1 + 2
+    stdio::println(to_string(x))
+    let y = 10 - 3 * 2
+    stdio::println(to_string(y))
+    let flag = x > 2
+    if flag {
+        stdio::println(String_from("flag is true"))
+    } else {
+        stdio::println(String_from("flag is false"))
+    }
+    let f = 1.5 + 2.5
+    stdio::println(f64_to_string(f))
+    let z: i32 = 5 + 6
+    stdio::println(to_string(z))
+    let sum = add(x, z)
+    stdio::println(to_string(sum))
+    let product = mul(x, z)
+    stdio::println(to_string(product))
+}
+// let x = 1 + 2  →  infers x: i32
+// chained arithmetic
+// comparison produces bool
+// float literal → f64
+// explicit type annotation consistent with inferred type
+// use function calls with inferred args

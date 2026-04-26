@@ -1,0 +1,5 @@
+fn main() {
+    let s = "unterminated
+    let n = 1.2.3
+    let bad = @
+}

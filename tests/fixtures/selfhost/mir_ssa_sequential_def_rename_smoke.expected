@@ -1,0 +1,4 @@
+single-block sequential SSA rename
+const.i32 -> %t.1
+const.i32 -> %t.2
+MIR SSA sequential-def rename smoke OK.

@@ -1,0 +1,13 @@
+use std::host::stdio
+
+fn describe(opt: Option<i32>) -> String {
+    match opt {
+        Option::Some(val) => concat(String_from("got "), i32_to_string(val)),
+        None => String_from("nothing"),
+    }
+}
+
+fn main() {
+    stdio::println(describe(Some(42)))
+    stdio::println(describe(None))
+}

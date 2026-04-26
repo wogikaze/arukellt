@@ -1,0 +1,7 @@
+use std::host::stdio
+
+fn main() {
+    let s = String_from("original")
+    let c = clone(s)
+    stdio::println(c)
+}

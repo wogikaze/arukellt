@@ -1,0 +1,17 @@
+// Regression fixture for issue #309:
+// `use path::to::item` import resolution in the selfhost resolver.
+//
+// This fixture exercises:
+//   - `use mymath` (local module import, no `std::` prefix)
+//   - Calling a pub function from the imported module: mymath::add, mymath::mul
+//   - Verifying the module file is loaded and its symbols are in scope
+use std::host::stdio
+
+use mymath
+
+fn main() {
+    let sum = mymath::add(10, 32)
+    let product = mymath::mul(6, 7)
+    stdio::println(i32_to_string(sum))
+    stdio::println(i32_to_string(product))
+}

@@ -1,0 +1,128 @@
+{
+  "generated_at": "2026-03-29",
+  "compile_time_thresholds": {
+    "check_vs_baseline_max_regression_percent": 10,
+    "compile_vs_baseline_max_regression_percent": 20
+  },
+  "cases": [
+    {
+      "file": "docs/examples/hello.ark",
+      "check": {
+        "status": 0,
+        "median_ms": 6.906,
+        "stderr_head": [
+          "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark"
+        ],
+        "stdout_head": []
+      },
+      "compile_t1": {
+        "status": 0,
+        "median_ms": 12.168,
+        "stderr_head": [
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t1.wasm (379 bytes, target: wasm32-wasi-p1)"
+        ],
+        "stdout_head": []
+      },
+      "compile_t3": {
+        "status": 0,
+        "median_ms": 19.9,
+        "stderr_head": [
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t3.wasm (809 bytes, target: wasm32-wasi-p2)"
+        ],
+        "stdout_head": []
+      },
+      "binary_size_t1": 379,
+      "binary_size_t3": 809
+    },
+    {
+      "file": "docs/examples/vec.ark",
+      "check": {
+        "status": 0,
+        "median_ms": 8.103,
+        "stderr_head": [
+          "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark"
+        ],
+        "stdout_head": []
+      },
+      "compile_t1": {
+        "status": 0,
+        "median_ms": 13.396,
+        "stderr_head": [
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t1.wasm (1769 bytes, target: wasm32-wasi-p1)"
+        ],
+        "stdout_head": []
+      },
+      "compile_t3": {
+        "status": 0,
+        "median_ms": 13.892,
+        "stderr_head": [
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t3.wasm (1477 bytes, target: wasm32-wasi-p2)"
+        ],
+        "stdout_head": []
+      },
+      "binary_size_t1": 1769,
+      "binary_size_t3": 1477
+    },
+    {
+      "file": "docs/examples/closure.ark",
+      "check": {
+        "status": 0,
+        "median_ms": 6.765,
+        "stderr_head": [
+          "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark"
+        ],
+        "stdout_head": []
+      },
+      "compile_t1": {
+        "status": 0,
+        "median_ms": 12.646,
+        "stderr_head": [
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t1.wasm (691 bytes, target: wasm32-wasi-p1)"
+        ],
+        "stdout_head": []
+      },
+      "compile_t3": {
+        "status": 0,
+        "median_ms": 12.351,
+        "stderr_head": [
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t3.wasm (1106 bytes, target: wasm32-wasi-p2)"
+        ],
+        "stdout_head": []
+      },
+      "binary_size_t1": 691,
+      "binary_size_t3": 1106
+    },
+    {
+      "file": "docs/sample/parser.ark",
+      "check": {
+        "status": 1,
+        "median_ms": null,
+        "stderr_head": [
+          "error[E0104|resolve]: module `io` not found: error: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/io.ark: No such file or directory (os error 2)",
+          ""
+        ],
+        "stdout_head": []
+      },
+      "compile_t1": {
+        "status": 1,
+        "median_ms": null,
+        "stderr_head": [
+          "error[E0104|resolve]: module `io` not found: error: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/io.ark: No such file or directory (os error 2)",
+          ""
+        ],
+        "stdout_head": []
+      },
+      "compile_t3": {
+        "status": 1,
+        "median_ms": null,
+        "stderr_head": [
+          "error[E0104|resolve]: module `io` not found: error: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/io.ark: No such file or directory (os error 2)",
+          ""
+        ],
+        "stdout_head": []
+      },
+      "binary_size_t1": 691,
+      "binary_size_t3": 1106
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+use std::host::stdio
+
+enum AppError {
+    Io(String),
+    Parse,
+}
+
+impl From for AppError {
+    fn from(e: String) -> AppError {
+        AppError::Io(e)
+    }
+}
+
+fn read_data() -> Result<String, String> {
+    Err(String_from("file not found"))
+}
+
+fn process() -> Result<i32, AppError> {
+    match read_data() {
+        Result::Ok(s) => {
+            let _ = len(s)
+            Ok(42)
+        },
+        Result::Err(e) => Err(AppError::Io(e)),
+    }
+}
+
+fn main() -> i32 {
+    match process() {
+        Result::Ok(n) => stdio::println(n),
+        Result::Err(e) => {
+            match e {
+                AppError::Io(msg) => stdio::println(msg),
+                AppError::Parse => stdio::println(String_from("parse error")),
+            }
+        },
+    }
+    0
+}

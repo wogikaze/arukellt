@@ -1,0 +1,28 @@
+// Issue #312 slice-a regression: a generic function called with a nested
+// generic argument must typecheck (nested instantiation walks `type_args`)
+// and produce a distinct mono_instances entry from a sibling call with a
+// flat type argument.  Selfhost previously folded `count<i32>` and
+// `count<Vec<i32>>` into the same mangled name because `mono_type_key`
+// ignored nested type args.
+use std::host::stdio
+
+fn count<T>(v: Vec<T>) -> i32 {
+    len(v)
+}
+
+fn main() {
+    // count<i32>: top-level concrete type arg.
+    let mut flat: Vec<i32> = Vec_new_i32()
+    push(flat, 10)
+    push(flat, 20)
+    push(flat, 30)
+    stdio::println(i32_to_string(count(flat)))
+
+    // count<Vec<i32>>: nested type arg — exercises recursive
+    // instantiate_type and recursive mono_type_key so the resulting
+    // mangled name is distinct from `count__i32`.
+    let mut outer: Vec<Vec<i32>> = Vec_new_i32()
+    let inner: Vec<i32> = Vec_new_i32()
+    push(outer, inner)
+    stdio::println(i32_to_string(count(outer)))
+}

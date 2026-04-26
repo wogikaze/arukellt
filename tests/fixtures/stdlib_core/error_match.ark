@@ -1,0 +1,20 @@
+use std::core::error
+use std::host::stdio
+
+fn check_error(e: Error) -> String {
+    match e {
+        Error::InvalidArgument(msg) => msg,
+        Error::IoError(msg) => msg,
+        Error::NotFound(msg) => msg,
+        _ => "other error",
+    }
+}
+
+fn main() {
+    let e1 = Error::InvalidArgument("bad")
+    stdio::println(check_error(e1))
+    let e2 = Error::NotFound("file.txt")
+    stdio::println(check_error(e2))
+    let e3 = Error::Timeout
+    stdio::println(check_error(e3))
+}

@@ -1,0 +1,199 @@
+/// Eager sequence helpers over `Vec<i32>`.
+/// 
+/// Provides map/filter/take/skip/fold as functional stubs over Vec<i32>,
+/// alongside search, aggregation, and deduplication helpers.
+/// Lazy generic Seq<T> pipelines are deferred to a future release.
+// ─── Transformation operations ──────────────────────────────────────────────
+/// Apply `f` to every element of `v` and collect the results.
+pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
+    let n: i32 = len(v)
+    let result: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < n {
+        push(result, f(get_unchecked(v, i)))
+        i = i + 1
+    }
+    result
+}
+
+/// Keep only elements of `v` for which `f` returns `true`.
+pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
+    let n: i32 = len(v)
+    let result: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < n {
+        let val: i32 = get_unchecked(v, i)
+        if f(val) {
+            push(result, val)
+        }
+        i = i + 1
+    }
+    result
+}
+
+/// Return the first `n` elements of `v`.
+pub fn take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
+    let sz: i32 = len(v)
+    let result: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    let limit: i32 = if n < sz {
+        n
+    } else {
+        sz
+    }
+    while i < limit {
+        push(result, get_unchecked(v, i))
+        i = i + 1
+    }
+    result
+}
+
+/// Return all elements of `v` after skipping the first `n`.
+pub fn skip_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
+    let sz: i32 = len(v)
+    let result: Vec<i32> = Vec_new_i32()
+    let start: i32 = if n < sz {
+        n
+    } else {
+        sz
+    }
+    let mut i: i32 = start
+    while i < sz {
+        push(result, get_unchecked(v, i))
+        i = i + 1
+    }
+    result
+}
+
+/// Reduce `v` to a single value using `f`, starting from `init`.
+pub fn fold_i32_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    let n: i32 = len(v)
+    let mut acc: i32 = init
+    let mut i: i32 = 0
+    while i < n {
+        acc = f(acc, get_unchecked(v, i))
+        i = i + 1
+    }
+    acc
+}
+
+// ─── Query operations ────────────────────────────────────────────────────────
+pub fn binary_search(v: Vec<i32>, target: i32) -> i32 {
+    let mut lo: i32 = 0
+    let mut hi: i32 = len(v) - 1
+    let mut result: i32 = 0 - 1
+    while lo <= hi {
+        let mid: i32 = lo + (hi - lo) / 2
+        let val: i32 = get_unchecked(v, mid)
+        if val == target {
+            result = mid
+            lo = hi + 1
+        } else {
+            if val < target {
+                lo = mid + 1
+            } else {
+                hi = mid - 1
+            }
+        }
+    }
+    result
+}
+
+pub fn min_i32(v: Vec<i32>) -> i32 {
+    let n: i32 = len(v)
+    let mut result: i32 = get_unchecked(v, 0)
+    let mut i: i32 = 1
+    while i < n {
+        let val: i32 = get_unchecked(v, i)
+        if val < result {
+            result = val
+        }
+        i = i + 1
+    }
+    result
+}
+
+pub fn max_i32(v: Vec<i32>) -> i32 {
+    let n: i32 = len(v)
+    let mut result: i32 = get_unchecked(v, 0)
+    let mut i: i32 = 1
+    while i < n {
+        let val: i32 = get_unchecked(v, i)
+        if val > result {
+            result = val
+        }
+        i = i + 1
+    }
+    result
+}
+
+pub fn sum_i32(v: Vec<i32>) -> i32 {
+    let n: i32 = len(v)
+    let mut total: i32 = 0
+    let mut i: i32 = 0
+    while i < n {
+        total = total + get_unchecked(v, i)
+        i = i + 1
+    }
+    total
+}
+
+pub fn seq_reverse(v: Vec<i32>) -> Vec<i32> {
+    let n: i32 = len(v)
+    let result: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = n - 1
+    while i >= 0 {
+        push(result, get_unchecked(v, i))
+        i = i - 1
+    }
+    result
+}
+
+pub fn seq_contains(v: Vec<i32>, target: i32) -> bool {
+    let n: i32 = len(v)
+    let mut i: i32 = 0
+    let mut found: bool = false
+    while i < n {
+        if get_unchecked(v, i) == target {
+            found = true
+        }
+        i = i + 1
+    }
+    found
+}
+
+pub fn unique(v: Vec<i32>) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    let n: i32 = len(v)
+    let mut i: i32 = 0
+    while i < n {
+        let val: i32 = get_unchecked(v, i)
+        let mut found: bool = false
+        let rn: i32 = len(result)
+        let mut j: i32 = 0
+        while j < rn {
+            if get_unchecked(result, j) == val {
+                found = true
+            }
+            j = j + 1
+        }
+        if found == false {
+            push(result, val)
+        }
+        i = i + 1
+    }
+    result
+}
+
+pub fn count_eq(v: Vec<i32>, target: i32) -> i32 {
+    let n: i32 = len(v)
+    let mut count: i32 = 0
+    let mut i: i32 = 0
+    while i < n {
+        if get_unchecked(v, i) == target {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
+}

@@ -1,0 +1,11 @@
+/// Experimental component-model helpers.
+/// 
+/// The current module only exposes version constants while the rest of the
+/// component surface is still being designed.
+pub fn canonical_abi_version() -> i32 {
+    1
+}
+
+pub fn component_model_version() -> String {
+    "0.2.0"
+}

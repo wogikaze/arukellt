@@ -1,0 +1,56 @@
+/// Shared error types for manifest-backed stdlib modules.
+/// Shared error variants used across stdlib modules.
+///
+/// # no-sentinel-i32 rule
+///
+/// New public stdlib APIs MUST NOT return a raw `i32` value of `-1` (i.e.
+/// `0 - 1`) to signal absence or failure.  Use the preferred surface instead:
+///
+/// - absence / EOF → `Option<T>` with `None`
+/// - distinguishable failures → `Result<T, Error>` using the variants below
+///
+/// Existing `-1`-returning functions are kept only as backward-compatible
+/// adapters.  When adding new APIs, always provide a `try_*` / `Option`-first
+/// variant and document the legacy form as deprecated.
+pub enum Error {
+    InvalidArgument(String),
+    IndexOutOfBounds {
+        index: i32,
+        len: i32,
+    },
+    ParseError {
+        kind: String,
+        input: String,
+    },
+    Utf8Error,
+    IoError(String),
+    NotFound(String),
+    AlreadyExists(String),
+    PermissionDenied(String),
+    Timeout,
+    WasmError(String),
+    ComponentError(String),
+}
+
+/// Converts an `Error` value into a human-readable message.
+pub fn error_message(e: Error) -> String {
+    match e {
+        Error::InvalidArgument(msg) => __intrinsic_concat("InvalidArgument: ", msg),
+        Error::IndexOutOfBounds { index, len } => {
+            let with_index = __intrinsic_concat("IndexOutOfBounds: index=", __intrinsic_i32_to_string(index))
+            __intrinsic_concat(__intrinsic_concat(with_index, " len="), __intrinsic_i32_to_string(len))
+        },
+        Error::ParseError { kind, input } => {
+            let head = __intrinsic_concat("ParseError: ", kind)
+            __intrinsic_concat(__intrinsic_concat(head, " input="), input)
+        },
+        Error::Utf8Error => "Utf8Error",
+        Error::IoError(msg) => __intrinsic_concat("IoError: ", msg),
+        Error::NotFound(msg) => __intrinsic_concat("NotFound: ", msg),
+        Error::AlreadyExists(msg) => __intrinsic_concat("AlreadyExists: ", msg),
+        Error::PermissionDenied(msg) => __intrinsic_concat("PermissionDenied: ", msg),
+        Error::Timeout => "Timeout",
+        Error::WasmError(msg) => __intrinsic_concat("WasmError: ", msg),
+        Error::ComponentError(msg) => __intrinsic_concat("ComponentError: ", msg),
+    }
+}

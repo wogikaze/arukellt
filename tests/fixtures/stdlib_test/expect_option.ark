@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+
+fn main() {
+    let some_val: Option<i32> = Some(99)
+    let v = test::expect_some_i32(some_val)
+    assert_eq(v, 99)
+    let none_val: Option<i32> = None
+    test::expect_none_i32(none_val)
+    stdio::println("expect_option ok")
+}

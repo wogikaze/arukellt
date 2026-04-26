@@ -1,0 +1,81 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches: ["master"]
+    paths:
+      - "docs/**"
+      - "crates/ark-playground-wasm/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy GitHub Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Rust toolchain + wasm32 target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-playground-wasm-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-playground-wasm-
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build playground wasm
+        working-directory: crates/ark-playground-wasm
+        run: wasm-pack build --target web --release
+
+      - name: Copy wasm binary and JS glue to docs/playground/wasm/
+        run: |
+          mkdir -p docs/playground/wasm
+          cp crates/ark-playground-wasm/pkg/ark_playground_wasm_bg.wasm docs/playground/wasm/
+          cp crates/ark-playground-wasm/pkg/ark_playground_wasm.js docs/playground/wasm/
+          cp crates/ark-playground-wasm/pkg/ark_playground_wasm.d.ts docs/playground/wasm/
+          cp crates/ark-playground-wasm/pkg/ark_playground_wasm_bg.wasm.d.ts docs/playground/wasm/
+
+      - name: Build playground JS
+        working-directory: playground
+        run: npm install --no-audit --no-fund --package-lock=false && npm run build:app
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload docs artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,15 @@
+use std::host::stdio
+
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+fn main() {
+    let c: Color = Color::Red
+    match c {
+        Color::Red => stdio::println("red"),
+        Color::Green => stdio::println("green"),
+    }
+}

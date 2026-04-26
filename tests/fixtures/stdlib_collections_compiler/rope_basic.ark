@@ -1,0 +1,18 @@
+use std::host::stdio
+use std::text::rope
+
+fn main() {
+    let r = rope::rope_new()
+    stdio::println(i32_to_string(rope::rope_len(r)))
+    let r2 = rope::rope_from_string("hello")
+    stdio::println(i32_to_string(rope::rope_len(r2)))
+    stdio::println(rope::rope_to_string(r2))
+    let r3 = rope::rope_insert(r2, 5, " world")
+    stdio::println(rope::rope_to_string(r3))
+    let r4 = rope::rope_delete(r3, 5, 11)
+    stdio::println(rope::rope_to_string(r4))
+    let r5 = rope::rope_slice(r3, 6, 11)
+    stdio::println(r5)
+    let r6 = rope::rope_from_string("line1\nline2\nline3")
+    stdio::println(i32_to_string(rope::rope_line_count(r6)))
+}

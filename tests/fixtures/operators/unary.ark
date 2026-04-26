@@ -1,0 +1,7 @@
+use std::host::stdio
+
+fn main() {
+    let x: i32 = 5
+    stdio::println(i32_to_string(-x))
+    stdio::println(bool_to_string(!true))
+}

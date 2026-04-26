@@ -1,0 +1,1 @@
+import `use std::host::stdio` and call `stdio::println(...)`

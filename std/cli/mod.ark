@@ -1,0 +1,79 @@
+/// std::cli — command-line argument helpers.
+/// 
+/// All functions that take an explicit `args` parameter accept any
+/// `Vec<String>` (typically produced by `env::args()` or `parse_args()`).
+/// Functions without an explicit `args` parameter read from the process
+/// argument vector directly.
+/// Returns the full process argument vector (excluding argv[0]).
+pub fn parse_args() -> Vec<String> {
+    __intrinsic_args()
+}
+
+/// Returns the number of process arguments (excluding argv[0]).
+pub fn arg_count() -> i32 {
+    __intrinsic_arg_count()
+}
+
+/// Returns the argument at `index`, or `None` when out of range.
+pub fn arg_at(index: i32) -> Option<String> {
+    let v = __intrinsic_args()
+    get(v, index)
+}
+
+/// Returns `true` when the process argument vector contains `flag` verbatim.
+/// 
+/// Typical usage: `cli::has_flag("--verbose")`.
+pub fn has_flag(flag: String) -> bool {
+    let values = __intrinsic_args()
+    let mut i = 0
+    while i < len(values) {
+        if get_unchecked(values, i) == flag {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+/// Returns `true` when `args` contains `name` verbatim.
+/// 
+/// Unlike `has_flag`, this takes an explicit argument vector so the caller
+/// can pass a filtered or synthetic list.
+pub fn flag(args: Vec<String>, name: String) -> bool {
+    let mut i = 0
+    while i < len(args) {
+        if get_unchecked(args, i) == name {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+/// Looks for `name` or `name=<value>` in `args` and returns the associated
+/// value, or `None` when not found.
+/// 
+/// Supported forms:
+/// - `--flag value`  (next element)
+/// - `--flag=value`  (embedded `=`)
+pub fn option(args: Vec<String>, name: String) -> Option<String> {
+    let n = len(args)
+    let prefix = concat(name, "=")
+    let prefix_len = len(prefix)
+    let mut i = 0
+    while i < n {
+        let arg = get_unchecked(args, i)
+        let arg_len = len(arg)
+        if arg_len > prefix_len {
+            let head = slice(arg, 0, prefix_len)
+            if head == prefix {
+                return Some(slice(arg, prefix_len, arg_len))
+            }
+        }
+        if arg == name && i + 1 < n {
+            return Some(get_unchecked(args, i + 1))
+        }
+        i = i + 1
+    }
+    None
+}

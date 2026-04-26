@@ -1,0 +1,8 @@
+use std::host::stdio
+
+use helpers
+
+fn main() {
+    let x: i32 = helpers::double(21)
+    stdio::println(i32_to_string(x))
+}

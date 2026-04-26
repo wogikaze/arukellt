@@ -1,0 +1,92 @@
+// Focused regression for issue #503 slice B.
+// Exercises deterministic predecessor computation from succ0/succ1 on a
+// small diamond CFG without widening into full CFG lowering or SSA.
+use std::host::stdio
+
+struct Block {
+    succ0: i32,
+    succ1: i32,
+    preds: Vec<i32>,
+}
+
+fn Block_new() -> Block {
+    Block { succ0: 0 - 1, succ1: 0 - 1, preds: Vec_new_i32() }
+}
+
+fn add_pred(block: Block, pred_id: i32) {
+    let count = len(block.preds)
+    let mut i = 0
+    while i < count {
+        if get_unchecked(block.preds, i) == pred_id {
+            return
+        }
+        i = i + 1
+    }
+    push(block.preds, pred_id)
+}
+
+fn add_pred_edge(blocks: Vec<Block>, pred_id: i32, succ_id: i32) {
+    if succ_id < 0 {
+        return
+    }
+    if succ_id >= len(blocks) {
+        return
+    }
+    let succ = get_unchecked(blocks, succ_id)
+    add_pred(succ, pred_id)
+}
+
+fn compute_predecessors(blocks: Vec<Block>) {
+    let count = len(blocks)
+    let mut i = 0
+    while i < count {
+        let block = get_unchecked(blocks, i)
+        block.preds = Vec_new_i32()
+        i = i + 1
+    }
+    i = 0
+    while i < count {
+        let block = get_unchecked(blocks, i)
+        add_pred_edge(blocks, i, block.succ0)
+        if block.succ1 != block.succ0 {
+            add_pred_edge(blocks, i, block.succ1)
+        }
+        i = i + 1
+    }
+}
+
+fn format_preds(preds: Vec<i32>) -> String {
+    let mut out = String_from("[")
+    let count = len(preds)
+    let mut i = 0
+    while i < count {
+        if i > 0 {
+            out = concat(out, String_from(","))
+        }
+        out = concat(out, to_string(get_unchecked(preds, i)))
+        i = i + 1
+    }
+    concat(out, String_from("]"))
+}
+
+fn main() {
+    let blocks = Vec_new_Block()
+    push(blocks, Block_new())
+    push(blocks, Block_new())
+    push(blocks, Block_new())
+    push(blocks, Block_new())
+    let entry = get_unchecked(blocks, 0)
+    entry.succ0 = 1
+    entry.succ1 = 2
+    let then_bb = get_unchecked(blocks, 1)
+    then_bb.succ0 = 3
+    let else_bb = get_unchecked(blocks, 2)
+    else_bb.succ0 = 3
+    compute_predecessors(blocks)
+    let mut i = 0
+    while i < len(blocks) {
+        let block = get_unchecked(blocks, i)
+        stdio::println(concat(concat(String_from("bb"), to_string(i)), concat(String_from(" preds="), format_preds(block.preds))))
+        i = i + 1
+    }
+}

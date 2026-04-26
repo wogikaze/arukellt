@@ -1,0 +1,21 @@
+// Multi-world scenario
+// Tests: multiple WIT worlds, world separation
+
+// World 1: Math functions
+export fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+export fn multiply(a: i32, b: i32) -> i32 {
+    a * b
+}
+
+// World 2: String utilities
+export fn to_uppercase(s: string) -> string {
+    // Placeholder - would use std::text in real implementation
+    s
+}
+
+export fn concat(s1: string, s2: string) -> string {
+    s1 + s2
+}

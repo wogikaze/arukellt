@@ -1,0 +1,3 @@
+// Regression fixture for the T2 freestanding emitter scaffold.
+fn main() {
+}

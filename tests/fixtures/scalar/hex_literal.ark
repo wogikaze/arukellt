@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    let a = 255u8
+    let b = 26u16
+    let c = 3735928559u32
+    stdio::println(a)
+    stdio::println(b)
+    stdio::println(c)
+}

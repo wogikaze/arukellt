@@ -1,0 +1,3 @@
+fn main() {
+    let v: Vec<Option<i32>> = Vec_new_i32()
+}

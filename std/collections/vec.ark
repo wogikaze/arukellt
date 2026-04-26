@@ -1,0 +1,7 @@
+/// Vec sub-module — minimal stub for issue #039 slice-2 resolver wiring.
+/// 
+/// Exposes basic vector construction helpers under the `vec::` qualifier.
+/// Creates a new empty `Vec<i32>`.
+pub fn new_i32() -> Vec<i32> {
+    __intrinsic_Vec_new_i32()
+}

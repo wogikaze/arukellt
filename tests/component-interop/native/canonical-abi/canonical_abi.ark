@@ -1,0 +1,22 @@
+// Canonical ABI compliance scenario
+// Tests: canonical ABI compliance for function calls and data passing
+
+export struct Data {
+    value: i32,
+    name: string,
+}
+
+export fn process_data(data: Data) -> Data {
+    Data {
+        value: data.value * 2,
+        name: "processed-" + data.name,
+    }
+}
+
+export fn sum_list(numbers: list<i32>) -> i32 {
+    let mut total = 0
+    for n in numbers {
+        total = total + n
+    }
+    total
+}

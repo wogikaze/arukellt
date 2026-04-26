@@ -1,0 +1,53 @@
+use std::host::stdio
+use std::json
+
+fn main() {
+    match json::parse("{\"name\":\"alice\",\"age\":30}") {
+        Result::Ok(obj) => {
+            match json::json_get(obj, "name") {
+                Option::Some(v) => {
+                    match json::json_as_string(v) {
+                        Option::Some(s) => stdio::println(s),
+                        None => stdio::println("not string"),
+                    }
+                },
+                None => stdio::println("key not found"),
+            }
+            match json::json_get(obj, "age") {
+                Option::Some(v) => {
+                    match json::json_as_i32(v) {
+                        Option::Some(n) => stdio::println(i32_to_string(n)),
+                        None => stdio::println("not number"),
+                    }
+                },
+                None => stdio::println("key not found"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+    match json::parse("[10,20,30]") {
+        Result::Ok(arr) => {
+            match json::json_get_index(arr, 0) {
+                Option::Some(v) => {
+                    match json::json_as_i32(v) {
+                        Option::Some(n) => stdio::println(i32_to_string(n)),
+                        None => stdio::println("not number"),
+                    }
+                },
+                None => stdio::println("index not found"),
+            }
+            match json::json_get_index(arr, 2) {
+                Option::Some(v) => {
+                    match json::json_as_i32(v) {
+                        Option::Some(n) => stdio::println(i32_to_string(n)),
+                        None => stdio::println("not number"),
+                    }
+                },
+                None => stdio::println("index not found"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+}
+// json_get: access object field
+// json_get_index: access array element

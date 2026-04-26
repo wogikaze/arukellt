@@ -1,0 +1,117 @@
+//! Host filesystem helpers backed by the current WASI filesystem intrinsics.
+//!
+//! These APIs perform real host I/O and require runtime directory access (e.g.
+//! `--dir`) on every call. Pure path manipulation lives in `std::path`; a
+//! smaller stable-shaped bridge over the same intrinsics lives in `std::fs`.
+//!
+//! This module is **not** a complete filesystem facade. There is no directory
+//! listing, metadata, or streaming I/O surface in-tree yet, and the `fd_*`
+//! helpers are explicitly experimental and currently T1 (WASI P1) only.
+//!
+//! Honesty caveats (see `docs/stdlib/604-contract-honesty-gap-ledger.md`):
+//!
+//! - `exists(path)` is a **read probe / readable-file check**, not a general
+//!   path-existence query. It is implemented on top of
+//!   `__intrinsic_fs_read_file`, so directories, missing paths, and any other
+//!   unreadable paths return `false`. True path semantics are tracked under
+//!   issue #605.
+//! - `fd_seek`, `fd_tell`, and `fd_fdstat_errno` operate on raw WASI P1 file
+//!   descriptors and are experimental.
+
+pub enum FsError {
+    NotFound(String),
+    PermissionDenied(String),
+    Utf8Error,
+    IoError(String),
+}
+
+pub fn fs_error_message(err: FsError) -> String {
+    match err {
+        FsError::NotFound(path) => concat("not found: ", path),
+        FsError::PermissionDenied(path) => concat("permission denied: ", path),
+        FsError::Utf8Error => "invalid utf-8",
+        FsError::IoError(msg) => msg,
+    }
+}
+
+fn classify_fs_error(raw: String, path: String, op: String) -> FsError {
+    if contains(raw, "No such file") || contains(raw, "not found") || contains(raw, "ENOENT") {
+        return FsError::NotFound(path)
+    }
+    if contains(raw, "Permission denied") || contains(raw, "permission denied") || contains(raw, "EACCES") || contains(raw, "EPERM") {
+        return FsError::PermissionDenied(path)
+    }
+    if contains(raw, "UTF-8") || contains(raw, "utf-8") || contains(raw, "utf8") {
+        return FsError::Utf8Error
+    }
+    FsError::IoError(concat(concat(op, ": "), raw))
+}
+
+/// Reads a UTF-8 text file into memory.
+pub fn read_to_string(path: String) -> Result<String, FsError> {
+    match __intrinsic_fs_read_file(clone(path)) {
+        Result::Ok(text) => Ok(text),
+        Result::Err(raw) => Err(classify_fs_error(raw, path, "read")),
+    }
+}
+
+/// Writes a UTF-8 string to a file, replacing any existing contents.
+pub fn write_string(path: String, contents: String) -> Result<(), FsError> {
+    match __intrinsic_fs_write_file(clone(path), contents) {
+        Result::Ok(_) => Ok(()),
+        Result::Err(raw) => Err(classify_fs_error(raw, path, "write")),
+    }
+}
+
+/// Writes a byte array to a file, replacing any existing contents.
+pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), FsError> {
+    match __intrinsic_fs_write_bytes(clone(path), bytes) {
+        Result::Ok(_) => Ok(()),
+        Result::Err(raw) => Err(classify_fs_error(raw, path, "write")),
+    }
+}
+
+/// Read-probe semantics — **not** a general path-existence query.
+///
+/// This function attempts a full UTF-8 file read via the same intrinsic as
+/// `read_to_string` (`__intrinsic_fs_read_file`) and returns `true` only when
+/// that read succeeds end-to-end. The result is **best-effort**:
+///
+/// - A `false` result does **not** distinguish between *missing file*,
+///   *permission denied*, *not a regular file* (e.g. a directory or a broken
+///   symlink), *invalid UTF-8 contents*, or *I/O error mid-read*. All of these
+///   collapse to `false`.
+/// - A `true` result means the host could open the path and read it through to
+///   EOF as UTF-8 at the moment of the call. It does **not** imply the path is
+///   writable, that subsequent reads will succeed, or that the file is a
+///   regular file.
+/// - For non-UTF-8 files this returns `false` even when the path does exist.
+///
+/// True path-existence semantics (an lstat/access-style probe that cleanly
+/// separates *missing* from *unreadable*) are tracked under issue #605. Until
+/// that lands, `exists` is intentionally kept as a thin readability probe and
+/// must not be used as a general "does this path exist?" predicate.
+pub fn exists(path: String) -> bool {
+    match __intrinsic_fs_read_file(path) {
+        Result::Ok(_) => true,
+        Result::Err(_) => false,
+    }
+}
+
+/// Seeks within an open file descriptor.
+/// `whence`: 0 = SET (from start), 1 = CUR (from current), 2 = END (from end).
+/// Returns the new file offset in bytes.
+pub fn fd_seek(fd: i32, offset: i64, whence: i32) -> i64 {
+    __intrinsic_fd_seek(fd, offset, whence)
+}
+
+/// Returns the current file offset for an open file descriptor.
+pub fn fd_tell(fd: i32) -> i64 {
+    __intrinsic_fd_tell(fd)
+}
+
+/// Returns the errno from fd_fdstat_get for an open file descriptor.
+/// Returns 0 on success (fd is valid and its status was written to the internal buffer).
+pub fn fd_fdstat_errno(fd: i32) -> i32 {
+    __intrinsic_fd_fdstat_get(fd)
+}

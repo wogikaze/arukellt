@@ -1,0 +1,426 @@
+// Arukellt Selfhost — Analysis API (issue #568)
+//
+// Single-call entry point that, given a source text + module identity,
+// produces a self-describing analysis snapshot containing:
+//   - decls         (AST, possibly partial after parser recovery)
+//   - symbol_count  (resolved symbols, best-effort if upstream errored)
+//   - typed_fn_count (type-annotated functions)
+//   - diagnostics   (accumulated lex + parse + resolve + typecheck)
+//
+// Pipeline never short-circuits: every phase runs regardless of upstream
+// failures so future LSP / DAP handlers (#569, #570) receive a complete
+// snapshot per edit. No file I/O is performed; inputs are pure text.
+//
+// Source pipeline mirrors `driver::compile_source` but stops after
+// typechecking and accumulates diagnostics across phases instead of
+// returning at the first failing phase.
+use diagnostics
+use lexer
+use parser
+use resolver
+use typechecker
+
+// ── Diagnostic phase tags ────────────────────────────────────────────────────
+pub fn PHASE_LEX() -> i32 {
+    1
+}
+
+pub fn PHASE_PARSE() -> i32 {
+    2
+}
+
+pub fn PHASE_RESOLVE() -> i32 {
+    3
+}
+
+pub fn PHASE_TYPECHECK() -> i32 {
+    4
+}
+
+fn phase_tag(phase: i32) -> String {
+    if phase == PHASE_LEX() {
+        return String_from("lex")
+    }
+    if phase == PHASE_PARSE() {
+        return String_from("parse")
+    }
+    if phase == PHASE_RESOLVE() {
+        return String_from("resolve")
+    }
+    if phase == PHASE_TYPECHECK() {
+        return String_from("typecheck")
+    }
+    String_from("unknown")
+}
+
+// ── Structured diagnostic record ─────────────────────────────────────────────
+pub struct AnalysisDiagnostic {
+    phase: i32,
+    message: String,
+    start: i32,
+    end: i32,
+}
+
+fn AnalysisDiagnostic_new(phase: i32, msg: String, start: i32, end: i32) -> AnalysisDiagnostic {
+    AnalysisDiagnostic { phase: phase, message: msg, start: start, end: end }
+}
+
+// ── Snapshot record ──────────────────────────────────────────────────────────
+// Self-describing analysis output. Fields are deliberately primitive
+// (or vectors of primitives / records owned by this module) so callers
+// outside src/compiler/ can consume the snapshot without pulling in
+// the full AST type vocabulary. Future revisions may expand this with
+// richer typed views once selfhost generic-arg-by-qualified-name lands.
+pub struct AnalysisSnapshot {
+    uri: String,
+    decl_count: i32,
+    symbol_count: i32,
+    typed_fn_count: i32,
+    diagnostic_count: i32,
+    diagnostics: Vec<AnalysisDiagnostic>,
+}
+
+fn AnalysisSnapshot_new(uri: String) -> AnalysisSnapshot {
+    AnalysisSnapshot { uri: uri, decl_count: 0, symbol_count: 0, typed_fn_count: 0, diagnostic_count: 0, diagnostics: Vec_new_AnalysisDiagnostic() }
+}
+
+fn snapshot_push(snap: AnalysisSnapshot, diag: AnalysisDiagnostic) {
+    push(snap.diagnostics, diag)
+    snap.diagnostic_count = snap.diagnostic_count + 1
+}
+
+// ── Counters ─────────────────────────────────────────────────────────────────
+fn count_user_symbols(ctx: ResolveCtx) -> i32 {
+    // Global scope (depth 0) holds builtins, prelude module aliases, and
+    // user-defined top-level symbols. A symbol counts as "user-defined"
+    // when its kind is not SYM_BUILTIN (=8) and not SYM_MODULE (=9).
+    if len(ctx.scopes) == 0 {
+        return 0
+    }
+    let scope = get_unchecked(ctx.scopes, 0)
+    let total = len(scope.symbols)
+    let mut user = 0
+    let mut i = 0
+    while i < total {
+        let sym = get_unchecked(scope.symbols, i)
+        if sym.kind != 8 && sym.kind != 9 {
+            user = user + 1
+        }
+        i = i + 1
+    }
+    user
+}
+
+// ── Analysis entry point ─────────────────────────────────────────────────────
+// Pure (no fs / process / network). All inputs are pass-by-value text;
+// returns a fully-populated `AnalysisSnapshot` with diagnostics from
+// every phase that ran.
+pub fn analyze(uri: String, text: String) -> AnalysisSnapshot {
+    let snap = AnalysisSnapshot_new(uri)
+
+    // Phase 1: lex (#565 recovery — never aborts).
+    // Structured-diagnostic emission (#614): for each recoverable lex
+    // error, build a fully populated `Diagnostic` value (code/severity/
+    // span/message) via lexer::lex_diagnostics_emit_one, then render it
+    // into the snapshot so all four structured fields appear in the
+    // textual summary. The legacy `LexDiagnostic` byte-offset stream is
+    // still consumed downstream by the rest of the pipeline.
+    let lex_result = lexer::lex_program(clone(text))
+    let lex_legacy_count = len(lex_result.diagnostics)
+    let mut li = 0
+    while li < lex_legacy_count {
+        let ld = get_unchecked(lex_result.diagnostics, li)
+        let dline = lexer::lex_offset_to_line(clone(text), ld.start)
+        let dcol = lexer::lex_offset_to_column(clone(text), ld.start)
+        let dfile = clone(snap.uri)
+        let dmsg = clone(ld.message)
+        let dcode = lexer::lex_diag_code_string(ld.code)
+        let dspan = DiagnosticSpan { file: dfile, line: dline, column: dcol }
+        let d = Diagnostic { code: dcode, severity: SEV_ERROR(), span: dspan, message: dmsg }
+        let mut rmsg = String_from("[")
+        rmsg = concat(rmsg, clone(d.code))
+        rmsg = concat(rmsg, String_from(" "))
+        rmsg = concat(rmsg, severity_name(d.severity))
+        rmsg = concat(rmsg, String_from(" "))
+        rmsg = concat(rmsg, clone(d.span.file))
+        rmsg = concat(rmsg, String_from(":"))
+        rmsg = concat(rmsg, to_string(d.span.line))
+        rmsg = concat(rmsg, String_from(":"))
+        rmsg = concat(rmsg, to_string(d.span.column))
+        rmsg = concat(rmsg, String_from("] "))
+        rmsg = concat(rmsg, lexer::lex_diag_code_message(ld.code))
+        snapshot_push(snap, AnalysisDiagnostic_new(PHASE_LEX(), rmsg, ld.start, ld.end))
+        li = li + 1
+    }
+
+    // Phase 2: parse (#566 recovery — produces partial AST).
+    let parse_result = parser::parse_program(lex_result.tokens)
+    snap.decl_count = len(parse_result.decls)
+    let parse_err_count = len(parse_result.errors)
+    let mut pi = 0
+    while pi < parse_err_count {
+        let pe = get_unchecked(parse_result.errors, pi)
+        snapshot_push(snap, AnalysisDiagnostic_new(PHASE_PARSE(), clone(pe.message), pe.span.start, pe.span.end))
+        pi = pi + 1
+    }
+
+    // Phase 3: resolve (#567 accumulating diagnostics; runs on partial AST).
+    let empty_modules = Vec_new_ModuleDecls()
+    let resolve_ctx = resolver::resolve_program(parse_result.decls, empty_modules)
+    snap.symbol_count = count_user_symbols(resolve_ctx)
+    let res_err_count = len(resolve_ctx.errors)
+    let mut ri = 0
+    while ri < res_err_count {
+        let re = get_unchecked(resolve_ctx.errors, ri)
+        snapshot_push(snap, AnalysisDiagnostic_new(PHASE_RESOLVE(), clone(re), 0, 0))
+        ri = ri + 1
+    }
+
+    // Phase 4: typecheck (best-effort; consumes the same partial AST).
+    // typecheck_module copies resolver errors into its own result, so we
+    // skip the prefix that we've already emitted under PHASE_RESOLVE.
+    let check_result = typechecker::typecheck_module(parse_result.decls, resolve_ctx)
+    snap.typed_fn_count = len(check_result.typed_fns)
+    let tc_err_total = len(check_result.errors)
+    let mut ti = res_err_count
+    while ti < tc_err_total {
+        let te = get_unchecked(check_result.errors, ti)
+        snapshot_push(snap, AnalysisDiagnostic_new(PHASE_TYPECHECK(), clone(te), 0, 0))
+        ti = ti + 1
+    }
+
+    snap
+}
+
+// ── Snapshot rendering ───────────────────────────────────────────────────────
+// Deterministic textual summary used by the `analyze` CLI subcommand and
+// fixture goldens. Format:
+//
+//   analysis <uri>
+//   decls=<N> symbols=<N> typed=<N> diagnostics=<N>
+//   <phase>: <message>
+//   <phase>: <message>
+//   ...
+pub fn snapshot_summary(snap: AnalysisSnapshot) -> String {
+    let mut out = String_from("analysis ")
+    out = concat(out, clone(snap.uri))
+    out = concat(out, String_from("\n"))
+    out = concat(out, String_from("decls="))
+    out = concat(out, to_string(snap.decl_count))
+    out = concat(out, String_from(" symbols="))
+    out = concat(out, to_string(snap.symbol_count))
+    out = concat(out, String_from(" typed="))
+    out = concat(out, to_string(snap.typed_fn_count))
+    out = concat(out, String_from(" diagnostics="))
+    out = concat(out, to_string(snap.diagnostic_count))
+    out = concat(out, String_from("\n"))
+    let dn = len(snap.diagnostics)
+    let mut i = 0
+    while i < dn {
+        let d = get_unchecked(snap.diagnostics, i)
+        out = concat(out, phase_tag(d.phase))
+        out = concat(out, String_from(": "))
+        out = concat(out, clone(d.message))
+        out = concat(out, String_from("\n"))
+        i = i + 1
+    }
+    out
+}
+
+// ── Position queries (issue #570) ────────────────────────────────────────────
+// The hover and definition LSP handlers in src/compiler/lsp.ark consume
+// these helpers. `symbol_at` returns the declaration that an identifier at
+// `offset` refers to, by walking the partial AST produced by
+// parser::parse_program. The returned `SymbolInfo.found` flag is `false`
+// when the offset is outside any identifier or refers to a name with no
+// matching top-level decl (e.g. a builtin).
+//
+// The decl-kind constants below mirror the integer tags in
+// src/compiler/parser.ark::NK_*. They are duplicated here (rather than
+// imported) because those constants are not currently `pub` and this
+// slice deliberately avoids touching parser.ark beyond what's strictly
+// required.
+fn AT_NK_IDENT() -> i32 {
+    5
+}
+
+fn AT_NK_LET() -> i32 {
+    30
+}
+
+fn AT_NK_FN_DECL() -> i32 {
+    50
+}
+
+fn AT_NK_STRUCT_DECL() -> i32 {
+    51
+}
+
+fn AT_NK_ENUM_DECL() -> i32 {
+    52
+}
+
+pub struct SymbolInfo {
+    found: bool,
+    name: String,
+    kind: i32,
+    decl_start: i32,
+    decl_end: i32,
+    signature: String,
+}
+
+fn SymbolInfo_none() -> SymbolInfo {
+    SymbolInfo { found: false, name: String_new(), kind: 0, decl_start: 0, decl_end: 0, signature: String_new() }
+}
+
+// Render a brief signature string for a top-level decl (used by hover).
+// Output is plain text suitable for embedding inside an ```ark code fence.
+fn render_signature(decl: AstNode) -> String {
+    if decl.kind == AT_NK_FN_DECL() {
+        let mut sig = String_from("fn ")
+        sig = concat(sig, clone(decl.text))
+        sig = concat(sig, String_from("("))
+        // children = params... + body block. The block is the last child.
+        let cn = len(decl.children)
+        let last = if cn > 0 {
+            cn - 1
+        } else {
+            0
+        }
+        let mut i = 0
+        let mut first = true
+        while i < last {
+            let p = get_unchecked(decl.children, i)
+            if !first {
+                sig = concat(sig, String_from(", "))
+            }
+            first = false
+            sig = concat(sig, clone(p.text))
+            i = i + 1
+        }
+        sig = concat(sig, String_from(")"))
+        return sig
+    }
+    if decl.kind == AT_NK_STRUCT_DECL() {
+        return concat(String_from("struct "), clone(decl.text))
+    }
+    if decl.kind == AT_NK_ENUM_DECL() {
+        return concat(String_from("enum "), clone(decl.text))
+    }
+    if decl.kind == AT_NK_LET() {
+        return concat(String_from("let "), clone(decl.text))
+    }
+    clone(decl.text)
+}
+
+// Recursive search: locate an NK_IDENT node whose span contains `offset`
+// and return its name. Returns the empty string when no identifier matches.
+fn find_ident_at_in(node: AstNode, offset: i32) -> String {
+    if node.kind == AT_NK_IDENT() {
+        if node.span.start <= offset && offset < node.span.end {
+            return clone(node.text)
+        }
+    }
+    let cn = len(node.children)
+    let mut i = 0
+    while i < cn {
+        let c = get_unchecked(node.children, i)
+        let r = find_ident_at_in(c, offset)
+        if len(r) > 0 {
+            return r
+        }
+        i = i + 1
+    }
+    let tn = len(node.type_ann)
+    let mut j = 0
+    while j < tn {
+        let c = get_unchecked(node.type_ann, j)
+        let r = find_ident_at_in(c, offset)
+        if len(r) > 0 {
+            return r
+        }
+        j = j + 1
+    }
+    String_new()
+}
+
+fn find_ident_in_decls(decls: Vec<AstNode>, offset: i32) -> String {
+    let n = len(decls)
+    let mut i = 0
+    while i < n {
+        let d = get_unchecked(decls, i)
+        let r = find_ident_at_in(d, offset)
+        if len(r) > 0 {
+            return r
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn find_decl_by_name(decls: Vec<AstNode>, name: String) -> SymbolInfo {
+    let n = len(decls)
+    let mut i = 0
+    while i < n {
+        let d = get_unchecked(decls, i)
+        let k = d.kind
+        let is_decl = k == AT_NK_FN_DECL() || k == AT_NK_STRUCT_DECL() || k == AT_NK_ENUM_DECL() || k == AT_NK_LET()
+        if is_decl && eq(clone(d.text), clone(name)) {
+            return SymbolInfo { found: true, name: name, kind: k, decl_start: d.span.start, decl_end: d.span.end, signature: render_signature(d) }
+        }
+        i = i + 1
+    }
+    SymbolInfo_none()
+}
+
+// Public entry point for LSP position queries. Re-runs lex + parse on the
+// supplied document text and resolves the identifier at `offset` (a byte
+// offset into `text`) to its defining top-level declaration. Cheap enough
+// for per-request use given selfhost's current parser performance; can be
+// memoised against `LspDoc` once the LSP server gains a richer cache.
+pub fn symbol_at(text: String, offset: i32) -> SymbolInfo {
+    let lex_result = lexer::lex_program(clone(text))
+    let parse_result = parser::parse_program(lex_result.tokens)
+    let name = find_ident_in_decls(parse_result.decls, offset)
+    if len(name) == 0 {
+        return SymbolInfo_none()
+    }
+    find_decl_by_name(parse_result.decls, name)
+}
+
+// Hover-friendly markdown rendering for a `SymbolInfo`. Returns the empty
+// string when the symbol is not found, which the LSP layer maps to a
+// `null` hover response.
+pub fn render_hover_markdown(info: SymbolInfo) -> String {
+    if !info.found {
+        return String_new()
+    }
+    let mut out = String_from("```ark\n")
+    out = concat(out, clone(info.signature))
+    out = concat(out, String_from("\n```"))
+    out
+}
+
+// ── Structured lex-diagnostic renderer (issue #614) ──────────────────────────
+// Renders a `Diagnostic` (from src/compiler/diagnostics.ark) into a single
+// deterministic line that surfaces all four structured fields. Used by
+// `analyze` so analysis goldens can prove the new lex code path emitted a
+// fully-populated Diagnostic value (code, severity, span, message).
+//
+// Format:
+//   [<code> <severity> <file>:<line>:<col>] <message>
+fn render_lex_diagnostic(d: Diagnostic) -> String {
+    let mut out = String_from("[")
+    out = concat(out, clone(d.code))
+    out = concat(out, String_from(" "))
+    out = concat(out, severity_name(d.severity))
+    out = concat(out, String_from(" "))
+    out = concat(out, clone(d.span.file))
+    out = concat(out, String_from(":"))
+    out = concat(out, to_string(d.span.line))
+    out = concat(out, String_from(":"))
+    out = concat(out, to_string(d.span.column))
+    out = concat(out, String_from("] "))
+    out = concat(out, clone(d.message))
+    out
+}

@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::text
+
+fn main() {
+    let cs = text::chars("abc")
+    stdio::println(i32_to_string(len(cs)))
+    let empty_cs = text::chars("")
+    stdio::println(i32_to_string(len(empty_cs)))
+}
+// chars returns individual characters (best-effort via split)
+// empty string chars

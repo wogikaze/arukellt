@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    let mut x: i32 = 1
+    stdio::println(i32_to_string(x))
+    x = 2
+    stdio::println(i32_to_string(x))
+    x = 3
+    stdio::println(i32_to_string(x))
+}

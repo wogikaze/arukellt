@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn identity<T>(x: T) -> T {
+    x
+}
+
+fn main() {
+    let result: i32 = identity(42)
+    stdio::println(i32_to_string(result))
+}

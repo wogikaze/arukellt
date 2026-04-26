@@ -1,0 +1,6 @@
+use std::host::stdio
+
+fn main() {
+    let unused_val = 42
+    stdio::println(i32_to_string(0))
+}

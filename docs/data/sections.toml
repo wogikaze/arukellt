@@ -1,0 +1,83 @@
+[[sections]]
+dir = "compiler"
+title = "コンパイラ"
+description = "パイプライン、診断、内部境界。"
+category = "current"
+snapshot = "compiler"
+
+[[sections]]
+dir = "language"
+title = "言語仕様"
+description = "現行構文、型、エラーハンドリング、メモリモデル。"
+category = "current"
+snapshot = "language"
+
+[[sections]]
+dir = "platform"
+title = "プラットフォーム"
+description = "ターゲット、ABI、Wasm 機能レイヤー。"
+category = "current"
+snapshot = "platform"
+
+[[sections]]
+dir = "process"
+title = "プロセス"
+description = "検証契約、運用方針、ロードマップ。"
+category = "current"
+snapshot = "process"
+
+[[sections]]
+dir = "stdlib"
+title = "標準ライブラリ"
+description = "manifest-backed な公開 API と利用ガイド。"
+category = "current"
+snapshot = "stdlib"
+
+[[sections]]
+dir = "examples"
+title = "実行例"
+description = "実行可能なサンプルと expected 出力。"
+category = "current"
+snapshot = "examples"
+
+[[sections]]
+dir = "playground"
+title = "プレイグラウンド"
+description = "ブラウザ向け playground の実装部品、設計、運用ドキュメント。"
+category = "current"
+snapshot = "playground"
+
+[[sections]]
+dir = "migration"
+title = "移行"
+description = "バージョンやランタイム間の移行ガイド。"
+category = "supporting"
+snapshot = "migration"
+
+[[sections]]
+dir = "sample"
+title = "サンプル"
+description = "実装寄りの参考コード断片。"
+category = "supporting"
+snapshot = "sample"
+
+[[sections]]
+dir = "adr"
+title = "ADR"
+description = "設計判断の記録。現行 reality の正本ではない。"
+category = "archive"
+snapshot = "archive"
+
+[[sections]]
+dir = "design"
+title = "設計メモ"
+description = "将来設計や比較検討。現行 reality の正本ではない。"
+category = "archive"
+snapshot = "archive"
+
+[[sections]]
+dir = "spec"
+title = "アーカイブ仕様"
+description = "過去版仕様と履歴参照。現行 reality の正本ではない。"
+category = "archive"
+snapshot = "archive"

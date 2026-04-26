@@ -1,0 +1,8 @@
+// Fixture: registry_not_found/main.ark
+// Tests ADR-023 registry resolution path: when a package is declared as a
+// registry dependency in ark.toml and is not found in the configured local
+// mock registry, the compiler emits E0121 (package not found in registry).
+use my_reg_pkg
+
+fn main() {
+}

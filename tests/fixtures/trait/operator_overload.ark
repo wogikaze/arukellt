@@ -1,0 +1,42 @@
+use std::host::stdio
+
+struct Vec2 {
+    x: i32,
+    y: i32,
+}
+
+impl Vec2 {
+    fn add(self: Vec2, other: Vec2) -> Vec2 {
+        Vec2 { x: self.x + other.x, y: self.y + other.y }
+    }
+
+    fn sub(self: Vec2, other: Vec2) -> Vec2 {
+        Vec2 { x: self.x - other.x, y: self.y - other.y }
+    }
+
+    fn eq(self: Vec2, other: Vec2) -> bool {
+        self.x == other.x && self.y == other.y
+    }
+}
+
+fn main() {
+    let a = Vec2 { x: 1, y: 2 }
+    let b = Vec2 { x: 3, y: 4 }
+    let c = a + b
+    stdio::println(c.x)
+    stdio::println(c.y)
+    let d = b - a
+    stdio::println(d.x)
+    stdio::println(d.y)
+    let e = Vec2 { x: 1, y: 2 }
+    if a == e {
+        stdio::println(1)
+    } else {
+        stdio::println(0)
+    }
+    if a == b {
+        stdio::println(1)
+    } else {
+        stdio::println(0)
+    }
+}

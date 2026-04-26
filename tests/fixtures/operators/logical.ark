@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    stdio::println(bool_to_string(true && true))
+    stdio::println(bool_to_string(true && false))
+    stdio::println(bool_to_string(false || true))
+    stdio::println(bool_to_string(false || false))
+    stdio::println(bool_to_string(!true))
+    stdio::println(bool_to_string(!false))
+}

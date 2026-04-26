@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    let a = 255u8
+    let b = 100u8
+    stdio::println(a)
+    stdio::println(b)
+    let c = a - b
+    stdio::println(c)
+}

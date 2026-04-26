@@ -1,0 +1,21 @@
+use std::host::stdio
+
+/// A simple function to be passed as a typed function reference.
+fn triple(x: i32) -> i32 {
+    x * 3
+}
+
+/// Calls a function reference in tail position.
+/// At opt_level >= 1 the TCO pass detects:
+/// let f = triple  →  fn_ref_locals[f] = "triple"
+/// f(x)            →  TailCallRef { callee: FnRef("triple"), args: [x] }
+/// The T3 emitter then emits:  ref.func $triple  +  return_call_ref $type
+fn apply_fn_ref(x: i32) -> i32 {
+    let f = triple
+    f(x)
+}
+
+fn main() {
+    let result = apply_fn_ref(14)
+    stdio::println(i32_to_string(result))
+}

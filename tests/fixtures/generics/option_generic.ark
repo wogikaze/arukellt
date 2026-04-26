@@ -1,0 +1,15 @@
+use std::host::stdio
+
+fn unwrap_or_default<T>(opt: Option<T>, default: T) -> T {
+    match opt {
+        Option::Some(val) => val,
+        None => default,
+    }
+}
+
+fn main() {
+    let a: Option<i32> = Some(42)
+    let b: Option<i32> = None
+    stdio::println(i32_to_string(unwrap_or_default(a, 0)))
+    stdio::println(i32_to_string(unwrap_or_default(b, 0)))
+}

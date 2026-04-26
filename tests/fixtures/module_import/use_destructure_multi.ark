@@ -1,0 +1,10 @@
+// Fixture: use_destructure_multi.ark
+// Issue #039: `use std::text::{string, fmt}` loads both sub-modules; qualified
+// calls `string::...` and `fmt::...` resolve (multi-name destructure import).
+use std::text::{string, fmt}
+
+fn main() {
+    let parts = string::split("a,b", ",")
+    let n = len(parts)
+    __intrinsic_println(fmt::format_i32(n))
+}

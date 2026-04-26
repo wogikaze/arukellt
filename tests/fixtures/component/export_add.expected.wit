@@ -1,0 +1,5 @@
+package arukellt:app;
+
+world export-add {
+    export add: func(a: s32, b: s32) -> s32;
+}

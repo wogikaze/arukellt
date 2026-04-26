@@ -1,0 +1,17 @@
+use std::collections::hash
+use std::host::stdio
+
+fn main() {
+    let m: Vec<i32> = hash::hashmap_new()
+    hash::hashmap_set(m, 42, 100)
+    hash::hashmap_set(m, 7, 200)
+    stdio::println(i32_to_string(hash::hashmap_size(m)))
+    stdio::println(i32_to_string(hash::hashmap_get(m, 42)))
+    stdio::println(i32_to_string(hash::hashmap_get(m, 7)))
+    stdio::println(bool_to_string(hash::hashmap_contains(m, 42)))
+    stdio::println(bool_to_string(hash::hashmap_contains(m, 99)))
+    hash::hashmap_set(m, 42, 300)
+    stdio::println(i32_to_string(hash::hashmap_get(m, 42)))
+    stdio::println(i32_to_string(hash::hashmap_size(m)))
+}
+// overwrite

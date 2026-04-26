@@ -1,0 +1,10 @@
+// Regression fixture for issue #309:
+// Circular import detection in the selfhost resolver.
+//
+// main.ark imports mod_a, which imports mod_b, which imports mod_a again.
+// This should produce a circular import compile error.
+use mod_a
+
+fn main() {
+    let x = mod_a::value()
+}

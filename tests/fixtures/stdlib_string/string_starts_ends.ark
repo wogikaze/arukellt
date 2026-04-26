@@ -1,0 +1,9 @@
+use std::host::stdio
+
+fn main() {
+    let s: String = String_from("hello world")
+    stdio::println(bool_to_string(starts_with(s, String_from("hello"))))
+    stdio::println(bool_to_string(starts_with(s, String_from("world"))))
+    stdio::println(bool_to_string(ends_with(s, String_from("world"))))
+    stdio::println(bool_to_string(ends_with(s, String_from("hello"))))
+}

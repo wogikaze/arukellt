@@ -1,0 +1,18 @@
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn point_eq(a: Point, b: Point) -> bool {
+    a.x == b.x && a.y == b.y
+}
+
+fn main() {
+    let p1: Point = Point { x: 1, y: 2 }
+    let p2: Point = Point { x: 1, y: 2 }
+    let p3: Point = Point { x: 3, y: 4 }
+    stdio::println(bool_to_string(point_eq(p1, p2)))
+    stdio::println(bool_to_string(point_eq(p1, p3)))
+}

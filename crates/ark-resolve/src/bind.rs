@@ -1,0 +1,564 @@
+use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink, Span};
+use ark_parser::ast;
+
+use crate::scope::{ScopeId, SymbolKind, SymbolTable};
+
+pub(crate) fn bind_module(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    global_scope: ScopeId,
+    sink: &mut DiagnosticSink,
+) {
+    bind_module_impl(module, symbols, global_scope, sink, false, false, None);
+}
+
+pub(crate) fn bind_module_filtered(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    global_scope: ScopeId,
+    sink: &mut DiagnosticSink,
+    item_filter: &dyn Fn(&ast::Item) -> bool,
+) {
+    bind_module_impl(
+        module,
+        symbols,
+        global_scope,
+        sink,
+        false,
+        false,
+        Some(item_filter),
+    );
+}
+
+pub(crate) fn bind_public_module(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    global_scope: ScopeId,
+    sink: &mut DiagnosticSink,
+) {
+    bind_module_impl(module, symbols, global_scope, sink, true, true, None);
+}
+
+pub(crate) fn bind_module_skip_dup(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    global_scope: ScopeId,
+    sink: &mut DiagnosticSink,
+) {
+    bind_module_impl(module, symbols, global_scope, sink, false, true, None);
+}
+
+pub(crate) fn bind_module_skip_dup_filtered(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    global_scope: ScopeId,
+    sink: &mut DiagnosticSink,
+    item_filter: &dyn Fn(&ast::Item) -> bool,
+) {
+    bind_module_impl(
+        module,
+        symbols,
+        global_scope,
+        sink,
+        false,
+        true,
+        Some(item_filter),
+    );
+}
+
+/// Bind all items (pub + private) from an imported user module, skipping
+/// duplicate definitions when `skip_duplicates` is true.
+fn bind_module_impl(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    global_scope: ScopeId,
+    sink: &mut DiagnosticSink,
+    pub_only: bool,
+    skip_duplicates: bool,
+    item_filter: Option<&dyn Fn(&ast::Item) -> bool>,
+) {
+    for item in &module.items {
+        if let Some(pred) = item_filter
+            && !pred(item)
+        {
+            continue;
+        }
+        match item {
+            ast::Item::FnDef(f) => {
+                if pub_only && !f.is_pub {
+                    continue;
+                }
+                if symbols.lookup_local(global_scope, &f.name).is_some() {
+                    if !skip_duplicates {
+                        sink.emit(
+                            Diagnostic::new(DiagnosticCode::E0101).with_label(
+                                f.span,
+                                format!("duplicate definition of `{}`", f.name),
+                            ),
+                        );
+                    }
+                } else {
+                    symbols.define(
+                        global_scope,
+                        f.name.clone(),
+                        SymbolKind::Function { is_pub: f.is_pub },
+                        f.span,
+                    );
+                }
+            }
+            ast::Item::StructDef(s) => {
+                if pub_only && !s.is_pub {
+                    continue;
+                }
+                if symbols.lookup_local(global_scope, &s.name).is_some() {
+                    if !skip_duplicates {
+                        sink.emit(
+                            Diagnostic::new(DiagnosticCode::E0101).with_label(
+                                s.span,
+                                format!("duplicate definition of `{}`", s.name),
+                            ),
+                        );
+                    }
+                } else {
+                    symbols.define(
+                        global_scope,
+                        s.name.clone(),
+                        SymbolKind::Struct { is_pub: s.is_pub },
+                        s.span,
+                    );
+                    let vec_new_name = format!("Vec_new_{}", s.name);
+                    symbols.define(global_scope, vec_new_name, SymbolKind::BuiltinFn, s.span);
+                }
+            }
+            ast::Item::EnumDef(e) => {
+                if pub_only && !e.is_pub {
+                    continue;
+                }
+                if symbols.lookup_local(global_scope, &e.name).is_some() {
+                    if !skip_duplicates {
+                        sink.emit(
+                            Diagnostic::new(DiagnosticCode::E0101).with_label(
+                                e.span,
+                                format!("duplicate definition of `{}`", e.name),
+                            ),
+                        );
+                    }
+                } else {
+                    symbols.define(
+                        global_scope,
+                        e.name.clone(),
+                        SymbolKind::Enum { is_pub: e.is_pub },
+                        e.span,
+                    );
+                    for variant in &e.variants {
+                        let vname = match variant {
+                            ast::Variant::Unit { name, .. }
+                            | ast::Variant::Tuple { name, .. }
+                            | ast::Variant::Struct { name, .. } => name.clone(),
+                        };
+                        let qualified = format!("{}::{}", e.name, vname);
+                        symbols.define(
+                            global_scope,
+                            qualified,
+                            SymbolKind::EnumVariant {
+                                enum_name: e.name.clone(),
+                            },
+                            e.span,
+                        );
+                    }
+                }
+            }
+            ast::Item::TraitDef(t) => {
+                if pub_only && !t.is_pub {
+                    continue;
+                }
+                symbols.define(
+                    global_scope,
+                    t.name.clone(),
+                    SymbolKind::Struct { is_pub: t.is_pub },
+                    t.span,
+                );
+            }
+            ast::Item::ImplBlock(ib) => {
+                for method in &ib.methods {
+                    let mangled = format!("{}__{}", ib.target_type, method.name);
+                    symbols.define(
+                        global_scope,
+                        mangled,
+                        SymbolKind::Function { is_pub: false },
+                        method.span,
+                    );
+                }
+            }
+        }
+    }
+}
+
+/// Binds all `pub` items from a loaded module into `scope` using a module-qualified key.
+///
+/// For example, with `qualifier = "string"` and a module containing `pub fn split`,
+/// this registers `"string::split"` in the symbol table so that the resolver can
+/// confirm `string::split` is a known name.  The typechecker still performs the
+/// authoritative type-level resolution; this entry makes unused-import analysis and
+/// future resolver consumers aware of the qualified form.
+pub(crate) fn bind_module_with_qualifier(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    scope: ScopeId,
+    qualifier: &str,
+    sink: &mut DiagnosticSink,
+) {
+    bind_module_with_qualifier_impl(module, symbols, scope, qualifier, sink, None);
+}
+
+pub(crate) fn bind_module_with_qualifier_filtered(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    scope: ScopeId,
+    qualifier: &str,
+    sink: &mut DiagnosticSink,
+    item_filter: &dyn Fn(&ast::Item) -> bool,
+) {
+    bind_module_with_qualifier_impl(module, symbols, scope, qualifier, sink, Some(item_filter));
+}
+
+fn bind_module_with_qualifier_impl(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    scope: ScopeId,
+    qualifier: &str,
+    _sink: &mut DiagnosticSink,
+    item_filter: Option<&dyn Fn(&ast::Item) -> bool>,
+) {
+    for item in &module.items {
+        if let Some(pred) = item_filter
+            && !pred(item)
+        {
+            continue;
+        }
+        match item {
+            ast::Item::FnDef(f) if f.is_pub => {
+                let qualified = format!("{}::{}", qualifier, f.name);
+                if symbols.lookup_local(scope, &qualified).is_none() {
+                    symbols.define(
+                        scope,
+                        qualified,
+                        SymbolKind::Function { is_pub: true },
+                        f.span,
+                    );
+                }
+            }
+            ast::Item::StructDef(s) if s.is_pub => {
+                let qualified = format!("{}::{}", qualifier, s.name);
+                if symbols.lookup_local(scope, &qualified).is_none() {
+                    symbols.define(
+                        scope,
+                        qualified,
+                        SymbolKind::Struct { is_pub: true },
+                        s.span,
+                    );
+                }
+            }
+            ast::Item::EnumDef(e) if e.is_pub => {
+                let qualified = format!("{}::{}", qualifier, e.name);
+                if symbols.lookup_local(scope, &qualified).is_none() {
+                    symbols.define(scope, qualified, SymbolKind::Enum { is_pub: true }, e.span);
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+pub(crate) fn inject_prelude_symbols(symbols: &mut SymbolTable, scope: ScopeId) {
+    const PRELUDE_TYPES: &[&str] = &["Option", "Result", "String", "Vec"];
+    const PRELUDE_VALUES: &[&str] = &["Some", "None", "Ok", "Err", "true", "false"];
+    const PRELUDE_FUNCTIONS: &[&str] = &[
+        "len",
+        "unwrap",
+        "unwrap_or",
+        "unwrap_or_else",
+        "push",
+        "pop",
+        "get",
+        "get_unchecked",
+        "set",
+        "is_empty",
+        "clear",
+        "is_some",
+        "is_none",
+        "is_ok",
+        "is_err",
+        "Vec_with_capacity_i32",
+        "Vec_with_capacity_String",
+        "as_slice",
+        "ok_or",
+        "ok",
+        "err",
+        "expect",
+        "map_option_String_String",
+        "map_result_i32_i32",
+        "Box_new",
+        "unbox",
+        "to_string",
+        "__intrinsic_println",
+        "__intrinsic_print",
+        "__intrinsic_eprintln",
+        "__intrinsic_string_from",
+        "__intrinsic_string_eq",
+        "__intrinsic_string_new",
+        "__intrinsic_concat",
+        "__intrinsic_string_clone",
+        "__intrinsic_starts_with",
+        "__intrinsic_ends_with",
+        "__intrinsic_contains",
+        "__intrinsic_index_of",
+        "__intrinsic_to_lower",
+        "__intrinsic_to_upper",
+        "__intrinsic_string_slice",
+        "__intrinsic_string_is_empty",
+        "__intrinsic_i32_to_string",
+        "__intrinsic_i64_to_string",
+        "__intrinsic_f64_to_string",
+        "__intrinsic_bool_to_string",
+        "__intrinsic_char_to_string",
+        "__intrinsic_parse_i32",
+        "__intrinsic_parse_i64",
+        "__intrinsic_parse_f64",
+        "__intrinsic_sqrt",
+        "__intrinsic_abs",
+        "__intrinsic_min",
+        "__intrinsic_max",
+        "__intrinsic_panic",
+        "__intrinsic_Vec_new_i32",
+        "__intrinsic_Vec_new_i64",
+        "__intrinsic_Vec_new_f64",
+        "__intrinsic_Vec_new_String",
+        "__intrinsic_sort_i32",
+        "__intrinsic_sort_String",
+        "__intrinsic_sort_i64",
+        "__intrinsic_sort_f64",
+        "__intrinsic_map_i32_i32",
+        "__intrinsic_filter_i32",
+        "__intrinsic_fold_i32_i32",
+        "__intrinsic_map_option_i32_i32",
+        "__intrinsic_any_i32",
+        "__intrinsic_find_i32",
+        "__intrinsic_split",
+        "__intrinsic_join",
+        "__intrinsic_push_char",
+        "__intrinsic_fs_read_file",
+        "__intrinsic_fs_write_file",
+        "__intrinsic_fs_write_bytes",
+        "__intrinsic_fd_seek",
+        "__intrinsic_fd_tell",
+        "__intrinsic_fd_fdstat_get",
+        "__intrinsic_memory_copy",
+        "__intrinsic_memory_fill",
+        "__intrinsic_clock_now",
+        "__intrinsic_clock_now_ms",
+        "__intrinsic_random_i32",
+        "__intrinsic_random_next_f64",
+        "__intrinsic_map_String_String",
+        "__intrinsic_filter_String",
+        "__intrinsic_assert",
+        "__intrinsic_assert_eq",
+        "__intrinsic_assert_ne",
+        "__intrinsic_assert_eq_i64",
+        "__intrinsic_assert_eq_str",
+        "__intrinsic_map_i64_i64",
+        "__intrinsic_filter_i64",
+        "__intrinsic_fold_i64_i64",
+        "__intrinsic_map_f64_f64",
+        "__intrinsic_filter_f64",
+        "__intrinsic_contains_i32",
+        "__intrinsic_contains_String",
+        "__intrinsic_reverse_i32",
+        "__intrinsic_reverse_String",
+        "__intrinsic_remove_i32",
+        "__intrinsic_args",
+        "__intrinsic_arg_count",
+        "__intrinsic_arg_at",
+        "__intrinsic_env_var",
+        "__intrinsic_http_get",
+        "__intrinsic_http_request",
+        "__intrinsic_f64_bits_lo",
+        "__intrinsic_f64_bits_hi",
+        "__intrinsic_process_exit",
+        "__intrinsic_process_abort",
+        "HashMap_i32_i32_new",
+        "HashMap_i32_i32_insert",
+        "HashMap_i32_i32_get",
+        "HashMap_i32_i32_contains_key",
+        "HashMap_i32_i32_len",
+        "HashMap_new_String_i32",
+        "HashMap_String_i32_insert",
+        "HashMap_String_i32_get",
+        "HashMap_String_i32_contains_key",
+        "HashMap_String_i32_len",
+        // HashMap<i32, String> (issue #044)
+        "HashMap_new_i32_String",
+        "HashMap_i32_String_insert",
+        "HashMap_i32_String_get",
+        "HashMap_i32_String_contains_key",
+        "HashMap_i32_String_len",
+        // HashMap<String, String> (issue #044)
+        "HashMap_new_String_String",
+        "HashMap_String_String_insert",
+        "HashMap_String_String_get",
+        "HashMap_String_String_contains_key",
+        "HashMap_String_String_len",
+        // Scalar type conversion functions (issue #040)
+        "u8_to_i32",
+        "u16_to_i32",
+        "i8_to_i32",
+        "i16_to_i32",
+        "i32_to_u8",
+        "i32_to_u16",
+        "i32_to_i8",
+        "i32_to_i16",
+        "u32_to_u64",
+        "u64_to_u32",
+        "i32_to_i64",
+        "i64_to_i32",
+        "f32_to_f64",
+        "f64_to_f32",
+        "__intrinsic_u8_to_i32",
+        "__intrinsic_u16_to_i32",
+        "__intrinsic_i8_to_i32",
+        "__intrinsic_i16_to_i32",
+        "__intrinsic_i32_to_u8",
+        "__intrinsic_i32_to_u16",
+        "__intrinsic_i32_to_i8",
+        "__intrinsic_i32_to_i16",
+        "__intrinsic_u32_to_u64",
+        "__intrinsic_u64_to_u32",
+        "__intrinsic_i32_to_i64",
+        "__intrinsic_i64_to_i32",
+        "__intrinsic_f32_to_f64",
+        "__intrinsic_f64_to_f32",
+    ];
+
+    for &name in PRELUDE_TYPES {
+        symbols.define(scope, name.into(), SymbolKind::BuiltinType, Span::dummy());
+    }
+    for &name in PRELUDE_VALUES {
+        symbols.define(scope, name.into(), SymbolKind::BuiltinFn, Span::dummy());
+    }
+    for &name in PRELUDE_FUNCTIONS {
+        symbols.define(scope, name.into(), SymbolKind::BuiltinFn, Span::dummy());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bind_detects_duplicate_defs() {
+        let module = ast::Module {
+            docs: vec![],
+            imports: vec![],
+            items: vec![
+                ast::Item::FnDef(ast::FnDef {
+                    docs: vec![],
+                    name: "foo".into(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![],
+                    return_type: None,
+                    body: ast::Block {
+                        stmts: vec![],
+                        tail_expr: None,
+                        span: Span::dummy(),
+                    },
+                    is_pub: true,
+                    span: Span::dummy(),
+                }),
+                ast::Item::FnDef(ast::FnDef {
+                    docs: vec![],
+                    name: "foo".into(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![],
+                    return_type: None,
+                    body: ast::Block {
+                        stmts: vec![],
+                        tail_expr: None,
+                        span: Span::dummy(),
+                    },
+                    is_pub: true,
+                    span: Span::dummy(),
+                }),
+            ],
+        };
+        let mut symbols = SymbolTable::new();
+        let scope = symbols.create_scope(None);
+        let mut sink = DiagnosticSink::new();
+        bind_module(&module, &mut symbols, scope, &mut sink);
+        assert!(sink.has_errors());
+    }
+
+    #[test]
+    fn bind_module_with_qualifier_registers_qualified_names() {
+        // Given a module with `pub fn split` and `pub fn trim`,
+        // binding with qualifier "string" should register `string::split`
+        // and `string::trim` in the symbol table.
+        let module = ast::Module {
+            docs: vec![],
+            imports: vec![],
+            items: vec![
+                ast::Item::FnDef(ast::FnDef {
+                    docs: vec![],
+                    name: "split".into(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![],
+                    return_type: None,
+                    body: ast::Block {
+                        stmts: vec![],
+                        tail_expr: None,
+                        span: Span::dummy(),
+                    },
+                    is_pub: true,
+                    span: Span::dummy(),
+                }),
+                ast::Item::FnDef(ast::FnDef {
+                    docs: vec![],
+                    name: "private_helper".into(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![],
+                    return_type: None,
+                    body: ast::Block {
+                        stmts: vec![],
+                        tail_expr: None,
+                        span: Span::dummy(),
+                    },
+                    is_pub: false, // private — should NOT be qualified
+                    span: Span::dummy(),
+                }),
+            ],
+        };
+        let mut symbols = SymbolTable::new();
+        let scope = symbols.create_scope(None);
+        let mut sink = DiagnosticSink::new();
+        bind_module_with_qualifier(&module, &mut symbols, scope, "string", &mut sink);
+
+        // Qualified name for pub function should be present.
+        assert!(
+            symbols.lookup(scope, "string::split").is_some(),
+            "expected `string::split` to be in scope"
+        );
+        // Private function should NOT be registered under the qualified form.
+        assert!(
+            symbols.lookup(scope, "string::private_helper").is_none(),
+            "private function should not appear as `string::private_helper`"
+        );
+        // Unqualified form is NOT added by this function.
+        assert!(
+            symbols.lookup(scope, "split").is_none(),
+            "bind_module_with_qualifier should not add unqualified `split`"
+        );
+    }
+}

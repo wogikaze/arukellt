@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    stdio::println(to_string(42))
+    stdio::println(to_string(9001i64))
+    stdio::println(to_string(3.5))
+    stdio::println(to_string(true))
+    stdio::println(to_string('Z'))
+    stdio::println(to_string(String_from("plain text")))
+}

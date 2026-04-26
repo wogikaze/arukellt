@@ -1,0 +1,6 @@
+trait Display {
+    fn display(self: Display) -> String
+}
+
+fn main() {
+}

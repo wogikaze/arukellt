@@ -1,0 +1,33 @@
+use std::cli
+use std::host::stdio
+
+fn main() {
+    stdio::println(i32_to_string(cli::arg_count()))
+    stdio::println(bool_to_string(cli::has_flag("--verbose")))
+    match cli::arg_at(0) {
+        Option::Some(s) => stdio::println(s),
+        None => stdio::println("no arg"),
+    }
+    let args = Vec_new_String()
+    push(args, "--debug")
+    push(args, "--output")
+    push(args, "out.txt")
+    stdio::println(bool_to_string(cli::flag(args, "--debug")))
+    stdio::println(bool_to_string(cli::flag(args, "--verbose")))
+    match cli::option(args, "--output") {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
+    }
+    let args2 = Vec_new_String()
+    push(args2, "--name=world")
+    match cli::option(args2, "--name") {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
+    }
+}
+// arg_count and parse_args return empty vectors in test runner
+// has_flag: "--verbose" not in empty arg vector
+// arg_at: out of range
+// flag: explicit vector test
+// option: --output out.txt
+// option: embedded = form

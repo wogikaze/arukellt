@@ -1,0 +1,7 @@
+use std::wasm
+
+fn main() -> i32 {
+    wasm::memory_fill(256, 42, 4)
+    wasm::memory_copy(260, 256, 4)
+    0
+}

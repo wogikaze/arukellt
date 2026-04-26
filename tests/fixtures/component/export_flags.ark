@@ -1,0 +1,14 @@
+// Export with flags-like type — WIT flags are not supported
+// Arukellt has no native flags type; struct with booleans is used as placeholder.
+// This validates E0401 diagnostic for struct export (E0400 reserved for future flags).
+struct Perms {
+    read: bool,
+    write: bool,
+}
+
+pub fn has_read(p: Perms) -> bool {
+    p.read
+}
+
+fn main() {
+}

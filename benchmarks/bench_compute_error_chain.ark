@@ -1,0 +1,61 @@
+// CPU benchmark: Result type and error propagation via chained match arms.
+// Simulates a pipeline of fallible computations: divide, validate, and
+// accumulate results over 50,000 iterations. Each iteration exercises
+// Result::Ok / Result::Err construction and match on the result, with
+// ~20% of iterations producing Err paths (divisor==0) to keep error
+// branches hot. Sum is kept bounded via modulo to avoid i32 overflow.
+use std::host::stdio
+
+fn safe_div(a: i32, b: i32) -> Result<i32, String> {
+    if b == 0 {
+        Result::Err("division by zero")
+    } else {
+        Result::Ok(a / b)
+    }
+}
+
+fn validate(v: i32) -> Result<i32, String> {
+    if v < 0 {
+        Result::Err("negative value")
+    } else {
+        Result::Ok(v)
+    }
+}
+
+fn compute_step(i: i32) -> Result<i32, String> {
+    let divisor: i32 = i - i / 5 * 5
+    let div_result: Result<i32, String> = safe_div(i * 3 + 7, divisor)
+    match div_result {
+        Result::Err(msg) => Result::Err(msg),
+        Result::Ok(q) => {
+            let val_result: Result<i32, String> = validate(q - 10)
+            match val_result {
+                Result::Err(msg) => Result::Err(msg),
+                Result::Ok(v) => Result::Ok(v - v / 1000 * 1000),
+            }
+        },
+    }
+}
+
+fn main() {
+    let mut sum: i32 = 0
+    let mut errors: i32 = 0
+    let mut i: i32 = 1
+    while i <= 50000 {
+        let step: Result<i32, String> = compute_step(i)
+        match step {
+            Result::Ok(v) => {
+                sum = sum + v
+                if sum > 1000000 {
+                    sum = sum - 1000000
+                }
+            },
+            Result::Err(_) => {
+                errors = errors + 1
+            },
+        }
+        i = i + 1
+    }
+    stdio::println(i32_to_string(sum))
+    stdio::println(i32_to_string(errors))
+}

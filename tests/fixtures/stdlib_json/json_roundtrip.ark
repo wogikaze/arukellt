@@ -1,0 +1,35 @@
+use std::host::stdio
+use std::json
+
+fn main() {
+    let n = 42
+    let s = json::json_stringify_i32(n)
+    let back = json::json_parse_i32(s)
+    stdio::println(i32_to_string(back))
+    let b = true
+    let bs = json::json_stringify_bool(b)
+    let bb = json::json_parse_bool(bs)
+    stdio::println(bool_to_string(bb))
+    let neg = -7
+    let ns = json::json_stringify_i32(neg)
+    let nb = json::json_parse_i32(ns)
+    stdio::println(i32_to_string(nb))
+    let z = 0
+    let zs = json::json_stringify_i32(z)
+    let zb = json::json_parse_i32(zs)
+    stdio::println(i32_to_string(zb))
+    let f = false
+    let fs = json::json_stringify_bool(f)
+    let fb = json::json_parse_bool(fs)
+    stdio::println(bool_to_string(fb))
+    let st = json::json_stringify_string("hello world")
+    stdio::println(st)
+    stdio::println(json::json_null())
+}
+// i32 roundtrip: stringify then parse
+// bool roundtrip: stringify then parse
+// negative number roundtrip
+// zero roundtrip
+// false roundtrip
+// string roundtrip
+// null

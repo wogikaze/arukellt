@@ -1,0 +1,9 @@
+use std::host::stdio
+
+fn main() {
+    let mut sum: i32 = 0
+    for i in 1..11 {
+        sum = sum + i
+    }
+    stdio::println(i32_to_string(sum))
+}

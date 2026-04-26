@@ -1,0 +1,10 @@
+/// Host process-control helpers.
+/// Requests process termination with the given exit code.
+pub fn exit(code: i32) {
+    __intrinsic_process_exit(code)
+}
+
+/// Aborts execution immediately with exit code 134 (SIGABRT convention).
+pub fn abort() {
+    __intrinsic_process_abort()
+}

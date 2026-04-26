@@ -1,0 +1,2314 @@
+{
+  "schema": "arukellt-issue-index-meta-v1",
+  "generated_at": "2026-04-25T06:08:39Z",
+  "generator": "scripts/gen/generate-issue-index.py",
+  "open_issues": [
+    {
+      "id": "034",
+      "path": "034-wit-cli-integration.md",
+      "title": "CLI --wit flag, --emit component workflow, docs",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "030",
+        "031",
+        "028b"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 9,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "036",
+      "path": "036-jco-javascript-interop.md",
+      "title": "jco JavaScript interop smoke test",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "033"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "037-external-jco"
+      }
+    },
+    {
+      "id": "044",
+      "path": "044-std-collections-hash.md",
+      "title": "std::collections::hash: HashMap\\<K,V\\> 汎用化と HashSet\\<T\\>",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "039",
+        "041",
+        "312"
+      ],
+      "blocks_issue_ids": [
+        "054",
+        "055"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#312"
+      }
+    },
+    {
+      "id": "045",
+      "path": "045-std-collections-linear.md",
+      "title": "std::collections: Deque、PriorityQueue",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "039",
+        "041"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "047",
+      "path": "047-std-collections-compiler.md",
+      "title": "std::collections: Arena、SlotMap、Interner ／ std::text: Rope",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "039",
+        "041"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "051",
+      "path": "051-std-time-random.md",
+      "title": "std::time + std::random: 時刻・期間・乱数",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "039",
+        "040"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "099",
+      "path": "099-compile-incremental-parse.md",
+      "title": "Selfhost compiler: incremental parse design slice",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "112",
+      "path": "112-bench-compare-langs.md",
+      "title": "ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "109"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "123",
+      "path": "123-import-syntax-unification.md",
+      "title": "import 構文と WIT パッケージ識別子の統一方針決定",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "125",
+      "path": "125-corehir-as-default-compile-path.md",
+      "title": "`compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)",
+      "track": "pipeline-refactor",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "126"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "CoreHIR-default-blocked (issue body: fixtures failing)"
+      }
+    },
+    {
+      "id": "204",
+      "path": "204-project-explain-build-explain-and-script-sandbox-surface.md",
+      "title": "204-project-explain-build-explain-and-script-sandbox-surface",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "205",
+      "path": "205-docs-and-codebase-intelligence-surfaces.md",
+      "title": "205-docs-and-codebase-intelligence-surfaces",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "214",
+      "path": "214-extension-quality-packaging-and-marketplace.md",
+      "title": "Extension quality / packaging / marketplace readiness",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "184",
+        "185",
+        "186",
+        "187",
+        "188"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#188"
+      }
+    },
+    {
+      "id": "285",
+      "path": "285-legacy-path-deprecation.md",
+      "title": "Legacy lowering path を隔離・撤去する",
+      "track": "corehir",
+      "status": "open (reviewed 2026-04-22 — deprecation-marker slice complete; remaining removal work re-scoped to #529)",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "284"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "436",
+      "path": "436-playground-docs-site-integration.md",
+      "title": "436-playground-docs-site-integration",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "437",
+      "path": "437-playground-deploy-preview-cache.md",
+      "title": "Playground: deployment / preview environment / asset cache 戦略を整える",
+      "track": "playground",
+      "status": "done",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "431"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "469",
+      "path": "469-extension-playground-surface-points-to-repo-proved-endpoint.md",
+      "title": "469-extension-playground-surface-points-to-repo-proved-endpoint",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "470",
+      "path": "470-playground-feature-claims-match-implementation.md",
+      "title": "470-playground-feature-claims-match-implementation",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "473",
+      "path": "473-resource-type-v3-advanced-features.md",
+      "title": "Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC",
+      "track": "wasm-feature",
+      "status": "Implementation-ready",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "032",
+        "done)"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#32"
+      }
+    },
+    {
+      "id": "489",
+      "path": "489-playground-user-visible-entrypoint-wiring.md",
+      "title": "489-playground-user-visible-entrypoint-wiring",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 6,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "495",
+      "path": "495-selfhost-trait-bounds.md",
+      "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
+      "track": "selfhost",
+      "status": "blocked-by-upstream",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
+      "depends_on": [
+        "312",
+        "504"
+      ],
+      "blocks_issue_ids": [
+        "512"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#312, #504"
+      }
+    },
+    {
+      "id": "500",
+      "path": "500-playground-wasm-typecheck-export.md",
+      "title": "500-playground-wasm-typecheck-export",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "510",
+      "path": "510-t3-p2-import-table-switch.md",
+      "title": "T3 emitter: WASI P2 import-table switch (full P2-native component)",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "074",
+        "076",
+        "121"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#074-parent-gate"
+      }
+    },
+    {
+      "id": "520",
+      "path": "520-stdlib-performance-allocation-and-complexity-audit.md",
+      "title": "Stdlib: allocation / complexity / perf footgun を family 横断で監査する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "529",
+      "path": "529-100-percent-selfhost-transition-plan.md",
+      "title": "100% Self-Hosting Transition Plan (Operational Guide)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "531",
+      "path": "531-scripts-consolidation-to-python-manager.md",
+      "title": "Scripts Consolidation Epic: Python CLI Refactoring",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 16,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "546",
+      "path": "546-release-binary-smoke-tests.md",
+      "title": "Release: Binary Smoke Tests",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "547",
+      "path": "547-release-determinism-check.md",
+      "title": "Release: Determinism Check",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 2,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "548",
+      "path": "548-release-lsp-e2e-tests.md",
+      "title": "Release: LSP E2E Tests",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "549",
+      "path": "549-release-extension-activation-tests.md",
+      "title": "Release: Extension Activation Tests",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "550",
+      "path": "550-release-formatter-cli-lsp-parity.md",
+      "title": "Release: Formatter CLI-LSP Parity",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 1
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "551",
+      "path": "551-release-failure-recovery-tests.md",
+      "title": "Release: Failure Recovery Tests",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "552",
+      "path": "552-release-post-release-documentation.md",
+      "title": "Release: Post-Release Documentation",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "553",
+      "path": "553-release-binary-distribution.md",
+      "title": "Release: Binary Distribution",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "554",
+      "path": "554-release-extension-live-editor-tests.md",
+      "title": "Release: Extension Live Editor Tests",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "555",
+      "path": "555-release-pre-release-ci-checks.md",
+      "title": "Release: Pre-Release CI Checks",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "563",
+      "path": "563-phase5-delete-ark-stdlib.md",
+      "title": "563 — Phase 5: Delete `crates/ark-stdlib`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "559"
+      ],
+      "blocks_issue_ids": [
+        "564"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#559"
+      }
+    },
+    {
+      "id": "571",
+      "path": "571-phase6-debug-adapter-scaffold-deferred-priority.md",
+      "title": "571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "568"
+      ],
+      "blocks_issue_ids": [
+        "573"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#568"
+      }
+    },
+    {
+      "id": "588",
+      "path": "588-language-surface-uplift-plan.md",
+      "title": "Language Surface Uplift Plan (Operational Guide)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "589",
+      "path": "589-type-system-stage-up-plan.md",
+      "title": "Type System Stage-Up Plan (HM Core + Coherent Traits) (Operational Guide)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "590",
+      "path": "590-stdlib-core-platform-baseline-plan.md",
+      "title": "Stdlib Core Platform Baseline Plan (Operational Guide)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 17
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "591",
+      "path": "591-optimization-uplift-plan.md",
+      "title": "Optimization Uplift Plan (Compile / Run / Size) (Operational Guide)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "592",
+      "path": "592-error-handling-convergence-plan.md",
+      "title": "Error Handling Convergence Plan (Operational Guide)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "593",
+      "path": "593-selfhost-phase1-multi-file-fixpoint.md",
+      "title": "Selfhost Phase 1: Multi-File Fixpoint",
+      "track": "selfhost",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "508",
+        "594"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "595",
+      "path": "595-lang-uplift-multiclauses.md",
+      "title": "Language Surface Uplift: Multi-Clause Function Definitions",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "596",
+        "597",
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "598",
+      "path": "598-lang-uplift-comprehensions.md",
+      "title": "Language Surface Uplift: Expression-Level Comprehensions",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "600",
+      "path": "600-typesys-soundness-floor.md",
+      "title": "Type System Stage-Up: Soundness Floor",
+      "track": "selfhost / typechecker",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "601"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "605",
+      "path": "605-stdlib-baseline-host-platform.md",
+      "title": "Stdlib Baseline: Host Core-Platform Baseline",
+      "track": "stdlib / wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "604"
+      ],
+      "blocks_issue_ids": [
+        "608"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "606",
+      "path": "606-stdlib-baseline-structured-data.md",
+      "title": "Stdlib Baseline: Structured Data and Semantics Baseline",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "604"
+      ],
+      "blocks_issue_ids": [
+        "608"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "607",
+      "path": "607-stdlib-baseline-hash-hardening.md",
+      "title": "Stdlib Baseline: Collections Hash Hardening",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "604"
+      ],
+      "blocks_issue_ids": [
+        "608"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "610",
+      "path": "610-opt-lower-bottleneck.md",
+      "title": "Optimization Uplift: Lowering Bottleneck Reduction",
+      "track": "compiler / selfhost",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "609"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "611",
+      "path": "611-opt-t3-unlock.md",
+      "title": "Optimization Uplift: T3-Safe Runtime Unlock",
+      "track": "compiler / runtime-perf",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "609"
+      ],
+      "blocks_issue_ids": [
+        "612"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "613",
+      "path": "613-errhandle-stdlib-result-surface.md",
+      "title": "Error Handling Convergence: Stdlib Result Surface",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "614",
+      "path": "614-errhandle-compiler-diagnostics.md",
+      "title": "Error Handling Convergence: Compiler Structured Diagnostics",
+      "track": "compiler / selfhost",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "615",
+      "path": "615-errhandle-panic-ice-policy.md",
+      "title": "Error Handling Convergence: Panic / ICE Policy",
+      "track": "compiler / runtime / cli",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "054",
+      "path": "054-std-wit-component.md",
+      "title": "std::wit + std::component: WIT 型、resource handle、canonical ABI",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "039",
+        "044",
+        "053"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #44, #312-through-#44"
+      }
+    },
+    {
+      "id": "055",
+      "path": "055-std-json-toml-csv.md",
+      "title": "std::json + std::toml + std::csv: データ形式パーサ",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "039",
+        "042",
+        "044"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#39, #44, #312-through-#44"
+      }
+    },
+    {
+      "id": "126",
+      "path": "126-eliminate-double-lowering.md",
+      "title": "`run_frontend()` の二重 lower を解消 (遅延 lower)",
+      "track": "pipeline-refactor",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "125"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#125"
+      }
+    },
+    {
+      "id": "512",
+      "path": "512-stdlib-trait-oriented-reuse-surface.md",
+      "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "yes",
+      "depends_on": [
+        "504",
+        "495"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#495, #504"
+      }
+    },
+    {
+      "id": "121",
+      "path": "121-wasi-p2-canonical-abi-hardening.md",
+      "title": "WASI P2: Canonical ABI ハンドリングの堅牢化",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "510"
+      ],
+      "blocks_issue_ids": [
+        "074"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#074-parent-gate"
+      }
+    },
+    {
+      "id": "564",
+      "path": "564-phase5-delete-arukellt.md",
+      "title": "564 — Phase 5: Delete `crates/arukellt`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "559",
+        "560",
+        "561",
+        "562",
+        "563"
+      ],
+      "blocks_issue_ids": [
+        "574",
+        "575",
+        "576",
+        "577",
+        "578",
+        "579",
+        "580",
+        "581"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#559, #560, #561, #562, #563"
+      }
+    },
+    {
+      "id": "573",
+      "path": "573-phase7-delete-ark-dap.md",
+      "title": "573 — Phase 7: Delete `crates/ark-dap`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "571"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#571"
+      }
+    },
+    {
+      "id": "508",
+      "path": "508-legacy-path-removal-unblocked-by.md",
+      "title": "Legacy path removal is blocked by CoreHIR lowerer stub",
+      "track": "corehir",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "593"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#529"
+      }
+    },
+    {
+      "id": "594",
+      "path": "594-selfhost-phase2-fixture-diag-parity.md",
+      "title": "Selfhost Phase 2: Fixture and Diagnostic Parity",
+      "track": "selfhost",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "593"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "596",
+      "path": "596-lang-uplift-guards.md",
+      "title": "Language Surface Uplift: Function-Level Guards",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595"
+      ],
+      "blocks_issue_ids": [
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "597",
+      "path": "597-lang-uplift-where.md",
+      "title": "Language Surface Uplift: Real `where` Clauses",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595"
+      ],
+      "blocks_issue_ids": [
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "601",
+      "path": "601-typesys-type-schemes.md",
+      "title": "Type System Stage-Up: Type Schemes and Controlled Let-Generalization",
+      "track": "selfhost / typechecker",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "600"
+      ],
+      "blocks_issue_ids": [
+        "602",
+        "603"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "608",
+      "path": "608-stdlib-baseline-docs-bench.md",
+      "title": "Stdlib Baseline: Docs, Verification, and Benchmark Closeout",
+      "track": "stdlib / docs",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "604",
+        "605",
+        "606",
+        "607"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "612",
+      "path": "612-opt-binary-size.md",
+      "title": "Optimization Uplift: Binary Size Squeeze",
+      "track": "compiler / runtime-perf",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "609",
+        "611"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "074",
+      "path": "074-wasi-p2-native-component.md",
+      "title": "WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "510",
+        "121"
+      ],
+      "blocks_issue_ids": [
+        "076",
+        "077",
+        "124",
+        "139",
+        "474",
+        "475",
+        "476"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#510, #121"
+      }
+    },
+    {
+      "id": "574",
+      "path": "574-phase7-delete-ark-lexer.md",
+      "title": "574 — Phase 7: Delete `crates/ark-lexer`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564"
+      ],
+      "blocks_issue_ids": [
+        "575",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#564"
+      }
+    },
+    {
+      "id": "580",
+      "path": "580-phase7-delete-ark-manifest.md",
+      "title": "580 — Phase 7: Delete `crates/ark-manifest`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "#564"
+      }
+    },
+    {
+      "id": "599",
+      "path": "599-lang-uplift-docs-rollout.md",
+      "title": "Language Surface Uplift: Docs, Fixtures, and Rollout",
+      "track": "docs / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595",
+        "596",
+        "597",
+        "598"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "602",
+      "path": "602-typesys-qualified-constraints.md",
+      "title": "Type System Stage-Up: Qualified Constraints and Coherent Trait Solving",
+      "track": "selfhost / typechecker",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "601"
+      ],
+      "blocks_issue_ids": [
+        "603"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "076",
+      "path": "076-wasi-p2-filesystem.md",
+      "title": "WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "510"
+      ],
+      "blocks_issue_ids": [
+        "543"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "077",
+      "path": "077-wasi-p2-http.md",
+      "title": "WASI P2: `std::host::http` facade と runtime 検証",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "137"
+      ],
+      "blocks_issue_ids": [
+        "136"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "124",
+      "path": "124-wit-component-import-syntax.md",
+      "title": "WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "139",
+      "path": "139-std-wasi-sockets-p2.md",
+      "title": "WASI P2: `std::host::sockets` facade と T3 実行検証",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "137"
+      ],
+      "blocks_issue_ids": [
+        "136"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "474",
+      "path": "474-async-component-support-v5.md",
+      "title": "Async Component Support (v5/T5)",
+      "track": "wasm-feature",
+      "status": "Implementation-ready",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "035",
+        "done)",
+        "074"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "475",
+      "path": "475-arukellt-component-subcommand.md",
+      "title": "`arukellt component` サブコマンド (v3 候補)",
+      "track": "cli",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "035",
+        "done)",
+        "074"
+      ],
+      "blocks_issue_ids": [
+        "485"
+      ],
+      "acceptance": {
+        "checked": 1,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "476",
+      "path": "476-wasm-tools-compose-integration.md",
+      "title": "`wasm-tools compose` 統合 (v3 候補)",
+      "track": "wasm-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "035",
+        "done)",
+        "074"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#74"
+      }
+    },
+    {
+      "id": "575",
+      "path": "575-phase7-delete-ark-parser.md",
+      "title": "575 — Phase 7: Delete `crates/ark-parser`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "574"
+      ],
+      "blocks_issue_ids": [
+        "576",
+        "579",
+        "581",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #574"
+      }
+    },
+    {
+      "id": "603",
+      "path": "603-typesys-lowering-contract.md",
+      "title": "Type System Stage-Up: Monomorphization and Lowering Contract Closure",
+      "track": "selfhost / typechecker / lowering",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "601",
+        "602"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "543",
+      "path": "543-bench-file-io.md",
+      "title": "543 — Benchmark: file I/O (I/O-heavy workloads)",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "076"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "—"
+      }
+    },
+    {
+      "id": "136",
+      "path": "136-std-wasi-capability-rollout.md",
+      "title": "ADR-011 に沿った `std::host` layer の段階的ロールアウト",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "137",
+        "138",
+        "077",
+        "139"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#139, #77"
+      }
+    },
+    {
+      "id": "485",
+      "path": "485-arukellt-component-cli-docs.md",
+      "title": "docs: arukellt component サブコマンド CLI リファレンス",
+      "track": "docs",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "475"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#475"
+      }
+    },
+    {
+      "id": "576",
+      "path": "576-phase7-delete-ark-resolve.md",
+      "title": "576 — Phase 7: Delete `crates/ark-resolve`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "575"
+      ],
+      "blocks_issue_ids": [
+        "577",
+        "579",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #575"
+      }
+    },
+    {
+      "id": "577",
+      "path": "577-phase7-delete-ark-typecheck.md",
+      "title": "577 — Phase 7: Delete `crates/ark-typecheck`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "576"
+      ],
+      "blocks_issue_ids": [
+        "578",
+        "579",
+        "581",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #576"
+      }
+    },
+    {
+      "id": "578",
+      "path": "578-phase7-delete-ark-hir.md",
+      "title": "578 — Phase 7: Delete `crates/ark-hir`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "577"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #577"
+      }
+    },
+    {
+      "id": "579",
+      "path": "579-phase7-delete-ark-diagnostics.md",
+      "title": "579 — Phase 7: Delete `crates/ark-diagnostics`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "572",
+        "575",
+        "576",
+        "577"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #572, #575, #576, #577"
+      }
+    },
+    {
+      "id": "581",
+      "path": "581-phase7-delete-ark-target.md",
+      "title": "581 — Phase 7: Delete `crates/ark-target`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "564",
+        "575",
+        "577"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#564, #575, #577"
+      }
+    },
+    {
+      "id": "582",
+      "path": "582-phase7-remove-cargo-workspace.md",
+      "title": "582 — Phase 7 final: remove `Cargo.toml` and `Cargo.lock`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "no",
+      "depends_on": [
+        "572",
+        "573",
+        "574",
+        "575",
+        "576",
+        "577",
+        "578",
+        "579",
+        "580",
+        "581"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 14
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#572, #573, #574, #575, #576, #577, #578, #579, #580, #581"
+      }
+    }
+  ],
+  "blocked_external": [
+    {
+      "id": "037",
+      "path": "037-jco-gc-support.md",
+      "title": "jco: Wasm GC 型サポート待ち (upstream blocked)",
+      "track": "component-model",
+      "blocked_by": "jco upstream (<https://github.com/bytecodealliance/jco>)",
+      "depends_on": [
+        "036"
+      ]
+    }
+  ]
+}

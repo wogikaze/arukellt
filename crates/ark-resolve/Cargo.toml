@@ -1,0 +1,11 @@
+[package]
+name = "ark-resolve"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ark-parser = { workspace = true }
+ark-diagnostics = { workspace = true }
+ark-lexer = { workspace = true }
+ark-target = { workspace = true }
+ark-manifest = { workspace = true }

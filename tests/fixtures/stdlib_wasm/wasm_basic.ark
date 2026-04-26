@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::wasm
+
+fn main() {
+    let magic: Vec<i32> = wasm::wasm_magic()
+    stdio::println(i32_to_string(get_unchecked(magic, 0)))
+    stdio::println(i32_to_string(get_unchecked(magic, 1)))
+    stdio::println(i32_to_string(wasm::section_type()))
+    stdio::println(i32_to_string(wasm::valtype_i32()))
+}

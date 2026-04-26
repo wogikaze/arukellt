@@ -1,0 +1,13 @@
+// Fixture: wasi_random.ark
+// Verifies that random_get is available via std::host::random
+// and that random_i32 returns an i32 value.
+use std::host::random
+use std::host::stdio
+
+fn main() {
+    let r = random::random_i32()
+    let _ = r
+    stdio::println("wasi_random ok")
+}
+// Any i32 value is valid — just verify the call runs without error.
+// A 1-in-2^32 chance of being 0 is acceptable.

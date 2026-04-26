@@ -1,0 +1,129 @@
+/// Experimental WIT helpers.
+/// 
+/// The current surface exposes WIT primitive types as a typed enum plus
+/// explicit integer conversions for interop and introspection.
+pub enum WitType {
+    Bool,
+    U8,
+    U16,
+    U32,
+    U64,
+    S8,
+    S16,
+    S32,
+    S64,
+    F32,
+    F64,
+    Char,
+    String,
+    Unknown(i32),
+}
+
+pub fn wit_type_bool() -> WitType {
+    WitType::Bool
+}
+
+pub fn wit_type_u8() -> WitType {
+    WitType::U8
+}
+
+pub fn wit_type_u16() -> WitType {
+    WitType::U16
+}
+
+pub fn wit_type_u32() -> WitType {
+    WitType::U32
+}
+
+pub fn wit_type_u64() -> WitType {
+    WitType::U64
+}
+
+pub fn wit_type_s8() -> WitType {
+    WitType::S8
+}
+
+pub fn wit_type_s16() -> WitType {
+    WitType::S16
+}
+
+pub fn wit_type_s32() -> WitType {
+    WitType::S32
+}
+
+pub fn wit_type_s64() -> WitType {
+    WitType::S64
+}
+
+pub fn wit_type_f32() -> WitType {
+    WitType::F32
+}
+
+pub fn wit_type_f64() -> WitType {
+    WitType::F64
+}
+
+pub fn wit_type_char() -> WitType {
+    WitType::Char
+}
+
+pub fn wit_type_string() -> WitType {
+    WitType::String
+}
+
+pub fn wit_type_id(ty: WitType) -> i32 {
+    match ty {
+        WitType::Bool => 1,
+        WitType::U8 => 2,
+        WitType::U16 => 3,
+        WitType::U32 => 4,
+        WitType::U64 => 5,
+        WitType::S8 => 6,
+        WitType::S16 => 7,
+        WitType::S32 => 8,
+        WitType::S64 => 9,
+        WitType::F32 => 10,
+        WitType::F64 => 11,
+        WitType::Char => 12,
+        WitType::String => 13,
+        WitType::Unknown(id) => id,
+    }
+}
+
+pub fn wit_type_from_id(id: i32) -> WitType {
+    match id {
+        1 => WitType::Bool,
+        2 => WitType::U8,
+        3 => WitType::U16,
+        4 => WitType::U32,
+        5 => WitType::U64,
+        6 => WitType::S8,
+        7 => WitType::S16,
+        8 => WitType::S32,
+        9 => WitType::S64,
+        10 => WitType::F32,
+        11 => WitType::F64,
+        12 => WitType::Char,
+        13 => WitType::String,
+        _ => WitType::Unknown(id),
+    }
+}
+
+pub fn wit_type_name(ty: WitType) -> String {
+    match ty {
+        WitType::Bool => "bool",
+        WitType::U8 => "u8",
+        WitType::U16 => "u16",
+        WitType::U32 => "u32",
+        WitType::U64 => "u64",
+        WitType::S8 => "s8",
+        WitType::S16 => "s16",
+        WitType::S32 => "s32",
+        WitType::S64 => "s64",
+        WitType::F32 => "f32",
+        WitType::F64 => "f64",
+        WitType::Char => "char",
+        WitType::String => "string",
+        WitType::Unknown(_) => "unknown",
+    }
+}

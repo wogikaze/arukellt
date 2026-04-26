@@ -1,0 +1,24 @@
+use std::csv
+use std::host::stdio
+
+fn main() {
+    let fields = csv::csv_split_line("name,age,city")
+    let mut i: i32 = 0
+    while i < len(fields) {
+        stdio::println(get_unchecked(fields, i))
+        i = i + 1
+    }
+    stdio::println("---")
+    let fields2 = csv::csv_split_line("hello, world, test")
+    let mut j: i32 = 0
+    while j < len(fields2) {
+        stdio::println(get_unchecked(fields2, j))
+        j = j + 1
+    }
+    stdio::println("---")
+    let fields3 = csv::csv_split_line("solo")
+    stdio::println(get_unchecked(fields3, 0))
+}
+// Split a basic CSV line
+// Split a line with spaces
+// Single field (no comma)

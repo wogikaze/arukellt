@@ -1,0 +1,14 @@
+{
+  "name": "test_minimal",
+  "file": "test.wasm",
+  "total_bytes": 34,
+  "sections": {
+    "type": 4,
+    "function": 2,
+    "export": 8,
+    "code": 4
+  },
+  "top_functions": [
+    {"index": 0, "name": "main", "bytes": 2}
+  ]
+}

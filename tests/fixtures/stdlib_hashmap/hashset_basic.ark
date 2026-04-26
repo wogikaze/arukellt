@@ -1,0 +1,29 @@
+use std::collections::hash
+use std::host::stdio
+
+fn main() {
+    let s: Vec<i32> = hash::hashset_new()
+    stdio::println(bool_to_string(hash::hashset_is_empty(s)))
+    stdio::println(bool_to_string(hash::hashset_insert(s, 1)))
+    stdio::println(bool_to_string(hash::hashset_insert(s, 2)))
+    stdio::println(bool_to_string(hash::hashset_insert(s, 3)))
+    stdio::println(bool_to_string(hash::hashset_insert(s, 2)))
+    stdio::println(i32_to_string(hash::hashset_len(s)))
+    stdio::println(bool_to_string(hash::hashset_contains(s, 1)))
+    stdio::println(bool_to_string(hash::hashset_contains(s, 99)))
+    stdio::println(bool_to_string(hash::hashset_remove(s, 2)))
+    stdio::println(i32_to_string(hash::hashset_len(s)))
+    stdio::println(bool_to_string(hash::hashset_remove(s, 99)))
+    stdio::println(i32_to_string(len(hash::hashset_to_vec(s))))
+    let _ = hash::hashset_remove(s, 1)
+    let _ = hash::hashset_remove(s, 3)
+    stdio::println(bool_to_string(hash::hashset_is_empty(s)))
+}
+// insert new value returns true
+// insert duplicate returns false
+// len
+// contains
+// remove present value returns true
+// remove absent value returns false
+// to_vec
+// is_empty after clearing all

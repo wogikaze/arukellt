@@ -1,0 +1,17 @@
+[package]
+name = "arukellt"
+version.workspace = true
+edition.workspace = true
+
+# Per #583 (ADR-029, #585) the `arukellt` crate is now a **thin wasm-runner
+# shell**. All compiler behaviour lives in the selfhost compiler
+# (`src/compiler/main.ark` → `bootstrap/arukellt-selfhost.wasm`). This binary
+# only locates the selfhost wasm and execs it under `wasmtime`; it has no
+# dependency on `ark-stdlib` or any other compiler-core crate.
+# (`ark-driver` was removed in #560 and `ark-mir` in #561.)
+
+[[bin]]
+name = "arukellt"
+path = "src/main.rs"
+
+[dependencies]

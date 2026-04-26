@@ -1,0 +1,10 @@
+use std::core
+use std::host::stdio
+
+import math
+
+fn main() {
+    let a: i32 = math::add(10, 20)
+    let b: i32 = core::identity(a)
+    stdio::println(i32_to_string(b))
+}

@@ -1,0 +1,25 @@
+// Test: selfhost typechecker Vec<i32> and Vec<String> as distinct concrete types
+// Verifies: the selfhost typechecker treats Vec<i32> and Vec<String> as different
+//           types (distinct monomorphizations), and basic Vec operations work.
+use std::host::stdio
+
+fn main() {
+    let mut vi: Vec<i32> = Vec_new_i32()
+    push(vi, 1)
+    push(vi, 2)
+    push(vi, 3)
+    stdio::println(to_string(len(vi)))
+    stdio::println(to_string(get_unchecked(vi, 0)))
+    let mut vs: Vec<String> = Vec_new_String()
+    push(vs, String_from("hello"))
+    push(vs, String_from("world"))
+    stdio::println(to_string(len(vs)))
+    stdio::println(get_unchecked(vs, 0))
+    let li = len(vi)
+    let ls = len(vs)
+    stdio::println(to_string(li + ls))
+    stdio::println(String_from("Vec mono OK."))
+}
+// Vec<i32> — integer elements only
+// Vec<String> — string elements only
+// Both lengths are i32 — can be added

@@ -1,0 +1,14 @@
+use std::host::stdio
+use std::text
+
+fn main() {
+    stdio::println(text::pad_left("42", 6, "0"))
+    stdio::println(text::pad_right("hi", 6, "."))
+    stdio::println(text::pad_left("toolong", 3, "x"))
+    stdio::println(text::format_i32(42))
+    stdio::println(text::format_bool(true))
+    let a = text::index_of("hello world", "world")
+    stdio::println(i32_to_string(a))
+    let b = text::index_of("hello", "xyz")
+    stdio::println(i32_to_string(b))
+}

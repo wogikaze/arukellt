@@ -1,0 +1,23 @@
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+trait Display {
+    fn to_string(self: Display) -> String
+}
+
+impl Display for Point {
+    fn to_string(self: Point) -> String {
+        concat(concat(concat(concat("(", to_string(self.x)), ", "), to_string(self.y)), ")")
+    }
+}
+
+fn main() {
+    let p = Point { x: 3, y: 4 }
+    stdio::println(to_string(p))
+    let msg = concat("Point is ", to_string(p))
+    stdio::println(msg)
+}

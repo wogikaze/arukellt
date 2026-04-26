@@ -1,0 +1,60 @@
+use std::bytes
+use std::host::stdio
+use std::io
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 76)
+    bytes::bytes_push(data, 105)
+    bytes::bytes_push(data, 110)
+    bytes::bytes_push(data, 101)
+    bytes::bytes_push(data, 49)
+    bytes::bytes_push(data, 10)
+    bytes::bytes_push(data, 76)
+    bytes::bytes_push(data, 105)
+    bytes::bytes_push(data, 110)
+    bytes::bytes_push(data, 101)
+    bytes::bytes_push(data, 50)
+    bytes::bytes_push(data, 10)
+    bytes::bytes_push(data, 76)
+    bytes::bytes_push(data, 105)
+    bytes::bytes_push(data, 110)
+    bytes::bytes_push(data, 101)
+    bytes::bytes_push(data, 51)
+    let r: Vec<i32> = io::reader_from_bytes(data)
+    let br: Vec<i32> = io::buf_reader_new(r, 64)
+    let l1: Result<String, String> = io::buf_reader_read_line(br)
+    match l1 {
+        Result::Ok(s) => stdio::println(s),
+        Result::Err(e) => stdio::println(e),
+    }
+    let l2: Result<String, String> = io::buf_reader_read_line(br)
+    match l2 {
+        Result::Ok(s) => stdio::println(s),
+        Result::Err(e) => stdio::println(e),
+    }
+    let l3: Result<String, String> = io::buf_reader_read_line(br)
+    match l3 {
+        Result::Ok(s) => stdio::println(s),
+        Result::Err(e) => stdio::println(e),
+    }
+    let out: Vec<i32> = io::stdout()
+    let bw: Vec<i32> = io::buf_writer_new(out, 8)
+    let _: Result<i32, String> = io::buf_writer_write_str(bw, "buffered")
+    let _: Result<(), String> = io::buf_writer_flush(bw)
+    stdio::println("")
+    stdio::println("done")
+}
+// Build data "Line1\nLine2\nLine3"
+// "Line1\n"
+// L
+// i
+// n
+// e
+// 1
+// \n
+// "Line2\n"
+// 2
+// "Line3" (no trailing newline)
+// 3
+// BufWriter with small cap — auto-flushes at 8 bytes

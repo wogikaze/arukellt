@@ -1,0 +1,765 @@
+{
+  "schema_version": "arukellt-bench-v1",
+  "generated_at": "2026-04-25T06:09:41+00:00",
+  "mode": "compare",
+  "mode_description": "measure current results and compare with baseline",
+  "target": "wasm32-wasi-p1",
+  "thresholds": {
+    "compile_ms": 20,
+    "run_ms": 10,
+    "binary_bytes": 15
+  },
+  "compiler": {
+    "path": "target/release/arukellt"
+  },
+  "environment": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "kernel": "6.6.87.2-microsoft-standard-WSL2"
+  },
+  "tooling": {
+    "wasmtime": {
+      "name": "wasmtime",
+      "available": true,
+      "path": "/home/wogikaze/.wasmtime/bin/wasmtime"
+    },
+    "hyperfine": {
+      "name": "hyperfine",
+      "available": false,
+      "path": null
+    },
+    "time": {
+      "name": "/usr/bin/time",
+      "available": true,
+      "path": "/usr/bin/time"
+    },
+    "wasm-objdump": {
+      "name": "wasm-objdump",
+      "available": true,
+      "path": "/usr/bin/wasm-objdump"
+    }
+  },
+  "benchmarks": [
+    {
+      "name": "fib",
+      "source": "benchmarks/legacy/fib.ark",
+      "expected": "benchmarks/legacy/fib.expected",
+      "description": "Iterative Fibonacci(35)",
+      "tags": [
+        "cpu-bound",
+        "loop",
+        "scalar"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/fib.wasm /home/wogikaze/arukellt/benchmarks/legacy/fib.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "binary_tree",
+      "source": "benchmarks/legacy/binary_tree.ark",
+      "expected": "benchmarks/legacy/binary_tree.expected",
+      "description": "Recursive node counting (depth 20)",
+      "tags": [
+        "recursion-heavy",
+        "allocation-light",
+        "call-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/binary_tree.wasm /home/wogikaze/arukellt/benchmarks/legacy/binary_tree.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "vec_ops",
+      "source": "benchmarks/legacy/vec_ops.ark",
+      "expected": "benchmarks/legacy/vec_ops.expected",
+      "description": "Vec push/sum/contains (1k elements)",
+      "tags": [
+        "allocation-heavy",
+        "container",
+        "iteration"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/vec_ops.wasm /home/wogikaze/arukellt/benchmarks/legacy/vec_ops.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "string_concat",
+      "source": "benchmarks/legacy/string_concat.ark",
+      "expected": "benchmarks/legacy/string_concat.expected",
+      "description": "String concat in loop (100 iterations)",
+      "tags": [
+        "string-heavy",
+        "allocation-heavy",
+        "gc-pressure"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/string_concat.wasm /home/wogikaze/arukellt/benchmarks/legacy/string_concat.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "parse_tree_distance",
+      "source": "benchmarks/bench_parse_tree_distance.ark",
+      "expected": "benchmarks/bench_parse_tree_distance.expected",
+      "description": "Packed-tree distance validator on a 1200-node star matrix",
+      "tags": [
+        "parse",
+        "allocation-heavy",
+        "container",
+        "iteration"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/parse_tree_distance.wasm /home/wogikaze/arukellt/benchmarks/bench_parse_tree_distance.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "enum_dispatch",
+      "source": "benchmarks/bench_cpu_enum_dispatch.ark",
+      "expected": "benchmarks/bench_cpu_enum_dispatch.expected",
+      "description": "Enum variant dispatch via match (100,000 iterations, 5 variants)",
+      "tags": [
+        "cpu-bound",
+        "match-heavy",
+        "allocation-heavy",
+        "iteration"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/enum_dispatch.wasm /home/wogikaze/arukellt/benchmarks/bench_cpu_enum_dispatch.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "struct_graph",
+      "source": "benchmarks/bench_memory_struct_graph.ark",
+      "expected": "benchmarks/bench_memory_struct_graph.expected",
+      "description": "Nested struct allocation with recursive graph traversal (depth 10, 20 roots)",
+      "tags": [
+        "allocation-heavy",
+        "struct-heavy",
+        "recursion-heavy",
+        "container"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/struct_graph.wasm /home/wogikaze/arukellt/benchmarks/bench_memory_struct_graph.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "error_chain",
+      "source": "benchmarks/bench_compute_error_chain.ark",
+      "expected": "benchmarks/bench_compute_error_chain.expected",
+      "description": "Result/error propagation chain (50,000 iterations, ~20% Err paths)",
+      "tags": [
+        "cpu-bound",
+        "error-heavy",
+        "match-heavy",
+        "iteration"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/error_chain.wasm /home/wogikaze/arukellt/benchmarks/bench_compute_error_chain.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "closure_map",
+      "source": "benchmarks/bench_cpu_closure_map.ark",
+      "expected": "benchmarks/bench_cpu_closure_map.expected",
+      "description": "Closure capture and map over 2,000-element Vec (cpu-bound, allocation-light)",
+      "tags": [
+        "cpu-bound",
+        "closure-heavy",
+        "iteration",
+        "allocation-light"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/closure_map.wasm /home/wogikaze/arukellt/benchmarks/bench_cpu_closure_map.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "http_parser",
+      "source": "benchmarks/bench_application_http_parser.ark",
+      "expected": "benchmarks/bench_application_http_parser.expected",
+      "description": "HTTP header line parser \u2014 enum dispatch and struct allocation (20,000 headers)",
+      "tags": [
+        "application",
+        "enum-heavy",
+        "match-heavy",
+        "struct-heavy",
+        "iteration"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/http_parser.wasm /home/wogikaze/arukellt/benchmarks/bench_application_http_parser.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "log_processor",
+      "source": "benchmarks/bench_application_log_processor.ark",
+      "expected": "benchmarks/bench_application_log_processor.expected",
+      "description": "Log line processor \u2014 Vec iteration, enum severity dispatch (5,000 records)",
+      "tags": [
+        "application",
+        "enum-heavy",
+        "allocation-heavy",
+        "iteration",
+        "match-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/log_processor.wasm /home/wogikaze/arukellt/benchmarks/bench_application_log_processor.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "config_loader",
+      "source": "benchmarks/bench_application_config_loader.ark",
+      "expected": "benchmarks/bench_application_config_loader.expected",
+      "description": "Config loader \u2014 nested structs, Result error handling (10,000 entries)",
+      "tags": [
+        "application",
+        "struct-heavy",
+        "error-heavy",
+        "match-heavy",
+        "allocation-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/config_loader.wasm /home/wogikaze/arukellt/benchmarks/bench_application_config_loader.ark",
+        "stderr_head": [
+          "Error: failed to compile: wasm[0]::function[15]",
+          "",
+          "Caused by:",
+          "    0: WebAssembly translation error",
+          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
+          ""
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    }
+  ]
+}

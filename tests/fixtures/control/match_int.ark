@@ -1,0 +1,11 @@
+use std::host::stdio
+
+fn main() {
+    let x: i32 = 2
+    match x {
+        1 => stdio::println("one"),
+        2 => stdio::println("two"),
+        3 => stdio::println("three"),
+        _ => stdio::println("other"),
+    }
+}

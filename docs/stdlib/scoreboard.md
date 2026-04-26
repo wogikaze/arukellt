@@ -1,0 +1,46 @@
+# Stdlib Module Maturity Scoreboard
+
+> Hand-maintained today (auto-generator not yet implemented).
+
+| Family | APIs | Stable | Exp | Depr | Fixture Coverage | Host Dep |
+|--------|------|--------|-----|------|------------------|----------|
+| `prelude` | 102 | 99 | 0 | 3 | 83/99 (83%) | no |
+| `std::bytes` | 20 | 20 | 0 | 0 | 15/20 (75%) | no |
+| `std::collections::compiler` | 4 | 0 | 4 | 0 | 4/4 (100%) | no |
+| `std::collections::hash` | 5 | 5 | 0 | 0 | 5/5 (100%) | no |
+| `std::collections::linear` | 13 | 13 | 0 | 0 | 10/13 (76%) | no |
+| `std::collections::ordered` | 10 | 10 | 0 | 0 | 9/10 (90%) | no |
+| `std::component` | 2 | 0 | 2 | 0 | 2/2 (100%) | no |
+| `std::core` | 3 | 3 | 0 | 0 | 3/3 (100%) | no |
+| `std::core::error` | 1 | 1 | 0 | 0 | 1/1 (100%) | no |
+| `std::core::hash` | 2 | 2 | 0 | 0 | 1/2 (50%) | no |
+| `std::csv` | 1 | 0 | 1 | 0 | 1/1 (100%) | no |
+| `std::host::clock` | 1 | 1 | 0 | 0 | 1/1 (100%) | no |
+| `std::host::env` | 5 | 5 | 0 | 0 | 5/5 (100%) | no |
+| `std::host::fs` | 3 | 3 | 0 | 0 | 2/3 (66%) | no |
+| `std::host::http` | 2 | 0 | 2 | 0 | 1/2 (50%) | yes |
+| `std::host::process` | 2 | 2 | 0 | 0 | 1/2 (50%) | no |
+| `std::host::random` | 3 | 3 | 0 | 0 | 1/3 (33%) | no |
+| `std::host::sockets` | 1 | 0 | 1 | 0 | 1/1 (100%) | yes |
+| `std::host::stdio` | 3 | 3 | 0 | 0 | 3/3 (100%) | no |
+| `std::json` | 6 | 0 | 6 | 0 | 6/6 (100%) | no |
+| `std::path` | 6 | 6 | 0 | 0 | 6/6 (100%) | no |
+| `std::random` | 3 | 3 | 0 | 0 | 3/3 (100%) | no |
+| `std::seq` | 8 | 8 | 0 | 0 | 7/8 (87%) | no |
+| `std::test` | 16 | 16 | 0 | 0 | 16/16 (100%) | no |
+| `std::text` | 15 | 15 | 0 | 0 | 13/15 (86%) | no |
+| `std::time` | 3 | 3 | 0 | 0 | 3/3 (100%) | no |
+| `std::toml` | 1 | 0 | 1 | 0 | 1/1 (100%) | no |
+| `std::wasm` | 19 | 0 | 19 | 0 | 5/19 (26%) | no |
+| `std::wit` | 14 | 0 | 14 | 0 | 5/14 (35%) | no |
+
+**Total**: 274 APIs, 221 stable, 50 experimental, 3 deprecated, 214/271 (78%) fixture coverage
+
+## Legend
+
+- **APIs**: Total function count in the family
+- **Stable**: Functions with `stability = "stable"` (or default)
+- **Exp**: Functions with `stability = "experimental"`
+- **Depr**: Functions with `deprecated_by` set
+- **Fixture Coverage**: How many non-deprecated functions appear in at least one test fixture
+- **Host Dep**: Whether the family contains host-imported functions

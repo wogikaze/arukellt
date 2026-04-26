@@ -1,0 +1,66 @@
+/// Fundamental types and helpers shared across the standard library.
+/// 
+/// This module exposes foundational types (`Ordering`, `Range`) and helpers
+/// that other stdlib modules build upon.
+/// Ordering relationship between two values.
+pub enum Ordering {
+    Less,
+    Equal,
+    Greater,
+}
+
+/// Half-open integer range `[start, end)`.
+pub struct Range {
+    start: i32,
+    end: i32,
+}
+
+/// Closed integer range `[start, end]`.
+pub struct RangeInclusive {
+    start: i32,
+    end: i32,
+}
+
+/// Builds a half-open range `[start, end)`.
+pub fn range_new(start: i32, end: i32) -> Range {
+    Range { start: start, end: end }
+}
+
+/// Returns true when `value` lies inside the half-open range.
+pub fn range_contains(r: Range, value: i32) -> bool {
+    value >= r.start && value < r.end
+}
+
+/// Returns the non-negative length of the half-open range.
+pub fn range_len(r: Range) -> i32 {
+    if r.end > r.start {
+        r.end - r.start
+    } else {
+        0
+    }
+}
+
+pub fn range_inclusive_new(start: i32, end: i32) -> RangeInclusive {
+    RangeInclusive { start: start, end: end }
+}
+
+pub fn range_inclusive_contains(r: RangeInclusive, value: i32) -> bool {
+    value >= r.start && value <= r.end
+}
+
+/// Compares two integers and returns their ordering relationship.
+pub fn cmp_i32(a: i32, b: i32) -> Ordering {
+    if a < b {
+        Ordering::Less
+    } else {
+        if a > b {
+            Ordering::Greater
+        } else {
+            Ordering::Equal
+        }
+    }
+}
+
+pub fn identity(x: i32) -> i32 {
+    x
+}

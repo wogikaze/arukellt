@@ -1,0 +1,24 @@
+use std::host::stdio
+use std::json
+
+fn main() {
+    let tab_str = json::json_encode_string("a\tb")
+    stdio::println(tab_str)
+    let newline_str = json::json_encode_string("line1\nline2")
+    stdio::println(newline_str)
+    let quote_str = json::json_encode_string("say \"hi\"")
+    stdio::println(quote_str)
+    let backslash_str = json::json_encode_string("a\\b")
+    stdio::println(backslash_str)
+    match json::parse("\"hello\\nworld\"") {
+        Result::Ok(v) => {
+            match json::json_as_string(v) {
+                Option::Some(s) => stdio::println(i32_to_string(len(s))),
+                None => stdio::println("not string"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+}
+// json_encode_string handles special characters
+// Parse and decode an escaped JSON string

@@ -1,0 +1,7 @@
+use std::host::stdio
+
+fn main() {
+    let max: i32 = 2147483647
+    let wrapped: i32 = max + 1
+    stdio::println(i32_to_string(wrapped))
+}

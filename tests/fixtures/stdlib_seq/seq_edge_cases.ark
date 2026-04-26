@@ -1,0 +1,66 @@
+use std::host::stdio
+use std::seq
+
+fn main() {
+    let sorted: Vec<i32> = Vec_new_i32()
+    push(sorted, 1)
+    push(sorted, 3)
+    push(sorted, 5)
+    push(sorted, 7)
+    push(sorted, 9)
+    stdio::println(i32_to_string(seq::binary_search(sorted, 5)))
+    stdio::println(i32_to_string(seq::binary_search(sorted, 1)))
+    stdio::println(i32_to_string(seq::binary_search(sorted, 9)))
+    stdio::println(i32_to_string(seq::binary_search(sorted, 4)))
+    let nums: Vec<i32> = Vec_new_i32()
+    push(nums, 4)
+    push(nums, 2)
+    push(nums, 7)
+    push(nums, 1)
+    push(nums, 9)
+    push(nums, 3)
+    stdio::println(i32_to_string(seq::min_i32(nums)))
+    stdio::println(i32_to_string(seq::max_i32(nums)))
+    stdio::println(i32_to_string(seq::sum_i32(nums)))
+    let single: Vec<i32> = Vec_new_i32()
+    push(single, 42)
+    stdio::println(i32_to_string(seq::min_i32(single)))
+    stdio::println(i32_to_string(seq::max_i32(single)))
+    stdio::println(i32_to_string(seq::sum_i32(single)))
+    let haystack: Vec<i32> = Vec_new_i32()
+    push(haystack, 10)
+    push(haystack, 20)
+    push(haystack, 30)
+    push(haystack, 40)
+    stdio::println(bool_to_string(seq::seq_contains(haystack, 30)))
+    stdio::println(bool_to_string(seq::seq_contains(haystack, 25)))
+    let dupes: Vec<i32> = Vec_new_i32()
+    push(dupes, 1)
+    push(dupes, 2)
+    push(dupes, 2)
+    push(dupes, 3)
+    push(dupes, 3)
+    push(dupes, 3)
+    push(dupes, 1)
+    let uniq: Vec<i32> = seq::unique(dupes)
+    stdio::println(i32_to_string(len(uniq)))
+    let counted: Vec<i32> = Vec_new_i32()
+    push(counted, 1)
+    push(counted, 2)
+    push(counted, 2)
+    push(counted, 3)
+    push(counted, 2)
+    push(counted, 1)
+    stdio::println(i32_to_string(seq::count_eq(counted, 2)))
+    stdio::println(i32_to_string(seq::count_eq(counted, 5)))
+}
+// === binary_search edge cases ===
+// find middle
+// find first
+// find last
+// not found
+// === min/max/sum edge cases ===
+// single element
+// === contains edge cases ===
+// === unique with duplicates ===
+// === count_eq ===

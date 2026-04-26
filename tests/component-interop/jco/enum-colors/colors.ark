@@ -1,0 +1,28 @@
+// Component interop test fixture: enum exports via canonical ABI adapters.
+//
+// Tests that unit-variant enums can be exported through the Component Model
+// by using canonical ABI adapter functions (i32 ↔ GC enum ref conversion).
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+pub fn next_color(c: Color) -> Color {
+    match c {
+        Color::Red => Color::Green,
+        Color::Green => Color::Blue,
+        Color::Blue => Color::Red,
+    }
+}
+
+pub fn color_to_value(c: Color) -> i32 {
+    match c {
+        Color::Red => 1,
+        Color::Green => 2,
+        Color::Blue => 3,
+    }
+}
+
+fn main() {
+}

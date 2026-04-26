@@ -1,0 +1,12 @@
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn main() {
+    let p: Point = Point { x: 10, y: 20 }
+    stdio::println(i32_to_string(p.x))
+    stdio::println(i32_to_string(p.y))
+}

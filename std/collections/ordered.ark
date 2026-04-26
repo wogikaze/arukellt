@@ -1,0 +1,437 @@
+/// Ordered collection helpers backed by sorted vectors.
+/// 
+/// The current surface provides a sorted map and bitset-style utilities.
+pub fn sorted_map_new() -> Vec<i32> {
+    let m: Vec<i32> = Vec_new_i32()
+    push(m, 0)
+    m
+}
+
+pub fn sorted_map_len(m: Vec<i32>) -> i32 {
+    get_unchecked(m, 0)
+}
+
+pub fn sorted_map_find_idx(m: Vec<i32>, key: i32) -> i32 {
+    let count: i32 = get_unchecked(m, 0)
+    let mut lo: i32 = 0
+    let mut hi: i32 = count
+    while lo < hi {
+        let mid: i32 = lo + hi / 2
+        let mk: i32 = get_unchecked(m, 1 + mid * 2)
+        if mk < key {
+            lo = mid + 1
+        } else {
+            hi = mid
+        }
+    }
+    lo
+}
+
+pub fn sorted_map_get(m: Vec<i32>, key: i32) -> i32 {
+    let count: i32 = get_unchecked(m, 0)
+    let idx: i32 = sorted_map_find_idx(m, key)
+    if idx < count {
+        let k: i32 = get_unchecked(m, 1 + idx * 2)
+        if k == key {
+            get_unchecked(m, 1 + idx * 2 + 1)
+        } else {
+            0
+        }
+    } else {
+        0
+    }
+}
+
+pub fn sorted_map_contains(m: Vec<i32>, key: i32) -> bool {
+    let count: i32 = get_unchecked(m, 0)
+    let idx: i32 = sorted_map_find_idx(m, key)
+    if idx < count {
+        let k: i32 = get_unchecked(m, 1 + idx * 2)
+        k == key
+    } else {
+        false
+    }
+}
+
+pub fn sorted_map_insert(m: Vec<i32>, key: i32, value: i32) {
+    let count: i32 = get_unchecked(m, 0)
+    let idx: i32 = sorted_map_find_idx(m, key)
+    if idx < count {
+        let k: i32 = get_unchecked(m, 1 + idx * 2)
+        if k == key {
+            set(m, 1 + idx * 2 + 1, value)
+        } else {
+            push(m, 0)
+            push(m, 0)
+            let mut i: i32 = count - 1
+            while i >= idx {
+                set(m, 1 + i + 1 * 2, get_unchecked(m, 1 + i * 2))
+                set(m, 1 + i + 1 * 2 + 1, get_unchecked(m, 1 + i * 2 + 1))
+                i = i - 1
+            }
+            set(m, 1 + idx * 2, key)
+            set(m, 1 + idx * 2 + 1, value)
+            set(m, 0, count + 1)
+        }
+    } else {
+        push(m, key)
+        push(m, value)
+        set(m, 0, count + 1)
+    }
+}
+
+// --- BTreeMap API (sorted-vector backed, i32 key, i32 value) ---
+pub fn btree_new() -> Vec<i32> {
+    sorted_map_new()
+}
+
+pub fn btree_insert(m: Vec<i32>, key: i32, value: i32) {
+    sorted_map_insert(m, key, value)
+}
+
+pub fn btree_get(m: Vec<i32>, key: i32) -> i32 {
+    sorted_map_get(m, key)
+}
+
+pub fn btree_remove(m: Vec<i32>, key: i32) {
+    let count: i32 = get_unchecked(m, 0)
+    let idx: i32 = sorted_map_find_idx(m, key)
+    if idx < count {
+        let k: i32 = get_unchecked(m, 1 + idx * 2)
+        if k == key {
+            let mut i: i32 = idx
+            while i < count - 1 {
+                set(m, 1 + i * 2, get_unchecked(m, 1 + i + 1 * 2))
+                set(m, 1 + i * 2 + 1, get_unchecked(m, 1 + i + 1 * 2 + 1))
+                i = i + 1
+            }
+            pop(m)
+            pop(m)
+            set(m, 0, count - 1)
+        }
+    }
+}
+
+pub fn btree_contains_key(m: Vec<i32>, key: i32) -> bool {
+    sorted_map_contains(m, key)
+}
+
+pub fn btree_len(m: Vec<i32>) -> i32 {
+    sorted_map_len(m)
+}
+
+pub fn btree_keys(m: Vec<i32>) -> Vec<i32> {
+    let count: i32 = get_unchecked(m, 0)
+    let keys: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < count {
+        push(keys, get_unchecked(m, 1 + i * 2))
+        i = i + 1
+    }
+    keys
+}
+
+pub fn btree_range(m: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
+    let count: i32 = get_unchecked(m, 0)
+    let result: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < count {
+        let k: i32 = get_unchecked(m, 1 + i * 2)
+        if k >= start {
+            if k < end {
+                push(result, k)
+            }
+        }
+        i = i + 1
+    }
+    result
+}
+
+// --- BTreeSet API (sorted unique values, i32) ---
+pub fn btree_set_new() -> Vec<i32> {
+    let s: Vec<i32> = Vec_new_i32()
+    push(s, 0)
+    s
+}
+
+pub fn btree_set_find_idx(s: Vec<i32>, value: i32) -> i32 {
+    let count: i32 = get_unchecked(s, 0)
+    let mut lo: i32 = 0
+    let mut hi: i32 = count
+    while lo < hi {
+        let mid: i32 = lo + hi / 2
+        let v: i32 = get_unchecked(s, 1 + mid)
+        if v < value {
+            lo = mid + 1
+        } else {
+            hi = mid
+        }
+    }
+    lo
+}
+
+pub fn btree_set_insert(s: Vec<i32>, value: i32) -> bool {
+    let count: i32 = get_unchecked(s, 0)
+    let idx: i32 = btree_set_find_idx(s, value)
+    if idx < count {
+        let v: i32 = get_unchecked(s, 1 + idx)
+        if v == value {
+            false
+        } else {
+            push(s, 0)
+            let mut i: i32 = count - 1
+            while i >= idx {
+                set(s, 1 + i + 1, get_unchecked(s, 1 + i))
+                i = i - 1
+            }
+            set(s, 1 + idx, value)
+            set(s, 0, count + 1)
+            true
+        }
+    } else {
+        push(s, value)
+        set(s, 0, count + 1)
+        true
+    }
+}
+
+pub fn btree_set_contains(s: Vec<i32>, value: i32) -> bool {
+    let count: i32 = get_unchecked(s, 0)
+    let idx: i32 = btree_set_find_idx(s, value)
+    if idx < count {
+        get_unchecked(s, 1 + idx) == value
+    } else {
+        false
+    }
+}
+
+pub fn btree_set_len(s: Vec<i32>) -> i32 {
+    get_unchecked(s, 0)
+}
+
+// --- IndexMap API (insertion-order map, i32 key, i32 value) ---
+// Layout: [count, k0, v0, k1, v1, ...]
+pub fn index_map_new() -> Vec<i32> {
+    let m: Vec<i32> = Vec_new_i32()
+    push(m, 0)
+    m
+}
+
+pub fn index_map_insert(m: Vec<i32>, key: i32, value: i32) {
+    let count: i32 = get_unchecked(m, 0)
+    let mut i: i32 = 0
+    let mut found: bool = false
+    while i < count {
+        let k: i32 = get_unchecked(m, 1 + i * 2)
+        if k == key {
+            set(m, 1 + i * 2 + 1, value)
+            found = true
+            i = count
+        } else {
+            i = i + 1
+        }
+    }
+    if found == false {
+        push(m, key)
+        push(m, value)
+        set(m, 0, count + 1)
+    }
+}
+
+pub fn index_map_get(m: Vec<i32>, key: i32) -> i32 {
+    let count: i32 = get_unchecked(m, 0)
+    let mut i: i32 = 0
+    let mut result: i32 = 0
+    while i < count {
+        let k: i32 = get_unchecked(m, 1 + i * 2)
+        if k == key {
+            result = get_unchecked(m, 1 + i * 2 + 1)
+            i = count
+        } else {
+            i = i + 1
+        }
+    }
+    result
+}
+
+pub fn index_map_len(m: Vec<i32>) -> i32 {
+    get_unchecked(m, 0)
+}
+
+pub fn index_map_keys(m: Vec<i32>) -> Vec<i32> {
+    let count: i32 = get_unchecked(m, 0)
+    let keys: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < count {
+        push(keys, get_unchecked(m, 1 + i * 2))
+        i = i + 1
+    }
+    keys
+}
+
+// --- IndexSet API (insertion-order unique values, i32) ---
+// Layout: [count, v0, v1, ...]
+pub fn index_set_new() -> Vec<i32> {
+    let s: Vec<i32> = Vec_new_i32()
+    push(s, 0)
+    s
+}
+
+pub fn index_set_contains(s: Vec<i32>, value: i32) -> bool {
+    let count: i32 = get_unchecked(s, 0)
+    let mut i: i32 = 0
+    let mut found: bool = false
+    while i < count {
+        let v: i32 = get_unchecked(s, 1 + i)
+        if v == value {
+            found = true
+            i = count
+        } else {
+            i = i + 1
+        }
+    }
+    found
+}
+
+pub fn index_set_insert(s: Vec<i32>, value: i32) -> bool {
+    let already: bool = index_set_contains(s, value)
+    if already == false {
+        let count: i32 = get_unchecked(s, 0)
+        push(s, value)
+        set(s, 0, count + 1)
+        true
+    } else {
+        false
+    }
+}
+
+pub fn index_set_len(s: Vec<i32>) -> i32 {
+    get_unchecked(s, 0)
+}
+
+// --- BitSet ---
+pub fn bitset_new() -> Vec<i32> {
+    let bs: Vec<i32> = Vec_new_i32()
+    push(bs, 256)
+    let mut i: i32 = 0
+    while i < 8 {
+        push(bs, 0)
+        i = i + 1
+    }
+    bs
+}
+
+pub fn bitset_mark(bs: Vec<i32>, bit: i32) {
+    let word: i32 = bit / 32
+    let offset: i32 = bit % 32
+    let old: i32 = get_unchecked(bs, 1 + word)
+    let mask: i32 = 1 << offset
+    let newval: i32 = old | mask
+    set(bs, 1 + word, newval)
+}
+
+pub fn bitset_unmark(bs: Vec<i32>, bit: i32) {
+    let word: i32 = bit / 32
+    let offset: i32 = bit % 32
+    let old: i32 = get_unchecked(bs, 1 + word)
+    let mask: i32 = 1 << offset
+    let inv: i32 = mask ^ 0 - 1
+    let newval: i32 = old & inv
+    set(bs, 1 + word, newval)
+}
+
+pub fn bitset_test(bs: Vec<i32>, bit: i32) -> bool {
+    let word: i32 = bit / 32
+    let offset: i32 = bit % 32
+    let val: i32 = get_unchecked(bs, 1 + word)
+    let shifted: i32 = val >> offset
+    let masked: i32 = shifted & 1
+    masked == 1
+}
+
+// New API-compatible aliases and extended BitSet operations
+pub fn bitset_set(bs: Vec<i32>, bit: i32) {
+    bitset_mark(bs, bit)
+}
+
+pub fn bitset_clear(bs: Vec<i32>, bit: i32) {
+    bitset_unmark(bs, bit)
+}
+
+pub fn bitset_with_capacity(cap: i32) -> Vec<i32> {
+    let bs: Vec<i32> = Vec_new_i32()
+    push(bs, cap)
+    let words: i32 = cap + 31 / 32
+    let mut i: i32 = 0
+    while i < words {
+        push(bs, 0)
+        i = i + 1
+    }
+    bs
+}
+
+pub fn bitset_count(bs: Vec<i32>) -> i32 {
+    let cap: i32 = get_unchecked(bs, 0)
+    let words: i32 = cap + 31 / 32
+    let mut total: i32 = 0
+    let mut w: i32 = 0
+    while w < words {
+        let mut val: i32 = get_unchecked(bs, 1 + w)
+        while val != 0 {
+            val = val & val - 1
+            total = total + 1
+        }
+        w = w + 1
+    }
+    total
+}
+
+pub fn bitset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
+    let cap_a: i32 = get_unchecked(a, 0)
+    let cap_b: i32 = get_unchecked(b, 0)
+    let mut cap: i32 = cap_a
+    if cap_b > cap_a {
+        cap = cap_b
+    }
+    let result: Vec<i32> = bitset_with_capacity(cap)
+    let words_a: i32 = cap_a + 31 / 32
+    let words_b: i32 = cap_b + 31 / 32
+    let words: i32 = cap + 31 / 32
+    let mut i: i32 = 0
+    while i < words {
+        let mut va: i32 = 0
+        let mut vb: i32 = 0
+        if i < words_a {
+            va = get_unchecked(a, 1 + i)
+        }
+        if i < words_b {
+            vb = get_unchecked(b, 1 + i)
+        }
+        set(result, 1 + i, va | vb)
+        i = i + 1
+    }
+    result
+}
+
+pub fn bitset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
+    let cap_a: i32 = get_unchecked(a, 0)
+    let cap_b: i32 = get_unchecked(b, 0)
+    let mut cap: i32 = cap_a
+    if cap_b < cap_a {
+        cap = cap_b
+    }
+    let result: Vec<i32> = bitset_with_capacity(cap)
+    let words: i32 = cap + 31 / 32
+    let mut i: i32 = 0
+    while i < words {
+        let va: i32 = get_unchecked(a, 1 + i)
+        let vb: i32 = get_unchecked(b, 1 + i)
+        set(result, 1 + i, va & vb)
+        i = i + 1
+    }
+    result
+}
+// Layout: [count, ...keys(n), ...values(n)] — kept sorted by key
+// We use two parallel vecs packed into one: first half keys, second half values
+// Actually simpler: [count, k0, v0, k1, v1, ...]
+// Insert at idx: shift elements right

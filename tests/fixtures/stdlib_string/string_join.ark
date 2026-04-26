@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    let mut parts: Vec<String> = Vec_new_String()
+    push(parts, String_from("one"))
+    push(parts, String_from("two"))
+    push(parts, String_from("three"))
+    let result: String = join(parts, String_from("-"))
+    stdio::println(result)
+}

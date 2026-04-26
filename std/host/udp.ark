@@ -1,0 +1,26 @@
+/// UDP datagram helpers via the WASI Preview 2 `wasi:sockets/udp` interface.
+/// 
+/// These APIs are host-bound and only available on wasm32-wasi-p2 (T3) targets.
+/// On T1 (wasm32-wasi-p1) a compile-time error (E0500) is emitted by the resolver
+/// because WASI Preview 1 does not expose the `wasi:sockets/udp` interface.
+/// 
+/// # Status
+/// 
+/// This module is a provisional stub. UDP send/receive operations are planned
+/// for a future release once `wasi:sockets/udp` host support is wired into
+/// the arukellt_host Wasmtime linker.
+/// Sends a UDP datagram to the given host and port.
+/// 
+/// Returns `Ok(bytes_sent)` on success or `Err(message)` on failure.
+/// 
+/// # Error strings
+/// 
+/// | Situation | `Err` value |
+/// |---|---|
+/// | DNS resolution failure | `"udp: <host>:<port>: name or service not known"` |
+/// | Network unreachable | `"udp: <host>:<port>: network unreachable"` |
+/// | Invalid port (< 0 or > 65535) | `"udp: invalid port <n>"` |
+/// | Any other I/O failure | `"udp: <host>:<port>: <os_error>"` |
+pub fn send(host: String, port: i32, data: String) -> Result<i32, String> {
+    __intrinsic_udp_send(host, port, data)
+}

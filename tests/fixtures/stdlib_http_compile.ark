@@ -1,0 +1,11 @@
+use std::host::http
+use std::host::stdio
+
+fn main() {
+    let result = http::get("http://example.com")
+    let msg = match result {
+        Result::Ok(body) => body,
+        Result::Err(e) => e,
+    }
+    stdio::println(msg)
+}

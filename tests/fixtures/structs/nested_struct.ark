@@ -1,0 +1,20 @@
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+struct Rect {
+    origin: Point,
+    width: i32,
+    height: i32,
+}
+
+fn main() {
+    let r: Rect = Rect { origin: Point { x: 1, y: 2 }, width: 10, height: 20 }
+    stdio::println(i32_to_string(r.origin.x))
+    stdio::println(i32_to_string(r.origin.y))
+    stdio::println(i32_to_string(r.width))
+    stdio::println(i32_to_string(r.height))
+}

@@ -1,0 +1,16 @@
+// Regression fixture: struct field access sourced exclusively from type_table (issue 449 / MIR-01).
+// Verifies that struct layouts are read from mir.type_table.struct_defs in both T1 and T3 emitters.
+use std::host::stdio
+
+struct Color {
+    r: i32,
+    g: i32,
+    b: i32,
+}
+
+fn main() {
+    let c: Color = Color { r: 255, g: 128, b: 0 }
+    stdio::println(i32_to_string(c.r))
+    stdio::println(i32_to_string(c.g))
+    stdio::println(i32_to_string(c.b))
+}

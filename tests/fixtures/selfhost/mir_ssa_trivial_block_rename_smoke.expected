@@ -1,0 +1,3 @@
+ssa(param)=p.0
+ssa(local)=t.1
+MIR SSA trivial-block rename smoke OK.

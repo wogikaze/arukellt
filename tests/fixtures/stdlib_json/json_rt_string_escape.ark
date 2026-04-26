@@ -1,0 +1,33 @@
+use std::host::stdio
+use std::json
+
+fn main() {
+    // String with escape sequences: encode and verify output matches golden value
+    let tab    = json::json_encode_string("a\tb")
+    let nl     = json::json_encode_string("line1\nline2")
+    let cr     = json::json_encode_string("x\ry")
+    let bs     = json::json_encode_string("a\\b")
+    let quotes = json::json_encode_string("say \"hi\"")
+    stdio::println(tab)
+    stdio::println(nl)
+    stdio::println(cr)
+    stdio::println(bs)
+    stdio::println(quotes)
+    // Round-trip: parse escaped JSON string → check decoded length and content
+    match json::parse("\"hello\\nworld\"") {
+        Result::Ok(v) => {
+            match json::json_as_string(v) {
+                Option::Some(s) => {
+                    // decoded string has 11 chars (hello + \n + world)
+                    stdio::println(i32_to_string(len(s)))
+                },
+                None => stdio::println("not string"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+    // Differential golden: encode then verify exact JSON token
+    let golden = "\"a\\tb\""
+    stdio::println(bool_to_string(eq(tab, golden)))
+}
+// string escape round-trip and differential golden check

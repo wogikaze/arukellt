@@ -1,0 +1,11 @@
+use std::host::stdio
+
+fn main() {
+    let x: i32 = 10
+    let label: String = if x > 5 {
+        String_from("big")
+    } else {
+        String_from("small")
+    }
+    stdio::println(label)
+}

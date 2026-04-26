@@ -1,0 +1,52 @@
+// Property fixture for issue #528 — insert/remove balance.
+//
+// Invariant: after inserting N disjoint keys and then removing the same N
+// keys, the map is empty (size 0, is_empty true) and every removed key is
+// reported absent.  Each `hashmap_remove` must also return the value that
+// was inserted for that key (i.e. no value drift during the operation).
+//
+// Normalization: the driver loops over a fixed `for i in 1..17 { ... }`
+// range for both insertion and removal, so the stdout sequence is stable
+// regardless of internal bucket ordering.
+//
+// This fixture MUST NOT alter `std/collections/hash*` (see issue #528
+// acceptance item 4); it only exercises the public API.
+use std::collections::hash
+use std::host::stdio
+
+fn main() {
+    let m: Vec<i32> = hash::hashmap_new()
+
+    // Insert N = 16 disjoint keys with value = key * 10.
+    for i in 1..17 {
+        hash::hashmap_set(m, i, i * 10)
+    }
+    stdio::println(i32_to_string(hash::hashmap_size(m)))
+
+    // Remove the same 16 keys.  Each remove must return the inserted value.
+    let mut ok: bool = true
+    for i in 1..17 {
+        match hash::hashmap_remove(m, i) {
+            Option::Some(v) => {
+                if v != i * 10 {
+                    ok = false
+                }
+            },
+            None => {
+                ok = false
+            },
+        }
+    }
+    stdio::println(bool_to_string(ok))
+
+    // Post-condition: map is empty, and every removed key is now absent.
+    stdio::println(i32_to_string(hash::hashmap_size(m)))
+    stdio::println(bool_to_string(hash::hashmap_is_empty(m)))
+    let mut absent: bool = true
+    for i in 1..17 {
+        if hash::hashmap_contains(m, i) {
+            absent = false
+        }
+    }
+    stdio::println(bool_to_string(absent))
+}

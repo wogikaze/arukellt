@@ -1,0 +1,16 @@
+// Export with variant (enum with payloads) — maps to WIT variant
+// Requires canonical ABI discriminant+payload handling (not yet implemented)
+enum Shape {
+    Circle(f64),
+    Square(f64),
+}
+
+pub fn area(s: Shape) -> f64 {
+    match s {
+        Shape::Circle(r) => 3.14159 * r * r,
+        Shape::Square(side) => side * side,
+    }
+}
+
+fn main() {
+}

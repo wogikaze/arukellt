@@ -1,0 +1,6 @@
+use std::host::stdio
+use std::nonexistent
+
+fn main() {
+    stdio::println("should not reach")
+}

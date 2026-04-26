@@ -1,0 +1,9 @@
+// Export with Option<Vec<i32>> return — compound nested type not supported.
+// WIT: option<list<s32>> requires non-scalar canonical ABI lift/lower.
+// Expected: E0401 compile-time error.
+pub fn maybe_values(flag: bool) -> Option<Vec<i32>> {
+    None
+}
+
+fn main() {
+}

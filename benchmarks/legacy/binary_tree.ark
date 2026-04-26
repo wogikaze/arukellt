@@ -1,0 +1,16 @@
+use std::host::stdio
+
+fn count_nodes(depth: i32) -> i32 {
+    if depth == 0 {
+        return 1
+    }
+    let left: i32 = count_nodes(depth - 1)
+    let right: i32 = count_nodes(depth - 1)
+    1 + left + right
+}
+
+fn main() {
+    let depth: i32 = 20
+    let count: i32 = count_nodes(depth)
+    stdio::println(i32_to_string(count))
+}

@@ -1,0 +1,2 @@
+duplicate definition: alpha
+tests/fixtures/selfhost/multi_diag_dup.ark: error[E0100|resolve]: duplicate definition: beta

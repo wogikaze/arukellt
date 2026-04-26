@@ -1,0 +1,46 @@
+use std::collections::hash
+use std::host::stdio
+
+fn main() {
+    let m: Vec<i32> = hash::hashmap_with_capacity(4)
+    hash::hashmap_set(m, 10, 100)
+    hash::hashmap_set(m, 20, 200)
+    stdio::println(i32_to_string(hash::hashmap_size(m)))
+    let empty: Vec<i32> = hash::hashmap_new()
+    stdio::println(bool_to_string(hash::hashmap_is_empty(empty)))
+    hash::hashmap_set(empty, 5, 50)
+    match hash::hashmap_get_option(empty, 5) {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
+    }
+    match hash::hashmap_get_option(empty, 99) {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
+    }
+    let m2: Vec<i32> = hash::hashmap_new()
+    hash::hashmap_set(m2, 1, 10)
+    hash::hashmap_set(m2, 2, 20)
+    hash::hashmap_set(m2, 3, 30)
+    stdio::println(i32_to_string(hash::hashmap_size(m2)))
+    stdio::println(i32_to_string(len(hash::hashmap_keys(m2))))
+    stdio::println(i32_to_string(len(hash::hashmap_values(m2))))
+    match hash::hashmap_remove(m2, 2) {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
+    }
+    stdio::println(i32_to_string(hash::hashmap_size(m2)))
+    match hash::hashmap_remove(m2, 99) {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println(String_from("none")),
+    }
+    hash::hashmap_clear(m2)
+    stdio::println(bool_to_string(hash::hashmap_is_empty(m2)))
+}
+// hashmap_with_capacity
+// hashmap_is_empty on fresh map
+// hashmap_get_option — present key
+// hashmap_get_option — absent key
+// hashmap_keys and hashmap_values
+// hashmap_remove — existing key
+// hashmap_remove — absent key
+// hashmap_clear

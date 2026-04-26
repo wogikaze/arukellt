@@ -1,0 +1,12 @@
+use std::host::stdio
+use std::time
+
+fn main() {
+    let d1 = time::duration_ms(0i64, 5000000i64)
+    assert_eq_i64(d1, 5i64)
+    let d2 = time::duration_ms(10000000i64, 5000000i64)
+    assert_eq_i64(d2, 0i64)
+    stdio::println("duration ok")
+}
+// Test duration_ms calculation
+// Negative duration should be 0

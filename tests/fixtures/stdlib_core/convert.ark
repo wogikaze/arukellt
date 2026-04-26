@@ -1,0 +1,13 @@
+use std::core::convert
+use std::host::stdio
+
+fn main() {
+    stdio::println(convert::i32_to_string(42))
+    stdio::println(convert::f64_to_string(3.14))
+    stdio::println(convert::bool_to_string(true))
+    let parsed = convert::parse_i32("123")
+    match parsed {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("parse failed"),
+    }
+}

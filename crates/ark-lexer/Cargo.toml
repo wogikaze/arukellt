@@ -1,0 +1,8 @@
+[package]
+name = "ark-lexer"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ark-diagnostics = { workspace = true }
+memchr = { workspace = true }

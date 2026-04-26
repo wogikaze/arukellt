@@ -1,0 +1,68 @@
+/// Deterministic pseudo-random helper functions.
+///
+/// Host entropy lives in `std::host::random`. This module only provides
+/// seeded helpers so callers can reason about reproducibility.
+fn normalize_seed(seed_val: i32) -> i32 {
+    if seed_val == 0 {
+        42
+    } else {
+        seed_val
+    }
+}
+
+/// Generate the next deterministic pseudo-random value from a seed.
+///
+/// Uses a xorshift32-style step and never returns zero.
+pub fn seeded_random(seed_val: i32) -> i32 {
+    let mut x = normalize_seed(seed_val)
+    x = x ^ (x << 13)
+    x = x ^ (x >> 17)
+    x = x ^ (x << 5)
+    if x == 0 {
+        1
+    } else {
+        x
+    }
+}
+
+/// Map a seed to a deterministic value in `[lo, hi)`.
+///
+/// If `hi <= lo`, returns `lo`.
+pub fn seeded_range(seed_val: i32, lo: i32, hi: i32) -> i32 {
+    let r = seeded_random(seed_val)
+    let range = hi - lo
+    if range <= 0 {
+        lo
+    } else {
+        let val = r % range
+        if val < 0 {
+            lo + val + range
+        } else {
+            lo + val
+        }
+    }
+}
+
+/// Return a shuffled copy of `v` using the deterministic seeded RNG.
+pub fn shuffle_i32(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
+    let n = len(v)
+    let mut result = Vec_new_i32()
+    let mut i = 0
+    while i < n {
+        push(result, get_unchecked(v, i))
+        i = i + 1
+    }
+    let mut seed = normalize_seed(seed_val)
+    let mut j = n - 1
+    while j > 0 {
+        seed = seeded_random(seed)
+        let idx = seeded_range(seed, 0, j + 1)
+        let tmp = get_unchecked(result, j)
+        set(result, j, get_unchecked(result, idx))
+        set(result, idx, tmp)
+        j = j - 1
+    }
+    result
+}
+// xorshift32 inline
+// Fisher-Yates shuffle

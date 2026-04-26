@@ -1,0 +1,12 @@
+// Export with Result<i32, String> — maps to WIT result<s32, string>
+// Requires canonical ABI flattening with retptr convention
+pub fn safe_div(a: i32, b: i32) -> Result<i32, String> {
+    if b == 0 {
+        Err("division by zero")
+    } else {
+        Ok(a / b)
+    }
+}
+
+fn main() {
+}

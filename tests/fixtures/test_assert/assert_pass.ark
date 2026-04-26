@@ -1,0 +1,12 @@
+use std::host::stdio
+
+fn main() {
+    assert(true)
+    assert_eq(1 + 1, 2)
+    assert_ne(1, 2)
+    assert_eq_str(String_from("hello"), String_from("hello"))
+    let a: i64 = 42
+    let b: i64 = 42
+    assert_eq_i64(a, b)
+    stdio::println(String_from("all assertions passed"))
+}

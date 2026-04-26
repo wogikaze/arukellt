@@ -1,0 +1,51 @@
+// Tests new parser constructs added by #290:
+// 1. ArrayRepeat [expr; count]
+// 2. Struct base ..base
+// 3. Match guards pattern if cond =>
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+trait Show {
+    fn show(self: Show) -> String
+}
+
+struct Label {
+    text: String,
+}
+
+impl Show for Label {
+    fn show(self: Label) -> String {
+        self.text
+    }
+}
+
+fn render<T: Show>(item: T) -> String {
+    item.show()
+}
+
+fn main() {
+    let zeros = [0; 5]
+    stdio::println(zeros[0])
+    stdio::println(zeros[4])
+    let p1 = Point { x: 10, y: 20 }
+    let p2 = Point { x: 30, ..p1 }
+    stdio::println(p2.x)
+    stdio::println(p2.y)
+    let val = 7
+    let msg = match val {
+        n if n > 10 => "big",
+        n if n > 0 => "positive",
+        _ => "other",
+    }
+    stdio::println(msg)
+    let label = Label { text: String_from("trait-ok") }
+    stdio::println(render(label))
+}
+// 1. ArrayRepeat
+// 2. Struct base expression
+// 3. Match guards
+// 4. Trait decl signature + impl Trait for Type + generic bound

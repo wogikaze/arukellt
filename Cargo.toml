@@ -1,0 +1,64 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/ark-lexer",
+    "crates/ark-parser",
+    "crates/ark-resolve",
+    "crates/ark-typecheck",
+    "crates/ark-hir",
+    "crates/ark-diagnostics",
+    "crates/ark-stdlib",
+    "crates/ark-target",
+    "crates/ark-manifest",
+    "crates/ark-dap",
+    "crates/arukellt",
+    "crates/ark-playground-wasm",
+]
+default-members = [
+    "crates/ark-lexer",
+    "crates/ark-parser",
+    "crates/ark-resolve",
+    "crates/ark-typecheck",
+    "crates/ark-hir",
+    "crates/ark-diagnostics",
+    "crates/ark-stdlib",
+    "crates/ark-target",
+    "crates/ark-manifest",
+    "crates/ark-dap",
+    "crates/arukellt",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.85"
+
+[workspace.dependencies]
+ark-lexer = { path = "crates/ark-lexer" }
+ark-parser = { path = "crates/ark-parser" }
+ark-resolve = { path = "crates/ark-resolve" }
+ark-typecheck = { path = "crates/ark-typecheck" }
+ark-hir = { path = "crates/ark-hir" }
+ark-diagnostics = { path = "crates/ark-diagnostics" }
+ark-target = { path = "crates/ark-target" }
+ark-stdlib = { path = "crates/ark-stdlib" }
+ark-manifest = { path = "crates/ark-manifest" }
+ark-dap = { path = "crates/ark-dap" }
+ark-playground-wasm = { path = "crates/ark-playground-wasm" }
+
+# Shared dependencies
+wasm-encoder = "0.225"
+wasmparser = "0.225"
+wasmtime = "30"
+ariadne = "0.5"
+memchr = "2"
+clap = { version = "4", features = ["derive"] }
+thiserror = "2"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+inkwell = { version = "0.8", features = ["llvm18-1"] }
+tower-lsp = "0.20"
+tokio = { version = "1", features = ["full"] }
+serde_json = "1.0"
+wasm-bindgen = "0.2"

@@ -1,0 +1,808 @@
+// Arukellt Selfhost — CLI Entry Point
+//
+// Command surface for the self-hosted compiler.
+// Supports: parse, compile, check subcommands.
+// Exit code: 0 = success, 1 = failure.
+use std::host::env
+use std::host::fs
+use std::host::process
+use std::host::stdio
+
+use analysis
+use diagnostics
+use driver
+use lsp
+
+fn CMD_PARSE() -> i32 {
+    1
+}
+
+fn CMD_COMPILE() -> i32 {
+    2
+}
+
+fn CMD_CHECK() -> i32 {
+    3
+}
+
+fn CMD_HELP() -> i32 {
+    4
+}
+
+fn CMD_VERSION() -> i32 {
+    5
+}
+
+fn CMD_RUN() -> i32 {
+    6
+}
+
+fn CMD_BUILD() -> i32 {
+    7
+}
+
+fn CMD_TEST() -> i32 {
+    8
+}
+
+fn CMD_UNKNOWN() -> i32 {
+    0
+}
+
+fn CMD_NOT_YET() -> i32 {
+    10
+}
+
+// Issue #568 — IDE analysis API entry point. Hidden subcommand
+// (`ide-analyze`); not listed in `--help` because it exists to drive
+// the analysis API for tests/fixtures and future LSP wiring (#569).
+fn CMD_IDE_ANALYZE() -> i32 {
+    11
+}
+
+// Issue #569 — LSP lifecycle entry point. The `lsp` subcommand replays
+// a Content-Length-framed JSON-RPC script (from a file, since the
+// current selfhost runtime cannot read stdin; see std/io/mod.ark) and
+// prints the framed response stream to stdout. Future work wires this
+// to real stdin once the read intrinsic is available.
+fn CMD_LSP() -> i32 {
+    12
+}
+
+// ── Parsed CLI ───────────────────────────────────────────────────────────────
+struct CliOptions {
+    command: i32,
+    input_file: String,
+    output_file: String,
+    target: String,
+    opt_level: i32,
+    dump_phases: String,
+    emit_mode: String,
+    wit_paths: Vec<String>,
+    json_output: bool,
+    show_help: bool,
+    show_version: bool,
+    has_error: bool,
+    error_msg: String,
+}
+
+fn CliOptions_default() -> CliOptions {
+    CliOptions { command: CMD_UNKNOWN(), input_file: String_new(), output_file: String_new(), target: String_from("wasm32-wasi-p2"), opt_level: 0, dump_phases: String_new(), emit_mode: String_from("wasm"), wit_paths: Vec_new_String(), json_output: false, show_help: false, show_version: false, has_error: false, error_msg: String_new() }
+}
+
+// ── Argument Parsing ─────────────────────────────────────────────────────────
+fn parse_command(name: String) -> i32 {
+    if eq(name, "parse") {
+        return CMD_PARSE()
+    }
+    if eq(name, "compile") {
+        return CMD_COMPILE()
+    }
+    if eq(name, "check") {
+        return CMD_CHECK()
+    }
+    if eq(name, "run") {
+        return CMD_RUN()
+    }
+    if eq(name, "build") {
+        return CMD_BUILD()
+    }
+    if eq(name, "test") {
+        return CMD_TEST()
+    }
+    if eq(name, "help") {
+        return CMD_HELP()
+    }
+    if eq(name, "version") {
+        return CMD_VERSION()
+    }
+    if eq(name, "init") {
+        return CMD_NOT_YET()
+    }
+    if eq(name, "fmt") {
+        return CMD_NOT_YET()
+    }
+    if eq(name, "targets") {
+        return CMD_NOT_YET()
+    }
+    if eq(name, "script") {
+        return CMD_NOT_YET()
+    }
+    if eq(name, "component") {
+        return CMD_NOT_YET()
+    }
+    if eq(name, "lsp") {
+        return CMD_LSP()
+    }
+    if eq(name, "debug-adapter") {
+        return CMD_NOT_YET()
+    }
+    if eq(name, "lint") {
+        return CMD_NOT_YET()
+    }
+    if eq(name, "analyze") {
+        return CMD_NOT_YET()
+    }
+    // Issue #568 — IDE analysis API entry point (hidden subcommand).
+    if eq(name, "ide-analyze") {
+        return CMD_IDE_ANALYZE()
+    }
+    if eq(name, "doc") {
+        return CMD_NOT_YET()
+    }
+    if eq(name, "compose") {
+        return CMD_NOT_YET()
+    }
+    CMD_UNKNOWN()
+}
+
+fn parse_args(argv: Vec<String>) -> CliOptions {
+    let opts = CliOptions_default()
+    let argc = len(argv)
+    if argc <= 1 {
+        opts.show_help = true
+        return opts
+    }
+    let cmd_str = get_unchecked(argv, 1)
+    if eq(clone(cmd_str), "--help") || eq(clone(cmd_str), "-h") {
+        opts.show_help = true
+        return opts
+    }
+    if eq(clone(cmd_str), "--version") || eq(clone(cmd_str), "-V") {
+        opts.show_version = true
+        return opts
+    }
+    opts.command = parse_command(clone(cmd_str))
+    if opts.command == CMD_HELP() {
+        opts.show_help = true
+        return opts
+    }
+    if opts.command == CMD_VERSION() {
+        opts.show_version = true
+        return opts
+    }
+    if opts.command == CMD_UNKNOWN() {
+        opts.command = CMD_COMPILE()
+        opts.input_file = clone(cmd_str)
+    }
+    let mut i = 2
+    while i < argc {
+        let arg = get_unchecked(argv, i)
+        if eq(clone(arg), "--target") {
+            i = i + 1
+            if i < argc {
+                opts.target = clone(get_unchecked(argv, i))
+            }
+        } else {
+            if eq(clone(arg), "--opt-level") {
+                i = i + 1
+                if i < argc {
+                    let val = get_unchecked(argv, i)
+                    if eq(clone(val), "0") {
+                        opts.opt_level = 0
+                    } else {
+                        if eq(clone(val), "1") {
+                            opts.opt_level = 1
+                        } else {
+                            if eq(clone(val), "2") {
+                                opts.opt_level = 2
+                            }
+                        }
+                    }
+                }
+            } else {
+                if eq(clone(arg), "--emit") {
+                    i = i + 1
+                    if i < argc {
+                        opts.emit_mode = clone(get_unchecked(argv, i))
+                    }
+                } else {
+                    if eq(clone(arg), "--wit") {
+                        i = i + 1
+                        if i < argc {
+                            push(opts.wit_paths, clone(get_unchecked(argv, i)))
+                        }
+                    } else {
+                        if eq(clone(arg), "-o") {
+                            i = i + 1
+                            if i < argc {
+                                opts.output_file = clone(get_unchecked(argv, i))
+                            }
+                        } else {
+                            if eq(clone(arg), "--dump-phases") {
+                                i = i + 1
+                                if i < argc {
+                                    opts.dump_phases = clone(get_unchecked(argv, i))
+                                }
+                            } else {
+                                if eq(clone(arg), "--help") {
+                                    opts.show_help = true
+                                } else {
+                                    if eq(clone(arg), "--json") {
+                                        opts.json_output = true
+                                    } else {
+                                        if eq(clone(arg), "--version") {
+                                            opts.show_version = true
+                                        } else {
+                                            if len(opts.input_file) == 0 {
+                                                opts.input_file = clone(arg)
+                                            } else {
+                                                opts.has_error = true
+                                                opts.error_msg = concat(String_from("unexpected argument: "), clone(arg))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    opts
+}
+
+// ── Usage / Version ──────────────────────────────────────────────────────────
+fn print_usage() {
+    stdio::println(String_from("The Arukellt compiler"))
+    stdio::println(String_from(""))
+    stdio::println(String_from("Usage: arukellt <COMMAND>"))
+    stdio::println(String_from(""))
+    stdio::println(String_from("Commands:"))
+    stdio::println(String_from("  compile        Compile an .ark file to Wasm"))
+    stdio::println(String_from("  init           Initialize a new Arukellt project in the specified directory"))
+    stdio::println(String_from("  build          Build the project in the current directory (requires ark.toml)"))
+    stdio::println(String_from("  fmt            Format .ark source files"))
+    stdio::println(String_from("  run            Compile and run an .ark file"))
+    stdio::println(String_from("  check          Type-check an .ark file without compiling"))
+    stdio::println(String_from("  test           Discover and run tests"))
+    stdio::println(String_from("  targets        List available compile targets"))
+    stdio::println(String_from("  script         Manage and run project scripts"))
+    stdio::println(String_from("  component      Build and inspect WebAssembly components"))
+    stdio::println(String_from("  lsp            Start the LSP server (stdio transport)"))
+    stdio::println(String_from("  debug-adapter  Start the DAP debug adapter (stdio transport)"))
+    stdio::println(String_from("  lint           Run lint rules on .ark source files"))
+    stdio::println(String_from("  analyze        Analyze a compiled Wasm binary"))
+    stdio::println(String_from("  doc            Look up standard library documentation for a symbol or module"))
+    stdio::println(String_from("  compose        Link multiple Wasm components into a single composed component"))
+    stdio::println(String_from("  help           Print this message or the help of the given subcommand(s)"))
+    stdio::println(String_from(""))
+    stdio::println(String_from("Options:"))
+    stdio::println(String_from("  -h, --help     Print help"))
+    stdio::println(String_from("  -V, --version  Print version"))
+}
+
+fn print_version() {
+    stdio::println(String_from("arukellt 0.1.0"))
+}
+
+// ── Dump Phase Support (#167) ────────────────────────────────────────────────
+fn should_dump(opts: CliOptions, phase: String) -> bool {
+    if len(opts.dump_phases) == 0 {
+        return false
+    }
+    let phases = clone(opts.dump_phases)
+    let phase_len = len(phase)
+    let phases_len = len(phases)
+    let mut i = 0
+    while i <= phases_len - phase_len {
+        let sub = substring(phases, i, i + phase_len)
+        if eq(sub, clone(phase)) {
+            let at_start = i == 0
+            let after_comma = i > 0 && char_at(phases, i - 1) == 44
+            let at_end = i + phase_len == phases_len
+            let before_comma = i + phase_len < phases_len && char_at(phases, i + phase_len) == 44
+            if at_start || after_comma && at_end || before_comma {
+                return true
+            }
+        }
+        i = i + 1
+    }
+    false
+}
+
+// ── Structured Error Formatting ──────────────────────────────────────────────
+// Emit phase-coded error prefixes (e.g. "error[E0200|typecheck]:") so that
+// selfhost diagnostics surface the same error-code / phase tag as the Rust
+// compiler.  Codes are generic per phase — specific codes are carried by the
+// individual phase diagnostic paths when available.  Phase integers match
+// driver::PHASE_* constants (lex=1, parse=2, resolve=3, typecheck=4,
+// lower=5, emit=6).
+fn phase_error_tag(phase: i32) -> String {
+    if phase == 1 {
+        return String_from("error[E0001|lex]: ")
+    }
+    if phase == 2 {
+        return String_from("error[E0001|parse]: ")
+    }
+    if phase == 3 {
+        return String_from("error[E0100|resolve]: ")
+    }
+    if phase == 4 {
+        return String_from("error[E0200|typecheck]: ")
+    }
+    if phase == 5 {
+        return String_from("error[E0400|lower]: ")
+    }
+    if phase == 6 {
+        return String_from("error[E0500|emit]: ")
+    }
+    String_from("error: ")
+}
+
+fn format_error(file: String, msg: String) -> String {
+    concat(clone(file), concat(String_from(": error: "), msg))
+}
+
+fn format_error_phased(file: String, phase: i32, msg: String) -> String {
+    concat(clone(file), concat(String_from(": "), concat(phase_error_tag(phase), msg)))
+}
+
+fn phase_error_code(phase: i32) -> String {
+    if phase == 1 {
+        return String_from("E0001")
+    }
+    if phase == 2 {
+        return String_from("E0001")
+    }
+    if phase == 3 {
+        return String_from("E0100")
+    }
+    if phase == 4 {
+        return String_from("E0200")
+    }
+    if phase == 5 {
+        return String_from("E0400")
+    }
+    if phase == 6 {
+        return String_from("E0500")
+    }
+    String_from("E0000")
+}
+
+fn format_error_json_diag(file: String, phase: i32, msg: String) -> String {
+    let span = diagnostics::DiagnosticSpan_new(clone(file), 0, 0)
+    let diag = diagnostics::Diagnostic_new(phase_error_code(phase), diagnostics::SEV_ERROR(), span, msg)
+    diagnostics::diagnostic_to_json(diag)
+}
+
+fn format_error_json(file: String, phase: i32, messages: Vec<String>) -> String {
+    let mut out = String_from("{\"file\":\"")
+    out = concat(out, concat(diagnostics::diag_json_escape(clone(file)), String_from("\",\"phase\":")))
+    out = concat(out, concat(to_string(phase), String_from(",\"diagnostics\":[")))
+    let count = len(messages)
+    let mut i = 0
+    while i < count {
+        if i > 0 {
+            out = concat(out, String_from(","))
+        }
+        let msg = get_unchecked(messages, i)
+        out = concat(out, format_error_json_diag(clone(file), phase, clone(msg)))
+        i = i + 1
+    }
+    out = concat(out, String_from("]}"))
+    out
+}
+
+fn format_success_json(file: String, phase: i32, size: i32) -> String {
+    let mut out = String_from("{\"file\":\"")
+    out = concat(out, concat(clone(file), String_from("\",\"phase\":")))
+    out = concat(out, concat(to_string(phase), String_from(",\"success\":true,\"output_size\":")))
+    out = concat(out, concat(to_string(size), String_from("}")))
+    out
+}
+
+// ── Main Entry ───────────────────────────────────────────────────────────────
+fn main() {
+    let argv = env::args()
+    let opts = parse_args(argv)
+    if opts.show_help {
+        print_usage()
+        return
+    }
+    if opts.show_version {
+        print_version()
+        return
+    }
+    if opts.has_error {
+        stdio::eprintln(concat(String_from("error: "), clone(opts.error_msg)))
+        process::exit(2)
+        return
+    }
+    let command = opts.command
+    if command == CMD_NOT_YET() {
+        stdio::eprintln(String_from("error: command not yet implemented in selfhost compiler"))
+        process::exit(1)
+        return
+    }
+    if len(opts.input_file) == 0 && opts.command != CMD_BUILD() && opts.command != CMD_TEST() {
+        stdio::eprintln(String_from("error: no input file specified"))
+        print_usage()
+        process::exit(2)
+        return
+    }
+    let command = opts.command
+    if command == CMD_BUILD() {
+        cmd_build(opts)
+    } else {
+        if command == CMD_TEST() {
+            cmd_test(opts)
+        } else {
+            if command == CMD_RUN() {
+                cmd_run(opts)
+            } else {
+                if command == CMD_IDE_ANALYZE() {
+                    cmd_ide_analyze(opts)
+                } else {
+                    if command == CMD_LSP() {
+                        cmd_lsp(opts)
+                    } else {
+                        cmd_compile(opts)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ── Command: lsp (issue #569) ────────────────────────────────────────────────
+// Replays a Content-Length-framed JSON-RPC script (read from
+// `opts.input_file`) through the selfhost LSP core and prints the
+// framed response stream to stdout. This is the file-driven flavor of
+// the future stdin-driven server entry point — see src/compiler/lsp.ark
+// for the rationale (selfhost cannot read stdin in the current runtime).
+// Always exits 0; output bytes are the test surface.
+fn cmd_lsp(opts: CliOptions) {
+    let input_file = clone(opts.input_file)
+    let source_result = fs::read_to_string(clone(input_file))
+    match source_result {
+        Result::Ok(text) => {
+            let out = lsp::run_session(text)
+            stdio::print(out)
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error: failed to read "), concat(clone(input_file), concat(String_from(": "), fs::fs_error_message(e)))))
+            process::exit(1)
+        },
+    }
+}
+
+// ── Command: ide-analyze (issue #568) ────────────────────────────────────────
+// Hidden subcommand that drives the analysis API end-to-end:
+//   1. read the input file
+//   2. call analysis::analyze(uri, text)
+//   3. print analysis::snapshot_summary on stdout
+// Always exits 0 — diagnostics are payload, not a hard failure (the LSP
+// client decides how to surface them).
+fn cmd_ide_analyze(opts: CliOptions) {
+    let input_file = clone(opts.input_file)
+    let source_result = fs::read_to_string(clone(input_file))
+    match source_result {
+        Result::Ok(text) => {
+            let snap = analysis::analyze(clone(input_file), text)
+            stdio::print(analysis::snapshot_summary(snap))
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error: failed to read "), concat(clone(input_file), concat(String_from(": "), fs::fs_error_message(e)))))
+            process::exit(1)
+        },
+    }
+}
+
+// ── Command: compile / parse / check ─────────────────────────────────────────
+fn cmd_compile(opts: CliOptions) {
+    if eq(clone(opts.emit_mode), "component") {
+        stdio::eprintln(String_from("error: component emit mode is not yet wired in the selfhost driver"))
+        process::exit(1)
+        return
+    }
+    let config = driver::DriverConfig_default()
+    config.target = clone(opts.target)
+    config.opt_level = opts.opt_level
+    config.emit_mode = clone(opts.emit_mode)
+    config.wit_paths = clone(opts.wit_paths)
+    config.dump_tokens = should_dump(opts, String_from("tokens"))
+    config.dump_ast = should_dump(opts, String_from("ast"))
+    config.dump_hir = should_dump(opts, String_from("hir"))
+    config.dump_mir = should_dump(opts, String_from("mir"))
+    config.dump_wasm = should_dump(opts, String_from("wasm"))
+    config.parse_only = opts.command == CMD_PARSE()
+    config.check_only = opts.command == CMD_CHECK()
+    let input_file = clone(opts.input_file)
+    let json_mode = opts.json_output
+    let result = driver::compile_file(clone(input_file), config)
+    if result.success {
+        if json_mode {
+            stdio::println(format_success_json(clone(input_file), result.phase_reached, len(result.output_bytes)))
+        } else {
+            stdio::eprintln(concat(String_from("compilation succeeded (phase "), concat(to_string(result.phase_reached), String_from(")"))))
+        }
+        if len(opts.output_file) > 0 {
+            let write_result = fs::write_bytes(clone(opts.output_file), result.output_bytes)
+            match write_result {
+                Result::Ok(_) => {
+                    if !json_mode {
+                        stdio::eprintln(concat(String_from("wrote "), concat(to_string(len(result.output_bytes)), concat(String_from(" bytes to "), clone(opts.output_file)))))
+                    }
+                },
+                Result::Err(e) => {
+                    stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
+                    process::exit(1)
+                },
+            }
+        } else {
+            if !json_mode {
+                stdio::println(concat(String_from("ok: "), concat(to_string(len(result.output_bytes)), String_from(" bytes"))))
+            }
+        }
+    } else {
+        if json_mode {
+            stdio::println(format_error_json(clone(input_file), result.phase_reached, result.error_messages))
+        } else {
+            let err_count = len(result.error_messages)
+            let mut i = 0
+            while i < err_count {
+                let msg = get_unchecked(result.error_messages, i)
+                stdio::eprintln(format_error_phased(clone(input_file), result.phase_reached, clone(msg)))
+                i = i + 1
+            }
+        }
+        process::exit(1)
+    }
+}
+
+// ── Command: run (compile + execute) ─────────────────────────────────────────
+fn cmd_run(opts: CliOptions) {
+    let input_file = clone(opts.input_file)
+    let config = driver::DriverConfig_default()
+    config.target = clone(opts.target)
+    config.opt_level = opts.opt_level
+    config.emit_mode = String_from("wasm")
+    config.wit_paths = clone(opts.wit_paths)
+    let result = driver::compile_file(clone(input_file), config)
+    if !result.success {
+        let err_count = len(result.error_messages)
+        let mut i = 0
+        while i < err_count {
+            let msg = get_unchecked(result.error_messages, i)
+            stdio::eprintln(format_error(clone(input_file), clone(msg)))
+            i = i + 1
+        }
+        process::exit(1)
+        return
+    }
+    let mut out_path = String_new()
+    if len(opts.output_file) > 0 {
+        out_path = clone(opts.output_file)
+    } else {
+        let base = clone(input_file)
+        let base_len = len(base)
+        if base_len > 4 {
+            let ext = substring(base, base_len - 4, base_len)
+            if eq(ext, ".ark") {
+                out_path = concat(substring(base, 0, base_len - 4), String_from(".wasm"))
+            } else {
+                out_path = concat(clone(base), String_from(".wasm"))
+            }
+        } else {
+            out_path = concat(clone(base), String_from(".wasm"))
+        }
+    }
+    let write_result = fs::write_bytes(clone(out_path), result.output_bytes)
+    match write_result {
+        Result::Ok(_) => {
+            stdio::eprintln(concat(String_from("compiled "), concat(clone(input_file), concat(String_from(" -> "), clone(out_path)))))
+            stdio::eprintln(String_from("run: execute with `wasmtime <output.wasm>`"))
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
+            process::exit(1)
+        },
+    }
+}
+
+// ── Command: build (ark.toml-based) ──────────────────────────────────────────
+fn cmd_build(opts: CliOptions) {
+    let mut manifest_path = String_new()
+    if len(opts.input_file) > 0 {
+        manifest_path = clone(opts.input_file)
+    } else {
+        manifest_path = String_from("ark.toml")
+    }
+    let manifest_result = fs::read_to_string(clone(manifest_path))
+    match manifest_result {
+        Result::Ok(content) => {
+            let pkg_name = find_toml_value(clone(content), String_from("name"))
+            let pkg_version = find_toml_value(clone(content), String_from("version"))
+            let bin_path = find_toml_value(clone(content), String_from("path"))
+            let entry_path = find_toml_value(clone(content), String_from("entry"))
+            let mut entry = String_new()
+            if len(bin_path) > 0 {
+                entry = clone(bin_path)
+            } else {
+                if len(entry_path) > 0 {
+                    entry = clone(entry_path)
+                }
+            }
+            if len(entry) == 0 {
+                stdio::eprintln(String_from("error: no 'path' (under [bin]) or 'entry' field found in ark.toml"))
+                process::exit(1)
+                return
+            }
+            if len(pkg_name) > 0 {
+                stdio::eprintln(concat(String_from("building "), concat(clone(pkg_name), concat(String_from(" v"), concat(clone(pkg_version), concat(String_from(" ("), concat(clone(entry), String_from(")"))))))))
+            } else {
+                stdio::eprintln(concat(String_from("building "), concat(clone(manifest_path), concat(String_from(" (entry: "), concat(clone(entry), String_from(")"))))))
+            }
+            let config = driver::DriverConfig_default()
+            config.target = clone(opts.target)
+            config.opt_level = opts.opt_level
+            config.emit_mode = clone(opts.emit_mode)
+            config.wit_paths = clone(opts.wit_paths)
+            let result = driver::compile_file(clone(entry), config)
+            if result.success {
+                let mut out_path = String_new()
+                if len(opts.output_file) > 0 {
+                    out_path = clone(opts.output_file)
+                } else {
+                    if len(pkg_name) > 0 {
+                        out_path = concat(clone(pkg_name), String_from(".wasm"))
+                    } else {
+                        out_path = String_from("output.wasm")
+                    }
+                }
+                let write_result = fs::write_bytes(clone(out_path), result.output_bytes)
+                match write_result {
+                    Result::Ok(_) => {
+                        stdio::eprintln(concat(String_from("built "), concat(clone(entry), concat(String_from(" -> "), concat(clone(out_path), concat(String_from(" ("), concat(to_string(len(result.output_bytes)), String_from(" bytes)"))))))))
+                    },
+                    Result::Err(e) => {
+                        stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
+                        process::exit(1)
+                    },
+                }
+            } else {
+                let err_count = len(result.error_messages)
+                let mut i = 0
+                while i < err_count {
+                    let msg = get_unchecked(result.error_messages, i)
+                    stdio::eprintln(format_error(clone(entry), clone(msg)))
+                    i = i + 1
+                }
+                process::exit(1)
+            }
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error: cannot read "), concat(clone(manifest_path), concat(String_from(": "), fs::fs_error_message(e)))))
+            process::exit(1)
+        },
+    }
+}
+
+// ── Command: test (discover and run fixtures) ────────────────────────────────
+fn cmd_test(opts: CliOptions) {
+    if len(opts.input_file) > 0 {
+        let input_file = clone(opts.input_file)
+        stdio::eprintln(concat(String_from("testing "), clone(input_file)))
+        let config = driver::DriverConfig_default()
+        config.target = clone(opts.target)
+        config.check_only = true
+        config.wit_paths = clone(opts.wit_paths)
+        let result = driver::compile_file(clone(input_file), config)
+        if result.success {
+            stdio::println(concat(String_from("  PASS  "), clone(input_file)))
+        } else {
+            stdio::println(concat(String_from("  FAIL  "), clone(input_file)))
+            let err_count = len(result.error_messages)
+            let mut i = 0
+            while i < err_count {
+                let msg = get_unchecked(result.error_messages, i)
+                stdio::eprintln(concat(String_from("    "), clone(msg)))
+                i = i + 1
+            }
+            process::exit(1)
+        }
+    } else {
+        stdio::eprintln(String_from("test: specify .ark file(s) to test"))
+        stdio::eprintln(String_from("  usage: arukellt-s1 test <file.ark>"))
+        process::exit(2)
+    }
+}
+
+// ── TOML Value Extraction ────────────────────────────────────────────────────
+fn find_toml_value(content: String, key: String) -> String {
+    let content_len = len(content)
+    let key_len = len(key)
+    let mut line_start = 0
+    let mut i = 0
+    while i < content_len {
+        if char_at(content, i) == 10 || i == content_len - 1 {
+            let line_end = if char_at(content, i) == 10 {
+                i
+            } else {
+                i + 1
+            }
+            let line = substring(content, line_start, line_end)
+            let line_len = len(line)
+            if line_len > key_len + 3 {
+                let prefix = substring(line, 0, key_len)
+                if eq(prefix, clone(key)) {
+                    let mut j = key_len
+                    while j < line_len && char_at(line, j) == 32 {
+                        j = j + 1
+                    }
+                    if j < line_len && char_at(line, j) == 61 {
+                        j = j + 1
+                        while j < line_len && char_at(line, j) == 32 {
+                            j = j + 1
+                        }
+                        if j < line_len && char_at(line, j) == 34 {
+                            j = j + 1
+                            let val_start = j
+                            while j < line_len && char_at(line, j) != 34 {
+                                j = j + 1
+                            }
+                            return substring(line, val_start, j)
+                        }
+                    }
+                }
+            }
+            line_start = i + 1
+        }
+        i = i + 1
+    }
+    String_new()
+}
+// ── Command Tags ─────────────────────────────────────────────────────────────
+// First positional arg is the command (or a flag like --help/--version)
+// Check for flags at position 1 before treating as command
+// Treat as input file with implicit compile
+// Simple parse
+// Positional: input file
+// Check if phase is contained in the comma-separated dump_phases string
+// Simple substring check
+// Check boundaries: start of string or preceded by comma
+// Format: file: error: message
+// Dispatch by command
+// Build DriverConfig from CLI options
+// Compile to a wasm file
+// Write to output file
+// Replace .ark with .wasm
+// Note: process::exec is not yet available in stdlib.
+// User must run wasmtime manually for now.
+// Look for ark.toml in current directory or specified path
+// Extract package metadata
+// Find entry point: try [bin].path first, then entry
+// Parse dependencies (just list them for now)
+// let deps = find_toml_value(clone(content), String_from("dependencies"))
+// Dependencies are not yet resolved, just acknowledged
+// Test command compiles specified .ark files as a check
+// Single file test mode
+// Note: directory scanning (read_dir) is not yet available in stdlib.
+// For now, specify files explicitly.
+// Simple line-by-line search for key = "value"
+// Check if line starts with key
+// Find = sign
+// Extract quoted value

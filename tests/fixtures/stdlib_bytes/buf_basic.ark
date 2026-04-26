@@ -1,0 +1,44 @@
+use std::bytes
+use std::host::stdio
+
+fn main() {
+    let buf: Vec<i32> = bytes::buf_new()
+    stdio::println(i32_to_string(bytes::buf_len(buf)))
+    bytes::buf_push_u8(buf, 65)
+    bytes::buf_push_u8(buf, 66)
+    bytes::buf_push_u8(buf, 67)
+    stdio::println(i32_to_string(bytes::buf_len(buf)))
+    stdio::println(i32_to_string(bytes::bytes_get(buf, 0)))
+    stdio::println(i32_to_string(bytes::bytes_get(buf, 2)))
+    let buf2: Vec<i32> = bytes::buf_new()
+    bytes::buf_push_u16_le(buf2, 258)
+    stdio::println(i32_to_string(bytes::bytes_get(buf2, 0)))
+    stdio::println(i32_to_string(bytes::bytes_get(buf2, 1)))
+    let buf3: Vec<i32> = bytes::buf_new()
+    bytes::buf_push_u32_le(buf3, 305419896)
+    stdio::println(i32_to_string(bytes::buf_len(buf3)))
+    stdio::println(i32_to_string(bytes::bytes_get(buf3, 0)))
+    stdio::println(i32_to_string(bytes::bytes_get(buf3, 3)))
+    let src: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(src, 10)
+    bytes::bytes_push(src, 20)
+    bytes::buf_extend(buf, src)
+    stdio::println(i32_to_string(bytes::buf_len(buf)))
+    let frozen: Vec<i32> = bytes::buf_freeze(buf)
+    stdio::println(i32_to_string(bytes::bytes_len(frozen)))
+    let arr: Vec<i32> = Vec_new_i32()
+    push(arr, 1)
+    push(arr, 2)
+    push(arr, 3)
+    let from_arr: Vec<i32> = bytes::bytes_from_array(arr)
+    stdio::println(i32_to_string(bytes::bytes_len(from_arr)))
+    stdio::println(i32_to_string(bytes::bytes_get(from_arr, 0)))
+    stdio::println(i32_to_string(bytes::bytes_get(from_arr, 2)))
+}
+// buf_new
+// buf_push_u8
+// buf_push_u16_le
+// buf_push_u32_le
+// buf_extend
+// buf_freeze (identity in current runtime)
+// bytes_from_array

@@ -1,0 +1,12 @@
+use std::host::stdio
+use std::test
+
+fn main() {
+    let ok_result: Result<i32, String> = Ok(42)
+    let v = test::expect_ok_i32(ok_result)
+    assert_eq(v, 42)
+    let err_result: Result<i32, String> = Err("bad")
+    let e = test::expect_err_string(err_result)
+    assert_eq_str(e, "bad")
+    stdio::println("expect_result ok")
+}

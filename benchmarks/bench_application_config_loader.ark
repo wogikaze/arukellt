@@ -1,0 +1,83 @@
+// Application benchmark: config loader simulation.
+// Simulates parsing nested configuration entries: each entry has a section
+// (enum), a key (integer token), and a value (integer) with basic validation
+// via Result.  Exercises nested struct allocation, Result error handling,
+// enum match, and iteration over 10,000 config key-value pairs.
+// No file I/O — pure computation with a deterministic dataset.
+use std::host::stdio
+
+enum ConfigSection {
+    Server {
+        port_base: i32,
+    },
+    Database {
+        pool_base: i32,
+    },
+    Logging {
+        level_id: i32,
+    },
+    Feature {
+        flag: i32,
+    },
+}
+
+struct ConfigEntry {
+    section: ConfigSection,
+    key: i32,
+    value: i32,
+}
+
+fn parse_entry(i: i32) -> Result<ConfigEntry, String> {
+    let bucket: i32 = i - i / 4 * 4
+    if i - i / 100 * 100 == 0 {
+        Result::Err("reserved key")
+    } else {
+        let sec: ConfigSection = if bucket == 0 {
+            ConfigSection::Server { port_base: i * 2 }
+        } else {
+            if bucket == 1 {
+                ConfigSection::Database { pool_base: i + 10 }
+            } else {
+                if bucket == 2 {
+                    ConfigSection::Logging { level_id: i - i / 4 * 4 }
+                } else {
+                    ConfigSection::Feature { flag: i - i / 2 * 2 }
+                }
+            }
+        }
+        Result::Ok(ConfigEntry { section: sec, key: i, value: i * 7 + 3 })
+    }
+}
+
+fn entry_weight(e: ConfigEntry) -> i32 {
+    match e.section {
+        ConfigSection::Server { port_base } => port_base + e.value,
+        ConfigSection::Database { pool_base } => pool_base * 2 + e.value,
+        ConfigSection::Logging { level_id } => level_id + e.value,
+        ConfigSection::Feature { flag } => flag + e.value,
+    }
+}
+
+fn main() {
+    let mut sum: i32 = 0
+    let mut skipped: i32 = 0
+    let mut i: i32 = 1
+    while i <= 10000 {
+        let result: Result<ConfigEntry, String> = parse_entry(i)
+        match result {
+            Result::Ok(entry) => {
+                let w: i32 = entry_weight(entry)
+                sum = sum + w
+                if sum > 1000000 {
+                    sum = sum - 1000000
+                }
+            },
+            Result::Err(_) => {
+                skipped = skipped + 1
+            },
+        }
+        i = i + 1
+    }
+    stdio::println(i32_to_string(sum))
+    stdio::println(i32_to_string(skipped))
+}

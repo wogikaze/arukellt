@@ -1,0 +1,27 @@
+use std::host::stdio
+use std::text
+
+fn main() {
+    stdio::println(to_lower("HELLO"))
+    stdio::println(to_upper("hello"))
+    stdio::println(to_lower("Hello World"))
+    stdio::println(to_upper("Hello World"))
+    stdio::println(to_lower("abc"))
+    stdio::println(to_upper("XYZ"))
+    stdio::println(to_lower(""))
+    stdio::println(to_upper(""))
+    stdio::println(to_lower("123!@#"))
+    stdio::println(to_upper("123!@#"))
+    stdio::println(to_lower("A"))
+    stdio::println(to_upper("z"))
+    stdio::println(to_lower("HELLO WORLD"))
+    stdio::println(to_upper("hello world"))
+}
+// Case conversion: to_lower, to_upper (ASCII-only)
+// Basic conversion
+// Mixed case
+// Already lowercase/uppercase
+// Empty string
+// Digits and special chars (unchanged)
+// Single char
+// With spaces

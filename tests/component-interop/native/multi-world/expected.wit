@@ -1,0 +1,24 @@
+// Expected WIT for multi-world scenario
+
+package arukellt:component-interop@1.0.0;
+
+interface math-functions {
+  /// Add two integers
+  add: func(a: s32, b: s32) -> s32;
+
+  /// Multiply two integers
+  multiply: func(a: s32, b: s32) -> s32;
+}
+
+interface string-functions {
+  /// Convert string to uppercase
+  to-uppercase: func(s: string) -> string;
+
+  /// Concatenate two strings
+  concat: func(s1: string, s2: string) -> string;
+}
+
+world multi-world {
+  export math-functions;
+  export string-functions;
+}

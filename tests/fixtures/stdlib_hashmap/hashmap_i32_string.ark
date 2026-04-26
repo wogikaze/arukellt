@@ -1,0 +1,30 @@
+use std::host::stdio
+
+fn main() {
+    let m = HashMap_new_i32_String()
+    HashMap_i32_String_insert(m, 1, "one")
+    HashMap_i32_String_insert(m, 2, "two")
+    HashMap_i32_String_insert(m, 3, "three")
+    HashMap_i32_String_insert(m, 2, "TWO")
+    stdio::println(i32_to_string(HashMap_i32_String_len(m)))
+    match HashMap_i32_String_get(m, 1) {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
+    }
+    match HashMap_i32_String_get(m, 2) {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
+    }
+    match HashMap_i32_String_get(m, 99) {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
+    }
+    stdio::println(bool_to_string(HashMap_i32_String_contains_key(m, 3)))
+    stdio::println(bool_to_string(HashMap_i32_String_contains_key(m, 42)))
+}
+// Update existing key
+// len
+// get existing key
+// get updated key
+// get missing key
+// contains_key

@@ -1,0 +1,53 @@
+use std::host::stdio
+use std::path
+
+fn main() {
+    stdio::println(path::join("", "child"))
+    stdio::println(path::join("base", ""))
+    stdio::println(path::join("", ""))
+    stdio::println(path::join("dir/", "file"))
+    stdio::println(path::join("a/b", "c/d"))
+    stdio::println(path::parent("dir/file.txt"))
+    stdio::println(path::parent("a/b/c"))
+    stdio::println(path::parent("/"))
+    stdio::println(path::parent("file.txt"))
+    stdio::println(path::file_name("dir/"))
+    stdio::println(path::file_name("a/b/c.txt"))
+    stdio::println(path::file_name("standalone"))
+    stdio::println(path::extension("file.tar.gz"))
+    stdio::println(path::extension(".gitignore"))
+    stdio::println(path::extension("Makefile"))
+    stdio::println(path::extension("dir/file.rs"))
+    stdio::println(path::with_extension("main.rs", "ark"))
+    stdio::println(path::with_extension("Makefile", "bak"))
+    stdio::println(path::with_extension("file.txt", ""))
+    stdio::println(bool_to_string(path::is_absolute("/")))
+    stdio::println(bool_to_string(path::is_absolute("/usr/bin")))
+    stdio::println(bool_to_string(path::is_absolute("relative/path")))
+    stdio::println(bool_to_string(path::is_absolute("")))
+}
+// === join edge cases ===
+// join with empty base
+// join with empty child
+// join both empty
+// join with trailing slash on base
+// nested path
+// === parent edge cases ===
+// parent of simple file
+// parent of nested
+// parent of root
+// parent of single component
+// === file_name edge cases ===
+// trailing slash
+// nested with extension
+// no directory
+// === extension edge cases ===
+// multiple dots
+// hidden file
+// no extension
+// path with extension
+// === with_extension edge cases ===
+// replace existing
+// add to no extension
+// empty extension (remove)
+// === is_absolute edge cases ===

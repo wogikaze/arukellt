@@ -1,0 +1,86 @@
+/// std::collections::hash_set — HashSet API
+///
+/// Re-exports the HashSet operations from std::collections::hash.
+/// HashSet<i32> is backed by the monomorphic hash::hashset_* functions.
+
+use std::collections::hash
+
+/// Create a new HashSet<i32>.
+pub fn hashset_i32_new() -> HashSet<i32> {
+    hash::hashset_new()
+}
+
+/// Insert a value into a HashSet<i32>. Returns true if the value was newly inserted.
+pub fn hashset_i32_insert(s: HashSet<i32>, value: i32) -> bool {
+    hash::hashset_insert(s, value)
+}
+
+/// Returns true if the HashSet<i32> contains the value.
+pub fn hashset_i32_contains(s: HashSet<i32>, value: i32) -> bool {
+    hash::hashset_contains(s, value)
+}
+
+/// Remove a value from the HashSet<i32>. Returns true if the value was present.
+pub fn hashset_i32_remove(s: HashSet<i32>, value: i32) -> bool {
+    hash::hashset_remove(s, value)
+}
+
+/// Return the number of elements in the HashSet<i32>.
+pub fn hashset_i32_len(s: HashSet<i32>) -> i32 {
+    hash::hashset_len(s)
+}
+
+/// Returns true if the HashSet<i32> is empty.
+pub fn hashset_i32_is_empty(s: HashSet<i32>) -> bool {
+    hash::hashset_is_empty(s)
+}
+
+/// Convert the HashSet<i32> to a Vec<i32>.
+pub fn hashset_i32_to_vec(s: HashSet<i32>) -> Vec<i32> {
+    hash::hashset_to_vec(s)
+}
+
+/// Return the union of two HashSet<i32>s.
+pub fn hashset_i32_union(a: HashSet<i32>, b: HashSet<i32>) -> HashSet<i32> {
+    hash::hashset_union(a, b)
+}
+
+/// Return the intersection of two HashSet<i32>s.
+pub fn hashset_i32_intersection(a: HashSet<i32>, b: HashSet<i32>) -> HashSet<i32> {
+    hash::hashset_intersection(a, b)
+}
+
+/// Return the difference of two HashSet<i32>s (elements in a but not b).
+pub fn hashset_i32_difference(a: HashSet<i32>, b: HashSet<i32>) -> HashSet<i32> {
+    hash::hashset_difference(a, b)
+}
+
+/// Create a new HashSet<String>.
+pub fn hashset_str_new() -> Vec<String> {
+    hash::hashset_str_new()
+}
+
+/// Insert a value into a HashSet<String>. Returns true if the value was newly inserted.
+pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {
+    hash::hashset_str_insert(s, value)
+}
+
+/// Returns true if the HashSet<String> contains the value.
+pub fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
+    hash::hashset_str_contains(s, value)
+}
+
+/// Remove a value from the HashSet<String>. Returns true if the value was present.
+pub fn hashset_str_remove(s: Vec<String>, value: String) -> bool {
+    hash::hashset_str_remove(s, value)
+}
+
+/// Return the number of elements in the HashSet<String>.
+pub fn hashset_str_len(s: Vec<String>) -> i32 {
+    hash::hashset_str_len(s)
+}
+
+/// Returns true if the HashSet<String> is empty.
+pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
+    hash::hashset_str_is_empty(s)
+}

@@ -1,0 +1,247 @@
+/// FFT and simple spectral helpers over split-complex vectors.
+/// 
+/// The public surface uses two parallel `Vec<f64>` buffers: one for the real
+/// part and one for the imaginary part. Lengths must match and the transform
+/// size must be a power of two.
+pub fn pi() -> f64 {
+    3.141592653589793
+}
+
+pub fn tau() -> f64 {
+    6.283185307179586
+}
+
+fn i32_to_f64(n: i32) -> f64 {
+    let mut x = n
+    let mut sign = 1.0
+    if x < 0 {
+        sign = 0.0 - 1.0
+        x = 0 - x
+    }
+    let mut out = 0.0
+    while x > 0 {
+        out = out + 1.0
+        x = x - 1
+    }
+    out * sign
+}
+
+pub fn is_power_of_two(n: i32) -> bool {
+    if n <= 0 {
+        false
+    } else {
+        let mut x = n
+        while x % 2 == 0 {
+            x = x / 2
+        }
+        x == 1
+    }
+}
+
+fn require_same_length(real: Vec<f64>, imag: Vec<f64>) {
+    if len(real) != len(imag) {
+        panic("fft: real/imag length mismatch")
+    }
+}
+
+fn require_power_of_two(n: i32) {
+    if !is_power_of_two(n) {
+        panic("fft: length must be a positive power of two")
+    }
+}
+
+fn abs_f64(x: f64) -> f64 {
+    if x < 0.0 {
+        0.0 - x
+    } else {
+        x
+    }
+}
+
+fn reduce_angle(x: f64) -> f64 {
+    let full = tau()
+    let half = pi()
+    let mut y = x
+    while y > half {
+        y = y - full
+    }
+    while y < 0.0 - half {
+        y = y + full
+    }
+    y
+}
+
+pub fn sin_approx(x: f64) -> f64 {
+    let y = reduce_angle(x)
+    let y2 = y * y
+    let y3 = y2 * y
+    let y5 = y3 * y2
+    let y7 = y5 * y2
+    let y9 = y7 * y2
+    let y11 = y9 * y2
+    y - y3 / 6.0 + y5 / 120.0 - y7 / 5040.0 + y9 / 362880.0 - y11 / 39916800.0
+}
+
+pub fn cos_approx(x: f64) -> f64 {
+    let y = reduce_angle(x)
+    let y2 = y * y
+    let y4 = y2 * y2
+    let y6 = y4 * y2
+    let y8 = y6 * y2
+    let y10 = y8 * y2
+    1.0 - y2 / 2.0 + y4 / 24.0 - y6 / 720.0 + y8 / 40320.0 - y10 / 3628800.0
+}
+
+fn bit_reverse(index: i32, bits: i32) -> i32 {
+    let mut x = index
+    let mut rev = 0
+    let mut i = 0
+    while i < bits {
+        rev = rev * 2 + x % 2
+        x = x / 2
+        i = i + 1
+    }
+    rev
+}
+
+fn ilog2_pow2(n: i32) -> i32 {
+    let mut x = n
+    let mut bits = 0
+    while x > 1 {
+        x = x / 2
+        bits = bits + 1
+    }
+    bits
+}
+
+pub fn clone_f64(src: Vec<f64>) -> Vec<f64> {
+    let n = len(src)
+    let out = Vec_new_f64_with_cap(n)
+    let mut i = 0
+    while i < n {
+        push(out, get_unchecked(src, i))
+        i = i + 1
+    }
+    out
+}
+
+pub fn zeros(n: i32) -> Vec<f64> {
+    let out = Vec_new_f64_with_cap(n)
+    let mut i = 0
+    while i < n {
+        push(out, 0.0)
+        i = i + 1
+    }
+    out
+}
+
+fn write_back_f64(dst: Vec<f64>, src: Vec<f64>) {
+    require_same_length(dst, src)
+    let n = len(dst)
+    let mut i = 0
+    while i < n {
+        set(dst, i, get_unchecked(src, i))
+        i = i + 1
+    }
+}
+
+fn reorder_bit_reversed(src: Vec<f64>) -> Vec<f64> {
+    let n = len(src)
+    let bits = ilog2_pow2(n)
+    let out = Vec_new_f64_with_cap(n)
+    let mut i = 0
+    while i < n {
+        push(out, 0.0)
+        i = i + 1
+    }
+    i = 0
+    while i < n {
+        let j = bit_reverse(i, bits)
+        set(out, j, get_unchecked(src, i))
+        i = i + 1
+    }
+    out
+}
+
+fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, Vec<f64>) {
+    require_same_length(real_in, imag_in)
+    let n = len(real_in)
+    require_power_of_two(n)
+    let real = reorder_bit_reversed(real_in)
+    let imag = reorder_bit_reversed(imag_in)
+    let mut size = 2
+    while size <= n {
+        let half = size / 2
+        let base_angle = tau() / i32_to_f64(size)
+        let step_angle = if inverse {
+            base_angle
+        } else {
+            0.0 - base_angle
+        }
+        let mut start = 0
+        while start < n {
+            let mut j = 0
+            while j < half {
+                let angle = step_angle * i32_to_f64(j)
+                let wr = cos_approx(angle)
+                let wi = sin_approx(angle)
+                let even = start + j
+                let odd = even + half
+                let odd_r = get_unchecked(real, odd)
+                let odd_i = get_unchecked(imag, odd)
+                let t_r = wr * odd_r - wi * odd_i
+                let t_i = wr * odd_i + wi * odd_r
+                let even_r = get_unchecked(real, even)
+                let even_i = get_unchecked(imag, even)
+                set(real, even, even_r + t_r)
+                set(imag, even, even_i + t_i)
+                set(real, odd, even_r - t_r)
+                set(imag, odd, even_i - t_i)
+                j = j + 1
+            }
+            start = start + size
+        }
+        size = size * 2
+    }
+    if inverse {
+        let scale = 1.0 / i32_to_f64(n)
+        let mut i = 0
+        while i < n {
+            set(real, i, get_unchecked(real, i) * scale)
+            set(imag, i, get_unchecked(imag, i) * scale)
+            i = i + 1
+        }
+    }
+    let out = (real, imag)
+    out
+}
+
+pub fn fft(real: Vec<f64>, imag: Vec<f64>) {
+    let (out_real, out_imag) = fft_core(real, imag, false)
+    write_back_f64(real, out_real)
+    write_back_f64(imag, out_imag)
+}
+
+pub fn ifft(real: Vec<f64>, imag: Vec<f64>) {
+    let (out_real, out_imag) = fft_core(real, imag, true)
+    write_back_f64(real, out_real)
+    write_back_f64(imag, out_imag)
+}
+
+pub fn magnitude(real: Vec<f64>, imag: Vec<f64>) -> Vec<f64> {
+    require_same_length(real, imag)
+    let n = len(real)
+    let out = Vec_new_f64_with_cap(n)
+    let mut i = 0
+    while i < n {
+        let r = get_unchecked(real, i)
+        let im = get_unchecked(imag, i)
+        push(out, __intrinsic_sqrt(r * r + im * im))
+        i = i + 1
+    }
+    out
+}
+
+pub fn approx_eq(a: f64, b: f64, eps: f64) -> bool {
+    abs_f64(a - b) <= eps
+}

@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    let a: i32 = 10
+    let b: i64 = 20
+    let c: f64 = 3.5
+    stdio::println(i32_to_string(a + 5))
+    stdio::println(i64_to_string(b + 10))
+    stdio::println(f64_to_string(c * 2.0))
+}

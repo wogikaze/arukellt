@@ -1,0 +1,24 @@
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+fn main() {
+    let p = Point { x: 10, y: 20 }
+    stdio::println(i32_to_string(p.x))
+    stdio::println(i32_to_string(p.y))
+    let c = Color::Red
+    match c {
+        Color::Red => stdio::println("red"),
+        Color::Green => stdio::println("green"),
+        Color::Blue => stdio::println("blue"),
+    }
+}

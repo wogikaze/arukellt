@@ -1,0 +1,38 @@
+use std::host::stdio
+use std::test
+
+fn main() {
+    test::assert_true(1 == 1)
+    test::assert_false(1 == 2)
+    stdio::println("assert_true/false OK")
+    test::assert_eq_i32(42, 42)
+    stdio::println("assert_eq_i32 OK")
+    test::assert_eq_string("hello", "hello")
+    stdio::println("assert_eq_string OK")
+    test::assert_ne_i32(1, 2)
+    stdio::println("assert_ne_i32 OK")
+    test::assert_contains("hello world", "world")
+    test::assert_contains("arukellt", "aru")
+    stdio::println("assert_contains OK")
+    test::assert_eq_snapshot("line1\nline2", "line1\nline2")
+    stdio::println("assert_eq_snapshot OK")
+    test::assert_msg(true, "this should pass")
+    stdio::println("assert_msg OK")
+    let opt: Option<i32> = Some(10)
+    let val = test::expect_some_i32(opt)
+    test::assert_eq_i32(val, 10)
+    stdio::println("expect_some OK")
+    let none_opt: Option<i32> = None
+    test::expect_none_i32(none_opt)
+    stdio::println("expect_none OK")
+    stdio::println("all test helpers passed")
+}
+// assert_true / assert_false
+// assert_eq_i32
+// assert_eq_string
+// assert_ne_i32
+// assert_contains
+// assert_eq_snapshot
+// assert_msg
+// expect_some_i32
+// expect_none_i32

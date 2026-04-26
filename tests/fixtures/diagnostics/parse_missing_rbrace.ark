@@ -1,0 +1,6 @@
+fn helper() {
+    let x: i32 = 42
+
+fn main() {
+    helper()
+}

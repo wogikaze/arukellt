@@ -1,0 +1,4 @@
+bb0 preds=[]
+bb1 preds=[0]
+bb2 preds=[0]
+bb3 preds=[1,2]

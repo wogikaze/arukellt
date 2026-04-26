@@ -1,0 +1,47 @@
+use std::host::stdio
+use std::json
+
+fn main() {
+    // Round-trip: parse an array, stringify, re-parse, and access elements
+    let raw = "[1,2,3,99]"
+    match json::parse(raw) {
+        Result::Ok(arr) => {
+            match json::json_get_index(arr, 0) {
+                Option::Some(v) => {
+                    match json::json_as_i32(v) {
+                        Option::Some(n) => stdio::println(i32_to_string(n)),
+                        None => stdio::println("not number"),
+                    }
+                },
+                None => stdio::println("index not found"),
+            }
+            match json::json_get_index(arr, 3) {
+                Option::Some(v) => {
+                    match json::json_as_i32(v) {
+                        Option::Some(n) => stdio::println(i32_to_string(n)),
+                        None => stdio::println("not number"),
+                    }
+                },
+                None => stdio::println("index not found"),
+            }
+            // Stringify and re-parse
+            let s = json::stringify(arr)
+            match json::parse(s) {
+                Result::Ok(arr2) => {
+                    match json::json_get_index(arr2, 2) {
+                        Option::Some(v2) => {
+                            match json::json_as_i32(v2) {
+                                Option::Some(n2) => stdio::println(i32_to_string(n2)),
+                                None => stdio::println("not number"),
+                            }
+                        },
+                        None => stdio::println("index not found"),
+                    }
+                },
+                Result::Err(e) => stdio::println(concat("re-parse error:", json::parse_error_message(e))),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+}
+// array round-trip: parse → index → stringify → re-parse → index

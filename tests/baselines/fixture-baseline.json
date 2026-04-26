@@ -1,0 +1,4844 @@
+{
+  "generated_at": "2026-03-29",
+  "fixture_count": 434,
+  "entries": [
+    {
+      "kind": "run",
+      "path": "arrays/array_literal.ark",
+      "status": 0,
+      "stdout": "10\n20\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "arrays/array_repeat.ark",
+      "status": 0,
+      "stdout": "0\n0\n15\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "0",
+        "15"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "closure_capture/capture_struct.ark",
+      "status": 0,
+      "stdout": "35\nhello 42\n",
+      "stderr": "",
+      "primary_text": [
+        "35",
+        "hello 42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/break_continue.ark",
+      "status": 0,
+      "stdout": "1\n3\n5\n7\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "3",
+        "5",
+        "7"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/if_basic.ark",
+      "status": 0,
+      "stdout": "big\n",
+      "stderr": "",
+      "primary_text": [
+        "big"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/if_else.ark",
+      "status": 0,
+      "stdout": "small\n",
+      "stderr": "",
+      "primary_text": [
+        "small"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/if_expr.ark",
+      "status": 0,
+      "stdout": "big\n",
+      "stderr": "",
+      "primary_text": [
+        "big"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/loop_basic.ark",
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/loop_break_value.ark",
+      "status": 0,
+      "stdout": "50\n",
+      "stderr": "",
+      "primary_text": [
+        "50"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/match_enum.ark",
+      "status": 0,
+      "stdout": "south\n",
+      "stderr": "",
+      "primary_text": [
+        "south"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/match_int.ark",
+      "status": 0,
+      "stdout": "two\n",
+      "stderr": "",
+      "primary_text": [
+        "two"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/match_wildcard.ark",
+      "status": 0,
+      "stdout": "many\n",
+      "stderr": "",
+      "primary_text": [
+        "many"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/nested_loops.ark",
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/while_basic.ark",
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "control/while_counter.ark",
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/duplicate_def.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0101|resolve]: duplicate definition\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/duplicate_def.ark:5:1\n   |\n  5 | fn foo() -> i32 {\n   | ^^^^^^^^^^^^^^^^^^^^^^^^^ duplicate definition of `foo`\n\n",
+      "primary_text": [
+        "error[E0101|resolve]: duplicate definition",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/duplicate_def.ark:5:1",
+        "   |",
+        "  5 | fn foo() -> i32 {",
+        "   | ^^^^^^^^^^^^^^^^^^^^^^^^^ duplicate definition of `foo`"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/deprecated_prelude_println.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_prelude_println.ark:2:5\n   |\n  2 |     println(\"hi\")\n   |     ^^^^^^^ host I/O is no longer available from the prelude\n   = note: import `use std::host::stdio` and call `stdio::println(...)`\n\n",
+      "primary_text": [
+        "error[E0100|resolve]: unresolved name",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_prelude_println.ark:2:5",
+        "   |",
+        "  2 |     println(\"hi\")",
+        "   |     ^^^^^^^ host I/O is no longer available from the prelude"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/deprecated_std_io_import.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0104|resolve]: module `std::io` has moved to `std::host::stdio`\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_std_io_import.ark:1:1\n   |\n  1 | use std::io\n   | ^^^^^^^^^^^^^^^ deprecated std import\nhelp: replace the deprecated import\n   |\n  1 | use std::host::stdio\n   = note: host standard I/O is no longer exposed as `std::io`\n\n",
+      "primary_text": [
+        "error[E0104|resolve]: module `std::io` has moved to `std::host::stdio`",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_std_io_import.ark:1:1",
+        "   |",
+        "  1 | use std::io",
+        "   | ^^^^^^^^^^^^^^^ deprecated std import"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/deprecated_time_monotonic_now.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_time_monotonic_now.ark:4:13\n   |\n  4 |     let _ = time::monotonic_now()\n   |             ^^^^^^^^^^^^^^^^^^^^^^^ host clock reads moved out of `std::time`\n   = note: import `use std::host::clock` and call `clock::monotonic_now()`\n\n",
+      "primary_text": [
+        "error[E0100|resolve]: unresolved name",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_time_monotonic_now.ark:4:13",
+        "   |",
+        "  4 |     let _ = time::monotonic_now()",
+        "   |             ^^^^^^^^^^^^^^^^^^^^^^^ host clock reads moved out of `std::time`"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/immutable_mutation.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0207|typecheck]: cannot assign to immutable variable `x`\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/immutable_mutation.ark:3:5\n   |\n  3 |     x = 20\n   |     ^ cannot assign to immutable variable\n\n",
+      "primary_text": [
+        "error[E0207|typecheck]: cannot assign to immutable variable `x`",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/immutable_mutation.ark:3:5",
+        "   |",
+        "  3 |     x = 20",
+        "   |     ^ cannot assign to immutable variable"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "diagnostics/method_syntax.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/mismatched_arms.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0205|typecheck]: mismatched match arm types\n   = expected: i32\n   = actual: String\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/mismatched_arms.ark:3:13\n   |\n  3 |     let y = match x {\n   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `i32`, found `String`\n\n",
+      "primary_text": [
+        "error[E0205|typecheck]: mismatched match arm types",
+        "   = expected: i32",
+        "   = actual: String",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/mismatched_arms.ark:3:13",
+        "   |"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/missing_annotation.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0201|typecheck]: missing type annotation\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/missing_annotation.ark:1:9\n   |\n  1 | fn add(a, b) -> i32 {\n   |         ^ parameter `a` requires a type annotation\n   = help: add a type: `a: Type`\n\nerror[E0201|typecheck]: missing type annotation\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/missing_annotation.ark:1:12\n   |\n  1 | fn add(a, b) -> i32 {\n   |            ^ parameter `b` requires a type annotation\n   = help: add a type: `b: Type`\n\n",
+      "primary_text": [
+        "error[E0201|typecheck]: missing type annotation",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/missing_annotation.ark:1:9",
+        "   |",
+        "  1 | fn add(a, b) -> i32 {",
+        "   |         ^ parameter `a` requires a type annotation"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/missing_brace.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0002|parse]: expected `RBrace`, found `Eof`\n   = expected: RBrace\n   = actual: Eof\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/missing_brace.ark:4:1\n   |\n  4 | \n   | ^ here\n\n",
+      "primary_text": [
+        "error[E0002|parse]: expected `RBrace`, found `Eof`",
+        "   = expected: RBrace",
+        "   = actual: Eof",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/missing_brace.ark:4:1",
+        "   |"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/mutable_sharing.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "warning[W0001|typecheck]: possible unintended sharing of reference type\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/mutable_sharing.ark:4:17\n   |\n  4 |     let alias = v\n   |                 ^ mutable `v` is shared by reference; mutations affect both variables\n\n",
+      "primary_text": [
+        "warning[W0001|typecheck]: possible unintended sharing of reference type",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/mutable_sharing.ark:4:17",
+        "   |",
+        "  4 |     let alias = v",
+        "   |                 ^ mutable `v` is shared by reference; mutations affect both variables"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "diagnostics/nested_generic.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/non_exhaustive.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0204|typecheck]: non-exhaustive match\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/non_exhaustive.ark:10:5\n   |\n 10 |     match c {\n   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing patterns: Color::Blue\n\n",
+      "primary_text": [
+        "error[E0204|typecheck]: non-exhaustive match",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/non_exhaustive.ark:10:5",
+        "   |",
+        " 10 |     match c {",
+        "   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing patterns: Color::Blue"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "diagnostics/operator_overload.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/question_type_mismatch.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0210|typecheck]: ? operator requires function to return Result\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/question_type_mismatch.ark:3:15\n   |\n  3 |     let val = r?\n   |               ^^^^^^^^^^ used here\n   = note: add `-> Result[T, E]` to the function signature\n\n",
+      "primary_text": [
+        "error[E0210|typecheck]: ? operator requires function to return Result",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/question_type_mismatch.ark:3:15",
+        "   |",
+        "  3 |     let val = r?",
+        "   |               ^^^^^^^^^^ used here"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "diagnostics/trait_def.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/type_mismatch.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0200|typecheck]: expected `i32`, found `String`\n   = expected: i32\n   = actual: String\n\n",
+      "primary_text": [
+        "error[E0200|typecheck]: expected `i32`, found `String`",
+        "   = expected: i32",
+        "   = actual: String"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/unexpected_token.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0001|parse]: expected expression, found `Semi`\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/unexpected_token.ark:2:13\n   |\n  2 |     let x = ;\n   |             ^ here\n\n",
+      "primary_text": [
+        "error[E0001|parse]: expected expression, found `Semi`",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/unexpected_token.ark:2:13",
+        "   |",
+        "  2 |     let x = ;",
+        "   |             ^ here"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/unresolved_name.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/unresolved_name.ark:2:13\n   |\n  2 |     let x = unknown_function()\n   |             ^^^^^^^^^^^^^^^^ unresolved name `unknown_function`\n\n",
+      "primary_text": [
+        "error[E0100|resolve]: unresolved name",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/unresolved_name.ark:2:13",
+        "   |",
+        "  2 |     let x = unknown_function()",
+        "   |             ^^^^^^^^^^^^^^^^ unresolved name `unknown_function`"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/wrong_arg_count.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0202|typecheck]: expected 2 argument(s), found 3\n\n",
+      "primary_text": [
+        "error[E0202|typecheck]: expected 2 argument(s), found 3"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "display_trait/display_struct.ark",
+      "status": 0,
+      "stdout": "(3, 4)\nPoint is (3, 4)\n",
+      "stderr": "",
+      "primary_text": [
+        "(3, 4)",
+        "Point is (3, 4)"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "enums/enum_struct_variant.ark",
+      "status": 0,
+      "stdout": "75\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "75",
+        "24"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "enums/exhaustive_match.ark",
+      "status": 0,
+      "stdout": "stop\ncaution\ngo\n",
+      "stderr": "",
+      "primary_text": [
+        "stop",
+        "caution",
+        "go"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "enums/nested_enum.ark",
+      "status": 0,
+      "stdout": "wrap-a\nwrap-b:7\nempty\n",
+      "stderr": "",
+      "primary_text": [
+        "wrap-a",
+        "wrap-b:7",
+        "empty"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "enums/option_none.ark",
+      "status": 0,
+      "stdout": "none\n",
+      "stderr": "",
+      "primary_text": [
+        "none"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "enums/option_some.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "enums/result_err.ark",
+      "status": 0,
+      "stdout": "something went wrong\n",
+      "stderr": "",
+      "primary_text": [
+        "something went wrong"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "enums/result_ok.ark",
+      "status": 0,
+      "stdout": "100\n",
+      "stderr": "",
+      "primary_text": [
+        "100"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "enums/tuple_variant.ark",
+      "status": 0,
+      "stdout": "circle r=5.0\nrect 3.0x4.0\n",
+      "stderr": "",
+      "primary_text": [
+        "circle r=5.0",
+        "rect 3.0x4.0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "enums/unit_variant.ark",
+      "status": 0,
+      "stdout": "green\n",
+      "stderr": "",
+      "primary_text": [
+        "green"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "for_loops/for_range.ark",
+      "status": 0,
+      "stdout": "0\n1\n2\n3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "for_loops/for_sum.ark",
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "for_loops/for_values.ark",
+      "status": 0,
+      "stdout": "10\n20\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "from_trait/from_auto_convert.ark",
+      "status": 0,
+      "stdout": "file not found\n",
+      "stderr": "",
+      "primary_text": [
+        "file not found"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "functions/basic_fn.ark",
+      "status": 0,
+      "stdout": "hello from greet\n",
+      "stderr": "",
+      "primary_text": [
+        "hello from greet"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "functions/closure_basic.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "functions/closure_capture.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "functions/early_return.ark",
+      "status": 0,
+      "stdout": "negative\nzero\npositive\n",
+      "stderr": "",
+      "primary_text": [
+        "negative",
+        "zero",
+        "positive"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "functions/generic_fn.ark",
+      "status": 0,
+      "stdout": "42\nhello\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "hello"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "functions/higher_order.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "functions/multiple_params.ark",
+      "status": 0,
+      "stdout": "7\n12\n",
+      "stderr": "",
+      "primary_text": [
+        "7",
+        "12"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "functions/pub_fn.ark",
+      "status": 0,
+      "stdout": "7\n",
+      "stderr": "",
+      "primary_text": [
+        "7"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "functions/recursive.ark",
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "functions/return_value.ark",
+      "status": 0,
+      "stdout": "49\n",
+      "stderr": "",
+      "primary_text": [
+        "49"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "generics/identity_i32.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "generics/identity_string.ark",
+      "status": 0,
+      "stdout": "hello\n",
+      "stderr": "",
+      "primary_text": [
+        "hello"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "generics/option_generic.ark",
+      "status": 0,
+      "stdout": "42\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "generics/result_generic.ark",
+      "status": 0,
+      "stdout": "42\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "generics/two_params.ark",
+      "status": 0,
+      "stdout": "42\nhello\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "hello"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "generics/vec_generic.ark",
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "generics_v1/generic_struct.ark",
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "generics_v1/nested_generics.ark",
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "generics_v1/nested_option.ark",
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "generics_v1/trait_bound.ark",
+      "status": 0,
+      "stdout": "printing...\n",
+      "stderr": "",
+      "primary_text": [
+        "printing..."
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "hello/empty_main.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "hello/exit_code.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "hello/hello.ark",
+      "status": 0,
+      "stdout": "Hello, world!\n",
+      "stderr": "",
+      "primary_text": [
+        "Hello, world!"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "hello/multi_print.ark",
+      "status": 0,
+      "stdout": "first\nsecond\nthird\n",
+      "stderr": "",
+      "primary_text": [
+        "first",
+        "second",
+        "third"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "hello/print_int.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "integration/calculator.ark",
+      "status": 0,
+      "stdout": "42\n30\n42\n42\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "30",
+        "42",
+        "42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "integration/fibonacci.ark",
+      "status": 0,
+      "stdout": "0\n1\n1\n2\n3\n5\n8\n13\n21\n34\n55\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "integration/linked_list.ark",
+      "status": 0,
+      "stdout": "1 -> 2 -> 3 -> nil\n6\n",
+      "stderr": "",
+      "primary_text": [
+        "1 -> 2 -> 3 -> nil",
+        "6"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "integration/sort_vec.ark",
+      "status": 0,
+      "stdout": "1 2 3 4 5 6 7 8 9 10\n",
+      "stderr": "",
+      "primary_text": [
+        "1 2 3 4 5 6 7 8 9 10"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "integration/word_counter.ark",
+      "status": 0,
+      "stdout": "2\n5\n0\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "5",
+        "0",
+        "1"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "iterator/custom_iterator.ark",
+      "status": 0,
+      "stdout": "0\n1\n2\n3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "match_extensions/match_guard.ark",
+      "status": 0,
+      "stdout": "positive\nlarge some\n",
+      "stderr": "",
+      "primary_text": [
+        "positive",
+        "large some"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "match_extensions/or_pattern.ark",
+      "status": 0,
+      "stdout": "three to five\nodd\n",
+      "stderr": "",
+      "primary_text": [
+        "three to five",
+        "odd"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "match_extensions/struct_field_update.ark",
+      "status": 0,
+      "stdout": "10\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "2"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "match_extensions/struct_pattern.ark",
+      "status": 0,
+      "stdout": "3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "4"
+      ]
+    },
+    {
+      "kind": "module-diag",
+      "path": "modules/circular/main.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0103|resolve]: circular import detected: a.ark \u2192 b.ark \u2192 a.ark\n\n",
+      "primary_text": [
+        "error[E0103|resolve]: circular import detected: a.ark \u2192 b.ark \u2192 a.ark"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/import_basic/main.ark",
+      "status": 0,
+      "stdout": "7\n",
+      "stderr": "",
+      "primary_text": [
+        "7"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/module_alias/main.ark",
+      "status": 0,
+      "stdout": "hello, world\n",
+      "stderr": "",
+      "primary_text": [
+        "hello, world"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/multi_import/main.ark",
+      "status": 0,
+      "stdout": "30\nababab\n",
+      "stderr": "",
+      "primary_text": [
+        "30",
+        "ababab"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/prelude_via_import/main.ark",
+      "status": 0,
+      "stdout": "hello world\n3\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world",
+        "3"
+      ]
+    },
+    {
+      "kind": "module-diag",
+      "path": "modules/pub_private/main.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/modules/pub_private/main.ark:4:13\n   |\n  4 |     let x = lib::secret()\n   |             ^^^^^^^^^^^^^^^ unresolved name `lib::secret`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/modules/pub_private/main.ark:6:12\n   |\n  6 | \n   |            ^^^^^^ unresolved name `secret`\n\n",
+      "primary_text": [
+        "error[E0100|resolve]: unresolved name",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/modules/pub_private/main.ark:4:13",
+        "   |",
+        "  4 |     let x = lib::secret()",
+        "   |             ^^^^^^^^^^^^^^^ unresolved name `lib::secret`"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/use_std_basic/main.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/use_std_alias/main.ark",
+      "status": 0,
+      "stdout": "10\n",
+      "stderr": "",
+      "primary_text": [
+        "10"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/use_qualified_call/main.ark",
+      "status": 0,
+      "stdout": "5\n",
+      "stderr": "",
+      "primary_text": [
+        "5"
+      ]
+    },
+    {
+      "kind": "module-diag",
+      "path": "modules/use_not_found/main.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0104|resolve]: module `nonexistent` not found: error: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/std/nonexistent.ark: No such file or directory (os error 2)\n\n",
+      "primary_text": [
+        "error[E0104|resolve]: module `nonexistent` not found: error: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/std/nonexistent.ark: No such file or directory (os error 2)"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/use_local_module/main.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/use_and_import/main.ark",
+      "status": 0,
+      "stdout": "30\n",
+      "stderr": "",
+      "primary_text": [
+        "30"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "operators/arithmetic.ark",
+      "status": 0,
+      "stdout": "13\n7\n30\n3\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "13",
+        "7",
+        "30",
+        "3",
+        "1"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "operators/bitwise.ark",
+      "status": 0,
+      "stdout": "8\n14\n6\n16\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "8",
+        "14",
+        "6",
+        "16",
+        "4"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "operators/comparison.ark",
+      "status": 0,
+      "stdout": "true\ntrue\ntrue\ntrue\ntrue\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true",
+        "true",
+        "true",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "operators/logical.ark",
+      "status": 0,
+      "stdout": "true\nfalse\ntrue\nfalse\nfalse\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "true",
+        "false",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "operators/mixed_types.ark",
+      "status": 0,
+      "stdout": "15\n30\n7.0\n",
+      "stderr": "",
+      "primary_text": [
+        "15",
+        "30",
+        "7.0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "operators/overflow.ark",
+      "status": 0,
+      "stdout": "-2147483648\n",
+      "stderr": "",
+      "primary_text": [
+        "-2147483648"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "operators/precedence.ark",
+      "status": 0,
+      "stdout": "14\n20\n5\n8\n",
+      "stderr": "",
+      "primary_text": [
+        "14",
+        "20",
+        "5",
+        "8"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "operators/short_circuit.ark",
+      "status": 0,
+      "stdout": "test &&:\ntest ||:\ndone\n",
+      "stderr": "",
+      "primary_text": [
+        "test &&:",
+        "test ||:",
+        "done"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "operators/string_eq.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "operators/unary.ark",
+      "status": 0,
+      "stdout": "-5\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "-5",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_filter/filter_string.ark",
+      "status": 0,
+      "stdout": "hello\nworld\n",
+      "stderr": "",
+      "primary_text": [
+        "hello",
+        "world"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_hashmap/hashmap_basic.ark",
+      "status": 0,
+      "stdout": "200\n3\nfound\nnot found\n",
+      "stderr": "",
+      "primary_text": [
+        "200",
+        "3",
+        "found",
+        "not found"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_hof_i64_f64/filter_f64.ark",
+      "status": 0,
+      "stdout": "7.0\n10.5\n",
+      "stderr": "",
+      "primary_text": [
+        "7.0",
+        "10.5"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_hof_i64_f64/filter_i64.ark",
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_hof_i64_f64/fold_i64.ark",
+      "status": 0,
+      "stdout": "60\n",
+      "stderr": "",
+      "primary_text": [
+        "60"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_hof_i64_f64/map_f64.ark",
+      "status": 0,
+      "stdout": "4.0\n9.0\n16.0\n",
+      "stderr": "",
+      "primary_text": [
+        "4.0",
+        "9.0",
+        "16.0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_hof_i64_f64/map_i64.ark",
+      "status": 0,
+      "stdout": "20\n40\n60\n",
+      "stderr": "",
+      "primary_text": [
+        "20",
+        "40",
+        "60"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io/clock_random.ark",
+      "status": 0,
+      "stdout": "true\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io/eprintln.ark",
+      "status": 0,
+      "stdout": "normal output\n",
+      "stderr": "error message\n",
+      "primary_text": [
+        "normal output"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io/f64_to_string.ark",
+      "status": 0,
+      "stdout": "3.14\n0.0\n-2.5\n",
+      "stderr": "",
+      "primary_text": [
+        "3.14",
+        "0.0",
+        "-2.5"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io/fs_read_error.ark",
+      "status": 0,
+      "stdout": "file open error\n",
+      "stderr": "",
+      "primary_text": [
+        "file open error"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io/fs_read_write.ark",
+      "status": 0,
+      "stdout": "file write error\nfile open error\n",
+      "stderr": "",
+      "primary_text": [
+        "file write error",
+        "file open error"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io/i32_to_string.ark",
+      "status": 0,
+      "stdout": "0\n42\n-100\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "42",
+        "-100"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io/to_string.ark",
+      "status": 0,
+      "stdout": "42\n9001\n3.5\ntrue\nZ\nplain text\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "9001",
+        "3.5",
+        "true",
+        "Z"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io/to_string_char_local.ark",
+      "status": 0,
+      "stdout": "Q\n",
+      "stderr": "",
+      "primary_text": [
+        "Q"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io/parse_int.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io/print_hello.ark",
+      "status": 0,
+      "stdout": "Hello",
+      "stderr": "",
+      "primary_text": [
+        "Hello"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io/println_multi.ark",
+      "status": 0,
+      "stdout": "line 1\nline 2\nline 3\n",
+      "stderr": "",
+      "primary_text": [
+        "line 1",
+        "line 2",
+        "line 3"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_map/map_string.ark",
+      "status": 0,
+      "stdout": "HELLO\nWORLD\nFOO\n",
+      "stderr": "",
+      "primary_text": [
+        "HELLO",
+        "WORLD",
+        "FOO"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_math/abs_min_max.ark",
+      "status": 0,
+      "stdout": "5\n3\n3\n7\n",
+      "stderr": "",
+      "primary_text": [
+        "5",
+        "3",
+        "3",
+        "7"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_math/clamp_i32.ark",
+      "status": 0,
+      "stdout": "5\n0\n10\n0\n10\n",
+      "stderr": "",
+      "primary_text": [
+        "5",
+        "0",
+        "10",
+        "0",
+        "10"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_math/sqrt.ark",
+      "status": 0,
+      "stdout": "3.0\n4.0\n",
+      "stderr": "",
+      "primary_text": [
+        "3.0",
+        "4.0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/range.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n5\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "5"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/ordering.ark",
+      "status": 0,
+      "stdout": "less\ngreater\n",
+      "stderr": "",
+      "primary_text": [
+        "less",
+        "greater"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/math.ark",
+      "status": 0,
+      "stdout": "42\n3\n10\n10\n0\n1024\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "3",
+        "10",
+        "10",
+        "0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/convert.ark",
+      "status": 0,
+      "stdout": "42\n3.14\ntrue\n123\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "3.14",
+        "true",
+        "123"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/hash.ark",
+      "status": 0,
+      "stdout": "true\ntrue\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/error_basic.ark",
+      "status": 0,
+      "stdout": "InvalidArgument: bad input\nTimeout\nsomething went wrong\n",
+      "stderr": "",
+      "primary_text": [
+        "InvalidArgument: bad input",
+        "Timeout",
+        "something went wrong"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/error_match.ark",
+      "status": 0,
+      "stdout": "bad\nfile.txt\nother error\n",
+      "stderr": "",
+      "primary_text": [
+        "bad",
+        "file.txt",
+        "other error"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_option_result/is_some_none.ark",
+      "status": 0,
+      "stdout": "true\nfalse\nfalse\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "false",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_option_result/none_unwrap_or.ark",
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_option_result/option_map.ark",
+      "status": 0,
+      "stdout": "42\nnone\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "none"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_option_result/option_match.ark",
+      "status": 0,
+      "stdout": "got 42\nnothing\n",
+      "stderr": "",
+      "primary_text": [
+        "got 42",
+        "nothing"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_option_result/question_mark.ark",
+      "status": 0,
+      "stdout": "42\nparse error: invalid integer\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "parse error: invalid integer"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_option_result/result_err_match.ark",
+      "status": 0,
+      "stdout": "error: bad input\n",
+      "stderr": "",
+      "primary_text": [
+        "error: bad input"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_option_result/result_ok_unwrap.ark",
+      "status": 0,
+      "stdout": "100\n",
+      "stderr": "",
+      "primary_text": [
+        "100"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_option_result/some_unwrap.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_sort/sort_f64.ark",
+      "status": 0,
+      "stdout": "1.2\n2.8\n3.5\n4.1\n5.0\n",
+      "stderr": "",
+      "primary_text": [
+        "1.2",
+        "2.8",
+        "3.5",
+        "4.1",
+        "5.0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_sort/sort_i64.ark",
+      "status": 0,
+      "stdout": "10\n20\n30\n40\n50\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30",
+        "40",
+        "50"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/clone.ark",
+      "status": 0,
+      "stdout": "original\n",
+      "stderr": "",
+      "primary_text": [
+        "original"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/parse_f64.ark",
+      "status": 0,
+      "stdout": "3.14\n-2.5\n42.0\n0.001\nparse error: invalid float\n",
+      "stderr": "",
+      "primary_text": [
+        "3.14",
+        "-2.5",
+        "42.0",
+        "0.001",
+        "parse error: invalid float"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/parse_i64.ark",
+      "status": 0,
+      "stdout": "42\n-100\n0\n9999999999\nparse error: invalid integer\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "-100",
+        "0",
+        "9999999999",
+        "parse error: invalid integer"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/push_char.ark",
+      "status": 0,
+      "stdout": "hello!\n",
+      "stderr": "",
+      "primary_text": [
+        "hello!"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/string_concat.ark",
+      "status": 0,
+      "stdout": "hello world\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/string_eq.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/string_join.ark",
+      "status": 0,
+      "stdout": "one-two-three\n",
+      "stderr": "",
+      "primary_text": [
+        "one-two-three"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/string_len.ark",
+      "status": 0,
+      "stdout": "5\n",
+      "stderr": "",
+      "primary_text": [
+        "5"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/string_new.ark",
+      "status": 0,
+      "stdout": "0\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/string_slice.ark",
+      "status": 0,
+      "stdout": "hello\n",
+      "stderr": "",
+      "primary_text": [
+        "hello"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/string_split.ark",
+      "status": 0,
+      "stdout": "a\nb\nc\n",
+      "stderr": "",
+      "primary_text": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/string_starts_ends.ark",
+      "status": 0,
+      "stdout": "true\nfalse\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_string/to_lower_upper.ark",
+      "status": 0,
+      "stdout": "hello world\nHELLO WORLD\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world",
+        "HELLO WORLD"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec/any_find.ark",
+      "status": 0,
+      "stdout": "has even: true\nfirst even: 2\nempty has even: false\nno negatives\n",
+      "stderr": "",
+      "primary_text": [
+        "has even: true",
+        "first even: 2",
+        "empty has even: false",
+        "no negatives"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec/vec_filter.ark",
+      "status": 0,
+      "stdout": "2\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "4"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec/vec_fold.ark",
+      "status": 0,
+      "stdout": "15\n",
+      "stderr": "",
+      "primary_text": [
+        "15"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec/vec_get.ark",
+      "status": 0,
+      "stdout": "20\nout of bounds\n",
+      "stderr": "",
+      "primary_text": [
+        "20",
+        "out of bounds"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec/vec_len.ark",
+      "status": 0,
+      "stdout": "0\n2\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec/vec_map.ark",
+      "status": 0,
+      "stdout": "2\n4\n6\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "4",
+        "6"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec/vec_new.ark",
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec/vec_pop.ark",
+      "status": 0,
+      "stdout": "20\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "20",
+        "1"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec/vec_push.ark",
+      "status": 0,
+      "stdout": "3\n",
+      "stderr": "",
+      "primary_text": [
+        "3"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec/vec_set.ark",
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec/vec_sort.ark",
+      "status": 0,
+      "stdout": "10\n20\n30\n40\n50\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30",
+        "40",
+        "50"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec_ops/contains_i32.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec_ops/contains_string.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec_ops/remove_i32.ark",
+      "status": 0,
+      "stdout": "3\n10\n30\n40\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "10",
+        "30",
+        "40"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec_ops/reverse_i32.ark",
+      "status": 0,
+      "stdout": "4\n3\n2\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "3",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec_ops/product_i32.ark",
+      "status": 0,
+      "stdout": "120\n7\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "120",
+        "7",
+        "24"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec_ops/reverse_string.ark",
+      "status": 0,
+      "stdout": "c\nb\na\n",
+      "stderr": "",
+      "primary_text": [
+        "c",
+        "b",
+        "a"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_vec_ops/sum_i32.ark",
+      "status": 0,
+      "stdout": "15\n0\n42\n",
+      "stderr": "",
+      "primary_text": [
+        "15",
+        "0",
+        "42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "string_interp/fstring_basic.ark",
+      "status": 0,
+      "stdout": "Hello, world!\nThe answer is 42.\nflag is true\npi = 3.14\n",
+      "stderr": "",
+      "primary_text": [
+        "Hello, world!",
+        "The answer is 42.",
+        "flag is true",
+        "pi = 3.14"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "string_interp/fstring_expr.ark",
+      "status": 0,
+      "stdout": "sum = 30\n5 * 2 = 10\n",
+      "stderr": "",
+      "primary_text": [
+        "sum = 30",
+        "5 * 2 = 10"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "struct_mutation/field_assign.ark",
+      "status": 0,
+      "stdout": "10\n20\n15\n23\n100\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "15",
+        "23",
+        "100"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "structs/basic_struct.ark",
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "structs/constructor_fn.ark",
+      "status": 0,
+      "stdout": "3.0\n4.0\n",
+      "stderr": "",
+      "primary_text": [
+        "3.0",
+        "4.0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "structs/field_access.ark",
+      "status": 0,
+      "stdout": "Alice\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "Alice",
+        "30"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "structs/nested_struct.ark",
+      "status": 0,
+      "stdout": "1\n2\n10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "2",
+        "10",
+        "20"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "structs/struct_clone.ark",
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "structs/struct_eq.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "structs/struct_in_vec.ark",
+      "status": 0,
+      "stdout": "1,2\n3,4\n",
+      "stderr": "",
+      "primary_text": [
+        "1,2",
+        "3,4"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "structs/struct_update.ark",
+      "status": 0,
+      "stdout": "new\n800\n",
+      "stderr": "",
+      "primary_text": [
+        "new",
+        "800"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "test_assert/assert_pass.ark",
+      "status": 0,
+      "stdout": "all assertions passed\n",
+      "stderr": "",
+      "primary_text": [
+        "all assertions passed"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "t3/arithmetic.ark",
+      "status": 0,
+      "stdout": "13\n7\n30\n3\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "13",
+        "7",
+        "30",
+        "3",
+        "1"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "t3/hello.ark",
+      "status": 0,
+      "stdout": "Hello, world!\n",
+      "stderr": "",
+      "primary_text": [
+        "Hello, world!"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "trait/basic_impl.ark",
+      "status": 0,
+      "stdout": "7\n13\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "7",
+        "13",
+        "24"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "trait/method_chain.ark",
+      "status": 0,
+      "stdout": "4\n6\n10\n20\n5\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "6",
+        "10",
+        "20",
+        "5"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "trait/operator_overload.ark",
+      "status": 0,
+      "stdout": "4\n6\n2\n2\n1\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "6",
+        "2",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "trait/trait_impl.ark",
+      "status": 0,
+      "stdout": "Woof! I'm Rex\n",
+      "stderr": "",
+      "primary_text": [
+        "Woof! I'm Rex"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "v0_constraints/no_impl.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "diag",
+      "path": "v0_constraints/no_method_call.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32 but nothing on stack (at offset 0xdc)\n\n",
+      "primary_text": [
+        "error[W0004|backend-validate]: generated Wasm module failed validation",
+        "   = note: internal error: generated invalid Wasm module: type mismatch: expected i32 but nothing on stack (at offset 0xdc)"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "v0_constraints/no_nested_generics.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "diag",
+      "path": "v0_constraints/no_operator_overload.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found f64 (at offset 0xf3)\n\n",
+      "primary_text": [
+        "error[W0004|backend-validate]: generated Wasm module failed validation",
+        "   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found f64 (at offset 0xf3)"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "variables/bool_lit.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "variables/char_lit.ark",
+      "status": 0,
+      "stdout": "A\n",
+      "stderr": "",
+      "primary_text": [
+        "A"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "variables/f64_lit.ark",
+      "status": 0,
+      "stdout": "3.14\n",
+      "stderr": "",
+      "primary_text": [
+        "3.14"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "variables/i32_lit.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "variables/i64_lit.ark",
+      "status": 0,
+      "stdout": "1000000000000\n",
+      "stderr": "",
+      "primary_text": [
+        "1000000000000"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "variables/mut_var.ark",
+      "status": 0,
+      "stdout": "1\n2\n3\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "variables/string_lit.ark",
+      "status": 0,
+      "stdout": "hello\n",
+      "stderr": "",
+      "primary_text": [
+        "hello"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "variables/tuple.ark",
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "hello/hello.ark",
+      "status": 0,
+      "stdout": "Hello, world!\n",
+      "stderr": "",
+      "primary_text": [
+        "Hello, world!"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "hello/print_int.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "hello/multi_print.ark",
+      "status": 0,
+      "stdout": "first\nsecond\nthird\n",
+      "stderr": "",
+      "primary_text": [
+        "first",
+        "second",
+        "third"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "hello/empty_main.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "t3-compile",
+      "path": "variables/i32_lit.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "variables/i64_lit.ark",
+      "status": 0,
+      "stdout": "1000000000000\n",
+      "stderr": "",
+      "primary_text": [
+        "1000000000000"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "variables/f64_lit.ark",
+      "status": 0,
+      "stdout": "3.14\n",
+      "stderr": "",
+      "primary_text": [
+        "3.14"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "variables/bool_lit.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "variables/string_lit.ark",
+      "status": 0,
+      "stdout": "hello\n",
+      "stderr": "",
+      "primary_text": [
+        "hello"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "variables/mut_var.ark",
+      "status": 0,
+      "stdout": "1\n2\n3\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "operators/arithmetic.ark",
+      "status": 0,
+      "stdout": "13\n7\n30\n3\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "13",
+        "7",
+        "30",
+        "3",
+        "1"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "operators/comparison.ark",
+      "status": 0,
+      "stdout": "true\ntrue\ntrue\ntrue\ntrue\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true",
+        "true",
+        "true",
+        "true"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "operators/logical.ark",
+      "status": 0,
+      "stdout": "true\nfalse\ntrue\nfalse\nfalse\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "true",
+        "false",
+        "false"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "operators/unary.ark",
+      "status": 0,
+      "stdout": "-5\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "-5",
+        "false"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/if_basic.ark",
+      "status": 0,
+      "stdout": "big\n",
+      "stderr": "",
+      "primary_text": [
+        "big"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/if_else.ark",
+      "status": 0,
+      "stdout": "small\n",
+      "stderr": "",
+      "primary_text": [
+        "small"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/if_expr.ark",
+      "status": 0,
+      "stdout": "big\n",
+      "stderr": "",
+      "primary_text": [
+        "big"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/while_basic.ark",
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/while_counter.ark",
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/loop_basic.ark",
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/loop_break_value.ark",
+      "status": 0,
+      "stdout": "50\n",
+      "stderr": "",
+      "primary_text": [
+        "50"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/nested_loops.ark",
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/break_continue.ark",
+      "status": 0,
+      "stdout": "1\n3\n5\n7\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "3",
+        "5",
+        "7"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/match_int.ark",
+      "status": 0,
+      "stdout": "two\n",
+      "stderr": "",
+      "primary_text": [
+        "two"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/match_enum.ark",
+      "status": 0,
+      "stdout": "south\n",
+      "stderr": "",
+      "primary_text": [
+        "south"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "control/match_wildcard.ark",
+      "status": 0,
+      "stdout": "many\n",
+      "stderr": "",
+      "primary_text": [
+        "many"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "functions/basic_fn.ark",
+      "status": 0,
+      "stdout": "hello from greet\n",
+      "stderr": "",
+      "primary_text": [
+        "hello from greet"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "functions/multiple_params.ark",
+      "status": 0,
+      "stdout": "7\n12\n",
+      "stderr": "",
+      "primary_text": [
+        "7",
+        "12"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "functions/return_value.ark",
+      "status": 0,
+      "stdout": "49\n",
+      "stderr": "",
+      "primary_text": [
+        "49"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "functions/recursive.ark",
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "functions/early_return.ark",
+      "status": 0,
+      "stdout": "negative\nzero\npositive\n",
+      "stderr": "",
+      "primary_text": [
+        "negative",
+        "zero",
+        "positive"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "functions/pub_fn.ark",
+      "status": 0,
+      "stdout": "7\n",
+      "stderr": "",
+      "primary_text": [
+        "7"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "functions/closure_basic.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "functions/closure_capture.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "functions/higher_order.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "functions/generic_fn.ark",
+      "status": 0,
+      "stdout": "42\nhello\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "hello"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "structs/basic_struct.ark",
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "structs/field_access.ark",
+      "status": 0,
+      "stdout": "Alice\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "Alice",
+        "30"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "structs/nested_struct.ark",
+      "status": 0,
+      "stdout": "1\n2\n10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "2",
+        "10",
+        "20"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "structs/constructor_fn.ark",
+      "status": 0,
+      "stdout": "3.0\n4.0\n",
+      "stderr": "",
+      "primary_text": [
+        "3.0",
+        "4.0"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "structs/struct_clone.ark",
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "structs/struct_eq.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "structs/struct_update.ark",
+      "status": 0,
+      "stdout": "new\n800\n",
+      "stderr": "",
+      "primary_text": [
+        "new",
+        "800"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "structs/struct_in_vec.ark",
+      "status": 0,
+      "stdout": "1,2\n3,4\n",
+      "stderr": "",
+      "primary_text": [
+        "1,2",
+        "3,4"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "trait/basic_impl.ark",
+      "status": 0,
+      "stdout": "7\n13\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "7",
+        "13",
+        "24"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "trait/trait_impl.ark",
+      "status": 0,
+      "stdout": "Woof! I'm Rex\n",
+      "stderr": "",
+      "primary_text": [
+        "Woof! I'm Rex"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "trait/method_chain.ark",
+      "status": 0,
+      "stdout": "4\n6\n10\n20\n5\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "6",
+        "10",
+        "20",
+        "5"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "trait/operator_overload.ark",
+      "status": 0,
+      "stdout": "4\n6\n2\n2\n1\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "6",
+        "2",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "generics/identity_i32.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "generics/identity_string.ark",
+      "status": 0,
+      "stdout": "hello\n",
+      "stderr": "",
+      "primary_text": [
+        "hello"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "generics/vec_generic.ark",
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "generics_v1/generic_struct.ark",
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "generics_v1/nested_generics.ark",
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/string_concat.ark",
+      "status": 0,
+      "stdout": "hello world\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/string_len.ark",
+      "status": 0,
+      "stdout": "5\n",
+      "stderr": "",
+      "primary_text": [
+        "5"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/string_new.ark",
+      "status": 0,
+      "stdout": "0\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "true"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec/vec_push.ark",
+      "status": 0,
+      "stdout": "3\n",
+      "stderr": "",
+      "primary_text": [
+        "3"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec/vec_len.ark",
+      "status": 0,
+      "stdout": "0\n2\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec/vec_pop.ark",
+      "status": 0,
+      "stdout": "20\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "20",
+        "1"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec/vec_get.ark",
+      "status": 0,
+      "stdout": "20\nout of bounds\n",
+      "stderr": "",
+      "primary_text": [
+        "20",
+        "out of bounds"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec/vec_set.ark",
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "for_loops/for_range.ark",
+      "status": 0,
+      "stdout": "0\n1\n2\n3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "for_loops/for_values.ark",
+      "status": 0,
+      "stdout": "10\n20\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "for_loops/for_sum.ark",
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_option_result/question_mark.ark",
+      "status": 0,
+      "stdout": "42\nparse error: invalid integer\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "parse error: invalid integer"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_option_result/result_ok_unwrap.ark",
+      "status": 0,
+      "stdout": "100\n",
+      "stderr": "",
+      "primary_text": [
+        "100"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "closure_capture/capture_struct.ark",
+      "status": 0,
+      "stdout": "35\nhello 42\n",
+      "stderr": "",
+      "primary_text": [
+        "35",
+        "hello 42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_math/sqrt.ark",
+      "status": 0,
+      "stdout": "3.0\n4.0\n",
+      "stderr": "",
+      "primary_text": [
+        "3.0",
+        "4.0"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_math/abs_min_max.ark",
+      "status": 0,
+      "stdout": "5\n3\n3\n7\n",
+      "stderr": "",
+      "primary_text": [
+        "5",
+        "3",
+        "3",
+        "7"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "string_interp/fstring_expr.ark",
+      "status": 0,
+      "stdout": "sum = 30\n5 * 2 = 10\n",
+      "stderr": "",
+      "primary_text": [
+        "sum = 30",
+        "5 * 2 = 10"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "enums/option_some.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "enums/option_none.ark",
+      "status": 0,
+      "stdout": "none\n",
+      "stderr": "",
+      "primary_text": [
+        "none"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "enums/result_ok.ark",
+      "status": 0,
+      "stdout": "100\n",
+      "stderr": "",
+      "primary_text": [
+        "100"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "enums/result_err.ark",
+      "status": 0,
+      "stdout": "something went wrong\n",
+      "stderr": "",
+      "primary_text": [
+        "something went wrong"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "integration/fibonacci.ark",
+      "status": 0,
+      "stdout": "0\n1\n1\n2\n3\n5\n8\n13\n21\n34\n55\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "integration/sort_vec.ark",
+      "status": 0,
+      "stdout": "1 2 3 4 5 6 7 8 9 10\n",
+      "stderr": "",
+      "primary_text": [
+        "1 2 3 4 5 6 7 8 9 10"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "modules/import_basic/main.ark",
+      "status": 0,
+      "stdout": "7\n",
+      "stderr": "",
+      "primary_text": [
+        "7"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "modules/multi_import/main.ark",
+      "status": 0,
+      "stdout": "30\nababab\n",
+      "stderr": "",
+      "primary_text": [
+        "30",
+        "ababab"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "t3/hello.ark",
+      "status": 0,
+      "stdout": "Hello, world!\n",
+      "stderr": "",
+      "primary_text": [
+        "Hello, world!"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "t3/arithmetic.ark",
+      "status": 0,
+      "stdout": "13\n7\n30\n3\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "13",
+        "7",
+        "30",
+        "3",
+        "1"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "arrays/array_literal.ark",
+      "status": 0,
+      "stdout": "10\n20\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "arrays/array_repeat.ark",
+      "status": 0,
+      "stdout": "0\n0\n15\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "0",
+        "15"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "diagnostics/method_syntax.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "t3-compile",
+      "path": "diagnostics/nested_generic.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "t3-compile",
+      "path": "diagnostics/operator_overload.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "t3-compile",
+      "path": "diagnostics/trait_def.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "t3-compile",
+      "path": "display_trait/display_struct.ark",
+      "status": 0,
+      "stdout": "(3, 4)\nPoint is (3, 4)\n",
+      "stderr": "",
+      "primary_text": [
+        "(3, 4)",
+        "Point is (3, 4)"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "enums/enum_struct_variant.ark",
+      "status": 0,
+      "stdout": "75\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "75",
+        "24"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "enums/exhaustive_match.ark",
+      "status": 0,
+      "stdout": "stop\ncaution\ngo\n",
+      "stderr": "",
+      "primary_text": [
+        "stop",
+        "caution",
+        "go"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "enums/nested_enum.ark",
+      "status": 0,
+      "stdout": "wrap-a\nwrap-b:7\nempty\n",
+      "stderr": "",
+      "primary_text": [
+        "wrap-a",
+        "wrap-b:7",
+        "empty"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "enums/tuple_variant.ark",
+      "status": 0,
+      "stdout": "circle r=5.0\nrect 3.0x4.0\n",
+      "stderr": "",
+      "primary_text": [
+        "circle r=5.0",
+        "rect 3.0x4.0"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "enums/unit_variant.ark",
+      "status": 0,
+      "stdout": "green\n",
+      "stderr": "",
+      "primary_text": [
+        "green"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "from_trait/from_auto_convert.ark",
+      "status": 0,
+      "stdout": "file not found\n",
+      "stderr": "",
+      "primary_text": [
+        "file not found"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "generics/option_generic.ark",
+      "status": 0,
+      "stdout": "42\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "0"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "generics/result_generic.ark",
+      "status": 0,
+      "stdout": "42\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "0"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "generics/two_params.ark",
+      "status": 0,
+      "stdout": "42\nhello\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "hello"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "generics_v1/nested_option.ark",
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "generics_v1/trait_bound.ark",
+      "status": 0,
+      "stdout": "printing...\n",
+      "stderr": "",
+      "primary_text": [
+        "printing..."
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "hello/exit_code.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "t3-compile",
+      "path": "integration/calculator.ark",
+      "status": 0,
+      "stdout": "42\n30\n42\n42\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "30",
+        "42",
+        "42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "integration/word_counter.ark",
+      "status": 0,
+      "stdout": "2\n5\n0\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "5",
+        "0",
+        "1"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "iterator/custom_iterator.ark",
+      "status": 0,
+      "stdout": "0\n1\n2\n3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "match_extensions/match_guard.ark",
+      "status": 0,
+      "stdout": "positive\nlarge some\n",
+      "stderr": "",
+      "primary_text": [
+        "positive",
+        "large some"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "match_extensions/or_pattern.ark",
+      "status": 0,
+      "stdout": "three to five\nodd\n",
+      "stderr": "",
+      "primary_text": [
+        "three to five",
+        "odd"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "match_extensions/struct_field_update.ark",
+      "status": 0,
+      "stdout": "10\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "2"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "match_extensions/struct_pattern.ark",
+      "status": 0,
+      "stdout": "3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "4"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "operators/bitwise.ark",
+      "status": 0,
+      "stdout": "8\n14\n6\n16\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "8",
+        "14",
+        "6",
+        "16",
+        "4"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "operators/mixed_types.ark",
+      "status": 0,
+      "stdout": "15\n30\n7.0\n",
+      "stderr": "",
+      "primary_text": [
+        "15",
+        "30",
+        "7.0"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "operators/overflow.ark",
+      "status": 0,
+      "stdout": "-2147483648\n",
+      "stderr": "",
+      "primary_text": [
+        "-2147483648"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "operators/precedence.ark",
+      "status": 0,
+      "stdout": "14\n20\n5\n8\n",
+      "stderr": "",
+      "primary_text": [
+        "14",
+        "20",
+        "5",
+        "8"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "operators/short_circuit.ark",
+      "status": 0,
+      "stdout": "test &&:\ntest ||:\ndone\n",
+      "stderr": "",
+      "primary_text": [
+        "test &&:",
+        "test ||:",
+        "done"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "operators/string_eq.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_filter/filter_string.ark",
+      "status": 0,
+      "stdout": "hello\nworld\n",
+      "stderr": "",
+      "primary_text": [
+        "hello",
+        "world"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_hashmap/hashmap_basic.ark",
+      "status": 0,
+      "stdout": "200\n3\nfound\nnot found\n",
+      "stderr": "",
+      "primary_text": [
+        "200",
+        "3",
+        "found",
+        "not found"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_io/eprintln.ark",
+      "status": 0,
+      "stdout": "normal output\n",
+      "stderr": "error message\n",
+      "primary_text": [
+        "normal output"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_io/f64_to_string.ark",
+      "status": 0,
+      "stdout": "3.14\n0.0\n-2.5\n",
+      "stderr": "",
+      "primary_text": [
+        "3.14",
+        "0.0",
+        "-2.5"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_io/fs_read_error.ark",
+      "status": 0,
+      "stdout": "file open error\n",
+      "stderr": "",
+      "primary_text": [
+        "file open error"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_io/fs_read_write.ark",
+      "status": 0,
+      "stdout": "file write error\nfile open error\n",
+      "stderr": "",
+      "primary_text": [
+        "file write error",
+        "file open error"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_io/i32_to_string.ark",
+      "status": 0,
+      "stdout": "0\n42\n-100\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "42",
+        "-100"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_io/to_string.ark",
+      "status": 0,
+      "stdout": "42\n9001\n3.5\ntrue\nZ\nplain text\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "9001",
+        "3.5",
+        "true",
+        "Z"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_io/to_string_char_local.ark",
+      "status": 0,
+      "stdout": "Q\n",
+      "stderr": "",
+      "primary_text": [
+        "Q"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_io/parse_int.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_io/print_hello.ark",
+      "status": 0,
+      "stdout": "Hello",
+      "stderr": "",
+      "primary_text": [
+        "Hello"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_io/println_multi.ark",
+      "status": 0,
+      "stdout": "line 1\nline 2\nline 3\n",
+      "stderr": "",
+      "primary_text": [
+        "line 1",
+        "line 2",
+        "line 3"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_map/map_string.ark",
+      "status": 0,
+      "stdout": "HELLO\nWORLD\nFOO\n",
+      "stderr": "",
+      "primary_text": [
+        "HELLO",
+        "WORLD",
+        "FOO"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_math/clamp_i32.ark",
+      "status": 0,
+      "stdout": "5\n0\n10\n0\n10\n",
+      "stderr": "",
+      "primary_text": [
+        "5",
+        "0",
+        "10",
+        "0",
+        "10"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_option_result/is_some_none.ark",
+      "status": 0,
+      "stdout": "true\nfalse\nfalse\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "false",
+        "true"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_option_result/none_unwrap_or.ark",
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_option_result/option_map.ark",
+      "status": 0,
+      "stdout": "42\nnone\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "none"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_option_result/option_match.ark",
+      "status": 0,
+      "stdout": "got 42\nnothing\n",
+      "stderr": "",
+      "primary_text": [
+        "got 42",
+        "nothing"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_option_result/result_err_match.ark",
+      "status": 0,
+      "stdout": "error: bad input\n",
+      "stderr": "",
+      "primary_text": [
+        "error: bad input"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_option_result/some_unwrap.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/clone.ark",
+      "status": 0,
+      "stdout": "original\n",
+      "stderr": "",
+      "primary_text": [
+        "original"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/parse_f64.ark",
+      "status": 0,
+      "stdout": "3.14\n-2.5\n42.0\n0.001\nparse error: invalid float\n",
+      "stderr": "",
+      "primary_text": [
+        "3.14",
+        "-2.5",
+        "42.0",
+        "0.001",
+        "parse error: invalid float"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/parse_i64.ark",
+      "status": 0,
+      "stdout": "42\n-100\n0\n9999999999\nparse error: invalid integer\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "-100",
+        "0",
+        "9999999999",
+        "parse error: invalid integer"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/push_char.ark",
+      "status": 0,
+      "stdout": "hello!\n",
+      "stderr": "",
+      "primary_text": [
+        "hello!"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/string_eq.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/string_join.ark",
+      "status": 0,
+      "stdout": "one-two-three\n",
+      "stderr": "",
+      "primary_text": [
+        "one-two-three"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/string_slice.ark",
+      "status": 0,
+      "stdout": "hello\n",
+      "stderr": "",
+      "primary_text": [
+        "hello"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/string_split.ark",
+      "status": 0,
+      "stdout": "a\nb\nc\n",
+      "stderr": "",
+      "primary_text": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/string_starts_ends.ark",
+      "status": 0,
+      "stdout": "true\nfalse\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_string/to_lower_upper.ark",
+      "status": 0,
+      "stdout": "hello world\nHELLO WORLD\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world",
+        "HELLO WORLD"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec/any_find.ark",
+      "status": 0,
+      "stdout": "has even: true\nfirst even: 2\nempty has even: false\nno negatives\n",
+      "stderr": "",
+      "primary_text": [
+        "has even: true",
+        "first even: 2",
+        "empty has even: false",
+        "no negatives"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec/vec_filter.ark",
+      "status": 0,
+      "stdout": "2\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "4"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec/vec_fold.ark",
+      "status": 0,
+      "stdout": "15\n",
+      "stderr": "",
+      "primary_text": [
+        "15"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec/vec_map.ark",
+      "status": 0,
+      "stdout": "2\n4\n6\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "4",
+        "6"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec/vec_new.ark",
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec/vec_sort.ark",
+      "status": 0,
+      "stdout": "10\n20\n30\n40\n50\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30",
+        "40",
+        "50"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec_ops/contains_i32.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec_ops/contains_string.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec_ops/product_i32.ark",
+      "status": 0,
+      "stdout": "120\n7\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "120",
+        "7",
+        "24"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec_ops/remove_i32.ark",
+      "status": 0,
+      "stdout": "3\n10\n30\n40\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "10",
+        "30",
+        "40"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec_ops/reverse_i32.ark",
+      "status": 0,
+      "stdout": "4\n3\n2\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "3",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec_ops/reverse_string.ark",
+      "status": 0,
+      "stdout": "c\nb\na\n",
+      "stderr": "",
+      "primary_text": [
+        "c",
+        "b",
+        "a"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "stdlib_vec_ops/sum_i32.ark",
+      "status": 0,
+      "stdout": "15\n0\n42\n",
+      "stderr": "",
+      "primary_text": [
+        "15",
+        "0",
+        "42"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "string_interp/fstring_basic.ark",
+      "status": 0,
+      "stdout": "Hello, world!\nThe answer is 42.\nflag is true\npi = 3.14\n",
+      "stderr": "",
+      "primary_text": [
+        "Hello, world!",
+        "The answer is 42.",
+        "flag is true",
+        "pi = 3.14"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "struct_mutation/field_assign.ark",
+      "status": 0,
+      "stdout": "10\n20\n15\n23\n100\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "15",
+        "23",
+        "100"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "v0_constraints/no_impl.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "t3-compile",
+      "path": "v0_constraints/no_nested_generics.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "t3-compile",
+      "path": "variables/char_lit.ark",
+      "status": 0,
+      "stdout": "A\n",
+      "stderr": "",
+      "primary_text": [
+        "A"
+      ]
+    },
+    {
+      "kind": "t3-compile",
+      "path": "variables/tuple.ark",
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/export_add.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/multi_export.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/export_bool.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/export_f64.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/export_i64.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/export_char.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_tuple.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_enum_wit.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_option.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_result.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_record.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_variant.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_string.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_list.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_flags.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_resource.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/suffix_literals.ark",
+      "status": 0,
+      "stdout": "42\n100\n3.14\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "100",
+        "3.14"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/u8_basic.ark",
+      "status": 0,
+      "stdout": "255\n100\n155\n",
+      "stderr": "",
+      "primary_text": [
+        "255",
+        "100",
+        "155"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/u32_arithmetic.ark",
+      "status": 0,
+      "stdout": "1000000\n999999\n1\n2000000\n",
+      "stderr": "",
+      "primary_text": [
+        "1000000",
+        "999999",
+        "1",
+        "2000000"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/u64_basic.ark",
+      "status": 0,
+      "stdout": "10000000000\n9999999999\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "10000000000",
+        "9999999999",
+        "1"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/i8_sign.ark",
+      "status": 0,
+      "stdout": "42\n100\n58\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "100",
+        "58"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/f32_basic.ark",
+      "status": 0,
+      "stdout": "6.28\n",
+      "stderr": "",
+      "primary_text": [
+        "6.28"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/hex_literal.ark",
+      "status": 0,
+      "stdout": "255\n26\n-559038737\n",
+      "stderr": "",
+      "primary_text": [
+        "255",
+        "26",
+        "-559038737"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/comparison.ark",
+      "status": 0,
+      "stdout": "true\nfalse\nfalse\ntrue\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "false",
+        "true",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/type_annotation.ark",
+      "status": 0,
+      "stdout": "42\n1000\n100000\n500\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "1000",
+        "100000",
+        "500"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/u16_arithmetic.ark",
+      "status": 0,
+      "stdout": "1500\n500\n2000\n",
+      "stderr": "",
+      "primary_text": [
+        "1500",
+        "500",
+        "2000"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/i16_basic.ark",
+      "status": 0,
+      "stdout": "500\n100\n600\n",
+      "stderr": "",
+      "primary_text": [
+        "500",
+        "100",
+        "600"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/u8_overflow.ark",
+      "status": 0,
+      "stdout": "260\n300\n",
+      "stderr": "",
+      "primary_text": [
+        "260",
+        "300"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_time/monotonic.ark",
+      "status": 0,
+      "stdout": "monotonic ok\n",
+      "stderr": "",
+      "primary_text": [
+        "monotonic ok"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_time/duration.ark",
+      "status": 0,
+      "stdout": "duration ok\n",
+      "stderr": "",
+      "primary_text": [
+        "duration ok"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_random/random_seed.ark",
+      "status": 0,
+      "stdout": "random_seed ok\n",
+      "stderr": "",
+      "primary_text": [
+        "random_seed ok"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_random/random_range.ark",
+      "status": 0,
+      "stdout": "random_range ok\n",
+      "stderr": "",
+      "primary_text": [
+        "random_range ok"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_random/shuffle.ark",
+      "status": 0,
+      "stdout": "shuffle ok\n",
+      "stderr": "",
+      "primary_text": [
+        "shuffle ok"
+      ]
+    },
+    {
+      "kind": "t3-run",
+      "path": "stdlib_io/clock_random.ark",
+      "status": 0,
+      "stdout": "true\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true"
+      ]
+    },
+    {
+      "kind": "t3-run",
+      "path": "stdlib_io2/io_basic.ark",
+      "status": 0,
+      "stdout": "hello world\ndone\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world",
+        "done"
+      ]
+    },
+    {
+      "kind": "t3-run",
+      "path": "stdlib_random/random_seed.ark",
+      "status": 0,
+      "stdout": "random_seed ok\n",
+      "stderr": "",
+      "primary_text": [
+        "random_seed ok"
+      ]
+    },
+    {
+      "kind": "t3-run",
+      "path": "stdlib_random/random_range.ark",
+      "status": 0,
+      "stdout": "random_range ok\n",
+      "stderr": "",
+      "primary_text": [
+        "random_range ok"
+      ]
+    },
+    {
+      "kind": "t3-run",
+      "path": "stdlib_time/monotonic.ark",
+      "status": 0,
+      "stdout": "monotonic ok\n",
+      "stderr": "",
+      "primary_text": [
+        "monotonic ok"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_test/assert_eq.ark",
+      "status": 0,
+      "stdout": "assert_eq ok\n",
+      "stderr": "",
+      "primary_text": [
+        "assert_eq ok"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_test/assert_ne.ark",
+      "status": 0,
+      "stdout": "assert_ne ok\n",
+      "stderr": "",
+      "primary_text": [
+        "assert_ne ok"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_test/expect_result.ark",
+      "status": 0,
+      "stdout": "expect_result ok\n",
+      "stderr": "",
+      "primary_text": [
+        "expect_result ok"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_test/expect_option.ark",
+      "status": 0,
+      "stdout": "expect_option ok\n",
+      "stderr": "",
+      "primary_text": [
+        "expect_option ok"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_text/string_trim.ark",
+      "status": 0,
+      "stdout": "hello world\nhello world  \n  hello world\n\n\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world",
+        "hello world  ",
+        "  hello world"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_text/string_replace.ark",
+      "status": 0,
+      "stdout": "hello arukellt\nbbbbbb\nno match\n",
+      "stderr": "",
+      "primary_text": [
+        "hello arukellt",
+        "bbbbbb",
+        "no match"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_text/string_repeat.ark",
+      "status": 0,
+      "stdout": "ababab\nxxxxx\n0\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "ababab",
+        "xxxxx",
+        "0",
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_text/string_lines.ark",
+      "status": 0,
+      "stdout": "3\nline1\nline2\nline3\ntrue\n5\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "line1",
+        "line2",
+        "line3",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_text/fmt_pad.ark",
+      "status": 0,
+      "stdout": "000042\nhi....\ntoolong\n42\ntrue\n6\n-1\n",
+      "stderr": "",
+      "primary_text": [
+        "000042",
+        "hi....",
+        "toolong",
+        "42",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_process/exit_zero.ark",
+      "status": 0,
+      "stdout": "before exit\nafter exit\n",
+      "stderr": "",
+      "primary_text": [
+        "before exit",
+        "after exit"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_env/env_basic.ark",
+      "status": 0,
+      "stdout": "0\n0\nnot found\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "0",
+        "not found"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_cli/cli_basic.ark",
+      "status": 0,
+      "stdout": "0\nfalse\nno arg\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "false",
+        "no arg"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_path/path_basic.ark",
+      "status": 0,
+      "stdout": "/usr/bin\n/usr/bin\nfile.txt\n/usr/bin\n\nls\nark\n\nmain.ark\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "/usr/bin",
+        "/usr/bin",
+        "file.txt",
+        "/usr/bin",
+        ""
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io2/io_basic.ark",
+      "status": 0,
+      "stdout": "hello world\ndone\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world",
+        "done"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_bytes/bytes_basic.ark",
+      "status": 0,
+      "stdout": "3\n72\n48656c\n3\n72\n3\n229\n142\n38\n120\n86\n305419896\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "72",
+        "48656c",
+        "3",
+        "72"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_hash/hash_basic.ark",
+      "status": 0,
+      "stdout": "2\n100\n200\ntrue\nfalse\n300\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "100",
+        "200",
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_linear/linear_basic.ark",
+      "status": 0,
+      "stdout": "3\n5\n20\n1\n3\n10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "5",
+        "20",
+        "1",
+        "3"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_ordered/ordered_basic.ark",
+      "status": 0,
+      "stdout": "3\n100\n200\n300\ntrue\nfalse\ntrue\nfalse\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "100",
+        "200",
+        "300",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_compiler/compiler_basic.ark",
+      "status": 0,
+      "stdout": "2\n42\n99\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "42",
+        "99"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_seq/seq_basic.ark",
+      "status": 0,
+      "stdout": "14\n1\n5\ntrue\nfalse\n2\n3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "14",
+        "1",
+        "5",
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_wasm/wasm_basic.ark",
+      "status": 0,
+      "stdout": "0\n97\n1\n127\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "97",
+        "1",
+        "127"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_wasm/memory_ops.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_wit/wit_basic.ark",
+      "status": 0,
+      "stdout": "13\nbool\nf64\n",
+      "stderr": "",
+      "primary_text": [
+        "13",
+        "bool",
+        "f64"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_json/json_basic.ark",
+      "status": 0,
+      "stdout": "42\ntrue\n\"hello\"\nnull\n123\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "true",
+        "\"hello\"",
+        "null",
+        "123"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "opt/tail_call_deep.ark",
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
+    },
+    {
+      "kind": "bench",
+      "path": "../../benchmarks/fib.ark",
+      "status": 0,
+      "stdout": "9227465\n",
+      "stderr": "",
+      "primary_text": [
+        "9227465"
+      ]
+    },
+    {
+      "kind": "bench",
+      "path": "../../benchmarks/binary_tree.ark",
+      "status": 0,
+      "stdout": "2097151\n",
+      "stderr": "",
+      "primary_text": [
+        "2097151"
+      ]
+    },
+    {
+      "kind": "bench",
+      "path": "../../benchmarks/vec_ops.ark",
+      "status": 0,
+      "stdout": "1000\n499500\nfound 500\nnot found 9999\n",
+      "stderr": "",
+      "primary_text": [
+        "1000",
+        "499500",
+        "found 500",
+        "not found 9999"
+      ]
+    },
+    {
+      "kind": "bench",
+      "path": "../../benchmarks/string_concat.ark",
+      "status": 0,
+      "stdout": "100\n",
+      "stderr": "",
+      "primary_text": [
+        "100"
+      ]
+    },
+    {
+      "kind": "bench",
+      "path": "../../benchmarks/bench_parse_tree_distance.ark",
+      "status": 0,
+      "stdout": "file open error\n",
+      "stderr": "",
+      "primary_text": [
+        "file open error"
+      ]
+    }
+  ]
+}

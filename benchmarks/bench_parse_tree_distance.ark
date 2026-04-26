@@ -1,0 +1,150 @@
+use std::host::fs
+use std::host::stdio
+
+fn is_space(ch: i32) -> bool {
+    ch == 32 || ch == 10 || ch == 13 || ch == 9
+}
+
+fn dist_offset(n: i32, i: i32, j: i32) -> i32 {
+    i * 2 * n - i - 1 / 2 + j - i - 1
+}
+
+fn main() {
+    let read_result: Result<String, String> = fs::read_to_string("benchmarks/bench_parse_tree_distance.input.txt")
+    match read_result {
+        Result::Ok(raw) => {
+            let mut pos = 0
+            while pos < len(raw) && is_space(char_at(raw, pos)) {
+                pos = pos + 1
+            }
+            let mut n = 0
+            while pos < len(raw) && !is_space(char_at(raw, pos)) {
+                n = n * 10 + char_at(raw, pos) - 48
+                pos = pos + 1
+            }
+            let dists: Vec<i32> = Vec_new_i32()
+            let mut i = 0
+            while i < n {
+                let mut j = i + 1
+                while j < n {
+                    while pos < len(raw) && is_space(char_at(raw, pos)) {
+                        pos = pos + 1
+                    }
+                    let mut value = 0
+                    while pos < len(raw) && !is_space(char_at(raw, pos)) {
+                        value = value * 10 + char_at(raw, pos) - 48
+                        pos = pos + 1
+                    }
+                    push(dists, value)
+                    j = j + 1
+                }
+                i = i + 1
+            }
+            let order_keys: Vec<i32> = Vec_new_i32()
+            let base = n + 1
+            let mut v = 0
+            while v < n {
+                let root_dist = if v == 0 {
+                    0
+                } else {
+                    get_unchecked(dists, dist_offset(n, 0, v))
+                }
+                push(order_keys, root_dist * base + v)
+                v = v + 1
+            }
+            sort_i32(order_keys)
+            let processed: Vec<i32> = Vec_new_i32()
+            push(processed, 0)
+            let mut ok = true
+            let mut k = 1
+            while ok && k < len(order_keys) {
+                let v = get_unchecked(order_keys, k) % base
+                let root_dist = if v == 0 {
+                    0
+                } else {
+                    get_unchecked(dists, dist_offset(n, 0, v))
+                }
+                let mut parent = 0
+                let mut best_depth = 0
+                let mut p = 0
+                while p < len(processed) {
+                    let u = get_unchecked(processed, p)
+                    let u_depth = if u == 0 {
+                        0
+                    } else {
+                        get_unchecked(dists, dist_offset(n, 0, u))
+                    }
+                    let mut a = u
+                    let mut b = v
+                    if a > b {
+                        let tmp = a
+                        a = b
+                        b = tmp
+                    }
+                    let uv = if a == b {
+                        0
+                    } else {
+                        get_unchecked(dists, dist_offset(n, a, b))
+                    }
+                    if u_depth + uv == root_dist && u_depth >= best_depth {
+                        best_depth = u_depth
+                        parent = u
+                    }
+                    p = p + 1
+                }
+                let parent_depth = if parent == 0 {
+                    0
+                } else {
+                    get_unchecked(dists, dist_offset(n, 0, parent))
+                }
+                let weight = root_dist - parent_depth
+                if weight == 0 {
+                    ok = false
+                } else {
+                    p = 0
+                    while ok && p < len(processed) {
+                        let u = get_unchecked(processed, p)
+                        let mut a1 = v
+                        let mut b1 = u
+                        if a1 > b1 {
+                            let tmp1 = a1
+                            a1 = b1
+                            b1 = tmp1
+                        }
+                        let vu = if a1 == b1 {
+                            0
+                        } else {
+                            get_unchecked(dists, dist_offset(n, a1, b1))
+                        }
+                        let mut a2 = parent
+                        let mut b2 = u
+                        if a2 > b2 {
+                            let tmp2 = a2
+                            a2 = b2
+                            b2 = tmp2
+                        }
+                        let pu = if a2 == b2 {
+                            0
+                        } else {
+                            get_unchecked(dists, dist_offset(n, a2, b2))
+                        }
+                        if vu != weight + pu {
+                            ok = false
+                        }
+                        p = p + 1
+                    }
+                }
+                if ok {
+                    push(processed, v)
+                }
+                k = k + 1
+            }
+            if ok {
+                stdio::println("Yes")
+            } else {
+                stdio::println("No")
+            }
+        },
+        Result::Err(e) => stdio::println(e),
+    }
+}

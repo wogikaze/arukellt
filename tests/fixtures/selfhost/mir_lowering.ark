@@ -1,0 +1,96 @@
+// Test: selfhost MIR expression lowering & control flow
+// Exercises: int literals, binary ops, variable access, function calls,
+//            let bindings, return, while loops, if expressions,
+//            break, continue, nested control flow
+use std::host::stdio
+
+fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+fn mul_sub(x: i32, y: i32, z: i32) -> i32 {
+    x * y - z
+}
+
+fn fib(n: i32) -> i32 {
+    let mut a = 0
+    let mut b = 1
+    let mut i = 0
+    while i < n {
+        let tmp = b
+        b = a + b
+        a = tmp
+        i = i + 1
+    }
+    a
+}
+
+fn max_val(a: i32, b: i32) -> i32 {
+    if a > b {
+        a
+    } else {
+        b
+    }
+}
+
+fn find_first_ge(limit: i32) -> i32 {
+    let mut i = 0
+    while i < 100 {
+        if i >= limit {
+            break
+        }
+        i = i + 1
+    }
+    i
+}
+
+fn sum_skip_five(n: i32) -> i32 {
+    let mut total = 0
+    let mut i = 0
+    while i < n {
+        i = i + 1
+        if i == 5 {
+            continue
+        }
+        total = total + i
+    }
+    total
+}
+
+fn nested_loops() -> i32 {
+    let mut count = 0
+    let mut i = 0
+    while i < 3 {
+        let mut j = 0
+        while j < 4 {
+            count = count + 1
+            j = j + 1
+        }
+        i = i + 1
+    }
+    count
+}
+
+fn main() {
+    let sum = add(3, 4)
+    stdio::println(to_string(sum))
+    let result = mul_sub(5, 6, 10)
+    stdio::println(to_string(result))
+    let f = fib(10)
+    stdio::println(to_string(f))
+    let m = max_val(42, 17)
+    stdio::println(to_string(m))
+    let found = find_first_ge(7)
+    stdio::println(to_string(found))
+    let s = sum_skip_five(10)
+    stdio::println(to_string(s))
+    let n = nested_loops()
+    stdio::println(to_string(n))
+}
+// Basic arithmetic
+// Compound expression
+// While loop with fib
+// If expression
+// Break
+// Continue
+// Nested loops

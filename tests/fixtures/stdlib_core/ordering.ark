@@ -1,0 +1,23 @@
+use std::core::cmp
+use std::host::stdio
+
+fn main() {
+    match cmp::cmp(1, 2) {
+        Ordering::Less => stdio::println("less"),
+        Ordering::Equal => stdio::println("equal"),
+        Ordering::Greater => stdio::println("greater"),
+    }
+    match cmp::cmp(9, 9) {
+        Ordering::Less => stdio::println("less"),
+        Ordering::Equal => stdio::println("equal"),
+        Ordering::Greater => stdio::println("greater"),
+    }
+    match cmp::cmp(7, 3) {
+        Ordering::Less => stdio::println("less"),
+        Ordering::Equal => stdio::println("equal"),
+        Ordering::Greater => stdio::println("greater"),
+    }
+    stdio::println(i32_to_string(cmp::min(10, 3)))
+    stdio::println(i32_to_string(cmp::max(10, 3)))
+    stdio::println(i32_to_string(cmp::clamp(9, 0, 7)))
+}

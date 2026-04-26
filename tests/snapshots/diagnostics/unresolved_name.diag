@@ -1,0 +1,6 @@
+error[E0100|resolve]: unresolved name
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/unresolved_name.ark:2:13
+   |
+  2 |     let x = unknown_function()
+   |             ^^^^^^^^^^^^^^^^ unresolved name `unknown_function`
+

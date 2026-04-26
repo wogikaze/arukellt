@@ -1,0 +1,19 @@
+use std::host::stdio
+
+fn returns_true() -> bool {
+    stdio::println("evaluated")
+    true
+}
+
+fn returns_false() -> bool {
+    stdio::println("evaluated")
+    false
+}
+
+fn main() {
+    stdio::println("test &&:")
+    let _ = false && returns_true()
+    stdio::println("test ||:")
+    let _ = true || returns_false()
+    stdio::println("done")
+}

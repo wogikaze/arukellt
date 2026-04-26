@@ -1,0 +1,11 @@
+use std::host::stdio
+
+fn main() {
+    let x: i32 = 99
+    let label: String = match x {
+        0 => String_from("zero"),
+        1 => String_from("one"),
+        _ => String_from("many"),
+    }
+    stdio::println(label)
+}

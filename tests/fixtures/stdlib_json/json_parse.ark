@@ -1,0 +1,50 @@
+use std::host::stdio
+use std::json
+
+fn main() {
+    match json::parse("null") {
+        Result::Ok(v) => stdio::println(bool_to_string(json::is_null(v))),
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+    match json::parse("true") {
+        Result::Ok(v) => {
+            match json::json_as_bool(v) {
+                Option::Some(b) => stdio::println(bool_to_string(b)),
+                None => stdio::println("not bool"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+    match json::parse("false") {
+        Result::Ok(v) => {
+            match json::json_as_bool(v) {
+                Option::Some(b) => stdio::println(bool_to_string(b)),
+                None => stdio::println("not bool"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+    match json::parse("\"hello\"") {
+        Result::Ok(v) => {
+            match json::json_as_string(v) {
+                Option::Some(s) => stdio::println(s),
+                None => stdio::println("not string"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+    match json::parse("42") {
+        Result::Ok(v) => {
+            match json::json_as_i32(v) {
+                Option::Some(n) => stdio::println(i32_to_string(n)),
+                None => stdio::println("not number"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+}
+// Parse null
+// Parse bool true
+// Parse bool false
+// Parse string
+// Parse integer

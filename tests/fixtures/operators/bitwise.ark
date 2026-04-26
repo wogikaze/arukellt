@@ -1,0 +1,9 @@
+use std::host::stdio
+
+fn main() {
+    stdio::println(i32_to_string(12 & 10))
+    stdio::println(i32_to_string(12 | 10))
+    stdio::println(i32_to_string(12 ^ 10))
+    stdio::println(i32_to_string(1 << 4))
+    stdio::println(i32_to_string(16 >> 2))
+}

@@ -1,0 +1,7 @@
+warning[W0001|typecheck]: possible unintended sharing of reference type
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/mutable_sharing.ark:4:17
+   |
+  4 |     let alias = v
+   |                 ^ mutable `v` is shared by reference; mutations affect both variables
+
+Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/mutable_sharing.ark -> /dev/null (720 bytes, target: wasm32-wasi-p1)

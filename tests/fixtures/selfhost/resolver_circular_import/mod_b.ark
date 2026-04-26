@@ -1,0 +1,7 @@
+// Module: mod_b
+// Imports mod_a back, creating a circular dependency with mod_a.
+use mod_a
+
+pub fn helper() -> i32 {
+    mod_a::value() + 1
+}

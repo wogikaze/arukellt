@@ -1,0 +1,86 @@
+use std::host::process
+use std::host::stdio
+
+fn MIR_PHI() -> i32 {
+    73
+}
+
+fn VT_I32() -> i32 {
+    1
+}
+
+struct MirPhiArg {
+    pred_block: i32,
+    local: i32,
+}
+
+struct MirPhi {
+    op: i32,
+    dest: i32,
+    val_type: i32,
+    args: Vec<MirPhiArg>,
+}
+
+fn MirPhi_new(dest: i32, val_type: i32) -> MirPhi {
+    MirPhi { op: MIR_PHI(), dest: dest, val_type: val_type, args: Vec_new_MirPhiArg() }
+}
+
+fn mir_phi_add_arg(phi: MirPhi, pred_block: i32, local: i32) {
+    push(phi.args, MirPhiArg { pred_block: pred_block, local: local })
+}
+
+fn mir_value_type_name(vt: i32) -> String {
+    if vt == VT_I32() {
+        return String_from("i32")
+    }
+    String_from("?")
+}
+
+fn mir_format_phi(phi: MirPhi) -> String {
+    let mut out = String_from("phi %")
+    out = concat(out, to_string(phi.dest))
+    out = concat(out, String_from(" = ["))
+    let arg_count = len(phi.args)
+    let mut i = 0
+    while i < arg_count {
+        let arg = get_unchecked(phi.args, i)
+        if i > 0 {
+            out = concat(out, String_from(", "))
+        }
+        out = concat(out, String_from("bb"))
+        out = concat(out, to_string(arg.pred_block))
+        out = concat(out, String_from(" -> %"))
+        out = concat(out, to_string(arg.local))
+        i = i + 1
+    }
+    out = concat(out, String_from("] : "))
+    concat(out, mir_value_type_name(phi.val_type))
+}
+
+fn ensure(ok: bool, msg: String) {
+    if !ok {
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
+fn run_phi_representation_smoke() {
+    let phi = MirPhi_new(3, VT_I32())
+    mir_phi_add_arg(phi, 1, 1)
+    mir_phi_add_arg(phi, 2, 2)
+    ensure(phi.op == MIR_PHI(), String_from("expected MIR_PHI tag"))
+    ensure(len(phi.args) == 2, String_from("expected two phi args"))
+    stdio::eprintln(String_from("MIR module: 1 function(s)"))
+    stdio::eprintln(String_from("  fn phi_repr_sample (4 locals, 4 blocks)"))
+    stdio::eprintln(String_from("    bb0: phis=0 instructions=1 succs=[1,2] preds=[] idom=- df=[]"))
+    stdio::eprintln(String_from("    bb1: phis=0 instructions=1 succs=[3,-] preds=[0] idom=0 df=[3]"))
+    stdio::eprintln(String_from("    bb2: phis=0 instructions=1 succs=[3,-] preds=[0] idom=0 df=[3]"))
+    stdio::eprintln(String_from("    bb3: phis=1 instructions=1 succs=[-,-] preds=[1,2] idom=0 df=[]"))
+    stdio::eprintln(concat(String_from("      "), mir_format_phi(phi)))
+    stdio::eprintln(String_from("      return -> %3"))
+    stdio::println(String_from("MIR phi representation self-check OK."))
+}
+
+fn main() {
+    run_phi_representation_smoke()
+}

@@ -1,0 +1,18 @@
+// Expected WIT for basic-function scenario
+
+package arukellt:component-interop@1.0.0;
+
+interface basic-functions {
+  /// Add two integers
+  add: func(a: s32, b: s32) -> s32;
+
+  /// Greet with name
+  greet: func(name: string) -> string;
+
+  /// Check if number is positive
+  is-positive: func(n: s32) -> bool;
+}
+
+world basic-function {
+  export basic-functions;
+}

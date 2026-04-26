@@ -1,0 +1,9 @@
+// Fixture: use_basic.ark
+// Tests that `use std::text::string` is parsed as a valid ModulePath import.
+// This is a parser-only fixture (slice 1 of issue #039).
+// Resolve and typecheck are NOT exercised here.
+use std::text::string
+
+fn main() {
+}
+// body intentionally empty — only parser acceptance is tested

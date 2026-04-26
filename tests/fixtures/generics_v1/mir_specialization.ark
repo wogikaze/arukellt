@@ -1,0 +1,42 @@
+// Issue #312 slice-c regression: MIR-level monomorphization emits a
+// distinct specialized function per concrete instantiation, and call
+// sites are rewritten to the specialized targets.
+//
+// The generic function `count_items<T>` is instantiated with two
+// distinct vec element types (`Vec<i32>` and `Vec<String>`).  Slice-c's
+// `lower_to_mir` post-pass must:
+//   1. Read `mono_instances` from the typecheck result.
+//   2. Emit one specialized `MirFunction` per instance (the generic
+//      source body is no longer emitted directly when ≥1 specialization
+//      exists).
+//   3. Rewrite each generic call site (via the `mono_call_sites` span
+//      map recorded by the typechecker) to dispatch to the mangled
+//      specialized name.
+//
+// Behavioural witness: both specializations must compute the correct
+// length on their respective vector elem types.
+use std::host::stdio
+
+fn count_items<T>(v: Vec<T>) -> i32 {
+    len(v)
+}
+
+fn main() {
+    // Instantiation 1: count_items<i32>(Vec<i32>) — emits
+    // `count_items__Vec_i32_` MirFunction; call site rewritten.
+    let mut nums: Vec<i32> = Vec_new_i32()
+    push(nums, 10)
+    push(nums, 20)
+    stdio::println(i32_to_string(count_items(nums)))
+
+    // Instantiation 2: count_items<String>(Vec<String>) — emits a
+    // distinct `count_items__Vec_String_` MirFunction with its own
+    // rewritten call site.  Without slice-c specialization the
+    // `mono_instances` list is ignored and a single generic body
+    // would handle both call sites.
+    let mut words: Vec<String> = Vec_new_String()
+    push(words, String_from("alpha"))
+    push(words, String_from("beta"))
+    push(words, String_from("gamma"))
+    stdio::println(i32_to_string(count_items(words)))
+}

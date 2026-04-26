@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    let a = 10000000000u64
+    let b = 9999999999u64
+    stdio::println(a)
+    stdio::println(b)
+    let c = a - b
+    stdio::println(c)
+}

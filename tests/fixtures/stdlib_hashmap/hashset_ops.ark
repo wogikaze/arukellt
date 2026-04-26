@@ -1,0 +1,29 @@
+use std::collections::hash
+use std::host::stdio
+
+fn main() {
+    let a: Vec<i32> = hash::hashset_new()
+    let _ = hash::hashset_insert(a, 1)
+    let _ = hash::hashset_insert(a, 2)
+    let _ = hash::hashset_insert(a, 3)
+    let b: Vec<i32> = hash::hashset_new()
+    let _ = hash::hashset_insert(b, 2)
+    let _ = hash::hashset_insert(b, 3)
+    let _ = hash::hashset_insert(b, 4)
+    let u: Vec<i32> = hash::hashset_union(a, b)
+    stdio::println(i32_to_string(hash::hashset_len(u)))
+    stdio::println(bool_to_string(hash::hashset_contains(u, 1)))
+    stdio::println(bool_to_string(hash::hashset_contains(u, 4)))
+    stdio::println(bool_to_string(hash::hashset_contains(u, 99)))
+    let i: Vec<i32> = hash::hashset_intersection(a, b)
+    stdio::println(i32_to_string(hash::hashset_len(i)))
+    stdio::println(bool_to_string(hash::hashset_contains(i, 2)))
+    stdio::println(bool_to_string(hash::hashset_contains(i, 1)))
+    let d: Vec<i32> = hash::hashset_difference(a, b)
+    stdio::println(i32_to_string(hash::hashset_len(d)))
+    stdio::println(bool_to_string(hash::hashset_contains(d, 1)))
+    stdio::println(bool_to_string(hash::hashset_contains(d, 2)))
+}
+// union: {1,2,3} ∪ {2,3,4} = {1,2,3,4} → size 4
+// intersection: {1,2,3} ∩ {2,3,4} = {2,3} → size 2
+// difference: {1,2,3} − {2,3,4} = {1} → size 1

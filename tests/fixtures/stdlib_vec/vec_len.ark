@@ -1,0 +1,11 @@
+use std::host::stdio
+
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    stdio::println(i32_to_string(len(v)))
+    push(v, 1)
+    push(v, 2)
+    stdio::println(i32_to_string(len(v)))
+    let _ = pop(v)
+    stdio::println(i32_to_string(len(v)))
+}

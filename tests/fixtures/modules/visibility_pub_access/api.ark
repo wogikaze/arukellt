@@ -1,0 +1,7 @@
+pub fn greet() -> i32 {
+    42
+}
+
+pub fn compute(x: i32) -> i32 {
+    x + 10
+}

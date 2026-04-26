@@ -1,0 +1,12 @@
+// Export with Option<i32> — maps to WIT option<s32>
+// Requires canonical ABI flattening (not yet implemented)
+pub fn maybe_double(n: i32) -> Option<i32> {
+    if n > 0 {
+        Some(n * 2)
+    } else {
+        None
+    }
+}
+
+fn main() {
+}

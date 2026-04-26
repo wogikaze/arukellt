@@ -1,0 +1,18 @@
+use std::host::stdio
+
+enum Shape {
+    Circle(f64),
+    Rectangle(f64, f64),
+}
+
+fn describe(s: Shape) -> String {
+    match s {
+        Shape::Circle(r) => concat(String_from("circle r="), f64_to_string(r)),
+        Shape::Rectangle(w, h) => concat(concat(String_from("rect "), f64_to_string(w)), concat(String_from("x"), f64_to_string(h))),
+    }
+}
+
+fn main() {
+    stdio::println(describe(Shape::Circle(5.0)))
+    stdio::println(describe(Shape::Rectangle(3.0, 4.0)))
+}

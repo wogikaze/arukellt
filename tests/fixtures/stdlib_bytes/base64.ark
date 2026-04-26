@@ -1,0 +1,34 @@
+use std::bytes
+use std::host::stdio
+
+fn main() {
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 77)
+    bytes::bytes_push(b, 97)
+    bytes::bytes_push(b, 110)
+    let enc: String = bytes::base64_encode(b)
+    stdio::println(enc)
+    let dec: Vec<i32> = bytes::base64_decode(enc)
+    stdio::println(i32_to_string(bytes::bytes_len(dec)))
+    stdio::println(bool_to_string(bytes::bytes_eq(b, dec)))
+    let one: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(one, 77)
+    let enc1: String = bytes::base64_encode(one)
+    stdio::println(enc1)
+    let two: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(two, 77)
+    bytes::bytes_push(two, 97)
+    let enc2: String = bytes::base64_encode(two)
+    stdio::println(enc2)
+    let empty_enc: String = bytes::base64_encode(bytes::bytes_new())
+    stdio::println(bool_to_string(eq(empty_enc, "")))
+    let back: Vec<i32> = bytes::base64_decode("TQ==")
+    stdio::println(i32_to_string(bytes::bytes_len(back)))
+    stdio::println(i32_to_string(bytes::bytes_get(back, 0)))
+}
+// base64_encode
+// base64_decode roundtrip
+// padding: 1 byte -> 2 chars + ==
+// padding: 2 bytes -> 3 chars + =
+// empty
+// decode "TQ==" -> [77]

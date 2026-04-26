@@ -1,0 +1,14 @@
+error[E0201|typecheck]: missing type annotation
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/missing_annotation.ark:1:9
+   |
+  1 | fn add(a, b) -> i32 {
+   |         ^ parameter `a` requires a type annotation
+   = help: add a type: `a: Type`
+
+error[E0201|typecheck]: missing type annotation
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/missing_annotation.ark:1:12
+   |
+  1 | fn add(a, b) -> i32 {
+   |            ^ parameter `b` requires a type annotation
+   = help: add a type: `b: Type`
+

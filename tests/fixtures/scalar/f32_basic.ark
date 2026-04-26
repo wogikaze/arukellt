@@ -1,0 +1,8 @@
+use std::host::stdio
+
+fn main() {
+    let a = 3.14f64
+    let b = 2.0f64
+    let c = a * b
+    stdio::println(c)
+}

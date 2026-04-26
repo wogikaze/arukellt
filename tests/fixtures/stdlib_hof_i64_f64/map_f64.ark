@@ -1,0 +1,18 @@
+use std::host::stdio
+
+fn square(x: f64) -> f64 {
+    x * x
+}
+
+fn main() {
+    let mut v: Vec<f64> = Vec_new_f64()
+    push(v, 2.0)
+    push(v, 3.0)
+    push(v, 4.0)
+    let squared: Vec<f64> = map_f64_f64(v, square)
+    let mut i: i32 = 0
+    while i < len(squared) {
+        stdio::println(f64_to_string(get_unchecked(squared, i)))
+        i = i + 1
+    }
+}

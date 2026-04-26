@@ -1,0 +1,12 @@
+package arukellt:app;
+
+world colors {
+    enum color {
+        red,
+        green,
+        blue
+    }
+
+    export next-color: func(c: color) -> color;
+    export color-to-value: func(c: color) -> s32;
+}

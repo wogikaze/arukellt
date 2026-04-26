@@ -1,0 +1,5 @@
+package arukellt:app;
+
+world export-option {
+    export maybe-double: func(n: s32) -> option<s32>;
+}

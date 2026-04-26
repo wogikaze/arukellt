@@ -1,0 +1,27 @@
+use std::host::stdio
+
+/// Tail-recursive countdown — depth 100,000.
+/// Proves that TCO prevents stack overflow on deep recursion.
+fn countdown(n: i32) -> i32 {
+    if n <= 0 {
+        0
+    } else {
+        countdown(n - 1)
+    }
+}
+
+/// Tail-recursive sum accumulator — 10,000 iterations (safe i32 range).
+fn sum_tail(n: i32, acc: i32) -> i32 {
+    if n <= 0 {
+        acc
+    } else {
+        sum_tail(n - 1, acc + n)
+    }
+}
+
+fn main() {
+    let a = countdown(100000)
+    let b = sum_tail(10000, 0)
+    stdio::println(i32_to_string(a))
+    stdio::println(i32_to_string(b))
+}

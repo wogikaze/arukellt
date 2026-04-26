@@ -1,0 +1,108 @@
+[tools]
+rust = "1.94"
+wasmtime = "latest"
+
+[tasks.build]
+run = "cargo build"
+description = "Build all crates"
+
+[tasks."build:release"]
+run = "cargo build --release"
+description = "Build all crates in release mode"
+
+[tasks.test]
+run = "cargo test --workspace"
+description = "Run all unit tests"
+
+[tasks."test:unit"]
+run = "cargo test --workspace --lib"
+description = "Run library unit tests only"
+
+[tasks."test:t1"]
+run = "cargo test --test harness -- --nocapture"
+description = "Run T1 fixture harness"
+
+[tasks.lint]
+run = "cargo clippy --workspace -- -D warnings"
+description = "Run clippy lints"
+
+[tasks.fmt]
+run = "cargo fmt --all"
+description = "Format all code"
+
+[tasks."fmt:docs"]
+run = "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json"
+description = "Formatting for documentation"
+
+
+[tasks."fmt:check"]
+run = "cargo fmt --all --check"
+description = "Check formatting"
+
+[tasks.verify]
+run = "bash scripts/run/verify-harness.sh"
+description = "Run fast local verification"
+
+[tasks."verify:quick"]
+run = "bash scripts/run/verify-harness.sh --quick"
+description = "Run fast local verification (alias)"
+
+[tasks."verify:cargo"]
+run = "bash scripts/run/verify-harness.sh --cargo"
+description = "Run cargo fmt, clippy, and workspace tests"
+
+[tasks."verify:fixtures"]
+run = "bash scripts/run/verify-harness.sh --fixtures"
+description = "Run manifest-driven fixture harness"
+
+[tasks."verify:baseline"]
+run = "bash scripts/run/verify-harness.sh --baseline"
+description = "Collect baseline snapshots"
+
+[tasks."verify:full"]
+run = "bash scripts/run/verify-harness.sh --full"
+description = "Run full local verification"
+
+[tasks."verify:ci"]
+run = "bash scripts/run/verify-harness.sh --cargo --size --wat --docs"
+description = "Run the explicit heavy verification groups used by CI correctness"
+
+[tasks."verify:pre-commit"]
+run = "bash scripts/run/verify-harness.sh --cargo --docs"
+description = "Run the recommended pre-commit verification groups"
+
+[tasks."hooks:install"]
+run = "bash scripts/gate/install-git-hooks.sh"
+description = "Install repository-managed git hooks"
+
+[tasks."hooks:pre-commit"]
+run = "bash scripts/gate/pre-commit-verify.sh"
+description = "Run the repository-managed pre-commit verification script"
+
+[tasks."hooks:remove"]
+run = "bash scripts/gate/install-git-hooks.sh --remove"
+description = "Remove repository-managed git hooks"
+
+[tasks.check]
+run = "cargo check --workspace"
+description = "Type-check all crates"
+
+[tasks.bench]
+run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode full"
+description = "Run default local benchmark workflow (release build + compile/runtime/size/memory)"
+
+[tasks."bench:quick"]
+run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode quick"
+description = "Run quick single-sample benchmark smoke workflow"
+
+[tasks."bench:compare"]
+run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode compare"
+description = "Run benchmarks and compare current results against stored baseline"
+
+[tasks."bench:update-baseline"]
+run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode update-baseline"
+description = "Update benchmark baselines from current measurements"
+
+[tasks."bench:ci"]
+run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode ci"
+description = "Run benchmark regression gate for CI (fail on threshold regression)"

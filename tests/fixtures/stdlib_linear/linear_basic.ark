@@ -1,0 +1,26 @@
+use std::collections::linear
+use std::host::stdio
+
+fn main() {
+    let d: Vec<i32> = linear::deque_new()
+    linear::deque_push_back(d, 10)
+    linear::deque_push_back(d, 20)
+    linear::deque_push_front(d, 5)
+    stdio::println(i32_to_string(linear::deque_len(d)))
+    let f: i32 = linear::deque_pop_front(d)
+    stdio::println(i32_to_string(f))
+    let b: i32 = linear::deque_pop_back(d)
+    stdio::println(i32_to_string(b))
+    stdio::println(i32_to_string(linear::deque_len(d)))
+    let pq: Vec<i32> = linear::pq_new()
+    linear::pq_push(pq, 30)
+    linear::pq_push(pq, 10)
+    linear::pq_push(pq, 20)
+    stdio::println(i32_to_string(linear::pq_len(pq)))
+    let m1: i32 = linear::pq_pop(pq)
+    stdio::println(i32_to_string(m1))
+    let m2: i32 = linear::pq_pop(pq)
+    stdio::println(i32_to_string(m2))
+}
+// Deque
+// PriorityQueue

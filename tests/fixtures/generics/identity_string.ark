@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn identity<T>(x: T) -> T {
+    x
+}
+
+fn main() {
+    let result: String = identity(String_from("hello"))
+    stdio::println(result)
+}

@@ -1,0 +1,11 @@
+use std::host::stdio
+
+fn pair<A, B>(a: A, b: B) -> (A, B) {
+    (a, b)
+}
+
+fn main() {
+    let (x, y) = pair(42, String_from("hello"))
+    stdio::println(i32_to_string(x))
+    stdio::println(y)
+}

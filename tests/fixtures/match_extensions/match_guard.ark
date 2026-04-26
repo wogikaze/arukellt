@@ -1,0 +1,17 @@
+use std::host::stdio
+
+fn main() {
+    let x = 5
+    let result = match x {
+        n if n > 10 => "big",
+        n if n > 0 => "positive",
+        _ => "other",
+    }
+    stdio::println(result)
+    let y: Option<i32> = Some(42)
+    match y {
+        Option::Some(v) if v > 10 => stdio::println("large some"),
+        Option::Some(v) => stdio::println("small some"),
+        None => stdio::println("none"),
+    }
+}

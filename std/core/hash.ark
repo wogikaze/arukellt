@@ -1,0 +1,48 @@
+/// Small hashing helpers used by the current collection implementations.
+/// Hashes an `i32` into a stable non-negative integer.
+pub fn hash_i32(value: i32) -> i32 {
+    let mut h = 37
+    let mut v = value
+    if v < 0 {
+        v = 0 - v
+    }
+    let b0 = v - v / 256 * 256
+    h = h * 31 + b0
+    v = v / 256
+    let b1 = v - v / 256 * 256
+    h = h * 31 + b1
+    v = v / 256
+    let b2 = v - v / 256 * 256
+    h = h * 31 + b2
+    v = v / 256
+    let b3 = v - v / 256 * 256
+    h = h * 31 + b3
+    h
+}
+
+/// Hashes a string into a stable non-negative integer.
+pub fn hash_string(value: String) -> i32 {
+    let mut h = 216613626
+    let n = len(value)
+    let mut i = 0
+    while i < n {
+        let ch = char_at(value, i)
+        h = h * 16777619 ^ ch
+        if h < 0 {
+            h = 0 - h
+        }
+        i = i + 1
+    }
+    h
+}
+
+pub fn combine(h1: i32, h2: i32) -> i32 {
+    let mut h = h1
+    h = h * 31 + h2
+    h
+}
+
+pub fn hash_combine(h1: i32, h2: i32) -> i32 {
+    combine(h1, h2)
+}
+// Simple multiplicative hash (Knuth variant)

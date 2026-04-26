@@ -1,0 +1,213 @@
+/// String sub-module — qualified string operations under `std::text::string`.
+/// 
+/// Contains relocated prelude string functions and new string APIs.
+/// Prefer using these via `use std::text` and calling `text::split(...)` etc.
+// --- Relocated from prelude ---
+/// Splits `s` on `sep` and returns the resulting parts.
+pub fn split(s: String, sep: String) -> Vec<String> {
+    __intrinsic_split(s, sep)
+}
+
+/// Joins a vector of strings with `sep` between each element.
+pub fn join(parts: Vec<String>, sep: String) -> String {
+    __intrinsic_join(parts, sep)
+}
+
+/// Concatenates two strings.
+/// @deprecated Use `std::text::concat` instead.
+pub fn concat(a: String, b: String) -> String {
+    __intrinsic_concat(a, b)
+}
+
+/// Returns true when `s` starts with `prefix`.
+pub fn starts_with(s: String, prefix: String) -> bool {
+    __intrinsic_starts_with(s, prefix)
+}
+
+/// Returns true when `s` ends with `suffix`.
+pub fn ends_with(s: String, suffix: String) -> bool {
+    __intrinsic_ends_with(s, suffix)
+}
+
+/// Returns true when `s` contains `needle`.
+pub fn contains(s: String, needle: String) -> bool {
+    __intrinsic_contains(s, needle)
+}
+
+/// Converts all ASCII uppercase letters to lowercase.
+pub fn to_lower(s: String) -> String {
+    __intrinsic_to_lower(s)
+}
+
+/// Converts all ASCII lowercase letters to uppercase.
+pub fn to_upper(s: String) -> String {
+    __intrinsic_to_upper(s)
+}
+
+// --- New APIs ---
+/// Returns the length of the string in bytes.
+pub fn len_bytes(s: String) -> i32 {
+    len(s)
+}
+
+/// Returns the number of characters in the string.
+/// For ASCII strings this equals len_bytes. For multi-byte UTF-8 this
+/// counts Unicode scalar values.
+pub fn len_chars(s: String) -> i32 {
+    let n = len(s)
+    if n == 0 {
+        return 0
+    }
+    let mut count = 0
+    let mut i = 0
+    while i < n {
+        let byte_val = char_at(s, i)
+        if byte_val < 128 {
+            count = count + 1
+            i = i + 1
+        } else {
+            if byte_val >= 192 {
+                count = count + 1
+                if byte_val < 224 {
+                    i = i + 2
+                } else {
+                    if byte_val < 240 {
+                        i = i + 3
+                    } else {
+                        i = i + 4
+                    }
+                }
+            } else {
+                i = i + 1
+            }
+        }
+    }
+    count
+}
+
+/// Returns true when the string has zero bytes.
+pub fn is_empty(s: String) -> bool {
+    len(s) == 0
+}
+
+/// Extracts a byte-range substring. Returns the slice if boundaries are valid.
+pub fn slice_bytes(s: String, start: i32, end: i32) -> String {
+    let n = len(s)
+    if start < 0 {
+        return ""
+    }
+    if end > n {
+        return ""
+    }
+    if start > end {
+        return ""
+    }
+    __intrinsic_string_slice(s, start, end)
+}
+
+/// Splits the string on newlines (`\n`). CRLF is treated as a single separator
+/// by first normalizing `\r\n` to `\n`.
+pub fn lines(s: String) -> Vec<String> {
+    let normalized = __intrinsic_replace(s, "\r\n", "\n")
+    __intrinsic_split(normalized, "\n")
+}
+
+/// Removes ASCII whitespace from both ends.
+pub fn trim(s: String) -> String {
+    __intrinsic_trim(s)
+}
+
+/// Removes ASCII whitespace from the start.
+pub fn trim_start(s: String) -> String {
+    let n = len(s)
+    let mut i = 0
+    while i < n {
+        let ch = __intrinsic_string_slice(s, i, i + 1)
+        if !__intrinsic_string_eq(ch, " ") {
+            if !__intrinsic_string_eq(ch, "\t") {
+                if !__intrinsic_string_eq(ch, "\n") {
+                    if !__intrinsic_string_eq(ch, "\r") {
+                        return __intrinsic_string_slice(s, i, n)
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    ""
+}
+
+/// Removes ASCII whitespace from the end.
+pub fn trim_end(s: String) -> String {
+    let n = len(s)
+    let mut i = n - 1
+    while i >= 0 {
+        let ch = __intrinsic_string_slice(s, i, i + 1)
+        if !__intrinsic_string_eq(ch, " ") {
+            if !__intrinsic_string_eq(ch, "\t") {
+                if !__intrinsic_string_eq(ch, "\n") {
+                    if !__intrinsic_string_eq(ch, "\r") {
+                        return __intrinsic_string_slice(s, 0, i + 1)
+                    }
+                }
+            }
+        }
+        i = i - 1
+    }
+    ""
+}
+
+/// Replaces each non-overlapping match of `from` with `to`.
+pub fn replace(s: String, from: String, to: String) -> String {
+    __intrinsic_replace(s, from, to)
+}
+
+/// Repeats the string `n` times.
+pub fn repeat(s: String, n: i32) -> String {
+    let mut result = ""
+    let mut i = 0
+    while i < n {
+        result = __intrinsic_concat(result, s)
+        i = i + 1
+    }
+    result
+}
+
+/// Returns individual characters as single-character strings.
+/// Uses split-based approach to avoid heap issues with push in loops.
+pub fn chars(s: String) -> Vec<String> {
+    __intrinsic_split(s, "")
+}
+
+/// Converts a byte buffer to a string (best-effort UTF-8 interpretation).
+/// Uses Vec<i32> as the byte representation (each element 0..255).
+pub fn from_utf8(bytes: Vec<i32>) -> String {
+    let mut result = ""
+    let n = len(bytes)
+    let mut i = 0
+    while i < n {
+        let b = get(bytes, i)
+        let ch = __intrinsic_i32_to_string(b)
+        result = __intrinsic_concat(result, char_to_string(b))
+        i = i + 1
+    }
+    result
+}
+
+/// Converts a string to its UTF-8 byte values as Vec<i32>.
+pub fn to_utf8_bytes(s: String) -> Vec<i32> {
+    let result = Vec_new_i32()
+    let n = len(s)
+    let mut i = 0
+    while i < n {
+        push(result, char_at(s, i))
+        i = i + 1
+    }
+    result
+}
+// Current runtime measures bytes; provides best-effort char count
+// by scanning for UTF-8 lead bytes.
+// Count bytes that are NOT continuation bytes (0x80..0xBF)
+// Skip continuation bytes
+// Stray continuation byte — skip
+// Convert byte value to character via char_to_string

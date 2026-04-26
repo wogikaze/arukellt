@@ -1,0 +1,13 @@
+// Export with resource-like type — WIT resource not implemented
+// Arukellt has no native resource type; struct is used as placeholder.
+// This validates E0401 diagnostic for struct export (E0402 reserved for future resource).
+struct Handle {
+    id: i32,
+}
+
+pub fn get_handle_id(h: Handle) -> i32 {
+    h.id
+}
+
+fn main() {
+}

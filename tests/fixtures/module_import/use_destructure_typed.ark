@@ -1,0 +1,18 @@
+// Fixture: use_destructure_typed.ark
+// Slice 3 continuation of issue #039: verify that destructure import
+// `use std::text::{string}` type-checks qualified calls.
+// The typechecker must resolve `string::split` via the qualified fn_sigs key.
+//
+// Expected output: yes
+use std::text::{string}
+
+fn main() {
+    let s: String = "hello world"
+    let parts = string::split(s, " ")
+    let count = len(parts)
+    if count == 2 {
+        __intrinsic_println("yes")
+    } else {
+        __intrinsic_println("no")
+    }
+}

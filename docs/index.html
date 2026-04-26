@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arukellt Docs</title>
+  <meta name="description" content="Wasm-first・静的型付け・LLM-friendly な言語">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    const siteRoot = window.location.pathname.endsWith('/')
+      ? window.location.pathname
+      : window.location.pathname.replace(/\/[^/]*$/, '/')
+
+    window.$docsify = {
+      name: 'Arukellt',
+      nameLink: `${siteRoot}#/`,
+      repo: '',
+      routerMode: 'hash',
+      loadSidebar: true,
+      subMaxLevel: 2,
+      search: {
+        placeholder: '検索...',
+        noData: '見つかりません',
+        depth: 3,
+      },
+      alias: {
+        '/.*/_sidebar.md': `${siteRoot}_sidebar.md`,
+      },
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-rust.min.js"></script>
+</body>
+</html>

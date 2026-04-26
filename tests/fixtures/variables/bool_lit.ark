@@ -1,0 +1,8 @@
+use std::host::stdio
+
+fn main() {
+    let t: bool = true
+    let f: bool = false
+    stdio::println(bool_to_string(t))
+    stdio::println(bool_to_string(f))
+}

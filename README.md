@@ -1,0 +1,42 @@
+# Arukellt
+
+Wasm-first、LLM-friendly を目指す静的型付け言語。
+
+> 現行実装の確認先は [docs/current-state.md](docs/current-state.md) です。
+
+<!-- BEGIN GENERATED:README_STATUS -->
+## Status
+
+- Updated: 2026-04-14
+- CLI default target: `wasm32-wasi-p1`
+- Canonical target: `wasm32-wasi-p2`
+- Component/WIT target: `wasm32-wasi-p2`
+- Unit tests: current count is verified by `cargo test --workspace`
+- Fixture harness: 641 passed, 28 skipped / 827 entries
+- Verification: `bash scripts/run/verify-harness.sh (fast local gate; use --full for full local verification)` — 19/19 checks pass
+- Stdlib manifest-backed public API: 594 functions
+<!-- END GENERATED:README_STATUS -->
+
+## Start here
+
+- [Current state](docs/current-state.md) — 実装の現在地
+- [Quickstart](docs/quickstart.md) — まず動かすための最短ガイド
+- [Stdlib overview](docs/stdlib/README.md) — 現在の標準ライブラリ公開面
+- [Compiler pipeline](docs/compiler/pipeline.md) — 現在のコンパイラ構成
+
+## Workspace overview
+
+- `crates/arukellt` — CLI (`check` / `compile` / `run`)
+- `crates/ark-lexer` 〜 `crates/ark-mir` — 主要コンパイラパイプライン（Rust 側）。Wasm 出力は selfhost (`src/compiler/emitter.ark`) が担当
+- `crates/ark-driver` — 共有 analysis/session 層
+- `crates/ark-target` — ターゲット定義
+- LSP — selfhost (`src/compiler/lsp.ark`)、`arukellt lsp` で起動。Rust `crates/ark-lsp` は #572 (Phase 7 of #529) で削除済み。
+- `extensions/arukellt-all-in-one` — VS Code extension bootstrap
+- `std/` — source-backed stdlib wrappers
+- `tests/fixtures/` — manifest-driven end-to-end fixtures
+- `docs/` — 利用者向け・設計向けドキュメント
+
+## Notes
+
+- 仕様書や ADR には設計意図も含まれます。
+- 現在動くものを判断したいときは、まず `docs/current-state.md` を見てください。

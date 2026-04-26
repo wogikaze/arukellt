@@ -1,0 +1,12 @@
+/// Host clock helpers.
+/// 
+/// Clock reads are host-bound. Pure duration math lives in `std::time`.
+/// Returns a monotonic timestamp in nanoseconds.
+pub fn monotonic_now() -> i64 {
+    __intrinsic_clock_now()
+}
+
+/// Returns the current wall-clock time in milliseconds since the Unix epoch.
+pub fn now_ms() -> i64 {
+    __intrinsic_clock_now_ms()
+}

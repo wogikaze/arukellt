@@ -1,0 +1,8 @@
+use std::host::stdio
+
+fn main() {
+    let x: f64 = sqrt(9.0)
+    stdio::println(f64_to_string(x))
+    let y: f64 = sqrt(16.0)
+    stdio::println(f64_to_string(y))
+}

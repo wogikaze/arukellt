@@ -1,0 +1,25 @@
+// Verifies that old prelude APIs still compile and run (backward compat for v3).
+// These APIs are @deprecated in v3 — they will be removed in v4.
+// Migration: docs/migration/v2-to-v3.md
+use std::host::stdio
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 3)
+    push(v, 1)
+    push(v, 2)
+    sort_i32(v)
+    stdio::println(i32_to_string(get_unchecked(v, 0)))
+    stdio::println(i32_to_string(get_unchecked(v, 1)))
+    stdio::println(i32_to_string(get_unchecked(v, 2)))
+    let doubled: Vec<i32> = map_i32_i32(v, |x: i32| -> i32 {
+        x * 2
+    })
+    stdio::println(i32_to_string(sum_i32(doubled)))
+    let s: String = concat(String_from("hello"), String_from(" world"))
+    stdio::println(s)
+}
+// Deprecated: Vec_new_i32 — migrate to `use std::collections::vec; vec::new_i32()`
+// Deprecated: sort_i32 — migrate to `use std::seq; seq::sort_i32(v)`
+// Deprecated: map_i32_i32 — migrate to `seq::map(seq::from_vec(v), f)`
+// Deprecated: concat — migrate to `use std::text; text::concat(a, b)`

@@ -1,0 +1,7 @@
+fn main() {
+    let x: i32 = 1
+    let y = match x {
+        1 => 42,
+        _ => "hello",
+    }
+}

@@ -1,0 +1,6 @@
+error[E0001|parse]: expected expression, found `Semi`
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/unexpected_token.ark:2:13
+   |
+  2 |     let x = ;
+   |             ^ here
+

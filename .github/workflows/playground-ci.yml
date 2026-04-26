@@ -1,0 +1,139 @@
+name: Playground CI
+
+# CI size gates for the browser playground.
+#
+#  Job                     Gate type   Merge gate?   Threshold
+#  ─────────────────────── ─────────── ─────────────────────────────────────
+#  playground-bundle-size  size        yes           JS bundle ≤ 512 KB
+#  playground-wasm-size    size        yes           Wasm binary ≤ 600 KB
+#
+# See docs/playground/deployment-strategy.md §4.3 for threshold rationale.
+# To raise a threshold: update the env var below and document the reason in the PR.
+#  playground-lighthouse       perf/a11y   no (warn)     LCP ≤ 2.5 s, CLS ≤ 0.1, accessibility ≥ 90
+#
+# Lighthouse CI audit runs against a locally-served build of docs/playground/.
+# Budgets are enforced via .github/lighthouserc.json (treosh/lighthouse-ci-action).
+# Performance score is warn-only (CI env latency is noisy); LCP, CLS, and
+# accessibility are hard-error thresholds.
+
+on:
+  push:
+    branches: [master, "feature/**"]
+    paths:
+      - "playground/**"
+      - "crates/ark-playground-wasm/**"
+      - "docs/playground/**"
+      - ".github/workflows/playground-ci.yml"
+  pull_request:
+    branches: [master]
+    paths:
+      - "playground/**"
+      - "crates/ark-playground-wasm/**"
+      - "docs/playground/**"
+
+jobs:
+
+  # ── Playground JS bundle size gate (merge gate) ───────────────────────────
+  playground-bundle-size:
+    name: "Playground bundle size gate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build playground JS bundle
+        working-directory: playground
+        run: npm install --no-audit --no-fund --package-lock=false && npm run build:app
+
+      - name: Bundle size gate (≤ 512 KB total JS)
+        # PLAYGROUND_BUNDLE_LIMIT: 524288 bytes = 512 KB
+        # This checks the sum of all .js files in docs/playground/dist/.
+        # Raise the limit (and document the reason) when a deliberate size
+        # increase is warranted; see deployment-strategy.md §4.3.
+        env:
+          PLAYGROUND_BUNDLE_LIMIT: '524288'
+        run: bash scripts/check/check-playground-size.sh --bundle-dir docs/playground/dist
+
+  # ── Playground Wasm binary size gate (merge gate) ─────────────────────────
+  playground-wasm-size:
+    name: "Playground wasm size gate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain + wasm32 target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-playground-wasm-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-playground-wasm-
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build playground wasm
+        working-directory: crates/ark-playground-wasm
+        run: wasm-pack build --target web --release
+
+      - name: Wasm size gate (≤ 600 KB)
+        # PLAYGROUND_WASM_LIMIT: 614400 bytes = 600 KB
+        # Initial measured size post wasm-opt is ≈568 KB (headroom: ~32 KB).
+        # The limit was raised from 300 KB to 600 KB when the binary was first
+        # built in #379; the earlier 300 KB figure was a speculative estimate.
+        # Raise the limit (and document the reason) when a deliberate size
+        # increase is warranted; see deployment-strategy.md §4.3.
+        env:
+          PLAYGROUND_WASM_LIMIT: '614400'
+        run: |
+          WASM_FILE=$(ls crates/ark-playground-wasm/pkg/*.wasm | head -1)
+          bash scripts/check/check-playground-size.sh --wasm "$WASM_FILE"
+
+  # ── Playground Lighthouse CI (Core Web Vitals + accessibility) ─────────────
+  playground-lighthouse:
+    name: "Playground Lighthouse audit"
+    runs-on: ubuntu-latest
+    # Audits the built playground against Core Web Vitals and accessibility
+    # budgets defined in .github/lighthouserc.json.
+    # Precondition: docs/playground/index.html must exist (proved by issue #466).
+    # Budgets: LCP ≤ 2.5 s, CLS ≤ 0.1 (hard-error); accessibility ≥ 90 (hard-error);
+    #          performance score ≥ 0.70 (warn only — CI env latency is noisy).
+    # See docs/playground/deployment-strategy.md §4.3 for threshold rationale.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build playground JS bundle
+        working-directory: playground
+        run: npm install --no-audit --no-fund --package-lock=false && npm run build:app
+
+      - name: Serve playground static site (background)
+        # Serves docs/playground/ at http://localhost:3000/
+        run: npx --yes serve@14 docs/playground -l 3000 --no-clipboard &
+
+      - name: Wait for server to be ready
+        run: npx --yes wait-on@7 http://localhost:3000 --timeout 30000
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: |
+            http://localhost:3000/
+          configPath: '.github/lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: false

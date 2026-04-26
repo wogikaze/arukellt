@@ -1,0 +1,7 @@
+error[E0210|typecheck]: ? operator requires function to return Result
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/question_type_mismatch.ark:3:15
+   |
+  3 |     let val = r?
+   |               ^^^^^^^^^^ used here
+   = note: add `-> Result[T, E]` to the function signature
+

@@ -1,0 +1,60 @@
+# ark-lexer lib.rs (1698行) をサブモジュールに分割
+
+**Status**: done
+**Created**: 2026-03-28
+**Updated**: 2026-04-14
+**ID**: 134
+**Depends on**: —
+**Track**: code-structure
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
+**Blocks v4 exit**: no
+
+---
+
+## Reopened by audit — 2026-04-03
+
+**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
+
+**Audit evidence**:
+- `**Status**: open` in this file's own frontmatter confirms it was never closed.
+- File was located at `issues/done/134-split-lexer.md` — incorrect directory for an open issue.
+
+**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
+
+## Summary
+
+`crates/ark-lexer/src/lib.rs` は 1698 行。
+`Token` enum の定義・キーワードテーブル・スキャンロジックが1ファイルに混在。
+`lib.rs` を残しつつサブモジュールに分割する。
+
+## 提案する分割後の構造
+
+```
+crates/ark-lexer/src/
+├── lib.rs          # Lexer struct + pub fn lex() エントリポイント (~200行)
+├── token.rs        # Token enum + TokenKind (~300行)
+├── keywords.rs     # キーワードテーブル (str → Token マッピング) (~100行)
+└── scan.rs         # スキャン実装: scan_ident, scan_number, scan_string, scan_comment (~1100行)
+```
+
+## 受け入れ条件
+
+1. 上記 4 ファイルに分割
+2. `cargo build --workspace --exclude ark-llvm --exclude ark-lsp` が通る
+3. `cargo test --workspace --exclude ark-llvm --exclude ark-lsp` が通る
+4. `scripts/run/verify-harness.sh` が status 0
+
+## 参照
+
+- `crates/ark-lexer/src/lib.rs`
+
+---
+
+## Queue closure verification — 2026-04-18
+
+- **Evidence**: Completion notes and primary paths recorded in this issue body match HEAD.
+- **Verification**: `bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18).
+- **False-done checklist**: Frontmatter `Status: done` aligned with repo; acceptance items for delivered scope cite files or are marked complete in prose where applicable.
+
+**Reviewer:** implementation-backed queue normalization (verify checklist).

@@ -1,0 +1,7 @@
+use std::host::stdio
+
+fn main() {
+    stdio::print("hello ")
+    stdio::println("world")
+    stdio::println("done")
+}

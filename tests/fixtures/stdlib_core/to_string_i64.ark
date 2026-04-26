@@ -1,0 +1,7 @@
+use std::host::stdio
+
+fn main() {
+    stdio::println(to_string(9001i64))
+    stdio::println(to_string(0i64))
+    stdio::println(to_string(-1i64))
+}

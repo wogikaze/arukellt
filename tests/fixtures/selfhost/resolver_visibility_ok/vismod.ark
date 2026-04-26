@@ -1,0 +1,16 @@
+// Module: vismod
+// Used by resolver_visibility_ok fixture (issue #310: selfhost visibility enforcement).
+// Provides a pub function that callers are allowed to access cross-module,
+// and a private helper that is intentionally NOT accessible to importers.
+pub fn greet(name: String) -> String {
+    concat(String_from("Hello, "), name)
+}
+
+pub fn square(n: i32) -> i32 {
+    n * n
+}
+
+// Private — must NOT be accessible from importing modules.
+fn internal_helper() -> i32 {
+    99
+}

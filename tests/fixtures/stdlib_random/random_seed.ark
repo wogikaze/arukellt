@@ -1,0 +1,28 @@
+use std::host::stdio
+use std::random
+
+fn main() {
+    let a = random::seeded_random(12345)
+    let b = random::seeded_random(12345)
+    assert_eq(a, -958040966)
+    assert_eq(a, b)
+
+    let c = random::seeded_random(99999)
+    assert_eq(c, 714973238)
+    assert(a != c)
+
+    let s1 = random::seeded_random(42)
+    let s2 = random::seeded_random(s1)
+    let s3 = random::seeded_random(s2)
+    let r1 = random::seeded_random(42)
+    let r2 = random::seeded_random(r1)
+    let r3 = random::seeded_random(r2)
+    assert_eq(s1, 11355432)
+    assert_eq(s1, r1)
+    assert_eq(s2, r2)
+    assert_eq(s3, r3)
+    stdio::println("random_seed ok")
+}
+// Test seeded_random determinism.
+// Exact outputs pin the xorshift32 implementation.
+// Chained calls are reproducible when the derived value is reused as input.

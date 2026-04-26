@@ -1,0 +1,26 @@
+The Arukellt compiler
+
+Usage: arukellt <COMMAND>
+
+Commands:
+  compile        Compile an .ark file to Wasm
+  init           Initialize a new Arukellt project in the specified directory
+  build          Build the project in the current directory (requires ark.toml)
+  fmt            Format .ark source files
+  run            Compile and run an .ark file
+  check          Type-check an .ark file without compiling
+  test           Discover and run tests
+  targets        List available compile targets
+  script         Manage and run project scripts
+  component      Build and inspect WebAssembly components
+  lsp            Start the LSP server (stdio transport)
+  debug-adapter  Start the DAP debug adapter (stdio transport)
+  lint           Run lint rules on .ark source files
+  analyze        Analyze a compiled Wasm binary
+  doc            Look up standard library documentation for a symbol or module
+  compose        Link multiple Wasm components into a single composed component
+  help           Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version

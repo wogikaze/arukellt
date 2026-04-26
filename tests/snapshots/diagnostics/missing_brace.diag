@@ -1,0 +1,8 @@
+error[E0002|parse]: expected `RBrace`, found `Eof`
+   = expected: RBrace
+   = actual: Eof
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/missing_brace.ark:4:1
+   |
+  4 | 
+   | ^ here
+

@@ -1,0 +1,9 @@
+// Fixture: --deny-random blocks programs that use random intrinsics at compile time.
+// Expected: compile-time error from MIR capability scan.
+use std::host::random
+use std::host::stdio
+
+fn main() {
+    let r = random::random_i32()
+    stdio::println(i32_to_string(r))
+}

@@ -1,0 +1,9 @@
+use std::host::stdio
+
+fn main() {
+    let r: Result<i32, String> = Err(String_from("bad input"))
+    match r {
+        Result::Ok(val) => stdio::println(i32_to_string(val)),
+        Result::Err(e) => stdio::println(concat(String_from("error: "), e)),
+    }
+}

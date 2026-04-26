@@ -1,0 +1,17 @@
+use std::host::stdio
+
+fn classify(x: i32) -> String {
+    if x < 0 {
+        return String_from("negative")
+    }
+    if x == 0 {
+        return String_from("zero")
+    }
+    String_from("positive")
+}
+
+fn main() {
+    stdio::println(classify(-5))
+    stdio::println(classify(0))
+    stdio::println(classify(42))
+}

@@ -1,0 +1,13 @@
+use std::host::clock
+use std::host::random as host_random
+use std::host::stdio
+
+fn main() {
+    let t = clock::monotonic_now()
+    let t_str = i64_to_string(t)
+    let not_zero = t_str != String_from("0")
+    stdio::println(bool_to_string(not_zero))
+    let r = host_random::random_i32()
+    let has_value = r != 0 || r == 0
+    stdio::println(bool_to_string(has_value))
+}

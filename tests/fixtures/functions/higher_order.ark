@@ -1,0 +1,13 @@
+use std::host::stdio
+
+fn apply(f: fn(i32) -> i32, x: i32) -> i32 {
+    f(x)
+}
+
+fn double(n: i32) -> i32 {
+    n * 2
+}
+
+fn main() {
+    stdio::println(i32_to_string(apply(double, 21)))
+}

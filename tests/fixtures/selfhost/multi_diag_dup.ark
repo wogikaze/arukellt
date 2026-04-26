@@ -1,0 +1,9 @@
+// Issue #567 — selfhost resolver incremental diagnostic accumulation.
+//
+// Two top-level functions are each redefined. The resolver MUST report both
+// duplicate-definition errors in a single run rather than stopping at the first.
+fn alpha() {}
+fn alpha() {}
+fn beta() {}
+fn beta() {}
+fn main() {}

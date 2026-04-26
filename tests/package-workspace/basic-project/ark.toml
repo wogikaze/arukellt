@@ -1,0 +1,14 @@
+[package]
+name = "basic-project"
+version = "0.1.0"
+description = "Test fixture: basic project with all standard fields"
+
+[bin]
+name = "basic-project"
+path = "src/main.ark"
+
+[targets.wasm32-wasi-p2]
+opt_level = 1
+
+[scripts]
+test = "arukellt run src/main.ark"

@@ -1,0 +1,9 @@
+use std::host::stdio
+
+fn main() {
+    stdio::println(i32_to_string(clamp_i32(5, 0, 10)))
+    stdio::println(i32_to_string(clamp_i32(-3, 0, 10)))
+    stdio::println(i32_to_string(clamp_i32(15, 0, 10)))
+    stdio::println(i32_to_string(clamp_i32(0, 0, 10)))
+    stdio::println(i32_to_string(clamp_i32(10, 0, 10)))
+}

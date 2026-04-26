@@ -1,0 +1,24 @@
+use std::bytes
+use std::host::stdio
+
+fn main() {
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 10)
+    bytes::bytes_push(b, 20)
+    bytes::bytes_push(b, 30)
+    bytes::bytes_push(b, 40)
+    bytes::bytes_push(b, 50)
+    let sub: Vec<i32> = bytes::bytes_slice(b, 1, 4)
+    stdio::println(i32_to_string(bytes::bytes_len(sub)))
+    stdio::println(i32_to_string(bytes::bytes_get(sub, 0)))
+    stdio::println(i32_to_string(bytes::bytes_get(sub, 1)))
+    stdio::println(i32_to_string(bytes::bytes_get(sub, 2)))
+    let empty: Vec<i32> = bytes::bytes_slice(b, 2, 2)
+    stdio::println(i32_to_string(bytes::bytes_len(empty)))
+    let full: Vec<i32> = bytes::bytes_slice(b, 0, 5)
+    stdio::println(i32_to_string(bytes::bytes_len(full)))
+    stdio::println(bool_to_string(bytes::bytes_eq(b, full)))
+}
+// bytes_slice: extract sub-range
+// Empty slice
+// Full slice (copy)

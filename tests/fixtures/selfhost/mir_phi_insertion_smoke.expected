@@ -1,0 +1,5 @@
+diamond join bb3
+const.i32 -> %join_val.1
+const.i32 -> %join_val.2
+phi %join_val.3 = [bb1 -> %join_val.1, bb2 -> %join_val.2] : i32
+MIR phi insertion smoke OK.

@@ -1,0 +1,7 @@
+// Export with char type — maps to WIT char (i32 pass-through)
+pub fn same_char(a: char, b: char) -> bool {
+    a == b
+}
+
+fn main() {
+}

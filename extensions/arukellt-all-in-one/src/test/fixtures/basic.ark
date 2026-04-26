@@ -1,0 +1,11 @@
+use std::host::stdio
+
+fn greet(name: String) -> String {
+    let msg = concat("Hello, ", name)
+    msg
+}
+
+fn main() {
+    let result = greet("world")
+    stdio::println(result)
+}

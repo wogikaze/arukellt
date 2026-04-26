@@ -1,0 +1,7 @@
+use std::host::stdio
+
+fn main() {
+    let mut s = String_from("hello")
+    push_char(s, '!')
+    stdio::println(s)
+}

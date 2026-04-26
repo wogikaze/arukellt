@@ -1,0 +1,586 @@
+//! Standard library for Arukellt.
+//!
+//! Provides manifest-driven stdlib metadata: function descriptors,
+//! module lists, and stability information parsed from `std/manifest.toml`.
+
+use serde::Deserialize;
+use std::collections::BTreeSet;
+
+/// Standard library function descriptor (legacy API, kept for compatibility).
+#[derive(Debug, Clone)]
+pub struct StdlibFn {
+    pub name: String,
+    pub module: &'static str,
+    pub wasi_import: Option<(&'static str, &'static str)>,
+}
+
+/// Get all stdlib function descriptors (legacy hardcoded list).
+pub fn stdlib_functions() -> Vec<StdlibFn> {
+    vec![
+        StdlibFn {
+            name: "println".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "print".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "eprintln".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "i32_to_string".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "i64_to_string".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "f64_to_string".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "parse_i32".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "parse_i64".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "to_string".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "parse_f64".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "Vec_new_i32".into(),
+            module: "vec",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "Vec_new_i64".into(),
+            module: "vec",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "Vec_new_f64".into(),
+            module: "vec",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "Vec_new_String".into(),
+            module: "vec",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "sqrt".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "abs".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "min".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "max".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+    ]
+}
+
+// ---------------------------------------------------------------------------
+// Manifest-driven stdlib metadata (canonical source: std/manifest.toml)
+// ---------------------------------------------------------------------------
+
+/// Parsed stdlib manifest.
+#[derive(Debug, Clone, Deserialize)]
+pub struct StdlibManifest {
+    pub metadata: ManifestMetadata,
+    #[serde(default)]
+    pub types: Vec<ManifestType>,
+    #[serde(default)]
+    pub values: Vec<ManifestValue>,
+    #[serde(default)]
+    pub modules: Vec<ManifestModule>,
+    #[serde(default)]
+    pub functions: Vec<ManifestFunction>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ManifestMetadata {
+    pub version: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ManifestType {
+    pub name: String,
+    #[serde(default)]
+    pub generic_params: Vec<String>,
+    #[serde(default)]
+    pub prelude: bool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ManifestValue {
+    pub name: String,
+    #[serde(default)]
+    pub prelude: bool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ManifestModule {
+    pub name: String,
+    #[serde(default)]
+    pub target: Vec<String>,
+    #[serde(default)]
+    pub stability: Option<String>,
+    #[serde(default)]
+    pub family: Option<String>,
+    #[serde(default)]
+    pub doc: Option<String>,
+}
+
+/// A code example attached to a stdlib function.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ManifestExample {
+    pub code: String,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub output: Option<String>,
+}
+
+/// T1 / T3 availability flags for a stdlib function.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ManifestAvailability {
+    /// Available on wasm32-wasi-p1 (T1) target.
+    pub t1: bool,
+    /// Available on wasm32-wasi-p2 (T3) target.
+    pub t3: bool,
+    #[serde(default)]
+    pub note: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ManifestFunction {
+    pub name: String,
+    #[serde(default)]
+    pub module: Option<String>,
+    #[serde(default)]
+    pub kind: Option<String>,
+    #[serde(default)]
+    pub params: Vec<String>,
+    #[serde(default)]
+    pub returns: Option<String>,
+    #[serde(default)]
+    pub prelude: bool,
+    #[serde(default)]
+    pub stability: Option<String>,
+    #[serde(default)]
+    pub intrinsic: Option<String>,
+    #[serde(default)]
+    pub doc_category: Option<String>,
+    #[serde(default)]
+    pub deprecated_by: Option<String>,
+    #[serde(default)]
+    pub since: Option<String>,
+    #[serde(default)]
+    pub see_also: Option<String>,
+    #[serde(default)]
+    pub target: Vec<String>,
+    /// Short description of the function (1–3 lines).
+    #[serde(default)]
+    pub doc: Option<String>,
+    /// Code examples demonstrating usage.
+    #[serde(default)]
+    pub examples: Vec<ManifestExample>,
+    /// Description of failure conditions (for Result-returning functions).
+    #[serde(default)]
+    pub errors: Option<String>,
+    /// Explicit T1/T3 availability, overrides target inference.
+    #[serde(default)]
+    pub availability: Option<ManifestAvailability>,
+}
+
+impl StdlibManifest {
+    /// Parse a stdlib manifest from TOML text.
+    pub fn parse(toml_text: &str) -> Result<Self, toml::de::Error> {
+        toml::from_str(toml_text)
+    }
+
+    /// Load the stdlib manifest from the default location relative to repo root.
+    pub fn load_from_repo(repo_root: &std::path::Path) -> Result<Self, String> {
+        let path = repo_root.join("std/manifest.toml");
+        let text = std::fs::read_to_string(&path)
+            .map_err(|e| format!("failed to read {}: {}", path.display(), e))?;
+        Self::parse(&text).map_err(|e| format!("failed to parse {}: {}", path.display(), e))
+    }
+
+    /// Get sorted list of unique module names (e.g. "std::host::stdio").
+    pub fn module_names(&self) -> Vec<String> {
+        let mut names: BTreeSet<String> = BTreeSet::new();
+        for m in &self.modules {
+            names.insert(m.name.clone());
+        }
+        // Also collect modules referenced by functions but not declared as [[modules]]
+        for f in &self.functions {
+            if let Some(ref m) = f.module
+                && !m.is_empty()
+                && m != "prelude"
+            {
+                names.insert(m.clone());
+            }
+        }
+        names.into_iter().collect()
+    }
+
+    /// Get import candidates: (short_alias, full_module_path) pairs
+    /// suitable for auto-import in the LSP.
+    pub fn import_candidates(&self) -> Vec<(String, String)> {
+        let mut candidates = Vec::new();
+        // From declared [[modules]]
+        for m in &self.modules {
+            let alias = m.name.rsplit("::").next().unwrap_or(&m.name).to_string();
+            candidates.push((alias, m.name.clone()));
+        }
+        // From function module references (covers modules without [[modules]] entry)
+        for f in &self.functions {
+            if let Some(ref m) = f.module
+                && !m.is_empty()
+                && m != "prelude"
+            {
+                let alias = m.rsplit("::").next().unwrap_or(m).to_string();
+                candidates.push((alias, m.clone()));
+            }
+        }
+        candidates.sort();
+        candidates.dedup();
+        candidates
+    }
+
+    /// Get all function names grouped by module.
+    pub fn functions_by_module(&self) -> std::collections::BTreeMap<String, Vec<String>> {
+        let mut map: std::collections::BTreeMap<String, Vec<String>> =
+            std::collections::BTreeMap::new();
+        for f in &self.functions {
+            let module = f.module.clone().unwrap_or_else(|| "prelude".to_string());
+            map.entry(module).or_default().push(f.name.clone());
+        }
+        map
+    }
+
+    /// Get all prelude function names.
+    pub fn prelude_function_names(&self) -> Vec<String> {
+        self.functions
+            .iter()
+            .filter(|f| f.prelude)
+            .map(|f| f.name.clone())
+            .collect()
+    }
+
+    /// Get the expansion family label for a module.
+    pub fn family_for_module(&self, module_name: &str) -> Option<String> {
+        self.modules
+            .iter()
+            .find(|m| m.name == module_name)
+            .and_then(|m| m.family.clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn repo_root() -> std::path::PathBuf {
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .to_path_buf()
+    }
+
+    #[test]
+    fn parse_manifest() {
+        let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
+        assert!(!manifest.functions.is_empty(), "should have functions");
+        assert!(!manifest.modules.is_empty(), "should have modules");
+        assert!(!manifest.types.is_empty(), "should have types");
+    }
+
+    #[test]
+    fn module_names_include_host_modules() {
+        let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
+        let names = manifest.module_names();
+        assert!(
+            names.contains(&"std::host::stdio".to_string()),
+            "missing stdio, got: {:?}",
+            names
+        );
+        assert!(names.contains(&"std::host::fs".to_string()), "missing fs");
+    }
+
+    #[test]
+    fn import_candidates_match_modules() {
+        let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
+        let candidates = manifest.import_candidates();
+        let aliases: Vec<&str> = candidates.iter().map(|(a, _)| a.as_str()).collect();
+        assert!(aliases.contains(&"stdio"), "should have stdio");
+        assert!(aliases.contains(&"fs"), "should have fs");
+        // std::math is not a module in the manifest - math functions are in prelude
+    }
+
+    #[test]
+    fn prelude_functions_are_nonempty() {
+        let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
+        let prelude = manifest.prelude_function_names();
+        // Many core functions have prelude=true in the manifest
+        assert!(
+            prelude.len() > 10,
+            "prelude should have many functions, got {}",
+            prelude.len()
+        );
+        // String_from, eq, etc. are marked prelude in the manifest
+        assert!(
+            prelude.contains(&"String_from".to_string()),
+            "String_from should be prelude"
+        );
+    }
+
+    #[test]
+    fn lsp_import_candidates_are_subset_of_manifest() {
+        let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
+        let manifest_modules: BTreeSet<String> = manifest.module_names().into_iter().collect();
+
+        // Modules that the LSP hardcodes for auto-import.
+        // Some are real manifest modules, some are virtual (e.g. std::math, std::string).
+        // Only validate the ones that exist in the manifest.
+        let lsp_real_modules = [
+            "std::host::stdio",
+            "std::host::fs",
+            "std::host::env",
+            "std::path",
+            "std::time",
+            "std::test",
+            "std::host::process",
+            "std::host::clock",
+            "std::host::random",
+        ];
+
+        for module in lsp_real_modules {
+            assert!(
+                manifest_modules.contains(module),
+                "LSP module '{}' not found in manifest modules: {:?}",
+                module,
+                manifest_modules
+            );
+        }
+    }
+
+    #[test]
+    fn new_fields_deserialize() {
+        let toml_text = r#"
+[metadata]
+version = "0.1"
+
+[[functions]]
+name = "http_get"
+module = "std::host::http"
+params = ["String"]
+returns = "Result<String, String>"
+doc = "Send an HTTP GET request and return the response body."
+errors = "Returns Err on DNS or connection failure."
+availability = { t1 = true, t3 = true, note = "T1 via Wasmtime linker" }
+examples = [
+  { code = "let r = http::get(\"https://example.com\")", description = "Fetch a URL", output = "Ok(...)" }
+]
+"#;
+        let manifest = StdlibManifest::parse(toml_text).unwrap();
+        assert_eq!(manifest.functions.len(), 1);
+        let f = &manifest.functions[0];
+        assert_eq!(f.name, "http_get");
+        assert_eq!(
+            f.doc.as_deref(),
+            Some("Send an HTTP GET request and return the response body.")
+        );
+        assert_eq!(
+            f.errors.as_deref(),
+            Some("Returns Err on DNS or connection failure.")
+        );
+        let avail = f.availability.as_ref().unwrap();
+        assert!(avail.t1);
+        assert!(avail.t3);
+        assert_eq!(avail.note.as_deref(), Some("T1 via Wasmtime linker"));
+        assert_eq!(f.examples.len(), 1);
+        let ex = &f.examples[0];
+        assert_eq!(ex.code, "let r = http::get(\"https://example.com\")");
+        assert_eq!(ex.description.as_deref(), Some("Fetch a URL"));
+        assert_eq!(ex.output.as_deref(), Some("Ok(...)"));
+    }
+
+    #[test]
+    fn new_fields_default_when_absent() {
+        let toml_text = r#"
+[metadata]
+version = "0.1"
+
+[[functions]]
+name = "println"
+params = ["String"]
+returns = "()"
+"#;
+        let manifest = StdlibManifest::parse(toml_text).unwrap();
+        let f = &manifest.functions[0];
+        assert!(f.doc.is_none());
+        assert!(f.errors.is_none());
+        assert!(f.availability.is_none());
+        assert!(f.examples.is_empty());
+    }
+
+    #[test]
+    fn family_field_parsed() {
+        let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
+        // http and sockets have family = "expansion"
+        assert_eq!(
+            manifest.family_for_module("std::host::http"),
+            Some("expansion".to_string()),
+            "http should have expansion family"
+        );
+        assert_eq!(
+            manifest.family_for_module("std::host::sockets"),
+            Some("expansion".to_string()),
+            "sockets should have expansion family"
+        );
+    }
+
+    /// Issue 457 slice 1: every std::host::* function must declare `availability`
+    /// with t1/t3 booleans, and values must match the target-gating in load.rs
+    /// (T3_ONLY_MODULES = ["std::host::sockets"]; http is T1+T3 as of issue 446).
+    #[test]
+    fn host_functions_have_availability() {
+        let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
+
+        // T3-only modules (matches T3_ONLY_MODULES in crates/ark-resolve/src/load.rs)
+        // Note: std::host::http was removed from T3_ONLY_MODULES in issue 446 (T1+T3 now).
+        let t3_only: &[&str] = &["std::host::sockets"];
+
+        let host_fns: Vec<&ManifestFunction> = manifest
+            .functions
+            .iter()
+            .filter(|f| {
+                f.module
+                    .as_deref()
+                    .map(|m| m.starts_with("std::host::"))
+                    .unwrap_or(false)
+            })
+            .collect();
+
+        assert!(
+            !host_fns.is_empty(),
+            "expected at least one std::host::* function in manifest"
+        );
+
+        for f in &host_fns {
+            let module = f.module.as_deref().unwrap();
+            let avail = f.availability.as_ref().unwrap_or_else(|| {
+                panic!(
+                    "function '{}' in module '{}' is missing `availability` field (issue 457 slice 1)",
+                    f.name, module
+                )
+            });
+
+            if t3_only.contains(&module) {
+                // T3-only: must be t1=false, t3=true
+                assert!(
+                    !avail.t1,
+                    "function '{}' in T3-only module '{}' should have t1=false",
+                    f.name, module
+                );
+                assert!(
+                    avail.t3,
+                    "function '{}' in T3-only module '{}' should have t3=true",
+                    f.name, module
+                );
+            } else {
+                // All other host modules: must have t3=true (may vary for t1)
+                assert!(
+                    avail.t3,
+                    "function '{}' in module '{}' should have t3=true",
+                    f.name, module
+                );
+            }
+        }
+    }
+
+    /// Issue 457 slice 1: verify specific known availability values match
+    /// the decisions documented in issues 446-448.
+    #[test]
+    fn host_module_availability_values_match_target_gating() {
+        let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
+
+        let check = |name: &str, module: &str, expected_t1: bool, expected_t3: bool| {
+            let f = manifest
+                .functions
+                .iter()
+                .find(|f| f.name == name && f.module.as_deref() == Some(module))
+                .unwrap_or_else(|| panic!("function '{name}' in '{module}' not found in manifest"));
+            let avail = f
+                .availability
+                .as_ref()
+                .unwrap_or_else(|| panic!("'{name}' in '{module}' missing availability"));
+            assert_eq!(
+                avail.t1, expected_t1,
+                "'{name}' t1 mismatch: expected {expected_t1}, got {}",
+                avail.t1
+            );
+            assert_eq!(
+                avail.t3, expected_t3,
+                "'{name}' t3 mismatch: expected {expected_t3}, got {}",
+                avail.t3
+            );
+        };
+
+        // std::host::http — t1=true, t3=true (T1+T3 linker path per issue 446)
+        check("request", "std::host::http", true, true);
+        check("get", "std::host::http", true, true);
+
+        // std::host::sockets — t1=false, t3=true (issue 447 T3 impl; E0500 on T1 per 448)
+        check("connect", "std::host::sockets", false, true);
+
+        // std::host::process — t1=true, t3=true (issue 445)
+        check("exit", "std::host::process", true, true);
+
+        // std::host::stdio — t1=true, t3=true
+        check("println", "std::host::stdio", true, true);
+        check("print", "std::host::stdio", true, true);
+        check("eprintln", "std::host::stdio", true, true);
+
+        // std::host::clock — t1=true, t3=true (--allow-clock flag)
+        check("monotonic_now", "std::host::clock", true, true);
+
+        // std::host::random — t1=true, t3=true (--allow-random flag)
+        check("random_i32", "std::host::random", true, true);
+    }
+}

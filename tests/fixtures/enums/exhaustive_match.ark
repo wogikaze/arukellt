@@ -1,0 +1,21 @@
+use std::host::stdio
+
+enum Traffic {
+    Red,
+    Yellow,
+    Green,
+}
+
+fn action(light: Traffic) -> String {
+    match light {
+        Traffic::Red => String_from("stop"),
+        Traffic::Yellow => String_from("caution"),
+        Traffic::Green => String_from("go"),
+    }
+}
+
+fn main() {
+    stdio::println(action(Traffic::Red))
+    stdio::println(action(Traffic::Yellow))
+    stdio::println(action(Traffic::Green))
+}

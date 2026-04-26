@@ -1,0 +1,15 @@
+use std::host::stdio
+
+fn main() {
+    let x = 42
+    let name = String_from("Alice")
+    stdio::println(i32_to_string(x))
+    stdio::println(name)
+    let mut counter = 0
+    counter = counter + 1
+    stdio::println(i32_to_string(counter))
+    let n: i32 = 10
+    let s: String = String_from("hello")
+    stdio::println(i32_to_string(n))
+    stdio::println(s)
+}

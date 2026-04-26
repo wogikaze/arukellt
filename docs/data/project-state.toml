@@ -1,0 +1,146 @@
+[project]
+name = "Arukellt"
+tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
+updated = "2026-04-14"
+verification_command = "bash scripts/run/verify-harness.sh (fast local gate; use --full for full local verification)"
+current_state_doc = "docs/current-state.md"
+
+[pipeline]
+current = ["Lexer", "Parser", "Resolver", "TypeChecker", "MIR", "Wasm"]
+refactor_target = [
+  "Lex",
+  "Parse",
+  "Bind",
+  "Load",
+  "Analyze",
+  "Resolve",
+  "Check+BuildCoreHIR",
+  "LowerToMIR",
+  "MIRValidate",
+  "MIROptimize",
+  "BackendPlan",
+  "WasmEmit / LLVMEmit",
+  "BackendValidate",
+]
+session_entry = "ark-driver::Session"
+dump_phases = ["parse", "resolve", "corehir", "mir", "optimized-mir", "backend-plan"]
+
+[targets]
+cli_default = "wasm32-wasi-p1"
+canonical = "wasm32-wasi-p2"
+component_target = "wasm32-wasi-p2"
+default_emit = "core-wasm"
+component_emit = true
+wit_emit = true
+component_note = "requires external `wasm-tools` binary and WASI adapter module"
+
+[[target_profiles]]
+id = "wasm32-wasi-p1"
+tier = "T1"
+adr_tier = "supported"
+status = "stable"
+run_supported = true
+role = "Supported: full fixture coverage, AtCoder/competition target"
+
+[[target_profiles]]
+id = "wasm32-freestanding"
+tier = "T2"
+adr_tier = "not-started"
+status = "unimplemented"
+run_supported = false
+role = "Not started: no codegen, no tests"
+
+[[target_profiles]]
+id = "wasm32-wasi-p2"
+tier = "T3"
+adr_tier = "primary"
+status = "stable"
+run_supported = true
+role = "Primary (ADR-013): canonical GC-native path, all CI gates apply"
+
+[[target_profiles]]
+id = "native"
+tier = "T4"
+adr_tier = "scaffold"
+status = "scaffold"
+run_supported = false
+role = "Not started: T4 native backend has no implementation; ark-llvm scaffold removed (#586)"
+
+[[target_profiles]]
+id = "wasm32-wasi-p3"
+tier = "T5"
+adr_tier = "not-started"
+status = "unimplemented"
+run_supported = false
+role = "Not started: WASI p3 spec not finalized"
+
+[verification]
+fixture_passed = 641
+fixture_skipped = 28
+fixture_failures = 0
+fixture_manifest_count = 733
+checks_passed = 19
+checks_total = 19
+unit_tests_note = "current count is verified by `cargo test --workspace`"
+
+[perf]
+check_budget_pct = 10
+compile_budget_pct = 20
+baseline_cases = [
+  "docs/examples/hello.ark",
+  "docs/examples/vec.ark",
+  "docs/examples/closure.ark",
+  "docs/sample/parser.ark",
+]
+heavy_note = "Heavy perf comparisons are intentionally separated from the normal correctness gate"
+
+[[diagnostics]]
+code = "W0001"
+severity = "warning"
+phase = "typecheck"
+summary = "same-body heuristic warning for shared mutable aliasing"
+
+[[diagnostics]]
+code = "W0002"
+severity = "warning"
+phase = "target"
+summary = "deprecated target alias warning"
+
+[[diagnostics]]
+code = "W0004"
+severity = "error"
+phase = "backend-validate"
+summary = "generated Wasm failed backend validation"
+
+[[diagnostics]]
+code = "W0005"
+severity = "warning"
+phase = "component"
+summary = "non-exportable function skipped from component exports"
+
+[[diagnostics]]
+code = "E0500"
+severity = "error"
+phase = "resolve"
+summary = "module requires a different target (e.g. `std::host::sockets` on T1 emits E0500; use `--target wasm32-wasi-p2`)"
+
+[[diagnostics]]
+code = "E0501"
+severity = "error"
+phase = "typecheck"
+summary = "symbol not found in module (e.g. `string::nonexistent_fn()` when the function is not exported by the imported module)"
+
+[component]
+status = "Implemented in v2 on `wasm32-wasi-p2` for supported WIT-compatible exports"
+summary = "Only user `pub fn` with WIT-compatible types are exported"
+
+# Lifecycle status labels used across docs, issues, and target-contract.md.
+# Every feature / target surface should use one of these labels.
+[lifecycle]
+labels = [
+  "stable",        # CI-verified, regression-protected, safe for production use
+  "provisional",   # Implemented and passing tests but API may change
+  "experimental",  # Functional but incomplete; may break between releases
+  "scaffold",      # Code structure exists but not yet functional end-to-end
+  "unimplemented", # Planned but no working code
+]

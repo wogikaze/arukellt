@@ -1,0 +1,20 @@
+use std::host::stdio
+
+fn main() {
+    let m = HashMap_i32_i32_new()
+    HashMap_i32_i32_insert(m, 1, 100)
+    HashMap_i32_i32_insert(m, 2, 200)
+    HashMap_i32_i32_insert(m, 3, 300)
+    match HashMap_i32_i32_get(m, 2) {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println(-1),
+    }
+    stdio::println(HashMap_i32_i32_len(m))
+    if HashMap_i32_i32_contains_key(m, 1) {
+        stdio::println(String_from("found"))
+    }
+    match HashMap_i32_i32_get(m, 99) {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println(String_from("not found")),
+    }
+}

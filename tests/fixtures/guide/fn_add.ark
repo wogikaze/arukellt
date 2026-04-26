@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+fn main() {
+    let result = add(3, 4)
+    stdio::println(i32_to_string(result))
+}

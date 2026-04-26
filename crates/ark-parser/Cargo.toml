@@ -1,0 +1,8 @@
+[package]
+name = "ark-parser"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ark-lexer = { workspace = true }
+ark-diagnostics = { workspace = true }

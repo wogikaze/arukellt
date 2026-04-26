@@ -1,0 +1,4 @@
+has even: true
+first even: 2
+empty has even: false
+no negatives

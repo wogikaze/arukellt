@@ -1,0 +1,11 @@
+// Fixture: wasi_clock.ark
+// Verifies that clock_time_get is available via std::host::clock
+// and returns a non-negative timestamp.
+use std::host::clock
+use std::host::stdio
+
+fn main() {
+    let t = clock::now_ms()
+    assert(t >= 0)
+    stdio::println("wasi_clock ok")
+}

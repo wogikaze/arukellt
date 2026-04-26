@@ -1,0 +1,18 @@
+use std::host::stdio
+
+fn to_upper_wrapper(s: String) -> String {
+    to_upper(s)
+}
+
+fn main() {
+    let mut v: Vec<String> = Vec_new_String()
+    push(v, String_from("hello"))
+    push(v, String_from("world"))
+    push(v, String_from("foo"))
+    let result: Vec<String> = map_String_String(v, to_upper_wrapper)
+    let mut i: i32 = 0
+    while i < len(result) {
+        stdio::println(get_unchecked(result, i))
+        i = i + 1
+    }
+}

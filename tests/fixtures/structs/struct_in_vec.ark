@@ -1,0 +1,18 @@
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn main() {
+    let mut points: Vec<Point> = Vec_new_Point()
+    push(points, Point { x: 1, y: 2 })
+    push(points, Point { x: 3, y: 4 })
+    let mut i: i32 = 0
+    while i < len(points) {
+        let p: Point = get_unchecked(points, i)
+        stdio::println(concat(concat(i32_to_string(p.x), String_from(",")), i32_to_string(p.y)))
+        i = i + 1
+    }
+}
