@@ -32,6 +32,7 @@ tests/component-interop/**/*.wasm
 !bootstrap/*.wasm
 
 # root-level scratch/temp files
+/*.ark
 /_test_*.ark
 /archive.zip
 /test_*.wat
