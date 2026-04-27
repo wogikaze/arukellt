@@ -3584,13 +3584,29 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             }
             ctx_emit(ctx, MirInst_new(MIR_END()))
             ctx.nesting_depth = ctx.nesting_depth - 1
-            if then_result >= 0 || else_result >= 0 {
-                if_inst.dest = result
-                let get_inst = MirInst_new(MIR_LOCAL_GET())
-                get_inst.arg0 = result
-                get_inst.dest = result
-                ctx_emit(ctx, get_inst)
-                return result
+            // Only set i32 block type if:
+            // - No else branch and then returns a value, OR
+            // - Has else branch and BOTH branches return values
+            if child_count < 3 {
+                // No else branch - use i32 type if then returns a value
+                if then_result >= 0 {
+                    if_inst.dest = result
+                    let get_inst = MirInst_new(MIR_LOCAL_GET())
+                    get_inst.arg0 = result
+                    get_inst.dest = result
+                    ctx_emit(ctx, get_inst)
+                    return result
+                }
+            } else {
+                // Has else branch - use i32 type only if BOTH branches return values
+                if then_result >= 0 && else_result >= 0 {
+                    if_inst.dest = result
+                    let get_inst = MirInst_new(MIR_LOCAL_GET())
+                    get_inst.arg0 = result
+                    get_inst.dest = result
+                    ctx_emit(ctx, get_inst)
+                    return result
+                }
             }
             if_inst.dest = 0 - 1
             return 0 - 1
