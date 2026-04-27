@@ -3520,6 +3520,13 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             }
             let callee_name = clone(call_inst.str_val)
             let call_ret_vt = ctx_fn_return_vt(ctx, clone(callee_name))
+            if call_ret_vt == VT_VOID() {
+                // Void function - don't allocate a local, set dest to -1
+                call_inst.dest = 0 - 1
+                call_inst.int_val = child_count - 1
+                ctx_emit(ctx, call_inst)
+                return 0 - 1
+            }
             let mut dest_vt = VT_I32()
             if call_ret_vt == VT_I64() {
                 dest_vt = VT_I64()
@@ -3534,9 +3541,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             call_inst.dest = dest
             call_inst.int_val = child_count - 1
             ctx_emit(ctx, call_inst)
-            if ctx_fn_return_vt(ctx, clone(callee_name)) == VT_VOID() {
-                return 0 - 1
-            }
             return call_inst.dest
         }
         return 0 - 1
