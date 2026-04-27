@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 211
+Track: compiler/selfhost
+Depends on: 210
+Orchestration class: implementation-ready
+---
 # selfhost: MIR lowering lowers function bodies from typed HIR
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 211
-**Depends on**: 210
-**Track**: compiler/selfhost
 **Blocks v1 exit**: no
 
 **Status note**: `src/compiler/mir.ark:224` (`lower_to_mir`) creates function stubs but never lowers bodies. Until typed_fns carry real body IR (from #210), MIR output is skeleton-only and the emitter produces minimal/empty Wasm.

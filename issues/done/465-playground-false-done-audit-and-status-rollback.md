@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 465
+Track: playground-audit
+Depends on: none
+Orchestration class: implementation-ready
+---
 # Playground false-done 監査表と status rollback
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 465
-**Depends on**: none
-**Track**: playground-audit
 **Blocks v1 exit**: no
 **Priority**: 1
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 11
+Track: parallel
+Depends on: 002, 004, 005, 006, 007, 008, 009, 010
+Orchestration class: implementation-ready
+---
 # T3 perf and size telemetry
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 013
-**Depends on**: 002, 004, 005, 006, 007, 008, 009, 010
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

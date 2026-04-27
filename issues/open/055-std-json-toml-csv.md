@@ -1,13 +1,15 @@
-# std::json + std::toml + std::csv: データ形式パーサ
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-22
+ID: 055
+Track: stdlib
+Depends on: 039, 042, 044
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #39, #44, #312-through-#44
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-22
-**ID**: 055
-**Depends on**: 039, 042, 044
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #39, #44, #312-through-#44
+# std::json + std::toml + std::csv: データ形式パーサ
 **Blocks v3 exit**: no (Experimental — json のみ Stable 候補)
 
 **Status note**: FROZEN — depends on #044, which is blocked by #312 generic monomorphization. Do not re-dispatch until #044 is unfrozen.

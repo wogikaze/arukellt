@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 603
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Type System Stage-Up: Monomorphization and Lowering Contract Closure
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 603
 **Parent**: #589
 **Depends on**: 601, 602
 **Track**: selfhost / typechecker / lowering

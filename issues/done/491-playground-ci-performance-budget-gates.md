@@ -1,10 +1,13 @@
+---
+Status: done
+Created: 2026-04-14
+Updated: 2026-04-14
+Track: playground
+Source: audit — docs/playground/deployment-strategy.md §4.3
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 491 — Playground CI performance budget enforcement
-
-**Track:** playground
-**Status:** done
-**Created:** 2026-04-14
-**Updated:** 2026-04-14
-**Source:** audit — docs/playground/deployment-strategy.md §4.3
 
 ## Summary
 

@@ -1,13 +1,15 @@
-# 504 — Selfhost: trait/interface syntax and impl-block infrastructure
+---
+Status: done
+Created: 2026-04-15
+Updated: 2026-04-22
+ID: 504
+Track: selfhost
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-04-15
-**Updated**: 2026-04-22
-**ID**: 504
-**Depends on**: none
-**Track**: selfhost
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# 504 — Selfhost: trait/interface syntax and impl-block infrastructure
 **Blocks v5**: yes
 **Source**: STOP_IF blocker detected while working #495-selfhost-trait-bounds
 

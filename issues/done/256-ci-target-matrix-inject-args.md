@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-03
+ID: 256
+Track: main
+Depends on: 251
+Orchestration class: implementation-ready
+---
 # CI の target matrix に実際の CLI 引数・emit 種別を注入する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-03
-**ID**: 256
-**Depends on**: 251
-**Track**: main
 **Blocks v1 exit**: yes
 
 ---

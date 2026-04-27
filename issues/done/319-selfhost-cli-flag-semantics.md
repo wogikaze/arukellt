@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2025-07-15
+ID: 319
+Track: selfhost-cli
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Selfhost CLI のフラグ semantics を driver に接続する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2025-07-15
-**ID**: 319
-**Depends on**: —
-**Track**: selfhost-cli
 **Blocks v1 exit**: no
 **Priority**: 7
 

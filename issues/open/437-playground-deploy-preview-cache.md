@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-15
+ID: 437
+Track: playground
+Depends on: 431
+Orchestration class: implementation-ready
+---
 # Playground: deployment / preview environment / asset cache 戦略を整える
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-15
-**ID**: 437
-**Depends on**: 431
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 10
 

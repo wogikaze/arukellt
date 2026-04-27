@@ -1,10 +1,12 @@
+---
+Status: done
+Updated: 2026-03-30
+ID: 162
+Track: main
+Depends on: 172, 173, 174
+Orchestration class: implementation-ready
+---
 # v5 Phase 1: Parser epic
-
-**Status**: done
-**Updated**: 2026-03-30
-**ID**: 162
-**Depends on**: 172, 173, 174
-**Track**: main
 **Blocks v1 exit**: no
 
 **Status note**: Parent issue for v5 parser work. Close when the child issues are complete.

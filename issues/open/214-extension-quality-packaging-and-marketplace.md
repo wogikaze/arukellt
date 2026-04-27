@@ -1,14 +1,16 @@
-# Extension quality / packaging / marketplace readiness
+---
+Status: open
+Created: 2026-03-30
+Updated: 2026-04-13
+ID: 214
+Track: parallel
+Depends on: 184, 185, 186, 187, 188
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #188
+Blocks v{N}: none
+---
 
-**Status**: open
-**Created**: 2026-03-30
-**Updated**: 2026-04-13
-**ID**: 214
-**Depends on**: 184, 185, 186, 187, 188
-**Track**: parallel
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #188
-**Blocks v{N}**: none
+# Extension quality / packaging / marketplace readiness
 
 ## Reopened by audit — 2026-04-13
 

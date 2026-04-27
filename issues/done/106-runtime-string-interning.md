@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-15
+ID: 106
+Track: runtime-perf
+Depends on: —
+Orchestration class: implementation-ready
+---
 # 実行時性能: 静的文字列インターニング (data segment 参照)
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-15
-**ID**: 106
-**Depends on**: —
-**Track**: runtime-perf
 **Blocks v4 exit**: no
 
 ---

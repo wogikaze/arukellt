@@ -1,10 +1,12 @@
+---
+Status: done
+Updated: 2026-03-30
+ID: 164
+Track: main
+Depends on: 177, 178
+Orchestration class: implementation-ready
+---
 # v5 Phase 2: Resolver + TypeChecker epic
-
-**Status**: done
-**Updated**: 2026-03-30
-**ID**: 164
-**Depends on**: 177, 178
-**Track**: main
 **Blocks v1 exit**: no
 
 **Status note**: Parent issue for semantic analysis. MIR lowering is tracked under #165 so Phase 2 stays focused on resolution and typing.

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-29
+ID: 090
+Track: backend-opt
+Depends on: 48
+Orchestration class: implementation-ready
+---
 # T3: 末尾位置の call → return_call 自動変換
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-29
-**ID**: 090
-**Depends on**: 060
-**Track**: backend-opt
 **Blocks v4 exit**: yes
 
 ---

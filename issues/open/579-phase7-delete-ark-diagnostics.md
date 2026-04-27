@@ -1,13 +1,15 @@
-# 579 — Phase 7: Delete `crates/ark-diagnostics`
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 579
+Track: selfhost-retirement
+Depends on: 564, 572, 575, 576, 577
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #564, #572, #575, #576, #577
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 579
-**Depends on**: 564, 572, 575, 576, 577
-**Track**: selfhost-retirement
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #564, #572, #575, #576, #577
+# 579 — Phase 7: Delete `crates/ark-diagnostics`
 **Blocks**: 582
 **Blocks v5**: no
 **Source**: #529 Phase 7 — Rust diagnostics crate (replaced by selfhost diagnostics in `src/compiler/`).

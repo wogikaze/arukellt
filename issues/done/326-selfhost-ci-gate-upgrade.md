@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 326
+Track: selfhost-verification
+Depends on: 325
+Orchestration class: implementation-ready
+---
 # CI の selfhost gate を full fixpoint check に昇格する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 326
-**Depends on**: 325
-**Track**: selfhost-verification
 **Blocks v1 exit**: no
 **Priority**: 20
 

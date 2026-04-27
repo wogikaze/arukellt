@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-15
+ID: 438
+Track: playground
+Depends on: 437
+Orchestration class: implementation-ready
+---
 # Playground: privacy / telemetry / error reporting を実装方針付きで定める
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-15
-**ID**: 438
-**Depends on**: 437
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 11
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-31
+ID: 250
+Track: parallel
+Depends on: none
+Orchestration class: implementation-ready
+---
 # benchmark measurement plan: GC vs linear memory decision data
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-31
-**ID**: 250
-**Depends on**: none
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

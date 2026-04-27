@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 234
+Track: main
+Depends on: 233
+Orchestration class: implementation-ready
+---
 # visibility・public API・internal API を言語機能として確立する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 234
-**Depends on**: 233
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

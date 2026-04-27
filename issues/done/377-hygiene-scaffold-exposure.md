@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 377
+Track: repo-hygiene
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Repo Hygiene: scaffold / internal コンポーネントの露出 tier を定める
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 377
-**Depends on**: —
-**Track**: repo-hygiene
 
 ## Acceptance
 

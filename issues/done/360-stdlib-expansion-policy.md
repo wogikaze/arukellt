@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 360
+Track: stdlib-api
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Stdlib: module family ごとの拡張原則を定義する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 360
-**Depends on**: —
-**Track**: stdlib-api
 **Blocks v1 exit**: no
 **Priority**: 5
 

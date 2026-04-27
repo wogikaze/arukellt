@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 276
+Track: parallel
+Depends on: 255
+Orchestration class: implementation-ready
+---
 # DAP 基本動詞を実装する（launch/threads/stackTrace/scopes/variables）
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 276
-**Depends on**: 255
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 059
+Track: stdlib
+Depends on: 039, 040, 041, 042, 043, 044, 045, 046, 047, 048, 049, 050, 051, 052, 053, 054, 055, 056, 057
+Orchestration class: implementation-ready
+---
 # v3 fixture 統合 + verify-harness.sh v3 ゲート
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 059
-**Depends on**: 039, 040, 041, 042, 043, 044, 045, 046, 047, 048, 049, 050, 051, 052, 053, 054, 055, 056, 057
-**Track**: stdlib
 **Blocks v3 exit**: yes
 
 ## Summary

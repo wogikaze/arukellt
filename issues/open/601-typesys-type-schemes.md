@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 601
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Type System Stage-Up: Type Schemes and Controlled Let-Generalization
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 601
 **Parent**: #589
 **Depends on**: 600
 **Track**: selfhost / typechecker

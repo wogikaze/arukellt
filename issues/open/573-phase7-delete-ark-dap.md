@@ -1,13 +1,15 @@
-# 573 — Phase 7: Delete `crates/ark-dap`
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 573
+Track: selfhost-retirement
+Depends on: 571
+Orchestration class: implementation-ready
+Orchestration upstream: #571
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 573
-**Depends on**: 571
-**Track**: selfhost-retirement
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: #571
+# 573 — Phase 7: Delete `crates/ark-dap`
 **Blocks**: 582
 **Blocks v5**: no
 **Source**: #529 Phase 7 — Rust DAP server crate (replaced by `src/ide/dap.ark`).

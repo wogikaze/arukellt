@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-15
+Updated: 2026-04-15
+ID: 028b
+Track: component-model
+Depends on: none
+Orchestration class: implementation-ready
+---
 # WIT import pipeline wiring — flags, resolver injection, pipeline integration
-
-**Status**: done
-**Created**: 2026-04-15
-**Updated**: 2026-04-15
-**ID**: 028b
-**Depends on**: none
-**Track**: component-model
 **Blocks v1 exit**: no
 
 ## Summary

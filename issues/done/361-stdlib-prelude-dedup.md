@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 361
+Track: stdlib-api
+Depends on: 360
+Orchestration class: implementation-ready
+---
 # Stdlib: prelude と module import の二重露出を整理する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 361
-**Depends on**: 360
-**Track**: stdlib-api
 
 ## Acceptance
 

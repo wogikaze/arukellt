@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-15
+Updated: 2026-04-18
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib: property / differential / parity test を family 横断で拡張する
-
-**Status**: done
-**Created**: 2026-04-15
-**Updated**: 2026-04-18
 **Closed**: 2026-04-18
 **ID**: 519
 **Depends on**: none

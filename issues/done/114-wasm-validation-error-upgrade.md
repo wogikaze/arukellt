@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-10
+ID: 114
+Track: wasm-quality
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Wasm 検証エラーをエラーに昇格 (W0004 warning → error)
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-10
-**ID**: 114
-**Depends on**: —
-**Track**: wasm-quality
 **Blocks v4 exit**: yes
 
 ---

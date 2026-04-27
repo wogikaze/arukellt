@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 128
+Track: code-structure
+Depends on: —
+Orchestration class: implementation-ready
+---
 # T3 GC エミッター (t3_wasm_gc.rs 8678行) をサブモジュールに分割
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 128
-**Depends on**: —
-**Track**: code-structure
 **Blocks v4 exit**: no
 
 ---

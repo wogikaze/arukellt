@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 218
+Track: parallel
+Depends on: 193
+Orchestration class: implementation-ready
+---
 # Navigation completeness: go to implementation / call hierarchy / type hierarchy
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 218
-**Depends on**: 193
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

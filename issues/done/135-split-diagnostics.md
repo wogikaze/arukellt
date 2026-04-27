@@ -1,13 +1,15 @@
-# ark-diagnostics lib.rs (1099行) をサブモジュールに分割
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-14
+ID: 135
+Track: code-structure
+Depends on: —
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-14
-**ID**: 135
-**Depends on**: —
-**Track**: code-structure
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# ark-diagnostics lib.rs (1099行) をサブモジュールに分割
 **Blocks v4 exit**: no
 
 ---

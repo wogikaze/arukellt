@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 18
+Track: gc-native
+Depends on: 17
+Orchestration class: implementation-ready
+---
 # GC-native enums: subtype hierarchy + br_on_cast
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 022
-**Depends on**: 021
-**Track**: gc-native
 **Blocks v1 exit**: no
 
 ## Summary

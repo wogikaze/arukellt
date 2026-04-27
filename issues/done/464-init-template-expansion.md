@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-14
+ID: 464
+Track: cli, dx
+Depends on: none
+Orchestration class: implementation-ready
+---
 # `arukellt init` のテンプレート拡充と新規ユーザー導線整備
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-14
-**ID**: 464
-**Depends on**: none
-**Track**: cli, dx
 **Blocks v1 exit**: no
 **Priority**: 3
 

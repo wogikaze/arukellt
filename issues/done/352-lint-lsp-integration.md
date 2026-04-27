@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Linter: lint 結果を LSP diagnostics / code action として配信する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
 **Closed**: 2026-04-01
 **ID**: 352
 **Depends on**: 349

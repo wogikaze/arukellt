@@ -1,10 +1,12 @@
+---
+Status: done
+Updated: 2026-03-30
+ID: 165
+Track: main
+Depends on: 179, 180
+Orchestration class: implementation-ready
+---
 # v5 Phase 3: Backend + Wasm emission epic
-
-**Status**: done
-**Updated**: 2026-03-30
-**ID**: 165
-**Depends on**: 179, 180
-**Track**: main
 **Blocks v1 exit**: no
 
 **Status note**: Parent issue for backend work after typed HIR exists. Includes MIR lowering and Wasm emission.

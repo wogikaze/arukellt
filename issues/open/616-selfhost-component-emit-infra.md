@@ -1,13 +1,15 @@
-# Selfhost compiler: Implement component emission infrastructure
+---
+Status: open
+Created: 2026-04-25
+Updated: 2026-04-25
+ID: 616
+Track: component-model
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: open
-**Created**: 2026-04-25
-**Updated**: 2026-04-25
-**ID**: 616
-**Depends on**: none
-**Track**: component-model
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# Selfhost compiler: Implement component emission infrastructure
 **Blocks v2**: yes
 
 ## Summary

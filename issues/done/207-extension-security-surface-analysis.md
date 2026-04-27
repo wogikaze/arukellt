@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 207
+Track: parallel
+Depends on: 184, 188
+Orchestration class: implementation-ready
+---
 # Extension security surface analysis
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 207
-**Depends on**: 184, 188
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

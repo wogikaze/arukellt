@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-15
+ID: 170
+Track: main
+Depends on: 165, 166, 169
+Orchestration class: implementation-ready
+---
 # v5 Migration guide
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-15
-**ID**: 170
-**Depends on**: 165, 166, 169
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13

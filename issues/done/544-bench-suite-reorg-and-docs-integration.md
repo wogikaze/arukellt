@@ -1,14 +1,16 @@
-# 544 — Benchmark suite reorganization and docs integration
+---
+Status: open
+Created: 2026-04-21
+ID: 544
+Track: benchmark
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+Source: benchmarks/ directory cleanup request
+---
 
-**Status**: open
-**Created**: 2026-04-21
-**ID**: 544
-**Depends on**: none
-**Track**: benchmark
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: benchmarks/ directory cleanup request
+# 544 — Benchmark suite reorganization and docs integration
 
 ## Summary
 

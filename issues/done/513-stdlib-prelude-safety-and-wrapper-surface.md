@@ -1,15 +1,17 @@
-# Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する
+---
+Status: open
+Created: 2026-04-15
+Updated: 2026-04-18
+ID: 513
+Track: stdlib
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+Source: stdlib modernization backlog requested 2026-04-15
+---
 
-**Status**: open
-**Created**: 2026-04-15
-**Updated**: 2026-04-18
-**ID**: 513
-**Depends on**: none
-**Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: stdlib modernization backlog requested 2026-04-15
+# Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する
 
 ## Progress
 

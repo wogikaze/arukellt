@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 346
+Track: formatter
+Depends on: 344
+Orchestration class: implementation-ready
+---
 # Formatter: import sort を formatter から分離する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 346
-**Depends on**: 344
-**Track**: formatter
 **Blocks v1 exit**: no
 **Priority**: 16
 

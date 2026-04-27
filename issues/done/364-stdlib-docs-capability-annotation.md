@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 364
+Track: stdlib-docs
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: host module の target/capability 注記を統一する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 364
-**Depends on**: —
-**Track**: stdlib-docs
 
 ## Acceptance
 

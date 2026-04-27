@@ -1,13 +1,15 @@
 ---
 id: 557
-title: "Selfhost CLI top-level command surface parity"
+title: Selfhost CLI top-level command surface parity
 status: done
 track: selfhost-cli
 created: 2026-04-22
 updated: 2026-04-22
-depends-on: [288, 318, 319, 459]
+depends-on: "[288, 318, 319, 459]"
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
 ---
-
 ## Why this must exist
 
 The current canonical CLI parity runner passes only for `--version` and `--help`, but the selfhost `--help` output now advertises a Rust-level top-level command surface that the selfhost CLI does not actually implement. This is a user-visible claim mismatch.

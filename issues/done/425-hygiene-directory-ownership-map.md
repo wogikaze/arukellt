@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 425
+Track: repo-hygiene
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Repo Hygiene: ディレクトリごとの ownership / maintenance map を作る
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 425
-**Depends on**: —
-**Track**: repo-hygiene
 
 ## Acceptance
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-10
+ID: 484
+Track: compiler
+Depends on: 483
+Orchestration class: implementation-ready
+---
 # compiler: to_string() builtin 実装と stdlib surface 整備
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-10
-**ID**: 484
-**Depends on**: 483
-**Track**: compiler
 **Blocks v1 exit**: no
 
 ---

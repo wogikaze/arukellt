@@ -1,7 +1,11 @@
+---
+Status: done
+Created: 2026-03-31
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib: error / Result の命名・変換・伝播慣習を正規化する
-
-**Status**: done
-**Created**: 2026-03-31
 **Closed**: 2026-07-28
 **ID**: 392
 

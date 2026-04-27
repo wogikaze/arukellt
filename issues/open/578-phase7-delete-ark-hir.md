@@ -1,13 +1,15 @@
-# 578 — Phase 7: Delete `crates/ark-hir`
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 578
+Track: selfhost-retirement
+Depends on: 564, 577
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #564, #577
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 578
-**Depends on**: 564, 577
-**Track**: selfhost-retirement
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #564, #577
+# 578 — Phase 7: Delete `crates/ark-hir`
 **Blocks**: 582
 **Blocks v5**: no
 **Source**: #529 Phase 7 — Rust HIR crate (replaced by selfhost MIR pipeline).

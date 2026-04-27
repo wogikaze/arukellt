@@ -1,15 +1,17 @@
-# Stdlib TOML: parse failure と supported subset contract を定義する
+---
+Status: done
+Created: 2026-04-18
+Updated: 2026-04-22
+ID: 523
+Track: stdlib
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+Source: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
+---
 
-**Status**: done
-**Created**: 2026-04-18
-**Updated**: 2026-04-22
-**ID**: 523
-**Depends on**: none
-**Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
+# Stdlib TOML: parse failure と supported subset contract を定義する
 
 ## Summary
 

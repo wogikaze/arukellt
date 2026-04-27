@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 371
+Track: language-docs
+Depends on: 368
+Orchestration class: implementation-ready
+---
 # Language Docs: 読む順番と entry point を明確化する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 371
-**Depends on**: 368
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 8
 

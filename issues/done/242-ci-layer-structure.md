@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-01
+ID: 242
+Track: main
+Depends on: 241
+Orchestration class: implementation-ready
+---
 # CI を unit/fixture/integration/packaging/editor smoke/determinism の各層で構成する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-01
-**ID**: 242
-**Depends on**: 241
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

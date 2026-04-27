@@ -1,13 +1,15 @@
-# セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない
+---
+Status: completed
+Created: 2026-03-30
+Updated: 2026-04-13
+ID: 253
+Track: main
+Depends on: none
+Orchestration class: verification-ready
+Orchestration upstream: —
+---
 
-**Status**: completed
-**Created**: 2026-03-30
-**Updated**: 2026-04-13
-**ID**: 253
-**Depends on**: none
-**Track**: main
-**Orchestration class**: verification-ready
-**Orchestration upstream**: —
+# セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない
 **Blocks v3**: yes
 
 ## Reopened by audit — 2026-04-13

@@ -1,13 +1,15 @@
-# Wasm Multi-Value: ブロック / ループの複数値返却フル活用
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-15
+ID: 072
+Track: wasm-feature
+Depends on: —
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-15
-**ID**: 072
-**Depends on**: —
-**Track**: wasm-feature
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# Wasm Multi-Value: ブロック / ループの複数値返却フル活用
 **Blocks v4 exit**: no
 
 ---

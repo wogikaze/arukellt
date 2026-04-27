@@ -1,13 +1,15 @@
-# 572 — Phase 7: Delete `crates/ark-lsp`
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 572
+Track: selfhost-retirement
+Depends on: 569, 570
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #569, #570
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 572
-**Depends on**: 569, 570
-**Track**: selfhost-retirement
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #569, #570
+# 572 — Phase 7: Delete `crates/ark-lsp`
 **Blocks**: 582
 **Blocks v5**: no
 **Source**: #529 Phase 7 — Rust LSP server crate (replaced by `src/ide/lsp.ark`).

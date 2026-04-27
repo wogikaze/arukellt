@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 341
+Track: lsp-semantic
+Depends on: 340
+Orchestration class: implementation-ready
+---
 # LSP: organize imports を formatter 副作用から独立した semantic 操作にする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 341
-**Depends on**: 340
-**Track**: lsp-semantic
 **Blocks v1 exit**: no
 **Priority**: 10
 

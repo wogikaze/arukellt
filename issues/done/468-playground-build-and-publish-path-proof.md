@@ -1,25 +1,14 @@
-
+---
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 468
+Track: playground-deploy
+Depends on: 466
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+Priority: 4
+Orchestration class: implementation-ready
+---
 ## Reopened by audit
-
-- **Date**: 2026-04-21
-- **Reason**: build:app script uses || true to silently skip missing wasm; publish path for wasm is broken
-- **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
-- **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
-
-# Playground: build と publish path を repo 証拠で固定する
-
-> **Status:** open
-> **Track:** playground
-> **Type:** Implementation
-
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 468
-**Depends on**: 466
-**Track**: playground-deploy
-**Blocks v1 exit**: no
-**Priority**: 4
 
 ## Closed by decomposition audit — 2026-04-03
 

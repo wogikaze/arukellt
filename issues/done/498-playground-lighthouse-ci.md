@@ -1,9 +1,12 @@
+---
+Status: done
+Created: 2026-04-14
+Updated: 2026-04-15
+Track: playground
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 498 — Playground CI: Lighthouse performance audit
-
-**Track:** playground
-**Status:** done
-**Created:** 2026-04-14
-**Updated:** 2026-04-15
 **Closed:** 2026-04-15
 **Source:** explicit-defer — docs/playground/deployment-strategy.md §4.3 (issue #491)
 

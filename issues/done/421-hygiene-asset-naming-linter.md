@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 421
+Track: repo-hygiene
+Depends on: 374
+Orchestration class: implementation-ready
+---
 # Repo Hygiene: benchmark / test asset の naming linter を入れる
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 421
-**Depends on**: 374
-**Track**: repo-hygiene
 **Blocks v1 exit**: no
 **Priority**: 5
 

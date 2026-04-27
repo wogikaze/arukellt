@@ -1,8 +1,10 @@
+---
+Depends on: なし
+Priority: P2
+Track: main
+Orchestration class: implementation-ready
+---
 # 168: CoreHIR / MIR 仕様ドキュメント
-
-**Version**: v5 (prep)
-**Priority**: P2
-**Depends on**: なし
 
 ## 概要
 

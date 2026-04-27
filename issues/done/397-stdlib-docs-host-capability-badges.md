@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 397
+Track: stdlib-docs
+Depends on: 364
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: host API の target / capability / warning 表示を統一する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 397
-**Depends on**: 364
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 3
 

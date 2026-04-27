@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 3
+Track: main
+Depends on: 1
+Orchestration class: implementation-ready
+---
 # Align target profile and backend plan
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 003
-**Depends on**: 001
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

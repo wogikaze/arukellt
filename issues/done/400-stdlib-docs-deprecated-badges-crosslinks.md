@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 400
+Track: stdlib-docs
+Depends on: 367
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: deprecated API の表示と migration cross-link を自動化する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 400
-**Depends on**: 367
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 6
 

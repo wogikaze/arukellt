@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-18
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-18
 **Closed**: 2026-04-18
 **ID**: 110
 **Depends on**: 109

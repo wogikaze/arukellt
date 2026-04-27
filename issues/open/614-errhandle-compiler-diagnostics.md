@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 614
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Error Handling Convergence: Compiler Structured Diagnostics
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 614
 **Parent**: #592
 **Depends on**: —
 **Track**: compiler / selfhost

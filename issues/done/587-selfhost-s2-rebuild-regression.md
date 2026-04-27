@@ -1,13 +1,15 @@
-# 587 — Selfhost s2 rebuild regression: type errors on every fixture from current `src/compiler/main.ark`
+---
+Status: done
+Created: 2026-04-23
+Updated: 2026-04-23
+ID: 587
+Track: selfhost-frontend
+Depends on: —
+Orchestration class: investigation-required
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-04-23
-**Updated**: 2026-04-23
-**ID**: 587
-**Depends on**: —
-**Track**: selfhost-frontend
-**Orchestration class**: investigation-required
-**Orchestration upstream**: —
+# 587 — Selfhost s2 rebuild regression: type errors on every fixture from current `src/compiler/main.ark`
 **Blocks**: 583-followup, future bootstrap rotation
 **Blocks v5**: yes (silently — current verification passes only via stale cache)
 **Source**: Flagged by `impl-312-slice-d` final report 2026-04-23.

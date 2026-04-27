@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 177
+Track: main
+Depends on: 163
+Orchestration class: implementation-ready
+---
 # v5 Resolver: name binding and imports
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 177
-**Depends on**: 163
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

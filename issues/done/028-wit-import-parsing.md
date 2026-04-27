@@ -1,13 +1,15 @@
-# WIT import parsing & host function binding
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-18
+ID: 028
+Track: component-model
+Depends on: 028b
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-18
-**ID**: 028
-**Depends on**: 028b
-**Track**: component-model
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# WIT import parsing & host function binding
 **Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13

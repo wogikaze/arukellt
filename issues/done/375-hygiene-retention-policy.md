@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 375
+Track: repo-hygiene
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Repo Hygiene: archive / retention policy を定め、情報の鮮度を維持する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 375
-**Depends on**: —
-**Track**: repo-hygiene
 
 ## Acceptance
 

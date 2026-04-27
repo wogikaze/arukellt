@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 419
+Track: repo-hygiene
+Depends on: 375
+Orchestration class: implementation-ready
+---
 # Repo Hygiene: done issues / archive docs の retention workflow を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 419
-**Depends on**: 375
-**Track**: repo-hygiene
 
 ## Acceptance
 

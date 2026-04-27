@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 608
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib Baseline: Docs, Verification, and Benchmark Closeout
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 608
 **Parent**: #590
 **Depends on**: 604, 605, 606, 607
 **Track**: stdlib / docs

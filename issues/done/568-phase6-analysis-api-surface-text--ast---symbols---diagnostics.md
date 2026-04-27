@@ -1,13 +1,15 @@
-# 568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)
+---
+Status: done
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 568
+Track: selfhost-frontend
+Depends on: 565, 566, 567
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #565, #566, #567
+---
 
-**Status**: done
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 568
-**Depends on**: 565, 566, 567
-**Track**: selfhost-frontend
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #565, #566, #567
+# 568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)
 **Blocks**: 569
 **Blocks v5**: no
 **Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration

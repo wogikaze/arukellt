@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-15
+ID: 140
+Track: benchmark
+Depends on: 149
+Orchestration class: implementation-ready
+---
 # ベンチ統合: `mise bench` 1コマンド導線と subcommand 整理
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-15
-**ID**: 140
-**Depends on**: 149
-**Track**: benchmark
 **Blocks v1 exit**: no
 
 ---

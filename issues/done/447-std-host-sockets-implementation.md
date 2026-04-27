@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-18
+ID: 447
+Track: runtime
+Depends on: none
+Orchestration class: implementation-ready
+---
 # std::host::sockets::connect: WASI P2 最小実装・T3 限定 compile-time 明確化
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-18
-**ID**: 447
-**Depends on**: none
-**Track**: runtime
 **Blocks v1 exit**: yes
 **Priority**: 3
 

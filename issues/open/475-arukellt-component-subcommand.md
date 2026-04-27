@@ -1,13 +1,15 @@
-# `arukellt component` サブコマンド (v3 候補)
+---
+Status: open
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 475
+Track: cli
+Depends on: "035 (v2-verification-cleanup, done), 074 (wasi-p2-native-component)"
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #74
+---
 
-**Status**: open
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 475
-**Depends on**: 035 (v2-verification-cleanup, done), 074 (wasi-p2-native-component)
-**Track**: cli
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #74
+# `arukellt component` サブコマンド (v3 候補)
 **Blocks v4 exit**: no
 
 **Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.

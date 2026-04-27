@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-10
+ID: 486
+Track: compiler
+Depends on: 32
+Orchestration class: implementation-ready
+---
 # f32 ローカル変数の MIR lowerer 対応 (F32 locals tracking)
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-10
-**ID**: 486
-**Depends on**: 040
-**Track**: compiler
 **Blocks v1 exit**: no
 
 ---

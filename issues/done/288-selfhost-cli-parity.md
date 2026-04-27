@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-22
+ID: 288
+Track: selfhost
+Depends on: 287
+Orchestration class: implementation-ready
+---
 # セルフホスト CLI parity を確認する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-22
-**ID**: 288
-**Depends on**: 287
-**Track**: selfhost
 **Blocks v1 exit**: no
 **Priority**: 8
 

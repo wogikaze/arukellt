@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-15
+ID: 082
+Track: mir-opt
+Depends on: —
+Orchestration class: implementation-ready
+---
 # MIR: gc_hint パス — 短命オブジェクトのパターン検出
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-15
-**ID**: 082
-**Depends on**: —
-**Track**: mir-opt
 **Blocks v4 exit**: no
 
 ---

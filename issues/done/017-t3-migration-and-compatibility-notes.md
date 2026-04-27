@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 15
+Track: parallel
+Depends on: 011, 015
+Orchestration class: implementation-ready
+---
 # T3 migration and compatibility notes
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 017
-**Depends on**: 011, 015
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

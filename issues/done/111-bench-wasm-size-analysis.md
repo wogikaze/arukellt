@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 111
+Track: benchmark
+Depends on: —
+Orchestration class: implementation-ready
+---
 # ツール: Wasm バイナリサイズ内訳分析ツール
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 111
-**Depends on**: —
-**Track**: benchmark
 **Blocks v4 exit**: no
 
 ---

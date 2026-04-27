@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # MIR lower.rs (4360行) をサブモジュールに分割
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
 **Closed**: 2026-04-18
 **ID**: 130
 **Depends on**: —

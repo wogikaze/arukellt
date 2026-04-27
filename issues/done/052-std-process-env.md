@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 42
+Track: stdlib
+Depends on: 039, 042
+Orchestration class: implementation-ready
+---
 # std::process + std::env + std::cli: 実行環境 API
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 052
-**Depends on**: 039, 042
-**Track**: stdlib
 **Blocks v3 exit**: yes
 
 ---

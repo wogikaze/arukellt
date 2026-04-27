@@ -1,11 +1,13 @@
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 51
+Track: wasm-feature
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Wasm Multi-Memory: 複数メモリモジュール対応
-
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 063
-**Depends on**: —
-**Track**: wasm-feature
 **Blocks v4 exit**: no
 
 **Status note**: Wasm proposal — deferred to v5+. Not implemented.

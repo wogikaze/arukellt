@@ -1,6 +1,10 @@
+---
+Status: done
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 541 — Benchmark: struct graph (nested structs / recursive types)
-
-**Status**: done
 
 **Closed**: 2026-04-22
 **Close commit**: 80bd25e4

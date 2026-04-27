@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 410
+Track: language-docs
+Depends on: 406
+Orchestration class: implementation-ready
+---
 # Language Docs: guide / reference の例コードを fixture 連動にする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 410
-**Depends on**: 406
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 5
 

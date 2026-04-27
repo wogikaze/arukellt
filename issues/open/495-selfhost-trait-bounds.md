@@ -1,13 +1,15 @@
-# 495 — Selfhost typechecker: trait bounds and constraint solving
+---
+Status: blocked-by-upstream
+Created: 2026-04-14
+Updated: 2026-04-15
+ID: 495
+Track: selfhost
+Depends on: 312, 504
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #312, #504
+---
 
-**Status**: blocked-by-upstream
-**Created**: 2026-04-14
-**Updated**: 2026-04-15
-**ID**: 495
-**Depends on**: 312, 504
-**Track**: selfhost
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #312, #504
+# 495 — Selfhost typechecker: trait bounds and constraint solving
 **Blocks v5**: yes
 **Source**: audit — issues/done/210-selfhost-typechecker-typed-fns.md "Out of scope (deferred)"
 

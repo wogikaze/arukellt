@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-03
+ID: 278
+Track: parallel
+Depends on: 276
+Orchestration class: implementation-ready
+---
 # VS Code 拡張に debug contribution を追加する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-03
-**ID**: 278
-**Depends on**: 276
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ---

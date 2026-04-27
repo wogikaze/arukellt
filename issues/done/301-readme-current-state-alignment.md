@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-14
+ID: 301
+Track: docs/ops
+Depends on: 303
+Orchestration class: implementation-ready
+---
 # current-state.md と README.md の整合を取る
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-14
-**ID**: 301
-**Depends on**: 303
-**Track**: docs/ops
 **Blocks v1 exit**: no
 **Priority**: 21
 

@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-15
+Updated: 2026-04-22
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる
-
-**Status**: done
-**Created**: 2026-04-15
-**Updated**: 2026-04-22
 **Closed**: 2026-04-22
 **Close commit**: ea5f5184
 **ID**: 515

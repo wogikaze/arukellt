@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 417
+Track: repo-hygiene
+Depends on: 373
+Orchestration class: implementation-ready
+---
 # Repo Hygiene: generated file manifest と ownership banner を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 417
-**Depends on**: 373
-**Track**: repo-hygiene
 **Blocks v1 exit**: no
 **Priority**: 1
 

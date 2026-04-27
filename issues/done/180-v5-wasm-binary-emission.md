@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 180
+Track: main
+Depends on: 179
+Orchestration class: implementation-ready
+---
 # v5 Backend: deterministic Wasm binary emission
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 180
-**Depends on**: 179
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

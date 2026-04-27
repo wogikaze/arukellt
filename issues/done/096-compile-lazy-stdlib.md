@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
 **Closed**: 2026-04-18
 **ID**: 096
 **Depends on**: —

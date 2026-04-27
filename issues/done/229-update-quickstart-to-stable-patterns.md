@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 229
+Track: main
+Depends on: 226, 227
+Orchestration class: implementation-ready
+---
 # Quickstart を「今後も基準になる書き方」に更新する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 229
-**Depends on**: 226, 227
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

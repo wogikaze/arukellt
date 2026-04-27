@@ -1,13 +1,15 @@
-# 569 — Phase 6/C1: src/ide/lsp.ark — initialize / didOpen / didChange / publishDiagnostics
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 569
+Track: selfhost-frontend
+Depends on: 568
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #568
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 569
-**Depends on**: 568
-**Track**: selfhost-frontend
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #568
+# 569 — Phase 6/C1: src/ide/lsp.ark — initialize / didOpen / didChange / publishDiagnostics
 **Blocks**: 570, 572
 **Blocks v5**: no
 **Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration

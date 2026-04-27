@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 480
+Track: docs
+Depends on: 479
+Orchestration class: implementation-ready
+---
 # Extension README: 設定一覧テーブル追加
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 480
-**Depends on**: 479
-**Track**: docs
 **Blocks v1 exit**: no
 
 ---

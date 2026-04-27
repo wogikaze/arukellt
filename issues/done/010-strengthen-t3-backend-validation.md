@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 8
+Track: main
+Depends on: 004, 005, 006, 007, 008, 009
+Orchestration class: implementation-ready
+---
 # Strengthen T3 backend validation
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 010
-**Depends on**: 004, 005, 006, 007, 008, 009
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

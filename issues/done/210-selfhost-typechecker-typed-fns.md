@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 210
+Track: compiler/selfhost
+Depends on: 209
+Orchestration class: implementation-ready
+---
 # selfhost: typechecker builds real typed_fns from resolved AST
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 210
-**Depends on**: 209
-**Track**: compiler/selfhost
 **Blocks v1 exit**: no
 
 **Status note**: `src/compiler/typechecker.ark:222` (`typecheck_module`) is a stub that returns an empty `TypeCheckResult`. Nothing flows to MIR. Must be implemented before MIR lowering produces real output.

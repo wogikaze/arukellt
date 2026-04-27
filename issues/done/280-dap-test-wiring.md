@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 280
+Track: parallel
+Depends on: 277, 278
+Orchestration class: implementation-ready
+---
 # DAP smoke test と E2E test を配線する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 280
-**Depends on**: 277, 278
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

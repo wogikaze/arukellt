@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 209
+Track: compiler/selfhost
+Depends on: 208
+Orchestration class: implementation-ready
+---
 # selfhost: connect CLI main.ark to driver pipeline
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 209
-**Depends on**: 208
-**Track**: compiler/selfhost
 **Blocks v1 exit**: no
 
 **Status note**: `src/compiler/main.ark` is wired (agent already added `use driver` and the dispatch block) but cannot be built until #208 is resolved — the module private-items bug prevents `driver.ark` from compiling.

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 327
+Track: selfhost-verification
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Bootstrap docs の重複を解消し truth を一本化する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 327
-**Depends on**: —
-**Track**: selfhost-verification
 **Blocks v1 exit**: no
 **Priority**: 17
 

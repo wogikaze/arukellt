@@ -1,12 +1,14 @@
-# verify-bootstrap.sh の昇格
+---
+Status: completed
+Created: 2026-04-19
+ID: 267
+Track: main
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: completed
-**Created**: 2026-04-19
-**ID**: 267
-**Depends on**: none
-**Track**: main
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# verify-bootstrap.sh の昇格
 **Blocks v3**: yes
 
 ## Summary

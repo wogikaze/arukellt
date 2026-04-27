@@ -1,15 +1,17 @@
-# CLI --wit flag, --emit component workflow, docs
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-22
+ID: 034
+Track: component-model
+Depends on: 030, 031, 028b, 616
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #616
+Blocks v{N}: none
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-22
-**ID**: 034
-**Depends on**: 030, 031, 028b, 616
-**Track**: component-model
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #616
-**Blocks v{N}**: none
+# CLI --wit flag, --emit component workflow, docs
 
 ## Reopened by audit — 2026-04-13
 

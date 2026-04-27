@@ -1,13 +1,15 @@
-# CoreHIR lowering: LoopExpr を制御フローに desugar する
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-14
+ID: 282
+Track: corehir
+Depends on: 281
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-14
-**ID**: 282
-**Depends on**: 281
-**Track**: corehir
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# CoreHIR lowering: LoopExpr を制御フローに desugar する
 **Blocks v1 exit**: no
 **Priority**: 2
 

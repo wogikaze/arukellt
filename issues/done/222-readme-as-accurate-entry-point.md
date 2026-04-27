@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 222
+Track: main
+Depends on: 221
+Orchestration class: implementation-ready
+---
 # README を現在の利用可能面を正確に示す入口に更新する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 222
-**Depends on**: 221
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

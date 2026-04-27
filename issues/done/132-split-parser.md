@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-14
+ID: 132
+Track: code-structure
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Parser parser.rs (2003行) をサブモジュールに分割
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-14
-**ID**: 132
-**Depends on**: —
-**Track**: code-structure
 **Blocks v4 exit**: no
 
 ---

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 401
+Track: stdlib-docs
+Depends on: 398
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: examples を compile-check して docs drift を防ぐ
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 401
-**Depends on**: 398
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 7
 

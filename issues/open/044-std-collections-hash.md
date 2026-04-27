@@ -1,13 +1,15 @@
-# std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-22
+ID: 044
+Track: stdlib
+Depends on: 039, 041, 312
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #312
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-22
-**ID**: 044
-**Depends on**: 039, 041, 312
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #312
+# std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>
 **Blocks v3 exit**: yes
 
 **Status note**: FROZEN — generic `HashMap<K,V>` / `HashSet<T>` depends on #312 generic monomorphization. Do not re-dispatch this lane until #312 is actually complete and accepted.

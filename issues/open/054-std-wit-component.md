@@ -1,13 +1,15 @@
-# std::wit + std::component: WIT 型、resource handle、canonical ABI
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-22
+ID: 054
+Track: stdlib
+Depends on: 039, 044, 053
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #39, #44, #312-through-#44
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-22
-**ID**: 054
-**Depends on**: 039, 044, 053
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #39, #44, #312-through-#44
+# std::wit + std::component: WIT 型、resource handle、canonical ABI
 **Blocks v3 exit**: no (Experimental)
 
 **Status note**: FROZEN — depends on #044, which is blocked by #312 generic monomorphization. Do not re-dispatch until #044 is unfrozen.

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 445
+Track: runtime
+Depends on: none
+Orchestration class: implementation-ready
+---
 # std::host::process: proc_exit を T1/T3 両エミッターに配線し stub を解除する
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 445
-**Depends on**: none
-**Track**: runtime
 **Blocks v1 exit**: yes
 **Priority**: 1
 

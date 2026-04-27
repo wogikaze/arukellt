@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 6
+Track: main
+Depends on: 004, 005
+Orchestration class: implementation-ready
+---
 # Vec on WasmGC for T3
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 006
-**Depends on**: 004, 005
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

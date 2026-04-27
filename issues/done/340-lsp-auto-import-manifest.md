@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 340
+Track: lsp-semantic
+Depends on: 334
+Orchestration class: implementation-ready
+---
 # LSP: auto-import 候補を manifest / module graph 駆動にする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 340
-**Depends on**: 334
-**Track**: lsp-semantic
 **Blocks v1 exit**: no
 **Priority**: 5
 

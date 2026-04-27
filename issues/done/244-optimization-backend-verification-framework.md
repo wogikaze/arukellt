@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-31
+ID: 244
+Track: main
+Depends on: 241, 242
+Orchestration class: implementation-ready
+---
 # 最適化・backend の「無効でも使える/有効でも壊さない」検証体制を構築する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-31
-**ID**: 244
-**Depends on**: 241, 242
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

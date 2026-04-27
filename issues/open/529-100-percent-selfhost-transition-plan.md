@@ -1,21 +1,9 @@
+---
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 100% Self-Hosting Transition Plan (Operational Guide)
-
-> **Status:** Implementation Guide — ready for execution with verification checkpoints
-> **For agentic workers:** Execute phase-by-phase. Each phase has mandatory verification steps.
-
-> ⚠️ **DO NOT IMPLEMENT DIRECTLY.** This is an operational guide umbrella. Dispatch child issues:
-> - **#593** `593-selfhost-phase1-multi-file-fixpoint.md` — Phase 1: multi-file fixpoint (implementation-ready)
-> - **#594** `594-selfhost-phase2-fixture-diag-parity.md` — Phase 2: fixture + diag parity (depends: 593)
-
-**Goal:** Transition the Arukellt compiler and IDE tooling from a dual-period Rust/Arukellt architecture to a 100% Arukellt-hosted architecture, culminating in the complete deletion of the Rust `crates/` directory.
-
-**Work Streams (DO NOT MIX):**
-1. Selfhost compiler: `src/compiler/*.ark`
-2. Trusted base Rust compiler: `crates/arukellt`, `crates/ark-driver`, `crates/ark-mir`, `crates/ark-wasm`
-3. Verification: `scripts/check/*`, `scripts/run/*`, `tests/fixtures/*`
-4. IDE: `crates/ark-lsp`, `crates/ark-dap`, future `src/ide/*`
-
-**Key Constraint:** First goal is NOT "delete Rust" but "selfhost compiler can reproduce itself".
 
 ## Responsibility split — 2026-04-22
 

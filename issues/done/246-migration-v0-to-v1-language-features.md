@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-30
+ID: 246
+Track: docs
+Depends on: none
+Orchestration class: implementation-ready
+---
 # migration guide v0→v1: language features completed, user migration tracking
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-30
-**ID**: 246
-**Depends on**: none
-**Track**: docs
 **Blocks v1 exit**: no
 
 ## Summary

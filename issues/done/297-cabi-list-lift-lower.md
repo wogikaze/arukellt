@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 297
+Track: component-model
+Depends on: 296
+Orchestration class: implementation-ready
+---
 # list 型の canonical ABI lift-lower を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 297
-**Depends on**: 296
-**Track**: component-model
 **Blocks v1 exit**: no
 **Priority**: 17
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-30
+ID: 27
+Track: component-model
+Depends on: 030, 031
+Orchestration class: implementation-ready
+---
 # Component Model test fixtures & interop validation
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-30
-**ID**: 033
-**Depends on**: 030, 031
-**Track**: component-model
 **Blocks v1 exit**: no
 
 ## Summary

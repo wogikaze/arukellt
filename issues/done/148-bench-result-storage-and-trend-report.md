@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-15
+ID: 148
+Track: benchmark
+Depends on: 140, 141, 142, 143, 145, 146
+Orchestration class: implementation-ready
+---
 # 基盤: benchmark 結果保存・履歴比較・トレンドレポート
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-15
-**ID**: 148
-**Depends on**: 140, 141, 142, 143, 145, 146
-**Track**: benchmark
 **Blocks v1 exit**: no
 
 ---

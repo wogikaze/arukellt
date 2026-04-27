@@ -1,13 +1,15 @@
-# VSCode API を使った editor behavior E2E テストを追加する
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-15
+ID: 453
+Track: vscode-ide
+Depends on: 450, 451, 452
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-15
-**ID**: 453
-**Depends on**: 450, 451, 452
-**Track**: vscode-ide
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# VSCode API を使った editor behavior E2E テストを追加する
 **Blocks v1 exit**: no
 **Priority**: 4
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+ID: 307
+Track: capability
+Depends on: —
+Priority: 14
+Orchestration class: implementation-ready
+---
 # --deny-fs の実施と --dir の検証テスト
-
-**Status**: done
-**Created**: 2026-03-31
-**ID**: 307
-**Depends on**: —
-**Track**: capability
-**Priority**: 14
 
 ## Summary
 

@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 602
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Type System Stage-Up: Qualified Constraints and Coherent Trait Solving
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 602
 **Parent**: #589
 **Depends on**: 601
 **Track**: selfhost / typechecker

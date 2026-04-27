@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+ID: 306
+Track: corehir
+Depends on: 281, 282, 283
+Priority: 4
+Orchestration class: implementation-ready
+---
 # Backend-illegal operand の棚卸し
-
-**Status**: done
-**Created**: 2026-03-31
-**ID**: 306
-**Depends on**: 281, 282, 283
-**Track**: corehir
-**Priority**: 4
 
 ## Summary
 

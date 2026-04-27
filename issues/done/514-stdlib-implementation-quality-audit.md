@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-15
+Updated: 2026-04-22
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する
-
-**Status**: done
-**Created**: 2026-04-15
-**Updated**: 2026-04-22
 **Closed**: 2026-04-22
 **Commit**: 873f2da0
 **ID**: 514

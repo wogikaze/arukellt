@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 376
+Track: repo-hygiene
+Depends on: 373
+Orchestration class: implementation-ready
+---
 # Repo Hygiene: stale state を CI / pre-push で自動検出する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 376
-**Depends on**: 373
-**Track**: repo-hygiene
 **Blocks v1 exit**: no
 **Priority**: 19
 

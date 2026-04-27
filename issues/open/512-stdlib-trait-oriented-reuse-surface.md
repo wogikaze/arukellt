@@ -1,13 +1,15 @@
-# Stdlib: trait ベースの再利用可能 surface へ段階移行する
+---
+Status: open
+Created: 2026-04-15
+Updated: 2026-04-15
+ID: 512
+Track: stdlib
+Depends on: 504, 495
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #495, #504
+---
 
-**Status**: open
-**Created**: 2026-04-15
-**Updated**: 2026-04-15
-**ID**: 512
-**Depends on**: 504, 495
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #495, #504
+# Stdlib: trait ベースの再利用可能 surface へ段階移行する
 **Blocks v5**: yes
 **Source**: stdlib modernization backlog requested 2026-04-15
 

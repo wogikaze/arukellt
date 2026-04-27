@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-27
+ID: 22
+Track: gc-native
+Depends on: 023, 024, 025
+Orchestration class: implementation-ready
+---
 # GC-native builtins: to_string, parse, math, I/O
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-27
-**ID**: 026
-**Depends on**: 023, 024, 025
-**Track**: gc-native
 **Blocks v1 exit**: no
 
 ## Summary

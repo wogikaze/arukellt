@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 409
+Track: language-docs
+Depends on: 406, 408
+Orchestration class: implementation-ready
+---
 # Language Docs: syntax / type / error / memory の重複記述を統合する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 409
-**Depends on**: 406, 408
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 4
 

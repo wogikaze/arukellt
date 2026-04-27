@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-03
+ID: 192
+Track: parallel
+Depends on: none
+Orchestration class: implementation-ready
+---
 # Intent completion + auto import intelligence
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-03
-**ID**: 192
-**Depends on**: none
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ---

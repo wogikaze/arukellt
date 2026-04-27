@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
 **Closed**: 2026-04-18
 **ID**: 043
 **Depends on**: 039, 040

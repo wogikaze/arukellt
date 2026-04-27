@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-15
+Updated: 2026-04-22
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib: raw helper と推奨 facade の境界を再設計する
-
-**Status**: done
-**Created**: 2026-04-15
-**Updated**: 2026-04-22
 **Closed**: 2026-04-22
 **Commit**: ebb57f4b
 **ID**: 516

@@ -1,6 +1,10 @@
+---
+Status: Done
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Issue #141 — Add cold/warm/incremental compile latency breakdown to benchmark harness
-
-**Status:** Done
 
 ## Summary
 

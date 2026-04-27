@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-18
+Updated: 2026-04-22
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib JSON: parity と differential tests を round-trip corpus で拡張する
-
-**Status**: done
-**Created**: 2026-04-18
-**Updated**: 2026-04-22
 
 ## Close note
 

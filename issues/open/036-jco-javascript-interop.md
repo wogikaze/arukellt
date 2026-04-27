@@ -1,14 +1,16 @@
-# jco JavaScript interop smoke test
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-13
+ID: 036
+Track: component-model
+Depends on: 033
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #616
+Blocks v{N}: none
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-13
-**ID**: 036
-**Depends on**: 033
-**Track**: component-model
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #616
-**Blocks v{N}**: none
+# jco JavaScript interop smoke test
 
 ## Reopened by audit — 2026-04-13
 

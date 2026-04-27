@@ -18,6 +18,7 @@ Each issue is a markdown file with machine-readable header fields plus human-rea
 **Created**: YYYY-MM-DD
 **Updated**: YYYY-MM-DD
 **ID**: 001
+**Track**: <track-value>
 **Depends on**: none | 001, 002
 **Orchestration class**: implementation-ready | design-ready | verification-ready | blocked-by-upstream | unsupported-in-this-run
 **Orchestration upstream**: — | free-form (e.g. `#039`, `external:037`)
@@ -35,6 +36,13 @@ Any context, blockers, or implementation notes.
 ```
 
 The generator reads these exact header fields. `Depends on` must contain comma-separated numeric IDs or `none`.
+
+**Required fields for new issues:**
+- `Track` - Track classification (e.g., `component-model`, `stdlib`, `compiler`, `wasi-feature`, etc.)
+- `Orchestration class` - Orchestration classification
+- `Depends on` - Dependency information
+
+These fields are validated by `scripts/check/check-issue-headers.py`.
 
 Generated artifacts:
 - `issues/open/index.md` — dependency-aware issue index (includes orchestration columns when set in issue headers)

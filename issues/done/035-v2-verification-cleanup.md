@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 29
+Track: component-model
+Depends on: 032, 033, 034
+Orchestration class: implementation-ready
+---
 # V2 exit verification & cleanup
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 035
-**Depends on**: 032, 033, 034
-**Track**: component-model
 **Blocks v1 exit**: no
 
 ## Summary

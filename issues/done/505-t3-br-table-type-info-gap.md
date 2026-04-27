@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-15
+Updated: 2026-04-15
+ID: 505
+Track: backend-opt
+Depends on: —
+Orchestration class: implementation-ready
+---
 # T3: br_table enum dispatch — feasible IfStmt-chain optimization
-
-**Status**: done
-**Created**: 2026-04-15
-**Updated**: 2026-04-15
-**ID**: 505
-**Depends on**: —
-**Track**: backend-opt
 **Blocks v4 exit**: no
 
 ---

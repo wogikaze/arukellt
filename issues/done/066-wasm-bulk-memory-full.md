@@ -1,13 +1,15 @@
-# Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-15
+ID: 066
+Track: wasm-feature
+Depends on: —
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-15
-**ID**: 066
-**Depends on**: —
-**Track**: wasm-feature
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応
 **Blocks v4 exit**: no
 
 **Status note**: Implemented in T3 (WasmGC) and T1 emitters; runtime.rs explicitly enables bulk_memory; std/wasm::memory_copy + memory_fill call actual intrinsics; fixture tests/fixtures/stdlib_wasm/memory_ops.ark verified.

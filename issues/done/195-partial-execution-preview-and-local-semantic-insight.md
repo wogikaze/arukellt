@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-13
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Partial execution preview + local semantic insight
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-13
 **Closed**: 2026-04-18
 **ID**: 195
 **Depends on**: none

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-15
+ID: 117
+Track: wasm-quality
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Component Model: WIT 生成品質の向上と往復検証
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-15
-**ID**: 117
-**Depends on**: —
-**Track**: wasm-quality
 **Blocks v4 exit**: no
 
 ---

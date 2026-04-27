@@ -1,11 +1,15 @@
-# WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 076
+Track: wasi-feature
+Depends on: 074, 510
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #074
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 076
-**Depends on**: 074, 510
-**Track**: wasi-feature
+# WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング
 **Blocks v4 exit**: no
 
 **Status note**: BLOCKED — downstream of the #074 WASI P2 native parent gate and #510 import-table switch. Runtime maturity is not the active blocker.

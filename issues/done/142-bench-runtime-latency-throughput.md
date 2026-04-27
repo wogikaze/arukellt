@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-15
+ID: 142
+Track: benchmark
+Depends on: 149
+Orchestration class: implementation-ready
+---
 # 計測: startup / throughput / tail latency ベンチ
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-15
-**ID**: 142
-**Depends on**: 149
-**Track**: benchmark
 **Blocks v1 exit**: no
 
 ---

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-08
+ID: 324
+Track: selfhost-verification
+Depends on: 323
+Orchestration class: implementation-ready
+---
 # verify-bootstrap.sh の scaffold を解除する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-08
-**ID**: 324
-**Depends on**: 323
-**Track**: selfhost-verification
 **Blocks v1 exit**: no
 **Priority**: 16
 

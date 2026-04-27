@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 395
+Track: stdlib-docs
+Depends on: 366
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: 生成スキーマと metadata 契約を強化する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 395
-**Depends on**: 366
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 1
 

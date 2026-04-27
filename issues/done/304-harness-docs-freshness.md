@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 304
+Track: docs/ops
+Depends on: 302
+Orchestration class: implementation-ready
+---
 # verify-harness.sh に docs freshness check を追加する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 304
-**Depends on**: 302
-**Track**: docs/ops
 **Blocks v1 exit**: no
 **Priority**: 24
 

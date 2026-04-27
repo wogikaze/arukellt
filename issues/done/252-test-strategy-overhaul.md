@@ -1,13 +1,15 @@
-# テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する
+---
+Status: completed
+Created: 2026-03-30
+Updated: 2026-04-15
+ID: 252
+Track: main
+Depends on: none
+Orchestration class: design-ready
+Orchestration upstream: —
+---
 
-**Status**: completed
-**Created**: 2026-03-30
-**Updated**: 2026-04-15
-**ID**: 252
-**Depends on**: none
-**Track**: main
-**Orchestration class**: design-ready
-**Orchestration upstream**: —
+# テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する
 **Blocks v3**: yes
 
 ## Summary

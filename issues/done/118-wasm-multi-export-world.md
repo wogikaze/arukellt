@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 118
+Track: wasm-quality
+Depends on: 117
+Orchestration class: implementation-ready
+---
 # Component Model: 複数エクスポート world の自動生成
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 118
-**Depends on**: 117
-**Track**: wasm-quality
 **Blocks v4 exit**: no
 
 ---

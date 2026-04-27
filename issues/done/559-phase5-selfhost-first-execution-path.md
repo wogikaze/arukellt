@@ -1,13 +1,15 @@
-# 559 — Phase 5 prerequisite: selfhost-first execution path & verify/CI switch
+---
+Status: done
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 559
+Track: selfhost-retirement
+Depends on: —
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 559
-**Depends on**: —
-**Track**: selfhost-retirement
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# 559 — Phase 5 prerequisite: selfhost-first execution path & verify/CI switch
 **Blocks**: 560, 561, 562, 563, 564
 **Blocks v5**: no
 **Source**: #529 Phase 5-1 / 5-2 (Operational Guide)

@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-18
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Playground: wasm32-freestanding (T2) target の downstream 実装を開始する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-18
 **Closed**: 2026-04-18
 **ID**: 382
 **Depends on**: 378

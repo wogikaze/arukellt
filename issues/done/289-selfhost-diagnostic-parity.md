@@ -1,13 +1,15 @@
-# セルフホスト diagnostic parity を確認する
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-15
+ID: 289
+Track: selfhost
+Depends on: 287
+Orchestration class: verification-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-15
-**ID**: 289
-**Depends on**: 287
-**Track**: selfhost
-**Orchestration class**: verification-ready
-**Orchestration upstream**: —
+# セルフホスト diagnostic parity を確認する
 **Blocks v1 exit**: no
 **Priority**: 9
 

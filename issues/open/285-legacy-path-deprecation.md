@@ -1,10 +1,13 @@
+---
+Status: "open (reviewed 2026-04-22 — deprecation-marker slice complete; remaining removal work re-scoped to #529)"
+Created: 2026-03-31
+Updated: 2026-04-22
+ID: 285
+Depends on: 284
+Track: main
+Orchestration class: implementation-ready
+---
 # Legacy lowering path を隔離・撤去する
-
-**Status**: open (reviewed 2026-04-22 — deprecation-marker slice complete; remaining removal work re-scoped to #529)
-**Created**: 2026-03-31
-**Updated**: 2026-04-22
-**ID**: 285
-**Depends on**: 284
 **Blocks**: (cycle broken — see ADR-028; #508 now depends on #529 instead)
 **Track**: corehir
 **Orchestration class**: implementation-ready

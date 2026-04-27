@@ -1,14 +1,16 @@
-# 545 — Benchmark: real-world workloads
+---
+Status: done
+Created: 2026-04-21
+ID: 545
+Track: benchmark
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+Source: request for comprehensive real-world benchmarks
+---
 
-**Status**: done
-**Created**: 2026-04-21
-**ID**: 545
-**Depends on**: none
-**Track**: benchmark
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: request for comprehensive real-world benchmarks
+# 545 — Benchmark: real-world workloads
 
 ## Summary
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 358
+Track: stdlib-api
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Stdlib: host family の stub を解消し stable capability に引き上げる
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 358
-**Depends on**: —
-**Track**: stdlib-api
 **Blocks v1 exit**: yes
 **Priority**: 1
 

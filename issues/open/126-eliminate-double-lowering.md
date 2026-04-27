@@ -1,13 +1,15 @@
-# `run_frontend()` の二重 lower を解消 (遅延 lower)
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 126
+Track: pipeline-refactor
+Depends on: 125
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #125
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 126
-**Depends on**: 125
-**Track**: pipeline-refactor
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #125
+# `run_frontend()` の二重 lower を解消 (遅延 lower)
 **Blocks v4 exit**: no (compile-time optimization)
 
 **Implementation target**: Trusted-base compiler route named below while it remains active; do not turn this into #529 selfhost-retirement work.

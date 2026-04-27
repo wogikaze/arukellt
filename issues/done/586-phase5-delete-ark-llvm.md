@@ -1,13 +1,15 @@
-# 586 — Phase 5: Delete `crates/ark-llvm`
+---
+Status: done
+Created: 2026-04-23
+Updated: 2026-04-23
+ID: 586
+Track: selfhost-retirement
+Depends on: 559
+Orchestration class: implementation-ready
+Orchestration upstream: #559
+---
 
-**Status**: done
-**Created**: 2026-04-23
-**Updated**: 2026-04-23
-**ID**: 586
-**Depends on**: 559
-**Track**: selfhost-retirement
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: #559
+# 586 — Phase 5: Delete `crates/ark-llvm`
 **Blocks**: 561
 **Blocks v5**: no
 **Source**: #529 Phase 5 — T4 native LLVM backend scaffold (last live Rust consumer of `ark_mir` outside `ark-wasm`).

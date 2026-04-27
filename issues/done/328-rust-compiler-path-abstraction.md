@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 328
+Track: selfhost-retirement
+Depends on: 326
+Orchestration class: implementation-ready
+---
 # コンパイラパスを抽象化して compiler-agnostic にする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 328
-**Depends on**: 326
-**Track**: selfhost-retirement
 **Blocks v1 exit**: no
 **Priority**: 21
 

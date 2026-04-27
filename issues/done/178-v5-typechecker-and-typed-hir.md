@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 178
+Track: main
+Depends on: 177
+Orchestration class: implementation-ready
+---
 # v5 TypeChecker: inference and typed HIR
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 178
-**Depends on**: 177
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

@@ -1,13 +1,15 @@
-# 565 — Phase 6/A1: Selfhost lexer.ark — error recovery for IDE
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 565
+Track: selfhost-frontend
+Depends on: —
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 565
-**Depends on**: —
-**Track**: selfhost-frontend
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# 565 — Phase 6/A1: Selfhost lexer.ark — error recovery for IDE
 **Blocks**: 568
 **Blocks v5**: no
 **Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration

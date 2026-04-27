@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 174
+Track: main
+Depends on: 173
+Orchestration class: implementation-ready
+---
 # v5 Parser: fixture parity and diagnostics
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 174
-**Depends on**: 173
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

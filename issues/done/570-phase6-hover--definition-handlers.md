@@ -1,13 +1,15 @@
-# 570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 570
+Track: selfhost-frontend
+Depends on: 569
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #569
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 570
-**Depends on**: 569
-**Track**: selfhost-frontend
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #569
+# 570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers
 **Blocks**: 572
 **Blocks v5**: no
 **Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration

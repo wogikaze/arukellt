@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-30
+ID: 24
+Track: component-model
+Depends on: 029
+Orchestration class: implementation-ready
+---
 # Enable --emit component and produce .component.wasm
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-30
-**ID**: 030
-**Depends on**: 029
-**Track**: component-model
 **Blocks v1 exit**: no
 
 ## Summary

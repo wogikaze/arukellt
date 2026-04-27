@@ -1,12 +1,14 @@
-# component interop 回帰面の整備
+---
+Status: completed
+Created: 2026-04-19
+ID: 262
+Track: main
+Depends on: 261
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: completed
-**Created**: 2026-04-19
-**ID**: 262
-**Depends on**: 261
-**Track**: main
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# component interop 回帰面の整備
 **Blocks v3**: yes
 
 ## Summary

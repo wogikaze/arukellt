@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 605
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib Baseline: Host Core-Platform Baseline
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 605
 **Parent**: #590
 **Depends on**: 604
 **Track**: stdlib / wasi-feature

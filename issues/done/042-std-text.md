@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 34
+Track: stdlib
+Depends on: 039, 041
+Orchestration class: implementation-ready
+---
 # std::text: String API 拡張、StringBuilder、format ユーティリティ
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 042
-**Depends on**: 039, 041
-**Track**: stdlib
 **Blocks v3 exit**: yes
 
 ---

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-14
+ID: 38
+Track: stdlib
+Depends on: 039, 041
+Orchestration class: implementation-ready
+---
 # std::collections: BTreeMap、BTreeSet、IndexMap、IndexSet、BitSet
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-14
-**ID**: 046
-**Depends on**: 039, 041
-**Track**: stdlib
 **Blocks v3 exit**: yes
 
 ---

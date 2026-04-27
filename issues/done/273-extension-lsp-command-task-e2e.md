@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 273
+Track: main
+Depends on: 272
+Orchestration class: implementation-ready
+---
 # LSP handshake・command execution・task execution の E2E を実装する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 273
-**Depends on**: 272
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

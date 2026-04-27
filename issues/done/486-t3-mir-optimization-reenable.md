@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-11
+Updated: 2026-04-15
+ID: 486
+Track: mir-opt
+Depends on: 122
+Orchestration class: implementation-ready
+---
 # T3: MIR 最適化の段階的再開 (GC-safe audit + opt-level 復帰)
-
-**Status**: done
-**Created**: 2026-04-11
-**Updated**: 2026-04-15
-**ID**: 486
-**Depends on**: 122
-**Track**: mir-opt
 **Blocks v1 exit**: no
 
 ---

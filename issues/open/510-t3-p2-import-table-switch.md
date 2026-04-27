@@ -1,10 +1,13 @@
+---
+Status: open
+Created: 2026-04-15
+Updated: 2026-04-22
+ID: 510
+Depends on: —
+Track: main
+Orchestration class: implementation-ready
+---
 # T3 emitter: WASI P2 import-table switch (full P2-native component)
-
-**Status**: open
-**Created**: 2026-04-15
-**Updated**: 2026-04-22
-**ID**: 510
-**Depends on**: —
 **Blocks**: 074, 076, 121
 **Track**: wasi-feature
 **Orchestration class**: blocked-by-upstream

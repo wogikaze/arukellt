@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-08
+ID: 322
+Track: selfhost-cli
+Depends on: 320, 321
+Orchestration class: implementation-ready
+---
 # Selfhost CLI を CI canonical path として使えるようにする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-08
-**ID**: 322
-**Depends on**: 320, 321
-**Track**: selfhost-cli
 **Blocks v1 exit**: no
 **Priority**: 19
 

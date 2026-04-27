@@ -1,10 +1,13 @@
+---
+Status: done
+Created: 2026-04-14
+Updated: 2026-04-15
+Track: wasm-backend
+Source: audit — issues/done/060-wasm-tail-call.md AC3
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 492 — T3 tail-call: implement return_call_ref
-
-**Track:** wasm-backend
-**Status:** done
-**Created:** 2026-04-14
-**Updated:** 2026-04-15
-**Source:** audit — issues/done/060-wasm-tail-call.md AC3
 
 ## Summary
 

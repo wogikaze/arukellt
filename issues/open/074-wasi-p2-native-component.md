@@ -1,13 +1,15 @@
-# WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-22
+ID: 074
+Track: wasi-feature
+Depends on: 510, 121
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #510, #121
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-22
-**ID**: 074
-**Depends on**: 510, 121
-**Track**: wasi-feature
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #510, #121
+# WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成
 **Blocks v4 exit**: no
 
 **Status note**: Parent close gate for WASI P2 native. Do not close until P2 import-table switching, the minimum Canonical ABI surface, and P2 validate/run evidence are all present.

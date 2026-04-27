@@ -1,14 +1,16 @@
-# 540 — Benchmark: enum dispatch (pattern matching)
+---
+Status: done
+Created: 2026-04-21
+ID: 540
+Track: benchmark
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+Source: docs/benchmarks/feature-matrix.md coverage gap
+---
 
-**Status**: done
-**Created**: 2026-04-21
-**ID**: 540
-**Depends on**: none
-**Track**: benchmark
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: docs/benchmarks/feature-matrix.md coverage gap
+# 540 — Benchmark: enum dispatch (pattern matching)
 
 ## Summary
 

@@ -1,12 +1,14 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-10
+ID: 483
+Track: language-design
+Depends on: "(none)"
+ADR candidate: True
+Orchestration class: implementation-ready
+---
 # ADR: canonical stringification surface — to_string(x) ポリシー
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-10
-**ID**: 483
-**Depends on**: (none)
-**Track**: language-design
-**ADR candidate**: yes
 **Blocks v1 exit**: no
 
 ---

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-15
+ID: 255
+Track: main
+Depends on: none
+Orchestration class: implementation-ready
+---
 # デバッグ体験を「DAP の箱がある」状態から、実際に使える end-to-end workflow にする
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-15
-**ID**: 255
-**Depends on**: none
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

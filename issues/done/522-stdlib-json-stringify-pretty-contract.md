@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-18
+Updated: 2026-04-18
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib JSON: `stringify_pretty` の product claim を現実に合わせる
-
-**Status**: done
-**Created**: 2026-04-18
-**Updated**: 2026-04-18
 **Closed**: 2026-04-18
 **ID**: 522
 **Depends on**: none

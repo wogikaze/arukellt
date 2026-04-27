@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-14
+ID: 471
+Track: docs-audit
+Depends on: 465
+Orchestration class: implementation-ready
+---
 # Playground docs: command / workflow / publish claim の現実整合監査
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-14
-**ID**: 471
-**Depends on**: 465
-**Track**: docs-audit
 **Blocks v1 exit**: no
 **Priority**: 7
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 103
+Track: runtime-perf
+Depends on: 080
+Orchestration class: implementation-ready
+---
 # 実行時性能: 配列境界チェック除去 (Bounds Check Elimination)
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 103
-**Depends on**: 080
-**Track**: runtime-perf
 **Blocks v4 exit**: no
 
 ---

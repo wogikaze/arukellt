@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 440
+Track: vscode-ide
+Depends on: 341, 346, 348, 349, 350, 352
+Orchestration class: implementation-ready
+---
 # VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 440
-**Depends on**: 341, 346, 348, 349, 350, 352
-**Track**: vscode-ide
 **Blocks v1 exit**: no
 **Priority**: 2
 

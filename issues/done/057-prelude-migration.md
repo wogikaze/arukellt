@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-13
+ID: 47
+Track: stdlib
+Depends on: 039, 041, 042, 044, 048, 049, 052
+Orchestration class: implementation-ready
+---
 # Prelude 再構成と API 移行
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-13
-**ID**: 057
-**Depends on**: 039, 041, 042, 044, 048, 049, 052
-**Track**: stdlib
 **Blocks v3 exit**: yes
 
 ## Reopened by audit — 2026-04-13

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 17
+Track: gc-native
+Depends on: 16
+Orchestration class: implementation-ready
+---
 # GC-native user structs: struct.new / struct.get / struct.set
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 021
-**Depends on**: 020
-**Track**: gc-native
 **Blocks v1 exit**: no
 
 ## Summary

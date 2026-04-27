@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 399
+Track: stdlib-docs
+Depends on: 395
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: canonical name / alias / historical name を横断検索できるようにする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 399
-**Depends on**: 395
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 5
 

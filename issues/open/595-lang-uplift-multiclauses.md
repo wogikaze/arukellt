@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 595
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Language Surface Uplift: Multi-Clause Function Definitions
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 595
 **Parent**: #588
 **Depends on**: —
 **Track**: selfhost-frontend / language-design

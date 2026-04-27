@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 449
+Track: compiler
+Depends on: none
+Orchestration class: implementation-ready
+---
 # emitter type_table 一本化: T1/T3 両 emitter から checker fallback を除去する
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 449
-**Depends on**: none
-**Track**: compiler
 **Blocks v1 exit**: yes
 **Priority**: 5
 

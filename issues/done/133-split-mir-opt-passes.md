@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 133
+Track: code-structure
+Depends on: —
+Orchestration class: implementation-ready
+---
 # MIR opt/pipeline.rs (916行) を passes/ ディレクトリに分割
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 133
-**Depends on**: —
-**Track**: code-structure
 **Blocks v4 exit**: no
 
 ## Summary

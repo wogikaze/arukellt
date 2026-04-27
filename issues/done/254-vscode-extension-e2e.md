@@ -1,13 +1,15 @@
-# VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる
+---
+Status: completed
+Created: 2026-03-30
+Updated: 2026-04-18
+ID: 254
+Track: main
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: completed
-**Created**: 2026-03-30
-**Updated**: 2026-04-18
-**ID**: 254
-**Depends on**: none
-**Track**: main
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる
 **Blocks v3**: yes
 
 ## Summary

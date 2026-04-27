@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 314
+Track: selfhost-backend
+Depends on: 313
+Orchestration class: implementation-ready
+---
 # Selfhost MIR lowering: 制御フローを構築する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 314
-**Depends on**: 313
-**Track**: selfhost-backend
 **Blocks v1 exit**: no
 **Priority**: 5
 

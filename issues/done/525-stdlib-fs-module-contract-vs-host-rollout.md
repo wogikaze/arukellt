@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-18
+Updated: "2026-04-18 (docs slice landed)"
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib FS: module-level docs を host rollout reality に合わせる
-
-**Status**: done
-**Created**: 2026-04-18
-**Updated**: 2026-04-18 (docs slice landed)
 **Closed**: 2026-04-18
 **ID**: 525
 **Depends on**: none

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-08
+ID: 323
+Track: selfhost-verification
+Depends on: 317
+Orchestration class: implementation-ready
+---
 # Selfhost の統一バイナリを生成する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-08
-**ID**: 323
-**Depends on**: 317
-**Track**: selfhost-verification
 **Blocks v1 exit**: no
 **Priority**: 14
 

@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-15
+Updated: 2026-04-15
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib: 数値タグ / if 連鎖を enum + match 優先へ移行する
-
-**Status**: done
-**Created**: 2026-04-15
-**Updated**: 2026-04-15
 **Closed**: 2026-04-18
 **ID**: 511
 **Depends on**: none

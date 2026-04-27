@@ -1,12 +1,14 @@
-# package/workspace/manifest resolution テストの第一級化
+---
+Status: completed
+Created: 2026-04-19
+ID: 263
+Track: main
+Depends on: 261
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: completed
-**Created**: 2026-04-19
-**ID**: 263
-**Depends on**: 261
-**Track**: main
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# package/workspace/manifest resolution テストの第一級化
 **Blocks v3**: yes
 
 ## Summary

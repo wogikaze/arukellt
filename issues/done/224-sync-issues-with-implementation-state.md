@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 224
+Track: main
+Depends on: 223
+Orchestration class: implementation-ready
+---
 # issues/open・done・blocked と実装状態の同期確認・修正
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 224
-**Depends on**: 223
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

@@ -1,24 +1,16 @@
+---
+Status: open
+Created: 2026-04-03
+Updated: 2026-04-21
+ID: 436
+Track: playground
+Depends on: 437, 438, 464
+Orchestration class: verification-ready
+Orchestration upstream: —
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+---
 
 ## Reopened by audit
-
-- **Date**: 2026-04-21
-- **Reason**: docs/playground/index.html exists but playground is non-functional without wasm binary; integration is structural only
-- **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
-- **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
-
-# Playground: docs site への統合と navigation を実装する
-
-**Status**: open
-**Created**: 2026-04-03
-**Updated**: 2026-04-21
-**ID**: 436
-**Depends on**: 437, 438, 464
-**Track**: playground
-**Orchestration class**: verification-ready
-**Orchestration upstream**: —
-**Blocks v4 exit**: no
-
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ## Summary
 

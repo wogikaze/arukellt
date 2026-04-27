@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 175
+Track: main
+Depends on: 162
+Orchestration class: implementation-ready
+---
 # v5 Driver/CLI: command surface and exit behavior
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 175
-**Depends on**: 162
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

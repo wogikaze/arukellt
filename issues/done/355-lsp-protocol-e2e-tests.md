@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 355
+Track: tooling-contract
+Depends on: 353
+Orchestration class: implementation-ready
+---
 # Tooling Contract: LSP protocol E2E テストを追加する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 355
-**Depends on**: 353
-**Track**: tooling-contract
 **Blocks v1 exit**: no
 **Priority**: 23
 

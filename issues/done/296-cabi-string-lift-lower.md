@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # string 型の canonical ABI lift-lower を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
 **Closed**: 2026-07-28
 **ID**: 296
 **Depends on**: 299

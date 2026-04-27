@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-29
+ID: 185
+Track: parallel
+Depends on: 192, 193, 194, 195
+Orchestration class: implementation-ready
+---
 # IDE surface: rename / code actions / workspace symbols / formatting
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-29
-**ID**: 185
-**Depends on**: 192, 193, 194, 195
-**Track**: parallel
 **Blocks v1 exit**: no
 
 **Status note**: Parent issue for authoring intelligence beyond today’s base LSP features.

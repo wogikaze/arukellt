@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 444
+Track: editor-runtime
+Depends on: 439, 440, 441, 443
+Orchestration class: implementation-ready
+---
 # VSCode Extension × Component: Playground / Editor から component を直接生成・実行できる導線を作る
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 444
-**Depends on**: 439, 440, 441, 443
-**Track**: editor-runtime
 **Blocks v1 exit**: no
 **Priority**: 6
 

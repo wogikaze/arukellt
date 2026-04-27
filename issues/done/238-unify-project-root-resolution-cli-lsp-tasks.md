@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 238
+Track: main
+Depends on: 231, 236
+Orchestration class: implementation-ready
+---
 # project root・target・emit・manifest・scripts の CLI/LSP/Tasks 解決を統一する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 238
-**Depends on**: 231, 236
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

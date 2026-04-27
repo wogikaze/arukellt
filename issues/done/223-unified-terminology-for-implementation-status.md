@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-03
+ID: 223
+Track: main
+Depends on: none
+Orchestration class: implementation-ready
+---
 # 全文書の「完成/実験/未着手」表記を統一する用語基準を策定する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-03
-**ID**: 223
-**Depends on**: none
-**Track**: main
 **Blocks v1 exit**: yes
 
 ---

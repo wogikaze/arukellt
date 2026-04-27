@@ -1,14 +1,16 @@
 ---
 id: 530
-title: "Selfhost CLI parity and diagnostic parity CI gates"
+title: Selfhost CLI parity and diagnostic parity CI gates
 status: done
 track: selfhost
 created: 2026-04-21
 updated: 2026-04-22
-depends-on: [268, 288, 289]
+depends-on: "[268, 288, 289]"
 closed-by: feat/530-ci-parity-gates
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
 ---
-
 ## Why this must exist
 
 Issue #268 (selfhost-parity-ci-verification) was closed with 2/4 acceptance criteria unchecked:

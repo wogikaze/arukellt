@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 405
+Track: stdlib-docs
+Depends on: 401, 403
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: ownership map と release gate を整備する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 405
-**Depends on**: 401, 403
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 11
 

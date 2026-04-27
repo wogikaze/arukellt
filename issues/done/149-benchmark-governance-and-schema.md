@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-03
+ID: 149
+Track: benchmark
+Depends on: —
+Orchestration class: implementation-ready
+---
 # 基盤: benchmark schema・命名・実行モードの標準化
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-03
-**ID**: 149
-**Depends on**: —
-**Track**: benchmark
 **Blocks v1 exit**: no
 
 ---

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 333
+Track: lsp-navigation
+Depends on: —
+Orchestration class: implementation-ready
+---
 # LSP: project-wide symbol index を構築する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 333
-**Depends on**: —
-**Track**: lsp-navigation
 **Blocks v1 exit**: no
 **Priority**: 1
 

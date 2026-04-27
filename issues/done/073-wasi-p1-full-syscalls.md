@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-15
+ID: 59
+Track: wasi-feature
+Depends on: —
+Orchestration class: implementation-ready
+---
 # WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-15
-**ID**: 073
-**Depends on**: —
-**Track**: wasi-feature
 **Blocks v4 exit**: yes
 
 **Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.

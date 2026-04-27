@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-14
+Updated: 2026-04-15
+ID: 501
+Track: playground
+Depends on: none
+Orchestration class: implementation-ready
+---
 # T2 (`wasm32-freestanding`) Wasm Emitter Implementation
-
-**Status**: done
-**Created**: 2026-04-14
-**Updated**: 2026-04-15
-**ID**: 501
-**Depends on**: none
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 20
 

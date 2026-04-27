@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 277
+Track: parallel
+Depends on: 276
+Orchestration class: implementation-ready
+---
 # setBreakpoints/continue/next/disconnect を実装する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 277
-**Depends on**: 276
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

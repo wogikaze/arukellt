@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 458
+Track: lsp, extension
+Depends on: 453
+Orchestration class: implementation-ready
+---
 # 拡張機能 CodeLens を Run Main / Debug / Run Test 中心に再設計する
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 458
-**Depends on**: 453
-**Track**: lsp, extension
 **Blocks v1 exit**: no
 **Priority**: 2
 

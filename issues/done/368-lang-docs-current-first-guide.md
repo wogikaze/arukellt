@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 368
+Track: language-docs
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Language Docs: current-first な言語ガイドを spec から分離して作る
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 368
-**Depends on**: —
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 2
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-03
+ID: 236
+Track: main
+Depends on: none
+Orchestration class: implementation-ready
+---
 # CLI 起動契約を明確化する（LSP 起動方法・バージョン検出・stdio 扱い）
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-03
-**ID**: 236
-**Depends on**: none
-**Track**: main
 **Blocks v1 exit**: yes
 
 ---

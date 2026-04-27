@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-14
+ID: 46
+Track: stdlib
+Depends on: 039, 041
+Orchestration class: implementation-ready
+---
 # std::test: assert、snapshot テスト、bench-lite
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-14
-**ID**: 056
-**Depends on**: 039, 041
-**Track**: stdlib
 **Blocks v3 exit**: yes
 
 ---

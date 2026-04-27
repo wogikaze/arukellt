@@ -1,13 +1,15 @@
-# T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-14
+ID: 129
+Track: code-structure
+Depends on: —
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-14
-**ID**: 129
-**Depends on**: —
-**Track**: code-structure
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割
 **Blocks v4 exit**: no
 
 ---

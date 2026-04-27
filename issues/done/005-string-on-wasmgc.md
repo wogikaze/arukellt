@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 5
+Track: main
+Depends on: 4
+Orchestration class: implementation-ready
+---
 # String on WasmGC for T3
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 005
-**Depends on**: 004
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

@@ -1,13 +1,15 @@
-# std::collections: Arena、SlotMap、Interner ／ std::text: Rope
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-22
+ID: 047
+Track: stdlib
+Depends on: 039, 041
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #529
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-22
-**ID**: 047
-**Depends on**: 039, 041
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #529
+# std::collections: Arena、SlotMap、Interner ／ std::text: Rope
 **Blocks v3 exit**: no (Experimental)
 
 **Status note**: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.

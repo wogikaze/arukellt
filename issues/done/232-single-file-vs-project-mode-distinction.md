@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 232
+Track: main
+Depends on: 231
+Orchestration class: implementation-ready
+---
 # 単一ファイルモードと project モードの挙動差を明確化・ドキュメント化する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 232
-**Depends on**: 231
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

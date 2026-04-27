@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 422
+Track: repo-hygiene
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 422
-**Depends on**: —
-**Track**: repo-hygiene
 
 ## Acceptance
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 353
+Track: tooling-contract
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Tooling Contract: ark-lsp を CI merge gate に含める
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 353
-**Depends on**: —
-**Track**: tooling-contract
 **Blocks v1 exit**: no
 **Priority**: 21
 

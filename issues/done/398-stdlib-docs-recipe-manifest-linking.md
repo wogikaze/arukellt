@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 398
+Track: stdlib-docs
+Depends on: 365
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: recipe と fixtures / examples を結ぶ manifest を作る
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 398
-**Depends on**: 365
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 4
 

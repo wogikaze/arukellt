@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-13
+Updated: 2026-04-14
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Package registry resolution
-
-**Status**: done
-**Created**: 2026-04-13
-**Updated**: 2026-04-14
 **Closed**: 2026-04-14
 **ID**: 487
 **Depends on**: 039

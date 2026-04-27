@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 463
+Track: lsp, testing
+Depends on: 454
+Orchestration class: implementation-ready
+---
 # LSP 性能スモークテストの追加
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 463
-**Depends on**: 454
-**Track**: lsp, testing
 **Blocks v1 exit**: no
 **Priority**: 4
 

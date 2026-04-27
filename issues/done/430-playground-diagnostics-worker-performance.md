@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 430
+Track: playground
+Depends on: 429
+Orchestration class: implementation-ready
+---
 # Playground: diagnostics worker と incremental parse loop の性能予算を作る
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 430
-**Depends on**: 429
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 3
 

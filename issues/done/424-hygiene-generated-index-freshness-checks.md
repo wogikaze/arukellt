@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-13
+ID: 424
+Track: repo-hygiene
+Depends on: 417
+Orchestration class: implementation-ready
+---
 # Repo Hygiene: generated index の stale 検出を追加する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-13
-**ID**: 424
-**Depends on**: 417
-**Track**: repo-hygiene
 **Blocks v1 exit**: no
 **Priority**: 8
 

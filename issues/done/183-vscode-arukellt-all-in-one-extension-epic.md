@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-29
+ID: 183
+Track: parallel
+Depends on: 184, 185, 186, 187, 188, 205, 206, 207
+Orchestration class: implementation-ready
+---
 # VS Code: `arukellt-all-in-one` 拡張機能 epic
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-29
-**ID**: 183
-**Depends on**: 184, 185, 186, 187, 188, 205, 206, 207
-**Track**: parallel
 **Blocks v1 exit**: no
 
 **Status note**: Parent issue for the all-in-one VS Code experience. Core editor, test, debug, project metadata, and cross-cutting DX surfaces are tracked separately.

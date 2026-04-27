@@ -1,13 +1,15 @@
-# 564 — Phase 5: Delete `crates/arukellt`
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 564
+Track: selfhost-retirement
+Depends on: 559, 560, 561, 562, 563
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #559, #560, #561, #562, #563
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 564
-**Depends on**: 559, 560, 561, 562, 563
-**Track**: selfhost-retirement
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #559, #560, #561, #562, #563
+# 564 — Phase 5: Delete `crates/arukellt`
 **Blocks**: —
 **Blocks v5**: no
 **Source**: #529 Phase 5 — Top-level CLI binary crate (must be removed last in Phase 5; depends on the wrapper from #559 and on all other Phase 5 deletions).

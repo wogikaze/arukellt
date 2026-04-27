@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 366
+Track: stdlib-docs
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: manifest metadata を enrichment し生成 docs の情報密度を上げる
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 366
-**Depends on**: —
-**Track**: stdlib-docs
 
 ## Acceptance
 

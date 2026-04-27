@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 452
+Track: vscode-ide
+Depends on: none
+Orchestration class: implementation-ready
+---
 # LSP: E0100 偽陽性 diagnostics を解消し CLI check と一致させる
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 452
-**Depends on**: none
-**Track**: vscode-ide
 **Blocks v1 exit**: no
 **Priority**: 1
 

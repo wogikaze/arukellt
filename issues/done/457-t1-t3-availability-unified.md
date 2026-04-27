@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 457
+Track: compiler, lsp, docs
+Depends on: 448, 455
+Orchestration class: implementation-ready
+---
 # T1/T3 API 可用性の compiler / LSP / docs 統一表現
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 457
-**Depends on**: 448, 455
-**Track**: compiler, lsp, docs
 **Blocks v1 exit**: yes
 **Priority**: 1
 

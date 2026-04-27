@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-18
+ID: 446
+Track: runtime
+Depends on: none
+Orchestration class: implementation-ready
+---
 # std::host::http: T1 動作確認・T3 WASI P2 最小実装・stub 解除
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-18
-**ID**: 446
-**Depends on**: none
-**Track**: runtime
 **Blocks v1 exit**: yes
 **Priority**: 2
 

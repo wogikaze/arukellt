@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 337
+Track: lsp-navigation
+Depends on: 334
+Orchestration class: implementation-ready
+---
 # LSP: signature help を stdlib 連携で完成させる
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 337
-**Depends on**: 334
-**Track**: lsp-navigation
 **Blocks v1 exit**: no
 **Priority**: 9
 

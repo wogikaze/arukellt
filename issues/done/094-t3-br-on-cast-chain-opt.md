@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-18
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # T3: enum dispatch の br_on_cast 連鎖最適化
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-18
 **Closed**: 2026-04-18
 **ID**: 094
 **Depends on**: —

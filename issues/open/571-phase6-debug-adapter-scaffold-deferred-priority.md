@@ -1,13 +1,15 @@
-# 571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 571
+Track: selfhost-frontend
+Depends on: 568
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #568
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 571
-**Depends on**: 568
-**Track**: selfhost-frontend
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #568
+# 571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)
 **Blocks**: 573
 **Blocks v5**: no
 **Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration

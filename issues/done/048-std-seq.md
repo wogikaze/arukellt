@@ -1,13 +1,15 @@
-# std::seq: Seq\<T\> 遅延シーケンスとアルゴリズム
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-14
+ID: 048
+Track: stdlib
+Depends on: 039, 041
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #39, #41
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-14
-**ID**: 048
-**Depends on**: 039, 041
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #39, #41
+# std::seq: Seq\<T\> 遅延シーケンスとアルゴリズム
 **Blocks v3 exit**: yes
 
 ---

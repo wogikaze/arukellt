@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 40
+Track: stdlib
+Depends on: 039, 041, 043
+Orchestration class: implementation-ready
+---
 # std::io: Reader、Writer、stdin/stdout/stderr、buffered I/O
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 050
-**Depends on**: 039, 041, 043
-**Track**: stdlib
 **Blocks v3 exit**: yes
 
 ---

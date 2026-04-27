@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 344
+Track: formatter
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Formatter: parse error 時の動作契約を定義する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 344
-**Depends on**: —
-**Track**: formatter
 **Blocks v1 exit**: no
 **Priority**: 12
 

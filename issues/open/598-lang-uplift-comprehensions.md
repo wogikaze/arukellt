@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 598
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Language Surface Uplift: Expression-Level Comprehensions
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 598
 **Parent**: #588
 **Depends on**: —
 **Track**: selfhost-frontend / language-design

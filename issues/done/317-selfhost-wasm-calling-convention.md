@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 317
+Track: selfhost-backend
+Depends on: 316
+Orchestration class: implementation-ready
+---
 # Selfhost Wasm emitter: 呼び出し規約と WASI import を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 317
-**Depends on**: 316
-**Track**: selfhost-backend
 **Blocks v1 exit**: no
 **Priority**: 10
 

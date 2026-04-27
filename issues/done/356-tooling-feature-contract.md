@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 356
+Track: tooling-contract
+Depends on: 355
+Orchestration class: implementation-ready
+---
 # Tooling Contract: CLI / LSP / Extension の機能契約を文書化する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 356
-**Depends on**: 355
-**Track**: tooling-contract
 **Blocks v1 exit**: no
 **Priority**: 24
 

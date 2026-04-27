@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2025-07-15
+ID: 318
+Track: selfhost-cli
+Depends on: 319
+Orchestration class: implementation-ready
+---
 # Selfhost CLI にコマンド surface を追加する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2025-07-15
-**ID**: 318
-**Depends on**: 319
-**Track**: selfhost-cli
 **Blocks v1 exit**: no
 **Priority**: 12
 

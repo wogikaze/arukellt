@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 231
+Track: main
+Depends on: none
+Orchestration class: implementation-ready
+---
 # ark.toml を project model の唯一の正規入口として仕様化する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 231
-**Depends on**: none
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

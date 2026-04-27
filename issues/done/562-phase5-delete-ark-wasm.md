@@ -1,13 +1,15 @@
-# 562 — Phase 5: Delete `crates/ark-wasm`
+---
+Status: blocked-by-upstream
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 562
+Track: selfhost-retirement
+Depends on: 559
+Orchestration class: implementation-ready
+Orchestration upstream: #559
+---
 
-**Status**: blocked-by-upstream
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 562
-**Depends on**: 559
-**Track**: selfhost-retirement
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: #559
+# 562 — Phase 5: Delete `crates/ark-wasm`
 **Blocks**: 564
 **Blocks v5**: no
 **Source**: #529 Phase 5 — Core compiler crate (Wasm emitter).

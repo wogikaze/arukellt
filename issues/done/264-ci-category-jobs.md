@@ -1,12 +1,14 @@
-# CI カテゴリ別ジョブ構成
+---
+Status: completed
+Created: 2026-04-19
+ID: 264
+Track: main
+Depends on: 261
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: completed
-**Created**: 2026-04-19
-**ID**: 264
-**Depends on**: 261
-**Track**: main
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# CI カテゴリ別ジョブ構成
 **Blocks v3**: yes
 
 ## Summary

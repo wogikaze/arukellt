@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 019
+Track: gc-native
+Depends on: none
+Orchestration class: implementation-ready
+---
 # GC-native scaffolding: type registry, remove bump allocator
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 019
-**Depends on**: none
-**Track**: gc-native
 **Blocks v1 exit**: no
 
 ## Summary

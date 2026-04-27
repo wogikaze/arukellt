@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 600
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Type System Stage-Up: Soundness Floor
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 600
 **Parent**: #589
 **Depends on**: —
 **Track**: selfhost / typechecker

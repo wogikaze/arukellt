@@ -1,13 +1,15 @@
-# std::time + std::random: 時刻・期間・乱数
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-22
+ID: 051
+Track: stdlib
+Depends on: 039, 040
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #529
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-22
-**ID**: 051
-**Depends on**: 039, 040
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #529
+# std::time + std::random: 時刻・期間・乱数
 **Blocks v3 exit**: yes
 
 **Status note**: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.

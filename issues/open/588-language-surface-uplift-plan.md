@@ -1,29 +1,10 @@
+---
+Implementation target: "Use Ark (`src/compiler/*.ark`) instead of Rust crates (`crates/*`) per #529 100% selfhost transition plan."
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Language Surface Uplift Plan (Operational Guide)
-
-> **Status:** Implementation Guide — ready for subissue decomposition with verification checkpoints
-> **For agentic workers:** Do not implement this umbrella directly. Split into focused parser, resolver, typechecker, lowering, docs, and fixture subissues before execution.
-
-> ⚠️ **DO NOT IMPLEMENT DIRECTLY.** This is an operational guide umbrella. Dispatch child issues:
-> - **#595** `595-lang-uplift-multiclauses.md` — multi-clause / multi-arm patterns (implementation-ready)
-> - **#596** `596-lang-uplift-guards.md` — match guards (depends: 595)
-> - **#597** `597-lang-uplift-where.md` — `where` clause sugar (depends: 595)
-> - **#598** `598-lang-uplift-comprehensions.md` — comprehension expressions (implementation-ready)
-> - **#599** `599-lang-uplift-docs-rollout.md` — docs + rollout (depends: 595/596/597/598, closes #588)
-
-**Goal:** Raise Arukellt from a Rust-like surface with strong `match` into a pattern-first definition surface with multi-clause functions, function-level guards, real `where` clauses, and expression-level comprehensions.
-
-**Implementation target:** Use Ark (`src/compiler/*.ark`) instead of Rust crates (`crates/*`) per #529 100% selfhost transition plan.
-
-**Work Streams (DO NOT MIX):**
-1. Frontend syntax: `src/compiler/lexer.ark`, `src/compiler/parser.ark`
-2. Name binding and type semantics: `src/compiler/resolver.ark`, `src/compiler/typechecker.ark`
-3. Lowering: `src/compiler/corehir.ark`, `src/compiler/mir.ark`
-4. Verification: `tests/fixtures/`, selfhost fixture parity, negative syntax fixtures
-5. Documentation: `docs/language/*`, `docs/data/language-doc-classifications.toml`
-
-**Key Constraint:** First goal is **NOT** “copy Haskell wholesale”. First goal is **“make existing Arukellt pattern, guard, and block semantics shape the definition surface without changing the runtime model.”**
-
-**Issue metadata:** ID 588; status open; created 2026-04-22; updated 2026-04-22; track language-design; orchestration class design-ready; upstream #529.
 
 ## Summary
 

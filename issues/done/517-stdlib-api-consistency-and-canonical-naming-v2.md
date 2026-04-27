@@ -1,15 +1,17 @@
-# Stdlib: canonical naming / module layering / surface consistency の第2監査
+---
+Status: open
+Created: 2026-04-15
+Updated: "2026-04-16 (impl-stdlib #517 slice: env/text inventory + triage)"
+ID: 517
+Track: stdlib
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+Source: stdlib modernization backlog requested 2026-04-15
+---
 
-**Status**: open
-**Created**: 2026-04-15
-**Updated**: 2026-04-16 (impl-stdlib #517 slice: env/text inventory + triage)
-**ID**: 517
-**Depends on**: none
-**Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: stdlib modernization backlog requested 2026-04-15
+# Stdlib: canonical naming / module layering / surface consistency の第2監査
 
 ## Summary
 

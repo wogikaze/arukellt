@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-05
+ID: 330
+Track: selfhost-retirement
+Depends on: 328
+Orchestration class: implementation-ready
+---
 # Fixture harness を selfhost binary 対応にする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-05
-**ID**: 330
-**Depends on**: 328
-**Track**: selfhost-retirement
 **Blocks v1 exit**: no
 **Priority**: 23
 

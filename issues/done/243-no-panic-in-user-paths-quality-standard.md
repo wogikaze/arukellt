@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 243
+Track: main
+Depends on: 242
+Orchestration class: implementation-ready
+---
 # ユーザー到達経路での panic/unwrap/起動失敗の即時 issue 化品質基準を確立する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 243
-**Depends on**: 242
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-03
+ID: 158
+Track: cross-cutting
+Depends on: 140, 141, 142, 143, 145, 148, 155
+Orchestration class: implementation-ready
+---
 # v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-03
-**ID**: 158
-**Depends on**: 140, 141, 142, 143, 145, 148, 155
-**Track**: cross-cutting
 **Blocks v1 exit**: no
 
 ---

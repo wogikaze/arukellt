@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 431
+Track: playground
+Depends on: 429
+Orchestration class: implementation-ready
+---
 # Playground: editor shell と syntax highlighting を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 431
-**Depends on**: 429
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 4
 

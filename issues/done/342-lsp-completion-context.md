@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 342
+Track: lsp-semantic
+Depends on: 338
+Orchestration class: implementation-ready
+---
 # LSP: completion をコンテキスト対応にする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 342
-**Depends on**: 338
-**Track**: lsp-semantic
 **Blocks v1 exit**: no
 **Priority**: 8
 

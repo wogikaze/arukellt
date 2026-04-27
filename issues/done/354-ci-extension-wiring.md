@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 354
+Track: tooling-contract
+Depends on: 353
+Orchestration class: implementation-ready
+---
 # Tooling Contract: VS Code extension テストを CI に接続する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 354
-**Depends on**: 353
-**Track**: tooling-contract
 **Blocks v1 exit**: no
 **Priority**: 22
 

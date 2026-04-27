@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 21
+Track: gc-native
+Depends on: 18
+Orchestration class: implementation-ready
+---
 # GC-native closures: call_ref + ref.func
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 025
-**Depends on**: 022
-**Track**: gc-native
 **Blocks v1 exit**: no
 
 ## Summary

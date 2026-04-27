@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 213
+Track: parallel
+Depends on: 190
+Orchestration class: implementation-ready
+---
 # Language status item + observability surface
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 213
-**Depends on**: 190
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-03
+ID: 257
+Track: main
+Depends on: 251
+Orchestration class: implementation-ready
+---
 # target ごとの検証面テーブルを定義する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-03
-**ID**: 257
-**Depends on**: 251
-**Track**: main
 **Blocks v1 exit**: yes
 
 ---

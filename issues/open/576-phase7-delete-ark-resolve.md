@@ -1,13 +1,15 @@
-# 576 — Phase 7: Delete `crates/ark-resolve`
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 576
+Track: selfhost-retirement
+Depends on: 564, 575
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #564, #575
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 576
-**Depends on**: 564, 575
-**Track**: selfhost-retirement
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #564, #575
+# 576 — Phase 7: Delete `crates/ark-resolve`
 **Blocks**: 582
 **Blocks v5**: no
 **Source**: #529 Phase 7 — Rust resolver crate (replaced by `src/compiler/resolver.ark`).

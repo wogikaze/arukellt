@@ -1,17 +1,18 @@
+---
+Status: done
+Created: 2026-04-18
+Updated: 2026-04-22
+ID: 527
+Track: stdlib
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+Source: follow-up extraction from `#519`
+---
+
 # Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する
-
-**Status**: done
-**Created**: 2026-04-18
-**Updated**: 2026-04-22
-**ID**: 527
-**Depends on**: none
-**Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: follow-up extraction from `#519`
-
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ## Summary
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 2
+Track: main
+Depends on: 1
+Orchestration class: implementation-ready
+---
 # T3 compile fixture matrix
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 002
-**Depends on**: 001
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

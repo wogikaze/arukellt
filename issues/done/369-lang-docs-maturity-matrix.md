@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 369
+Track: language-docs
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Language Docs: feature maturity matrix を作成する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 369
-**Depends on**: —
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 6
 

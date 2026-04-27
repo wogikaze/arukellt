@@ -1,14 +1,16 @@
-# 543 — Benchmark: file I/O (I/O-heavy workloads)
+---
+Status: open
+Created: 2026-04-21
+ID: 543
+Track: benchmark
+Depends on: 076
+Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+Source: docs/benchmarks/feature-matrix.md coverage gap
+---
 
-**Status**: open
-**Created**: 2026-04-21
-**ID**: 543
-**Depends on**: 076
-**Track**: benchmark
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: docs/benchmarks/feature-matrix.md coverage gap
+# 543 — Benchmark: file I/O (I/O-heavy workloads)
 
 ## Summary
 

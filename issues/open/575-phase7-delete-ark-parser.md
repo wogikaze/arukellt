@@ -1,13 +1,15 @@
-# 575 — Phase 7: Delete `crates/ark-parser`
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 575
+Track: selfhost-retirement
+Depends on: 564, 574
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #564, #574
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 575
-**Depends on**: 564, 574
-**Track**: selfhost-retirement
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #564, #574
+# 575 — Phase 7: Delete `crates/ark-parser`
 **Blocks**: 582
 **Blocks v5**: no
 **Source**: #529 Phase 7 — Rust parser crate (replaced by `src/compiler/parser.ark`).

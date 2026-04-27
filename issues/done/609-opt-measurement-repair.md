@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 609
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Optimization Uplift: Measurement Truth Repair
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 609
 **Parent**: #591
 **Depends on**: —
 **Track**: benchmark / docs

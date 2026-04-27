@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 202
+Track: parallel
+Depends on: 124
+Orchestration class: implementation-ready
+---
 # `ark.toml` schema + project/workspace discovery
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 202
-**Depends on**: 124
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

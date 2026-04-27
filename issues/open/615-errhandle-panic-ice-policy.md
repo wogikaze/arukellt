@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 615
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Error Handling Convergence: Panic / ICE Policy
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 615
 **Parent**: #592
 **Depends on**: —
 **Track**: compiler / runtime / cli

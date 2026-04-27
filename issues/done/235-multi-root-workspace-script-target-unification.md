@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-03
+ID: 235
+Track: main
+Depends on: 232, 233
+Orchestration class: implementation-ready
+---
 # コンパイラ/CLI/LSP ツール層: multi-root workspace・script 実行・target 設定の解決統一
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-03
-**ID**: 235
-**Depends on**: 232, 233
-**Track**: main
 **Blocks v1 exit**: no
 
 ---

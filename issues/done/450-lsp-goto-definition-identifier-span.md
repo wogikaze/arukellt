@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-02
+ID: 450
+Track: vscode-ide
+Depends on: none
+Orchestration class: implementation-ready
+---
 # LSP: ローカル変数の Go to Definition を identifier span ベースに修正する
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-02
-**ID**: 450
-**Depends on**: none
-**Track**: vscode-ide
 **Blocks v1 exit**: no
 **Priority**: 1
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-06-28
+ID: 343
+Track: formatter
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Formatter: コメントと trivia の保存を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-06-28
-**ID**: 343
-**Depends on**: —
-**Track**: formatter
 **Blocks v1 exit**: no
 **Priority**: 11
 

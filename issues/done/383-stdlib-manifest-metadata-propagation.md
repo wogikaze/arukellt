@@ -1,7 +1,11 @@
+---
+Status: done
+Created: 2026-03-31
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib: manifest metadata を resolver / typechecker / LSP / docs に伝搬する
-
-**Status**: done
-**Created**: 2026-03-31
 **Closed**: 2026-07-28
 **ID**: 383
 

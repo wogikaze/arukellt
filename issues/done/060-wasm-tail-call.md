@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Wasm tail-call: return_call / return_call_ref 実装
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
 **Closed**: 2026-04-04
 **ID**: 060
 **Depends on**: —

@@ -1,8 +1,10 @@
+---
+Depends on: なし
+Priority: P0 — v5 着手の前提条件
+Track: main
+Orchestration class: implementation-ready
+---
 # 159: 言語仕様凍結版の作成
-
-**Version**: v5 (selfhost prep)
-**Priority**: P0 — v5 着手の前提条件
-**Depends on**: なし
 
 ## 概要
 

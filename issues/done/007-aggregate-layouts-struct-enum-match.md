@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 7
+Track: main
+Depends on: 004, 006
+Orchestration class: implementation-ready
+---
 # T3 aggregate layouts: struct enum match
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 007
-**Depends on**: 004, 006
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

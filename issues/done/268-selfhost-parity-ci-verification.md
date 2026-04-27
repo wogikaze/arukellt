@@ -1,13 +1,15 @@
-# Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する
+---
+Status: completed
+Created: 2026-03-30
+Updated: 2026-04-18
+ID: 268
+Track: main
+Depends on: 267
+Orchestration class: verification-ready
+Orchestration upstream: —
+---
 
-**Status**: completed
-**Created**: 2026-03-30
-**Updated**: 2026-04-18
-**ID**: 268
-**Depends on**: 267
-**Track**: main
-**Orchestration class**: verification-ready
-**Orchestration upstream**: —
+# Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する
 **Blocks v3**: yes
 
 ## Reopened by audit — 2026-04-13

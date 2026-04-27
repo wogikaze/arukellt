@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 396
+Track: stdlib-docs
+Depends on: 363
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: family overview ページを実装し learning path を作る
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 396
-**Depends on**: 363
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 2
 

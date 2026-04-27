@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-29
+ID: 199
+Track: parallel
+Depends on: none
+Orchestration class: implementation-ready
+---
 # Debug metadata + DAP adapter foundation
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-29
-**ID**: 199
-**Depends on**: none
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

@@ -1,15 +1,17 @@
-# Stdlib: allocation / complexity / perf footgun を family 横断で監査する
+---
+Status: open
+Created: 2026-04-15
+Updated: 2026-04-18
+ID: 520
+Track: stdlib
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+Source: stdlib modernization backlog requested 2026-04-15
+---
 
-**Status**: open
-**Created**: 2026-04-15
-**Updated**: 2026-04-18
-**ID**: 520
-**Depends on**: none
-**Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: stdlib modernization backlog requested 2026-04-15
+# Stdlib: allocation / complexity / perf footgun を family 横断で監査する
 
 ## Summary
 

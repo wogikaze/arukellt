@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 428
+Track: playground
+Depends on: 378
+Orchestration class: implementation-ready
+---
 # Playground: v1 の product contract と execution ADR を固定する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 428
-**Depends on**: 378
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 1
 

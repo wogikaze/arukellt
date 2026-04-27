@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 212
+Track: parallel
+Depends on: 190
+Orchestration class: implementation-ready
+---
 # Extension sidebar + project UI tree view
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 212
-**Depends on**: 190
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

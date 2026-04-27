@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 215
+Track: parallel
+Depends on: 202
+Orchestration class: implementation-ready
+---
 # VS Code extension: multi-root workspace + per-project configuration UI
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 215
-**Depends on**: 202
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

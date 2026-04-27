@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-03
+ID: 191
+Track: parallel
+Depends on: 190
+Orchestration class: implementation-ready
+---
 # VS Code setup doctor + command graph + environment inspection
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-03
-**ID**: 191
-**Depends on**: 190
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ---

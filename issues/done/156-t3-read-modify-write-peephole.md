@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-15
+ID: 156
+Track: backend-opt
+Depends on: —
+Orchestration class: implementation-ready
+---
 # T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-15
-**ID**: 156
-**Depends on**: —
-**Track**: backend-opt
 **Blocks v1 exit**: no
 
 ---

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 230
+Track: main
+Depends on: 226
+Orchestration class: implementation-ready
+---
 # 破壊的変更の issue/changelog/migration guide 3点セット手順を確立する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 230
-**Depends on**: 226
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

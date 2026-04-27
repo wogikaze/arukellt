@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-15
+Updated: 2026-04-22
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する
-
-**Status**: done
-**Created**: 2026-04-15
-**Updated**: 2026-04-22
 **Closed**: 2026-04-22
 **Commit**: b15af079
 **ID**: 518

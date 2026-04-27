@@ -1,8 +1,10 @@
+---
+Depends on: "#159 (仕様凍結), #160 (stdlib チェックリスト)"
+Priority: P1
+Track: main
+Orchestration class: implementation-ready
+---
 # 161: Phase 1 — Lexer の Arukellt 実装
-
-**Version**: v5 Phase 1
-**Priority**: P1
-**Depends on**: #159 (仕様凍結), #160 (stdlib チェックリスト)
 
 ## 概要
 

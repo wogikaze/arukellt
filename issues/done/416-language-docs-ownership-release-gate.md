@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 416
+Track: language-docs
+Depends on: 413, 415
+Orchestration class: implementation-ready
+---
 # Language Docs: ownership map と release gate を定義する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 416
-**Depends on**: 413, 415
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 11
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-14
+ID: 284
+Track: corehir
+Depends on: 281, 282, 283, 306
+Orchestration class: implementation-ready
+---
 # CoreHIR path をデフォルトに昇格する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-14
-**ID**: 284
-**Depends on**: 281, 282, 283, 306
-**Track**: corehir
 **Blocks v1 exit**: no
 **Priority**: 4
 

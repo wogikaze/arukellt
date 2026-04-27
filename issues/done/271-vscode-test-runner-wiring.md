@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-03
+ID: 271
+Track: main
+Depends on: 254
+Orchestration class: implementation-ready
+---
 # VS Code extension test runner を配線する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-03
-**ID**: 271
-**Depends on**: 254
-**Track**: main
 **Blocks v1 exit**: yes
 
 ---

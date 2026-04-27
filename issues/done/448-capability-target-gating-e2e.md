@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 448
+Track: runtime
+Depends on: none
+Orchestration class: implementation-ready
+---
 # capability / target-gating のエンドツーエンド実装: load.rs TODO 解消・deny flag fixture 化
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 448
-**Depends on**: none
-**Track**: runtime
 **Blocks v1 exit**: yes
 **Priority**: 4
 

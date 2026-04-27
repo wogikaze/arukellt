@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-29
+ID: 152
+Track: cross-cutting
+Depends on: —
+Orchestration class: implementation-ready
+---
 # 横断検証: snapshot / baseline 更新導線と verify-harness 統合
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-29
-**ID**: 152
-**Depends on**: —
-**Track**: cross-cutting
 **Blocks v1 exit**: no
 
 ## Summary

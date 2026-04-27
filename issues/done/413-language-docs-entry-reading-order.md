@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 413
+Track: language-docs
+Depends on: 406
+Orchestration class: implementation-ready
+---
 # Language Docs: entry page に目的別 reading order を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 413
-**Depends on**: 406
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 8
 

@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-13
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Rust 実装と selfhost 実装の dual period 終了条件を定義する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-13
 **Closed**: 2026-04-18
 **ID**: 269
 **Depends on**: 266, 268

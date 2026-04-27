@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 599
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Language Surface Uplift: Docs, Fixtures, and Rollout
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 599
 **Parent**: #588
 **Depends on**: 595, 596, 597, 598
 **Track**: docs / language-design

@@ -1,7 +1,9 @@
+---
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 552 · Post-release documentation
-
-kind: documentation
-status: done
 
 ## Acceptance Criteria
 

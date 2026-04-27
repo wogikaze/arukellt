@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 233
+Track: main
+Depends on: 231
+Orchestration class: implementation-ready
+---
 # module / package / workspace / dependency の解決規則を仕様として固定する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 233
-**Depends on**: 231
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

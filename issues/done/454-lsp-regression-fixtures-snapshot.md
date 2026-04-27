@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 454
+Track: vscode-ide
+Depends on: 450, 451, 452
+Orchestration class: implementation-ready
+---
 # LSP 回帰フィクスチャ群を snapshot 化し CI で固定する
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 454
-**Depends on**: 450, 451, 452
-**Track**: vscode-ide
 **Blocks v1 exit**: no
 **Priority**: 5
 

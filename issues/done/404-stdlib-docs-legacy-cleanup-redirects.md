@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 404
+Track: stdlib-docs
+Depends on: 402
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: legacy ページの整理と redirect / archive 方針を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 404
-**Depends on**: 402
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 10
 

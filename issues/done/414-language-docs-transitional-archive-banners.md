@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 414
+Track: language-docs
+Depends on: 372
+Orchestration class: implementation-ready
+---
 # Language Docs: transitional / archive banner を一括適用する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 414
-**Depends on**: 372
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 9
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-05
+ID: 155
+Track: cross-cutting
+Depends on: —
+Orchestration class: implementation-ready
+---
 # 横断 docs: selfhosting stdlib checklist と不足 migration guides を整備
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-05
-**ID**: 155
-**Depends on**: —
-**Track**: cross-cutting
 **Blocks v1 exit**: no
 
 ---

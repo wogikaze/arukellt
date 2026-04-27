@@ -1,11 +1,13 @@
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 107
+Track: runtime-perf
+Depends on: 52
+Orchestration class: implementation-ready
+---
 # 実行時性能: ループのベクトル化可能性アノテーション
-
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 107
-**Depends on**: 064
-**Track**: runtime-perf
 **Blocks v4 exit**: no
 
 **Status note**: Depends on #064 (branch hinting MIR infrastructure). WASM SIMD autovectorization hints are not yet standardized. Deferred to v5+.

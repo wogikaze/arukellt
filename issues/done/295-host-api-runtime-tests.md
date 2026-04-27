@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 295
+Track: capability
+Depends on: —
+Orchestration class: implementation-ready
+---
 # host API の run-time テストを拡充する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 295
-**Depends on**: —
-**Track**: capability
 **Blocks v1 exit**: no
 **Priority**: 15
 

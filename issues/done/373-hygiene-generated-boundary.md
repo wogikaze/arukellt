@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 373
+Track: repo-hygiene
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Repo Hygiene: generated と hand-written の境界を明確化し ownership を付与する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 373
-**Depends on**: —
-**Track**: repo-hygiene
 **Blocks v1 exit**: no
 **Priority**: 4
 

@@ -1,13 +1,15 @@
-# selfhost Stage 2 fixpoint 達成と dual-period 終了計画
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-22
+ID: 459
+Track: compiler, selfhost
+Depends on: 445, 446, 447, 448, 449
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-22
-**ID**: 459
-**Depends on**: 445, 446, 447, 448, 449
-**Track**: compiler, selfhost
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# selfhost Stage 2 fixpoint 達成と dual-period 終了計画
 **Blocks v5**: yes
 **Priority**: 3
 

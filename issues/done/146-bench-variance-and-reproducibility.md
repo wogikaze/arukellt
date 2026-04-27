@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-15
+ID: 146
+Track: benchmark
+Depends on: 149
+Orchestration class: implementation-ready
+---
 # 基盤: benchmark variance 制御と再現性プロファイル
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-15
-**ID**: 146
-**Depends on**: 149
-**Track**: benchmark
 **Blocks v1 exit**: no
 
 ---

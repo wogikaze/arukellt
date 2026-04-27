@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 087
+Track: mir-opt
+Depends on: —
+Orchestration class: implementation-ready
+---
 # MIR: 関数間インライン展開の強化 — 呼び出し回数・サイズ閾値の最適化
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 087
-**Depends on**: —
-**Track**: mir-opt
 **Blocks v4 exit**: yes
 
 ---

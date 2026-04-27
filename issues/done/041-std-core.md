@@ -1,13 +1,15 @@
-# std::core: Error 型、ordering、range、cmp、math、convert、hash
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-14
+ID: 041
+Track: stdlib
+Depends on: 039
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #39
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-14
-**ID**: 041
-**Depends on**: 039
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #39
+# std::core: Error 型、ordering、range、cmp、math、convert、hash
 **Blocks v3 exit**: yes
 
 ---

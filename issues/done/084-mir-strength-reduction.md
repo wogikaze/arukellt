@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 084
+Track: mir-opt
+Depends on: —
+Orchestration class: implementation-ready
+---
 # MIR: Strength Reduction — 乗算→シフト、除算→逆数乗算
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 084
-**Depends on**: —
-**Track**: mir-opt
 **Blocks v4 exit**: no
 
 ---

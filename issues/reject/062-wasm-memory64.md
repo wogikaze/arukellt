@@ -1,11 +1,13 @@
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 50
+Track: wasm-feature
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Wasm Memory64: i64 アドレス空間対応
-
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 062
-**Depends on**: —
-**Track**: wasm-feature
 **Blocks v4 exit**: no
 
 **Status note**: Wasm proposal — deferred to v5+. Not implemented.

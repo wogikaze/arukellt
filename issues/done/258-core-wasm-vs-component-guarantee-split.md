@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-03
+ID: 258
+Track: main
+Depends on: 257
+Orchestration class: implementation-ready
+---
 # core Wasm と component 出力の保証レベルを分離する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-03
-**ID**: 258
-**Depends on**: 257
-**Track**: main
 **Blocks v1 exit**: yes
 
 ---

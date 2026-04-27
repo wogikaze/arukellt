@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-13
+ID: 281
+Track: corehir
+Depends on: —
+Orchestration class: implementation-ready
+---
 # CoreHIR lowering: IfExpr を制御フローに desugar する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-13
-**ID**: 281
-**Depends on**: —
-**Track**: corehir
 **Blocks v1 exit**: no
 **Priority**: 1
 

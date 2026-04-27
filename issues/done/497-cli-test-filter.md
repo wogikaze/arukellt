@@ -1,10 +1,13 @@
+---
+Status: done
+Created: 2026-04-14
+Updated: 2026-04-14
+Track: cli
+Source: "audit — extensions/arukellt-all-in-one/src/extension.js:740"
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 497 — CLI test runner: add --filter for single-test execution
-
-**Track:** cli
-**Status:** done
-**Created:** 2026-04-14
-**Updated:** 2026-04-14
-**Source:** audit — extensions/arukellt-all-in-one/src/extension.js:740
 
 ## Summary
 

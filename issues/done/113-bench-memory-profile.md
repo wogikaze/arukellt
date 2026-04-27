@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 113
+Track: benchmark
+Depends on: 100
+Orchestration class: implementation-ready
+---
 # 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 113
-**Depends on**: 100
-**Track**: benchmark
 **Blocks v4 exit**: yes
 
 ---

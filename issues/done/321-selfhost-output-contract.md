@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2025-07-15
+ID: 321
+Track: selfhost-cli
+Depends on: 319
+Orchestration class: implementation-ready
+---
 # Selfhost compiler の出力契約を統一する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2025-07-15
-**ID**: 321
-**Depends on**: 319
-**Track**: selfhost-cli
 **Blocks v1 exit**: no
 **Priority**: 13
 

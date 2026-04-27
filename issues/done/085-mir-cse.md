@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 085
+Track: mir-opt
+Depends on: —
+Orchestration class: implementation-ready
+---
 # MIR: CSE (Common Subexpression Elimination) パス
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 085
-**Depends on**: —
-**Track**: mir-opt
 **Blocks v4 exit**: no
 
 ---

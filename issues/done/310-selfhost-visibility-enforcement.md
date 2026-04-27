@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 310
+Track: selfhost-frontend
+Depends on: 309
+Orchestration class: implementation-ready
+---
 # Selfhost resolver に visibility enforcement を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 310
-**Depends on**: 309
-**Track**: selfhost-frontend
 **Blocks v1 exit**: no
 **Priority**: 9
 

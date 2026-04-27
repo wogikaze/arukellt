@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 455
+Track: stdlib-docs
+Depends on: none
+Orchestration class: implementation-ready
+---
 # stdlib metadata v2: manifest に doc/examples/errors/availability を追加し docs と LSP を拡充する
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 455
-**Depends on**: none
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 2
 

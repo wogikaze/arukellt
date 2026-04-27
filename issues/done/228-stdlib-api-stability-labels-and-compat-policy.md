@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 228
+Track: main
+Depends on: 226
+Orchestration class: implementation-ready
+---
 # stdlib 全公開 API に安定性ラベルと互換ポリシーを付与する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 228
-**Depends on**: 226
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

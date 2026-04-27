@@ -1,13 +1,15 @@
-# 494 — Selfhost MIR: SSA formation pass
+---
+Status: done
+Created: 2026-04-14
+Updated: 2026-04-15
+ID: 494
+Track: selfhost
+Depends on: 493, 503
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-04-14
-**Updated**: 2026-04-15
-**ID**: 494
-**Depends on**: 493, 503
-**Track**: selfhost
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# 494 — Selfhost MIR: SSA formation pass
 **Blocks v5**: yes
 **Source**: audit — issues/done/211-selfhost-mir-lower-fn-bodies.md "Out of scope (deferred)"
 

@@ -1,11 +1,13 @@
+---
+Status: blocked
+Created: 2026-03-28
+Updated: 2025-07-15
+ID: 31
+Track: component-model
+Depends on: 30
+Orchestration class: implementation-ready
+---
 # jco: Wasm GC 型サポート待ち (upstream blocked)
-
-**Status**: blocked
-**Created**: 2026-03-28
-**Updated**: 2025-07-15
-**ID**: 037
-**Depends on**: 036
-**Track**: component-model
 **Blocks v2 exit**: yes (jco 完了条件)
 **Blocked by**: jco upstream (<https://github.com/bytecodealliance/jco>)
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2025-07-15
+ID: 308
+Track: selfhost-frontend
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Selfhost parser の構文 surface を拡張する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2025-07-15
-**ID**: 308
-**Depends on**: —
-**Track**: selfhost-frontend
 **Blocks v1 exit**: no
 **Priority**: 1
 

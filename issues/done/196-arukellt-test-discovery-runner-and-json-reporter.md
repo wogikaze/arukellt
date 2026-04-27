@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 196
+Track: parallel
+Depends on: none
+Orchestration class: implementation-ready
+---
 # `arukellt test` discovery / runner / JSON reporter
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 196
-**Depends on**: none
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 363
+Track: stdlib-docs
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: module family ごとの curated overview page を作る
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 363
-**Depends on**: —
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 11
 

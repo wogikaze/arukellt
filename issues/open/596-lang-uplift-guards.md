@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 596
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Language Surface Uplift: Function-Level Guards
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 596
 **Parent**: #588
 **Depends on**: 595
 **Track**: selfhost-frontend / language-design

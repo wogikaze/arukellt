@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 058
+Track: stdlib
+Depends on: 47
+Orchestration class: implementation-ready
+---
 # API 安定性ラベルとドキュメント体系
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 058
-**Depends on**: 057
-**Track**: stdlib
 **Blocks v3 exit**: yes
 
 ## Summary

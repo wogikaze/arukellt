@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-14
+Updated: 2026-04-15
+ID: 502
+Track: vscode-ide
+Depends on: 441
+Orchestration class: implementation-ready
+---
 # LSP: Full Multi-Root Workspace and Cross-Package Resolution
-
-**Status**: done
-**Created**: 2026-04-14
-**Updated**: 2026-04-15
-**ID**: 502
-**Depends on**: 441
-**Track**: vscode-ide
 **Blocks v1 exit**: no
 **Priority**: 3
 

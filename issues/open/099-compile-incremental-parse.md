@@ -1,11 +1,13 @@
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-22
+ID: 099
+Track: selfhost-frontend
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Selfhost compiler: incremental parse design slice
-
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-22
-**ID**: 099
-**Depends on**: —
-**Track**: selfhost-frontend
 **Type**: Design-ready
 **Implementation target**: Use Ark source in `src/compiler/*.ark` per the selfhost transition plan.
 **Primary paths**: `src/compiler/*.ark`

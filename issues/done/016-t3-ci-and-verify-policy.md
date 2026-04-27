@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 14
+Track: parallel
+Depends on: 002, 009, 010, 011
+Orchestration class: implementation-ready
+---
 # T3 CI and verify policy
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 016
-**Depends on**: 002, 009, 010, 011
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

@@ -1,19 +1,16 @@
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-22
+ID: 121
+Track: wasi-feature
+Depends on: 510
+Orchestration class: implementation-ready
+Orchestration upstream: #074-parent-gate
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+---
+
 # WASI P2: Canonical ABI ハンドリングの堅牢化
-
-> **Status:** Implementation-ready
-> **Track:** component
-> **Type:** Implementation
-
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
-
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-22
-**ID**: 121
-**Depends on**: 510
-**Track**: wasi-feature
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: #074-parent-gate
 **Blocks v4 exit**: no
 
 **Status note**: Leaf close-gate issue for #074. Minimum Canonical ABI support required by P2 validate/run must land before #074 closes.

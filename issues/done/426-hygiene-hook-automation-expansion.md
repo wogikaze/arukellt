@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 426
+Track: repo-hygiene
+Depends on: 376
+Orchestration class: implementation-ready
+---
 # Repo Hygiene: pre-commit / pre-push の検証項目を cleanup 観点で拡張する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 426
-**Depends on**: 376
-**Track**: repo-hygiene
 
 ## Acceptance
 

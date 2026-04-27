@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 348
+Track: linter
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Linter: lint rule registry を作る
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 348
-**Depends on**: —
-**Track**: linter
 **Blocks v1 exit**: no
 **Priority**: 13
 

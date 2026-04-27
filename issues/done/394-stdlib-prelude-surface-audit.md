@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 394
+Track: stdlib-api
+Depends on: 361
+Orchestration class: implementation-ready
+---
 # Stdlib: prelude 露出面を監査し completion / lint / docs と揃える
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 394
-**Depends on**: 361
-**Track**: stdlib-api
 
 ## Acceptance
 

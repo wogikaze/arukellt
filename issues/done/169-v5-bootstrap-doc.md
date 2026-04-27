@@ -1,10 +1,12 @@
+---
+Status: done
+Updated: 2026-03-30
+ID: 169
+Track: main
+Depends on: 166, 167
+Orchestration class: implementation-ready
+---
 # v5 Bootstrap guide documentation
-
-**Status**: done
-**Updated**: 2026-03-30
-**ID**: 169
-**Depends on**: 166, 167
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

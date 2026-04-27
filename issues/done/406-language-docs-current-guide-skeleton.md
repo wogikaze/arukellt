@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 406
+Track: language-docs
+Depends on: 368
+Orchestration class: implementation-ready
+---
 # Language Docs: current-first guide の骨格と章立てを作る
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 406
-**Depends on**: 368
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 1
 

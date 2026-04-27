@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-27
+ID: 23
+Track: gc-native
+Depends on: 22
+Orchestration class: implementation-ready
+---
 # GC-native full verification, cleanup, and ADR update
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-27
-**ID**: 027
-**Depends on**: 026
-**Track**: gc-native
 **Blocks v1 exit**: no
 
 ## Summary

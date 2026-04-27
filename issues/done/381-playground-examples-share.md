@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 381
+Track: playground
+Depends on: 380
+Orchestration class: implementation-ready
+---
 # Playground: examples loader と share link を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 381
-**Depends on**: 380
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 24
 

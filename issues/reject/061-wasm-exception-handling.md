@@ -1,11 +1,13 @@
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 49
+Track: wasm-feature
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Wasm native 例外処理: try_table / throw / exnref 実装
-
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 061
-**Depends on**: —
-**Track**: wasm-feature
 **Blocks v4 exit**: no
 
 **Status note**: Wasm proposal — deferred to v5+. Not implemented.

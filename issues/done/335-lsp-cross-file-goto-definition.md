@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 335
+Track: lsp-navigation
+Depends on: 333
+Orchestration class: implementation-ready
+---
 # LSP: cross-file go to definition を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 335
-**Depends on**: 333
-**Track**: lsp-navigation
 **Blocks v1 exit**: no
 **Priority**: 4
 

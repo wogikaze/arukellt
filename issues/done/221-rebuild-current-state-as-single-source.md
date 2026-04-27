@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 221
+Track: main
+Depends on: none
+Orchestration class: implementation-ready
+---
 # current-state.md を唯一の現行状態ソースとして再構築する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 221
-**Depends on**: none
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

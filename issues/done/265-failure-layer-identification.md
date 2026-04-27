@@ -1,12 +1,14 @@
-# 失敗層の即時特定
+---
+Status: completed
+Created: 2026-04-19
+ID: 265
+Track: main
+Depends on: 261
+Orchestration class: design-ready
+Orchestration upstream: —
+---
 
-**Status**: completed
-**Created**: 2026-04-19
-**ID**: 265
-**Depends on**: 261
-**Track**: main
-**Orchestration class**: design-ready
-**Orchestration upstream**: —
+# 失敗層の即時特定
 **Blocks v3**: yes
 
 ## Summary

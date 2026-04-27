@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Perf baseline を selfhost binary 対応にする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
 **Closed**: 2026-04-01
 **ID**: 331
 **Depends on**: 330

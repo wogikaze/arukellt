@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 388
+Track: stdlib-api
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Stdlib: collections / seq family の algorithm parity と回帰検証を強化する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 388
-**Depends on**: —
-**Track**: stdlib-api
 **Blocks v1 exit**: no
 **Priority**: 6
 

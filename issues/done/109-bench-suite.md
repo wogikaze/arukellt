@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 109
+Track: benchmark
+Depends on: —
+Orchestration class: implementation-ready
+---
 # ベンチマーク: fib / binary_tree / vec_ops / string_concat / json_parse スイート
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 109
-**Depends on**: —
-**Track**: benchmark
 **Blocks v4 exit**: yes
 
 ---

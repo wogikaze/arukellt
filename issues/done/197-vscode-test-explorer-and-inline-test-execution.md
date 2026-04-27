@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 197
+Track: parallel
+Depends on: 196
+Orchestration class: implementation-ready
+---
 # VS Code Test Explorer + inline test execution
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 197
-**Depends on**: 196
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

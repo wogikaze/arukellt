@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 315
+Track: selfhost-backend
+Depends on: 313
+Orchestration class: implementation-ready
+---
 # Selfhost MIR lowering: 集合体操作を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 315
-**Depends on**: 313
-**Track**: selfhost-backend
 **Blocks v1 exit**: no
 **Priority**: 6
 

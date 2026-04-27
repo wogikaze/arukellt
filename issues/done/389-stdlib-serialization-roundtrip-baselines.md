@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-06-28
+ID: 389
+Track: stdlib-api
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Stdlib: JSON / TOML / CSV の round-trip baseline を整備する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-06-28
-**ID**: 389
-**Depends on**: —
-**Track**: stdlib-api
 **Blocks v1 exit**: no
 **Priority**: 7
 

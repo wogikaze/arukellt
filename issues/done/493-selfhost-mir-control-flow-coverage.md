@@ -1,10 +1,12 @@
-# 493 — Selfhost MIR lowering: control-flow coverage (match/loop/closure)
+---
+Status: done
+Created: 2026-04-14
+Updated: 2026-04-14
+Track: selfhost
+Source: "audit — issues/done/211-selfhost-mir-lower-fn-bodies.md "Out of scope (deferred)""
+---
 
-**Track:** selfhost
-**Status:** done
-**Created:** 2026-04-14
-**Updated:** 2026-04-14
-**Source:** audit — issues/done/211-selfhost-mir-lower-fn-bodies.md "Out of scope (deferred)"
+# 493 — Selfhost MIR lowering: control-flow coverage (match/loop/closure)
 
 ## Summary
 

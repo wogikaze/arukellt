@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-10
+ID: 451
+Track: vscode-ide
+Depends on: none
+Orchestration class: implementation-ready
+---
 # LSP: Hover をセマンティックな identifier に限定し literal / keyword の無意味表示を除去する
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-10
-**ID**: 451
-**Depends on**: none
-**Track**: vscode-ide
 **Blocks v1 exit**: no
 **Priority**: 2
 

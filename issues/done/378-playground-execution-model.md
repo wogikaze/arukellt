@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 378
+Track: playground
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Playground: execution model を選定し v1 scope を確定する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 378
-**Depends on**: —
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 21
 

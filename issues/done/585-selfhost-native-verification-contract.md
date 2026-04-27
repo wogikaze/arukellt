@@ -1,8 +1,10 @@
+---
+Status: done
+Track: selfhost-retirement
+Depends on: 559
+Orchestration class: implementation-ready
+---
 # 585 — Replace Rust-baseline parity gates with selfhost-native verification contract
-
-**Status**: done
-**Track**: selfhost-retirement
-**Depends on**: 559
 **Blocks**: 583, 560, 561, 562, 563, 564
 **Orchestration class**: verification-contract
 

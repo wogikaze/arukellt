@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 227
+Track: main
+Depends on: 226
+Orchestration class: implementation-ready
+---
 # 構文・型システム・import・visibility・error model の契約を文書化する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 227
-**Depends on**: 226
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

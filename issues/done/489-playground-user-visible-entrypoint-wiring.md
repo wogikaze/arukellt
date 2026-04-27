@@ -1,19 +1,13 @@
-
+---
+Status: open
+Created: 2026-04-13
+Updated: 2026-04-21
+ID: 489
+Track: playground
+Depends on: 437, 438, 464
+Orchestration class: implementation-ready
+---
 ## Reopened by audit
-
-- **Date**: 2026-04-21
-- **Reason**: Entrypoint HTML + TS wired but complete user flow fails because wasm module cannot be loaded; docs/playground/wasm/ is empty
-- **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
-- **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
-
-# Playground user-visible entrypoint wiring
-
-**Status**: open
-**Created**: 2026-04-13
-**Updated**: 2026-04-21
-**ID**: 489
-**Depends on**: 437, 438, 464
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 40
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 339
+Track: lsp-semantic
+Depends on: 338
+Orchestration class: implementation-ready
+---
 # LSP: rename を semantic-aware に置き換える
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 339
-**Depends on**: 338
-**Track**: lsp-semantic
 **Blocks v1 exit**: no
 **Priority**: 6
 

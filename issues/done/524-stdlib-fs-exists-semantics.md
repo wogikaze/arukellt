@@ -1,15 +1,17 @@
-# Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する
+---
+Status: done
+Created: 2026-04-18
+Updated: 2026-04-18
+ID: 524
+Track: stdlib
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+Source: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
+---
 
-**Status**: done
-**Created**: 2026-04-18
-**Updated**: 2026-04-18
-**ID**: 524
-**Depends on**: none
-**Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
+# Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する
 
 ## Progress
 

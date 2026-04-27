@@ -1,13 +1,15 @@
-# Wasm GC i31ref: 小整数 unboxed scalar 最適化
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 070
+Track: wasm-feature
+Depends on: —
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 070
-**Depends on**: —
-**Track**: wasm-feature
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# Wasm GC i31ref: 小整数 unboxed scalar 最適化
 **Blocks v4 exit**: no
 
 ---

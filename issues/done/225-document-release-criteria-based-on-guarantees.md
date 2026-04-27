@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 225
+Track: main
+Depends on: 221, 223
+Orchestration class: implementation-ready
+---
 # リリース可否基準を「何を保証するか」ベースで文書化する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 225
-**Depends on**: 221, 223
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

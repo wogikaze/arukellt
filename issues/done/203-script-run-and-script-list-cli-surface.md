@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 203
+Track: parallel
+Depends on: 202
+Orchestration class: implementation-ready
+---
 # `script run` / `script list` CLI surface
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 203
-**Depends on**: 202
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ## Summary

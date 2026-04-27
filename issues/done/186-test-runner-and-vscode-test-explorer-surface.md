@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-29
+ID: 186
+Track: parallel
+Depends on: 196, 197, 198
+Orchestration class: implementation-ready
+---
 # Test UX: `arukellt test` と VS Code Test Explorer surface
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-29
-**ID**: 186
-**Depends on**: 196, 197, 198
-**Track**: parallel
 **Blocks v1 exit**: no
 
 **Status note**: Parent issue for test discovery/runner, VS Code test integration, and advanced test UX.

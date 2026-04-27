@@ -1,13 +1,15 @@
-# 582 — Phase 7 final: remove `Cargo.toml` and `Cargo.lock`
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 582
+Track: selfhost-retirement
+Depends on: 572, 573, 574, 575, 576, 577, 578, 579, 580, 581
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #572, #573, #574, #575, #576, #577, #578, #579, #580, #581
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 582
-**Depends on**: 572, 573, 574, 575, 576, 577, 578, 579, 580, 581
-**Track**: selfhost-retirement
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #572, #573, #574, #575, #576, #577, #578, #579, #580, #581
+# 582 — Phase 7 final: remove `Cargo.toml` and `Cargo.lock`
 **Blocks**: —
 **Blocks v5**: no
 **Source**: #529 Phase 7 — Full Rust Deletion (final step)

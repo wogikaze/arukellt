@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 443
+Track: component-composition
+Depends on: 442
+Orchestration class: implementation-ready
+---
 # Component Composition: 複数コンポーネントの合成と linking モデルを定義・実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 443
-**Depends on**: 442
-**Track**: component-composition
 **Blocks v1 exit**: no
 **Priority**: 5
 

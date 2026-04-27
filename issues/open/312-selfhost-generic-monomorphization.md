@@ -1,13 +1,15 @@
-# Selfhost に generic instantiation と monomorphization を実装する
+---
+Status: open
+Created: 2026-03-31
+Updated: 2026-04-18
+ID: 312
+Track: selfhost-frontend
+Depends on: 311
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: open
-**Created**: 2026-03-31
-**Updated**: 2026-04-18
-**ID**: 312
-**Depends on**: 311
-**Track**: selfhost-frontend
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# Selfhost に generic instantiation と monomorphization を実装する
 **Blocks v5**: yes
 **Priority**: 11
 **Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.

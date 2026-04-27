@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Scalar 型完全化: u8/u16/u32/u64/i8/i16/f32
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
 **Closed**: 2026-04-03
 **ID**: 040
 **Depends on**: —

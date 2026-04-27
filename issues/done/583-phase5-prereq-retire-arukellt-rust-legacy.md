@@ -1,8 +1,10 @@
+---
+Status: done
+Track: selfhost-retirement
+Depends on: 559
+Orchestration class: implementation-ready
+---
 # 583 — Phase 5 prerequisite: retire ARUKELLT_USE_RUST opt-in and purge `arukellt` Rust core consumers
-
-**Status**: done
-**Track**: selfhost-retirement
-**Depends on**: 559
 **Blocks**: 560, 561, 562, 563, 564
 **Orchestration class**: source-of-truth-transition
 

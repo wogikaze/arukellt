@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 226
+Track: main
+Depends on: 223
+Orchestration class: implementation-ready
+---
 # 言語仕様に stable/provisional/experimental/removed の4段階ラベルを定義・適用する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 226
-**Depends on**: 223
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

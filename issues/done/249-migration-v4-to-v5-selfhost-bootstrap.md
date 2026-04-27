@@ -1,14 +1,16 @@
-# migration guide v4→v5: self-hosted compiler bootstrap
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-22
+ID: 249
+Track: compiler/selfhost
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-22
-**ID**: 249
-**Depends on**: none
-**Track**: compiler/selfhost
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
+# migration guide v4→v5: self-hosted compiler bootstrap
 
 ## Reopened by audit — 2026-04-13
 

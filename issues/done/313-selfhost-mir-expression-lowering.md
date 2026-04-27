@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 313
+Track: selfhost-backend
+Depends on: 308
+Orchestration class: implementation-ready
+---
 # Selfhost MIR lowering: 式のコンパイルを実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 313
-**Depends on**: 308
-**Track**: selfhost-backend
 **Blocks v1 exit**: no
 **Priority**: 3
 

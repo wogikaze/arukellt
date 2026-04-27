@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 008
+Track: main
+Depends on: 004, 007
+Orchestration class: implementation-ready
+---
 # Closure environment on WasmGC
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 008
-**Depends on**: 004, 007
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-07-15
+ID: 305
+Track: maintenance
+Depends on: —
+Orchestration class: implementation-ready
+---
 # blocked issue の upstream 状態を確認・更新する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-07-15
-**ID**: 305
-**Depends on**: —
-**Track**: maintenance
 **Blocks v1 exit**: no
 **Priority**: 25
 

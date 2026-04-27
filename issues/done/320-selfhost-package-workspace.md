@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2025-07-15
+ID: 320
+Track: selfhost-cli
+Depends on: 318
+Orchestration class: implementation-ready
+---
 # Selfhost CLI に package/workspace 統合を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2025-07-15
-**ID**: 320
-**Depends on**: 318
-**Track**: selfhost-cli
 **Blocks v1 exit**: no
 **Priority**: 15
 

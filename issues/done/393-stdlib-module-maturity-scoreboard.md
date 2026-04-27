@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 393
+Track: stdlib-api
+Depends on: 383
+Orchestration class: implementation-ready
+---
 # Stdlib: module family ごとの maturity scoreboard を生成する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 393
-**Depends on**: 383
-**Track**: stdlib-api
 
 ## Acceptance
 

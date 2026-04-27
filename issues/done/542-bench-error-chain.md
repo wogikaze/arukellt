@@ -1,6 +1,10 @@
+---
+Status: done
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 542 — Benchmark: error chain (Result / error propagation)
-
-**Status**: done
 **Closed**: 2026-04-22
 **Close commit**: 72e3cc14
 **Acceptance**: all YES

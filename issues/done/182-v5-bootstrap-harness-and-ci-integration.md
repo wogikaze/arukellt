@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 182
+Track: main
+Depends on: 181
+Orchestration class: implementation-ready
+---
 # v5 Bootstrap: harness and CI integration
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 182
-**Depends on**: 181
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

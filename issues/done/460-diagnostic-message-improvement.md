@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 460
+Track: diagnostics
+Depends on: none
+Orchestration class: implementation-ready
+---
 # エラーメッセージの文面と補助情報の統一整備
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 460
-**Depends on**: none
-**Track**: diagnostics
 **Blocks v1 exit**: no
 **Priority**: 2
 

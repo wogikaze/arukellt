@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-06-28
+ID: 390
+Track: stdlib-api
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Stdlib: test モジュールの assertion / snapshot helper を拡充する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-06-28
-**ID**: 390
-**Depends on**: —
-**Track**: stdlib-api
 **Blocks v1 exit**: no
 **Priority**: 8
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 311
+Track: selfhost-frontend
+Depends on: 308
+Orchestration class: implementation-ready
+---
 # Selfhost typechecker に型推論エンジンを構築する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 311
-**Depends on**: 308
-**Track**: selfhost-frontend
 **Blocks v1 exit**: no
 **Priority**: 2
 

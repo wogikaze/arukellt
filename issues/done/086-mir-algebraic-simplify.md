@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 086
+Track: mir-opt
+Depends on: —
+Orchestration class: implementation-ready
+---
 # MIR: 代数的簡略化 — 恒等式・吸収則・ド・モルガン則
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 086
-**Depends on**: —
-**Track**: mir-opt
 **Blocks v4 exit**: no
 
 ---

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-04
+ID: 115
+Track: wasm-quality
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Wasm Name Section: デバッグ用関数名・ローカル名セクション生成
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-04
-**ID**: 115
-**Depends on**: —
-**Track**: wasm-quality
 **Blocks v4 exit**: no
 
 ---

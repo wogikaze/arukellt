@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 120
+Track: wasm-feature
+Depends on: —
+Orchestration class: implementation-ready
+---
 # WasmGC Post-MVP プレビュー: 将来拡張の設計調査
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 120
-**Depends on**: —
-**Track**: wasm-feature
 **Blocks v4 exit**: no
 
 ---

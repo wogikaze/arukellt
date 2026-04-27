@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 407
+Track: language-docs
+Depends on: 369
+Orchestration class: implementation-ready
+---
 # Language Docs: feature maturity matrix の生成元と更新フローを実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 407
-**Depends on**: 369
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 2
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-03
+ID: 137
+Track: wasi-feature
+Depends on: —
+Orchestration class: implementation-ready
+---
 # `std::host::*` namespace 導入と migration / target-gated 診断
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-03
-**ID**: 137
-**Depends on**: —
-**Track**: wasi-feature
 **Blocks v1 exit**: no
 
 ---

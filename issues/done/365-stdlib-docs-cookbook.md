@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 365
+Track: stdlib-docs
+Depends on: 363
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: source-backed な cookbook / recipe 集を拡充する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 365
-**Depends on**: 363
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 15
 

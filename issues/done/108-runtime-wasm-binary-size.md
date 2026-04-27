@@ -1,9 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-18
+Status note: "Lives in `issues/open/` (see audit trail). Metrics below were re-verified 2026-04-18; do not use the retired “Completed” banner as queue closure — index/closure is separate. Binary size verification complete."
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 実行時性能: hello.wasm 1KB 以下 達成プラン
-
-**Status**: done
-**Status note**: Lives in `issues/open/` (see audit trail). Metrics below were re-verified 2026-04-18; do not use the retired “Completed” banner as queue closure — index/closure is separate. Binary size verification complete.
-**Created**: 2026-03-28
-**Updated**: 2026-04-18
 **Closed**: 2026-04-18
 **ID**: 108
 **Depends on**: 091, 092, 088, 089

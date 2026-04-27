@@ -1,9 +1,13 @@
+---
+Status: done
+Created: 2026-04-22
+Updated: 2026-04-23
+ID: 604
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib Baseline: Contract and Facade Honesty
-
-**Status**: done
-**Created**: 2026-04-22
-**Updated**: 2026-04-23
-**ID**: 604
 **Parent**: #590
 **Depends on**: —
 **Track**: stdlib

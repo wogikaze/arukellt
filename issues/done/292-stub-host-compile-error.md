@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 292
+Track: capability
+Depends on: —
+Orchestration class: implementation-ready
+---
 # stub host module (http, sockets) の使用を compile error にする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 292
-**Depends on**: —
-**Track**: capability
 **Blocks v1 exit**: no
 **Priority**: 12
 

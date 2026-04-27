@@ -1,11 +1,13 @@
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 079
+Track: wasi-feature
+Depends on: 60
+Orchestration class: implementation-ready
+---
 # WASI 0.3-rc: async func / stream<T> / future<T> コンパイルサポート
-
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 079
-**Depends on**: 074
-**Track**: wasi-feature
 **Blocks v4 exit**: no
 
 **Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.

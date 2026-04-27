@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-03
+ID: 190
+Track: parallel
+Depends on: 189
+Orchestration class: implementation-ready
+---
 # VS Code commands / tasks / status surfaces
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-03
-**ID**: 190
-**Depends on**: 189
-**Track**: parallel
 **Blocks v1 exit**: no
 
 ---

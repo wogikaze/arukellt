@@ -1,10 +1,12 @@
+---
+Status: done
+Updated: 2026-03-30
+ID: 163
+Track: main
+Depends on: 175, 176
+Orchestration class: implementation-ready
+---
 # v5 Phase 1: Driver + CLI epic
-
-**Status**: done
-**Updated**: 2026-03-30
-**ID**: 163
-**Depends on**: 175, 176
-**Track**: main
 **Blocks v1 exit**: no
 
 **Status note**: Parent issue for the selfhost driver / CLI surface. Debug dumping is tracked separately in #167.

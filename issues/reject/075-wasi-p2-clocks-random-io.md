@@ -1,11 +1,13 @@
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 61
+Track: wasi-feature
+Depends on: 60
+Orchestration class: implementation-ready
+---
 # WASI P2 ネイティブ: wasi:clocks / wasi:random / wasi:io バインディング
-
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 075
-**Depends on**: 074
-**Track**: wasi-feature
 **Blocks v4 exit**: no
 
 **Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.

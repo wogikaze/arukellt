@@ -1,13 +1,15 @@
-# selfhost 完了条件を定義し文書に固定する
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-14
+ID: 266
+Track: main
+Depends on: 253
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #253
+---
 
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-14
-**ID**: 266
-**Depends on**: 253
-**Track**: main
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #253
+# selfhost 完了条件を定義し文書に固定する
 **Blocks v1 exit**: yes
 
 ---

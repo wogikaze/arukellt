@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 081
+Track: mir-opt
+Depends on: —
+Orchestration class: implementation-ready
+---
 # MIR: エスケープ解析 + Scalar Replacement パス
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 081
-**Depends on**: —
-**Track**: mir-opt
 **Blocks v4 exit**: yes
 
 ---

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-18
+ID: 441
+Track: vscode-ide
+Depends on: 333, 335, 340
+Orchestration class: implementation-ready
+---
 # VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-18
-**ID**: 441
-**Depends on**: 333, 335, 340
-**Track**: vscode-ide
 **Blocks v1 exit**: no
 **Priority**: 3
 

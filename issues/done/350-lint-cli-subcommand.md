@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 350
+Track: linter
+Depends on: 348
+Orchestration class: implementation-ready
+---
 # Linter: `arukellt lint` CLI サブコマンドを追加する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 350
-**Depends on**: 348
-**Track**: linter
 **Blocks v1 exit**: no
 **Priority**: 17
 

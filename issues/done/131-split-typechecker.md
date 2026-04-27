@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 131
+Track: code-structure
+Depends on: —
+Orchestration class: implementation-ready
+---
 # TypeChecker checker.rs (2790行) をサブモジュールに分割
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 131
-**Depends on**: —
-**Track**: code-structure
 **Blocks v4 exit**: no
 
 ## Summary

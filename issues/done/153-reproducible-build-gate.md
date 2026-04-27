@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-15
+ID: 153
+Track: cross-cutting
+Depends on: —
+Orchestration class: implementation-ready
+---
 # 横断検証: bit-exact Wasm 再現ビルドゲートと決定性ルール
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-15
-**ID**: 153
-**Depends on**: —
-**Track**: cross-cutting
 **Blocks v1 exit**: no
 
 ---

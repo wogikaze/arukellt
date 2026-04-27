@@ -1,13 +1,15 @@
-# std::collections: Deque、PriorityQueue
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-04-22
+ID: 045
+Track: stdlib
+Depends on: 039, 041
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #529
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-04-22
-**ID**: 045
-**Depends on**: 039, 041
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #529
+# std::collections: Deque、PriorityQueue
 **Blocks v3 exit**: yes
 
 **Status note**: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.

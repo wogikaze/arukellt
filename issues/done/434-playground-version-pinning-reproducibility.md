@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 434
+Track: playground
+Depends on: 433
+Orchestration class: implementation-ready
+---
 # Playground: shared link の version pinning と再現性を確保する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 434
-**Depends on**: 433
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 7
 

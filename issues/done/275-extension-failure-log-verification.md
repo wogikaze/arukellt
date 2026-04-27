@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 275
+Track: main
+Depends on: 272
+Orchestration class: implementation-ready
+---
 # 失敗ログの検証面（output channel・status bar・user message）を確立する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 275
-**Depends on**: 272
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

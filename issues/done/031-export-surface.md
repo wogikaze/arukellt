@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-30
+ID: 25
+Track: component-model
+Depends on: 029
+Orchestration class: implementation-ready
+---
 # pub fn export surface & WIT export generation
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-30
-**ID**: 031
-**Depends on**: 029
-**Track**: component-model
 **Blocks v1 exit**: no
 
 ## Summary

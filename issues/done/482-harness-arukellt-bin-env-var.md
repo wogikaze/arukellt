@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-28
+ID: 482
+Track: selfhost-retirement
+Depends on: 328
+Orchestration class: implementation-ready
+---
 # harness.rs: ARUKELLT_BIN 環境変数でバイナリパスを上書きできるようにする
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-28
-**ID**: 482
-**Depends on**: 328
-**Track**: selfhost-retirement
 **Blocks v1 exit**: no
 
 ---

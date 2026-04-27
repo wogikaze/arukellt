@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-15
+ID: 251
+Track: main
+Depends on: none
+Orchestration class: implementation-ready
+---
 # ターゲットマトリクスを「宣言」ではなく、継続検証される実行契約にする
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-15
-**ID**: 251
-**Depends on**: none
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-22
+Updated: 2026-04-22
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 560 — Phase 5: Delete `crates/ark-driver`
-
-**Status**: done
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
 **Closed**: 2026-04-22
 **ID**: 560
 **Depends on**: 559

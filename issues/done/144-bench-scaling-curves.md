@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-15
+ID: 144
+Track: benchmark
+Depends on: 141, 142, 143, 149
+Orchestration class: implementation-ready
+---
 # 計測: 入力サイズ sweep とスケーリングカーブ可視化
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-15
-**ID**: 144
-**Depends on**: 141, 142, 143, 149
-**Track**: benchmark
 **Blocks v1 exit**: no
 
 ---

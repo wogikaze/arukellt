@@ -1,13 +1,15 @@
-# 561 — Phase 5: Delete `crates/ark-mir`
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 561
+Track: selfhost-retirement
+Depends on: 559
+Orchestration class: implementation-ready
+Orchestration upstream: #559
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 561
-**Depends on**: 559
-**Track**: selfhost-retirement
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: #559
+# 561 — Phase 5: Delete `crates/ark-mir`
 **Blocks**: 564
 **Blocks v5**: no
 **Source**: #529 Phase 5 — Core compiler crate (MIR data structures and lowering passes).

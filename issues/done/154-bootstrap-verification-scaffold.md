@@ -1,13 +1,15 @@
-# 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-15
+ID: 154
+Track: cross-cutting
+Depends on: 153
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-15
-**ID**: 154
-**Depends on**: 153
-**Track**: cross-cutting
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold
 **Blocks v1 exit**: no
 
 ---

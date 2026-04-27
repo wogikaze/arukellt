@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 20
+Track: gc-native
+Depends on: 19
+Orchestration class: implementation-ready
+---
 # GC-native Vec<T>: struct + array, monomorphized
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 024
-**Depends on**: 023
-**Track**: gc-native
 **Blocks v1 exit**: no
 
 ## Summary

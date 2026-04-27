@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-07
+ID: 171
+Track: language-design
+Depends on: none
+Orchestration class: implementation-ready
+---
 # canonical stringification surface を `to_string(x)` に統一する
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-07
-**ID**: 171
-**Depends on**: none
-**Track**: language-design
 **Blocks v1 exit**: no
 **ADR candidate**: yes
 

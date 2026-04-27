@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 291
+Track: capability
+Depends on: —
+Orchestration class: implementation-ready
+---
 # --deny-clock / --deny-random を compile-time 検証に引き上げる
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 291
-**Depends on**: —
-**Track**: capability
 **Blocks v1 exit**: no
 **Priority**: 11
 

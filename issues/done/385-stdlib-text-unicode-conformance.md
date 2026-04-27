@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 385
+Track: stdlib-api
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Stdlib: text モジュールの Unicode / UTF-8 契約を fixture で固定する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 385
-**Depends on**: —
-**Track**: stdlib-api
 **Blocks v1 exit**: no
 **Priority**: 3
 

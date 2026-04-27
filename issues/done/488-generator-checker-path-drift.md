@@ -1,10 +1,13 @@
+---
+Status: done
+Created: 2026-04-13
+Updated: 2026-04-13
+ID: 488
+Track: hygiene, docs
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Generator and checker path drift
-
-**Status**: done
-**Created**: 2026-04-13
-**Updated**: 2026-04-13
-**ID**: 488
-**Track**: hygiene, docs
 **Blocks v1 exit**: no
 **Priority**: 70
 

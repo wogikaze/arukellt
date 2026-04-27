@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-15
+ID: 104
+Track: runtime-perf
+Depends on: —
+Orchestration class: implementation-ready
+---
 # 実行時性能: GC write barrier 削減 (immutable フィールド検出)
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-15
-**ID**: 104
-**Depends on**: —
-**Track**: runtime-perf
 **Blocks v4 exit**: no
 
 ---

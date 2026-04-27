@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-14
+ID: 102
+Track: compile-speed
+Depends on: 100
+Orchestration class: implementation-ready
+---
 # コンパイル速度: Lexer / Parser のホットパス最適化
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-14
-**ID**: 102
-**Depends on**: 100
-**Track**: compile-speed
 **Blocks v4 exit**: no
 
 ---

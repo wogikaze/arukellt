@@ -1,13 +1,15 @@
-# `wasm-tools compose` 統合 (v3 候補)
+---
+Status: open
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 476
+Track: wasm-feature
+Depends on: "035 (v2-verification-cleanup, done), 074 (wasi-p2-native-component)"
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #74
+---
 
-**Status**: open
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 476
-**Depends on**: 035 (v2-verification-cleanup, done), 074 (wasi-p2-native-component)
-**Track**: wasm-feature
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #74
+# `wasm-tools compose` 統合 (v3 候補)
 **Blocks v4 exit**: no
 
 ---

@@ -1,13 +1,15 @@
-# bootstrap セクションの fixpoint 記述整合を再検証する
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-14
+ID: 286
+Track: selfhost
+Depends on: —
+Orchestration class: verification-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-14
-**ID**: 286
-**Depends on**: —
-**Track**: selfhost
-**Orchestration class**: verification-ready
-**Orchestration upstream**: —
+# bootstrap セクションの fixpoint 記述整合を再検証する
 
 ## Reopened by audit — 2026-04-13
 

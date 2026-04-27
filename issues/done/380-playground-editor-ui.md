@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-03
+ID: 380
+Track: playground
+Depends on: 379
+Orchestration class: implementation-ready
+---
 # Playground: editor / diagnostics UI を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-03
-**ID**: 380
-**Depends on**: 379
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 23
 

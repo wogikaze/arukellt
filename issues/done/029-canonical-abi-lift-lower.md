@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-30
+ID: 029
+Track: component-model
+Depends on: 028
+Orchestration class: implementation-ready
+---
 # Canonical ABI lift/lower for GC-native types
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-30
-**ID**: 029
-**Depends on**: 028
-**Track**: component-model
 **Blocks v1 exit**: no
 
 ## Summary

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 16
+Track: gc-native
+Depends on: 019
+Orchestration class: implementation-ready
+---
 # GC-native scalars, control flow, and direct calls
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 020
-**Depends on**: 019
-**Track**: gc-native
 **Blocks v1 exit**: no
 
 ## Summary

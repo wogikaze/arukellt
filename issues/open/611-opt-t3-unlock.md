@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 611
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Optimization Uplift: T3-Safe Runtime Unlock
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 611
 **Parent**: #591
 **Depends on**: 609
 **Track**: compiler / runtime-perf

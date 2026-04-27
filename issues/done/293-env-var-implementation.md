@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-06-28
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # env::var() の実装を完成させる
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-06-28
 **Closed**: 2026-06-28
 **ID**: 293
 **Depends on**: —

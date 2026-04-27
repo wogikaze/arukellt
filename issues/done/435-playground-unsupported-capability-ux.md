@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 435
+Track: playground
+Depends on: 428
+Orchestration class: implementation-ready
+---
 # Playground: unsupported target / host capability を明示する UX を入れる
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 435
-**Depends on**: 428
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 8
 

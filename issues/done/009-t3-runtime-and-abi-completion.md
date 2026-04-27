@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 009
+Track: main
+Depends on: 003, 004, 005, 006, 007, 008
+Orchestration class: implementation-ready
+---
 # T3 runtime and ABI completion
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 009
-**Depends on**: 003, 004, 005, 006, 007, 008
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

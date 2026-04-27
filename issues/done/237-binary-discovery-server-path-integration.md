@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 237
+Track: main
+Depends on: 236
+Orchestration class: implementation-ready
+---
 # バイナリ探索・server.path・起動引数の統合と自動設定を実装する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 237
-**Depends on**: 236
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

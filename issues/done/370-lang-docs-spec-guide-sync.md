@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 370
+Track: language-docs
+Depends on: 368, 369
+Orchestration class: implementation-ready
+---
 # Language Docs: spec と guide の同期ポイントを CI で検証する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 370
-**Depends on**: 368, 369
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 10
 

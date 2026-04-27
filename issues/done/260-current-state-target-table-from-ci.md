@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-05
+ID: 260
+Track: main
+Depends on: 256, 257
+Orchestration class: implementation-ready
+---
 # current-state.md の target 表を CI 結果からのみ更新する仕組みを作る
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-05
-**ID**: 260
-**Depends on**: 256, 257
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Decomposition note — 2026-04-03

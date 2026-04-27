@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 299
+Track: component-model
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Component Model の対応型 tier を宣言し、未対応型 export を compile error にする
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 299
-**Depends on**: —
-**Track**: component-model
 **Blocks v1 exit**: no
 **Priority**: 16
 

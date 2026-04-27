@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 594
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Selfhost Phase 2: Fixture and Diagnostic Parity
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 594
 **Parent**: #529
 **Depends on**: 593
 **Track**: selfhost

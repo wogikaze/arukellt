@@ -1,13 +1,15 @@
-# Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC
+---
+Status: Implementation-ready
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 473
+Track: wasm-feature
+Depends on: "032 (resource-type, done)"
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #32
+---
 
-**Status**: Implementation-ready
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 473
-**Depends on**: 032 (resource-type, done)
-**Track**: wasm-feature
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #32
+# Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC
 **Blocks v4 exit**: no
 
 **Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.

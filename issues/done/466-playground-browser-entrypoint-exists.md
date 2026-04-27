@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 466
+Track: playground
+Depends on: 465
+Orchestration class: implementation-ready
+---
 # Playground: browser entrypoint が repo 内に存在する
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 466
-**Depends on**: 465
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 2
 

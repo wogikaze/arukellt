@@ -1,11 +1,13 @@
+---
+Status: open
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 097
+Track: compile-speed
+Depends on: —
+Orchestration class: implementation-ready
+---
 # コンパイル速度: MIR lowering のアリーナ割り当て
-
-**Status**: open
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 097
-**Depends on**: —
-**Track**: compile-speed
 **Blocks v4 exit**: no
 
 **Status note**: Compiler architecture improvement — deferred to v5+. hello.ark already compiles in 4.2ms.

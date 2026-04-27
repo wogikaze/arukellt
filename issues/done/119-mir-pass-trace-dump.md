@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-15
+ID: 119
+Track: mir-opt
+Depends on: 101
+Orchestration class: implementation-ready
+---
 # MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-15
-**ID**: 119
-**Depends on**: 101
-**Track**: mir-opt
 **Blocks v4 exit**: yes
 
 ---

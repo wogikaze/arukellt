@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 270
+Track: main
+Depends on: 266
+Orchestration class: implementation-ready
+---
 # current-state.md の selfhost 記述を verified ベースに更新する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 270
-**Depends on**: 266
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

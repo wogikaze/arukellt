@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 239
+Track: main
+Depends on: 219
+Orchestration class: implementation-ready
+---
 # 日常利用に必要な LSP 基本機能を完成させる
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 239
-**Depends on**: 219
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

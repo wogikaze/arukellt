@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 9
+Track: main
+Depends on: 009, 010
+Orchestration class: implementation-ready
+---
 # Promote T3 to primary path
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 011
-**Depends on**: 009, 010
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

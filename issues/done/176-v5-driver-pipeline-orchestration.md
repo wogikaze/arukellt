@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 176
+Track: main
+Depends on: 162, 175
+Orchestration class: implementation-ready
+---
 # v5 Driver: file loading and pipeline orchestration
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 176
-**Depends on**: 162, 175
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

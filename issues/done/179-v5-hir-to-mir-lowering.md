@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 179
+Track: main
+Depends on: 164
+Orchestration class: implementation-ready
+---
 # v5 Backend: HIR to MIR lowering
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 179
-**Depends on**: 164
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

@@ -1,13 +1,15 @@
-# std::path + std::fs: パス操作とファイル I/O
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 049
+Track: stdlib
+Depends on: 039, 041, 042
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #39, #41
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 049
-**Depends on**: 039, 041, 042
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #39, #41
+# std::path + std::fs: パス操作とファイル I/O
 **Blocks v3 exit**: yes
 
 ---

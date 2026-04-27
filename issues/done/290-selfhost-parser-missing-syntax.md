@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2025-07-15
+ID: 290
+Track: selfhost
+Depends on: —
+Orchestration class: implementation-ready
+---
 # セルフホスト parser に不足構文を追加する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2025-07-15
-**ID**: 290
-**Depends on**: —
-**Track**: selfhost
 **Blocks v1 exit**: no
 **Priority**: 10
 

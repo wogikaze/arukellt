@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 329
+Track: selfhost-retirement
+Depends on: 328
+Orchestration class: implementation-ready
+---
 # Dual-period governance を確定する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 329
-**Depends on**: 328
-**Track**: selfhost-retirement
 **Blocks v1 exit**: no
 **Priority**: 22
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-14
+ID: 116
+Track: wasm-quality
+Depends on: 114
+Orchestration class: implementation-ready
+---
 # Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-14
-**ID**: 116
-**Depends on**: 114
-**Track**: wasm-quality
 **Blocks v4 exit**: no
 
 ---

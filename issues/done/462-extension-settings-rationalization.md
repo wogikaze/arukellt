@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-05
+ID: 462
+Track: extension
+Depends on: none
+Orchestration class: implementation-ready
+---
 # 拡張機能の設定項目の整理と実装への配線
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-05
-**ID**: 462
-**Depends on**: none
-**Track**: extension
 **Blocks v1 exit**: no
 **Priority**: 3
 

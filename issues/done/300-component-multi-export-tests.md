@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-06-28
+ID: 300
+Track: component-model
+Depends on: 297, 298
+Orchestration class: implementation-ready
+---
 # multi-export world と他言語ホストの相互運用テストを拡充する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-06-28
-**ID**: 300
-**Depends on**: 297, 298
-**Track**: component-model
 **Blocks v1 exit**: no
 **Priority**: 20
 

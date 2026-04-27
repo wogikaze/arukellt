@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-10
+ID: 100
+Track: compile-speed
+Depends on: —
+Orchestration class: implementation-ready
+---
 # CLI: --time フラグ + フェーズ別コンパイル時間計測
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-10
-**ID**: 100
-**Depends on**: —
-**Track**: compile-speed
 **Blocks v4 exit**: yes
 
 ---

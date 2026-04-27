@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 362
+Track: stdlib-api
+Depends on: 358, 360
+Orchestration class: implementation-ready
+---
 # Stdlib: stability tier を実行時・CI で検証する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 362
-**Depends on**: 358, 360
-**Track**: stdlib-api
 **Blocks v1 exit**: no
 **Priority**: 9
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-29
+ID: 150
+Track: cross-cutting
+Depends on: —
+Orchestration class: implementation-ready
+---
 # 横断 docs: `docs/language/spec.md` 凍結版と `docs/compiler/ir-spec.md` を整備
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-29
-**ID**: 150
-**Depends on**: —
-**Track**: cross-cutting
 **Blocks v1 exit**: no
 
 ---

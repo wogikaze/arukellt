@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 610
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Optimization Uplift: Lowering Bottleneck Reduction
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 610
 **Parent**: #591
 **Depends on**: 609
 **Track**: compiler / selfhost

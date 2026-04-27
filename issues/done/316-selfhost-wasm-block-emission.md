@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 316
+Track: selfhost-backend
+Depends on: 314, 315
+Orchestration class: implementation-ready
+---
 # Selfhost Wasm emitter: 構造化ブロック出力を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 316
-**Depends on**: 314, 315
-**Track**: selfhost-backend
 **Blocks v1 exit**: no
 **Priority**: 8
 

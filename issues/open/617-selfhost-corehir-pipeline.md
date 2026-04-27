@@ -1,13 +1,15 @@
-# Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)
+---
+Status: open
+Created: 2026-04-25
+Updated: 2026-04-25
+ID: 617
+Track: pipeline-refactor
+Depends on: 529
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #529
+---
 
-**Status**: open
-**Created**: 2026-04-25
-**Updated**: 2026-04-25
-**ID**: 617
-**Depends on**: 529
-**Track**: pipeline-refactor
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #529
+# Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)
 **Blocks v4 exit**: yes
 
 ## Summary

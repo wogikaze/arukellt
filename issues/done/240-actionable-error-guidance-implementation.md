@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-30
+ID: 240
+Track: main
+Depends on: 237, 239
+Orchestration class: implementation-ready
+---
 # エラー時の診断案内（何が足りないか・どこを直すか）を実装する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-30
-**ID**: 240
-**Depends on**: 237, 239
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

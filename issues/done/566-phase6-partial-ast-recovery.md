@@ -1,13 +1,15 @@
-# 566 — Phase 6/A2: Selfhost parser.ark — partial AST recovery
+---
+Status: done
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 566
+Track: selfhost-frontend
+Depends on: 565
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #565
+---
 
-**Status**: done
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 566
-**Depends on**: 565
-**Track**: selfhost-frontend
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #565
+# 566 — Phase 6/A2: Selfhost parser.ark — partial AST recovery
 **Blocks**: 568
 **Blocks v5**: no
 **Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration

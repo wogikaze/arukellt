@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 092
+Track: backend-opt
+Depends on: —
+Orchestration class: implementation-ready
+---
 # T3: 未使用 WASI import の除去
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 092
-**Depends on**: —
-**Track**: backend-opt
 **Blocks v4 exit**: yes
 
 ---

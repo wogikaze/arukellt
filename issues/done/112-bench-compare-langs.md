@@ -1,13 +1,15 @@
-# ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-03
+ID: 112
+Track: benchmark
+Depends on: 109
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-03
-**ID**: 112
-**Depends on**: 109
-**Track**: benchmark
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト
 **Blocks v4 exit**: yes
 
 ---

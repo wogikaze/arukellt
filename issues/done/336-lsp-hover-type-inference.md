@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 336
+Track: lsp-navigation
+Depends on: 334
+Orchestration class: implementation-ready
+---
 # LSP: hover の型情報を resolver/typechecker 連携で精密化する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 336
-**Depends on**: 334
-**Track**: lsp-navigation
 **Blocks v1 exit**: no
 **Priority**: 7
 

@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-04-13
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Interactive compiler pipeline + inline profiling
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-04-13
 **Closed**: 2026-04-18
 **ID**: 206
 **Depends on**: 184, 185, 187

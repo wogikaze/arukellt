@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 367
+Track: stdlib-docs
+Depends on: 359
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: deprecated API の移行ガイドを整備する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 367
-**Depends on**: 359
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 17
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 477
+Track: extension
+Depends on: "(none)"
+Orchestration class: implementation-ready
+---
 # Extension package.json: 5 arukellt 設定項目の宣言
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 477
-**Depends on**: (none)
-**Track**: extension
 **Blocks v1 exit**: no
 
 ---

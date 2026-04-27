@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 303
+Track: docs/ops
+Depends on: —
+Orchestration class: implementation-ready
+---
 # 生成 docs と手書き docs の境界を明文化する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 303
-**Depends on**: —
-**Track**: docs/ops
 **Blocks v1 exit**: no
 **Priority**: 23
 

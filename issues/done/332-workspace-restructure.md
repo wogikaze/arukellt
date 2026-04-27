@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 332
+Track: selfhost-retirement
+Depends on: 329
+Orchestration class: implementation-ready
+---
 # Workspace 構造を selfhost primary に備えて再編する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 332
-**Depends on**: 329
-**Track**: selfhost-retirement
 **Blocks v1 exit**: no
 **Priority**: 25
 

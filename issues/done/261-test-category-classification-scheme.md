@@ -1,12 +1,14 @@
-# テストカテゴリ分類スキームの定義
+---
+Status: completed
+Created: 2026-04-19
+ID: 261
+Track: main
+Depends on: none
+Orchestration class: design-ready
+Orchestration upstream: —
+---
 
-**Status**: completed
-**Created**: 2026-04-19
-**ID**: 261
-**Depends on**: none
-**Track**: main
-**Orchestration class**: design-ready
-**Orchestration upstream**: —
+# テストカテゴリ分類スキームの定義
 **Blocks v3**: yes
 
 ## Summary

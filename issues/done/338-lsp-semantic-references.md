@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 338
+Track: lsp-semantic
+Depends on: 333
+Orchestration class: implementation-ready
+---
 # LSP: references を semantic symbol ID ベースに置き換える
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 338
-**Depends on**: 333
-**Track**: lsp-semantic
 **Blocks v1 exit**: no
 **Priority**: 2
 

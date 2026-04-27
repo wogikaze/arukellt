@@ -1,6 +1,10 @@
+---
+Status: done
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 160: セルフホスト必要 stdlib チェックリストの確認
-
-**Status**: done
 **Version**: v5 (selfhost prep)
 **Priority**: P0
 **Track**: main

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 442
+Track: component-model
+Depends on: 299, 300
+Orchestration class: implementation-ready
+---
 # Component Model: WIT / Component 生成を「出力できる」から「相互運用可能」に引き上げる
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 442
-**Depends on**: 299, 300
-**Track**: component-model
 **Blocks v1 exit**: no
 **Priority**: 4
 

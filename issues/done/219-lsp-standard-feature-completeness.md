@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-03-31
+ID: 219
+Track: parallel
+Depends on: none
+Orchestration class: implementation-ready
+---
 # LSP standard feature completeness
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-03-31
-**ID**: 219
-**Depends on**: none
-**Track**: parallel
 **Blocks v1 exit**: yes
 
 ## Summary

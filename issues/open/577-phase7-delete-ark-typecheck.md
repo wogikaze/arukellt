@@ -1,13 +1,15 @@
-# 577 — Phase 7: Delete `crates/ark-typecheck`
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 577
+Track: selfhost-retirement
+Depends on: 564, 576
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #564, #576
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 577
-**Depends on**: 564, 576
-**Track**: selfhost-retirement
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #564, #576
+# 577 — Phase 7: Delete `crates/ark-typecheck`
 **Blocks**: 582
 **Blocks v5**: no
 **Source**: #529 Phase 7 — Rust typechecker crate (replaced by `src/compiler/typechecker.ark`).

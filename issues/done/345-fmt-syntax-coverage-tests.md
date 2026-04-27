@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 345
+Track: formatter
+Depends on: 343
+Orchestration class: implementation-ready
+---
 # Formatter: 現行構文全域のスナップショットテストを追加する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 345
-**Depends on**: 343
-**Track**: formatter
 **Blocks v1 exit**: no
 **Priority**: 14
 

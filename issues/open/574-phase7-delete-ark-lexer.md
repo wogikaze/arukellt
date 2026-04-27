@@ -1,13 +1,15 @@
-# 574 — Phase 7: Delete `crates/ark-lexer`
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 574
+Track: selfhost-retirement
+Depends on: 564
+Orchestration class: implementation-ready
+Orchestration upstream: #564
+---
 
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 574
-**Depends on**: 564
-**Track**: selfhost-retirement
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: #564
+# 574 — Phase 7: Delete `crates/ark-lexer`
 **Blocks**: 582
 **Blocks v5**: no
 **Source**: #529 Phase 7 — Rust lexer crate (replaced by `src/compiler/lexer.ark` already in use by selfhost).

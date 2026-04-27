@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-30
+ID: 248
+Track: docs
+Depends on: none
+Orchestration class: implementation-ready
+---
 # migration guide v3→v4: MIR optimization pipeline completed
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-30
-**ID**: 248
-**Depends on**: none
-**Track**: docs
 **Blocks v1 exit**: no
 
 ## Summary

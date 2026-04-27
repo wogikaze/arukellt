@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 357
+Track: tooling-contract
+Depends on: 354, 355, 356
+Orchestration class: implementation-ready
+---
 # Tooling Contract: release gate を手動チェックリストから自動検証に移行する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 357
-**Depends on**: 354, 355, 356
-**Track**: tooling-contract
 **Blocks v1 exit**: no
 **Priority**: 25
 

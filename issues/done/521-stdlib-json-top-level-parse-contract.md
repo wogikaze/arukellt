@@ -1,8 +1,12 @@
+---
+Status: done
+Created: 2026-04-18
+Updated: 2026-04-18
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib JSON: top-level parse は trailing non-whitespace を拒否する
-
-**Status**: done
-**Created**: 2026-04-18
-**Updated**: 2026-04-18
 **Closed**: 2026-04-18
 **ID**: 521
 **Depends on**: none

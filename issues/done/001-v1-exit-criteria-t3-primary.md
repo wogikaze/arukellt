@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-27
+Updated: 2026-03-30
+ID: 1
+Track: main
+Depends on: none
+Orchestration class: implementation-ready
+---
 # V1 exit criteria: T3 primary path
-
-**Status**: done
-**Created**: 2026-03-27
-**Updated**: 2026-03-30
-**ID**: 001
-**Depends on**: none
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

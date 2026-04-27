@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 302
+Track: docs/ops
+Depends on: 301
+Orchestration class: implementation-ready
+---
 # check-docs-consistency の検証範囲を拡張する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 302
-**Depends on**: 301
-**Track**: docs/ops
 **Blocks v1 exit**: no
 **Priority**: 22
 

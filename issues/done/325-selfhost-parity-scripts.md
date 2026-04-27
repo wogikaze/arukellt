@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 325
+Track: selfhost-verification
+Depends on: 324
+Orchestration class: implementation-ready
+---
 # check-selfhost-parity.sh を作成する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 325
-**Depends on**: 324
-**Track**: selfhost-verification
 **Blocks v1 exit**: no
 **Priority**: 18
 

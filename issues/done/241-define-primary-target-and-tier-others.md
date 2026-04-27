@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-30
+Updated: 2026-04-01
+ID: 241
+Track: main
+Depends on: 221
+Orchestration class: implementation-ready
+---
 # 本線 target を選定し、experimental/blocked target を明示的に区分する
-
-**Status**: done
-**Created**: 2026-03-30
-**Updated**: 2026-04-01
-**ID**: 241
-**Depends on**: 221
-**Track**: main
 **Blocks v1 exit**: yes
 
 ## Summary

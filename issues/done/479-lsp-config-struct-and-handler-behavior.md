@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 479
+Track: vscode-ide
+Depends on: 478
+Orchestration class: implementation-ready
+---
 # LSP server: LspConfig struct と設定反映ハンドラ実装
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 479
-**Depends on**: 478
-**Track**: vscode-ide
 **Blocks v1 exit**: no
 
 ---

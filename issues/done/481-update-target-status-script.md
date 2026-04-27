@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 481
+Track: main
+Depends on: 256, 257
+Orchestration class: implementation-ready
+---
 # scripts/update-target-status.sh: CI 出力から target-contract.md を更新
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 481
-**Depends on**: 256, 257
-**Track**: main
 **Blocks v1 exit**: no
 
 ---

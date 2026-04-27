@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 467
+Track: playground
+Depends on: 466
+Orchestration class: implementation-ready
+---
 # Playground: docs route が real entrypoint に配線される
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 467
-**Depends on**: 466
-**Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 3
 

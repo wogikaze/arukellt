@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 173
+Track: main
+Depends on: 172
+Orchestration class: implementation-ready
+---
 # v5 Parser: expression / declaration parsing
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 173
-**Depends on**: 172
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

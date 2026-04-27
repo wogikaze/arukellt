@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 415
+Track: language-docs
+Depends on: 406, 407
+Orchestration class: implementation-ready
+---
 # Language Docs: spec と guide の drift checker を CI に入れる
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 415
-**Depends on**: 406, 407
-**Track**: language-docs
 **Blocks v1 exit**: no
 **Priority**: 10
 

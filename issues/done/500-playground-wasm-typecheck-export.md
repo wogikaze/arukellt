@@ -1,21 +1,13 @@
-
+---
+Created: 2026-04-14
+Updated: 2026-04-14
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+Source: audit — issues/open/472-playground-type-checker-product-claim.md
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 ## Reopened by audit
-
-- **Date**: 2026-04-21
-- **Reason**: typecheck() implemented in Rust source and wired in worker.ts but wasm never compiled so API not actually exposed
-- **Root cause**: The playground wasm binary (ark-playground-wasm) has never been compiled. crates/ark-playground-wasm/pkg/ does not exist. docs/playground/wasm/ is empty. All playground user-visible functionality depends on this binary.
-- **Evidence**: `find . -name '*.wasm' -path '*playground*'` returns nothing; `ls crates/ark-playground-wasm/pkg/` fails; `ls docs/playground/wasm/` is empty.
-
-# 500 — Playground: Wasm typecheck export
-
-> **Status:** open
-> **Track:** playground
-> **Type:** Implementation
-
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
-**Created:** 2026-04-14
-**Updated:** 2026-04-14
-**Source:** audit — issues/open/472-playground-type-checker-product-claim.md
 
 ## Summary
 

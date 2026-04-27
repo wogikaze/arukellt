@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-30
+ID: 181
+Track: main
+Depends on: 165, 167
+Orchestration class: implementation-ready
+---
 # v5 Bootstrap: phase parity and fixpoint verification
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-30
-**ID**: 181
-**Depends on**: 165, 167
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary

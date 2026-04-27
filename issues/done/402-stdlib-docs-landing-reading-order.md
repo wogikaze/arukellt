@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 402
+Track: stdlib-docs
+Depends on: 396
+Orchestration class: implementation-ready
+---
 # Stdlib Docs: landing page と読む順番を family 単位で再設計する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 402
-**Depends on**: 396
-**Track**: stdlib-docs
 **Blocks v1 exit**: no
 **Priority**: 8
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 461
+Track: docs, ci
+Depends on: none
+Orchestration class: implementation-ready
+---
 # docs 内コード例の自動検証 CI 追加
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 461
-**Depends on**: none
-**Track**: docs, ci
 **Blocks v1 exit**: no
 **Priority**: 2
 

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-29
+ID: 184
+Track: parallel
+Depends on: 189, 190, 191
+Orchestration class: implementation-ready
+---
 # VS Code: `arukellt-all-in-one` 拡張の基盤整備
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-29
-**ID**: 184
-**Depends on**: 189, 190, 191
-**Track**: parallel
 **Blocks v1 exit**: no
 
 **Status note**: Parent issue for extension bootstrap, command/task wiring, and setup/inspection surfaces.

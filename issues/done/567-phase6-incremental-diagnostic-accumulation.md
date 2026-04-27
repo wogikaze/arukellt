@@ -1,13 +1,15 @@
-# 567 — Phase 6/A3: Selfhost resolver / typechecker — incremental diagnostic accumulation
+---
+Status: done
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 567
+Track: selfhost-frontend
+Depends on: 566
+Orchestration class: blocked-by-upstream
+Orchestration upstream: #566
+---
 
-**Status**: done
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 567
-**Depends on**: 566
-**Track**: selfhost-frontend
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #566
+# 567 — Phase 6/A3: Selfhost resolver / typechecker — incremental diagnostic accumulation
 **Blocks**: 568
 **Blocks v5**: no
 **Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration

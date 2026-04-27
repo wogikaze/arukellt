@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-03-31
+ID: 287
+Track: selfhost
+Depends on: 290
+Orchestration class: implementation-ready
+---
 # セルフホスト fixture parity テストを構築する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-03-31
-**ID**: 287
-**Depends on**: 290
-**Track**: selfhost
 **Blocks v1 exit**: no
 **Priority**: 7
 

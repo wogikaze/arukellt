@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 372
+Track: language-docs
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Language Docs: historical / archive 文書の境界を明確化する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 372
-**Depends on**: —
-**Track**: language-docs
 
 ## Acceptance
 

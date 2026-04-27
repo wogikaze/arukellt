@@ -1,13 +1,15 @@
-# T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-15
+ID: 095
+Track: backend-opt
+Depends on: —
+Orchestration class: implementation-ready
+Orchestration upstream: —
+---
 
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-15
-**ID**: 095
-**Depends on**: —
-**Track**: backend-opt
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
+# T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)
 **Blocks v4 exit**: no
 
 ---

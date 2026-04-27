@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-29
+Updated: 2026-03-29
+ID: 187
+Track: parallel
+Depends on: 199, 200, 201
+Orchestration class: implementation-ready
+---
 # Debug UX: source-level debugging と DAP surface
-
-**Status**: done
-**Created**: 2026-03-29
-**Updated**: 2026-03-29
-**ID**: 187
-**Depends on**: 199, 200, 201
-**Track**: parallel
 **Blocks v1 exit**: no
 
 **Status note**: Parent issue for debug metadata, runtime inspection, and advanced debug intelligence.

@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 294
+Track: capability
+Depends on: 291, 292, 293, 307
+Orchestration class: implementation-ready
+---
 # capability surface の公式リストを文書化する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 294
-**Depends on**: 291, 292, 293, 307
-**Track**: capability
 
 ## Acceptance
 

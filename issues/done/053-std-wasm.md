@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-04-14
+ID: 43
+Track: stdlib
+Depends on: 039, 040, 043
+Orchestration class: implementation-ready
+---
 # std::wasm: Wasm バイナリ型・opcode・module builder
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-04-14
-**ID**: 053
-**Depends on**: 039, 040, 043
-**Track**: stdlib
 **Blocks v3 exit**: no (Experimental)
 
 ---

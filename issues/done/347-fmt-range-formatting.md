@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-06-28
+ID: 347
+Track: formatter
+Depends on: 345
+Orchestration class: implementation-ready
+---
 # Formatter: range formatting を実装する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-06-28
-**ID**: 347
-**Depends on**: 345
-**Track**: formatter
 **Blocks v1 exit**: no
 **Priority**: 18
 

@@ -1,11 +1,14 @@
-# import 構文と WIT パッケージ識別子の統一方針決定
+---
+Status: open
+Created: 2026-03-28
+ID: 123
+Track: language-design
+Depends on: none
+Orchestration class: design-ready
+Orchestration upstream: —
+---
 
-**Status**: open
-**Created**: 2026-03-28
-**ID**: 123
-**Track**: language-design
-**Orchestration class**: design-ready
-**Orchestration upstream**: —
+# import 構文と WIT パッケージ識別子の統一方針決定
 **Blocks v4 exit**: yes
 **ADR candidate**: yes
 

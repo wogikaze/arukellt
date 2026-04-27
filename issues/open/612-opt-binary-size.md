@@ -1,9 +1,13 @@
+---
+Status: open
+Created: 2026-04-22
+Updated: 2026-04-22
+ID: 612
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Optimization Uplift: Binary Size Squeeze
-
-**Status**: open
-**Created**: 2026-04-22
-**Updated**: 2026-04-22
-**ID**: 612
 **Parent**: #591
 **Depends on**: 609, 611
 **Track**: compiler / runtime-perf

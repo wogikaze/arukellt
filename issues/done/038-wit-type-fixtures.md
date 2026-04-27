@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 038
+Track: component-model
+Depends on: 028, 029, 030, 031
+Orchestration class: implementation-ready
+---
 # WIT 型マッピング全 16 種の component fixture 整備
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 038
-**Depends on**: 028, 029, 030, 031
-**Track**: component-model
 **Blocks v2 exit**: yes
 
 ## Summary

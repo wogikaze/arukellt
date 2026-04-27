@@ -1,7 +1,11 @@
+---
+Status: done
+Created: 2026-03-31
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # Stdlib: component / WIT helper の実用性を見直す
-
-**Status**: done
-**Created**: 2026-03-31
 **Closed**: 2026-07-28
 **ID**: 391
 

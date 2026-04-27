@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-31
+Updated: 2026-04-01
+ID: 384
+Track: stdlib-api
+Depends on: 383
+Orchestration class: implementation-ready
+---
 # Stdlib: API 追加時の admission gate と family coverage チェックを導入する
-
-**Status**: done
-**Created**: 2026-03-31
-**Updated**: 2026-04-01
-**ID**: 384
-**Depends on**: 383
-**Track**: stdlib-api
 
 ## Acceptance
 

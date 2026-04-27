@@ -1,7 +1,11 @@
+---
+Status: done
+Created: 2026-04-21
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+---
 # 539 — Benchmark: closure map (higher-order functions)
-
-**Status**: done
-**Created**: 2026-04-21
 **Closed**: 2026-04-22
 **ID**: 539
 **Depends on**: 499

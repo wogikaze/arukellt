@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-03-28
+Updated: 2026-03-28
+ID: 53
+Track: wasm-feature
+Depends on: —
+Orchestration class: implementation-ready
+---
 # Wasm Extended Const: 定数式での算術演算
-
-**Status**: done
-**Created**: 2026-03-28
-**Updated**: 2026-03-28
-**ID**: 065
-**Depends on**: —
-**Track**: wasm-feature
 **Blocks v4 exit**: no
 
 **Status note**: Infrastructure added. Extended const used for heap pointer init at opt_level >= 2.

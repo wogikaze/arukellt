@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-02
+Updated: 2026-04-03
+ID: 456
+Track: cli
+Depends on: 455
+Orchestration class: implementation-ready
+---
 # `arukellt doc` サブコマンドの新設
-
-**Status**: done
-**Created**: 2026-04-02
-**Updated**: 2026-04-03
-**ID**: 456
-**Depends on**: 455
-**Track**: cli
 **Blocks v1 exit**: no
 **Priority**: 3
 

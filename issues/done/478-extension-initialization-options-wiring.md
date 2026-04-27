@@ -1,11 +1,13 @@
+---
+Status: done
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 478
+Track: extension
+Depends on: 477
+Orchestration class: implementation-ready
+---
 # Extension: initializationOptions で全 5 設定を LSP サーバーに渡す
-
-**Status**: done
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 478
-**Depends on**: 477
-**Track**: extension
 **Blocks v1 exit**: no
 
 ---

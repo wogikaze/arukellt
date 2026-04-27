@@ -1,10 +1,12 @@
+---
+Status: done
+Updated: 2026-03-30
+ID: 167
+Track: main
+Depends on: 163, 164, 165
+Orchestration class: implementation-ready
+---
 # v5 Debug dump phases for the selfhost compiler
-
-**Status**: done
-**Updated**: 2026-03-30
-**ID**: 167
-**Depends on**: 163, 164, 165
-**Track**: main
 **Blocks v1 exit**: no
 
 ## Summary
