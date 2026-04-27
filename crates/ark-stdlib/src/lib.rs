@@ -523,6 +523,20 @@ returns = "()"
                     "function '{}' in T3-only module '{}' should have t3=true",
                     f.name, module
                 );
+            } else if module == "std::host::fs"
+                && (f.name == "fd_seek" || f.name == "fd_tell" || f.name == "fd_fdstat_errno")
+            {
+                // T1-only experimental functions in std::host::fs
+                assert!(
+                    avail.t1,
+                    "function '{}' in std::host::fs should have t1=true",
+                    f.name
+                );
+                assert!(
+                    !avail.t3,
+                    "function '{}' in std::host::fs should have t3=false (T1-only experimental)",
+                    f.name
+                );
             } else {
                 // All other host modules: must have t3=true (may vary for t1)
                 assert!(
