@@ -3551,6 +3551,9 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let cond = get_unchecked(node.children, 0)
             let cond_idx = lower_expr(ctx, cond)
             let result = ctx_fresh_local(ctx, VT_I32())
+            let get_cond = MirInst_new(MIR_LOCAL_GET())
+            get_cond.arg0 = cond_idx
+            ctx_emit(ctx, get_cond)
             let if_inst = MirInst_new(MIR_IF())
             ctx_emit(ctx, if_inst)
             ctx.nesting_depth = ctx.nesting_depth + 1
@@ -3561,9 +3564,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 if then_vt == VT_I64() || then_vt == VT_F64() {
                     ctx_set_local_vt(ctx, result, then_vt)
                 }
+                let get_then = MirInst_new(MIR_LOCAL_GET())
+                get_then.arg0 = then_result
+                ctx_emit(ctx, get_then)
                 let set_inst = MirInst_new(MIR_LOCAL_SET())
                 set_inst.arg0 = result
-                set_inst.arg1 = then_result
                 ctx_emit(ctx, set_inst)
             }
             let mut else_result = 0 - 1
@@ -3576,9 +3581,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     if else_vt == VT_I64() || else_vt == VT_F64() {
                         ctx_set_local_vt(ctx, result, else_vt)
                     }
+                    let get_else = MirInst_new(MIR_LOCAL_GET())
+                    get_else.arg0 = else_result
+                    ctx_emit(ctx, get_else)
                     let set_inst2 = MirInst_new(MIR_LOCAL_SET())
                     set_inst2.arg0 = result
-                    set_inst2.arg1 = else_result
                     ctx_emit(ctx, set_inst2)
                 }
             }
