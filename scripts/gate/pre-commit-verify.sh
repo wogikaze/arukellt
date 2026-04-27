@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/gate/pre-commit-verify.sh — Pre-commit gate: scripts root check + cargo fmt check + markdownlint (staged files only).
+# scripts/gate/pre-commit-verify.sh — Pre-commit gate: repo structure check + cargo fmt check + markdownlint (staged files only).
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -23,10 +23,10 @@ staged_files() {
 
 # ── 1. scripts root check ────────────────────────────────────────────────────
 banner "scripts root directory check"
-if python3 scripts/check/check-scripts-root.py; then
+if bash scripts/check/check-repo-structure.sh; then
   step "OK"
 else
-  echo "FAIL: scripts/ root directory contains unexpected files. Only manager.py and README.md are allowed." >&2
+  echo "FAIL: repository structure check failed." >&2
   FAIL=1
 fi
 
