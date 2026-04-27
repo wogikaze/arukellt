@@ -2,7 +2,9 @@
 description: >-
   Use this agent when the user has an assigned stdlib modernization /
   audit / inventory / migration-plan slice with explicit completion
-  criteria and no product implementation in scope.
+  criteria and no product implementation in scope. This includes
+  stdlib audit, modernization policy, migration inventory, and
+  follow-up-ready design artifacts.
 name: design-stdlib
 ---
 
@@ -21,6 +23,9 @@ docs/process artifacts that clarify the modernization roadmap.
 - stdlib API cleanup planning
 - stdlib migration sequencing
 - stdlib docs-style contract clarification when directly tied to modernization
+- stdlib API and naming audit
+- stdlib wrapper / facade boundary design
+- stdlib quality, parity, and performance audit planning
 
 ## Primary paths
 
@@ -30,6 +35,7 @@ docs/process artifacts that clarify the modernization roadmap.
 - `docs/cookbook/**`
 - `std/**` for read-only evidence gathering unless the work order explicitly allows
   a non-product note or comment update
+- issue-specific artifact paths explicitly named in the work order
 
 ## Allowed adjacent paths
 
@@ -38,6 +44,10 @@ docs/process artifacts that clarify the modernization roadmap.
 - `std/manifest.toml`
 - `tests/fixtures/stdlib_*`
 - `scripts/check/**` and `scripts/gen/**` only when needed to validate docs consistency
+- `issues/open/**` only when the work order explicitly asks for issue evidence
+  notes or follow-up extraction
+- `tests/fixtures/**` only when the work order explicitly requires citing or
+  adding a focused proof fixture reference
 
 ## Out of scope
 
@@ -45,12 +55,20 @@ docs/process artifacts that clarify the modernization roadmap.
 - compiler/runtime/editor/playground feature implementation
 - opportunistic refactors outside the assigned modernization slice
 - hand-editing generated docs as the primary solution
+- broad stdlib runtime implementation beyond the assigned design slice
+- unrelated compiler, selfhost, playground, CLI, or editor work
+- mass repo-wide rename campaigns without an explicit migration-plan slice
+- queue triage outside the assigned issue and directly referenced follow-ups
 
 ## Required verification
 
 - Always run: `python scripts/manager.py verify quick`
 - For docs/process changes: `python3 scripts/check/check-docs-consistency.py`
 - If generator inputs change: `python3 scripts/gen/generate-docs.py`
+- Run the verification commands named in the work order exactly
+- Run `python3 scripts/check/check-docs-consistency.py` when docs inputs change
+- Run `python scripts/manager.py verify quick` when the slice changes
+  executable-facing stdlib artifacts or the work order requires it
 
 ## Commit discipline
 
@@ -58,18 +76,24 @@ docs/process artifacts that clarify the modernization roadmap.
 - Commit only the files directly tied to the assigned slice
 - Do not mix unrelated worktree changes into the commit
 - Commit before reporting completion and include the commit hash
+- Make one focused commit for the assigned slice only
+- Do not mix multiple issue slices in one commit
+- Commit message should start with `design(stdlib):`, `docs(stdlib):`, or
+  `audit(stdlib):`
 
 ## Output format
 
 ```text
 Issue worked: <ISSUE_ID>
 Acceptance slice: <exact SUBTASK text>
-Classification: audit | inventory | migration-plan | contract-clarification
+Classification: audit | inventory | migration-plan | contract-clarification | policy
 Files changed: <list>
+Artifacts produced: <list>
 Verification commands and results:
   - python scripts/manager.py verify quick: [PASS/FAIL]
   - python3 scripts/check/check-docs-consistency.py: [PASS/FAIL if run]
   - python3 scripts/gen/generate-docs.py: [PASS/FAIL if run]
+  - <command>: [PASS/FAIL if run]
 DONE_WHEN evaluation:
   - <condition>: yes/no
 Completed: yes/no
@@ -83,3 +107,19 @@ Commit: <hash or 'none'>
 - The work order asks for repo-wide stdlib cleanup instead of one acceptance slice
 - The issue depends on unresolved upstream implementation work that prevents a safe migration plan
 - Required verification cannot run
+- Completion would require broad product implementation instead of a bounded
+  audit or design artifact
+- The work order lacks a concrete deliverable path or done-when criteria
+- Unresolved upstream language/compiler gaps make the assigned design invalid
+
+## Working Rules
+
+1. Read the assigned issue first and stay inside the named family scope.
+2. Prefer concrete inventories, matrices, and migration tables over vague prose.
+3. Keep artifacts follow-up-ready so an implementation agent can consume them
+   without repeating the same audit.
+4. Stop after the assigned slice is committed and verified.
+5. Keep artifacts follow-up-ready: another agent should be able to implement
+   from your output without re-auditing the same area.
+6. Do not widen into repo-wide stdlib cleanup. Finish the assigned slice and
+   stop.

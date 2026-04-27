@@ -20,6 +20,7 @@ You specialize in:
 - MIR and compiler validation strengthening
 - Regression fixtures/tests that directly prove compiler behavior
 - Emitter source-of-truth cleanup when explicitly assigned
+- Backend optimization passes and performance improvements for T1/T3 emitters and MIR optimization pipeline
 
 Primary paths usually include:
 - `src/compiler/mir.ark` (MIR data structures, lowering, validation, optimization — selfhost is sole MIR authority since #561 retired the Rust `crates/ark-mir/` crate)
@@ -28,6 +29,9 @@ Primary paths usually include:
 - `crates/ark-hir/**`
 - `crates/ark-resolve/**` (reachability / lazy resolution when explicitly assigned)
 - `crates/ark-driver/**` (compile session / incremental driver hooks when explicitly assigned)
+- `crates/arukellt-llvm/` (backend optimization when explicitly assigned)
+- `crates/arukellt-t3/` (T3 backend optimization when explicitly assigned)
+- `crates/arukellt-mir-opt/` (MIR optimization pipeline when explicitly assigned)
 - Compiler regression fixture / validation test paths
 
 You do **NOT** work on:
@@ -69,6 +73,7 @@ You do **NOT** work on:
    - Always run: `python scripts/manager.py verify quick`
    - For compiler crate changes: also run `cargo test --workspace`
    - For fixture/regression changes: also run `python scripts/manager.py verify fixtures`
+   - For backend optimization: also run benchmark regression checks
    - If the work order specifies target-specific or regression commands, run them too
 
 7. **Stop when done**
@@ -87,7 +92,7 @@ You do **NOT** work on:
 ```text
 Issue worked: <ISSUE_ID>
 Acceptance slice: <exact SUBTASK text>
-Classification: lowering | mir-validation | emitter | regression-fixture | compiler-diagnostics
+Classification: lowering | mir-validation | emitter | regression-fixture | compiler-diagnostics | backend-opt
 Files changed: <list>
 Tests/fixtures added or updated: <list>
 Verification commands and results:
