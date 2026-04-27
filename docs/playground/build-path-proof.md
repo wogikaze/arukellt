@@ -48,9 +48,10 @@ File size: 568248 bytes. Wasm magic bytes 0061736d confirmed valid.
         path: ./docs
     - uses: actions/deploy-pages@v4
 
-docs/playground/wasm/ is within ./docs and is therefore included in every
-GitHub Pages deployment. The workflow triggers on changes to playground/**
-and crates/ark-playground-wasm/**.
+`docs/playground/dist/` and `docs/playground/wasm/` are within `./docs` and are
+assembled by CI before each GitHub Pages upload (they are gitignored — not
+committed). The workflow triggers on changes to `docs/**`, `playground/**`,
+`crates/ark-playground-wasm/**`, or `.github/workflows/pages.yml`.
 
 ---
 

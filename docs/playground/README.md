@@ -10,7 +10,7 @@
 - Current repo proof: `playground/src/**` contains editor / diagnostics / share / examples components.
 - Current repo proof: `docs/playground/index.html` provides a browser entrypoint with parse + diagnostics.
 - Current repo proof: `docs/_sidebar.md` links to the playground page.
-- Current repo proof: `.github/workflows/pages.yml` builds and deploys to GitHub Pages.
+- Current repo proof: `.github/workflows/pages.yml` builds Wasm + playground JS, populates `docs/playground/dist/` and `docs/playground/wasm/`, and deploys to GitHub Pages (those outputs are not committed).
 - Not yet repo-proved: browser type-checking surface (tracked by `issues/open/472`).
 
 ## What is in this directory today?
@@ -18,6 +18,10 @@
 This section documents the browser-side playground work in the repository:
 the Wasm engine, editor/diagnostics/share/example components, design/operations documents,
 and the live browser entrypoint at [`playground/index.html`](index.html).
+
+**Build outputs in this folder:** `dist/` (TypeScript emit) and `wasm/` (wasm-pack glue + `.wasm`)
+are produced by `playground`'s `npm run build:app` after Wasm is built; they are **not** tracked in git.
+`.github/workflows/pages.yml` builds them before uploading `./docs` to GitHub Pages.
 
 ### Current repo-proved surfaces
 

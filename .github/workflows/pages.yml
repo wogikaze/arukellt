@@ -5,6 +5,7 @@ on:
     branches: ["master"]
     paths:
       - "docs/**"
+      - "playground/**"
       - "crates/ark-playground-wasm/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:

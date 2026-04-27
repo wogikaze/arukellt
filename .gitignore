@@ -22,10 +22,9 @@ tests/component-interop/**/*.wasm
 *.wasm
 *.cwasm
 
-# Allow committed playground wasm binary and JS glue in docs/playground/wasm/
-!docs/playground/wasm/*.wasm
-!docs/playground/wasm/*.js
-!docs/playground/wasm/*.d.ts
+# Playground static assets (built in CI for Pages; run `npm run build:app` locally)
+docs/playground/dist/
+docs/playground/wasm/
 
 # Allow the pinned-reference selfhost wasm (ADR-029 / #585). This is the
 # trusted bootstrap base for the four selfhost gates; see bootstrap/PROVENANCE.md.
@@ -65,10 +64,7 @@ docs/spec/spec-*/
 # wasm-pack build output
 crates/ark-playground-wasm/pkg/
 
-# playground build:app generated assets (produced by `npm run build:app` in playground/)
-# docs/playground/dist/ is intentionally NOT ignored — CI builds it before pages upload
-# docs/playground/wasm/ is intentionally NOT ignored — wasm-pack output is committed so
-# the playground binary is available without a build step; CI rebuilds on deploy
+# playground benchmarks output under docs (if generated locally)
 docs/playground/dist/benchmarks/results/
 
 # codex local settings

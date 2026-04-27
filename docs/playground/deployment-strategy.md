@@ -136,7 +136,7 @@ the correct hashed assets.
 
 ## 4. CI/CD Pipeline
 
-> **Current state (2026-04-14, updated for #471):** `.github/workflows/pages.yml` builds the playground TypeScript package and deploys the `./docs/` directory (which includes `docs/playground/dist/` and `docs/playground/wasm/`) to GitHub Pages on push to `master`. It does **not** compile Wasm from Rust source, run size gates, or create PR preview deployments. The target-state build pipeline in §4.1–§4.3 (Rust Wasm build, wasm-opt, size gate, smoke test) has not yet landed.
+> **Current state (2026-04-28):** `.github/workflows/pages.yml` runs `wasm-pack build` for `crates/ark-playground-wasm`, copies the pkg into `docs/playground/wasm/`, runs `npm run build:app` in `playground/` (populates `docs/playground/dist/`), then deploys `./docs` to GitHub Pages on push to `master`. **`dist/` and `wasm/` are CI-built and gitignored** (not stored in the repo). Size gates and Lighthouse run in `.github/workflows/playground-ci.yml`; PR preview deployments remain target-state only.
 >
 > **Available `playground/package.json` scripts:**
 >
@@ -154,12 +154,14 @@ the correct hashed assets.
 > **Current pages.yml steps** (docs + playground deploy):
 > 1. `actions/checkout@v4`
 > 2. `actions/setup-node@v4` (Node.js 20)
-> 3. `npm install && npm run build:app` in `playground/`
-> 4. `actions/configure-pages@v5`
-> 5. `actions/upload-pages-artifact@v3` — uploads `./docs`
-> 6. `actions/deploy-pages@v4`
+> 3. Rust stable + `wasm32-unknown-unknown`, `wasm-pack`, `wasm-pack build` in `crates/ark-playground-wasm`
+> 4. Copy wasm pkg outputs into `docs/playground/wasm/`
+> 5. `npm install && npm run build:app` in `playground/`
+> 6. `actions/configure-pages@v5`
+> 7. `actions/upload-pages-artifact@v3` — uploads `./docs`
+> 8. `actions/deploy-pages@v4`
 >
-> Trigger: `push` to `master` on paths `docs/**` or `.github/workflows/pages.yml`; `workflow_dispatch`.
+> Trigger: `push` to `master` on paths `docs/**`, `playground/**`, `crates/ark-playground-wasm/**`, or `.github/workflows/pages.yml`; `workflow_dispatch`.
 >
 > **Scripts that do NOT exist** (referenced in target-state sections): `npm run dev`, `npm run build:full`.
 
