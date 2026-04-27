@@ -51,9 +51,3 @@ python3 scripts/gen/generate-issue-index.py
 
 - Prefer `ig` for code search
 - Generated docs and manifest-backed stdlib reference pages should be regenerated, not hand-maintained
-
-## Bundled Skill Sources
-
-Task-specialized Arukellt implementation skills are mirrored from `.github/agents/*.agent.md`
-into `codex-skills/`. Copy or symlink the `codex-skills/*` directories into
-`$CODEX_HOME/skills` manually; the previous installer script was removed.

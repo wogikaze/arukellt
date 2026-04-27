@@ -77,11 +77,12 @@ For tracked issue work, that normally means:
 - Prefer `ig` for code search.
 - Generated docs and manifest-backed stdlib reference pages should be regenerated, not hand-maintained.
 
-## Codex Skills
+## Agent Skills
 
-- Repo-local Codex skill sources live under `codex-skills/`.
-- These are mirrored from `.github/agents/*.agent.md` plus shared repo context guidance.
-- The `scripts/util/install-codex-skills.sh` installer was removed; copy or symlink the `codex-skills/*` directories into `$CODEX_HOME/skills` (or `~/.codex/skills`) manually if needed.
+- Repo-local agent skill sources live under `.agents/`.
+- Each skill is organized as a directory containing `SKILL.md` (English) and optionally `SKILL-ja.md` (Japanese).
+- These include implementation specialists (impl-*), design agents (design-*), verification agents (verify-*), and repo context (arukellt-repo-context).
+- Copy or symlink the `.agents/*/SKILL.md` files into your agent skills directory manually if needed.
 
 ## Markdown Navigation
 
