@@ -40,35 +40,35 @@ run = "cargo fmt --all --check"
 description = "Check formatting"
 
 [tasks.verify]
-run = "bash scripts/run/verify-harness.sh"
+run = "python3 scripts/manager.py verify --quick"
 description = "Run fast local verification"
 
 [tasks."verify:quick"]
-run = "bash scripts/run/verify-harness.sh --quick"
+run = "python3 scripts/manager.py verify --quick"
 description = "Run fast local verification (alias)"
 
 [tasks."verify:cargo"]
-run = "bash scripts/run/verify-harness.sh --cargo"
+run = "cargo fmt --all --check && cargo clippy --workspace -- -D warnings && cargo test --workspace"
 description = "Run cargo fmt, clippy, and workspace tests"
 
 [tasks."verify:fixtures"]
-run = "bash scripts/run/verify-harness.sh --fixtures"
+run = "python3 scripts/manager.py verify --fixtures"
 description = "Run manifest-driven fixture harness"
 
 [tasks."verify:baseline"]
-run = "bash scripts/run/verify-harness.sh --baseline"
+run = "python3 scripts/util/collect-baseline.py"
 description = "Collect baseline snapshots"
 
 [tasks."verify:full"]
-run = "bash scripts/run/verify-harness.sh --full"
+run = "python3 scripts/manager.py verify --quick --fixtures --size --wat --docs"
 description = "Run full local verification"
 
 [tasks."verify:ci"]
-run = "bash scripts/run/verify-harness.sh --cargo --size --wat --docs"
+run = "cargo fmt --all --check && cargo clippy --workspace -- -D warnings && cargo test --workspace && python3 scripts/manager.py verify --size --wat --docs"
 description = "Run the explicit heavy verification groups used by CI correctness"
 
 [tasks."verify:pre-commit"]
-run = "bash scripts/run/verify-harness.sh --cargo --docs"
+run = "cargo fmt --all --check && cargo clippy --workspace -- -D warnings && python3 scripts/manager.py verify --docs"
 description = "Run the recommended pre-commit verification groups"
 
 [tasks."hooks:install"]

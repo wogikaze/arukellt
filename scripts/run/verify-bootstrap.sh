@@ -232,14 +232,8 @@ run_stage 0 "Compile selfhost sources (Rust compiler)" stage0
 # ── Fixture parity (optional, after Stage 0) ──────────────────────────────────
 
 if [[ "$FIXTURE_PARITY" = true && -f "$S1_WASM" ]]; then
-    PARITY_SCRIPT="${REPO_ROOT}/scripts/check/check-selfhost-parity.sh"
-    if [[ -x "$PARITY_SCRIPT" ]]; then
-        echo -e "${CYAN}── Fixture Parity ──${NC}"
-        SELFHOST_WASM="$S1_WASM" REPO_ROOT="$REPO_ROOT" bash "$PARITY_SCRIPT" --fixture
-    else
-        echo -e "${YELLOW}SKIP${NC}  check-selfhost-parity.sh not found"
-    fi
-    echo
+    echo -e "${CYAN}── Fixture Parity ──${NC}"
+    ARUKELLT_BIN="$ARUKELLT_BIN" python3 "${REPO_ROOT}/scripts/manager.py" selfhost parity --mode --fixture
 fi
 
 if [[ "$STAGE1_ONLY" = true || "$FIXTURE_PARITY" = true ]]; then

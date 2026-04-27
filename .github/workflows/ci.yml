@@ -426,7 +426,7 @@ jobs:
       - name: Run selfhost fixture parity
         env:
           ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
-        run: bash scripts/check/check-selfhost-parity.sh --fixture 2>&1 | tee parity-results.txt || true
+        run: python3 scripts/manager.py selfhost parity --mode --fixture 2>&1 | tee parity-results.txt || true
 
       # ── Merge-blocking CLI parity gate (#530) ─────────────────────────────
       # Fails the PR if the selfhost compiler's CLI surface diverges from the
