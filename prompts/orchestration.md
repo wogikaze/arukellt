@@ -1,7 +1,6 @@
 # Arukellt — Autonomous orchestration (single source)
 
-This file is the **only** orchestration prompt for this repository.  
-Older copies (`exec.md`, `exec-orchestrator-v3.md`, `multi-agent-worktree.md`) are stubs that point here.
+This file is the **only** orchestration prompt for this repository.
 
 **日本語一行:** 親は実装しない。issue を分類し、**1 worktree = 1 slice** で dispatch し、**機械ゲート**（`check-diff-scope.py` + `scripts/manager.py verify`）を通した証拠だけで close する。
 
