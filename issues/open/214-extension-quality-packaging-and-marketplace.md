@@ -12,12 +12,9 @@ Reason: No icon/banner/screenshots evidence. Marketplace readiness overclaimed.
 Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
 ---
 
-- categories: `Programming Languages`, `Linters`, `Debuggers`, `Testing`
 # Extension quality / packaging / marketplace readiness
 
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Summary
 
@@ -50,7 +47,6 @@ extension integration tests・smoke tests・fixture project 群・packaging chec
 ### Branding / docs
 
 - README に screenshot / gif、セットアップ手順、対応 target 一覧、既知の制約、troubleshooting
-- CHANGELOG.md の初期エントリ
 - sample `tasks.json` / `launch.json` / `ark.toml` の同梱
 
 ### Compatibility

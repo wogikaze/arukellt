@@ -163,7 +163,6 @@ v5 完了時に揃っているべきドキュメントの全リスト:
 | 移行ガイド v4→v5 | `docs/migration/v4-to-v5.md` | v5 |
 | 全 ADR | `docs/adr/ADR-001〜ADR-00X` | 随時 |
 | 現状ドキュメント | `docs/current-state.md` | 各版リリース時更新 |
-| CHANGELOG | `CHANGELOG.md` | v5 (v1〜v5 分まとめて) |
 | セルフホスト stdlib チェックリスト | `docs/process/selfhosting-stdlib-checklist.md` | v3 |
 
 ---

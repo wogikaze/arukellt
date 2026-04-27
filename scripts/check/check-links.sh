@@ -52,7 +52,7 @@ while IFS= read -r f; do
     checked=$((checked + 1))
 done < <(find issues -name '*.md' -type f | sort)
 
-for extra in README.md CHANGELOG.md AGENTS.md; do
+for extra in README.md AGENTS.md; do
     if [ -f "$extra" ]; then
         echo "Checking $extra ..."
         check_file "$extra"

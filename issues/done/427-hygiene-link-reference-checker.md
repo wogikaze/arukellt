@@ -9,8 +9,6 @@ ID: 427
 ---
 
 # Repo Hygiene: broken link / missing file reference checker を追加する
-- [x] 欠損時に具体的な file/path が出る — `BROKEN: file -> ref` format with stderr output
-# Repo Hygiene: broken link / missing file reference checker を追加する
 
 ## Completed
 
@@ -18,3 +16,5 @@ ID: 427
 - [x] docs と issues の少なくとも主要参照を検証する — docs/**/*.md, issues/**/*.md, README.md, CHANGELOG.md, AGENTS.md (582 files)
 - [x] 欠損時に具体的な file/path が出る — `BROKEN: file -> ref` format with stderr output
 - [x] CI または hook で実行される — exit 1 on broken links, integrable into CI/hooks
+
+Updated 2026-04-28: CHANGELOG.md removed (project at v0.1, changelog not needed yet). check-links.sh updated to remove CHANGELOG.md from checked files.

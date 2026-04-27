@@ -1,7 +1,8 @@
-# ADR-016: Breaking Change Process — Three-Piece Set
+# ADR-016: Breaking Change Process — Two-Piece Set
 
-ステータス: **DECIDED** — Breaking Change Process（3要素セット）を採用  
+ステータス: **DECIDED** — Breaking Change Process（2要素セット）を採用  
 **Created**: 2026-04-09  
+**Updated**: 2026-04-28 — CHANGELOG要件を削除（v0.1段階のため不要）
 **Scope**: Language, stdlib, CLI, LSP, extension
 
 ## Context
@@ -31,7 +32,7 @@ The following are **NOT** breaking:
 - Performance changes without observable behavior differences
 - Changes to `experimental` or unimplemented features (see ADR-014)
 
-## The Three-Piece Set Rule
+## The Two-Piece Set Rule
 
 Every breaking change (to a `stable` or `provisional` feature) **must** ship with:
 
@@ -41,19 +42,7 @@ Every breaking change (to a `stable` or `provisional` feature) **must** ship wit
 - Issue title must include `[breaking]`
 - Issue must describe: what breaks, why it's necessary, the migration path
 
-### 2. Changelog Entry
-
-In `CHANGELOG.md` under the appropriate version, a `### Breaking Changes` section:
-
-```markdown
-### Breaking Changes
-
-- `std::text::string::split` now returns `Vec<String>` instead of `Option<Vec<String>>`.
-  Migration: remove the `?` / `unwrap()` call on the result.
-  ([#NNN](issues/open/NNN-...))
-```
-
-### 3. Migration Guide
+### 2. Migration Guide
 
 For breaking changes that affect user code:
 - If a single file change is sufficient: add a `## Migration` section to the issue
@@ -67,18 +56,15 @@ For `stable` features, the minimum deprecation period is **one minor version**:
 1. Version N: feature works, deprecation warning added
 2. Version N+1: feature is removed
 
-For `provisional` features, no deprecation period is required (but a changelog
-entry and migration guide are still required).
+For `provisional` features, no deprecation period is required (but a migration guide is still required).
 
 ## Enforcement
 
-- PR reviewers must reject PRs that introduce breaking changes without the three-piece set
-- `scripts/manager.py` has a `--full` mode check for CHANGELOG entries
+- PR reviewers must reject PRs that introduce breaking changes without the two-piece set
 - The issue template includes a `[breaking]` checkbox
 
 ## References
 
-- `CHANGELOG.md`
 - `docs/release-criteria.md`
 - `docs/adr/ADR-014-stability-labels.md`
 - `issues/done/230-breaking-change-process-three-piece-set.md`

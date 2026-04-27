@@ -210,7 +210,6 @@ v5 完了時に揃っているべきドキュメント:
 | ベンチマーク計画・結果 | `benchmarks/README.md` |
 | 移行ガイド 4 本 | `docs/migration/v{1-4}-to-v{2-5}.md` |
 | 全 ADR | `docs/adr/ADR-001〜ADR-00X` |
-| CHANGELOG | `CHANGELOG.md` |
 
 ---
 
@@ -235,7 +234,6 @@ v5 完了時に揃っているべきドキュメント:
 | ブートストラップ手順 | `docs/compiler/bootstrap.md` | Stage 0→1→2 の実行手順 |
 | v4→v5 移行ガイド | `docs/migration/v4-to-v5.md` | 変更点、セルフホスト移行への注意 |
 | 現状ドキュメント更新 | `docs/current-state.md` | v5 完了状態、fixpoint 達成の記録 |
-| CHANGELOG | `CHANGELOG.md` | v1〜v5 のリリースノート |
 
 ---
 

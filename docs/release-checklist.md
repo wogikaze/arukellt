@@ -49,5 +49,4 @@ Items marked **CI** are automated; items marked **Manual** require human verific
 ## Post-release
 
 - [ ] **Manual** — Release notes written and attached to GitHub release
-- [ ] **Manual** — `CHANGELOG.md` updated in extension
 - [ ] **Manual** — `docs/current-state.md` reflects shipped capabilities

@@ -144,7 +144,6 @@ Every tier change must update **both** the manifest source of truth and the gene
   - `python3 scripts/check/check-docs-consistency.py` must pass
   - `python scripts/manager.py verify quick` must pass
 - [ ] **Update this file** if the module classification table changes
-- [ ] **Record the change in CHANGELOG.md**
 
 ### Deprecation: Any → Deprecated
 
@@ -157,13 +156,12 @@ Every tier change must update **both** the manifest source of truth and the gene
   - Verify `~~strikethrough~~` and `⚠️ Deprecated` badge appear in reference.md
   - Verify the Deprecated APIs summary section lists the function
 - [ ] **Run CI checks** (same as above)
-- [ ] **Record the change in CHANGELOG.md**
 
 ### Demotion: Stable → Experimental (breaking change)
 
 - [ ] **Confirm this is a major version boundary** — demoting a stable API is a breaking change
 - [ ] **Update `std/manifest.toml`** — set `stability = "experimental"`
-- [ ] **Document the reason** in CHANGELOG.md and a brief ADR note
+- [ ] **Document the reason** in a brief ADR note
 - [ ] **Regenerate documentation and run CI checks** (same as above)
 
 ### Pre-commit Verification Summary
