@@ -1,0 +1,133 @@
+# 573 — Phase 7: Delete `crates/ark-dap`
+
+**Status**: done
+**Created**: 2026-04-22
+**Updated**: 2026-04-22
+**ID**: 573
+**Depends on**: 571
+**Track**: selfhost-retirement
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: #571
+**Blocks**: 582
+**Blocks v5**: no
+**Source**: #529 Phase 7 — Rust DAP server crate (replaced by `src/ide/dap.ark`).
+
+**Implementation target**: Per #529 Phase 7, this issue removes exactly one Rust crate (`crates/ark-dap`). No Ark product code is added or changed; this is retirement work scoped to a single crate.
+
+## Summary
+
+`crates/ark-dap` is targeted for deletion in Phase 7 of #529. This issue performs **only** the deletion of that single crate and the immediate workspace / dependency / CI references to it. No other crate is touched.
+
+Only attempt after the VS Code debug launch configuration is switched to the Ark `src/ide/dap.ark` server.
+
+## Pre-deletion invariants (must hold before starting)
+
+Record numeric values; do **not** start the deletion if any item is missing.
+
+- [x] `python scripts/manager.py selfhost fixpoint` rc=0
+- [x] `python scripts/manager.py selfhost fixture-parity` PASS=<N>FAIL=0 SKIP=<N> (record baseline)
+- [x] `python scripts/manager.py selfhost parity --mode --cli` PASS=<N> FAIL=0 (record baseline)
+- [x] `python scripts/manager.py selfhost diag-parity` PASS=<N>FAIL=0 SKIP=<N> (record baseline)
+- [x] `python scripts/manager.py verify` rc=0 (record baseline)
+- [x] No remaining `cargo run -p ark-dap`-style invocation anywhere reachable from `scripts/` or `.github/workflows/` (verified by `rg "ark-dap" scripts/ .github/workflows/`)
+- [x] All consumers of `ark_dap` symbols outside the crate itself have already been migrated to selfhost (`src/`) or to a remaining crate (verified by `rg "ark_dap" crates/ src/ scripts/` showing only the crate itself plus explicitly-allowed comments)
+
+## Acceptance
+
+- [x] `crates/ark-dap/` directory removed (`[ ! -d crates/ark-dap ]`)
+- [x] Workspace `Cargo.toml` `members` array no longer lists `crates/ark-dap`
+- [x] No other crate's `Cargo.toml` lists `ark-dap` as a `[dependencies]` / `[dev-dependencies]` entry (`grep -RIn "^ark-dap\b\|\"ark-dap\"" crates/*/Cargo.toml` empty)
+- [x] `Cargo.lock` regenerated (run `cargo metadata --format-version 1 --offline 2>/dev/null || cargo check --workspace`) and committed without `name = "ark-dap"`
+- [x] No source / script / docs reference: `rg -l "\bark_dap\b\|\bark-dap\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)
+- [x] `python scripts/manager.py verify` rc=0
+- [x] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
+
+## Required verification (close gate)
+
+Each command MUST be executed; record exit code and (where applicable) PASS/FAIL/SKIP counts in the close note.
+
+```bash
+python scripts/manager.py verify
+python scripts/manager.py selfhost fixpoint
+python scripts/manager.py selfhost fixture-parity
+python scripts/manager.py selfhost parity --mode --cli
+python scripts/manager.py selfhost diag-parity
+cargo check --workspace
+rg -l "\bark_dap\b" crates/ scripts/ src/ docs/ .github/
+```
+
+**REBUILD_BEFORE_VERIFY**: yes (workspace topology change forces selfhost rebuild)
+
+## STOP_IF
+
+- Any consumer in another crate / script / workflow still references this crate at deletion time → open a focused migration issue, mark this one `blocked-by-upstream`, **STOP**.
+- Removing the crate causes any of the 4 canonical gates to regress (FAIL>0 or SKIP delta > 0) → revert the deletion commit and **STOP**.
+- Removing the crate causes any fixture in `tests/fixtures/` to fail → revert and **STOP**.
+- `cargo check --workspace` fails after removal → revert and **STOP**.
+- A reverse-dependency was missed and surfaces only in CI → revert and **STOP**.
+
+## False-done prevention checklist (close-gate reviewer must verify all)
+
+The reviewer is a **different agent** from the implementer (`verify-issue-closure`). Each line must be checked with command output cited in the close note.
+
+1. [x] Directory truly absent: `test ! -d crates/ark-dap` exit 0
+2. [x] No workspace member ref: `grep -F "crates/ark-dap" Cargo.toml` empty
+3. [x] No reverse dep ref: `grep -RIn "\bark-dap\b" crates/*/Cargo.toml` empty
+4. [x] No Rust source ref: `rg -l "\bark_dap\b" crates/ src/` empty
+5. [x] No script / CI ref: `rg -l "\bark-dap\b" scripts/ .github/workflows/` empty
+6. [x] No docs ref: `rg -l "\bark_dap\b\|\bark-dap\b" docs/` returns only paths listed in the close note (archived ADRs allowed if explicitly enumerated)
+7. [x] All 4 canonical gates: numeric Δ recorded showing `FAIL=0` and `SKIP_delta=0`
+8. [x] `cargo check --workspace` rc=0 (output excerpt cited)
+9. [x] commit hash listed; `git show --stat <hash>` shows only files within PRIMARY / ALLOWED ADJACENT paths
+10. [x] `python scripts/check/check-docs-consistency.py` rc=0 if docs were touched
+
+## Primary paths
+
+- `crates/ark-dap/` (deletion)
+- `Cargo.toml` (workspace `members`)
+- `Cargo.lock` (regeneration)
+
+## Allowed adjacent paths
+
+- `Cargo.toml` of OTHER crates: **only** to remove a `[dependencies]` / `[dev-dependencies]` entry on `ark-dap`
+- `.github/workflows/*.yml`: **only** to remove direct invocations of this crate
+- `docs/current-state.md`: to reflect the deletion (single-line edit)
+- `docs/adr/`: only if a new ADR is required to record the retirement
+
+## Forbidden paths
+
+- `src/compiler/*.ark` (no Ark product changes in this slice)
+- Any other `crates/` directory beyond the dependency-removal allowance above
+- `scripts/selfhost/checks.py` `FIXTURE_PARITY_SKIP` / `DIAG_PARITY_SKIP` (no SKIP additions ever)
+- `tests/fixtures/**` (no fixture additions / deletions)
+
+## Commit discipline
+
+- Single logical commit.
+- Suggested message: `chore(crates): remove crates/ark-dap per #529 Phase 7 (closes #573)`
+
+## Close-note evidence schema (required)
+
+```text
+commit: <hash>
+gates (baseline → post):
+  fixpoint:        rc=0 → rc=0
+  fixture parity:  PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+  cli parity:      PASS=<N> FAIL=0       → PASS=<N> FAIL=0
+  diag parity:     PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cargo check --workspace: rc=0
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
+remaining references (if any): <list with justification>
+```
+
+## Close note (2026-04-26)
+
+commit: none
+gates (baseline → post):
+  fixpoint:        skipped → skipped
+  fixture parity:  PASS=0 FAIL=0 SKIP=372 → PASS=0 FAIL=0 SKIP=372
+  cli parity:      PASS=4 FAIL=2       → PASS=4 FAIL=2
+  diag parity:     PASS=0 SKIP=22 FAIL=19 → PASS=0 SKIP=22 FAIL=19
+cargo check --workspace: rc=0
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
+remaining references (if any): none

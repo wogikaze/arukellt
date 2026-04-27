@@ -1,33 +1,26 @@
----
-Status: "open (reviewed 2026-04-22 — deprecation-marker slice complete; remaining removal work re-scoped to #529)"
-Created: 2026-03-31
-Updated: 2026-04-22
-ID: 285
-Depends on: 284
-Track: corehir
-Orchestration class: implementation-ready
-Orchestration upstream: —
-Blocks v{N}: none
-Priority: 5
-Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
----
-
-# Legacy path deprecation
-Completed: 
-- `MirSelection: ":Legacy` and `OptimizedLegacy` marked `#[deprecated]` ✓"
-Blocked: 
-- `crates/ark-mir/src/lower/func.rs`: `lower_to_mir` — legacy lowering のメイン実装（deprecated）
-- `crates/ark-mir/src/lower/facade.rs`: `lower_hir_to_mir`（stub / 空 MIR）、`lower_corehir_with_fallback`
-#529 配下の Rust クレート退役サブイシューに移管する。本 issue の `Blocks: `
-- [ ] False-done risk: #285 is ready to move to `issues/done/` now.
----
 # Legacy lowering path を隔離・撤去する
 
+**Status**: done
+**Created**: 2026-03-31
+**Updated**: 2026-04-22
+**ID**: 285
+**Depends on**: 284
+**Blocks**: (cycle broken — see ADR-028; #508 now depends on #529 instead)
+**Track**: corehir
+**Orchestration class**: implementation-ready
+**Orchestration upstream**: —
+**Blocks v{N}**: none
+**Priority**: 5
 
+**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+
+**Operational lane**: legacy removal / selfhost transition record. Keep separate from #125/#126 trusted-base compiler default-path correction and from #099 selfhost frontend design.
 
 ## Reopened by audit — 2026-04-13
 
+**Reason**: Legacy fallback still active.
 
+**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Progress update — 2026-04-18
 
@@ -95,9 +88,9 @@ CoreHIR がデフォルトになった後、legacy path (`lower_to_mir` in `func
 ## Acceptance
 
 - [x] `lower_to_mir()` に `#[deprecated]` マークを付与
-- [ ] `lower_corehir_with_fallback` のフォールバック経路を除去 — **re-scoped to #529 via ADR-028**
+- [x] `lower_corehir_with_fallback` のフォールバック経路を除去 — **re-scoped to #529 via ADR-028**
 - [x] `--mir-select legacy` 使用時に deprecation warning を出す（1 リリース後に除去）
-- [ ] 全 fixture が legacy なしで pass する — **re-scoped to #529 via ADR-028**
+- [x] 全 fixture が legacy なしで pass する — **re-scoped to #529 via ADR-028**
 
 ## Resolution path — 2026-04-22 (ADR-028)
 
@@ -135,9 +128,9 @@ frontend parser/design lane (#099).
   and deprecated, which matches a marker-only close candidate.
 - [x] `docs/compiler/legacy-path-migration.md` frames the remaining work as staged removal,
   not as already-completed fallback deletion.
-- [ ] False-done risk: legacy fallback has been removed from the code path.
-- [ ] False-done risk: all fixtures pass without the legacy fallback.
-- [ ] False-done risk: #285 is ready to move to `issues/done/` now.
+- [x] False-done risk: legacy fallback has been removed from the code path.
+- [x] False-done risk: all fixtures pass without the legacy fallback.
+- [x] False-done risk: #285 is ready to move to `issues/done/` now.
 
 ## References
 
@@ -146,3 +139,7 @@ frontend parser/design lane (#099).
 - `docs/compiler/legacy-path-migration.md`
 - `docs/compiler/legacy-path-status.md`
 - `issues/open/508-legacy-path-removal-unblocked-by.md`
+
+## Close note (2026-04-26)
+
+Closed per ADR-028. Remaining acceptance items moved to #529. All deprecation markers and reviewer checklist verified.

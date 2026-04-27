@@ -49,8 +49,8 @@ Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced 
 
 ## Current Run
 
-- Mode: `compare`
-- Generated at: `2026-04-25T06:09:41+00:00`
+- Mode: `quick`
+- Generated at: `2026-04-26T15:05:09+00:00`
 - Target: `wasm32-wasi-p1`
 - Compiler: `target/release/arukellt`
 

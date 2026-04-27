@@ -1,8 +1,8 @@
 {
   "schema_version": "arukellt-bench-v1",
-  "generated_at": "2026-04-25T06:09:41+00:00",
-  "mode": "compare",
-  "mode_description": "measure current results and compare with baseline",
+  "generated_at": "2026-04-26T15:05:09+00:00",
+  "mode": "quick",
+  "mode_description": "single-sample local smoke benchmark",
   "target": "wasm32-wasi-p1",
   "thresholds": {
     "compile_ms": 20,
@@ -65,14 +65,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/fib.wasm /home/wogikaze/arukellt/benchmarks/legacy/fib.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/fib.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/fib.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {
@@ -124,14 +128,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/binary_tree.wasm /home/wogikaze/arukellt/benchmarks/legacy/binary_tree.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/binary_tree.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/binary_tree.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {
@@ -183,14 +191,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/vec_ops.wasm /home/wogikaze/arukellt/benchmarks/legacy/vec_ops.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/vec_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/vec_ops.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {
@@ -242,14 +254,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/string_concat.wasm /home/wogikaze/arukellt/benchmarks/legacy/string_concat.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/string_concat.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/string_concat.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {
@@ -302,14 +318,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/parse_tree_distance.wasm /home/wogikaze/arukellt/benchmarks/bench_parse_tree_distance.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/parse_tree_distance.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_parse_tree_distance.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {
@@ -362,14 +382,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/enum_dispatch.wasm /home/wogikaze/arukellt/benchmarks/bench_cpu_enum_dispatch.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/enum_dispatch.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {
@@ -422,14 +446,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/struct_graph.wasm /home/wogikaze/arukellt/benchmarks/bench_memory_struct_graph.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/struct_graph.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_memory_struct_graph.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {
@@ -482,14 +510,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/error_chain.wasm /home/wogikaze/arukellt/benchmarks/bench_compute_error_chain.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/error_chain.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {
@@ -542,14 +574,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/closure_map.wasm /home/wogikaze/arukellt/benchmarks/bench_cpu_closure_map.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/closure_map.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_closure_map.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {
@@ -603,14 +639,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/http_parser.wasm /home/wogikaze/arukellt/benchmarks/bench_application_http_parser.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/http_parser.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_http_parser.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {
@@ -664,14 +704,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/log_processor.wasm /home/wogikaze/arukellt/benchmarks/bench_application_log_processor.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/log_processor.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_log_processor.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {
@@ -725,14 +769,18 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-nygg5gon/config_loader.wasm /home/wogikaze/arukellt/benchmarks/bench_application_config_loader.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1c56d96p/config_loader.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_config_loader.ark",
         "stderr_head": [
-          "Error: failed to compile: wasm[0]::function[15]",
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2.wasm`",
           "",
           "Caused by:",
-          "    0: WebAssembly translation error",
-          "    1: Invalid input WebAssembly code at offset 10158: type mismatch: expected i32 but nothing on stack",
-          ""
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x6e060 - <unknown>!<wasm function 1052>",
+          "    1:  0x6f3ae - <unknown>!<wasm function 1063>",
+          "    2: wasm trap: out of bounds memory access",
+          "",
+          "[BUG] internal compiler error: selfhost compiler aborted (exit 134, fatal signal)"
         ]
       },
       "runtime": {

@@ -10,7 +10,6 @@ members = [
     "crates/ark-stdlib",
     "crates/ark-target",
     "crates/ark-manifest",
-    "crates/ark-dap",
     "crates/arukellt",
     "crates/ark-playground-wasm",
 ]
@@ -24,7 +23,6 @@ default-members = [
     "crates/ark-stdlib",
     "crates/ark-target",
     "crates/ark-manifest",
-    "crates/ark-dap",
     "crates/arukellt",
 ]
 
@@ -44,7 +42,6 @@ ark-diagnostics = { path = "crates/ark-diagnostics" }
 ark-target = { path = "crates/ark-target" }
 ark-stdlib = { path = "crates/ark-stdlib" }
 ark-manifest = { path = "crates/ark-manifest" }
-ark-dap = { path = "crates/ark-dap" }
 ark-playground-wasm = { path = "crates/ark-playground-wasm" }
 
 # Shared dependencies
