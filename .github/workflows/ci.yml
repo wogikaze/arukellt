@@ -80,7 +80,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
+
+      - name: Build debug arukellt
+        run: cargo build -p arukellt
+
       - name: Quick harness (manifest + docs hygiene)
+        env:
+          ARUKELLT_BIN: ./target/debug/arukellt
         run: python3 scripts/manager.py verify --quick
 
   # ── Layer 2: Fixture suite — T3 primary (merge gate) ────────────────────
@@ -584,13 +607,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Ensure update-target-status.sh is executable
-        run: chmod +x scripts/update-target-status.sh
+        run: chmod +x scripts/util/update-target-status.sh
 
       - name: Preview proposed changes (dry-run — informational)
-        run: echo '{}' | bash scripts/update-target-status.sh --dry-run
+        run: echo '{}' | bash scripts/util/update-target-status.sh --dry-run
 
       - name: Apply target-status updates
-        run: echo '{}' | bash scripts/update-target-status.sh
+        run: echo '{}' | bash scripts/util/update-target-status.sh
 
       - name: Fail if docs/target-contract.md has uncommitted drift
         run: git diff --exit-code docs/target-contract.md
