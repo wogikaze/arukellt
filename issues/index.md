@@ -9,19 +9,21 @@ This directory tracks work queue and completion status.
 
 ## Issue Format
 
-Each issue is a markdown file with machine-readable header fields plus human-readable sections:
+Each issue is a markdown file with YAML frontmatter plus human-readable sections:
 
 ```markdown
-# [TITLE]
+---
+Status: open | done
+Created: YYYY-MM-DD
+Updated: YYYY-MM-DD
+ID: 001
+Track: <track-value>
+Depends on: none | 001, 002
+Orchestration class: implementation-ready | design-ready | verification-ready | blocked-by-upstream | unsupported-in-this-run
+Orchestration upstream: — | free-form (e.g. `#039`, `external:037`)
+---
 
-**Status**: open | done
-**Created**: YYYY-MM-DD
-**Updated**: YYYY-MM-DD
-**ID**: 001
-**Track**: <track-value>
-**Depends on**: none | 001, 002
-**Orchestration class**: implementation-ready | design-ready | verification-ready | blocked-by-upstream | unsupported-in-this-run
-**Orchestration upstream**: — | free-form (e.g. `#039`, `external:037`)
+# [TITLE]
 
 ## Summary
 Brief description of what needs to be done.
@@ -35,7 +37,7 @@ Brief description of what needs to be done.
 Any context, blockers, or implementation notes.
 ```
 
-The generator reads these exact header fields. `Depends on` must contain comma-separated numeric IDs or `none`.
+The generator reads these exact header fields using the `python-frontmatter` library. `Depends on` must contain comma-separated numeric IDs or `none`.
 
 **Required fields for new issues:**
 - `Track` - Track classification (e.g., `component-model`, `stdlib`, `compiler`, `wasi-feature`, etc.)

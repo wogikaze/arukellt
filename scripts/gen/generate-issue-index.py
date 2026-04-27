@@ -6,6 +6,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from collections import defaultdict, deque
 
+try:
+    import frontmatter
+except ImportError:
+    print("ERROR: frontmatter library not installed. Install with: pip install python-frontmatter")
+    sys.exit(1)
+
 ROOT = Path(__file__).parent.parent.parent
 OPEN_DIR = ROOT / "issues/open"
 BLOCKED_DIR = ROOT / "issues/blocked"
@@ -23,8 +29,6 @@ blocked_files = sorted(blocked_dir.glob('*.md')) if blocked_dir.exists() else []
 issues = {}
 blocked_issues = {}
 reverse = defaultdict(list)
-
-meta_re = re.compile(r"^\*\*(.+?)\*\*: (.*)$")
 
 def normalize_dep_token(token):
     token = token.strip()
@@ -54,23 +58,14 @@ def normalize_deps(raw):
     return deps
 
 def parse_file(path):
-    text = path.read_text()
-    lines = text.splitlines()
+    post = frontmatter.load(path)
+    content = post.content
+    lines = content.splitlines()
     title = lines[0][2:].strip() if lines and lines[0].startswith('# ') else path.stem
-    meta = {}
-    i = 1
-    while i < len(lines):
-        line = lines[i]
-        if line.strip() == '---':
-            break
-        if line.startswith('## '):
-            break
-        m = meta_re.match(line)
-        if m:
-            meta[m.group(1).strip()] = m.group(2).strip()
-        i += 1
-    issue_id = meta.get('ID', path.name.split('-')[0])
-    deps_raw = meta.get('Depends on', 'none')
+    meta = post.metadata
+    
+    issue_id = str(meta.get('ID', path.name.split('-')[0]))
+    deps_raw = str(meta.get('Depends on', 'none'))
     deps = normalize_deps(deps_raw)
     status = meta.get('Status', 'open')
     track = meta.get('Track', 'main')
@@ -113,7 +108,7 @@ for path in blocked_files:
 
 for issue_id, data in issues.items():
     for dep in data['deps']:
-        reverse[dep].append(issue_id)
+        reverse[str(dep)].append(str(issue_id))
 
 # topological order among known deps
 indegree = {iid: 0 for iid in issues}

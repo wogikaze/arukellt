@@ -1,18 +1,17 @@
-# WASI P2: `std::host::sockets` facade と T3 実行検証
-
-**Status**: open
-**Created**: 2026-03-29
-**Updated**: 2026-04-03
-**ID**: 139
-**Depends on**: 074, 137
-**Track**: wasi-feature
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #74
-**Blocks v{N}**: none
-
-**Status note**: BLOCKED — P2-only capability downstream of the #074 WASI P2 native parent gate. T1 では compile-time error が正しい挙動。
-
 ---
+Status: open
+Created: 2026-03-29
+Updated: 2026-04-03
+ID: 139
+Depends on: 074, 137
+Track: wasi-feature
+Orchestration class: blocked-by-upstream
+Orchestration upstream: "#74"
+Blocks v{N}: none
+Status note: "BLOCKED — P2-only capability downstream of the #074 WASI P2 native parent gate. T1 では compile-time error が正しい挙動。"
+---
+
+# WASI P2: `std::host::sockets` facade と T3 実行検証
 
 ## Reopened by audit — 2026-04-03
 

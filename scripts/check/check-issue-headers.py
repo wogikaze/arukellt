@@ -90,7 +90,7 @@ VALID_ORCHESTRATION_CLASSES = {
 }
 
 # Pattern for Depends on field: "none", "—" (em dash), or comma-separated IDs (with optional suffixes like 028b)
-DEPENDS_ON_PATTERN = re.compile(r"^(none|—|(\d{3}[a-z]?(,\s*\d{3}[a-z]?)*)(\s*\(.*\))?)$")
+DEPENDS_ON_PATTERN = re.compile(r"^(none|—|(\d{1,3}[a-z]?(,\s*\d{1,3}[a-z]?)*)(\s*\(.*\))?)$")
 
 errors = []
 warnings = []

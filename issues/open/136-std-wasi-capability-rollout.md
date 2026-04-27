@@ -1,16 +1,16 @@
-# ADR-011 に沿った `std::host` layer の段階的ロールアウト
-
-**Status**: open
-**Created**: 2026-03-29
-**Updated**: 2026-04-03
-**ID**: 136
-**Depends on**: 137, 138, 077, 139
-**Track**: wasi-feature
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #139, #77
-**Blocks v{N}**: none
-
 ---
+Status: open
+Created: 2026-03-29
+Updated: 2026-04-03
+ID: 136
+Depends on: 137, 138, 077, 139
+Track: wasi-feature
+Orchestration class: blocked-by-upstream
+Orchestration upstream: "#139, #77"
+Blocks v{N}: none
+---
+
+# ADR-011 に沿った `std::host` layer の段階的ロールアウト
 
 ## Reopened by audit — 2026-04-03
 

@@ -1,16 +1,16 @@
-# docs: arukellt component サブコマンド CLI リファレンス
-
-**Status**: open
-**Created**: 2026-04-03
-**Updated**: 2026-04-03
-**ID**: 485
-**Depends on**: 475
-**Track**: docs
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #475
-**Blocks v{N}**: none
-
 ---
+Status: open
+Created: 2026-04-03
+Updated: 2026-04-03
+ID: 485
+Depends on: 475
+Track: docs
+Orchestration class: blocked-by-upstream
+Orchestration upstream: "#475"
+Blocks v{N}: none
+---
+
+# docs: arukellt component サブコマンド CLI リファレンス
 
 ## Decomposed from 475
 
