@@ -39,7 +39,7 @@ Validation and linting scripts for code quality, documentation, and consistency.
 |--------|----------|---------|-------|
 | `check-asset-naming.sh` | Shell | Enforce snake_case for test fixtures and benchmarks | `bash scripts/check/check-asset-naming.sh [root]` |
 | `check-diagnostic-codes.sh` | Shell | Verify error codes match between implementation and docs | `bash scripts/check/check-diagnostic-codes.sh` |
-|| `check-root-ark-files.sh` | Shell | Ensure no .ark files exist in repository root | `bash scripts/check/check-root-ark-files.sh [root]` |
+|| `check-root-ark-files.sh` | Shell | Ensure no .ark, .py, .sh files in repository root | `bash scripts/check/check-root-ark-files.sh [root]` |
 | `check-doc-examples.py` | Python | Extract and check all ```ark code blocks in docs | `python3 scripts/check/check-doc-examples.py [docs-dir]` |
 | `check-docs-consistency.py` | Python | Extended docs consistency checker (bootstrap, capability, component state) | `python3 scripts/check/check-docs-consistency.py` |
 | `check-docs-freshness.py` | Python | Check project-state.toml fixture counts and freshness | `python3 scripts/check/check-docs-freshness.py` |

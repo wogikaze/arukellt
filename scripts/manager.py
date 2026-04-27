@@ -187,7 +187,7 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "bash scripts/check/check-asset-naming.sh",
         ),
         (
-            "no .ark files in repository root",
+            "no script files (.ark, .py, .sh) in repository root",
             "bash scripts/check/check-root-ark-files.sh",
         ),
         (

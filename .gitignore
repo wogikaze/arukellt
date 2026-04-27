@@ -33,6 +33,8 @@ tests/component-interop/**/*.wasm
 
 # root-level scratch/temp files
 /*.ark
+/*.py
+/*.sh
 /_test_*.ark
 /archive.zip
 /test_*.wat
