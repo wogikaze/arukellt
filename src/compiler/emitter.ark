@@ -10932,7 +10932,12 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                                                                                                                                         } else {
                                                                                                                                             if inst.op == 54 {
                                                                                                                                                 emit_byte(w, OP_LOOP())
-                                                                                                                                                emit_byte(w, 64)
+                                                                                                                                                // If inst.dest == -1, this is a void loop — no result on stack
+                                                                                                                                                if inst.dest == 0 - 1 {
+                                                                                                                                                    emit_byte(w, 64)  // void block type (empty)
+                                                                                                                                                } else {
+                                                                                                                                                    emit_byte(w, 127)  // i32 block type
+                                                                                                                                                }
                                                                                                                                             } else {
                                                                                                                                                 if inst.op == 55 {
                                                                                                                                                     emit_byte(w, OP_IF())
