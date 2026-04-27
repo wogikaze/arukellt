@@ -75,6 +75,13 @@ List changed files between candidate branch and base.
 Check:
 `changed_files ⊆ PRIMARY_PATHS ∪ ALLOWED_ADJACENT_PATHS`
 
+Prefer the repo helper (from repo root):
+
+```bash
+python3 scripts/util/check-diff-scope.py --base <merge-base> --head <candidate> \
+  --primary ... --allowed ... [--forbidden ...]
+```
+
 If false → REJECT
 
 ### B. Command verification

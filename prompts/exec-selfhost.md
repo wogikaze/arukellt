@@ -1,8 +1,8 @@
 # 親オーケストレータ（exec-selfhost プロンプト v2）
 
-`prompts/exec.md` の selfhost トラック専用派生。汎用版と並存し、selfhost
-領域の slice だけを扱う run で使う。汎用版との差分はすべて本ファイル内に
-明示してあるので、汎用版を読まずに本ファイル単体で運用できる。
+[`orchestration.md`](orchestration.md) の **selfhost トラック専用派生**。汎用の
+分類・wave・worktree・ゲート規律は `orchestration.md` に従う。本ファイルは
+selfhost 領域の slice 選定と追加制約だけを定義する（単体で運用可）。
 
 ## 役割
 

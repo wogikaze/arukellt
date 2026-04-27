@@ -52,6 +52,15 @@ You may modify only:
 
 Everything else is read-only.
 
+Before reporting completion, run (from repo root, adjust paths):
+
+```bash
+python3 scripts/util/check-diff-scope.py --base origin/master --head HEAD \
+  --primary ... --allowed ...
+```
+
+Use `--forbidden ...` for hard bans. Exit 0 required.
+
 ### 2. No cross-layer expansion
 
 Do not cross architectural boundaries.

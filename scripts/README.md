@@ -78,6 +78,8 @@ Utility libraries and helpers.
 
 | Script | Language | Purpose | Usage |
 |--------|----------|---------|-------|
+| `agent-worktree-add.sh` | Shell | Create a sibling git worktree for one agent slice | `bash scripts/util/agent-worktree-add.sh wt/<id> feat/<issue>-<slice> [base]` |
+| `check-diff-scope.py` | Python | Fail if `git diff` touches paths outside `--primary`/`--allowed` (or `--forbidden`) | `python3 scripts/util/check-diff-scope.py --base origin/master --head HEAD --primary path/` |
 | `benchmark_runner.py` | Python | Benchmark runner for performance data collection | Used by `python scripts/manager.py perf gate` and `bash scripts/update-baselines.sh` |
 | `collect-baseline.py` | Python | Collect performance baseline data | `python3 scripts/util/collect-baseline.py` |
 
