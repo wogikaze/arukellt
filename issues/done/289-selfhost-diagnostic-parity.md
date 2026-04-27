@@ -7,11 +7,17 @@ Track: selfhost
 Depends on: 287
 Orchestration class: verification-ready
 Orchestration upstream: —
+Blocks v1 exit: no
+Priority: 9
+Reason: Not strict parity.
+Action: Moved from issues/done/ to issues/open/ by false-done audit.
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
+and `target/debug/arukellt`. Results: 30 fixtures — pass=0, fail=0, skip=30.
+- `docs/compiler/bootstrap.md: "92`: diagnostic parity が終了条件に列挙"
+- [x] 比較契約: "error code / primary span (行番号) / severity の一致を求める。message 文言の完全一致は求めない"
 # セルフホスト diagnostic parity を確認する
-**Blocks v1 exit**: no
-**Priority**: 9
 
 ## Completion — 2026-04-15
 
@@ -23,9 +29,7 @@ stdlib_cli/stdlib_csv/stdlib_hashmap are unrelated to diagnostic parity.
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Not strict parity.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Summary
 

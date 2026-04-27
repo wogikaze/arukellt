@@ -6,10 +6,11 @@ ID: 407
 Track: language-docs
 Depends on: 369
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 2
+# Language Docs: feature maturity matrix の生成元と更新フローを実装する
 ---
 # Language Docs: feature maturity matrix の生成元と更新フローを実装する
-**Blocks v1 exit**: no
-**Priority**: 2
 
 ## Summary
 

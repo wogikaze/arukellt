@@ -1,20 +1,49 @@
 ---
-Status: open
+Status: "closed (#572 Phase 7 of #529)"
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 572
 Track: selfhost-retirement
 Depends on: 569, 570
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #569, #570
+Orchestration upstream: None
 ---
 
 # 572 — Phase 7: Delete `crates/ark-lsp`
-**Blocks**: 582
-**Blocks v5**: no
-**Source**: #529 Phase 7 — Rust LSP server crate (replaced by `src/ide/lsp.ark`).
+Blocks: 582
+Blocks v5: no
+Source: "#529 Phase 7 — Rust LSP server crate (replaced by `src/ide/lsp.ark`)."
+Implementation target: "Per #529 Phase 7, this issue removes exactly one Rust crate (`crates/ark-lsp`). No Ark product code is added or changed; this is retirement work scoped to a single crate."
+- [x] No source / script / docs reference: "`rg -l "\bark_lsp\b\|\bark-lsp\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)"
+- [x] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
+REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
+1. [x] Directory truly absent: `test ! -d crates/ark-lsp` exit 0
+2. [x] No workspace member ref: `grep -F "crates/ark-lsp" Cargo.toml` empty
+3. [x] No reverse dep ref: `grep -RIn "\bark-lsp\b" crates/*/Cargo.toml` empty
+4. [x] No Rust source ref: `rg -l "\bark_lsp\b" crates/ src/` empty
+5. [x] No script / CI ref: `rg -l "\bark-lsp\b" scripts/ .github/workflows/` empty
+6. [x] No docs ref: "`rg -l "\bark_lsp\b\|\bark-lsp\b" docs/` returns only paths listed in the close note (archived ADRs allowed if explicitly enumerated)"
+7. [x] All 4 canonical gates: numeric Δ recorded showing `FAIL=0` and `SKIP_delta=0`
+- `Cargo.toml` of OTHER crates: "only** to remove a `[dependencies]` / `[dev-dependencies]` entry on `ark-lsp`"
+- `docs/current-state.md`: "to reflect the deletion (single-line edit)"
+- `docs/adr/`: only if a new ADR is required to record the retirement
+- Suggested message: "`chore(crates): remove crates/ark-lsp per #529 Phase 7 (closes #572)`"
+commit: <hash>
+fixpoint: rc=0 → rc=0
+fixture parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cli parity: PASS=<N> FAIL=0       → PASS=<N> FAIL=0
+diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cargo check --workspace: rc=0
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
+remaining references (if any): <list with justification>
+Branch: `feat/572-delete-ark-lsp` → ff-merge to `master`
+- `python scripts/manager.py verify quick`: "17 PASS / 4 FAIL / 0 SKIP — **identical** (same 4 pre-existing failures)"
+- Pre-existing FAIL: "`Fixture manifest out of sync with disk`, `issues/done/ has no unchecked checkboxes`, `doc example check (ark blocks in docs/)`, `broken internal links detected`"
+- `cargo check --workspace`: rc=0
+- `rg "ark_lsp|ark-lsp" crates/ src/ scripts/ .github/workflows/ docs/ extensions/`: "enumerated upstream uses (all in: `crates/ark-lsp/**`, `Cargo.toml` workspace `members` + `default-members`, `scripts/check/check-panic-audit.sh`, `scripts/gate_domain/checks.py` (--exclude flags), `.github/workflows/ci.yml` (lsp-e2e job), `.github/agents/impl-{vscode-ide,editor-runtime}.agent.md`, `codex-skills/impl-{vscode-ide,editor-runtime}/SKILL.md`, `extensions/arukellt-all-in-one/{README.md,src/test/extension.test.js,src/test/fixtures/lsp-stub.js}` (comments only), `docs/{compiler/bootstrap.md,compiler/pipeline.md,directory-ownership.md,release-criteria.md,release-checklist.md,contributing.md,module-resolution.md}`, `README.md`, plus historical `docs/adr/ADR-015-no-panic-in-user-paths.md` and `docs/process/roadmap-v5.md` (left intact per #586/#561 precedent)"
+7. ✓ All gates: 17/21 PASS = baseline; FAIL=0 increase, SKIP=0 increase
+# 572 — Phase 7: Delete `crates/ark-lsp`
 
-**Implementation target**: Per #529 Phase 7, this issue removes exactly one Rust crate (`crates/ark-lsp`). No Ark product code is added or changed; this is retirement work scoped to a single crate.
 
 ## Summary
 
@@ -58,7 +87,6 @@ cargo check --workspace
 rg -l "\bark_lsp\b" crates/ scripts/ src/ docs/ .github/
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes (workspace topology change forces selfhost rebuild)
 
 ## STOP_IF
 
@@ -124,8 +152,6 @@ remaining references (if any): <list with justification>
 
 ## Resolution
 
-**Status**: closed (#572 Phase 7 of #529)
-**Branch**: `feat/572-delete-ark-lsp` → ff-merge to `master`
 
 ### Pre-deletion baseline (master @ 723b2e86)
 

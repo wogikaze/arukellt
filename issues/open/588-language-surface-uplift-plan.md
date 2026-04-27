@@ -4,6 +4,31 @@ Track: main
 Orchestration class: implementation-ready
 Depends on: none
 ---
+
+# Language surface uplift plan
+Key property: this is **surface-level sugar over existing `match` + guard behavior**.
+fn magnitude_label(p: Point) -> String
+In other words: the repo already contains the *pieces*; this issue is about making them shape the surface of definitions instead of remaining isolated features.
+### Phase 0: Baseline and syntax contract
+Purpose: Freeze the current gap before implementation.
+Tasks: 
+Exit condition: 
+### Phase 1: Multi-clause function definitions
+Goal: Make the uplift usable and teachable.
+Required work: 
+Semantic requirements: 
+Suggested initial restriction: 
+Verification (mandatory): 
+Phase 1 Exit Condition: 
+### Phase 2: Function-level guards
+Phase 2 Exit Condition: 
+### Phase 3: Real `where` clauses
+Phase 3 Exit Condition: 
+### Phase 4: Expression-level comprehensions
+Phase 4 Exit Condition: 
+### Phase 5: Canonical surface, docs, and migration guidance
+Phase 5 Exit Condition: 
+---
 # Language Surface Uplift Plan (Operational Guide)
 
 ## Summary

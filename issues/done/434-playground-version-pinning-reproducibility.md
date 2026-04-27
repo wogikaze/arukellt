@@ -6,10 +6,11 @@ ID: 434
 Track: playground
 Depends on: 433
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 7
+# Playground: shared link の version pinning と再現性を確保する
 ---
 # Playground: shared link の version pinning と再現性を確保する
-**Blocks v1 exit**: no
-**Priority**: 7
 
 ## Summary
 

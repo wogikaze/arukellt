@@ -5,9 +5,9 @@ ID: 167
 Track: main
 Depends on: 163, 164, 165
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # v5 Debug dump phases for the selfhost compiler
-**Blocks v1 exit**: no
 
 ## Summary
 

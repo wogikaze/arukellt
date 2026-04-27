@@ -6,10 +6,11 @@ ID: 347
 Track: formatter
 Depends on: 345
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 18
+# Formatter: range formatting を実装する
 ---
 # Formatter: range formatting を実装する
-**Blocks v1 exit**: no
-**Priority**: 18
 
 ## Summary
 

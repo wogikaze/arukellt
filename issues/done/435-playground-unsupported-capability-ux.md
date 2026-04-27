@@ -6,10 +6,11 @@ ID: 435
 Track: playground
 Depends on: 428
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 8
+# Playground: unsupported target / host capability を明示する UX を入れる
 ---
 # Playground: unsupported target / host capability を明示する UX を入れる
-**Blocks v1 exit**: no
-**Priority**: 8
 
 ## Summary
 

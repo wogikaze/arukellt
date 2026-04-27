@@ -6,9 +6,12 @@ ID: 248
 Track: docs
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
 # migration guide v3→v4: MIR optimization pipeline completed
-**Blocks v1 exit**: no
+元ドキュメント: `docs/migration/v3-to-v4.md`（issue 化により移動済み）
+# migration guide v3→v4: MIR optimization pipeline completed
 
 ## Summary
 

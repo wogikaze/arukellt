@@ -2,17 +2,19 @@
 Status: done
 Created: 2026-03-31
 Updated: 2026-04-01
-Track: main
+Track: linter
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 349
+Closed: 2026-04-01
+ID: 352
+Blocks v1 exit: no
+Priority: 19
 ---
+
 # Linter: lint 結果を LSP diagnostics / code action として配信する
-**Closed**: 2026-04-01
-**ID**: 352
-**Depends on**: 349
-**Track**: linter
-**Blocks v1 exit**: no
-**Priority**: 19
+- `lint_diagnostics_have_arukellt_lint_source`: W0006/W0007 が arukellt-lint source で発行されることを検証
+- `compiler_diagnostics_have_arukellt_source`: compiler error が arukellt source のままであることを検証
+# Linter: lint 結果を LSP diagnostics / code action として配信する
 
 ## Summary
 

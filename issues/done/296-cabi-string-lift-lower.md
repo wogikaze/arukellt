@@ -2,17 +2,18 @@
 Status: done
 Created: 2026-03-31
 Updated: 2026-03-31
-Track: main
+Track: component-model
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 299
+Closed: 2026-07-28
+ID: 296
+Blocks v1 exit: no
+Priority: 17
 ---
+
+- `ParamAdaptation: ":String` lifts linear memory (ptr, len) → GC `(array (mut i8))`"
+- `ReturnAdaptation: ":String` lowers GC array → linear memory + result ptr"
 # string 型の canonical ABI lift-lower を実装する
-**Closed**: 2026-07-28
-**ID**: 296
-**Depends on**: 299
-**Track**: component-model
-**Blocks v1 exit**: no
-**Priority**: 17
 
 ## Summary
 

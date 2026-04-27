@@ -6,30 +6,72 @@ ID: 448
 Track: runtime
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
+Priority: 4
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: E0500 in codes.rs, t1_import_sockets.diag, T3_ONLY_MODULES in load.rs
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+E0500, // incompatible-target: module requires a different target
+Self: ":E0500 => DiagnosticSpec {"
 ---
+
 # capability / target-gating のエンドツーエンド実装: load.rs TODO 解消・deny flag fixture 化
-**Blocks v1 exit**: yes
-**Priority**: 4
+`crates/ark-resolve/src/load.rs` 行 11 に `TODO(issue-077, issue-139)` として残っているターゲット検証ロジックを実装し、T1 で `std: ":host::http` / `std::host::sockets` を import した際に compile-time diagnostics を出す。加えて `--deny-clock` / `--deny-random` / `--dir` / `--deny-fs` の挙動を compile-time と runtime の両側から fixture で網羅する。docs 内の矛盾（current-state.md と CLI 実装のズレ）も本 issue で解消する。"
+### 矛盾 1: `docs/current-state.md` vs CLI の `--dir` / `--deny-*` 記述
+### 矛盾 2: `capability-surface.md` の http compile-time block 記述
+### 矛盾 3: target-gating の診断コード
+### Step 1: "TargetId を module loader に threading する (`crates/ark-resolve/src/load.rs`)"
+1. `crates/ark-resolve/src/load.rs` の `load_module` 関数（または相当のエントリポイント）のシグネチャに `target: TargetId` パラメータを追加する。
+if target == TargetId: ":Wasm32WasiP1 {"
+if module_name.starts_with("std: ":host::http") ||"
+module_name.starts_with("std: ":host::sockets") {"
+code: "DiagnosticCode::E0500,"
+message: "format!("
+span: import_span,
+severity: "Severity::Error,"
+1. `TargetId` の threading: "`ark-driver::Session` に `target_id: TargetId` フィールドが既に存在するはずなので、`load_module` へ渡すパスを通す。"
+### Step 2: "新 DiagnosticCode `E0500` の追加 (`crates/ark-diagnostics/src/codes.rs`)"
+phase: "resolve",
+id: "E0500",
+### Step 3: deny flag の compile-time 挙動 fixture 化
+| `t1_import_http.ark` | T1 target | `E0500: "std::host::http は T3 専用` |"
+| `t1_import_sockets.ark` | T1 target | `E0500: "std::host::sockets は T3 専用` |"
+### Step 4: deny flag の runtime 挙動 fixture 化
+| `deny_clock_runtime.ark` | `--deny-clock` | `clock: ":monotonic_now()` を使う | runtime error / capability denied |"
+| `deny_random_runtime.ark` | `--deny-random` | `random: ":random_i32()` を使う | runtime error / capability denied |"
+| `dir_grant_read.ark` | `--dir ./testdata` | `fs: ":read_to_string(path)` | `Ok(content)` |"
+| `dir_deny_fs.ark` | `--deny-fs` | `fs: ":read_to_string(path)` | `Err(...)` |"
+| `dir_readonly.ark` | `--dir ./testdata: "ro` | write 試行 | `Err(...)` |"
+注意: `--deny-clock` と `--deny-random` はすでに compile-time scan で弾かれるため、これらが compile 通過した上で runtime まで到達することは現状ない。runtime 側の確認は「compile-time で弾かれることの確認 fixture」として扱う。runtime 到達を確認したい場合は intrinsic を直接呼ぶ lower-level テストが必要。
+### Step 5: `docs/current-state.md` の CLI 記述修正
+2. `--dir` フラグの挙動（パス解決方法、`: "ro`/`:rw` サフィックスの有無）を確認して docs に反映。"
+### Step 6: `docs/capability-surface.md` の CLI Capability Flags セクション修正
+- "Default policy" テーブルの `Filesystem: Deny` 記述について、`--deny-fs` が「明示的に grant された `--dir` も無効化する」ことを補足する。
+- T1 で `std: ":host::http` / `std::host::sockets` を import しているコードは現在 HOST_STUB_BUILTINS（sockets）か実行時 Err（http）で動作していた。本 issue 後は compile-time E0500 で弾かれる。**これは破壊的変化だが意図的な正の変化（誤ったコードをより早期に検出）。"
+- [x] T1 で `std: ":host::sockets` を import すると `E0500` compile-time error が出る"
+1. `t1_import_http.ark`（T1）: E0500 が出ること
+2. `t1_import_sockets.ark`（T1）: E0500 が出ること
+3. `deny_clock_compile.ark`（T1/T3）: compile-time error
+4. `deny_random_compile.ark`（T1/T3）: compile-time error
+5. `deny_clock_transitive.ark`（T1/T3）: transitive scan で compile-time error
+6. `dir_grant_read.ark`（runtime）: ファイル読み込み成功
+7. `dir_deny_fs.ark`（runtime）: 拒否確認
+# capability / target-gating のエンドツーエンド実装: load.rs TODO 解消・deny flag fixture 化
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: E0500 in codes.rs, t1_import_sockets.diag, T3_ONLY_MODULES in load.rs
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/448-capability-target-gating-e2e.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -130,7 +172,6 @@ Self::E0500 => DiagnosticSpec {
 | `dir_deny_fs.ark` | `--deny-fs` | `fs::read_to_string(path)` | `Err(...)` |
 | `dir_readonly.ark` | `--dir ./testdata:ro` | write 試行 | `Err(...)` |
 
-**注意**: `--deny-clock` と `--deny-random` はすでに compile-time scan で弾かれるため、これらが compile 通過した上で runtime まで到達することは現状ない。runtime 側の確認は「compile-time で弾かれることの確認 fixture」として扱う。runtime 到達を確認したい場合は intrinsic を直接呼ぶ lower-level テストが必要。
 
 ### Step 5: `docs/current-state.md` の CLI 記述修正
 

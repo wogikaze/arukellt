@@ -7,22 +7,28 @@ Track: code-structure
 Depends on: —
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v4 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
+| 4024–9137 | `emit_operand` — オペランド (巨大: ~5100行) |
+├── module_builder.rs    # emit_module: "型/インポート/エクスポート/メモリ (~2850行)"
+- Directory `t1/` contains 6 submodules: `mod.rs`, `helpers.rs`, `operands.rs`, `sections.rs`, `stdlib.rs`, `stmts.rs`
+- `cargo build --workspace --exclude ark-llvm --exclude ark-lsp`: PASS
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
 # T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割
-**Blocks v4 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/129-split-t1-emitter.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

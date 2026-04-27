@@ -2,29 +2,43 @@
 Status: open
 Created: 2026-03-28
 Updated: 2026-04-22
-ID: 051
+ID: 41
 Track: stdlib
 Depends on: 039, 040
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #529
+Orchestration upstream: None
+Blocks v3 exit: yes
+Status note: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+BLOCKED: "This issue hit a STOP_IF during Wave 2 dispatch. The `#529` selfhost transition removed the `ark-wasm` emitter which contained WASI `clock_time_get` imports. The new pure-Ark emitter does not yet generate WASI P2 clock imports, blocking actual utilization of `std::time`. Execution is frozen until #529 or downstream emitter roadmap restores WASI import synthesis."
+This slice is limited to the deterministic `std: ":random` surface:"
 ---
 
+# std: ":time + std::random: 時刻・期間・乱数"
+- `std: ":time` / WASI clock / sleep work is intentionally untouched in this slice."
+### std: ":random"
+pub fn duration_ms(start: "i64, end: i64) -> i64"
+pub fn sleep_ms(ms: "i64)  // target-gated: WASI のみ"
+pub fn random_i32_range(min: "i32, max: i32) -> i32"
+pub fn shuffle<T>(v: Vec<T>) -> Vec<T>
+pub fn seed(s: u64)  // seedable RNG for reproducibility
+1. `std/time/time.ark`: WASI `clock_time_get` bridge
+2. `std/random/random.ark`: "xorshift64 PRNG (deterministic, seedable)"
+3. `ark-wasm/src/emit`: "WASI P2 `wasi:clocks/monotonic-clock` import"
+- fixture: `stdlib_time/monotonic.ark`, `stdlib_time/duration.ark`,
 # std::time + std::random: 時刻・期間・乱数
-**Blocks v3 exit**: yes
 
-**Status note**: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/051-std-time-random.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

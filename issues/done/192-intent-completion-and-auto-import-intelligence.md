@@ -6,29 +6,27 @@ ID: 192
 Track: parallel
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: LSP completion with context implemented in server.rs, tracking issues defined
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
 # Intent completion + auto import intelligence
-**Blocks v1 exit**: no
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: LSP completion with context implemented in server.rs, tracking issues defined
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/192-intent-completion-and-auto-import-intelligence.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

@@ -6,9 +6,9 @@ ID: 225
 Track: main
 Depends on: 221, 223
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # リリース可否基準を「何を保証するか」ベースで文書化する
-**Blocks v1 exit**: yes
 
 ## Summary
 

@@ -6,10 +6,15 @@ ID: 308
 Track: selfhost-frontend
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 1
 ---
+
+- `src/compiler/parser.ark` (1411 行): 23 種の式、8 種の文、8 種の宣言を parse
+- [x] `fn foo<T>(x: "T) -> T` が parse される (generic type parameter on fn)"
+- [x] `struct Foo<T> { x: "T }` が parse される (generic type parameter on struct)"
+- [x] `Struct { x: "1, ..base }` が parse される (struct base syntax)"
 # Selfhost parser の構文 surface を拡張する
-**Blocks v1 exit**: no
-**Priority**: 1
 
 ## Summary
 

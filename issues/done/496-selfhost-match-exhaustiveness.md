@@ -3,9 +3,11 @@ Status: done
 Created: 2026-04-14
 Updated: 2026-04-14
 Track: selfhost
-Source: "audit — issues/done/210-selfhost-typechecker-typed-fns.md "Out of scope (deferred)""
+Source: "audit — issues/done/210-selfhost-typechecker-typed-fns.md (Out of scope deferred)"
+Orchestration class: implementation-ready
+Depends on: none
+# 496 — Selfhost typechecker: match exhaustiveness checking
 ---
-
 # 496 — Selfhost typechecker: match exhaustiveness checking
 
 ## Summary

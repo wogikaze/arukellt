@@ -4,10 +4,11 @@ Created: 2026-03-31
 Track: main
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-07-28
+ID: 391
+# Stdlib: component / WIT helper の実用性を見直す
 ---
 # Stdlib: component / WIT helper の実用性を見直す
-**Closed**: 2026-07-28
-**ID**: 391
 
 ## Completed
 

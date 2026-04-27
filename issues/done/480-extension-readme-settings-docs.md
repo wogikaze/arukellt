@@ -6,9 +6,16 @@ ID: 480
 Track: docs
 Depends on: 479
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Upstream: "#479 (LSP 実装) — 完了後に着手"
 ---
+
 # Extension README: 設定一覧テーブル追加
-**Blocks v1 exit**: no
+3. テーブルの各行に: 設定名・型・デフォルト値・説明 の 4 列がある
+- `extensions/arukellt-all-in-one/README.md` updated with a "Extension Settings" section listing all 5 settings (#477/#478/#479): `arukellt.enableCodeLens`, `arukellt.hoverDetailLevel`, `arukellt.diagnostics.reportLevel`, `arukellt.useSelfHostBackend`, `arukellt.check.onSave`
+- Each entry documents: key name, type, default value, and description matching `package.json` declarations exactly
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 passed
+# Extension README: 設定一覧テーブル追加
 
 ---
 

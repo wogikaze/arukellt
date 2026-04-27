@@ -6,9 +6,15 @@ ID: 478
 Track: extension
 Depends on: 477
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Upstream: "#477 (manifest宣言) — 完了後に着手"
+Downstream: "#479 (LSP server LspConfig) — この issue 完了後に着手"
 ---
+
 # Extension: initializationOptions で全 5 設定を LSP サーバーに渡す
-**Blocks v1 exit**: no
+- `extension.js` initializationOptions block (lines 192–200): all 5 keys present
+- `bash scripts/run/verify-harness.sh --quick`: "PASS (19/19 checks)"
+# Extension: initializationOptions で全 5 設定を LSP サーバーに渡す
 
 ---
 

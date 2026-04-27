@@ -1,4 +1,6 @@
 ---
+---
+
 id: 530
 title: Selfhost CLI parity and diagnostic parity CI gates
 status: done
@@ -10,7 +12,13 @@ closed-by: feat/530-ci-parity-gates
 Track: main
 Orchestration class: implementation-ready
 Depends on: none
----
+- issues/done/268-selfhost-parity-ci-verification.md: 2 of 4 checkboxes unchecked
+- .github/workflows/ci.yml: no cli-parity or diagnostic-parity job
+- name: Selfhost diagnostic parity check
+needs: "[..., selfhost-cli-parity, selfhost-diag-parity, ...]"
+- `selfhost-cli-parity`: runs `python3 scripts/manager.py selfhost parity --mode --cli`, no continue-on-error, depends on selfhost-bootstrap
+- `selfhost-diag-parity`: runs `python3 scripts/manager.py selfhost diag-parity`, no continue-on-error, depends on selfhost-bootstrap
+Both jobs are in the final `verify` gate `needs: ` list, making them merge-blocking.
 ## Why this must exist
 
 Issue #268 (selfhost-parity-ci-verification) was closed with 2/4 acceptance criteria unchecked:

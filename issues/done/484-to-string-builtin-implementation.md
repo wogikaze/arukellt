@@ -6,9 +6,17 @@ ID: 484
 Track: compiler
 Depends on: 483
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Upstream: "#483 (ADR Decided) — 完了後に着手"
+Downstream: "#171 (docs + fixture coverage) — この issue 完了後に着手"
 ---
+
+# compiler: "to_string() builtin 実装と stdlib surface 整備"
+- `crates/ark-stdlib/src/lib.rs` line 61: "`name: "to_string".into()` (ManifestFunction registered)"
+- `std/prelude.ark`: `to_string` polymorphic builtin documented in comment block
+- `cargo test -p arukellt --test harness`: 1 passed, 0 failed
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 passed
 # compiler: to_string() builtin 実装と stdlib surface 整備
-**Blocks v1 exit**: no
 
 ---
 

@@ -6,21 +6,24 @@ ID: 147
 Track: benchmark
 Depends on: 149
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
 # ベンチスイート: workload taxonomy と機能マトリクス整備
-**Blocks v1 exit**: no
+- [x] `benchmarks/workload-taxonomy.md` に feature coverage matrix 表がある (STOP_IF: README より taxonomy file を拡張)
+# ベンチスイート: workload taxonomy と機能マトリクス整備
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/147-bench-feature-matrix.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

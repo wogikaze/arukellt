@@ -2,33 +2,64 @@
 Status: open
 Created: 2026-03-28
 Updated: 2026-04-22
-ID: 044
+ID: 36
 Track: stdlib
 Depends on: 039, 041, 312
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #312
+Orchestration upstream: None
+Blocks v3 exit: yes
+Status note: FROZEN — generic `HashMap<K,V>` / `HashSet<T>` depends on #312 generic monomorphization. Do not re-dispatch this lane until #312 is actually complete and accepted.
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Blocked by: "compiler generic monomorphization (#312)"
 ---
 
+# std: ":collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"
+v3 ではジェネリクスを活用して汎用化する。hash 関数は #041 の std: ":core::hash に依存。"
+pub fn with_capacity<K, V>(cap: i32) -> HashMap<K, V>
+pub fn insert<K, V>(m: "HashMap<K, V>, key: K, value: V) -> Option<V>"
+pub fn get<K, V>(m: "HashMap<K, V>, key: K) -> Option<V>"
+pub fn contains_key<K, V>(m: "HashMap<K, V>, key: K) -> bool"
+pub fn remove<K, V>(m: "HashMap<K, V>, key: K) -> Option<V>"
+pub fn len<K, V>(m: HashMap<K, V>) -> i32
+pub fn is_empty<K, V>(m: HashMap<K, V>) -> bool
+pub fn clear<K, V>(m: HashMap<K, V>)
+pub fn keys<K, V>(m: HashMap<K, V>) -> Vec<K>
+pub fn values<K, V>(m: HashMap<K, V>) -> Vec<V>
+pub fn entries<K, V>(m: "HashMap<K, V>) -> Vec<(K, V)>"
+pub fn set_insert<T>(s: "HashSet<T>, value: T) -> bool"
+pub fn set_contains<T>(s: "HashSet<T>, value: T) -> bool"
+pub fn set_remove<T>(s: "HashSet<T>, value: T) -> bool"
+pub fn set_len<T>(s: HashSet<T>) -> i32
+pub fn set_union<T>(a: "HashSet<T>, b: HashSet<T>) -> HashSet<T>"
+pub fn set_intersection<T>(a: "HashSet<T>, b: HashSet<T>) -> HashSet<T>"
+pub fn set_difference<T>(a: "HashSet<T>, b: HashSet<T>) -> HashSet<T>"
+pub fn set_to_vec<T>(s: HashSet<T>) -> Vec<T>
+1. `ark-typecheck`: HashMap/HashSet のジェネリクス登録を一般化
+2. `ark-wasm/src/emit`: HashMap の GC 表現 — linear probing, load factor 0.75
+3. `std/collections/hash_map.ark`: "HashMap 操作関数 (intrinsic + source)"
+4. `std/collections/hash_set.ark`: "HashSet (内部的に HashMap<T, ()> で実装)"
+5. ハッシュ関数の型別ディスパッチ: i32/i64/String/bool/char のハッシュ計算
+- fixture: `stdlib_hashmap/hashmap_string_i32.ark`, `stdlib_hashmap/hashmap_string_string.ark`,
+1. hash collision 対策: linear probing でバケットが満杯時のリサイズを忘れない
+2. GC 表現: HashMap の内部配列は GC array — resize 時に新 array にコピー
+3. equality 比較: ジェネリック K に対する equality は型ごとにモノモーフ化で解決
+- HashMap は std: ":json (055), std::wit (054) 等で多用される"
 # std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>
-**Blocks v3 exit**: yes
 
-**Status note**: FROZEN — generic `HashMap<K,V>` / `HashSet<T>` depends on #312 generic monomorphization. Do not re-dispatch this lane until #312 is actually complete and accepted.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/044-std-collections-hash.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Blocked — 2026-04-04
 
-**Blocked by**: compiler generic monomorphization (#312)
 
 True generic `HashMap<K,V>` and `HashSet<T>` require the compiler to be able to
 monomorphize generic type parameters at call sites.  

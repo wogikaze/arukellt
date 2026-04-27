@@ -7,6 +7,9 @@ Track: language-docs
 Depends on: —
 Orchestration class: implementation-ready
 ---
+
+# Language Docs: historical / archive 文書の境界を明確化する
+- `syntax-v1-preview.md` updated with "Status: Transitional" banner pointing to current-state.md and spec.md
 # Language Docs: historical / archive 文書の境界を明確化する
 
 ## Acceptance

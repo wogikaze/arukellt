@@ -6,10 +6,11 @@ ID: 406
 Track: language-docs
 Depends on: 368
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 1
+# Language Docs: current-first guide の骨格と章立てを作る
 ---
 # Language Docs: current-first guide の骨格と章立てを作る
-**Blocks v1 exit**: no
-**Priority**: 1
 
 ## Summary
 

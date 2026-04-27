@@ -6,10 +6,15 @@ ID: 311
 Track: selfhost-frontend
 Depends on: 308
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 2
 ---
+
+- `src/compiler/typechecker.ark` (324 行): 14 種の型タグ、TypeEnv、unify 骨格
+- 式の型推論なし: `let x = 1 + 2` で `x` の型が決まらない
+- call site の引数型検査なし: "`fn(i32)` に string を渡してもエラーにならない"
+- [x] `let x = 1 + 2` で `x: i32` が推論される
 # Selfhost typechecker に型推論エンジンを構築する
-**Blocks v1 exit**: no
-**Priority**: 2
 
 ## Summary
 

@@ -3,15 +3,18 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 611
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: compiler / runtime-perf
+Orchestration class: blocked-by-upstream
+Depends on: 609
+Parent: None
+In scope: 
+Out of scope: 
+Close when: root contract is documented, dead-elim is re-enabled with fixture, at least
 ---
+
 # Optimization Uplift: T3-Safe Runtime Unlock
-**Parent**: #591
-**Depends on**: 609
-**Track**: compiler / runtime-perf
-**Orchestration class**: blocked-by-upstream
+- Unlock gated T3 passes one-by-one: each unlock requires a dedicated regression fixture
+# Optimization Uplift: T3-Safe Runtime Unlock
 
 ---
 

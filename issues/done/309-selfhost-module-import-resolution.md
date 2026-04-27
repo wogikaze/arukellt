@@ -2,17 +2,24 @@
 Status: done
 Created: 2026-03-31
 Updated: 2026-04-14
-Track: main
+Track: selfhost-frontend
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 308
+Closed: 2026-04-14
+ID: 309
+Blocks v1 exit: no
+Priority: 4
 ---
+
+- `src/compiler/resolver.ark`: "`resolve_program()`, `ModuleDecls` struct, `register_module_export()`, NK_PATH() visibility-aware qualified resolution"
+- `src/compiler/driver.ark`: "`load_imported_modules()`, `load_single_module()`, `LoadState` with circular import detection, `is_stdlib_path()`, `parent_dir()`"
+- Fixtures: `tests/fixtures/selfhost/resolver_import_basic/`, `resolver_circular_import/`, `resolver_stdlib_module/`
+- [x] `use path: ":to::item` が実 module から symbol を import する"
+- [x] qualified name (`module: ":fn()`) が正しく解決される"
+- `tests/fixtures/selfhost/resolver_import_basic/main.ark` passes (output: 42\n42)
+- `tests/fixtures/selfhost/resolver_circular_import/main.ark` passes (diag: circular import detected)
+- `tests/fixtures/selfhost/resolver_stdlib_module/main.ark` passes (output: stdlib module resolved)
 # Selfhost resolver に module/import resolution を実装する
-**Closed**: 2026-04-14
-**ID**: 309
-**Depends on**: 308
-**Track**: selfhost-frontend
-**Blocks v1 exit**: no
-**Priority**: 4
 
 ## Summary
 

@@ -6,30 +6,31 @@ ID: 346
 Track: formatter
 Depends on: 344
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 16
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: "sort_imports() exported at fmt.rs:121, standalone test at 1490"
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
 # Formatter: import sort を formatter から分離する
-**Blocks v1 exit**: no
-**Priority**: 16
+- `crates/ark-parser/src/fmt.rs`: "`format_module()` が import を stdlib / project / alias の順にソートする副作用を持つ"
+# Formatter: import sort を formatter から分離する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: sort_imports() exported at fmt.rs:121, standalone test at 1490
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/346-fmt-import-sort-separation.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

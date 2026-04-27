@@ -6,14 +6,15 @@ ID: 121
 Track: wasi-feature
 Depends on: 510
 Orchestration class: implementation-ready
-Orchestration upstream: #074-parent-gate
+Orchestration upstream: None
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
----
-
+Blocks v4 exit: False
+Status note: Leaf close-gate issue for
+surface used by the P2 native smoke path: strings/lists for stdio and host-call
 # WASI P2: Canonical ABI ハンドリングの堅牢化
-**Blocks v4 exit**: no
+---
+# WASI P2: Canonical ABI ハンドリングの堅牢化
 
-**Status note**: Leaf close-gate issue for #074. Minimum Canonical ABI support required by P2 validate/run must land before #074 closes.
 
 ## Reopened by audit
 

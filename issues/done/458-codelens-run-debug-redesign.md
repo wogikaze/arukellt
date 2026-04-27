@@ -6,30 +6,67 @@ ID: 458
 Track: lsp, extension
 Depends on: 453
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 2
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: "CodeLens commands registered at extension.js:668-711, runMain/debugMain/runTest/debugTest"
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+- `crates/ark-lsp/src/server.rs` line 4681–4725: 現在の CodeLens は `FnDef` ごとに `arukellt.openDocs` + `arukellt.explainCode` を固定で 2 個出す実装。
+- `extensions/arukellt-all-in-one/package.json`: `arukellt.openDocs` / `arukellt.explainCode` コマンドは Command として登録済み。
+### Step 1: "LSP 側の CodeLens ロジックを書き替える (`crates/ark-lsp/src/server.rs`)"
+#### 1.1: test 関数の判定ルール
+1. 関数名が `test_` で始まる（例: `test_add`, `test_empty_list`）
+2. 関数名が `_test` で終わる（例: `add_test`）
+#### 1.2: main 関数の判定ルール
+#### 1.3: CodeLens 生成ロジックの置き換え
+fn build_code_lenses(fn_defs: "&[FnDef]) -> Vec<CodeLens> {"
+let mut lenses = Vec: ":new();"
+command: ""arukellt.debugTest".into(),"
+title: ""⬛ Debug Test".into(),"
+arguments: "Some(vec![serde_json::json!(name)]),"
+data: None,
+// 通常関数: CodeLens なし
+#### 1.4: CodeLens の range を identifier span に変更する
+### Step 2: "拡張側で新コマンドを登録する (`extensions/arukellt-all-in-one/`)"
+#### 2.1: `package.json` に新コマンドを追加する
+{ "command": ""arukellt.debugTest", "title": "Arukellt: Debug Test" }"
+#### 2.2: `extension.js` でコマンドハンドラを実装する
+type: 'arukellt',
+request: 'launch',
+name: "`Debug Test: ${testName}`,"
+program: file,
+vscode.commands.registerCommand('arukellt.runTest', async (testName: string) => {
+vscode.commands.registerCommand('arukellt.debugTest', async (testName: string) => {
+#### 2.3: 既存の `openDocs` / `explainCode` を Command Palette に移す
+#### 2.4: `enableCodeLens` 設定のサポート（Issue 462 との整合）
+### Step 3: `arukellt test --filter` コマンドの確認
+`arukellt.runTest` コマンドが `arukellt test --filter <test_name>` を発行する。これが CLI に存在しない場合（`arukellt test` の filter オプション）は、本 issue のスコープとして `--filter` 引数を `Commands: ":Test` に追加する。"
+現状確認: "`crates/arukellt/src/main.rs` の `Commands::Test` に `--filter` 引数があるか確認し、なければ追加する。"
+- Issue 450（`FnDef.name_span` 追加）: 完了している場合は `name_span` を使う。未完了なら近似で代替。
+- Issue 453（VS Code E2E テスト）: 完了後に CodeLens E2E テストを追加する。
+- Issue 462（設定整理）: `enableCodeLens` 設定読み取り。
+1. LSP プロトコルテスト: "`textDocument/codeLens` で main を含むファイル → 2 lenses (Run Main, Debug)"
+2. LSP プロトコルテスト: test 関数を含むファイル → 2 lenses per test function
+3. LSP プロトコルテスト: 通常関数のみのファイル → 0 lenses
+4. VS Code E2E テスト（Issue 453 フレームワーク使用）: `vscode.executeCodeLensProvider` で titles と commands を assert
 # 拡張機能 CodeLens を Run Main / Debug / Run Test 中心に再設計する
-**Blocks v1 exit**: no
-**Priority**: 2
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: CodeLens commands registered at extension.js:668-711, runMain/debugMain/runTest/debugTest
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/458-codelens-run-debug-redesign.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

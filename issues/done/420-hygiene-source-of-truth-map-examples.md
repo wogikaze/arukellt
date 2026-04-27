@@ -7,6 +7,9 @@ Track: repo-hygiene
 Depends on: —
 Orchestration class: implementation-ready
 ---
+
+# Repo Hygiene: examples / fixtures / samples の source-of-truth map を作る
+- Rule: fixtures are the source, docs/cookbook/playground derive from them
 # Repo Hygiene: examples / fixtures / samples の source-of-truth map を作る
 
 ## Acceptance

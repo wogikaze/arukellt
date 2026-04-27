@@ -6,9 +6,10 @@ ID: 177
 Track: main
 Depends on: 163
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# v5 Resolver: name binding and imports
 ---
 # v5 Resolver: name binding and imports
-**Blocks v1 exit**: no
 
 ## Summary
 

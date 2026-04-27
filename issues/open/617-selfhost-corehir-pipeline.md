@@ -6,11 +6,11 @@ ID: 617
 Track: pipeline-refactor
 Depends on: 529
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #529
+Orchestration upstream: None
+Blocks v4 exit: True
+# Selfhost Compiler: "Implement CoreHIR pipeline (Refactor target)"
 ---
-
 # Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)
-**Blocks v4 exit**: yes
 
 ## Summary
 

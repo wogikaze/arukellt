@@ -6,10 +6,11 @@ ID: 401
 Track: stdlib-docs
 Depends on: 398
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 7
+# Stdlib Docs: examples を compile-check して docs drift を防ぐ
 ---
 # Stdlib Docs: examples を compile-check して docs drift を防ぐ
-**Blocks v1 exit**: no
-**Priority**: 7
 
 ## Summary
 

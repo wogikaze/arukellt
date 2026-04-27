@@ -7,12 +7,19 @@ Track: selfhost-frontend
 Depends on: —
 Orchestration class: investigation-required
 Orchestration upstream: —
+Blocks: 583-followup, future bootstrap rotation
+Blocks v5: "yes (silently — current verification passes only via stale cache)"
+Source: Flagged by `impl-312-slice-d` final report 2026-04-23.
+Bisect candidate range: "every selfhost-frontend commit landed since the last successfully-rebuilt `arukellt-s2.wasm` cache snapshot. Likely candidates:"
+Cold-rebuild verification numbers (post-fix, fresh `.build/selfhost/`): 
 ---
 
 # 587 — Selfhost s2 rebuild regression: type errors on every fixture from current `src/compiler/main.ark`
-**Blocks**: 583-followup, future bootstrap rotation
-**Blocks v5**: yes (silently — current verification passes only via stale cache)
-**Source**: Flagged by `impl-312-slice-d` final report 2026-04-23.
+wasmtime run --dir=/: ":/  /tmp/s2.wasm -- check tests/fixtures/<any>.ark"
+- `MonoInstance` gained `type_args: Vec<TypeInfo>`
+- `TypeCheckResult` gained `mono_call_sites: "Vec<MonoCallSite>` (and a brand-new `MonoCallSite` struct)"
+#   failures: fixture manifest, done/
+# 587 — Selfhost s2 rebuild regression: type errors on every fixture from current `src/compiler/main.ark`
 
 ## Summary
 

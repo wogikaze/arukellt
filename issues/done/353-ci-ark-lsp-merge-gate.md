@@ -6,10 +6,13 @@ ID: 353
 Track: tooling-contract
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 21
 ---
+
 # Tooling Contract: ark-lsp を CI merge gate に含める
-**Blocks v1 exit**: no
-**Priority**: 21
+- `.github/workflows/ci.yml: 57,64` — `--exclude ark-lsp`
+# Tooling Contract: ark-lsp を CI merge gate に含める
 
 ## Summary
 

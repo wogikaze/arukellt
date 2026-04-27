@@ -6,9 +6,11 @@ ID: 237
 Track: main
 Depends on: 236
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
+
+- `arukellt: Select Binary` コマンドによる手動選択 UI
 # バイナリ探索・server.path・起動引数の統合と自動設定を実装する
-**Blocks v1 exit**: yes
 
 ## Summary
 

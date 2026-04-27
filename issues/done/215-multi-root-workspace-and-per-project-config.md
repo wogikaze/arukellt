@@ -6,9 +6,13 @@ ID: 215
 Track: parallel
 Depends on: 202
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
 # VS Code extension: multi-root workspace + per-project configuration UI
-**Blocks v1 exit**: no
+- `ark.toml` 不在: 単一ファイルモード、minimum 設定
+- `ark.toml` あり: package / workspace / tool defaults 読み取り
+# VS Code extension: multi-root workspace + per-project configuration UI
 
 ## Summary
 

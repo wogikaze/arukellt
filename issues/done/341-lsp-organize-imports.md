@@ -6,10 +6,14 @@ ID: 341
 Track: lsp-semantic
 Depends on: 340
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 10
 ---
+
 # LSP: organize imports を formatter 副作用から独立した semantic 操作にする
-**Blocks v1 exit**: no
-**Priority**: 10
+- `crates/ark-lsp/src/server.rs`: "`source.organizeImports` code action が `format_source()` を呼ぶ"
+- 責務が混在: import 操作と formatting が同じ entry point を共有
+# LSP: organize imports を formatter 副作用から独立した semantic 操作にする
 
 ## Summary
 

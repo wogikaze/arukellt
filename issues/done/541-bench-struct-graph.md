@@ -1,21 +1,22 @@
 ---
 Status: done
-Track: main
+Track: benchmark
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-04-22
+Close commit: 80bd25e4
+Created: 2026-04-21
+ID: 541
+Orchestration upstream: —
+Blocks v{N}: none
+Source: docs/benchmarks/feature-matrix.md coverage gap
 ---
+
+# 541 — Benchmark: "struct graph (nested structs / recursive types)"
+- [x] Tags: `allocation-heavy`, `struct-heavy`, `recursion-heavy`, `container`
+- [x] `mise bench: update-baseline` includes the new benchmark
 # 541 — Benchmark: struct graph (nested structs / recursive types)
 
-**Closed**: 2026-04-22
-**Close commit**: 80bd25e4
-**Created**: 2026-04-21
-**ID**: 541
-**Depends on**: none
-**Track**: benchmark
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: docs/benchmarks/feature-matrix.md coverage gap
 
 ## Summary
 

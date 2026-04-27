@@ -2,21 +2,33 @@
 Status: open
 Created: 2026-03-28
 Updated: 2026-04-13
-ID: 036
+ID: 30
 Track: component-model
-Depends on: 033
+Depends on: 27
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #616
+Orchestration upstream: None
 Blocks v{N}: none
+Reason: Tests in tests/component-interop/jco/ use Wasmtime, not Node/JCO. Not actual JavaScript interop.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Implementation: "wasmtime CLI–based component interop smoke test (jco blocked)."
 ---
 
+[jco](https: //github.com/bytecodealliance/jco). Add a Node.js-based smoke test that
+- `calculator.ark` — Arukellt source exporting `pub fn add(a: "i32, b: i32) -> i32`"
+and `pub fn greet(name: String) -> String`
+- When set: runs `tests/component-interop/jco/calculator/run.sh` and reports
+- [x] `docs/process/roadmap-v2.md` watchpoint #5 is satisfied: the `--with-jco` / env var
+7 test cases: "add(3,4), add(0,0), add(-1,1), mul(6,7), mul(0,100), negate(5), negate(-3)"
+`pub fn greet(name: String) -> String` fails at `wasm-tools component new` because
+- ⚠️  `test.mjs` / jco path: BLOCKED — jco does not support Wasm GC. Track jco upstream.
+- ⚠️  `greet(String) -> String`: BLOCKED — canonical ABI string adapters not implemented.
+- ⚠️  `docs/platform/wasm-features.md` jco documentation: "deferred (jco not usable)."
+- jco version pin: "fix the jco version in `run.sh` (`npm exec --package=@bytecodealliance/jco@<version>`)"
 # jco JavaScript interop smoke test
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Tests in tests/component-interop/jco/ use Wasmtime, not Node/JCO. Not actual JavaScript interop.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 
@@ -81,7 +93,6 @@ toolchain (Rust + wasmtime). Separating the issue allows:
 
 ## Resolution
 
-**Implementation**: wasmtime CLI–based component interop smoke test (jco blocked).
 
 ### What was discovered
 

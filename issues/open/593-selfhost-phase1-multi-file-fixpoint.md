@@ -3,16 +3,20 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 593
-Track: main
+Track: selfhost
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: —
+Parent: None
+Blocks: 508, 594
+In scope: 
+Out of scope: 
+# Selfhost Phase 1: Multi-File Fixpoint
+- Two-pass fixpoint: "`sha256(s1) == sha256(s2)` where s1 = compile-of-bootstrap, s2 = compile-of-s1"
+- depends_on_open: none
+- depends_on_done: none
+- blocks: #508, #594
 ---
 # Selfhost Phase 1: Multi-File Fixpoint
-**Parent**: #529
-**Depends on**: —
-**Blocks**: 508, 594
-**Track**: selfhost
-**Orchestration class**: implementation-ready
 
 ---
 

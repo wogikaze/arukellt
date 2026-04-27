@@ -6,9 +6,9 @@ ID: 228
 Track: main
 Depends on: 226
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # stdlib 全公開 API に安定性ラベルと互換ポリシーを付与する
-**Blocks v1 exit**: yes
 
 ## Summary
 

@@ -6,21 +6,22 @@ ID: 102
 Track: compile-speed
 Depends on: 100
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+# コンパイル速度: Lexer / Parser のホットパス最適化
 ---
 # コンパイル速度: Lexer / Parser のホットパス最適化
-**Blocks v4 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/102-compile-lexer-optimization.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

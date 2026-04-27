@@ -6,15 +6,38 @@ ID: 581
 Track: selfhost-retirement
 Depends on: 564, 575, 577
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #564, #575, #577
+Orchestration upstream: None
+Blocks: 582
+Blocks v5: no
+Source: "#529 Phase 7 — Rust target-config crate (replaced by selfhost target handling)."
+Implementation target: "Per #529 Phase 7, this issue removes exactly one Rust crate (`crates/ark-target`). No Ark product code is added or changed; this is retirement work scoped to a single crate."
+REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
 ---
 
 # 581 — Phase 7: Delete `crates/ark-target`
-**Blocks**: 582
-**Blocks v5**: no
-**Source**: #529 Phase 7 — Rust target-config crate (replaced by selfhost target handling).
+- [ ] No source / script / docs reference: "`rg -l "\bark_target\b\|\bark-target\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)"
+- [ ] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
+1. [ ] Directory truly absent: `test ! -d crates/ark-target` exit 0
+2. [ ] No workspace member ref: `grep -F "crates/ark-target" Cargo.toml` empty
+3. [ ] No reverse dep ref: `grep -RIn "\bark-target\b" crates/*/Cargo.toml` empty
+4. [ ] No Rust source ref: `rg -l "\bark_target\b" crates/ src/` empty
+5. [ ] No script / CI ref: `rg -l "\bark-target\b" scripts/ .github/workflows/` empty
+6. [ ] No docs ref: "`rg -l "\bark_target\b\|\bark-target\b" docs/` returns only paths listed in the close note (archived ADRs allowed if explicitly enumerated)"
+7. [ ] All 4 canonical gates: numeric Δ recorded showing `FAIL=0` and `SKIP_delta=0`
+- `Cargo.toml` of OTHER crates: "only** to remove a `[dependencies]` / `[dev-dependencies]` entry on `ark-target`"
+- `docs/current-state.md`: "to reflect the deletion (single-line edit)"
+- `docs/adr/`: only if a new ADR is required to record the retirement
+- Suggested message: "`chore(crates): remove crates/ark-target per #529 Phase 7 (closes #581)`"
+commit: <hash>
+fixpoint: rc=0 → rc=0
+fixture parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cli parity: PASS=<N> FAIL=0       → PASS=<N> FAIL=0
+diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cargo check --workspace: rc=0
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
+remaining references (if any): <list with justification>
+# 581 — Phase 7: Delete `crates/ark-target`
 
-**Implementation target**: Per #529 Phase 7, this issue removes exactly one Rust crate (`crates/ark-target`). No Ark product code is added or changed; this is retirement work scoped to a single crate.
 
 ## Summary
 
@@ -56,7 +79,6 @@ cargo check --workspace
 rg -l "\bark_target\b" crates/ scripts/ src/ docs/ .github/
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes (workspace topology change forces selfhost rebuild)
 
 ## STOP_IF
 

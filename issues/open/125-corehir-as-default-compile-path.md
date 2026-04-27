@@ -6,27 +6,38 @@ ID: 125
 Track: pipeline-refactor
 Depends on: —
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #617
+Orchestration upstream: None
+Blocks v4 exit: yes
+Status note: "BLOCKED — The #529 100% selfhost transition ported the compiler using the `Legacy` pipeline baseline (`Lexer -> ... -> MIR`). The `CoreHIR` architecture (the refactor target) tracked by `#617` does not yet exist natively in the new compiler. This default-path switch is structurally blocked until #617 builds the CoreHIR lowerer."
+Operational lane: trusted-base compiler default-path correction. Keep separate from #285/#508/#529 legacy removal and from #099 selfhost frontend design.
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
 
+`ark-driver/src/session.rs` の `compile()` は現在 `MirSelection: ":Legacy` をデフォルトとして使用している。"
+// session.rs: 410
+pub fn compile(&mut self, path: "&Path, target: TargetId) -> Result<Vec<u8>, String> {"
+self.compile_selected(path, target, MirSelection: ":Legacy)"
+- #125 owns the trusted-base compiler default route: make CoreHIR the default
+- `compile()` は `MirSelection: ":Legacy` でのみ呼ばれる"
+- `compile_selected(..., MirSelection: ":CoreHir)` は存在するが、CLI から呼ばれない"
+1. `compile()` が `MirSelection: ":CoreHir`（または最終的に `OptimizedCoreHir`）をデフォルトで使うこと"
+- `INTERFACE-COREHIR.md`: CoreHIR は "the single source of truth for MIR lowering"
+- `docs/current-state.md`: パイプライン目標 `Check+BuildCoreHIR → LowerToMIR`
+- `crates/ark-driver/src/session.rs: "316-340` (run_frontend — 二重 lower)"
 # `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)
-**Blocks v4 exit**: yes
 
-**Status note**: BLOCKED — The #529 100% selfhost transition ported the compiler using the `Legacy` pipeline baseline (`Lexer -> ... -> MIR`). The `CoreHIR` architecture (the refactor target) tracked by `#617` does not yet exist natively in the new compiler. This default-path switch is structurally blocked until #617 builds the CoreHIR lowerer.
 
-**Operational lane**: trusted-base compiler default-path correction. Keep separate from #285/#508/#529 legacy removal and from #099 selfhost frontend design.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/125-corehir-as-default-compile-path.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

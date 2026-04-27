@@ -6,9 +6,17 @@ ID: 144
 Track: benchmark
 Depends on: 141, 142, 143, 149
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
 # 計測: 入力サイズ sweep とスケーリングカーブ可視化
-**Blocks v1 exit**: no
+- [x] Scaling fixture set defined: at least 3 input sizes applied to at least one benchmark
+- `benchmarks/schema.json`: added `"scaling"` to mode enum
+- `benchmarks/README.md`: added "Scaling Curve Mode" section + scaling class method table
+- `bash scripts/run/verify-harness.sh --quick`: "PASS** (19/19)"
+# 計測: 入力サイズ sweep とスケーリングカーブ可視化
 
 ---
 
@@ -39,13 +47,11 @@ Orchestration class: implementation-ready
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/144-bench-scaling-curves.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

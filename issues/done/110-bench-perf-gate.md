@@ -2,24 +2,39 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-18
-Track: main
+Track: benchmark
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 109
+Closed: 2026-04-18
+ID: 110
+Orchestration upstream: —
+Blocks v4 exit: yes
+Reason (obsolete): Queue audit thought `scripts/update-baselines.sh` was missing.
+Repo truth (2026-04-18): Updater, baselines JSON, `--perf-gate`, and `scripts/check/perf-gate.sh` are present; see audit below. This section is kept for traceability only.
+Acceptance re-checked. CI messaging tightened: "`perf-gate.sh` prints remediation on non-zero exit; verify-harness shows up to 120 lines of perf output on failure (baseline compare was previously easy to miss after `tail -30`)."
+Total checks: 19
+Passed: 19
+Failed: 0
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
 ---
+
 # CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック
-**Closed**: 2026-04-18
-**ID**: 110
-**Depends on**: 109
-**Track**: benchmark
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v4 exit**: yes
+## Historical: reopened by audit — 2026-04-13
+- `scripts/check/perf-gate.sh`: invokes `scripts/util/benchmark_runner.py` with baseline/current paths
+- `scripts/update-baselines.sh`: baseline refresh, supports `--dry-run`
+- `tests/baselines/perf/`: "`baselines.json` (5 benchmarks), `current.json`, `hello-wasm-size.json`"
+- `scripts/run/verify-harness.sh`: `--perf-gate` runs the check above
+[dry-run] Would write: .../docs/process/benchmark-results.md
+(Outcome environment-dependent: on 2026-04-18 audit host, runs alternated between PASS and FAIL on compile/run variance vs frozen baseline; failure path prints thresholds + `update-baselines.sh` hint. Opt-in gate remains appropriate for CI hardware profiles.)
+- CI messaging tightened: perf-gate.sh prints remediation on non-zero exit
+- Thresholds: compile time +20%, runtime +10%, binary size +15%
+# CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック
 
 ## Historical: reopened by audit — 2026-04-13
 
-**Reason (obsolete)**: Queue audit thought `scripts/update-baselines.sh` was missing.
 
-**Repo truth (2026-04-18)**: Updater, baselines JSON, `--perf-gate`, and `scripts/check/perf-gate.sh` are present; see audit below. This section is kept for traceability only.
 
 ## Summary
 

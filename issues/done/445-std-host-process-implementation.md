@@ -6,10 +6,33 @@ ID: 445
 Track: runtime
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
+Priority: 1
 ---
+
+# std: ":host::process: proc_exit を T1/T3 両エミッターに配線し stub を解除する"
+`std: ":host::process::exit(code)` は現状 `exit(0)` が no-op、非ゼロコードは panic という Ark レベルの fallback 実装になっている。`proc_exit` は WASI 仕様上 T1/T3 の双方で定義されているが emitter で wired されていない。本 issue では以下を達成する。"
+### Step 1: "AST/builtin 登録 (`crates/ark-typecheck/src/checker/builtins.rs`)"
+- 両 builtin に `never_returns: true` 相当のフラグが存在する場合は設定する（型チェッカーがフロー解析に使う場合）。
+### Step 2: "Ark stdlib 実装置き換え (`std/host/process.ark`)"
+pub fn exit(code: i32) {
+### Step 3: "T1 emitter 配線 (`crates/ark-wasm/src/emit/t1/mod.rs`)"
+;; __intrinsic_process_exit(code: i32)
+### Step 4: "T3 emitter 配線 (`crates/ark-wasm/src/emit/t3/mod.rs`)"
+- WASI Preview 2 の `proc_exit` import path は `wasi: "cli/exit@0.2.0` の `exit` 関数（`(func (param i32))`）。"
+(import "wasi: "cli/exit@0.2.0" "exit" (func $proc_exit (param i32)))"
+### Step 5: "MIR ビルトイン展開 (`crates/ark-mir/src/` または emitter の lowering 層)"
+- MIR レベルで `Builtin: ":ProcessExit` / `Builtin::ProcessAbort` に対応する variant を追加し、emitter がそれを受け取って Step 3/4 の命令列を生成できるようにする。"
+- 既存の `Builtin: ":ClockNow` 等の降下パターンに倣う。"
+### Step 6: "HOST_STUB_BUILTINS 確認 (`crates/arukellt/src/commands.rs`)"
+- `process: ":exit` / `process::abort` の Status を `stub` → `available` に変更。"
+### Step 7: fixture テスト追加
+### Step 8: docs 更新
+- Known Limitations の項目 1 "std: ":host::process::exit is a stub." を削除。"
+- `std: ":process::Command` のような子プロセス起動 API"
+- [x] `docs/capability-surface.md` の `process: ":exit` / `abort` が `stub → available` になっている"
+- T3 の `proc_exit` import path は WASI P2 コンポーネントモデルの世界名 `wasi: "cli/exit@0.2.0` を使う。これは `wasi:cli/command` world に含まれる。wit ファイルや WIT generation を経由する場合は WIT 定義も確認すること。"
 # std::host::process: proc_exit を T1/T3 両エミッターに配線し stub を解除する
-**Blocks v1 exit**: yes
-**Priority**: 1
 
 ## Summary
 

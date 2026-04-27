@@ -6,9 +6,10 @@ ID: 232
 Track: main
 Depends on: 231
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
+Closed 2026-04-09. docs/ark-toml.md updated with single-file vs project mode section. CLI correctly implements both modes: "arukellt compile/run (single-file) and arukellt build (project). LSP falls back to single-file if no ark.toml found."
 ---
 # 単一ファイルモードと project モードの挙動差を明確化・ドキュメント化する
-**Blocks v1 exit**: yes
 
 ## Summary
 

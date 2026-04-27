@@ -6,10 +6,11 @@ ID: 396
 Track: stdlib-docs
 Depends on: 363
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 2
+# Stdlib Docs: family overview ページを実装し learning path を作る
 ---
 # Stdlib Docs: family overview ページを実装し learning path を作る
-**Blocks v1 exit**: no
-**Priority**: 2
 
 ## Summary
 

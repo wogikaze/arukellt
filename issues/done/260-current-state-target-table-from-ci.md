@@ -6,9 +6,14 @@ ID: 260
 Track: main
 Depends on: 256, 257
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
+#260 の acceptance を絞り込む: "acceptance 1 (スクリプト実装) は #481 担当に変更。"
+Reason: False-done. All 4 acceptance criteria reference implementations that do not exist in the repo.
+Completion Note analysis: "The completion note claims "generate-docs.py renders it" and "CI determinism layer verifies SHA256 match" but:"
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 # current-state.md の target 表を CI 結果からのみ更新する仕組みを作る
-**Blocks v1 exit**: no
 
 ## Decomposition note — 2026-04-03
 
@@ -19,7 +24,6 @@ Orchestration class: implementation-ready
 | script implementation | #481 | `scripts/update-target-status.sh` 実装 |
 | CI drift-check wiring | **#260 (this issue)** | CI ジョブ追加 + drift check |
 
-**#260 の acceptance を絞り込む**: acceptance 1 (スクリプト実装) は #481 担当に変更。
 この issue (#260) の close 条件は CI ジョブ追加 + drift-check のみとする。
 **Depends on #481** (スクリプトが存在することを前提とする)。
 
@@ -27,7 +31,6 @@ Orchestration class: implementation-ready
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: False-done. All 4 acceptance criteria reference implementations that do not exist in the repo.
 
 **Violated acceptance**:
 - `scripts/update-target-status.sh` (または同等のスクリプト) — file does not exist anywhere under `scripts/`
@@ -35,7 +38,6 @@ Orchestration class: implementation-ready
 - Manual edits to target-contract.md trigger CI warning — no drift check found in CI
 - CI job "target-contract drift check" added — not present in ci.yml
 
-**Completion Note analysis**: The completion note claims "generate-docs.py renders it" and "CI determinism layer verifies SHA256 match" but:
 - `scripts/gen/generate-docs.py` has no reference to `target-contract.md`
 - CI determinism layer checks WASM outputs (not docs)
 - No equivalent mechanism found anywhere in repo
@@ -46,7 +48,6 @@ Orchestration class: implementation-ready
 - `.github/workflows/ci.yml` — no `target-contract` drift check job found
 - `scripts/gen/generate-docs.py` — no `target-contract.md` rendering found
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

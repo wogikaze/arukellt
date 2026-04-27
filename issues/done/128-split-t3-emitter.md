@@ -6,21 +6,26 @@ ID: 128
 Track: code-structure
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+| 662–1597 | `impl Ctx: ":emit_module` — module 構造体 (type sec, import sec, export sec) |"
+2. 各ファイルの `impl Ctx` ブロックは `use super: ":*;` もしくは `ctx.rs` 経由で `&mut self` アクセス可"
+- Rust では同一 crate 内なら複数ファイルに `impl Ctx` を分散させられる (ファイルを `mod` として公開し、`use super: ":Ctx;` する)"
+- `docs/current-state.md` (T3 backend: "fully operational, 415 fixtures pass")
 # T3 GC エミッター (t3_wasm_gc.rs 8678行) をサブモジュールに分割
-**Blocks v4 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/128-split-t3-emitter.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

@@ -6,9 +6,10 @@ ID: 227
 Track: main
 Depends on: 226
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
+Closed 2026-04-09. docs/language/spec.md (1330 lines) covers: "(1) full syntax in BNF/sections 1-7 with operator precedence table; (2) type system §2 with inference, coercion, generics; (3) imports §7 with resolution rules; (4) visibility §7.3 (pub/priv/module boundary); (5) error model in §10 error codes + Result/panic in §9. All stability-labeled per ADR-014."
 ---
 # 構文・型システム・import・visibility・error model の契約を文書化する
-**Blocks v1 exit**: yes
 
 ## Summary
 

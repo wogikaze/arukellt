@@ -6,9 +6,10 @@ ID: 182
 Track: main
 Depends on: 181
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# v5 Bootstrap: harness and CI integration
 ---
 # v5 Bootstrap: harness and CI integration
-**Blocks v1 exit**: no
 
 ## Summary
 

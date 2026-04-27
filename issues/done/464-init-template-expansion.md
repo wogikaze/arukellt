@@ -6,36 +6,67 @@ ID: 464
 Track: cli, dx
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 3
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Evidence: InitTemplate enum with Minimal/Cli/WithTests/WasiHost in main.rs, cmd_init in commands.rs
+Initialized Arukellt project in my-project (template: with-tests)
 ---
+
+- `src/main.ark` に `use std: ":host::stdio\nfn main() { stdio::println("Hello, Arukellt!") }` を生成する"
+### Step 1: "`Commands::Init` に `--template` オプションを追加する (`crates/arukellt/src/main.rs`)"
+path: PathBuf,
+template: InitTemplate,
+#[derive(Debug, Clone, clap: ":ValueEnum)]"
+### Step 2: "テンプレート定義を `cmd_init()` に追加する (`crates/arukellt/src/commands.rs`)"
+#### テンプレート 1: "`minimal` (既存の動作を維持)"
+use std: ":process::Command;"
+stdio: ":println("Done. Uncomment the HTTP call in src/main.ark to try it.")"
+#### テンプレート 2: `cli`
+fn greet(name: String) -> String {
+// TODO: "Use std::env::args() when available for real CLI arg parsing"
+process: ":exit(0)"
+#### テンプレート 3: `with-tests`
+pub fn add(a: "i32, b: i32) -> i32 {"
+pub fn subtract(a: "i32, b: i32) -> i32 {"
+use crate: ":lib"
+let result = lib: ":add(1, 2)"
+#### テンプレート 4: `wasi-host`
+// Build with: arukellt run --target wasm32-wasi-p2 src/main.ark
+// Note: Uncomment to actually make a network request
+// match http: ":get("https://example.com") {"
+//     Ok(body) => stdio: ":println("Got " + body)"
+//     Err(e) => stdio: ":eprintln("Error: " + e)"
+### Step 3: 生成後メッセージの改善
+### Step 4: `arukellt init --list-templates` を追加する
+### Step 5: テンプレートが `check / run / test` を通ることをテストで確認する
+use tempfile: ":TempDir;"
+fn run_init(dir: "&TempDir, template: &str) {"
+let status = Command: ":new(arukellt_bin())"
+let dir = TempDir: ":new().unwrap();"
+### Step 6: 拡張機能での動作確認
+- Issue 458（CodeLens）: `with-tests` テンプレートの test 関数に CodeLens が出るかの確認で連動
 # `arukellt init` のテンプレート拡充と新規ユーザー導線整備
-**Blocks v1 exit**: no
-**Priority**: 3
 
 ---
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: --list-templates missing from CLI.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: InitTemplate enum with Minimal/Cli/WithTests/WasiHost in main.rs, cmd_init in commands.rs
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/464-init-template-expansion.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

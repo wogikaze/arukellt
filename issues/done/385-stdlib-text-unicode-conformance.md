@@ -6,10 +6,15 @@ ID: 385
 Track: stdlib-api
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 3
 ---
+
 # Stdlib: text モジュールの Unicode / UTF-8 契約を fixture で固定する
-**Blocks v1 exit**: no
-**Priority**: 3
+- `tests/fixtures/stdlib_text/utf8_byte_semantics.ark`: "len()=bytes, slice byte indices, len_bytes, is_empty"
+- `tests/fixtures/stdlib_text/string_search.ark`: contains, index_of, starts_with, ends_with edge cases
+- `tests/fixtures/stdlib_text/case_conversion.ark`: to_lower/to_upper with empty, digits, spaces
+# Stdlib: text モジュールの Unicode / UTF-8 契約を fixture で固定する
 
 ## Summary
 

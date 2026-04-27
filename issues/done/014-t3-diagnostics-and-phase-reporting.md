@@ -6,9 +6,9 @@ ID: 12
 Track: parallel
 Depends on: 004, 005, 006, 007, 008, 009, 010
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # T3 diagnostics and phase reporting
-**Blocks v1 exit**: no
 
 ## Summary
 

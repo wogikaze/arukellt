@@ -3,9 +3,17 @@ Status: done
 Created: 2026-04-14
 Updated: 2026-04-14
 Track: selfhost
-Source: "audit — issues/done/211-selfhost-mir-lower-fn-bodies.md "Out of scope (deferred)""
+Source: "audit — issues/done/211-selfhost-mir-lower-fn-bodies.md (Out of scope deferred)"
 ---
 
+# 493 — Selfhost MIR lowering: "control-flow coverage (match/loop/closure)"
+`lower_stmt`. Fixed pre-existing bug: `loop { break val }` used `int_val` instead
+Files changed: 
+- `src/compiler/mir.ark`: "add `NK_CLOSURE()` constant, fix `loop { break val }`"
+- `tests/fixtures/manifest.txt`: register both fixtures
+Verification: `bash scripts/run/verify-harness.sh --quick` → 19/19 PASS
+Orchestration class: implementation-ready
+Depends on: none
 # 493 — Selfhost MIR lowering: control-flow coverage (match/loop/closure)
 
 ## Summary

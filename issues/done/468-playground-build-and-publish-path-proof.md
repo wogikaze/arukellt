@@ -7,12 +7,19 @@ Depends on: 466
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
 Priority: 4
 Orchestration class: implementation-ready
+Evidence: wasm compiled and publish path proven in commit 1be20b32.
+Close gate met: concrete files enumerated; workflow/build/output alignment confirmed.
 ---
+
+- Build: "cd playground && npm run build:wasm -- exit 0"
+- Artifact: "crates/ark-playground-wasm/pkg/ark_playground_wasm_bg.wasm (568248 bytes)"
+- App build: "npm run build:app -- exit 0; output in docs/playground/wasm/ and docs/playground/dist/"
+- Deploy: .github/workflows/pages.yml uses upload-pages-artifact@v3 with path ./docs
+- Proof record: docs/playground/build-path-proof.md in HEAD
 ## Reopened by audit
 
 ## Closed by decomposition audit — 2026-04-03
 
-**Evidence**: playground/package.json 'build': 'tsc'; .github/workflows/pages.yml builds playground JS, uploads artifact, deploys to GitHub Pages
 
 ## Summary
 

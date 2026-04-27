@@ -6,21 +6,25 @@ ID: 146
 Track: benchmark
 Depends on: 149
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
 # 基盤: benchmark variance 制御と再現性プロファイル
-**Blocks v1 exit**: no
+- `scripts/run/run-benchmarks.sh`: "added `cov_calc()` helper, `CV_THRESHOLD` constant (default 5%, overridable via `BENCH_CV_THRESHOLD=N`), `with_affinity()` wrapper using `taskset -c 0` when available; compile and runtime loops now use `with_affinity`; `cv_pct` and `variance_unstable` computed for both phases and emitted in JSON; `⚠ HIGH VARIANCE` warnings printed when CoV exceeds threshold; `variance_controls` block added to top-level JSON output."
+- `benchmarks/schema.json`: `cv_pct` and `variance_unstable` fields were already present in `compile_metrics` and `runtime_metrics` — no changes needed.
+# 基盤: benchmark variance 制御と再現性プロファイル
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/146-bench-variance-and-reproducibility.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Implemented — 2026-04-15
 

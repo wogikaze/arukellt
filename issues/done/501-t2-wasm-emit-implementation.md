@@ -6,10 +6,26 @@ ID: 501
 Track: playground
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 20
 ---
+
+(Option A: import-based bridge with 1-page linear memory for marshaling).  This issue
+This issue was created when issue #382 was audited: all acceptance checkboxes in #382
+`wasmparser: ":Validator::validate_all`"
+with `run_supported: false`
+- `crates/ark-wasm/src/emit/t2_freestanding.rs`: functional T2 scaffold emitter
+- `crates/ark-target/src/lib.rs`: "`wasm32-freestanding` registered, `implemented: true`, `run_supported: false`"
+- `tests/fixtures/t2/t2_scaffold.ark`: manifest-driven fixture proof for the T2 scaffold
+- `docs/target-contract.md` T2 row: scaffold tier with repo-visible proof surface
+- `docs/adr/ADR-020-t2-io-surface.md` (DECIDED): import-based bridge contract settled
+- Emit the `arukellt_io.write(ptr: "i32, len: i32)` + `arukellt_io.flush()` import stubs"
+- [x] `wasm32-freestanding` profile has `implemented: true` in `ark-target`
+- entrypoint evidence: `crates/arukellt/tests/t2_scaffold.rs` compiles a source fixture with
+- exposed surface consistency: `crates/ark-target/src/lib.rs` and `docs/target-contract.md`
+- fixture proof: `tests/fixtures/t2/t2_scaffold.ark` is registered in `tests/fixtures/manifest.txt`
+Emitter stub + fixture + registry update: ~150–300 lines new Rust + ~20 lines Ark
 # T2 (`wasm32-freestanding`) Wasm Emitter Implementation
-**Blocks v1 exit**: no
-**Priority**: 20
 
 ## Summary
 

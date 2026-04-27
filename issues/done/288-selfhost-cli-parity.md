@@ -6,10 +6,19 @@ ID: 288
 Track: selfhost
 Depends on: 287
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 8
 ---
+
+- `cli-parity: PASS=0 FAIL=2`
+- Failing flags: `--version`, `--help`
+- `--version`: "Rust prints `arukellt 0.1.0`; selfhost prints `arukellt-s1 0.1.0 (selfhost stage 1)`"
+- `--help`: Rust and selfhost expose different command sets and different help text formatting
+- result: "`Passed: 1`, `Failed: 0`"
+- measured flags now match exactly: `--version`, `--help`
+- `src/compiler/main.ark`: compile / check / parse コマンドを解析
+- Rust CLI: compile / check / run / build / fmt / lsp / dap を持つ
 # セルフホスト CLI parity を確認する
-**Blocks v1 exit**: no
-**Priority**: 8
 
 ## Reopened by audit
 

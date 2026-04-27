@@ -6,10 +6,11 @@ ID: 433
 Track: playground
 Depends on: 428
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 6
+# Playground: permalink / share format と圧縮方式を定義する
 ---
 # Playground: permalink / share format と圧縮方式を定義する
-**Blocks v1 exit**: no
-**Priority**: 6
 
 ## Summary
 

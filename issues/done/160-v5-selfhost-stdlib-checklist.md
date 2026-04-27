@@ -2,17 +2,21 @@
 Status: done
 Track: main
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: なし
+Version: "v5 (selfhost prep)"
+Priority: P0
+Reason: Existing checklist mixed "anticipated" dependencies with actual usage and showed critical missing items.
 ---
+
 # 160: セルフホスト必要 stdlib チェックリストの確認
-**Version**: v5 (selfhost prep)
-**Priority**: P0
-**Track**: main
-**Depends on**: なし
+- Host module APIs used by selfhost compiler: 6
+- Prelude exports used by selfhost compiler: 16
+- Builtins used by selfhost compiler: 6
+- Missing/stub required APIs: 0
+# 160: セルフホスト必要 stdlib チェックリストの確認
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Existing checklist mixed "anticipated" dependencies with actual usage and showed critical missing items.
 
 ## Resolved — 2026-04-14
 

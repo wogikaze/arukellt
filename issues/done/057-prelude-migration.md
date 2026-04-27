@@ -6,15 +6,39 @@ ID: 47
 Track: stdlib
 Depends on: 039, 041, 042, 044, 048, 049, 052
 Orchestration class: implementation-ready
+Blocks v3 exit: yes
+Reason: "Prelude is still large wrapper surface. Claimed migration fixtures (tests/fixtures/stdlib_migration) absent."
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+W0100: "`Vec_new_i32` is deprecated. Use `std::collections::vec::new<i32>()` instead."
 ---
+
+| `Vec_new_i32()` | `use std: ":collections::vec; vec::new<i32>()` |"
+| `Vec_new_i64()` | `vec: ":new<i64>()` |"
+| `Vec_new_f64()` | `vec: ":new<f64>()` |"
+| `Vec_new_String()` | `vec: ":new<String>()` |"
+| `map_i32_i32(v, f)` | `use std: ":seq; seq::map(seq::from_vec(v), f)` |"
+| `filter_i32(v, f)` | `seq: ":filter(seq::from_vec(v), f)` |"
+| `fold_i32_i32(v, init, f)` | `seq: ":fold(seq::from_vec(v), init, f)` |"
+| `sort_i32(v)` | `use std: ":seq::algo; algo::sort(v)` |"
+| `concat(a, b)` | `use std: ":text::string; string::concat(a, b)` |"
+| `split(s, sep)` | `string: ":split(s, sep)` |"
+| `fs_read_file(path)` | `use std: ":fs; fs::read_to_string(path::from_string(path))` |"
+| `HashMap_i32_i32_new()` | `use std: ":collections::hash_map; hash_map::new<i32, i32>()` |"
+| `random_i32()` | `use std: ":random; random::random_i32_range(0, 2147483647)` |"
+1. `std/prelude.ark` を最小化: 新 prelude に含める関数のみ残す
+2. `std/prelude_compat.ark` (or 既存 prelude に inline): 旧関数を deprecated wrapper として維持
+3. `ark-diagnostics`: "W0100 (deprecated function) 警告コードを追加"
+4. `ark-resolve`: deprecated 関数呼び出し時に W0100 を emit
+- fixture: "`stdlib_migration/new_api_basic.ark` (新 API で動作することを確認)"
+3. prelude 縮小は二段階: v3 で warning、v4 で旧 API 除去
+- `docs/migration/v2-to-v3.md`: 旧 API → 新 API の完全写像表、移行手順
+- `docs/stdlib/prelude.md`: 新 prelude の内容と設計理由
+1. deprecated warning を出すタイミング: パース時 vs 型検査時 vs emit 時
 # Prelude 再構成と API 移行
-**Blocks v3 exit**: yes
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Prelude is still large wrapper surface. Claimed migration fixtures (tests/fixtures/stdlib_migration) absent.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 

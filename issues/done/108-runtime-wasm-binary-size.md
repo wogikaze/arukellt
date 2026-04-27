@@ -3,19 +3,33 @@ Status: done
 Created: 2026-03-28
 Updated: 2026-04-18
 Status note: "Lives in `issues/open/` (see audit trail). Metrics below were re-verified 2026-04-18; do not use the retired “Completed” banner as queue closure — index/closure is separate. Binary size verification complete."
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: runtime-perf
+Orchestration class: verification-ready
+Depends on: 091, 092, 088, 089
+Closed: 2026-04-18
+ID: 108
+Orchestration upstream: —
+Blocks v4 exit: True
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+Audited `tests/fixtures/hello/hello.ark` (current `std: ":host::stdio` fixture) against"
+Section-level T1 breakdown and commands: see `docs/process/wasm-size-reduction.md`.
+Delivered: "`inter_function_inline` local-remapping guard (`stmts_use_any_local` in Phase 3 of"
+Reason: Issue was filed under `issues/done/` while still tracked as open work, and the
+Action: Moved `issues/done/108-runtime-wasm-binary-size.md` → `issues/open/`. This
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
 ---
+
+3. 最大のセクション (通常: type, code, data) について削減策を立案
 # 実行時性能: hello.wasm 1KB 以下 達成プラン
-**Closed**: 2026-04-18
-**ID**: 108
-**Depends on**: 091, 092, 088, 089
-**Track**: runtime-perf
-**Orchestration class**: verification-ready
-**Orchestration upstream**: —
-**Blocks v4 exit**: yes
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+params/locals. Regression: `inline_skips_callee_with_locals_no_undeclared_local_error` in
+- T1 (wasm32-wasi-p1, opt-level 2): "534 bytes** (under 1KB)"
+- T2/T3 (wasm32-wasi-p2, opt-level 2, GC): "918 bytes** (under 1KB)"
+- ✓ hello.wasm under 1KB at opt-level 2: "MET (534 B T1, 918 B T2)"
+- ✓ docs/process/wasm-size-reduction.md maintained: "MET (updated 2026-04-18)"
+- ~ manager.py verify size perf gate with binary size check: "PARTIAL (verify size exists but verify quick doesn't run it by default)"
+# 実行時性能: hello.wasm 1KB 以下 達成プラン
 
 ---
 
@@ -43,11 +57,9 @@ bullet in the original issue checklist was satisfied at that date.
 
 ## Audit trail — 2026-04-03
 
-**Reason**: Issue was filed under `issues/done/` while still tracked as open work, and the
 body later gained a “Completed” banner that did not match queue placement or verifiable
 metrics.
 
-**Action**: Moved `issues/done/108-runtime-wasm-binary-size.md` → `issues/open/`. This
 reconciliation commit aligns status, directory, and measured sizes (no emitter change).
 
 ## Summary

@@ -6,9 +6,9 @@ ID: 202
 Track: parallel
 Depends on: 124
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # `ark.toml` schema + project/workspace discovery
-**Blocks v1 exit**: no
 
 ## Summary
 

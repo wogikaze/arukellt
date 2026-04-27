@@ -6,11 +6,12 @@ ID: 51
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Status note: Wasm proposal — deferred to v5+. Not implemented.
+# Wasm Multi-Memory: 複数メモリモジュール対応
 ---
 # Wasm Multi-Memory: 複数メモリモジュール対応
-**Blocks v4 exit**: no
 
-**Status note**: Wasm proposal — deferred to v5+. Not implemented.
 
 ## Summary
 

@@ -6,9 +6,18 @@ ID: 486
 Track: compiler
 Depends on: 32
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
+(e.g., `let x: f32 = 1.5f32`) currently fails because the MIR lowerer in
+internal-only (compiler correctness; user-visible indirectly via `let x: f32 = ...` code)
+1. `let x: f32 = 1.5f32` compiles and runs without a lowerer panic or miscompile
+2. A fixture `tests/fixtures/scalar/f32_local.ark` exists and passes with `run: ` kind
+- `cat tests/fixtures/scalar/f32_local.ark` shows a valid `let x: f32` usage
+- `tests/fixtures/scalar/f32_local.ark` exists and is in `manifest.txt` as `run: ` entry
+- Only parse-only fixture added instead of `run: ` fixture
+→ acceptance 2 explicitly requires `run: ` kind
 # f32 ローカル変数の MIR lowerer 対応 (F32 locals tracking)
-**Blocks v1 exit**: no
 
 ---
 

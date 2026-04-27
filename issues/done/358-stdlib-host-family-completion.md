@@ -6,10 +6,17 @@ ID: 358
 Track: stdlib-api
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
+Priority: 1
 ---
+
 # Stdlib: host family の stub を解消し stable capability に引き上げる
-**Blocks v1 exit**: yes
-**Priority**: 1
+`std: ":host::http::{get, request}`、`std::host::sockets::connect`、`std::host::env::var` など、manifest 上 `host_stub` または stable 表記だが実装が stub のままの host API を、実行可能な stable capability に引き上げる。host family は利用者が最も直接依存する API 群であり、stub のまま公開するのは product として不整合。"
+- `std/manifest.toml`: "`host_stub` が 3 関数 (http::get, http::request, sockets::connect)"
+- `std: ":host::env::var` は stability=stable だが実装は stub で環境変数 lookup が未実体化"
+- `docs/current-state.md` は active work を WASI / `std: ":host::*` rollout に設定している"
+- [x] `std: ":host::env::var` が環境変数を実際に読み出す実装を持つ"
+# Stdlib: host family の stub を解消し stable capability に引き上げる
 
 ## Summary
 

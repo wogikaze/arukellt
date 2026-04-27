@@ -6,10 +6,11 @@ ID: 395
 Track: stdlib-docs
 Depends on: 366
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 1
+# Stdlib Docs: 生成スキーマと metadata 契約を強化する
 ---
 # Stdlib Docs: 生成スキーマと metadata 契約を強化する
-**Blocks v1 exit**: no
-**Priority**: 1
 
 ## Summary
 

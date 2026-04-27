@@ -6,9 +6,9 @@ ID: 008
 Track: main
 Depends on: 004, 007
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # Closure environment on WasmGC
-**Blocks v1 exit**: yes
 
 ## Summary
 

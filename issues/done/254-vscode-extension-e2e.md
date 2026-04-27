@@ -7,10 +7,16 @@ Track: main
 Depends on: none
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v3: yes
+STOP_IF (deferred here): task **execution** E2E, rich **test controller discovery** E2E — larger scope than this audit slice.
 ---
 
+| VS Code extension test runner wired | `package.json` → `"test": ""vscode-test"`; `.vscode-test.mjs`; devDeps `@vscode/test-cli` / `@vscode/test-electron`; tests under `src/test/**/*.test.js` | `scripts/run/verify-harness.sh --quick` does not run the extension suite; `scripts/gate/ci-full-local.sh` runs `(cd extensions/arukellt-all-in-one && npm test)` with `xvfb-run` |"
+| E2E: "install / activate / missing binary / custom `server.path` / LSP / commands / tasks / test controller / restart | **Activate & binary**: `src/test/extension.test.js` — suites *Extension Activation (#272)* (present, activate on `.ark`, missing-binary user/output/status-bar, custom `server.path`). **LSP**: same file — *Go to Definition*, *Hover* (JSON-RPC to repo `arukellt` binary); *Language Server Restart — stub LSP (#254)* (handshake-level stub + output). **Commands**: *Command Registration (#273)* (`getCommands` + light executes). **Tasks**: *Task Provider (#273)* (`fetchTasks`, standard task names; no execution). **Test UI**: *Test Controller (#274)* (presence + restart health only; no item discovery). **Restart**: *Test Controller (#274)* + *stub LSP (#254)* | **Task execution** (no `executeTask` / exit-code E2E). **Test controller discovery** (no assertion on discovered tests/items). **“Install”** not isolated (implicit load in host). Full Language Client sync behavior not a single named test (covered indirectly via diagnostics/debug when binary present) |"
+| Failure logs: "user message, output channel, status bar | `extension.test.js` — *missing binary* test asserts `showErrorMessage` recording, output channel lines, language status + status bar text/tooltip | *Output Channels* / *Status Bar* (#275) suites are mostly presence smoke; other failure modes not mirrored |"
+| CLI ↔ extension contract blocks bad release | `npm run test: "playground-endpoint` (`test/playground-endpoint-guard.js`) pins playground URL vs `package.json` / `extension.js` / docs; CI full gate runs `npm test` | No single guard that extension spawn argv stays in lockstep with `arukellt lsp` CLI (relies on integration tests + manual review) |"
+2026-04-15 audit: reopened from `issues/done/` because extension tests and CI wiring exist, but the parent acceptance still lacks verified failure-surface coverage for user messages, restart behavior, and missing-binary error handling.
 # VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる
-**Blocks v3**: yes
 
 ## Summary
 

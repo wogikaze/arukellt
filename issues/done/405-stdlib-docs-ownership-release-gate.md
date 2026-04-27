@@ -6,10 +6,11 @@ ID: 405
 Track: stdlib-docs
 Depends on: 401, 403
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 11
+# Stdlib Docs: ownership map と release gate を整備する
 ---
 # Stdlib Docs: ownership map と release gate を整備する
-**Blocks v1 exit**: no
-**Priority**: 11
 
 ## Summary
 

@@ -6,6 +6,7 @@ ID: 364
 Track: stdlib-docs
 Depends on: —
 Orchestration class: implementation-ready
+# Stdlib Docs: host module の target/capability 注記を統一する
 ---
 # Stdlib Docs: host module の target/capability 注記を統一する
 

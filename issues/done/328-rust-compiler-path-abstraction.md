@@ -6,30 +6,33 @@ ID: 328
 Track: selfhost-retirement
 Depends on: 326
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 21
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: ARUKELLT_BIN used in verify-harness.sh at lines 235 and 296-298
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+- `scripts/run/verify-harness.sh`: Rust binary path を直接使用
+- `.github/workflows/ci.yml`: `cargo build -p arukellt` + `./target/release/arukellt` を直接参照
+- `scripts/run/run-benchmarks.sh`: Rust binary 前提
+- perf baseline: Rust binary の compile time / output size を記録
 # コンパイラパスを抽象化して compiler-agnostic にする
-**Blocks v1 exit**: no
-**Priority**: 21
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: ARUKELLT_BIN used in verify-harness.sh at lines 235 and 296-298
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/328-rust-compiler-path-abstraction.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

@@ -3,15 +3,15 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 599
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: docs / language-design
+Orchestration class: blocked-by-upstream
+Depends on: 595, 596, 597, 598
+Parent: None
+In scope: 
+Out of scope: 
+# Language Surface Uplift: Docs, Fixtures, and Rollout
 ---
 # Language Surface Uplift: Docs, Fixtures, and Rollout
-**Parent**: #588
-**Depends on**: 595, 596, 597, 598
-**Track**: docs / language-design
-**Orchestration class**: blocked-by-upstream
 
 ---
 

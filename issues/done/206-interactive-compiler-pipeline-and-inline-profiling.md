@@ -2,24 +2,24 @@
 Status: done
 Created: 2026-03-29
 Updated: 2026-04-13
-Track: main
+Track: parallel
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 184, 185, 187
+Closed: 2026-04-18
+ID: 206
+Orchestration upstream: —
+Blocks v1 exit: False
+Reason: Pipeline command exists but inline profiling overlays not implemented.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
 ---
 # Interactive compiler pipeline + inline profiling
-**Closed**: 2026-04-18
-**ID**: 206
-**Depends on**: 184, 185, 187
-**Track**: parallel
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Pipeline command exists but inline profiling overlays not implemented.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 

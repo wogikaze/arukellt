@@ -7,6 +7,11 @@ Track: repo-hygiene
 Depends on: 375
 Orchestration class: implementation-ready
 ---
+
+# Repo Hygiene: done issues / archive docs の retention workflow を実装する
+- `docs/retention-policy.md` (created for #375) documents the archive workflow with 4 steps: add banner, update links, move file, record in commit
+- Issue close workflow well-established: create done file, delete open file, run `generate-issue-index.sh`
+- Index regeneration: `bash scripts/gen/generate-issue-index.sh`
 # Repo Hygiene: done issues / archive docs の retention workflow を実装する
 
 ## Acceptance

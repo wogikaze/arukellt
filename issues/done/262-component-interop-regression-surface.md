@@ -6,10 +6,9 @@ Track: main
 Depends on: 261
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v3: yes
 ---
-
 # component interop 回帰面の整備
-**Blocks v3**: yes
 
 ## Summary
 

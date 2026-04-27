@@ -6,10 +6,11 @@ ID: 381
 Track: playground
 Depends on: 380
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 24
+# Playground: examples loader と share link を実装する
 ---
 # Playground: examples loader と share link を実装する
-**Blocks v1 exit**: no
-**Priority**: 24
 
 ## Summary
 

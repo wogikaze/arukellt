@@ -2,33 +2,60 @@
 Status: open
 Created: 2026-03-28
 Updated: 2026-04-22
-ID: 055
+ID: 45
 Track: stdlib
 Depends on: 039, 042, 044
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #39, #44, #312-through-#44
+Orchestration upstream: None
+Blocks v3 exit: "no (Experimental — json のみ Stable 候補)"
+Status note: FROZEN — depends on #044, which is blocked by #312 generic monomorphization. Do not re-dispatch until #044 is unfrozen.
+Reason: The issue remained under `issues/done/` even after the earlier reopen note, and the product claim still overstates reality. Current repo evidence uses tagged raw-text wrappers for `JsonValue` / `TomlValue`, while the done issue still claims recursive enum surfaces and broad parser coverage as completed.
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
 
+# std: ":json + std::toml + std::csv: データ形式パーサ"
+- `issues/open/055-std-json-toml-csv.md`: this file itself says it had been moved back to `issues/open/`, but it remained under `issues/done/` until this audit.
+- `std/json/mod.ark`: current JSON surface is not the recursive enum API claimed in the acceptance block.
+- `std/toml/mod.ark`: current TOML surface is not the recursive enum API claimed in the acceptance block.
+- `docs/stdlib/modules/json.md`: pretty-printing is still deferred and described as pass-through rather than fully implemented formatting semantics.
+### std: ":csv"
+pub fn parse(s: String) -> Result<JsonValue, Error>
+pub fn stringify(v: JsonValue) -> String
+pub fn stringify_pretty(v: "JsonValue, indent: i32) -> String"
+pub fn json_get(v: "JsonValue, key: String) -> Option<JsonValue>"
+pub fn json_get_index(v: "JsonValue, index: i32) -> Option<JsonValue>"
+pub fn json_as_string(v: JsonValue) -> Option<String>
+pub fn json_as_i32(v: JsonValue) -> Option<i32>
+pub fn json_as_f64(v: JsonValue) -> Option<f64>
+pub fn json_as_bool(v: JsonValue) -> Option<bool>
+pub fn json_as_array(v: JsonValue) -> Option<Vec<JsonValue>>
+pub fn toml_parse(s: String) -> Result<TomlValue, Error>
+pub fn toml_stringify(v: TomlValue) -> String
+pub fn csv_parse(s: String) -> Result<Vec<Vec<String>>, Error>
+pub fn csv_stringify(rows: Vec<Vec<String>>) -> String
+pub fn csv_parse_with_header(s: "String) -> Result<(Vec<String>, Vec<Vec<String>>), Error>"
+1. `std/json/json.ark`: "JSON パーサ (recursive descent, source 実装)"
+2. `std/json/stringify.ark`: "JSON シリアライザ (source 実装)"
+3. `std/toml/toml.ark`: "TOML パーサ (basic tables + key-value, source 実装)"
+4. `std/csv/csv.ark`: "CSV パーサ (RFC 4180 準拠, source 実装)"
+- fixture: `stdlib_json/json_parse.ark`, `stdlib_json/json_stringify.ark`,
+1. JSON パーサの数値精度: f64 で表現。i64 を超える整数は精度損失 — 警告を出すか
+2. TOML の datetime 型は v3 では String として扱い、std: ":time 連携は v4"
 # std::json + std::toml + std::csv: データ形式パーサ
-**Blocks v3 exit**: no (Experimental — json のみ Stable 候補)
 
-**Status note**: FROZEN — depends on #044, which is blocked by #312 generic monomorphization. Do not re-dispatch until #044 is unfrozen.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/055-std-json-toml-csv.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Reopened by audit — 2026-04-18
 
-**Reason**: The issue remained under `issues/done/` even after the earlier reopen note, and the product claim still overstates reality. Current repo evidence uses tagged raw-text wrappers for `JsonValue` / `TomlValue`, while the done issue still claims recursive enum surfaces and broad parser coverage as completed.
 
 **Audit evidence**:
 

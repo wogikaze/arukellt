@@ -6,21 +6,25 @@ ID: 089
 Track: backend-opt
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Commit hash evidence: df4f672
 ---
+
+# T3: "関数型セクション重複排除 (Type Section Dedup)"
+- `crates/ark-wasm/src/emit/t3/mod.rs` — `TypeAlloc` struct (line 265) with `func_cache: "HashMap<(Vec<ValType>, Vec<ValType>), u32>` (line 268); `add_func` method checks cache before inserting into TypeSection (lines 284–291)"
 # T3: 関数型セクション重複排除 (Type Section Dedup)
-**Blocks v4 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/089-t3-type-section-dedup.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -50,5 +54,3 @@ GC 型 (struct/array composite types) と関数型のすべてについて
 2. ✅ GC struct/array types use `indirect_types` HashMap (separate existing dedup mechanism)
 3. ⏭️ Type section size reduction via `wasm-objdump` — benchmark skipped; needs manual verification.
 4. ✅ No regression — harness 19/19 passes.
-
-**Commit hash evidence**: df4f672

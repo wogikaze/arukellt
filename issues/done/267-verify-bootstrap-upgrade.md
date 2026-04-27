@@ -6,10 +6,9 @@ Track: main
 Depends on: none
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v3: yes
 ---
-
 # verify-bootstrap.sh の昇格
-**Blocks v3**: yes
 
 ## Summary
 

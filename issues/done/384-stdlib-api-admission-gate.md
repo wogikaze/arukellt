@@ -6,6 +6,7 @@ ID: 384
 Track: stdlib-api
 Depends on: 383
 Orchestration class: implementation-ready
+# Stdlib: API 追加時の admission gate と family coverage チェックを導入する
 ---
 # Stdlib: API 追加時の admission gate と family coverage チェックを導入する
 

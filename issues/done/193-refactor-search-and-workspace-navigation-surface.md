@@ -6,9 +6,9 @@ ID: 193
 Track: parallel
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # Refactor / search / workspace navigation surface
-**Blocks v1 exit**: no
 
 ## Summary
 

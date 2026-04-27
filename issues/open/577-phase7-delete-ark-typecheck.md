@@ -6,15 +6,38 @@ ID: 577
 Track: selfhost-retirement
 Depends on: 564, 576
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #564, #576
+Orchestration upstream: None
+Blocks: 582
+Blocks v5: no
+Source: "#529 Phase 7 — Rust typechecker crate (replaced by `src/compiler/typechecker.ark`)."
+Implementation target: "Per #529 Phase 7, this issue removes exactly one Rust crate (`crates/ark-typecheck`). No Ark product code is added or changed; this is retirement work scoped to a single crate."
+REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
 ---
 
 # 577 — Phase 7: Delete `crates/ark-typecheck`
-**Blocks**: 582
-**Blocks v5**: no
-**Source**: #529 Phase 7 — Rust typechecker crate (replaced by `src/compiler/typechecker.ark`).
+- [ ] No source / script / docs reference: "`rg -l "\bark_typecheck\b\|\bark-typecheck\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)"
+- [ ] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
+1. [ ] Directory truly absent: `test ! -d crates/ark-typecheck` exit 0
+2. [ ] No workspace member ref: `grep -F "crates/ark-typecheck" Cargo.toml` empty
+3. [ ] No reverse dep ref: `grep -RIn "\bark-typecheck\b" crates/*/Cargo.toml` empty
+4. [ ] No Rust source ref: `rg -l "\bark_typecheck\b" crates/ src/` empty
+5. [ ] No script / CI ref: `rg -l "\bark-typecheck\b" scripts/ .github/workflows/` empty
+6. [ ] No docs ref: "`rg -l "\bark_typecheck\b\|\bark-typecheck\b" docs/` returns only paths listed in the close note (archived ADRs allowed if explicitly enumerated)"
+7. [ ] All 4 canonical gates: numeric Δ recorded showing `FAIL=0` and `SKIP_delta=0`
+- `Cargo.toml` of OTHER crates: "only** to remove a `[dependencies]` / `[dev-dependencies]` entry on `ark-typecheck`"
+- `docs/current-state.md`: "to reflect the deletion (single-line edit)"
+- `docs/adr/`: only if a new ADR is required to record the retirement
+- Suggested message: "`chore(crates): remove crates/ark-typecheck per #529 Phase 7 (closes #577)`"
+commit: <hash>
+fixpoint: rc=0 → rc=0
+fixture parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cli parity: PASS=<N> FAIL=0       → PASS=<N> FAIL=0
+diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cargo check --workspace: rc=0
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
+remaining references (if any): <list with justification>
+# 577 — Phase 7: Delete `crates/ark-typecheck`
 
-**Implementation target**: Per #529 Phase 7, this issue removes exactly one Rust crate (`crates/ark-typecheck`). No Ark product code is added or changed; this is retirement work scoped to a single crate.
 
 ## Summary
 
@@ -56,7 +79,6 @@ cargo check --workspace
 rg -l "\bark_typecheck\b" crates/ scripts/ src/ docs/ .github/
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes (workspace topology change forces selfhost rebuild)
 
 ## STOP_IF
 

@@ -6,10 +6,15 @@ ID: 387
 Track: stdlib-api
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 5
 ---
+
 # Stdlib: bytes / I/O helper の実用 surface を埋める
-**Blocks v1 exit**: no
-**Priority**: 5
+- `std/bytes/mod.ark`: "+4 functions (bytes_from_string, string_from_bytes, bytes_concat, bytes_slice)"
+- `std/manifest.toml`: +4 entries
+- `tests/fixtures/stdlib_bytes/bytes_helpers.ark`: roundtrip, concat, slice, empty, hex tests
+# Stdlib: bytes / I/O helper の実用 surface を埋める
 
 ## Summary
 

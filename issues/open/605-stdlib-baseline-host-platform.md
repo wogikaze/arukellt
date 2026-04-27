@@ -3,15 +3,21 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 605
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: stdlib / wasi-feature
+Orchestration class: blocked-by-upstream
+Depends on: 604
+Parent: #590
+In scope: 
+Out of scope: 
+Close when: path edge cases have fixtures, at least one real directory capability is
 ---
+
 # Stdlib Baseline: Host Core-Platform Baseline
-**Parent**: #590
-**Depends on**: 604
-**Track**: stdlib / wasi-feature
-**Orchestration class**: blocked-by-upstream
+- Harden `std: ":host::fs` and `std::fs` whole-file read/write baseline with explicit error semantics"
+- `std: ":host::process`, `std::host::env`, `std::host::clock` contracts explicit and fixture-backed"
+1. `std: ":path` edge cases are fixture-backed for all listed operations"
+- Do not expand `std: ":host::http` or `std::host::sockets` in this issue"
+# Stdlib Baseline: Host Core-Platform Baseline
 
 ---
 

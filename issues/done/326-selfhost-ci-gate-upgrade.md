@@ -6,10 +6,13 @@ ID: 326
 Track: selfhost-verification
 Depends on: 325
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 20
 ---
+
+- `.github/workflows/ci.yml`: `selfhost-stage0` job が `verify-bootstrap.sh --stage1-only` を実行
+- `.github/workflows/ci.yml: 328-363` — selfhost-stage0 job
 # CI の selfhost gate を full fixpoint check に昇格する
-**Blocks v1 exit**: no
-**Priority**: 20
 
 ## Summary
 

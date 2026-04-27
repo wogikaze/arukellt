@@ -6,10 +6,15 @@ ID: 329
 Track: selfhost-retirement
 Depends on: 328
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 22
 ---
+
+- `docs/compiler/bootstrap.md`: dual period end condition と deletion procedure が文章で記述
+- 残す crate: "ark-lsp, ark-dap, ark-diagnostics (IDE tooling)"
+- 消す crate: "ark-driver, ark-mir, ark-wasm, arukellt (compiler pipeline)"
+- [x] 各 compiler crate の deletion 条件: 「selfhost equivalent が parity check を pass」が明記される
 # Dual-period governance を確定する
-**Blocks v1 exit**: no
-**Priority**: 22
 
 ## Summary
 

@@ -6,15 +6,27 @@ ID: 582
 Track: selfhost-retirement
 Depends on: 572, 573, 574, 575, 576, 577, 578, 579, 580, 581
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #572, #573, #574, #575, #576, #577, #578, #579, #580, #581
+Orchestration upstream: None
+Blocks: —
+Blocks v5: no
+Source: "#529 Phase 7 — Full Rust Deletion (final step)"
+Implementation target: "Final step of #529. After every remaining Rust crate has been deleted (issues #572–#581 closed), this issue removes the workspace `Cargo.toml`, the top-level `Cargo.lock`, and any leftover Rust-only tooling reference. After this commit, the repository must contain no `crates/` directory and no `Cargo.{toml,lock}` at the workspace root."
+REBUILD_BEFORE_VERIFY: "yes (entire build system change)"
+CI run URL: <url>
 ---
 
 # 582 — Phase 7 final: remove `Cargo.toml` and `Cargo.lock`
-**Blocks**: —
-**Blocks v5**: no
-**Source**: #529 Phase 7 — Full Rust Deletion (final step)
+4. [ ] All 4 canonical gates green: numeric Δ recorded
+- Single logical commit (the symbolic "delete Rust" commit). Suggested message: "`chore(repo): remove Rust workspace per #529 Phase 7 final (closes #582)`."
+commit: <hash>
+fixpoint: rc=0 → rc=0
+fixture parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cli parity: PASS=<N> FAIL=0       → PASS=<N> FAIL=0
+diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+remaining `cargo` references: <list with per-line justification>
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
+# 582 — Phase 7 final: remove `Cargo.toml` and `Cargo.lock`
 
-**Implementation target**: Final step of #529. After every remaining Rust crate has been deleted (issues #572–#581 closed), this issue removes the workspace `Cargo.toml`, the top-level `Cargo.lock`, and any leftover Rust-only tooling reference. After this commit, the repository must contain no `crates/` directory and no `Cargo.{toml,lock}` at the workspace root.
 
 ## Summary
 
@@ -55,7 +67,6 @@ test ! -d crates
 python scripts/check/check-docs-consistency.py
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes (entire build system change)
 
 ## STOP_IF
 

@@ -6,11 +6,12 @@ ID: 097
 Track: compile-speed
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Status note: Compiler architecture improvement — deferred to v5+. hello.ark already compiles in 4.2ms.
+# コンパイル速度: MIR lowering のアリーナ割り当て
 ---
 # コンパイル速度: MIR lowering のアリーナ割り当て
-**Blocks v4 exit**: no
 
-**Status note**: Compiler architecture improvement — deferred to v5+. hello.ark already compiles in 4.2ms.
 
 ## Summary
 

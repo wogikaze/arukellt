@@ -7,6 +7,9 @@ Track: main
 Orchestration class: implementation-ready
 Depends on: none
 ---
+
+- [x] `crates/ark-playground-wasm/src/lib.rs` exports `pub fn typecheck(source: &str) -> String` backed by a real `ark-typecheck` call
+- Native test exercising `ark_playground_wasm: ":typecheck()` passes"
 ## Reopened by audit
 
 ## Summary

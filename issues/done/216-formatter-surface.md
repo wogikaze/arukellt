@@ -6,9 +6,9 @@ ID: 216
 Track: parallel
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # Formatter surface
-**Blocks v1 exit**: no
 
 ## Summary
 

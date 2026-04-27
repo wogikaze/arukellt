@@ -6,9 +6,11 @@ ID: 009
 Track: main
 Depends on: 003, 004, 005, 006, 007, 008
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
+
+- [x] `RuntimeModel: ":T3FallbackToT1` is no longer the runtime model used for completed T3 execution."
 # T3 runtime and ABI completion
-**Blocks v1 exit**: yes
 
 ## Summary
 

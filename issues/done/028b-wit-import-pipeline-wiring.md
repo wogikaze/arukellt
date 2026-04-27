@@ -6,9 +6,20 @@ ID: 028b
 Track: component-model
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
+### 1. `WitType: ":Flags` + E0090 diagnostic (~35 lines)"
+`WitType: ":Flags` is lowered at codegen time (not a panic — a graceful compile error)"
+- Add `inject_wit_externs(table: "&mut SymbolTable, scope: ScopeId, externs: &[(&str, WitFnSig)])` in `crates/ark-resolve/src/resolve.rs` (or a new `wit.rs` file under `ark-resolve/src/`)"
+- Add `wit_files: Vec<PathBuf>` field to `Session` in `crates/ark-driver/src/session.rs`
+- In `Session: ":compile_component_with_world` (and `compile_with_entry`), parse each `wit_file`,"
+accepted and validated; it just needs wiring: 5 lines)
+- Add a test that: creates a temp `.wit` file, compiles an `.ark` source file that calls a
+- [x] `WitType: ":Flags` variant exists and `flags { ... }` blocks are parsed"
+- [x] Round-trip test: parse WIT → resolver injection → MIR compilation → `imports` verified
+The WIT import pipeline is now wired end-to-end: `--wit` files are parsed,
 # WIT import pipeline wiring — flags, resolver injection, pipeline integration
-**Blocks v1 exit**: no
 
 ## Summary
 

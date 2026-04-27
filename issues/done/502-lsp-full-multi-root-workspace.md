@@ -6,10 +6,22 @@ ID: 502
 Track: vscode-ide
 Depends on: 441
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 3
 ---
+
 # LSP: Full Multi-Root Workspace and Cross-Package Resolution
-**Blocks v1 exit**: no
-**Priority**: 3
+- `workspace_roots: Mutex<Vec<PathBuf>>` — populated on init, never used post-init
+`Manifest` already parses `dependencies: HashMap<String, DependencySpec>`.  A new
+`DependencySpec: ":Path { path }` and potentially future registry deps) and return a"
+imports (e.g. `use my_lib: ":utils`) need the resolver to also search the indexed"
+- `DependencySpec: ":Path { path }` is relative to the manifest directory; resolve with"
+`manifest_dir.join(path)` before calling `Manifest: ":find_root`."
+- Registry-based deps (`DependencySpec: ":Version`) are out of scope until the registry"
+- Estimated scope: 200–300 lines across `ark-manifest` and `ark-lsp`.
+- `crates/ark-manifest/src/lib.rs` — `DependencySpec` enum, `Manifest: ":find_root`"
+- Spawned from: `issues/done/441-vscode-project-aware-workspace-package-ark-toml.md`
+# LSP: Full Multi-Root Workspace and Cross-Package Resolution
 
 ## Context
 

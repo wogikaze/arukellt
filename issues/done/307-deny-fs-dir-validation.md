@@ -7,6 +7,12 @@ Depends on: —
 Priority: 14
 Orchestration class: implementation-ready
 ---
+
+- `crates/arukellt/src/main.rs: 123-126`
+- `crates/arukellt/src/runtime.rs: 28-84`
+- `tests/fixtures/stdlib_io/fs_read_write.flags`: `--dir .` 使用
+- `--dir` の `: "ro` / `:rw` パーミッション指定の検証テストがない"
+- [x] `--dir path: ro` で書き込みが拒否されることをテストする fixture
 # --deny-fs の実施と --dir の検証テスト
 
 ## Summary

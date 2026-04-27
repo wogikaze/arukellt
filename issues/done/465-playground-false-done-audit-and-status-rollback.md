@@ -6,10 +6,12 @@ ID: 465
 Track: playground-audit
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 1
 ---
+
+| Docs command/workflow claims | draft docs now mark `npm run dev`, `npm run build: full`, and preview deploys as target-state only | D / F mitigated | current-state docs no longer present missing commands/workflows as repo proof |
 # Playground false-done 監査表と status rollback
-**Blocks v1 exit**: no
-**Priority**: 1
 
 ## Summary
 

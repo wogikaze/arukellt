@@ -2,29 +2,31 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-15
-ID: 064
+ID: 52
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready
 Orchestration upstream: —
----
-
+Blocks v4 exit: False
+Status note: "Implemented. `BranchHint::Likely/Unlikely` was already present in MIR. T3 WasmGC emitter now always emits the `metadata.code.branch_hint` custom section (stub with 0 entries; precise byte-offset tracking deferred). Criterion 3 (`@likely`/`@unlikely` syntax) deferred to ADR-004 P4."
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+1. MIR に `BranchHint: ":Likely` / `BranchHint::Unlikely` アノテーションを追加"
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 # Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント
-**Blocks v4 exit**: no
+---
+# Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント
 
-**Status note**: Implemented. `BranchHint::Likely/Unlikely` was already present in MIR. T3 WasmGC emitter now always emits the `metadata.code.branch_hint` custom section (stub with 0 entries; precise byte-offset tracking deferred). Criterion 3 (`@likely`/`@unlikely` syntax) deferred to ADR-004 P4.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/064-wasm-branch-hinting.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

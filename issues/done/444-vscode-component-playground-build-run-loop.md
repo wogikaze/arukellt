@@ -6,10 +6,11 @@ ID: 444
 Track: editor-runtime
 Depends on: 439, 440, 441, 443
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 6
+# VSCode Extension × Component: Playground / Editor から component を直接生成・実行できる導線を作る
 ---
 # VSCode Extension × Component: Playground / Editor から component を直接生成・実行できる導線を作る
-**Blocks v1 exit**: no
-**Priority**: 6
 
 ## Summary
 

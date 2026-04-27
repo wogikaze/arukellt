@@ -6,10 +6,12 @@ ID: 332
 Track: selfhost-retirement
 Depends on: 329
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 25
 ---
+
+- `Cargo.toml` default-members: ark-driver, ark-mir, ark-wasm, arukellt を含む
 # Workspace 構造を selfhost primary に備えて再編する
-**Blocks v1 exit**: no
-**Priority**: 25
 
 ## Summary
 

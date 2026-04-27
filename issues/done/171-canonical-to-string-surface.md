@@ -6,10 +6,19 @@ ID: 171
 Track: language-design
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+ADR candidate: yes
+Close order: #483 → #484 → #171
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+#171 はこの順序の最後: "実装 (#484) が完了するまで docs を更新してはならない。"
+- `<!-- fixture: stdlib_core/to_string_i32.ark -->` link in docs/language/guide.md
+- New fixture: "`tests/fixtures/stdlib_core/to_string_i64.ark` (+ `.expected`) added and registered in manifest.txt"
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
+- `python3 scripts/check/check-docs-consistency.py`: PASS
 # canonical stringification surface を `to_string(x)` に統一する
-**Blocks v1 exit**: no
-**ADR candidate**: yes
 
 ---
 
@@ -23,20 +32,16 @@ Orchestration class: implementation-ready
 | implementation | #484 | compiler/stdlib で to_string() を実装 |
 | docs + fixtures | **#171 (this issue)** | docs/quickstart 更新 + fixture coverage |
 
-**Close order**: #483 → #484 → #171
-**#171 はこの順序の最後**: 実装 (#484) が完了するまで docs を更新してはならない。
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/171-canonical-to-string-surface.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

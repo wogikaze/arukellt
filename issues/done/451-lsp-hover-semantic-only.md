@@ -7,9 +7,37 @@ Track: vscode-ide
 Depends on: none
 Orchestration class: implementation-ready
 ---
+
 # LSP: Hover をセマンティックな identifier に限定し literal / keyword の無意味表示を除去する
-**Blocks v1 exit**: no
-**Priority**: 2
+Blocks v1 exit: no
+Priority: 2
+TokenKind: ":StringLit(_) => "string literal".to_string(),  // ← ノイズ"
+if let Some(type_info) = Self: ":type_hover_info(...) {"
+} else if let Some(stdlib_info) = Self: ":stdlib_hover_info(...) {"
+} else if let Some(mod_info) = Self: ":stdlib_module_hover(text, m) {"
+format!("identifier `{}`", text)  // ← ノイズ: null を返すべき
+修正: "non-identifier および semantic 情報のない identifier は `return Ok(None)` にする。"
+### Step 1: "hover handler の分岐修正 (`crates/ark-lsp/src/server.rs`)"
+if let TokenKind: ":Ident(_) = &tok.kind {"
+let info = if let Some(type_info) = Self: ":type_hover_info(...) {"
+if let Some(stdlib_info) = Self: ":stdlib_hover_info(text, m) {"
+return Ok(None);  // ← semantic info なし: hover なし
+return Ok(None);  // ← manifest なし + type info なし: hover なし
+contents: "HoverContents::Markup(MarkupContent {"
+kind: "MarkupKind::Markdown,"
+value: info,
+range: "Some(Self::span_to_range(&source, tok.span)),"
+注意: "`return Ok(None)` は「このトークンに hover なし」だが、ループ外で `Ok(None)` を返す現状の実装でも問題ない。ただし非 identifier のトークンに当たった時点で即 `Ok(None)` を返すことで、隣接する identifier トークンを「誤爆」しないようにする。"
+### Step 2: `identifier \`x\`` フォールバックの除去
+### Step 3: 境界ケース（identifier の末尾・直後の空白）
+採用方針: `target_offset < end`（strictly less）にする（識別子 `source` の最後の文字 `e` の offset が `end - 1`、その直後の offset は `end` で次のスペースや記号の先頭）。ただし、LSP の標準的な実装では「カーソルが identifier 上にある」を `start <= offset < end` で判定することが多い。完了条件に「識別子の末尾の直後で隣接トークンを誤爆しない」を含める。
+### Step 4: `keyword` hover の除去確認
+Ark のキーワード（`let`, `fn`, `if`, `while` 等）が `TokenKind: ":Ident` ではなく別の variant で入っている場合、Step 1 の `if let TokenKind::Ident(_)` で自動的に除外される。キーワードが `TokenKind::Ident` と同じ variant として入っている場合は、キーワードリストと照合して hover を出さないようにする必要がある。"
+確認方法: `ark-lexer/src/token.rs` の `TokenKind` 定義を確認し、`fn`, `let`, `if` 等のキーワードが `Ident` variant か否かを特定する。`Ident` variant と別 variant の場合は Step 1 で十分。
+### Step 5: "LSP プロトコルテストの追加 (`crates/ark-lsp/tests/lsp_e2e.rs`)"
+let result = lsp_hover(src, line: "0, col: 12);"
+- Step 1 の変更で「`TokenKind: ":Ident` にヒットして semantic info がない場合に即 `Ok(None)` を返す」実装にすると、同じ offset に複数のトークンが重なっている（通常は起こらないが念のため）場合にも最初のヒットで終了する。問題なし。"
+# LSP: Hover をセマンティックな identifier に限定し literal / keyword の無意味表示を除去する
 
 ## Summary
 
@@ -94,7 +122,6 @@ for tok in &analysis.tokens {
 }
 ```
 
-**注意**: `return Ok(None)` は「このトークンに hover なし」だが、ループ外で `Ok(None)` を返す現状の実装でも問題ない。ただし非 identifier のトークンに当たった時点で即 `Ok(None)` を返すことで、隣接する identifier トークンを「誤爆」しないようにする。
 
 ### Step 2: `identifier \`x\`` フォールバックの除去
 
@@ -114,7 +141,6 @@ if start <= target_offset && target_offset <= end && end <= source.len() {
 
 `target_offset == end`（識別子の直後）のケースは現状 hover が出る。これは「識別子の末尾の直後でも hover が出る」という挙動になっている。
 
-**採用方針**: `target_offset < end`（strictly less）にする（識別子 `source` の最後の文字 `e` の offset が `end - 1`、その直後の offset は `end` で次のスペースや記号の先頭）。ただし、LSP の標準的な実装では「カーソルが identifier 上にある」を `start <= offset < end` で判定することが多い。完了条件に「識別子の末尾の直後で隣接トークンを誤爆しない」を含める。
 
 修正後の条件:
 

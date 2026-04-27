@@ -6,9 +6,9 @@ ID: 255
 Track: main
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # デバッグ体験を「DAP の箱がある」状態から、実際に使える end-to-end workflow にする
-**Blocks v1 exit**: no
 
 ## Summary
 

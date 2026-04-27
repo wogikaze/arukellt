@@ -7,9 +7,19 @@ Track: language-design
 Depends on: "(none)"
 ADR candidate: True
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Downstream: "#484 (compiler implementation) — この issue 完了後に着手"
+Reason: All 4 acceptance criteria verified.
+Action: Moved from `issues/open/` → `issues/done/`
 ---
+
+# ADR: "canonical stringification surface — to_string(x) ポリシー"
+- `docs/adr/` — 新規 ADR ファイル (例: `ADR-022-stringification-policy.md`)
+- ADR ファイルに `Status: "Decided` (または同等) が含まれている"
+→ acceptance 4 で `Status: Decided` を必須にすることで防止
+2. ADR now has a Non-goals section explicitly scoping out: "method syntax implementation (#484 scope), removal of `i32_to_string`/`i64_to_string` helpers, Display trait / stdlib restructuring, docs/fixture updates (#171)"
+4. ADR Status: DECIDED
 # ADR: canonical stringification surface — to_string(x) ポリシー
-**Blocks v1 exit**: no
 
 ---
 
@@ -100,7 +110,6 @@ internal-only (ADR はプロジェクト内部の設計文書; user-visible feat
 
 ## Closed — 2026-04-10
 
-**Reason**: All 4 acceptance criteria verified.
 
 **Evidence**:
 1. `docs/adr/ADR-012-stringification-surface.md` exists and documents `to_string(x)` as canonical, `.to_string()` as secondary sugar
@@ -113,5 +122,3 @@ internal-only (ADR はプロジェクト内部の設計文書; user-visible feat
 - `grep "DECIDED" docs/adr/ADR-012-stringification-surface.md` → match ✓
 - `grep "Non-goals" docs/adr/ADR-012-stringification-surface.md` → match ✓
 - `bash scripts/run/verify-harness.sh --quick` → 19/19 PASS ✓
-
-**Action**: Moved from `issues/open/` → `issues/done/`

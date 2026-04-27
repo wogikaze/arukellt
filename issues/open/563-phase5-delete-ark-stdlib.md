@@ -6,15 +6,33 @@ ID: 563
 Track: selfhost-retirement
 Depends on: 559
 Orchestration class: implementation-ready
-Orchestration upstream: #559
+Orchestration upstream: None
 ---
 
 # 563 — Phase 5: Delete `crates/ark-stdlib`
-**Blocks**: 564
-**Blocks v5**: no
-**Source**: #529 Phase 5 — Stdlib manifest crate.
+3. [ ] No reverse dep ref: `grep -RIn "\bark-stdlib\b" crates/*/Cargo.toml` empty
+4. [ ] No Rust source ref: `rg -l "\bark_stdlib\b" crates/ src/` empty
+5. [ ] No script / CI ref: `rg -l "\bark-stdlib\b" scripts/ .github/workflows/` empty
+6. [ ] No docs ref: "`rg -l "\bark_stdlib\b\|\bark-stdlib\b" docs/` returns only paths listed in the close note (archived ADRs allowed if explicitly enumerated)"
+7. [ ] All 4 canonical gates: numeric Δ recorded showing `FAIL=0` and `SKIP_delta=0`
+- `Cargo.toml` of OTHER crates: "only** to remove a `[dependencies]` / `[dev-dependencies]` entry on `ark-stdlib`"
+- `docs/current-state.md`: "to reflect the deletion (single-line edit)"
+- `docs/adr/`: only if a new ADR is required to record the retirement
+- Suggested message: "`chore(crates): remove crates/ark-stdlib per #529 Phase 5 (closes #563)`"
+commit: <hash>
+fixpoint: rc=0 → rc=0
+fixture parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cli parity: PASS=<N> FAIL=0       → PASS=<N> FAIL=0
+diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cargo check --workspace: rc=0
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
+remaining references (if any): <list with justification>
+Reverse-dependency scan: "`rg -n "ark[-_]stdlib" --glob '!Cargo.lock' --glob '!issues/done/**' --glob '!docs/adr/**'`"
+- `crates/arukellt/Cargo.toml: "20` — `ark-stdlib = { workspace = true }` (workspace dep)"
+- `crates/ark-lsp/Cargo.toml: 17` — `ark-stdlib = { path = "../ark-stdlib" }`
+---
+# 563 — Phase 5: Delete `crates/ark-stdlib`
 
-**Implementation target**: Per #529 Phase 5, this issue removes exactly one Rust crate (`crates/ark-stdlib`). No Ark product code is added or changed; this is retirement work scoped to a single crate.
 
 ## Summary
 
@@ -58,7 +76,6 @@ cargo check --workspace
 rg -l "\bark_stdlib\b" crates/ scripts/ src/ docs/ .github/
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes (workspace topology change forces selfhost rebuild)
 
 ## STOP_IF
 

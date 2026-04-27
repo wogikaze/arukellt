@@ -6,14 +6,15 @@ ID: 467
 Track: playground
 Depends on: 466
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 3
+Evidence: "docs/_sidebar.md: '▶ Try Playground' links to playground/index.html (repo-produced path); no external URL"
+# Playground: docs route が real entrypoint に配線される
 ---
 # Playground: docs route が real entrypoint に配線される
-**Blocks v1 exit**: no
-**Priority**: 3
 
 ## Closed by decomposition audit — 2026-04-03
 
-**Evidence**: docs/_sidebar.md: '▶ Try Playground' links to playground/index.html (repo-produced path); no external URL
 
 ## Summary
 

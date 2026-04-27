@@ -6,11 +6,16 @@ ID: 078
 Track: wasi-feature
 Depends on: 60
 Orchestration class: implementation-ready
+# WASI P2: "wasi:sockets TCP/UDP ネイティブバインディング"
+Blocks v4 exit: no
+Status note: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+WASI Preview 2 の `wasi: "sockets/tcp`・`wasi:sockets/udp`・`wasi:sockets/ip-name-lookup` を"
+2. `wasi: sockets/tcp.{create-tcp-socket, bind, connect, accept, receive, send, close}` を呼ぶ
+3. fixture: `tcp_echo_server.ark` が wasmtime-net で接続可能なエコーサーバを起動
+- `docs/spec/spec-WASI-0.2.10/OVERVIEW.md` §wasi: sockets
 ---
 # WASI P2: wasi:sockets TCP/UDP ネイティブバインディング
-**Blocks v4 exit**: no
 
-**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
 
 ## Audit classification
 

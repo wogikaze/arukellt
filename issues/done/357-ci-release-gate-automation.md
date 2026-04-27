@@ -6,10 +6,13 @@ ID: 357
 Track: tooling-contract
 Depends on: 354, 355, 356
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 25
 ---
+
 # Tooling Contract: release gate を手動チェックリストから自動検証に移行する
-**Blocks v1 exit**: no
-**Priority**: 25
+- `docs/release-checklist.md`: "全 extension 検証が manual (10 項目)"
+# Tooling Contract: release gate を手動チェックリストから自動検証に移行する
 
 ## Summary
 

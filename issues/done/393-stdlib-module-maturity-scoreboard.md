@@ -7,6 +7,11 @@ Track: stdlib-api
 Depends on: 383
 Orchestration class: implementation-ready
 ---
+
+# Stdlib: module family ごとの maturity scoreboard を生成する
+- Shows per-family: API count, stable/experimental/deprecated breakdown, fixture coverage %, host dependency
+- Total: "274 APIs, 221 stable, 50 experimental, 3 deprecated, 214/271 (78%) fixture coverage"
+- Low coverage families highlighted: "std::wasm (26%), std::wit (35%), std::host::random (33%)"
 # Stdlib: module family ごとの maturity scoreboard を生成する
 
 ## Acceptance

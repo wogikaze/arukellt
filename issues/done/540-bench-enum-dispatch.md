@@ -10,6 +10,11 @@ Blocks v{N}: none
 Source: docs/benchmarks/feature-matrix.md coverage gap
 ---
 
+# 540 — Benchmark: "enum dispatch (pattern matching)"
+- [x] Tags: `cpu-bound`, `match-heavy`, `allocation-heavy`, `iteration`
+- [x] `mise bench: update-baseline` includes the new benchmark
+- `74d253df` feat(bench): "add enum dispatch benchmark (#540)"
+- `8cc1fe0c` close #540: move issue to done
 # 540 — Benchmark: enum dispatch (pattern matching)
 
 ## Summary

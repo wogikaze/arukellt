@@ -6,9 +6,20 @@ ID: 19
 Track: gc-native
 Depends on: 17
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+String literal: 
+Operations: 
 ---
+
 # GC-native strings: array i8 + array.new_data
-**Blocks v1 exit**: no
+;; Result: "(ref $string) with 5 elements"
+;; Print helper: copy GC string → linear mem → fd_write
+;; Loop: "for i in 0..len { i32.store8 (12+i) (array.get_u $string s i) }"
+- [x] All `t3-compile: hello/*` fixtures compile.
+- [x] All `run: hello/*` fixtures pass execution.
+- `(mut i8)` is required: `array.copy` and `array.new_data` target arrays
+- Print buffer size: linear memory scratch area at offset 12 can hold up to
+# GC-native strings: array i8 + array.new_data
 
 ## Summary
 

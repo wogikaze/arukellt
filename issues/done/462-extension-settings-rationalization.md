@@ -7,25 +7,66 @@ Track: extension
 Depends on: none
 Orchestration class: implementation-ready
 ---
+
+# Extension settings rationalization
+Close gate: #477 → #478 → #479 → #480 が全て close されたら、この issue も close できる。
+"arukellt.enableCodeLens": {
+"type": "boolean",
+"default": true,
+"description": "Run arukellt check automatically when a .ark file is saved.",
+"scope": "resource"
+- LSP サーバー側: "`server.rs` の `handle_code_lens()` 冒頭で `initializationOptions` または設定値を確認する。"
+- 設定変更時: `workspace/didChangeConfiguration` を受けて設定値を更新する。
+"arukellt.hoverDetailLevel": {
+"enum": "["errors", "warnings", "all"],"
+- `minimal`: シグネチャ行のみ。
+- `standard`（デフォルト）: シグネチャ + doc + availability（現在の想定挙動）。
+- `verbose`: standard + examples + see_also + related spans。
+"arukellt.useSelfHostBackend": {
+"arukellt.diagnostics.reportLevel": {
+"arukellt.check.onSave": {
+### Step 1: `package.json` に設定を追加する
+### Step 2: LSP initializationOptions を拡張する
+target: "config.get('target'),"
+enableCodeLens: "config.get('enableCodeLens'),"
+hoverDetailLevel: "config.get('hoverDetailLevel'),"
+useSelfHostBackend: "config.get('useSelfHostBackend'),"
+diagnosticsReportLevel: "config.get('diagnostics.reportLevel'),"
+### Step 3: "LSP サーバー側で設定値を受け取る (`crates/ark-lsp/src/server.rs`)"
+pub enable_code_lens: bool,
+pub hover_detail_level: HoverDetailLevel,
+pub use_self_host_backend: bool,
+pub diagnostics_report_level: DiagnosticsLevel,
+### Step 4: 設定を実際の挙動に反映する
+fn handle_code_lens(&self, params: ...) -> Vec<CodeLens> {
+`stdlib_hover_info()` に `level: HoverDetailLevel` を渡し、level に応じて出力を制限する。
+fn filter_diagnostics(diags: "Vec<Diagnostic>, level: DiagnosticsLevel) -> Vec<Diagnostic> {"
+DiagnosticsLevel: ":All => diags,"
+### Step 5: README に設定一覧を追加する
+- Issue 458（CodeLens 再設計）: `enableCodeLens` を読む側は Issue 458 で実装する
+- Issue 457（availability 統一）: `hoverDetailLevel` の verbose モードで availability を表示
+- Issue 459（selfhost）: `useSelfHostBackend` の実動作は Issue 459 完了後
+- 設定変更の動的反映（再起動なし）: `didChangeConfiguration` のハンドリングは最低限のみ実装
+- [x] `enableCodeLens: false` で CodeLens が消える
+- [x] `hoverDetailLevel: "minimal"` でシグネチャのみ表示になる
+- [x] `diagnostics.reportLevel: "errors"` で警告が LSP から届かなくなる
+1. LSP プロトコルテスト: "`enableCodeLens: false` を initializationOptions に入れて codeLens リクエスト → 空配列"
+2. LSP プロトコルテスト: "`hoverDetailLevel: "minimal"` で hover → examples セクションなし"
+3. LSP プロトコルテスト: "`diagnosticsReportLevel: "errors"` で警告のみのファイル → 0 diagnostics"
+- `useSelfHostBackend: true` の場合に selfhost が未完了なら silent fallback（エラーにしない）とし、Output チャンネルにログを出す。
+---
 # 拡張機能の設定項目の整理と実装への配線
-**Blocks v1 exit**: no
-**Priority**: 3
 
 ---
 
 ## False-Done Audit Note — 2026-04-03
 
-**Additional audit finding**: Acceptance criteria verified as NOT met.
 
-**Reason**: Only 4 of the required 5 new settings were added to package.json. The 5th setting `arukellt.check.onSave` is missing.
 
-**Violated acceptance**: - [x] `package.json` に 5 設定が追加されている（型・デフォルト・description・scope 全て設定）— NOT MET: Only 4 settings found (enableCodeLens, hoverDetailLevel, diagnostics.reportLevel, useSelfHostBackend). arukellt.check.onSave is missing.
 
-**Evidence**: `extensions/arukellt-all-in-one/package.json` — grep for arukellt settings shows only 4 new entries added. Issue requires check.onSave per '追加する設定項目' section but it is absent.
 
 ## Superseded by decomposition — 2026-04-03
 
-**Action**: この issue は 4 つの layer に分解された。**この issue 自体は close しない** が、
 実装は分解先 issue を通じて行う。この issue は分解の根拠ファイルとして保持する。
 
 | Layer | Issue | Scope |
@@ -35,19 +76,16 @@ Orchestration class: implementation-ready
 | LSP implementation | #479 | server.rs に LspConfig + ハンドラ変更 |
 | docs | #480 | README に設定一覧テーブル |
 
-**Close gate**: #477 → #478 → #479 → #480 が全て close されたら、この issue も close できる。
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/462-extension-settings-rationalization.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

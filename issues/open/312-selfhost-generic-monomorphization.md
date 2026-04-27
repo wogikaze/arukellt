@@ -7,22 +7,47 @@ Track: selfhost-frontend
 Depends on: 311
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v5: yes
+Priority: 11
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+Reason: No monomorphization pass.
+Action: Moved from issues/done/ to issues/open/ by false-done audit.
+Why: "Acceptance checkboxes were all `[x]` while the summary and reopen note still said there is no selfhost monomorphization pass. Repository state is in between: the selfhost typechecker has partial generic call inference and records `mono_instances`, but MIR lowering does not consume them and there is no specialization pass before codegen."
+Done in this slice (nested generic instantiation correctness): 
+Evidence: 
+Remaining acceptance bullets (still Open — separate slices): 
+Done in this slice: 
+Issue progress note: 
+Done in this slice (MIR-level monomorphization): 
+Remaining acceptance bullets (still Open — slice-d and follow-ups): 
+Done in this slice (reachability/liveness pruning of unused MonoInstances): 
 ---
 
+- `mir: ":lower_to_mir` takes `TypeCheckResult` but only uses `typed_fns` (return-type tags); `mono_instances` is never read (`src/compiler/mir.ark`, `lower_to_mir`)."
+- `src/compiler/typechecker.ark`: "unification (`bind_var` / `resolve_type`), generic-aware annotations (`resolve_type_ann_node_generic`), and call-site inference for generic functions exist; `mono_instances` records mangled names for **direct** generic calls only. Shallow `instantiate_type` limits correctness when type parameters appear nested (e.g. inside `Vec<T>`)."
+- `src/compiler/hir.ark`: generic parameter metadata exists on HIR shapes; full concrete expansion before codegen is still missing.
+- Rust: "`crates/ark-mir` (lowering submodules, see crate doc comment in `crates/ark-mir/src/lib.rs`) performs monomorphization-style specialization on the non-selfhost pipeline."
+`tests/fixtures/manifest.txt` under `run: "`, `t3-compile:`, and"
+`t3-run: ` sections).  After slice-c the MIR module exposes
+- generic fn の呼び出しで型引数が推論される — partial: `NK_CALL` and
+registered it in `tests/fixtures/manifest.txt` under `run: `,
+`t3-compile: "`, and `t3-run:`."
+- Extended `MonoInstance` with concrete `type_args: Vec<TypeInfo>` and added a
+sites resolve to them.  Remaining work: deeper substitution of `T`
+`vec: T → vec_*` shape) is left for a follow-up; the body that this
+- New `mir_prune_unreachable(m: MirModule) -> i32` pass added to
+- New `MirModule.mono_pruned_count: i32` field records the number of
+line — `MIR mono pruned: "N function(s)` — when the count is"
+(registered in `tests/fixtures/manifest.txt` under `run: `).
+- Behavioural witness: "program prints `3` (the surviving i32"
 # Selfhost に generic instantiation と monomorphization を実装する
-**Blocks v5**: yes
-**Priority**: 11
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: No monomorphization pass.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Consistency audit — 2026-04-18
 
-**Why**: Acceptance checkboxes were all `[x]` while the summary and reopen note still said there is no selfhost monomorphization pass. Repository state is in between: the selfhost typechecker has partial generic call inference and records `mono_instances`, but MIR lowering does not consume them and there is no specialization pass before codegen.
 
 **Evidence (selfhost)**:
 

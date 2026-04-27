@@ -3,15 +3,27 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 609
-Track: main
+Track: benchmark / docs
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: —
+Parent: #591
+In scope: 
+Out of scope: 
+Close when: cross-language doc has a real table, startup/guest/phase are visible in
+Verification results: 
+Changed files: 
 ---
+
 # Optimization Uplift: Measurement Truth Repair
-**Parent**: #591
-**Depends on**: —
-**Track**: benchmark / docs
-**Orchestration class**: implementation-ready
+- Restore cross-language visibility: ensure `scripts/compare-benchmarks.sh` embeds
+- Sync: `docs/current-state.md`, `docs/process/benchmark-results.md`,
+- depends_on_open: none
+- depends_on_done: none
+- blocks: #610, #611, #612
+`docs/process/benchmark-results.md` inside `<!-- arukellt: "cross-lang-compare:start/end -->`"
+- `issues/open/dependency-graph.md`: I609 --> I610, I609 --> I611, I609 --> I612 confirmed
+- `scripts/util/benchmark_runner.py` — removed `--time` from compile command; fixed `# equivalent: ` comment; phase fallback to baseline JSON
+# Optimization Uplift: Measurement Truth Repair
 
 ---
 

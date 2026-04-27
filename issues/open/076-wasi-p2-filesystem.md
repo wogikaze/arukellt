@@ -2,17 +2,21 @@
 Status: open
 Created: 2026-03-28
 Updated: 2026-03-28
-ID: 076
+ID: 62
 Track: wasi-feature
 Depends on: 074, 510
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #074
+Orchestration upstream: None
+Blocks v4 exit: no
+Status note: BLOCKED — downstream of the #074 WASI P2 native parent gate and #510 import-table switch. Runtime maturity is not the active blocker.
+WASI Preview 2 の `wasi: "filesystem/types` と `wasi:filesystem/preopens` を"
 ---
 
+# WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング"
+1. `wasi: filesystem/types.{open-at, read-via-stream, write-via-stream, close}` を stdlib から呼ぶ
+4. fixture: `wasi_fs_p2.ark` でファイル読み書き確認
 # WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング
-**Blocks v4 exit**: no
 
-**Status note**: BLOCKED — downstream of the #074 WASI P2 native parent gate and #510 import-table switch. Runtime maturity is not the active blocker.
 
 ## Reopened by audit
 

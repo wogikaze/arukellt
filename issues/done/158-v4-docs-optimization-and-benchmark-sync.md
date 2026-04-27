@@ -6,21 +6,22 @@ ID: 158
 Track: cross-cutting
 Depends on: 140, 141, 142, 143, 145, 148, 155
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+# v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期
 ---
 # v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期
-**Blocks v1 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/158-v4-docs-optimization-and-benchmark-sync.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

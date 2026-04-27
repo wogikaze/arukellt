@@ -6,10 +6,13 @@ ID: 303
 Track: docs/ops
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 23
 ---
+
+- `scripts/gen/generate-docs.py`: 1103 行、stdlib module pages / sidebar / landing pages を生成
+- `docs/current-state.md`: 5 箇所がインラインマーカーで自動更新、残りは手書き
 # 生成 docs と手書き docs の境界を明文化する
-**Blocks v1 exit**: no
-**Priority**: 23
 
 ## Summary
 

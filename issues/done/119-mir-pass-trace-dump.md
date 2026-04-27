@@ -6,21 +6,24 @@ ID: 119
 Track: mir-opt
 Depends on: 101
 Orchestration class: implementation-ready
+Blocks v4 exit: True
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+1. `MirStats.optimization_trace: "Vec<(PassName, ReductionStats)>` フィールド追加"
+4. 出力形式: 関数名・パス名・削減された命令数・変換前後の MIR テキスト
+# MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応
 ---
 # MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応
-**Blocks v4 exit**: yes
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/119-mir-pass-trace-dump.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

@@ -6,22 +6,25 @@ ID: 139
 Depends on: 074, 137
 Track: wasi-feature
 Orchestration class: blocked-by-upstream
-Orchestration upstream: "#74"
+Orchestration upstream: None
 Blocks v{N}: none
-Status note: "BLOCKED — P2-only capability downstream of the #074 WASI P2 native parent gate. T1 では compile-time error が正しい挙動。"
+Status note: BLOCKED — P2-only capability downstream of the
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+WASI Preview 2 の sockets capability を `std: ":host::sockets` として提供する。"
+1. `std: ":host::sockets` の最小 public API が `std/manifest.toml` と `std/*.ark` に定義される"
+2. T1 で `use std: ":host::sockets` した場合は専用 diagnostics で compile-time error になる"
+# WASI P2: "`std::host::sockets` facade と T3 実行検証"
 ---
-
 # WASI P2: `std::host::sockets` facade と T3 実行検証
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/139-std-wasi-sockets-p2.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

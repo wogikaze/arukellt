@@ -2,18 +2,106 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-14
-Track: main
+Track: stdlib
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: —
 ---
+
+# std モジュールシステム基盤: "`use std::*` import インフラ"
+Closed: 2026-04-14
+ID: 039
+Orchestration upstream: —
+Blocks v3 exit: yes
+Parser-only slice (feat(parser): add destructuring import AST + parser)
+- `crates/ark-parser/src/ast.rs`: "Added `ImportKind` enum (`Simple`, `ModulePath`, `DestructureImport { names: Vec<String> }`) and added `kind: ImportKind` field to `Import` struct."
+- `crates/ark-parser/src/parser/decl.rs`: "Extended `parse_use_import()` to handle `{bar, baz}` destructuring brace lists; `parse_import()` sets `ImportKind::Simple`."
+- `crates/ark-parser/src/fmt.rs`: "Updated `write_import()` to emit correct syntax per `ImportKind`."
+- `tests/fixtures/module_import/use_basic.ark`: "Parser-acceptance fixture for `use std::text::string`."
+- `tests/fixtures/module_import/use_destructure.ark`: "Parser-acceptance fixture for `use std::collections::{vec, hash_map}`."
+Verification: `cargo test -p ark-parser` → 60 passed, 0 failed.
+Remaining slices: "resolver wiring (#2), stdlib path resolution (#3), typecheck (#4), std/ module structure (#5), error diagnostics (#6)."
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+v3 標準ライブラリの全モジュールが `use std: ":collections::hash_map` のような"
+`use std: ":collections::{vec, hash_map}` のような選択 import やモジュール修飾呼び出し"
+(`hash_map: ":new<String, i32>()`) は未実装。v3 の全 stdlib モジュールがこの基盤に依存する。"
+1. `use std: ":collections::*` (wildcard import) を v3 で入れるか、v4 に送るか"
+2. `use std: ":collections::{vec, hash_map}` の destructuring import が動作する"
+3. `use std: ":bytes` のようなモジュール全体 import が動作する"
+1. `ark-parser`: "`use std::foo::{bar, baz}` の destructuring import 構文を AST に追加"
+2. `ark-resolve`: "モジュール修飾名 (`foo::bar`) の名前解決を実装"
+3. `ark-resolve`: `std/` 配下のサブディレクトリ構造に対応するモジュール検索パスを実装
+4. `ark-typecheck`: モジュール修飾呼び出しの型検査を通す
+6. エラー診断: "`E0500: module not found`, `E0501: symbol not found in module`"
+- fixture: `module_import/use_std_basic.ark`, `module_import/use_destructure.ark`,
+- `use std: ":text` whole-module import resolves: `text::is_empty` and `text::len_bytes`"
+1. prelude との優先順位: prelude で定義済みの名前とモジュール import が衝突した場合の解決規則を決める
+2. 再帰的モジュールの深さ制限を設ける (std: ":a::b::c::d は 4 階層まで等)"
+- `docs/stdlib/module-system.md`: import 構文仕様、名前解決規則、モジュールパス規約
+Resolver wiring for `use std: ":foo::bar` and `use std::a::{b, c}` — DONE"
+- `crates/ark-resolve/src/load.rs`: Added `load_single_import` helper that handles
+`ImportKind: ":DestructureImport{names}` by loading each `module_name::name` sub-module"
+- `crates/ark-resolve/src/bind.rs`: "Added `bind_module_with_qualifier(module, symbols,"
+scope, qualifier, sink)` which registers each `pub` item as `qualifier: ":name` in the"
+symbol table (e.g. `string: ":split`). Private items are excluded."
+- `crates/ark-resolve/src/analyze.rs`: Default `loaded_module_names` to empty for
+- `std/text/string.ark`: "Minimal stub with `pub fn split(s, sep) -> Vec<String>`."
+- `std/collections/vec.ark`: "Minimal stub with `pub fn new_i32() -> Vec<i32>`."
+- `tests/fixtures/module_import/use_std_string.ark` + `.expected`: "New `run:` fixture"
+that imports `std: ":text::string` and calls `string::split("a,b,c", ",")`, expecting"
+- `tests/fixtures/manifest.txt`: "Added `run:module_import/use_qualified_call_typed.ark`."
+- `cargo test -p ark-resolve`: 23/23 passed
+- `bash scripts/run/verify-harness.sh --quick`: "17/19 passed (2 pre-existing unrelated)"
+- `cargo test -p arukellt -- harness`: fixture_harness passed
+- `string: ":split(s, sep)` typechecks and runs without error when `use std::text::string` in scope"
+- `tests/fixtures/module_import/use_whole_module.ark` + `.expected`: "`run:` fixture that"
+imports `std: ":text` as a whole module and invokes `text::is_empty("")` and"
+`text: ":len_bytes("hello")` via qualified calls — verifies acceptance criterion #3"
+(`use std: ":bytes`-style whole-module import)."
+3 `run: "` module_import fixtures now passing:"
+1. `use_std_string.ark` — `use std: ":text::string` + `string::split()`"
+2. `use_qualified_call_typed.ark` — typed `string: ":split()` call"
+3. `use_whole_module.ark` — `use std: ":text` whole-module import"
+Typechecker: module-qualified call type resolution — DONE
+- `crates/ark-resolve/src/lib.rs`: Re-exported `LoadedModule` from the crate root so the
+- `crates/ark-typecheck/src/checker/mod.rs`: "Added `known_modules: HashSet<String>` field"
+to `TypeChecker`.  It iterates the `ResolvedProgram: ":modules` slice and inserts every"
+`pub fn` from each loaded module under the key `"qualifier: ":fn_name"` (e.g."
+`"string: ":split"`) into `fn_sigs`.  `check_program` calls this method before flattening"
+relying on the plain-name fallback.  Private functions (`is_pub: false`) are excluded.
+- `tests/fixtures/module_import/use_qualified_call_typed.ark` + `.expected`: "New `run:`"
+fixture that uses explicit `String` type annotations, calls `string: ":split(s, sep)` via"
+- Unit tests (5 new in `checker: ":tests`):"
+- `cargo test -p ark-typecheck`: "12/12 passed (10 pre-existing + 2 new)"
+- `cargo test -p arukellt -- fixture_harness`: "fixture_harness passed (639 pass, 0 fail)"
+- `crates/ark-diagnostics/src/codes.rs`: "Added `E0501` ("symbol not found in module","
+- `crates/ark-resolve/src/resolve.rs`: "Added `loaded_module_names: HashSet<String>` field"
+- `crates/ark-typecheck/src/checker/check_expr.rs`: `QualifiedIdent` synthesis now
+differentiates errors: if module qualifier is in `known_modules` but symbol not found →
+- `tests/fixtures/module_import/use_destructure_typed.ark` + `.expected`: Positive
+`run: "` fixture using `use std::text::{string}` destructure import with type-checked call."
+- `tests/fixtures/module_import/use_module_not_found.ark` + `.diag`: "Negative `diag:`"
+- `tests/fixtures/module_import/use_symbol_not_found.ark` + `.diag`: "Negative `diag:`"
+- `tests/fixtures/modules/pub_private/main.diag`: Updated expected diagnostic from
+E0100 to E0501 (more precise: private fn in known module → symbol not found).
+- `tests/fixtures/selfhost/resolver_visibility_error/main.diag`: Same update.
+- `docs/compiler/error-codes.md`: Added E0501 section and summary table entry.
+- `docs/current-state.md`: Added E0501 to diagnostics list.
+- `docs/data/project-state.toml`: Added E0501 entry.
+- Unit tests (2 new in `checker: ":tests`):"
+Superseded (2026-04-18): The older note “Remaining slices 4-6 still open” is stale. Acceptance is backed by the fixtures and code paths listed in **Queue closure verification** below.
+Reviewer: "closure slice (verify-issue-closure checklist)"
+1. Module-qualified calls: "`tests/fixtures/module_import/use_std_string.ark`, `use_qualified_call_typed.ark`, `use_destructure_typed.ark`, `use_destructure_multi.ark` (manifest `run:` / `diag:` entries)."
+2. Destructuring import: `use_destructure_multi.ark` and parse-only `use_destructure.ark`.
+3. Whole-module import: `use_whole_module.ark`.
+4. Circular import detection: "`crates/ark-resolve/src/load.rs` (`visiting` set, E0103 on cycle)."
+5. Prelude coexistence: `use_prelude_coexist.ark`.
+6. ≥5 fixtures: `tests/fixtures/manifest.txt` registers 10+ `module_import/*` entries.
+7. Documentation: `docs/stdlib/module-system.md`.
+- Acceptance items map to files/fixtures or code: yes
+- `Depends on` satisfied: "yes (none)"
+- No `[ ]` left on acceptance list: "yes (narrative criteria covered by evidence table)"
 # std モジュールシステム基盤: `use std::*` import インフラ
-**Closed**: 2026-04-14
-**ID**: 039
-**Depends on**: —
-**Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v3 exit**: yes
 
 ---
 
@@ -33,13 +121,11 @@ Remaining slices: resolver wiring (#2), stdlib path resolution (#3), typecheck (
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/039-module-system-infrastructure.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

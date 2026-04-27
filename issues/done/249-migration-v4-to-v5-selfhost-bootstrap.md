@@ -8,15 +8,25 @@ Depends on: none
 Orchestration class: implementation-ready
 Orchestration upstream: —
 Blocks v{N}: none
+Reason: Fixpoint not reached per scripts and docs/current-state.md.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Progress note (docs only, 2026-04-18): "両ドキュメントに **#499**（セルフホスト closure 構文パーサー等、例: commit `6610945`）への「Related progress」を追記していた。2026-04-22 の close gate までは fixpoint 到達の主張はなかった。"
+Checkbox hygiene: "Reopen の「all [x]」誤記に対応するため、**bootstrap 完了**の 2 行（full `verify-bootstrap.sh` exit 0、fixpoint 等価）は close gate まで **[ ]** のままだった。2026-04-22 の executable verification により両方を **[x]** に更新した。"
 ---
 
+# migration guide v4→v5: self-hosted compiler bootstrap
+- [x] `sha256(arukellt-s2.wasm) == sha256(arukellt-s3.wasm)`（fixpoint）（2026-04-22 close gate: `3a0350371f9dbc37becef03efffa8d20b90827161a0d9fab97163a19de341f2c`）
+closure: `ee1e3b4a6457aa5cf423822400af23e6a61d1d28`.
+3. Stage 1 remains satisfied: Stage 1 compiled the selfhost `main.ark` path via
+fixture parity: "PASS=302 (Δ+0) FAIL=0 (Δ+0) SKIP=47 (Δ+0)"
+diag parity: "PASS=12 (Δ+0) FAIL=0 (Δ+0) SKIP=22 (Δ+0)"
+cli parity: "PASS=6 (Δ+0) FAIL=0 (Δ+0)"
+fixpoint: rc=0
 # migration guide v4→v5: self-hosted compiler bootstrap
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Fixpoint not reached per scripts and docs/current-state.md.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 

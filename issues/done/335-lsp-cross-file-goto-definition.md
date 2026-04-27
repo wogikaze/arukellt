@@ -6,30 +6,34 @@ ID: 335
 Track: lsp-navigation
 Depends on: 333
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 4
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: LSP server has cross-file goto_definition via symbol_index, lsp_e2e.rs tests present
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
 # LSP: cross-file go to definition を実装する
-**Blocks v1 exit**: no
-**Priority**: 4
+- `crates/ark-lsp/src/server.rs: "3037-3080` — `goto_type_definition()` 同一ファイル探索"
+- `find_definition_span()` (506-546): top-level item → impl block method → let binding → param の順で同一 module 内を探索
+- qualified name (`module: ":item`) の解決なし"
+- [x] qualified name (`module: ":fn()`) の定義元に飛べる"
+# LSP: cross-file go to definition を実装する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: LSP server has cross-file goto_definition via symbol_index, lsp_e2e.rs tests present
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/335-lsp-cross-file-goto-definition.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

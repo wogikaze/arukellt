@@ -6,9 +6,9 @@ ID: 244
 Track: main
 Depends on: 241, 242
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # 最適化・backend の「無効でも使える/有効でも壊さない」検証体制を構築する
-**Blocks v1 exit**: no
 
 ## Summary
 

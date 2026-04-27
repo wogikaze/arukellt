@@ -6,11 +6,18 @@ ID: 210
 Track: compiler/selfhost
 Depends on: 209
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Status note: "`src/compiler/typechecker.ark:222` (`typecheck_module`) is a stub that returns an empty `TypeCheckResult`. Nothing flows to MIR. Must be implemented before MIR lowering produces real output."
+TypeCheckResult { error_count: "0, errors: [], typed_fns: [] }"
+Implemented: "`typecheck_module` now walks `Vec<AstNode>` decls, finds NK_FN_DECL nodes, and builds TypedFn entries with return type from type annotations. Verified: typed_fns is non-empty for hello.ark (fn main → TY_UNIT). Fixed root-cause MIR bug: Vec<Struct> function parameters not tracked in vec_struct_locals, causing get_unchecked field access to use offset 0 for all fields."
 ---
-# selfhost: typechecker builds real typed_fns from resolved AST
-**Blocks v1 exit**: no
 
-**Status note**: `src/compiler/typechecker.ark:222` (`typecheck_module`) is a stub that returns an empty `TypeCheckResult`. Nothing flows to MIR. Must be implemented before MIR lowering produces real output.
+# selfhost: typechecker builds real typed_fns from resolved AST
+`typecheck_module(resolve_ctx: "ResolveCtx) -> TypeCheckResult` currently returns:"
+- Handle: "`i32`, `bool`, `String`, `()` (unit), `let`, `return`, binary ops, function calls, `if`"
+- [x] A file `fn add(a: "i32, b: i32) -> i32 { a + b }` produces `TypedFn { name: "add", return_type: TY_I32 }`"
+# selfhost: typechecker builds real typed_fns from resolved AST
+
 
 ## Summary
 

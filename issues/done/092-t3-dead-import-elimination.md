@@ -6,21 +6,23 @@ ID: 092
 Track: backend-opt
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: True
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Commit hash evidence: df4f672
+# T3: 未使用 WASI import の除去
 ---
 # T3: 未使用 WASI import の除去
-**Blocks v4 exit**: yes
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/092-t3-dead-import-elimination.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -50,5 +52,3 @@ Orchestration class: implementation-ready
 2. ✅ ImportSection includes only actually-used WASI imports
 3. ⏭️ `wasm-objdump` confirmation of removed imports — tool not available in CI; benchmark skipped.
 4. ⏭️ `hello.wasm` < 1KB — binary size goal skipped; needs manual verification.
-
-**Commit hash evidence**: df4f672

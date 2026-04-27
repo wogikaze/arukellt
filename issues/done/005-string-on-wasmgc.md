@@ -6,9 +6,9 @@ ID: 5
 Track: main
 Depends on: 4
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # String on WasmGC for T3
-**Blocks v1 exit**: yes
 
 ## Summary
 

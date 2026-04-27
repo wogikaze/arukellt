@@ -6,21 +6,23 @@ ID: 105
 Track: runtime-perf
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+1. `passes/type_narrowing.rs`: 値範囲解析で i64 → i32 に narrowing できる変数を検出
+# 実行時性能: 数値型の Narrowing — i32 優先使用
 ---
 # 実行時性能: 数値型の Narrowing — i32 優先使用
-**Blocks v4 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/105-runtime-number-type-narrowing.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

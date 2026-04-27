@@ -6,11 +6,17 @@ ID: 209
 Track: compiler/selfhost
 Depends on: 208
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Status note: "`src/compiler/main.ark` is wired (agent already added `use driver` and the dispatch block) but cannot be built until #208 is resolved — the module private-items bug prevents `driver.ark` from compiling."
 ---
-# selfhost: connect CLI main.ark to driver pipeline
-**Blocks v1 exit**: no
 
-**Status note**: `src/compiler/main.ark` is wired (agent already added `use driver` and the dispatch block) but cannot be built until #208 is resolved — the module private-items bug prevents `driver.ark` from compiling.
+# selfhost: connect CLI main.ark to driver pipeline
+`src/compiler/main.ark: "196` is the CLI entry. It parses args, builds a `DriverConfig`, and must call `driver::compile_file(input, config)`. The `src/compiler/driver.ark` pipeline is already fully qualified (all module calls use `lexer::`, `parser::`, etc.) but the containing file can't be resolved until #208 is fixed."
+- If `-o <file>` is given: "call `fs::write_bytes(output_file, result.output_bytes)` (already added to `std/host/fs.ark` and backed by `__intrinsic_fs_write_bytes`)"
+- Otherwise: print byte count to stdout
+- On error: print error messages to stderr, exit 1
+# selfhost: connect CLI main.ark to driver pipeline
+
 
 ## Summary
 

@@ -7,16 +7,18 @@ Track: main
 Depends on: 267
 Orchestration class: verification-ready
 Orchestration upstream: —
+Blocks v3: yes
+Reason: Parity non-blocking and tolerant.
+Action: Moved from issues/done/ to issues/open/ by false-done audit.
 ---
 
+| `selfhost-bootstrap` (“Selfhost bootstrap (full)”) | Run selfhost fixture parity | `bash scripts/check/check-selfhost-parity.sh --fixture` (stdout to `tee parity-results.txt`; step suffix ignores failure) | Fixture / Stage1-style parity: "`manifest.txt` `run:` entries with `.expected`; compares Rust `run` stdout vs selfhost compile+run stdout | No for this step (exit status ignored) | First-line rust vs selfhost snippets printed to log; full step output in artifact `selfhost-bootstrap` (`parity-results.txt`). Not a unified `diff` of full outputs. |"
+- `playground-ci.yml` / `pages.yml`: no parity script references.
 # Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する
-**Blocks v3**: yes
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Parity non-blocking and tolerant.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Summary
 

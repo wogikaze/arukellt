@@ -9,8 +9,14 @@ Orchestration class: implementation-ready
 Orchestration upstream: —
 Blocks v{N}: none
 Source: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
+Wave 2 landed commit `4373b36` (`feat(stdlib): define toml parse failure subset contract`).
 ---
 
+# Stdlib TOML: parse failure と supported subset contract を定義する
+`std: ":toml::toml_parse` は現状、構造的に不正な入力でも成功しやすく、module 名に対して parser contract が曖昧すぎる。"
+- `std: ":toml::toml_parse` now rejects representative unsupported / malformed inputs for the documented subset boundary"
+-> `python scripts/manager.py verify fixtures` ran: 757 PASS, 31 FAIL, 15 SKIP. Zero stdlib_toml failures. All TOML fixture failures are pre-existing unrelated regressions outside this slice.
+-> docs wording confirmed: "minimal experimental helpers for a bounded TOML subset only" with explicit Err conditions listed.
 # Stdlib TOML: parse failure と supported subset contract を定義する
 
 ## Summary

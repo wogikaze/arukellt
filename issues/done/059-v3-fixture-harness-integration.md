@@ -6,9 +6,27 @@ ID: 059
 Track: stdlib
 Depends on: 039, 040, 041, 042, 043, 044, 045, 046, 047, 048, 049, 050, 051, 052, 053, 054, 055, 056, 057
 Orchestration class: implementation-ready
+Blocks v3 exit: yes
 ---
+
+| `stdlib_core/ordering.ark` | cmp: ":compare + Ordering | #041 |"
+| `stdlib_text/string_from_utf8.ark` | string: ":from_utf8 + validate | #042 |"
+| `stdlib_text/string_lines.ark` | string: ":lines + split | #042 |"
+| `stdlib_bytes/bytes_basic.ark` | Bytes: ":new + get + len | #043 |"
+| `stdlib_fs/path_join.ark` | path: ":join + parent + extension | #049 |"
+| `stdlib_fs/fs_exists.ark` | fs: ":exists + is_file + is_dir | #049 |"
+| `stdlib_io/reader_basic.ark` | Reader: ":from_bytes + read_line | #050 |"
+| `stdlib_time/instant_basic.ark` | Instant: ":now + duration_since | #051 |"
+| `stdlib_random/random_basic.ark` | Rng: ":seeded + next_u32 + fill | #051 |"
+| `stdlib_process/args_basic.ark` | process: ":args() 読み取り | #052 |"
+| `stdlib_process/env_basic.ark` | env: ":var + env::vars | #052 |"
+- [x] Check 18: `stdlib_core/`, `stdlib_text/`, `stdlib_bytes/` の全 fixture が `manifest.txt` に登録されているか確認
+- [x] Check 19: "deprecated API 使用禁止ゲート (`grep -r "Vec_new_i32\|filter_i32\|map_i32" tests/fixtures/ → 0件`)"
+- [x] Check 20: "v3 stdlib fixture 一括実行 (`cargo test -p arukellt --test harness -- stdlib_`)"
+3. `tests/fixtures/manifest.txt` に全エントリを追加 (`compile: tests/fixtures/stdlib_*/...`)
+1. ファイルシステム系 fixture (fs_exists, fs_read_bytes など) は WASI filesystem preopened dir が必要なため、`skip: ` フラグを使うか wasmtime `--dir` オプションが必要
+- `docs/stdlib/testing-guide.md`: v3 stdlib fixture 追加方法のガイド
 # v3 fixture 統合 + verify-harness.sh v3 ゲート
-**Blocks v3 exit**: yes
 
 ## Summary
 

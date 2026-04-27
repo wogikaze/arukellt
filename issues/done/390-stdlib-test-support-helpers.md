@@ -6,10 +6,13 @@ ID: 390
 Track: stdlib-api
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 8
 ---
+
 # Stdlib: test モジュールの assertion / snapshot helper を拡充する
-**Blocks v1 exit**: no
-**Priority**: 8
+`std: ":test` family を fixture 実行の裏方ではなく、ユーザーが使う test support API として育てる。"
+# Stdlib: test モジュールの assertion / snapshot helper を拡充する
 
 ## Summary
 

@@ -6,21 +6,24 @@ ID: 156
 Track: backend-opt
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
 # T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化
-**Blocks v1 exit**: no
+- `tests/fixtures/manifest.txt` に `t3-run: structs/rmw_noop.ark` を追加.
+# T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/156-t3-read-modify-write-peephole.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

@@ -2,20 +2,20 @@
 Status: done
 Created: 2026-04-15
 Updated: 2026-04-22
-Track: main
+Track: stdlib
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-04-22
+Commit: 873f2da0
+ID: 514
+Orchestration upstream: —
+Blocks v{N}: none
+Source: stdlib modernization backlog requested 2026-04-15
 ---
+
+# Stdlib: "実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する"
+- [x] 少なくとも `std: ":core::hash`, `std::collections::hash`, `std::json`, `std::toml`, `std::fs` の監査結果が文書化される"
 # Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する
-**Closed**: 2026-04-22
-**Commit**: 873f2da0
-**ID**: 514
-**Depends on**: none
-**Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: stdlib modernization backlog requested 2026-04-15
 
 ## Summary
 

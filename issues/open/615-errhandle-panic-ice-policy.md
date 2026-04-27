@@ -3,15 +3,23 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 615
-Track: main
+Track: compiler / runtime / cli
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: —
+Parent: #592
+The current codebase conflates: "user errors (Result), assertions that should never fire"
+In scope: 
+Out of scope: 
+Close when: "policy doc is written, CLI `.unwrap()` audit is done for the 3 highest-risk"
 ---
+
 # Error Handling Convergence: Panic / ICE Policy
-**Parent**: #592
-**Depends on**: —
-**Track**: compiler / runtime / cli
-**Orchestration class**: implementation-ready
+- ICE: internal compiler error that must not fire on user input; always produces a
+`[BUG] internal compiler error: ` message; crashes with status 101
+- User panic: user `panic!` / unreachable — emitted as a runtime trap or a user-visible
+- Result: recoverable failure always returned via `Result<T, E>`, never panics
+- CLI error reporting: user-facing error output from `arukellt` CLI — structured, not a
+# Error Handling Convergence: Panic / ICE Policy
 
 ---
 

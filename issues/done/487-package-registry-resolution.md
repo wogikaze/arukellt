@@ -2,21 +2,20 @@
 Status: done
 Created: 2026-04-13
 Updated: 2026-04-14
-Track: main
+Track: compiler, module-system
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 039
+Closed: 2026-04-14
+ID: 487
+Blocks v1 exit: no
+Priority: 50
 ---
+
 # Package registry resolution
-**Closed**: 2026-04-14
-**ID**: 487
-**Depends on**: 039
-**Track**: compiler, module-system
-**Blocks v1 exit**: no
-**Priority**: 50
+# Package registry resolution
 
 ## Created by audit — 2026-04-13
 
-**Source**: `docs/module-resolution.md` line 160 states "a package registry,
 which is not yet implemented." No open issue tracked this gap.
 
 ## Summary

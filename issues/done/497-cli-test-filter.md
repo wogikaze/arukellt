@@ -6,6 +6,7 @@ Track: cli
 Source: "audit — extensions/arukellt-all-in-one/src/extension.js:740"
 Orchestration class: implementation-ready
 Depends on: none
+# 497 — CLI test runner: add --filter for single-test execution
 ---
 # 497 — CLI test runner: add --filter for single-test execution
 

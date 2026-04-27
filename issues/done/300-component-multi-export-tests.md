@@ -6,10 +6,10 @@ ID: 300
 Track: component-model
 Depends on: 297, 298
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 20
 ---
 # multi-export world と他言語ホストの相互運用テストを拡充する
-**Blocks v1 exit**: no
-**Priority**: 20
 
 ## Summary
 

@@ -6,12 +6,12 @@ ID: 512
 Track: stdlib
 Depends on: 504, 495
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #495, #504
----
-
+Orchestration upstream: None
+Blocks v5: True
+Source: stdlib modernization backlog requested 2026-04-15
 # Stdlib: trait ベースの再利用可能 surface へ段階移行する
-**Blocks v5**: yes
-**Source**: stdlib modernization backlog requested 2026-04-15
+---
+# Stdlib: trait ベースの再利用可能 surface へ段階移行する
 
 ## Summary
 

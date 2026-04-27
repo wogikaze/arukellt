@@ -6,15 +6,45 @@ ID: 568
 Track: selfhost-frontend
 Depends on: 565, 566, 567
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #565, #566, #567
+Orchestration upstream: None
+Blocks: 569
+Blocks v5: no
+Source: #529 Phase 6 — IDE Frontend / LSP / DAP migration
+Implementation target: "Per #529 Phase 6, IDE-side functionality is reimplemented in Ark (`src/`) so that the Rust IDE crates can be retired in Phase 7. This issue covers exactly one concern; do **not** expand scope."
+REBUILD_BEFORE_VERIFY: yes
+Entry-point function: "`analysis::analyze(uri: String, text: String) -> AnalysisSnapshot`"
+The pipeline never short-circuits: lex → parse → resolve → typecheck all run
+CLI surface: hidden subcommand `arukellt ide-analyze <file>` wired through
+Verification gate: new `scripts/check/check-analysis-api.py` runs
+False-done checklist: "1✓ 2✓ 3✓ 4✓ (no SKIP added) 5✓ 6✓"
 ---
 
+# 568 — Phase 6/B: "src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)"
+- [x] `src/ide/api.ark` exists and exports `analyze(uri: "String, text: String) -> AnalysisSnapshot`"
+3. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+- One logical commit per slice. Suggested message: "`feat(ide): src/ide/api.ark analysis API entry point (refs #568)`"
+commit: <hash>
+acceptance: <each checkbox marked with evidence>
+fixpoint: "rc=0  (1/1 pass)"
+fixture parity: "rc=0  (PASS=N FAIL=0 SKIP=N — no regression vs master)"
+diag parity: "rc=0  (PASS=N FAIL=0 SKIP=N — no regression vs master;"
+new tests added: <paths>
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
+`diagnostics: Vec<AnalysisDiagnostic>`. Each `AnalysisDiagnostic` carries a
+entry points (`lexer: ":lex_program` from \#565, `parser::parse_program` from"
+\#566, `resolver: ":resolve_program` + `typechecker::typecheck_module` from \#567)"
+`src/compiler/main.ark` (`cmd_ide_analyze` → `analysis: ":analyze` →"
+`analysis: ":snapshot_summary` printed on stdout). Not listed in `--help` so"
+- `analysis_clean.ark` (kind `run: `, `.expected = "3\n"`,
+`.analysis-expected` snapshot golden) — happy path: 2 decls, 2 symbols,
+- `analysis_multi_phase.ark` (kind `diag: `, `.diag` + `.selfhost.diag`
+pattern `parse`, `.analysis-expected` snapshot golden) — error path: a
+parse error (`) ) )` between decls) plus a type error (`let x: i32 =
+and 2 accumulated diagnostics tagged `parse: "` and `typecheck:`. This"
+verify quick: 16/20 pass, 4 pre-existing failures inherited from master
+passing: ""selfhost analysis API gate (#568)"."
 # 568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)
-**Blocks**: 569
-**Blocks v5**: no
-**Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration
 
-**Implementation target**: Per #529 Phase 6, IDE-side functionality is reimplemented in Ark (`src/`) so that the Rust IDE crates can be retired in Phase 7. This issue covers exactly one concern; do **not** expand scope.
 
 ## Summary
 
@@ -41,7 +71,6 @@ python scripts/manager.py selfhost diag-parity
 
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes
 
 ## STOP_IF
 
@@ -104,7 +133,6 @@ sibling to `src/compiler/main.ark`), the API lives under `src/compiler/` rather 
 the originally-suggested `src/ide/api.ark` so that `src/compiler/main.ark` can `use`
 it directly.
 
-**Entry-point function**: `analysis::analyze(uri: String, text: String) -> AnalysisSnapshot`
 (in `src/compiler/analysis.ark`). The snapshot is a record with fields
 `uri`, `decl_count`, `symbol_count`, `typed_fn_count`, `diagnostic_count`,
 `diagnostics: Vec<AnalysisDiagnostic>`. Each `AnalysisDiagnostic` carries a
@@ -116,7 +144,6 @@ entry points (`lexer::lex_program` from \#565, `parser::parse_program` from
 \#566, `resolver::resolve_program` + `typechecker::typecheck_module` from \#567)
 so the API surface adds zero behavioral changes to the underlying phases.
 
-**CLI surface**: hidden subcommand `arukellt ide-analyze <file>` wired through
 `src/compiler/main.ark` (`cmd_ide_analyze` → `analysis::analyze` →
 `analysis::snapshot_summary` printed on stdout). Not listed in `--help` so
 the CLI parity goldens stay byte-equal.
@@ -135,7 +162,6 @@ the CLI parity goldens stay byte-equal.
   call where the legacy `check` pipeline would short-circuit at the
   parse error.
 
-**Verification gate**: new `scripts/check/check-analysis-api.py` runs
 `arukellt ide-analyze` (under wasmtime, against the freshly-built s2 wasm)
 on each `analysis_*.ark` fixture and diffs stdout against the
 committed `.analysis-expected` golden. Wired into `python scripts/manager.py
@@ -155,6 +181,5 @@ verify quick:    16/20 pass, 4 pre-existing failures inherited from master
                  passing: "selfhost analysis API gate (#568)".
 ```
 
-**False-done checklist**: 1✓ 2✓ 3✓ 4✓ (no SKIP added) 5✓ 6✓
 7✓ 8✓ 9✓ (`scripts/check/check-analysis-api.py` exercises both
 fixtures end-to-end against the committed snapshot goldens)

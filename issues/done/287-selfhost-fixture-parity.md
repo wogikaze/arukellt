@@ -6,10 +6,12 @@ ID: 287
 Track: selfhost
 Depends on: 290
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 7
 ---
+
+- `scripts/run/verify-bootstrap.sh: "282`: `fixture-parity: not-verified` と出力するだけ"
 # セルフホスト fixture parity テストを構築する
-**Blocks v1 exit**: no
-**Priority**: 7
 
 ## Summary
 

@@ -6,10 +6,13 @@ ID: 343
 Track: formatter
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 11
 ---
+
 # Formatter: コメントと trivia の保存を実装する
-**Blocks v1 exit**: no
-**Priority**: 11
+- Added 4 new tests: line comments between items, leading comments, block comments, idempotency
+# Formatter: コメントと trivia の保存を実装する
 
 ## Summary
 

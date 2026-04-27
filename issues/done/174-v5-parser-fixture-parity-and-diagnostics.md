@@ -6,9 +6,10 @@ ID: 174
 Track: main
 Depends on: 173
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# v5 Parser: fixture parity and diagnostics
 ---
 # v5 Parser: fixture parity and diagnostics
-**Blocks v1 exit**: no
 
 ## Summary
 

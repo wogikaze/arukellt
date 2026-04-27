@@ -6,11 +6,13 @@ ID: 107
 Track: runtime-perf
 Depends on: 52
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Status note: "Depends on #064 (branch hinting MIR infrastructure). WASM SIMD autovectorization hints are not yet standardized. Deferred to v5+."
+1. MIR の `LoopInfo` に `vectorizable: bool` フラグを追加
+# 実行時性能: ループのベクトル化可能性アノテーション
 ---
 # 実行時性能: ループのベクトル化可能性アノテーション
-**Blocks v4 exit**: no
 
-**Status note**: Depends on #064 (branch hinting MIR infrastructure). WASM SIMD autovectorization hints are not yet standardized. Deferred to v5+.
 
 ## Summary
 

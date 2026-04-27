@@ -6,9 +6,14 @@ ID: 23
 Track: gc-native
 Depends on: 22
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
+- [x] All `t3-compile: "` fixtures compile (every category)."
+- [x] All `run: "` fixtures produce correct output (every category)."
+- [x] Remove any `// BRIDGE: "` or `// TODO: GC-native` markers."
+- [x] Update `docs/adr/ADR-002-memory-model.md`: add "Implementation Status"
 # GC-native full verification, cleanup, and ADR update
-**Blocks v1 exit**: no
 
 ## Summary
 

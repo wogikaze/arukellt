@@ -6,21 +6,22 @@ ID: 151
 Track: cross-cutting
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+# 横断 docs: `docs/compiler/error-codes.md` と診断コード一覧の正規化
 ---
 # 横断 docs: `docs/compiler/error-codes.md` と診断コード一覧の正規化
-**Blocks v1 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/151-error-codes-reference.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

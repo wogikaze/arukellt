@@ -5,11 +5,11 @@ ID: 166
 Track: main
 Depends on: 181, 182
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Status note: Parent issue for bootstrap verification. End-user documentation is tracked separately in #169.
 ---
 # v5 Bootstrap verification epic
-**Blocks v1 exit**: no
 
-**Status note**: Parent issue for bootstrap verification. End-user documentation is tracked separately in #169.
 
 ## Summary
 

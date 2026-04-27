@@ -6,9 +6,11 @@ ID: 273
 Track: main
 Depends on: 272
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
+
+- [x] task provider が `arukellt: build` タスクを返すことをテストで確認できる
 # LSP handshake・command execution・task execution の E2E を実装する
-**Blocks v1 exit**: yes
 
 ## Summary
 

@@ -5,16 +5,80 @@ ID: 124
 Track: language-design
 Orchestration class: blocked-by-upstream
 Orchestration upstream: None
-Depends on: none
+Depends on: "074 (wasi-p2-native-component)"
+Blocks v4 exit: yes
+ADR candidate: yes
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+Status note: BLOCKED — downstream of the #074 WASI P2 native parent gate. Do not dispatch until #074 has P2 import-table, minimum Canonical ABI, and validate/run evidence.
+---
+
+# WIT component import syntax
+package namespace: tui@0.1.0;
+title: string,
+body: string,
+headings: list<string>,
+parse-markdown: "func(input: string) -> document;"
+parse-heading: "func(line: string) -> option<string>;"
+width: u32,
+height: u32,
+clear-screen: "func();"
+render-text: "func(text: string, x: u32, y: u32);"
+get-frame-size: "func() -> frame;"
+// セマンティクス: ""namespace:markdown-parser/parse" インターフェースの"
+import "namespace: markdown-parser/parse" as md
+use std: ":host::fs"
+let content = fs: ":read_to_string("README.md")"
+// md: ":Document は WIT の `record document { title: string, ... }` から生成"
+let doc: "md::Document = md::parse_markdown(content)"
+let frame: "tui::Frame = tui::get_frame_size()"
+tui: ":render_text(doc.body, 0, 2)"
+import_stmt: ":= "import" string_literal "as" ident"
+string_literal: ":= '"' namespace ':' package '/' interface ('@' version)? '"'"
+import "wasi: filesystem/types" as fs_types
+"namespace: tui/render",
+# "wasi: http" = { path = "vendor/wasi-http", version = "0.2.10" }
+"wasi: "cli/run",      # main() → wasi:cli/run の export"
+### Phase 1: "CLI `--wit` フラグ (最小実装、約1-2週)"
+Stdlib,               // use std: ":host::stdio  (既存)"
+Wit { package_id: "String },  // import "namespace:pkg/iface" (新規)"
+1-3. ark-resolve: WIT import を型/関数として登録
+fn register_wit_imports(doc: "&WitDocument, scope: &mut Scope) { ... }"
+1-4. ark-typecheck: WIT import 関数の型検査
+WIT からの関数呼び出し `md: ":parse_markdown(s)` に型チェックを適用。"
+1-5. MIR lower: "WIT import 関数呼び出しを MirStmt::WitCall に変換"
+dest: Option<Place>,
+interface: "String,   // "namespace:markdown-parser/parse""
+func: "String,        // "parse-markdown" (WIT ケバブケース名)"
+args: Vec<Operand>,
+1-6. ark-wasm T3 emitter: WitCall → Wasm import call
+T3 emitter で `MirStmt: ":WitCall` を受け取り、Wasm の import call に変換。"
+import section に `(import "namespace: "markdown-parser/parse" "parse-markdown" (func ...))` を追加。"
+│       ├── mod.wit          # interface simple-host { add: "func(a: s32, b: s32) -> s32; }"
+### Phase 2: "型バインディング生成 (struct/enum)"
+WIT の `record document { title: string, ... }` を
+`struct Document { title: String, ... }` として型システムに登録。
+### Phase 3: `ark.toml` プロジェクトマニフェスト
+pub package: PackageMetadata,
+pub dependencies: HashMap<String, Dependency>,
+pub world: Option<WorldConfig>,
+### Phase 4: ドキュメント・cookbook
+- `use std: ":host::stdio` (stdlib) と `import "wasi:cli/stdin"` (WIT) の区別を明記"
+import "test: calculator/math" as calc
+let result = calc: ":add(10, 32)"
+let product = calc: ":multiply(6, 7)"
+package test: calculator@0.1.0;
+add: "func(a: s32, b: s32) -> s32;"
+multiply: "func(a: s32, b: s32) -> s32;"
+- issue #123: import 構文と WIT パッケージ識別子の統一方針
+- issue #074: WASI p2 native component 対応
+- issue #121: WASI p2 canonical ABI hardening
+- ADR-006: 公開 ABI 3層構造
+- ADR-008: "component wrapping (wasm-tools 依存)"
+- `crates/ark-wasm/src/component/wit_parse.rs`: 既存 WIT パーサー
 ---
 # WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成
-**Blocks v4 exit**: yes
-**Depends on**: 074 (wasi-p2-native-component)
-**ADR candidate**: yes
 
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
-**Status note**: BLOCKED — downstream of the #074 WASI P2 native parent gate. Do not dispatch until #074 has P2 import-table, minimum Canonical ABI, and validate/run evidence.
 
 ---
 
@@ -22,13 +86,11 @@ Depends on: none
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/124-wit-component-import-syntax.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## 概要
 

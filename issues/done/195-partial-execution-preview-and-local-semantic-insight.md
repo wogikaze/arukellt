@@ -2,24 +2,24 @@
 Status: done
 Created: 2026-03-29
 Updated: 2026-04-13
-Track: main
+Track: parallel
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-04-18
+ID: 195
+Orchestration upstream: —
+Blocks v1 exit: False
+Reason: No partial execution/sandbox preview implementation found.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
 ---
 # Partial execution preview + local semantic insight
-**Closed**: 2026-04-18
-**ID**: 195
-**Depends on**: none
-**Track**: parallel
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: No partial execution/sandbox preview implementation found.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 

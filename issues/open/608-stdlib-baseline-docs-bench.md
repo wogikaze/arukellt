@@ -3,15 +3,18 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 608
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: stdlib / docs
+Orchestration class: blocked-by-upstream
+Depends on: 604, 605, 606, 607
+Parent: None
+In scope: 
+Out of scope: 
 ---
+
+2. `mise bench` covers at least: fs read/write, json parse, text operations, hash insert/get
 # Stdlib Baseline: Docs, Verification, and Benchmark Closeout
-**Parent**: #590
-**Depends on**: 604, 605, 606, 607
-**Track**: stdlib / docs
-**Orchestration class**: blocked-by-upstream
+- Ensure `mise bench` covers: "file I/O (#543 tie-in), parser/text builder hot paths (#520 tie-in),"
+# Stdlib Baseline: Docs, Verification, and Benchmark Closeout
 
 ---
 

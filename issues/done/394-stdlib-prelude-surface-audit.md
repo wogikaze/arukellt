@@ -7,6 +7,11 @@ Track: stdlib-api
 Depends on: 361
 Orchestration class: implementation-ready
 ---
+
+# Stdlib: prelude 露出面を監査し completion / lint / docs と揃える
+- Audit result: 101 prelude functions in manifest, 100/101 appear in reference docs
+- Only missing: "`__intrinsic_string_is_empty` (internal intrinsic, correctly excluded from public docs)"
+- Virtual modules (std: ":math, std::string, std::collections) documented as doc categories, not importable paths"
 # Stdlib: prelude 露出面を監査し completion / lint / docs と揃える
 
 ## Acceptance

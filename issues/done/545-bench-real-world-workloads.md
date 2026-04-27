@@ -11,6 +11,9 @@ Source: request for comprehensive real-world benchmarks
 ---
 
 # 545 — Benchmark: real-world workloads
+- Tags: `string-heavy`, `container`, `recursion-heavy`, `gc-pressure`
+- [x] `mise bench: update-baseline` includes new benchmarks
+# 545 — Benchmark: real-world workloads
 
 ## Summary
 

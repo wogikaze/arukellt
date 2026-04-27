@@ -2,23 +2,45 @@
 Status: done
 Created: 2026-03-31
 Updated: 2026-04-18
-Track: main
+Track: playground
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 378
+Closed: 2026-04-18
+ID: 382
+Orchestration upstream: —
+Blocks v1 exit: no
+Priority: 25
+Previous state: "All acceptance items were `[x]` (false-done) when issue was in `issues/done/`."
+Resolution: "STOP_IF triggered (emitter absent, >100 LOC required)."
+Reason: T2 unimplemented.
+Action: Moved from issues/done/ to issues/open/ by false-done audit.
+Mode: fast local gate
+Total checks: 19
+Passed: 19
+Skipped: 0
+Failed: 0
+Close evidence: 
+Acceptance mapping (ADR slice only): 
+Implementation notes: 
 ---
+
+# Playground: "wasm32-freestanding (T2) target の downstream 実装を開始する"
+- `crates/ark-target/src/lib.rs`: "`wasm32-freestanding` registered, `implemented: true`, `run_supported: false` (compile-only; see #501)"
+- `crates/ark-wasm/src/emit/t2_freestanding.rs`: "minimal scaffold emitter (linear memory + empty `_start`, no WASI imports)"
+- `docs/target-contract.md` / `docs/current-state.md`: "T2 scaffold tier, proof path `tests/fixtures/t2/t2_scaffold.ark` + `cargo test -p arukellt --test t2_scaffold` (synced 2026-04-18, issue #382 docs slice)"
+- T2 I/O surface: ADR-020 で記録済み; scaffold はまだ `arukellt_io` import を出さない
+- Target registry: "`TargetId::Wasm32Freestanding` remains compile-only scaffold (`implemented: true`, `run_supported: false`) per `crates/ark-target/src/lib.rs` tests around the `t2` profile."
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+- ADR-020 T2 I/O Surface Design exists with Status: DECIDED
+- T2 scaffold emitter present: `crates/ark-wasm/src/emit/t2_freestanding.rs`
+- T2 scaffold fixture exists: `tests/fixtures/t2/t2_scaffold.ark`
+- Integration test passes: `cargo test -p arukellt --test t2_scaffold` → exit 0
+- Verification: "`bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)"
+- T2 scaffold tier achieved: "compile-only, run_supported: false in target registry"
 # Playground: wasm32-freestanding (T2) target の downstream 実装を開始する
-**Closed**: 2026-04-18
-**ID**: 382
-**Depends on**: 378
-**Track**: playground
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v1 exit**: no
-**Priority**: 25
 
 ## Audit correction — 2026-04-14
 
-**Previous state**: All acceptance items were `[x]` (false-done) when issue was in `issues/done/`.
 
 **Audit findings**:
 - `[x]` I/O surface ADR → `docs/adr/ADR-020-t2-io-surface.md` **EXISTS** (genuine ✓)
@@ -27,15 +49,12 @@ Depends on: none
 - `[x]` At least 1 T2 fixture compiled + browser-run → **FALSE** — no T2 fixtures in `tests/fixtures/`
 - `[x]` `docs/target-contract.md` T2 status updated → **PARTIAL** — accurately says "ADR written, emitter not started"; no further update needed until emitter ships
 
-**Resolution**: STOP_IF triggered (emitter absent, >100 LOC required).
 Emitter work broken out to `issues/open/501-t2-wasm-emit-implementation.md`.
 This issue remains open tracking the ADR slice only.
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: T2 unimplemented.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Summary
 

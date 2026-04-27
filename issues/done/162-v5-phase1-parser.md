@@ -5,11 +5,12 @@ ID: 162
 Track: main
 Depends on: 172, 173, 174
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Status note: Parent issue for v5 parser work. Close when the child issues are complete.
+# v5 Phase 1: Parser epic
 ---
 # v5 Phase 1: Parser epic
-**Blocks v1 exit**: no
 
-**Status note**: Parent issue for v5 parser work. Close when the child issues are complete.
 
 ## Summary
 

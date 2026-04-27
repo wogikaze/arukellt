@@ -6,9 +6,9 @@ ID: 197
 Track: parallel
 Depends on: 196
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # VS Code Test Explorer + inline test execution
-**Blocks v1 exit**: no
 
 ## Summary
 

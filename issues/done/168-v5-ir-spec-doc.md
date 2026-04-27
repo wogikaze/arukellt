@@ -3,6 +3,7 @@ Depends on: なし
 Priority: P2
 Track: main
 Orchestration class: implementation-ready
+# 168: CoreHIR / MIR 仕様ドキュメント
 ---
 # 168: CoreHIR / MIR 仕様ドキュメント
 

@@ -6,10 +6,16 @@ ID: 318
 Track: selfhost-cli
 Depends on: 319
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 12
 ---
+
+- `src/compiler/main.ark` (272 行): 5 コマンドのみ
+- Rust CLI (`crates/arukellt/src/main.rs`): "12+ コマンド (compile, run, build, init, fmt, test, check, targets, script, lsp, debug-adapter, analyze)"
+- [x] `arukellt run file.ark` が compile → wasm 出力のワンステップで動作する (wasmtime 実行は process: ":exec 未実装のため手動)"
+- `run` は compile + ファイル出力まで行い、wasmtime 実行は案内のみ (process: ":exec が stdlib にないため)"
+- `test` は単一ファイル指定のみ (fs: ":read_dir が stdlib にないため)"
 # Selfhost CLI にコマンド surface を追加する
-**Blocks v1 exit**: no
-**Priority**: 12
 
 ## Summary
 

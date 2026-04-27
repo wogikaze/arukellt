@@ -2,19 +2,39 @@
 Status: done
 Created: 2026-04-18
 Updated: 2026-04-18
-Track: main
+Track: stdlib
 Orchestration class: implementation-ready
 Depends on: none
 ---
+
 # Stdlib JSON: top-level parse は trailing non-whitespace を拒否する
-**Closed**: 2026-04-18
-**ID**: 521
-**Depends on**: none
-**Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v1 exit**: no
-**Source**: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
+Closed: 2026-04-18
+ID: 521
+Orchestration upstream: —
+Blocks v1 exit: no
+Source: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
+`std: ":json::parse` は現在、先頭の JSON value を読めた時点で成功し、末尾の trailing non-whitespace を拒否しない。"
+これでは parser API の user-visible contract が弱く、`"{\"x\": 1} garbage"` のような入力を valid document と誤認できる。
+- [x] `std: ":json::parse` は top-level value 後の non-whitespace trailing content を `Err(...)` で拒否する"
+Issue #521 gate (stdlib JSON + contract): 
+Full-repo fixture harness (optional / tracked separately): 
+Wave 1 landed commit `83ec2b6` (`feat(stdlib): enforce full-document json parse contract`).
+- `std: ":json::parse` in `std/json/mod.ark` already rejects any non-whitespace after the first top-level value (`Err("trailing characters")`)."
+Contract re-verified; added object + trailing garbage fixture aligned with issue summary (`{"x": 1} garbage`).
+- New negative fixture: "`tests/fixtures/stdlib_json/json_parse_trailing_object_garbage.ark` (+ `.expected`), registered in `tests/fixtures/manifest.txt`."
+- Existing negatives remain: `json_parse_trailing_garbage.ark`, `json_parse_multiple_values.ark`.
+Closed as complete. std: ":json::parse now enforces full-document contract and rejects trailing non-whitespace."
+Close evidence: 
+- Wave 1 commit 83ec2b6: "`std::json::parse` rejects trailing non-whitespace after first top-level value"
+- Wave 2: "Fixed keyword literal comparison using `eq(...)` instead of `==`; fixed `json_get` to parse from bounded slices"
+- Wave 3: Added object + trailing garbage fixture aligned with issue summary
+- Negative fixtures added: `json_parse_trailing_garbage.ark`, `json_parse_multiple_values.ark`, `json_parse_trailing_object_garbage.ark`
+- Verification: "All `tests/fixtures/stdlib_json/*.ark` vs `.expected` → PASS (2026-04-18)"
+Acceptance mapping: 
+- ✓ `std: ":json::parse` rejects trailing non-whitespace with `Err(...)`"
+Implementation notes: 
+- Parser contract now rejects `"{\"x\": 1} garbage"` style inputs as invalid
+# Stdlib JSON: top-level parse は trailing non-whitespace を拒否する
 
 ## Summary
 

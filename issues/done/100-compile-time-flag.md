@@ -6,21 +6,32 @@ ID: 100
 Track: compile-speed
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: yes
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-10)."
 ---
+
 # CLI: --time フラグ + フェーズ別コンパイル時間計測
-**Blocks v4 exit**: yes
+[arukellt] lex: 1.2ms
+[arukellt] parse: 4.5ms
+[arukellt] resolve: 8.3ms
+[arukellt] typecheck: 12.1ms
+[arukellt] lower: 3.4ms
+[arukellt] opt: "2.1ms  (passes: const_fold=5, dce=3, ...)"
+[arukellt] emit: 18.7ms
+[arukellt] total: 50.3ms
+2. `ark-driver/src/session.rs` の各フェーズ呼び出しを `Instant: ":now()` で囲む"
+# CLI: --time フラグ + フェーズ別コンパイル時間計測
 
 ---
 
 ## Reopened by audit — 2026-04-10
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/100-compile-time-flag.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-10).
 
 ## Summary
 

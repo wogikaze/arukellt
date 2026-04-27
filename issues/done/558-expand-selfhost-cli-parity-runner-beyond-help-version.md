@@ -1,4 +1,10 @@
 ---
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+Closed against commit `7961fce3` — `feat(selfhost-harness): extend CLI parity
+---
+
 id: 558
 title: Expand selfhost CLI parity runner beyond --help and --version
 status: done
@@ -7,10 +13,10 @@ created: 2026-04-22
 updated: 2026-04-22
 closed: 2026-04-22
 depends-on: "[459, 531]"
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
----
+- `scripts/selfhost/checks.py: ":_run_cli_parity()` only loops over `['--version', '--help']`"
+`scripts/selfhost/checks.py: "482`, `:492`, `:504`, `:515`)."
+not expose a top-level `test` subcommand that maps 1: 1 to the selfhost
+7961fce3 feat(selfhost-harness): "extend CLI parity runner beyond --version/--help (#558)"
 ## Why this must exist
 
 The current canonical runner `python3 scripts/manager.py selfhost parity --mode --cli` only compares exact output for `--help` and `--version`. That is insufficient to prove CLI parity for dual-period exit.

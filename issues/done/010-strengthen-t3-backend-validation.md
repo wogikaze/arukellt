@@ -6,9 +6,9 @@ ID: 8
 Track: main
 Depends on: 004, 005, 006, 007, 008, 009
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # Strengthen T3 backend validation
-**Blocks v1 exit**: yes
 
 ## Summary
 

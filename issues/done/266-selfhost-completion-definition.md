@@ -6,37 +6,33 @@ ID: 266
 Track: main
 Depends on: 253
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #253
+Orchestration upstream: None
+Blocks v1 exit: yes
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Evidence: docs/compiler/bootstrap.md has Stage 0/1/2 checklist for selfhost completion
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
-
 # selfhost 完了条件を定義し文書に固定する
-**Blocks v1 exit**: yes
 
 ---
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Completion not achieved.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: docs/compiler/bootstrap.md has Stage 0/1/2 checklist for selfhost completion
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/266-selfhost-completion-definition.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

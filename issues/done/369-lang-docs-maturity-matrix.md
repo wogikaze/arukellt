@@ -6,10 +6,11 @@ ID: 369
 Track: language-docs
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 6
+# Language Docs: feature maturity matrix を作成する
 ---
 # Language Docs: feature maturity matrix を作成する
-**Blocks v1 exit**: no
-**Priority**: 6
 
 ## Summary
 

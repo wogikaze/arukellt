@@ -6,9 +6,12 @@ ID: 16
 Track: gc-native
 Depends on: 019
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
+- [x] All `t3-compile: variables/*` fixtures compile successfully.
+- [x] All `run: variables/*` fixtures pass execution with correct output.
 # GC-native scalars, control flow, and direct calls
-**Blocks v1 exit**: no
 
 ## Summary
 

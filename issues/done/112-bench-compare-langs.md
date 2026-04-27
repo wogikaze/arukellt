@@ -7,22 +7,23 @@ Track: benchmark
 Depends on: 109
 Orchestration class: implementation-ready
 Orchestration upstream: —
----
-
+Blocks v4 exit: True
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+3. C 比 (fib: "1.5x 以内, vec-ops: 2.0x 以内) の合否を自動判定"
 # ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト
-**Blocks v4 exit**: yes
+---
+# ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/112-bench-compare-langs.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -58,7 +59,6 @@ An earlier edit marked this issue closed while **`Status` remained `open`** and 
 | 3 | C-ratio gates fib ≤1.5×, vec_ops ≤2.0× vs C | **Yes** | `--compare-c-ratio-gate` (default from `compare-benchmarks.sh`); **skipped** if `benchmarks/*.c` or `cc` missing — no fake fail |
 | 4 | Grain comparison | **Yes** | Added `benchmarks/fib.grain` and integrated `--compare-lang grain` executing hyperfine in `scripts/compare-benchmarks.sh`. |
 
-**Status**: **done**
 
 ## Close note — 2026-04-25
 

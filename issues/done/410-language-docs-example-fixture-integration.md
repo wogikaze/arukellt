@@ -6,10 +6,11 @@ ID: 410
 Track: language-docs
 Depends on: 406
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 5
+# Language Docs: guide / reference の例コードを fixture 連動にする
 ---
 # Language Docs: guide / reference の例コードを fixture 連動にする
-**Blocks v1 exit**: no
-**Priority**: 5
 
 ## Summary
 

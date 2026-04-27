@@ -6,14 +6,14 @@ ID: 488
 Track: hygiene, docs
 Orchestration class: implementation-ready
 Depends on: none
+Blocks v1 exit: no
+Priority: 70
+Source: "`scripts/check/check-docs-consistency.py` and various docs reference generator scripts at old paths (`scripts/generate-docs.py`, `scripts/generate-issue-index.sh`) while actual files live under `scripts/gen/`. No open issue tracked this drift."
 ---
 # Generator and checker path drift
-**Blocks v1 exit**: no
-**Priority**: 70
 
 ## Created by audit — 2026-04-13
 
-**Source**: `scripts/check/check-docs-consistency.py` and various docs reference generator scripts at old paths (`scripts/generate-docs.py`, `scripts/generate-issue-index.sh`) while actual files live under `scripts/gen/`. No open issue tracked this drift.
 
 ## Summary
 

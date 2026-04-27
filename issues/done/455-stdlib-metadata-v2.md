@@ -6,10 +6,50 @@ ID: 455
 Track: stdlib-docs
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 2
+Priority 1 — `std: ":host::*` 全関数**（capability 制約が重要）:"
+Priority 3 — `std: ":host::clock`, `std::host::random`**:"
 ---
+
 # stdlib metadata v2: manifest に doc/examples/errors/availability を追加し docs と LSP を拡充する
-**Blocks v1 exit**: no
-**Priority**: 2
+2. `std/manifest.toml` の重要関数（`std: ":host::*` + prelude の主要関数）にこれらフィールドを埋める。"
+### 矛盾 1: `generate-docs.py` の `target_constraints` はハードコード
+`scripts/gen/generate-docs.py` 行 107 等に `"target_constraints": ""All targets. No host capability required."` という文字列がモジュール辞書にハードコードされている。一方 `ManifestFunction.target` フィールドはすでに存在し、`target = ["wasm32-wasi-p2"]` が http/sockets 関数に設定されている。"
+採用方針: "`ManifestFunction` に `pub doc: Option<String>` を追加する（Rust 側）。"
+### 矛盾 2: `ManifestFunction.doc` フィールドが Rust 側に未定義
+### Step 1: "`ManifestFunction` に新フィールド追加 (`crates/ark-stdlib/src/lib.rs`)"
+pub doc: "Option<String>,                     // 追加: 関数の説明文（1–3 行）"
+pub examples: "Vec<ManifestExample>,          // 追加: コードサンプル"
+pub errors: "Option<String>,                  // 追加: 失敗条件の説明"
+pub availability: "Option<ManifestAvailability>,  // 追加: T1/T3 可否の明示"
+pub code: String,           // Ark コードスニペット
+pub description: Option<String>,
+pub output: Option<String>, // 期待される出力（あれば）
+pub t1: bool,   // wasm32-wasi-p1 で利用可能か
+pub t3: bool,   // wasm32-wasi-p2 で利用可能か
+pub note: Option<String>,  // 制約の補足説明
+### Step 2: `std/manifest.toml` の priority 関数へのフィールド充填
+- `process: ":exit`, `process::abort` — doc + availability (t1: true, t3: true)"
+- `http: ":get`, `http::request` — doc + availability (t1: true, t3: true) + errors"
+- `sockets: ":connect` — doc + availability (t1: false, t3: true) + errors"
+- `fs: ":read_to_string`, `fs::write_string`, `fs::write_bytes` — doc + errors + availability"
+- `env: ":var` — doc + availability (t1: false, t3: true) + note"
+module = "std: ":host::http""
+errors = "DNS 解決失敗は `Err(\"dns: "...\")`, 接続拒否は `Err(\"connection refused: ...\")`, HTTP 4xx/5xx は `Err(\"http N: ...\")`""
+code = "let body = http: ":get(\"https://example.com\")\nmatch body { Ok(s) => println(s), Err(e) => eprintln(e) }""
+### Step 3: `generate-docs.py` の `target_constraints` 自動生成化
+2. `build_target_constraints` の出力形式: 全関数が同じ target → `"All targets."` / 一部関数のみ → `"wasm32-wasi-p2 only."` / モジュール単位で制約あり → `"Requires wasm32-wasi-p2."`
+def build_target_constraints(module_name: "str, funcs: list[dict]) -> str:"
+return f"Targets: "{', '.join(sorted(targets))}.""
+### Step 4: "LSP hover への target 制約・doc 反映 (`crates/ark-lsp/src/server.rs`)"
+fn stdlib_hover_info(name: "&str, manifest: &StdlibManifest) -> Option<String> {"
+### Step 5: `check-docs-consistency.py` 更新
+- [x] `std: ":host::*` 全関数に `doc`, `availability` が設定されている"
+- [x] LSP hover で `http: ":get` 上に target 制約と doc が表示される"
+1. `crates/ark-stdlib/src/lib.rs` の unit test: `ManifestFunction` が新フィールドを正しく deserialize する
+2. `crates/ark-lsp/tests/lsp_e2e.rs`: "`http_get` hover に `"Supported on:"` または `"wasm32-wasi-p2"` が含まれる"
+# stdlib metadata v2: manifest に doc/examples/errors/availability を追加し docs と LSP を拡充する
 
 ## Summary
 
@@ -33,13 +73,11 @@ Orchestration class: implementation-ready
 
 `scripts/gen/generate-docs.py` 行 107 等に `"target_constraints": "All targets. No host capability required."` という文字列がモジュール辞書にハードコードされている。一方 `ManifestFunction.target` フィールドはすでに存在し、`target = ["wasm32-wasi-p2"]` が http/sockets 関数に設定されている。
 
-**採用方針**: `generate-docs.py` の `target_constraints` 生成をハードコード辞書から manifest の `target` フィールドへの自動変換に切り替える。マイグレーション期間中は辞書をフォールバックとして残し、manifest に `target` が設定されている場合は manifest 側を優先する。
 
 ### 矛盾 2: `ManifestFunction.doc` フィールドが Rust 側に未定義
 
 `ManifestModule.doc` は存在するが `ManifestFunction` には `doc` フィールドがない（`crates/ark-stdlib/src/lib.rs` 確認済み）。TOML に `doc = "..."` を書いても現状は無視される。
 
-**採用方針**: `ManifestFunction` に `pub doc: Option<String>` を追加する（Rust 側）。
 
 ---
 

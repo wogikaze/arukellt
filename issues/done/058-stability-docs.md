@@ -6,9 +6,18 @@ ID: 058
 Track: stdlib
 Depends on: 47
 Orchestration class: implementation-ready
+Blocks v3 exit: yes
 ---
+
+module = "std: ":text::rope""
+1. `std/manifest.toml`: 全関数に `stability` フィールドを追加
+2. `scripts/check/check-stdlib-manifest.sh`: stability フィールドの必須チェックを追加
+4. `docs/cookbook/`: "5 つ以上のレシピを作成 (JSON 処理、CLI ツール、ファイル処理、Wasm binary、テスト)"
+5. `tests/fixtures/examples/`: 各 Stable API の example fixture を作成
+1. ラベル付与は保守的に: 迷ったら Experimental にする
+- `docs/stdlib/stability-policy.md`: Stable/Experimental/Internal の定義と運用ルール
+- `docs/stdlib/README.md`: "stdlib 全体の導線 (どのドキュメントを見ればよいか)"
 # API 安定性ラベルとドキュメント体系
-**Blocks v3 exit**: yes
 
 ## Summary
 

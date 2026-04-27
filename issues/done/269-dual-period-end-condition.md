@@ -3,23 +3,23 @@ Status: done
 Created: 2026-03-30
 Updated: 2026-04-13
 Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Orchestration class: blocked-by-upstream
+Depends on: 266, 268
+Closed: 2026-04-18
+ID: 269
+Orchestration upstream: None
+Blocks v1 exit: False
+Reason: Dual-period not reached.
+Action: Moved from issues/done/ to issues/open/ by false-done audit.
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
 ---
 # Rust 実装と selfhost 実装の dual period 終了条件を定義する
-**Closed**: 2026-04-18
-**ID**: 269
-**Depends on**: 266, 268
-**Track**: main
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #266, #268
-**Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Dual-period not reached.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Summary
 

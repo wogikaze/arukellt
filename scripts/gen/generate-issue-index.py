@@ -15,19 +15,23 @@ except ImportError:
 ROOT = Path(__file__).parent.parent.parent
 OPEN_DIR = ROOT / "issues/open"
 BLOCKED_DIR = ROOT / "issues/blocked"
+DONE_DIR = ROOT / "issues/done"
 INDEX_OUT = OPEN_DIR / "index.md"
 GRAPH_OUT = OPEN_DIR / "dependency-graph.md"
 
 open_dir = OPEN_DIR
 blocked_dir = BLOCKED_DIR
+done_dir = DONE_DIR
 index_out = INDEX_OUT
 graph_out = GRAPH_OUT
 meta_out = open_dir / "index-meta.json"
 
 issue_files = sorted(p for p in open_dir.glob('*.md') if re.match(r'^\d', p.name))
 blocked_files = sorted(blocked_dir.glob('*.md')) if blocked_dir.exists() else []
+done_files = sorted(done_dir.glob('*.md')) if done_dir.exists() else []
 issues = {}
 blocked_issues = {}
+done_issues = {}
 reverse = defaultdict(list)
 
 def normalize_dep_token(token):
@@ -99,12 +103,22 @@ def parse_file(path):
     }
 
 for path in issue_files:
-    data = parse_file(path)
-    issues[data['id']] = data
+    try:
+        data = parse_file(path)
+        issues[data['id']] = data
+    except Exception as e:
+        print(f"Warning: Failed to parse {path}: {e}", file=sys.stderr)
 
 for path in blocked_files:
     data = parse_file(path)
-    blocked_issues[data['id']] = data
+    blocked_issues[str(data['id'])] = data
+
+for path in done_files:
+    try:
+        data = parse_file(path)
+        done_issues[str(data['id'])] = data
+    except Exception as e:
+        print(f"Warning: Failed to parse {path}: {e}", file=sys.stderr)
 
 for issue_id, data in issues.items():
     for dep in data['deps']:
@@ -139,6 +153,7 @@ lines.append('## Summary')
 lines.append('')
 lines.append(f'- Total open issues: {len(issues)}')
 lines.append(f'- Blocked issues: {len(blocked_issues)}')
+lines.append(f'- Done issues: {len(done_issues)}')
 lines.append(f'- Main-track issues: {sum(1 for i in issues.values() if i["track"] == "main")}')
 lines.append(f'- Parallel-track issues: {sum(1 for i in issues.values() if i["track"] == "parallel")}')
 lines.append(f'- V1 blockers: {sum(1 for i in issues.values() if i["blocks_v1"] == "yes")}')
@@ -146,6 +161,30 @@ lines.append(f'- V2 blockers: {sum(1 for i in issues.values() if i["blocks_v2"] 
 lines.append(f'- V3 blockers: {sum(1 for i in issues.values() if i["blocks_v3"] == "yes")}')
 lines.append(f'- V4 blockers: {sum(1 for i in issues.values() if i["blocks_v4"] == "yes")}')
 lines.append(f'- V5 blockers: {sum(1 for i in issues.values() if i["blocks_v5"] == "yes")}')
+lines.append('')
+
+# Track statistics
+lines.append('## Track Statistics')
+lines.append('')
+lines.append('| Track | Open | Done | Blocked | Total |')
+lines.append('|-------|------|------|---------|-------|')
+all_issues = {**issues, **blocked_issues, **done_issues}
+track_stats = {}
+for iid, data in all_issues.items():
+    track = data['track']
+    if track not in track_stats:
+        track_stats[track] = {'open': 0, 'done': 0, 'blocked': 0}
+    if iid in issues:
+        track_stats[track]['open'] += 1
+    elif iid in blocked_issues:
+        track_stats[track]['blocked'] += 1
+    elif iid in done_issues:
+        track_stats[track]['done'] += 1
+
+for track in sorted(track_stats.keys()):
+    stats = track_stats[track]
+    total = stats['open'] + stats['done'] + stats['blocked']
+    lines.append(f'| {track} | {stats["open"]} | {stats["done"]} | {stats["blocked"]} | {total} |')
 lines.append('')
 lines.append('Machine-readable metadata (orchestration + deps + acceptance counts): `index-meta.json` (generated alongside this file).')
 lines.append('')

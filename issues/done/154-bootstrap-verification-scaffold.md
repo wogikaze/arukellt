@@ -7,22 +7,23 @@ Track: cross-cutting
 Depends on: 153
 Orchestration class: implementation-ready
 Orchestration upstream: —
----
-
+Blocks v1 exit: False
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 # 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold
-**Blocks v1 exit**: no
+---
+# 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/154-bootstrap-verification-scaffold.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

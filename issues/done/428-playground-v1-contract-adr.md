@@ -6,10 +6,11 @@ ID: 428
 Track: playground
 Depends on: 378
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 1
+# Playground: v1 の product contract と execution ADR を固定する
 ---
 # Playground: v1 の product contract と execution ADR を固定する
-**Blocks v1 exit**: no
-**Priority**: 1
 
 ## Summary
 

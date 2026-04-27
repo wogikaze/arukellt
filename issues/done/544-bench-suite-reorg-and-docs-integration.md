@@ -10,6 +10,13 @@ Blocks v{N}: none
 Source: benchmarks/ directory cleanup request
 ---
 
+- Organize benchmarks by category: `benchmarks/cpu/`, `benchmarks/memory/`, `benchmarks/io/`, `benchmarks/parse/`
+- [x] `mise bench: update-baseline` works with new structure
+- `mise bench: compare` runs without errors
+- Status: done
+- Date: 2026-04-22
+- Commit: b531b7eb
+- Acceptance: all YES
 # 544 — Benchmark suite reorganization and docs integration
 
 ## Summary

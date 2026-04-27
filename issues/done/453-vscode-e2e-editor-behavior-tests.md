@@ -7,53 +7,63 @@ Track: vscode-ide
 Depends on: 450, 451, 452
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v1 exit: no
+Priority: 4
 ---
 
+suite.skip (Definition / Hover / Diagnostics): "No — `extension.test.js` uses `suite("Go to Definition (#450 / #453)", ...)`, `suite("Hover (#451 / #453)", ...)`, and `suite("Diagnostics (#452 / #453)", ...)` with no `suite.skip`. Binary-missing guard is `suiteSetup` → `this.skip()` when `target/debug/arukellt` is absent."
+verify-harness.sh --quick: Pass — 19/19 checks.
+FYI: "`test.skip("unresolved name produces E0100 diagnostic")` remains pending in the Diagnostics suite; not a `suite.skip`."
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Evidence: "extension.test.js:259 definition range test, :360 hover-string-literal test, :424 zero-diagnostics test; fixtures/basic.ark present"
+### Step 1: テスト fixture `.ark` ファイルの追加
+fn greet(name: String) -> String {
+### Step 2: Go to Definition E2E テスト追加
+assert.ok(rangeLen <= 10, `Range too wide: ${rangeLen} chars`);
+assert.ok(rangeLen <= 8, `greet range too wide: ${rangeLen}`);
+### Step 3: Hover E2E テスト追加
+(c) => (typeof c === "string" ? c: "c.value || "").includes("string literal")"
+.map((c) => (typeof c === "string" ? c: c.value || ""))
+### Step 4: Diagnostics E2E テスト追加
+`Valid file should have no diagnostics, got: "${diags.map((d) => d.message).join(", ")}`"
+language: "arukellt",
+content: ""fn main() { println(\"hello\") }\n","
+### Step 5: テスト実行環境の確認
+### Step 6: CI での実行確認
+`.github/workflows/` または `scripts/` にある CI 設定で extension テストが実行されているか確認する。実行されていない場合は、テストを CI に組み込む手順を記載する（本 issue のスコープ: 確認のみ。CI 組み込みは別 issue でも可）。
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 # VSCode API を使った editor behavior E2E テストを追加する
-**Blocks v1 exit**: no
-**Priority**: 4
 
 ---
 
 ## Audit — 2026-04-18 (#453 E2E)
 
-**suite.skip (Definition / Hover / Diagnostics)**: No — `extension.test.js` uses `suite("Go to Definition (#450 / #453)", ...)`, `suite("Hover (#451 / #453)", ...)`, and `suite("Diagnostics (#452 / #453)", ...)` with no `suite.skip`. Binary-missing guard is `suiteSetup` → `this.skip()` when `target/debug/arukellt` is absent.
 
 **npm test** (`extensions/arukellt-all-in-one`): Pass — `vscode-test` exit 0, 34 passing (2026-04-18).
 
-**verify-harness.sh --quick**: Pass — 19/19 checks.
 
-**FYI**: `test.skip("unresolved name produces E0100 diagnostic")` remains pending in the Diagnostics suite; not a `suite.skip`.
 
 ## Closed — 2026-04-15
 
-**Reason**: All three E2E suites un-skipped. `suite.skip` removed from "Go to Definition (#450 / #453)", "Hover (#451 / #453)", and "Diagnostics (#452 / #453)". Binary-availability guard added to each `suiteSetup` so tests self-skip when the debug binary is absent. `basic.ark` fixture confirmed present. `verify-harness.sh --quick`: 19/19 passed.
 
-**Action**: Moved from `issues/open/` → `issues/done/`.
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: E2E test suites skipped.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: extension.test.js:259 definition range test, :360 hover-string-literal test, :424 zero-diagnostics test; fixtures/basic.ark present
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/453-vscode-e2e-editor-behavior-tests.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

@@ -7,19 +7,62 @@ Track: runtime
 Depends on: none
 Orchestration class: implementation-ready
 ---
+
+# std: ":host::sockets::connect: WASI P2 最小実装・T3 限定 compile-time 明確化"
+Blocks v1 exit: yes
+Priority: 3
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: tests/fixtures/host/sockets and target_gating/t1_import_sockets fixtures exist, HOST_STUB_BUILTINS empty
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+`std: ":host::sockets::connect(host: String, port: i32) -> Result<i32, String>` は現在 `HOST_STUB_BUILTINS` により compile-time hard error になっている。本 issue では TCP connect の最小実装を T3 (wasm32-wasi-p2) 向けに通し、以下を達成する。"
+2. T1 (wasm32-wasi-p1) で `sockets: ":connect` を import した場合に **compile-time error** が出ることを明確化する（T1 では WASI P2 sockets が存在しないため）。"
+### Step 1: "Wasmtime linker への sockets_connect 登録 (`crates/arukellt/src/runtime.rs`)"
+// sockets_connect(host_ptr: "i32, host_len: i32, port: i32, result_ptr: i32) -> i32"
+|mut caller: "Caller<'_, WasiCtx>, host_ptr: i32, host_len: i32, port: i32, result_ptr: i32| -> i32 {"
+### Step 2: "TCP connect 実装関数 (`crates/arukellt/src/runtime.rs`)"
+fn tcp_connect_impl(host: "&str, port: u16) -> Result<i32, String> {"
+use std: ":net::TcpStream;"
+let addr = format!("{}: {}", host, port);
+match TcpStream: ":connect(&addr) {"
+// 接続成功。fd として 3 を返す（最小実装: 実際の fd 管理は将来拡張）
+Err(e) => Err(format!("connect: "{}: {}", addr, e)),"
+注意: "最小実装として `TcpStream::connect` が成功したことを確認するのみ。返す fd の値は 3 固定（実際のソケット管理は将来拡張とする）。この制約を docs に明記する。"
+### Step 3: エラーマッピング仕様の確定
+| DNS 解決失敗 | `"connect: "<host>:<port>: dns not found"` |"
+| 接続拒否 | `"connect: "<host>:<port>: connection refused"` |"
+| タイムアウト | `"connect: "<host>:<port>: timed out"` |"
+| その他 | `"connect: "<host>:<port>: <os_error>"` |"
+### Step 4: "HOST_STUB_BUILTINS から削除 (`crates/arukellt/src/commands.rs`)"
+この削除と同時に、T1 target で `std: ":host::sockets` を import した場合に Issue 448 の target-gating 診断が出るように調整する。Issue 448 が未完了の場合は、T1 向けに限定した別の HOST_STUB check を残す（T1 のみ stub 扱い）か、Issue 448 の完了を待つかを判断する。"
+採用方針: Issue 448 と本 issue は並行可能だが、HOST_STUB_BUILTINS 削除のタイミングは Issue 448 の T1 target-gate が完成したタイミングに合わせる。Issue 448 が遅れる場合は、HOST_STUB_BUILTINS に `T1 only` のエントリとして残し、T3 では通過させる分岐を追加する方法もある（実装時に判断）。
+### Step 5: T3 限定であることの compile-time 診断
+- T1 で `std: ":host::sockets` を import → `E0XXX: std::host::sockets は wasm32-wasi-p2 (T3) 専用です。ターゲットを --target wasm32-wasi-p2 に変更してください。` というコンパイルエラーを出す。"
+- T3 で `std: ":host::sockets` を import → コンパイル通過（HOST_STUB_BUILTINS に含まれない）。"
+### Step 6: fixture テスト追加
+| `host/sockets/connect_refused.ark` | T3 | CI 可 | `connect("127.0.0.1", 1)` — ポート 1 は通常拒否 | `Err("connect: "127.0.0.1:1: connection refused")` |"
+| `host/sockets/connect_dns_fail.ark` | T3 | CI 可 | `connect("invalid.example.invalid", 80)` | `Err("connect: ...")` で始まる |
+### Step 7: docs 更新
+- `sockets: ":connect` の Status を `stub → available (T3 only, minimum implementation)`."
+- "Usage is rejected at compile time" を "T1 で import した場合は compile-time error になる。T3 では利用可能（最小実装: 接続確立のみ、fd 管理は将来拡張）。" に変更。
+- `docs/current-state.md`: "Recent Milestones に `std::host::sockets::connect` が T3 で利用可能になった旨を追記。"
+- `std/manifest.toml`: sockets モジュールの stability を `experimental` のまま維持（fd 管理が完全でないため）。
+- 現状: "sockets を使うプログラムは compile-time hard error。実装後: T3 でコンパイル通過し実行可能になる。T1 での挙動は変わらない（Issue 448 完了まで HOST_STUB_BUILTINS か target-gate により継続して block）。"
+- WASI P2 native `wasi: sockets/tcp` component path（Bridge mode の制約内で Wasmtime linker を使う）
+- [x] T3 で `sockets: ":connect` が compile 通過する（HOST_STUB_BUILTINS から削除）"
+- [x] T1 で `sockets: ":connect` を使うと compile-time error または明確な diagnostics が出る"
+1. `host/sockets/connect_refused.ark`（T3 CI）: 接続拒否で `Err` が返る
+2. `host/sockets/connect_dns_fail.ark`（T3 CI）: DNS 失敗で `Err` が返る
+3. HOST_STUB_BUILTINS 削除後の regression: 既存の "sockets stub" 検証 fixture（あれば）が失敗しないことを確認
+- `TcpStream: ":connect` はデフォルトで接続タイムアウトがない。`TcpStream::connect_timeout` を使い、タイムアウトを設定すること（例: 5秒）。"
+- ポート番号の型変換: "Ark の `i32` から Rust の `u16` への変換で負数・65536 超の場合の処理を追加する（範囲外は `Err("connect: invalid port <n>")` を返す）。"
 # std::host::sockets::connect: WASI P2 最小実装・T3 限定 compile-time 明確化
-**Blocks v1 exit**: yes
-**Priority**: 3
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: tests/fixtures/host/sockets and target_gating/t1_import_sockets fixtures exist, HOST_STUB_BUILTINS empty
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Audit normalization — 2026-04-18
 
@@ -35,13 +78,11 @@ This issue remains in `issues/done/`; the earlier reopen note is retained only a
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/447-std-host-sockets-implementation.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -111,7 +152,6 @@ fn tcp_connect_impl(host: &str, port: u16) -> Result<i32, String> {
 }
 ```
 
-**注意**: 最小実装として `TcpStream::connect` が成功したことを確認するのみ。返す fd の値は 3 固定（実際のソケット管理は将来拡張とする）。この制約を docs に明記する。
 
 ### Step 3: エラーマッピング仕様の確定
 
@@ -132,7 +172,6 @@ T3 実装完了後、`HOST_STUB_BUILTINS` から `"sockets_connect"` と `"__int
 
 この削除と同時に、T1 target で `std::host::sockets` を import した場合に Issue 448 の target-gating 診断が出るように調整する。Issue 448 が未完了の場合は、T1 向けに限定した別の HOST_STUB check を残す（T1 のみ stub 扱い）か、Issue 448 の完了を待つかを判断する。
 
-**採用方針**: Issue 448 と本 issue は並行可能だが、HOST_STUB_BUILTINS 削除のタイミングは Issue 448 の T1 target-gate が完成したタイミングに合わせる。Issue 448 が遅れる場合は、HOST_STUB_BUILTINS に `T1 only` のエントリとして残し、T3 では通過させる分岐を追加する方法もある（実装時に判断）。
 
 ### Step 5: T3 限定であることの compile-time 診断
 

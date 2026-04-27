@@ -6,21 +6,25 @@ ID: 093
 Track: backend-opt
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Commit hash evidence: df4f672
 ---
+
 # T3: 定数条件 if の emit 時除去
-**Blocks v4 exit**: no
+- `crates/ark-wasm/src/emit/t3/stmts.rs` — `MirStmt: ":IfStmt` handler (lines 231–242); when `cond` is `Operand::ConstBool(value)`, the `if`/`else`/`end` Wasm instructions are skipped entirely and only the matching branch body is emitted directly"
+# T3: 定数条件 if の emit 時除去
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/093-t3-const-if-elimination.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -48,5 +52,3 @@ roadmap-v4.md §5.3 で明示的に要求されている最適化。
 1. ✅ `emit_if` (via `emit_stmt` for `IfStmt`) skips `if`/`else`/`end` Wasm instructions for constant boolean conditions
 2. ✅ Always active (not gated behind opt-level check); safe unconditional optimization
 3. ⏭️ `wc -c` binary size reduction for fixture — benchmark skipped; needs manual verification.
-
-**Commit hash evidence**: df4f672

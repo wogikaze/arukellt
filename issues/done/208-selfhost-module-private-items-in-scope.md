@@ -7,10 +7,13 @@ Track: compiler/selfhost
 Depends on: —
 Orchestration class: implementation-ready
 ---
-# selfhost: module private items must be visible within module scope
-**Blocks v1 exit**: no
 
-**Status note**: Blocking selfhost compiler E2E wiring. `use lexer` from `driver.ark` fails because `bind_public_module` skips private items, so pub functions that call private helpers (e.g., `tokenize` → `Lexer_new`) get "unresolved name" errors in the merged module.
+# selfhost: module private items must be visible within module scope
+Blocks v1 exit: no
+Status note: "Blocking selfhost compiler E2E wiring. `use lexer` from `driver.ark` fails because `bind_public_module` skips private items, so pub functions that call private helpers (e.g., `tokenize` → `Lexer_new`) get "unresolved name" errors in the merged module."
+- [x] `src/compiler/lexer.ark` can still be run standalone: `arukellt run src/compiler/lexer.ark`
+# selfhost: module private items must be visible within module scope
+
 
 ## Summary
 

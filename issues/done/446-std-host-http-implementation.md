@@ -6,20 +6,59 @@ ID: 446
 Track: runtime
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
+Priority: 2
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: runtime.rs has register_http_host_fns, http_get_impl; HOST_STUB_BUILTINS is empty
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+T3 (wasm32-wasi-p2) の component モードで `wasi: http/outgoing-handler` を呼ぶ実装を追加する。
 ---
+
+# std: ":host::http: T1 動作確認・T3 WASI P2 最小実装・stub 解除"
+- `docs/current-state.md` and `docs/capability-surface.md` describe `std: ":host::http`"
+`std: ":host::http::get(url)` / `http::request(method, url, body)` は manifest 上は T3 限定で可視だが実装は stub。`docs/capability-surface.md` は両関数を compile-time blocked と記述しているが、実際の `HOST_STUB_BUILTINS` リスト（`commands.rs` 行 1162）には http が含まれておらず、T1 (Wasmtime linker) では `http_get_impl` / `http_request_impl` が `runtime.rs` に既に実装されている。"
+### 矛盾 1: 「compile-time blocked」の記述と実際の挙動
+### 矛盾 2: T1/T3 の availability 表記
+- 現状の Target Compatibility Matrix: "`http::request` / `http::get` は T1 列が `—`（利用不可）、T3 列が `stub`。"
+### Step 1: T1 経路の動作確認と fixes
+- 代替として: httpbin.org や localhost の mock サーバーを立てる方法があるが、fixture harness の制約を確認の上決定する。
+### Step 2: エラーマッピング仕様の確定
+| DNS 解決失敗 | `"dns: "<hostname>: not found"` |"
+| 接続タイムアウト | `"timeout: <url>"` |
+| 接続拒否 | `"connection refused: <url>"` |
+| HTTP 4xx | `"http <status_code>: <url>"` |
+| HTTP 5xx | `"http <status_code>: <url>"` |
+| その他 | `"error: <message>"` |
+この仕様を `docs/capability-surface.md` の `std: ":host::http` セクションに追記する。"
+### Step 3: T3 WASI P2 component 経路の実装
+- `std/host/http.ark` に `__intrinsic_http_get_t3` / `__intrinsic_http_request_t3` を定義し、T3 では `wasi: http` 経由に dispatch する。
+### Step 4: HOST_STUB_BUILTINS の修正と compile-time enforcement
+現状: http は `HOST_STUB_BUILTINS` に含まれていない → compile-time では弾かれない。
+### Step 5: capability-surface.md の全面修正
+- T1 で動作するなら: ""T1 (Wasmtime linker 経由) では利用可能。T3 では Wasmtime linker 経由で利用可能（wasi:http native path は将来拡張）。""
+### Step 6: fixture テスト追加
+| `host/http/get_err_dns.ark` | T1/T3 | CI 可 | 存在しないドメインへ GET | `Err("dns: ...")` 形式 |
+| `host/http/request_err_refused.ark` | T1/T3 | CI 可 | localhost: "1 へ POST | `Err("connection refused: ...")` 形式 |"
+### Step 7: docs 更新
+- `docs/capability-surface.md`: 上記 Step 5 の全修正。
+- `docs/current-state.md`: "Recent Milestones に `std::host::http` が T1/T3 で利用可能になった旨を追記。"
+- `std/manifest.toml`: http モジュールの stability を `experimental → available` に変更（T3 native WASI P2 path 完成時に `stable` に引き上げる）。
+- 既存コードで `http: ":get` / `http::request` を呼んでいるプログラムは現状コンパイルエラーになっていないが実行時 `Err` を返していた可能性がある（HOST_STUB_BUILTINS に含まれないため）。実装完了後は `Ok` が返る場合があり、**既存コードのエラーハンドリングが `Err` 前提だった場合に影響する**。ただし、http stub が想定通り動いていた（= Err を想定した）コードは Err ケースも引き続きテストされるべきであり、実装前後で動作が壊れることはない。"
+- WASI P2 native component `wasi: http/outgoing-handler` を直接 wasm レベルで import する（Bridge mode の現行制約を超える）
+- [x] T1 で `http: ":get(url)` が Wasmtime linker 経由で実行可能（エラーケース fixture が CI pass）"
+- [x] T3 で `http: ":get(url)` が Wasmtime linker 経由で実行可能（エラーケース fixture が CI pass）"
+1. `host/http/get_err_dns.ark`（T1/T3）: "存在しないドメインへの GET が `Err("dns: ...")` を返す"
+2. `host/http/request_err_refused.ark`（T1/T3）: "接続拒否が `Err("connection refused: ...")` を返す"
+3. `cargo test --workspace`: runtime の http 関連 unit test（既存があれば拡充、なければ追加）
+- T3 の `run_wasm_gc` ルートで http linker が登録されていない場合、`Linker: ":func_wrap` または `Linker::define` で登録する。T1 と T3 で同じ linker 登録関数を共用できる場合は共用する。"
 # std::host::http: T1 動作確認・T3 WASI P2 最小実装・stub 解除
-**Blocks v1 exit**: yes
-**Priority**: 2
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: runtime.rs has register_http_host_fns, http_get_impl; HOST_STUB_BUILTINS is empty
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Audit normalization — 2026-04-18
 
@@ -37,13 +76,11 @@ The issue remains in `issues/done/`; the stale reopen note is kept only as histo
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/446-std-host-http-implementation.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

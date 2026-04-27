@@ -4,19 +4,23 @@ Created: 2026-04-15
 Updated: 2026-04-22
 ID: 508
 Depends on: 593
-Track: main
-Orchestration class: implementation-ready
+Track: corehir
+Orchestration class: blocked-by-upstream
+Blocks: completion of issue 285 acceptance item "all fixtures pass legacy-less"
+Orchestration upstream: #529
+Priority: 4
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+Operational lane: legacy removal / selfhost transition. Keep separate from #125/#126 trusted-base compiler default-path correction and from #099 selfhost frontend design.
 ---
+
+└─ lower_hir_to_mir          ← returns MirModule: ":new() (stub, always empty)"
+let mut mir = MirModule: ":new();"
+set_mir_provenance(&mut mir, MirProvenance: ":CoreHir);"
+- [ ] All T1 + T3 fixtures pass with `MirSelection: ":CoreHir` (no legacy fallback)"
+- 本 issue (#508) の `Depends on: ` を `285` から `529` に張り替え、循環は解消。
 # Legacy path removal is blocked by CoreHIR lowerer stub
-**Blocks**: completion of issue 285 acceptance item "all fixtures pass legacy-less"
-**Track**: corehir
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #529
-**Priority**: 4
 
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
-**Operational lane**: legacy removal / selfhost transition. Keep separate from #125/#126 trusted-base compiler default-path correction and from #099 selfhost frontend design.
 
 ## Summary
 

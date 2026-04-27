@@ -8,28 +8,15 @@
 
 # Extension: playground surface は repo で証明できる endpoint だけを指す
 
-**Status**: open
-**Created**: 2026-04-03
-**Updated**: 2026-04-21
-**ID**: 469
-**Depends on**: 378
-**Track**: extension
-**Orchestration class**: verification-ready
-**Orchestration upstream**: —
-**Blocks v4 exit**: no
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ---
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Conflicting metadata.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Closed by orchestration — 2026-04-14
 
-**Reason**: Close gate satisfied with repo-native regression proof and surface consistency.
 
 **Evidence**:
 - `extensions/arukellt-all-in-one/test/playground-endpoint-guard.js` enforces that extension-exposed endpoint equals repo-proved route and requires `docs/playground/index.html` entrypoint proof.
@@ -38,25 +25,19 @@
 - `extensions/arukellt-all-in-one/README.md` now states only the repo-proved route is supported.
 - Verification in slice commit `0426b64`: `python scripts/manager.py verify quick` PASS, `npm --prefix extensions/arukellt-all-in-one run test:playground-endpoint` PASS.
 
-**Action**: Move to `issues/done/` with status `done`.
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: docs/playground/index.html is real browser entrypoint calling createPlaygroundApp(), pages.yml deploys it
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/469-extension-playground-surface-points-to-repo-proved-endpoint.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

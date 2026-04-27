@@ -6,10 +6,13 @@ ID: 430
 Track: playground
 Depends on: 429
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 3
 ---
+
 # Playground: diagnostics worker と incremental parse loop の性能予算を作る
-**Blocks v1 exit**: no
-**Priority**: 3
+- [x] 性能予算（例: 典型ファイルでの更新時間）が定義される。
+# Playground: diagnostics worker と incremental parse loop の性能予算を作る
 
 ## Summary
 

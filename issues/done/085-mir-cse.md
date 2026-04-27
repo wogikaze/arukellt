@@ -6,21 +6,28 @@ ID: 085
 Track: mir-opt
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Path discrepancy: Acceptance criteria states `passes/cse.rs`; actual location is `opt/cse.rs`.
+Commit hash evidence: df4f672
 ---
+
+# MIR: "CSE (Common Subexpression Elimination) パス"
+1. `passes/cse.rs`: "同一ブロック内の純粋な計算 (副作用なし) を重複排除"
+- `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass: ":Cse`; in `DEFAULT_PASS_ORDER`; `OptimizationSummary.cse_eliminated` field present"
+2. ✅ `struct.get`/`array.get` CSE: pure binop/unaryop covers read-only expressions; call/side-effect stmts clear the table
 # MIR: CSE (Common Subexpression Elimination) パス
-**Blocks v4 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/085-mir-cse.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -45,12 +52,9 @@ Orchestration class: implementation-ready
 - `crates/ark-mir/src/opt/cse.rs` — CSE pass; eliminates duplicate pure `BinaryOp`/`UnaryOp` computations within each basic block
 - `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass::Cse`; in `DEFAULT_PASS_ORDER`; `OptimizationSummary.cse_eliminated` field present
 
-**Path discrepancy**: Acceptance criteria states `passes/cse.rs`; actual location is `opt/cse.rs`.
 
 **Accepted criteria**:
 1. ✅ Within-block pure computation dedup implemented (`is_pure_binop` check, seen-map per block)
 2. ✅ `struct.get`/`array.get` CSE: pure binop/unaryop covers read-only expressions; call/side-effect stmts clear the table
 3. ✅ `OptimizationSummary.cse_eliminated` counter recorded
 4. ✅ Opt-level 1+ effective — pass is in `DEFAULT_PASS_ORDER` (runs at opt-level ≥ 1)
-
-**Commit hash evidence**: df4f672

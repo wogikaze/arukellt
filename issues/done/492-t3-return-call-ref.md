@@ -6,6 +6,7 @@ Track: wasm-backend
 Source: audit — issues/done/060-wasm-tail-call.md AC3
 Orchestration class: implementation-ready
 Depends on: none
+# 492 — T3 tail-call: implement return_call_ref
 ---
 # 492 — T3 tail-call: implement return_call_ref
 

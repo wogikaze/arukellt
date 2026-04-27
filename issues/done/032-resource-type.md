@@ -2,24 +2,44 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-13
-Track: main
+Track: component-model
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 030
+Closed: 2026-04-18
+ID: 032
+Orchestration upstream: —
+Blocks v1 exit: no
+Reason: Resource types and handle-table exist but export validation still errors on resources. Not enabled for component exports.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
 ---
+
+- `own<T>`: transfers ownership across the boundary. The sender drops its handle.
+- `borrow<T>`: temporary access. The handle is valid only for the duration of the call.
+- [x] `WitType: ":Own(Box<WitType>)` and `WitType::Borrow(Box<WitType>)` variants added."
+- [x] A handle table implementation exists in the T3 emitter: `$__handle_table` as a
+- [x] `own<T>` export: GC ref → insert into handle table → return i32 index.
+- [x] `own<T>` import: receive i32 index → look up in handle table → return GC ref → remove entry.
+- [x] `borrow<T>` import: "receive i32 index → look up in handle table → return GC ref (no removal)."
+- [x] At least 2 test cases: "(a) export a resource constructor + method, (b) import a host"
+- [x] Arukellt source syntax for declaring a resource is defined. Proposal: `struct` with a
+- `crates/ark-wasm/src/component/wit.rs` — WitType: ":Resource, Own, Borrow"
+- v2 resource support is intentionally minimal: basic own/borrow handle passing. Advanced
+- WIT resource declarations parsed: "`WitType::Resource(String)` in `wit.rs`, `parse_resource()` in `wit_parse.rs`"
+- Own/Borrow types implemented: "`WitType::Own(Box<WitType>)` and `WitType::Borrow(Box<WitType>)` variants"
+- Handle table implementation: `crates/ark-wasm/src/component/handle_table.rs` with ResourceDescriptor, HandleTablePlan
+- Canonical ABI classification: "`CanonicalAbiClass::Handle` for Resource/Own/Borrow in `canonical_abi.rs`"
+- Tests exist: `resource_handle_classification`, `plan_detects_handle_table`, `parse_resource_declaration`, `parse_own_borrow_types`, `test_resource_wit_generation`
+- Verification: "`bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)"
+- ✓ WitType: ":Resource, Own, Borrow variants added"
+- This is a known limitation: resource types are supported in the WIT parser and canonical ABI layer, but component export validation requires additional work tracked separately
 # WIT resource type support (own/borrow)
-**Closed**: 2026-04-18
-**ID**: 032
-**Depends on**: 030
-**Track**: component-model
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Resource types and handle-table exist but export validation still errors on resources. Not enabled for component exports.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 

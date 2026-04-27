@@ -2,30 +2,47 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-18
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: backend-opt
+Orchestration class: design-ready
+Depends on: —
 ---
+
 # T3: enum dispatch の br_on_cast 連鎖最適化
-**Closed**: 2026-04-18
-**ID**: 094
-**Depends on**: —
-**Track**: backend-opt
-**Orchestration class**: design-ready
-**Orchestration upstream**: Rescoped 2026-04-18 — original i31 / monolithic `br_on_cast` acceptance deferred; see §Rescope — 2026-04-18; partial IfStmt→`br_table` work landed under #505 (`issues/done/505-t3-br-table-type-info-gap.md`)
-**Blocks v4 exit**: no
+Closed: 2026-04-18
+ID: 094
+Orchestration upstream: "Rescoped 2026-04-18 — original i31 / monolithic `br_on_cast` acceptance deferred; see §Rescope — 2026-04-18; partial IfStmt→`br_table` work landed under #505 (`issues/done/505-t3-br-table-type-info-gap.md`)"
+Blocks v4 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Superseded (2026-04-18): The three bullets below described an optimization
+2. `br_table` への変換: "i31 タグを使った O(1) ディスパッチ実装 *(blocked — requires repr change; deferred)"
+Applied STOP_IF #2: T3 does not currently emit `br_on_cast` chains for enum
+Step 1 — Tag extraction (`Operand: ":EnumTag` in `operands.rs`)"
+4. On exit from each inner block: "`Drop` the typed ref, push `I32Const(i)`,"
+Step 2 — Arm dispatch (`MirStmt: ":IfStmt` chains in `stmts.rs`)"
+IfStmt { cond: "BinOp(Eq, EnumTag(e), ConstI32(1)), then: arm1, else: ["
+arm2_stmts   // last arm: no tag check
+Overall complexity: "O(n) arms × O(n) BrOnCast tests per arm = **O(n²)"
+Estimated change: ≥ 180 lines across 4 files — exceeds the 150-line limit
+`IfStmt { cond: "BinOp(Eq, EnumTag(same_scrut), ConstI32(k)), ... }`"
+This optimization was tracked at: "`issues/done/505-t3-br-table-type-info-gap.md` (done)."
+Purpose: Lift the hard **STOP_IF** gate for orchestration by recording the
+STOP_IF historical note: The §STOP_IF section remains as **audit evidence**;
+Close evidence: 
+- Documentation rescope complete: "issue documents why original acceptance is incompatible with HEAD (§STOP_IF + table)"
+- Verification: "`bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)"
+Acceptance mapping: 
+# T3: enum dispatch の br_on_cast 連鎖最適化
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/094-t3-br-on-cast-chain-opt.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -56,7 +73,6 @@ the documentation rescope in §Rescope — 2026-04-18, not a new emitter landing
 
 ## STOP_IF triggered — 2026-04-15
 
-**Applied STOP_IF #2**: T3 does not currently emit `br_on_cast` chains for enum
 *dispatch* (uses a different dispatch strategy entirely). Documenting actual
 strategy here; implementation halted.
 
@@ -109,7 +125,6 @@ else
 end
 ```
 
-**Overall complexity**: O(n) arms × O(n) BrOnCast tests per arm = **O(n²)**
 type tests in worst case for a complete n-variant enum match.
 
 ### Why i31-tagged `br_table` is blocked (STOP_IF #1)

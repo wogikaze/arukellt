@@ -6,11 +6,12 @@ ID: 183
 Track: parallel
 Depends on: 184, 185, 186, 187, 188, 205, 206, 207
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Status note: Parent issue for the all-in-one VS Code experience. Core editor, test, debug, project metadata, and cross-cutting DX surfaces are tracked separately.
+# VS Code: `arukellt-all-in-one` 拡張機能 epic
 ---
 # VS Code: `arukellt-all-in-one` 拡張機能 epic
-**Blocks v1 exit**: no
 
-**Status note**: Parent issue for the all-in-one VS Code experience. Core editor, test, debug, project metadata, and cross-cutting DX surfaces are tracked separately.
 
 ## Summary
 

@@ -6,10 +6,11 @@ ID: 362
 Track: stdlib-api
 Depends on: 358, 360
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 9
+# Stdlib: stability tier を実行時・CI で検証する
 ---
 # Stdlib: stability tier を実行時・CI で検証する
-**Blocks v1 exit**: no
-**Priority**: 9
 
 ## Summary
 

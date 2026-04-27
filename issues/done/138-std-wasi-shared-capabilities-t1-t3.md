@@ -6,21 +6,27 @@ ID: 138
 Track: wasi-feature
 Depends on: 137
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+T1/T3 の両方で意味を共有できる host capability を `std: ":host::*` として提供する。"
+対象は `std: ":host::stdio`, `std::host::fs`, `std::host::env`, `std::host::process`, `std::host::clock`, `std::host::random` とし、"
+1. `std: ":host::stdio`, `std::host::env`, `std::host::process` に stdio / args / env / exit 相当の facade を定義する"
+2. `std: ":host::fs` に read / write の最小 surface を定義する"
+3. `std: ":host::clock`, `std::host::random` を target-specific backend へ接続する"
+# `std: ":host` 共通 capability (`stdio` / `fs` / `env` / `process` / `clock` / `random`) を T1/T3 両対応で実装"
 ---
 # `std::host` 共通 capability (`stdio` / `fs` / `env` / `process` / `clock` / `random`) を T1/T3 両対応で実装
-**Blocks v1 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/138-std-wasi-shared-capabilities-t1-t3.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

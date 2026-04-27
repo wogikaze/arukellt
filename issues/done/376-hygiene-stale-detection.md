@@ -6,10 +6,12 @@ ID: 376
 Track: repo-hygiene
 Depends on: 373
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 19
+Covered by combination of: "#302 (expanded consistency), #424 (issue index freshness), existing stdlib manifest check, and #373 (generated boundary check)."
+# Repo Hygiene: stale state を CI / pre-push で自動検出する
 ---
 # Repo Hygiene: stale state を CI / pre-push で自動検出する
-**Blocks v1 exit**: no
-**Priority**: 19
 
 ## Summary
 

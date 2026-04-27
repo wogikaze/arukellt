@@ -7,15 +7,15 @@ Track: selfhost
 Depends on: —
 Orchestration class: verification-ready
 Orchestration upstream: —
+Reason: Claims fixpoint verified but not reached.
+Action: Re-verify `docs/current-state.md` against bootstrap scripts and close only if no overclaim remains.
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
-
 # bootstrap セクションの fixpoint 記述整合を再検証する
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Claims fixpoint verified but not reached.
 
-**Action**: Re-verify `docs/current-state.md` against bootstrap scripts and close only if no overclaim remains.
 
 ## Acceptance
 

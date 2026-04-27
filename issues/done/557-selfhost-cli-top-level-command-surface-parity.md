@@ -1,4 +1,11 @@
 ---
+Track: main
+Orchestration class: implementation-ready
+Depends on: none
+Implementation: "Added `CMD_NOT_YET()` constant and explicit stub handlers in `src/compiler/main.ark`"
+Remaining intentional scope gap: The 11 commands have stubs, not full implementations.
+---
+
 id: 557
 title: Selfhost CLI top-level command surface parity
 status: done
@@ -6,10 +13,10 @@ track: selfhost-cli
 created: 2026-04-22
 updated: 2026-04-22
 depends-on: "[288, 318, 319, 459]"
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
----
+for all 11 unimplemented commands: `init`, `fmt`, `targets`, `script`, `component`, `lsp`,
+`"error: command not yet implemented in selfhost compiler"`. No command falls through to
+init: "exit=1 | error: command not yet implemented in selfhost compiler"
+fmt: "exit=1 | error: command not yet implemented in selfhost compiler"
 ## Why this must exist
 
 The current canonical CLI parity runner passes only for `--version` and `--help`, but the selfhost `--help` output now advertises a Rust-level top-level command surface that the selfhost CLI does not actually implement. This is a user-visible claim mismatch.
@@ -53,13 +60,11 @@ No user-visible command in selfhost help is a false existence claim.
 
 ## Closed — 2026-04-22
 
-**Implementation**: Added `CMD_NOT_YET()` constant and explicit stub handlers in `src/compiler/main.ark`
 for all 11 unimplemented commands: `init`, `fmt`, `targets`, `script`, `component`, `lsp`,
 `debug-adapter`, `lint`, `analyze`, `doc`, `compose`. Each exits 1 with
 `"error: command not yet implemented in selfhost compiler"`. No command falls through to
 implicit compile / unknown behavior.
 
-**Remaining intentional scope gap**: The 11 commands have stubs, not full implementations.
 Full implementation of each command is tracked as separate post-#459 issues per the Phase 6+
 plan in #529.
 

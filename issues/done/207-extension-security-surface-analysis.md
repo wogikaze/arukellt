@@ -6,9 +6,9 @@ ID: 207
 Track: parallel
 Depends on: 184, 188
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # Extension security surface analysis
-**Blocks v1 exit**: no
 
 ## Summary
 

@@ -6,11 +6,12 @@ ID: 184
 Track: parallel
 Depends on: 189, 190, 191
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Status note: Parent issue for extension bootstrap, command/task wiring, and setup/inspection surfaces.
+# VS Code: `arukellt-all-in-one` 拡張の基盤整備
 ---
 # VS Code: `arukellt-all-in-one` 拡張の基盤整備
-**Blocks v1 exit**: no
 
-**Status note**: Parent issue for extension bootstrap, command/task wiring, and setup/inspection surfaces.
 
 ## Summary
 

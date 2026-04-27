@@ -6,10 +6,11 @@ ID: 356
 Track: tooling-contract
 Depends on: 355
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 24
+# Tooling Contract: CLI / LSP / Extension の機能契約を文書化する
 ---
 # Tooling Contract: CLI / LSP / Extension の機能契約を文書化する
-**Blocks v1 exit**: no
-**Priority**: 24
 
 ## Summary
 

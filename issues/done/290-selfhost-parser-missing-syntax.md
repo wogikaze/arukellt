@@ -6,10 +6,15 @@ ID: 290
 Track: selfhost
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 10
 ---
+
+- selfhost parser に不足: "`ArrayRepeat` (`[expr; count]`)、`Try` 演算子 (`expr?`)、struct base syntax (`..base`)"
+- `src/compiler/parser.ark`: NK_* 定数に上記が未定義
+- Rust parser `crates/ark-parser/src/ast.rs: "254-282`: ArrayRepeat, Try, Assign 等がある"
+- [x] `Struct { field: val, ..base }` 構文が selfhost parser で parse できる
 # セルフホスト parser に不足構文を追加する
-**Blocks v1 exit**: no
-**Priority**: 10
 
 ## Summary
 

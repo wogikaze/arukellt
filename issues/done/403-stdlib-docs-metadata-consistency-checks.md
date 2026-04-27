@@ -6,10 +6,11 @@ ID: 403
 Track: stdlib-docs
 Depends on: 395
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 9
+# Stdlib Docs: manifest metadata と生成 docs の整合チェックを拡張する
 ---
 # Stdlib Docs: manifest metadata と生成 docs の整合チェックを拡張する
-**Blocks v1 exit**: no
-**Priority**: 9
 
 ## Summary
 

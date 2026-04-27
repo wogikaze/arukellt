@@ -6,10 +6,11 @@ ID: 416
 Track: language-docs
 Depends on: 413, 415
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 11
+# Language Docs: ownership map と release gate を定義する
 ---
 # Language Docs: ownership map と release gate を定義する
-**Blocks v1 exit**: no
-**Priority**: 11
 
 ## Summary
 

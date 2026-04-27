@@ -2,30 +2,33 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-03
-Track: main
+Track: code-structure
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: —
+Closed: 2026-04-18
+ID: 130
+Orchestration upstream: —
+Blocks v4 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
 ---
+
+- Build succeeds: `cargo build --workspace --exclude ark-llvm --exclude ark-lsp` → exit 0
+- Verification: "`bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)"
 # MIR lower.rs (4360行) をサブモジュールに分割
-**Closed**: 2026-04-18
-**ID**: 130
-**Depends on**: —
-**Track**: code-structure
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v4 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/130-split-mir-lower.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

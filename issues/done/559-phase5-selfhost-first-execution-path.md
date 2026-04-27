@@ -10,11 +10,27 @@ Orchestration upstream: —
 ---
 
 # 559 — Phase 5 prerequisite: selfhost-first execution path & verify/CI switch
-**Blocks**: 560, 561, 562, 563, 564
-**Blocks v5**: no
-**Source**: #529 Phase 5-1 / 5-2 (Operational Guide)
+Blocks: 560, 561, 562, 563, 564
+Blocks v5: no
+Source: "#529 Phase 5-1 / 5-2 (Operational Guide)"
+Implementation target: "This issue is a **prerequisite** for every Phase 5 deletion. It promotes the selfhost wasm to the canonical execution path used by `scripts/manager.py verify` and `.github/workflows/*.yml`, so that subsequent Phase 5 deletion issues (#560–#564) can remove Rust crates without losing CI coverage."
+Phase 5 of #529 deletes the Rust core compiler crates. Before any deletion is safe, the canonical execution path must already be selfhost-first: "`scripts/manager.py verify` and `.github/workflows/*.yml` must invoke the selfhost wasm (or a promoted wrapper) instead of `cargo run -p arukellt` for compilation. This issue codifies that switch and proves it with all 4 canonical selfhost gates green."
+- [x] All 4 canonical selfhost gates: rc=0, FAIL=0, SKIP delta=0
+REBUILD_BEFORE_VERIFY: yes
+2. [x] All 4 canonical gates: numeric Δ recorded
+- One logical commit, or at most one per surface (script vs CI), each tagged `chore(selfhost): "{surface} — selfhost-first execution path (refs #559)`."
+commit(s): "see commit titled `feat(selfhost): make selfhost-first the default execution path (#559)` on master"
+wrapper artifact path: scripts/run/arukellt-selfhost.sh
+fixpoint: rc=0 PASS=1 FAIL=0 SKIP=0 → rc=0 PASS=1 FAIL=0 SKIP=0
+fixture parity: PASS=1 FAIL=0 SKIP=0     → PASS=1 FAIL=0 SKIP=0
+cli parity: PASS=1 FAIL=0            → PASS=1 FAIL=0
+diag parity: PASS=1 FAIL=0 SKIP=0     → PASS=1 FAIL=0 SKIP=0
+remaining `cargo run -p arukellt` references: "none (rg over scripts/ .github/workflows/ returns 0 hits, exit=1)"
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓
+- New wrapper: `scripts/run/arukellt-selfhost.sh` — executes
+`use std: ":text` doc-comment construct (predates this slice)."
+# 559 — Phase 5 prerequisite: selfhost-first execution path & verify/CI switch
 
-**Implementation target**: This issue is a **prerequisite** for every Phase 5 deletion. It promotes the selfhost wasm to the canonical execution path used by `scripts/manager.py verify` and `.github/workflows/*.yml`, so that subsequent Phase 5 deletion issues (#560–#564) can remove Rust crates without losing CI coverage.
 
 ## Summary
 
@@ -42,7 +58,6 @@ rg -n "cargo run -p arukellt" scripts/ .github/workflows/
 python scripts/check/check-docs-consistency.py
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes
 
 ## STOP_IF
 

@@ -6,9 +6,9 @@ ID: 272
 Track: main
 Depends on: 271
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # install/activate/binary discovery の E2E を実装する
-**Blocks v1 exit**: yes
 
 ## Summary
 

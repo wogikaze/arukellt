@@ -6,9 +6,25 @@ ID: 503
 Track: selfhost
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Blocker for: "#494 (Selfhost MIR SSA formation pass — phi-node insertion)"
+Decision record: "[ADR-024](../../docs/adr/ADR-024-selfhost-mir-explicit-cfg-before-ssa.md) records the chosen direction: selfhost MIR must become an explicit CFG before SSA formation."
+// block 0 (entry): "...cond...  terminate with BR_IF(then_bb, else_bb)"
+// block 1 (then_bb): "(then-body instructions)  terminate with BR(join_bb)"
+// block 2 (else_bb): "(else-body instructions)  terminate with BR(join_bb)"
+// block 3 (join_bb): "phi(%result = phi [%a, then_bb], [%b, else_bb])  ..."
+preds: Vec<i32>,   // IDs of predecessor blocks
+idom: "Vec<i32>,       // immediate dominator for each block (-1 = none)"
+dom_frontier: Vec<Vec<i32>>,  // dominance frontier set per block
+val_local: i32,
+pred_block: i32,
+dest: i32,
+args: Vec<MirPhiArg>,
+The `MirBlock` would need a `phis: Vec<MirPhi>` field, or phi instructions could be emitted at the block's start as special `MirInst` entries.
+recorded in ADR-024: the MIR pipeline must first expose an explicit CFG with
+# Issue #503 — Selfhost MIR: CFG and Dominance-Frontier Infrastructure for SSA
 ---
 # Issue #503 — Selfhost MIR: CFG and Dominance-Frontier Infrastructure for SSA
-**Blocks v1 exit**: no
 
 **Blocker for:** #494 (Selfhost MIR SSA formation pass — phi-node insertion)
 

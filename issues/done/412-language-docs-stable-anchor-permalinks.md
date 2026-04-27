@@ -6,10 +6,11 @@ ID: 412
 Track: language-docs
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 7
+# Language Docs: 安定した anchor / permalink 体系を整える
 ---
 # Language Docs: 安定した anchor / permalink 体系を整える
-**Blocks v1 exit**: no
-**Priority**: 7
 
 ## Summary
 

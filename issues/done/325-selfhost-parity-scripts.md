@@ -6,10 +6,13 @@ ID: 325
 Track: selfhost-verification
 Depends on: 324
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 18
 ---
+
+- `docs/compiler/bootstrap.md: 256-258` — 存在しない script への参照
+- [x] 比較基準: "run 結果一致 (fixture)、フラグ応答一致 (cli)、severity+span 一致 (diag) — 文言完全一致は求めない"
 # check-selfhost-parity.sh を作成する
-**Blocks v1 exit**: no
-**Priority**: 18
 
 ## Summary
 

@@ -4,10 +4,13 @@ Created: 2026-03-31
 Track: main
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-07-28
+ID: 383
 ---
+
 # Stdlib: manifest metadata を resolver / typechecker / LSP / docs に伝搬する
-**Closed**: 2026-07-28
-**ID**: 383
+- [x] resolver / LSP / docs generator が同じ metadata surface を参照する — `StdlibManifest: ":load_from_repo()` provides `module_names()`, `import_candidates()`, `functions_by_module()`, `prelude_function_names()` for all consumers"
+# Stdlib: manifest metadata を resolver / typechecker / LSP / docs に伝搬する
 
 ## Completed
 

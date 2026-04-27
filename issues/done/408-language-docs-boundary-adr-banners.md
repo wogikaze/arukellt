@@ -6,10 +6,11 @@ ID: 408
 Track: language-docs
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 3
+# Language Docs: normative / explanatory / transitional の境界を ADR と banner で固定する
 ---
 # Language Docs: normative / explanatory / transitional の境界を ADR と banner で固定する
-**Blocks v1 exit**: no
-**Priority**: 3
 
 ## Summary
 

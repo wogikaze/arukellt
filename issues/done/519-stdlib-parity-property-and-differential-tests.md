@@ -2,17 +2,19 @@
 Status: done
 Created: 2026-04-15
 Updated: 2026-04-18
-Track: main
+Track: stdlib
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-04-18
+ID: 519
+Blocks v1 exit: no
+Source: stdlib modernization backlog requested 2026-04-15
+Implementation-backed close evidence: "commit `da6f11b` (`design(stdlib): split parity test follow-up issues from 519`)."
 ---
+
 # Stdlib: property / differential / parity test を family 横断で拡張する
-**Closed**: 2026-04-18
-**ID**: 519
-**Depends on**: none
-**Track**: stdlib
-**Blocks v1 exit**: no
-**Source**: stdlib modernization backlog requested 2026-04-15
+- 2026-04-18: follow-up extraction completed as `#526` JSON parity/differential tests, `#527` TOML parity/differential tests, and `#528` collections/hash property-differential tests.
+# Stdlib: property / differential / parity test を family 横断で拡張する
 
 ## Summary
 
@@ -77,7 +79,6 @@ The rows below propose **property-style or differential** additions on top of th
 
 ## Closed by orchestration — 2026-04-18
 
-**Implementation-backed close evidence**: commit `da6f11b` (`design(stdlib): split parity test follow-up issues from 519`).
 
 **Why this closes the issue**:
 

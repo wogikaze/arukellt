@@ -6,21 +6,50 @@ ID: 38
 Track: stdlib
 Depends on: 039, 041
 Orchestration class: implementation-ready
+Blocks v3 exit: yes
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+# std: ":collections: BTreeMap、BTreeSet、IndexMap、IndexSet、BitSet"
+pub fn btree_insert<K, V>(m: "BTreeMap<K, V>, key: K, value: V) -> Option<V>"
+pub fn btree_get<K, V>(m: "BTreeMap<K, V>, key: K) -> Option<V>"
+pub fn btree_remove<K, V>(m: "BTreeMap<K, V>, key: K) -> Option<V>"
+pub fn btree_contains_key<K, V>(m: "BTreeMap<K, V>, key: K) -> bool"
+pub fn btree_len<K, V>(m: BTreeMap<K, V>) -> i32
+pub fn btree_keys<K, V>(m: BTreeMap<K, V>) -> Vec<K>  // sorted order
+pub fn btree_range<K, V>(m: "BTreeMap<K, V>, start: K, end: K) -> Vec<(K, V)>"
+pub fn btree_set_insert<T>(s: "BTreeSet<T>, value: T) -> bool"
+pub fn btree_set_contains<T>(s: "BTreeSet<T>, value: T) -> bool"
+pub fn index_map_insert<K, V>(m: "IndexMap<K, V>, key: K, value: V) -> Option<V>"
+pub fn index_map_get<K, V>(m: "IndexMap<K, V>, key: K) -> Option<V>"
+pub fn index_map_keys<K, V>(m: IndexMap<K, V>) -> Vec<K>  // insertion order
+pub fn index_map_entries<K, V>(m: "IndexMap<K, V>) -> Vec<(K, V)>  // insertion order"
+pub fn index_set_insert<T>(s: "IndexSet<T>, value: T) -> bool"
+pub fn bitset_with_capacity(cap: i32) -> BitSet
+pub fn bitset_set(bs: "BitSet, index: i32)"
+pub fn bitset_clear(bs: "BitSet, index: i32)"
+pub fn bitset_test(bs: "BitSet, index: i32) -> bool"
+pub fn bitset_count(bs: BitSet) -> i32
+pub fn bitset_union(a: "BitSet, b: BitSet) -> BitSet"
+pub fn bitset_intersection(a: "BitSet, b: BitSet) -> BitSet"
+1. `ark-typecheck`: BTreeMap, BTreeSet, IndexMap, IndexSet, BitSet 型の登録
+2. BTreeMap: "B-tree (order 16) を GC struct ノードで実装"
+3. IndexMap: HashMap + Vec で insertion order を保持
+4. BitSet: GC array of i32, ビット操作で実装
+- fixture: `stdlib_collections/btree_basic.ark`, `stdlib_collections/btree_range.ark`,
+1. BTree 実装の複雑さ: ノード分割・マージが正しく動作することの検証が重い
 # std::collections: BTreeMap、BTreeSet、IndexMap、IndexSet、BitSet
-**Blocks v3 exit**: yes
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/046-std-collections-ordered.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

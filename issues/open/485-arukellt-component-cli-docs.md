@@ -6,10 +6,11 @@ ID: 485
 Depends on: 475
 Track: docs
 Orchestration class: blocked-by-upstream
-Orchestration upstream: "#475"
+Orchestration upstream: None
 Blocks v{N}: none
+Upstream: "#475 (CLI 実装) — close 後に着手"
+# docs: arukellt component サブコマンド CLI リファレンス
 ---
-
 # docs: arukellt component サブコマンド CLI リファレンス
 
 ## Decomposed from 475

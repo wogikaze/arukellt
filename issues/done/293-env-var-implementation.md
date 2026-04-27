@@ -2,17 +2,23 @@
 Status: done
 Created: 2026-03-31
 Updated: 2026-06-28
-Track: main
+Track: capability
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: —
+Closed: 2026-06-28
+ID: 293
+Blocks v1 exit: no
+Priority: 13
 ---
+
+# env: ":var() の実装を完成させる"
+- T3 (WasmGC): Full `environ_sizes_get`/`environ_get` integration with byte-level key comparison and `Option_String` wrapping. Environ buffer placed past data segments to avoid memory corruption.
+- T1: "Stub returning `None` (WASI environ not yet wired for linear memory target)."
+- Fixed multiple T3 bugs: "Option_String variant name remapping, MIR enum_typed_locals specialization, runtime `inherit_env()`."
+- Test fixture: "`env_var_lookup.ark` (T3-only) verifies PATH lookup and nonexistent var handling."
+- [x] `env: ":var("HOME")` 等が実際の環境変数値を返す"
+- [x] テスト: "`env::var` が値を返す fixture（`--env` フラグまたは WASI 環境変数経由）"
 # env::var() の実装を完成させる
-**Closed**: 2026-06-28
-**ID**: 293
-**Depends on**: —
-**Track**: capability
-**Blocks v1 exit**: no
-**Priority**: 13
 
 ## Summary
 

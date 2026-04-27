@@ -7,16 +7,24 @@ Track: component-model
 Depends on: 028b
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v1 exit: no
+Reason: WIT parser exists but is only used in its own tests. CLI --wit flag not threaded into resolver/session/compile pipeline.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Superseded for import threading — 2026-04-18: The gap findings below for CLI → session →
+Audit 2026-04-15: "Claimed no driver/resolver path (historical). **2026-04-18:"
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
+| Symbol table | `session.rs` `run_frontend_for` (~L661–672) | After `resolve`, `collect_wit_extern_functions` → `ark_resolve: ":inject_wit_externs` on `resolved.symbols` (`ExternWitFn`). |"
+| Type-check | `session.rs` `run_frontend_for` (~L691–694) | `TypeChecker: ":register_extern_function` with params/ret mapped from WIT via `checker_type_from_wit_type`. |"
+- [x] `crates/ark-resolve/src/lib.rs` gains an `extern` function registration path: when
+- [x] A round-trip test exists: parse a WIT file → resolve extern bindings → lower to MIR →
+2026-04-18: "Repo audit (table above) confirms the CLI → `Session.wit_files` → resolve/type-check"
 # WIT import parsing & host function binding
-**Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: WIT parser exists but is only used in its own tests. CLI --wit flag not threaded into resolver/session/compile pipeline.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Verification audit — 2026-04-15
 
@@ -83,21 +91,17 @@ import pipeline that subsequent component work builds on.
 - [x] WIT `flags` type is parsed. At codegen time, any function whose signature includes a
       `flags` type emits a `E0090` diagnostic ("WIT flags type is not supported in v2; use
       individual bool parameters instead") and the compilation fails gracefully — no panic.
-      **Audit 2026-04-15**: Claimed missing (historical). **2026-04-18:** `WitType::Flags`,
       `flags { ... }` parsing, CLI preflight + **E0090** (`commands.rs`, `ark-wasm` `collect_wit_flags_diagnostics` / helpers).
 - [x] `crates/ark-resolve/src/lib.rs` gains an `extern` function registration path: when
       `--wit <path>` is supplied, the resolver injects WIT-imported function signatures into
       the symbol table as externally-provided functions.
-      **Audit 2026-04-15**: Claimed unwired (historical). **2026-04-18:** `Session.wit_files`,
       `inject_wit_externs` + `register_extern_function` in `run_frontend_for`; public API in
       `crates/ark-resolve/src/resolve.rs`.
 - [x] `MirModule` gains an `imports` field (`Vec<MirImport>`) that records module/name/signature
       triples for WIT-derived imports, distinct from the existing WASI `fd_write` import.
-      **Audit 2026-04-15**: Claimed never populated in real compile (historical). **2026-04-18:**
       `compile_with_entry` extends `mir.imports` from parsed WIT when `wit_files` is non-empty.
 - [x] A round-trip test exists: parse a WIT file → resolve extern bindings → lower to MIR →
       verify `MirModule.imports` contains expected entries.
-      **Audit 2026-04-15**: Claimed no driver/resolver path (historical). **2026-04-18:**
       `crates/ark-driver/tests/wit_import_roundtrip.rs` exercises session compile + `mir.imports`
       and a WIT-backed call through the frontend.
 - [x] Existing WIT generation (`generate_wit()`, `mir_to_wit_world()`) continues to work

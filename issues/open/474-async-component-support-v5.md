@@ -6,22 +6,21 @@ ID: 474
 Track: wasm-feature
 Depends on: "035 (v2-verification-cleanup, done), 074 (wasi-p2-native-component)"
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #74
+Orchestration upstream: None
+Blocks v4 exit: no
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
 ---
 
+# Async component support (v5)
+---
 # Async Component Support (v5/T5)
-**Blocks v4 exit**: no
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Source**: Future-work gap extracted from `issues/done/035-v2-verification-cleanup.md`.
 
-**Quote**: "Async component support (deferred to v5/T5)"
 
-**Action**: New open issue created per audit rule — deferred items in done issues must
 have a corresponding open issue.
 
 ---

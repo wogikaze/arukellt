@@ -7,14 +7,26 @@ Track: selfhost-frontend
 Depends on: —
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks: 568
+Blocks v5: no
+Source: #529 Phase 6 — IDE Frontend / LSP / DAP migration
+Implementation target: "Per #529 Phase 6, IDE-side functionality is reimplemented in Ark (`src/`) so that the Rust IDE crates can be retired in Phase 7. This issue covers exactly one concern; do **not** expand scope."
+REBUILD_BEFORE_VERIFY: yes
 ---
 
 # 565 — Phase 6/A1: Selfhost lexer.ark — error recovery for IDE
-**Blocks**: 568
-**Blocks v5**: no
-**Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration
+3. [ ] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+- One logical commit per slice. Suggested message: "`feat(ide): lexer.ark error recovery for IDE consumers (refs #565)`"
+commit: <to be filled by merge>
+acceptance: "<each [ ] → [x] with evidence>"
+fixpoint: PASS                → PASS
+fixture parity: PASS=314 FAIL=0 SKIP=47 → PASS=314 FAIL=0 SKIP=47
+diag parity: PASS=12 FAIL=0 SKIP=22  → PASS=13 FAIL=0 SKIP=22
+new tests added: <paths>
+false-done checklist: "1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8(no docs touched) 9✓"
+parity --cli: PASS                → PASS
+# 565 — Phase 6/A1: Selfhost lexer.ark — error recovery for IDE
 
-**Implementation target**: Per #529 Phase 6, IDE-side functionality is reimplemented in Ark (`src/`) so that the Rust IDE crates can be retired in Phase 7. This issue covers exactly one concern; do **not** expand scope.
 
 ## Summary
 
@@ -40,7 +52,6 @@ python scripts/manager.py selfhost diag-parity
 
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes
 
 ## STOP_IF
 

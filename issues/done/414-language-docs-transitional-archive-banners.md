@@ -6,10 +6,11 @@ ID: 414
 Track: language-docs
 Depends on: 372
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 9
+# Language Docs: transitional / archive banner を一括適用する
 ---
 # Language Docs: transitional / archive banner を一括適用する
-**Blocks v1 exit**: no
-**Priority**: 9
 
 ## Summary
 

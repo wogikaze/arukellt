@@ -4,10 +4,13 @@ Created: 2026-03-31
 Track: main
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-07-28
+ID: 427
 ---
+
 # Repo Hygiene: broken link / missing file reference checker を追加する
-**Closed**: 2026-07-28
-**ID**: 427
+- [x] 欠損時に具体的な file/path が出る — `BROKEN: file -> ref` format with stderr output
+# Repo Hygiene: broken link / missing file reference checker を追加する
 
 ## Completed
 

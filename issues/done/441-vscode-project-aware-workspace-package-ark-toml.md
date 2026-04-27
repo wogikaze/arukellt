@@ -6,10 +6,18 @@ ID: 441
 Track: vscode-ide
 Depends on: 333, 335, 340
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 3
+Action: Audited acceptance items against actual code; partial scaffolding confirmed.
 ---
+
 # VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする
-**Blocks v1 exit**: no
-**Priority**: 3
+- `ArukellBackend.workspace_roots: Mutex<Vec<PathBuf>>` is populated from
+`workspace_folders` on LSP initialization (`server.rs: 3696–3740`).
+- `ArukellBackend.project_root` is discovered via `Manifest: ":find_root` on init."
+symbol index for the primary project root (`server.rs: 3862–3930`).
+(`server.rs: 4083–4176`).
+# VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする
 
 ## Audit normalization — 2026-04-18
 
@@ -25,7 +33,6 @@ longer be read as the current repo truth.
 
 ## Historical audit snapshot — 2026-04-14
 
-**Action**: Audited acceptance items against actual code; partial scaffolding confirmed.
 Full multi-root work was carved out into `issues/done/502-lsp-full-multi-root-workspace.md`.
 
 ### What IS implemented (scaffolding)

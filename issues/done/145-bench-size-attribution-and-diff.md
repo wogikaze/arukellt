@@ -6,9 +6,14 @@ ID: 145
 Track: benchmark
 Depends on: 149
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
 # 計測: Wasm サイズ内訳 diff と top contributors 追跡
-**Blocks v1 exit**: no
+- [x] top 増加関数または symbol を列挙できる（wasm name section 非出力のため `symbol_attribution: "unavailable"` として記録; `wasm-objdump` による手動確認方法を `benchmarks/README.md` にドキュメント化）
+- [x] compare レポートからサイズ悪化の主因へ辿れる（text output の `sections: ` 行 + markdown の `### Wasm Section Δ vs Baseline` テーブル）
+- `render_text` に `sections: "` 行（測定時）と `sections:` diff 行（比較時）を追加"
+# 計測: Wasm サイズ内訳 diff と top contributors 追跡
 
 ---
 

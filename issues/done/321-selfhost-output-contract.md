@@ -6,10 +6,20 @@ ID: 321
 Track: selfhost-cli
 Depends on: 319
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 13
 ---
+
+- selfhost のエラー出力: "flat text (file name + message のみ)"
+- Rust 版のエラー出力: "`file:line:col: error[E0001]: message` 形式"
+- selfhost の終了コード: "未定義 (常に 0 の可能性あり)"
+- Rust 版: "0 (成功) / 1 (compile error) / 2 (usage error)"
+- `--json` フラグ: Rust 版のみ、selfhost にはない
+- [x] compile error の出力が `file: "error: message` 形式になる"
+- [x] 終了コード: "0 (成功) / 1 (compile error) / 2 (usage error) が統一される"
+- Exit codes: usage error → 2, compile error → 1, success → 0
+- JSON output: "`--json` produces `{"file":"...","phase":...,"diagnostics":[...]}` or `{"file":"...","success":true,"output_size":...}`"
 # Selfhost compiler の出力契約を統一する
-**Blocks v1 exit**: no
-**Priority**: 13
 
 ## Summary
 

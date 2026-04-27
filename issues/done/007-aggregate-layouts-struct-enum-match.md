@@ -6,9 +6,10 @@ ID: 7
 Track: main
 Depends on: 004, 006
 Orchestration class: implementation-ready
+Blocks v1 exit: True
+# T3 aggregate layouts: struct enum match
 ---
 # T3 aggregate layouts: struct enum match
-**Blocks v1 exit**: yes
 
 ## Summary
 

@@ -6,9 +6,9 @@ ID: 018
 Track: parallel
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # LLVM scaffold follow-up after T3 completion
-**Blocks v1 exit**: no
 
 ## Summary
 

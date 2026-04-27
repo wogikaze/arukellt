@@ -6,11 +6,12 @@ ID: 186
 Track: parallel
 Depends on: 196, 197, 198
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Status note: Parent issue for test discovery/runner, VS Code test integration, and advanced test UX.
+# Test UX: `arukellt test` と VS Code Test Explorer surface
 ---
 # Test UX: `arukellt test` と VS Code Test Explorer surface
-**Blocks v1 exit**: no
 
-**Status note**: Parent issue for test discovery/runner, VS Code test integration, and advanced test UX.
 
 ## Summary
 

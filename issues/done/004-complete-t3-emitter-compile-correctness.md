@@ -6,9 +6,9 @@ ID: 4
 Track: main
 Depends on: 002, 003
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # Complete T3 emitter compile correctness
-**Blocks v1 exit**: yes
 
 ## Summary
 

@@ -4,6 +4,8 @@ Track: main
 Orchestration class: implementation-ready
 Depends on: none
 ---
+
+(fields: `lex_ms`, `parse_ms`, `resolve_ms`, `typecheck_ms`, `lower_ms`,
 # Issue #141 — Add cold/warm/incremental compile latency breakdown to benchmark harness
 
 ## Summary

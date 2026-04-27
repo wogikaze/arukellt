@@ -2,20 +2,20 @@
 Status: done
 Created: 2026-04-15
 Updated: 2026-04-22
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: stdlib
+Orchestration class: blocked-by-upstream
+Depends on: 513, 517
+Closed: 2026-04-22
+Commit: b15af079
+ID: 518
+Orchestration upstream: #513, #517
+Blocks v{N}: none
+Source: stdlib modernization backlog requested 2026-04-15
 ---
+
 # Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する
-**Closed**: 2026-04-22
-**Commit**: b15af079
-**ID**: 518
-**Depends on**: 513, 517
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #513, #517
-**Blocks v{N}**: none
-**Source**: stdlib modernization backlog requested 2026-04-15
+- [x] 少なくとも `std: ":wit`, `std::json`, `std::bytes`, `std::io` family の examples 更新計画がある"
+# Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する
 
 ## Summary
 

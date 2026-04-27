@@ -4,10 +4,11 @@ Created: 2026-03-31
 Track: main
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-07-28
+ID: 418
+# Repo Hygiene: orphan / stale file inventory を作るスクリプトを追加する
 ---
 # Repo Hygiene: orphan / stale file inventory を作るスクリプトを追加する
-**Closed**: 2026-07-28
-**ID**: 418
 
 ## Completed
 

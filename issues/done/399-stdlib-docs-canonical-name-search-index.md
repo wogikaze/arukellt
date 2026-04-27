@@ -6,10 +6,11 @@ ID: 399
 Track: stdlib-docs
 Depends on: 395
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 5
+# Stdlib Docs: canonical name / alias / historical name を横断検索できるようにする
 ---
 # Stdlib Docs: canonical name / alias / historical name を横断検索できるようにする
-**Blocks v1 exit**: no
-**Priority**: 5
 
 ## Summary
 

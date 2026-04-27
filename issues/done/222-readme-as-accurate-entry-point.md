@@ -6,9 +6,9 @@ ID: 222
 Track: main
 Depends on: 221
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # README を現在の利用可能面を正確に示す入口に更新する
-**Blocks v1 exit**: yes
 
 ## Summary
 

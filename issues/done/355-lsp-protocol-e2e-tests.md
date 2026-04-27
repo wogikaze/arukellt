@@ -6,30 +6,32 @@ ID: 355
 Track: tooling-contract
 Depends on: 353
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 23
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: crates/ark-lsp/tests/lsp_e2e.rs exists
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
 # Tooling Contract: LSP protocol E2E テストを追加する
-**Blocks v1 exit**: no
-**Priority**: 23
+- `crates/ark-lsp/src/server.rs`: "3 件の unit test (completion のみ)"
+- LSP 仕様: JSON-RPC over stdio protocol
+# Tooling Contract: LSP protocol E2E テストを追加する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: crates/ark-lsp/tests/lsp_e2e.rs exists
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/355-lsp-protocol-e2e-tests.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

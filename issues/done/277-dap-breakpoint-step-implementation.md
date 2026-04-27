@@ -6,9 +6,9 @@ ID: 277
 Track: parallel
 Depends on: 276
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # setBreakpoints/continue/next/disconnect を実装する
-**Blocks v1 exit**: no
 
 ## Summary
 

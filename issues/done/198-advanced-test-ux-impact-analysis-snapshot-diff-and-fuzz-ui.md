@@ -2,24 +2,25 @@
 Status: done
 Created: 2026-03-29
 Updated: 2026-04-13
-Track: main
+Track: parallel
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 196, 197
+Closed: 2026-04-18
+ID: 198
+Orchestration upstream: —
+Blocks v1 exit: False
+Reason: Impact analysis, snapshot diff UI, and fuzz UI not present in extension.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
+# Advanced test UX: impact analysis / snapshot diff / fuzz UI
 ---
 # Advanced test UX: impact analysis / snapshot diff / fuzz UI
-**Closed**: 2026-04-18
-**ID**: 198
-**Depends on**: 196, 197
-**Track**: parallel
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Impact analysis, snapshot diff UI, and fuzz UI not present in extension.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 

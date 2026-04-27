@@ -6,10 +6,11 @@ ID: 404
 Track: stdlib-docs
 Depends on: 402
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 10
+# Stdlib Docs: legacy ページの整理と redirect / archive 方針を実装する
 ---
 # Stdlib Docs: legacy ページの整理と redirect / archive 方針を実装する
-**Blocks v1 exit**: no
-**Priority**: 10
 
 ## Summary
 

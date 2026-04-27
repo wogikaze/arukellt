@@ -6,9 +6,9 @@ ID: 233
 Track: main
 Depends on: 231
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # module / package / workspace / dependency の解決規則を仕様として固定する
-**Blocks v1 exit**: yes
 
 ## Summary
 

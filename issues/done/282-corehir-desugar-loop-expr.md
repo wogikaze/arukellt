@@ -7,17 +7,22 @@ Track: corehir
 Depends on: 281
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v1 exit: no
+Priority: 2
+Reason: CoreHIR LoopExpr still backend-illegal.
+Action: Moved from issues/done/ to issues/open/ by false-done audit.
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
 # CoreHIR lowering: LoopExpr を制御フローに desugar する
-**Blocks v1 exit**: no
-**Priority**: 2
+`Operand: ":LoopExpr` が backend-illegal のまま残っている。loop header + back-edge + break への変換が必要。"
+- `crates/ark-mir/src/mir.rs`: `LoopExpr { init, body, result }` が Operand enum に存在
+- [x] `Operand: ":LoopExpr` が loop header / back-edge / break 形式の MirStmt 列に変換される"
+# CoreHIR lowering: LoopExpr を制御フローに desugar する
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: CoreHIR LoopExpr still backend-illegal.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Summary
 

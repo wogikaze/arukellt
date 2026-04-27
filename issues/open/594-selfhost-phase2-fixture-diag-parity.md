@@ -3,15 +3,16 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 594
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: selfhost
+Orchestration class: blocked-by-upstream
+Depends on: 593
+Parent: None
+closing the parity gap: all `FAIL` counts in `selfhost fixture-parity` and
+In scope: 
+Out of scope: 
+# Selfhost Phase 2: Fixture and Diagnostic Parity
 ---
 # Selfhost Phase 2: Fixture and Diagnostic Parity
-**Parent**: #529
-**Depends on**: 593
-**Track**: selfhost
-**Orchestration class**: blocked-by-upstream
 
 ---
 

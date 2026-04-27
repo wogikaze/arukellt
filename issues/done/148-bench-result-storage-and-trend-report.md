@@ -6,9 +6,12 @@ ID: 148
 Track: benchmark
 Depends on: 140, 141, 142, 143, 145, 146
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+# 基盤: benchmark 結果保存・履歴比較・トレンドレポート
 ---
 # 基盤: benchmark 結果保存・履歴比較・トレンドレポート
-**Blocks v1 exit**: no
 
 ---
 
@@ -42,13 +45,11 @@ the standalone trend inspection surface (`--mode trend`).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/148-bench-result-storage-and-trend-report.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -75,13 +76,11 @@ the standalone trend inspection surface (`--mode trend`).
 - `scripts/compare-benchmarks.sh`
 - `scripts/update-perf-baselines.sh`
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/148-bench-result-storage-and-trend-report.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

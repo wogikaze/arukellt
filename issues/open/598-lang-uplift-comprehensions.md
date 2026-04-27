@@ -3,15 +3,20 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 598
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: selfhost-frontend / language-design
+Orchestration class: design-ready
+Depends on: —
+Parent: None
+Initial restriction: array/Vec-style construction only. One generator, one optional filter.
+In scope: 
+Out of scope: 
 ---
+
+1. Positive fixtures: map-only comprehension, map+filter comprehension
+2. Negative fixtures: non-iterable source, filter expression not `bool`
 # Language Surface Uplift: Expression-Level Comprehensions
-**Parent**: #588
-**Depends on**: —
-**Track**: selfhost-frontend / language-design
-**Orchestration class**: design-ready
+- Support: one generator, one optional filter
+# Language Surface Uplift: Expression-Level Comprehensions
 
 ---
 

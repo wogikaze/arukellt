@@ -6,14 +6,15 @@ ID: 466
 Track: playground
 Depends on: 465
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 2
+Evidence: "docs/playground/index.html exists, calls createPlaygroundApp() 3× (lines 101,144,153); playground/package.json has 'build': 'tsc'; docs/_sidebar.md links to playground/index.html"
+# Playground: browser entrypoint が repo 内に存在する
 ---
 # Playground: browser entrypoint が repo 内に存在する
-**Blocks v1 exit**: no
-**Priority**: 2
 
 ## Closed by decomposition audit — 2026-04-03
 
-**Evidence**: docs/playground/index.html exists, calls createPlaygroundApp() 3× (lines 101,144,153); playground/package.json has 'build': 'tsc'; docs/_sidebar.md links to playground/index.html
 
 ## Summary
 

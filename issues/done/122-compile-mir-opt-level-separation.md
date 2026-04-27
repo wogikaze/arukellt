@@ -6,9 +6,13 @@ ID: 122
 Track: mir-opt
 Depends on: 101
 Orchestration class: implementation-ready
+Blocks v4 exit: yes
 ---
+
+- `crates/ark-mir/src/passes/const_fold.rs` and `dead_block_elim.rs` — each pass in its own file with unified `fn run(module: "&mut MirModule, level: OptLevel) -> PassStats` signature"
+Verification: `bash scripts/run/verify-harness.sh --quick` → 19/19 PASS; `cargo test -p ark-mir` → 49/49 PASS
+- [x] `fn run(module: "&mut MirModule, level: OptLevel) -> PassStats` シグネチャの統一"
 # MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立
-**Blocks v4 exit**: yes
 
 ---
 
@@ -25,7 +29,6 @@ All acceptance criteria verified by repo evidence.
 - `crates/arukellt/src/commands.rs` — `session.disabled_passes = no_pass` wired in `cmd_compile`
 - `crates/ark-driver/src/session.rs` — `disabled_passes` honoured in the pass pipeline filter
 
-**Verification**: `bash scripts/run/verify-harness.sh --quick` → 19/19 PASS; `cargo test -p ark-mir` → 49/49 PASS
 
 ## Summary
 

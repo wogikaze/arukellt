@@ -6,9 +6,9 @@ ID: 241
 Track: main
 Depends on: 221
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # 本線 target を選定し、experimental/blocked target を明示的に区分する
-**Blocks v1 exit**: yes
 
 ## Summary
 

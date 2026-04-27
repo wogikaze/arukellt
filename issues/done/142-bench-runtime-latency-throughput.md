@@ -6,9 +6,12 @@ ID: 142
 Track: benchmark
 Depends on: 149
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+# 計測: startup / throughput / tail latency ベンチ
 ---
 # 計測: startup / throughput / tail latency ベンチ
-**Blocks v1 exit**: no
 
 ---
 
@@ -41,13 +44,11 @@ change required.
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/142-bench-runtime-latency-throughput.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

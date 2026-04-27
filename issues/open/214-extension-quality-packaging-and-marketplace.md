@@ -6,17 +6,18 @@ ID: 214
 Track: parallel
 Depends on: 184, 185, 186, 187, 188
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #188
+Orchestration upstream: None
 Blocks v{N}: none
+Reason: No icon/banner/screenshots evidence. Marketplace readiness overclaimed.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
 ---
 
+- categories: `Programming Languages`, `Linters`, `Debuggers`, `Testing`
 # Extension quality / packaging / marketplace readiness
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: No icon/banner/screenshots evidence. Marketplace readiness overclaimed.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 

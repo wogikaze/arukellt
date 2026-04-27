@@ -6,9 +6,9 @@ ID: 14
 Track: parallel
 Depends on: 002, 009, 010, 011
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # T3 CI and verify policy
-**Blocks v1 exit**: no
 
 ## Summary
 

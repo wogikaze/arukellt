@@ -6,30 +6,52 @@ ID: 461
 Track: docs, ci
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 2
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: check-doc-examples.py integrated in verify-harness.sh at lines 218-219
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+DOCS_DIR="${2: -docs}"
+MODE="${1: ---check}"  # --check or --run
 ---
+
+- Issue 12 のコードコメント（`<!-- fixture: path/to/fixture -->` によるリンク）は guide.md 限定であり、stdlib docs のインラインスニペットはカバーしていない。
+### Step 1: "スニペット抽出スクリプトを作る (`scripts/check/check-doc-examples.sh`)"
+# Usage: "check-doc-examples.sh [--run] [docs-dir]"
+slug = hashlib.md5(f"{md_path}: "{i}".encode()).hexdigest()[:8]"
+# fallback: parse filename for metadata
+echo "FAIL: $base"
+echo "Doc example check: $PASS pass, $FAIL fail, $SKIP skip"
+### Step 2: Python スクリプトとして書き直す（信頼性重視）
+def extract_blocks(md_path: "Path) -> list[tuple[int, str]]:"
+def check_block(code: "str, md_path: Path, block_idx: int, target: str) -> bool:"
+print(f"FAIL: {md_path}  block #{block_idx}")
+print(f"\nDoc example check: {pass_count} pass, {fail_count} fail, {skip_count} skip")
+### Step 3: `# doc-skip` コメントによる除外機能
+// error 例: これはコンパイルエラーになる意図のサンプル
+let x: i32 = "hello"
+### Step 4: "CI 統合 (`scripts/run/verify-harness.sh`)"
+### Step 5: 既存 docs の修正
+3. fixture へのリンクコメント（`<!-- fixture: ... -->`）に切り替える
+### Step 6: `check-docs-consistency.py` への統合（オプション）
+1. `check-doc-examples.py` 自身の unit test: 正常なブロック → pass、壊れたブロック → fail、`# doc-skip` 付き → skip
+- `use std: ":host::*` を含むブロックは `--target wasm32-wasi-p2` が必要な場合がある。ブロック先頭のコメント `# target: wasm32-wasi-p2` で target を指定できるようにしておく（将来対応でも可）。"
 # docs 内コード例の自動検証 CI 追加
-**Blocks v1 exit**: no
-**Priority**: 2
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: check-doc-examples.py integrated in verify-harness.sh at lines 218-219
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/461-doc-example-ci.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

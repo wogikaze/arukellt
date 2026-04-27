@@ -2,24 +2,24 @@
 Status: open
 Created: 2026-03-29
 Updated: 2026-04-13
-Track: main
+Track: parallel
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 202, 203
+Closed: 2026-04-18
+ID: 204
+Orchestration upstream: —
+Blocks v1 exit: False
+Reason: No project-explain, build-explain, or sandbox commands in CLI.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
 ---
 ## Reopened by audit
-**Closed**: 2026-04-18
-**ID**: 204
-**Depends on**: 202, 203
-**Track**: parallel
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: No project-explain, build-explain, or sandbox commands in CLI.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 

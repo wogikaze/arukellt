@@ -6,11 +6,12 @@ ID: 185
 Track: parallel
 Depends on: 192, 193, 194, 195
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Status note: Parent issue for authoring intelligence beyond today’s base LSP features.
+# IDE surface: rename / code actions / workspace symbols / formatting
 ---
 # IDE surface: rename / code actions / workspace symbols / formatting
-**Blocks v1 exit**: no
 
-**Status note**: Parent issue for authoring intelligence beyond today’s base LSP features.
 
 ## Summary
 

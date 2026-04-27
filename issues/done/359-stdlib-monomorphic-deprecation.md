@@ -4,10 +4,11 @@ Created: 2026-03-31
 Track: main
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-03-31
+ID: 359
+# Stdlib: monomorphic API 群の整理と canonical naming への移行
 ---
 # Stdlib: monomorphic API 群の整理と canonical naming への移行
-**Closed**: 2026-03-31
-**ID**: 359
 
 ## Completed
 

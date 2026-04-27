@@ -6,9 +6,15 @@ ID: 486
 Track: mir-opt
 Depends on: 122
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
+# T3: "MIR 最適化の段階的再開 (GC-safe audit + opt-level 復帰)"
+2. [x] T3 は `ark_mir: ":passes::run_all()` を直接呼び出し、`desugar_exprs` をバイパス"
+- T3 専用パス: "`ark_mir::passes::run_all()` を `t3_standalone_only` gate で呼び出し"
+- `bash scripts/run/verify-harness.sh --quick`: "PASS** (19/19)"
+- `cargo test --test harness`: 695 PASS / 29 FAIL / 29 SKIP = baseline と一致（無回帰）
 # T3: MIR 最適化の段階的再開 (GC-safe audit + opt-level 復帰)
-**Blocks v1 exit**: no
 
 ---
 

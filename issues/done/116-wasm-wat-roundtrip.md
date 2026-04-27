@@ -6,9 +6,12 @@ ID: 116
 Track: wasm-quality
 Depends on: 114
 Orchestration class: implementation-ready
+Blocks v4 exit: no
 ---
+
+- [x] 全 fixture について roundtrip チェックが差分ゼロ (311 `run: ` エントリ中 300 PASS, 11 SKIP — compile 不可 fixture)
+- 失敗パターン: "`wasm2wat failed` (ill-formed binary), `wat2wasm failed` (invalid WAT), `WAT text differs` (lossy encoding)。"
 # Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)
-**Blocks v4 exit**: no
 
 ---
 

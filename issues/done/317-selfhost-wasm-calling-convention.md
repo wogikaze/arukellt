@@ -6,10 +6,13 @@ ID: 317
 Track: selfhost-backend
 Depends on: 316
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 10
 ---
+
 # Selfhost Wasm emitter: 呼び出し規約と WASI import を実装する
-**Blocks v1 exit**: no
-**Priority**: 10
+- `src/compiler/emitter.ark`: fd_write import の type index を placeholder で書いている
+# Selfhost Wasm emitter: 呼び出し規約と WASI import を実装する
 
 ## Summary
 

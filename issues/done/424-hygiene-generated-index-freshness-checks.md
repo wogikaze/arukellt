@@ -6,16 +6,17 @@ ID: 424
 Track: repo-hygiene
 Depends on: 417
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 8
+Reason: Wrong generator path in checker.
+Action: Moved from issues/done/ to issues/open/ by false-done audit.
+# Repo Hygiene: generated index の stale 検出を追加する
 ---
 # Repo Hygiene: generated index の stale 検出を追加する
-**Blocks v1 exit**: no
-**Priority**: 8
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Wrong generator path in checker.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Summary
 

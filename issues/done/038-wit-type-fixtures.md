@@ -6,9 +6,21 @@ ID: 038
 Track: component-model
 Depends on: 028, 029, 030, 031
 Orchestration class: implementation-ready
+Blocks v2 exit: yes
 ---
+
+### Phase 1: "compile-only fixture (WIT 型認識・診断のみ)"
+以下の fixture を `tests/fixtures/component/` に追加し、`component-compile: ` エントリとして
+### Phase 2: "runtime correctness (wasmtime 実行検証)"
+これらは fixture を作成した上で `compile-error: ` エントリとして登録し、
+「非対応 (E0091: component string ABI not yet implemented)」の診断を返すことで
+テストを greenにする。実際の動作は canonical ABI 実装後に `component-compile: ` に昇格させる。
+`flags` は §12 未解決論点 #4 の通り、v2 では E0090 診断 (`WIT flags: unsupported`) を
+返す。fixture は `compile-error: ` として登録する。
+実装が間に合わない場合は E0092 診断 (`WIT resource: not yet implemented`) を返す。
+- `tests/fixtures/manifest.txt` — `component-compile: "` / `compile-error:` エントリ"
+(string/list/resource は `compile-error: ` で E009x 診断が正しく出ることを確認)
 # WIT 型マッピング全 16 種の component fixture 整備
-**Blocks v2 exit**: yes
 
 ## Summary
 

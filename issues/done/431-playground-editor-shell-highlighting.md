@@ -6,10 +6,11 @@ ID: 431
 Track: playground
 Depends on: 429
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 4
+# Playground: editor shell と syntax highlighting を実装する
 ---
 # Playground: editor shell と syntax highlighting を実装する
-**Blocks v1 exit**: no
-**Priority**: 4
 
 ## Status note (2026-04-03)
 

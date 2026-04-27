@@ -6,9 +6,16 @@ ID: 247
 Track: docs
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
 # migration guide v2→v3: standard library module system completed
-**Blocks v1 exit**: no
+stdlib のモジュール整理（`std: ":core`, `std::text`, `std::collections` 等）、"
+元ドキュメント: `docs/migration/v2-to-v3.md`（issue 化により移動済み）
+- [x] `use std: ":*` モジュールパスが機能する"
+- [x] `std: ":core`, `std::text`, `std::bytes`, `std::collections`, `std::io`, `std::env` モジュールが利用できる"
+- prelude に含まれない stdlib 関数には明示的な `use std: ":*` import を追加"
+# migration guide v2→v3: standard library module system completed
 
 ## Summary
 

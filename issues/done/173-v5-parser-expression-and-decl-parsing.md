@@ -6,9 +6,10 @@ ID: 173
 Track: main
 Depends on: 172
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# v5 Parser: expression / declaration parsing
 ---
 # v5 Parser: expression / declaration parsing
-**Blocks v1 exit**: no
 
 ## Summary
 

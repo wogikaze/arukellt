@@ -3,6 +3,70 @@ Track: main
 Orchestration class: implementation-ready
 Depends on: none
 ---
+
+# 100% selfhost transition plan
+### Phase 1: "Fixpoint Achievement (CRITICAL)"
+Goal: Error detection and reporting matches Rust compiler.
+Prerequisite: All determinism issues resolved BEFORE feature work.
+Scope for fixpoint only: 
+NOT in scope yet: Package system, complex search paths, import cycle recovery
+Target: `src/compiler/driver.ark`
+Implementation: 
+Recommendation: Start simple. Build module graph → determine file order → compile in batch.
+Current failure: Cross-module calls are unresolved/stubbed.
+Investigation: 
+- Check how `lexer: ":tokenize` style qualified names are handled"
+- Verify path: `qualified name → resolved function symbol → deterministic function index`
+Caution: "Strip prefix only" may work temporarily but risks symbol collision. Acceptable for fixpoint if `src/compiler/*.ark` already assumes it. Full module namespace comes after parity.
+Requirements for fixpoint: 
+Verification (mandatory): 
+Phase 1 Exit Condition: "`stage1-self-compile: reached` AND `stage2-fixpoint: reached`"
+### Phase 2: Fixture Parity Expansion
+Approach: 
+2. First: fixtures skipped due to compile errors
+3. Then: fixtures failing due to output differences
+Priority: 
+Strategy: Tackle by category, not all at once.
+### Phase 3: Diagnostic Parity Expansion
+Internal Milestones (do not skip): 
+- M1: Same error categories appear in both compilers
+- M2: Error codes match
+- M3: Primary messages match
+- M4: "Spans (line/column) match"
+Policy: Defer M4 until after Phase 4. Message/span exact matching is high-cost, low-value initially.
+### Phase 4: "Dual-Run Period (SAFETY)"
+Duration: Minimum several days to iterations.
+Exit Conditions: 
+### Phase 5: Core Compiler Crates Deletion
+When: After 2+ weeks of clean dual-run results.
+Targets: `src/compiler/lexer.ark`, `src/compiler/parser.ark`, possibly `resolver.ark`, `typechecker.ark`
+Options: 
+- Development: `wasmtime run .build/selfhost/arukellt-s1.wasm -- ...`
+- Or: promoted selfhost binary wrapper
+Changes: 
+### Phase 6: IDE Frontend/LSP/DAP Migration
+Scope: Separate project-level effort. Not a compiler subtask.
+Requirements (different from batch compiler): 
+Goals: 
+New entry point: ""document text → AST / symbols / diagnostics" (not CLI subprocess)"
+Create: `src/ide/lsp.ark`
+Handlers (in order): 
+### Phase 7: Full Rust Deletion
+Final targets: 
+Last to delete: "`Cargo.toml`, `Cargo.lock` — only when ALL Rust dependencies are gone (including VS Code extension and other tools)."
+Per work unit (single concern only): 
+- Example: driver module loading only, OR emitter qualified call only, OR parser error recovery only
+### Criterion A: Selfhost Bootstrap
+- [ ] `verify-bootstrap.sh --check` reports `stage2-fixpoint: reached`
+### Criterion B: Compiler Parity
+- [ ] Fixture parity: 0 fails
+- [ ] Diagnostic parity: 0 critical fails
+- [ ] Skip count: temporarily acceptable, target 0 eventually
+### Criterion C: Rust Core Compiler Retirement
+### Criterion D: Full Rust Retirement
+STOP before LSP, Rust deletion, or other phases until these complete: 
+Rule: Do not proceed to Phase 2+ until Phase 1 fixpoint is stable. Root cause isolation becomes impossible if you mix phases.
+---
 # 100% Self-Hosting Transition Plan (Operational Guide)
 
 ## Responsibility split — 2026-04-22

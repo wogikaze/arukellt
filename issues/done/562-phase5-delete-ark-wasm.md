@@ -6,15 +6,44 @@ ID: 562
 Track: selfhost-retirement
 Depends on: 559
 Orchestration class: implementation-ready
-Orchestration upstream: #559
+Orchestration upstream: None
+Blocks: 564
+Blocks v5: no
+Source: "#529 Phase 5 — Core compiler crate (Wasm emitter)."
+Implementation target: "Per #529 Phase 5, this issue removes exactly one Rust crate (`crates/ark-wasm`). No Ark product code is added or changed; this is retirement work scoped to a single crate."
+REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
 ---
 
 # 562 — Phase 5: Delete `crates/ark-wasm`
-**Blocks**: 564
-**Blocks v5**: no
-**Source**: #529 Phase 5 — Core compiler crate (Wasm emitter).
+2026-04-22 pre-deletion scan result: blocked by an active downstream crate consumer.
+- `crates/ark-stdlib/Cargo.toml: 7` depends on `ark-wasm = { workspace = true }`
+- [x] No source / script / docs reference: "`rg -l "\bark_wasm\b\|\bark-wasm\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)"
+- [x] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
+1. [x] Directory truly absent: `test ! -d crates/ark-wasm` exit 0
+2. [x] No workspace member ref: `grep -F "crates/ark-wasm" Cargo.toml` empty
+3. [x] No reverse dep ref: `grep -RIn "\bark-wasm\b" crates/*/Cargo.toml` empty
+4. [x] No Rust source ref: `rg -l "\bark_wasm\b" crates/ src/` empty
+5. [x] No script / CI ref: `rg -l "\bark-wasm\b" scripts/ .github/workflows/` empty
+6. [x] No docs ref: "`rg -l "\bark_wasm\b\|\bark-wasm\b" docs/` returns only paths listed in the close note (archived ADRs allowed if explicitly enumerated)"
+7. [x] All 4 canonical gates: numeric Δ recorded showing `FAIL=0` and `SKIP_delta=0`
+- `Cargo.toml` of OTHER crates: "only** to remove a `[dependencies]` / `[dev-dependencies]` entry on `ark-wasm`"
+- `docs/current-state.md`: "to reflect the deletion (single-line edit)"
+- `docs/adr/`: only if a new ADR is required to record the retirement
+- Suggested message: "`chore(crates): remove crates/ark-wasm per #529 Phase 5 (closes #562)`"
+commit: <hash>
+fixpoint: rc=0 → rc=0
+fixture parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cli parity: PASS=<N> FAIL=0       → PASS=<N> FAIL=0
+diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cargo check --workspace: rc=0
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
+remaining references (if any): <list with justification>
+- Workspace `Cargo.toml`: removed from `members`, `default-members`, and
+- Dead reverse dependency removed: `crates/ark-stdlib/Cargo.toml` previously
+source actually used `ark_wasm: ":*` (verified by"
+retrospective. Updated files: `crates/arukellt/Cargo.toml`,
+# 562 — Phase 5: Delete `crates/ark-wasm`
 
-**Implementation target**: Per #529 Phase 5, this issue removes exactly one Rust crate (`crates/ark-wasm`). No Ark product code is added or changed; this is retirement work scoped to a single crate.
 
 ## Summary
 
@@ -72,7 +101,6 @@ cargo check --workspace
 rg -l "\bark_wasm\b" crates/ scripts/ src/ docs/ .github/
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes (workspace topology change forces selfhost rebuild)
 
 ## STOP_IF
 

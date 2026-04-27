@@ -6,21 +6,23 @@ ID: 082
 Track: mir-opt
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+1. `passes/gc_hint.rs`: ループ内 `struct.new` + 1回使用 + 脱出なしパターン検出
+# MIR: gc_hint パス — 短命オブジェクトのパターン検出
 ---
 # MIR: gc_hint パス — 短命オブジェクトのパターン検出
-**Blocks v4 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/082-mir-gc-hint.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

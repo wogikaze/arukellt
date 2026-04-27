@@ -6,21 +6,68 @@ ID: 34
 Track: stdlib
 Depends on: 039, 041
 Orchestration class: implementation-ready
+Blocks v3 exit: yes
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+# std: ":text: String API 拡張、StringBuilder、format ユーティリティ"
+現在 prelude に散在する String 操作関数を `std: ":text::string` モジュールに再配置し、"
+flat に定義されている。v3 ではこれらを `std: ":text::string` に移動し、"
+`string: ":split(s, sep)` のような修飾呼び出しで使えるようにする。"
+pub fn from_utf8(bytes: Bytes) -> Result<String, Error>
+pub fn to_utf8_bytes(s: String) -> Bytes
+pub fn len_bytes(s: String) -> i32
+pub fn len_chars(s: String) -> i32
+pub fn slice_bytes(s: "String, start: i32, end: i32) -> Result<String, Error>"
+pub fn lines(s: String) -> Vec<String>
+pub fn trim(s: String) -> String
+pub fn trim_start(s: String) -> String
+pub fn trim_end(s: String) -> String
+pub fn replace(s: "String, from: String, to: String) -> String"
+pub fn repeat(s: "String, n: i32) -> String"
+pub fn chars(s: String) -> Vec<char>
+pub fn is_empty(s: String) -> bool
+pub fn split(s: "String, sep: String) -> Vec<String>"
+pub fn join(parts: "Vec<String>, sep: String) -> String"
+pub fn concat(a: "String, b: String) -> String"
+pub fn starts_with(s: "String, prefix: String) -> bool"
+pub fn ends_with(s: "String, suffix: String) -> bool"
+pub fn contains(s: "String, needle: String) -> bool"
+pub fn to_lower(s: String) -> String
+pub fn to_upper(s: String) -> String
+pub fn builder_append(sb: "StringBuilder, s: String) -> StringBuilder"
+pub fn builder_append_char(sb: "StringBuilder, c: char) -> StringBuilder"
+pub fn builder_append_line(sb: "StringBuilder, s: String) -> StringBuilder"
+pub fn builder_build(sb: StringBuilder) -> String
+pub fn builder_len(sb: StringBuilder) -> i32
+pub fn format_i32(n: i32) -> String
+pub fn format_f64(n: "f64, precision: i32) -> String"
+pub fn format_bool(b: bool) -> String
+pub fn pad_left(s: "String, width: i32, fill: char) -> String"
+pub fn pad_right(s: "String, width: i32, fill: char) -> String"
+1. `std/text/string.ark`: "上記 API の実装 (intrinsic + source)"
+2. `std/text/builder.ark`: "StringBuilder (GC array の動的拡張で実装)"
+3. `std/text/fmt.ark`: format ユーティリティ
+5. `ark-typecheck`: StringBuilder 型の登録
+6. `ark-wasm/src/emit`: "StringBuilder の intrinsic (append → array concat) を実装"
+- fixture: `stdlib_text/string_from_utf8.ark`, `stdlib_text/string_lines.ark`,
+- 上記 API が `use std: ":text::string` で利用可能"
+2. `lines()` の改行判定: `\n` と `\r\n` の両方に対応
+- text モジュールは std: ":bytes (043) の from_utf8 / to_utf8_bytes で接続される"
+- Rope (#047) は std: ":text の拡張として後続 issue で追加"
+- `docs/stdlib/text-reference.md`: string, builder, fmt の API リファレンス + 使用例
 # std::text: String API 拡張、StringBuilder、format ユーティリティ
-**Blocks v3 exit**: yes
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/042-std-text.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

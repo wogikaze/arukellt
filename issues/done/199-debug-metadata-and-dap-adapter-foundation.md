@@ -6,9 +6,9 @@ ID: 199
 Track: parallel
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # Debug metadata + DAP adapter foundation
-**Blocks v1 exit**: no
 
 ## Summary
 

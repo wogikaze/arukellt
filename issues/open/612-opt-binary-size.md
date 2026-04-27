@@ -3,15 +3,16 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 612
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: compiler / runtime-perf
+Orchestration class: blocked-by-upstream
+Depends on: 609, 611
+Parent: None
+In scope: 
+Out of scope: 
+Close when: T3 binary is ≥100 B smaller than Phase 0 baseline, `wasm-size-reduction.md`
+# Optimization Uplift: Binary Size Squeeze
 ---
 # Optimization Uplift: Binary Size Squeeze
-**Parent**: #591
-**Depends on**: 609, 611
-**Track**: compiler / runtime-perf
-**Orchestration class**: blocked-by-upstream
 
 ---
 

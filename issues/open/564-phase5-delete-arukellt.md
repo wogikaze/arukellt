@@ -6,15 +6,38 @@ ID: 564
 Track: selfhost-retirement
 Depends on: 559, 560, 561, 562, 563
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #559, #560, #561, #562, #563
+Orchestration upstream: None
+Blocks: —
+Blocks v5: no
+Source: "#529 Phase 5 — Top-level CLI binary crate (must be removed last in Phase 5; depends on the wrapper from #559 and on all other Phase 5 deletions)."
+Implementation target: "Per #529 Phase 5, this issue removes exactly one Rust crate (`crates/arukellt`). No Ark product code is added or changed; this is retirement work scoped to a single crate."
+REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
 ---
 
 # 564 — Phase 5: Delete `crates/arukellt`
-**Blocks**: —
-**Blocks v5**: no
-**Source**: #529 Phase 5 — Top-level CLI binary crate (must be removed last in Phase 5; depends on the wrapper from #559 and on all other Phase 5 deletions).
+- [ ] No source / script / docs reference: "`rg -l "\barukellt\b\|\barukellt\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)"
+- [ ] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
+1. [ ] Directory truly absent: `test ! -d crates/arukellt` exit 0
+2. [ ] No workspace member ref: `grep -F "crates/arukellt" Cargo.toml` empty
+3. [ ] No reverse dep ref: `grep -RIn "\barukellt\b" crates/*/Cargo.toml` empty
+4. [ ] No Rust source ref: `rg -l "\barukellt\b" crates/ src/` empty
+5. [ ] No script / CI ref: `rg -l "\barukellt\b" scripts/ .github/workflows/` empty
+6. [ ] No docs ref: "`rg -l "\barukellt\b\|\barukellt\b" docs/` returns only paths listed in the close note (archived ADRs allowed if explicitly enumerated)"
+7. [ ] All 4 canonical gates: numeric Δ recorded showing `FAIL=0` and `SKIP_delta=0`
+- `Cargo.toml` of OTHER crates: "only** to remove a `[dependencies]` / `[dev-dependencies]` entry on `arukellt`"
+- `docs/current-state.md`: "to reflect the deletion (single-line edit)"
+- `docs/adr/`: only if a new ADR is required to record the retirement
+- Suggested message: "`chore(crates): remove crates/arukellt per #529 Phase 5 (closes #564)`"
+commit: <hash>
+fixpoint: rc=0 → rc=0
+fixture parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cli parity: PASS=<N> FAIL=0       → PASS=<N> FAIL=0
+diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+cargo check --workspace: rc=0
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
+remaining references (if any): <list with justification>
+# 564 — Phase 5: Delete `crates/arukellt`
 
-**Implementation target**: Per #529 Phase 5, this issue removes exactly one Rust crate (`crates/arukellt`). No Ark product code is added or changed; this is retirement work scoped to a single crate.
 
 ## Summary
 
@@ -58,7 +81,6 @@ cargo check --workspace
 rg -l "\barukellt\b" crates/ scripts/ src/ docs/ .github/
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes (workspace topology change forces selfhost rebuild)
 
 ## STOP_IF
 

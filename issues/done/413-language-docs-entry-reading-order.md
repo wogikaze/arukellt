@@ -6,10 +6,11 @@ ID: 413
 Track: language-docs
 Depends on: 406
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 8
+# Language Docs: entry page に目的別 reading order を実装する
 ---
 # Language Docs: entry page に目的別 reading order を実装する
-**Blocks v1 exit**: no
-**Priority**: 8
 
 ## Summary
 

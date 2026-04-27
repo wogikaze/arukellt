@@ -6,21 +6,40 @@ ID: 40
 Track: stdlib
 Depends on: 039, 041, 043
 Orchestration class: implementation-ready
+Blocks v3 exit: yes
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+# std: ":io: Reader、Writer、stdin/stdout/stderr、buffered I/O"
+pub fn read_all(r: Reader) -> Result<Bytes, Error>
+pub fn read_exact(r: "Reader, n: i32) -> Result<Bytes, Error>"
+pub fn read_line(r: Reader) -> Result<String, Error>
+pub fn write_all(w: "Writer, data: Bytes) -> Result<(), Error>"
+pub fn write_string(w: "Writer, s: String) -> Result<(), Error>"
+pub fn flush(w: "Writer) -> Result<(), Error>"
+pub fn copy(r: "Reader, w: Writer) -> Result<i64, Error>"
+pub fn buffered_reader(r: "Reader, buf_size: i32) -> Reader"
+pub fn buffered_writer(w: "Writer, buf_size: i32) -> Writer"
+1. `ark-typecheck`: Reader, Writer 型の登録
+2. Reader/Writer: "GC struct wrapping WASI fd (i32)"
+3. `std/io/reader.ark`, `std/io/writer.ark`: 基本操作
+4. `std/io/stdio.ark`: stdin/stdout/stderr
+5. `std/io/buffered.ark`: "buffered wrapper (内部 ByteBuf)"
+6. `std/io/copy.ark`: stream コピー
+- fixture: `stdlib_io/stdout_write.ark`, `stdlib_io/stderr_write.ark`,
+- `docs/stdlib/io-reference.md`: Reader, Writer, stdin/stdout/stderr, buffered I/O
 # std::io: Reader、Writer、stdin/stdout/stderr、buffered I/O
-**Blocks v3 exit**: yes
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/050-std-io.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

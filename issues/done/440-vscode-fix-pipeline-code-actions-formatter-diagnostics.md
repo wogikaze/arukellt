@@ -6,10 +6,11 @@ ID: 440
 Track: vscode-ide
 Depends on: 341, 346, 348, 349, 350, 352
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 2
+# VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする
 ---
 # VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする
-**Blocks v1 exit**: no
-**Priority**: 2
 
 ## Summary
 

@@ -6,10 +6,11 @@ ID: 443
 Track: component-composition
 Depends on: 442
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 5
+# Component Composition: 複数コンポーネントの合成と linking モデルを定義・実装する
 ---
 # Component Composition: 複数コンポーネントの合成と linking モデルを定義・実装する
-**Blocks v1 exit**: no
-**Priority**: 5
 
 ## Summary
 

@@ -10,8 +10,19 @@ Orchestration upstream: —
 ---
 
 # 504 — Selfhost: trait/interface syntax and impl-block infrastructure
-**Blocks v5**: yes
-**Source**: STOP_IF blocker detected while working #495-selfhost-trait-bounds
+Blocks v5: yes
+Source: STOP_IF blocker detected while working #495-selfhost-trait-bounds
+Issue #495 (selfhost typechecker: trait bounds and constraint solving) hit a
+hard STOP_IF condition: the selfhost language toolchain does not yet support
+- generic type-parameter bounds such as `fn f<T: "Foo>(x: T)`"
+- HIR support for bounded generic parameters such as `fn f<T: "Foo>(x: T)`"
+- #495 (selfhost typechecker: trait bounds and constraint solving)
+{ … }`, and bounded generic parameters `fn f<T: "Foo>(x: T)`"
+- [x] `fn f<T: "Foo>(x: T)` parses and the bound is reachable from the HIR type"
+- [x] `cargo test` passes (fixture harness: `typecheck_trait_impl_smoke.ark` passes; pre-existing `ark-wasm` compile failures are unrelated to this slice)
+Slice scope: typechecker impl registration + bound satisfaction + fixture verification.
+- `python scripts/manager.py verify quick` passes (2 pre-existing failures: doc example check — `arukellt` binary not found; docs consistency — transient)
+# 504 — Selfhost: trait/interface syntax and impl-block infrastructure
 
 ## Summary
 

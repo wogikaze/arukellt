@@ -6,9 +6,11 @@ ID: 3
 Track: main
 Depends on: 1
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
+
+- [x] `TargetId: ":Wasm32WasiP2` profile, target help text, and docs no longer contradict the current fallback implementation."
 # Align target profile and backend plan
-**Blocks v1 exit**: yes
 
 ## Summary
 

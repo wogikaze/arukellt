@@ -7,6 +7,9 @@ Track: repo-hygiene
 Depends on: —
 Orchestration class: implementation-ready
 ---
+
+# Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る
+- `scripts/check/check-orphan-inventory.sh` reports files > 500KB (category 1: large files)
 # Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る
 
 ## Acceptance

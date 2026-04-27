@@ -6,10 +6,16 @@ ID: 354
 Track: tooling-contract
 Depends on: 353
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 22
 ---
+
 # Tooling Contract: VS Code extension テストを CI に接続する
-**Blocks v1 exit**: no
-**Priority**: 22
+- `extensions/arukellt-all-in-one/.vscode-test.mjs`: テスト設定あり
+- `extensions/arukellt-all-in-one/src/test/extension.test.js`: 35 テスト
+- `.github/workflows/ci.yml`: extension test job なし
+- `docs/test-strategy.md`: "editor-tooling = "0 automated tests / not started" (outdated)"
+# Tooling Contract: VS Code extension テストを CI に接続する
 
 ## Summary
 

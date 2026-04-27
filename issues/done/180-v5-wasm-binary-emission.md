@@ -6,9 +6,10 @@ ID: 180
 Track: main
 Depends on: 179
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# v5 Backend: deterministic Wasm binary emission
 ---
 # v5 Backend: deterministic Wasm binary emission
-**Blocks v1 exit**: no
 
 ## Summary
 

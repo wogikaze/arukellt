@@ -12,6 +12,11 @@ Source: false-done audit from `docs/stdlib/modernization/514-parser-host-quality
 ---
 
 # Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する
+現行 `std: ":fs::exists` は doc comment 上も implementation 上も `__intrinsic_fs_read_file` 成功可否に近く、"
+この issue は product claim を 1 つに固定する: 真の existence semantics を実装するか、
+- `std: ":path` API expansion"
+- [x] repo chooses one semantics explicitly: true path-existence check or probe-style helper
+# Stdlib FS: `exists` の意味を path existence に揃えるか probe helper に縮退する
 
 ## Progress
 

@@ -7,10 +7,11 @@ Track: backend-opt
 Depends on: —
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v4 exit: False
+Reviewer: "implementation-backed queue normalization (verify checklist)."
+# T3: "struct フィールドレイアウト最適化 (アクセス頻度ベース)"
 ---
-
 # T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)
-**Blocks v4 exit**: no
 
 ---
 

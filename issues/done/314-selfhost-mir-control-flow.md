@@ -6,10 +6,13 @@ ID: 314
 Track: selfhost-backend
 Depends on: 313
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 5
 ---
+
 # Selfhost MIR lowering: 制御フローを構築する
-**Blocks v1 exit**: no
-**Priority**: 5
+- `src/compiler/mir.ark`: MIR_BR, MIR_BR_IF, MIR_BLOCK, MIR_LOOP, MIR_IF の opcode は定義済み
+# Selfhost MIR lowering: 制御フローを構築する
 
 ## Summary
 

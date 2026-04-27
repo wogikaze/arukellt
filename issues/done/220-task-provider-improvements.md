@@ -6,9 +6,13 @@ ID: 220
 Track: parallel
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
 # Task provider: background task support and pre-execution validation
-**Blocks v1 exit**: no
+- [x] background task（`isBackground: true`）が動作し、ウォッチモードなどで継続実行できる
+- `isBackground: true` task の定義
+# Task provider: background task support and pre-execution validation
 
 ## Summary
 

@@ -6,16 +6,23 @@ ID: 281
 Track: corehir
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 1
+Reason: CoreHIR IfExpr still backend-illegal.
+Action: Moved from issues/done/ to issues/open/ by false-done audit.
 ---
+
 # CoreHIR lowering: IfExpr を制御フローに desugar する
-**Blocks v1 exit**: no
-**Priority**: 1
+`lower_hir_to_mir()` は現在スタブで空の MirModule を返す。`Operand: ":IfExpr` が backend-illegal のまま残り、`validate_backend_legal_module` が reject する。CoreHIR path を default にするための最初のブロッカー。"
+- `crates/ark-mir/src/lower/mod.rs: "209-281`: `lower_hir_to_mir()` は統計だけ取って空 MirModule を返す"
+- `crates/ark-mir/src/mir.rs: 419-424`
+- [x] `Operand: ":IfExpr` が branch + basic-block 形式の `MirStmt` 列に変換される"
+- `crates/ark-mir/src/validate.rs: 34-48`
+# CoreHIR lowering: IfExpr を制御フローに desugar する
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: CoreHIR IfExpr still backend-illegal.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Summary
 

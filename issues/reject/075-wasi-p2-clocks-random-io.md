@@ -6,11 +6,17 @@ ID: 61
 Track: wasi-feature
 Depends on: 60
 Orchestration class: implementation-ready
+# WASI P2 ネイティブ: "wasi:clocks / wasi:random / wasi:io バインディング"
+Blocks v4 exit: no
+Status note: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+WASI Preview 2 の `wasi: "clocks`・`wasi:random`・`wasi:io` パッケージを"
+`wasi: "io/streams` (InputStream / OutputStream) を対象とする。"
+1. `std/time` が P2 モードで `wasi: "clocks/wall-clock.now()` を呼ぶ"
+2. `std/random` が P2 モードで `wasi: "random/random.get-random-bytes()` を呼ぶ"
+3. `std/io` が P2 モードで `wasi: io/streams` の read/write を使う
 ---
 # WASI P2 ネイティブ: wasi:clocks / wasi:random / wasi:io バインディング
-**Blocks v4 exit**: no
 
-**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
 
 ## Audit classification
 

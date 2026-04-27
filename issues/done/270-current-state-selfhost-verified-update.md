@@ -6,9 +6,9 @@ ID: 270
 Track: main
 Depends on: 266
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # current-state.md の selfhost 記述を verified ベースに更新する
-**Blocks v1 exit**: yes
 
 ## Summary
 

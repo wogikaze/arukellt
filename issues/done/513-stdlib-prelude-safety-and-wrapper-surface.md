@@ -12,6 +12,12 @@ Source: stdlib modernization backlog requested 2026-04-15
 ---
 
 # Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する
+- [x] `std: ":text`, `std::core::convert`, `std::io` など wrapper を優先すべき family が列挙される"
+- Status: done
+- Date: 2026-04-22
+- Commit: 01e808f2
+- Acceptance: "all 4 [x]"
+# Stdlib: prelude 直叩き前提を減らし、安全な wrapper surface を優先する
 
 ## Progress
 

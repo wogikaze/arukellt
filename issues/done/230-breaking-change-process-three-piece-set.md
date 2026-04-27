@@ -6,9 +6,9 @@ ID: 230
 Track: main
 Depends on: 226
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # 破壊的変更の issue/changelog/migration guide 3点セット手順を確立する
-**Blocks v1 exit**: yes
 
 ## Summary
 

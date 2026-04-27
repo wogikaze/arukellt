@@ -6,11 +6,12 @@ ID: 187
 Track: parallel
 Depends on: 199, 200, 201
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Status note: Parent issue for debug metadata, runtime inspection, and advanced debug intelligence.
+# Debug UX: source-level debugging と DAP surface
 ---
 # Debug UX: source-level debugging と DAP surface
-**Blocks v1 exit**: no
 
-**Status note**: Parent issue for debug metadata, runtime inspection, and advanced debug intelligence.
 
 ## Summary
 

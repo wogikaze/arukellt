@@ -6,10 +6,15 @@ ID: 327
 Track: selfhost-verification
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 17
 ---
+
+- `docs/compiler/bootstrap.md`: 2 箇所に completion criteria table が重複
+- `docs/current-state.md`: "bootstrap status セクションなし (bootstrap.md からのリンクが 404)"
+- `docs/compiler/bootstrap.md: "246-316` — completion criteria (2 箇所目)"
+- `docs/test-strategy.md`: bootstrap は informational / scaffold 扱い
 # Bootstrap docs の重複を解消し truth を一本化する
-**Blocks v1 exit**: no
-**Priority**: 17
 
 ## Summary
 

@@ -6,11 +6,13 @@ ID: 098
 Track: compile-speed
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Status note: Compiler architecture improvement — deferred to v5+. hello.ark already compiles in 4.2ms.
+1. `ark-typecheck/src/checker.rs` の関数チェックに `rayon: ":par_iter` を適用"
+# コンパイル速度: "並列型チェック (rayon)"
 ---
 # コンパイル速度: 並列型チェック (rayon)
-**Blocks v4 exit**: no
 
-**Status note**: Compiler architecture improvement — deferred to v5+. hello.ark already compiles in 4.2ms.
 
 ## Summary
 

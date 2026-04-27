@@ -6,21 +6,26 @@ ID: 080
 Track: mir-opt
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: True
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+1. `passes/licm.rs`: ループ内の不変計算を pre-header ブロックに移動
+2. `OptimizationPass: ":Licm` を enum に追加・`DEFAULT_PASS_ORDER` に挿入"
+1. `ark-mir/src/opt/licm.rs`: "CFG からループ検出 (支配木 + back-edge)"
+3. `OptimizationSummary` に `licm_hoisted: usize` 追加
+# MIR: "LICM (ループ不変式移動) パス"
 ---
 # MIR: LICM (ループ不変式移動) パス
-**Blocks v4 exit**: yes
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/080-mir-licm.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

@@ -6,10 +6,44 @@ ID: 450
 Track: vscode-ide
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 1
+Stmt: ":Let {"
 ---
+
 # LSP: ローカル変数の Go to Definition を identifier span ベースに修正する
-**Blocks v1 exit**: no
-**Priority**: 1
+`textDocument/definition` で変数名の定義に飛ぶと、定義 range が `let` 文全体（または次行まで）を指している。`Cmd/Ctrl+hover` の preview が 1 行以上表示されるのはこの bug が原因。`Stmt: ":Let` の `span` フィールドが `let x = expr` 全体を指すため、`find_let_in_block` が返す span も全体になっている。修正は `Stmt::Let` に `name_span: Span` フィールドを追加し、定義位置として変数名トークンのみを返すようにすること。"
+### `crates/ark-parser/src/ast.rs` の `Stmt: ":Let`"
+name: String,
+ty: Option<TypeExpr>,
+init: Expr,
+is_mut: bool,
+pattern: Option<Pattern>,
+span: let_start..=init_end,
+ast: ":Item::FnDef(f) if f.name == name => return Some(f.span),"
+`Stmt: ":Let` に `name_span: Span` を追加し、parser でその span をセットする。`find_let_in_block` では `*name_span` を返す。"
+### Step 1: "`Stmt::Let` に `name_span` フィールドを追加 (`crates/ark-parser/src/ast.rs`)"
+name_span: "Span,  // ← 追加: 変数名識別子のみの span"
+### Step 2: "Parser で `name_span` をセットする (`crates/ark-parser/src/parser.rs` または let 文パース箇所)"
+let 文をパースしている箇所を特定する（grep: "`Stmt::Let {` で発見）。変数名トークンをパースした直後のトークン span を `name_span` としてセットする。"
+let is_mut = self.try_consume(Token: ":Mut);"
+### Step 3: "`find_let_in_block` の修正 (`crates/ark-lsp/src/server.rs` 行 1448)"
+### Step 4: `FnDef.span` の確認と修正
+確認方法: `hover_preview` を関数名上で実行して preview が関数全体を含むか確認する。含む場合は同様の修正が必要。
+`Param.span` も同様に確認する。パラメータ `p.span` が `name: type` 全体なら `p.name_span` を追加する。
+### Step 5: shadowing の確認
+shadowing ケース: 同名変数が内側スコープで再定義された場合、`find_let_in_block` は走査順に最初に見つかったものを返す可能性がある。
+採用方針: 本 issue では「カーソル位置に最も近い（最内側の）束縛に飛ぶ」を完了条件とする。`find_let_in_block` は現在、block.stmts を先頭から走査するため、**ブロックを内側から探索する**必要がある。
+### Step 6: "LSP プロトコルテストの追加 (`crates/ark-lsp/tests/lsp_e2e.rs`)"
+// let source = String: ":from("hello")"
+// expected: "range points only to `source` (the name token), not full let statement"
+let result = lsp_goto_definition(src, line: "2, col: 10);"
+- `crates/ark-parser/src/ast.rs`（`Stmt: ":Let` フィールド追加）"
+- `Stmt: ":Let` の変更後に `crates/` 内で `Stmt::Let {` を pattern match している全箇所（MIR lowering、type checker 等）が `name_span` を要求する exhaustive match になっていないか確認する。`..` で無視できるようにしておく（フィールド追加なので `..` を使った match は影響を受けない）。"
+1. LSP E2E テスト: local let, function arg, function name それぞれで range.start/end を検証
+2. shadowing ケースのテスト（最低限: 同名変数が 2 つある時、使用箇所から正しい束縛に飛ぶ）
+3. `Stmt: ":Let` の新フィールドに対する exhaustive match が存在する場合のコンパイル確認"
+# LSP: ローカル変数の Go to Definition を identifier span ベースに修正する
 
 ## Summary
 
@@ -112,7 +146,6 @@ ast::Item::FnDef(f) if f.name == name => return Some(f.span),
 
 `FnDef.span` の実際の範囲を確認する（parser を grep して fn キーワードから body 末尾までか、fn キーワード + 名前だけかを確認）。もし全体 span なら `FnDef` にも `name_span` を追加する。
 
-**確認方法**: `hover_preview` を関数名上で実行して preview が関数全体を含むか確認する。含む場合は同様の修正が必要。
 
 `Param.span` も同様に確認する。パラメータ `p.span` が `name: type` 全体なら `p.name_span` を追加する。
 
@@ -130,7 +163,6 @@ let x = 1
 
 現在の実装が「最初に見つかった let を返す」動作の場合、shadowing で内側を返すためにはスコープを考慮した探索が必要。
 
-**採用方針**: 本 issue では「カーソル位置に最も近い（最内側の）束縛に飛ぶ」を完了条件とする。`find_let_in_block` は現在、block.stmts を先頭から走査するため、**ブロックを内側から探索する**必要がある。
 
 現状の実装がスコープを正しく扱っているかを確認し、内側ブロックの束縛を優先しない問題があれば修正する。修正が大きい場合は別 issue として分離する（本 issue では `name_span` 修正と合わせて、shadowing が存在しない単純ケースの正確化を完了条件とする）。
 

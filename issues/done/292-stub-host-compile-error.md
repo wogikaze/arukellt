@@ -6,30 +6,33 @@ ID: 292
 Track: capability
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 12
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: "E0500 (incompatible-target) in codes.rs, implemented in load.rs"
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+- `std/host/http.ark`: "`request()` / `get()` が `Err("not implemented")` を返す"
+- `std/host/sockets.ark`: "`connect()` が `Err("not implemented")` を返す"
+- `std/manifest.toml: 1685-1720`
+- [x] テスト: "http::get を呼ぶコードが compile error を出す fixture"
 # stub host module (http, sockets) の使用を compile error にする
-**Blocks v1 exit**: no
-**Priority**: 12
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: E0500 (incompatible-target) in codes.rs, implemented in load.rs
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/292-stub-host-compile-error.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

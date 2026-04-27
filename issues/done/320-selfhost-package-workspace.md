@@ -6,10 +6,12 @@ ID: 320
 Track: selfhost-cli
 Depends on: 318
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 15
 ---
+
+- `src/compiler/ark.toml` (307 bytes): selfhost 自身の manifest は存在する
 # Selfhost CLI に package/workspace 統合を実装する
-**Blocks v1 exit**: no
-**Priority**: 15
 
 ## Summary
 

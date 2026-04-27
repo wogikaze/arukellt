@@ -6,9 +6,9 @@ ID: 251
 Track: main
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # ターゲットマトリクスを「宣言」ではなく、継続検証される実行契約にする
-**Blocks v1 exit**: yes
 
 ## Summary
 

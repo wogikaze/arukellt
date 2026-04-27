@@ -6,9 +6,10 @@ ID: 175
 Track: main
 Depends on: 162
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# v5 Driver/CLI: command surface and exit behavior
 ---
 # v5 Driver/CLI: command surface and exit behavior
-**Blocks v1 exit**: no
 
 ## Summary
 

@@ -6,6 +6,7 @@ ID: 375
 Track: repo-hygiene
 Depends on: —
 Orchestration class: implementation-ready
+# Repo Hygiene: archive / retention policy を定め、情報の鮮度を維持する
 ---
 # Repo Hygiene: archive / retention policy を定め、情報の鮮度を維持する
 

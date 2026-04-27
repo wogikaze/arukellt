@@ -3,15 +3,28 @@ Status: done
 Created: 2026-04-22
 Updated: 2026-04-23
 ID: 604
-Track: main
+Track: stdlib
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: —
+Parent: #590
+Phase 0 baseline is part of this issue: "write the gap ledger (current claim vs actual"
+Targeted families: "`std::host::fs`, `std::json`, `std::toml`, `std::collections::hash`,"
+In scope: 
+Out of scope: 
+Close when: "gap ledger exists, targeted module docs are real (no placeholder text),"
 ---
+
 # Stdlib Baseline: Contract and Facade Honesty
-**Parent**: #590
-**Depends on**: —
-**Track**: stdlib
-**Orchestration class**: implementation-ready
+`std: ":host::http`, `std::host::sockets`, `std::text`, `std::time`."
+- Write Phase 0 gap ledger: record exact "API name vs actual behavior" mismatches
+- For `std: ":collections::hash`: separate raw layout helpers from user-facing facade"
+- depends_on_open: none
+- depends_on_done: none
+- blocks: #605, #606, #607, #608
+3. `std: ":host::fs::exists` is explicitly documented as read-probe / best-effort semantics in `std/host/fs.ark` and the manifest `doc` field; rename deferred (breaking change) and tracked under #605."
+4. `std: ":json` and `std::toml` partial surfaces are marked `experimental` in `std/manifest.toml` (per-function and per-module entries with explicit subset doc)."
+5. `std/manifest.toml` carries `[[modules]]` entries for all eight targeted families (`std: ":host::fs`, `std::host::http`, `std::host::sockets`, `std::json`, `std::toml`, `std::collections::hash`, `std::text`, `std::time`) with stability and family-level honesty caveats matching the gap ledger dispositions."
+# Stdlib Baseline: Contract and Facade Honesty
 
 ---
 

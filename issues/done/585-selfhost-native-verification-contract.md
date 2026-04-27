@@ -2,11 +2,21 @@
 Status: done
 Track: selfhost-retirement
 Depends on: 559
-Orchestration class: implementation-ready
+Orchestration class: verification-contract
+Blocks: 583, 560, 561, 562, 563, 564
+Resolution: ADR-029 selfhost-native verification contract adopted. The
+Total checks: "1  Passed: 1  Skipped: 0  Failed: 0"
 ---
+
+"skip (Rust: pattern not found)" → 0 pass → FAIL.
+5. Fresh-clone simulation: "in a clean directory (or with"
+- path: `bootstrap/arukellt-selfhost.wasm`
+- size: "536 277 bytes (≈ 524 KiB)"
+- sha256: `3a0350371f9dbc37becef03efffa8d20b90827161a0d9fab97163a19de341f2c`
+- provenance: "[`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md)"
+- built from: master commit `662c3f58`
+# detailed: "PASS=6 FAIL=0 (--version, --help, unknown-cmd, compile|check|run no-args)"
 # 585 — Replace Rust-baseline parity gates with selfhost-native verification contract
-**Blocks**: 583, 560, 561, 562, 563, 564
-**Orchestration class**: verification-contract
 
 ## Why
 
@@ -137,7 +147,6 @@ without the Rust binary, unblocking #583 and Phase 5.
 
 ## Close note (2026-04-22, branch `feat/585-native-verification`)
 
-**Resolution**: ADR-029 selfhost-native verification contract adopted. The
 four canonical selfhost gates now bootstrap from the committed pinned-
 reference wasm and never consult `target/debug/arukellt`. Phase 5
 retirement (#583, #560–#564) is unblocked.

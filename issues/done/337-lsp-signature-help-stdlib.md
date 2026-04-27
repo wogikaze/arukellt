@@ -6,10 +6,13 @@ ID: 337
 Track: lsp-navigation
 Depends on: 334
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 9
 ---
+
 # LSP: signature help を stdlib 連携で完成させる
-**Blocks v1 exit**: no
-**Priority**: 9
+- `crates/ark-lsp/src/server.rs`: signature_help handler 実装あり
+# LSP: signature help を stdlib 連携で完成させる
 
 ## Summary
 

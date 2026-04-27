@@ -6,10 +6,11 @@ ID: 402
 Track: stdlib-docs
 Depends on: 396
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 8
+# Stdlib Docs: landing page と読む順番を family 単位で再設計する
 ---
 # Stdlib Docs: landing page と読む順番を family 単位で再設計する
-**Blocks v1 exit**: no
-**Priority**: 8
 
 ## Summary
 

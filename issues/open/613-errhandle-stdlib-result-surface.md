@@ -3,15 +3,25 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 613
-Track: main
+Track: stdlib
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: —
+Parent: #592
+Phase 0 baseline is part of this issue: run parity/verify gates, record counts,
+In scope: 
+Out of scope: 
+Close when: inventory is written, top-impact fs/json APIs have typed errors,
 ---
+
 # Error Handling Convergence: Stdlib Result Surface
-**Parent**: #592
-**Depends on**: —
-**Track**: stdlib
-**Orchestration class**: implementation-ready
+- recoverable runtime failure: typed `Result<T, E>` with stable error categories
+- optional absence: `Option<T>`, not stringly error messages
+`std: ":host::fs`, `std::json`, `std::io` (or equivalent)"
+- `std: ":error::Error` trait / trait-based error abstraction (requires #495 / #512 first)"
+1. Phase 0 inventory: list of stdlib APIs returning `Result<_, String>` is written
+2. At least the top 3 highest-impact APIs in `std: ":host::fs` / `std::json` have typed error enums"
+- Do not implement `std: ":error::Error` trait abstraction before #495 / #512 are ready"
+# Error Handling Convergence: Stdlib Result Surface
 
 ---
 

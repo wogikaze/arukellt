@@ -6,10 +6,9 @@ Track: main
 Depends on: 261
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v3: yes
 ---
-
 # package/workspace/manifest resolution テストの第一級化
-**Blocks v3**: yes
 
 ## Summary
 

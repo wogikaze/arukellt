@@ -6,9 +6,9 @@ ID: 274
 Track: main
 Depends on: 273
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # test controller discovery と restart の E2E を実装する
-**Blocks v1 exit**: no
 
 ## Summary
 

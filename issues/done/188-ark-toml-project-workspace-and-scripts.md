@@ -2,26 +2,27 @@
 Status: done
 Created: 2026-03-29
 Updated: 2026-04-13
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: parallel
+Orchestration class: blocked-by-upstream
+Depends on: 202, 203, 204
+Closed: 2026-04-18
+ID: 188
+Orchestration upstream: None
+Blocks v1 exit: False
+Status note: Parent issue for manifest schema, script CLI surface, and project explain/inspection features.
+Reason: "Depends on 204 (project-explain/build-explain/sandbox). Those commands do not exist in CLI."
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
+# `ark.toml`: project / workspace metadata と `script run` surface
 ---
 # `ark.toml`: project / workspace metadata と `script run` surface
-**Closed**: 2026-04-18
-**ID**: 188
-**Depends on**: 202, 203, 204
-**Track**: parallel
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #204
-**Blocks v1 exit**: no
 
-**Status note**: Parent issue for manifest schema, script CLI surface, and project explain/inspection features.
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Depends on 204 (project-explain/build-explain/sandbox). Those commands do not exist in CLI.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 

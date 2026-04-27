@@ -6,9 +6,17 @@ ID: 482
 Track: selfhost-retirement
 Depends on: 328
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Downstream: "#330 (CI artifact / regression tracking) — この issue 完了後に着手"
 ---
+
 # harness.rs: ARUKELLT_BIN 環境変数でバイナリパスを上書きできるようにする
-**Blocks v1 exit**: no
+現在の false-done: issue 330 の acceptance criterion 1
+`std: ":env::var("ARUKELLT_BIN")` を試み、設定されていれば `PathBuf::from(val)` を返す"
+- `crates/arukellt/tests/harness.rs` line 103: "`if let Ok(val) = std::env::var("ARUKELLT_BIN") { return PathBuf::from(val); }`"
+- `cargo test -p arukellt --test harness`: "1 passed; 0 failed (18.03s)"
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 passed
+# harness.rs: ARUKELLT_BIN 環境変数でバイナリパスを上書きできるようにする
 
 ---
 
@@ -21,7 +29,6 @@ Issue 330 (`fixture-harness-selfhost-compat`) は:
 
 の 3 層を混ぜている。この issue は **harness implementation layer のみ** を担当する。
 
-**現在の false-done**: issue 330 の acceptance criterion 1
 「`ARUKELLT_BIN=path/to/selfhost cargo test -p arukellt --test harness` で
 selfhost compiler が使われる」は、`crates/arukellt/tests/harness.rs` が
 `current_exe()` を使っておりこの env var を無視するため、**未達成**。

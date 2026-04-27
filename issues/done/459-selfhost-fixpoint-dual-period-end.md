@@ -1,5 +1,5 @@
 ---
-Status: done
+Status: complete.
 Created: 2026-04-02
 Updated: 2026-04-22
 ID: 459
@@ -7,13 +7,54 @@ Track: compiler, selfhost
 Depends on: 445, 446, 447, 448, 449
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v5: yes
+Priority: 3
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+Evidence (branch: "fix/selfhost-emitter-invalid-wasm):"
 ---
 
+- `docs/compiler/bootstrap.md` canonical gate: `python scripts/manager.py selfhost parity` → **exit 0
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Outstanding blocker for dual-period close: diag-parity SKIP > 0.
+Phase 5 progress today: "closed 2 SKIPs (`diagnostics/type_mismatch`,"
+Next step to close #459: implement the missing diagnostics in
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+#### Task 1 — `src/compiler/driver.ark`: recursive module loading
+#### Task 2 — `src/compiler/mir.ark` + `src/compiler/emitter.ark`: qualified call resolution
+- output shows `stage1-self-compile: reached`
+- output shows `stage2-fixpoint: reached`
+Evidence: `python scripts/manager.py selfhost fixpoint`, `selfhost parity`, `selfhost diag-parity` all implemented in `scripts/manager.py`
+> Audit note (2025-07-14): "The detailed step list below is partially stale. The original Phase 1 fixpoint work is no longer the active blocker because the canonical bootstrap verifier now reports `stage2-fixpoint: reached`. Keep this section as historical implementation context; use the Progress section and the table above as the current source of truth."
+### Step 1: fixpoint 不一致の原因特定
+- 確認方法: `arukellt-s1 compile src/compiler/main.ark --target wasm32-wasi-p1 --emit core-wasm` を実行し、警告/エラーを確認する。
+- 修正: 不一致が出る機能を `src/compiler/*.ark` に実装する。
+### Step 2: CI に fixpoint check を追加する
+BUILD_DIR="${1: -.build/selfhost}"
+# Stage 1: Rust compiler builds ark compiler
+# Stage 2: "ark compiler (s1) rebuilds itself"
+echo "FAIL: fixpoint not reached"
+echo "  s1: $S1_HASH"
+echo "  s2: $S2_HASH"
+echo "OK: "fixpoint reached ($S1_HASH)""
+### Step 3: fixture parity テストを追加する
+echo "MISMATCH: $fixture"
+echo "Fixture parity: $PASS pass, $FAIL fail"
+### Step 4: diagnostic parity テストを追加する
+echo "DIAG MISMATCH: $fixture"
+### Step 5: `docs/compiler/bootstrap.md` の dual-period 終了条件を明記する
+1. Stage 2 fixpoint: "`sha256(s1) = sha256(s2)` passes CI (`python scripts/manager.py selfhost fixpoint`)"
+2. Fixture parity: all `tests/fixtures/*.ark` produce identical output from Rust and ark compilers
+3. CLI parity: `arukellt` and `arukellt-s1` produce identical CLI output for check/compile/run/test
+4. Diagnostic parity: error fixtures produce identical diagnostic JSON from both compilers
+### Step 6: `docs/current-state.md` の selfhost セクションを更新する
+- Issue 449（emitter type_table 一本化）: emitter の非決定性が原因の場合に影響する。先に完了させることが望ましい。
+- Issues 445–448: 実装系 issue。fixpoint 不一致の原因が未実装機能の場合に影響する。
+1. CI: `python scripts/manager.py selfhost fixpoint` を `manager.py verify` full pass に統合
+2. CI: `python scripts/manager.py selfhost fixture-parity` を full pass に統合
+3. CI: `python scripts/manager.py selfhost diag-parity` を full pass に統合
+4. 手動: `s1` と `s2` の wasm-diff で実際の差異がゼロであることを目視確認
 # selfhost Stage 2 fixpoint 達成と dual-period 終了計画
-**Blocks v5**: yes
-**Priority**: 3
 
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ---
 
@@ -32,7 +73,6 @@ SKIP counts in fixture-parity (249) and diag-parity (24) reflect unimplemented f
 (f32, closures, call_indirect, typecheck diagnostics, etc.) tracked as separate issues.
 Gate requires FAIL=0 and exit 0, not SKIP=0. Both conditions satisfied.
 
-**Action**: Moved from `issues/open/` → `issues/done/`.
 
 ---
 
@@ -84,20 +124,16 @@ categories are explicitly out of scope for dual-period exit.
 
 ---
 
-**Reason**: Fixpoint not reached.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Reopened by audit — 2026-04-22
 
-**Reason**: #459 still has unresolved dual-period blockers. CLI parity is only green for the narrow current runner (`--version`, `--help`), fixture parity remains in progress, and diagnostic parity remains open. Additional CLI gap tracking is split into #557 and #558.
 
 **Audit evidence**:
 - `issues/open/557-selfhost-cli-top-level-command-surface-parity.md`
 - `issues/open/558-expand-selfhost-cli-parity-runner-beyond-help-version.md`
 - `python3 scripts/manager.py selfhost parity --mode --cli` passes only the narrow current CLI gate
 
-**Action**: Moved from `issues/done/` → `issues/open/` because dual-period exit criteria are not yet met.
 
 ## Progress — 2026-04-21
 
@@ -150,21 +186,16 @@ Do not close #459 on fixpoint alone. Close it only when parity gates are satisfi
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: `python scripts/manager.py selfhost fixpoint`, `selfhost parity`, `selfhost diag-parity` all implemented in `scripts/manager.py`
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/459-selfhost-fixpoint-dual-period-end.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

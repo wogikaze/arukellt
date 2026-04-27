@@ -6,9 +6,20 @@ ID: 27
 Track: component-model
 Depends on: 030, 031
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
+with test kinds: "`run:`, `diag:`, `module-run:`, `module-diag:`, `t3-compile:`."
+- `component-compile: ` — compile to .component.wasm, validate binary
+- `component-run: ` tests require wasmtime with component model support. If wasmtime is
+- `component-interop: ` — multi-component composition tests
+- [x] New test kind `component-compile: ` added to `crates/arukellt/tests/harness.rs`.
+- [x] New test kind `component-run: ` added to harness. Compiles to component, runs via
+- `export_add.ark` — exports `pub fn add(a: "i32, b: i32) -> i32`"
+- `export_string.ark` — exports `pub fn greet(name: String) -> String`
+- [x] WIT extraction test: for each component fixture, `wasm-tools component wit` on the
+- Snapshot testing for WIT output: store expected `.wit` files alongside fixtures,
 # Component Model test fixtures & interop validation
-**Blocks v1 exit**: no
 
 ## Summary
 

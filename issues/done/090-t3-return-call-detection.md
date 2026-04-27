@@ -6,15 +6,26 @@ ID: 090
 Track: backend-opt
 Depends on: 48
 Orchestration class: implementation-ready
+Blocks v4 exit: yes
+Slice implemented: Opportunistic T3 return-call detection for non-desugared tail calls.
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
 # T3: 末尾位置の call → return_call 自動変換
-**Blocks v4 exit**: yes
+- `crates/ark-wasm/src/emit/t3/helpers.rs`: Added `try_emit_let_call_tail_return` method
+1. `MirStmt: ":Call { dest: Some(Local(id)), func: FnId, args }` + `Return(Place(id))`"
+2. `MirStmt: ":Assign(Local(id), Rvalue::Use(Operand::Call(name, args)))` + `Return(Place(id))`"
+- `tests/fixtures/tail_call/opportunistic.ark`: New fixture with 100,000-depth recursion
+- `grep -c "return_call" crates/ark-wasm/src/emit/t3/helpers.rs`: "13 (was 12)."
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS.
+- `cargo test -p arukellt --test harness`: "649 PASS, 1 pre-existing FAIL (stdlib_core/to_string_i64.ark, unrelated)."
+# T3: 末尾位置の call → return_call 自動変換
 
 ---
 
 ## Completed — 2026-04-29
 
-**Slice implemented**: Opportunistic T3 return-call detection for non-desugared tail calls.
 
 **Evidence**:
 - `crates/ark-wasm/src/emit/t3/helpers.rs`: Added `try_emit_let_call_tail_return` method
@@ -32,13 +43,11 @@ Orchestration class: implementation-ready
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/090-t3-return-call-detection.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

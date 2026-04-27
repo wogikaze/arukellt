@@ -2,28 +2,52 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-03
-Track: main
+Track: stdlib
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: —
+Closed: 2026-04-03 by impl-stdlib agent
+ID: 040
+Blocks v3 exit: yes
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Total checks: "19 / Passed: 19 / Failed: 0"
 ---
+
 # Scalar 型完全化: u8/u16/u32/u64/i8/i16/f32
-**Closed**: 2026-04-03
-**ID**: 040
-**Depends on**: —
-**Track**: stdlib
-**Blocks v3 exit**: yes
+操作に unsigned 幅付き整数が不可欠であり、std: ":bytes と std::wasm の前提条件。"
+2. リテラル表記: `42u8`, `1000u32`, `0xFFu8` 等の suffix リテラル
+3. 型間の明示変換関数: `u8_to_i32`, `i32_to_u8`, `u32_to_u64` 等
+4. 算術演算: `+`, `-`, `*`, `/`, `%`, 比較演算が全 scalar 型で動作
+5. Wasm backend: "適切な Wasm 型にマッピング (u8/u16/i8/i16 → i32 に narrowing)"
+1. `ark-typecheck/src/types.rs`: 7 つの新 scalar 型バリアントを追加
+2. `ark-parser`: "suffix リテラル構文 (`42u8`, `1000u32`) のパース"
+3. `ark-typecheck/src/checker.rs`: 新 scalar 型の型検査ルール、暗黙変換の禁止
+4. `ark-mir`: MIR に新 scalar 型の表現を追加
+5. `ark-wasm/src/emit`: T3 emitter で u8/u16/i8/i16 を i32 として emit し、
+6. `std/prelude.ark`: "変換関数 (`u8_to_i32`, `i32_to_u8` 等) を追加"
+7. オーバーフロー動作の定義: "wrapping (Wasm の自然動作に従う)"
+- fixture: `scalar/u8_basic.ark`, `scalar/u32_arithmetic.ark`, `scalar/u64_overflow.ark`,
+(`storagetype: ":= valtype | packedtype`, `packedtype ::= i8 | i16`)。"
+- この issue で追加した unsigned 型は std: ":bytes (043), std::wasm (053) の直接の前提"
+- `docs/spec/scalar-types.md`: 全 scalar 型の一覧、Wasm マッピング、変換規則
+117: "pub fn u8_to_i32(x: u8) -> i32 {"
+121: "pub fn u16_to_i32(x: u16) -> i32 {"
+125: "pub fn i8_to_i32(x: i8) -> i32 {"
+134: "pub fn i32_to_u8(x: i32) -> u8 {"
+151: "pub fn u32_to_u64(x: u32) -> u64 {"
+168: "pub fn f32_to_f64(x: f32) -> f64 {"
+`f32_to_f64` function is defined in prelude.ark and handles f32→f64 promotion via Wasm `f64.promote_f32`. However, f32-typed local variables (e.g. `let x: f32 = 1.5f32`) require f32 local tracking in the MIR lowerer which is not yet fully implemented. The conversion function itself works when f32 values come from struct fields or function params.
+# Scalar 型完全化: u8/u16/u32/u64/i8/i16/f32
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/040-scalar-type-completeness.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -101,7 +125,6 @@ Wasm 自体が u8/u16/u32/u64 を要求するため、Bytes 操作や LEB128 に
 
 ## 完了証拠 / Closure Evidence
 
-**Closed**: 2026-04-03 by impl-stdlib agent
 
 ### 受け入れ条件チェック / Acceptance Criteria
 

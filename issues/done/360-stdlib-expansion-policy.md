@@ -6,10 +6,13 @@ ID: 360
 Track: stdlib-api
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 5
 ---
+
 # Stdlib: module family ごとの拡張原則を定義する
-**Blocks v1 exit**: no
-**Priority**: 5
+- Added `family = "expansion"` to `std: ":host::http` and `std::host::sockets` in `std/manifest.toml`"
+# Stdlib: module family ごとの拡張原則を定義する
 
 ## Summary
 

@@ -4,19 +4,41 @@ Created: 2026-04-15
 Updated: 2026-04-22
 ID: 510
 Depends on: —
-Track: main
-Orchestration class: implementation-ready
+Track: wasi-feature
+Orchestration class: blocked-by-upstream
+Blocks: 074, 076, 121
+Orchestration upstream: #074-parent-gate
+Blocks v4 exit: no
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+Status note: Leaf close-gate issue for #074. This unblocks the parent P2 native gate; it is not downstream of #074.
+Each call-site also encodes the P1 ABI: "linear-memory iovecs (`IOV_BASE`,"
+The `build_backend_plan` function at the `RuntimeModel: ":T1LinearP1 |"
+RuntimeModel: ":T3WasmGcP2 if wasi_version == WasiVersion::P2 => {"
 ---
+
+# T3 emitter: "WASI P2 import-table switch (full P2-native component)"
+- depends_on_open: none
+- depends_on_done: none
+- blocks: #074, #076, #121
+### Primary: `crates/ark-wasm/src/emit/t3_wasm_gc/mod.rs`
+`ImportSection: ":new()` call (approximately line 1592).  Each import currently"
+| `wasi_snapshot_preview1` / `fd_write`            | `wasi: "cli/stdout@0.2.0` / `write` (stream)       |"
+| `wasi_snapshot_preview1` / `path_open`           | `wasi: filesystem/types@0.2.0` / `open-at`        |
+| `wasi_snapshot_preview1` / `fd_read`             | `wasi: "cli/stdin@0.2.0` / `read` (stream)         |"
+| `wasi_snapshot_preview1` / `fd_close`            | `wasi: filesystem/types@0.2.0` / resource drop    |
+| `wasi_snapshot_preview1` / `clock_time_get`      | `wasi: clocks/wall-clock@0.2.0` / `now`           |
+| `wasi_snapshot_preview1` / `random_get`          | `wasi: random/random@0.2.0` / `get-random-bytes`  |
+| `wasi_snapshot_preview1` / `proc_exit`           | `wasi: cli/exit@0.2.0` / `exit`                   |
+| `wasi_snapshot_preview1` / `args_sizes_get` + `args_get` | `wasi: cli/environment@0.2.0` / `arguments` |
+| `wasi_snapshot_preview1` / `environ_sizes_get` + `environ_get` | `wasi: cli/environment@0.2.0` / `environment` |
+### Secondary: `crates/ark-target/src/plan.rs`
+with `module: "n_snapshot_preview1"` today.  When the T3 emitter gains the
+// TODO(510): "branch on WasiVersion::P2 to emit P2 import plans"
+// wasi: "cli/stdout@0.2.0, wasi:cli/stdin@0.2.0, etc."
+- `Session: ":wasi_version` field added (`crates/ark-driver/src/session.rs`)"
 # T3 emitter: WASI P2 import-table switch (full P2-native component)
-**Blocks**: 074, 076, 121
-**Track**: wasi-feature
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #074-parent-gate
-**Blocks v4 exit**: no
 
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
-**Status note**: Leaf close-gate issue for #074. This unblocks the parent P2 native gate; it is not downstream of #074.
 
 ---
 

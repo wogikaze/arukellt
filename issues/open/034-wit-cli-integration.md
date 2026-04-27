@@ -2,22 +2,38 @@
 Status: open
 Created: 2026-03-28
 Updated: 2026-04-22
-ID: 034
+ID: 28
 Track: component-model
 Depends on: 030, 031, 028b, 616
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #616
+Orchestration upstream: None
 Blocks v{N}: none
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+Reason: CLI accepts --wit flag but only validates file existence. Not threaded into resolver/session/component compile.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+BLOCKED: "This issue is structurally blocked by [#616](616-selfhost-component-emit-infra.md) (Component emission infrastructure missing in the newly unified selfhost compiler). Do not dispatch until the emitter logic is capable of generating Wasm components."
 ---
 
+- The `--wit` flag threading: "CLI → Session → Resolver (for import binding) → MIR"
+"error: component model requires --target wasm32-wasi-p2"
+- `cmd_compile` forwards only `target`, `opt_level`, and `emit_mode` into `driver: ":compile_file`; no WIT import list reaches the resolver/session/component pipeline."
+- `driver: ":compile_source` only recognizes `emit_mode` values `wat` and `wasm`; there is no component emit branch or `.component.wasm` output path."
+- Missing `wasm-tools`: ""error: wasm-tools not found. Install with: cargo install wasm-tools""
+- Non-exportable function: ""warning W0005: function `foo` has closure parameter, skipped from component exports""
+- WIT parse error: ""error: host.wit:3:5: expected type name, found `{`""
+- [x] Target help text updated: `wasm32-wasi-p2` description changed from
+# CLI --wit flag, --emit component workflow, docs
+
+Reason: CLI accepts --wit flag but only validates file existence. Not threaded into resolver/session/component compile.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+- The `--wit` flag threading: "CLI → Session → Resolver (for import binding) → MIR"
+"error: component model requires --target wasm32-wasi-p2"
+---
 # CLI --wit flag, --emit component workflow, docs
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: CLI accepts --wit flag but only validates file existence. Not threaded into resolver/session/component compile.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Parent note — 2026-04-15
 

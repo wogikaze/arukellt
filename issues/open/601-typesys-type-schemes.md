@@ -3,15 +3,17 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 601
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: selfhost / typechecker
+Orchestration class: blocked-by-upstream
+Depends on: 600
+Parent: None
+Policy constraint: Do NOT generalize everything blindly. Use a conservative
+In scope: 
+Out of scope: 
+# Type System Stage-Up: Type Schemes and Controlled Let-Generalization
+- Internal `TypeScheme` type: quantified variables + deferred trait constraints + body type
 ---
 # Type System Stage-Up: Type Schemes and Controlled Let-Generalization
-**Parent**: #589
-**Depends on**: 600
-**Track**: selfhost / typechecker
-**Orchestration class**: blocked-by-upstream
 
 ---
 

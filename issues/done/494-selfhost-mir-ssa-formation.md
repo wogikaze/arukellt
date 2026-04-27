@@ -10,8 +10,21 @@ Orchestration upstream: —
 ---
 
 # 494 — Selfhost MIR: SSA formation pass
-**Blocks v5**: yes
-**Source**: audit — issues/done/211-selfhost-mir-lower-fn-bodies.md "Out of scope (deferred)"
+Blocks v5: yes
+Source: "audit — issues/done/211-selfhost-mir-lower-fn-bodies.md "Out of scope (deferred)""
+remaining SSA-specific work: phi-node representation, insertion, and renaming.
+renaming: `mir_stdio_print_phi_elimination_preview` documents parallel-copy
+## Close note — 2026-04-22T03: "57:57Z"
+- Wave 1 representation: `9562861cee996e66ce68bf5cb224b5df70740317`
+- Wave 2 simple-join insertion: `4a3eee2aa6b4106c16c26371a3bde2db1ccd8ba5`
+- Wave 3 extended insertion: `350c1147` / `0bad0dc6`
+- Wave 5 SSA renaming for join values: "`67a4fe95` (merge `b962adca`)"
+- Fixtures: `tests/fixtures/selfhost/mir_phi_representation_smoke.ark`,
+and the `phi_elim_join bb3: "join_val (phi removed)` line, matching the"
+(Passed: "1, Failed: 0)."
+parity (Passed: "1, Failed: 0)."
+--cli (Passed: "1, Failed: 0)."
+# 494 — Selfhost MIR: SSA formation pass
 
 ## Summary
 

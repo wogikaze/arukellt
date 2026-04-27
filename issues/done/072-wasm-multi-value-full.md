@@ -2,27 +2,31 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-15
-ID: 072
+ID: 58
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v4 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
 # Wasm Multi-Value: ブロック / ループの複数値返却フル活用
-**Blocks v4 exit**: no
+- `Operand: ":IfExpr` now recognizes concrete tuple results (`__tupleN` / `__tupleN_any`) where both"
+`BlockType: ":FunctionType(...)` multi-value `if` block."
+# Wasm Multi-Value: ブロック / ループの複数値返却フル活用
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/072-wasm-multi-value-full.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

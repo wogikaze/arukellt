@@ -54,11 +54,13 @@ def convert_issue(content: str) -> str:
                     field_value = match.group(2).strip()
                     field_value = re.sub(r'^\*+\s*', '', field_value)
                     field_value = re.sub(r'\s*\*+$', '', field_value)
-                    if field_name not in frontmatter:
-                        frontmatter[field_name] = field_value
+                    # Body values override frontmatter values
+                    if field_name not in frontmatter or frontmatter[field_name] != field_value:
+                        print(f"  Overriding {field_name}: {frontmatter.get(field_name, 'None')} -> {field_value}")
+                        modified = True
+                    frontmatter[field_name] = field_value
             
             # Add missing required fields with defaults
-            modified = False
             if 'Track' not in frontmatter:
                 frontmatter['Track'] = 'main'
                 modified = True

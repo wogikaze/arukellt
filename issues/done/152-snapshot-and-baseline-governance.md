@@ -6,9 +6,10 @@ ID: 152
 Track: cross-cutting
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# 横断検証: snapshot / baseline 更新導線と verify-harness 統合
 ---
 # 横断検証: snapshot / baseline 更新導線と verify-harness 統合
-**Blocks v1 exit**: no
 
 ## Summary
 

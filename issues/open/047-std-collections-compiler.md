@@ -2,29 +2,61 @@
 Status: open
 Created: 2026-03-28
 Updated: 2026-04-22
-ID: 047
+ID: 39
 Track: stdlib
 Depends on: 039, 041
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #529
+Orchestration upstream: None
+Blocks v3 exit: "no (Experimental)"
+Status note: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Interner (値 ↔ ID 双方向化) を `std: ":collections` 配下に、"
 ---
 
+# std: ":collections: Arena、SlotMap、Interner ／ std::text: Rope"
+pub fn arena_alloc<T>(a: "Arena<T>, value: T) -> ArenaId"
+pub fn arena_get<T>(a: "Arena<T>, id: ArenaId) -> Option<T>"
+pub fn arena_len<T>(a: Arena<T>) -> i32
+pub fn slot_insert<V>(m: "SlotMap<V>, value: V) -> SlotKey"
+pub fn slot_get<V>(m: "SlotMap<V>, key: SlotKey) -> Option<V>"
+pub fn slot_remove<V>(m: "SlotMap<V>, key: SlotKey) -> Option<V>"
+pub fn slot_contains<V>(m: "SlotMap<V>, key: SlotKey) -> bool"
+pub fn slot_len<V>(m: SlotMap<V>) -> i32
+pub fn intern<T>(i: "Interner<T>, value: T) -> Symbol"
+pub fn resolve<T>(i: "Interner<T>, sym: Symbol) -> Option<T>"
+pub fn interner_len<T>(i: Interner<T>) -> i32
+### Rope (std: ":text::rope)"
+`std: ":text` モジュールの一部として提供する (`std::collections` ではない)。"
+pub fn rope_from_string(s: String) -> Rope
+pub fn rope_insert(r: "Rope, pos: i32, text: String) -> Rope"
+pub fn rope_delete(r: "Rope, start: i32, end: i32) -> Rope"
+pub fn rope_slice(r: "Rope, start: i32, end: i32) -> String"
+pub fn rope_len(r: Rope) -> i32
+pub fn rope_to_string(r: Rope) -> String
+pub fn rope_line_count(r: Rope) -> i32
+1. `ark-typecheck`: Arena, ArenaId, SlotMap, SlotKey, Interner, Symbol, Rope 型の登録
+2. Arena: GC Vec + 単調増加 ID
+3. SlotMap: "generation-indexed array (slot = {value, generation})"
+4. Interner: HashMap<T, Symbol> + Vec<T> の双方向マップ
+5. Rope: balanced binary tree of text chunks
+- fixture: `stdlib_collections/arena_basic.ark`, `stdlib_collections/slot_map_basic.ark`,
+1. SlotMap の generation overflow: "u32 wrap 時の扱い (panic vs error)"
+2. Rope のバランス維持: 深さが偏らないよう rebalance を実装
+- `docs/stdlib/collections-advanced.md`: Arena, SlotMap, Interner のリファレンス
+- `docs/stdlib/modules/text.md` に Rope セクションを追加 (std: ":text::rope)"
 # std::collections: Arena、SlotMap、Interner ／ std::text: Rope
-**Blocks v3 exit**: no (Experimental)
 
-**Status note**: Blocker-free stdlib lane. This issue does not carry the #312 generic monomorphization blocker from #044.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/047-std-collections-compiler.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

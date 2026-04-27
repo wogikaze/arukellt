@@ -3,15 +3,22 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 602
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: selfhost / typechecker
+Orchestration class: blocked-by-upstream
+Depends on: 601
+Parent: #589
+In scope: 
+Out of scope: 
+See also: "#495 (selfhost trait bounds open issue) and #312 (generic monomorphization) —"
+Close when: obligation-based solving is active, coherence is enforced, ambiguity is
 ---
+
 # Type System Stage-Up: Qualified Constraints and Coherent Trait Solving
-**Parent**: #589
-**Depends on**: 601
-**Track**: selfhost / typechecker
-**Orchestration class**: blocked-by-upstream
+discipline. Enforce coherence: "one visible impl per `(Trait, SelfType)` pair. Reject"
+- Ambiguity checks: reject signatures and call sites that cannot be solved to a unique meaning
+- Fixtures: "positive (trait bound satisfied), negative (unresolved, ambiguous, overlapping impl)"
+- `where` trait-bound syntax changes (use current `T: Trait` style)
+# Type System Stage-Up: Qualified Constraints and Coherent Trait Solving
 
 ---
 

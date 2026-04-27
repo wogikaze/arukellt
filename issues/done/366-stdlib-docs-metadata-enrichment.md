@@ -6,6 +6,7 @@ ID: 366
 Track: stdlib-docs
 Depends on: —
 Orchestration class: implementation-ready
+# Stdlib Docs: manifest metadata を enrichment し生成 docs の情報密度を上げる
 ---
 # Stdlib Docs: manifest metadata を enrichment し生成 docs の情報密度を上げる
 

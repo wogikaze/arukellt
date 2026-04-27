@@ -6,11 +6,16 @@ ID: 50
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready
+# Wasm Memory64: i64 アドレス空間対応
+Blocks v4 exit: no
+Status note: Wasm proposal — deferred to v5+. Not implemented.
+現在 `memory64: false` でハードコードされており、4GB 超のリニアメモリを使う大規模データ処理に対応できない。
+2. `memory64: true` 時、ロード/ストア命令のアドレスを `i64` で渡す
+1. `ark-wasm/src/emit/t3_wasm_gc.rs`: `memory64` フラグを `EmitOptions` に追加
+4. `crates/arukellt/src/main.rs`: `--memory64` CLI フラグ追加
 ---
 # Wasm Memory64: i64 アドレス空間対応
-**Blocks v4 exit**: no
 
-**Status note**: Wasm proposal — deferred to v5+. Not implemented.
 
 ## Summary
 

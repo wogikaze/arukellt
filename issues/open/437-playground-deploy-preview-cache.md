@@ -7,15 +7,20 @@ Track: playground
 Depends on: 431
 Orchestration class: implementation-ready
 ---
-# Playground: deployment / preview environment / asset cache 戦略を整える
-**Blocks v1 exit**: no
-**Priority**: 10
 
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
+# Playground: deployment / preview environment / asset cache 戦略を整える
+Gap note: "JS bundle files (served from `docs/playground/dist/`) use fixed filenames because there is no bundler (esbuild/Vite) in the pipeline. GitHub Pages' ~10-minute TTL provides adequate cache freshness for JS. Full JS content-hash filenames require a proper bundler; that work is not in this issue's scope."
+PR preview: "No per-PR automated preview deployment exists (documented explicitly as target-state in `deployment-strategy.md` §5.1). The local preview procedure (§5.2) satisfies "preview 手順が定義される.""
+Reason: No preview deploy or smoke test.
+Action: Moved from issues/done/ to issues/open/ by false-done audit.
+Evidence: "`.github/workflows/playground-ci.yml` runs full `npm run build:app` in both size-gate jobs on every PR touching playground paths."
+Evidence (stale — flagged by 2026-04-22 script inventory audit): "`playground/package.json build:app` attempts to run `scripts/gen/stamp-playground-assets.sh` (with `|| true` fallback), but the script does NOT exist on disk. Cache-busting is not active. This acceptance is not actually satisfied."
+---
+# Playground: deployment / preview environment / asset cache 戦略を整える
+
 
 ## Completed — 2026-04-15
 
-**Closed by**: impl-playground agent
 
 **Evidence summary**:
 
@@ -35,15 +40,11 @@ Orchestration class: implementation-ready
 | Asset versioning / cache busting | **NOT IMPLEMENTED** — `scripts/gen/stamp-playground-assets.sh` is referenced from `playground/package.json build:app` with `\|\| true`, but the script itself does NOT exist on disk. Cache-busting is not active. |
 | Smoke test | `.github/workflows/playground-ci.yml` jobs `playground-bundle-size` and `playground-wasm-size` both run `npm run build:app` and gate on asset size — pass = build compiles clean within budget |
 
-**Gap note**: JS bundle files (served from `docs/playground/dist/`) use fixed filenames because there is no bundler (esbuild/Vite) in the pipeline. GitHub Pages' ~10-minute TTL provides adequate cache freshness for JS. Full JS content-hash filenames require a proper bundler; that work is not in this issue's scope.
 
-**PR preview**: No per-PR automated preview deployment exists (documented explicitly as target-state in `deployment-strategy.md` §5.1). The local preview procedure (§5.2) satisfies "preview 手順が定義される."
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: No preview deploy or smoke test.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Summary
 

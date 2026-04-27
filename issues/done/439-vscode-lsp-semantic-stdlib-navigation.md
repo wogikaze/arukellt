@@ -6,10 +6,11 @@ ID: 439
 Track: vscode-ide
 Depends on: 333, 334, 335, 338, 339
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 1
+# VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する
 ---
 # VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する
-**Blocks v1 exit**: no
-**Priority**: 1
 
 ## Summary
 

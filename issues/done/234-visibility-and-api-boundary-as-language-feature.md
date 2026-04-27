@@ -6,9 +6,9 @@ ID: 234
 Track: main
 Depends on: 233
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # visibility・public API・internal API を言語機能として確立する
-**Blocks v1 exit**: yes
 
 ## Summary
 

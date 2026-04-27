@@ -6,21 +6,24 @@ ID: 136
 Depends on: 137, 138, 077, 139
 Track: wasi-feature
 Orchestration class: blocked-by-upstream
-Orchestration upstream: "#139, #77"
+Orchestration upstream: None
 Blocks v{N}: none
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+ADR-011 で決定した `std: ":host::*` layering を、stdlib・compiler・docs・verification に反映する。"
+目的は host capability を `std: ":*` 直下から切り離し、"
+1. `std: ":host::*` の naming / target policy が `std/manifest.toml`、generated docs、issue queue で一貫する"
+# ADR-011 に沿った `std: ":host` layer の段階的ロールアウト"
 ---
-
 # ADR-011 に沿った `std::host` layer の段階的ロールアウト
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/136-std-wasi-capability-rollout.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

@@ -4,26 +4,30 @@ Created: 2026-03-31
 Updated: 2026-04-22
 ID: 285
 Depends on: 284
-Track: main
+Track: corehir
 Orchestration class: implementation-ready
+Orchestration upstream: —
+Blocks v{N}: none
+Priority: 5
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+---
+
+# Legacy path deprecation
+Completed: 
+- `MirSelection: ":Legacy` and `OptimizedLegacy` marked `#[deprecated]` ✓"
+Blocked: 
+- `crates/ark-mir/src/lower/func.rs`: `lower_to_mir` — legacy lowering のメイン実装（deprecated）
+- `crates/ark-mir/src/lower/facade.rs`: `lower_hir_to_mir`（stub / 空 MIR）、`lower_corehir_with_fallback`
+#529 配下の Rust クレート退役サブイシューに移管する。本 issue の `Blocks: `
+- [ ] False-done risk: #285 is ready to move to `issues/done/` now.
 ---
 # Legacy lowering path を隔離・撤去する
-**Blocks**: (cycle broken — see ADR-028; #508 now depends on #529 instead)
-**Track**: corehir
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Priority**: 5
 
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
-**Operational lane**: legacy removal / selfhost transition record. Keep separate from #125/#126 trusted-base compiler default-path correction and from #099 selfhost frontend design.
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Legacy fallback still active.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Progress update — 2026-04-18
 

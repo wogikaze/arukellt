@@ -6,9 +6,9 @@ ID: 259
 Track: main
 Depends on: 257
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # 未実装 target (T2/T4/T5) の検証配線状況を文書化する
-**Blocks v1 exit**: no
 
 ## Summary
 

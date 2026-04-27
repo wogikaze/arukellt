@@ -6,9 +6,30 @@ ID: 479
 Track: vscode-ide
 Depends on: 478
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Upstream: "#478 (extension wiring) — 完了後に着手"
+Downstream: "#480 (README docs) — この issue 完了後に着手"
 ---
+
 # LSP server: LspConfig struct と設定反映ハンドラ実装
-**Blocks v1 exit**: no
+- `enableCodeLens: false` → codeLens ハンドラが空配列を返す
+- `hoverDetailLevel: "minimal"` → hover が signature のみ返す
+- `diagnostics.reportLevel: "errors"` → warning/hint が publishDiagnostics に含まれない
+- `check.onSave: "false` → on-save 時の診断更新をスキップ (on-save trigger の無効化)"
+- `useSelfHostBackend: "true` での実際の selfhost バイナリ起動 (Issue 459 範囲)"
+`enable_code_lens: "bool`, `hover_detail_level: HoverDetailLevel`,"
+`diagnostics_report_level: "DiagnosticsLevel`, `check_on_save: bool`,"
+`use_self_host_backend: bool` フィールドを持つ
+2. `initializationOptions` に `enableCodeLens: false` を渡して codeLens リクエストを送ると
+3. `initializationOptions` に `hoverDetailLevel: "minimal"` を渡して hover リクエストを送ると
+4. `initializationOptions` に `diagnostics.reportLevel: "errors"` を渡すと
+- `crates/ark-lsp/src/config.rs` — new file with `LspConfig` struct (5 fields: `enable_code_lens`, `hover_detail_level`, `diagnostics_report_level`, `use_self_host_backend`, `check_on_save`) and `from_initialization_options` constructor + 5 unit tests
+- `crates/ark-lsp/src/server.rs` — added `use crate: ":config::LspConfig;`, added `lsp_config: Mutex<LspConfig>` field to `ArukellBackend`, initialized in `new()`, parsed from `initializationOptions` in `initialize` handler"
+- `crates/ark-lsp/src/lib.rs` — added `pub mod config; pub use config: ":LspConfig;`"
+- Also fixed pre-existing test bug: "`ast::Import` missing `kind` field in `completion_marks_imported_modules_as_already_imported` test"
+- `cargo test -p ark-lsp`: 31 passed, 0 failed
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 passed
+# LSP server: LspConfig struct と設定反映ハンドラ実装
 
 ---
 

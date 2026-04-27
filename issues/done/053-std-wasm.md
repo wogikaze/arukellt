@@ -6,21 +6,53 @@ ID: 43
 Track: stdlib
 Depends on: 039, 040, 043
 Orchestration class: implementation-ready
+Blocks v3 exit: "no (Experimental)"
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+# std: ":wasm: Wasm バイナリ型・opcode・module builder"
+module builder、binary reader/writer を Arukellt の std: ":wasm として実装する。"
+### std: ":wasm::leb128"
+// They will be added in std: ":wasm::gc (v4+) once GC proposal is finalized in wasm-tools"
+pub struct FuncType { params: "Vec<ValType>, results: Vec<ValType> }"
+pub struct Limits { min: "u32, max: Option<u32> }"
+pub struct MemoryType { limits: Limits }
+pub struct TableType { element: "RefType, limits: Limits }"
+pub struct GlobalType { val_type: "ValType, mutable: bool }"
+pub fn add_type(m: "WasmModuleBuilder, ty: FuncType) -> u32"
+pub fn add_import_func(m: "WasmModuleBuilder, module: String, name: String, type_idx: u32) -> u32"
+pub fn add_func(m: "WasmModuleBuilder, type_idx: u32, locals: Vec<ValType>, body: Vec<u8>) -> u32"
+pub fn add_memory(m: "WasmModuleBuilder, mem: MemoryType) -> u32"
+pub fn add_export_func(m: "WasmModuleBuilder, name: String, func_idx: u32)"
+pub fn add_export_memory(m: "WasmModuleBuilder, name: String, mem_idx: u32)"
+pub fn encode(m: WasmModuleBuilder) -> Bytes
+pub fn decode(bytes: Bytes) -> Result<WasmModule, Error>
+pub fn encode_u32(x: u32) -> Bytes
+pub fn decode_u32(c: ByteCursor) -> Result<u32, Error>
+pub fn encode_i32(x: i32) -> Bytes
+pub fn decode_i32(c: ByteCursor) -> Result<i32, Error>
+pub fn encode_u64(x: u64) -> Bytes
+pub fn decode_u64(c: ByteCursor) -> Result<u64, Error>
+pub fn size_u32(x: u32) -> i32  // encoded byte count
+1. `std/wasm/types.ark`: ValType, FuncType 等の enum/struct 定義
+2. `std/wasm/binary.ark`: "WasmModuleBuilder (source 実装、ByteBuf ベース)"
+3. `std/wasm/leb128.ark`: "LEB128 codec (source 実装)"
+4. `std/wasm/decode.ark`: "基本的な Wasm binary parser (section-level)"
+5. `std/wasm/opcode.ark`: "主要命令の定数定義 (i32.const = 0x41 等)"
+- fixture: `stdlib_wasm/valtype.ark`, `stdlib_wasm/leb128_roundtrip.ark`,
+- `docs/stdlib/wasm-reference.md`: types, binary, leb128, opcode のリファレンス
 # std::wasm: Wasm バイナリ型・opcode・module builder
-**Blocks v3 exit**: no (Experimental)
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/053-std-wasm.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

@@ -6,10 +6,11 @@ ID: 389
 Track: stdlib-api
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 7
+# Stdlib: JSON / TOML / CSV の round-trip baseline を整備する
 ---
 # Stdlib: JSON / TOML / CSV の round-trip baseline を整備する
-**Blocks v1 exit**: no
-**Priority**: 7
 
 ## Summary
 

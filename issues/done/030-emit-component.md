@@ -6,9 +6,21 @@ ID: 24
 Track: component-model
 Depends on: 029
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Currently `crates/ark-target/src/plan.rs: 68-72` returns a hard error when
 ---
+
+component wrapping: take the GC-native core Wasm module produced by T3, wrap it with
+`emit_kind == EmitKind: ":Component`. The test `component_emit_is_rejected` in"
+`crates/ark-wasm/src/emit/mod.rs: 88-90` explicitly asserts this rejection.
+### Decision: In-tree vs external tooling
+- [x] `build_backend_plan(TargetId: ":Wasm32WasiP2, EmitKind::Component)` returns `Ok(plan)`"
+- [x] `EmitCapability: ":Component` variant added to `crates/ark-target/src/plan.rs`."
+- [x] `BackendPlan` for component emit includes: canonical ABI adapter requirements,
+`EmitCapability: ":Component`: emits core module → generates WIT → invokes component"
+- [x] `Session: ":compile_component()` method added to `crates/ark-driver/src/session.rs`"
+- `crates/ark-target/src/plan.rs` — remove hard error, add `EmitCapability: ":Component`"
 # Enable --emit component and produce .component.wasm
-**Blocks v1 exit**: no
 
 ## Summary
 

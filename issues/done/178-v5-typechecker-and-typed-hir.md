@@ -6,9 +6,10 @@ ID: 178
 Track: main
 Depends on: 177
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# v5 TypeChecker: inference and typed HIR
 ---
 # v5 TypeChecker: inference and typed HIR
-**Blocks v1 exit**: no
 
 ## Summary
 

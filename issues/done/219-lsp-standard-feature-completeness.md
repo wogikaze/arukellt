@@ -6,9 +6,9 @@ ID: 219
 Track: parallel
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # LSP standard feature completeness
-**Blocks v1 exit**: yes
 
 ## Summary
 

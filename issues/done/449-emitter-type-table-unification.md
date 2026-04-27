@@ -6,30 +6,44 @@ ID: 449
 Track: compiler
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
+Priority: 5
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: "tests/fixtures/regression/type_table/ fixtures, validate_type_table_consistency() in ark-mir"
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+T1 行 219 の実コードを確認すると `enum_payload_types: "mir.type_table.enum_defs.clone()` が入っており、既に type_table から読んでいる。しかし行 219 の直前に `// TODO(MIR-01)` が残っている。2 つの解釈がある。"
+TODO(MIR-01) を含む全コメントを削除する。削除後、各 TODO が解消された根拠を commit message に記載する（「emit/t1: remove MIR-01 fallback — enum_payload_types now exclusively from type_table」等）。
 ---
+
 # emitter type_table 一本化: T1/T3 両 emitter から checker fallback を除去する
-**Blocks v1 exit**: yes
-**Priority**: 5
+- 現状: "`enum_payload_types: mir.type_table.enum_defs.clone()` が既に type_table から読んでいるが、コメントが残っている。コメントの意味は「以前は checker からフォールバックしていたが今は type_table からのみ」であることを確認する必要がある。実際にコードが type_table を使っているなら TODO コメントを削除し、fallback パスがないことを確認する。"
+- T3 emitter の struct_layouts は `mir.type_table.struct_defs.clone()` から既に読んでいる（確認済み: "`let struct_layouts: HashMap<String, Vec<(String, String)>> = mir.type_table.struct_defs.clone()`）が、checker fallback パスが残っているか確認する。"
+採用方針: 本 issue では両解釈をカバーする。まず全 TODO 箇所の前後コードを精査し、checker 由来データが残っていれば除去し、残っていなければ TODO コメントのみ削除する。どちらの場合も MIR validation テストを追加する。
+### Step 1: "T1 emitter の全 TODO(MIR-01) 箇所の精査"
+### Step 2: "T3 emitter の全 TODO(MIR-01) 箇所の精査"
+### Step 3: "MIR validation 強化 (`crates/ark-mir/src/validate.rs` または `crates/ark-mir/src/`)"
+- `MirModule: ":type_table` に存在しない struct/enum 名が `MirExpr` に出現した場合に validate エラーを追加する。"
+3. 不整合があれば `DiagnosticCode: ":W0004` 相当の内部エラーを emit する（新しいコードを割り当てるか、既存の internal error コードを使うか検討）。"
+### Step 4: 型レイアウト由来の退行テスト追加
+### Step 5: TODO コメントの除去
+- checker fallback が実際に動いていた場合: checker 由来データと type_table データが食い違う型でエラーが出るようになる。これは潜在的バグの早期検出であり、意図的な変化。既存の全 fixture が pass し続けることで regression がないことを確認する。
+- 行番号はコードの編集で変わる可能性があるため、TODO を grep で特定してから作業すること: "`grep -n "TODO(MIR-01)" crates/ark-wasm/src/emit/t1/mod.rs crates/ark-wasm/src/emit/t3/mod.rs`"
+# emitter type_table 一本化: T1/T3 両 emitter から checker fallback を除去する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: tests/fixtures/regression/type_table/ fixtures, validate_type_table_consistency() in ark-mir
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/449-emitter-type-table-unification.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -60,7 +74,6 @@ T1 行 219 の実コードを確認すると `enum_payload_types: mir.type_table
 1. **解釈 A**: type_table への移行は完了しているが TODO コメントが残っている → コメント削除 + fallback パスがないことの確認テストを追加する。
 2. **解釈 B**: type_table へ読み替えた部分とまだ checker 由来データに頼っている部分が混在している → 混在箇所を特定して全面 type_table 化する。
 
-**採用方針**: 本 issue では両解釈をカバーする。まず全 TODO 箇所の前後コードを精査し、checker 由来データが残っていれば除去し、残っていなければ TODO コメントのみ削除する。どちらの場合も MIR validation テストを追加する。
 
 ---
 

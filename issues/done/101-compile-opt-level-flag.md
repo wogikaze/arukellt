@@ -6,21 +6,23 @@ ID: 101
 Track: compile-speed
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: True
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-10)."
+デフォルト: "`--opt-level 1` (安全な最適化のみ)。"
+# CLI: --opt-level 0/1/2 フラグ + Session 統合
 ---
 # CLI: --opt-level 0/1/2 フラグ + Session 統合
-**Blocks v4 exit**: yes
 
 ---
 
 ## Reopened by audit — 2026-04-10
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/101-compile-opt-level-flag.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-10).
 
 ## Summary
 

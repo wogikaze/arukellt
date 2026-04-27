@@ -6,23 +6,25 @@ ID: 59
 Track: wasi-feature
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: True
+Status note: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+4. fixture: "`wasi_clock.ark` (time取得)、`wasi_random.ark` (ランダムバイト)、`wasi_args.ark` (引数取得)"
+# WASI P1: "全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"
 ---
 # WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)
-**Blocks v4 exit**: yes
 
-**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/073-wasi-p1-full-syscalls.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

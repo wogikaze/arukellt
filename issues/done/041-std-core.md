@@ -2,27 +2,51 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-14
-ID: 041
+ID: 33
 Track: stdlib
 Depends on: 039
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #39
+Orchestration upstream: None
+Blocks v3 exit: yes
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+IndexOutOfBounds { index: "i32, len: i32 },"
+ParseError { kind: "String, input: String },"
 ---
 
+# std: ":core: Error 型、ordering、range、cmp、math、convert、hash"
+- Implemented `std: ":core` foundational surface in source (`Error`, `Ordering`, `Range`, cmp/math/hash helpers)."
+- Updated `std/manifest.toml` registrations for the expanded `std: ":core` API."
+std: ":core モジュールとして、言語の基礎型と基礎関数を体系化する。"
+pub struct Range { start: "i32, end: i32 }"
+pub struct RangeInclusive { start: "i32, end: i32 }"
+- `cmp: ":min<T>(a: T, b: T) -> T`, `cmp::max<T>`, `cmp::clamp<T>`"
+- `math: ":abs_i32`, `math::abs_i64`, `math::abs_f64`, `math::pow_f64`,"
+`math: ":sqrt`, `math::floor`, `math::ceil`, `math::round`, `math::log`, `math::exp`"
+- `convert: ":i32_to_string`, `convert::parse_i32`, `convert::f64_to_string` (既存の再配置)"
+- `hash: ":hash_i32`, `hash::hash_string`, `hash::combine`"
+1. `std/core/error.ark`: Error enum 定義、display/message 関数
+2. `std/core/ordering.ark`: Ordering enum、compare 関数群
+3. `std/core/range.ark`: Range/RangeInclusive 型、contains/len 関数
+4. `std/core/math.ark`: "数学関数 (既存 intrinsic の再配置 + 新規追加)"
+5. `std/core/convert.ark`: 型変換関数の統一 namespace 化
+6. `std/core/hash.ark`: "ハッシュ関数 (HashMap の前提)"
+- fixture: `stdlib_core/error_basic.ark`, `stdlib_core/ordering.ark`,
+3. hash 関数の実装品質: FNV-1a または wyhash 相当の簡易ハッシュから始める
+- hash 関数は std: ":collections::hash_map (044) の直接の前提"
+- `docs/stdlib/core-reference.md`: Error, Ordering, Range, math, convert, hash の API リファレンス
+3. `math: ":PI`, `math::E` 等の定数をどう表現するか (const 構文の有無に依存)"
 # std::core: Error 型、ordering、range、cmp、math、convert、hash
-**Blocks v3 exit**: yes
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/041-std-core.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Completion — 2026-04-14
 

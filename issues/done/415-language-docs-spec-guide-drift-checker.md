@@ -6,10 +6,11 @@ ID: 415
 Track: language-docs
 Depends on: 406, 407
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 10
+# Language Docs: spec と guide の drift checker を CI に入れる
 ---
 # Language Docs: spec と guide の drift checker を CI に入れる
-**Blocks v1 exit**: no
-**Priority**: 10
 
 ## Summary
 

@@ -6,9 +6,9 @@ ID: 131
 Track: code-structure
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: no
 ---
 # TypeChecker checker.rs (2790行) をサブモジュールに分割
-**Blocks v4 exit**: no
 
 ## Summary
 

@@ -6,9 +6,16 @@ ID: 019
 Track: gc-native
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
 # GC-native scaffolding: type registry, remove bump allocator
-**Blocks v1 exit**: no
+- [x] `GcTypeRegistry` struct exists with mappings for: "`$string` (array mut i8),"
+- [x] `type_to_val()` returns `ValType: ":Ref(RefType { ... HeapType::Concrete(idx) })` for"
+- Enum subtypes: "register with `SubType { is_final: false, supertype_idx: None }` for"
+base and `SubType { is_final: "true, supertype_idx: Some(base_idx) }` for variants."
+- Data segments change semantic meaning: offsets no longer matter for linear memory
+# GC-native scaffolding: type registry, remove bump allocator
 
 ## Summary
 

@@ -6,25 +6,22 @@ ID: 473
 Track: wasm-feature
 Depends on: "032 (resource-type, done)"
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #32
+Orchestration upstream: None
 ---
 
 # Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC
-**Blocks v4 exit**: no
+---
+# Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC
 
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Source**: Future-work gap extracted from `issues/done/032-resource-type.md`.
 
-**Quote**: "Advanced features (resource inheritance, async resource drops,
 cross-component resource forwarding) are deferred to v3+." and
 "No garbage collection of handles is implemented in v2; leaked handles are a known limitation."
 
-**Action**: New open issue created per audit rule — deferred items in done issues must
 have a corresponding open issue.
 
 ---

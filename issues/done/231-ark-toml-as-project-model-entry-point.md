@@ -6,9 +6,10 @@ ID: 231
 Track: main
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
+Closed 2026-04-09. docs/ark-toml.md documents the full schema (package/bin/target/dependencies/scripts/world sections). cmd_build uses Manifest: ":find_and_load() for upward search. require_bin() provides actionable error messages. Single-file vs project mode distinction documented. Known partial: [workspace] multi-member config and arukellt check-manifest subcommand are tracked in #233 and #235."
 ---
 # ark.toml を project model の唯一の正規入口として仕様化する
-**Blocks v1 exit**: yes
 
 ## Summary
 

@@ -6,15 +6,16 @@ ID: 170
 Track: main
 Depends on: 165, 166, 169
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Reason: Guide claims selfhost as primary path but docs/current-state.md says Stage 2 fixpoint not reached.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Close gate: satisfied by current-first docs alignment.
 ---
 # v5 Migration guide
-**Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Guide claims selfhost as primary path but docs/current-state.md says Stage 2 fixpoint not reached.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Completed — 2026-04-15
 
@@ -24,7 +25,6 @@ Orchestration class: implementation-ready
   `docs/current-state.md` and `docs/compiler/bootstrap.md` for the verified status.
 - `python3 scripts/check/check-docs-consistency.py` passed for the correction slice.
 
-**Close gate**: satisfied by current-first docs alignment.
 
 ## Summary
 

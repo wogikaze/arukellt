@@ -6,10 +6,11 @@ ID: 432
 Track: playground
 Depends on: 381
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 5
+# Playground: examples catalog を docs / fixtures と共有する
 ---
 # Playground: examples catalog を docs / fixtures と共有する
-**Blocks v1 exit**: no
-**Priority**: 5
 
 ## Summary
 

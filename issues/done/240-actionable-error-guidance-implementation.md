@@ -6,9 +6,12 @@ ID: 240
 Track: main
 Depends on: 237, 239
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
+Closed 2026-04-09. (1) Binary not-found: "extension discoverBinary() logs each probe step to output channel, shows Open Output / Open Settings buttons. (2) ark.toml errors: ManifestError::Toml gives field-level errors; require_bin() gives actionable hint. (3) LSP connection failure: extension shows error message with reconnect path. (4) Compile errors: diagnostics published in real-time by LSP. Error codes and doc links are a v2+ improvement tracked in #219."
 ---
+
+- 「LSP: Restart Server」コマンドの案内
 # エラー時の診断案内（何が足りないか・どこを直すか）を実装する
-**Blocks v1 exit**: yes
 
 ## Summary
 

@@ -6,11 +6,12 @@ ID: 53
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Status note: Infrastructure added. Extended const used for heap pointer init at opt_level >= 2.
+# Wasm Extended Const: 定数式での算術演算
 ---
 # Wasm Extended Const: 定数式での算術演算
-**Blocks v4 exit**: no
 
-**Status note**: Infrastructure added. Extended const used for heap pointer init at opt_level >= 2.
 
 ## Summary
 

@@ -6,9 +6,14 @@ ID: 133
 Track: code-structure
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: no
 ---
+
+├── mod.rs              # re-export: "pub use passes::*, pub use orchestrate::"
+use crate: ":mir::MirFunction;"
+use super: ":super::orchestrate::OptimizationSummary;"
+pub fn const_fold(func: &mut MirFunction) -> OptimizationSummary { ... }
 # MIR opt/pipeline.rs (916行) を passes/ ディレクトリに分割
-**Blocks v4 exit**: no
 
 ## Summary
 

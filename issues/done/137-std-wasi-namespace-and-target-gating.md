@@ -6,21 +6,35 @@ ID: 137
 Track: wasi-feature
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+# `std: ":host::*` namespace 導入と migration / target-gated 診断"
+`use std: ":host::*` を compiler / stdlib / generated docs に通し、"
+旧 `std: ":io/fs/env/process/cli` import と旧 prelude host API を compile-time に移行案内付きで reject する。"
+同時に `std: ":host::http` のような P2 専用 module は T1 で明示的に reject する。"
+1. `std: ":host::*` module を `std/manifest.toml` と resolver が理解する"
+2. 旧 `std: ":io/fs/env/process/cli` import と旧 prelude host API で専用 migration diagnostics を返す"
+- `T3_ONLY_MODULES` in `crates/ark-resolve/src/load.rs` now includes `std: ":host::sockets` and `std::host::udp`"
+- `std/manifest.toml` updated with `[[modules]]` and `[[functions]]` entry for `std: ":host::udp`"
+- `docs/capability-surface.md` updated with `std: ":host::udp` section"
+- `diag: "` fixture `tests/fixtures/target_gating/t1_import_udp.ark` — E0500 for T1 + std::host::udp"
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
+- [x] `std: ":host::*` modules registered in `std/manifest.toml` and resolver T3_ONLY_MODULES"
+- [x] Deprecated import paths (`std: ":io`, `std::fs`, etc.) already emit E0104 migration diagnostics"
 # `std::host::*` namespace 導入と migration / target-gated 診断
-**Blocks v1 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/137-std-wasi-namespace-and-target-gating.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

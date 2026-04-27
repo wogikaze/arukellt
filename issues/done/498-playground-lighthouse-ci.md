@@ -5,7 +5,16 @@ Updated: 2026-04-15
 Track: playground
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-04-15
+Source: "explicit-defer — docs/playground/deployment-strategy.md §4.3 (issue #491)"
+JS bundle, serves `docs/playground/` at `localhost: 3000` via `npx serve@14`,
 ---
+
+# 498 — Playground CI: Lighthouse performance audit
+- `.github/workflows/playground-ci.yml` job `playground-lighthouse`: builds
+- `.github/lighthouserc.json`: "Lighthouse CI config with assertions:"
+- `categories: "performance` ≥ 0.7 / 70% (warn)"
+- `docs/playground/deployment-strategy.md §4.3`: status note updated to
 # 498 — Playground CI: Lighthouse performance audit
 **Closed:** 2026-04-15
 **Source:** explicit-defer — docs/playground/deployment-strategy.md §4.3 (issue #491)

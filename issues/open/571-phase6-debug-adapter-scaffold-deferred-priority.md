@@ -6,15 +6,28 @@ ID: 571
 Track: selfhost-frontend
 Depends on: 568
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #568
+Orchestration upstream: None
+Blocks: 573
+Blocks v5: no
+Source: #529 Phase 6 — IDE Frontend / LSP / DAP migration
+Implementation target: "Per #529 Phase 6, IDE-side functionality is reimplemented in Ark (`src/`) so that the Rust IDE crates can be retired in Phase 7. This issue covers exactly one concern; do **not** expand scope."
+Lower-priority Phase 6 slice: "scaffold a Debug Adapter Protocol server in Ark so the Rust `crates/ark-dap` can be retired in Phase 7. This issue covers only the protocol scaffold (initialize / launch / disconnect); breakpoints / stepping are out of scope and tracked separately if needed."
+REBUILD_BEFORE_VERIFY: yes
 ---
 
+# 571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)"
+- [ ] Implements: `initialize`, `launch`, `disconnect`
+3. [ ] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+- One logical commit per slice. Suggested message: "`feat(ide): src/ide/dap.ark scaffold (refs #571)`"
+commit: <hash>
+acceptance: "<each [ ] → [x] with evidence>"
+fixpoint: rc=0 → rc=0
+fixture parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+new tests added: <paths>
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
 # 571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)
-**Blocks**: 573
-**Blocks v5**: no
-**Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration
 
-**Implementation target**: Per #529 Phase 6, IDE-side functionality is reimplemented in Ark (`src/`) so that the Rust IDE crates can be retired in Phase 7. This issue covers exactly one concern; do **not** expand scope.
 
 ## Summary
 
@@ -40,7 +53,6 @@ python scripts/manager.py selfhost diag-parity
 
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes
 
 ## STOP_IF
 

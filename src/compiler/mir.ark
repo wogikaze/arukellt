@@ -3533,64 +3533,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let dest = ctx_fresh_local(ctx, dest_vt)
             call_inst.dest = dest
             call_inst.int_val = child_count - 1
-            if starts_with(clone(callee_name), "Vec_new_") {
-                let elem_ty = substring(callee_name, 8, len(callee_name))
-                ctx_set_local_type(ctx, dest, concat("vec:", elem_ty))
-            }
-            if eq(clone(callee_name), "text::chars") || eq(clone(callee_name), "chars") || eq(clone(callee_name), "split") || eq(clone(callee_name), "text::split") || eq(clone(callee_name), "string::split") {
-                ctx_set_local_type(ctx, dest, String_from("vec:string"))
-            }
-            if eq(clone(callee_name), "env::args") {
-                ctx_set_local_type(ctx, dest, String_from("vec:String"))
-            }
-            if eq(clone(callee_name), "hashmap_keys") || eq(clone(callee_name), "hash::hashmap_keys") || eq(clone(callee_name), "hashmap_values") || eq(clone(callee_name), "hash::hashmap_values") || eq(clone(callee_name), "hashset_to_vec") || eq(clone(callee_name), "hash::hashset_to_vec") {
-                ctx_set_local_type(ctx, dest, String_from("vec:i32"))
-            }
-            if eq(clone(callee_name), "hashmap_get_option") || eq(clone(callee_name), "hash::hashmap_get_option") || eq(clone(callee_name), "HashMap_i32_i32_get") || eq(clone(callee_name), "hashmap_remove") || eq(clone(callee_name), "hash::hashmap_remove") || eq(clone(callee_name), "HashMap_i32_i32_remove") {
-                ctx_set_local_type(ctx, dest, String_from("Option_i32"))
-            }
-            if eq(clone(callee_name), "hashmap_size") || eq(clone(callee_name), "hash::hashmap_size") || eq(clone(callee_name), "HashMap_i32_i32_len") || eq(clone(callee_name), "hashset_size") || eq(clone(callee_name), "hash::hashset_size") || eq(clone(callee_name), "HashMap_i32_i32_size") {
-                ctx_set_local_type(ctx, dest, String_from("i32"))
-            }
-            if eq(clone(callee_name), "hashmap_contains") || eq(clone(callee_name), "hash::hashmap_contains") || eq(clone(callee_name), "HashMap_i32_i32_contains_key") || eq(clone(callee_name), "hashmap_is_empty") || eq(clone(callee_name), "hash::hashmap_is_empty") || eq(clone(callee_name), "hashset_contains") || eq(clone(callee_name), "hash::hashset_contains") {
-                ctx_set_local_type(ctx, dest, String_from("bool"))
-            }
-            if eq(clone(callee_name), "String_from") || eq(clone(callee_name), "concat") || eq(clone(callee_name), "clone") || eq(clone(callee_name), "to_string") || eq(clone(callee_name), "char_to_string") || eq(clone(callee_name), "bool_to_string") || eq(clone(callee_name), "f64_to_string") || eq(clone(callee_name), "substring") || eq(clone(callee_name), "trim") || eq(clone(callee_name), "to_uppercase") || eq(clone(callee_name), "to_lowercase") || eq(clone(callee_name), "replace") || eq(clone(callee_name), "string::repeat") || eq(clone(callee_name), "__intrinsic_i32_to_string") || eq(clone(callee_name), "__intrinsic_f64_to_string") {
-                ctx_set_local_type(ctx, dest, String_from("string"))
-            }
-            if eq(clone(callee_name), "vec_get_unchecked") {
-                if first_arg_idx >= 0 {
-                    let vec_type = ctx_get_local_type(ctx, first_arg_idx)
-                    if starts_with(clone(vec_type), "vec:") {
-                        let elem_ty = substring(vec_type, 4, len(vec_type))
-                        ctx_set_local_type(ctx, dest, elem_ty)
-                    }
-                }
-            }
-            if len(ctx_get_local_type(ctx, dest)) == 0 {
-                let cn_stripped = strip_module_prefix(clone(callee_name))
-                let cn_len = len(cn_stripped)
-                if cn_len > 4 {
-                    let cn_suffix = substring(cn_stripped, cn_len - 4, cn_len)
-                    if eq(clone(cn_suffix), "_new") {
-                        let struct_cand = substring(cn_stripped, 0, cn_len - 4)
-                        if ctx_struct_field_count(ctx, clone(struct_cand)) > 0 {
-                            ctx_set_local_type(ctx, dest, struct_cand)
-                        }
-                    }
-                }
-            }
-            if len(ctx_get_local_type(ctx, dest)) == 0 {
-                let rtn = ctx_fn_return_type_name(ctx, clone(callee_name))
-                if len(rtn) > 1 {
-                    ctx_set_local_type(ctx, dest, rtn)
-                }
-            }
             ctx_emit(ctx, call_inst)
             if ctx_fn_return_vt(ctx, clone(callee_name)) == VT_VOID() {
                 return 0 - 1
             }
-            return dest
+            return call_inst.dest
         }
         return 0 - 1
     }
@@ -3600,7 +3547,8 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let cond = get_unchecked(node.children, 0)
             let cond_idx = lower_expr(ctx, cond)
             let result = ctx_fresh_local(ctx, VT_I32())
-            ctx_emit(ctx, MirInst_new(MIR_IF()))
+            let if_inst = MirInst_new(MIR_IF())
+            ctx_emit(ctx, if_inst)
             ctx.nesting_depth = ctx.nesting_depth + 1
             let then_body = get_unchecked(node.children, 1)
             let then_result = lower_expr(ctx, then_body)
@@ -3633,12 +3581,14 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             ctx_emit(ctx, MirInst_new(MIR_END()))
             ctx.nesting_depth = ctx.nesting_depth - 1
             if then_result >= 0 || else_result >= 0 {
+                if_inst.dest = result
                 let get_inst = MirInst_new(MIR_LOCAL_GET())
                 get_inst.arg0 = result
                 get_inst.dest = result
                 ctx_emit(ctx, get_inst)
                 return result
             }
+            if_inst.dest = 0 - 1
             return 0 - 1
         }
         return 0 - 1
@@ -4519,7 +4469,9 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             let prev_break_local = ctx.loop_break_local
             let break_result = ctx_fresh_local(ctx, VT_I32())
             ctx.loop_break_local = break_result
-            ctx_emit(ctx, MirInst_new(MIR_BLOCK()))
+            let block_inst = MirInst_new(MIR_BLOCK())
+            block_inst.dest = break_result
+            ctx_emit(ctx, block_inst)
             ctx.nesting_depth = ctx.nesting_depth + 1
             ctx.loop_break_depth = ctx.nesting_depth
             ctx_emit(ctx, MirInst_new(MIR_LOOP()))

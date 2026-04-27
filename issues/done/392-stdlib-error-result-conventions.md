@@ -4,10 +4,11 @@ Created: 2026-03-31
 Track: main
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-07-28
+ID: 392
+# Stdlib: error / Result の命名・変換・伝播慣習を正規化する
 ---
 # Stdlib: error / Result の命名・変換・伝播慣習を正規化する
-**Closed**: 2026-07-28
-**ID**: 392
 
 ## Completed
 

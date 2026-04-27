@@ -7,8 +7,8 @@ Track: main
 Depends on: none
 Orchestration class: implementation-ready
 ---
+
 # V1 exit criteria: T3 primary path
-**Blocks v1 exit**: yes
 
 ## Summary
 

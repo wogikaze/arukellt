@@ -6,10 +6,11 @@ ID: 363
 Track: stdlib-docs
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 11
+# Stdlib Docs: module family ごとの curated overview page を作る
 ---
 # Stdlib Docs: module family ごとの curated overview page を作る
-**Blocks v1 exit**: no
-**Priority**: 11
 
 ## Summary
 

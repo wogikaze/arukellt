@@ -2,17 +2,24 @@
 Status: done
 Created: 2026-03-31
 Updated: 2026-04-01
-Track: main
+Track: linter
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 348
+Closed: 2026-04-01
+ID: 349
+Blocks v1 exit: no
+Priority: 15
 ---
+
 # Linter: unused import / unused binding の検出を実装する
-**Closed**: 2026-04-01
-**ID**: 349
-**Depends on**: 348
-**Track**: linter
-**Blocks v1 exit**: no
-**Priority**: 15
+- `crates/ark-resolve/src/unused.rs`: AST walker による未使用検出
+- lint registry に rule として登録済み (has_fix: true)
+- `check_unused_imports()`: "import のモジュール名が QualifiedIdent/TypeExpr::Qualified で参照されているか確認"
+- `check_unused_bindings()`: let binding の名前が Ident で参照されているか確認
+- `crates/ark-diagnostics/src/codes.rs`: W0006, W0007 コード追加
+- `crates/ark-diagnostics/src/lint.rs`: LintRegistry に登録
+- `crates/ark-driver/src/session.rs`: resolve 後に unused check を呼び出し
+# Linter: unused import / unused binding の検出を実装する
 
 ## Summary
 

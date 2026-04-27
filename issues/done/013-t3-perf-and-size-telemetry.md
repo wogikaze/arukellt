@@ -6,9 +6,9 @@ ID: 11
 Track: parallel
 Depends on: 002, 004, 005, 006, 007, 008, 009, 010
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # T3 perf and size telemetry
-**Blocks v1 exit**: no
 
 ## Summary
 

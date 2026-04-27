@@ -6,9 +6,9 @@ ID: 275
 Track: main
 Depends on: 272
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # 失敗ログの検証面（output channel・status bar・user message）を確立する
-**Blocks v1 exit**: no
 
 ## Summary
 

@@ -7,8 +7,19 @@ Track: gc-native
 Depends on: 16
 Orchestration class: implementation-ready
 ---
+
 # GC-native user structs: struct.new / struct.get / struct.set
-**Blocks v1 exit**: no
+Blocks v1 exit: no
+;; Example: "struct Point { x: i32, y: i32, z: f64 }"
+StructInit mapping: 
+Operand: ":FieldAccess { object, struct_name: "Point", field: "y" }"
+FieldAccess mapping: 
+Field mutation (MirStmt: ":FieldAssign or similar):"
+- [x] `Operand: ":FieldAccess` emits `Instruction::StructGet { struct_type_index, field_index }`."
+- [x] Field mutation emits `Instruction: ":StructSet { struct_type_index, field_index }`."
+- [x] All `t3-compile: structs/*` fixtures compile successfully.
+- [x] All `run: structs/*` fixtures pass execution with correct output.
+# GC-native user structs: struct.new / struct.get / struct.set
 
 ## Summary
 

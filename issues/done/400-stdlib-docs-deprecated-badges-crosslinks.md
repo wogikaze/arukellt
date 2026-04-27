@@ -6,10 +6,11 @@ ID: 400
 Track: stdlib-docs
 Depends on: 367
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 6
+# Stdlib Docs: deprecated API の表示と migration cross-link を自動化する
 ---
 # Stdlib Docs: deprecated API の表示と migration cross-link を自動化する
-**Blocks v1 exit**: no
-**Priority**: 6
 
 ## Summary
 

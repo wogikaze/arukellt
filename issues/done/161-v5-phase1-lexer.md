@@ -4,6 +4,14 @@ Priority: P1
 Track: main
 Orchestration class: implementation-ready
 ---
+
+# 161: Phase 1 — Lexer の Arukellt 実装
+- トークン型: "`enum Token { Ident(String), Number(i64), Float(f64), Str(String), Punct(String), Keyword(String), EOF }`"
+- 入力: "`String` (ファイル全体)"
+- 出力: `Vec<Token>`
+- 実装方式: 文字単位ループ + match による分岐
+- 位置情報: "`struct Span { start: i32, end: i32 }` を各トークンに付与"
+3. `fn tokenize(source: String) -> Vec<Token>` の実装
 # 161: Phase 1 — Lexer の Arukellt 実装
 
 ## 概要

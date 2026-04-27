@@ -6,9 +6,10 @@ ID: 172
 Track: main
 Depends on: 161
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# v5 Parser: AST / span / import surface
 ---
 # v5 Parser: AST / span / import surface
-**Blocks v1 exit**: no
 
 ## Summary
 

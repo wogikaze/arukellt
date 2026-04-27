@@ -2,29 +2,53 @@
 Status: open
 Created: 2026-03-28
 Updated: 2026-04-22
-ID: 074
+ID: 60
 Track: wasi-feature
 Depends on: 510, 121
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #510, #121
+Orchestration upstream: None
+Blocks v4 exit: no
+Status note: Parent close gate for WASI P2 native. Do not close until P2 import-table switching, the minimum Canonical ABI surface, and P2 validate/run evidence are all present.
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+P2 ネイティブでは Core Wasm が直接 `wasi: io/streams` 等をインポートするため、
+Operational rule: if an implementation slice only improves adapter bypass or
 ---
 
 # WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成
-**Blocks v4 exit**: no
+2. Core Wasm に `wasi: cli/environment@0.2.x` 等を直接 import するセクション生成
+`wasi: "cli/run` interface shape for `wasi:cli/command`, not only a bare"
+1. `ark-wasm/src/emit/t3_wasm_gc.rs`: "WASI P2 モード分岐 (import 名を P2 形式に変更)"
+2. `ark-wasm/src/component/wrap.rs`: P2 ネイティブの場合 `component new` を迂回
+3. WIT world 出力を `wasi: cli/command` ベースに変更
+- Task 2 (wrap.rs p2_native): 実装済み。`p2_native` パラメータで P1 アダプタをスキップ可能。
+- Task 1 (T3 emitter import names): "部分実装済み (2026-04-19)。"
+- T3 emitter の import section に P2 モード分岐を実装済み (`wasi: cli/stdout@0.2.0` 等)。
+- Task 3 (WIT world): "部分実装済み (2026-04-19)。"
+- `--wasi-version p2` 時に自動的に `wasi: cli/command` world spec を使用するように実装。
+- `main` 関数を `run` に rename して `wasi: cli/command` の required export に対応。
+- 外部 WASI パッケージ (`wasi: cli@0.2.0` 等) の依存を回避するために `use_imports` をスキップ。
+- `wasi: cli/run/run` インターフェースを正しく export するには export architecture の変更が必要
+- `no exported instance named 'wasi: cli/run@0.2.6'` エラー
+- T3 emitter は `_start` export を生成しているが、Component Model は `wasi: cli/run/run` export を期待
+2. Component Model は `wasi: "cli/run/run` export を期待しているが、T3 emitter は `_start` を生成 (部分的に解決済み)"
+2026-04-19 現在の実装状況: 
+- ✅ T3 emitter に P2 import 分岐を実装済み (`wasi: cli/stdout@0.2.0` 等)
+- ✅ WIT world に wasi: cli/command 自動検出を実装済み
+- ❌ wasi: "cli/command の完全な統合は未実装 (export architecture の変更が必要)"
+残課題: 
+# WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成
 
-**Status note**: Parent close gate for WASI P2 native. Do not close until P2 import-table switching, the minimum Canonical ABI surface, and P2 validate/run evidence are all present.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/074-wasi-p2-native-component.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

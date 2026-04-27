@@ -6,10 +6,11 @@ ID: 370
 Track: language-docs
 Depends on: 368, 369
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 10
+# Language Docs: spec と guide の同期ポイントを CI で検証する
 ---
 # Language Docs: spec と guide の同期ポイントを CI で検証する
-**Blocks v1 exit**: no
-**Priority**: 10
 
 ## Summary
 

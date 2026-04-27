@@ -2,29 +2,34 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-15
-ID: 066
+ID: 54
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v4 exit: no
+Status note: "Implemented in T3 (WasmGC) and T1 emitters; runtime.rs explicitly enables bulk_memory; std/wasm::memory_copy + memory_fill call actual intrinsics; fixture tests/fixtures/stdlib_wasm/memory_ops.ark verified."
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
 # Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応
-**Blocks v4 exit**: no
+1. `ark-wasm/src/emit/t3_wasm_gc.rs`: `memory.copy` / `memory.fill` emit ヘルパー追加
+2. `std/wasm/mod.ark`: "`memory_copy(dst, src, len)` / `memory_fill(ptr, val, len)` 追加"
+3. `std/bytes/mod.ark`: "内部実装で `wasm::memory_copy` を呼ぶように変更"
+# Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応
 
-**Status note**: Implemented in T3 (WasmGC) and T1 emitters; runtime.rs explicitly enables bulk_memory; std/wasm::memory_copy + memory_fill call actual intrinsics; fixture tests/fixtures/stdlib_wasm/memory_ops.ark verified.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/066-wasm-bulk-memory-full.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

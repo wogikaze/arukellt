@@ -6,10 +6,13 @@ ID: 380
 Track: playground
 Depends on: 379
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 23
 ---
+
 # Playground: editor / diagnostics UI を実装する
-**Blocks v1 exit**: no
-**Priority**: 23
+- `docs/index.html`: Docsify ベースの static docs shell、editor なし
+# Playground: editor / diagnostics UI を実装する
 
 ## Status note (2026-04-03)
 

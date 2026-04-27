@@ -3,15 +3,19 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 597
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: selfhost-frontend / language-design
+Orchestration class: blocked-by-upstream
+Depends on: 595
+Parent: None
+fn magnitude_label(p: Point) -> String
+The initial restriction: non-recursive value bindings only. Local helper functions and
+In scope: 
+Out of scope: 
+2. Positive fixtures: shared helper value across guards, helper used in clause body
+3. Negative fixtures: duplicate `where` binding, unresolved name in `where`
+# Language Surface Uplift: Real `where` Clauses
 ---
 # Language Surface Uplift: Real `where` Clauses
-**Parent**: #588
-**Depends on**: 595
-**Track**: selfhost-frontend / language-design
-**Orchestration class**: blocked-by-upstream
 
 ---
 

@@ -7,6 +7,10 @@ Track: stdlib-api
 Depends on: 360
 Orchestration class: implementation-ready
 ---
+
+# Stdlib: prelude と module import の二重露出を整理する
+- Analysis: 101 prelude functions, 172 module-only functions, 0 actual duplicates
+- Virtual modules (std: ":math, std::string, std::collections) are doc categories, not importable paths"
 # Stdlib: prelude と module import の二重露出を整理する
 
 ## Acceptance

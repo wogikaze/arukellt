@@ -7,8 +7,20 @@ Track: gc-native
 Depends on: 17
 Orchestration class: implementation-ready
 ---
+
 # GC-native enums: subtype hierarchy + br_on_cast
-**Blocks v1 exit**: no
+Blocks v1 exit: no
+EnumInit mapping: 
+Operand: ":EnumPayload { object, index: 0, enum_name: "Shape", variant_name: "Circle" }"
+Pattern matching with br_on_cast: 
+) ;; $v2: "(ref $Shape.Rect) on stack"
+) ;; $v1: "(ref $Shape.Square) on stack"
+) ;; $v0: "(ref $Shape.Circle) on stack"
+EnumPayload mapping: 
+EnumTag compatibility: 
+- [x] All `t3-compile: match_extensions/*` fixtures compile.
+- [x] All `run: match_extensions/*` fixtures pass execution.
+# GC-native enums: subtype hierarchy + br_on_cast
 
 ## Summary
 

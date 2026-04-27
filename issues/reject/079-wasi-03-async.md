@@ -6,11 +6,15 @@ ID: 079
 Track: wasi-feature
 Depends on: 60
 Orchestration class: implementation-ready
+# WASI 0.3-rc: async func / stream<T> / future<T> コンパイルサポート
+Blocks v4 exit: no
+Status note: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+WASI 0.3 では `wasi: http/handler` の `handle` が `async func` になり、
+`wasi: "io` の `input-stream.read()` が `future<list<u8>>` を返す。"
+3. `wasi: http/service` world のエクスポートが WASI 0.3 canonical ABI に従う
 ---
 # WASI 0.3-rc: async func / stream<T> / future<T> コンパイルサポート
-**Blocks v4 exit**: no
 
-**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
 
 ## Audit classification
 

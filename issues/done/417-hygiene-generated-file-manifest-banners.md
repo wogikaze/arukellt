@@ -6,10 +6,11 @@ ID: 417
 Track: repo-hygiene
 Depends on: 373
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 1
+# Repo Hygiene: generated file manifest と ownership banner を実装する
 ---
 # Repo Hygiene: generated file manifest と ownership banner を実装する
-**Blocks v1 exit**: no
-**Priority**: 1
 
 ## Summary
 

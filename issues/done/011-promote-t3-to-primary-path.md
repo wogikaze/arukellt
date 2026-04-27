@@ -6,9 +6,9 @@ ID: 9
 Track: main
 Depends on: 009, 010
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # Promote T3 to primary path
-**Blocks v1 exit**: yes
 
 ## Summary
 

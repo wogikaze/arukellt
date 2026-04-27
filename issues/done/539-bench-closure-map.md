@@ -1,19 +1,21 @@
 ---
 Status: done
 Created: 2026-04-21
-Track: main
+Track: benchmark
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 499
+Closed: 2026-04-22
+ID: 539
+Orchestration upstream: —
+Blocks v{N}: none
+Source: docs/benchmarks/feature-matrix.md coverage gap
 ---
+
+# 539 — Benchmark: "closure map (higher-order functions)"
+- [x] Tags: `cpu-bound`, `closure-heavy`, `allocation-heavy`, `iteration`
+- [x] `mise bench: update-baseline` includes the new benchmark
+deterministic output `6017000` (map: "`x * 3 + 7` over 2000 elements, reduce: sum). Closures"
 # 539 — Benchmark: closure map (higher-order functions)
-**Closed**: 2026-04-22
-**ID**: 539
-**Depends on**: 499
-**Track**: benchmark
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: docs/benchmarks/feature-matrix.md coverage gap
 
 ## Summary
 

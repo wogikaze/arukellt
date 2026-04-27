@@ -6,10 +6,13 @@ ID: 367
 Track: stdlib-docs
 Depends on: 359
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 17
 ---
+
 # Stdlib Docs: deprecated API の移行ガイドを整備する
-**Blocks v1 exit**: no
-**Priority**: 17
+- `docs/stdlib/prelude-migration.md`: 歴史的経緯の記録として存在
+# Stdlib Docs: deprecated API の移行ガイドを整備する
 
 ## Summary
 

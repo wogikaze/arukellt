@@ -7,8 +7,8 @@ Track: main
 Depends on: 004, 005
 Orchestration class: implementation-ready
 ---
+
 # Vec on WasmGC for T3
-**Blocks v1 exit**: yes
 
 ## Summary
 

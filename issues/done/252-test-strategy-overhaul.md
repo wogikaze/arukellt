@@ -7,10 +7,11 @@ Track: main
 Depends on: none
 Orchestration class: design-ready
 Orchestration upstream: —
+Blocks v3: yes
+2026-04-15 audit: reopened from `issues/done/` because category documentation exists, but the CI structure does not yet provide the fully independent category jobs claimed by the parent acceptance.
+2026-04-16 increment: "`.github/workflows/ci.yml` adds a merge-blocking **`verification-harness-quick`** job (`verify-harness.sh --quick`) wired into the **`verify`** final gate, so manifest/docs hygiene failures surface under a dedicated job name (parent acceptance bullets 2–3: one more independently named category lane)."
 ---
-
 # テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する
-**Blocks v3**: yes
 
 ## Summary
 

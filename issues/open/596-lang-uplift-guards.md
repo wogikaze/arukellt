@@ -3,15 +3,19 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 596
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: selfhost-frontend / language-design
+Orchestration class: blocked-by-upstream
+Depends on: 595
+Parent: None
+In scope: 
+Out of scope: 
 ---
+
+1. Positive fixtures: literal + guard, enum + guard, struct destructure + guard
+2. Negative fixtures: guard name not in scope, guard type is not `bool`
 # Language Surface Uplift: Function-Level Guards
-**Parent**: #588
-**Depends on**: 595
-**Track**: selfhost-frontend / language-design
-**Orchestration class**: blocked-by-upstream
+- Evaluation order: match pattern → bind → evaluate guard → choose body
+# Language Surface Uplift: Function-Level Guards
 
 ---
 

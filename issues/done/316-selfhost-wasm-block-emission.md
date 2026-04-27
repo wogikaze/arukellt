@@ -6,10 +6,13 @@ ID: 316
 Track: selfhost-backend
 Depends on: 314, 315
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 8
 ---
+
 # Selfhost Wasm emitter: 構造化ブロック出力を実装する
-**Blocks v1 exit**: no
-**Priority**: 8
+- `src/compiler/emitter.ark` (513 行): 70+ Wasm opcode 定義、LEB128 encoding、section header 出力
+# Selfhost Wasm emitter: 構造化ブロック出力を実装する
 
 ## Summary
 

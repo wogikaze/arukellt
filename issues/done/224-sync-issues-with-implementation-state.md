@@ -6,9 +6,10 @@ ID: 224
 Track: main
 Depends on: 223
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
+Closed 2026-04-09. Full sweep: issues/open/ verified against implementation. Closed 035, 059, 221, 222, 225, 229, 230, 231, 232, 237, 239, 243 as verified done. All done/ issues now have checked boxes. Index regenerated. 43 open, 225 done.
 ---
 # issues/open・done・blocked と実装状態の同期確認・修正
-**Blocks v1 exit**: yes
 
 ## Summary
 

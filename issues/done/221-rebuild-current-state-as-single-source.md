@@ -6,9 +6,9 @@ ID: 221
 Track: main
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # current-state.md を唯一の現行状態ソースとして再構築する
-**Blocks v1 exit**: yes
 
 ## Summary
 

@@ -6,10 +6,13 @@ ID: 340
 Track: lsp-semantic
 Depends on: 334
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 5
 ---
+
 # LSP: auto-import 候補を manifest / module graph 駆動にする
-**Blocks v1 exit**: no
-**Priority**: 5
+- `crates/ark-lsp/src/server.rs: "200-220` — `already_imported_modules()` / `imported_aliases()`"
+# LSP: auto-import 候補を manifest / module graph 駆動にする
 
 ## Summary
 

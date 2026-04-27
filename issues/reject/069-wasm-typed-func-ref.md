@@ -6,11 +6,12 @@ ID: 069
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Status note: Wasm proposal — deferred to v5+. Not implemented.
+# Wasm Typed Function References: ref.func / call_ref フル活用
 ---
 # Wasm Typed Function References: ref.func / call_ref フル活用
-**Blocks v4 exit**: no
 
-**Status note**: Wasm proposal — deferred to v5+. Not implemented.
 
 ## Summary
 

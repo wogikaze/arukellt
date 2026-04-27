@@ -6,15 +6,30 @@ ID: 567
 Track: selfhost-frontend
 Depends on: 566
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #566
+Orchestration upstream: None
+Blocks: 568
+Blocks v5: no
+Source: #529 Phase 6 — IDE Frontend / LSP / DAP migration
+Implementation target: "Per #529 Phase 6, IDE-side functionality is reimplemented in Ark (`src/`) so that the Rust IDE crates can be retired in Phase 7. This issue covers exactly one concern; do **not** expand scope."
+REBUILD_BEFORE_VERIFY: yes
 ---
 
 # 567 — Phase 6/A3: Selfhost resolver / typechecker — incremental diagnostic accumulation
-**Blocks**: 568
-**Blocks v5**: no
-**Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration
+- [x] `resolve_program` and `typecheck_program` (or selfhost equivalents) return `(Result, Vec<Diagnostic>)` with all recoverable errors collected — verified via audit; resolver pushes into `ctx.errors` (`src/compiler/resolver.ark: "199-202`) and typechecker pushes into `env.errors` then merges with resolver errors (`src/compiler/typechecker.ark:412-414`, `1322-1394`)"
+3. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+- One logical commit per slice. Suggested message: "`feat(ide): resolver/typechecker incremental diagnostics (refs #567)`"
+commit: <to be filled after commit>
+acceptance: "see [x] entries above"
+fixpoint: "skipped (pre-existing) → skipped (pre-existing)"
+fixture parity: PASS=0 FAIL=0 SKIP=364 → PASS=0 FAIL=0 SKIP=364
+diag parity: PASS=14 FAIL=0 SKIP=22 → PASS=16 FAIL=0 SKIP=22
+new tests added: <paths>
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
+tests/fixtures/selfhost/multi_diag_unresolved.ark: "error[E0100|resolve]: undefined name: baz"
+tests/fixtures/selfhost/multi_diag_dup.ark: "error[E0100|resolve]: duplicate definition: beta"
+- A pre-existing typechecker cascade causes a single `let x: "i32 = true` mismatch to be re-reported ~27k times. Out of scope for #567 (requires unification/poison-propagation refactor); does not violate "accumulate, don't bail" — it over-accumulates."
+# 567 — Phase 6/A3: Selfhost resolver / typechecker — incremental diagnostic accumulation
 
-**Implementation target**: Per #529 Phase 6, IDE-side functionality is reimplemented in Ark (`src/`) so that the Rust IDE crates can be retired in Phase 7. This issue covers exactly one concern; do **not** expand scope.
 
 ## Summary
 
@@ -40,7 +55,6 @@ python scripts/manager.py selfhost diag-parity
 
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes
 
 ## STOP_IF
 

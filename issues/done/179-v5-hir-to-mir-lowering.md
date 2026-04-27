@@ -6,9 +6,10 @@ ID: 179
 Track: main
 Depends on: 164
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# v5 Backend: HIR to MIR lowering
 ---
 # v5 Backend: HIR to MIR lowering
-**Blocks v1 exit**: no
 
 ## Summary
 

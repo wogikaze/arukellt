@@ -6,10 +6,13 @@ ID: 371
 Track: language-docs
 Depends on: 368
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 8
 ---
+
 # Language Docs: 読む順番と entry point を明確化する
-**Blocks v1 exit**: no
-**Priority**: 8
+- `docs/language/README.md`: generated で documents table を列挙するが読む順序の案内が弱い
+# Language Docs: 読む順番と entry point を明確化する
 
 ## Summary
 

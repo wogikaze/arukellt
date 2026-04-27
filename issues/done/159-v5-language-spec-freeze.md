@@ -3,6 +3,10 @@ Depends on: なし
 Priority: P0 — v5 着手の前提条件
 Track: main
 Orchestration class: implementation-ready
+1. 型システム仕様の記述: "プリミティブ型 (i32, i64, f64, bool, String), 複合型 (struct, enum, Vec, Option, Result), ジェネリクス制約 (最大2型パラメータ)"
+2. 構文仕様の記述: 式、文、パターンマッチ、関数定義、struct/enum 定義、import、モジュール
+3. stdlib API 一覧: std/manifest.toml から全公開 API をリファレンス形式で記述
+# 159: 言語仕様凍結版の作成
 ---
 # 159: 言語仕様凍結版の作成
 

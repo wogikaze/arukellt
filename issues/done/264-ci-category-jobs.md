@@ -6,10 +6,9 @@ Track: main
 Depends on: 261
 Orchestration class: implementation-ready
 Orchestration upstream: —
+Blocks v3: yes
 ---
-
 # CI カテゴリ別ジョブ構成
-**Blocks v3**: yes
 
 ## Summary
 

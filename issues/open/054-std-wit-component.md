@@ -2,29 +2,54 @@
 Status: open
 Created: 2026-03-28
 Updated: 2026-04-22
-ID: 054
+ID: 44
 Track: stdlib
 Depends on: 039, 044, 053
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #39, #44, #312-through-#44
+Orchestration upstream: None
+Blocks v3 exit: "no (Experimental)"
+Status note: FROZEN — depends on #044, which is blocked by #312 generic monomorphization. Do not re-dispatch until #044 is unfrozen.
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
 
+# std: ":wit + std::component: WIT 型、resource handle、canonical ABI"
+### std: ":component"
+pub struct WitFunc { name: "String, params: Vec<(String, WitType)>, result: Option<WitType> }"
+pub struct Interface { name: "String, functions: Vec<WitFunc> }"
+pub struct World { name: "String, imports: Vec<Interface>, exports: Vec<Interface> }"
+pub fn world_new(name: String) -> World
+pub fn world_import(w: "World, iface: Interface)"
+pub fn world_export(w: "World, iface: Interface)"
+pub fn print_wit(w: World) -> String
+pub fn parse_wit(source: String) -> Result<World, Error>
+pub fn handle_new<T>(table: "HandleTable<T>, value: T) -> i32"
+pub fn handle_get<T>(table: "HandleTable<T>, handle: i32) -> Option<T>"
+pub fn handle_drop<T>(table: "HandleTable<T>, handle: i32) -> Option<T>"
+pub fn canonical_lower_string(s: "String) -> (i32, i32)  // ptr, len in linear memory"
+pub fn canonical_lift_string(ptr: "i32, len: i32) -> Result<String, Error>"
+pub fn canonical_lower_list<T>(v: "Vec<T>) -> (i32, i32)"
+pub fn canonical_lift_list<T>(ptr: "i32, len: i32) -> Result<Vec<T>, Error>"
+1. `std/wit/types.ark`: WitType enum 定義
+2. `std/wit/world.ark`: World/Interface 構築関数
+3. `std/wit/printer.ark`: "WIT テキスト形式の出力 (source 実装)"
+4. `std/wit/parser.ark`: "WIT テキストの基本パーサ (source 実装)"
+5. `std/component/handle.ark`: "HandleTable (SlotMap ベース)"
+6. `std/component/canonical.ark`: "canonical ABI lower/lift (linear memory 経由)"
+- fixture: `stdlib_wit/wit_type_basic.ark`, `stdlib_wit/world_build.ark`,
+が上限を超える場合は `Error: ":MemoryOverflow` を返すこと。"
 # std::wit + std::component: WIT 型、resource handle、canonical ABI
-**Blocks v3 exit**: no (Experimental)
 
-**Status note**: FROZEN — depends on #044, which is blocked by #312 generic monomorphization. Do not re-dispatch until #044 is unfrozen.
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/054-std-wit-component.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

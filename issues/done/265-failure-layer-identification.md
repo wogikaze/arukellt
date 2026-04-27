@@ -6,10 +6,9 @@ Track: main
 Depends on: 261
 Orchestration class: design-ready
 Orchestration upstream: —
+Blocks v3: yes
 ---
-
 # 失敗層の即時特定
-**Blocks v3**: yes
 
 ## Summary
 

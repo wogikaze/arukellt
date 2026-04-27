@@ -6,10 +6,12 @@ ID: 324
 Track: selfhost-verification
 Depends on: 323
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 16
 ---
+
+- `scripts/run/verify-bootstrap.sh: "127`: ヘッダが `"Bootstrap verification — fixpoint scaffold"` と自称"
 # verify-bootstrap.sh の scaffold を解除する
-**Blocks v1 exit**: no
-**Priority**: 16
 
 ## Summary
 

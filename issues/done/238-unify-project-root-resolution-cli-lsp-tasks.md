@@ -6,9 +6,9 @@ ID: 238
 Track: main
 Depends on: 231, 236
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # project root・target・emit・manifest・scripts の CLI/LSP/Tasks 解決を統一する
-**Blocks v1 exit**: yes
 
 ## Summary
 

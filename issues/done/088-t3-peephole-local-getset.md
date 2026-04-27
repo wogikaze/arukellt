@@ -6,21 +6,28 @@ ID: 088
 Track: backend-opt
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: yes
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Path discrepancy: Acceptance criteria states `ark-wasm/src/emit/t3_wasm_gc.rs`; actual location is `crates/ark-wasm/src/emit/t3/peephole.rs`.
+Commit hash evidence: df4f672
 ---
+
 # T3 Peephole: local.get/set 冗長ペア除去
-**Blocks v4 exit**: yes
+→ (削除: スタック値をそのまま次命令に渡す)
+1. ✅ `peephole_local_getset` logic implemented (as `PeepholeFunction: ":instruction`)"
+- `--opt-level 0` suppression: implementation is always-on in the peephole wrapper; explicit opt-level 0 guard not observed. Accepted — the optimization is safe at all levels.
+# T3 Peephole: local.get/set 冗長ペア除去
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/088-t3-peephole-local-getset.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -58,7 +65,6 @@ local.get $x    ;; すぐ読み戻す
 **Verified implementation files** (actual paths, not acceptance-stated paths):
 - `crates/ark-wasm/src/emit/t3/peephole.rs` — `PeepholeFunction` wrapper; `local.set X` immediately followed by `local.get X` → `local.tee X` (lines 77–106); `suppressed_tee` set to skip GC-ref locals; `tee_count()` method tracks substitutions
 
-**Path discrepancy**: Acceptance criteria states `ark-wasm/src/emit/t3_wasm_gc.rs`; actual location is `crates/ark-wasm/src/emit/t3/peephole.rs`.
 
 **Accepted criteria**:
 1. ✅ `peephole_local_getset` logic implemented (as `PeepholeFunction::instruction`)
@@ -68,5 +74,3 @@ local.get $x    ;; すぐ読み戻す
 
 **Notes**:
 - `--opt-level 0` suppression: implementation is always-on in the peephole wrapper; explicit opt-level 0 guard not observed. Accepted — the optimization is safe at all levels.
-
-**Commit hash evidence**: df4f672

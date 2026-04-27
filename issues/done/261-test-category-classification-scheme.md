@@ -6,10 +6,9 @@ Track: main
 Depends on: none
 Orchestration class: design-ready
 Orchestration upstream: —
+Blocks v3: yes
 ---
-
 # テストカテゴリ分類スキームの定義
-**Blocks v3**: yes
 
 ## Summary
 

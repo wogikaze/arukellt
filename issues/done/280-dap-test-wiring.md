@@ -6,9 +6,9 @@ ID: 280
 Track: parallel
 Depends on: 277, 278
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # DAP smoke test と E2E test を配線する
-**Blocks v1 exit**: no
 
 ## Summary
 

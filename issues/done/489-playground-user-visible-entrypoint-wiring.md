@@ -6,16 +6,17 @@ ID: 489
 Track: playground
 Depends on: 437, 438, 464
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 40
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
+Source: Audit found that `playground/src/` contains components for examples, share, highlight, and capability checks, but `docs/playground/index.html` does not wire them into a user-visible experience. No open issue tracked this integration gap.
+Close gate: satisfied by repo entrypoint evidence plus build proof.
 ---
 ## Reopened by audit
-**Blocks v1 exit**: no
-**Priority**: 40
 
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ## Created by audit — 2026-04-13
 
-**Source**: Audit found that `playground/src/` contains components for examples, share, highlight, and capability checks, but `docs/playground/index.html` does not wire them into a user-visible experience. No open issue tracked this integration gap.
 
 ## Summary
 
@@ -36,7 +37,6 @@ freestanding target track.
 - Commit `eaea05d42b4ae9ef22b4db87ae0a2c3f7dc9364b` contains the user-visible entrypoint
   wiring required by this issue.
 
-**Close gate**: satisfied by repo entrypoint evidence plus build proof.
 
 ## Acceptance
 

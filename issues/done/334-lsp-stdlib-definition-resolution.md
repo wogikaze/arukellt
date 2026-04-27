@@ -6,30 +6,33 @@ ID: 334
 Track: lsp-navigation
 Depends on: 333
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 3
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: "server.rs:252 computes stdlib root for imports like use std::host::stdio"
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
 # LSP: 標準ライブラリの定義解決を実装する
-**Blocks v1 exit**: no
-**Priority**: 3
+- `crates/ark-lsp/src/server.rs: 258-413` — hardcoded builtin / module 一覧
+- `crates/ark-stdlib/src/lib.rs`: stdlib descriptor があるが LSP から未参照
+- `std/manifest.toml`: 263 関数の signature / module / doc が定義されている
+# LSP: 標準ライブラリの定義解決を実装する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: server.rs:252 computes stdlib root for imports like use std::host::stdio
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/334-lsp-stdlib-definition-resolution.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

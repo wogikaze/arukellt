@@ -3,15 +3,31 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 606
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: stdlib
+Orchestration class: blocked-by-upstream
+Depends on: 604
+Parent: #590
+Fix contract ambiguity and semantic gaps in `std: ":json`, `std::toml`, `std::text`, and"
+In scope: 
+JSON: 
+TOML: 
+Text: 
+Time: 
+Out of scope: 
+Close when: all four families have updated docs, negative fixtures pass, and the
 ---
+
 # Stdlib Baseline: Structured Data and Semantics Baseline
-**Parent**: #590
-**Depends on**: 604
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
+`std: ":time` / `std::host::clock` boundary."
+- `std: ":text` must clearly distinguish byte-based vs char/Unicode-aware operations"
+- Add fixtures for at-boundary behavior: key types, array of tables edge cases
+- Split `std: ":time` (duration math) from `std::host::clock` (actual host time reads)"
+- Do not let `std: ":time` imply runtime host access it does not have"
+1. `std: ":json` parse rejects trailing garbage in a negative fixture"
+2. `std: ":toml` bounded subset is prominently documented with negative fixtures at boundaries"
+3. `std: ":text` distinguishes byte vs char operations in doc comments"
+4. `std: ":time` / `std::host::clock` split is explicit in docs and API surface"
+# Stdlib Baseline: Structured Data and Semantics Baseline
 
 ---
 

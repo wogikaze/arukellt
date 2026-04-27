@@ -6,9 +6,10 @@ ID: 276
 Track: parallel
 Depends on: 255
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Closed 2026-04-09. Added: "stackTrace (empty frames), scopes (empty), variables (empty), continue/next/stepIn/stepOut responses. launch now stores source_path. configurationDone now runs arukellt run <path> via tokio::process::Command, captures stdout/stderr as output events, sends exited + terminated events. All unknown commands return empty success. setFunctionBreakpoints/setExceptionBreakpoints accepted. Breakpoints still unverified (runtime hooks needed for #277)."
 ---
 # DAP 基本動詞を実装する（launch/threads/stackTrace/scopes/variables）
-**Blocks v1 exit**: no
 
 ## Summary
 

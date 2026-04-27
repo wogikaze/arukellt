@@ -5,9 +5,9 @@ ID: 169
 Track: main
 Depends on: 166, 167
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # v5 Bootstrap guide documentation
-**Blocks v1 exit**: no
 
 ## Summary
 

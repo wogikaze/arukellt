@@ -6,10 +6,11 @@ ID: 398
 Track: stdlib-docs
 Depends on: 365
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 4
+# Stdlib Docs: recipe と fixtures / examples を結ぶ manifest を作る
 ---
 # Stdlib Docs: recipe と fixtures / examples を結ぶ manifest を作る
-**Blocks v1 exit**: no
-**Priority**: 4
 
 ## Summary
 

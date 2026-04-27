@@ -5,11 +5,12 @@ ID: 164
 Track: main
 Depends on: 177, 178
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Status note: Parent issue for semantic analysis. MIR lowering is tracked under
+# v5 Phase 2: Resolver + TypeChecker epic
 ---
 # v5 Phase 2: Resolver + TypeChecker epic
-**Blocks v1 exit**: no
 
-**Status note**: Parent issue for semantic analysis. MIR lowering is tracked under #165 so Phase 2 stays focused on resolution and typing.
 
 ## Summary
 

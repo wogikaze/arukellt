@@ -6,21 +6,25 @@ ID: 127
 Track: pipeline-refactor
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: "no (quality gate)"
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+- 最適化なし (`MirSelection: ":CoreHir`) での emit 前に validate が走らない"
+if matches!(selection, MirSelection: ":OptimizedLegacy | MirSelection::OptimizedCoreHir) {"
+- `crates/ark-driver/src/session.rs: "438-470` (compile_selected)"
 # `MIRValidate` をコンパイル経路で無条件実行
-**Blocks v4 exit**: no (quality gate)
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/127-mir-validate-unconditional.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

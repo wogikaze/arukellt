@@ -6,9 +6,9 @@ ID: 242
 Track: main
 Depends on: 241
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # CI を unit/fixture/integration/packaging/editor smoke/determinism の各層で構成する
-**Blocks v1 exit**: yes
 
 ## Summary
 

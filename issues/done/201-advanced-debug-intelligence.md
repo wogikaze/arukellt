@@ -2,24 +2,24 @@
 Status: done
 Created: 2026-03-29
 Updated: 2026-04-13
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: parallel
+Orchestration class: blocked-by-upstream
+Depends on: 200
+Closed: 2026-04-18
+ID: 201
+Orchestration upstream: None
+Blocks v1 exit: False
+Reason: Time-travel, history graph, why-panic explain not implemented.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
 ---
 # Advanced debug intelligence
-**Closed**: 2026-04-18
-**ID**: 201
-**Depends on**: 200
-**Track**: parallel
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #200
-**Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: Time-travel, history graph, why-panic explain not implemented.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 

@@ -3,6 +3,10 @@ Track: main
 Orchestration class: implementation-ready
 Depends on: none
 ---
+
+- [x] python scripts/manager.py verify quick exits 0 (docs consistency: PASS)
+- docs/migration/v4-to-v5.md — full rewrite: selfhost-only path, 5 removed crates, shell script replacements, FsError/JsonParseError type changes, prelude narrowing
+blocks) unrelated to this docs slice. Docs consistency check: PASS.
 # 552 · Post-release documentation
 
 ## Acceptance Criteria

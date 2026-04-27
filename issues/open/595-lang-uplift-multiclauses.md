@@ -3,15 +3,21 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 595
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: selfhost-frontend / language-design
+Orchestration class: design-ready
+Depends on: —
+Parent: None
+In scope: 
+Out of scope: 
+Close when: positive and negative fixtures for clause-based functions pass, existing fixtures
 ---
+
+2. Positive fixtures pass: literal-pattern clauses, wildcard clauses, enum-variant clauses,
+3. Negative fixtures pass: mixed arity in one group, incompatible return annotations
 # Language Surface Uplift: Multi-Clause Function Definitions
-**Parent**: #588
-**Depends on**: —
-**Track**: selfhost-frontend / language-design
-**Orchestration class**: design-ready
+- Grammar extension: "repeated `fn <name>(...)` clauses forming one logical function group"
+- Grouping rules: same name, same arity, compatible return annotation
+# Language Surface Uplift: Multi-Clause Function Definitions
 
 ---
 

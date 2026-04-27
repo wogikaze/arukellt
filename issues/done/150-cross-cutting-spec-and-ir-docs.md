@@ -6,9 +6,13 @@ ID: 150
 Track: cross-cutting
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+2. ✅ `docs/compiler/ir-spec.md` — authoritative CoreHIR/MIR reference covering: "compiler pipeline overview, AST types, CoreHIR data structures (Expr/Stmt/Item/Ty), MIR data structures (MirModule/MirFunc/BasicBlock/Instruction/Value), HIR→MIR lowering rules, MIR optimization passes with pre/post conditions, MIR validation rules (invariants), and MIR→Wasm mapping."
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+# 横断 docs: `docs/language/spec.md` 凍結版と `docs/compiler/ir-spec.md` を整備
 ---
 # 横断 docs: `docs/language/spec.md` 凍結版と `docs/compiler/ir-spec.md` を整備
-**Blocks v1 exit**: no
 
 ---
 
@@ -26,13 +30,11 @@ All acceptance criteria verified:
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/150-cross-cutting-spec-and-ir-docs.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

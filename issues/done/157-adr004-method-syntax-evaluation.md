@@ -7,24 +7,25 @@ Track: language-design
 Depends on: —
 Orchestration class: design-ready
 Orchestration upstream: —
----
-
+Blocks v1 exit: False
+Status note: "ADR-004-P4 evaluation decision formalized. Trigger conditions defined with measurable criteria. Evaluation deferred pending trigger (v4 opt passes not yet stable as of 2026-04-15)."
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Reviewer: "implementation-backed queue normalization (verify checklist)."
 # ADR-004 P4: メソッド構文 / trait 再評価
-**Blocks v1 exit**: no
+---
+# ADR-004 P4: メソッド構文 / trait 再評価
 
-**Status note**: ADR-004-P4 evaluation decision formalized. Trigger conditions defined with measurable criteria. Evaluation deferred pending trigger (v4 opt passes not yet stable as of 2026-04-15).
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/157-adr004-method-syntax-evaluation.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

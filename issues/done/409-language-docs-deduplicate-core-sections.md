@@ -6,10 +6,11 @@ ID: 409
 Track: language-docs
 Depends on: 406, 408
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 4
+# Language Docs: syntax / type / error / memory の重複記述を統合する
 ---
 # Language Docs: syntax / type / error / memory の重複記述を統合する
-**Blocks v1 exit**: no
-**Priority**: 4
 
 ## Summary
 

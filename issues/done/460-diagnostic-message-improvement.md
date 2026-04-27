@@ -6,30 +6,80 @@ ID: 460
 Track: diagnostics
 Depends on: none
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 2
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: "Diagnostic struct has helps:Vec<String> at sink.rs:96, with_help() at line 152"
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+- `message: String` — エラーの主文（コードから自動設定）
+- `notes: Vec<String>` — 複数の補足ノート
+- `suggestion: Option<String>` — 1 件の提案
+- `labels: Vec<Label>` — span に付くインラインラベル
+- `fix_its: Vec<FixIt>` — 置換提案
+しかし `help`（どう直すか）と `note`（背景情報）が `notes: "Vec<String>` に混在している。Rust compiler の慣行では `note` と `help` は明確に別フィールドである。また `helpers.rs` の既存ヘルパー関数（`alias_warning_diagnostic` 等）は `with_note()` だけを使い、`with_suggestion()` はほぼ使われていない。"
+### Step 1: `Diagnostic` 構造体に `help` フィールドを追加する
+pub code: DiagnosticCode,
+pub message: String,
+pub phase_override: Option<DiagnosticPhase>,
+pub labels: Vec<Label>,
+pub fix_its: Vec<FixIt>,
+pub notes: Vec<String>,   // 補足情報（原因、関連背景）
+pub helps: "Vec<String>,   // NEW: 直し方の提案（複数可）"
+pub suggestion: "Option<String>, // 既存: compat のため残す"
+### Step 2: `render.rs` と LSP 側で `helps` を別ラベルで出す
+error[E0100]: unresolved name `foo`
+--> src/main.ark: "3:5"
+= note: names must be declared before use with `let`, `fn`, `use`, or `import`
+= help: if `foo` is a function in another module, add `use <module>` at the top of the file
+`note: "` と `help:` を区別して出力する（`=` prefix でインデントを揃える）。"
+`helps` → `message` の末尾に改行区切りで付加（`\n\nhelp: {text}`）
+### Step 3: 主要エラーコードに `note` / `help` を追加する
+#### E0100: unresolved name
+pub fn unresolved_name_diagnostic(name: "&str, span: Span, suggestions: &[&str]) -> Diagnostic {"
+let mut d = Diagnostic: ":new(DiagnosticCode::E0100)"
+"did you mean: {}?",
+suggestions.iter().map(|s| format!("`{}`", s)).collect: ":<Vec<_>>().join(", ")"
+#### E0200: type mismatch
+// note: "`{module}` requires WASI Preview 2 (wasm32-wasi-p2)"
+// help: "see also: https://arukellt.dev/docs/stdlib/modules/http.md"
+#### E0300: missing field / undefined member
+#### E0500: "incompatible target (Issue 448 で追加予定)"
+### Step 4: CLI と LSP の文言が同じことを保証する
+- 方針: "`message_text()` / `note_texts()` / `help_texts()` を `Diagnostic` に getter として追加し、CLI も LSP も同じ getter を使う。"
+### Step 5: 代表エラーコードの snapshot test を追加する
+対象エラー: E0100, E0200, E0300, E0400, E0401, E0402, W0001, W0002
+let mut sm = SourceMap: ":new();"
+let diag = unresolved_name_diagnostic("foo", Span: ":new(fid, 12, 15), &["foo_bar"]);"
+insta: ":assert_snapshot!(rendered);"
+assert!(rendered.contains("note: "));
+assert!(rendered.contains("help: "));
+assert!(rendered.contains("did you mean: `foo_bar`?"));
+- `crates/ark-diagnostics/src/render.rs`（`help: ` レンダリング追加、snapshot tests）
+- [x] `Diagnostic` 構造体に `helps: "Vec<String>` フィールドと `with_help()` メソッドが存在する"
+- [x] E0100 の diagnostic 出力に `note: "` と `help:` の両方が含まれる"
+1. `render_structured_snapshot` の snapshot test: E0100 / E0200 / E0300 / E0400 / W0001
+2. `note: "` と `help:` が別々のプレフィックスで出力されることの assert"
+3. suggestions が空の場合は `help: ` が出ないことの assert
+- `helps: "Vec<String>` は `notes` の後に並べる（表示順序: message → labels → notes → helps → fix-its）。"
+- 既存テストが `render_structured_snapshot` の出力を文字列比較している場合、`note: ` ラベルの有無で差異が出る。既存テストの期待値を更新する。
 # エラーメッセージの文面と補助情報の統一整備
-**Blocks v1 exit**: no
-**Priority**: 2
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: Diagnostic struct has helps:Vec<String> at sink.rs:96, with_help() at line 152
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/460-diagnostic-message-improvement.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

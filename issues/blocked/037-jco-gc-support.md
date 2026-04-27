@@ -6,10 +6,14 @@ ID: 31
 Track: component-model
 Depends on: 30
 Orchestration class: implementation-ready
+Blocks v2 exit: "yes (jco 完了条件)"
+Blocked by: "jco upstream (<https://github.com/bytecodealliance/jco>)"
+# jco: "Wasm GC 型サポート待ち (upstream blocked)"
+### Option A: scalar-only component 向け「GC-free core」モード
+### Option B: "jco が GC 対応するまで待機 (現在の選択)"
+### Option C: canonical ABI string adapter を実装して jco の GC 依存を迂回
 ---
 # jco: Wasm GC 型サポート待ち (upstream blocked)
-**Blocks v2 exit**: yes (jco 完了条件)
-**Blocked by**: jco upstream (<https://github.com/bytecodealliance/jco>)
 
 ## Summary
 

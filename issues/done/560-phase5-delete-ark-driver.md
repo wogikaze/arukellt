@@ -2,22 +2,53 @@
 Status: done
 Created: 2026-04-22
 Updated: 2026-04-22
-Track: main
+Track: selfhost-retirement
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 559
+Closed: 2026-04-22
+ID: 560
+Orchestration upstream: #559
+Blocks: 564
+Blocks v5: no
+Source: "#529 Phase 5 — Core compiler crate (driver / module loading / lowering pipeline orchestrator)."
+Implementation target: "Per #529 Phase 5, this issue removes exactly one Rust crate (`crates/ark-driver`). No Ark product code is added or changed; this is retirement work scoped to a single crate."
+REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
 ---
-# 560 — Phase 5: Delete `crates/ark-driver`
-**Closed**: 2026-04-22
-**ID**: 560
-**Depends on**: 559
-**Track**: selfhost-retirement
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: #559
-**Blocks**: 564
-**Blocks v5**: no
-**Source**: #529 Phase 5 — Core compiler crate (driver / module loading / lowering pipeline orchestrator).
 
-**Implementation target**: Per #529 Phase 5, this issue removes exactly one Rust crate (`crates/ark-driver`). No Ark product code is added or changed; this is retirement work scoped to a single crate.
+# 560 — Phase 5: Delete `crates/ark-driver`
+- [x] No source / script / docs reference: "`rg -l "\bark_driver\b\|\bark-driver\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)"
+- [x] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
+1. [x] Directory truly absent: `test ! -d crates/ark-driver` exit 0
+2. [x] No workspace member ref: `grep -F "crates/ark-driver" Cargo.toml` empty
+3. [x] No reverse dep ref: `grep -RIn "\bark-driver\b" crates/*/Cargo.toml` empty
+4. [x] No Rust source ref: `rg -l "\bark_driver\b" crates/ src/` empty
+5. [x] No script / CI ref: `rg -l "\bark-driver\b" scripts/ .github/workflows/` empty
+6. [x] No docs ref: "`rg -l "\bark_driver\b\|\bark-driver\b" docs/` returns only paths listed in the close note (archived ADRs allowed if explicitly enumerated)"
+7. [x] All 4 canonical gates: numeric Δ recorded showing `FAIL=0` and `SKIP_delta=0`
+- `Cargo.toml` of OTHER crates: "only** to remove a `[dependencies]` / `[dev-dependencies]` entry on `ark-driver`"
+- `docs/current-state.md`: "to reflect the deletion (single-line edit)"
+- `docs/adr/`: only if a new ADR is required to record the retirement
+- Suggested message: "`chore(crates): remove crates/ark-driver per #529 Phase 5 (closes #560)`"
+commit: <PENDING>
+fixpoint: rc=0 → rc=0
+fixture parity: PASS=1 FAIL=0 SKIP=0 → PASS=1 FAIL=0 SKIP=0
+cli parity: PASS=1 FAIL=0       → PASS=1 FAIL=0
+diag parity: PASS=13 FAIL=1 SKIP=22 → PASS=13 FAIL=1 SKIP=22
+cargo check --workspace: "rc=0 (LLVM-gated build excluded; ran with `--exclude ark-llvm` per workspace convention)"
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
+remaining references (if any): none
+crates/ark-driver/tests/wit_import_roundtrip.rs: "8:use ark_driver::{MirSelection, Session};"
+crates/arukellt/src/commands.rs: "7:use ark_driver::{MirSelection, OptLevel, Session};"
+`ark_driver: ":Session` onto direct calls into `ark-parser`,"
+- `crates/arukellt/Cargo.toml: 11` — `ark-driver = { workspace = true }`
+- `crates/ark-lsp/Cargo.toml: 15` — `ark-driver = { workspace = true }`
+- `scripts/check/check-panic-audit.sh: 8` — lists
+1): "Any non-deletable cross-crate dependency on ark-driver discovered.
+only `crates/ark-driver/tests/wit_import_roundtrip.rs: "8` (internal to"
+the deleted crate). `crates/ark-lsp/Cargo.toml: 15` and
+`scripts/check/check-panic-audit.sh: 8` were the two remaining manifest
+# 560 — Phase 5: Delete `crates/ark-driver`
+
 
 ## Summary
 
@@ -59,7 +90,6 @@ cargo check --workspace
 rg -l "\bark_driver\b" crates/ scripts/ src/ docs/ .github/
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes (workspace topology change forces selfhost rebuild)
 
 ## STOP_IF
 

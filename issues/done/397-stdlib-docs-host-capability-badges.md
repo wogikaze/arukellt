@@ -6,10 +6,11 @@ ID: 397
 Track: stdlib-docs
 Depends on: 364
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 3
+# Stdlib Docs: host API の target / capability / warning 表示を統一する
 ---
 # Stdlib Docs: host API の target / capability / warning 表示を統一する
-**Blocks v1 exit**: no
-**Priority**: 3
 
 ## Summary
 

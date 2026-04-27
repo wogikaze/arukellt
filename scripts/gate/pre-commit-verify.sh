@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/gate/pre-commit-verify.sh — Pre-commit gate: cargo fmt check + markdownlint (staged files only).
+# scripts/gate/pre-commit-verify.sh — Pre-commit gate: scripts root check + cargo fmt check + markdownlint (staged files only).
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -21,7 +21,16 @@ staged_files() {
   git diff --cached --name-only --diff-filter=ACMR -z
 }
 
-# ── 1. cargo fmt check ──────────────────────────────────────────────────────
+# ── 1. scripts root check ────────────────────────────────────────────────────
+banner "scripts root directory check"
+if python3 scripts/check/check-scripts-root.py; then
+  step "OK"
+else
+  echo "FAIL: scripts/ root directory contains unexpected files. Only manager.py and README.md are allowed." >&2
+  FAIL=1
+fi
+
+# ── 2. cargo fmt check ──────────────────────────────────────────────────────
 banner "cargo fmt --check"
 if cargo fmt --all --check; then
   step "OK"
@@ -30,7 +39,7 @@ else
   FAIL=1
 fi
 
-# ── 2. markdownlint (staged .md only) ───────────────────────────────────────
+# ── 3. markdownlint (staged .md only) ───────────────────────────────────────
 banner "markdownlint (staged .md only)"
 if command -v npx >/dev/null 2>&1; then
   mapfile -d '' MD_FILES < <(

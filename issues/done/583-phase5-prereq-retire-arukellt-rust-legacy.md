@@ -2,11 +2,28 @@
 Status: done
 Track: selfhost-retirement
 Depends on: 559
-Orchestration class: implementation-ready
+Orchestration class: source-of-truth-transition
 ---
+
 # 583 — Phase 5 prerequisite: retire ARUKELLT_USE_RUST opt-in and purge `arukellt` Rust core consumers
-**Blocks**: 560, 561, 562, 563, 564
-**Orchestration class**: source-of-truth-transition
+Blocks: 560, 561, 562, 563, 564
+blocker: "`crates/arukellt` (and `crates/ark-lsp` for ark-stdlib) actively"
+- [x] `crates/arukellt/src/cmd_doc.rs` no longer depends on `ark_stdlib: ":StdlibManifest`"
+Outcome: "STOP_IF triggered ("Any selfhost gate regresses to FAIL"). The"
+classified `skip: "(Rust: pattern not found)` → 0 pass → FAIL."
+FALSE_DONE_PREVENTION forbids: "The Rust legacy CLI must be
+crates/arukellt/src/cmd_doc.rs: "3:use ark_stdlib::{ManifestFunction, ManifestModule, StdlibManifest};"
+crates/arukellt/src/commands.rs: "1563:    use ark_wasm::component::{WrapError, compose_components};"
+crates/arukellt/src/native.rs: "94:    let mir = ark_mir::lower::lower_to_mir(&resolved.module, &checker, &mut sink);"
+Total source removed: "4 944 LOC** (3 175 lib + 1 769 tests) replaced"
+arukellt-selfhost: ARUKELLT_USE_RUST is set, but the legacy Rust CLI has
+`wasmtime run --dir=/: ":/ <wasm> -- <args>`, with `cwd=/` and a path"
+warning: "`ark-wasm` (lib) generated 2 warnings  # pre-existing, unrelated"
+Usage: arukellt <COMMAND>
+Total checks: "19  Passed: 16  Failed: 3"
+# Net delta vs master baseline: +1 passing top-level check
+#563 ark-stdlib, #564 ark-llvm) can now proceed: each Rust core crate
+# 583 — Phase 5 prerequisite: retire ARUKELLT_USE_RUST opt-in and purge `arukellt` Rust core consumers
 
 ## Why
 
@@ -114,7 +131,6 @@ section at the bottom of this file for the resolution.
 
 ## Status note 2025-XX (impl-selfhost-retirement attempt — STOPPED)
 
-**Outcome**: STOP_IF triggered ("Any selfhost gate regresses to FAIL"). The
 slice cannot be completed under the current FORBIDDEN_PATHS.
 
 ### Verified baseline (HEAD 556046b8, fresh build)

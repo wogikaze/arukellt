@@ -6,10 +6,20 @@ ID: 295
 Track: capability
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 15
 ---
+
+- `tests/fixtures/stdlib_io/clock_random.ark`: clock + random の最小テスト
+- `tests/fixtures/stdlib_io/fs_read_write.ark`: fs の読み書きテスト
+- `tests/fixtures/stdlib_env/env_basic.ark`: env の最小テスト
+- process: ":exit の正常系テストがない"
+- [x] clock: 2回呼び出しで単調増加を確認する fixture
+- [x] random: API 呼び出しが成功し、返り値が i32 範囲内であることを確認する fixture（非決定性に依存しない）
+- [x] fs: 存在しないファイルの読み取りエラーを確認する fixture（既存 `fs_read_error.ark` で可）
+- [x] env: arg_count / args の引数受け渡しを確認する fixture
+- [x] process: "exit(0) の正常終了を確認する fixture"
 # host API の run-time テストを拡充する
-**Blocks v1 exit**: no
-**Priority**: 15
 
 ## Summary
 

@@ -6,9 +6,14 @@ ID: 212
 Track: parallel
 Depends on: 190
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
+- explorer context: `Run File` / `Check File` / `Compile File`
+- editor title: `Run` / `Check` / `Compile` ボタン
+- editor context: `Run Selection` / `Explain Code`（#205 連携）
+- `Arukellt: Script…` — script quick pick（#203 連携）
 # Extension sidebar + project UI tree view
-**Blocks v1 exit**: no
 
 ## Summary
 

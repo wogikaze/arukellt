@@ -3,15 +3,11 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 607
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: stdlib
+Orchestration class: blocked-by-upstream
+Depends on: 604
 ---
 # Stdlib Baseline: Collections Hash Hardening
-**Parent**: #590
-**Depends on**: 604
-**Track**: stdlib
-**Orchestration class**: blocked-by-upstream
 
 ---
 

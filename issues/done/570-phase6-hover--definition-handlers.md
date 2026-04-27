@@ -6,15 +6,36 @@ ID: 570
 Track: selfhost-frontend
 Depends on: 569
 Orchestration class: blocked-by-upstream
-Orchestration upstream: #569
+Orchestration upstream: None
 ---
 
 # 570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers
-**Blocks**: 572
-**Blocks v5**: no
-**Source**: #529 Phase 6 — IDE Frontend / LSP / DAP migration
+Blocks: 572
+Blocks v5: no
+Source: #529 Phase 6 — IDE Frontend / LSP / DAP migration
+Implementation target: "Per #529 Phase 6, IDE-side functionality is reimplemented in Ark (`src/`) so that the Rust IDE crates can be retired in Phase 7. This issue covers exactly one concern; do **not** expand scope."
+REBUILD_BEFORE_VERIFY: yes
+3. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+- One logical commit per slice. Suggested message: "`feat(ide): lsp.ark hover & definition handlers (refs #570)`"
+commit: <hash>
+acceptance: <each checkbox marked with evidence>
+fixpoint: rc=0 → rc=0
+fixture parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
+new tests added: <paths>
+false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
+- `analysis: ":render_hover_markdown(info) -> String` (src/compiler/analysis.ark)"
+- `lsp: ":position_to_offset(text, line, character) -> i32` (src/compiler/lsp.ark)"
+The dispatcher in `lsp: ":handle_message` now routes `textDocument/hover` and"
+`hoverProvider: "true` and `definitionProvider: true`."
+Position lookup walks the partial AST returned by `parser: ":parse_program` to"
+`parser: ":parse_fn_decl`, `parse_struct_decl`, `parse_enum_decl`, and"
+Fixture: `tests/fixtures/selfhost/lsp_hover_definition.lsp-script` plus
+- hover response contains `{"contents": "{"kind":"markdown","value":"\`\`\`ark\nfn answer()\n\`\`\`"}, …}`"
+- definition response contains `{"uri": ""file:///hover.ark","range":{ … }}`"
+(same 4 pre-existing failures on master baseline: fixture-manifest sync,
+# 570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers
 
-**Implementation target**: Per #529 Phase 6, IDE-side functionality is reimplemented in Ark (`src/`) so that the Rust IDE crates can be retired in Phase 7. This issue covers exactly one concern; do **not** expand scope.
 
 ## Summary
 
@@ -41,7 +62,6 @@ python scripts/manager.py selfhost diag-parity
 
 ```
 
-**REBUILD_BEFORE_VERIFY**: yes
 
 ## STOP_IF
 
@@ -123,7 +143,6 @@ offset, then resolves the matching name against the top-level decl list
 without it the hover/definition range would highlight only the keyword
 token.
 
-**Fixture**: `tests/fixtures/selfhost/lsp_hover_definition.lsp-script` plus
 its golden `lsp_hover_definition.lsp-expected`. The script opens a small
 two-fn module, requests hover then definition on the `answer()` call site,
 and asserts:

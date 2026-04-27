@@ -3,13 +3,16 @@ Status: open
 Created: 2026-04-21
 ID: 543
 Track: benchmark
-Depends on: 076
+Depends on: 62
 Orchestration class: implementation-ready
 Orchestration upstream: —
 Blocks v{N}: none
 Source: docs/benchmarks/feature-matrix.md coverage gap
 ---
 
+# 543 — Benchmark: "file I/O (I/O-heavy workloads)"
+- [ ] Tags: `io-bound`, `string-heavy`, `allocation-heavy`
+- [ ] `mise bench: update-baseline` includes the new benchmark
 # 543 — Benchmark: file I/O (I/O-heavy workloads)
 
 ## Summary

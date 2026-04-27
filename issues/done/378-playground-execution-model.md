@@ -6,10 +6,15 @@ ID: 378
 Track: playground
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 21
 ---
+
 # Playground: execution model を選定し v1 scope を確定する
-**Blocks v1 exit**: no
-**Priority**: 21
+- `crates/ark-target/src/lib.rs`: "`wasm32-freestanding` は `implemented: false`, `run_supported: false`"
+- `docs/target-contract.md`: T2 は "identifier is registered but nothing downstream handles it"
+- `docs/current-state.md`: T2 は "not-started / unimplemented / No"
+# Playground: execution model を選定し v1 scope を確定する
 
 ## Summary
 

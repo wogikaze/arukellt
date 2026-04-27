@@ -6,9 +6,11 @@ ID: 213
 Track: parallel
 Depends on: 190
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
+- `Arukellt: Toggle Verbose Logging` コマンド
 # Language status item + observability surface
-**Blocks v1 exit**: no
 
 ## Summary
 

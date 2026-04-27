@@ -6,21 +6,27 @@ ID: 118
 Track: wasm-quality
 Depends on: 117
 Orchestration class: implementation-ready
+Blocks v4 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+WASI P2 の `wasi: "cli/command`・`wasi:http/proxy` など標準 world への"
 ---
+
 # Component Model: 複数エクスポート world の自動生成
-**Blocks v4 exit**: no
+`--world wasi: cli/command` フラグで標準 world にバインドしたコンポーネントを生成する。
+1. `arukellt compile --world wasi: cli/command` で標準 CLI world を生成
+2. `--world wasi: http/proxy` で HTTP サーバ world を生成
+# Component Model: 複数エクスポート world の自動生成
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/118-wasm-multi-export-world.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

@@ -5,11 +5,12 @@ ID: 163
 Track: main
 Depends on: 175, 176
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Status note: Parent issue for the selfhost driver / CLI surface. Debug dumping is tracked separately in
+# v5 Phase 1: Driver + CLI epic
 ---
 # v5 Phase 1: Driver + CLI epic
-**Blocks v1 exit**: no
 
-**Status note**: Parent issue for the selfhost driver / CLI surface. Debug dumping is tracked separately in #167.
 
 ## Summary
 

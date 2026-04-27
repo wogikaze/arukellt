@@ -6,10 +6,14 @@ ID: 421
 Track: repo-hygiene
 Depends on: 374
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 5
 ---
+
 # Repo Hygiene: benchmark / test asset の naming linter を入れる
-**Blocks v1 exit**: no
-**Priority**: 5
+- `scripts/check/check-asset-naming.sh`: checks benchmarks/*.ark and tests/fixtures/**/*.ark
+- snake_case enforced: lowercase letters, digits, underscores, must start with letter
+# Repo Hygiene: benchmark / test asset の naming linter を入れる
 
 ## Summary
 

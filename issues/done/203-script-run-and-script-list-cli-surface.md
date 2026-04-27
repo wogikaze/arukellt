@@ -6,9 +6,9 @@ ID: 203
 Track: parallel
 Depends on: 202
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # `script run` / `script list` CLI surface
-**Blocks v1 exit**: no
 
 ## Summary
 

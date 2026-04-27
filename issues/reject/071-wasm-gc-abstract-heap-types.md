@@ -6,11 +6,12 @@ ID: 57
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Status note: Partially implemented. Remaining items deferred to v5+.
+# Wasm GC Abstract Heap Types: any/eq/none/func/nofunc の完全活用
 ---
 # Wasm GC Abstract Heap Types: any/eq/none/func/nofunc の完全活用
-**Blocks v4 exit**: no
 
-**Status note**: Partially implemented. Remaining items deferred to v5+.
 
 ## Summary
 

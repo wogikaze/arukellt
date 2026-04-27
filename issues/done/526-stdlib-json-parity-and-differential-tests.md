@@ -2,10 +2,20 @@
 Status: done
 Created: 2026-04-18
 Updated: 2026-04-22
-Track: main
+Track: stdlib
 Orchestration class: implementation-ready
 Depends on: none
+Closed by commit `feat(stdlib): "add JSON round-trip parity and differential test corpus (#526)`."
+Verification: "`cargo test -p arukellt --test harness` — PASS: 750 FAIL: 31 (all FAILs pre-existing, none in stdlib_json new fixtures). No production `std/json/mod.ark` changes made."
+ID: 526
+Orchestration upstream: —
+Blocks v{N}: none
+Source: follow-up extraction from `#519`
+Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
 ---
+
+# Stdlib JSON: parity と differential tests を round-trip corpus で拡張する
+`std: ":json` family は regression fixtures はあるが、round-trip parity と differential testing がまだ queue 上で focused に切られていない。"
 # Stdlib JSON: parity と differential tests を round-trip corpus で拡張する
 
 ## Close note
@@ -24,15 +34,7 @@ Normalization rules documented in `tests/fixtures/stdlib_json/NORMALIZATION.md`.
 
 Verification: `cargo test -p arukellt --test harness` — PASS: 750 FAIL: 31 (all FAILs pre-existing, none in stdlib_json new fixtures). No production `std/json/mod.ark` changes made.
 
-**ID**: 526
-**Depends on**: none
-**Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: follow-up extraction from `#519`
 
-**Implementation target**: Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan.
 
 ## Summary
 

@@ -6,10 +6,11 @@ ID: 365
 Track: stdlib-docs
 Depends on: 363
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 15
+# Stdlib Docs: source-backed な cookbook / recipe 集を拡充する
 ---
 # Stdlib Docs: source-backed な cookbook / recipe 集を拡充する
-**Blocks v1 exit**: no
-**Priority**: 15
 
 ## Summary
 

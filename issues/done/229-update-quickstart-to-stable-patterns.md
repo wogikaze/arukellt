@@ -6,9 +6,10 @@ ID: 229
 Track: main
 Depends on: 226, 227
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
+Closed 2026-04-09. docs/quickstart.md audited: "all samples use stable syntax. String API uses String_from() (stable). No experimental patterns."
 ---
 # Quickstart を「今後も基準になる書き方」に更新する
-**Blocks v1 exit**: yes
 
 ## Summary
 

@@ -6,30 +6,34 @@ ID: 344
 Track: formatter
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 12
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Evidence: "ark-parser fmt.rs:1472 test format_returns_none_on_parse_error"
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
 # Formatter: parse error 時の動作契約を定義する
-**Blocks v1 exit**: no
-**Priority**: 12
+- `crates/ark-parser/src/fmt.rs: "11-16` — `format_source()` error 無視"
+- CLI `cmd_fmt()` (`commands.rs: 67-127`) も error check なしで write back
+- `crates/arukellt/src/commands.rs: "67-127` — `cmd_fmt()` error check なし"
+- `crates/ark-lsp/src/server.rs: 2731-2761` — LSP formatting
+# Formatter: parse error 時の動作契約を定義する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-**Reason**: All acceptance criteria verified by repo evidence.
 
-**Evidence**: ark-parser fmt.rs:1472 test format_returns_none_on_parse_error
 
-**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/344-fmt-parse-error-contract.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

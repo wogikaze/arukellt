@@ -6,21 +6,23 @@ ID: 55
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+3. MIR の `UnaryOp: ":SignExtend8` 等を追加して T3 で対応命令に map"
+# Wasm Sign Extension Ops: i32.extend8_s / i32.extend16_s / i64 版
 ---
 # Wasm Sign Extension Ops: i32.extend8_s / i32.extend16_s / i64 版
-**Blocks v4 exit**: no
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/067-wasm-sign-extension-ops.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

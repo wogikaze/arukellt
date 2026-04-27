@@ -6,10 +6,11 @@ ID: 442
 Track: component-model
 Depends on: 299, 300
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 4
+# Component Model: WIT / Component 生成を「出力できる」から「相互運用可能」に引き上げる
 ---
 # Component Model: WIT / Component 生成を「出力できる」から「相互運用可能」に引き上げる
-**Blocks v1 exit**: no
-**Priority**: 4
 
 ## Summary
 

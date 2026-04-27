@@ -6,9 +6,9 @@ ID: 245
 Track: main
 Depends on: 241, 242, 243
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # 配布物・統合面・失敗時の回復性の出荷品質基準を策定する
-**Blocks v1 exit**: yes
 
 ## Summary
 

@@ -6,20 +6,20 @@ ID: 438
 Track: playground
 Depends on: 437
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 11
+Reason: No telemetry switch code.
+Action: Code-level guardrail added. All acceptance criteria met.
+# Playground: privacy / telemetry / error reporting を実装方針付きで定める
 ---
 # Playground: privacy / telemetry / error reporting を実装方針付きで定める
-**Blocks v1 exit**: no
-**Priority**: 11
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: No telemetry switch code.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Closed — 2026-04-15
 
-**Action**: Code-level guardrail added. All acceptance criteria met.
 
 **Evidence**:
 - `playground/src/telemetry.ts` — adds `TELEMETRY_DISABLED = true` (compile-time constant),

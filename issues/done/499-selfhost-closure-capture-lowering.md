@@ -7,11 +7,12 @@ Track: selfhost
 Depends on: none
 Orchestration class: implementation-ready
 Orchestration upstream: —
----
-
+Blocks v5: True
+Source: audit — issues/done/493-selfhost-mir-control-flow-coverage.md STOP_IF
+for closure environments: the selfhost parser has no `|params| body` closure
 # 499 — Selfhost compiler: closure capture environment lowering
-**Blocks v5**: yes
-**Source**: audit — issues/done/493-selfhost-mir-control-flow-coverage.md STOP_IF
+---
+# 499 — Selfhost compiler: closure capture environment lowering
 
 ## Summary
 

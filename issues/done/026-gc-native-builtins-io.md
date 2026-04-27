@@ -6,9 +6,16 @@ ID: 22
 Track: gc-native
 Depends on: 023, 024, 025
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+This includes: "`to_string` for all types (produces GC string), `parse_i32/"
 ---
+
 # GC-native builtins: to_string, parse, math, I/O
-**Blocks v1 exit**: no
+- [x] `parse_i32(s: "ref $string)` → `(ref $Result)` with Ok(i32) or Err(String)."
+- [x] All `t3-compile: "for_loops/*` fixtures compile (often use println)."
+- [x] All `run: for_loops/*` fixtures pass execution.
+- The `to_string` pattern for integers: extract digits via repeated
+# GC-native builtins: to_string, parse, math, I/O
 
 ## Summary
 

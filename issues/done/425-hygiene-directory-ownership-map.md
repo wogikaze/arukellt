@@ -6,6 +6,7 @@ ID: 425
 Track: repo-hygiene
 Depends on: —
 Orchestration class: implementation-ready
+# Repo Hygiene: ディレクトリごとの ownership / maintenance map を作る
 ---
 # Repo Hygiene: ディレクトリごとの ownership / maintenance map を作る
 

@@ -5,11 +5,12 @@ ID: 165
 Track: main
 Depends on: 179, 180
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Status note: Parent issue for backend work after typed HIR exists. Includes MIR lowering and Wasm emission.
+# v5 Phase 3: Backend + Wasm emission epic
 ---
 # v5 Phase 3: Backend + Wasm emission epic
-**Blocks v1 exit**: no
 
-**Status note**: Parent issue for backend work after typed HIR exists. Includes MIR lowering and Wasm emission.
 
 ## Summary
 

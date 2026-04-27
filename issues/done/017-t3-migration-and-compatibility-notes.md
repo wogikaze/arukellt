@@ -6,9 +6,9 @@ ID: 15
 Track: parallel
 Depends on: 011, 015
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # T3 migration and compatibility notes
-**Blocks v1 exit**: no
 
 ## Summary
 

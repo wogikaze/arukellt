@@ -2,17 +2,21 @@
 Status: done
 Created: 2026-03-31
 Updated: 2026-04-01
-Track: main
+Track: linter
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 350
+Closed: 2026-04-01
+ID: 351
+Blocks v1 exit: no
+Priority: 20
 ---
+
 # Linter: ark.toml で lint 設定を管理する
-**Closed**: 2026-04-01
-**ID**: 351
-**Depends on**: 350
-**Track**: linter
-**Blocks v1 exit**: no
-**Priority**: 20
+- `crates/ark-manifest/src/lib.rs`: "LintConfig struct (allow/warn/deny), LintLevel enum, severity_for() method"
+- `crates/ark-driver/src/session.rs`: "lint_allow/lint_deny fields, filtering in check()"
+- `crates/arukellt/src/commands.rs`: Load lint config from ark.toml in cmd_check/cmd_lint
+- `docs/ark-toml.md`: "[lint] section documentation"
+# Linter: ark.toml で lint 設定を管理する
 
 ## Summary
 

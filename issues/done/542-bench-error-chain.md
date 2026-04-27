@@ -1,21 +1,22 @@
 ---
 Status: done
-Track: main
+Track: benchmark
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 515
+Closed: 2026-04-22
+Close commit: 72e3cc14
+Acceptance: all YES
+Created: 2026-04-21
+ID: 542
+Orchestration upstream: —
+Blocks v{N}: none
+Source: docs/benchmarks/feature-matrix.md coverage gap
 ---
+
+# 542 — Benchmark: "error chain (Result / error propagation)"
+- [x] Tags: `cpu-bound`, `error-heavy`, `match-heavy`, `iteration`
+- [x] `mise bench: update-baseline` includes the new benchmark
 # 542 — Benchmark: error chain (Result / error propagation)
-**Closed**: 2026-04-22
-**Close commit**: 72e3cc14
-**Acceptance**: all YES
-**Created**: 2026-04-21
-**ID**: 542
-**Depends on**: 515
-**Track**: benchmark
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v{N}**: none
-**Source**: docs/benchmarks/feature-matrix.md coverage gap
 
 ## Summary
 

@@ -3,15 +3,21 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 600
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: selfhost / typechecker
+Orchestration class: design-ready
+Depends on: —
+Parent: None
+Phase 0 baseline record is also part of this issue: run all verify/parity commands,
+In scope: 
+Out of scope: 
+Note: "#312 (generic monomorphization) and #495 (trait bounds) are upstream blockers for"
+Close when: occurs check is implemented, function boundary enforcement is active,
 ---
+
 # Type System Stage-Up: Soundness Floor
-**Parent**: #589
-**Depends on**: —
-**Track**: selfhost / typechecker
-**Orchestration class**: design-ready
+- Phase 0: "Record baseline (observe only, no implementation)"
+- Function boundary contracts: compare return expressions and final body type against declared return type
+# Type System Stage-Up: Soundness Floor
 
 ---
 

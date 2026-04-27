@@ -6,9 +6,19 @@ ID: 477
 Track: extension
 Depends on: "(none)"
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
+
 # Extension package.json: 5 arukellt 設定項目の宣言
-**Blocks v1 exit**: no
+- #478: "extension.js initializationOptions wiring (depends on this)"
+- #479: "LSP server LspConfig + handler behavior (depends on #478)"
+- #480: "README settings table (depends on #479)"
+(`type: "boolean`, `default: true`, `description` 設定済み, `scope: resource`)"
+- `extensions/arukellt-all-in-one/package.json: contributes.configuration.properties` の該当 5 行
+→ これは意図通り: この issue は manifest 宣言のみを担当する
+- LSP が設定を無視していても close できる → これは意図通り: LSP は #479 で担当
+- `grep "check.onSave" extensions/arukellt-all-in-one/package.json` → 1 match (`"arukellt.check.onSave": {`)
+# Extension package.json: 5 arukellt 設定項目の宣言
 
 ---
 

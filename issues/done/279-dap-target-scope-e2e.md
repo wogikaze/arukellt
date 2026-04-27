@@ -6,9 +6,9 @@ ID: 279
 Track: parallel
 Depends on: 277, 278
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # T1/T3 debug 対象範囲を定義し canonical path で end-to-end 確認する
-**Blocks v1 exit**: no
 
 ## Summary
 

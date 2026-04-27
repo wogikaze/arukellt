@@ -6,10 +6,11 @@ ID: 374
 Track: repo-hygiene
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 16
+# Repo Hygiene: benchmark / test asset の命名規約を統一する
 ---
 # Repo Hygiene: benchmark / test asset の命名規約を統一する
-**Blocks v1 exit**: no
-**Priority**: 16
 
 ## Summary
 

@@ -2,19 +2,27 @@
 Status: done
 Created: 2026-04-18
 Updated: 2026-04-18
-Track: main
+Track: stdlib
 Orchestration class: implementation-ready
 Depends on: none
+Closed: 2026-04-18
+ID: 522
+Orchestration upstream: —
+Blocks v1 exit: no
+Source: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
+Close evidence: 
+Acceptance mapping: 
+Implementation notes: 
 ---
+
 # Stdlib JSON: `stringify_pretty` の product claim を現実に合わせる
-**Closed**: 2026-04-18
-**ID**: 522
-**Depends on**: none
-**Track**: stdlib
-**Orchestration class**: implementation-ready
-**Orchestration upstream**: —
-**Blocks v1 exit**: no
-**Source**: false-done audit from `docs/stdlib/modernization/514-parser-host-quality-audit.md`
+`std: ":json::stringify_pretty(v, indent)` は名前上 pretty-print semantics を約束しているが、"
+- Fixture: "`tests/fixtures/stdlib_json/json_pretty.ark` / `json_pretty.expected` (registered in `tests/fixtures/manifest.txt`) exercises nested object/array output with `indent = 2`."
+- API docs: "generated `docs/stdlib/modules/json.md` and `docs/stdlib/reference.md` describe the same semantics (from `std/json/mod.ark` doc comments + manifest)."
+- [x] repo chooses one contract explicitly: "pretty-print semantics are implemented** (not a pass-through alias)."
+- if implementation changes: `bash scripts/run/verify-harness.sh --fixtures`
+- ✓ Contract chosen: "pretty-print semantics implemented (not pass-through)"
+# Stdlib JSON: `stringify_pretty` の product claim を現実に合わせる
 
 ## Summary
 

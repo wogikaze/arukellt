@@ -2,24 +2,21 @@
 Status: open
 Created: 2026-03-29
 Updated: 2026-04-13
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: parallel
+Orchestration class: blocked-by-upstream
+Depends on: 185, 188
+Closed: 2026-04-18
+ID: 205
+Orchestration upstream: #188
+Blocks v1 exit: no
+Reason: API explorer and dependency graph visualization partially missing.
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
 ---
 ## Reopened by audit
-**Closed**: 2026-04-18
-**ID**: 205
-**Depends on**: 185, 188
-**Track**: parallel
-**Orchestration class**: blocked-by-upstream
-**Orchestration upstream**: #188
-**Blocks v1 exit**: no
 
 ## Reopened by audit — 2026-04-13
 
-**Reason**: API explorer and dependency graph visualization partially missing.
 
-**Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
 
 ## Summary
 

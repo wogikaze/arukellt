@@ -6,11 +6,18 @@ ID: 49
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready
+# Wasm native 例外処理: try_table / throw / exnref 実装
+Blocks v4 exit: no
+Status note: Wasm proposal — deferred to v5+. Not implemented.
+1. `ark-wasm` に `tag` セクション生成を追加 (Result: ":Err 用の exception tag)"
+3. `exnref` を catch し Ark の `Result: ":Err` 値として再構築"
+1. `ark-wasm/src/emit/t3_wasm_gc.rs`: TagSection 追加、`throw`/`try_table` emit
+2. `ark-mir/src/mir.rs`: "`MirTerminator::ThrowIfErr` 追加"
+3. `ark-mir/src/lower.rs`: `?` 演算子を `ThrowIfErr` に変換
+4. `tests/fixtures/opt/exception_chain.ark`: `?` を 10 段ネストした fixture
 ---
 # Wasm native 例外処理: try_table / throw / exnref 実装
-**Blocks v4 exit**: no
 
-**Status note**: Wasm proposal — deferred to v5+. Not implemented.
 
 ## Summary
 

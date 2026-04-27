@@ -6,9 +6,9 @@ ID: 13
 Track: parallel
 Depends on: 003, 009, 010, 011
 Orchestration class: implementation-ready
+Blocks v1 exit: no
 ---
 # T3 docs current-first sync
-**Blocks v1 exit**: no
 
 ## Summary
 

@@ -6,10 +6,14 @@ ID: 336
 Track: lsp-navigation
 Depends on: 334
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 7
 ---
+
 # LSP: hover の型情報を resolver/typechecker 連携で精密化する
-**Blocks v1 exit**: no
-**Priority**: 7
+- `crates/ark-lsp/src/server.rs: 121-154` — `CachedAnalysis` に resolved / checker あり
+- [x] 変数上の hover が推論された型を表示する (`let x = 1 + 2` → `x: i32`)
+# LSP: hover の型情報を resolver/typechecker 連携で精密化する
 
 ## Summary
 

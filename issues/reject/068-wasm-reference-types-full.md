@@ -6,11 +6,12 @@ ID: 068
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: False
+Status note: Partially implemented. Remaining items deferred to v5+.
+# Wasm Reference Types: table.get / table.set / externref フル対応
 ---
 # Wasm Reference Types: table.get / table.set / externref フル対応
-**Blocks v4 exit**: no
 
-**Status note**: Partially implemented. Remaining items deferred to v5+.
 
 ## Summary
 

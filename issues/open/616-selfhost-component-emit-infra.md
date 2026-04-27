@@ -7,10 +7,10 @@ Track: component-model
 Depends on: none
 Orchestration class: implementation-ready
 Orchestration upstream: —
----
-
+Blocks v2: True
 # Selfhost compiler: Implement component emission infrastructure
-**Blocks v2**: yes
+---
+# Selfhost compiler: Implement component emission infrastructure
 
 ## Summary
 

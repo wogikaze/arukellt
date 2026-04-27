@@ -2,17 +2,20 @@
 Status: done
 Created: 2026-03-31
 Updated: 2026-04-01
-Track: main
+Track: selfhost-retirement
 Orchestration class: implementation-ready
-Depends on: none
+Depends on: 330
+Closed: 2026-04-01
+ID: 331
+Blocks v1 exit: no
+Priority: 24
 ---
+
+- `--compare`: runs both Rust and selfhost compilers, shows side-by-side comparison table
+- `--selfhost`: runs benchmarks using selfhost compiler only
+- Added `mise bench: "compare` and `mise bench:selfhost` tasks"
+Verification: `bash scripts/run/run-benchmarks.sh --quick --compare` — runs successfully, shows fib/binary_tree/string_concat at 1.1-1.7x compile overhead with 0.48-0.54x binary size.
 # Perf baseline を selfhost binary 対応にする
-**Closed**: 2026-04-01
-**ID**: 331
-**Depends on**: 330
-**Track**: selfhost-retirement
-**Blocks v1 exit**: no
-**Priority**: 24
 
 ## Summary
 

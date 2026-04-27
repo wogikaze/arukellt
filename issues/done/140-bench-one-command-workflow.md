@@ -6,21 +6,24 @@ ID: 140
 Track: benchmark
 Depends on: 149
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
 # ベンチ統合: `mise bench` 1コマンド導線と subcommand 整理
-**Blocks v1 exit**: no
+- [x] `mise bench: "quick`、`mise bench:compare`、`mise bench:update-baseline`、`mise bench:ci` を用意する"
+# ベンチ統合: `mise bench` 1コマンド導線と subcommand 整理
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/140-bench-one-command-workflow.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

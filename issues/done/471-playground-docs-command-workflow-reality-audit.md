@@ -6,10 +6,11 @@ ID: 471
 Track: docs-audit
 Depends on: 465
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 7
+# Playground docs: command / workflow / publish claim の現実整合監査
 ---
 # Playground docs: command / workflow / publish claim の現実整合監査
-**Blocks v1 exit**: no
-**Priority**: 7
 
 ## Summary
 

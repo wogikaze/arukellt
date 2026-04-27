@@ -6,10 +6,11 @@ ID: 411
 Track: language-docs
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+Priority: 6
+# Language Docs: diagnostics / error code 文書を実装と揃える
 ---
 # Language Docs: diagnostics / error code 文書を実装と揃える
-**Blocks v1 exit**: no
-**Priority**: 6
 
 ## Summary
 

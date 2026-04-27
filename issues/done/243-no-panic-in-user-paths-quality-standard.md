@@ -6,9 +6,9 @@ ID: 243
 Track: main
 Depends on: 242
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # ユーザー到達経路での panic/unwrap/起動失敗の即時 issue 化品質基準を確立する
-**Blocks v1 exit**: yes
 
 ## Summary
 

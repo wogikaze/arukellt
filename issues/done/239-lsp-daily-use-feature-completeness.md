@@ -6,9 +6,10 @@ ID: 239
 Track: main
 Depends on: 219
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Closed 2026-04-09. LSP server.rs (1700+ lines) has: "real-time diagnostics (did_open/did_change → publish_diagnostics), hover with type_hover_info, completion with contextual prefix matching + stdlib suggestions, goto_definition, find_references, document_symbols, folding_range, signature_help/document_highlight declared. All daily-use features are implemented."
 ---
 # 日常利用に必要な LSP 基本機能を完成させる
-**Blocks v1 exit**: no
 
 ## Summary
 

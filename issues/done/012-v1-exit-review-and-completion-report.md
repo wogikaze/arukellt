@@ -6,9 +6,9 @@ ID: 10
 Track: main
 Depends on: 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011
 Orchestration class: implementation-ready
+Blocks v1 exit: yes
 ---
 # V1 exit review and completion report
-**Blocks v1 exit**: yes
 
 ## Summary
 

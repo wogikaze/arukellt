@@ -3,15 +3,16 @@ Status: open
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 610
-Track: main
-Orchestration class: implementation-ready
-Depends on: none
+Track: compiler / selfhost
+Orchestration class: blocked-by-upstream
+Depends on: 609
+---
+
+# Optimization Uplift: Lowering Bottleneck Reduction
+- Adjacent instrumentation: `scripts/perf/` if new timers needed
+Close when: `lower` phase improves ≥15%, compile median improves ≥8%, no regressions,
 ---
 # Optimization Uplift: Lowering Bottleneck Reduction
-**Parent**: #591
-**Depends on**: 609
-**Track**: compiler / selfhost
-**Orchestration class**: blocked-by-upstream
 
 ---
 

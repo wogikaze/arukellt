@@ -6,10 +6,15 @@ ID: 291
 Track: capability
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 11
 ---
+
+- `crates/arukellt/src/commands.rs: 507-521`
+- `crates/arukellt/src/runtime.rs: "69-72`: `let _ = caps.deny_clock` で未使用"
+- [x] テスト: clock 使用コードが `--deny-clock` で compile fail する fixture
+- `crates/ark-wasm/src/emit/t3/reachability.rs: 115-127, 191-203`
 # --deny-clock / --deny-random を compile-time 検証に引き上げる
-**Blocks v1 exit**: no
-**Priority**: 11
 
 ## Summary
 

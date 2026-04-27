@@ -6,9 +6,10 @@ ID: 218
 Track: parallel
 Depends on: 193
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# Navigation completeness: go to implementation / call hierarchy / type hierarchy
 ---
 # Navigation completeness: go to implementation / call hierarchy / type hierarchy
-**Blocks v1 exit**: no
 
 ## Summary
 

@@ -6,10 +6,14 @@ ID: 368
 Track: language-docs
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 2
 ---
+
 # Language Docs: current-first な言語ガイドを spec から分離して作る
-**Blocks v1 exit**: no
-**Priority**: 2
+- `docs/language/spec.md`: 1300 行超、stable / provisional / experimental / unimplemented が混在
+- `docs/language/syntax.md` / `type-system.md` / `error-handling.md`: current-first と明記されているが spec との重複あり
+# Language Docs: current-first な言語ガイドを spec から分離して作る
 
 ## Summary
 

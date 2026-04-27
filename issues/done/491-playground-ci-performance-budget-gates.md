@@ -7,6 +7,11 @@ Source: audit — docs/playground/deployment-strategy.md §4.3
 Orchestration class: implementation-ready
 Depends on: none
 ---
+
+- `.github/workflows/playground-ci.yml`: "`playground-bundle-size` job (threshold: `PLAYGROUND_BUNDLE_LIMIT=524288` = 512 KB)"
+- `scripts/check/check-playground-size.sh`: reusable size check script; exits 1 when threshold exceeded
+- `docs/playground/deployment-strategy.md §4.3`: updated with enforcement status table, defers Lighthouse CI to issue #498
+- `issues/open/498-playground-lighthouse-ci.md`: explicit tracking reference for deferred Lighthouse CI
 # 491 — Playground CI performance budget enforcement
 
 ## Summary

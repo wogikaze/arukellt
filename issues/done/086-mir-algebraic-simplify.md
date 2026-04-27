@@ -6,21 +6,28 @@ ID: 086
 Track: mir-opt
 Depends on: —
 Orchestration class: implementation-ready
+Blocks v4 exit: no
+Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Path discrepancy: Acceptance criteria states `passes/algebraic_simplify.rs`; actual location is `opt/algebraic_simplify.rs`.
+Commit hash evidence: df4f672
 ---
+
 # MIR: 代数的簡略化 — 恒等式・吸収則・ド・モルガン則
-**Blocks v4 exit**: no
+1. `passes/algebraic_simplify.rs`: 上記パターンのマッチング・置換
+- `crates/ark-mir/src/opt/algebraic_simplify.rs` — all identity/absorbing-element patterns: `x+0→x`, `x*1→x`, `x*0→0`, `x-0→x`, `x/1→x`, `x&0→0`, `x|0→x`, `x^0→x`, `x&&true→x`, `x&&false→false`, `x||false→x`, `x||true→true`, `!!x→x`, `--x→x`
+- `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass: ":AlgebraicSimplify`; in `DEFAULT_PASS_ORDER`"
+# MIR: 代数的簡略化 — 恒等式・吸収則・ド・モルガン則
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/086-mir-algebraic-simplify.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 
@@ -52,11 +59,8 @@ Orchestration class: implementation-ready
 - `crates/ark-mir/src/opt/algebraic_simplify.rs` — all identity/absorbing-element patterns: `x+0→x`, `x*1→x`, `x*0→0`, `x-0→x`, `x/1→x`, `x&0→0`, `x|0→x`, `x^0→x`, `x&&true→x`, `x&&false→false`, `x||false→x`, `x||true→true`, `!!x→x`, `--x→x`
 - `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass::AlgebraicSimplify`; in `DEFAULT_PASS_ORDER`
 
-**Path discrepancy**: Acceptance criteria states `passes/algebraic_simplify.rs`; actual location is `opt/algebraic_simplify.rs`.
 
 **Accepted criteria**:
 1. ✅ All specified patterns matched and replaced
 2. ✅ Operates alongside `ConstFold` + `CopyProp` in the same `DEFAULT_PASS_ORDER` pipeline; combined reduction happens through fixpoint rounds
 3. ✅ Opt-level 1+ effective — pass is in `DEFAULT_PASS_ORDER`
-
-**Commit hash evidence**: df4f672

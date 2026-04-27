@@ -6,10 +6,14 @@ ID: 350
 Track: linter
 Depends on: 348
 Orchestration class: implementation-ready
+Blocks v1 exit: no
+Priority: 17
 ---
+
 # Linter: `arukellt lint` CLI サブコマンドを追加する
-**Blocks v1 exit**: no
-**Priority**: 17
+- `crates/arukellt/src/main.rs`: `lint` サブコマンドなし
+- `crates/ark-manifest/src/lib.rs`: default script `lint = "arukellt check ."`
+# Linter: `arukellt lint` CLI サブコマンドを追加する
 
 ## Summary
 

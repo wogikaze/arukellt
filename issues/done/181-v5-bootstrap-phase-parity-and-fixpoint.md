@@ -6,9 +6,10 @@ ID: 181
 Track: main
 Depends on: 165, 167
 Orchestration class: implementation-ready
+Blocks v1 exit: False
+# v5 Bootstrap: phase parity and fixpoint verification
 ---
 # v5 Bootstrap: phase parity and fixpoint verification
-**Blocks v1 exit**: no
 
 ## Summary
 
