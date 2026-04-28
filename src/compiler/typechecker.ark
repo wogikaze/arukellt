@@ -1,1336 +1,1506 @@
+// Arukellt Selfhost — Type Checker
+//
+// Performs type inference, unification, and generates typed HIR.
+// Uses a substitution-based unification approach.
 use std::host::stdio
+
 fn TY_UNKNOWN() -> i32 {
-0
+    0
 }
+
+// ── Node Kind Tags (from parser.ark) ─────────────────────────────────────────
 fn NK_INT_LIT() -> i32 {
-1
+    1
 }
+
 fn NK_FLOAT_LIT() -> i32 {
-2
+    2
 }
+
 fn NK_STRING_LIT() -> i32 {
-3
+    3
 }
+
 fn NK_BOOL_LIT() -> i32 {
-4
+    4
 }
+
 fn NK_IDENT() -> i32 {
-5
+    5
 }
+
 fn NK_BINARY() -> i32 {
-6
+    6
 }
+
 fn NK_UNARY() -> i32 {
-7
+    7
 }
+
 fn NK_CALL() -> i32 {
-8
+    8
 }
+
 fn NK_METHOD_CALL() -> i32 {
-21
+    21
 }
+
 fn NK_CLOSURE() -> i32 {
-15
+    15
 }
+
 fn NK_BLOCK() -> i32 {
-20
+    20
 }
+
 fn NK_LET() -> i32 {
-30
+    30
 }
+
 fn NK_RETURN() -> i32 {
-31
+    31
 }
+
 fn NK_WHILE() -> i32 {
-34
+    34
 }
+
 fn NK_FOR() -> i32 {
-36
+    36
 }
+
 fn NK_EXPR_STMT() -> i32 {
-37
+    37
 }
+
 fn NK_FN_DECL() -> i32 {
-50
+    50
 }
+
 fn NK_IMPL_DECL() -> i32 {
-56
+    56
 }
+
 fn NK_IF_EXPR() -> i32 {
-13
+    13
 }
+
 fn NK_ASSIGN() -> i32 {
-18
+    18
 }
+
 fn NK_MATCH_EXPR() -> i32 {
-14
+    14
 }
+
 fn NK_MATCH_ARM() -> i32 {
-26
+    26
 }
+
+// ── Pattern Kind Tags (from parser.ark) ──────────────────────────────────────
 fn NK_PAT_WILDCARD() -> i32 {
-71
+    71
 }
+
 fn NK_PAT_IDENT() -> i32 {
-70
+    70
 }
+
 fn NK_PAT_LITERAL() -> i32 {
-72
+    72
 }
+
+// ── Operator Tags (from parser.ark) ──────────────────────────────────────────
 fn OP_ADD() -> i32 {
-1
+    1
 }
+
 fn OP_SUB() -> i32 {
-2
+    2
 }
+
 fn OP_MUL() -> i32 {
-3
+    3
 }
+
 fn OP_DIV() -> i32 {
-4
+    4
 }
+
 fn OP_MOD() -> i32 {
-5
+    5
 }
+
 fn OP_EQ() -> i32 {
-6
+    6
 }
+
 fn OP_NEQ() -> i32 {
-7
+    7
 }
+
 fn OP_LT() -> i32 {
-8
+    8
 }
+
 fn OP_LTEQ() -> i32 {
-9
+    9
 }
+
 fn OP_GT() -> i32 {
-10
+    10
 }
+
 fn OP_GTEQ() -> i32 {
-11
+    11
 }
+
 fn OP_AND() -> i32 {
-12
+    12
 }
+
 fn OP_OR() -> i32 {
-13
+    13
 }
+
+// ── Type Tags (continued) ────────────────────────────────────────────────────
 fn TY_I32() -> i32 {
-1
+    1
 }
+
 fn TY_I64() -> i32 {
-2
+    2
 }
+
 fn TY_F64() -> i32 {
-3
+    3
 }
+
 fn TY_BOOL() -> i32 {
-4
+    4
 }
+
 fn TY_STRING() -> i32 {
-5
+    5
 }
+
 fn TY_CHAR() -> i32 {
-6
+    6
 }
+
 fn TY_UNIT() -> i32 {
-7
+    7
 }
+
 fn TY_NEVER() -> i32 {
-8
+    8
 }
+
 fn TY_VEC() -> i32 {
-10
+    10
 }
+
 fn TY_OPTION() -> i32 {
-11
+    11
 }
+
 fn TY_RESULT() -> i32 {
-12
+    12
 }
+
 fn TY_HASHMAP() -> i32 {
-13
+    13
 }
+
 fn TY_FN() -> i32 {
-20
+    20
 }
+
 fn TY_STRUCT() -> i32 {
-21
+    21
 }
+
 fn TY_ENUM() -> i32 {
-22
+    22
 }
+
 fn TY_TUPLE() -> i32 {
-23
+    23
 }
+
 fn TY_TYPE_VAR() -> i32 {
-30
+    30
 }
+
+// ── Type Representation ──────────────────────────────────────────────────────
 struct TypeInfo {
-tag: i32,
-name: String,
-type_args: Vec<TypeInfo>,
+    tag: i32,
+    name: String,
+    type_args: Vec<TypeInfo>,
 }
+
 fn TypeInfo_simple(tag: i32) -> TypeInfo {
-TypeInfo { tag: tag, name: String_new(), type_args: Vec_new_TypeInfo() }
+    TypeInfo { tag: tag, name: String_new(), type_args: Vec_new_TypeInfo() }
 }
+
 fn TypeInfo_named(tag: i32, name: String) -> TypeInfo {
-TypeInfo { tag: tag, name: name, type_args: Vec_new_TypeInfo() }
+    TypeInfo { tag: tag, name: name, type_args: Vec_new_TypeInfo() }
 }
+
+// ── Type Variable / Substitution ─────────────────────────────────────────────
 struct TypeVar {
-id: i32,
-bound: TypeInfo,
-is_bound: bool,
+    id: i32,
+    bound: TypeInfo,
+    is_bound: bool,
 }
+
 struct TypeEnv {
-vars: Vec<TypeVar>,
-next_id: i32,
-errors: Vec<String>,
-error_count: i32,
-mono_instances: Vec<MonoInstance>,
-mono_call_sites: Vec<MonoCallSite>,
-trait_impls: Vec<TraitImplInfo>,
+    vars: Vec<TypeVar>,
+    next_id: i32,
+    errors: Vec<String>,
+    error_count: i32,
+    mono_instances: Vec<MonoInstance>,
+    trait_impls: Vec<TraitImplInfo>,
 }
+
 fn TypeEnv_new() -> TypeEnv {
-TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite(), trait_impls: Vec_new_TraitImplInfo() }
+    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), trait_impls: Vec_new_TraitImplInfo() }
 }
+
 struct TraitImplInfo {
-trait_name: String,
-self_ty: TypeInfo,
+    trait_name: String,
+    self_ty: TypeInfo,
 }
+
+// ── Monomorphization Instance Tracking ──────────────────────────────────────
 struct MonoInstance {
-fn_name: String,
-mangled_name: String,
-type_args: Vec<TypeInfo>,
+    fn_name: String,
+    mangled_name: String,
 }
-struct MonoCallSite {
-span_start: i32,
-mangled_name: String,
-}
+
 fn mono_type_key(ty: TypeInfo) -> String {
-if ty.tag == TY_TYPE_VAR() {
-return concat(String_from("?"), clone(ty.name))
+    if ty.tag == TY_TYPE_VAR() {
+        return concat(String_from("?"), clone(ty.name))
+    }
+    let mut base = String_from("")
+    if ty.tag == TY_STRUCT() || ty.tag == TY_ENUM() {
+        base = clone(ty.name)
+    } else {
+        base = type_tag_name(ty.tag)
+    }
+    let arg_count = len(ty.type_args)
+    if arg_count == 0 {
+        return base
+    }
+    // Recurse into nested type arguments so distinct concretizations such as
+    // `f<Vec<i32>>` and `f<Vec<String>>` produce distinct mangled keys
+    // (#312 slice-a — nested generic monomorphization).
+    let mut result = concat(base, String_from("<"))
+    let mut i = 0
+    while i < arg_count {
+        let arg = get_unchecked(ty.type_args, i)
+        if i > 0 {
+            result = concat(result, String_from(","))
+        }
+        result = concat(result, mono_type_key(arg))
+        i = i + 1
+    }
+    result = concat(result, String_from(">"))
+    result
 }
-let mut base = String_from("")
-if ty.tag == TY_STRUCT() || ty.tag == TY_ENUM() {
-base = clone(ty.name)
-} else {
-base = type_tag_name(ty.tag)
-}
-let arg_count = len(ty.type_args)
-if arg_count == 0 {
-return base
-}
-let mut result = concat(base, String_from("<"))
-let mut i = 0
-while i < arg_count {
-let arg = get_unchecked(ty.type_args, i)
-if i > 0 {
-result = concat(result, String_from(","))
-}
-result = concat(result, mono_type_key(arg))
-i = i + 1
-}
-result = concat(result, String_from(">"))
-result
-}
+
 fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
-let mut mangled = clone(fn_name)
-let count = len(resolved_types)
-let mut i = 0
-while i < count {
-let ty = get_unchecked(resolved_types, i)
-mangled = concat(mangled, concat(String_from("__"), mono_type_key(ty)))
-i = i + 1
+    let mut mangled = clone(fn_name)
+    let count = len(resolved_types)
+    let mut i = 0
+    while i < count {
+        let ty = get_unchecked(resolved_types, i)
+        mangled = concat(mangled, concat(String_from("__"), mono_type_key(ty)))
+        i = i + 1
+    }
+    let mi_count = len(env.mono_instances)
+    let mut j = 0
+    while j < mi_count {
+        let mi = get_unchecked(env.mono_instances, j)
+        if eq(clone(mi.mangled_name), clone(mangled)) {
+            return
+        }
+        j = j + 1
+    }
+    push(env.mono_instances, MonoInstance { fn_name: fn_name, mangled_name: mangled })
 }
-let mi_count = len(env.mono_instances)
-let mut j = 0
-while j < mi_count {
-let mi = get_unchecked(env.mono_instances, j)
-if eq(clone(mi.mangled_name), clone(mangled)) {
-return
-}
-j = j + 1
-}
-push(env.mono_instances, MonoInstance { fn_name: fn_name, mangled_name: mangled, type_args: resolved_types })
-}
-fn record_mono_call(env: TypeEnv, span_start: i32, fn_name: String, resolved_types: Vec<TypeInfo>) {
-let mut mangled = clone(fn_name)
-let count = len(resolved_types)
-let mut i = 0
-while i < count {
-let ty = get_unchecked(resolved_types, i)
-mangled = concat(mangled, concat(String_from("__"), mono_type_key(ty)))
-i = i + 1
-}
-push(env.mono_call_sites, MonoCallSite { span_start: span_start, mangled_name: clone(mangled) })
-let mi_count = len(env.mono_instances)
-let mut j = 0
-while j < mi_count {
-let mi = get_unchecked(env.mono_instances, j)
-if eq(clone(mi.mangled_name), clone(mangled)) {
-return
-}
-j = j + 1
-}
-push(env.mono_instances, MonoInstance { fn_name: fn_name, mangled_name: mangled, type_args: resolved_types })
-}
-fn record_mono_call_site(env: TypeEnv, span_start: i32, fn_name: String, resolved_types: Vec<TypeInfo>) {
-let mut mangled = clone(fn_name)
-let count = len(resolved_types)
-let mut i = 0
-while i < count {
-let ty = get_unchecked(resolved_types, i)
-mangled = concat(mangled, concat(String_from("__"), mono_type_key(ty)))
-i = i + 1
-}
-push(env.mono_call_sites, MonoCallSite { span_start: span_start, mangled_name: mangled })
-}
+
 fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> bool {
-let count = len(mono_instances)
-let mut i = 0
-while i < count {
-let mi = get_unchecked(mono_instances, i)
-if eq(clone(mi.fn_name), clone(fn_name)) {
-return true
+    let count = len(mono_instances)
+    let mut i = 0
+    while i < count {
+        let mi = get_unchecked(mono_instances, i)
+        if eq(clone(mi.fn_name), clone(fn_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
-i = i + 1
-}
-false
-}
+
 fn fresh_var(env: TypeEnv) -> TypeInfo {
-let id = env.next_id
-env.next_id = env.next_id + 1
-let tv = TypeVar { id: id, bound: TypeInfo_simple(TY_UNKNOWN()), is_bound: false }
-push(env.vars, tv)
-let t = TypeInfo_simple(TY_TYPE_VAR())
-t.name = concat(String_from("t"), to_string(id))
-t
+    let id = env.next_id
+    env.next_id = env.next_id + 1
+    let tv = TypeVar { id: id, bound: TypeInfo_simple(TY_UNKNOWN()), is_bound: false }
+    push(env.vars, tv)
+    let t = TypeInfo_simple(TY_TYPE_VAR())
+    t.name = concat(String_from("t"), to_string(id))
+    t
 }
+
 fn type_error(env: TypeEnv, msg: String) {
-env.error_count = env.error_count + 1
-push(env.errors, msg)
+    env.error_count = env.error_count + 1
+    push(env.errors, msg)
 }
+
+// ── Unification ──────────────────────────────────────────────────────────────
 fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
-if a.tag == TY_UNKNOWN() {
-return b
+    if a.tag == TY_UNKNOWN() {
+        return b
+    }
+    if b.tag == TY_UNKNOWN() {
+        return a
+    }
+    if a.tag == TY_TYPE_VAR() {
+        bind_var(env, clone(a.name), b)
+        return b
+    }
+    if b.tag == TY_TYPE_VAR() {
+        bind_var(env, clone(b.name), a)
+        return a
+    }
+    if a.tag == b.tag {
+        if a.tag == TY_STRUCT() || a.tag == TY_ENUM() {
+            if !eq(clone(a.name), clone(b.name)) {
+                type_error(env, concat(String_from("type mismatch: "), concat(clone(a.name), concat(String_from(" vs "), clone(b.name)))))
+            }
+        }
+        let ac = len(a.type_args)
+        let bc = len(b.type_args)
+        if ac > 0 && bc > 0 {
+            if ac != bc {
+                type_error(env, concat(String_from("generic arity mismatch: "), type_tag_name(a.tag)))
+            } else {
+                let mut k = 0
+                while k < ac {
+                    let ta = get_unchecked(a.type_args, k)
+                    let tb = get_unchecked(b.type_args, k)
+                    unify(env, ta, tb)
+                    k = k + 1
+                }
+            }
+        }
+        return a
+    }
+    if a.tag == TY_I32() && b.tag == TY_I64() {
+        return b
+    }
+    if a.tag == TY_I64() && b.tag == TY_I32() {
+        return a
+    }
+    type_error(env, concat(String_from("type mismatch: "), concat(type_tag_name(a.tag), concat(String_from(" vs "), type_tag_name(b.tag)))))
+    a
 }
-if b.tag == TY_UNKNOWN() {
-return a
-}
-if a.tag == TY_TYPE_VAR() {
-bind_var(env, clone(a.name), b)
-return b
-}
-if b.tag == TY_TYPE_VAR() {
-bind_var(env, clone(b.name), a)
-return a
-}
-if a.tag == b.tag {
-if a.tag == TY_STRUCT() || a.tag == TY_ENUM() {
-if !eq(clone(a.name), clone(b.name)) {
-type_error(env, concat(String_from("type mismatch: "), concat(clone(a.name), concat(String_from(" vs "), clone(b.name)))))
-}
-}
-let ac = len(a.type_args)
-let bc = len(b.type_args)
-if ac > 0 && bc > 0 {
-if ac != bc {
-type_error(env, concat(String_from("generic arity mismatch: "), type_tag_name(a.tag)))
-} else {
-let mut k = 0
-while k < ac {
-let ta = get_unchecked(a.type_args, k)
-let tb = get_unchecked(b.type_args, k)
-unify(env, ta, tb)
-k = k + 1
-}
-}
-}
-return a
-}
-if a.tag == TY_I32() && b.tag == TY_I64() {
-return b
-}
-if a.tag == TY_I64() && b.tag == TY_I32() {
-return a
-}
-type_error(env, concat(String_from("type mismatch: "), concat(type_tag_name(a.tag), concat(String_from(" vs "), type_tag_name(b.tag)))))
-a
-}
+
 fn bind_var(env: TypeEnv, var_name: String, ty: TypeInfo) {
-let count = len(env.vars)
-let mut i = 0
-while i < count {
-let tv = get_unchecked(env.vars, i)
-if eq(clone(tv.bound.name), clone(var_name)) || eq(concat(String_from("t"), to_string(tv.id)), clone(var_name)) {
-tv.bound = ty
-tv.is_bound = true
-return
+    let count = len(env.vars)
+    let mut i = 0
+    while i < count {
+        let tv = get_unchecked(env.vars, i)
+        if eq(clone(tv.bound.name), clone(var_name)) || eq(concat(String_from("t"), to_string(tv.id)), clone(var_name)) {
+            tv.bound = ty
+            tv.is_bound = true
+            return
+        }
+        i = i + 1
+    }
 }
-i = i + 1
-}
-}
+
 fn resolve_type(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
-if ty.tag != TY_TYPE_VAR() {
-return ty
+    if ty.tag != TY_TYPE_VAR() {
+        return ty
+    }
+    let count = len(env.vars)
+    let mut i = 0
+    while i < count {
+        let tv = get_unchecked(env.vars, i)
+        if eq(concat(String_from("t"), to_string(tv.id)), clone(ty.name)) {
+            if tv.is_bound {
+                return resolve_type(env, tv.bound)
+            }
+            return ty
+        }
+        i = i + 1
+    }
+    ty
 }
-let count = len(env.vars)
-let mut i = 0
-while i < count {
-let tv = get_unchecked(env.vars, i)
-if eq(concat(String_from("t"), to_string(tv.id)), clone(ty.name)) {
-if tv.is_bound {
-return resolve_type(env, tv.bound)
-}
-return ty
-}
-i = i + 1
-}
-ty
-}
+
+// Walk the type structure and resolve every nested TY_TYPE_VAR.  Used when
+// recording monomorphization instances so that nested generic concretizations
+// (e.g. T -> Vec<i32>) receive a fully resolved key rather than carrying a
+// dangling fresh variable inside their `type_args`. (#312 slice-a)
 fn resolve_type_deep(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
-let head = resolve_type(env, ty)
-let arg_count = len(head.type_args)
-if arg_count == 0 {
-return head
+    let head = resolve_type(env, ty)
+    let arg_count = len(head.type_args)
+    if arg_count == 0 {
+        return head
+    }
+    let res = TypeInfo { tag: head.tag, name: clone(head.name), type_args: Vec_new_TypeInfo() }
+    let mut i = 0
+    while i < arg_count {
+        let arg = get_unchecked(head.type_args, i)
+        push(res.type_args, resolve_type_deep(env, arg))
+        i = i + 1
+    }
+    res
 }
-let res = TypeInfo { tag: head.tag, name: clone(head.name), type_args: Vec_new_TypeInfo() }
-let mut i = 0
-while i < arg_count {
-let arg = get_unchecked(head.type_args, i)
-push(res.type_args, resolve_type_deep(env, arg))
-i = i + 1
-}
-res
-}
+
 fn type_tag_name(tag: i32) -> String {
-if tag == TY_I32() {
-return String_from("i32")
+    if tag == TY_I32() {
+        return String_from("i32")
+    }
+    if tag == TY_I64() {
+        return String_from("i64")
+    }
+    if tag == TY_F64() {
+        return String_from("f64")
+    }
+    if tag == TY_BOOL() {
+        return String_from("bool")
+    }
+    if tag == TY_STRING() {
+        return String_from("String")
+    }
+    if tag == TY_CHAR() {
+        return String_from("char")
+    }
+    if tag == TY_UNIT() {
+        return String_from("()")
+    }
+    if tag == TY_VEC() {
+        return String_from("Vec")
+    }
+    if tag == TY_FN() {
+        return String_from("fn")
+    }
+    if tag == TY_STRUCT() {
+        return String_from("struct")
+    }
+    if tag == TY_ENUM() {
+        return String_from("enum")
+    }
+    if tag == TY_TYPE_VAR() {
+        return String_from("var")
+    }
+    String_from("?")
 }
-if tag == TY_I64() {
-return String_from("i64")
-}
-if tag == TY_F64() {
-return String_from("f64")
-}
-if tag == TY_BOOL() {
-return String_from("bool")
-}
-if tag == TY_STRING() {
-return String_from("String")
-}
-if tag == TY_CHAR() {
-return String_from("char")
-}
-if tag == TY_UNIT() {
-return String_from("()")
-}
-if tag == TY_VEC() {
-return String_from("Vec")
-}
-if tag == TY_FN() {
-return String_from("fn")
-}
-if tag == TY_STRUCT() {
-return String_from("struct")
-}
-if tag == TY_ENUM() {
-return String_from("enum")
-}
-if tag == TY_TYPE_VAR() {
-return String_from("var")
-}
-String_from("?")
-}
+
 fn type_display_name(ty: TypeInfo) -> String {
-if !eq(clone(ty.name), String_from("")) {
-return clone(ty.name)
+    if !eq(clone(ty.name), String_from("")) {
+        return clone(ty.name)
+    }
+    type_tag_name(ty.tag)
 }
-type_tag_name(ty.tag)
-}
+
 fn same_named_type(a: TypeInfo, b: TypeInfo) -> bool {
-if a.tag != b.tag {
-return false
+    if a.tag != b.tag {
+        return false
+    }
+    if !eq(clone(a.name), String_from("")) || !eq(clone(b.name), String_from("")) {
+        return eq(clone(a.name), clone(b.name))
+    }
+    true
 }
-if !eq(clone(a.name), String_from("")) || !eq(clone(b.name), String_from("")) {
-return eq(clone(a.name), clone(b.name))
-}
-true
-}
+
 fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
-let count = len(env.trait_impls)
-let mut i = 0
-while i < count {
-let existing = get_unchecked(env.trait_impls, i)
-if eq(clone(existing.trait_name), clone(trait_name)) && same_named_type(existing.self_ty, self_ty) {
-return
+    let count = len(env.trait_impls)
+    let mut i = 0
+    while i < count {
+        let existing = get_unchecked(env.trait_impls, i)
+        if eq(clone(existing.trait_name), clone(trait_name)) && same_named_type(existing.self_ty, self_ty) {
+            return
+        }
+        i = i + 1
+    }
+    push(env.trait_impls, TraitImplInfo { trait_name: trait_name, self_ty: self_ty })
 }
-i = i + 1
-}
-push(env.trait_impls, TraitImplInfo { trait_name: trait_name, self_ty: self_ty })
-}
+
 fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bool {
-let resolved_ty = resolve_type(env, ty)
-if resolved_ty.tag == TY_TYPE_VAR() {
-return true
+    let resolved_ty = resolve_type(env, ty)
+    if resolved_ty.tag == TY_TYPE_VAR() {
+        return true
+    }
+    let count = len(env.trait_impls)
+    let mut i = 0
+    while i < count {
+        let impl_info = get_unchecked(env.trait_impls, i)
+        if eq(clone(impl_info.trait_name), clone(bound.name)) && same_named_type(impl_info.self_ty, resolved_ty) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
-let count = len(env.trait_impls)
-let mut i = 0
-while i < count {
-let impl_info = get_unchecked(env.trait_impls, i)
-if eq(clone(impl_info.trait_name), clone(bound.name)) && same_named_type(impl_info.self_ty, resolved_ty) {
-return true
-}
-i = i + 1
-}
-false
-}
+
 fn enforce_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) {
-if type_satisfies_trait_bound(env, ty, bound) {
-return
+    if type_satisfies_trait_bound(env, ty, bound) {
+        return
+    }
+    let ty_name = type_display_name(resolve_type(env, ty))
+    let bound_name = type_display_name(bound)
+    type_error(env, concat(String_from("trait bound not satisfied: "), concat(ty_name, concat(String_from(" does not implement "), bound_name))))
 }
-let ty_name = type_display_name(resolve_type(env, ty))
-let bound_name = type_display_name(bound)
-type_error(env, concat(String_from("trait bound not satisfied: "), concat(ty_name, concat(String_from(" does not implement "), bound_name))))
-}
+
+// ── Type Annotation Resolution ───────────────────────────────────────────────
 fn resolve_type_name(name: String) -> TypeInfo {
-if eq(clone(name), "i32") {
-return TypeInfo_simple(TY_I32())
+    if eq(clone(name), "i32") {
+        return TypeInfo_simple(TY_I32())
+    }
+    if eq(clone(name), "i64") {
+        return TypeInfo_simple(TY_I64())
+    }
+    if eq(clone(name), "f64") {
+        return TypeInfo_simple(TY_F64())
+    }
+    if eq(clone(name), "bool") {
+        return TypeInfo_simple(TY_BOOL())
+    }
+    if eq(clone(name), "String") {
+        return TypeInfo_simple(TY_STRING())
+    }
+    if eq(clone(name), "char") {
+        return TypeInfo_simple(TY_CHAR())
+    }
+    if eq(clone(name), "Vec") {
+        return TypeInfo_simple(TY_VEC())
+    }
+    if eq(clone(name), "Option") {
+        return TypeInfo_simple(TY_OPTION())
+    }
+    if eq(clone(name), "Result") {
+        return TypeInfo_simple(TY_RESULT())
+    }
+    if eq(clone(name), "HashMap") {
+        return TypeInfo_simple(TY_HASHMAP())
+    }
+    if eq(clone(name), "u8") {
+        return TypeInfo_simple(TY_I32())
+    }
+    if eq(clone(name), "u16") {
+        return TypeInfo_simple(TY_I32())
+    }
+    if eq(clone(name), "u32") {
+        return TypeInfo_simple(TY_I32())
+    }
+    if eq(clone(name), "i8") {
+        return TypeInfo_simple(TY_I32())
+    }
+    if eq(clone(name), "i16") {
+        return TypeInfo_simple(TY_I32())
+    }
+    TypeInfo_named(TY_STRUCT(), name)
 }
-if eq(clone(name), "i64") {
-return TypeInfo_simple(TY_I64())
-}
-if eq(clone(name), "f64") {
-return TypeInfo_simple(TY_F64())
-}
-if eq(clone(name), "bool") {
-return TypeInfo_simple(TY_BOOL())
-}
-if eq(clone(name), "String") {
-return TypeInfo_simple(TY_STRING())
-}
-if eq(clone(name), "char") {
-return TypeInfo_simple(TY_CHAR())
-}
-if eq(clone(name), "Vec") {
-return TypeInfo_simple(TY_VEC())
-}
-if eq(clone(name), "Option") {
-return TypeInfo_simple(TY_OPTION())
-}
-if eq(clone(name), "Result") {
-return TypeInfo_simple(TY_RESULT())
-}
-if eq(clone(name), "HashMap") {
-return TypeInfo_simple(TY_HASHMAP())
-}
-if eq(clone(name), "u8") {
-return TypeInfo_simple(TY_I32())
-}
-if eq(clone(name), "u16") {
-return TypeInfo_simple(TY_I32())
-}
-if eq(clone(name), "u32") {
-return TypeInfo_simple(TY_I32())
-}
-if eq(clone(name), "i8") {
-return TypeInfo_simple(TY_I32())
-}
-if eq(clone(name), "i16") {
-return TypeInfo_simple(TY_I32())
-}
-TypeInfo_named(TY_STRUCT(), name)
-}
+
+// ── Generic Type Annotation Resolution ───────────────────────────────────────
+// Resolve a type annotation AST node to TypeInfo, handling Vec<T>, Option<T>, etc.
 fn resolve_type_ann_node(ann: AstNode) -> TypeInfo {
-if ann.kind == 91 {
-let base_ty = resolve_type_name(clone(ann.text))
-let child_count = len(ann.children)
-let mut k = 1
-while k < child_count {
-let arg_child = get_unchecked(ann.children, k)
-let arg_ty = resolve_type_ann_node(arg_child)
-push(base_ty.type_args, arg_ty)
-k = k + 1
+    if ann.kind == 91 {
+        let base_ty = resolve_type_name(clone(ann.text))
+        let child_count = len(ann.children)
+        let mut k = 1
+        while k < child_count {
+            let arg_child = get_unchecked(ann.children, k)
+            let arg_ty = resolve_type_ann_node(arg_child)
+            push(base_ty.type_args, arg_ty)
+            k = k + 1
+        }
+        return base_ty
+    }
+    resolve_type_name(clone(ann.text))
 }
-return base_ty
-}
-resolve_type_name(clone(ann.text))
-}
+
+// Resolve a type annotation node with generic type param awareness.
 fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> TypeInfo {
-if ann.kind == 91 {
-let base_ty = resolve_type_name(clone(ann.text))
-let child_count = len(ann.children)
-let mut k = 1
-while k < child_count {
-let arg_child = get_unchecked(ann.children, k)
-let arg_ty = resolve_type_ann_node_generic(arg_child, type_params)
-push(base_ty.type_args, arg_ty)
-k = k + 1
+    if ann.kind == 91 {
+        let base_ty = resolve_type_name(clone(ann.text))
+        let child_count = len(ann.children)
+        let mut k = 1
+        while k < child_count {
+            let arg_child = get_unchecked(ann.children, k)
+            let arg_ty = resolve_type_ann_node_generic(arg_child, type_params)
+            push(base_ty.type_args, arg_ty)
+            k = k + 1
+        }
+        return base_ty
+    }
+    resolve_type_name_generic(clone(ann.text), type_params)
 }
-return base_ty
-}
-resolve_type_name_generic(clone(ann.text), type_params)
-}
+
+// ── Generic-Aware Type Resolution ────────────────────────────────────────────
 fn resolve_type_name_generic(name: String, type_params: Vec<String>) -> TypeInfo {
-let tp_count = len(type_params)
-let mut k = 0
-while k < tp_count {
-let tp = get_unchecked(type_params, k)
-if eq(clone(tp), clone(name)) {
-return TypeInfo_named(TY_TYPE_VAR(), name)
+    let tp_count = len(type_params)
+    let mut k = 0
+    while k < tp_count {
+        let tp = get_unchecked(type_params, k)
+        if eq(clone(tp), clone(name)) {
+            return TypeInfo_named(TY_TYPE_VAR(), name)
+        }
+        k = k + 1
+    }
+    resolve_type_name(name)
 }
-k = k + 1
-}
-resolve_type_name(name)
-}
+
 struct TypeParamBounds {
-name: String,
-bounds: Vec<TypeInfo>,
+    name: String,
+    bounds: Vec<TypeInfo>,
 }
+
 fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
-let count = len(fn_sigs)
-let mut i = 0
-while i < count {
-let sig = get_unchecked(fn_sigs, i)
-if eq(clone(sig.name), clone(name)) {
-return sig
+    let count = len(fn_sigs)
+    let mut i = 0
+    while i < count {
+        let sig = get_unchecked(fn_sigs, i)
+        if eq(clone(sig.name), clone(name)) {
+            return sig
+        }
+        i = i + 1
+    }
+    FnSig { name: String_new(), param_types: Vec_new_TypeInfo(), return_type: TypeInfo_simple(TY_UNKNOWN()), type_params: Vec_new_String(), type_param_bounds: Vec_new_TypeParamBounds() }
 }
-i = i + 1
-}
-FnSig { name: String_new(), param_types: Vec_new_TypeInfo(), return_type: TypeInfo_simple(TY_UNKNOWN()), type_params: Vec_new_String(), type_param_bounds: Vec_new_TypeParamBounds() }
-}
+
 fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
-let type_param_bounds = collect_type_param_bounds(node.type_ann)
-let type_params = collect_type_param_names(type_param_bounds)
-let ann_count = len(node.type_ann)
-let mut j = 0
-let param_types = Vec_new_TypeInfo()
-let child_count = len(node.children)
-if child_count > 1 {
-let mut p = 0
-while p < child_count - 1 {
-let param = get_unchecked(node.children, p)
-let mut pty = TypeInfo_simple(TY_UNKNOWN())
-if len(param.type_ann) > 0 {
-let type_node = get_unchecked(param.type_ann, 0)
-pty = resolve_type_ann_node_generic(type_node, type_params)
+    let type_param_bounds = collect_type_param_bounds(node.type_ann)
+    let type_params = collect_type_param_names(type_param_bounds)
+    let ann_count = len(node.type_ann)
+    let mut j = 0
+    let param_types = Vec_new_TypeInfo()
+    let child_count = len(node.children)
+    if child_count > 1 {
+        let mut p = 0
+        while p < child_count - 1 {
+            let param = get_unchecked(node.children, p)
+            let mut pty = TypeInfo_simple(TY_UNKNOWN())
+            if len(param.type_ann) > 0 {
+                let type_node = get_unchecked(param.type_ann, 0)
+                pty = resolve_type_ann_node_generic(type_node, type_params)
+            }
+            push(param_types, pty)
+            p = p + 1
+        }
+    }
+    let mut return_type = TypeInfo_simple(TY_UNIT())
+    j = 0
+    while j < ann_count {
+        let ann = get_unchecked(node.type_ann, j)
+        if eq(clone(ann.text), String_from("__return")) {
+            if len(ann.children) > 0 {
+                let ret_node = get_unchecked(ann.children, 0)
+                return_type = resolve_type_ann_node_generic(ret_node, type_params)
+            }
+        }
+        j = j + 1
+    }
+    FnSig { name: clone(node.text), param_types: param_types, return_type: return_type, type_params: type_params, type_param_bounds: type_param_bounds }
 }
-push(param_types, pty)
-p = p + 1
-}
-}
-let mut return_type = TypeInfo_simple(TY_UNIT())
-j = 0
-while j < ann_count {
-let ann = get_unchecked(node.type_ann, j)
-if eq(clone(ann.text), String_from("__return")) {
-if len(ann.children) > 0 {
-let ret_node = get_unchecked(ann.children, 0)
-return_type = resolve_type_ann_node_generic(ret_node, type_params)
-}
-}
-j = j + 1
-}
-FnSig { name: clone(node.text), param_types: param_types, return_type: return_type, type_params: type_params, type_param_bounds: type_param_bounds }
-}
+
 fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
-let infos = Vec_new_TypeParamBounds()
-let ann_count = len(type_ann)
-let mut i = 0
-while i < ann_count {
-let ann = get_unchecked(type_ann, i)
-if !eq(clone(ann.text), String_from("__return")) {
-let info = TypeParamBounds { name: clone(ann.text), bounds: Vec_new_TypeInfo() }
-let child_count = len(ann.children)
-let mut j = 0
-while j < child_count {
-let bound_node = get_unchecked(ann.children, j)
-push(info.bounds, resolve_type_ann_node(bound_node))
-j = j + 1
+    let infos = Vec_new_TypeParamBounds()
+    let ann_count = len(type_ann)
+    let mut i = 0
+    while i < ann_count {
+        let ann = get_unchecked(type_ann, i)
+        if !eq(clone(ann.text), String_from("__return")) {
+            let info = TypeParamBounds { name: clone(ann.text), bounds: Vec_new_TypeInfo() }
+            let child_count = len(ann.children)
+            let mut j = 0
+            while j < child_count {
+                let bound_node = get_unchecked(ann.children, j)
+                push(info.bounds, resolve_type_ann_node(bound_node))
+                j = j + 1
+            }
+            push(infos, info)
+        }
+        i = i + 1
+    }
+    infos
 }
-push(infos, info)
-}
-i = i + 1
-}
-infos
-}
+
 fn collect_type_param_names(bound_infos: Vec<TypeParamBounds>) -> Vec<String> {
-let names = Vec_new_String()
-let count = len(bound_infos)
-let mut i = 0
-while i < count {
-let info = get_unchecked(bound_infos, i)
-push(names, clone(info.name))
-i = i + 1
+    let names = Vec_new_String()
+    let count = len(bound_infos)
+    let mut i = 0
+    while i < count {
+        let info = get_unchecked(bound_infos, i)
+        push(names, clone(info.name))
+        i = i + 1
+    }
+    names
 }
-names
-}
+
 fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
-if node.kind != NK_IMPL_DECL() {
-return
+    if node.kind != NK_IMPL_DECL() {
+        return
+    }
+    if eq(clone(node.text), String_from("")) {
+        return
+    }
+    if len(node.type_ann) < 2 {
+        return
+    }
+    let child_count = len(node.children)
+    if child_count < 1 {
+        return
+    }
+    let mut i = 0
+    while i < child_count {
+        let child = get_unchecked(node.children, i)
+        if child.kind != NK_FN_DECL() {
+            return
+        }
+        i = i + 1
+    }
+    let self_ty_node = get_unchecked(node.type_ann, 1)
+    register_trait_impl(env, clone(node.text), resolve_type_ann_node(self_ty_node))
 }
-if eq(clone(node.text), String_from("")) {
-return
-}
-if len(node.type_ann) < 2 {
-return
-}
-let child_count = len(node.children)
-if child_count < 1 {
-return
-}
-let mut i = 0
-while i < child_count {
-let child = get_unchecked(node.children, i)
-if child.kind != NK_FN_DECL() {
-return
-}
-i = i + 1
-}
-let self_ty_node = get_unchecked(node.type_ann, 1)
-register_trait_impl(env, clone(node.text), resolve_type_ann_node(self_ty_node))
-}
+
 fn enforce_fn_sig_bounds(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types: Vec<TypeInfo>) {
-let tp_count = len(sig.type_param_bounds)
-let mut i = 0
-while i < tp_count {
-let tp = get_unchecked(sig.type_param_bounds, i)
-let resolved_ty = resolve_type(infer_env, get_unchecked(var_types, i))
-let bound_count = len(tp.bounds)
-let mut j = 0
-while j < bound_count {
-let bound = get_unchecked(tp.bounds, j)
-enforce_trait_bound(env, resolved_ty, bound)
-j = j + 1
+    let tp_count = len(sig.type_param_bounds)
+    let mut i = 0
+    while i < tp_count {
+        let tp = get_unchecked(sig.type_param_bounds, i)
+        let resolved_ty = resolve_type(infer_env, get_unchecked(var_types, i))
+        let bound_count = len(tp.bounds)
+        let mut j = 0
+        while j < bound_count {
+            let bound = get_unchecked(tp.bounds, j)
+            enforce_trait_bound(env, resolved_ty, bound)
+            j = j + 1
+        }
+        i = i + 1
+    }
 }
-i = i + 1
-}
-}
+
 fn instantiate_type(ty: TypeInfo, names: Vec<String>, types: Vec<TypeInfo>) -> TypeInfo {
-if ty.tag == TY_TYPE_VAR() {
-let count = len(names)
-let mut i = 0
-while i < count {
-let n = get_unchecked(names, i)
-if eq(clone(n), clone(ty.name)) {
-return get_unchecked(types, i)
+    if ty.tag == TY_TYPE_VAR() {
+        let count = len(names)
+        let mut i = 0
+        while i < count {
+            let n = get_unchecked(names, i)
+            if eq(clone(n), clone(ty.name)) {
+                return get_unchecked(types, i)
+            }
+            i = i + 1
+        }
+    }
+    if len(ty.type_args) == 0 {
+        return ty
+    }
+    let inst = TypeInfo { tag: ty.tag, name: clone(ty.name), type_args: Vec_new_TypeInfo() }
+    let arg_count = len(ty.type_args)
+    let mut a = 0
+    while a < arg_count {
+        let arg = get_unchecked(ty.type_args, a)
+        push(inst.type_args, instantiate_type(arg, names, types))
+        a = a + 1
+    }
+    inst
 }
-i = i + 1
-}
-}
-if len(ty.type_args) == 0 {
-return ty
-}
-let inst = TypeInfo { tag: ty.tag, name: clone(ty.name), type_args: Vec_new_TypeInfo() }
-let arg_count = len(ty.type_args)
-let mut a = 0
-while a < arg_count {
-let arg = get_unchecked(ty.type_args, a)
-push(inst.type_args, instantiate_type(arg, names, types))
-a = a + 1
-}
-inst
-}
+
+// ── Type Check Context ───────────────────────────────────────────────────────
 struct CheckCtx {
-env: TypeEnv,
-fn_sigs: Vec<FnSig>,
-struct_defs: Vec<StructInfo>,
-enum_defs: Vec<EnumInfo>,
+    env: TypeEnv,
+    fn_sigs: Vec<FnSig>,
+    struct_defs: Vec<StructInfo>,
+    enum_defs: Vec<EnumInfo>,
 }
+
 struct FnSig {
-name: String,
-param_types: Vec<TypeInfo>,
-return_type: TypeInfo,
-type_params: Vec<String>,
-type_param_bounds: Vec<TypeParamBounds>,
+    name: String,
+    param_types: Vec<TypeInfo>,
+    return_type: TypeInfo,
+    type_params: Vec<String>,
+    type_param_bounds: Vec<TypeParamBounds>,
 }
+
 struct StructInfo {
-name: String,
-field_names: Vec<String>,
-field_types: Vec<TypeInfo>,
+    name: String,
+    field_names: Vec<String>,
+    field_types: Vec<TypeInfo>,
 }
+
 struct EnumInfo {
-name: String,
-variant_names: Vec<String>,
+    name: String,
+    variant_names: Vec<String>,
 }
+
 fn CheckCtx_new() -> CheckCtx {
-CheckCtx { env: TypeEnv_new(), fn_sigs: Vec_new_FnSig(), struct_defs: Vec_new_StructInfo(), enum_defs: Vec_new_EnumInfo() }
+    CheckCtx { env: TypeEnv_new(), fn_sigs: Vec_new_FnSig(), struct_defs: Vec_new_StructInfo(), enum_defs: Vec_new_EnumInfo() }
 }
+
+// ── Variable Scope (tracks let-binding types within a function) ─────────────
 struct VarBinding {
-name: String,
-ty: TypeInfo,
+    name: String,
+    ty: TypeInfo,
 }
+
 struct LocalScope {
-bindings: Vec<VarBinding>,
+    bindings: Vec<VarBinding>,
 }
+
 fn LocalScope_new() -> LocalScope {
-LocalScope { bindings: Vec_new_VarBinding() }
+    LocalScope { bindings: Vec_new_VarBinding() }
 }
+
 fn scope_child(parent: LocalScope) -> LocalScope {
-let child = LocalScope_new()
-let count = len(parent.bindings)
-let mut i = 0
-while i < count {
-let binding = get_unchecked(parent.bindings, i)
-push(child.bindings, VarBinding { name: clone(binding.name), ty: binding.ty })
-i = i + 1
+    let child = LocalScope_new()
+    let count = len(parent.bindings)
+    let mut i = 0
+    while i < count {
+        let binding = get_unchecked(parent.bindings, i)
+        push(child.bindings, VarBinding { name: clone(binding.name), ty: binding.ty })
+        i = i + 1
+    }
+    child
 }
-child
-}
+
 fn scope_define(scope: LocalScope, name: String, ty: TypeInfo) {
-push(scope.bindings, VarBinding { name: name, ty: ty })
+    push(scope.bindings, VarBinding { name: name, ty: ty })
 }
+
 fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {
-let count = len(scope.bindings)
-let mut found = TypeInfo_simple(TY_UNKNOWN())
-let mut i = 0
-while i < count {
-let b = get_unchecked(scope.bindings, i)
-if eq(clone(b.name), clone(name)) {
-found = b.ty
+    let count = len(scope.bindings)
+    let mut found = TypeInfo_simple(TY_UNKNOWN())
+    let mut i = 0
+    while i < count {
+        let b = get_unchecked(scope.bindings, i)
+        if eq(clone(b.name), clone(name)) {
+            found = b.ty
+        }
+        i = i + 1
+    }
+    found
 }
-i = i + 1
-}
-found
-}
+
+// ── Expression Type Inference ───────────────────────────────────────────────
 fn is_comparison_op(op: i32) -> bool {
-if op == OP_EQ() {
-return true
+    if op == OP_EQ() {
+        return true
+    }
+    if op == OP_NEQ() {
+        return true
+    }
+    if op == OP_LT() {
+        return true
+    }
+    if op == OP_LTEQ() {
+        return true
+    }
+    if op == OP_GT() {
+        return true
+    }
+    if op == OP_GTEQ() {
+        return true
+    }
+    false
 }
-if op == OP_NEQ() {
-return true
-}
-if op == OP_LT() {
-return true
-}
-if op == OP_LTEQ() {
-return true
-}
-if op == OP_GT() {
-return true
-}
-if op == OP_GTEQ() {
-return true
-}
-false
-}
+
 fn is_logical_op(op: i32) -> bool {
-if op == OP_AND() {
-return true
+    if op == OP_AND() {
+        return true
+    }
+    if op == OP_OR() {
+        return true
+    }
+    false
 }
-if op == OP_OR() {
-return true
-}
-false
-}
+
 fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNode) -> TypeInfo {
-if node.kind == NK_INT_LIT() {
-return TypeInfo_simple(TY_I32())
+    if node.kind == NK_INT_LIT() {
+        return TypeInfo_simple(TY_I32())
+    }
+    if node.kind == NK_FLOAT_LIT() {
+        return TypeInfo_simple(TY_F64())
+    }
+    if node.kind == NK_STRING_LIT() {
+        return TypeInfo_simple(TY_STRING())
+    }
+    if node.kind == NK_BOOL_LIT() {
+        return TypeInfo_simple(TY_BOOL())
+    }
+    if node.kind == NK_IDENT() {
+        return scope_lookup(scope, clone(node.text))
+    }
+    if node.kind == NK_CLOSURE() {
+        let closure_scope = scope_child(scope)
+        let child_count = len(node.children)
+        if child_count == 0 {
+            return TypeInfo_simple(TY_FN())
+        }
+        let mut i = 0
+        while i + 1 < child_count {
+            let param = get_unchecked(node.children, i)
+            scope_define(closure_scope, clone(param.text), fresh_var(env))
+            i = i + 1
+        }
+        let body = get_unchecked(node.children, child_count - 1)
+        let body_ty = infer_expr(env, closure_scope, fn_sigs, body)
+        resolve_type(env, body_ty)
+        return TypeInfo_simple(TY_FN())
+    }
+    if node.kind == NK_BINARY() {
+        if len(node.children) >= 2 {
+            let lhs_node = get_unchecked(node.children, 0)
+            let rhs_node = get_unchecked(node.children, 1)
+            let lhs_ty = infer_expr(env, scope, fn_sigs, lhs_node)
+            let rhs_ty = infer_expr(env, scope, fn_sigs, rhs_node)
+            if is_comparison_op(node.op) {
+                return TypeInfo_simple(TY_BOOL())
+            }
+            if is_logical_op(node.op) {
+                return TypeInfo_simple(TY_BOOL())
+            }
+            return unify(env, lhs_ty, rhs_ty)
+        }
+    }
+    if node.kind == NK_UNARY() {
+        if len(node.children) > 0 {
+            let operand = get_unchecked(node.children, 0)
+            return infer_expr(env, scope, fn_sigs, operand)
+        }
+    }
+    if node.kind == NK_BLOCK() {
+        let count = len(node.children)
+        let mut i = 0
+        while i < count {
+            let child = get_unchecked(node.children, i)
+            if i == count - 1 {
+                return infer_expr(env, scope, fn_sigs, child)
+            }
+            check_stmt(env, scope, fn_sigs, child)
+            i = i + 1
+        }
+        return TypeInfo_simple(TY_UNIT())
+    }
+    if node.kind == NK_IF_EXPR() {
+        if len(node.children) >= 2 {
+            let then_node = get_unchecked(node.children, 1)
+            return infer_expr(env, scope, fn_sigs, then_node)
+        }
+    }
+    if node.kind == NK_CALL() {
+        if len(node.children) < 1 {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
+        let callee = get_unchecked(node.children, 0)
+        if callee.kind != NK_IDENT() {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
+        let sig = lookup_fn_sig(fn_sigs, clone(callee.text))
+        if eq(clone(sig.name), String_from("")) {
+            let loc_ty = scope_lookup(scope, clone(callee.text))
+            if loc_ty.tag == TY_FN() {
+                return TypeInfo_simple(TY_I32())
+            }
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
+        if len(sig.type_params) == 0 {
+            return sig.return_type
+        }
+        let infer_env = TypeEnv_new()
+        let var_names = Vec_new_String()
+        let var_types = Vec_new_TypeInfo()
+        let tp_count = len(sig.type_params)
+        let mut k = 0
+        while k < tp_count {
+            let tp_name = get_unchecked(sig.type_params, k)
+            let tv = fresh_var(infer_env)
+            push(var_names, clone(tp_name))
+            push(var_types, tv)
+            k = k + 1
+        }
+        let arg_count = len(node.children) - 1
+        let param_count = len(sig.param_types)
+        let mut a = 0
+        while a < arg_count && a < param_count {
+            let arg_node = get_unchecked(node.children, a + 1)
+            let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
+            let param_ty = get_unchecked(sig.param_types, a)
+            let inst_param = instantiate_type(param_ty, var_names, var_types)
+            unify(infer_env, inst_param, arg_ty)
+            a = a + 1
+        }
+        let inst_ret = instantiate_type(sig.return_type, var_names, var_types)
+        let ret_ty = resolve_type(infer_env, inst_ret)
+        let resolved_type_args = Vec_new_TypeInfo()
+        let mut rv = 0
+        while rv < tp_count {
+            let tv_raw = get_unchecked(var_types, rv)
+            let resolved_tv = resolve_type_deep(infer_env, tv_raw)
+            push(resolved_type_args, resolved_tv)
+            rv = rv + 1
+        }
+        enforce_fn_sig_bounds(env, infer_env, sig, var_types)
+        record_mono_instance(env, clone(callee.text), resolved_type_args)
+        return ret_ty
+    }
+    if node.kind == NK_METHOD_CALL() {
+        if len(node.children) < 1 {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
+        let sig = lookup_fn_sig(fn_sigs, clone(node.text))
+        if eq(clone(sig.name), String_from("")) {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
+        let recv_node = get_unchecked(node.children, 0)
+        let recv_ty = infer_expr(env, scope, fn_sigs, recv_node)
+        let explicit_args = len(node.children) - 1
+        let param_count = len(sig.param_types)
+        if param_count < 1 {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
+        if explicit_args + 1 != param_count {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
+        if len(sig.type_params) == 0 {
+            let p0 = get_unchecked(sig.param_types, 0)
+            unify(env, p0, recv_ty)
+            let mut a = 0
+            while a < explicit_args {
+                let arg_node = get_unchecked(node.children, a + 1)
+                let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
+                let pty = get_unchecked(sig.param_types, a + 1)
+                unify(env, pty, arg_ty)
+                a = a + 1
+            }
+            return sig.return_type
+        }
+        let infer_env = TypeEnv_new()
+        let var_names = Vec_new_String()
+        let var_types = Vec_new_TypeInfo()
+        let tp_count = len(sig.type_params)
+        let mut k = 0
+        while k < tp_count {
+            let tp_name = get_unchecked(sig.type_params, k)
+            let tv = fresh_var(infer_env)
+            push(var_names, clone(tp_name))
+            push(var_types, tv)
+            k = k + 1
+        }
+        let p0 = get_unchecked(sig.param_types, 0)
+        let inst_p0 = instantiate_type(p0, var_names, var_types)
+        unify(infer_env, inst_p0, recv_ty)
+        let mut a = 0
+        while a < explicit_args {
+            let arg_node = get_unchecked(node.children, a + 1)
+            let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
+            let pty = get_unchecked(sig.param_types, a + 1)
+            let inst_pt = instantiate_type(pty, var_names, var_types)
+            unify(infer_env, inst_pt, arg_ty)
+            a = a + 1
+        }
+        let inst_ret = instantiate_type(sig.return_type, var_names, var_types)
+        let ret_ty = resolve_type(infer_env, inst_ret)
+        let resolved_type_args = Vec_new_TypeInfo()
+        let mut rv = 0
+        while rv < tp_count {
+            let tv_raw = get_unchecked(var_types, rv)
+            let resolved_tv = resolve_type_deep(infer_env, tv_raw)
+            push(resolved_type_args, resolved_tv)
+            rv = rv + 1
+        }
+        enforce_fn_sig_bounds(env, infer_env, sig, var_types)
+        record_mono_instance(env, clone(node.text), resolved_type_args)
+        return ret_ty
+    }
+    if node.kind == NK_MATCH_EXPR() {
+        let child_count = len(node.children)
+        let arm_count = child_count - 1
+        if arm_count < 1 {
+            return TypeInfo_simple(TY_UNKNOWN())
+        }
+        let scrutinee_node = get_unchecked(node.children, 0)
+        let scrutinee_ty = infer_expr(env, scope, fn_sigs, scrutinee_node)
+        let mut result_ty = TypeInfo_simple(TY_UNKNOWN())
+        let mut has_wildcard = false
+        let mut has_bool_true = false
+        let mut has_bool_false = false
+        let mut idx = 0
+        while idx < arm_count {
+            let arm = get_unchecked(node.children, idx + 1)
+            let arm_child_count = len(arm.children)
+            if arm_child_count < 2 {
+                idx = idx + 1
+                continue
+            }
+            let pat = get_unchecked(arm.children, 0)
+            if pat.kind == NK_PAT_WILDCARD() {
+                has_wildcard = true
+            }
+            if pat.kind == NK_PAT_IDENT() {
+                has_wildcard = true
+            }
+            if pat.kind == NK_PAT_LITERAL() {
+                if eq(clone(pat.text), String_from("true")) {
+                    has_bool_true = true
+                }
+                if eq(clone(pat.text), String_from("false")) {
+                    has_bool_false = true
+                }
+            }
+            let body = get_unchecked(arm.children, arm_child_count - 1)
+            let arm_ty = infer_expr(env, scope, fn_sigs, body)
+            if idx == 0 {
+                result_ty = arm_ty
+            }
+            idx = idx + 1
+        }
+        if !has_wildcard && scrutinee_ty.tag == TY_BOOL() {
+            if !has_bool_true || !has_bool_false {
+                type_error(env, String_from("non-exhaustive match: bool requires `true` and `false` arms or a wildcard"))
+            }
+        }
+        return result_ty
+    }
+    TypeInfo_simple(TY_UNKNOWN())
 }
-if node.kind == NK_FLOAT_LIT() {
-return TypeInfo_simple(TY_F64())
-}
-if node.kind == NK_STRING_LIT() {
-return TypeInfo_simple(TY_STRING())
-}
-if node.kind == NK_BOOL_LIT() {
-return TypeInfo_simple(TY_BOOL())
-}
-if node.kind == NK_IDENT() {
-return scope_lookup(scope, clone(node.text))
-}
-if node.kind == NK_CLOSURE() {
-let closure_scope = scope_child(scope)
-let child_count = len(node.children)
-if child_count == 0 {
-return TypeInfo_simple(TY_FN())
-}
-let mut i = 0
-while i + 1 < child_count {
-let param = get_unchecked(node.children, i)
-scope_define(closure_scope, clone(param.text), fresh_var(env))
-i = i + 1
-}
-let body = get_unchecked(node.children, child_count - 1)
-let body_ty = infer_expr(env, closure_scope, fn_sigs, body)
-resolve_type(env, body_ty)
-return TypeInfo_simple(TY_FN())
-}
-if node.kind == NK_BINARY() {
-if len(node.children) >= 2 {
-let lhs_node = get_unchecked(node.children, 0)
-let rhs_node = get_unchecked(node.children, 1)
-let lhs_ty = infer_expr(env, scope, fn_sigs, lhs_node)
-let rhs_ty = infer_expr(env, scope, fn_sigs, rhs_node)
-if is_comparison_op(node.op) {
-return TypeInfo_simple(TY_BOOL())
-}
-if is_logical_op(node.op) {
-return TypeInfo_simple(TY_BOOL())
-}
-return unify(env, lhs_ty, rhs_ty)
-}
-}
-if node.kind == NK_UNARY() {
-if len(node.children) > 0 {
-let operand = get_unchecked(node.children, 0)
-return infer_expr(env, scope, fn_sigs, operand)
-}
-}
-if node.kind == NK_BLOCK() {
-let count = len(node.children)
-let mut i = 0
-while i < count {
-let child = get_unchecked(node.children, i)
-if i == count - 1 {
-return infer_expr(env, scope, fn_sigs, child)
-}
-check_stmt(env, scope, fn_sigs, child)
-i = i + 1
-}
-return TypeInfo_simple(TY_UNIT())
-}
-if node.kind == NK_IF_EXPR() {
-if len(node.children) >= 2 {
-let then_node = get_unchecked(node.children, 1)
-return infer_expr(env, scope, fn_sigs, then_node)
-}
-}
-if node.kind == NK_CALL() {
-if len(node.children) < 1 {
-return TypeInfo_simple(TY_UNKNOWN())
-}
-let callee = get_unchecked(node.children, 0)
-if callee.kind != NK_IDENT() {
-return TypeInfo_simple(TY_UNKNOWN())
-}
-let sig = lookup_fn_sig(fn_sigs, clone(callee.text))
-if eq(clone(sig.name), String_from("")) {
-let loc_ty = scope_lookup(scope, clone(callee.text))
-if loc_ty.tag == TY_FN() {
-return TypeInfo_simple(TY_I32())
-}
-return TypeInfo_simple(TY_UNKNOWN())
-}
-if len(sig.type_params) == 0 {
-return sig.return_type
-}
-let infer_env = TypeEnv_new()
-let var_names = Vec_new_String()
-let var_types = Vec_new_TypeInfo()
-let tp_count = len(sig.type_params)
-let mut k = 0
-while k < tp_count {
-let tp_name = get_unchecked(sig.type_params, k)
-let tv = fresh_var(infer_env)
-push(var_names, clone(tp_name))
-push(var_types, tv)
-k = k + 1
-}
-let arg_count = len(node.children) - 1
-let param_count = len(sig.param_types)
-let mut a = 0
-while a < arg_count && a < param_count {
-let arg_node = get_unchecked(node.children, a + 1)
-let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
-let param_ty = get_unchecked(sig.param_types, a)
-let inst_param = instantiate_type(param_ty, var_names, var_types)
-unify(infer_env, inst_param, arg_ty)
-a = a + 1
-}
-let inst_ret = instantiate_type(sig.return_type, var_names, var_types)
-let ret_ty = resolve_type(infer_env, inst_ret)
-let resolved_type_args = Vec_new_TypeInfo()
-let mut rv = 0
-while rv < tp_count {
-let tv_raw = get_unchecked(var_types, rv)
-let resolved_tv = resolve_type_deep(infer_env, tv_raw)
-push(resolved_type_args, resolved_tv)
-rv = rv + 1
-}
-enforce_fn_sig_bounds(env, infer_env, sig, var_types)
-record_mono_call(env, node.span.start, clone(callee.text), resolved_type_args)
-return ret_ty
-}
-if node.kind == NK_METHOD_CALL() {
-if len(node.children) < 1 {
-return TypeInfo_simple(TY_UNKNOWN())
-}
-let sig = lookup_fn_sig(fn_sigs, clone(node.text))
-if eq(clone(sig.name), String_from("")) {
-return TypeInfo_simple(TY_UNKNOWN())
-}
-let recv_node = get_unchecked(node.children, 0)
-let recv_ty = infer_expr(env, scope, fn_sigs, recv_node)
-let explicit_args = len(node.children) - 1
-let param_count = len(sig.param_types)
-if param_count < 1 {
-return TypeInfo_simple(TY_UNKNOWN())
-}
-if explicit_args + 1 != param_count {
-return TypeInfo_simple(TY_UNKNOWN())
-}
-if len(sig.type_params) == 0 {
-let p0 = get_unchecked(sig.param_types, 0)
-unify(env, p0, recv_ty)
-let mut a = 0
-while a < explicit_args {
-let arg_node = get_unchecked(node.children, a + 1)
-let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
-let pty = get_unchecked(sig.param_types, a + 1)
-unify(env, pty, arg_ty)
-a = a + 1
-}
-return sig.return_type
-}
-let infer_env = TypeEnv_new()
-let var_names = Vec_new_String()
-let var_types = Vec_new_TypeInfo()
-let tp_count = len(sig.type_params)
-let mut k = 0
-while k < tp_count {
-let tp_name = get_unchecked(sig.type_params, k)
-let tv = fresh_var(infer_env)
-push(var_names, clone(tp_name))
-push(var_types, tv)
-k = k + 1
-}
-let p0 = get_unchecked(sig.param_types, 0)
-let inst_p0 = instantiate_type(p0, var_names, var_types)
-unify(infer_env, inst_p0, recv_ty)
-let mut a = 0
-while a < explicit_args {
-let arg_node = get_unchecked(node.children, a + 1)
-let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
-let pty = get_unchecked(sig.param_types, a + 1)
-let inst_pt = instantiate_type(pty, var_names, var_types)
-unify(infer_env, inst_pt, arg_ty)
-a = a + 1
-}
-let inst_ret = instantiate_type(sig.return_type, var_names, var_types)
-let ret_ty = resolve_type(infer_env, inst_ret)
-let resolved_type_args = Vec_new_TypeInfo()
-let mut rv = 0
-while rv < tp_count {
-let tv_raw = get_unchecked(var_types, rv)
-let resolved_tv = resolve_type_deep(infer_env, tv_raw)
-push(resolved_type_args, resolved_tv)
-rv = rv + 1
-}
-enforce_fn_sig_bounds(env, infer_env, sig, var_types)
-record_mono_call(env, node.span.start, clone(node.text), resolved_type_args)
-return ret_ty
-}
-if node.kind == NK_MATCH_EXPR() {
-let child_count = len(node.children)
-let arm_count = child_count - 1
-if arm_count < 1 {
-return TypeInfo_simple(TY_UNKNOWN())
-}
-let scrutinee_node = get_unchecked(node.children, 0)
-let scrutinee_ty = infer_expr(env, scope, fn_sigs, scrutinee_node)
-let mut result_ty = TypeInfo_simple(TY_UNKNOWN())
-let mut has_wildcard = false
-let mut has_bool_true = false
-let mut has_bool_false = false
-let mut idx = 0
-while idx < arm_count {
-let arm = get_unchecked(node.children, idx + 1)
-let arm_child_count = len(arm.children)
-if arm_child_count < 2 {
-idx = idx + 1
-continue
-}
-let pat = get_unchecked(arm.children, 0)
-if pat.kind == NK_PAT_WILDCARD() {
-has_wildcard = true
-}
-if pat.kind == NK_PAT_IDENT() {
-has_wildcard = true
-}
-if pat.kind == NK_PAT_LITERAL() {
-if eq(clone(pat.text), String_from("true")) {
-has_bool_true = true
-}
-if eq(clone(pat.text), String_from("false")) {
-has_bool_false = true
-}
-}
-let body = get_unchecked(arm.children, arm_child_count - 1)
-let arm_ty = infer_expr(env, scope, fn_sigs, body)
-if idx == 0 {
-result_ty = arm_ty
-}
-idx = idx + 1
-}
-if !has_wildcard && scrutinee_ty.tag == TY_BOOL() {
-if !has_bool_true || !has_bool_false {
-type_error(env, String_from("non-exhaustive match: bool requires `true` and `false` arms or a wildcard"))
-}
-}
-return result_ty
-}
-TypeInfo_simple(TY_UNKNOWN())
-}
+
+// ── Statement Type Checking ─────────────────────────────────────────────────
 fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNode) {
-if node.kind == NK_LET() {
-let mut bind_ty = TypeInfo_simple(TY_UNKNOWN())
-if len(node.children) > 0 {
-let init = get_unchecked(node.children, 0)
-bind_ty = infer_expr(env, scope, fn_sigs, init)
+    if node.kind == NK_LET() {
+        let mut bind_ty = TypeInfo_simple(TY_UNKNOWN())
+        if len(node.children) > 0 {
+            let init = get_unchecked(node.children, 0)
+            bind_ty = infer_expr(env, scope, fn_sigs, init)
+        }
+        if len(node.type_ann) > 0 {
+            let ann = get_unchecked(node.type_ann, 0)
+            let ann_ty = resolve_type_ann_node(ann)
+            bind_ty = unify(env, bind_ty, ann_ty)
+        }
+        if !eq(clone(node.text), "_") {
+            scope_define(scope, clone(node.text), bind_ty)
+        }
+        return
+    }
+    if node.kind == NK_EXPR_STMT() {
+        if len(node.children) > 0 {
+            let child = get_unchecked(node.children, 0)
+            infer_expr(env, scope, fn_sigs, child)
+        }
+        return
+    }
+    if node.kind == NK_RETURN() {
+        if len(node.children) > 0 {
+            let child = get_unchecked(node.children, 0)
+            infer_expr(env, scope, fn_sigs, child)
+        }
+        return
+    }
+    if node.kind == NK_WHILE() || node.kind == NK_FOR() {
+        let count = len(node.children)
+        let mut i = 0
+        while i < count {
+            let child = get_unchecked(node.children, i)
+            check_stmt(env, scope, fn_sigs, child)
+            i = i + 1
+        }
+        return
+    }
+    if node.kind == NK_BLOCK() {
+        let count = len(node.children)
+        let mut i = 0
+        while i < count {
+            let child = get_unchecked(node.children, i)
+            check_stmt(env, scope, fn_sigs, child)
+            i = i + 1
+        }
+        return
+    }
+    infer_expr(env, scope, fn_sigs, node)
 }
-if len(node.type_ann) > 0 {
-let ann = get_unchecked(node.type_ann, 0)
-let ann_ty = resolve_type_ann_node(ann)
-bind_ty = unify(env, bind_ty, ann_ty)
-}
-if !eq(clone(node.text), "_") {
-scope_define(scope, clone(node.text), bind_ty)
-}
-return
-}
-if node.kind == NK_EXPR_STMT() {
-if len(node.children) > 0 {
-let child = get_unchecked(node.children, 0)
-infer_expr(env, scope, fn_sigs, child)
-}
-return
-}
-if node.kind == NK_RETURN() {
-if len(node.children) > 0 {
-let child = get_unchecked(node.children, 0)
-infer_expr(env, scope, fn_sigs, child)
-}
-return
-}
-if node.kind == NK_WHILE() || node.kind == NK_FOR() {
-let count = len(node.children)
-let mut i = 0
-while i < count {
-let child = get_unchecked(node.children, i)
-check_stmt(env, scope, fn_sigs, child)
-i = i + 1
-}
-return
-}
-if node.kind == NK_BLOCK() {
-let count = len(node.children)
-let mut i = 0
-while i < count {
-let child = get_unchecked(node.children, i)
-check_stmt(env, scope, fn_sigs, child)
-i = i + 1
-}
-return
-}
-infer_expr(env, scope, fn_sigs, node)
-}
+
+// ── Function Body Type Checking ─────────────────────────────────────────────
 fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, fn_node: AstNode) {
-let scope = LocalScope_new()
-let type_param_bounds = collect_type_param_bounds(fn_node.type_ann)
-let type_params = collect_type_param_names(type_param_bounds)
-let child_count = len(fn_node.children)
-if child_count > 1 {
-let mut p = 0
-while p < child_count - 1 {
-let param = get_unchecked(fn_node.children, p)
-let mut param_ty = TypeInfo_simple(TY_UNKNOWN())
-if len(param.type_ann) > 0 {
-let type_node = get_unchecked(param.type_ann, 0)
-param_ty = resolve_type_ann_node_generic(type_node, type_params)
+    let scope = LocalScope_new()
+    let type_param_bounds = collect_type_param_bounds(fn_node.type_ann)
+    let type_params = collect_type_param_names(type_param_bounds)
+    let child_count = len(fn_node.children)
+    if child_count > 1 {
+        let mut p = 0
+        while p < child_count - 1 {
+            let param = get_unchecked(fn_node.children, p)
+            let mut param_ty = TypeInfo_simple(TY_UNKNOWN())
+            if len(param.type_ann) > 0 {
+                let type_node = get_unchecked(param.type_ann, 0)
+                param_ty = resolve_type_ann_node_generic(type_node, type_params)
+            }
+            scope_define(scope, clone(param.text), param_ty)
+            p = p + 1
+        }
+    }
+    if child_count > 0 {
+        let body = get_unchecked(fn_node.children, child_count - 1)
+        check_stmt(env, scope, fn_sigs, body)
+    }
 }
-scope_define(scope, clone(param.text), param_ty)
-p = p + 1
-}
-}
-if child_count > 0 {
-let body = get_unchecked(fn_node.children, child_count - 1)
-check_stmt(env, scope, fn_sigs, body)
-}
-}
+
+// ── Type Check Result ────────────────────────────────────────────────────────
 struct TypeCheckResult {
-error_count: i32,
-errors: Vec<String>,
-typed_fns: Vec<TypedFn>,
-mono_instances: Vec<MonoInstance>,
-mono_call_sites: Vec<MonoCallSite>,
+    error_count: i32,
+    errors: Vec<String>,
+    typed_fns: Vec<TypedFn>,
+    mono_instances: Vec<MonoInstance>,
 }
+
 struct TypedFn {
-name: String,
-return_type: TypeInfo,
+    name: String,
+    return_type: TypeInfo,
 }
+
 pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeCheckResult {
-let result = TypeCheckResult { error_count: 0, errors: Vec_new_String(), typed_fns: Vec_new_TypedFn(), mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite() }
-let env = TypeEnv_new()
-result.error_count = resolve_ctx.error_count
-result.errors = resolve_ctx.errors
-let decl_count = len(decls)
-let mut i = 0
-while i < decl_count {
-let node = get_unchecked(decls, i)
-maybe_register_impl_decl(env, node)
-i = i + 1
+    let result = TypeCheckResult { error_count: 0, errors: Vec_new_String(), typed_fns: Vec_new_TypedFn(), mono_instances: Vec_new_MonoInstance() }
+    let env = TypeEnv_new()
+    result.error_count = resolve_ctx.error_count
+    result.errors = resolve_ctx.errors
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let node = get_unchecked(decls, i)
+        maybe_register_impl_decl(env, node)
+        i = i + 1
+    }
+    let fn_sigs = Vec_new_FnSig()
+    i = 0
+    while i < decl_count {
+        let node = get_unchecked(decls, i)
+        if node.kind == NK_FN_DECL() {
+            push(fn_sigs, fn_sig_from_fn_decl(node))
+        }
+        if node.kind == NK_IMPL_DECL() {
+            let impl_child_count = len(node.children)
+            let mut ic = 0
+            while ic < impl_child_count {
+                let meth = get_unchecked(node.children, ic)
+                if meth.kind == NK_FN_DECL() {
+                    push(fn_sigs, fn_sig_from_fn_decl(meth))
+                }
+                ic = ic + 1
+            }
+        }
+        i = i + 1
+    }
+    i = 0
+    while i < decl_count {
+        let node = get_unchecked(decls, i)
+        if node.kind == NK_FN_DECL() {
+            let fn_name = clone(node.text)
+            let mut return_type = TypeInfo_simple(TY_UNIT())
+            let ann_count = len(node.type_ann)
+            let mut j = 0
+            while j < ann_count {
+                let ann = get_unchecked(node.type_ann, j)
+                if eq(clone(ann.text), "__return") {
+                    if len(ann.children) > 0 {
+                        let ret_node = get_unchecked(ann.children, 0)
+                        return_type = resolve_type_ann_node(ret_node)
+                    }
+                }
+                j = j + 1
+            }
+            push(result.typed_fns, TypedFn { name: fn_name, return_type: return_type })
+            check_fn_body(env, fn_sigs, node)
+        }
+        if node.kind == NK_IMPL_DECL() {
+            let impl_child_count = len(node.children)
+            let mut ic = 0
+            while ic < impl_child_count {
+                let meth = get_unchecked(node.children, ic)
+                if meth.kind == NK_FN_DECL() {
+                    check_fn_body(env, fn_sigs, meth)
+                }
+                ic = ic + 1
+            }
+        }
+        i = i + 1
+    }
+    let err_count = len(env.errors)
+    let mut e = 0
+    while e < err_count {
+        let err = get_unchecked(env.errors, e)
+        push(result.errors, clone(err))
+        result.error_count = result.error_count + 1
+        e = e + 1
+    }
+    result.mono_instances = env.mono_instances
+    result
 }
-let fn_sigs = Vec_new_FnSig()
-i = 0
-while i < decl_count {
-let node = get_unchecked(decls, i)
-if node.kind == NK_FN_DECL() {
-push(fn_sigs, fn_sig_from_fn_decl(node))
-}
-if node.kind == NK_IMPL_DECL() {
-let impl_child_count = len(node.children)
-let mut ic = 0
-while ic < impl_child_count {
-let meth = get_unchecked(node.children, ic)
-if meth.kind == NK_FN_DECL() {
-push(fn_sigs, fn_sig_from_fn_decl(meth))
-}
-ic = ic + 1
-}
-}
-i = i + 1
-}
-i = 0
-while i < decl_count {
-let node = get_unchecked(decls, i)
-if node.kind == NK_FN_DECL() {
-let fn_name = clone(node.text)
-let mut return_type = TypeInfo_simple(TY_UNIT())
-let ann_count = len(node.type_ann)
-let mut j = 0
-while j < ann_count {
-let ann = get_unchecked(node.type_ann, j)
-if eq(clone(ann.text), "__return") {
-if len(ann.children) > 0 {
-let ret_node = get_unchecked(ann.children, 0)
-return_type = resolve_type_ann_node(ret_node)
-}
-}
-j = j + 1
-}
-push(result.typed_fns, TypedFn { name: fn_name, return_type: return_type })
-check_fn_body(env, fn_sigs, node)
-}
-if node.kind == NK_IMPL_DECL() {
-let impl_child_count = len(node.children)
-let mut ic = 0
-while ic < impl_child_count {
-let meth = get_unchecked(node.children, ic)
-if meth.kind == NK_FN_DECL() {
-check_fn_body(env, fn_sigs, meth)
-}
-ic = ic + 1
-}
-}
-i = i + 1
-}
-let err_count = len(env.errors)
-let mut e = 0
-while e < err_count {
-let err = get_unchecked(env.errors, e)
-push(result.errors, clone(err))
-result.error_count = result.error_count + 1
-e = e + 1
-}
-result.mono_instances = env.mono_instances
-result.mono_call_sites = env.mono_call_sites
-result
-}
+
 pub fn dump_typed_hir(result: TypeCheckResult) {
-let fn_count = len(result.typed_fns)
-stdio::eprintln(concat(String_from("typed functions: "), to_string(fn_count)))
-if result.error_count > 0 {
-stdio::eprintln(concat(to_string(result.error_count), String_from(" type error(s)")))
+    let fn_count = len(result.typed_fns)
+    stdio::eprintln(concat(String_from("typed functions: "), to_string(fn_count)))
+    if result.error_count > 0 {
+        stdio::eprintln(concat(to_string(result.error_count), String_from(" type error(s)")))
+    }
+    let mi_count = len(result.mono_instances)
+    if mi_count > 0 {
+        stdio::eprintln(concat(String_from("mono instances: "), to_string(mi_count)))
+        let mut k = 0
+        while k < mi_count {
+            let mi = get_unchecked(result.mono_instances, k)
+            stdio::eprintln(concat(String_from("  "), clone(mi.mangled_name)))
+            k = k + 1
+        }
+    }
 }
-let mi_count = len(result.mono_instances)
-if mi_count > 0 {
-stdio::eprintln(concat(String_from("mono instances: "), to_string(mi_count)))
-let mut k = 0
-while k < mi_count {
-let mi = get_unchecked(result.mono_instances, k)
-stdio::eprintln(concat(String_from("  "), clone(mi.mangled_name)))
-k = k + 1
-}
-}
-}
+
+// ── Resolve Context (duplicated from resolver for standalone) ────────────────
 struct Symbol {
-name: String,
-kind: i32,
-scope_depth: i32,
-decl_index: i32,
-is_mut: bool,
-is_pub: bool,
+    name: String,
+    kind: i32,
+    scope_depth: i32,
+    decl_index: i32,
+    is_mut: bool,
+    is_pub: bool,
 }
+
 struct Scope {
-symbols: Vec<Symbol>,
-parent_depth: i32,
+    symbols: Vec<Symbol>,
+    parent_depth: i32,
 }
+
 struct ResolveCtx {
-scopes: Vec<Scope>,
-current_depth: i32,
-error_count: i32,
-errors: Vec<String>,
-next_decl_index: i32,
+    scopes: Vec<Scope>,
+    current_depth: i32,
+    error_count: i32,
+    errors: Vec<String>,
+    next_decl_index: i32,
 }
+
+// ── Entry Point ──────────────────────────────────────────────────────────────
 fn main() {
-let env = TypeEnv_new()
-let t1 = TypeInfo_simple(TY_I32())
-let t2 = TypeInfo_simple(TY_I32())
-let t3 = unify(env, t1, t2)
-stdio::println(concat(String_from("unified: "), type_tag_name(t3.tag)))
-let tv = fresh_var(env)
-stdio::println(concat(String_from("fresh var: "), clone(tv.name)))
-let t4 = TypeInfo_simple(TY_STRING())
-let t5 = unify(env, tv, t4)
-stdio::println(concat(String_from("unified var: "), type_tag_name(t5.tag)))
-let ta = TypeInfo_simple(TY_I32())
-let tb = TypeInfo_simple(TY_STRING())
-let tc = unify(env, ta, tb)
-stdio::println(concat(String_from("error count: "), to_string(env.error_count)))
-let env2 = TypeEnv_new()
-let scope = LocalScope_new()
-let int_ty = TypeInfo_simple(TY_I32())
-scope_define(scope, String_from("x"), int_ty)
-let looked = scope_lookup(scope, String_from("x"))
-stdio::println(concat(String_from("x type: "), type_tag_name(looked.tag)))
-let float_ty = TypeInfo_simple(TY_F64())
-scope_define(scope, String_from("f"), float_ty)
-let looked_f = scope_lookup(scope, String_from("f"))
-stdio::println(concat(String_from("f type: "), type_tag_name(looked_f.tag)))
-let arith_ty = unify(env2, TypeInfo_simple(TY_I32()), TypeInfo_simple(TY_I32()))
-stdio::println(concat(String_from("i32+i32: "), type_tag_name(arith_ty.tag)))
-let gp = Vec_new_String()
-push(gp, String_from("T"))
-let tv_res = resolve_type_name_generic(String_from("T"), gp)
-stdio::println(concat(String_from("generic T: "), type_tag_name(tv_res.tag)))
-let i32_res = resolve_type_name_generic(String_from("i32"), gp)
-stdio::println(concat(String_from("concrete i32: "), type_tag_name(i32_res.tag)))
-let tv_t = TypeInfo_named(TY_TYPE_VAR(), String_from("T"))
-let inst_names = Vec_new_String()
-push(inst_names, String_from("T"))
-let inst_types = Vec_new_TypeInfo()
-push(inst_types, TypeInfo_simple(TY_I32()))
-let inst_result = instantiate_type(tv_t, inst_names, inst_types)
-stdio::println(concat(String_from("instantiate T->i32: "), type_tag_name(inst_result.tag)))
-let nested_vec_t = TypeInfo_simple(TY_VEC())
-push(nested_vec_t.type_args, TypeInfo_named(TY_TYPE_VAR(), String_from("T")))
-let nested_inst = instantiate_type(nested_vec_t, inst_names, inst_types)
-let nested_arg = get_unchecked(nested_inst.type_args, 0)
-stdio::println(concat(String_from("instantiate Vec<T>->Vec<i32>: "), type_tag_name(nested_arg.tag)))
-let test_sigs = Vec_new_FnSig()
-let id_params = Vec_new_TypeInfo()
-push(id_params, TypeInfo_named(TY_TYPE_VAR(), String_from("T")))
-let id_tp = Vec_new_String()
-push(id_tp, String_from("T"))
-push(test_sigs, FnSig { name: String_from("identity"), param_types: id_params, return_type: TypeInfo_named(TY_TYPE_VAR(), String_from("T")), type_params: id_tp })
-let found_sig = lookup_fn_sig(test_sigs, String_from("identity"))
-stdio::println(concat(String_from("found sig: "), clone(found_sig.name)))
-let not_found = lookup_fn_sig(test_sigs, String_from("nope"))
-if eq(clone(not_found.name), String_from("")) {
-stdio::println(String_from("missing sig: (none)"))
+    let env = TypeEnv_new()
+    let t1 = TypeInfo_simple(TY_I32())
+    let t2 = TypeInfo_simple(TY_I32())
+    let t3 = unify(env, t1, t2)
+    stdio::println(concat(String_from("unified: "), type_tag_name(t3.tag)))
+    let tv = fresh_var(env)
+    stdio::println(concat(String_from("fresh var: "), clone(tv.name)))
+    let t4 = TypeInfo_simple(TY_STRING())
+    let t5 = unify(env, tv, t4)
+    stdio::println(concat(String_from("unified var: "), type_tag_name(t5.tag)))
+    let ta = TypeInfo_simple(TY_I32())
+    let tb = TypeInfo_simple(TY_STRING())
+    let tc = unify(env, ta, tb)
+    stdio::println(concat(String_from("error count: "), to_string(env.error_count)))
+    let env2 = TypeEnv_new()
+    let scope = LocalScope_new()
+    let int_ty = TypeInfo_simple(TY_I32())
+    scope_define(scope, String_from("x"), int_ty)
+    let looked = scope_lookup(scope, String_from("x"))
+    stdio::println(concat(String_from("x type: "), type_tag_name(looked.tag)))
+    let float_ty = TypeInfo_simple(TY_F64())
+    scope_define(scope, String_from("f"), float_ty)
+    let looked_f = scope_lookup(scope, String_from("f"))
+    stdio::println(concat(String_from("f type: "), type_tag_name(looked_f.tag)))
+    let arith_ty = unify(env2, TypeInfo_simple(TY_I32()), TypeInfo_simple(TY_I32()))
+    stdio::println(concat(String_from("i32+i32: "), type_tag_name(arith_ty.tag)))
+    let gp = Vec_new_String()
+    push(gp, String_from("T"))
+    let tv_res = resolve_type_name_generic(String_from("T"), gp)
+    stdio::println(concat(String_from("generic T: "), type_tag_name(tv_res.tag)))
+    let i32_res = resolve_type_name_generic(String_from("i32"), gp)
+    stdio::println(concat(String_from("concrete i32: "), type_tag_name(i32_res.tag)))
+    let tv_t = TypeInfo_named(TY_TYPE_VAR(), String_from("T"))
+    let inst_names = Vec_new_String()
+    push(inst_names, String_from("T"))
+    let inst_types = Vec_new_TypeInfo()
+    push(inst_types, TypeInfo_simple(TY_I32()))
+    let inst_result = instantiate_type(tv_t, inst_names, inst_types)
+    stdio::println(concat(String_from("instantiate T->i32: "), type_tag_name(inst_result.tag)))
+    let nested_vec_t = TypeInfo_simple(TY_VEC())
+    push(nested_vec_t.type_args, TypeInfo_named(TY_TYPE_VAR(), String_from("T")))
+    let nested_inst = instantiate_type(nested_vec_t, inst_names, inst_types)
+    let nested_arg = get_unchecked(nested_inst.type_args, 0)
+    stdio::println(concat(String_from("instantiate Vec<T>->Vec<i32>: "), type_tag_name(nested_arg.tag)))
+    let test_sigs = Vec_new_FnSig()
+    let id_params = Vec_new_TypeInfo()
+    push(id_params, TypeInfo_named(TY_TYPE_VAR(), String_from("T")))
+    let id_tp = Vec_new_String()
+    push(id_tp, String_from("T"))
+    push(test_sigs, FnSig { name: String_from("identity"), param_types: id_params, return_type: TypeInfo_named(TY_TYPE_VAR(), String_from("T")), type_params: id_tp })
+    let found_sig = lookup_fn_sig(test_sigs, String_from("identity"))
+    stdio::println(concat(String_from("found sig: "), clone(found_sig.name)))
+    let not_found = lookup_fn_sig(test_sigs, String_from("nope"))
+    if eq(clone(not_found.name), String_from("")) {
+        stdio::println(String_from("missing sig: (none)"))
+    }
+    stdio::println(String_from("TypeChecker OK."))
 }
-stdio::println(String_from("TypeChecker OK."))
-}
+// ── Type Tags (from hir.ark) ─────────────────────────────────────────────────
+// Dedup: skip if already recorded
+// If either is unknown, take the other
+// If both are type vars, bind one to the other
+// Same concrete type
+// Compare type arguments for generic types (e.g., Vec<i32> vs Vec<String>)
+// Numeric widening: allow i32 literal to unify with i64 context.
+// Narrow integer types — treat as i32 at the selfhost level
+// NK_TYPE_GENERIC
+// children: [0]=base, [1..]=type arguments
+// NK_TYPE_GENERIC
+// `impl Trait for Type { ... }` stores trait head in type_ann[0] and self type in type_ann[1].
+// Literals
+// Variable reference
+// Lexical environment: clone enclosing `let` bindings into the closure scope
+// so the body can resolve captured identifiers (issue #499).
+// Binary expression
+// Comparison operators always produce bool
+// Logical operators always produce bool
+// Arithmetic operators propagate operand type via unification
+// Unary expression — propagate operand type
+// Block — type is the type of the last expression
+// Last child: its inferred type is the block type
+// If expression — infer from then branch
+// Call expression — infer return type via fn signature lookup
+// Only look up simple identifiers in fn_sigs
+// Local closure value (lambda): MIR lowers calls with capture injection (#499).
+// Non-generic function: return declared return type
+// Generic function: instantiate type params and unify with arguments
+// Create fresh type vars for each type param
+// Unify argument types with instantiated parameter types
+// Resolve return type through instantiation and substitution
+// Record monomorphization instance: collect resolved concrete type args
+// Method call: recv.method(args) — signatures include methods from `impl` blocks (issue #504).
+// Match expression
+// Catch-all patterns make the match exhaustive
+// Track bool literal coverage
+// Body is the last child of the arm
+// Exhaustiveness check for bool scrutinee
+// Infer from initializer expression
+// Unify with explicit type annotation if present (handles Vec<i32>, Vec<String>, etc.)
+// Bind the variable name to the inferred type
+// Walk body children
+// For any expression node used as a statement, try to infer its type
+// Collect generic type param names and bounds from type annotations.
+// Register parameter types from children (all except last child = body block)
+// Walk body block (last child)
+// Pass 1: Build function signature registry (needed for call-site inference)
+// Pass 2: Type-check function bodies and build TypedFn entries
+// Search type_ann for the __return marker
+// Infer expression types within the function body
+// Propagate any type errors from inference
+// Collect monomorphization instances from inference
+// Test unification
+// Test type var
+// Test error
+// Test expression inference: literals
+// Infer integer literal → i32
+// Infer float → f64
+// Test binary op unification: i32 + i32 = i32
+// Test generic-aware type resolution
+// Test instantiate_type
+// Test lookup_fn_sig
