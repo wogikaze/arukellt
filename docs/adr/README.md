@@ -30,7 +30,7 @@
 | [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: T3 (wasm32-wasi-p2) をプライマリターゲットとして選定する | Archive | ステータス: DECIDED — T3 (wasm32-wasi-p2)をプライマリターゲットとして選定 |
 | [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: Stability Labels for Language Spec and Stdlib API | Archive | ステータス: ACCEPTED — 4段階の安定性ラベル（stable/provisional/experimental/unimplemented）を採用 |
 | [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: No-Panic Quality Standard for User-Facing Paths | Archive | ステータス: DECIDED — ユーザー到達パスでのpanic禁止 |
-| [ADR-016-breaking-change-process.md](ADR-016-breaking-change-process.md) | ADR-016: Breaking Change Process — Three-Piece Set | Archive | ステータス: DECIDED — Breaking Change Process（3要素セット）を採用 |
+| [ADR-016-breaking-change-process.md](ADR-016-breaking-change-process.md) | ADR-016: Breaking Change Process — Two-Piece Set | Archive | ステータス: DECIDED — Breaking Change Process（2要素セット）を採用 |
 | [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground Execution Model and v1 Product Contract | Archive | ステータス: DECIDED — client-side hybrid実行モデル（v1はサーバーサイドexecutorなし） |
 | [ADR-018-language-docs-classification.md](ADR-018-language-docs-classification.md) | ADR-018: Language Docs Classification — Normative / Explanatory / Transitional | Archive | ステータス: DECIDED — 3つのドキュメントクラス（normative/explanatory/transitional）を採用 |
 | [ADR-019-anchor-permalink-policy.md](ADR-019-anchor-permalink-policy.md) | ADR-019: Anchor / Permalink Naming Convention and Redirect Policy | Archive | ステータス: DECIDED — Anchor命名規則・リダイレクトポリシーを採用 |
