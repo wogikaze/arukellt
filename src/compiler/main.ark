@@ -4,6 +4,8 @@ use std::host::process
 use std::host::stdio
 use diagnostics
 use driver
+use analysis
+use lsp
 fn CMD_PARSE() -> i32 {
 1
 }
