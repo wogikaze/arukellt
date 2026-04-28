@@ -18,6 +18,29 @@
 /// - fd_tag: `0`=memory, `1`=stdout, `2`=stderr
 /// - `BufReader` = `Vec<i32>`: `[cursor, buf_cap, b0, b1, ..., bn]`
 /// - `BufWriter` = `Vec<i32>`: `[fd_tag, buf_cap, b0, b1, ..., bn]`
+/// 
+/// # Error types
+/// 
+/// `IoError` provides a typed error for I/O operations. Currently only
+/// `UnexpectedEof` is produced at runtime (by `reader_read_exact`);
+/// the other functions are typed with `IoError` for API consistency.
+
+// ─── Error type ───────────────────────────────────────────────────────────────
+/// Typed error for I/O operations.
+pub enum IoError {
+    /// Not enough data was available to fulfill a read request.
+    UnexpectedEof(String),
+    /// Catch-all for other I/O errors.
+    Other(String),
+}
+
+/// Convert an `IoError` to a human-readable message.
+pub fn io_error_message(err: IoError) -> String {
+    match err {
+        IoError::UnexpectedEof(msg) => msg,
+        IoError::Other(msg) => msg,
+    }
+}
 // ─── Reader ──────────────────────────────────────────────────────────────────
 /// Creates a Reader over the given byte buffer.
 /// 
@@ -44,7 +67,7 @@ pub fn reader_eof(r: Vec<i32>) -> bool {
 /// Reads up to `n` bytes from the Reader, advancing its cursor.
 /// 
 /// Returns the bytes actually read (fewer than `n` when near EOF).
-pub fn reader_read(r: Vec<i32>, n: i32) -> Result<Vec<i32>, String> {
+pub fn reader_read(r: Vec<i32>, n: i32) -> Result<Vec<i32>, IoError> {
     let cursor: i32 = get_unchecked(r, 0)
     let total: i32 = len(r) - 1
     let available: i32 = total - cursor
@@ -64,14 +87,14 @@ pub fn reader_read(r: Vec<i32>, n: i32) -> Result<Vec<i32>, String> {
 }
 
 /// Reads exactly `n` bytes; returns `Err` if fewer than `n` bytes remain.
-pub fn reader_read_exact(r: Vec<i32>, n: i32) -> Result<Vec<i32>, String> {
+pub fn reader_read_exact(r: Vec<i32>, n: i32) -> Result<Vec<i32>, IoError> {
     let cursor: i32 = get_unchecked(r, 0)
     let total: i32 = len(r) - 1
     let available: i32 = total - cursor
     if available < n {
         let msg: String = __intrinsic_concat("UnexpectedEof: need ", __intrinsic_i32_to_string(n))
         let msg2: String = __intrinsic_concat(msg, " have ")
-        Err(__intrinsic_concat(msg2, __intrinsic_i32_to_string(available)))
+        Err(IoError::UnexpectedEof(__intrinsic_concat(msg2, __intrinsic_i32_to_string(available))))
     } else {
         let out: Vec<i32> = Vec_new_i32()
         let mut i: i32 = 0
@@ -85,7 +108,7 @@ pub fn reader_read_exact(r: Vec<i32>, n: i32) -> Result<Vec<i32>, String> {
 }
 
 /// Reads all remaining bytes from the Reader.
-pub fn reader_read_all(r: Vec<i32>) -> Result<Vec<i32>, String> {
+pub fn reader_read_all(r: Vec<i32>) -> Result<Vec<i32>, IoError> {
     let cursor: i32 = get_unchecked(r, 0)
     let total: i32 = len(r) - 1
     let remaining: i32 = total - cursor
@@ -95,7 +118,7 @@ pub fn reader_read_all(r: Vec<i32>) -> Result<Vec<i32>, String> {
 /// Reads bytes until a newline (`0x0A`) or EOF, returning the line as a String.
 /// 
 /// The newline character is consumed but not included in the returned string.
-pub fn reader_read_line(r: Vec<i32>) -> Result<String, String> {
+pub fn reader_read_line(r: Vec<i32>) -> Result<String, IoError> {
     let cursor: i32 = get_unchecked(r, 0)
     let total: i32 = len(r) - 1
     let mut line: String = ""
@@ -145,7 +168,7 @@ pub fn stderr() -> Vec<i32> {
 /// 
 /// NOTE: WASI stdin reading is not available in the current runtime.
 /// Always returns `Ok("")`.
-pub fn read_stdin_line() -> Result<String, String> {
+pub fn read_stdin_line() -> Result<String, IoError> {
     Ok("")
 }
 
@@ -173,7 +196,7 @@ pub fn writer_new() -> Vec<i32> {
 /// 
 /// - Memory writers buffer the bytes.
 /// - stdout/stderr writers emit synchronously via print intrinsics.
-pub fn writer_write(w: Vec<i32>, data: Vec<i32>) -> Result<i32, String> {
+pub fn writer_write(w: Vec<i32>, data: Vec<i32>) -> Result<i32, IoError> {
     let tag: i32 = get_unchecked(w, 0)
     let n: i32 = len(data)
     if tag == 0 {
@@ -200,7 +223,7 @@ pub fn writer_write(w: Vec<i32>, data: Vec<i32>) -> Result<i32, String> {
 }
 
 /// Writes a string to the Writer. Returns the number of bytes written.
-pub fn writer_write_str(w: Vec<i32>, s: String) -> Result<i32, String> {
+pub fn writer_write_str(w: Vec<i32>, s: String) -> Result<i32, IoError> {
     let tag: i32 = get_unchecked(w, 0)
     let n: i32 = len(s)
     if tag == 0 {
@@ -222,7 +245,7 @@ pub fn writer_write_str(w: Vec<i32>, s: String) -> Result<i32, String> {
 }
 
 /// Writes all bytes in `data`; returns `()` on success.
-pub fn write_all(w: Vec<i32>, data: Vec<i32>) -> Result<(), String> {
+pub fn write_all(w: Vec<i32>, data: Vec<i32>) -> Result<(), IoError> {
     match writer_write(w, data) {
         Result::Ok(_) => Ok(()),
         Result::Err(e) => Err(e),
@@ -230,7 +253,7 @@ pub fn write_all(w: Vec<i32>, data: Vec<i32>) -> Result<(), String> {
 }
 
 /// Writes a string; returns `()` on success.
-pub fn write_string(w: Vec<i32>, s: String) -> Result<(), String> {
+pub fn write_string(w: Vec<i32>, s: String) -> Result<(), IoError> {
     match writer_write_str(w, s) {
         Result::Ok(_) => Ok(()),
         Result::Err(e) => Err(e),
@@ -241,12 +264,12 @@ pub fn write_string(w: Vec<i32>, s: String) -> Result<(), String> {
 /// 
 /// stdout/stderr Writers already emit synchronously, so this is always a no-op.
 /// Memory Writers buffer locally; no underlying fd to flush.
-pub fn writer_flush(w: Vec<i32>) -> Result<(), String> {
+pub fn writer_flush(w: Vec<i32>) -> Result<(), IoError> {
     Ok(())
 }
 
 /// Alias for `writer_flush`.
-pub fn flush(w: Vec<i32>) -> Result<(), String> {
+pub fn flush(w: Vec<i32>) -> Result<(), IoError> {
     writer_flush(w)
 }
 
@@ -293,7 +316,7 @@ pub fn buffered_reader(r: Vec<i32>, buf_size: i32) -> Vec<i32> {
 /// Reads a line from a BufReader.
 /// 
 /// BufReader bytes start at index 2. Newline is consumed but not included.
-pub fn buf_reader_read_line(br: Vec<i32>) -> Result<String, String> {
+pub fn buf_reader_read_line(br: Vec<i32>) -> Result<String, IoError> {
     let cursor: i32 = get_unchecked(br, 0)
     let total: i32 = len(br) - 2
     let mut line: String = ""
@@ -331,7 +354,7 @@ pub fn buffered_writer(w: Vec<i32>, buf_size: i32) -> Vec<i32> {
 /// Writes a string to a BufWriter.
 /// 
 /// Auto-flushes to the underlying output when the buffer reaches buf_cap.
-pub fn buf_writer_write_str(bw: Vec<i32>, s: String) -> Result<i32, String> {
+pub fn buf_writer_write_str(bw: Vec<i32>, s: String) -> Result<i32, IoError> {
     let cap: i32 = get_unchecked(bw, 1)
     let n: i32 = len(s)
     let mut i: i32 = 0
@@ -341,7 +364,7 @@ pub fn buf_writer_write_str(bw: Vec<i32>, s: String) -> Result<i32, String> {
     }
     let buf_size: i32 = len(bw) - 2
     if buf_size >= cap {
-        let _: Result<(), String> = buf_writer_flush(bw)
+        let _: Result<(), IoError> = buf_writer_flush(bw)
     }
     Ok(n)
 }
@@ -350,7 +373,7 @@ pub fn buf_writer_write_str(bw: Vec<i32>, s: String) -> Result<i32, String> {
 /// 
 /// - stdout/stderr: prints buffered content, then clears the buffer.
 /// - memory: clears the buffer (bytes are considered consumed by the caller).
-pub fn buf_writer_flush(bw: Vec<i32>) -> Result<(), String> {
+pub fn buf_writer_flush(bw: Vec<i32>) -> Result<(), IoError> {
     let tag: i32 = get_unchecked(bw, 0)
     let cap: i32 = get_unchecked(bw, 1)
     let buf_size: i32 = len(bw) - 2
@@ -385,11 +408,11 @@ pub fn buf_writer_flush(bw: Vec<i32>) -> Result<(), String> {
 /// Copies all remaining bytes from a Reader to a Writer.
 /// 
 /// Returns the total number of bytes transferred.
-pub fn copy_bytes(from: Vec<i32>, to: Vec<i32>) -> Result<i32, String> {
+pub fn copy_bytes(from: Vec<i32>, to: Vec<i32>) -> Result<i32, IoError> {
     let cursor: i32 = get_unchecked(from, 0)
     let total: i32 = len(from) - 1
     let remaining: i32 = total - cursor
-    let r: Result<Vec<i32>, String> = reader_read(from, remaining)
+    let r: Result<Vec<i32>, IoError> = reader_read(from, remaining)
     match r {
         Result::Ok(data) => writer_write(to, data),
         Result::Err(e) => Err(e),
@@ -397,7 +420,7 @@ pub fn copy_bytes(from: Vec<i32>, to: Vec<i32>) -> Result<i32, String> {
 }
 
 /// Alias for `copy_bytes` (issue API name).
-pub fn copy(r: Vec<i32>, w: Vec<i32>) -> Result<i32, String> {
+pub fn copy(r: Vec<i32>, w: Vec<i32>) -> Result<i32, IoError> {
     copy_bytes(r, w)
 }
 // cursor starts at 0

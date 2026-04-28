@@ -17,12 +17,12 @@ fn main() {
     bytes::bytes_push(data, 100)
     let r: Vec<i32> = io::reader_from_bytes(data)
     stdio::println(bool_to_string(io::reader_eof(r)))
-    let res: Result<Vec<i32>, String> = io::reader_read(r, 5)
+    let res: Result<Vec<i32>, io::IoError> = io::reader_read(r, 5)
     match res {
         Result::Ok(chunk) => stdio::println(bytes::string_from_bytes(chunk)),
         Result::Err(e) => stdio::println(e),
     }
-    let res2: Result<String, String> = io::reader_read_line(r)
+    let res2: Result<String, io::IoError> = io::reader_read_line(r)
     match res2 {
         Result::Ok(line) => stdio::println(line),
         Result::Err(e) => stdio::println(e),

@@ -17,7 +17,7 @@ fn main() {
     bytes::bytes_push(data, 100)
     let src: Vec<i32> = io::reader_from_bytes(data)
     let dst: Vec<i32> = io::writer_new()
-    let res: Result<i32, String> = io::copy_bytes(src, dst)
+    let res: Result<i32, io::IoError> = io::copy_bytes(src, dst)
     match res {
         Result::Ok(n) => stdio::println(i32_to_string(n)),
         Result::Err(e) => stdio::println(e),

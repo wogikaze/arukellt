@@ -334,6 +334,7 @@ run:stdlib_io_rw/writer_basic.ark
 run:stdlib_io_rw/stdout_write.ark
 run:stdlib_io_rw/buffered_basic.ark
 run:stdlib_io_rw/copy_stream.ark
+run:stdlib_io_rw/read_exact_typed_error.ark
 run:stdlib_process/exit_nonzero.ark
 run:stdlib_process/exit_zero.ark
 run:stdlib_process/process_exit.ark
