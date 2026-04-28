@@ -19,14 +19,50 @@ return String_from("note")
 }
 String_from("unknown")
 }
+
+// ── Diagnostic Code Constants ──────────────────────────────────────────────────
+// Parser diagnostic codes
+pub fn DIAG_PARSE_UNEXPECTED() -> String { String_from("E0001") }
+pub fn DIAG_PARSE_MISSING_RBRACE() -> String { String_from("E0002") }
+pub fn DIAG_PARSE_EXPECTED_TYPE() -> String { String_from("E0003") }
+pub fn DIAG_PARSE_EXPECTED_TOKEN() -> String { String_from("E0004") }
+
+pub fn diag_parse_phase_tag() -> String { String_from("parse") }
+pub fn diag_lex_phase_tag() -> String { String_from("lex") }
+pub fn diag_resolve_phase_tag() -> String { String_from("resolve") }
+pub fn diag_typecheck_phase_tag() -> String { String_from("typecheck") }
+
+pub fn diagnostic_code_string(code: String, phase: String) -> String {
+concat(clone(code), concat(String_from("|"), clone(phase)))
+}
+
+fn diagnostic_phase_tag(phase: i32) -> String {
+if phase == 1 { return diag_lex_phase_tag() }
+if phase == 2 { return diag_parse_phase_tag() }
+if phase == 3 { return diag_resolve_phase_tag() }
+if phase == 4 { return diag_typecheck_phase_tag() }
+String_from("unknown")
+}
+
+// ── Diagnostic Span ──────────────────────────────────────────────────────────
 struct DiagnosticSpan {
 file: String,
 line: i32,
 column: i32,
+start: i32,
+end: i32,
 }
 pub fn DiagnosticSpan_new(file: String, line: i32, column: i32) -> DiagnosticSpan {
-DiagnosticSpan { file: file, line: line, column: column }
+DiagnosticSpan { file: file, line: line, column: column, start: 0, end: 0 }
 }
+pub fn DiagnosticSpan_new_full(file: String, line: i32, column: i32, start: i32, end: i32) -> DiagnosticSpan {
+DiagnosticSpan { file: file, line: line, column: column, start: start, end: end }
+}
+pub fn DiagnosticSpan_from_raw(start: i32, end: i32) -> DiagnosticSpan {
+DiagnosticSpan { file: String_new(), line: 0, column: 0, start: start, end: end }
+}
+
+// ── Diagnostic ───────────────────────────────────────────────────────────────
 struct Diagnostic {
 code: String,
 severity: i32,
@@ -35,6 +71,9 @@ message: String,
 }
 pub fn Diagnostic_new(code: String, severity: i32, span: DiagnosticSpan, message: String) -> Diagnostic {
 Diagnostic { code: code, severity: severity, span: span, message: message }
+}
+pub fn Diagnostic_new_parse(code: String, message: String, start: i32, end: i32) -> Diagnostic {
+Diagnostic { code: code, severity: SEV_ERROR(), span: DiagnosticSpan_from_raw(start, end), message: message }
 }
 pub fn diag_json_escape(s: String) -> String {
 let n = len(s)
@@ -84,14 +123,18 @@ let lo = b & 15
 concat(diag_hex_nibble(hi), diag_hex_nibble(lo))
 }
 fn diagnostic_span_to_json(span: DiagnosticSpan) -> String {
-let mut out = String_from("{\"file\":\"")
-out = concat(out, diag_json_escape(clone(span.file)))
-out = concat(out, String_from("\",\"line\":"))
-out = concat(out, i32_to_string(span.line))
-out = concat(out, String_from(",\"col\":"))
-out = concat(out, i32_to_string(span.column))
-out = concat(out, String_from("}"))
-out
+    let mut out = String_from("{\"file\":\"")
+    out = concat(out, diag_json_escape(clone(span.file)))
+    out = concat(out, String_from("\",\"line\":"))
+    out = concat(out, i32_to_string(span.line))
+    out = concat(out, String_from(",\"col\":"))
+    out = concat(out, i32_to_string(span.column))
+    out = concat(out, String_from(",\"start\":"))
+    out = concat(out, i32_to_string(span.start))
+    out = concat(out, String_from(",\"end\":"))
+    out = concat(out, i32_to_string(span.end))
+    out = concat(out, String_from("}"))
+    out
 }
 pub fn diagnostic_to_json(diag: Diagnostic) -> String {
 let mut out = String_from("{\"code\":\"")

@@ -5,6 +5,7 @@
 use std::host::stdio
 
 use lexer
+use diagnostics
 
 fn NK_INT_LIT() -> i32 {
     1
@@ -358,14 +359,16 @@ fn AstNode_float(val: f64, span: Span) -> AstNode {
     AstNode { kind: NK_FLOAT_LIT(), span: span, text: String_new(), int_val: 0, float_val: val, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
 }
 
-// ── Parse Error ──────────────────────────────────────────────────────────────
-struct ParseError {
-    message: String,
-    span: Span,
+// ── Parse Result ─────────────────────────────────────────────────────────────
+pub struct ParseResult {
+    decls: Vec<AstNode>,
+    errors: Vec<Diagnostic>,
 }
 
-fn ParseError_new(msg: String, span: Span) -> ParseError {
-    ParseError { message: msg, span: span }
+pub fn parse_program(tokens: Vec<Token>) -> ParseResult {
+    let p = Parser_new(tokens)
+    let decls = parse_module(p)
+    ParseResult { decls: decls, errors: p.errors }
 }
 
 // ── Token Kind Re-exports (from lexer) ───────────────────────────────────────
@@ -665,12 +668,12 @@ struct Parser {
     tokens: Vec<Token>,
     pos: i32,
     token_count: i32,
-    errors: Vec<ParseError>,
+    errors: Vec<Diagnostic>,
 }
 
 pub fn Parser_new(tokens: Vec<Token>) -> Parser {
     let count = len(tokens)
-    Parser { tokens: tokens, pos: 0, token_count: count, errors: Vec_new_ParseError() }
+    Parser { tokens: tokens, pos: 0, token_count: count, errors: Vec_new_Diagnostic() }
 }
 
 // ── Parser Helpers ───────────────────────────────────────────────────────────
@@ -738,8 +741,8 @@ fn expect_token(p: Parser, kind: i32) -> Token {
         p.pos = p.pos + 1
         return t
     }
-    let err = ParseError_new(concat(String_from("expected token kind "), concat(to_string(kind), concat(String_from(", got "), to_string(t.kind)))), Span_new(t.start, t.end))
-    push(p.errors, err)
+    let diag = Diagnostic_new_parse(DIAG_PARSE_EXPECTED_TOKEN(), concat(String_from("expected token kind "), concat(to_string(kind), concat(String_from(", got "), to_string(t.kind)))), t.start, t.end)
+    push(p.errors, diag)
     t
 }
 
@@ -749,7 +752,9 @@ fn tok_span(t: Token) -> Span {
 
 fn error(p: Parser, msg: String) {
     let t = cur(p)
-    push(p.errors, ParseError_new(msg, tok_span(t)))
+    let code = DIAG_PARSE_UNEXPECTED()
+    let diag = Diagnostic_new_parse(clone(code), clone(msg), t.start, t.end)
+    push(p.errors, diag)
 }
 
 // ── Precedence (Pratt) ──────────────────────────────────────────────────────

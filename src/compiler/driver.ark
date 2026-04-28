@@ -8,6 +8,7 @@ use std::host::fs
 use std::host::process
 use std::host::stdio
 
+use diagnostics
 use emitter
 use lexer
 use mir
@@ -45,17 +46,37 @@ struct CompileResult {
     phase_reached: i32,
     error_count: i32,
     error_messages: Vec<String>,
+    diagnostics: Vec<Diagnostic>,
     output_bytes: Vec<i32>,
 }
 
 fn CompileResult_ok(phase: i32) -> CompileResult {
-    CompileResult { success: true, phase_reached: phase, error_count: 0, error_messages: Vec_new_String(), output_bytes: Vec_new_i32() }
+    CompileResult { success: true, phase_reached: phase, error_count: 0, error_messages: Vec_new_String(), diagnostics: Vec_new_Diagnostic(), output_bytes: Vec_new_i32() }
 }
 
 fn CompileResult_err(phase: i32, msg: String) -> CompileResult {
     let mut msgs: Vec<String> = Vec_new_String()
     push(msgs, msg)
-    CompileResult { success: false, phase_reached: phase, error_count: 1, error_messages: msgs, output_bytes: Vec_new_i32() }
+    CompileResult { success: false, phase_reached: phase, error_count: 1, error_messages: msgs, diagnostics: Vec_new_Diagnostic(), output_bytes: Vec_new_i32() }
+}
+
+// ── Byte Offset to Line/Column ───────────────────────────────────────────────
+fn offset_to_line_col(source: String, offset: i32) -> (i32, i32) {
+    let n = len(source)
+    let mut line: i32 = 1
+    let mut col: i32 = 1
+    let mut i: i32 = 0
+    while i < offset && i < n {
+        let c = char_at(source, i)
+        if c == 10 {
+            line = line + 1
+            col = 1
+        } else {
+            col = col + 1
+        }
+        i = i + 1
+    }
+    (line, col)
 }
 
 // ── Driver Configuration ─────────────────────────────────────────────────────
@@ -318,6 +339,11 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         while k < parse_error_count {
             let pe = get_unchecked(parser.errors, k)
             push(result.error_messages, clone(pe.message))
+            let (line, col) = offset_to_line_col(clone(source), pe.span.start)
+            let file_name = clone(config.source_dir)
+            let span = DiagnosticSpan_new_full(clone(file_name), line, col, pe.span.start, pe.span.end)
+            let d = Diagnostic_new(clone(pe.code), pe.severity, span, clone(pe.message))
+            push(result.diagnostics, d)
             k = k + 1
         }
         result.error_count = parse_error_count
