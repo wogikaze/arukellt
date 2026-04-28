@@ -154,6 +154,20 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         description="Config loader — nested structs, Result error handling (10,000 entries)",
         tags=("application", "struct-heavy", "error-heavy", "match-heavy", "allocation-heavy"),
     ),
+    BenchmarkCase(
+        name="data_pipeline",
+        source="benchmarks/bench_application_data_pipeline.ark",
+        expected="benchmarks/bench_application_data_pipeline.expected",
+        description="Data pipeline — closure filter, closure map, Vec iteration (3,000 records)",
+        tags=("application", "closure-heavy", "allocation-heavy", "iteration", "container"),
+    ),
+    BenchmarkCase(
+        name="template_engine",
+        source="benchmarks/bench_application_template_engine.ark",
+        expected="benchmarks/bench_application_template_engine.expected",
+        description="Template engine — HashMap<String,String>, recursive expansion, string ops",
+        tags=("application", "string-heavy", "container", "recursion-heavy", "gc-pressure"),
+    ),
 )
 
 MODE_PRESETS: dict[str, dict[str, Any]] = {

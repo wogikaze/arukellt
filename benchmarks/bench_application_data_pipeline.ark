@@ -1,0 +1,62 @@
+// Application benchmark: data pipeline simulation.
+// Simulates an ETL-style processing pipeline: generate records, filter via
+// closure, transform via closure, and aggregate.  Exercises closures, Vec
+// iteration, struct fields, and integer arithmetic across 3,000 records.
+use std::host::stdio
+
+struct Record {
+    id: i32,
+    value: i32,
+    group: i32,
+}
+
+fn main() {
+    // Stage 1: generate 3,000 synthetic records
+    let mut records: Vec<Record> = Vec_new_Record()
+    let mut i: i32 = 0
+    while i < 3000 {
+        let rec: Record = Record { id: i, value: i * 3 + 7, group: i - i / 5 * 5 }
+        push(records, rec)
+        i = i + 1
+    }
+
+    // Stage 2: filter — keep only records where group > 1 (groups 2, 3, 4)
+    let threshold: i32 = 1
+    let filter_fn = |g: i32| -> bool { g > threshold }
+
+    let mut filtered: Vec<Record> = Vec_new_Record()
+    let mut j: i32 = 0
+    while j < len(records) {
+        let rec: Record = get_unchecked(records, j)
+        if filter_fn(rec.group) {
+            push(filtered, rec)
+        }
+        j = j + 1
+    }
+
+    // Stage 3: transform — scale values via closure
+    let scale: i32 = 2
+    let offset: i32 = 5
+    let map_fn = |v: i32| -> i32 { v * scale + offset }
+
+    let mut mapped: Vec<i32> = Vec_new_i32()
+    let mut k: i32 = 0
+    while k < len(filtered) {
+        push(mapped, map_fn(get_unchecked(filtered, k).value))
+        k = k + 1
+    }
+
+    // Stage 4: aggregate — sum with overflow bounding
+    let mut sum: i32 = 0
+    let mut l: i32 = 0
+    while l < len(mapped) {
+        sum = sum + get_unchecked(mapped, l)
+        if sum > 1000000 {
+            sum = sum - 1000000
+        }
+        l = l + 1
+    }
+
+    stdio::println(i32_to_string(len(mapped)))
+    stdio::println(i32_to_string(sum))
+}

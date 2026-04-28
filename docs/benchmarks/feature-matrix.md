@@ -20,6 +20,8 @@ Cross-reference of benchmarks against language features they exercise.
 | `bench_application_http_parser.ark` | application | — | ✔ | ✔ | — | — | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `bench_application_log_processor.ark` | application | — | ✔ | ✔ | ✔ | — | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `bench_application_config_loader.ark` | application | — | ✔ | ✔ | — | — | — | ✔ | ✔ | ✔ | ✔ | ✔ |
+| `bench_application_data_pipeline.ark` | application | — | ✔ | ✔ | ✔ | — | ✔ | — | — | ✔ | ✔ | ✔ |
+| `bench_application_template_engine.ark` | application | ✔ | — | — | — | ✔ | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `parser.ark` (sample) | application | ✔ | ✔ | ✔ | ✔ | ✔ | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 
 ### Legend
@@ -33,9 +35,10 @@ The following language features have **no dedicated benchmark**:
 
 | Feature | Current coverage | Gap severity |
 |---------|-----------------|:------------:|
-| **Closures / higher-order functions** | None | High |
+| **Closures / higher-order functions** | `bench_cpu_closure_map.ark` (dedicated closure benchmark), `bench_application_data_pipeline.ark` (pipeline filter/map closures) | Covered |
 | **Enum / pattern matching** | `bench_cpu_enum_dispatch.ark` (dedicated dispatch benchmark) | Covered |
 | **Error paths / Result handling** | `bench_compute_error_chain.ark` (Result / error propagation chain) | Covered |
+| **HashMap / container operations** | `bench_application_template_engine.ark` (HashMap<String,String> CRUD, template expansion) | Covered |
 | **I/O-heavy workloads** | Only trivial `println` calls | Medium |
 | **Struct-heavy allocation** | `bench_memory_struct_graph.ark` (nested structs, recursive graph) | Covered |
 | **Nested structs / composite types** | `bench_memory_struct_graph.ark` (Vec2→Rect→BBox, depth-10 recursion) | Covered |
@@ -50,11 +53,13 @@ The following language features have **no dedicated benchmark**:
 | `bench_enum_dispatch.ark` | compute | Enum variants, match, function dispatch | Enum / pattern matching |
 | `bench_struct_graph.ark` | memory | Nested structs, recursive types, allocation | Struct-heavy |
 | `bench_error_chain.ark` | compute | Result, error propagation, match | Error paths |
+| `bench_data_pipeline.ark` | application | Closures, Vec, struct iteration, filter/map/reduce | Multi-feature application pipeline |
+| `bench_template_engine.ark` | application | HashMap, strings, recursion, template expansion | Template rendering |
 | `bench_file_io.ark` | io | File read/write, String, I/O host calls | I/O-heavy |
 | `bench_parser_lite.ark` | application | String, structs, enums, loops, recursion | Multi-feature application |
 
 ### Priority
 
-1. **`bench_closure_map.ark`** — closures are a core language feature with zero coverage.
-2. **`bench_enum_dispatch.ark`** — enums and match are pervasive but untested for performance.
-3. **`bench_struct_graph.ark`** — allocation patterns for composite types need measurement.
+1. **`bench_data_pipeline.ark`** — application-level closure pipeline with filter/map/aggregate stages.
+2. **`bench_template_engine.ark`** — HashMap-backed template engine with recursive variable resolution.
+3. **`bench_closure_map.ark`** — closures are a core language feature with dedicated coverage.
