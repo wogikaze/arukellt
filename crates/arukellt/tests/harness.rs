@@ -200,13 +200,12 @@ fn fixture_harness() {
     eprintln!("Using binary: {:?}", bin);
 
     // Optional kind filter: HARNESS_KIND_FILTER=run,t3-run
-    let kind_filter: Option<HashSet<String>> =
-        std::env::var("HARNESS_KIND_FILTER").ok().map(|v| {
-            v.split(',')
-                .map(|s| s.trim().to_string())
-                .filter(|s| !s.is_empty())
-                .collect()
-        });
+    let kind_filter: Option<HashSet<String>> = std::env::var("HARNESS_KIND_FILTER").ok().map(|v| {
+        v.split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect()
+    });
     if let Some(ref kf) = kind_filter {
         eprintln!("Kind filter active: {:?}", kf);
     }
