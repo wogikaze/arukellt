@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-28T12:55:44Z",
+  "generated_at": "2026-04-28T13:34:25Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -894,28 +894,6 @@
       }
     },
     {
-      "id": "565",
-      "path": "565-phase6-error-recovery-for-ide.md",
-      "title": "565 — Phase 6/A1: Selfhost lexer.ark — error recovery for IDE",
-      "track": "selfhost-frontend",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": false,
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "571",
       "path": "571-phase6-debug-adapter-scaffold-deferred-priority.md",
       "title": "571 — Phase 6/D: \"src/ide/dap.ark — debug adapter scaffold (deferred priority)\"",
@@ -959,30 +937,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "586",
-      "path": "586-phase5-delete-ark-llvm.md",
-      "title": "586 — Phase 5: Delete `crates/ark-llvm`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": false,
-      "depends_on": [
-        "559"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 15,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
       }
     },
     {
@@ -1318,28 +1272,6 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "614",
-      "path": "614-errhandle-compiler-diagnostics.md",
-      "title": "Error Handling Convergence: Compiler Structured Diagnostics",
-      "track": "compiler / selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": null
       }
     },

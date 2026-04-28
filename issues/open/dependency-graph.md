@@ -43,10 +43,8 @@ graph LR
   I555["555 Release: Pre-Release CI Checks"]
   I561["561 561 — Phase 5: Delete `crates/ark-mir`"]
   I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
-  I565["565 565 — Phase 6/A1: Selfhost lexer.ark — error recovery for IDE"]
   I571["571 571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)""]
   I584["584 584 — Placeholder"]
-  I586["586 586 — Phase 5: Delete `crates/ark-llvm`"]
   I588["588 Language surface uplift plan"]
   I589["589 Type System Stage-Up Plan (HM Core + Coherent Traits) (Operational Guide)"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
@@ -61,7 +59,6 @@ graph LR
   I607["607 Stdlib Baseline: Collections Hash Hardening"]
   I610["610 Optimization Uplift: Lowering Bottleneck Reduction"]
   I611["611 Optimization Uplift: T3-Safe Runtime Unlock"]
-  I614["614 Error Handling Convergence: Compiler Structured Diagnostics"]
   I616["616 Selfhost compiler: Implement component emission infrastructure"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
@@ -187,10 +184,8 @@ graph LR
 - **555** depends on: none; blocks: none
 - **561** depends on: 559; blocks: 564
 - **563** depends on: 559; blocks: 564
-- **565** depends on: none; blocks: none
 - **571** depends on: 568; blocks: none
 - **584** depends on: none; blocks: none
-- **586** depends on: 559; blocks: none
 - **588** depends on: none; blocks: none
 - **589** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
@@ -205,7 +200,6 @@ graph LR
 - **607** depends on: 604; blocks: 608
 - **610** depends on: 609; blocks: none
 - **611** depends on: 609; blocks: 612
-- **614** depends on: none; blocks: none
 - **616** depends on: none; blocks: 28
 - **62** depends on: 074, 510; blocks: 543
 - **63** depends on: 074, 137; blocks: none
