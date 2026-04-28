@@ -1,5 +1,5 @@
 ---
-description: "Use this agent when you have a specific, scoped acceptance slice to complete within an issue.\n\nTrigger phrases include:\n- 'Complete this acceptance slice'\n- 'Implement only this specific part'\n- 'Work on this acceptance criterion'\n- 'Finish this slice without scope creep'\n\nExamples:\n- User provides ISSUE_ID, SUBTASK with PRIMARY_PATHS, REQUIRED_VERIFICATION, and DONE_WHEN conditions → invoke this agent to implement exactly that slice\n- User says 'Complete only the JSON serialization part, not the entire refactor' → invoke this agent to focus on that single slice\n- After defining acceptance criteria with specific paths and verification steps, user says 'Now implement this' → invoke this agent to execute precisely that scope"
+description: "Use when you have a specific, scoped acceptance slice to complete within an issue and need ruthless scope discipline.\n\nTrigger phrases:\n- 'Complete this acceptance slice'\n- 'Implement only this specific part'\n- 'Work on this acceptance criterion'\n- 'Finish this slice without scope creep'\n\nExamples: user provides ISSUE_ID, SUBTASK with PRIMARY_PATHS, REQUIRED_VERIFICATION, and DONE_WHEN conditions → implement exactly that slice. User says 'Complete only the JSON serialization part, not the entire refactor' → focus on that single slice. After defining acceptance criteria with specific paths and verification, user says 'Now implement this' → execute precisely that scope."
 name: acceptance-slice-implementer
 ---
 
@@ -60,6 +60,24 @@ Report in this exact structure:
 - **Acceptance slice completed**: Restate the SUBTASK and confirm it is complete
 - **Verification**: Show output from each REQUIRED_VERIFICATION command. All must pass.
 - **Blockers**: If any STOP_IF conditions are true, report them here. Otherwise, state "None."
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Refactoring adjacent code** | "I see a bug nearby, I should fix it" | Document the issue for the next slice. Only PRIMARY_PATHS changes are allowed. |
+| **Interpreting ambiguous criteria** | "The acceptance criteria are incomplete, I know what they meant" | If criteria are ambiguous, escalate — do not guess. |
+| **Updating docs/tests beyond scope** | "These docs are stale, I'll update them while I'm here" | Only do this if REQUIRED_VERIFICATION explicitly requires it. |
+| **Proceeding to the next issue** | "This is related to the next issue, I should do both" | Complete the slice, stop, wait for the next assignment. |
+| **Making changes "cleaner"** | "This refactor would make the implementation cleaner" | Minimal changes only. Refactors are separate slices. |
+| **Skipping verification** | "The change is trivial, I don't need to run verification" | REQUIRED_VERIFICATION is mandatory regardless of change size. |
+
+## Cross-References
+
+- **REQUIRED UPSTREAM:** Use `impl-*` skills (impl-compiler, impl-cli, impl-runtime, etc.) to implement the acceptance slice once assigned.
+- **REQUIRED DOWNSTREAM:** After completion, use `reviewer` for close review before issue closure.
+- **REQUIRED AFTER REVIEW:** Use `verify` for issue closure and queue hygiene.
+- **BACKGROUND:** See `arukellt-repo-context` for repo-specific operating rules and markdown reading workflow.
 
 **When to Escalate (Stop Immediately):**
 - Unresolved upstream dependency: Required code from another issue is missing

@@ -1,9 +1,10 @@
 ---
 name: arukellt-repo-context
 description: >-
-  Use this skill when working in the Arukellt repository and you need the
-  current source-of-truth files, verification contract, and markdown-reading
-  workflow before implementing or reviewing changes.
+  Use when working in the Arukellt repository before implementing or reviewing
+  changes. Triggers: need to find source-of-truth files, understand the
+  verification contract, read large markdown files, or regenerate generated
+  docs and issue indexes.
 ---
 
 # arukellt-repo-context
@@ -33,6 +34,22 @@ npx markdive read <file> --path <section-id>
 ```
 
 Use `dive` first, then narrow with `--path`, then `read` only the section you need.
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Reading entire large markdown files** | "I need to see the full context" | Use `markdive` instead: `npx markdive dive <file> --depth 2` first, then drill down with `--path`. |
+| **Hand-editing generated docs** | "It's faster to just fix this one line" | Generated docs should be regenerated, not hand-maintained. Modify the generator or manifest input instead. |
+| **Trusting old roadmap prose** | "The README describes the architecture" | Use `docs/current-state.md` as the behavior contract, not roadmap prose or stale notes. |
+| **Skipping verification** | "The change is too small to verify" | Always run `python scripts/manager.py verify quick` at minimum, even for small changes. |
+| **Forgetting to regenerate indexes** | "I only moved one issue file" | Run `python3 scripts/gen/generate-issue-index.py` after any issue file move or status change. |
+
+## Cross-References
+
+- **REQUIRED:** Use this skill before any `impl-*`, `design-*`, `reviewer`, or `verify` skill to establish repo context.
+- **IMPLEMENTATION:** After establishing context, use the relevant `impl-*` or `design-*` skill.
+- **VERIFICATION:** Use `reviewer` for close review, then `verify` for issue closure.
 
 ## Verification
 

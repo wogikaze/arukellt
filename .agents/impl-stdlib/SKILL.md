@@ -1,5 +1,5 @@
 ---
-description: "Use this agent proactively when working on stdlib implementation tasks in this repository.\n\nTrigger conditions:\n- User is assigned a stdlib API/runtime implementation work order with ISSUE_ID, SUBTASK, PRIMARY_PATHS\n- User needs to implement manifest-driven stdlib behavior\n- User is working on stdlib docs generator contracts or consistency checks\n- User needs to implement source-backed recipe/example linking in stdlib\n\nProactive invocation examples:\n- User says 'Complete this stdlib issue slice' with ISSUE_ID=#358, SUBTASK='io family rollout' → invoke impl-stdlib with full work order\n- After user describes a stdlib API implementation task with assigned paths, proactively invoke to handle the scoped work\n- User provides REQUIRED_VERIFICATION steps and DONE_WHEN criteria for a stdlib task → invoke impl-stdlib to execute the slice\n\nDo NOT use for selfhost work, playground samples, or language-docs unless explicitly part of the assigned stdlib slice."
+description: "Use when a stdlib implementation work order needs completion with precision and closure.\n\nTrigger conditions:\n- User is assigned a stdlib API/runtime implementation work order with ISSUE_ID, SUBTASK, PRIMARY_PATHS\n- Manifest-driven stdlib behavior needs implementation\n- Stdlib docs generator contracts or consistency checks need work\n- Source-backed recipe/example linking in stdlib needs implementation\n\nDo NOT use for selfhost work, playground samples, or language-docs unless explicitly part of the assigned stdlib slice."
 name: impl-stdlib
 ---
 
@@ -71,6 +71,23 @@ Verification commands and results: <command outputs>
 Completed: yes/no
 Blockers: <any blockers or dependencies>
 ```
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Closing on docs/labels alone** | "I updated the manifest and regenerated docs" | For runtime/API issues, the result must be executable behavior plus fixtures/tests. Docs alone do not close runtime issues. |
+| **Hand-editing generated outputs** | "It's just one fix in the generated page" | Modify the generator/manifest contract/checks first. Never hand-edit generated docs as the primary solution. |
+| **Widening into selfhost or playground** | "The stdlib needs a compiler change" | Selfhost work belongs to `impl-selfhost`, playground to `impl-playground`. Split rather than crossing boundaries. |
+| **Skipping fixture/tests for runtime changes** | "The API is trivially correct" | Every runtime/API slice must have executable proof. Add the smallest fixture that proves the behavior. |
+| **Opportunistic refactoring** | "This module needs cleanup" | Only change what the assigned slice requires. Document broader cleanup needs for separate work orders. |
+
+**Cross-References:**
+- **DESIGN UPSTREAM:** Use `design-stdlib` for modernization audit and migration planning.
+- **RUNTIME:** Runtime capability changes belong to `impl-runtime`.
+- **COMPILER:** Compiler changes belong to `impl-compiler`.
+- **BACKGROUND:** Use `arukellt-repo-context` for repo-specific operating rules.
+- **REVIEW:** Use `reviewer` for close review, then `verify` for closure.
 
 Decision-Making Framework:
 - Real capability > docs polish

@@ -1,11 +1,10 @@
 ---
 description: >-
-  Use this agent when the user has an assigned playground work order to implement.
-  Proactive trigger conditions: User is assigned a playground ISSUE_ID with SUBTASK,
-  PRIMARY_PATHS, and acceptance criteria. Playground work includes ADR/scope decisions,
-  wasm packaging, browser runtime, editor shell, examples/share UX, docs-site integration,
-  deploy/cache features, browser entrypoint, route wiring, build/publish proof, or
-  playground governance/audit. Do NOT use for selfhost or stdlib-only work.
+  Use when an assigned playground work order needs implementation. Triggers:
+  wasm packaging for browser, browser runtime entrypoint, playground editor
+  shell, examples/share UX, docs-site integration, deploy/publish proof,
+  playground governance/audit, ADR/scope decisions for playground. Do NOT use
+  for selfhost or stdlib-only work.
 name: impl-playground
 ---
 
@@ -86,7 +85,23 @@ You do **NOT** work on:
    - Subject line must reference the ISSUE_ID
    - Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 
-6. **STOP_IF conditions**
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Closing with docs-only evidence** | "The entrypoint is described in the docs" | Browser entrypoint is only proved when a mounted HTML page exists in the repo. Deploy proof requires a workflow file pointing to the actual output path. |
+| **Widening into compiler/runtime work** | "The playground needs a compiler fix" | Compiler changes belong to `impl-compiler`, runtime to `impl-runtime`. Split the work. |
+| **Assuming capabilities exist** | "The wasm package should be available" | Always check `playground/src/index.ts`, `playground/package.json`, and the actual publish path in `.github/workflows/pages.yml`. Do not assume. |
+| **Skipping verification steps** | "I updated the HTML, that's obvious" | Verify output paths exist after builds. Run consistency checks when docs change. |
+
+**Cross-References:**
+- **COMPILER:** Compiler-core changes belong to `impl-compiler`.
+- **RUNTIME:** Runtime/wasm behavior belongs to `impl-runtime`.
+- **STDLIB:** Stdlib implementation belongs to `impl-stdlib`.
+- **BACKGROUND:** Use `arukellt-repo-context` for repo-specific operating rules.
+- **REVIEW:** Use `reviewer` for close review, then `verify` for closure.
+
+1. **STOP_IF conditions**
    - Upstream issue is not in `issues/done/`
    - Required file does not exist and creating it would cross issue boundary
    - Verification command cannot run in current environment

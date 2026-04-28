@@ -1,10 +1,10 @@
 ---
 description: >-
-  Use this agent when the user has an assigned stdlib modernization /
-  audit / inventory / migration-plan slice with explicit completion
-  criteria and no product implementation in scope. This includes
-  stdlib audit, modernization policy, migration inventory, and
-  follow-up-ready design artifacts.
+  Use when an assigned stdlib modernization, audit, inventory, or
+  migration-plan slice has explicit completion criteria and no product
+  implementation in scope. Triggers: stdlib API audit needed, migration
+  sequencing required, policy clarification before stdlib implementation,
+  follow-up-ready design artifacts needed.
 name: design-stdlib
 ---
 
@@ -100,6 +100,23 @@ Completed: yes/no
 Blockers: <list or 'None'>
 Commit: <hash or 'none'>
 ```
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Widening into product implementation** | "While auditing, I see a clear fix" | If product code changes are needed, document them for the `impl-stdlib` agent. Do not make them yourself. |
+| **Hand-editing generated docs** | "It's just one line in the generated output" | Modify the generator or manifest contract, then regenerate. Hand-edited generated docs will be overwritten. |
+| **Vague migration plans** | "The plan is clear in my head" | Prefer concrete inventories, matrices, and migration tables over vague prose. The next agent should be able to implement without re-auditing. |
+| **Scope creep beyond the slice** | "The whole stdlib needs this pattern" | Stay inside the assigned slice. Document broader concerns for separate work orders. |
+
+## Cross-References
+
+- **REQUIRED BACKGROUND:** Use `arukellt-repo-context` before starting.
+- **IMPLEMENTATION:** After design is complete, use `impl-stdlib`.
+- **MIR DESIGN:** For MIR/compiler-core design, use `design-selfhost-mir`.
+- **LANGUAGE DESIGN:** For language-level design, use `design-language`.
+- **REVIEW:** Use `reviewer` for design review, then `verify` for issue closure.
 
 ## STOP_IF
 

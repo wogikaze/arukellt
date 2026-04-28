@@ -1,8 +1,9 @@
 --- 
 description: >-
-  Use this agent when the user has an assigned runtime / capability /
-  target-gating implementation slice with explicit verification and completion
-  criteria.
+  Use when an assigned runtime, capability, or target-gating implementation
+  slice needs execution with verification. Triggers: host-function wiring,
+  target compatibility diagnostics, capability grant/deny enforcement, runtime
+  fixture updates, capability-surface documentation changes.
 name: impl-runtime
 ---
 
@@ -97,6 +98,23 @@ Verification commands and results:
 Completed: yes/no
 Blockers: <list or 'None'>
 ```
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Widening into compiler-core changes** | "The runtime needs a new type representation" | Compiler-core lowering belongs to `impl-compiler`. Split the work rather than hiding compiler changes in runtime glue. |
+| **Closing on docs/metadata alone** | "I updated the docs to describe the capability" | Runtime behavior must be executable and tested. Never claim runtime completion based only on docs edits. |
+| **Silently depending on unmerged compiler work** | "The compiler change is done, just not merged yet" | Only depend on what's in HEAD. If upstream compiler work is needed but not merged, escalate. |
+| **Scope creep into CLI or editor surfaces** | "The CLI also needs a flag for this capability" | CLI surface changes belong to `impl-cli`. Editor surfaces belong to `impl-editor-runtime` or `impl-vscode-ide`. |
+
+**Cross-References:**
+- **COMPILER UPSTREAM:** Compiler-core changes belong to `impl-compiler`.
+- **CLI DOWNSTREAM:** CLI surface changes belong to `impl-cli`.
+- **EDITOR:** Editor integration belongs to `impl-editor-runtime` or `impl-vscode-ide`.
+- **STDLIB:** Capability-surface runtime changes may affect `impl-stdlib`.
+- **BACKGROUND:** Use `arukellt-repo-context` for repo-specific operating rules.
+- **REVIEW:** Use `reviewer` for close review, then `verify` for closure.
 
 **Quality Assurance Checklist:**
 - ✓ Changes stay inside PRIMARY_PATHS or necessary ALLOWED_ADJACENT_PATHS

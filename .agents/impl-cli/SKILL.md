@@ -1,8 +1,9 @@
 ---
 description: >-
-  Use this agent when the user has an assigned CLI / command-surface /
-  machine-readable-output implementation slice with explicit verification and
-  completion criteria.
+  Use when an assigned CLI, command-surface, or machine-readable-output
+  implementation slice needs execution with verification. Triggers: new
+  subcommands, flag/option UX changes, --json output, stdout/stderr contract
+  fixes, CLI snapshot tests, help text changes.
 name: impl-cli
 ---
 
@@ -103,6 +104,22 @@ Blockers: <list or 'None'>
 - ✓ Required verification passes
 - ✓ DONE_WHEN conditions are satisfied
 - ✓ No runtime/editor/stdlib scope creep occurred
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Hiding runtime changes in CLI glue** | "The CLI needs a flag for this runtime feature" | Runtime wiring belongs to `impl-runtime`. Split work rather than hiding runtime changes inside CLI glue. |
+| **Widening into editor or stdlib** | "The IDE also needs this command" | Extension/IDE wiring belongs to `impl-vscode-ide` or `impl-editor-runtime`. Stdlib metadata belongs to `impl-stdlib`. |
+| **Vague output contracts** | "The output format is obvious" | Machine-readable output contracts must be explicit and testable. Add snapshot tests for JSON/help output. |
+| **Skipping snapshot tests** | "The change is small, no test needed" | Every CLI surface change needs regression proof. Add the smallest snapshot or integration test. |
+
+**Cross-References:**
+- **RUNTIME:** Runtime host wiring belongs to `impl-runtime`.
+- **EDITOR:** Extension/IDE wiring belongs to `impl-vscode-ide`.
+- **STDLIB:** Stdlib metadata expansion belongs to `impl-stdlib`.
+- **BACKGROUND:** Use `arukellt-repo-context` for repo-specific operating rules.
+- **REVIEW:** Use `reviewer` for close review, then `verify` for closure.
 
 **When to Escalate:**
 - The slice actually needs runtime wiring or editor integration outside the assignment

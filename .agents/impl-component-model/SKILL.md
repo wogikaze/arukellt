@@ -1,8 +1,9 @@
 ---
 description: >-
-  Use this agent when the user has an assigned component-model /
-  component-composition / WIT-integration slice with explicit verification and
-  completion criteria.
+  Use when an assigned component-model, component-composition, or WIT-integration
+  slice needs implementation with verification. Triggers: WIT parsing changes,
+  component wrapper/emission, composition paths, canonical ABI support,
+  component-focused regression fixtures, WIT contract documentation.
 name: impl-component-model
 ---
 
@@ -102,6 +103,21 @@ Blockers: <list or 'None'>
 - ✓ Required verification passes
 - ✓ DONE_WHEN conditions are satisfied
 - ✓ No runtime/editor/general-stdlib scope creep occurred
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Widening into runtime shell work** | "The component needs a runtime to run in" | Native runtime integration belongs to `impl-runtime`. Keep component work at the WIT/component boundary. |
+| **Skipping fixture proof** | "I verified the contract change manually" | Every component-model change needs regression proof. Add the smallest fixture that proves wrapper/composition behavior. |
+| **Ignoring docs contract sync** | "The docs are a separate concern" | When component behavior changes, update the corresponding docs if the assignment requires it. |
+| **Ambiguous WIT contracts** | "The WIT semantics are implied" | Keep contracts explicit at the WIT/component boundary. Ambiguous contracts block downstream consumers. |
+
+**Cross-References:**
+- **RUNTIME:** Runtime host wiring belongs to `impl-runtime`.
+- **COMPILER:** Compiler-core changes belong to `impl-compiler`.
+- **BACKGROUND:** Use `arukellt-repo-context` for repo-specific operating rules.
+- **REVIEW:** Use `reviewer` for close review, then `verify` for closure.
 
 **When to Escalate:**
 - The slice requires unrelated runtime or playground shell work outside the assignment

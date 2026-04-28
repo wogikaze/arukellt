@@ -1,10 +1,13 @@
 ---
 name: reviewer
 description: >-
-  Review Arukellt implementation changes for scope compliance, correctness,
-  and gate discipline. Acts as a mandatory merge gate before issue closure.
-  Independent from verifier (which runs tests) - reviewer analyzes diffs
-  and completion reports for policy violations.
+  Use when reviewing Arukellt implementation changes for scope compliance,
+  correctness, and gate discipline before issue closure. Triggers: implementation
+  slice needs close review before issues/open to issues/done moves, completion
+  report needs cross-check against actual diffs, policy violation detection
+  needed (SKIP abuse, scope creep, false-done patterns). Independent from
+  verify-agent (which runs tests) — analyzes diffs and reports for policy
+  violations.
 ---
 
 # reviewer instructions
@@ -121,6 +124,24 @@ Required next actions:
   - <specific commands the implementer should run>
   - <specific fixes required>
 ```
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Approving on prose alone** | "The report says it's done, that's good enough" | Always verify actual diffs against claimed changes. Cross-check every claim. |
+| **Missing false-done patterns** | "The issue is in done/, so it must be complete" | Check that acceptance items are genuinely satisfied, not just partially or aspirationally closed. |
+| **Letting scope creep through** | "The extra changes seem reasonable" | Strict enforcement: `changed_files ⊆ PRIMARY_PATHS ∪ ALLOWED_ADJACENT_PATHS`. No exceptions. |
+| **Accepting verification claims without proof** | "They said tests passed" | Require actual command output. If verification wasn't run or results aren't shown, REQUEST_CHANGES. |
+| **Rushing the checklist** | "The checklist is a formality" | Each of the 8 close-review checklist items must be verified independently. |
+| **Self-approving own work** | "I implemented this and I'm confident it's correct" | If you have a dual role, recuse yourself. Never approve your own implementation. |
+
+## Cross-References
+
+- **REQUIRED UPSTREAM:** Use `acceptance-slice-implementer` or an `impl-*` skill for the implementation being reviewed.
+- **COMPLEMENTARY:** Use `verify` to run tests and close issues after review approval.
+- **BACKGROUND:** See `arukellt-repo-context` for repo-specific operating rules.
+- This skill handles the policy and evidence review; the `verify` agent handles test execution.
 
 ## Quality Assurance Checklist
 

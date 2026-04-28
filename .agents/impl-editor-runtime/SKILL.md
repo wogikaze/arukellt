@@ -1,7 +1,9 @@
 ---
 description: >-
-  Use this agent when the user has an assigned editor-run / editor-debug /
-  launch-integration slice with explicit verification and completion criteria.
+  Use when an assigned editor-run, editor-debug, or launch-integration slice
+  needs implementation with verification. Triggers: run command flow in
+  editor, debug launch flow, launch configuration wiring, execution output
+  surfacing in IDE, editor-side run/debug regression tests.
 name: impl-editor-runtime
 ---
 
@@ -101,6 +103,22 @@ Blockers: <list or 'None'>
 - ✓ Required verification passes
 - ✓ DONE_WHEN conditions are satisfied
 - ✓ No general IDE/CLI/runtime/playground scope creep occurred
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Widening into generic LSP polish** | "The hover behavior also needs fixing" | This lane is for run/debug-in-editor behavior, not generic LSP polish. LSP work belongs to `impl-vscode-ide`. |
+| **Hiding runtime dependencies** | "I'll add a runtime feature inside the editor slice" | If completion requires a new runtime or CLI feature, stop and escalate rather than hiding it here. |
+| **Touching vendored extension assets** | "The test download path needs adjusting" | Avoid touching `node_modules`, `.vscode-test`, downloaded VS Code bundles. |
+| **Missing visible-output proof** | "The launch worked when I tested manually" | Visible output/result presentation should be proven by an editor-facing check when possible. |
+
+**Cross-References:**
+- **VS CODE IDE:** LSP/extension behavior belongs to `impl-vscode-ide`.
+- **RUNTIME:** Runtime host wiring belongs to `impl-runtime`.
+- **CLI:** CLI command-surface changes belong to `impl-cli`.
+- **BACKGROUND:** Use `arukellt-repo-context` for repo-specific operating rules.
+- **REVIEW:** Use `reviewer` for close review, then `verify` for closure.
 
 **When to Escalate:**
 - The slice depends on a missing runtime or CLI feature outside the assignment

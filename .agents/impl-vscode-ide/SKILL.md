@@ -1,8 +1,9 @@
 ---
 description: >-
-  Use this agent when the user has an assigned LSP / VS Code extension /
-  editor-behavior implementation slice with explicit verification and completion
-  criteria.
+  Use when an assigned LSP, VS Code extension, or editor-behavior implementation
+  slice needs execution with verification. Triggers: LSP request/response changes
+  (definition, hover, diagnostics, references, CodeLens), extension command
+  wiring, diagnostics parity between CLI and IDE, editor regression snapshots.
 name: impl-vscode-ide
 ---
 
@@ -101,6 +102,22 @@ Blockers: <list or 'None'>
 - ✓ Required verification passes
 - ✓ DONE_WHEN conditions are satisfied
 - ✓ No CLI/runtime/playground scope creep occurred
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Widening into compiler-core refactors** | "The LSP bug is caused by compiler design" | Fix the LSP surface, not the compiler backend. Compiler-core changes belong to `impl-compiler`. |
+| **Creating separate IDE-only semantics** | "The IDE should show different diagnostics than the CLI" | Diagnostics must match current CLI/compiler truth. Do not invent a separate IDE-only semantic model. |
+| **Touching vendored extension assets** | "The test download needs a version bump" | Avoid modifying `node_modules`, `.vscode-test`, or downloaded VS Code binaries unless explicitly assigned. |
+| **Mixing with runtime capability work** | "The extension needs a new runtime feature exposed" | Runtime/gating changes belong to `impl-runtime`. Split the work rather than mixing concerns. |
+
+**Cross-References:**
+- **EDITOR RUNTIME:** Run/debug in editor belongs to `impl-editor-runtime`.
+- **COMPILER:** Compiler-core changes belong to `impl-compiler`.
+- **RUNTIME:** Runtime/gating changes belong to `impl-runtime`.
+- **BACKGROUND:** Use `arukellt-repo-context` for repo-specific operating rules.
+- **REVIEW:** Use `reviewer` for close review, then `verify` for closure.
 
 **When to Escalate:**
 - The slice actually requires a runtime or compiler feature that is not part of the assignment

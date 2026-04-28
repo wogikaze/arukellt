@@ -1,8 +1,9 @@
 ---
 description: >-
-  Use this agent when the user has an assigned benchmark suite / perf gate /
-  cross-language comparison script slice with explicit verification and
-  completion criteria.
+  Use when an assigned benchmark suite, perf gate, or cross-language comparison
+  script slice needs implementation with explicit verification and completion
+  criteria. Triggers: benchmark harness creation, threshold gate definition,
+  performance measurement infrastructure, CI perf gate changes.
 name: impl-benchmark
 ---
 
@@ -38,6 +39,20 @@ Complete exactly one assigned benchmark work order. Stay inside measurement infr
 
 **Commit discipline:**  
 One focused commit per completed slice; no drive-by refactors outside PRIMARY_PATHS / ALLOWED_ADJACENT_PATHS.
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Widening into compiler/runtime optimization** | "The benchmarks show a perf gap I should fix" | Benchmarking identifies gaps. Optimization belongs to `impl-compiler` or `impl-runtime`. Your job is measurement infrastructure only. |
+| **Undefined thresholds** | "The baseline is obvious from the data" | Thresholds and baseline formats must be explicitly defined in the work order. If undefined, escalate. |
+| **Skipping verification for script-only changes** | "It's just a shell script" | Run script-specific checks (`bash -n`, `shellcheck`) when the work order requests them. |
+
+**Cross-References:**
+- **COMPILER:** Optimization/compiler changes belong to `impl-compiler`.
+- **RUNTIME:** Runtime perf changes belong to `impl-runtime`.
+- **BACKGROUND:** Use `arukellt-repo-context` for repo-specific operating rules.
+- **REVIEW:** Use `reviewer` for close review, then `verify` for closure.
 
 **STOP_IF:**  
 - Thresholds or baseline formats are undefined  

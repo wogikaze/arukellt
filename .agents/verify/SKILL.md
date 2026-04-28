@@ -1,11 +1,11 @@
 ---
 name: verify
 description: >-
-  Use this agent for verification tasks: implementation completeness checks,
-  parity checks, close-gate verification, issue closure verification, and
-  queue hygiene. This includes confirming upstream done status, validating
-  evidence files, moving issues from issues/open to issues/done, and
-  regenerating queue indexes.
+  Use when verification tasks are needed: implementation completeness checks,
+  parity checks, close-gate verification, issue closure, and queue hygiene.
+  Triggers: need to confirm upstream done status, validate evidence files,
+  move issues from issues/open to issues/done, regenerate queue indexes,
+  run close-gate verification.
 ---
 
 # verify instructions
@@ -105,6 +105,23 @@ Commit hash: <hash or NONE>
 Completed: yes/no
 Blockers: <list or None>
 ```
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Closing on prose alone** | "The completion report sounds convincing" | Require concrete evidence: verification output, file diffs, commit hashes. If evidence is missing, do not close. |
+| **Moving issues without regenerating indexes** | "The move is the main change" | Always run `python3 scripts/gen/generate-issue-index.py` after moving any issue file. |
+| **Batch-closing unrelated issues** | "Multiple issues are done, I'll close them together" | One issue per commit. Do not mix multiple closures in one commit. |
+| **Ignoring upstream dependencies** | "The issue is implemented, that's enough" | Check that upstream dependencies in `issues/open/dependency-graph.md` are resolved before closing. |
+| **Modifying issue status without authorization** | "I know this is done from context" | Only move files or update status when the work order explicitly authorizes it. |
+| **Editing implementation files during verification** | "I see a bug I should fix" | Verification is not implementation. If product code changes are needed, escalate or reassign. |
+
+## Cross-References
+
+- **REQUIRED UPSTREAM:** Use `reviewer` for close review approval before closing issues.
+- **COMPLEMENTARY:** Implementation work is done by `acceptance-slice-implementer` and `impl-*` skills.
+- **BACKGROUND:** See `arukellt-repo-context` for repo verification contracts and regeneration commands.
 
 ## Working Rules
 

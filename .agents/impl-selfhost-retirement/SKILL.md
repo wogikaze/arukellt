@@ -1,8 +1,10 @@
 ---
 description: >-
-  Use this agent when the user has an assigned selfhost-retirement /
-  bootstrap-governance / source-of-truth-transition slice with explicit
-  verification and completion criteria.
+  Use when an assigned selfhost-retirement, bootstrap-governance, or
+  source-of-truth-transition slice needs implementation with verification.
+  Triggers: parity-exit criteria definition, bootstrap verification gate
+  changes, source-of-truth transition rules, retirement sequencing for
+  dual-managed compiler surfaces.
 name: impl-selfhost-retirement
 ---
 
@@ -99,6 +101,20 @@ Blockers: <list or 'None'>
 - ✓ Required verification passes
 - ✓ DONE_WHEN conditions are satisfied
 - ✓ No selfhost feature or compiler/runtime scope creep occurred
+
+## Common Mistakes
+
+| Mistake | Why It Happens | How to Avoid |
+|---------|---------------|--------------|
+| **Embedding compiler features in governance work** | "I need to update the parity check while adding a hook" | Keep retirement governance separate from selfhost frontend implementation. Governance work defines criteria, not features. |
+| **Speculative retirement language** | "This area will be retired soon" | Only document retirement criteria that are backed by current repo evidence and explicit decisions. |
+| **Mixing with selfhost implementation** | "The parity hook needs implementation work" | If the assignment requires implementation hooks, keep them minimal and explicitly scoped. Full feature work belongs to `impl-selfhost`. |
+
+**Cross-References:**
+- **SELFHOST:** Selfhost frontend implementation belongs to `impl-selfhost`.
+- **COMPILER:** Compiler-core changes belong to `impl-compiler`.
+- **BACKGROUND:** Use `arukellt-repo-context` for repo-specific operating rules.
+- **REVIEW:** Use `reviewer` for close review, then `verify` for closure.
 
 **When to Escalate:**
 - Retirement depends on unimplemented selfhost/frontend/compiler work outside the slice
