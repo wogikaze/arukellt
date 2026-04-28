@@ -83,6 +83,11 @@ For tracked issue work, that normally means:
 - Each skill is organized as a directory containing `SKILL.md` (English) and optionally `SKILL-ja.md` (Japanese).
 - These include implementation specialists (impl-*), design agents (design-*), verification agents (verify-*), repo context (arukellt-repo-context), and acceptance slice implementation (acceptance-slice-implementer).
 - Copy or symlink the `.agents/*/SKILL.md` files into your agent skills directory manually if needed.
+- Autonomous multi-worktree orchestration prompts live under `.agents/prompts/`:
+  - `autonomous-parent-orchestrator.md` — FSM-based parent orchestrator
+  - `autonomous-child-worker.md` — FSM-based child implementation agent
+  - `start-autonomous-loop.md` — launcher prompt
+- Legacy orchestration prompts remain in `prompts/` (orchestration.md, exec-selfhost.md, subagent-*.md).
 
 Current skills:
 - Implementation specialists: impl-benchmark, impl-cli, impl-compiler, impl-component-model, impl-editor-runtime, impl-language-docs, impl-playground, impl-runtime, impl-selfhost, impl-selfhost-retirement, impl-stdlib, impl-vscode-ide

@@ -1,6 +1,14 @@
 # Arukellt — Autonomous orchestration (single source)
 
-This file is the **only** orchestration prompt for this repository.
+> **NOTE:** Since this file was created, `.agents/prompts/` has been added with
+> FSM-based orchestration prompts. See:
+> - `.agents/prompts/autonomous-parent-orchestrator.md` — FSM parent orchestrator
+> - `.agents/prompts/autonomous-child-worker.md` — FSM child worker
+> - `.agents/prompts/start-autonomous-loop.md` — Launcher prompt
+>
+> This file remains authoritative for: issue classification, isolation rules,
+> acceptance slice contract, machine gates, subagent reports, merge gate
+> checklist, issue close procedure, and failure handling.
 
 **日本語一行:** 親は実装しない。issue を分類し、**1 worktree = 1 slice** で dispatch し、**機械ゲート**（`check-diff-scope.py` + `scripts/manager.py verify`）を通した証拠だけで close する。
 
@@ -208,3 +216,25 @@ Even under “99% autonomous”:
 
 **Supervisor:** scheduler, isolation manager, evidence gatekeeper — **not** the coder.  
 **Implementer / Verifier:** follow `prompts/subagent-slice.md` and `prompts/subagent-verify.md`.
+
+---
+
+## 15. Cross-References to `.agents/prompts/`
+
+The `.agents/prompts/` directory contains FSM-based orchestration extensions:
+
+| File | Purpose |
+|------|---------|
+| `.agents/prompts/autonomous-parent-orchestrator.md` | FSM parent orchestrator with queue model, event protocol, anti-stall |
+| `.agents/prompts/autonomous-child-worker.md` | FSM child worker with validation layers, recovery, commit policy |
+| `.agents/prompts/start-autonomous-loop.md` | Short launcher prompt |
+
+New orchestration tooling:
+
+```bash
+scripts/manager.py orchestration agent-state    # Check agent worktree state
+scripts/manager.py orchestration issue-health   # Check issue metadata health
+scripts/manager.py orchestration repo-smoke     # Quick repository smoke check
+scripts/manager.py orchestration reference-coverage  # Reference coverage (stub)
+scripts/manager.py orchestration gen-issues     # Generate issues from gaps (stub)
+```

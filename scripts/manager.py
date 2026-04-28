@@ -560,6 +560,7 @@ def build_parser() -> argparse.ArgumentParser:
     _build_selfhost_subparser(sub_domain)
     _build_docs_subparser(sub_domain)
     _build_perf_subparser(sub_domain)
+    _build_orchestration_subparser(sub_domain)
     _build_gate_subparser(sub_domain)
 
     return parser
@@ -614,6 +615,40 @@ def _build_perf_subparser(sub_domain: argparse._SubParsersAction) -> None:  # ty
     sub.choices["gate"].add_argument("--update", action="store_true", help="Update baseline")
     sub.choices["benchmarks"].add_argument(
         "--no-quick", dest="no_quick", action="store_true", help="Full (not quick) benchmarks"
+    )
+
+
+def _build_orchestration_subparser(sub_domain: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
+    op = sub_domain.add_parser("orchestration", help="Orchestration commands (autonomous dev)")
+    op.add_argument("--dry-run", action="store_true")
+    sub = op.add_subparsers(dest="subcommand", metavar="<subcommand>")
+    sub.required = True
+    for name, help_text in [
+        ("agent-state", "Check agent worktree state"),
+        ("issue-health", "Check issue metadata health"),
+        ("repo-smoke", "Quick repository smoke check"),
+        ("reference-coverage", "Generate reference coverage report (stub)"),
+        ("gen-issues", "Generate issues from coverage gaps (stub)"),
+    ]:
+        p = sub.add_parser(name, help=help_text)
+        p.add_argument("--dry-run", action="store_true")
+    # agent-state extra: path argument
+    sub.choices["agent-state"].add_argument(
+        "worktree_path", nargs="?", help="Path to worktree directory"
+    )
+    sub.choices["agent-state"].add_argument(
+        "--list-all", action="store_true", help="List all worktrees"
+    )
+    # reference-coverage extra flags
+    sub.choices["reference-coverage"].add_argument(
+        "--limit", type=int, default=100, help="Coverage limit"
+    )
+    sub.choices["reference-coverage"].add_argument(
+        "--detail", action="store_true", help="Detailed output"
+    )
+    # gen-issues extra flags
+    sub.choices["gen-issues"].add_argument(
+        "--suite", default="test262", help="Reference suite name"
     )
 
 
@@ -764,6 +799,21 @@ def main() -> int:
         handler = _perf_dispatch.get(subcommand or "")
         if handler is None:
             print(f"{RED}error: unknown perf subcommand: {subcommand}{NC}", file=sys.stderr)
+            return 1
+        return handler(args)
+
+    if args.domain == "orchestration":
+        _orchestration_dispatch = {
+            "agent-state":   cmd_orch_agent_state,
+            "issue-health":  cmd_orch_issue_health,
+            "repo-smoke":    cmd_orch_repo_smoke,
+            "reference-coverage": cmd_orch_reference_coverage,
+            "gen-issues":    cmd_orch_gen_issues,
+        }
+        subcommand = getattr(args, "subcommand", None)
+        handler = _orchestration_dispatch.get(subcommand or "")
+        if handler is None:
+            print(f"{RED}error: unknown orchestration subcommand: {subcommand}{NC}", file=sys.stderr)
             return 1
         return handler(args)
 
@@ -1114,6 +1164,93 @@ def cmd_gate_repro(args: argparse.Namespace) -> int:
     else:
         h.check_fail("gate repro")
 
+    total, passed, skipped, failed = h.summary()
+    print(f"\n{YELLOW}Summary{NC}")
+    print(f"Total checks: {total}")
+    print(f"Passed: {GREEN}{passed}{NC}")
+    print(f"Skipped: {YELLOW}{skipped}{NC}")
+    print(f"Failed: {RED}{failed}{NC}")
+    return h.exit_code()
+
+
+# ── orchestration subcommands ──────────────────────────────────────────────
+
+
+def cmd_orch_agent_state(args: argparse.Namespace) -> int:
+    check_script = _SCRIPTS_DIR / "check" / "check-agent-state.py"
+    if not check_script.exists():
+        print(f"{RED}error: {check_script} not found{NC}", file=sys.stderr)
+        return 1
+    cmd = [sys.executable, str(check_script)]
+    if args.list_all:
+        cmd.append("--list-all")
+    elif args.worktree_path:
+        cmd.append(args.worktree_path)
+    else:
+        print(f"{RED}error: specify worktree_path or --list-all{NC}", file=sys.stderr)
+        return 1
+    result = subprocess.run(cmd, cwd=str(_repo_root()))
+    return result.returncode
+
+
+def cmd_orch_issue_health(args: argparse.Namespace) -> int:
+    check_script = _SCRIPTS_DIR / "check" / "check-issue-health.py"
+    if not check_script.exists():
+        print(f"{RED}error: {check_script} not found{NC}", file=sys.stderr)
+        return 1
+    result = subprocess.run(
+        [sys.executable, str(check_script)],
+        cwd=str(_repo_root()),
+    )
+    return result.returncode
+
+
+def cmd_orch_repo_smoke(args: argparse.Namespace) -> int:
+    check_script = _SCRIPTS_DIR / "check" / "check-repo-smoke.py"
+    if not check_script.exists():
+        print(f"{RED}error: {check_script} not found{NC}", file=sys.stderr)
+        return 1
+    result = subprocess.run(
+        [sys.executable, str(check_script)],
+        cwd=str(_repo_root()),
+    )
+    return result.returncode
+
+
+def cmd_orch_reference_coverage(args: argparse.Namespace) -> int:
+    """Stub: generate reference coverage report.
+    
+    In a full implementation, this would run reference test suites (test262,
+    spec tests, etc.) and report coverage gaps.
+    """
+    h = Harness(repo_root=_repo_root(), dry_run=args.dry_run)
+    print(f"\n{YELLOW}[orchestration reference-coverage]{NC}")
+    print("  NOTE: reference-coverage is a stub.")
+    print("  A full implementation would run reference suites and report gaps.")
+    print(f"  Requested limit: {getattr(args, 'limit', 100)}")
+    print(f"  Detail: {getattr(args, 'detail', False)}")
+    h.check_skip("reference-coverage (stub)")
+    total, passed, skipped, failed = h.summary()
+    print(f"\n{YELLOW}Summary{NC}")
+    print(f"Total checks: {total}")
+    print(f"Passed: {GREEN}{passed}{NC}")
+    print(f"Skipped: {YELLOW}{skipped}{NC}")
+    print(f"Failed: {RED}{failed}{NC}")
+    return h.exit_code()
+
+
+def cmd_orch_gen_issues(args: argparse.Namespace) -> int:
+    """Stub: generate issues from reference coverage gaps.
+    
+    In a full implementation, this would parse coverage gaps and create issue
+    files under issues/open/ with appropriate frontmatter.
+    """
+    h = Harness(repo_root=_repo_root(), dry_run=args.dry_run)
+    print(f"\n{YELLOW}[orchestration gen-issues]{NC}")
+    print("  NOTE: gen-issues is a stub.")
+    print("  A full implementation would create issue files from coverage gaps.")
+    print(f"  Suite: {getattr(args, 'suite', 'test262')}")
+    h.check_skip("gen-issues (stub)")
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
     print(f"Total checks: {total}")
