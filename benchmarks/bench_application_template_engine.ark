@@ -1,0 +1,54 @@
+// Application benchmark: template engine simulation.
+// Simulates template rendering with {variable} substitution using a
+// HashMap context.  Exercises HashMap<String,String> operations, string
+// manipulation (index_of, substring, concat), recursive resolution of
+// nested variable references, and iteration over multiple templates.
+use std::host::stdio
+
+fn expand(s: String, ctx: HashMap<String, String>) -> String {
+    let start: i32 = index_of(s, "{")
+    if start < 0 {
+        s
+    } else {
+        let end: i32 = index_of(s, "}")
+        if end < 0 || end <= start {
+            s
+        } else {
+            let prefix: String = substring(s, 0, start)
+            let var_name: String = substring(s, start + 1, end)
+            let suffix: String = substring(s, end + 1, len(s))
+            match HashMap_String_String_get(ctx, var_name) {
+                Option::Some(val) => {
+                    let expanded_val: String = expand(val, ctx)
+                    concat(concat(prefix, expanded_val), expand(suffix, ctx))
+                },
+                None => {
+                    concat(concat(prefix, concat("{", concat(var_name, "}"))), expand(suffix, ctx))
+                },
+            }
+        }
+    }
+}
+
+fn main() {
+    // Build variable context
+    let ctx: HashMap<String, String> = HashMap_new_String_String()
+    HashMap_String_String_insert(ctx, "name", "Benchmark")
+    HashMap_String_String_insert(ctx, "greeting", "Hello {name}")
+    HashMap_String_String_insert(ctx, "welcome", "{greeting}, welcome to")
+    HashMap_String_String_insert(ctx, "final", "{welcome} Arukellt!")
+    HashMap_String_String_insert(ctx, "place", "World")
+
+    // Render multiple templates
+    let t1: String = String_from("{final}")
+    let t2: String = String_from("{greeting}, {place}!")
+    let t3: String = String_from("{unknown}")
+    let t4: String = String_from("plain text")
+    let t5: String = String_from("{final} and {greeting}!")
+
+    stdio::println(expand(t1, ctx))
+    stdio::println(expand(t2, ctx))
+    stdio::println(expand(t3, ctx))
+    stdio::println(expand(t4, ctx))
+    stdio::println(expand(t5, ctx))
+}
