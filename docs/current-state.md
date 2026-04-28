@@ -386,5 +386,5 @@ Rust binary. With #583 landed, the `crates/arukellt` shell no longer depends
 on `ark-driver`, `ark-mir`, or `ark-stdlib`. Phase 5 has progressed:
 `crates/ark-driver` was removed in #560, the legacy Rust Wasm emitter crate
 was removed in #562, the T4 LLVM scaffold was removed in #586, and
-`crates/ark-mir` was removed in #561. Remaining Rust core crates
-(`ark-stdlib`, `ark-typecheck`) are tracked by #563 and #564.
+`crates/ark-mir` was removed in #561. `ark-stdlib` was removed in #563.
+Remaining Rust core crate (`ark-typecheck`) is tracked by #564.

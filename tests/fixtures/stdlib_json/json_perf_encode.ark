@@ -1,0 +1,14 @@
+use std::host::stdio
+use std::json
+
+fn main() {
+    // Stress-test json_encode_string with many special characters
+    let s1 = json::json_encode_string("a\"b\\c\nd\te\rf")
+    stdio::println(s1)
+    // Long string with no special chars (tests plain-text batching)
+    let s2 = json::json_encode_string("abcdefghijklmnopqrstuvwxyz")
+    stdio::println(s2)
+    // Empty string
+    let s3 = json::json_encode_string("")
+    stdio::println(s3)
+}

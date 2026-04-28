@@ -1,0 +1,29 @@
+use std::host::stdio
+use std::json
+
+fn main() {
+    // Stress-test json_decode_string via json_as_string with escape sequences
+    match json::parse("\"hello\\nworld\\ttabbed\"") {
+        Result::Ok(v) => {
+            match json::json_as_string(v) {
+                Option::Some(s) => {
+                    stdio::println(i32_to_string(len(s)))
+                    stdio::println(s)
+                },
+                None => stdio::println("not string"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+    // Long string with no escapes (tests plain-text batching)
+    let long = "\"abcdefghijklmnopqrstuvwxyz0123456789\""
+    match json::parse(long) {
+        Result::Ok(v) => {
+            match json::json_as_string(v) {
+                Option::Some(s) => stdio::println(i32_to_string(len(s))),
+                None => stdio::println("not string"),
+            }
+        },
+        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+    }
+}

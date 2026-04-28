@@ -170,6 +170,84 @@ fn rewrite_path_arg(user_cwd: &Path, arg: &str) -> String {
     rewrite_value(user_cwd, arg).unwrap_or_else(|| arg.to_string())
 }
 
+/// Handle `arukellt run <file.ark>` — compile via the selfhost compiler,
+/// then execute the resulting wasm with wasmtime, streaming its output.
+fn cmd_run(run_args: &[String], root: &Path) -> ExitCode {
+    if run_args.is_empty() {
+        eprintln!("arukellt run: missing input file\nUsage: arukellt run <file.ark>");
+        return ExitCode::from(2);
+    }
+    let wasm = match find_selfhost_wasm(root) {
+        Some(p) => p,
+        None => {
+            eprintln!("arukellt: selfhost wasm not found (needed to compile).");
+            return ExitCode::from(127);
+        }
+    };
+    let input_file = &run_args[0];
+    let out_path = {
+        let p = Path::new(input_file);
+        let mut out = p.file_stem().unwrap_or_default().to_os_string();
+        out.push(".wasm");
+        root.join(out)
+    };
+    let user_cwd = env::current_dir().unwrap_or_else(|_| PathBuf::from("/"));
+
+    // Step 1 — compile.  Tell the selfhost compiler to write to a .wasm file.
+    let mut compile_cmd = Command::new("wasmtime");
+    compile_cmd.current_dir("/");
+    compile_cmd.arg("run").arg("--dir=/::/");
+    compile_cmd.arg(format!("--dir={}", root.display()));
+    if let Ok(cwd) = env::current_dir()
+        && cwd.is_dir()
+        && cwd != root
+        && cwd != Path::new("/")
+    {
+        compile_cmd.arg(format!("--dir={}", cwd.display()));
+    }
+    let mut compile_args = vec![
+        "compile".to_string(),
+        rewrite_path_arg(&user_cwd, input_file),
+        "-o".to_string(),
+        rewrite_path_arg(&user_cwd, &out_path.to_string_lossy()),
+        "--emit".to_string(),
+        "wasm".to_string(),
+    ];
+    for arg in &run_args[1..] {
+        compile_args.push(rewrite_path_arg(&user_cwd, arg));
+    }
+    compile_cmd.arg(&wasm).arg("--").args(&compile_args);
+    let compile_status = match compile_cmd.status() {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("arukellt: failed to invoke `wasmtime` for compilation: {e}");
+            return ExitCode::from(127);
+        }
+    };
+    if !compile_status.success() {
+        return ExitCode::from(compile_status.code().unwrap_or(1) as u8);
+    }
+
+    // Step 2 — run the compiled wasm.
+    let mut run_cmd = Command::new("wasmtime");
+    run_cmd.current_dir("/");
+    run_cmd.arg("run").arg("--dir=/::/");
+    run_cmd.arg(rewrite_path_arg(&user_cwd, &out_path.to_string_lossy()));
+    let run_status = match run_cmd.status() {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("arukellt: failed to execute compiled wasm via `wasmtime`: {e}");
+            let _ = std::fs::remove_file(&out_path);
+            return ExitCode::from(127);
+        }
+    };
+    let _ = std::fs::remove_file(&out_path);
+    match classify_child_exit(run_status.code()) {
+        Ok(code) => ExitCode::from(code),
+        Err(reason) => report_ice(&reason),
+    }
+}
+
 fn main() -> ExitCode {
     // Test/diagnostic hook: when set, emit the policy `[BUG]` ICE format
     // and exit with status 101 without launching the selfhost compiler.
@@ -180,6 +258,12 @@ fn main() -> ExitCode {
     }
 
     let args: Vec<String> = env::args().skip(1).collect();
+
+    // Intercept `arukellt run <file>` — two-step compile + execute.
+    if args.first().map(|s| s.as_str()) == Some("run") {
+        return cmd_run(&args[1..], &find_repo_root());
+    }
+
     let root = find_repo_root();
 
     let wasm = match find_selfhost_wasm(&root) {

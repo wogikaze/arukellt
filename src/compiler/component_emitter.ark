@@ -1,0 +1,615 @@
+// Arukellt Selfhost — Wasm Component Binary Emitter
+//
+// Generates deterministic Wasm Component binaries from MIR.
+// Handles component sections, type interning, and core module wrapping.
+use std::host::stdio
+
+// ── Component Section IDs ─────────────────────────────────────────────────────
+fn COMP_SEC_TYPE() -> i32 {
+    1
+}
+
+fn COMP_SEC_IMPORT() -> i32 {
+    2
+}
+
+fn COMP_SEC_EXPORT() -> i32 {
+    3
+}
+
+fn COMP_SEC_COMPONENT() -> i32 {
+    4
+}
+
+fn COMP_SEC_START() -> i32 {
+	8
+}
+
+// ── Component Model Sort Bytes ─────────────────────────────────────────────────
+// Used in type/import/export sections to distinguish core vs component entities.
+fn COMP_SORT_CORE_FUNC() -> i32 {
+	0x00
+}
+
+fn COMP_SORT_CORE_MODULE() -> i32 {
+	0x01
+}
+
+fn COMP_SORT_FUNC() -> i32 {
+	0x40
+}
+
+fn COMP_SORT_INSTANCE() -> i32 {
+	0x42
+}
+
+// ── Component Export/Import Sort Bytes ─────────────────────────────────────────
+fn COMP_EXI_SORT_FUNC() -> i32 {
+	0x00
+}
+
+fn COMP_EXI_SORT_MODULE() -> i32 {
+	0x01
+}
+
+fn COMP_EXI_SORT_INSTANCE() -> i32 {
+	0x02
+}
+
+fn COMP_EXI_SORT_COMPONENT() -> i32 {
+	0x03
+}
+
+fn COMP_EXI_SORT_FUNC_COMP() -> i32 {
+	0x10
+}
+
+// ── Canonical ABI Option Encodings ─────────────────────────────────────────────
+fn COMP_CANON_LIFT() -> i32 {
+	0x00
+}
+
+fn COMP_CANON_LOWER() -> i32 {
+	0x01
+}
+
+fn COMP_CANON_OPTION_UTF8() -> i32 {
+	0x00
+}
+
+fn COMP_CANON_OPTION_UTF16() -> i32 {
+	0x01
+}
+
+fn COMP_CANON_OPTION_LATIN1() -> i32 {
+	0x02
+}
+
+fn COMP_CANON_OPTION_STRING_ENCODING() -> i32 {
+	0x00
+}
+
+fn COMP_CANON_OPTION_MEMORY() -> i32 {
+	0x01
+}
+
+fn COMP_CANON_OPTION_REALLOC() -> i32 {
+	0x02
+}
+
+fn COMP_CANON_OPTION_RETURN_POINTER() -> i32 {
+	0x03
+}
+
+// ── WIT Primitive Value Types ───────────────────────────────────────────────────
+// These are the component-model-level value type encodings (not core wasm types).
+fn WIT_VAL_BOOL() -> i32 {
+	0x7f
+}
+
+fn WIT_VAL_U8() -> i32 {
+	0x7e
+}
+
+fn WIT_VAL_U16() -> i32 {
+	0x7d
+}
+
+fn WIT_VAL_U32() -> i32 {
+	0x7c
+}
+
+fn WIT_VAL_U64() -> i32 {
+	0x7b
+}
+
+fn WIT_VAL_S8() -> i32 {
+	0x7a
+}
+
+fn WIT_VAL_S16() -> i32 {
+	0x79
+}
+
+fn WIT_VAL_S32() -> i32 {
+	0x78
+}
+
+fn WIT_VAL_S64() -> i32 {
+	0x77
+}
+
+fn WIT_VAL_FLOAT32() -> i32 {
+	0x76
+}
+
+fn WIT_VAL_FLOAT64() -> i32 {
+	0x75
+}
+
+fn WIT_VAL_CHAR() -> i32 {
+	0x74
+}
+
+fn WIT_VAL_STRING() -> i32 {
+	0x73
+}
+
+// ── WIT Composite Type Tags ─────────────────────────────────────────────────────
+fn WIT_TAG_LIST() -> i32 {
+	0x72
+}
+
+fn WIT_TAG_RECORD() -> i32 {
+	0x71
+}
+
+fn WIT_TAG_VARIANT() -> i32 {
+	0x70
+}
+
+fn WIT_TAG_FLAGS() -> i32 {
+	0x6f
+}
+
+fn WIT_TAG_TUPLE() -> i32 {
+	0x6e
+}
+
+fn WIT_TAG_OWN() -> i32 {
+	0x6d
+}
+
+fn WIT_TAG_BORROW() -> i32 {
+	0x6c
+}
+
+// ── Component Value Types ─────────────────────────────────────────────────────
+// Component model value type encodings
+fn COMP_VAL_TYPE_I32() -> i32 {
+    0x7f  // i32
+}
+
+fn COMP_VAL_TYPE_I64() -> i32 {
+    0x7e  // i64
+}
+
+fn COMP_VAL_TYPE_F32() -> i32 {
+    0x7d  // f32
+}
+
+fn COMP_VAL_TYPE_F64() -> i32 {
+    0x7c  // f64
+}
+
+fn COMP_VAL_TYPE_BOOL() -> i32 {
+    0x7b  // bool
+}
+
+fn COMP_VAL_TYPE_CHAR() -> i32 {
+    0x7a  // char
+}
+
+// ── Component Canonical Option Encodings ──────────────────────────────────────
+fn COMP_CANON_OPTION_UTF8() -> i32 {
+    0x00
+}
+
+fn COMP_CANON_OPTION_UTF16() -> i32 {
+    0x01
+}
+
+fn COMP_CANON_OPTION_LATIN1() -> i32 {
+    0x02
+}
+
+// ── Component Writer ──────────────────────────────────────────────────────────
+struct ComponentWriter {
+    bytes: Vec<i32>,
+}
+
+fn ComponentWriter_new() -> ComponentWriter {
+    ComponentWriter { bytes: Vec_new_i32() }
+}
+
+fn comp_emit_byte(w: ComponentWriter, b: i32) {
+    push(w.bytes, b % 256)
+}
+
+fn comp_emit_u32_le(w: ComponentWriter, v: i32) {
+    comp_emit_byte(w, v % 256)
+    comp_emit_byte(w, v / 256 % 256)
+    comp_emit_byte(w, v / 65536 % 256)
+    comp_emit_byte(w, v / 16777216 % 256)
+}
+
+fn comp_emit_leb128_u(w: ComponentWriter, v: i32) {
+    let mut val = v
+    if val < 0 {
+        val = 0
+    }
+    let mut done = false
+    while !done {
+        let mut b = val % 128
+        val = val / 128
+        if val != 0 {
+            b = b + 128
+        }
+        comp_emit_byte(w, b)
+        if val == 0 {
+            done = true
+        }
+    }
+}
+
+fn comp_emit_bytes(w: ComponentWriter, src: Vec<i32>) {
+    let count = len(src)
+    let mut i = 0
+    while i < count {
+        let b = get_unchecked(src, i)
+        comp_emit_byte(w, b)
+        i = i + 1
+    }
+}
+
+fn comp_emit_string(w: ComponentWriter, s: String) {
+    let slen = len(s)
+    comp_emit_leb128_u(w, slen)
+    let mut i = 0
+    while i < slen {
+        comp_emit_byte(w, char_at(s, i))
+        i = i + 1
+    }
+}
+
+fn comp_writer_size(w: ComponentWriter) -> i32 {
+    len(w.bytes)
+}
+
+// ── Component Section Writer ──────────────────────────────────────────────────
+fn comp_emit_section(out: ComponentWriter, section_id: i32, contents: ComponentWriter) {
+    comp_emit_byte(out, section_id)
+    comp_emit_leb128_u(out, comp_writer_size(contents))
+    comp_emit_bytes(out, contents.bytes)
+}
+
+// ── Type Interner ──────────────────────────────────────────────────────────────
+// Deduplicates type definitions emitted into the component type section.
+// Uses a flat byte buffer paired with start/end offset arrays to avoid Vec<Vec<i32>>.
+struct TypeInterner {
+	type_data: Vec<i32>,
+	type_starts: Vec<i32>,
+	type_ends: Vec<i32>,
+}
+
+fn TypeInterner_new() -> TypeInterner {
+	TypeInterner { type_data: Vec_new_i32(), type_starts: Vec_new_i32(), type_ends: Vec_new_i32() }
+}
+
+fn type_interner_count(interner: TypeInterner) -> i32 {
+	len(interner.type_starts)
+}
+
+fn type_interner_add(interner: TypeInterner, type_bytes: Vec<i32>) -> i32 {
+	let idx = len(interner.type_starts)
+	let start = len(interner.type_data)
+	let n = len(type_bytes)
+	let mut i = 0
+	while i < n {
+		push(interner.type_data, get_unchecked(type_bytes, i))
+		i = i + 1
+	}
+	push(interner.type_starts, start)
+	push(interner.type_ends, start + n)
+	idx
+}
+
+fn type_interner_emit_section(out: ComponentWriter, interner: TypeInterner) {
+	let tw = ComponentWriter_new()
+	let count = len(interner.type_starts)
+	comp_emit_leb128_u(tw, count)
+	let mut i = 0
+	while i < count {
+		let s = get_unchecked(interner.type_starts, i)
+		let e = get_unchecked(interner.type_ends, i)
+		let mut j = s
+		while j < e {
+			comp_emit_byte(tw, get_unchecked(interner.type_data, j))
+			j = j + 1
+		}
+		i = i + 1
+	}
+	comp_emit_section(out, COMP_SEC_TYPE(), tw)
+}
+
+// ── WIT Type Encoding Helpers ──────────────────────────────────────────────────
+// These emit a single WIT type definition into a temporary ComponentWriter.
+fn comp_core_func_type(param_vts: Vec<i32>, result_vts: Vec<i32>) -> Vec<i32> {
+	let w = ComponentWriter_new()
+	comp_emit_byte(w, COMP_SORT_CORE_FUNC())
+	comp_emit_byte(w, 0x60)
+	comp_emit_leb128_u(w, len(param_vts))
+	let mut i = 0
+	while i < len(param_vts) {
+		comp_emit_byte(w, get_unchecked(param_vts, i))
+		i = i + 1
+	}
+	comp_emit_leb128_u(w, len(result_vts))
+	i = 0
+	while i < len(result_vts) {
+		comp_emit_byte(w, get_unchecked(result_vts, i))
+		i = i + 1
+	}
+	w.bytes
+}
+
+fn comp_component_func_type(param_wit_types: Vec<i32>, result_wit_types: Vec<i32>) -> Vec<i32> {
+	let w = ComponentWriter_new()
+	comp_emit_byte(w, COMP_SORT_FUNC())
+	comp_emit_byte(w, 0x40)
+	comp_emit_leb128_u(w, len(param_wit_types))
+	let mut i = 0
+	while i < len(param_wit_types) {
+		comp_emit_byte(w, get_unchecked(param_wit_types, i))
+		i = i + 1
+	}
+	comp_emit_leb128_u(w, len(result_wit_types))
+	i = 0
+	while i < len(result_wit_types) {
+		comp_emit_byte(w, get_unchecked(result_wit_types, i))
+		i = i + 1
+	}
+	w.bytes
+}
+
+fn comp_wit_string_type() -> Vec<i32> {
+	let w = ComponentWriter_new()
+	comp_emit_byte(w, WIT_VAL_STRING())
+	w.bytes
+}
+
+fn comp_wit_list_type(elem_type_idx: i32) -> Vec<i32> {
+	let w = ComponentWriter_new()
+	comp_emit_byte(w, WIT_TAG_LIST())
+	comp_emit_leb128_u(w, elem_type_idx)
+	w.bytes
+}
+
+fn comp_wit_record_type(names: Vec<String>, type_indices: Vec<i32>) -> Vec<i32> {
+	let w = ComponentWriter_new()
+	comp_emit_byte(w, WIT_TAG_RECORD())
+	let count = len(names)
+	comp_emit_leb128_u(w, count)
+	let mut i = 0
+	while i < count {
+		comp_emit_string(w, get_unchecked(names, i))
+		comp_emit_leb128_u(w, get_unchecked(type_indices, i))
+		i = i + 1
+	}
+	w.bytes
+}
+
+fn comp_wit_variant_type(names: Vec<String>, type_indices: Vec<i32>) -> Vec<i32> {
+	let w = ComponentWriter_new()
+	comp_emit_byte(w, WIT_TAG_VARIANT())
+	let count = len(names)
+	comp_emit_leb128_u(w, count)
+	let mut i = 0
+	while i < count {
+		comp_emit_string(w, get_unchecked(names, i))
+		let ti = get_unchecked(type_indices, i)
+		if ti < 0 {
+			comp_emit_leb128_u(w, 0)
+		} else {
+			comp_emit_leb128_u(w, 1)
+			comp_emit_leb128_u(w, ti)
+		}
+		i = i + 1
+	}
+	w.bytes
+}
+
+fn comp_wit_flags_type(names: Vec<String>) -> Vec<i32> {
+	let w = ComponentWriter_new()
+	comp_emit_byte(w, WIT_TAG_FLAGS())
+	let count = len(names)
+	comp_emit_leb128_u(w, count)
+	let mut i = 0
+	while i < count {
+		comp_emit_string(w, get_unchecked(names, i))
+		i = i + 1
+	}
+	w.bytes
+}
+
+fn comp_wit_tuple_type(elem_type_indices: Vec<i32>) -> Vec<i32> {
+	let w = ComponentWriter_new()
+	comp_emit_byte(w, WIT_TAG_TUPLE())
+	let count = len(elem_type_indices)
+	comp_emit_leb128_u(w, count)
+	let mut i = 0
+	while i < count {
+		comp_emit_leb128_u(w, get_unchecked(elem_type_indices, i))
+		i = i + 1
+	}
+	w.bytes
+}
+
+// ── Import Section Builder ─────────────────────────────────────────────────────
+struct CompImport {
+	name: String,
+	sort: i32,
+	type_idx: i32,
+}
+
+fn CompImport_new(name: String, sort: i32, type_idx: i32) -> CompImport {
+	CompImport { name: name, sort: sort, type_idx: type_idx }
+}
+
+fn comp_emit_import_section(out: ComponentWriter, imports: Vec<CompImport>) {
+	if len(imports) == 0 {
+		return
+	}
+	let w = ComponentWriter_new()
+	comp_emit_leb128_u(w, len(imports))
+	let mut i = 0
+	while i < len(imports) {
+		let imp = get_unchecked(imports, i)
+		comp_emit_string(w, imp.name)
+		comp_emit_byte(w, imp.sort)
+		comp_emit_leb128_u(w, imp.type_idx)
+		i = i + 1
+	}
+	comp_emit_section(out, COMP_SEC_IMPORT(), w)
+}
+
+// ── Export Section Builder ─────────────────────────────────────────────────────
+fn comp_emit_export(out: ComponentWriter, name: String, sort: i32, type_idx: i32) {
+	comp_emit_string(out, name)
+	comp_emit_byte(out, sort)
+	comp_emit_leb128_u(out, type_idx)
+}
+
+// ── Core Module to Component Wrapper ──────────────────────────────────────────
+// Wraps a core Wasm module in a Component binary.
+// This creates a minimal component that:
+// 1. Contains the core module as a nested component
+// 2. Exports the core module's functions as component exports
+// 3. Handles WASI imports appropriately
+pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String) -> Vec<i32> {
+	let out = ComponentWriter_new()
+
+	// Write component magic header: \0asm + component version marker (0x0d)
+	comp_emit_byte(out, 0x00)
+	comp_emit_byte(out, 0x61)  // 'a'
+	comp_emit_byte(out, 0x73)  // 's'
+	comp_emit_byte(out, 0x6d)  // 'm'
+	comp_emit_byte(out, 0x0d)  // component version
+
+	// Count exportable functions
+	let fn_count = len(mir.functions)
+	let mut export_count = 0
+	let mut export_names: Vec<String> = Vec_new_String()
+	let mut export_indices: Vec<i32> = Vec_new_i32()
+	let mut export_type_indices: Vec<i32> = Vec_new_i32()
+
+	let mut mi = 0
+	while mi < fn_count {
+		let f = get_unchecked(mir.functions, mi)
+		// Export all functions except those that start with '__'
+		let name = clone(f.name)
+		let nlen = len(name)
+		if nlen > 2 && char_at(name, 0) == 95 && char_at(name, 1) == 95 {
+			// Skip internal functions
+		} else {
+			push(export_names, name)
+			push(export_indices, mi)
+			export_count = export_count + 1
+		}
+		mi = mi + 1
+	}
+
+	// Build type definitions using the TypeInterner
+	let interner = TypeInterner_new()
+
+	let mut ei = 0
+	while ei < export_count {
+		let idx = get_unchecked(export_indices, ei)
+		let f = get_unchecked(mir.functions, idx)
+
+		// Collect core wasm parameter types
+		let mut param_vts: Vec<i32> = Vec_new_i32()
+		let mut pi = 0
+		while pi < len(f.params) {
+			let param = get_unchecked(f.params, pi)
+			push(param_vts, val_type_to_comp(param.val_type))
+			pi = pi + 1
+		}
+
+		// Collect core wasm result types
+		let mut result_vts: Vec<i32> = Vec_new_i32()
+		if f.return_type != 0 {
+			push(result_vts, val_type_to_comp(f.return_type))
+		}
+
+		// Emit core function type with proper sort byte (0x00)
+		let type_bytes = comp_core_func_type(param_vts, result_vts)
+		let type_idx = type_interner_add(interner, type_bytes)
+		push(export_type_indices, type_idx)
+
+		ei = ei + 1
+	}
+
+	// Emit type section from the interner
+	type_interner_emit_section(out, interner)
+
+	// Component export section
+	let export_sec = ComponentWriter_new()
+	comp_emit_leb128_u(export_sec, export_count)
+
+	let mut ei2 = 0
+	while ei2 < export_count {
+		let name = get_unchecked(export_names, ei2)
+		let type_idx = get_unchecked(export_type_indices, ei2)
+
+		// Export name
+		comp_emit_string(export_sec, name)
+
+		// Export sort: 0x00 = core function
+		comp_emit_byte(export_sec, COMP_EXI_SORT_FUNC())
+
+		// Type index in the component type section
+		comp_emit_leb128_u(export_sec, type_idx)
+
+		ei2 = ei2 + 1
+	}
+
+	comp_emit_section(out, COMP_SEC_EXPORT(), export_sec)
+
+	// Component section containing the core module
+	let component_sec = ComponentWriter_new()
+
+	// Write the core module bytes
+	comp_emit_bytes(component_sec, core_wasm)
+
+	comp_emit_section(out, COMP_SEC_COMPONENT(), component_sec)
+
+	out.bytes
+}
+
+// ── Helper Functions ──────────────────────────────────────────────────────────
+fn val_type_to_comp(val_type: i32) -> i32 {
+    if val_type == 1 {
+        return COMP_VAL_TYPE_I32()
+    }
+    if val_type == 2 {
+        return COMP_VAL_TYPE_I64()
+    }
+    if val_type == 3 {
+        return COMP_VAL_TYPE_F64()
+    }
+    if val_type == 4 {
+        return COMP_VAL_TYPE_I32()
+    }
+    COMP_VAL_TYPE_I32()
+}

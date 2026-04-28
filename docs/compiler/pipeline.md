@@ -75,7 +75,7 @@ compilation therefore falls back to the legacy path.
 - `crates/ark-target`
 - `crates/ark-diagnostics`
 - `crates/ark-driver`
-- `crates/ark-stdlib`
+- ~~`crates/ark-stdlib` (removed in #563)~~
 - LSP (selfhost `src/compiler/lsp.ark`; the Rust `crates/ark-lsp` crate was retired in #572)
 - `crates/arukellt`
 

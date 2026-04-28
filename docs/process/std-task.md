@@ -23,7 +23,7 @@ Rust 実装中心の stdlib を、Arukellt 実装中心の `std/*.ark` へ移し
 - `crates/ark-typecheck/src/checker.rs`
 - `crates/ark-mir/src/lower.rs`
 - `src/compiler/emitter.ark` (selfhost Wasm emitter)
-- `crates/ark-stdlib/src/lib.rs`
+- ~~`crates/ark-stdlib/src/lib.rs` (removed in #563)~~
 - `tests/fixtures/modules/`
 
 ### 設計・計画
@@ -232,7 +232,7 @@ backend が public stdlib 名を直接 special-case しない形へ寄せる。
 - `crates/ark-typecheck/src/checker.rs`
 - `crates/ark-mir/src/lower.rs`
 - `src/compiler/emitter.ark` (selfhost Wasm emitter)
-- `crates/ark-stdlib/src/lib.rs`
+- ~~`crates/ark-stdlib/src/lib.rs` (removed in #563)~~
 
 ### 関連ドキュメント
 

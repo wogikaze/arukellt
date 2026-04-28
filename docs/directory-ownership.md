@@ -23,7 +23,7 @@
 | `crates/ark-diagnostics/` | product | — | Diagnostic codes and messages |
 | `crates/ark-driver/` | product | — | Compilation driver and session |
 | `crates/ark-manifest/` | product | — | `ark.toml` manifest parsing |
-| `crates/ark-stdlib/` | product | — | Stdlib manifest metadata API |
+| ~~`crates/ark-stdlib/`~~ | ~~product~~ | — | ~~Stdlib manifest metadata API (removed in #563)~~ |
 | `std/` | product | — | Standard library source and manifest |
 | `std/manifest.toml` | product | — | Canonical stdlib API definition |
 | `src/compiler/` | product | — | Selfhost compiler sources (`.ark`) |

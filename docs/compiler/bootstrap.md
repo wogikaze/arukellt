@@ -407,7 +407,7 @@ All Rust crates currently in the workspace will be deleted once their Arukellt e
 | `ark-driver` | Pipeline orchestration | Selfhost `driver.ark` equivalent passes parity |
 | MIR (removed in #561) | Mid-level IR and lowering | Selfhost `mir.ark` is now sole MIR/lowering authority |
 | Wasm emitter (removed in #562) | Wasm binary emitter | Selfhost `emitter.ark` is now sole producer |
-| `ark-stdlib` | Stdlib binary embedding | Selfhost equivalent passes parity |
+| ~~`ark-stdlib` (removed in #563)~~ | ~~Stdlib binary embedding~~ | ~~Removed — no longer needed~~ |
 | `arukellt` | CLI binary | Selfhost `main.ark` passes parity |
 | `ark-lexer` | Tokenizer | Arukellt lexer supports IDE-grade error recovery |
 | `ark-parser` | Parser | Arukellt parser supports IDE-grade error recovery |

@@ -1,0 +1,16 @@
+use std::host::stdio
+use std::csv
+
+fn main() {
+    // Test csv_count_rows with one-pass scan
+    let data = "a,b,c\nd,e,f\ng,h,i\n"
+    stdio::println(i32_to_string(csv::csv_count_rows(data)))
+    // Empty lines should be skipped
+    let data2 = "a,b\n\nc,d\n\ne,f\n"
+    stdio::println(i32_to_string(csv::csv_count_rows(data2)))
+    // Test csv_get_row_raw
+    let data3 = "h1,h2,h3\nv1,v2,v3\nv4,v5,v6\n"
+    stdio::println(csv::csv_get_row_raw(data3, 0))
+    stdio::println(csv::csv_get_row_raw(data3, 1))
+    stdio::println(csv::csv_get_row_raw(data3, 2))
+}

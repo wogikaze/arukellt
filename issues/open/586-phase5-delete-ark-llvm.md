@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: closed (filesystem deletion already applied)
 Created: 2026-04-23
 Updated: 2026-04-23
 ID: 586
@@ -12,17 +12,6 @@ Blocks v5: no
 Source: "#529 Phase 5 — T4 native LLVM backend scaffold (last live Rust consumer of `ark_mir` outside `ark-wasm`)."
 Implementation target: "Per #529 Phase 5, this issue removes exactly one Rust crate (`crates/ark-llvm`). No Ark product code is added or changed; this is retirement work scoped to a single crate."
 ---
-
-# 586 — Phase 5: Delete `crates/ark-llvm`
-`crates/ark-llvm` is the T4 (native/LLVM) backend scaffold. Per `docs/current-state.md`, T4 is documented as "scaffold: "ark-llvm exists, requires LLVM 18, no test infrastructure" and is excluded from default verification (`cargo test --workspace --exclude ark-llvm`, `.github/workflows/ci.yml` exclusion, `scripts/gate_domain/checks.py:135-137,364-366`)."
-- `selfhost fixpoint`: "rc=0 (skipped — same)"
-- `selfhost fixture-parity`: "PASS=0 FAIL=0 SKIP=364 (identical)"
-- `selfhost parity --mode --cli`: "PASS=1 FAIL=0 (identical)"
-- `selfhost diag-parity`: "1 check passed (identical)"
-- `manager.py verify`: "15 passed / 4 failed (identical — same 4"
-- `cargo check --workspace`: "rc=0 (clean workspace, no `--exclude`"
-# 586 — Phase 5: Delete `crates/ark-llvm`
-
 
 ## Summary
 

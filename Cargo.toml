@@ -7,7 +7,6 @@ members = [
     "crates/ark-typecheck",
     "crates/ark-hir",
     "crates/ark-diagnostics",
-    "crates/ark-stdlib",
     "crates/ark-target",
     "crates/ark-manifest",
     "crates/arukellt",
@@ -20,7 +19,6 @@ default-members = [
     "crates/ark-typecheck",
     "crates/ark-hir",
     "crates/ark-diagnostics",
-    "crates/ark-stdlib",
     "crates/ark-target",
     "crates/ark-manifest",
     "crates/arukellt",
@@ -40,7 +38,6 @@ ark-typecheck = { path = "crates/ark-typecheck" }
 ark-hir = { path = "crates/ark-hir" }
 ark-diagnostics = { path = "crates/ark-diagnostics" }
 ark-target = { path = "crates/ark-target" }
-ark-stdlib = { path = "crates/ark-stdlib" }
 ark-manifest = { path = "crates/ark-manifest" }
 ark-playground-wasm = { path = "crates/ark-playground-wasm" }
 

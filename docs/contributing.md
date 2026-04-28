@@ -59,7 +59,7 @@ crates/
   ark-target/       # target registry + backend planning
   ark-diagnostics/  # diagnostics registry + rendering
   ark-driver/       # session / orchestration
-  ark-stdlib/       # stdlib support crate
+  # ark-stdlib/     # stdlib support crate (removed in #563)
   arukellt/         # CLI entry point
   # (Rust ark-lsp removed in #572; selfhost LSP via `arukellt lsp` →
   #  src/compiler/lsp.ark)

@@ -78,14 +78,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ark-stdlib"
-version = "0.1.0"
-dependencies = [
- "serde",
- "toml",
-]
-
-[[package]]
 name = "ark-target"
 version = "0.1.0"
 
