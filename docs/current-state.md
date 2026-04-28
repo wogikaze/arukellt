@@ -221,7 +221,7 @@ v2 (Component Model) implementation is complete as of 2026-03-28.
 ### Known v2 carry-over limitations
 
 - `--emit component` / `--emit all` require external `wasm-tools` on `PATH` (also probed under `~/.cargo/bin`). The driver runs `wasm-tools component embed` then `wasm-tools component new`; unless `--wasi-version p2` / `--p2-native` is used, `component new` links the **WASI Preview 1** adapter when a matching adapter module is found (reactor/command `.wasm`, or `ARK_WASI_ADAPTER`).
-- **WASI Preview 2 native components** (core Wasm imports `wasi:cli/*` etc. directly, no Preview 1 adapter — [issue 074](../issues/open/074-wasi-p2-native-component.md)) are **deferred to v5+** pending WASI P2 runtime maturity. Today, `--wasi-version p2` only skips the adapter in `wasm-tools` while the T3 core module still uses `wasi_snapshot_preview1` imports (`W0009`; import-table work: [issue 510](../issues/open/510-t3-p2-import-table-switch.md)).
+- **WASI Preview 2 native components** (core Wasm imports `wasi:cli/*` etc. directly, no Preview 1 adapter — [issue 074](../issues/open/074-wasi-p2-native-component.md)) are **deferred to v5+** pending WASI P2 runtime maturity. Today, `--wasi-version p2` only skips the adapter in `wasm-tools` while the T3 core module still uses `wasi_snapshot_preview1` imports (`W0009`; import-table work: [issue 510](../issues/done/510-t3-p2-import-table-switch.md)).
 - Component output is still T3-only: use `--target wasm32-wasi-p2` for `--emit component`, `--emit wit`, and `--emit all`
 - string/list/complex canonical ABI lift-lower coverage is not complete for every case
 - async Component Model features are not supported

@@ -116,5 +116,5 @@ Removal is not date-driven alone. It is blocked by [../../issues/open/508-legacy
 - [legacy-path-status.md](legacy-path-status.md)
 - [pipeline.md](pipeline.md)
 - [ir-spec.md](ir-spec.md)
-- [../../issues/open/285-legacy-path-deprecation.md](../../issues/open/285-legacy-path-deprecation.md)
+- [../../issues/done/285-legacy-path-deprecation.md](../../issues/done/285-legacy-path-deprecation.md)
 - [../../issues/open/508-legacy-path-removal-unblocked-by.md](../../issues/open/508-legacy-path-removal-unblocked-by.md)

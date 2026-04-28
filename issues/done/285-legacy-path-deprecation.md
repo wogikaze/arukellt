@@ -39,7 +39,7 @@ falls through to `lower_corehir_via_legacy` → `lower_hir_fallback`.
 - Re-run acceptance: all fixtures pass with no legacy path; then remove deprecated
   legacy entrypoints per `docs/compiler/legacy-path-migration.md`.
 
-**Blocker history:** [#508 — `issues/open/508-legacy-path-removal-unblocked-by.md`](508-legacy-path-removal-unblocked-by.md)
+**Blocker history:** [#508 — `issues/open/508-legacy-path-removal-unblocked-by.md`](../open/508-legacy-path-removal-unblocked-by.md)
 previously held the fallback-removal work. As of 2026-04-22 / ADR-028, that
 work is re-scoped under #529 and no longer makes #285 the active compiler
 implementation blocker.

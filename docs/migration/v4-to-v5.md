@@ -108,4 +108,3 @@ See [Bootstrap Documentation](../compiler/bootstrap.md) and [Current State](../c
 
 - [Bootstrap Documentation](../compiler/bootstrap.md)
 - [Current State](../current-state.md)
-- [CHANGELOG](../../CHANGELOG.md)
