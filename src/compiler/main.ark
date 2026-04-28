@@ -9,6 +9,7 @@ use std::host::process
 use std::host::stdio
 
 use driver
+use diagnostics
 use analysis
 use lsp
 fn CMD_PARSE() -> i32 {
@@ -330,18 +331,33 @@ fn format_error_phased(file: String, phase: i32, msg: String) -> String {
     concat(clone(file), concat(String_from(": "), concat(phase_error_tag(phase), msg)))
 }
 
-fn format_error_json(file: String, phase: i32, messages: Vec<String>) -> String {
+fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnostic>) -> String {
     let mut out = String_from("{\"file\":\"")
     out = concat(out, concat(clone(file), String_from("\",\"phase\":")))
     out = concat(out, concat(to_string(phase), String_from(",\"diagnostics\":[")))
-    let count = len(messages)
+    let count = len(diagnostics_vec)
     let mut i = 0
     while i < count {
         if i > 0 {
             out = concat(out, String_from(","))
         }
-        let msg = get_unchecked(messages, i)
-        out = concat(out, concat(String_from("{\"severity\":\"error\",\"message\":\""), concat(clone(msg), String_from("\"}"))))
+        let d = get_unchecked(diagnostics_vec, i)
+        out = concat(out, String_from("{\"code\":\""))
+        out = concat(out, clone(d.code))
+        out = concat(out, String_from("\",\"severity\":\"error\""))
+        out = concat(out, String_from(",\"span\":{\"file\":\""))
+        out = concat(out, clone(d.span.file))
+        out = concat(out, String_from("\",\"line\":"))
+        out = concat(out, i32_to_string(d.span.line))
+        out = concat(out, String_from(",\"col\":"))
+        out = concat(out, i32_to_string(d.span.column))
+        out = concat(out, String_from(",\"start\":"))
+        out = concat(out, i32_to_string(d.span.start))
+        out = concat(out, String_from(",\"end\":"))
+        out = concat(out, i32_to_string(d.span.end))
+        out = concat(out, String_from("},\"message\":\""))
+        out = concat(out, clone(d.message))
+        out = concat(out, String_from("\"}"))
         i = i + 1
     }
     out = concat(out, String_from("]}"))
@@ -443,7 +459,7 @@ fn cmd_compile(opts: CliOptions) {
         }
     } else {
         if json_mode {
-            stdio::println(format_error_json(clone(input_file), result.phase_reached, result.error_messages))
+            stdio::println(format_error_json(clone(input_file), result.phase_reached, result.diagnostics))
         } else {
             let err_count = len(result.error_messages)
             let mut i = 0
