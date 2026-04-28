@@ -11,7 +11,7 @@
 > picture.
 
 **Updated**: 2026-04-18
-**Related issue**: [issues/open/285-legacy-path-deprecation.md](../../issues/open/285-legacy-path-deprecation.md)
+**Related issue**: [issues/done/285-legacy-path-deprecation.md](../../issues/done/285-legacy-path-deprecation.md)
 **Blocker issue**: [issues/open/508-legacy-path-removal-unblocked-by.md](../../issues/open/508-legacy-path-removal-unblocked-by.md)
 **Migration guide**: [legacy-path-migration.md](legacy-path-migration.md)
 
