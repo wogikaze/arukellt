@@ -306,6 +306,53 @@ fn Token_float(val: f64, text: String, start: i32, end: i32) -> Token {
     Token { kind: TK_FLOAT(), text: text, int_val: 0, float_val: val, start: start, end: end }
 }
 
+// ── Diagnostic ───────────────────────────────────────────────────────────────
+// Structured diagnostic for IDE consumers. Error codes use the frontend
+// phase lexer-reserved range 1..=10.
+fn LEX_E_UNTERMINATED_STRING() -> i32 {
+    1
+}
+
+fn LEX_E_UNTERMINATED_CHAR() -> i32 {
+    2
+}
+
+fn LEX_E_UNTERMINATED_FSTRING() -> i32 {
+    3
+}
+
+fn LEX_E_UNTERMINATED_ESCAPE() -> i32 {
+    4
+}
+
+fn LEX_E_INVALID_NUMBER() -> i32 {
+    5
+}
+
+fn LEX_E_UNKNOWN_CHAR() -> i32 {
+    6
+}
+
+struct Diagnostic {
+    code: i32,
+    message: String,
+    start: i32,
+    end: i32,
+}
+
+fn Diagnostic_new(code: i32, message: String, start: i32, end: i32) -> Diagnostic {
+    Diagnostic { code: code, message: message, start: start, end: end }
+}
+
+struct LexResult {
+    tokens: Vec<Token>,
+    diagnostics: Vec<Diagnostic>,
+}
+
+fn LexResult_new(tokens: Vec<Token>, diagnostics: Vec<Diagnostic>) -> LexResult {
+    LexResult { tokens: tokens, diagnostics: diagnostics }
+}
+
 // ── Lexer State ──────────────────────────────────────────────────────────────
 struct Lexer {
     src: String,
@@ -977,6 +1024,54 @@ pub fn tokenize(source: String) -> Vec<Token> {
         }
     }
     tokens
+}
+
+// ── Lex Program (with diagnostics) ──────────────────────────────────────────
+// Public entry point for IDE consumers. Returns both the token stream and
+// a vector of structured diagnostics. Does NOT abort on recoverable lexical
+// errors — each recoverable error produces both a TK_ERROR token (so the
+// driver's error tally still works) and a diagnostic with an error code.
+pub fn lex_program(source: String) -> LexResult {
+    let tokens = tokenize(source)
+    let mut diagnostics: Vec<Diagnostic> = Vec_new_Diagnostic()
+    let count = len(tokens)
+    let mut i = 0
+    while i < count {
+        let tok = get_unchecked(tokens, i)
+        if tok.kind == TK_ERROR() {
+            let code = classify_lex_error(tok)
+            let msg = clone(tok.text)
+            push(diagnostics, Diagnostic_new(code, msg, tok.start, tok.end))
+        }
+        i = i + 1
+    }
+    LexResult_new(tokens, diagnostics)
+}
+
+/// Classify a TK_ERROR token into a structured diagnostic code based on
+/// the error text embedded in the token.
+fn classify_lex_error(tok: Token) -> i32 {
+    let text = clone(tok.text)
+    let first = if len(text) > 0 { char_at(text, 0) } else { 0 }
+    // Single unrecognized characters -> LEX_E_UNKNOWN_CHAR
+    if len(text) == 1 && first != 0 {
+        return LEX_E_UNKNOWN_CHAR()
+    }
+    if eq(clone(text), String_from("unterminated string")) {
+        return LEX_E_UNTERMINATED_STRING()
+    }
+    if eq(clone(text), String_from("unterminated char literal")) {
+        return LEX_E_UNTERMINATED_CHAR()
+    }
+    if eq(clone(text), String_from("unterminated f-string")) {
+        return LEX_E_UNTERMINATED_FSTRING()
+    }
+    if eq(clone(text), String_from("unterminated escape")) {
+        return LEX_E_UNTERMINATED_ESCAPE()
+    }
+    // Any remaining TK_ERROR tokens are either invalid number literals
+    // or other unresolvable lexical content.
+    LEX_E_INVALID_NUMBER()
 }
 
 // ── Token Display Helpers ────────────────────────────────────────────────────
