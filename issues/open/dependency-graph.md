@@ -27,10 +27,10 @@ graph LR
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I506["506 506 — Placeholder"]
   I507["507 507 — Placeholder"]
+  I508["508 508-legacy-path-removal-unblocked-by"]
   I509["509 509 — Placeholder"]
   I520["520 Stdlib: allocation / complexity / perf footgun を family 横断で監査する"]
   I529["529 100% selfhost transition plan"]
-  I538["538 538 — Benchmark: real-world workloads"]
   I546["546 Release: Binary Smoke Tests"]
   I547["547 Release: Determinism Check"]
   I548["548 Release: LSP E2E Tests"]
@@ -52,7 +52,7 @@ graph LR
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
   I591["591 Optimization Uplift Plan (Compile / Run / Size) (Operational Guide)"]
   I592["592 Error Handling Convergence Plan (Operational Guide)"]
-  I593["593 Selfhost Phase 1: Multi-File Fixpoint"]
+  I594["594 Selfhost Phase 2: Fixture and Diagnostic Parity"]
   I595["595 595-lang-uplift-multiclauses"]
   I598["598 598-lang-uplift-comprehensions"]
   I600["600 Type System Stage-Up: Soundness Floor"]
@@ -61,7 +61,6 @@ graph LR
   I607["607 Stdlib Baseline: Collections Hash Hardening"]
   I610["610 Optimization Uplift: Lowering Bottleneck Reduction"]
   I611["611 Optimization Uplift: T3-Safe Runtime Unlock"]
-  I613["613 Error Handling Convergence: Stdlib Result Surface"]
   I614["614 Error Handling Convergence: Compiler Structured Diagnostics"]
   I616["616 Selfhost compiler: Implement component emission infrastructure"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
@@ -74,8 +73,6 @@ graph LR
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I617["617 Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)"]
   I564["564 564 — Phase 5: Delete `crates/arukellt`"]
-  I508["508 508-legacy-path-removal-unblocked-by"]
-  I594["594 Selfhost Phase 2: Fixture and Diagnostic Parity"]
   I596["596 596-lang-uplift-guards"]
   I597["597 Language Surface Uplift: Real `where` Clauses"]
   I601["601 Type System Stage-Up: Type Schemes and Controlled Let-Generalization"]
@@ -106,8 +103,6 @@ graph LR
   I529 --> I617
   I561 --> I564
   I563 --> I564
-  I593 --> I508
-  I593 --> I594
   I595 --> I596
   I595 --> I597
   I600 --> I601
@@ -176,10 +171,10 @@ graph LR
 - **476** depends on: 035, done), 074; blocks: none
 - **506** depends on: none; blocks: none
 - **507** depends on: none; blocks: none
+- **508** depends on: 593; blocks: none
 - **509** depends on: none; blocks: none
 - **520** depends on: none; blocks: none
 - **529** depends on: none; blocks: 617
-- **538** depends on: none; blocks: none
 - **546** depends on: none; blocks: none
 - **547** depends on: none; blocks: none
 - **548** depends on: none; blocks: none
@@ -201,7 +196,7 @@ graph LR
 - **590** depends on: none; blocks: none
 - **591** depends on: none; blocks: none
 - **592** depends on: none; blocks: none
-- **593** depends on: none; blocks: 508, 594
+- **594** depends on: 593; blocks: none
 - **595** depends on: none; blocks: 596, 597, 599
 - **598** depends on: none; blocks: 599
 - **600** depends on: none; blocks: 601
@@ -210,7 +205,6 @@ graph LR
 - **607** depends on: 604; blocks: 608
 - **610** depends on: 609; blocks: none
 - **611** depends on: 609; blocks: 612
-- **613** depends on: none; blocks: none
 - **614** depends on: none; blocks: none
 - **616** depends on: none; blocks: 28
 - **62** depends on: 074, 510; blocks: 543
@@ -223,8 +217,6 @@ graph LR
 - **485** depends on: 475; blocks: none
 - **617** depends on: 529; blocks: none
 - **564** depends on: 559, 560, 561, 562, 563; blocks: 574, 575, 576, 577, 578, 579, 580, 581
-- **508** depends on: 593; blocks: none
-- **594** depends on: 593; blocks: none
 - **596** depends on: 595; blocks: 599
 - **597** depends on: 595; blocks: 599
 - **601** depends on: 600; blocks: 602, 603

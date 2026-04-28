@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-28T05:47:06Z",
+  "generated_at": "2026-04-28T12:55:44Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -530,6 +530,30 @@
       }
     },
     {
+      "id": "508",
+      "path": "508-legacy-path-removal-unblocked-by.md",
+      "title": "508-legacy-path-removal-unblocked-by",
+      "track": "corehir",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "593"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "509",
       "path": "509-placeholder-placeholder.md",
       "title": "509 — Placeholder",
@@ -595,28 +619,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "538",
-      "path": "538-bench-real-world-workloads.md",
-      "title": "538 — Benchmark: real-world workloads",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {
@@ -1094,9 +1096,9 @@
       }
     },
     {
-      "id": "593",
-      "path": "593-selfhost-phase1-multi-file-fixpoint.md",
-      "title": "Selfhost Phase 1: Multi-File Fixpoint",
+      "id": "594",
+      "path": "594-selfhost-phase2-fixture-diag-parity.md",
+      "title": "Selfhost Phase 2: Fixture and Diagnostic Parity",
       "track": "selfhost",
       "status": "open",
       "blocks_v1": "none",
@@ -1104,17 +1106,16 @@
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "508",
-        "594"
+      "depends_on": [
+        "593"
       ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },
@@ -1317,28 +1318,6 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "613",
-      "path": "613-errhandle-stdlib-result-surface.md",
-      "title": "Error Handling Convergence: Stdlib Result Surface",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": null
       }
     },
@@ -1652,54 +1631,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "508",
-      "path": "508-legacy-path-removal-unblocked-by.md",
-      "title": "508-legacy-path-removal-unblocked-by",
-      "track": "corehir",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "593"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "594",
-      "path": "594-selfhost-phase2-fixture-diag-parity.md",
-      "title": "Selfhost Phase 2: Fixture and Diagnostic Parity",
-      "track": "selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "593"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
       }
     },
     {

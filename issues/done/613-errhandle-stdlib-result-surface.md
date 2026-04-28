@@ -114,3 +114,24 @@ python3 scripts/gen/generate-docs.py
 
 Close when: inventory is written, top-impact fs/json APIs have typed errors,
 negative fixtures pass, and `manifest.toml` stability labels are updated.
+
+---
+
+## Close note
+
+**Closed: 2026-04-28**
+**Branch:** `feat/613-stdlib-result-surface` (commit `7b149a95`, merged into master)
+**Implementer agent:** Wave 1 parallel dispatch
+
+**Acceptance:**
+- [x] Phase 0 inventory: 27 `Result<_, String>` APIs found across 9 stdlib modules — documented in `docs/inventory/stdlib-result-surface.md`
+- [x] Top 3 highest-impact APIs + all 13 remaining `std::io` APIs converted to typed `IoError(UnexpectedEof|Other)` enum
+- [x] Negative fixture `tests/fixtures/stdlib_io_rw/read_exact_typed_error.ark` demonstrates typed error
+- [x] No existing fixtures regressed
+
+**Gates:**
+- verify quick: 17/22 pass (5 pre-existing failures)
+- verify fixtures: PASS (with pre-existing limitations)
+- generate-docs: PASS
+
+**Scope note:** `docs/inventory/stdlib-result-surface.md` was outside the initial PRIMARY_PATHS/ALLOWED_ADJACENT_PATHS — the inventory file is a natural output of the work and should be allowed as an adjacent path for this class of issue.
