@@ -1,430 +1,515 @@
+// Arukellt Selfhost — HIR (High-level Intermediate Representation)
+//
+// Typed AST representation produced by the typechecker.
+// Each node carries resolved type information.
 use std::host::stdio
+
 fn TY_UNKNOWN() -> i32 {
-0
+    0
 }
+
 fn TY_I32() -> i32 {
-1
+    1
 }
+
 fn TY_I64() -> i32 {
-2
+    2
 }
+
 fn TY_F64() -> i32 {
-3
+    3
 }
+
 fn TY_BOOL() -> i32 {
-4
+    4
 }
+
 fn TY_STRING() -> i32 {
-5
+    5
 }
+
 fn TY_CHAR() -> i32 {
-6
+    6
 }
+
 fn TY_UNIT() -> i32 {
-7
+    7
 }
+
 fn TY_NEVER() -> i32 {
-8
+    8
 }
+
 fn TY_VEC() -> i32 {
-10
+    10
 }
+
 fn TY_OPTION() -> i32 {
-11
+    11
 }
+
 fn TY_RESULT() -> i32 {
-12
+    12
 }
+
 fn TY_HASHMAP() -> i32 {
-13
+    13
 }
+
 fn TY_FN() -> i32 {
-20
+    20
 }
+
 fn TY_STRUCT() -> i32 {
-21
+    21
 }
+
 fn TY_ENUM() -> i32 {
-22
+    22
 }
+
 fn TY_TUPLE() -> i32 {
-23
+    23
 }
+
 fn TY_TYPE_VAR() -> i32 {
-30
+    30
 }
+
 fn TY_TRAIT() -> i32 {
-31
+    31
 }
+
+// ── Type Representation ──────────────────────────────────────────────────────
 struct HirType {
-tag: i32,
-name: String,
-type_args: Vec<HirType>,
-param_types: Vec<HirType>,
-return_type_tag: i32,
+    tag: i32,
+    name: String,
+    type_args: Vec<HirType>,
+    param_types: Vec<HirType>,
+    return_type_tag: i32,
 }
+
 fn HirType_simple(tag: i32) -> HirType {
-HirType { tag: tag, name: String_new(), type_args: Vec_new_HirType(), param_types: Vec_new_HirType(), return_type_tag: TY_UNKNOWN() }
+    HirType { tag: tag, name: String_new(), type_args: Vec_new_HirType(), param_types: Vec_new_HirType(), return_type_tag: TY_UNKNOWN() }
 }
+
 fn HirType_named(tag: i32, name: String) -> HirType {
-HirType { tag: tag, name: name, type_args: Vec_new_HirType(), param_types: Vec_new_HirType(), return_type_tag: TY_UNKNOWN() }
+    HirType { tag: tag, name: name, type_args: Vec_new_HirType(), param_types: Vec_new_HirType(), return_type_tag: TY_UNKNOWN() }
 }
+
 fn type_name(ty: HirType) -> String {
-if ty.tag == TY_I32() {
-return String_from("i32")
+    if ty.tag == TY_I32() {
+        return String_from("i32")
+    }
+    if ty.tag == TY_I64() {
+        return String_from("i64")
+    }
+    if ty.tag == TY_F64() {
+        return String_from("f64")
+    }
+    if ty.tag == TY_BOOL() {
+        return String_from("bool")
+    }
+    if ty.tag == TY_STRING() {
+        return String_from("String")
+    }
+    if ty.tag == TY_CHAR() {
+        return String_from("char")
+    }
+    if ty.tag == TY_UNIT() {
+        return String_from("()")
+    }
+    if ty.tag == TY_NEVER() {
+        return String_from("!")
+    }
+    if ty.tag == TY_VEC() {
+        let c = len(ty.type_args)
+        if c > 0 {
+            let elem = get_unchecked(ty.type_args, 0)
+            return concat(String_from("Vec<"), concat(type_name(elem), String_from(">")))
+        }
+        return String_from("Vec")
+    }
+    if ty.tag == TY_OPTION() {
+        let c = len(ty.type_args)
+        if c > 0 {
+            let elem = get_unchecked(ty.type_args, 0)
+            return concat(String_from("Option<"), concat(type_name(elem), String_from(">")))
+        }
+        return String_from("Option")
+    }
+    if ty.tag == TY_RESULT() {
+        return String_from("Result")
+    }
+    if ty.tag == TY_FN() {
+        return String_from("fn")
+    }
+    if ty.tag == TY_STRUCT() {
+        return clone(ty.name)
+    }
+    if ty.tag == TY_ENUM() {
+        return clone(ty.name)
+    }
+    if ty.tag == TY_TYPE_VAR() {
+        return concat(String_from("?"), clone(ty.name))
+    }
+    if ty.tag == TY_TRAIT() {
+        return clone(ty.name)
+    }
+    String_from("unknown")
 }
-if ty.tag == TY_I64() {
-return String_from("i64")
-}
-if ty.tag == TY_F64() {
-return String_from("f64")
-}
-if ty.tag == TY_BOOL() {
-return String_from("bool")
-}
-if ty.tag == TY_STRING() {
-return String_from("String")
-}
-if ty.tag == TY_CHAR() {
-return String_from("char")
-}
-if ty.tag == TY_UNIT() {
-return String_from("()")
-}
-if ty.tag == TY_NEVER() {
-return String_from("!")
-}
-if ty.tag == TY_VEC() {
-let c = len(ty.type_args)
-if c > 0 {
-let elem = get_unchecked(ty.type_args, 0)
-return concat(String_from("Vec<"), concat(type_name(elem), String_from(">")))
-}
-return String_from("Vec")
-}
-if ty.tag == TY_OPTION() {
-let c = len(ty.type_args)
-if c > 0 {
-let elem = get_unchecked(ty.type_args, 0)
-return concat(String_from("Option<"), concat(type_name(elem), String_from(">")))
-}
-return String_from("Option")
-}
-if ty.tag == TY_RESULT() {
-return String_from("Result")
-}
-if ty.tag == TY_FN() {
-return String_from("fn")
-}
-if ty.tag == TY_STRUCT() {
-return clone(ty.name)
-}
-if ty.tag == TY_ENUM() {
-return clone(ty.name)
-}
-if ty.tag == TY_TYPE_VAR() {
-return concat(String_from("?"), clone(ty.name))
-}
-if ty.tag == TY_TRAIT() {
-return clone(ty.name)
-}
-String_from("unknown")
-}
+
 fn types_equal(a: HirType, b: HirType) -> bool {
-if a.tag != b.tag {
-return false
+    if a.tag != b.tag {
+        return false
+    }
+    if a.tag == TY_STRUCT() || a.tag == TY_ENUM() {
+        if !eq(clone(a.name), clone(b.name)) {
+            return false
+        }
+    }
+    let ac = len(a.type_args)
+    let bc = len(b.type_args)
+    if ac != bc {
+        return false
+    }
+    let mut i = 0
+    while i < ac {
+        let ta = get_unchecked(a.type_args, i)
+        let tb = get_unchecked(b.type_args, i)
+        if !types_equal(ta, tb) {
+            return false
+        }
+        i = i + 1
+    }
+    true
 }
-if a.tag == TY_STRUCT() || a.tag == TY_ENUM() {
-if !eq(clone(a.name), clone(b.name)) {
-return false
-}
-}
-let ac = len(a.type_args)
-let bc = len(b.type_args)
-if ac != bc {
-return false
-}
-let mut i = 0
-while i < ac {
-let ta = get_unchecked(a.type_args, i)
-let tb = get_unchecked(b.type_args, i)
-if !types_equal(ta, tb) {
-return false
-}
-i = i + 1
-}
-true
-}
+
+// ── HIR Expression Tags ─────────────────────────────────────────────────────
 fn HIR_INT_LIT() -> i32 {
-1
+    1
 }
+
 fn HIR_FLOAT_LIT() -> i32 {
-2
+    2
 }
+
 fn HIR_STRING_LIT() -> i32 {
-3
+    3
 }
+
 fn HIR_BOOL_LIT() -> i32 {
-4
+    4
 }
+
 fn HIR_IDENT() -> i32 {
-5
+    5
 }
+
 fn HIR_BINARY() -> i32 {
-6
+    6
 }
+
 fn HIR_UNARY() -> i32 {
-7
+    7
 }
+
 fn HIR_CALL() -> i32 {
-8
+    8
 }
+
 fn HIR_FIELD() -> i32 {
-9
+    9
 }
+
 fn HIR_INDEX() -> i32 {
-10
+    10
 }
+
 fn HIR_STRUCT_LIT() -> i32 {
-11
+    11
 }
+
 fn HIR_IF() -> i32 {
-12
+    12
 }
+
 fn HIR_MATCH() -> i32 {
-13
+    13
 }
+
 fn HIR_BLOCK() -> i32 {
-14
+    14
 }
+
 fn HIR_ASSIGN() -> i32 {
-15
+    15
 }
+
 fn HIR_METHOD() -> i32 {
-16
+    16
 }
+
 fn HIR_LET() -> i32 {
-30
+    30
 }
+
 fn HIR_RETURN() -> i32 {
-31
+    31
 }
+
 fn HIR_WHILE() -> i32 {
-32
+    32
 }
+
 fn HIR_LOOP() -> i32 {
-33
+    33
 }
+
 fn HIR_FOR() -> i32 {
-34
+    34
 }
+
 fn HIR_EXPR_STMT() -> i32 {
-35
+    35
 }
+
 fn HIR_BREAK() -> i32 {
-36
+    36
 }
+
 fn HIR_CONTINUE() -> i32 {
-37
+    37
 }
+
+// ── HIR Node ─────────────────────────────────────────────────────────────────
 struct HirNode {
-tag: i32,
-ty: HirType,
-text: String,
-int_val: i32,
-float_val: f64,
-op: i32,
-children: Vec<HirNode>,
-is_mut: bool,
-scope_id: i32,
+    tag: i32,
+    ty: HirType,
+    text: String,
+    int_val: i32,
+    float_val: f64,
+    op: i32,
+    children: Vec<HirNode>,
+    is_mut: bool,
+    scope_id: i32,
 }
+
 fn HirNode_new(tag: i32, ty: HirType) -> HirNode {
-HirNode { tag: tag, ty: ty, text: String_new(), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_HirNode(), is_mut: false, scope_id: 0 }
+    HirNode { tag: tag, ty: ty, text: String_new(), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_HirNode(), is_mut: false, scope_id: 0 }
 }
+
+// ── HIR Function ─────────────────────────────────────────────────────────────
 struct HirParam {
-name: String,
-ty: HirType,
+    name: String,
+    ty: HirType,
 }
+
 struct HirFunction {
-name: String,
-params: Vec<HirParam>,
-type_params: Vec<HirTypeParam>,
-return_type: HirType,
-body: HirNode,
-is_pub: bool,
+    name: String,
+    params: Vec<HirParam>,
+    type_params: Vec<HirTypeParam>,
+    return_type: HirType,
+    body: HirNode,
+    is_pub: bool,
 }
+
 struct HirTraitBound {
-trait_ty: HirType,
+    trait_ty: HirType,
 }
+
 fn HirTraitBound_new(trait_ty: HirType) -> HirTraitBound {
-HirTraitBound { trait_ty: trait_ty }
+    HirTraitBound { trait_ty: trait_ty }
 }
+
 struct HirTypeParam {
-name: String,
-bounds: Vec<HirTraitBound>,
+    name: String,
+    bounds: Vec<HirTraitBound>,
 }
+
 fn HirTypeParam_new(name: String) -> HirTypeParam {
-HirTypeParam { name: name, bounds: Vec_new_HirTraitBound() }
+    HirTypeParam { name: name, bounds: Vec_new_HirTraitBound() }
 }
+
 struct HirTraitDecl {
-name: String,
-methods: Vec<HirFunction>,
-type_params: Vec<HirTypeParam>,
-is_pub: bool,
+    name: String,
+    methods: Vec<HirFunction>,
+    type_params: Vec<HirTypeParam>,
+    is_pub: bool,
 }
+
 struct HirImplBlock {
-trait_ty: HirType,
-self_ty: HirType,
-methods: Vec<HirFunction>,
-is_pub: bool,
+    trait_ty: HirType,
+    self_ty: HirType,
+    methods: Vec<HirFunction>,
+    is_pub: bool,
 }
+
 fn HirImplBlock_new(trait_ty: HirType, self_ty: HirType) -> HirImplBlock {
-HirImplBlock { trait_ty: trait_ty, self_ty: self_ty, methods: Vec_new_HirFunction(), is_pub: false }
+    HirImplBlock { trait_ty: trait_ty, self_ty: self_ty, methods: Vec_new_HirFunction(), is_pub: false }
 }
+
+// ── HIR Struct / Enum ────────────────────────────────────────────────────────
 struct HirField {
-name: String,
-ty: HirType,
+    name: String,
+    ty: HirType,
 }
+
 struct HirStructDef {
-name: String,
-fields: Vec<HirField>,
-is_pub: bool,
+    name: String,
+    fields: Vec<HirField>,
+    is_pub: bool,
 }
+
 struct HirVariant {
-name: String,
-fields: Vec<HirType>,
+    name: String,
+    fields: Vec<HirType>,
 }
+
 struct HirEnumDef {
-name: String,
-variants: Vec<HirVariant>,
-is_pub: bool,
+    name: String,
+    variants: Vec<HirVariant>,
+    is_pub: bool,
 }
+
+// ── HIR Module ───────────────────────────────────────────────────────────────
 struct HirModule {
-functions: Vec<HirFunction>,
-structs: Vec<HirStructDef>,
-enums: Vec<HirEnumDef>,
-traits: Vec<HirTraitDecl>,
-impls: Vec<HirImplBlock>,
-imports: Vec<String>,
+    functions: Vec<HirFunction>,
+    structs: Vec<HirStructDef>,
+    enums: Vec<HirEnumDef>,
+    traits: Vec<HirTraitDecl>,
+    impls: Vec<HirImplBlock>,
+    imports: Vec<String>,
 }
+
 fn HirModule_new() -> HirModule {
-HirModule { functions: Vec_new_HirFunction(), structs: Vec_new_HirStructDef(), enums: Vec_new_HirEnumDef(), traits: Vec_new_HirTraitDecl(), impls: Vec_new_HirImplBlock(), imports: Vec_new_String() }
+    HirModule { functions: Vec_new_HirFunction(), structs: Vec_new_HirStructDef(), enums: Vec_new_HirEnumDef(), traits: Vec_new_HirTraitDecl(), impls: Vec_new_HirImplBlock(), imports: Vec_new_String() }
 }
+
 pub fn issue504_hir_self_check() -> String {
-let foo_trait = HirType_named(TY_TRAIT(), String_from("Foo"))
-let self_ty = HirType_named(TY_STRUCT(), String_from("MyStruct"))
-let type_param = HirTypeParam_new(String_from("T"))
-push(type_param.bounds, HirTraitBound_new(foo_trait))
-let func = HirFunction { name: String_from("f"), params: Vec_new_HirParam(), type_params: Vec_new_HirTypeParam(), return_type: HirType_simple(TY_UNIT()), body: HirNode_new(HIR_BLOCK(), HirType_simple(TY_UNIT())), is_pub: false }
-push(func.type_params, type_param)
-let impl_block = HirImplBlock_new(HirType_named(TY_TRAIT(), String_from("Foo")), self_ty)
-let fn_param = get_unchecked(func.type_params, 0)
-if len(fn_param.bounds) != 1 {
-return String_from("issue504 hir fail: missing type param bound")
+    let foo_trait = HirType_named(TY_TRAIT(), String_from("Foo"))
+    let self_ty = HirType_named(TY_STRUCT(), String_from("MyStruct"))
+    let type_param = HirTypeParam_new(String_from("T"))
+    push(type_param.bounds, HirTraitBound_new(foo_trait))
+    let func = HirFunction { name: String_from("f"), params: Vec_new_HirParam(), type_params: Vec_new_HirTypeParam(), return_type: HirType_simple(TY_UNIT()), body: HirNode_new(HIR_BLOCK(), HirType_simple(TY_UNIT())), is_pub: false }
+    push(func.type_params, type_param)
+    let impl_block = HirImplBlock_new(HirType_named(TY_TRAIT(), String_from("Foo")), self_ty)
+    let fn_param = get_unchecked(func.type_params, 0)
+    if len(fn_param.bounds) != 1 {
+        return String_from("issue504 hir fail: missing type param bound")
+    }
+    let bound = get_unchecked(fn_param.bounds, 0)
+    if !eq(clone(fn_param.name), String_from("T")) {
+        return String_from("issue504 hir fail: wrong type param")
+    }
+    if !eq(type_name(bound.trait_ty), String_from("Foo")) {
+        return String_from("issue504 hir fail: wrong bound")
+    }
+    if !eq(type_name(impl_block.trait_ty), String_from("Foo")) {
+        return String_from("issue504 hir fail: wrong impl trait")
+    }
+    if !eq(type_name(impl_block.self_ty), String_from("MyStruct")) {
+        return String_from("issue504 hir fail: wrong impl target")
+    }
+    String_from("issue504 hir ok: T bound Foo / impl Foo for MyStruct")
 }
-let bound = get_unchecked(fn_param.bounds, 0)
-if !eq(clone(fn_param.name), String_from("T")) {
-return String_from("issue504 hir fail: wrong type param")
-}
-if !eq(type_name(bound.trait_ty), String_from("Foo")) {
-return String_from("issue504 hir fail: wrong bound")
-}
-if !eq(type_name(impl_block.trait_ty), String_from("Foo")) {
-return String_from("issue504 hir fail: wrong impl trait")
-}
-if !eq(type_name(impl_block.self_ty), String_from("MyStruct")) {
-return String_from("issue504 hir fail: wrong impl target")
-}
-String_from("issue504 hir ok: T bound Foo / impl Foo for MyStruct")
-}
+
+// ── HIR Dump ─────────────────────────────────────────────────────────────────
 fn dump_hir_node(node: HirNode, depth: i32) {
-let mut indent = String_new()
-let mut d = 0
-while d < depth {
-indent = concat(indent, String_from("  "))
-d = d + 1
+    let mut indent = String_new()
+    let mut d = 0
+    while d < depth {
+        indent = concat(indent, String_from("  "))
+        d = d + 1
+    }
+    let tag_str = hir_tag_name(node.tag)
+    let ty_str = type_name(node.ty)
+    let mut line = concat(indent, concat(tag_str, concat(String_from(" : "), ty_str)))
+    if len(node.text) > 0 {
+        line = concat(line, concat(String_from(" '"), concat(clone(node.text), String_from("'"))))
+    }
+    stdio::eprintln(line)
+    let child_count = len(node.children)
+    let mut i = 0
+    while i < child_count {
+        let child = get_unchecked(node.children, i)
+        dump_hir_node(child, depth + 1)
+        i = i + 1
+    }
 }
-let tag_str = hir_tag_name(node.tag)
-let ty_str = type_name(node.ty)
-let mut line = concat(indent, concat(tag_str, concat(String_from(" : "), ty_str)))
-if len(node.text) > 0 {
-line = concat(line, concat(String_from(" '"), concat(clone(node.text), String_from("'"))))
-}
-stdio::eprintln(line)
-let child_count = len(node.children)
-let mut i = 0
-while i < child_count {
-let child = get_unchecked(node.children, i)
-dump_hir_node(child, depth + 1)
-i = i + 1
-}
-}
+
 fn hir_tag_name(tag: i32) -> String {
-if tag == HIR_INT_LIT() {
-return String_from("IntLit")
+    if tag == HIR_INT_LIT() {
+        return String_from("IntLit")
+    }
+    if tag == HIR_FLOAT_LIT() {
+        return String_from("FloatLit")
+    }
+    if tag == HIR_STRING_LIT() {
+        return String_from("StringLit")
+    }
+    if tag == HIR_BOOL_LIT() {
+        return String_from("BoolLit")
+    }
+    if tag == HIR_IDENT() {
+        return String_from("Ident")
+    }
+    if tag == HIR_BINARY() {
+        return String_from("Binary")
+    }
+    if tag == HIR_UNARY() {
+        return String_from("Unary")
+    }
+    if tag == HIR_CALL() {
+        return String_from("Call")
+    }
+    if tag == HIR_FIELD() {
+        return String_from("Field")
+    }
+    if tag == HIR_STRUCT_LIT() {
+        return String_from("StructLit")
+    }
+    if tag == HIR_IF() {
+        return String_from("If")
+    }
+    if tag == HIR_MATCH() {
+        return String_from("Match")
+    }
+    if tag == HIR_BLOCK() {
+        return String_from("Block")
+    }
+    if tag == HIR_LET() {
+        return String_from("Let")
+    }
+    if tag == HIR_RETURN() {
+        return String_from("Return")
+    }
+    if tag == HIR_WHILE() {
+        return String_from("While")
+    }
+    if tag == HIR_EXPR_STMT() {
+        return String_from("ExprStmt")
+    }
+    String_from("HirNode")
 }
-if tag == HIR_FLOAT_LIT() {
-return String_from("FloatLit")
-}
-if tag == HIR_STRING_LIT() {
-return String_from("StringLit")
-}
-if tag == HIR_BOOL_LIT() {
-return String_from("BoolLit")
-}
-if tag == HIR_IDENT() {
-return String_from("Ident")
-}
-if tag == HIR_BINARY() {
-return String_from("Binary")
-}
-if tag == HIR_UNARY() {
-return String_from("Unary")
-}
-if tag == HIR_CALL() {
-return String_from("Call")
-}
-if tag == HIR_FIELD() {
-return String_from("Field")
-}
-if tag == HIR_STRUCT_LIT() {
-return String_from("StructLit")
-}
-if tag == HIR_IF() {
-return String_from("If")
-}
-if tag == HIR_MATCH() {
-return String_from("Match")
-}
-if tag == HIR_BLOCK() {
-return String_from("Block")
-}
-if tag == HIR_LET() {
-return String_from("Let")
-}
-if tag == HIR_RETURN() {
-return String_from("Return")
-}
-if tag == HIR_WHILE() {
-return String_from("While")
-}
-if tag == HIR_EXPR_STMT() {
-return String_from("ExprStmt")
-}
-String_from("HirNode")
-}
+
+// ── Entry Point ──────────────────────────────────────────────────────────────
 fn main() {
-let ty_i32 = HirType_simple(TY_I32())
-let ty_string = HirType_simple(TY_STRING())
-let ty_point = HirType_named(TY_STRUCT(), String_from("Point"))
-stdio::println(concat(String_from("type: "), type_name(ty_i32)))
-stdio::println(concat(String_from("type: "), type_name(ty_string)))
-stdio::println(concat(String_from("type: "), type_name(ty_point)))
-let lit = HirNode_new(HIR_INT_LIT(), HirType_simple(TY_I32()))
-lit.int_val = 42
-let stmt = HirNode_new(HIR_EXPR_STMT(), HirType_simple(TY_UNIT()))
-push(stmt.children, lit)
-dump_hir_node(stmt, 0)
-stdio::println(String_from("HIR module OK."))
-stdio::println(issue504_hir_self_check())
+    let ty_i32 = HirType_simple(TY_I32())
+    let ty_string = HirType_simple(TY_STRING())
+    let ty_point = HirType_named(TY_STRUCT(), String_from("Point"))
+    stdio::println(concat(String_from("type: "), type_name(ty_i32)))
+    stdio::println(concat(String_from("type: "), type_name(ty_string)))
+    stdio::println(concat(String_from("type: "), type_name(ty_point)))
+    let lit = HirNode_new(HIR_INT_LIT(), HirType_simple(TY_I32()))
+    lit.int_val = 42
+    let stmt = HirNode_new(HIR_EXPR_STMT(), HirType_simple(TY_UNIT()))
+    push(stmt.children, lit)
+    dump_hir_node(stmt, 0)
+    stdio::println(String_from("HIR module OK."))
+    stdio::println(issue504_hir_self_check())
 }
+// ── Type Tags ────────────────────────────────────────────────────────────────
+// Compare type_args (e.g., Vec<i32> vs Vec<String>)
+// Demonstrate HIR type system
+// Build a sample HIR node

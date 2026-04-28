@@ -594,7 +594,7 @@ fn emit_section(out: WasmWriter, section_id: i32, contents: WasmWriter) {
 }
 
 // ── Wasm Module Emitter ──────────────────────────────────────────────────────
-fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32, wasi_version: String) -> Vec<i32> {
+fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
     let out = WasmWriter_new()
     emit_byte(out, 0)
     emit_byte(out, 97)
@@ -719,71 +719,36 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32, wasi_version
     }
     emit_section(out, SEC_TYPE(), type_sec)
     let import_sec = WasmWriter_new()
+    let wasi_module = String_from("wasi_snapshot_preview1")
     emit_leb128_u(import_sec, NUM_WASI_IMPORTS())
-    // T3 emitter: P2-native branch (#510) -- import-table name switch only.
-    // Call-site ABI rewrites are deferred to #121.
-    if eq(clone(wasi_version), String_from("p2")) {
-        // WASI Preview 2 native import names
-        emit_string(import_sec, String_from("wasi:cli/stdout@0.2.0"))
-        emit_string(import_sec, String_from("write"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 0)
-        emit_string(import_sec, String_from("wasi:cli/environment@0.2.0"))
-        emit_string(import_sec, String_from("args-sizes"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 1)
-        emit_string(import_sec, String_from("wasi:cli/environment@0.2.0"))
-        emit_string(import_sec, String_from("arguments"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 1)
-        emit_string(import_sec, String_from("wasi:filesystem/types@0.2.0"))
-        emit_string(import_sec, String_from("open-at"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 2)
-        emit_string(import_sec, String_from("wasi:cli/stdin@0.2.0"))
-        emit_string(import_sec, String_from("read"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 0)
-        emit_string(import_sec, String_from("wasi:filesystem/types@0.2.0"))
-        emit_string(import_sec, String_from("close"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 3)
-        emit_string(import_sec, String_from("wasi:cli/exit@0.2.0"))
-        emit_string(import_sec, String_from("exit"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 4)
-    } else {
-        // WASI Preview 1 -- wasi_snapshot_preview1 (default, unchanged)
-        let wasi_module = String_from("wasi_snapshot_preview1")
-        emit_string(import_sec, clone(wasi_module))
-        emit_string(import_sec, String_from("fd_write"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 0)
-        emit_string(import_sec, clone(wasi_module))
-        emit_string(import_sec, String_from("args_sizes_get"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 1)
-        emit_string(import_sec, clone(wasi_module))
-        emit_string(import_sec, String_from("args_get"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 1)
-        emit_string(import_sec, clone(wasi_module))
-        emit_string(import_sec, String_from("path_open"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 2)
-        emit_string(import_sec, clone(wasi_module))
-        emit_string(import_sec, String_from("fd_read"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 0)
-        emit_string(import_sec, clone(wasi_module))
-        emit_string(import_sec, String_from("fd_close"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 3)
-        emit_string(import_sec, clone(wasi_module))
-        emit_string(import_sec, String_from("proc_exit"))
-        emit_byte(import_sec, 0)
-        emit_leb128_u(import_sec, 4)
-    }
+    emit_string(import_sec, clone(wasi_module))
+    emit_string(import_sec, String_from("fd_write"))
+    emit_byte(import_sec, 0)
+    emit_leb128_u(import_sec, 0)
+    emit_string(import_sec, clone(wasi_module))
+    emit_string(import_sec, String_from("args_sizes_get"))
+    emit_byte(import_sec, 0)
+    emit_leb128_u(import_sec, 1)
+    emit_string(import_sec, clone(wasi_module))
+    emit_string(import_sec, String_from("args_get"))
+    emit_byte(import_sec, 0)
+    emit_leb128_u(import_sec, 1)
+    emit_string(import_sec, clone(wasi_module))
+    emit_string(import_sec, String_from("path_open"))
+    emit_byte(import_sec, 0)
+    emit_leb128_u(import_sec, 2)
+    emit_string(import_sec, clone(wasi_module))
+    emit_string(import_sec, String_from("fd_read"))
+    emit_byte(import_sec, 0)
+    emit_leb128_u(import_sec, 0)
+    emit_string(import_sec, clone(wasi_module))
+    emit_string(import_sec, String_from("fd_close"))
+    emit_byte(import_sec, 0)
+    emit_leb128_u(import_sec, 3)
+    emit_string(import_sec, clone(wasi_module))
+    emit_string(import_sec, String_from("proc_exit"))
+    emit_byte(import_sec, 0)
+    emit_leb128_u(import_sec, 4)
     emit_section(out, SEC_IMPORT(), import_sec)
     let func_sec = WasmWriter_new()
     emit_leb128_u(func_sec, fn_count + needs_wrapper)
@@ -1411,7 +1376,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                                                                                                         if callee_n > 12 && char_at(clone(callee), 0) == 95 && char_at(clone(callee), 1) == 95 {
                                                                                                             callee = substring(clone(callee), 12, callee_n)
                                                                                                         }
-                                                                                                        let mut result_on_stack = if inst.dest == 0 - 1 { false } else { true }
+                                                                                                        let mut result_on_stack = true
                                                                                                         if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") || eq(clone(callee), "__intrinsic_println") {
                                                                                                             emit_byte(w, OP_LOCAL_SET())
                                                                                                             emit_leb128_u(w, inst.dest)
@@ -10758,27 +10723,15 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     let called_fn = get_unchecked(ctx.functions, fn_idx)
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     if called_fn.return_type == 0 {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         result_on_stack = false
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        result_on_stack = true
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     }
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 } else {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    // Unknown function (cross-module or unresolved) — drop the args
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    // that are on the stack, then push i32.const 0 as placeholder.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    // This keeps the wasm type-stack valid without using unreachable.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     let arg_count = inst.int_val
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     let mut drop_i = 0
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     while drop_i < arg_count {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_byte(w, OP_DROP())
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         drop_i = drop_i + 1
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    // If inst.dest == -1, this is a void call — no result on stack
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    if inst.dest == 0 - 1 {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        result_on_stack = false
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        // Push placeholder result (i32 = 0)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        emit_byte(w, OP_I32_CONST())
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        emit_leb128_s(w, 0)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    emit_byte(w, OP_UNREACHABLE())
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 }
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             }
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         }
@@ -10923,30 +10876,15 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                                                                                                                                     } else {
                                                                                                                                         if inst.op == 53 {
                                                                                                                                             emit_byte(w, OP_BLOCK())
-                                                                                                                                            // If inst.dest == -1, this is a void block — no result on stack
-                                                                                                                                            if inst.dest == 0 - 1 {
-                                                                                                                                                emit_byte(w, 64)  // void block type (empty)
-                                                                                                                                            } else {
-                                                                                                                                                emit_byte(w, 127)  // i32 block type
-                                                                                                                                            }
+                                                                                                                                            emit_byte(w, 64)
                                                                                                                                         } else {
                                                                                                                                             if inst.op == 54 {
                                                                                                                                                 emit_byte(w, OP_LOOP())
-                                                                                                                                                // If inst.dest == -1, this is a void loop — no result on stack
-                                                                                                                                                if inst.dest == 0 - 1 {
-                                                                                                                                                    emit_byte(w, 64)  // void block type (empty)
-                                                                                                                                                } else {
-                                                                                                                                                    emit_byte(w, 127)  // i32 block type
-                                                                                                                                                }
+                                                                                                                                                emit_byte(w, 64)
                                                                                                                                             } else {
                                                                                                                                                 if inst.op == 55 {
                                                                                                                                                     emit_byte(w, OP_IF())
-                                                                                                                                                    // If inst.dest == -1, this is a void if-expression — no result on stack
-                                                                                                                                                    if inst.dest == 0 - 1 {
-                                                                                                                                                        emit_byte(w, 64)  // void block type (empty)
-                                                                                                                                                    } else {
-                                                                                                                                                        emit_byte(w, 127)  // i32 block type
-                                                                                                                                                    }
+                                                                                                                                                    emit_byte(w, 64)
                                                                                                                                                 } else {
                                                                                                                                                     if inst.op == 56 {
                                                                                                                                                         emit_byte(w, OP_ELSE())
@@ -11179,8 +11117,8 @@ fn val_type_to_wasm(vt: i32) -> i32 {
 }
 
 // ── Public API (used by driver) ──────────────────────────────────────────────
-pub fn emit_wasm(mir: MirModule, target: String, opt_level: i32, wasi_version: String) -> Vec<i32> {
-    emit_wasm_module(mir, target, opt_level, wasi_version)
+pub fn emit_wasm(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
+    emit_wasm_module(mir, target, opt_level)
 }
 
 // ── WAT Text Emitter ─────────────────────────────────────────────────────────
@@ -11319,15 +11257,10 @@ fn mir_op_to_wat(inst: MirInst) -> String {
     concat(String_from(";; unknown op "), to_string(inst.op))
 }
 
-pub fn emit_wat(mir: MirModule, target: String, opt_level: i32, wasi_version: String) -> String {
+pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {
     let mut out = String_from("(module\n")
     let fn_count = len(mir.functions)
-    // WAT output: P2 or P1 import name (#510)
-    if eq(clone(wasi_version), String_from("p2")) {
-        out = concat(out, String_from("  (import \"wasi:cli/stdout@0.2.0\" \"write\" (func (param i32 i32 i32 i32) (result i32)))\n"))
-    } else {
-        out = concat(out, String_from("  (import \"wasi_snapshot_preview1\" \"fd_write\" (func (param i32 i32 i32 i32) (result i32)))\n"))
-    }
+    out = concat(out, String_from("  (import \"wasi_snapshot_preview1\" \"fd_write\" (func (param i32 i32 i32 i32) (result i32)))\n"))
     out = concat(out, String_from("  (memory (export \"memory\") 1)\n"))
     let mut fi = 0
     while fi < fn_count {
@@ -11385,7 +11318,7 @@ fn main() {
     let di = MirInst_new(70)
     emit_inst(f, entry, di)
     push(m.functions, f)
-    let bytes = emit_wasm_module(m, String_from("wasm32-wasi-p2"), 0, String_from("p2"))
+    let bytes = emit_wasm_module(m, String_from("wasm32-wasi-p2"), 0)
     let size = len(bytes)
     stdio::println(concat(String_from("Wasm output: "), concat(to_string(size), String_from(" bytes"))))
     if size >= 4 {
@@ -11403,7 +11336,7 @@ fn main() {
 }
 
 fn MirModule_new() -> MirModule {
-    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String(), mono_pruned_count: 0 }
+    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String() }
 }
 
 fn MirFunction_new(name: String) -> MirFunction {

@@ -1104,15 +1104,10 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
 struct MirModule {
     functions: Vec<MirFunction>,
     string_constants: Vec<String>,
-    // Slice-d (#312): count of MirFunction entries dropped by the
-    // reachability pass invoked at the tail of `lower_to_mir`.  Exposed
-    // via `dump_mir` so future regression checks (and the slice-d
-    // fixture harness) can observe that pruning fires when expected.
-    mono_pruned_count: i32,
 }
 
 fn MirModule_new() -> MirModule {
-    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String(), mono_pruned_count: 0 }
+    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String() }
 }
 
 fn intern_string(m: MirModule, s: String) -> i32 {
@@ -1133,12 +1128,6 @@ fn intern_string(m: MirModule, s: String) -> i32 {
 struct MonoInstance {
     fn_name: String,
     mangled_name: String,
-    type_args: Vec<TypeInfo>,
-}
-
-struct MonoCallSite {
-    span_start: i32,
-    mangled_name: String,
 }
 
 struct TypeCheckResult {
@@ -1146,7 +1135,6 @@ struct TypeCheckResult {
     errors: Vec<String>,
     typed_fns: Vec<TypedFn>,
     mono_instances: Vec<MonoInstance>,
-    mono_call_sites: Vec<MonoCallSite>,
 }
 
 struct TypedFn {
@@ -1455,17 +1443,10 @@ struct LowerCtx {
     closure_bind_caps: Vec<String>,
     closure_bind_extra: Vec<i32>,
     local_type_start: i32,
-    // Slice-c (#312): per-call-site mono mapping (span_start → mangled name)
-    // and the deduped MonoInstance list.  Populated by lower_to_mir from
-    // TypeCheckResult so NK_CALL emit can rewrite generic call targets.
-    mono_call_spans: Vec<i32>,
-    mono_call_names: Vec<String>,
-    mono_inst_fn_names: Vec<String>,
-    mono_inst_mangled: Vec<String>,
 }
 
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
-    LowerCtx { module: m, func: MirFunction_new(String_from("")), cur_block: 0, local_names: Vec_new_String(), local_indices: Vec_new_i32(), fn_names: Vec_new_String(), fn_indices: Vec_new_i32(), fn_return_vts: Vec_new_i32(), fn_return_type_names: Vec_new_String(), loop_exit_block: 0 - 1, loop_cond_block: 0 - 1, nesting_depth: 0, loop_break_depth: 0 - 1, loop_continue_depth: 0 - 1, loop_break_local: 0 - 1, struct_names: Vec_new_String(), struct_field_counts: Vec_new_i32(), struct_all_fields: Vec_new_String(), struct_field_types: Vec_new_String(), local_types: Vec_new_String(), local_type_indices: Vec_new_i32(), variant_names: Vec_new_String(), variant_tags: Vec_new_i32(), payload_variants: Vec_new_String(), closure_counter: 0, closure_last_synth: String_new(), closure_last_caps: String_new(), closure_last_extra: 0, closure_bind_names: Vec_new_String(), closure_bind_synth: Vec_new_String(), closure_bind_caps: Vec_new_String(), closure_bind_extra: Vec_new_i32(), local_type_start: 0, mono_call_spans: Vec_new_i32(), mono_call_names: Vec_new_String(), mono_inst_fn_names: Vec_new_String(), mono_inst_mangled: Vec_new_String() }
+    LowerCtx { module: m, func: MirFunction_new(String_from("")), cur_block: 0, local_names: Vec_new_String(), local_indices: Vec_new_i32(), fn_names: Vec_new_String(), fn_indices: Vec_new_i32(), fn_return_vts: Vec_new_i32(), fn_return_type_names: Vec_new_String(), loop_exit_block: 0 - 1, loop_cond_block: 0 - 1, nesting_depth: 0, loop_break_depth: 0 - 1, loop_continue_depth: 0 - 1, loop_break_local: 0 - 1, struct_names: Vec_new_String(), struct_field_counts: Vec_new_i32(), struct_all_fields: Vec_new_String(), struct_field_types: Vec_new_String(), local_types: Vec_new_String(), local_type_indices: Vec_new_i32(), variant_names: Vec_new_String(), variant_tags: Vec_new_i32(), payload_variants: Vec_new_String(), closure_counter: 0, closure_last_synth: String_new(), closure_last_caps: String_new(), closure_last_extra: 0, closure_bind_names: Vec_new_String(), closure_bind_synth: Vec_new_String(), closure_bind_caps: Vec_new_String(), closure_bind_extra: Vec_new_i32(), local_type_start: 0 }
 }
 
 // Look up return VT for a named function (VT_VOID=0 if not found or void, VT_I32=1, VT_F64=3)
@@ -1551,53 +1532,6 @@ fn ctx_fn_exists(ctx: LowerCtx, name: String) -> i32 {
     let mut i = 0
     while i < fc {
         if eq(clone(get_unchecked(ctx.fn_names, i)), clone(name)) {
-            return 1
-        }
-        i = i + 1
-    }
-    0
-}
-
-// ── Slice-c (#312) Mono Helpers ─────────────────────────────────────────────
-// Convert a typechecker-mangled name (which may contain `<>,` from
-// mono_type_key) to a wasm-safe identifier suitable for MirFunction.name and
-// `(func $...)` in WAT.  Replaces `<`/`>`/`,` with `_`.
-fn mono_safe_name(s: String) -> String {
-    let n = len(s)
-    let mut out = String_from("")
-    let mut i = 0
-    while i < n {
-        let c = substring(clone(s), i, i + 1)
-        if eq(clone(c), String_from("<")) || eq(clone(c), String_from(">")) || eq(clone(c), String_from(",")) {
-            out = concat(out, String_from("_"))
-        } else {
-            out = concat(out, c)
-        }
-        i = i + 1
-    }
-    out
-}
-
-// Look up a per-call-site mangled name by call AST node span.start.
-// Returns the wasm-safe specialized name, or "" if no specialization.
-fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32) -> String {
-    let n = len(ctx.mono_call_spans)
-    let mut i = 0
-    while i < n {
-        if get_unchecked(ctx.mono_call_spans, i) == span_start {
-            return mono_safe_name(clone(get_unchecked(ctx.mono_call_names, i)))
-        }
-        i = i + 1
-    }
-    String_from("")
-}
-
-// Returns 1 if `fn_name` has at least one recorded mono instance.
-fn ctx_has_mono_instance(ctx: LowerCtx, fn_name: String) -> i32 {
-    let n = len(ctx.mono_inst_fn_names)
-    let mut i = 0
-    while i < n {
-        if eq(clone(get_unchecked(ctx.mono_inst_fn_names, i)), clone(fn_name)) {
             return 1
         }
         i = i + 1
@@ -3367,12 +3301,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             }
             let call_inst = MirInst_new(MIR_CALL())
             call_inst.str_val = clone(callee.text)
-            // Slice-c (#312): rewrite generic call sites to specialized
-            // mangled names recorded by the typechecker (per-call-site).
-            let spec_name = ctx_mono_lookup_call(ctx, node.span.start)
-            if len(spec_name) > 0 {
-                call_inst.str_val = spec_name
-            }
             let is_println = eq(clone(callee.text), "stdio::println") || eq(clone(callee.text), "println") || eq(clone(callee.text), "stdio::print") || eq(clone(callee.text), "print") || eq(clone(callee.text), "stdio::eprintln") || eq(clone(callee.text), "eprintln") || eq(clone(callee.text), "__intrinsic_println")
             let mut first_arg_idx = 0 - 1
             let mut second_arg_idx = 0 - 1
@@ -3520,13 +3448,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             }
             let callee_name = clone(call_inst.str_val)
             let call_ret_vt = ctx_fn_return_vt(ctx, clone(callee_name))
-            if call_ret_vt == VT_VOID() {
-                // Void function - don't allocate a local, set dest to -1
-                call_inst.dest = 0 - 1
-                call_inst.int_val = child_count - 1
-                ctx_emit(ctx, call_inst)
-                return 0 - 1
-            }
             let mut dest_vt = VT_I32()
             if call_ret_vt == VT_I64() {
                 dest_vt = VT_I64()
@@ -3540,8 +3461,64 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let dest = ctx_fresh_local(ctx, dest_vt)
             call_inst.dest = dest
             call_inst.int_val = child_count - 1
+            if starts_with(clone(callee_name), "Vec_new_") {
+                let elem_ty = substring(callee_name, 8, len(callee_name))
+                ctx_set_local_type(ctx, dest, concat("vec:", elem_ty))
+            }
+            if eq(clone(callee_name), "text::chars") || eq(clone(callee_name), "chars") || eq(clone(callee_name), "split") || eq(clone(callee_name), "text::split") || eq(clone(callee_name), "string::split") {
+                ctx_set_local_type(ctx, dest, String_from("vec:string"))
+            }
+            if eq(clone(callee_name), "env::args") {
+                ctx_set_local_type(ctx, dest, String_from("vec:String"))
+            }
+            if eq(clone(callee_name), "hashmap_keys") || eq(clone(callee_name), "hash::hashmap_keys") || eq(clone(callee_name), "hashmap_values") || eq(clone(callee_name), "hash::hashmap_values") || eq(clone(callee_name), "hashset_to_vec") || eq(clone(callee_name), "hash::hashset_to_vec") {
+                ctx_set_local_type(ctx, dest, String_from("vec:i32"))
+            }
+            if eq(clone(callee_name), "hashmap_get_option") || eq(clone(callee_name), "hash::hashmap_get_option") || eq(clone(callee_name), "HashMap_i32_i32_get") || eq(clone(callee_name), "hashmap_remove") || eq(clone(callee_name), "hash::hashmap_remove") || eq(clone(callee_name), "HashMap_i32_i32_remove") {
+                ctx_set_local_type(ctx, dest, String_from("Option_i32"))
+            }
+            if eq(clone(callee_name), "hashmap_size") || eq(clone(callee_name), "hash::hashmap_size") || eq(clone(callee_name), "HashMap_i32_i32_len") || eq(clone(callee_name), "hashset_size") || eq(clone(callee_name), "hash::hashset_size") || eq(clone(callee_name), "HashMap_i32_i32_size") {
+                ctx_set_local_type(ctx, dest, String_from("i32"))
+            }
+            if eq(clone(callee_name), "hashmap_contains") || eq(clone(callee_name), "hash::hashmap_contains") || eq(clone(callee_name), "HashMap_i32_i32_contains_key") || eq(clone(callee_name), "hashmap_is_empty") || eq(clone(callee_name), "hash::hashmap_is_empty") || eq(clone(callee_name), "hashset_contains") || eq(clone(callee_name), "hash::hashset_contains") {
+                ctx_set_local_type(ctx, dest, String_from("bool"))
+            }
+            if eq(clone(callee_name), "String_from") || eq(clone(callee_name), "concat") || eq(clone(callee_name), "clone") || eq(clone(callee_name), "to_string") || eq(clone(callee_name), "char_to_string") || eq(clone(callee_name), "bool_to_string") || eq(clone(callee_name), "f64_to_string") || eq(clone(callee_name), "substring") || eq(clone(callee_name), "trim") || eq(clone(callee_name), "to_uppercase") || eq(clone(callee_name), "to_lowercase") || eq(clone(callee_name), "replace") || eq(clone(callee_name), "string::repeat") || eq(clone(callee_name), "__intrinsic_i32_to_string") || eq(clone(callee_name), "__intrinsic_f64_to_string") {
+                ctx_set_local_type(ctx, dest, String_from("string"))
+            }
+            if eq(clone(callee_name), "vec_get_unchecked") {
+                if first_arg_idx >= 0 {
+                    let vec_type = ctx_get_local_type(ctx, first_arg_idx)
+                    if starts_with(clone(vec_type), "vec:") {
+                        let elem_ty = substring(vec_type, 4, len(vec_type))
+                        ctx_set_local_type(ctx, dest, elem_ty)
+                    }
+                }
+            }
+            if len(ctx_get_local_type(ctx, dest)) == 0 {
+                let cn_stripped = strip_module_prefix(clone(callee_name))
+                let cn_len = len(cn_stripped)
+                if cn_len > 4 {
+                    let cn_suffix = substring(cn_stripped, cn_len - 4, cn_len)
+                    if eq(clone(cn_suffix), "_new") {
+                        let struct_cand = substring(cn_stripped, 0, cn_len - 4)
+                        if ctx_struct_field_count(ctx, clone(struct_cand)) > 0 {
+                            ctx_set_local_type(ctx, dest, struct_cand)
+                        }
+                    }
+                }
+            }
+            if len(ctx_get_local_type(ctx, dest)) == 0 {
+                let rtn = ctx_fn_return_type_name(ctx, clone(callee_name))
+                if len(rtn) > 1 {
+                    ctx_set_local_type(ctx, dest, rtn)
+                }
+            }
             ctx_emit(ctx, call_inst)
-            return call_inst.dest
+            if ctx_fn_return_vt(ctx, clone(callee_name)) == VT_VOID() {
+                return 0 - 1
+            }
+            return dest
         }
         return 0 - 1
     }
@@ -3551,11 +3528,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let cond = get_unchecked(node.children, 0)
             let cond_idx = lower_expr(ctx, cond)
             let result = ctx_fresh_local(ctx, VT_I32())
-            let get_cond = MirInst_new(MIR_LOCAL_GET())
-            get_cond.arg0 = cond_idx
-            ctx_emit(ctx, get_cond)
-            let if_inst = MirInst_new(MIR_IF())
-            ctx_emit(ctx, if_inst)
+            ctx_emit(ctx, MirInst_new(MIR_IF()))
             ctx.nesting_depth = ctx.nesting_depth + 1
             let then_body = get_unchecked(node.children, 1)
             let then_result = lower_expr(ctx, then_body)
@@ -3564,11 +3537,9 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 if then_vt == VT_I64() || then_vt == VT_F64() {
                     ctx_set_local_vt(ctx, result, then_vt)
                 }
-                let get_then = MirInst_new(MIR_LOCAL_GET())
-                get_then.arg0 = then_result
-                ctx_emit(ctx, get_then)
                 let set_inst = MirInst_new(MIR_LOCAL_SET())
                 set_inst.arg0 = result
+                set_inst.arg1 = then_result
                 ctx_emit(ctx, set_inst)
             }
             let mut else_result = 0 - 1
@@ -3581,41 +3552,21 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     if else_vt == VT_I64() || else_vt == VT_F64() {
                         ctx_set_local_vt(ctx, result, else_vt)
                     }
-                    let get_else = MirInst_new(MIR_LOCAL_GET())
-                    get_else.arg0 = else_result
-                    ctx_emit(ctx, get_else)
                     let set_inst2 = MirInst_new(MIR_LOCAL_SET())
                     set_inst2.arg0 = result
+                    set_inst2.arg1 = else_result
                     ctx_emit(ctx, set_inst2)
                 }
             }
             ctx_emit(ctx, MirInst_new(MIR_END()))
             ctx.nesting_depth = ctx.nesting_depth - 1
-            // Only set i32 block type if:
-            // - No else branch and then returns a value, OR
-            // - Has else branch and BOTH branches return values
-            if child_count < 3 {
-                // No else branch - use i32 type if then returns a value
-                if then_result >= 0 {
-                    if_inst.dest = result
-                    let get_inst = MirInst_new(MIR_LOCAL_GET())
-                    get_inst.arg0 = result
-                    get_inst.dest = result
-                    ctx_emit(ctx, get_inst)
-                    return result
-                }
-            } else {
-                // Has else branch - use i32 type only if BOTH branches return values
-                if then_result >= 0 && else_result >= 0 {
-                    if_inst.dest = result
-                    let get_inst = MirInst_new(MIR_LOCAL_GET())
-                    get_inst.arg0 = result
-                    get_inst.dest = result
-                    ctx_emit(ctx, get_inst)
-                    return result
-                }
+            if then_result >= 0 || else_result >= 0 {
+                let get_inst = MirInst_new(MIR_LOCAL_GET())
+                get_inst.arg0 = result
+                get_inst.dest = result
+                ctx_emit(ctx, get_inst)
+                return result
             }
-            if_inst.dest = 0 - 1
             return 0 - 1
         }
         return 0 - 1
@@ -4496,9 +4447,7 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             let prev_break_local = ctx.loop_break_local
             let break_result = ctx_fresh_local(ctx, VT_I32())
             ctx.loop_break_local = break_result
-            let block_inst = MirInst_new(MIR_BLOCK())
-            block_inst.dest = break_result
-            ctx_emit(ctx, block_inst)
+            ctx_emit(ctx, MirInst_new(MIR_BLOCK()))
             ctx.nesting_depth = ctx.nesting_depth + 1
             ctx.loop_break_depth = ctx.nesting_depth
             ctx_emit(ctx, MirInst_new(MIR_LOOP()))
@@ -4800,123 +4749,6 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     lower_expr(ctx, node)
 }
 
-// ── Slice-d (#312) Reachability Pruning ─────────────────────────────────────
-// Walk the MIR call graph from `main` (and `_start` if present), marking
-// every function transitively reachable through MIR_CALL.str_val edges.
-// Functions not reached are dropped from the emitted module.  This drops
-// unused MonoInstance specializations emitted by slice-c, plus any other
-// dead user-defined function (so dangling calls cannot resolve to a
-// pruned mono via a dead non-mono caller).  Returns the number of pruned
-// functions.  Builtins, wasm imports, and runtime helpers are not in
-// `m.functions` and are unaffected by this pass.
-fn mir_collect_callees_into(f: MirFunction, out: Vec<String>) {
-    let bn = len(f.blocks)
-    let mut bi = 0
-    while bi < bn {
-        let b = get_unchecked(f.blocks, bi)
-        let in_count = len(b.instructions)
-        let mut ii = 0
-        while ii < in_count {
-            let inst = get_unchecked(b.instructions, ii)
-            if inst.op == MIR_CALL() {
-                if len(inst.str_val) > 0 {
-                    push(out, clone(inst.str_val))
-                }
-            }
-            ii = ii + 1
-        }
-        bi = bi + 1
-    }
-}
-
-fn mir_find_fn_index(funcs: Vec<MirFunction>, name: String) -> i32 {
-    let n = len(funcs)
-    let mut k = 0
-    while k < n {
-        let f = get_unchecked(funcs, k)
-        if eq(clone(f.name), clone(name)) {
-            return k
-        }
-        k = k + 1
-    }
-    return 0 - 1
-}
-
-fn vec_str_contains(v: Vec<String>, s: String) -> i32 {
-    let n = len(v)
-    let mut k = 0
-    while k < n {
-        if eq(clone(get_unchecked(v, k)), clone(s)) {
-            return 1
-        }
-        k = k + 1
-    }
-    return 0
-}
-
-fn mir_prune_unreachable(m: MirModule) -> i32 {
-    let fn_count = len(m.functions)
-    if fn_count == 0 {
-        return 0
-    }
-    let reachable_names = Vec_new_String()
-    let worklist = Vec_new_String()
-    let main_idx = mir_find_fn_index(m.functions, String_from("main"))
-    if main_idx >= 0 {
-        push(reachable_names, String_from("main"))
-        push(worklist, String_from("main"))
-    }
-    let start_idx = mir_find_fn_index(m.functions, String_from("_start"))
-    if start_idx >= 0 {
-        if vec_str_contains(reachable_names, String_from("_start")) == 0 {
-            push(reachable_names, String_from("_start"))
-            push(worklist, String_from("_start"))
-        }
-    }
-    if len(worklist) == 0 {
-        // No entry point — keep everything to preserve current behaviour
-        // for fixtures that exercise sub-modules without a `main`.
-        return 0
-    }
-    let mut wi = 0
-    while wi < len(worklist) {
-        let cur = clone(get_unchecked(worklist, wi))
-        wi = wi + 1
-        let fidx = mir_find_fn_index(m.functions, clone(cur))
-        if fidx >= 0 {
-            let f = get_unchecked(m.functions, fidx)
-            let callees = Vec_new_String()
-            mir_collect_callees_into(f, callees)
-            let cn = len(callees)
-            let mut ci = 0
-            while ci < cn {
-                let callee = clone(get_unchecked(callees, ci))
-                if vec_str_contains(reachable_names, clone(callee)) == 0 {
-                    if mir_find_fn_index(m.functions, clone(callee)) >= 0 {
-                        push(reachable_names, clone(callee))
-                        push(worklist, callee)
-                    }
-                }
-                ci = ci + 1
-            }
-        }
-    }
-    let new_funcs = Vec_new_MirFunction()
-    let mut pruned = 0
-    let mut fi = 0
-    while fi < fn_count {
-        let f = get_unchecked(m.functions, fi)
-        if vec_str_contains(reachable_names, clone(f.name)) == 1 {
-            push(new_funcs, f)
-        } else {
-            pruned = pruned + 1
-        }
-        fi = fi + 1
-    }
-    m.functions = new_funcs
-    pruned
-}
-
 pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
     let m = MirModule_new()
     let decl_count = len(decls)
@@ -5065,64 +4897,10 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
         }
         d = d + 1
     }
-    // Slice-c (#312): pre-register specialized fn names so ctx_fn_return_vt /
-    // _type_name lookups succeed when NK_CALL emit rewrites a generic callee
-    // to its mangled specialization.  Inherits return vt + type-name from
-    // the original generic source decl (sufficient because the supported
-    // type substitutions in this slice all map to VT_I32-class returns).
-    let mi_pre = len(check_result.mono_instances)
-    let mut mi_pi = 0
-    while mi_pi < mi_pre {
-        let mi_p = get_unchecked(check_result.mono_instances, mi_pi)
-        let mut src_idx = 0 - 1
-        let mut sd2 = 0
-        let mut src_decl_idx = 0
-        while sd2 < decl_count {
-            let dd = get_unchecked(decls, sd2)
-            if dd.kind == NK_FN_DECL() {
-                if eq(clone(dd.text), clone(mi_p.fn_name)) {
-                    src_idx = src_decl_idx
-                    sd2 = decl_count
-                } else {
-                    src_decl_idx = src_decl_idx + 1
-                }
-            }
-            sd2 = sd2 + 1
-        }
-        let safe_name = mono_safe_name(clone(mi_p.mangled_name))
-        push(fn_names, clone(safe_name))
-        if src_idx >= 0 && src_idx < len(fn_return_vts) {
-            push(fn_return_vts, get_unchecked(fn_return_vts, src_idx))
-            push(fn_return_type_names, clone(get_unchecked(fn_return_type_names, src_idx)))
-        } else {
-            push(fn_return_vts, VT_I32())
-            push(fn_return_type_names, String_from(""))
-        }
-        mi_pi = mi_pi + 1
-    }
     let mut ctx = LowerCtx_new(m)
     ctx.fn_names = fn_names
     ctx.fn_return_vts = fn_return_vts
     ctx.fn_return_type_names = fn_return_type_names
-    // Slice-c (#312): copy per-call-site mono mapping + deduped instance
-    // list into the LowerCtx so NK_CALL emit can rewrite generic call
-    // targets and the post-pass can emit specialized MirFunctions.
-    let mcs_count = len(check_result.mono_call_sites)
-    let mut mcs_i = 0
-    while mcs_i < mcs_count {
-        let mcs = get_unchecked(check_result.mono_call_sites, mcs_i)
-        push(ctx.mono_call_spans, mcs.span_start)
-        push(ctx.mono_call_names, clone(mcs.mangled_name))
-        mcs_i = mcs_i + 1
-    }
-    let mi_count_init = len(check_result.mono_instances)
-    let mut mi_init_i = 0
-    while mi_init_i < mi_count_init {
-        let mi_e = get_unchecked(check_result.mono_instances, mi_init_i)
-        push(ctx.mono_inst_fn_names, clone(mi_e.fn_name))
-        push(ctx.mono_inst_mangled, clone(mi_e.mangled_name))
-        mi_init_i = mi_init_i + 1
-    }
     ctx_register_builtin_variants(ctx)
     let mut sd = 0
     while sd < decl_count {
@@ -5269,12 +5047,7 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                 ctx_emit(ctx, MirInst_new(MIR_RETURN()))
             }
             mir_lower_trace_ctx(mir_tr, ctx, 4)
-            // Slice-c (#312): if this generic source has ≥1 mono instance,
-            // skip emitting the generic body (only specialized variants
-            // reach codegen).  fn_names entry remains for ordering.
-            if ctx_has_mono_instance(ctx, clone(decl.text)) == 0 {
-                push(ctx.module.functions, ctx.func)
-            }
+            push(ctx.module.functions, ctx.func)
             fn_idx = fn_idx + 1
         }
         if decl.kind == NK_IMPL_DECL() {
@@ -5356,121 +5129,6 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
         }
         i = i + 1
     }
-    // Slice-c (#312): emit specialized MirFunctions for each MonoInstance.
-    // Re-runs the same lowering pipeline as the generic source decl but
-    // with override_name = wasm-safe mangled.  The body is identical to the
-    // generic source's MIR (type-erased at this layer); the value of this
-    // pass is that backend emit produces one wasm function per concrete
-    // instantiation, satisfying the third acceptance bullet of #312.  Per
-    // the issue, deeper type substitution (and unused-instantiation pruning,
-    // slice-d) are OUT of scope for slice-c.
-    let mi_total = len(check_result.mono_instances)
-    let mut mi_pass = 0
-    while mi_pass < mi_total {
-        let mi_e = get_unchecked(check_result.mono_instances, mi_pass)
-        let mut decl_idx = 0 - 1
-        let mut dd_i = 0
-        while dd_i < decl_count {
-            let dd = get_unchecked(decls, dd_i)
-            if dd.kind == NK_FN_DECL() {
-                if eq(clone(dd.text), clone(mi_e.fn_name)) {
-                    decl_idx = dd_i
-                    dd_i = decl_count
-                }
-            }
-            dd_i = dd_i + 1
-        }
-        if decl_idx >= 0 {
-            let decl = get_unchecked(decls, decl_idx)
-            let safe_name = mono_safe_name(clone(mi_e.mangled_name))
-            // Find the original generic source's typed_fn for return type.
-            let mut tf_idx = 0 - 1
-            let mut tf_i = 0
-            let mut fn_decl_seen = 0
-            while tf_i < decl_count {
-                let tdd = get_unchecked(decls, tf_i)
-                if tdd.kind == NK_FN_DECL() {
-                    if eq(clone(tdd.text), clone(mi_e.fn_name)) {
-                        tf_idx = fn_decl_seen
-                        tf_i = decl_count
-                    } else {
-                        fn_decl_seen = fn_decl_seen + 1
-                    }
-                }
-                tf_i = tf_i + 1
-            }
-            let mf_spec = MirFunction_new(clone(safe_name))
-            ctx.func = mf_spec
-            ctx.local_names = Vec_new_String()
-            ctx.local_indices = Vec_new_i32()
-            ctx.local_types = Vec_new_String()
-            ctx.local_type_indices = Vec_new_i32()
-            ctx.local_type_start = len(ctx.local_types)
-            let child_count = len(decl.children)
-            let body_idx = child_count - 1
-            let mut p = 0
-            while p < body_idx {
-                let param = get_unchecked(decl.children, p)
-                if param.kind == NK_IDENT() {
-                    let mut pvt = VT_I32()
-                    if len(param.type_ann) >= 1 {
-                        let pta = get_unchecked(param.type_ann, 0)
-                        if eq(clone(pta.text), "f64") {
-                            pvt = VT_F64()
-                        } else {
-                            if eq(clone(pta.text), "i64") {
-                                pvt = VT_I64()
-                            }
-                        }
-                    }
-                    let param_local = ctx_alloc_local(ctx, clone(param.text), pvt)
-                    ctx_push_func_param(ctx, MirLocal { name: clone(param.text), val_type: pvt, ssa_name: clone(param.text), ssa_version: 0 - 1 })
-                    if len(param.type_ann) >= 1 {
-                        let p_ty = get_unchecked(param.type_ann, 0)
-                        if p_ty.kind == 91 {
-                            if eq(clone(p_ty.text), "Vec") && len(p_ty.children) >= 2 {
-                                let p_elem = get_unchecked(p_ty.children, 1)
-                                ctx_set_local_type(ctx, param_local, concat(String_from("vec:"), clone(p_elem.text)))
-                            }
-                        } else {
-                            if p_ty.kind == 90 {
-                                let p_ty_name = clone(p_ty.text)
-                                if !eq(clone(p_ty_name), "i32") && !eq(clone(p_ty_name), "f64") && !eq(clone(p_ty_name), "i64") && !eq(clone(p_ty_name), "bool") && !eq(clone(p_ty_name), "String") && !eq(clone(p_ty_name), "u8") && !eq(clone(p_ty_name), "char") && len(p_ty_name) > 1 {
-                                    ctx_set_local_type(ctx, param_local, p_ty_name)
-                                }
-                            }
-                        }
-                    }
-                }
-                p = p + 1
-            }
-            if tf_idx >= 0 && tf_idx < len(check_result.typed_fns) {
-                let tf_spec = get_unchecked(check_result.typed_fns, tf_idx)
-                ctx_apply_fn_return_type_for_rt_tag(ctx, tf_spec.return_type.tag)
-            }
-            let entry = ctx_alloc_block(ctx)
-            ctx.cur_block = entry
-            if body_idx >= 0 {
-                let body = get_unchecked(decl.children, body_idx)
-                let result = lower_expr(ctx, body)
-                if result >= 0 && ctx.func.return_type == VT_VOID() {
-                    ctx_emit(ctx, MirInst_new(MIR_DROP()))
-                }
-                ctx_emit(ctx, MirInst_new(MIR_RETURN()))
-            }
-            push(ctx.module.functions, ctx.func)
-        }
-        mi_pass = mi_pass + 1
-    }
-    // Slice-d (#312): reachability/liveness pruning of unused MonoInstances.
-    // After slice-c emits one specialized MirFunction per recorded
-    // MonoInstance, walk the MIR call graph from `main` (and `_start`
-    // if present) and drop any MirFunction — including specialized
-    // mono variants — that no reachable function transitively calls.
-    // Records the pruned count on the module for observability via
-    // `dump_mir` / regression checks.
-    let pruned = mir_prune_unreachable(ctx.module)
-    ctx.module.mono_pruned_count = pruned
     ctx.module
 }
 
@@ -5480,11 +5138,6 @@ pub fn dump_mir(m: MirModule) {
     mir_ssa_rename_module(m)
     let fn_count = len(m.functions)
     stdio::eprintln(concat(String_from("MIR module: "), concat(to_string(fn_count), String_from(" function(s)"))))
-    if m.mono_pruned_count > 0 {
-        // Slice-d (#312): observable stat for the reachability pruning
-        // pass.  Stable string lets fixtures grep for it.
-        stdio::eprintln(concat(String_from("MIR mono pruned: "), concat(to_string(m.mono_pruned_count), String_from(" function(s)"))))
-    }
     let mut i = 0
     while i < fn_count {
         let f = get_unchecked(m.functions, i)
