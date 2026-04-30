@@ -8,6 +8,7 @@ use std::host::fs
 use std::host::process
 use std::host::stdio
 
+use component_emitter
 use diagnostics
 use emitter
 use lexer
@@ -82,6 +83,7 @@ fn offset_to_line_col(source: String, offset: i32) -> (i32, i32) {
 // ── Driver Configuration ─────────────────────────────────────────────────────
 struct DriverConfig {
     target: String,
+    wasi_version: String,
     opt_level: i32,
     emit_mode: String,
     dump_tokens: bool,
@@ -95,7 +97,7 @@ struct DriverConfig {
 }
 
 pub fn DriverConfig_default() -> DriverConfig {
-    DriverConfig { target: String_from("wasm32-wasi-p2"), opt_level: 0, emit_mode: String_from("wasm"), dump_tokens: false, dump_ast: false, dump_hir: false, dump_mir: false, dump_wasm: false, parse_only: false, check_only: false, source_dir: String_from(".") }
+    DriverConfig { target: String_from("wasm32-wasi-p2"), wasi_version: String_from("p2"), opt_level: 0, emit_mode: String_from("wasm"), dump_tokens: false, dump_ast: false, dump_hir: false, dump_mir: false, dump_wasm: false, parse_only: false, check_only: false, source_dir: String_from(".") }
 }
 
 // ── File Loading ─────────────────────────────────────────────────────────────
@@ -417,6 +419,14 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         stdio::eprintln(String_from("=== MIR ==="))
         mir::dump_mir(mir_module)
     }
+    // Derive wasi_version from the target string
+    let tgt = clone(config.target)
+    let is_p2 = contains(clone(tgt), String_from("-p2"))
+    if is_p2 {
+        config.wasi_version = String_from("p2")
+    } else {
+        config.wasi_version = String_from("p1")
+    }
     let emit_mode = clone(config.emit_mode)
     if eq(clone(emit_mode), "wat") {
         let wat_text = emitter::emit_wat(mir_module, clone(config.target), config.opt_level)
@@ -441,7 +451,19 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
             result.output_bytes = wasm_bytes
             result
         } else {
-            CompileResult_err(PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
+            if eq(clone(emit_mode), "component") {
+                // Emit core module first, then wrap in component binary
+                let core_wasm = emitter::emit_wasm(mir_module, clone(config.target), config.opt_level)
+                if config.dump_wasm {
+                    stdio::eprintln(concat(String_from("core wasm size: "), concat(to_string(len(core_wasm)), String_from(" bytes"))))
+                }
+                let comp_bytes = component_emitter::emit_component(core_wasm, mir_module, clone(config.target), clone(config.wasi_version))
+                let mut result = CompileResult_ok(PHASE_EMIT())
+                result.output_bytes = comp_bytes
+                result
+            } else {
+                CompileResult_err(PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
+            }
         }
     }
 }

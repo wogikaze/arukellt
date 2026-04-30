@@ -144,6 +144,10 @@ fn NK_EXPR_STMT() -> i32 {
     37
 }
 
+fn NK_COMPREHENSION() -> i32 {
+    38
+}
+
 // Declarations
 fn NK_FN_DECL() -> i32 {
     50
@@ -1496,6 +1500,34 @@ fn parse_prefix(p: Parser) -> AstNode {
             return node
         }
         skip_newlines(p)
+        // Check for comprehension: [expr for x in iter if cond]
+        if peek_kind(p) == TK_FOR() {
+            p.pos = p.pos + 1
+            skip_newlines(p)
+            let binding = expect_token(p, TK_IDENT())
+            expect_token(p, TK_IN())
+            skip_newlines(p)
+            let iter_expr = parse_expr(p)
+            skip_newlines(p)
+            let mut filter_expr: AstNode = AstNode { kind: 0, text: String_new(), span: Span { start: 0, end: 0 }, children: Vec_new_AstNode(), is_mut: false, is_pub: false, type_ann: Vec_new_AstNode() }
+            let mut has_filter = false
+            if peek_kind(p) == TK_IF() {
+                p.pos = p.pos + 1
+                skip_newlines(p)
+                filter_expr = parse_expr(p)
+                has_filter = true
+                skip_newlines(p)
+            }
+            expect_token(p, TK_RBRACKET())
+            let node = AstNode_new(NK_COMPREHENSION(), tok_span(t))
+            node.text = clone(binding.text)
+            push(node.children, first_elem)
+            push(node.children, iter_expr)
+            if has_filter {
+                push(node.children, filter_expr)
+            }
+            return node
+        }
         let node = AstNode_new(NK_ARRAY_LIT(), tok_span(t))
         push(node.children, first_elem)
         while peek_kind(p) == TK_COMMA() {
@@ -1781,6 +1813,42 @@ fn parse_decl(p: Parser) -> AstNode {
     }
     let k2 = peek_kind(p)
     if k2 == TK_FN() {
+        // Check if this is a clause-style fn (pattern params + =expr body)
+        if peek_is_fn_clause(p) {
+            let first_clause = parse_fn_clause(p)
+            // Check param count: only single-param multi-clause supported for now
+            let first_child_count = len(first_clause.children)
+            let param_count = first_child_count - 1
+            let mut clauses = Vec_new_AstNode()
+            push(clauses, first_clause)
+            // Collect consecutive clauses with the same name
+            while has_next_clause(p, first_clause.text) {
+                let next_clause = parse_fn_clause(p)
+                let nc_child_count = len(next_clause.children)
+                let nc_param_count = nc_child_count - 1
+                if nc_param_count != param_count {
+                    error(p, concat(String_from("clause has "), concat(to_string(nc_param_count), concat(String_from(" parameters but previous clauses have "), concat(to_string(param_count), String_from(""))))))
+                    let stub = AstNode_new(NK_FN_DECL(), next_clause.span)
+                    stub.text = clone(next_clause.text)
+                    stub.is_pub = is_pub
+                    push(stub.children, AstNode_new(NK_BLOCK(), next_clause.span))
+                    clauses = Vec_new_AstNode()
+                    push(clauses, stub)
+                    break
+                }
+                push(clauses, next_clause)
+            }
+            if param_count > 1 {
+                error(p, String_from("multi-clause functions with multiple parameters are not yet supported"))
+                let stub = AstNode_new(NK_FN_DECL(), first_clause.span)
+                stub.text = clone(first_clause.text)
+                stub.is_pub = is_pub
+                push(stub.children, AstNode_new(NK_BLOCK(), first_clause.span))
+                return stub
+            }
+            let d = desugar_multiclause(clauses, is_pub)
+            return d
+        }
         let d = parse_fn_decl(p)
         d.is_pub = is_pub
         return d
@@ -1812,6 +1880,247 @@ fn parse_decl(p: Parser) -> AstNode {
         return parse_import_decl(p)
     }
     parse_stmt(p)
+}
+
+/// Check if a fn clause is followed by another clause with the same name.
+/// Returns true if the next non-newline tokens are `fn <name>(`.
+fn has_next_clause(p: Parser, name: String) -> bool {
+    let saved = p.pos
+    skip_newlines(p)
+    let mut result = false
+    if peek_kind(p) == TK_FN() {
+        let fn_pos = p.pos
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        if at(p, TK_IDENT()) {
+            let nt = cur(p)
+            if eq(clone(nt.text), clone(name)) {
+                result = true
+            }
+        }
+        p.pos = fn_pos
+    }
+    p.pos = saved
+    result
+}
+
+/// Parse a single clause of a multi-clause function definition.
+/// Syntax: `fn <name>(<pattern-params>) [-> <ret>] = <expr>`
+/// Returns NK_FN_DECL with int_val=1 (clause flag).
+/// Params are parsed as patterns; NK_PAT_IDENT is converted to NK_IDENT
+/// for downstream pass compatibility.
+fn parse_fn_clause(p: Parser) -> AstNode {
+    let t = expect_token(p, TK_FN())
+    let node = AstNode_new(NK_FN_DECL(), tok_span(t))
+    let name = expect_token(p, TK_IDENT())
+    node.text = clone(name.text)
+    expect_token(p, TK_LPAREN())
+    let mut first = true
+    while !at(p, TK_RPAREN()) && !at_eof(p) {
+        if !first {
+            expect_token(p, TK_COMMA())
+        }
+        first = false
+        skip_newlines(p)
+        let pat = parse_pattern(p)
+        // Convert identifier patterns to NK_IDENT for param registration
+        // in resolver and MIR lowerer.
+        if pat.kind == NK_PAT_IDENT() {
+            pat.kind = NK_IDENT()
+        }
+        push(node.children, pat)
+        skip_newlines(p)
+    }
+    expect_token(p, TK_RPAREN())
+    skip_newlines(p)
+    if peek_kind(p) == TK_ARROW() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let ret = parse_type(p)
+        let ret_node = AstNode_new(NK_TYPE_NAMED(), ret.span)
+        ret_node.text = String_from("__return")
+        push(ret_node.children, ret)
+        push(node.type_ann, ret_node)
+    }
+    skip_newlines(p)
+    if peek_kind(p) == TK_EQ() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let body = parse_expr(p)
+        push(node.children, body)
+        // int_val=1 marks this as a clause-style fn (expression body)
+        node.int_val = 1
+    }
+    node
+}
+
+/// Determine if the fn at the current position is a clause-style fn
+/// (params are patterns without type annotations, body uses `= expr`).
+/// This is done by lookahead: after `fn name (`, check if param tokens
+/// indicate pattern-like syntax (literal, wildcard) or ident without `:`.
+fn peek_is_fn_clause(p: Parser) -> bool {
+    let saved = p.pos
+    let mut is_clause = false
+    // Expect we're at `fn` (already consumed or peeked)
+    // Look past `fn` and name
+    skip_newlines(p)
+    if peek_kind(p) == TK_FN() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        if at(p, TK_IDENT()) {
+            p.pos = p.pos + 1
+            skip_newlines(p)
+            if at(p, TK_LPAREN()) {
+                p.pos = p.pos + 1
+                skip_newlines(p)
+                let first_tok = cur(p)
+                if first_tok.kind == TK_INT() || first_tok.kind == TK_STRING() || first_tok.kind == TK_BOOL() || first_tok.kind == TK_UNDERSCORE() || first_tok.kind == TK_CHAR() {
+                    is_clause = true
+                } else if first_tok.kind == TK_IDENT() {
+                    // Look ahead: if next is `:`, it's typed param (regular fn)
+                    let id_pos = p.pos
+                    p.pos = p.pos + 1
+                    skip_newlines(p)
+                    if peek_kind(p) != TK_COLON() {
+                        is_clause = true
+                    }
+                    p.pos = id_pos
+                }
+            }
+        }
+    }
+    p.pos = saved
+    is_clause
+}
+
+/// Convert a pattern-style fn param to a match-arm pattern.
+/// NK_IDENT → NK_PAT_IDENT (restore original pattern kind)
+/// Other kinds stay as-is.
+fn clause_param_to_arm_pattern(param: AstNode) -> AstNode {
+    if param.kind == NK_IDENT() {
+        param.kind = NK_PAT_IDENT()
+    }
+    param
+}
+
+/// Desugar a group of multi-clause fn definitions into a single fn declaration
+/// with a match body. Each clause becomes a match arm.
+///
+/// Example:
+///   fn classify(0) -> String = "zero"
+///   fn classify(n) -> String = "pos"
+///   fn classify(_) -> String = "neg"
+/// →
+///   fn classify(__arg0) -> String { classify(__arg0) { 0 => "zero", n => "pos", _ => "neg" } }
+fn desugar_multiclause(clauses: Vec<AstNode>, is_pub: bool) -> AstNode {
+    let clause_count = len(clauses)
+    // Use the first clause to determine name, return type visibility
+    let first = get_unchecked(clauses, 0)
+    let fn_name = clone(first.text)
+    let fn_span = first.span
+    
+    // Create the synthetic fn decl
+    let result = AstNode_new(NK_FN_DECL(), fn_span)
+    result.text = fn_name
+    result.is_pub = is_pub
+    
+    // Copy return type annotation from the first clause
+    let ann_count = len(first.type_ann)
+    let mut ai = 0
+    while ai < ann_count {
+        let ann = get_unchecked(first.type_ann, ai)
+        push(result.type_ann, ann)
+        ai = ai + 1
+    }
+    
+    // Determine param count from the first clause
+    // children[0..n-2] = params/patterns, children[n-1] = body expr
+    let first_child_count = len(first.children)
+    let param_count = first_child_count - 1  // last child is the body expr
+    
+    // Create synthetic param names: __arg0, __arg1, ...
+    let param_names = Vec_new_String()
+    let mut pi = 0
+    while pi < param_count {
+        push(param_names, concat(String_from("__arg"), to_string(pi)))
+        pi = pi + 1
+    }
+    
+    // Add synthetic params to the result fn
+    pi = 0
+    while pi < param_count {
+        let syn_name = get_unchecked(param_names, pi)
+        let param = AstNode_leaf(NK_IDENT(), clone(syn_name), fn_span)
+        push(result.children, param)
+        pi = pi + 1
+    }
+    
+    // Build the match expression body
+    // For single param: match __arg0 { ... }
+    // For multi param: match (__arg0, __arg1, ...) { ... }  -- uses NK_TUPLE scrutinee
+    
+    // Build scrutinee
+    let scrutinee: AstNode
+    if param_count == 1 {
+        let syn_name = get_unchecked(param_names, 0)
+        scrutinee = AstNode_leaf(NK_IDENT(), clone(syn_name), fn_span)
+    } else {
+        // Multi-param: create tuple (__arg0, __arg1, ...)
+        scrutinee = AstNode_new(NK_TUPLE(), fn_span)
+        pi = 0
+        while pi < param_count {
+            let syn_name = get_unchecked(param_names, pi)
+            let arg_ref = AstNode_leaf(NK_IDENT(), clone(syn_name), fn_span)
+            push(scrutinee.children, arg_ref)
+            pi = pi + 1
+        }
+    }
+    
+    // Build the match node
+    let match_node = AstNode_new(NK_MATCH_EXPR(), fn_span)
+    push(match_node.children, scrutinee)
+    
+    // Add arms for each clause
+    let mut ci = 0
+    while ci < clause_count {
+        let clause = get_unchecked(clauses, ci)
+        let clause_child_count = len(clause.children)
+        let clause_param_count = clause_child_count - 1
+        let body = get_unchecked(clause.children, clause_child_count - 1)
+        
+        let arm = AstNode_new(NK_MATCH_ARM(), fn_span)
+        
+        if clause_param_count == 1 {
+            let pat = get_unchecked(clause.children, 0)
+            let arm_pat = clause_param_to_arm_pattern(pat)
+            push(arm.children, arm_pat)
+        } else {
+            // Multi-param: create tuple pattern
+            let tuple_pat = AstNode_new(NK_PAT_TUPLE(), fn_span)
+            let mut ppi = 0
+            while ppi < clause_param_count {
+                let pat = get_unchecked(clause.children, ppi)
+                let arm_pat = clause_param_to_arm_pattern(pat)
+                push(tuple_pat.children, arm_pat)
+                ppi = ppi + 1
+            }
+            push(arm.children, tuple_pat)
+        }
+        
+        push(arm.children, body)
+        push(match_node.children, arm)
+        ci = ci + 1
+    }
+    
+    // Build the match as a block expression body (for MIR lowerer compatibility)
+    let block_node = AstNode_new(NK_BLOCK(), fn_span)
+    // Wrap match in an expression statement for block body
+    let expr_stmt = AstNode_new(NK_EXPR_STMT(), fn_span)
+    push(expr_stmt.children, match_node)
+    push(block_node.children, expr_stmt)
+    push(result.children, block_node)
+    
+    result
 }
 
 fn parse_fn_decl(p: Parser) -> AstNode {
@@ -1854,8 +2163,18 @@ fn parse_fn_decl(p: Parser) -> AstNode {
         push(node.type_ann, ret_node)
     }
     skip_newlines(p)
-    let body = parse_block(p)
-    push(node.children, body)
+    // Support both traditional { block } body and = expr body (clause form)
+    if peek_kind(p) == TK_EQ() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let body = parse_expr(p)
+        push(node.children, body)
+        // int_val = 1 marks this as a clause-style fn (expression body)
+        node.int_val = 1
+    } else {
+        let body = parse_block(p)
+        push(node.children, body)
+    }
     node
 }
 
@@ -2164,6 +2483,9 @@ fn node_kind_name(kind: i32) -> String {
     }
     if kind == NK_EXPR_STMT() {
         return String_from("ExprStmt")
+    }
+    if kind == NK_COMPREHENSION() {
+        return String_from("Comprehension")
     }
     if kind == NK_FN_DECL() {
         return String_from("FnDecl")

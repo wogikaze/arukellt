@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-28T13:34:25Z",
+  "generated_at": "2026-04-29T23:42:14Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -151,6 +151,32 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "28",
+      "path": "034-wit-cli-integration.md",
+      "title": "034-wit-cli-integration",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "030",
+        "031",
+        "028b"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 10,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -842,54 +868,39 @@
       }
     },
     {
-      "id": "561",
-      "path": "561-phase5-delete-ark-mir.md",
-      "title": "561 — Phase 5: Delete `crates/ark-mir`",
-      "track": "selfhost-retirement",
-      "status": "blocked-by-upstream. The repository scan still shows live `ark_mir` consumers outside `crates/ark-mir`, so this issue is not ready for deletion yet.",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": false,
-      "depends_on": [
-        "559"
-      ],
-      "blocks_issue_ids": [
-        "564"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 16
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "563",
-      "path": "563-phase5-delete-ark-stdlib.md",
-      "title": "563 — Phase 5: Delete `crates/ark-stdlib`",
+      "id": "564",
+      "path": "564-phase5-delete-arukellt.md",
+      "title": "564 — Phase 5: Delete `crates/arukellt`",
       "track": "selfhost-retirement",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
       "blocks_v4": "none",
-      "blocks_v5": "none",
+      "blocks_v5": false,
       "depends_on": [
-        "559"
+        "559",
+        "560",
+        "561",
+        "562",
+        "563"
       ],
       "blocks_issue_ids": [
-        "564"
+        "574",
+        "575",
+        "576",
+        "577",
+        "578",
+        "579",
+        "580",
+        "581"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 14
+        "unchecked": 16
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
         "upstream_notes": "None"
       }
     },
@@ -1276,30 +1287,6 @@
       }
     },
     {
-      "id": "616",
-      "path": "616-selfhost-component-emit-infra.md",
-      "title": "Selfhost compiler: Implement component emission infrastructure",
-      "track": "component-model",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": true,
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "28"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
       "id": "62",
       "path": "076-wasi-p2-filesystem.md",
       "title": "WASI P2 ネイティブ: \"wasi:filesystem ネイティブバインディング\"",
@@ -1529,9 +1516,9 @@
       }
     },
     {
-      "id": "564",
-      "path": "564-phase5-delete-arukellt.md",
-      "title": "564 — Phase 5: Delete `crates/arukellt`",
+      "id": "574",
+      "path": "574-phase7-delete-ark-lexer.md",
+      "title": "574 — Phase 7: Delete `crates/ark-lexer`",
       "track": "selfhost-retirement",
       "status": "open",
       "blocks_v1": "none",
@@ -1540,28 +1527,44 @@
       "blocks_v4": "none",
       "blocks_v5": false,
       "depends_on": [
-        "559",
-        "560",
-        "561",
-        "562",
-        "563"
+        "564"
       ],
       "blocks_issue_ids": [
-        "574",
         "575",
-        "576",
-        "577",
-        "578",
-        "579",
-        "580",
-        "581"
+        "582"
       ],
       "acceptance": {
         "checked": 0,
         "unchecked": 16
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "580",
+      "path": "580-phase7-delete-ark-manifest.md",
+      "title": "580 — Phase 7: Delete `crates/ark-manifest`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": false,
+      "depends_on": [
+        "564"
+      ],
+      "blocks_issue_ids": [
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 16
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -1697,33 +1700,6 @@
       }
     },
     {
-      "id": "28",
-      "path": "034-wit-cli-integration.md",
-      "title": "034-wit-cli-integration",
-      "track": "component-model",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "030",
-        "031",
-        "028b",
-        "616"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 10,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "543",
       "path": "543-bench-file-io.md",
       "title": "543 — Benchmark: \"file I/O (I/O-heavy workloads)\"",
@@ -1773,9 +1749,9 @@
       }
     },
     {
-      "id": "574",
-      "path": "574-phase7-delete-ark-lexer.md",
-      "title": "574 — Phase 7: Delete `crates/ark-lexer`",
+      "id": "575",
+      "path": "575-phase7-delete-ark-parser.md",
+      "title": "575 — Phase 7: Delete `crates/ark-parser`",
       "track": "selfhost-retirement",
       "status": "open",
       "blocks_v1": "none",
@@ -1784,10 +1760,13 @@
       "blocks_v4": "none",
       "blocks_v5": false,
       "depends_on": [
-        "564"
+        "564",
+        "574"
       ],
       "blocks_issue_ids": [
-        "575",
+        "576",
+        "579",
+        "581",
         "582"
       ],
       "acceptance": {
@@ -1795,33 +1774,7 @@
         "unchecked": 16
       },
       "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "580",
-      "path": "580-phase7-delete-ark-manifest.md",
-      "title": "580 — Phase 7: Delete `crates/ark-manifest`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": false,
-      "depends_on": [
-        "564"
-      ],
-      "blocks_issue_ids": [
-        "582"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 16
-      },
-      "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
         "upstream_notes": "None"
       }
     },
@@ -1879,9 +1832,9 @@
       }
     },
     {
-      "id": "575",
-      "path": "575-phase7-delete-ark-parser.md",
-      "title": "575 — Phase 7: Delete `crates/ark-parser`",
+      "id": "576",
+      "path": "576-phase7-delete-ark-resolve.md",
+      "title": "576 — Phase 7: Delete `crates/ark-resolve`",
       "track": "selfhost-retirement",
       "status": "open",
       "blocks_v1": "none",
@@ -1891,12 +1844,11 @@
       "blocks_v5": false,
       "depends_on": [
         "564",
-        "574"
+        "575"
       ],
       "blocks_issue_ids": [
-        "576",
+        "577",
         "579",
-        "581",
         "582"
       ],
       "acceptance": {
@@ -1931,35 +1883,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "576",
-      "path": "576-phase7-delete-ark-resolve.md",
-      "title": "576 — Phase 7: Delete `crates/ark-resolve`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": false,
-      "depends_on": [
-        "564",
-        "575"
-      ],
-      "blocks_issue_ids": [
-        "577",
-        "579",
-        "582"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 16
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
       }
     },
     {

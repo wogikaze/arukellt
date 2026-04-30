@@ -1,0 +1,12 @@
+// Positive fixture: wildcard-pattern multi-clause function
+// Tests that wildcard patterns work as catch-all clause params
+use std::host::stdio
+
+fn answer(42) -> String = "life"
+fn answer(_) -> String = "unknown"
+
+fn main() {
+    stdio::println(answer(42))
+    stdio::println(answer(0))
+    stdio::println(answer(99))
+}

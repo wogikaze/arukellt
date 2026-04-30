@@ -1,0 +1,10 @@
+// Negative fixture: mixed arity in one multi-clause group
+// Should produce a parse error about mismatched parameter count
+use std::host::stdio
+
+fn bad(0) -> String = "one"
+fn bad(1, 2) -> String = "two"
+
+fn main() {
+    stdio::println(String_from("should not reach"))
+}

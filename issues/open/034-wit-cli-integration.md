@@ -4,14 +4,13 @@ Created: 2026-03-28
 Updated: 2026-04-22
 ID: 28
 Track: component-model
-Depends on: 030, 031, 028b, 616
-Orchestration class: blocked-by-upstream
+Depends on: 030, 031, 028b
+Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v{N}: none
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
 Reason: CLI accepts --wit flag but only validates file existence. Not threaded into resolver/session/component compile.
 Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
-BLOCKED: "This issue is structurally blocked by [#616](616-selfhost-component-emit-infra.md) (Component emission infrastructure missing in the newly unified selfhost compiler). Do not dispatch until the emitter logic is capable of generating Wasm components."
 ---
 
 - The `--wit` flag threading: "CLI → Session → Resolver (for import binding) → MIR"
@@ -21,19 +20,19 @@ BLOCKED: "This issue is structurally blocked by [#616](616-selfhost-component-em
 - Missing `wasm-tools`: ""error: wasm-tools not found. Install with: cargo install wasm-tools""
 - Non-exportable function: ""warning W0005: function `foo` has closure parameter, skipped from component exports""
 - WIT parse error: ""error: host.wit:3:5: expected type name, found `{`""
-- [x] Target help text updated: `wasm32-wasi-p2` description changed from
-# CLI --wit flag, --emit component workflow, docs
+- [x] Target help text updated: `wasm32-wasi-p2` description changed fro
+
+CLI --wit flag, --emit component workflow, docs
 
 Reason: CLI accepts --wit flag but only validates file existence. Not threaded into resolver/session/component compile.
 Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
 - The `--wit` flag threading: "CLI → Session → Resolver (for import binding) → MIR"
 "error: component model requires --target wasm32-wasi-p2"
----
-# CLI --wit flag, --emit component workflow, docs
+--
+
+CLI --wit flag, --emit component workflow, docs
 
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Parent note — 2026-04-15
 
@@ -67,8 +66,6 @@ WIT resolver binding remain out of scope.
 
 ## Summary
 
-**BLOCKED:** This issue is structurally blocked by [#616](616-selfhost-component-emit-infra.md) (Component emission infrastructure missing in the newly unified selfhost compiler). Do not dispatch until the emitter logic is capable of generating Wasm components.
-
 Complete the end-to-end CLI workflow for Component Model usage. Add `--wit <path>`
 flag for import binding, update `--emit component` to produce `.component.wasm`,
 update all relevant documentation, and write the v1→v2 migration guide.
@@ -81,8 +78,9 @@ specifying import WIT files does not exist.
 
 The user-facing workflow for v2 component usage should be:
 
-```bash
-# Generate WIT from Arukellt source (existing, works)
+```bas
+
+Generate WIT from Arukellt source (existing, works)
 arukellt compile --emit wit mylib.ark
 
 # Compile to component (new)

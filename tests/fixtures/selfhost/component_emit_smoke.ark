@@ -1,0 +1,9 @@
+// Minimal test file for component emission
+// A simple module with a public function and no WASI requirements
+fn greet(name: i32) -> i32 {
+    name
+}
+
+fn main() {
+    let _ = greet(42)
+}

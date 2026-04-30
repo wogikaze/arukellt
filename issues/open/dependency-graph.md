@@ -12,6 +12,7 @@ graph LR
   I125["125 125-corehir-as-default-compile-path"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I214["214 Extension quality / packaging / marketplace readiness"]
+  I28["28 034-wit-cli-integration"]
   I30["30 036-jco-javascript-interop"]
   I312["312 312-selfhost-generic-monomorphization"]
   I37["37 std: ":collections: Deque、PriorityQueue""]
@@ -41,8 +42,7 @@ graph LR
   I553["553 Release: Binary Distribution"]
   I554["554 Release: Extension Live Editor Tests"]
   I555["555 Release: Pre-Release CI Checks"]
-  I561["561 561 — Phase 5: Delete `crates/ark-mir`"]
-  I563["563 563 — Phase 5: Delete `crates/ark-stdlib`"]
+  I564["564 564 — Phase 5: Delete `crates/arukellt`"]
   I571["571 571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)""]
   I584["584 584 — Placeholder"]
   I588["588 Language surface uplift plan"]
@@ -59,7 +59,6 @@ graph LR
   I607["607 Stdlib Baseline: Collections Hash Hardening"]
   I610["610 Optimization Uplift: Lowering Bottleneck Reduction"]
   I611["611 Optimization Uplift: T3-Safe Runtime Unlock"]
-  I616["616 Selfhost compiler: Implement component emission infrastructure"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I60["60 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
@@ -69,22 +68,20 @@ graph LR
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I617["617 Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)"]
-  I564["564 564 — Phase 5: Delete `crates/arukellt`"]
+  I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
+  I580["580 580 — Phase 7: Delete `crates/ark-manifest`"]
   I596["596 596-lang-uplift-guards"]
   I597["597 Language Surface Uplift: Real `where` Clauses"]
   I601["601 Type System Stage-Up: Type Schemes and Controlled Let-Generalization"]
   I608["608 608-stdlib-baseline-docs-bench"]
   I612["612 Optimization Uplift: Binary Size Squeeze"]
-  I28["28 034-wit-cli-integration"]
   I543["543 543 — Benchmark: "file I/O (I/O-heavy workloads)""]
   I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
-  I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
-  I580["580 580 — Phase 7: Delete `crates/ark-manifest`"]
+  I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
   I599["599 Language Surface Uplift: Docs, Fixtures, and Rollout"]
   I602["602 Type System Stage-Up: Qualified Constraints and Coherent Trait Solving"]
-  I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
-  I603["603 603-typesys-lowering-contract"]
   I576["576 576 — Phase 7: Delete `crates/ark-resolve`"]
+  I603["603 603-typesys-lowering-contract"]
   I577["577 577 — Phase 7: Delete `crates/ark-typecheck`"]
   I578["578 578 — Phase 7: Delete `crates/ark-hir`"]
   I579["579 579 — Phase 7: Delete `crates/ark-diagnostics`"]
@@ -98,8 +95,8 @@ graph LR
   I312 --> I495
   I475 --> I485
   I529 --> I617
-  I561 --> I564
-  I563 --> I564
+  I564 --> I574
+  I564 --> I580
   I595 --> I596
   I595 --> I597
   I600 --> I601
@@ -107,22 +104,19 @@ graph LR
   I606 --> I608
   I607 --> I608
   I611 --> I612
-  I616 --> I28
   I62 --> I543
   I495 --> I512
-  I564 --> I574
-  I564 --> I580
+  I564 --> I575
+  I574 --> I575
   I595 --> I599
   I596 --> I599
   I597 --> I599
   I598 --> I599
   I601 --> I602
-  I564 --> I575
-  I574 --> I575
-  I601 --> I603
-  I602 --> I603
   I564 --> I576
   I575 --> I576
+  I601 --> I603
+  I602 --> I603
   I564 --> I577
   I576 --> I577
   I564 --> I578
@@ -153,6 +147,7 @@ graph LR
 - **125** depends on: none; blocks: 126
 - **139** depends on: 074, 137; blocks: 136
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
+- **28** depends on: 030, 031, 028b; blocks: none
 - **30** depends on: 27; blocks: none
 - **312** depends on: 311; blocks: 36, 495
 - **37** depends on: 039, 041; blocks: none
@@ -182,8 +177,7 @@ graph LR
 - **553** depends on: none; blocks: none
 - **554** depends on: none; blocks: none
 - **555** depends on: none; blocks: none
-- **561** depends on: 559; blocks: 564
-- **563** depends on: 559; blocks: 564
+- **564** depends on: 559, 560, 561, 562, 563; blocks: 574, 575, 576, 577, 578, 579, 580, 581
 - **571** depends on: 568; blocks: none
 - **584** depends on: none; blocks: none
 - **588** depends on: none; blocks: none
@@ -200,7 +194,6 @@ graph LR
 - **607** depends on: 604; blocks: 608
 - **610** depends on: 609; blocks: none
 - **611** depends on: 609; blocks: 612
-- **616** depends on: none; blocks: 28
 - **62** depends on: 074, 510; blocks: 543
 - **63** depends on: 074, 137; blocks: none
 - **60** depends on: 510, 121; blocks: none
@@ -210,22 +203,20 @@ graph LR
 - **495** depends on: 312, 504; blocks: 512
 - **485** depends on: 475; blocks: none
 - **617** depends on: 529; blocks: none
-- **564** depends on: 559, 560, 561, 562, 563; blocks: 574, 575, 576, 577, 578, 579, 580, 581
+- **574** depends on: 564; blocks: 575, 582
+- **580** depends on: 564; blocks: 582
 - **596** depends on: 595; blocks: 599
 - **597** depends on: 595; blocks: 599
 - **601** depends on: 600; blocks: 602, 603
 - **608** depends on: 604, 605, 606, 607; blocks: none
 - **612** depends on: 609, 611; blocks: none
-- **28** depends on: 030, 031, 028b, 616; blocks: none
 - **543** depends on: 62; blocks: none
 - **512** depends on: 504, 495; blocks: none
-- **574** depends on: 564; blocks: 575, 582
-- **580** depends on: 564; blocks: 582
+- **575** depends on: 564, 574; blocks: 576, 579, 581, 582
 - **599** depends on: 595, 596, 597, 598; blocks: none
 - **602** depends on: 601; blocks: 603
-- **575** depends on: 564, 574; blocks: 576, 579, 581, 582
-- **603** depends on: 601, 602; blocks: none
 - **576** depends on: 564, 575; blocks: 577, 579, 582
+- **603** depends on: 601, 602; blocks: none
 - **577** depends on: 564, 576; blocks: 578, 579, 581, 582
 - **578** depends on: 564, 577; blocks: 582
 - **579** depends on: 564, 572, 575, 576, 577; blocks: 582

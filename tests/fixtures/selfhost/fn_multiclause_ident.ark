@@ -1,0 +1,11 @@
+// Positive fixture: identifier-binding multi-clause function
+// Tests that identifier patterns work as binding clause params
+use std::host::stdio
+
+fn negate(true) -> bool = false
+fn negate(false) -> bool = true
+
+fn main() {
+    stdio::println(bool_to_string(negate(true)))
+    stdio::println(bool_to_string(negate(false)))
+}

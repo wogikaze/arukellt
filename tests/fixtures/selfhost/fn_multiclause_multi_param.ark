@@ -1,0 +1,10 @@
+// Negative fixture: multi-param multi-clause function (not yet supported)
+// Should produce a parse error
+use std::host::stdio
+
+fn multi(0, true) -> String = "first"
+fn multi(_, _) -> String = "second"
+
+fn main() {
+    stdio::println(String_from("should not reach"))
+}

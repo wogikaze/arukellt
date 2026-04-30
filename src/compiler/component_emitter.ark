@@ -210,19 +210,6 @@ fn COMP_VAL_TYPE_CHAR() -> i32 {
     0x7a  // char
 }
 
-// ── Component Canonical Option Encodings ──────────────────────────────────────
-fn COMP_CANON_OPTION_UTF8() -> i32 {
-    0x00
-}
-
-fn COMP_CANON_OPTION_UTF16() -> i32 {
-    0x01
-}
-
-fn COMP_CANON_OPTION_LATIN1() -> i32 {
-    0x02
-}
-
 // ── Component Writer ──────────────────────────────────────────────────────────
 struct ComponentWriter {
     bytes: Vec<i32>,

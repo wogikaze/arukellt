@@ -1,0 +1,9 @@
+// Positive fixture: single-clause function with = expr body
+// Tests that a single expression-bodied fn works (degenerate clause case)
+use std::host::stdio
+
+fn greet(name: String) -> String = concat(String_from("Hello, "), concat(clone(name), String_from("!")))
+
+fn main() {
+    stdio::println(greet(String_from("World")))
+}

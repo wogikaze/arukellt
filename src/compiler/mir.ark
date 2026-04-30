@@ -1241,6 +1241,10 @@ fn NK_EXPR_STMT() -> i32 {
     37
 }
 
+fn NK_COMPREHENSION() -> i32 {
+    38
+}
+
 fn NK_BREAK() -> i32 {
     32
 }

@@ -73,6 +73,10 @@ fn NK_EXPR_STMT() -> i32 {
     37
 }
 
+fn NK_COMPREHENSION() -> i32 {
+    38
+}
+
 fn NK_FN_DECL() -> i32 {
     50
 }
@@ -991,6 +995,26 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             let then_node = get_unchecked(node.children, 1)
             return infer_expr(env, scope, fn_sigs, then_node)
         }
+    }
+    if node.kind == NK_COMPREHENSION() {
+        // [expr for x in iter if filter]
+        // children[0] = element expr, children[1] = iter expr, children[2] = filter (optional)
+        // Type-check the iter expression
+        if len(node.children) > 1 {
+            let _iter_ty = infer_expr(env, scope, fn_sigs, get_unchecked(node.children, 1))
+        }
+        // Create child scope with the loop variable
+        let comp_scope = scope_child(scope)
+        scope_define(comp_scope, clone(node.text), TypeInfo_simple(TY_I32()))
+        // Type-check the element expression
+        if len(node.children) > 0 {
+            let elem_ty = infer_expr(env, comp_scope, fn_sigs, get_unchecked(node.children, 0))
+            // Result type is Vec<element_type>
+            let mut vec_ty = TypeInfo_simple(TY_VEC())
+            push(vec_ty.type_args, elem_ty)
+            return vec_ty
+        }
+        return TypeInfo_simple(TY_VEC())
     }
     if node.kind == NK_CALL() {
         if len(node.children) < 1 {

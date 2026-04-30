@@ -503,6 +503,10 @@ fn NK_EXPR_STMT() -> i32 {
     37
 }
 
+fn NK_COMPREHENSION() -> i32 {
+    38
+}
+
 fn NK_FN_DECL() -> i32 {
     50
 }
@@ -869,6 +873,26 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         if len(node.children) > 1 {
             let body = get_unchecked(node.children, 1)
             resolve_node(ctx, body)
+        }
+        pop_scope(ctx)
+        return
+    }
+    if node.kind == NK_COMPREHENSION() {
+        // [expr for x in iter if filter]
+        // children[0] = element expr, children[1] = iter expr, children[2] = filter (optional)
+        push_scope(ctx)
+        if len(node.children) > 1 {
+            let iter = get_unchecked(node.children, 1)
+            resolve_node(ctx, iter)
+        }
+        define(ctx, clone(node.text), SYM_LOCAL())
+        if len(node.children) > 0 {
+            let elem_expr = get_unchecked(node.children, 0)
+            resolve_node(ctx, elem_expr)
+        }
+        if len(node.children) > 2 {
+            let filter_expr = get_unchecked(node.children, 2)
+            resolve_node(ctx, filter_expr)
         }
         pop_scope(ctx)
         return

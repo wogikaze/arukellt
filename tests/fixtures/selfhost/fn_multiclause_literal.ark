@@ -1,0 +1,14 @@
+// Positive fixture: literal-pattern multi-clause function
+// Tests that literal patterns (integers, strings) work as clause params
+use std::host::stdio
+
+fn classify(0) -> String = "zero"
+fn classify(1) -> String = "one"
+fn classify(_) -> String = "other"
+
+fn main() {
+    stdio::println(classify(0))
+    stdio::println(classify(1))
+    stdio::println(classify(2))
+    stdio::println(classify(-1))
+}
