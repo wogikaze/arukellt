@@ -1,0 +1,17 @@
+// Test: array comprehension — [expr for x in iter if filter] (map + filter)
+use std::host::stdio
+
+fn main() {
+    let xs: Vec<i32> = Vec_new_i32()
+    push(xs, 1)
+    push(xs, 2)
+    push(xs, 3)
+    push(xs, 4)
+    push(xs, 5)
+    let evens_doubled = [x * 2 for x in xs if x % 2 == 0]
+    let mut sum = 0
+    for v in values(evens_doubled) {
+        sum = sum + v
+    }
+    stdio::println(i32_to_string(sum))
+}

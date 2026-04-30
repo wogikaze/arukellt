@@ -1,0 +1,15 @@
+// Test: array comprehension — [expr for x in iter] (map-only)
+use std::host::stdio
+
+fn main() {
+    let xs: Vec<i32> = Vec_new_i32()
+    push(xs, 10)
+    push(xs, 20)
+    push(xs, 30)
+    let doubled = [x * 2 for x in xs]
+    let mut sum = 0
+    for v in values(doubled) {
+        sum = sum + v
+    }
+    stdio::println(i32_to_string(sum))
+}

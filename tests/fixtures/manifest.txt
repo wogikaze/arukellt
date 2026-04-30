@@ -258,6 +258,8 @@ diag:selfhost/lexer_recovery_multi.ark
 diag:selfhost/parser_recovery_decls.ark
 diag:selfhost/json_diag_code_presence.ark
 # Issue #568 — selfhost analysis API surface (text → AST → symbols → diagnostics)
+run:selfhost/comprehension_map.ark
+run:selfhost/comprehension_map_filter.ark
 run:selfhost/analysis_clean.ark
 diag:selfhost/analysis_lex_diagnostic.ark
 diag:selfhost/analysis_multi_phase.ark

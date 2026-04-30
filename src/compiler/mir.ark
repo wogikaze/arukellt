@@ -4190,6 +4190,150 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     if kind == NK_FOR() {
         return lower_stmt(ctx, node)
     }
+    if kind == NK_COMPREHENSION() {
+        // [expr for x in iter if filter]
+        // children[0] = element expr, children[1] = iter expr, children[2] = filter (optional)
+        // text = loop variable name
+        let comp_child_count = len(node.children)
+        if comp_child_count >= 2 {
+            let elem_expr = get_unchecked(node.children, 0)
+            let iter_expr = get_unchecked(node.children, 1)
+            let comp_var_name = clone(node.text)
+            // Lower the iterator expression to get the Vec
+            let comp_vec_idx = lower_expr(ctx, iter_expr)
+            let comp_vec_local = ctx_fresh_local(ctx, VT_I32())
+            let comp_set_vec = MirInst_new(MIR_LOCAL_SET())
+            comp_set_vec.arg0 = comp_vec_local
+            comp_set_vec.arg1 = comp_vec_idx
+            ctx_emit(ctx, comp_set_vec)
+            ctx_set_local_type(ctx, comp_vec_local, String_from("vec:i32"))
+            // Create result Vec
+            let comp_result_local = ctx_fresh_local(ctx, VT_I32())
+            let comp_new_call = MirInst_new(MIR_CALL())
+            comp_new_call.str_val = String_from("Vec_new_i32")
+            comp_new_call.int_val = 0
+            comp_new_call.dest = comp_result_local
+            ctx_emit(ctx, comp_new_call)
+            let comp_set_result = MirInst_new(MIR_LOCAL_SET())
+            comp_set_result.arg0 = comp_result_local
+            comp_set_result.arg1 = comp_result_local
+            ctx_emit(ctx, comp_set_result)
+            ctx_set_local_type(ctx, comp_result_local, String_from("vec:i32"))
+            // Get vec_len of iterator
+            let comp_get_len = MirInst_new(MIR_LOCAL_GET())
+            comp_get_len.arg0 = comp_vec_local
+            ctx_emit(ctx, comp_get_len)
+            let comp_len_call = MirInst_new(MIR_CALL())
+            comp_len_call.str_val = String_from("vec_len")
+            comp_len_call.int_val = 1
+            let comp_end_local = ctx_fresh_local(ctx, VT_I32())
+            comp_len_call.dest = comp_end_local
+            ctx_emit(ctx, comp_len_call)
+            let comp_set_end = MirInst_new(MIR_LOCAL_SET())
+            comp_set_end.arg0 = comp_end_local
+            ctx_emit(ctx, comp_set_end)
+            // Index counter
+            let comp_idx_local = ctx_fresh_local(ctx, VT_I32())
+            ctx_emit(ctx, MirInst_const_i32(0, comp_idx_local))
+            let comp_set_idx_init = MirInst_new(MIR_LOCAL_SET())
+            comp_set_idx_init.arg0 = comp_idx_local
+            ctx_emit(ctx, comp_set_idx_init)
+            // Allocate loop variable local
+            let comp_iter_var = ctx_alloc_local(ctx, clone(comp_var_name), VT_I32())
+            // Loop block
+            let comp_prev_break = ctx.loop_break_depth
+            let comp_prev_continue = ctx.loop_continue_depth
+            ctx_emit(ctx, MirInst_new(MIR_BLOCK()))
+            ctx.nesting_depth = ctx.nesting_depth + 1
+            ctx_emit(ctx, MirInst_new(MIR_LOOP()))
+            ctx.nesting_depth = ctx.nesting_depth + 1
+            ctx.loop_break_depth = ctx.nesting_depth
+            ctx.loop_continue_depth = ctx.nesting_depth
+            // Compare idx < len
+            let comp_get_idx_cmp = MirInst_new(MIR_LOCAL_GET())
+            comp_get_idx_cmp.arg0 = comp_idx_local
+            ctx_emit(ctx, comp_get_idx_cmp)
+            let comp_get_end_cmp = MirInst_new(MIR_LOCAL_GET())
+            comp_get_end_cmp.arg0 = comp_end_local
+            ctx_emit(ctx, comp_get_end_cmp)
+            let comp_cmp_dest = ctx_fresh_local(ctx, VT_I32())
+            ctx_emit(ctx, MirInst_binop(MIR_GTEQ(), comp_cmp_dest, comp_idx_local, comp_end_local))
+            let comp_br_break = MirInst_new(MIR_BR_IF())
+            comp_br_break.int_val = 1
+            ctx_emit(ctx, comp_br_break)
+            // vec_get_unchecked(vec, idx) -> loop variable
+            let comp_get_vec_gu = MirInst_new(MIR_LOCAL_GET())
+            comp_get_vec_gu.arg0 = comp_vec_local
+            ctx_emit(ctx, comp_get_vec_gu)
+            let comp_get_idx_gu = MirInst_new(MIR_LOCAL_GET())
+            comp_get_idx_gu.arg0 = comp_idx_local
+            ctx_emit(ctx, comp_get_idx_gu)
+            let comp_gu_call = MirInst_new(MIR_CALL())
+            comp_gu_call.str_val = String_from("vec_get_unchecked")
+            comp_gu_call.int_val = 2
+            comp_gu_call.dest = comp_iter_var
+            ctx_emit(ctx, comp_gu_call)
+            let comp_set_elem = MirInst_new(MIR_LOCAL_SET())
+            comp_set_elem.arg0 = comp_iter_var
+            ctx_emit(ctx, comp_set_elem)
+            // Optional filter
+            if comp_child_count > 2 {
+                let filter_expr = get_unchecked(node.children, 2)
+                let _filter_idx = lower_expr(ctx, filter_expr)
+                ctx_emit(ctx, MirInst_new(MIR_IF()))
+                // Push vec pointer onto stack before element expression
+                let comp_get_result_push = MirInst_new(MIR_LOCAL_GET())
+                comp_get_result_push.arg0 = comp_result_local
+                ctx_emit(ctx, comp_get_result_push)
+                // Lower element expression (puts value on stack)
+                let _comp_elem_idx = lower_expr(ctx, elem_expr)
+                // Call push(vec, value) — emitter pops value then vec from stack
+                let comp_push_call = MirInst_new(MIR_CALL())
+                comp_push_call.str_val = String_from("push")
+                comp_push_call.int_val = 2
+                ctx_emit(ctx, comp_push_call)
+                ctx_emit(ctx, MirInst_new(MIR_END()))
+            } else {
+                // No filter: push vec pointer onto stack, then element expression, then call push
+                let comp_get_result_pf = MirInst_new(MIR_LOCAL_GET())
+                comp_get_result_pf.arg0 = comp_result_local
+                ctx_emit(ctx, comp_get_result_pf)
+                let _comp_elem_idx = lower_expr(ctx, elem_expr)
+                let comp_push_call = MirInst_new(MIR_CALL())
+                comp_push_call.str_val = String_from("push")
+                comp_push_call.int_val = 2
+                ctx_emit(ctx, comp_push_call)
+            }
+            // Increment index
+            let comp_get_idx_inc = MirInst_new(MIR_LOCAL_GET())
+            comp_get_idx_inc.arg0 = comp_idx_local
+            ctx_emit(ctx, comp_get_idx_inc)
+            let comp_one_dest = ctx_fresh_local(ctx, VT_I32())
+            ctx_emit(ctx, MirInst_const_i32(1, comp_one_dest))
+            let comp_add_dest = ctx_fresh_local(ctx, VT_I32())
+            ctx_emit(ctx, MirInst_binop(MIR_ADD(), comp_add_dest, comp_idx_local, comp_one_dest))
+            let comp_set_idx = MirInst_new(MIR_LOCAL_SET())
+            comp_set_idx.arg0 = comp_idx_local
+            ctx_emit(ctx, comp_set_idx)
+            // br back
+            let comp_br_loop = MirInst_new(MIR_BR())
+            comp_br_loop.int_val = 0
+            ctx_emit(ctx, comp_br_loop)
+            ctx_emit(ctx, MirInst_new(MIR_END()))
+            ctx.nesting_depth = ctx.nesting_depth - 1
+            ctx_emit(ctx, MirInst_new(MIR_END()))
+            ctx.nesting_depth = ctx.nesting_depth - 1
+            ctx.loop_break_depth = comp_prev_break
+            ctx.loop_continue_depth = comp_prev_continue
+            // Return result local
+            let comp_get_result_final = MirInst_new(MIR_LOCAL_GET())
+            comp_get_result_final.arg0 = comp_result_local
+            comp_get_result_final.dest = comp_result_local
+            ctx_emit(ctx, comp_get_result_final)
+            return comp_result_local
+        }
+        return 0 - 1
+    }
     if kind == NK_CLOSURE() {
         let caps = Vec_new_String()
         let cap_child_count = len(node.children)
