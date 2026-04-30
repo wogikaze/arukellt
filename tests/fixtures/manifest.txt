@@ -244,6 +244,7 @@ run:selfhost/resolver_import_basic/main.ark
 run:selfhost/resolver_stdlib_module/main.ark
 module-diag:selfhost/resolver_visibility_error/main.ark
 run:selfhost/resolver_visibility_ok/main.ark
+run:selfhost/infer_occurs_check.ark
 run:selfhost/typecheck_infer.ark
 run:selfhost/typecheck_infer_expr.ark
 run:selfhost/typecheck_generic_call.ark
@@ -251,6 +252,7 @@ run:selfhost/typecheck_mono_instances.ark
 run:selfhost/typecheck_mono_vec.ark
 run:selfhost/typecheck_match_exhaustive.ark
 run:selfhost/typecheck_closure_capture.ark
+diag:selfhost/ret_type_mismatch.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 diag:selfhost/lexer_recovery_multi.ark
 diag:selfhost/parser_recovery_decls.ark

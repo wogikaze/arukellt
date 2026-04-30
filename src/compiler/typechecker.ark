@@ -114,6 +114,10 @@ fn NK_PAT_LITERAL() -> i32 {
     72
 }
 
+fn NK_PAT_VARIANT() -> i32 {
+    73
+}
+
 // ── Operator Tags (from parser.ark) ──────────────────────────────────────────
 fn OP_ADD() -> i32 {
     1
@@ -384,16 +388,18 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
                 type_error(env, concat(String_from("type mismatch: "), concat(clone(a.name), concat(String_from(" vs "), clone(b.name)))))
             }
         }
-        let ac = len(a.type_args)
-        let bc = len(b.type_args)
+        let ad = resolve_type_deep(env, a)
+        let bd = resolve_type_deep(env, b)
+        let ac = len(ad.type_args)
+        let bc = len(bd.type_args)
         if ac > 0 && bc > 0 {
             if ac != bc {
-                type_error(env, concat(String_from("generic arity mismatch: "), type_tag_name(a.tag)))
+                type_error(env, concat(String_from("generic arity mismatch: "), type_tag_name(ad.tag)))
             } else {
                 let mut k = 0
                 while k < ac {
-                    let ta = get_unchecked(a.type_args, k)
-                    let tb = get_unchecked(b.type_args, k)
+                    let ta = get_unchecked(ad.type_args, k)
+                    let tb = get_unchecked(bd.type_args, k)
                     unify(env, ta, tb)
                     k = k + 1
                 }
@@ -411,7 +417,34 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
     a
 }
 
+fn occurs_in_type(env: TypeEnv, var_name: String, ty: TypeInfo) -> bool {
+    if ty.tag == TY_TYPE_VAR() {
+        if eq(clone(ty.name), clone(var_name)) {
+            return true
+        }
+        let resolved = resolve_type(env, ty)
+        if resolved.tag == TY_TYPE_VAR() && !eq(clone(resolved.name), clone(ty.name)) {
+            return occurs_in_type(env, var_name, resolved)
+        }
+        return false
+    }
+    let arg_count = len(ty.type_args)
+    let mut i = 0
+    while i < arg_count {
+        let arg = get_unchecked(ty.type_args, i)
+        if occurs_in_type(env, var_name, arg) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
 fn bind_var(env: TypeEnv, var_name: String, ty: TypeInfo) {
+    if occurs_in_type(env, clone(var_name), ty) {
+        type_error(env, concat(String_from("occurs check failed: "), concat(clone(var_name), String_from(" appears in its own type"))))
+        return
+    }
     let count = len(env.vars)
     let mut i = 0
     while i < count {
@@ -1153,6 +1186,10 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         let mut has_wildcard = false
         let mut has_bool_true = false
         let mut has_bool_false = false
+        let mut has_option_some = false
+        let mut has_option_none = false
+        let mut has_result_ok = false
+        let mut has_result_err = false
         let mut idx = 0
         while idx < arm_count {
             let arm = get_unchecked(node.children, idx + 1)
@@ -1176,6 +1213,20 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
                     has_bool_false = true
                 }
             }
+            if pat.kind == NK_PAT_VARIANT() {
+                if eq(clone(pat.text), String_from("Some")) || ends_with(clone(pat.text), String_from("::Some")) {
+                    has_option_some = true
+                }
+                if eq(clone(pat.text), String_from("None")) || ends_with(clone(pat.text), String_from("::None")) {
+                    has_option_none = true
+                }
+                if eq(clone(pat.text), String_from("Ok")) || ends_with(clone(pat.text), String_from("::Ok")) {
+                    has_result_ok = true
+                }
+                if eq(clone(pat.text), String_from("Err")) || ends_with(clone(pat.text), String_from("::Err")) {
+                    has_result_err = true
+                }
+            }
             let body = get_unchecked(arm.children, arm_child_count - 1)
             let arm_ty = infer_expr(env, scope, fn_sigs, body)
             if idx == 0 {
@@ -1183,9 +1234,22 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             }
             idx = idx + 1
         }
-        if !has_wildcard && scrutinee_ty.tag == TY_BOOL() {
-            if !has_bool_true || !has_bool_false {
-                type_error(env, String_from("non-exhaustive match: bool requires `true` and `false` arms or a wildcard"))
+        let resolved_scrutinee = resolve_type(env, scrutinee_ty)
+        if !has_wildcard {
+            if resolved_scrutinee.tag == TY_BOOL() {
+                if !has_bool_true || !has_bool_false {
+                    type_error(env, String_from("non-exhaustive match: bool requires `true` and `false` arms or a wildcard"))
+                }
+            }
+            if resolved_scrutinee.tag == TY_OPTION() {
+                if !has_option_some || !has_option_none {
+                    type_error(env, String_from("non-exhaustive match: Option requires `Some` and `None` arms or a wildcard"))
+                }
+            }
+            if resolved_scrutinee.tag == TY_RESULT() {
+                if !has_result_ok || !has_result_err {
+                    type_error(env, String_from("non-exhaustive match: Result requires `Ok` and `Err` arms or a wildcard"))
+                }
             }
         }
         return result_ty
@@ -1270,6 +1334,12 @@ fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, fn_node: AstNode) {
     if child_count > 0 {
         let body = get_unchecked(fn_node.children, child_count - 1)
         check_stmt(env, scope, fn_sigs, body)
+        // Function boundary contract: unify body type with declared return type
+        let sig = lookup_fn_sig(fn_sigs, clone(fn_node.text))
+        if sig.return_type.tag != TY_UNKNOWN() && sig.return_type.tag != TY_UNIT() {
+            let body_ty = infer_expr(env, scope, fn_sigs, body)
+            unify(env, body_ty, sig.return_type)
+        }
     }
 }
 

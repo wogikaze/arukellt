@@ -1,0 +1,12 @@
+// Test: selfhost typechecker detects return type mismatch.
+// Exercises: function with declared return type i32 but body returns String.
+use std::host::stdio
+
+fn bad() -> i32 {
+    String_from("hello")
+}
+
+fn main() {
+    stdio::println(String_from("should not reach"))
+}
+// Return type mismatch: declares i32, body is String
