@@ -102,7 +102,10 @@ pub fn DriverConfig_default() -> DriverConfig {
 
 // ── File Loading ─────────────────────────────────────────────────────────────
 fn load_source(path: String) -> Result<String, String> {
-    fs::read_to_string(path)
+    match fs::read_to_string(path) {
+        Result::Ok(content) => Result::Ok(content),
+        Result::Err(e) => Result::Err(fs::fs_error_message(e)),
+    }
 }
 
 // ── Module Loading ───────────────────────────────────────────────────────────
@@ -288,7 +291,7 @@ fn load_single_module(module_name: String, base_dir: String, state: LoadState) {
             load_imported_modules(mod_decls, clone(base_dir), state)
         },
         Result::Err(e) => {
-            push(state.errors, concat(String_from("failed to load module `"), concat(clone(module_name), concat(String_from("`: "), e))))
+            push(state.errors, concat(String_from("failed to load module `"), concat(clone(module_name), concat(String_from("`: "), fs::fs_error_message(e)))))
         },
     }
     let stack_len = len(state.loading_stack)
@@ -478,7 +481,7 @@ pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
             compile_source(source, config)
         },
         Result::Err(e) => {
-            CompileResult_err(0, concat(String_from("failed to read file: "), e))
+            CompileResult_err(0, concat(String_from("failed to read file: "), fs::fs_error_message(e)))
         },
     }
 }
@@ -550,7 +553,7 @@ fn main() {
             Result::Ok(_) => {
             },
             Result::Err(e) => {
-                stdio::eprintln(concat(String_from("error writing output: "), e))
+                stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
                 process::exit(1)
             },
         }

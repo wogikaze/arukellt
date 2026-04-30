@@ -2745,6 +2745,10 @@ emit_byte(w, OP_UNREACHABLE())
 }
 } else {
 if inst.op == 42 {
+if inst.arg0 >= 0 {
+    emit_byte(w, OP_LOCAL_GET())
+    emit_leb128_u(w, inst.arg0)
+}
 emit_byte(w, OP_RETURN())
 } else {
 if inst.op == 45 {
