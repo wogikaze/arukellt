@@ -1,0 +1,124 @@
+// Arukellt Selfhost — Wasm Binary Emitter: Scratch Offset Constants
+//
+// Extracted from emitter.ark for module-level organization.
+// Runtime scratch buffer offsets used by intrinsic handlers.
+
+pub fn SCRATCH_IOV() -> i32 {
+    0
+}
+
+pub fn SCRATCH_NWRITTEN() -> i32 {
+    8
+}
+
+pub fn SCRATCH_I32BUF() -> i32 {
+    16
+}
+
+pub fn SCRATCH_NEWLINE() -> i32 {
+    36
+}
+
+pub fn SCRATCH_CHARBUF() -> i32 {
+    40
+}
+
+// parse_i32 scratch: str_ptr, len, i, is_neg, result, is_err, byte
+pub fn SCRATCH_P_STR() -> i32 {
+    48
+}
+
+pub fn SCRATCH_P_LEN() -> i32 {
+    52
+}
+
+pub fn SCRATCH_P_I() -> i32 {
+    56
+}
+
+pub fn SCRATCH_P_NEG() -> i32 {
+    60
+}
+
+pub fn SCRATCH_P_RES() -> i32 {
+    64
+}
+
+pub fn SCRATCH_P_ERR() -> i32 {
+    68
+}
+
+pub fn SCRATCH_P_BYTE() -> i32 {
+    72
+}
+
+// WASI args scratch
+pub fn SCRATCH_ARGC() -> i32 {
+    76
+}
+
+pub fn SCRATCH_ARGV_SIZE() -> i32 {
+    80
+}
+
+// WASI FS scratch
+pub fn SCRATCH_FS_FD() -> i32 {
+    84
+}
+
+pub fn SCRATCH_FS_PATHPTR() -> i32 {
+    88
+}
+
+pub fn SCRATCH_FS_PATHLEN() -> i32 {
+    92
+}
+
+pub fn SCRATCH_FS_NREAD() -> i32 {
+    96
+}
+
+pub fn SCRATCH_FS_BUFSTART() -> i32 {
+    100
+}
+
+pub fn SCRATCH_FS_STRPTR() -> i32 {
+    104
+}
+
+// parse_f64 scratch (reuses parse_i32 scratch + extra f64 areas)
+pub fn SCRATCH_PF_RESULT() -> i32 {
+    112
+}
+
+pub fn SCRATCH_PF_DIVISOR() -> i32 {
+    120
+}
+
+pub fn SCRATCH_PF_SAWDOT() -> i32 {
+    48
+}
+
+pub fn SCRATCH_PF_DECCOUNT() -> i32 {
+    52
+}
+
+pub fn FS_BUF_SIZE() -> i32 {
+    4096
+}
+
+// Number of WASI imports (fd_write, args_sizes_get, args_get, path_open, fd_read, fd_close, proc_exit)
+pub fn NUM_WASI_IMPORTS() -> i32 {
+    7
+}
+
+// Number of fixed WASI type signatures (before user types)
+pub fn NUM_WASI_TYPES() -> i32 {
+    5
+}
+
+pub fn DATA_START() -> i32 {
+    128
+}
+
+// Emit context for passing module info to instruction emitter

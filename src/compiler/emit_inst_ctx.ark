@@ -1,0 +1,111 @@
+// Arukellt Selfhost — Wasm Binary Emitter: Context Helpers
+//
+// Extracted from emitter.ark for module-level organization.
+// SelfEmitCtx struct and helper functions for MIR instruction emission.
+
+pub struct SelfEmitCtx {
+    functions: Vec<MirFunction>,
+    string_offsets: Vec<i32>,
+    string_lengths: Vec<i32>,
+    string_values: Vec<String>,
+    scratch_base: i32,
+    true_str_idx: i32,
+    false_str_idx: i32,
+    vec_locals: Vec<i32>,
+    peek_next_op: i32,
+    peek_next_dest: i32,
+}
+
+pub fn ctx_mark_vec_local(ctx: SelfEmitCtx, local_idx: i32) {
+    let count = len(ctx.vec_locals)
+    let mut i = 0
+    while i < count {
+        if get_unchecked(ctx.vec_locals, i) == local_idx {
+            return
+        }
+        i = i + 1
+    }
+    push(ctx.vec_locals, local_idx)
+}
+
+pub fn ctx_is_vec_local(ctx: SelfEmitCtx, local_idx: i32) -> bool {
+    let count = len(ctx.vec_locals)
+    let mut i = 0
+    while i < count {
+        if get_unchecked(ctx.vec_locals, i) == local_idx {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+pub fn strip_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
+}
+
+pub fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
+    let count = len(ctx.functions)
+    let mut i = 0
+    while i < count {
+        let f = get_unchecked(ctx.functions, i)
+        if eq(clone(f.name), clone(name)) {
+            return i
+        }
+        i = i + 1
+    }
+    let short_name = strip_module_prefix(clone(name))
+    if !eq(clone(short_name), clone(name)) {
+        let mut j = 0
+        while j < count {
+            let f = get_unchecked(ctx.functions, j)
+            if eq(clone(f.name), clone(short_name)) {
+                return j
+            }
+            j = j + 1
+        }
+    }
+    let alias = hashmap_builtin_alias(clone(name))
+    if !eq(clone(alias), clone(name)) {
+        let mut k = 0
+        while k < count {
+            let f = get_unchecked(ctx.functions, k)
+            if eq(clone(f.name), clone(alias)) {
+                return k
+            }
+            k = k + 1
+        }
+    }
+    0 - 1
+}
+
+/// Map monomorphic HashMap/HashSet builtin names to hash module function names.
+pub fn hashmap_builtin_alias(name: String) -> String {
+    if eq(clone(name), String_from("HashMap_i32_i32_new")) {
+        return String_from("hashmap_new")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_insert")) {
+        return String_from("hashmap_set")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_get")) {
+        return String_from("hashmap_get_option")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_contains_key")) {
+        return String_from("hashmap_contains")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_remove")) {
+        return String_from("hashmap_remove")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_len")) {
+        return String_from("hashmap_size")
+    }
+    clone(name)
+}
