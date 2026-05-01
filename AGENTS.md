@@ -115,10 +115,12 @@ npx markdive read <file> --path <section-id>
 The selfhost compiler sources live under `src/compiler/`. After modularization (May 2026), the file structure is:
 
 ### Entry Point & Driver
+
 - `main.ark` — CLI entry point, argument parsing
 - `driver.ark` — compilation pipeline orchestration
 
 ### Lex/Parse/Resolve
+
 - `lexer.ark` (1,040 lines) — tokenizer
 - `lexer_kinds.ark` (283 lines) — 69 TK_* token kind constants
 - `parser.ark` (2,602 lines) — AST parsing (recursive descent + Pratt)
@@ -128,10 +130,12 @@ The selfhost compiler sources live under `src/compiler/`. After modularization (
 - `hir.ark` — HIR type definitions
 
 ### Type Checker
+
 - `typechecker.ark` (1,365 lines) — type inference, unification
 - `typechecker_kinds.ark` (241 lines) — TY_*/NK_*/OP_* type kind constants
 
 ### MIR (Mid-level IR)
+
 - `mir_opcodes.ark` (224 lines) — 54 MIR opcode constants
 - `mir_ir.ark` (910 lines) — MIR type definitions (MirInst, MirBlock, MirFunction, MirModule) + SSA renaming infrastructure
 - `mir_type_info.ark` (292 lines) — type system structures (MonoInstance, TypeInfo, etc.)
@@ -139,6 +143,7 @@ The selfhost compiler sources live under `src/compiler/`. After modularization (
 - `mir_dump.ark` (1,145 lines) — MIR dump/debug + entry point + instruction tag analysis
 
 ### Wasm Emitter
+
 - `emitter.ark` (2,906 lines) — main Wasm binary emitter (was 13,374 before refactoring)
 - `emit_opcodes.ark` (125 lines) — 105 Wasm opcode constants
 - `emit_writer.ark` (156 lines) — LEB128/binary writer
@@ -150,13 +155,18 @@ The selfhost compiler sources live under `src/compiler/`. After modularization (
 - `emit_inst_convert.ark` (67 lines) — 9 type conversion handlers
 - `emit_inst_control.ark` (47 lines) — 7 control flow handlers
 - `emit_inst_struct.ark` (142 lines) — 6 struct/array instruction handlers
-- `emit_intrinsic.ark` (9,616 lines) — 113 intrinsic call handlers (auto-extracted)
+- `emit_intrinsic_string.ark` (3,788 lines) — 33 string intrinsic handlers
+- `emit_intrinsic_math.ark` (3,160 lines) — 30 math/parse/sort intrinsic handlers
+- `emit_intrinsic_vec.ark` (1,127 lines) — 15 vec intrinsic handlers
+- `emit_intrinsic_io.ark` (1,667 lines) — 35 I/O/env/fs/assert/misc intrinsic handlers
 - `emit_wat.ark` (190 lines) — WAT text format emitter
 
 ### Component Model
+
 - `component_emitter.ark` — WASI Preview 2 component output
 
 ### Other
+
 - `diagnostics.ark` — error/warning infrastructure
 - `analysis.ark` — IDE analysis API
 - `lsp.ark` — Language Server Protocol
