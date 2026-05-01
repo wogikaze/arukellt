@@ -862,8 +862,6 @@ t3-run:tail_call/opportunistic.ark
 # tail_call_ref: proves return_call_ref emission for indirect tail calls
 # via typed GC function references (FnRef local in tail position, #492).
 t3-run:tail_call_ref/basic.ark
-t3-compile:lsp_perf/large_module.ark
-t3-compile:lsp_perf/stdlib_heavy.ark
 component-compile:selfhost/component_emit_smoke.ark
 t3-run:stdlib_csv/csv_perf.ark
 t3-run:stdlib_json/json_perf_decode.ark

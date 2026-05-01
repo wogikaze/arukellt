@@ -11,9 +11,9 @@ Source: request for comprehensive real-world benchmarks
 ---
 
 # 538 — Benchmark: real-world workloads
+
 - Tags: `string-heavy`, `container`, `recursion-heavy`, `gc-pressure`
-- [ ] `mise bench: update-baseline` includes new benchmarks
-# 538 — Benchmark: real-world workloads
+- [x] `mise bench: update-baseline` includes new benchmarks
 
 ## Summary
 
@@ -60,13 +60,13 @@ _concat). This issue adds comprehensive real-world workloads that better represe
 
 ## Acceptance
 
-- [ ] At least 3 real-world workload benchmarks created
-- [ ] Each benchmark has `.expected` file
-- [ ] Benchmarks registered in `scripts/util/benchmark_runner.py`
-- [ ] Appropriate tags assigned to each benchmark
-- [ ] `mise bench` passes for all new benchmarks
-- [ ] `mise bench:update-baseline` includes new benchmarks
-- [ ] docs/benchmarks/feature-matrix.md updated with new benchmarks
+- [x] At least 3 real-world workload benchmarks created
+- [x] Each benchmark has `.expected` file
+- [x] Benchmarks registered in `scripts/util/benchmark_runner.py`
+- [x] Appropriate tags assigned to each benchmark
+- [x] `mise bench` passes for all new benchmarks
+- [x] `mise bench:update-baseline` includes new benchmarks
+- [x] docs/benchmarks/feature-matrix.md updated with new benchmarks
 
 ## Required verification
 

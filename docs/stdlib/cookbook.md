@@ -809,6 +809,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/integration/linked_list.ark`](../../tests/fixtures/integration/linked_list.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 enum List {

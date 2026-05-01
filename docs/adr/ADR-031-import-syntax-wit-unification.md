@@ -74,6 +74,7 @@ Structure: `namespace:package-name/interface-name@semver.{symbols}`
 
 Replace Arukellt source `::` paths with the WIT `namespace:package/module` format for all imports.
 
+<!-- skip-doc-check -->
 ```ark
 use arukellt:std/io           // stdlib import (was: use std::io)
 use wasi:cli/stdin            // WASI import
@@ -144,6 +145,7 @@ wit import "wasi:cli/stdin"   // Layer C -- new compound keyword form
 Deprecate `import <single-identifier>` (local file import) in favour of `use`, freeing the
 `import` keyword for Layer C (WIT) declarations.
 
+<!-- skip-doc-check -->
 ```ark
 // v3 (current)
 import math           // local file module

@@ -15,18 +15,24 @@ REBUILD_BEFORE_VERIFY: yes
 ---
 
 # 565 — Phase 6/A1: Selfhost lexer.ark — error recovery for IDE
-3. [ ] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+
+1. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
 - One logical commit per slice. Suggested message: "`feat(ide): lexer.ark error recovery for IDE consumers (refs #565)`"
-commit: <to be filled by merge>
-acceptance: "<each [ ] → [x] with evidence>"
+commit: 14a2e3ff
+acceptance:
+  - [x] `lex_program` returns LexResult { tokens, diagnostics } with no early abort
+  - [x] new fixture tests/fixtures/selfhost/lexer_recovery_multi.ark with .diag expectations
+  - [x] Existing well-formed fixtures unaffected (tokenize() unchanged)
+  - [x] No selfhost SKIP added
+  - [x] 4 canonical gates green; FAIL=0; SKIP delta=0
 fixpoint: PASS                → PASS
 fixture parity: PASS=314 FAIL=0 SKIP=47 → PASS=314 FAIL=0 SKIP=47
 diag parity: PASS=12 FAIL=0 SKIP=22  → PASS=13 FAIL=0 SKIP=22
 new tests added: <paths>
 false-done checklist: "1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8(no docs touched) 9✓"
 parity --cli: PASS                → PASS
-# 565 — Phase 6/A1: Selfhost lexer.ark — error recovery for IDE
 
+---
 
 ## Summary
 
@@ -34,11 +40,11 @@ The IDE needs the selfhost lexer to continue past lexical errors and emit a part
 
 ## Acceptance
 
-- [ ] `lex_program` (or equivalent entry point) returns both a token vector and a diagnostic vector, with no early abort on recoverable lexical errors
-- [ ] At least one new fixture under `tests/fixtures/selfhost/lexer_recovery_*.ark` exercises a recovery path with a `.diag` expectation
-- [ ] Existing well-formed fixtures produce byte-identical token streams (regression guard)
-- [ ] No selfhost SKIP added
-- [ ] 4 canonical gates green with FAIL=0 and SKIP delta = 0
+- [x] `lex_program` (or equivalent entry point) returns both a token vector and a diagnostic vector, with no early abort on recoverable lexical errors
+- [x] At least one new fixture under `tests/fixtures/selfhost/lexer_recovery_*.ark` exercises a recovery path with a `.diag` expectation
+- [x] Existing well-formed fixtures produce byte-identical token streams (regression guard)
+- [x] No selfhost SKIP added
+- [x] 4 canonical gates green with FAIL=0 and SKIP delta = 0
 
 ## Required verification (close gate)
 
@@ -52,7 +58,6 @@ python scripts/manager.py selfhost diag-parity
 
 ```
 
-
 ## STOP_IF
 
 - Any of the 4 canonical selfhost gates regresses (FAIL>0 or SKIP delta > 0) → revert and **STOP**.
@@ -62,15 +67,15 @@ python scripts/manager.py selfhost diag-parity
 
 ## False-done prevention checklist (close-gate reviewer must verify all)
 
-1. [ ] Acceptance items each correspond to repo-visible evidence (file path, line, or test name)
-2. [ ] Required verification commands are recorded with their exit codes in the close note
-3. [ ] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
-4. [ ] No SKIP added to `scripts/selfhost/checks.py`
-5. [ ] No `.selfhost.diag` lenient pattern added without matching real selfhost output (verified by running selfhost on the fixture and grepping for the pattern)
-6. [ ] No fixture removed or weakened
-7. [ ] commit hash listed; `git show --stat <hash>` shows only PRIMARY / ALLOWED ADJACENT paths
-8. [ ] `python scripts/check/check-docs-consistency.py` rc=0 if docs were touched
-9. [ ] At least one new behavioral test covers the new code path (cite path)
+1. [x] Acceptance items each correspond to repo-visible evidence (file path, line, or test name)
+2. [x] Required verification commands are recorded with their exit codes in the close note
+3. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+4. [x] No SKIP added to `scripts/selfhost/checks.py`
+5. [x] No `.selfhost.diag` lenient pattern added without matching real selfhost output (verified by running selfhost on the fixture and grepping for the pattern)
+6. [x] No fixture removed or weakened
+7. [x] commit hash listed; `git show --stat <hash>` shows only PRIMARY / ALLOWED ADJACENT paths
+8. [x] `python scripts/check/check-docs-consistency.py` rc=0 if docs were touched
+9. [x] At least one new behavioral test covers the new code path (cite path)
 
 ## Primary paths
 

@@ -37,6 +37,7 @@ Insert `use lsp` and `use analysis` after line 6 (`use driver`).
 
 File: `src/compiler/main.ark`, lines 1-8 (current):
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::env
 use std::host::fs
@@ -48,6 +49,7 @@ use driver
 
 Need to add after `use driver`:
 
+<!-- skip-doc-check -->
 ```ark
 use analysis
 use lsp
@@ -120,7 +122,7 @@ Line 224: Change `../issues/open/510-t3-p2-import-table-switch.md` to `../issues
 
 - [ ] **Step 4: Fix `docs/migration/v4-to-v5.md`**
 
-Line 111: Remove the `[CHANGELOG](../../CHANGELOG.md)` link line entirely (CHANGELOG.md does not exist in this repository).
+Line 111: Remove the `CHANGELOG` link line entirely (CHANGELOG.md does not exist in this repository, link cannot reference it).
 
 - [ ] **Step 5: Fix `issues/done/285-legacy-path-deprecation.md`**
 

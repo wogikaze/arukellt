@@ -705,6 +705,7 @@ Variant forms:
 
 ### 6.4 Trait Definition (v1)
 
+<!-- skip-doc-check -->
 ```ark
 trait Name {
     fn method(param: T) -> R

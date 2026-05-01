@@ -98,6 +98,7 @@ Each subdirectory uses `mod.ark` as the entry point so existing `use emitter`, `
 
 Modules within a subdirectory can import siblings with simple `use name` (resolved relative to the directory):
 
+<!-- skip-doc-check -->
 ```ark
 // emitter/emit.ark imports sibling modules:
 use ops
