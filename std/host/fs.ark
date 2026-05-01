@@ -48,27 +48,18 @@ fn classify_fs_error(raw: String, path: String, op: String) -> FsError {
 }
 
 /// Reads a UTF-8 text file into memory.
-pub fn read_to_string(path: String) -> Result<String, FsError> {
-    match __intrinsic_fs_read_file(clone(path)) {
-        Result::Ok(text) => Ok(text),
-        Result::Err(raw) => Err(classify_fs_error(raw, path, "read")),
-    }
+pub fn read_to_string(path: String) -> Result<String, String> {
+    __intrinsic_fs_read_file(path)
 }
 
 /// Writes a UTF-8 string to a file, replacing any existing contents.
-pub fn write_string(path: String, contents: String) -> Result<(), FsError> {
-    match __intrinsic_fs_write_file(clone(path), contents) {
-        Result::Ok(_) => Ok(()),
-        Result::Err(raw) => Err(classify_fs_error(raw, path, "write")),
-    }
+pub fn write_string(path: String, contents: String) -> Result<(), String> {
+    __intrinsic_fs_write_file(path, contents)
 }
 
 /// Writes a byte array to a file, replacing any existing contents.
-pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), FsError> {
-    match __intrinsic_fs_write_bytes(clone(path), bytes) {
-        Result::Ok(_) => Ok(()),
-        Result::Err(raw) => Err(classify_fs_error(raw, path, "write")),
-    }
+pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
+    __intrinsic_fs_write_bytes(path, bytes)
 }
 
 /// Read-probe semantics — **not** a general path-existence query.

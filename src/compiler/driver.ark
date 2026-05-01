@@ -62,22 +62,34 @@ fn CompileResult_err(phase: i32, msg: String) -> CompileResult {
 }
 
 // ── Byte Offset to Line/Column ───────────────────────────────────────────────
-fn offset_to_line_col(source: String, offset: i32) -> (i32, i32) {
+fn offset_to_line(source: String, offset: i32) -> i32 {
     let n = len(source)
     let mut line: i32 = 1
-    let mut col: i32 = 1
     let mut i: i32 = 0
     while i < offset && i < n {
         let c = char_at(source, i)
         if c == 10 {
             line = line + 1
+        }
+        i = i + 1
+    }
+    line
+}
+
+fn offset_to_column(source: String, offset: i32) -> i32 {
+    let n = len(source)
+    let mut col: i32 = 1
+    let mut i: i32 = 0
+    while i < offset && i < n {
+        let c = char_at(source, i)
+        if c == 10 {
             col = 1
         } else {
             col = col + 1
         }
         i = i + 1
     }
-    (line, col)
+    col
 }
 
 // ── Driver Configuration ─────────────────────────────────────────────────────
@@ -104,7 +116,7 @@ pub fn DriverConfig_default() -> DriverConfig {
 fn load_source(path: String) -> Result<String, String> {
     match fs::read_to_string(path) {
         Result::Ok(content) => Result::Ok(content),
-        Result::Err(e) => Result::Err(fs::fs_error_message(e)),
+        Result::Err(e) => Result::Err(e),
     }
 }
 
@@ -291,7 +303,7 @@ fn load_single_module(module_name: String, base_dir: String, state: LoadState) {
             load_imported_modules(mod_decls, clone(base_dir), state)
         },
         Result::Err(e) => {
-            push(state.errors, concat(String_from("failed to load module `"), concat(clone(module_name), concat(String_from("`: "), fs::fs_error_message(e)))))
+            push(state.errors, concat(String_from("failed to load module `"), concat(clone(module_name), concat(String_from("`: "), e))))
         },
     }
     let stack_len = len(state.loading_stack)
@@ -344,7 +356,8 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         while k < parse_error_count {
             let pe = get_unchecked(parser.errors, k)
             push(result.error_messages, clone(pe.message))
-            let (line, col) = offset_to_line_col(clone(source), pe.span.start)
+            let line = offset_to_line(clone(source), pe.span.start)
+            let col = offset_to_column(clone(source), pe.span.start)
             let file_name = clone(config.source_dir)
             let span = DiagnosticSpan_new_full(clone(file_name), line, col, pe.span.start, pe.span.end)
             let d = Diagnostic_new(clone(pe.code), pe.severity, span, clone(pe.message))
@@ -481,7 +494,7 @@ pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
             compile_source(source, config)
         },
         Result::Err(e) => {
-            CompileResult_err(0, concat(String_from("failed to read file: "), fs::fs_error_message(e)))
+            CompileResult_err(0, concat(String_from("failed to read file: "), e))
         },
     }
 }
@@ -553,7 +566,7 @@ fn main() {
             Result::Ok(_) => {
             },
             Result::Err(e) => {
-                stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
+                stdio::eprintln(concat(String_from("error writing output: "), e))
                 process::exit(1)
             },
         }

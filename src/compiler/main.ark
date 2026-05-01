@@ -448,7 +448,7 @@ fn cmd_compile(opts: CliOptions) {
                     }
                 },
                 Result::Err(e) => {
-                    stdio::eprintln(concat(String_from("error writing output: "), fs::fs_error_message(e)))
+                    stdio::eprintln(concat(String_from("error writing output: "), e))
                     process::exit(1)
                 },
             }
@@ -593,7 +593,7 @@ fn cmd_build(opts: CliOptions) {
             }
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error: cannot read "), concat(clone(manifest_path), concat(String_from(": "), fs::fs_error_message(e)))))
+            stdio::eprintln(concat(String_from("error: cannot read "), concat(clone(manifest_path), concat(String_from(": "), e))))
             process::exit(1)
         },
     }

@@ -12068,7 +12068,7 @@ fn MirInst_const_i32(val: i32, dest: i32) -> MirInst {
 // File doesn't exist: return 0
 // false
 // end if/else
-// fs::read_to_string(path: String) -> Result<String, FsError>
+// fs::read_to_string(path: String) -> Result<String, String>
 // Stack: [path_ptr]
 // path_ptr points to string data; length prefix is at ptr-4
 // Returns heap-allocated enum: [tag:i32, payload:i32]
@@ -12136,7 +12136,7 @@ fn MirInst_const_i32(val: i32, dest: i32) -> MirInst {
 // tag = 0 (Ok)
 // Bump heap by 8
 // end if/else
-// fs::write_string(path: String, content: String) -> Result<(), FsError>
+// fs::write_string(path: String, content: String) -> Result<(), String>
 // Stack: [path_ptr, content_ptr]
 // Returns heap-allocated enum: [tag:i32, payload:i32]
 //   tag=0 → Ok(0), tag=1 → Err(err_str_ptr)
@@ -12171,7 +12171,7 @@ fn MirInst_const_i32(val: i32, dest: i32) -> MirInst {
 // tag = 0 (Ok)
 // payload = 0 (unit)
 // end if/else
-// fs::write_bytes(path: String, bytes: Vec<i32>) -> Result<(), FsError>
+// fs::write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String>
 // Stack: [path_ptr, bytes_vec_ptr]
 // Vec<i32> layout: [len:i32, cap:i32, data_ptr:i32]
 // Each byte in the vec is stored as an i32 (low byte only used).

@@ -74,9 +74,9 @@ descriptors and are experimental.
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `read_to_string` | `(String) -> Result<String, FsError>` | `provisional` | ✅ impl | Reads a UTF-8 text file into memory. |
-| `write_string` | `(String, String) -> Result<(), FsError>` | `provisional` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), FsError>` | `provisional` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
+| `read_to_string` | `(String) -> Result<String, String>` | `provisional` | ✅ impl | Reads a UTF-8 text file into memory. |
+| `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
 | `exists` | `(String) -> bool` | `stable` | ✅ impl | Read-probe semantics — not a general path-existence query. |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ impl | Seeks within an open file descriptor. |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ impl | Returns the current file offset for an open file descriptor. |
