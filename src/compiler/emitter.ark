@@ -8,6 +8,11 @@ use emit_writer
 use emit_scratch
 use emit_inst_ctx
 use emit_inst_const
+use emit_inst_struct
+use emit_inst_locals
+use emit_inst_convert
+use emit_inst_control
+use emit_inst_arith
 
 // ── Wasm Module Emitter ──────────────────────────────────────────────────────
 fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
@@ -351,184 +356,26 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitC
                 if inst.op == 5 {
                     emit_inst_const::emit_const_string(w, inst, ctx)
                 } else {
-                    if inst.op == 10 {
-                        emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                        emit_writer::emit_leb128_u(w, inst.arg0)
-                    } else {
-                        if inst.op == 11 {
-                            if inst.arg1 >= 0 {
-                                emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                                emit_writer::emit_leb128_u(w, inst.arg1)
-                            }
-                            emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
-                            emit_writer::emit_leb128_u(w, inst.arg0)
-                        } else {
-                            if inst.op == 20 {
-                                if inst.val_type == VT_F64() {
-                                    emit_writer::emit_byte(w, emit_opcodes::OP_F64_ADD())
-                                } else {
-                                    if inst.val_type == VT_I64() {
-                                        emit_writer::emit_byte(w, emit_opcodes::OP_I64_ADD())
-                                    } else {
-                                        emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
-                                    }
-                                }
-                            } else {
-                                if inst.op == 21 {
-                                    if inst.val_type == VT_F64() {
-                                        emit_writer::emit_byte(w, emit_opcodes::OP_F64_SUB())
-                                    } else {
-                                        if inst.val_type == VT_I64() {
-                                            emit_writer::emit_byte(w, emit_opcodes::OP_I64_SUB())
-                                        } else {
-                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_SUB())
-                                        }
-                                    }
-                                } else {
-                                    if inst.op == 22 {
-                                        if inst.val_type == VT_F64() {
-                                            emit_writer::emit_byte(w, emit_opcodes::OP_F64_MUL())
-                                        } else {
-                                            if inst.val_type == VT_I64() {
-                                                emit_writer::emit_byte(w, emit_opcodes::OP_I64_MUL())
-                                            } else {
-                                                emit_writer::emit_byte(w, emit_opcodes::OP_I32_MUL())
-                                            }
-                                        }
-                                    } else {
-                                        if inst.op == 23 {
-                                            if inst.val_type == VT_F64() {
-                                                emit_writer::emit_byte(w, emit_opcodes::OP_F64_DIV())
-                                            } else {
-                                                if inst.val_type == VT_I64() {
-                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I64_DIV_S())
-                                                } else {
-                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_DIV_S())
-                                                }
-                                            }
-                                        } else {
-                                            if inst.op == 24 {
-                                                if inst.val_type == VT_I64() {
-                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I64_REM_S())
-                                                } else {
-                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_REM_S())
-                                                }
-                                            } else {
-                                                if inst.op == 25 {
-                                                    if inst.val_type == VT_F64() {
-                                                        emit_writer::emit_byte(w, emit_opcodes::OP_F64_EQ())
-                                                    } else {
-                                                        if inst.val_type == VT_I64() {
-                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I64_EQ())
-                                                        } else {
-                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQ())
-                                                        }
-                                                    }
-                                                } else {
-                                                    if inst.op == 26 {
-                                                        if inst.val_type == VT_F64() {
-                                                            emit_writer::emit_byte(w, emit_opcodes::OP_F64_NE())
-                                                        } else {
-                                                            if inst.val_type == VT_I64() {
-                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I64_NE())
-                                                            } else {
-                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I32_NE())
-                                                            }
-                                                        }
-                                                    } else {
-                                                        if inst.op == 27 {
-                                                            if inst.val_type == VT_F64() {
-                                                                emit_writer::emit_byte(w, emit_opcodes::OP_F64_LT())
-                                                            } else {
-                                                                if inst.val_type == VT_I64() {
-                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I64_LT_S())
-                                                                } else {
-                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_LT_S())
-                                                                }
-                                                            }
-                                                        } else {
-                                                            if inst.op == 28 {
-                                                                if inst.val_type == VT_F64() {
-                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_F64_LE())
-                                                                } else {
-                                                                    if inst.val_type == VT_I64() {
-                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I64_LE_S())
-                                                                    } else {
-                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I32_LE_S())
-                                                                    }
-                                                                }
-                                                            } else {
-                                                                if inst.op == 29 {
-                                                                    if inst.val_type == VT_F64() {
-                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_F64_GT())
-                                                                    } else {
-                                                                        if inst.val_type == VT_I64() {
-                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I64_GT_S())
-                                                                        } else {
-                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_GT_S())
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                    if inst.op == 30 {
-                                                                        if inst.val_type == VT_F64() {
-                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_F64_GE())
-                                                                        } else {
-                                                                            if inst.val_type == VT_I64() {
-                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I64_GE_S())
-                                                                            } else {
-                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I32_GE_S())
-                                                                            }
-                                                                        }
-                                                                    } else {
-                                                                        if inst.op == 31 {
-                                                                            if inst.val_type == VT_I64() {
-                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I64_AND())
-                                                                            } else {
-                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I32_AND())
-                                                                            }
-                                                                        } else {
-                                                                            if inst.op == 32 {
-                                                                                if inst.val_type == VT_I64() {
-                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I64_OR())
-                                                                                } else {
-                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_OR())
-                                                                                }
-                                                                            } else {
-                                                                                if inst.op == 35 {
-                                                                                    if inst.val_type == VT_I64() {
-                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I64_AND())
-                                                                                    } else {
-                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I32_AND())
-                                                                                    }
-                                                                                } else {
-                                                                                    if inst.op == 36 {
-                                                                                        if inst.val_type == VT_I64() {
-                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I64_OR())
-                                                                                        } else {
-                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_OR())
-                                                                                        }
-                                                                                    } else {
-                                                                                        if inst.op == 37 {
-                                                                                            if inst.val_type == VT_I64() {
-                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I64_XOR())
-                                                                                            } else {
-                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I32_XOR())
-                                                                                            }
-                                                                                        } else {
-                                                                                            if inst.op == 38 {
-                                                                                                if inst.val_type == VT_I64() {
-                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I64_SHL())
-                                                                                                } else {
-                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_SHL())
-                                                                                                }
-                                                                                            } else {
-                                                                                                if inst.op == 39 {
-                                                                                                    if inst.val_type == VT_I64() {
-                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I64_SHR_S())
-                                                                                                    } else {
-                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I32_SHR_S())
-                                                                                                    }
-                                                                                                } else {
+                    if inst.op == 10 { emit_inst_locals::emit_local_get(w, inst, ctx) } else {
+                        if inst.op == 11 { emit_inst_locals::emit_local_set(w, inst, ctx) } else {
+                            if inst.op == 20 { emit_inst_arith::emit_add(w, inst, ctx) } else {
+                                if inst.op == 21 { emit_inst_arith::emit_sub(w, inst, ctx) } else {
+                                    if inst.op == 22 { emit_inst_arith::emit_mul(w, inst, ctx) } else {
+                                        if inst.op == 23 { emit_inst_arith::emit_div(w, inst, ctx) } else {
+                                            if inst.op == 24 { emit_inst_arith::emit_mod(w, inst, ctx) } else {
+                                                if inst.op == 25 { emit_inst_arith::emit_eq(w, inst, ctx) } else {
+                                                    if inst.op == 26 { emit_inst_arith::emit_ne(w, inst, ctx) } else {
+                                                        if inst.op == 27 { emit_inst_arith::emit_lt(w, inst, ctx) } else {
+                                                            if inst.op == 28 { emit_inst_arith::emit_le(w, inst, ctx) } else {
+                                                                if inst.op == 29 { emit_inst_arith::emit_gt(w, inst, ctx) } else {
+                                                                    if inst.op == 30 { emit_inst_arith::emit_ge(w, inst, ctx) } else {
+                                                                        if inst.op == 31 { emit_inst_arith::emit_and(w, inst, ctx) } else {
+                                                                            if inst.op == 32 { emit_inst_arith::emit_or(w, inst, ctx) } else {
+                                                                                if inst.op == 35 { emit_inst_arith::emit_bit_and(w, inst, ctx) } else {
+                                                                                    if inst.op == 36 { emit_inst_arith::emit_bit_or(w, inst, ctx) } else {
+                                                                                        if inst.op == 37 { emit_inst_arith::emit_bit_xor(w, inst, ctx) } else {
+                                                                                            if inst.op == 38 { emit_inst_arith::emit_shl(w, inst, ctx) } else {
+                                                                                                if inst.op == 39 { emit_inst_arith::emit_shr(w, inst, ctx) } else {
                                                                                                     if inst.op == 40 {
                                                                                                         let callee = clone(inst.str_val)
                                                                                                         let mut callee = callee
@@ -10008,210 +9855,32 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitC
                                                                                                             }
                                                                                                         }
                                                                                                     } else {
-                                                                                                         if inst.op == 42 {
-                                                                                                             if inst.arg0 >= 0 {
-                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                                                                                                                 emit_writer::emit_leb128_u(w, inst.arg0)
-                                                                                                             }
-                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_RETURN())
-                                                                                                        } else {
-                                                                                                            if inst.op == 45 {
-                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I64_EXTEND_I32_S())
-                                                                                                            } else {
-                                                                                                                if inst.op == 46 {
-                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_WRAP_I64())
-                                                                                                                } else {
-                                                                                                                    if inst.op == 70 {
-                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
-                                                                                                                    } else {
-                                                                                                                        if inst.op == 71 {
-                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_NOP())
-                                                                                                                        } else {
-                                                                                                                            if inst.op == 72 {
-                                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_UNREACHABLE())
-                                                                                                                            } else {
-                                                                                                                                if inst.op == 50 {
-                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_BR())
-                                                                                                                                    emit_writer::emit_leb128_u(w, inst.int_val)
-                                                                                                                                } else {
-                                                                                                                                    if inst.op == 51 {
-                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_BR_IF())
-                                                                                                                                        emit_writer::emit_leb128_u(w, inst.int_val)
-                                                                                                                                    } else {
-                                                                                                                                        if inst.op == 53 {
-                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_BLOCK())
-                                                                                                                                            emit_writer::emit_byte(w, 64)
-                                                                                                                                        } else {
-                                                                                                                                            if inst.op == 54 {
-                                                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_LOOP())
-                                                                                                                                                emit_writer::emit_byte(w, 64)
-                                                                                                                                            } else {
-                                                                                                                                                if inst.op == 55 {
-                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_IF())
-                                                                                                                                                    emit_writer::emit_byte(w, 64)
-                                                                                                                                                } else {
-                                                                                                                                                    if inst.op == 56 {
-                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_ELSE())
-                                                                                                                                                    } else {
-                                                                                                                                                        if inst.op == 57 {
-                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_END())
-                                                                                                                                                        } else {
-                                                                                                                                                            if inst.op == 28 {
-                                                                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I32_LE_S())
-                                                                                                                                                            } else {
-                                                                                                                                                                if inst.op == 30 {
-                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_GE_S())
-                                                                                                                                                                } else {
-                                                                                                                                                                    if inst.op == 31 {
-                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I32_AND())
-                                                                                                                                                                    } else {
-                                                                                                                                                                        if inst.op == 32 {
-                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_OR())
-                                                                                                                                                                        } else {
-                                                                                                                                                                            if inst.op == 33 {
-                                                                                                                                                                                if inst.val_type == VT_F64() {
-                                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_F64_NEG())
-                                                                                                                                                                                } else {
-                                                                                                                                                                                    let scratch = ctx.scratch_base + 2
-                                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
-                                                                                                                                                                                    emit_writer::emit_leb128_u(w, scratch)
-                                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
-                                                                                                                                                                                    emit_writer::emit_leb128_s(w, 0)
-                                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                                                                                                                                                                                    emit_writer::emit_leb128_u(w, scratch)
-                                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_SUB())
-                                                                                                                                                                                }
-                                                                                                                                                                            } else {
-                                                                                                                                                                                if inst.op == 34 {
-                                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQZ())
-                                                                                                                                                                                } else {
-                                                                                                                                                                                    if inst.op == 58 {
-                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQZ())
-                                                                                                                                                                                    } else {
-                                                                                                                                                                                        if inst.op == 60 {
-                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_GET())
-                                                                                                                                                                                            emit_writer::emit_leb128_u(w, 0)
-                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
-                                                                                                                                                                                            emit_writer::emit_leb128_u(w, inst.dest)
-                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_GET())
-                                                                                                                                                                                            emit_writer::emit_leb128_u(w, 0)
-                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
-                                                                                                                                                                                            emit_writer::emit_leb128_s(w, inst.int_val)
-                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
-                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_SET())
-                                                                                                                                                                                            emit_writer::emit_leb128_u(w, 0)
-                                                                                                                                                                                        } else {
-                                                                                                                                                                                            if inst.op == 61 {
-                                                                                                                                                                                                if inst.int_val > 0 {
-                                                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
-                                                                                                                                                                                                    emit_writer::emit_leb128_s(w, inst.int_val)
-                                                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
-                                                                                                                                                                                                }
-                                                                                                                                                                                                if inst.val_type == VT_F64() {
-                                                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_F64_LOAD())
-                                                                                                                                                                                                    emit_writer::emit_byte(w, 3)
-                                                                                                                                                                                                    emit_writer::emit_byte(w, 0)
-                                                                                                                                                                                                } else {
-                                                                                                                                                                                                    if inst.val_type == VT_I64() {
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I64_LOAD())
-                                                                                                                                                                                                        emit_writer::emit_byte(w, 2)
-                                                                                                                                                                                                        emit_writer::emit_byte(w, 0)
-                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
-                                                                                                                                                                                                        emit_writer::emit_byte(w, 2)
-                                                                                                                                                                                                        emit_writer::emit_byte(w, 0)
-                                                                                                                                                                                                    }
-                                                                                                                                                                                                }
-                                                                                                                                                                                            } else {
-                                                                                                                                                                                                if inst.op == 62 {
-                                                                                                                                                                                                    if inst.val_type == VT_F64() {
-                                                                                                                                                                                                        let f64_temp = ctx.scratch_base + 12
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
-                                                                                                                                                                                                        emit_writer::emit_leb128_u(w, f64_temp)
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                                                                                                                                                                                                        emit_writer::emit_leb128_u(w, inst.arg0)
-                                                                                                                                                                                                        if inst.int_val > 0 {
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
-                                                                                                                                                                                                            emit_writer::emit_leb128_s(w, inst.int_val)
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
-                                                                                                                                                                                                        }
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                                                                                                                                                                                                        emit_writer::emit_leb128_u(w, f64_temp)
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_F64_STORE())
-                                                                                                                                                                                                        emit_writer::emit_byte(w, 3)
-                                                                                                                                                                                                        emit_writer::emit_byte(w, 0)
-                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                        if inst.val_type == VT_I64() {
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
-                                                                                                                                                                                                            emit_writer::emit_leb128_u(w, inst.arg1)
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                                                                                                                                                                                                            emit_writer::emit_leb128_u(w, inst.arg0)
-                                                                                                                                                                                                            if inst.int_val > 0 {
-                                                                                                                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
-                                                                                                                                                                                                                emit_writer::emit_leb128_s(w, inst.int_val)
-                                                                                                                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
-                                                                                                                                                                                                            }
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                                                                                                                                                                                                            emit_writer::emit_leb128_u(w, inst.arg1)
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I64_STORE())
-                                                                                                                                                                                                            emit_writer::emit_byte(w, 2)
-                                                                                                                                                                                                            emit_writer::emit_byte(w, 0)
-                                                                                                                                                                                                        } else {
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
-                                                                                                                                                                                                            emit_writer::emit_leb128_u(w, inst.arg1)
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                                                                                                                                                                                                            emit_writer::emit_leb128_u(w, inst.arg0)
-                                                                                                                                                                                                            if inst.int_val > 0 {
-                                                                                                                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
-                                                                                                                                                                                                                emit_writer::emit_leb128_s(w, inst.int_val)
-                                                                                                                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
-                                                                                                                                                                                                            }
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                                                                                                                                                                                                            emit_writer::emit_leb128_u(w, inst.arg1)
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_STORE())
-                                                                                                                                                                                                            emit_writer::emit_byte(w, 2)
-                                                                                                                                                                                                            emit_writer::emit_byte(w, 0)
-                                                                                                                                                                                                        }
-                                                                                                                                                                                                    }
-                                                                                                                                                                                                } else {
-                                                                                                                                                                                                    if inst.op == 63 {
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_GET())
-                                                                                                                                                                                                        emit_writer::emit_leb128_u(w, 0)
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
-                                                                                                                                                                                                        emit_writer::emit_leb128_u(w, inst.dest)
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_GET())
-                                                                                                                                                                                                        emit_writer::emit_leb128_u(w, 0)
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
-                                                                                                                                                                                                        emit_writer::emit_leb128_s(w, inst.int_val * 4)
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
-                                                                                                                                                                                                        emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_SET())
-                                                                                                                                                                                                        emit_writer::emit_leb128_u(w, 0)
-                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                        if inst.op == 64 {
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
-                                                                                                                                                                                                            emit_writer::emit_leb128_s(w, 4)
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_MUL())
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
-                                                                                                                                                                                                            emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
-                                                                                                                                                                                                            emit_writer::emit_byte(w, 2)
-                                                                                                                                                                                                            emit_writer::emit_byte(w, 0)
-                                                                                                                                                                                                        } else {
-                                                                                                                                                                                                            if inst.op == 65 {
-                                                                                                                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
-                                                                                                                                                                                                                emit_writer::emit_leb128_u(w, inst.arg1)
-                                                                                                                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                                                                                                                                                                                                                emit_writer::emit_leb128_u(w, inst.arg0)
-                                                                                                                                                                                                                if inst.int_val > 0 {
-                                                                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
-                                                                                                                                                                                                                    emit_writer::emit_leb128_s(w, inst.int_val * 4)
-                                                                                                                                                                                                                    emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
-                                                                                                                                                                                                                }
-                                                                                                                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-                                                                                                                                                                                                                emit_writer::emit_leb128_u(w, inst.arg1)
-                                                                                                                                                                                                                emit_writer::emit_byte(w, emit_opcodes::OP_I32_STORE())
-                                                                                                                                                                                                                emit_writer::emit_byte(w, 2)
-                                                                                                                                                                                                                emit_writer::emit_byte(w, 0)
-                                                                                                                                                                                                            }
+                                                                                                         if inst.op == 42 { emit_inst_convert::emit_return(w, inst, ctx) } else {
+                                                                                                            if inst.op == 45 { emit_inst_convert::emit_extend_i32_to_i64(w, inst, ctx) } else {
+                                                                                                                if inst.op == 46 { emit_inst_convert::emit_wrap_i64_to_i32(w, inst, ctx) } else {
+                                                                                                                    if inst.op == 70 { emit_inst_convert::emit_drop(w, inst, ctx) } else {
+                                                                                                                        if inst.op == 71 { emit_inst_convert::emit_nop(w, inst, ctx) } else {
+                                                                                                                            if inst.op == 72 { emit_inst_convert::emit_unreachable(w, inst, ctx) } else {
+                                                                                                                                if inst.op == 50 { emit_inst_control::emit_br(w, inst, ctx) } else {
+                                                                                                                                    if inst.op == 51 { emit_inst_control::emit_br_if(w, inst, ctx) } else {
+                                                                                                                                        if inst.op == 53 { emit_inst_control::emit_block(w, inst, ctx) } else {
+                                                                                                                                            if inst.op == 54 { emit_inst_control::emit_loop(w, inst, ctx) } else {
+                                                                                                                                                if inst.op == 55 { emit_inst_control::emit_if(w, inst, ctx) } else {
+                                                                                                                                                    if inst.op == 56 { emit_inst_control::emit_else(w, inst, ctx) } else {
+                                                                                                                                                        if inst.op == 57 { emit_inst_control::emit_end(w, inst, ctx) } else {
+                                                                                                                                                            if inst.op == 28 { emit_inst_arith::emit_le_i32(w, inst, ctx) } else {
+                                                                                                                                                                if inst.op == 30 { emit_inst_arith::emit_ge_i32(w, inst, ctx) } else {
+                                                                                                                                                                    if inst.op == 31 { emit_inst_arith::emit_and_i32(w, inst, ctx) } else {
+                                                                                                                                                                        if inst.op == 32 { emit_inst_arith::emit_or_i32(w, inst, ctx) } else {
+                                                                                                                                                                            if inst.op == 33 { emit_inst_convert::emit_neg(w, inst, ctx) } else {
+                                                                                                                                                                                if inst.op == 34 { emit_inst_convert::emit_eqz(w, inst, ctx) } else {
+                                                                                                                                                                                    if inst.op == 58 { emit_inst_convert::emit_eqz_dup(w, inst, ctx) } else {
+                                                                                                                                                                                        if inst.op == 60 { emit_inst_struct::emit_struct_new(w, inst, ctx) } else {
+                                                                                                                                                                                            if inst.op == 61 { emit_inst_struct::emit_struct_get(w, inst, ctx) } else {
+                                                                                                                                                                                                if inst.op == 62 { emit_inst_struct::emit_struct_set(w, inst, ctx) } else {
+                                                                                                                                                                                                    if inst.op == 63 { emit_inst_struct::emit_array_new(w, inst, ctx) } else {
+                                                                                                                                                                                                        if inst.op == 64 { emit_inst_struct::emit_array_get(w, inst, ctx) } else {
+                                                                                                                                                                                                            if inst.op == 65 { emit_inst_struct::emit_array_set(w, inst, ctx) } else {
                                                                                                                                                                                                         }
                                                                                                                                                                                                     }
                                                                                                                                                                                                 }
