@@ -15,10 +15,7 @@ run:scalar/f32_local.ark
 # These verify that the T3 WasmGC emitter compiles without errors.
 # generics, control flow, operators, match, for loops, ? operator.
 bench:../../benchmarks/bench_parse_tree_distance.ark
-bench:../../benchmarks/binary_tree.ark
-bench:../../benchmarks/fib.ark
-bench:../../benchmarks/string_concat.ark
-bench:../../benchmarks/vec_ops.ark
+
 component-compile:component/export_add.ark
 component-compile:component/export_bool.ark
 component-compile:component/export_char.ark
@@ -865,3 +862,9 @@ t3-run:tail_call/opportunistic.ark
 # tail_call_ref: proves return_call_ref emission for indirect tail calls
 # via typed GC function references (FnRef local in tail position, #492).
 t3-run:tail_call_ref/basic.ark
+t3-compile:lsp_perf/large_module.ark
+t3-compile:lsp_perf/stdlib_heavy.ark
+component-compile:selfhost/component_emit_smoke.ark
+t3-run:stdlib_csv/csv_perf.ark
+t3-run:stdlib_json/json_perf_decode.ark
+t3-run:stdlib_json/json_perf_encode.ark

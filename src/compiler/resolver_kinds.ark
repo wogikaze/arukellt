@@ -1,0 +1,162 @@
+// Arukellt Selfhost — Resolver Kind Constants
+//
+// Symbol kind and AST node kind constants extracted from
+// resolver.ark for modular organization.
+
+// ── Symbol Kind Constants ──────────────────────────────────────────────
+fn SYM_LOCAL() -> i32 {
+    1
+}
+
+fn SYM_PARAM() -> i32 {
+    2
+}
+
+fn SYM_FN() -> i32 {
+    3
+}
+
+fn SYM_STRUCT() -> i32 {
+    4
+}
+
+fn SYM_ENUM() -> i32 {
+    5
+}
+
+fn SYM_VARIANT() -> i32 {
+    6
+}
+
+fn SYM_IMPORT() -> i32 {
+    7
+}
+
+fn SYM_BUILTIN() -> i32 {
+    8
+}
+
+fn SYM_MODULE() -> i32 {
+    9
+}
+
+// ── AST Node Kind Constants (from parser) ──────────────────────────────
+fn NK_INT_LIT() -> i32 {
+    1
+}
+
+fn NK_IDENT() -> i32 {
+    5
+}
+
+fn NK_BINARY() -> i32 {
+    6
+}
+
+fn NK_UNARY() -> i32 {
+    7
+}
+
+fn NK_CALL() -> i32 {
+    8
+}
+
+fn NK_FIELD_ACCESS() -> i32 {
+    9
+}
+
+fn NK_STRUCT_LIT() -> i32 {
+    11
+}
+
+fn NK_IF_EXPR() -> i32 {
+    13
+}
+
+fn NK_MATCH_EXPR() -> i32 {
+    14
+}
+
+fn NK_PATH() -> i32 {
+    16
+}
+
+fn NK_TUPLE() -> i32 {
+    17
+}
+
+fn NK_ASSIGN() -> i32 {
+    18
+}
+
+fn NK_BLOCK() -> i32 {
+    20
+}
+
+fn NK_METHOD_CALL() -> i32 {
+    21
+}
+
+fn NK_LET() -> i32 {
+    30
+}
+
+fn NK_RETURN() -> i32 {
+    31
+}
+
+fn NK_WHILE() -> i32 {
+    34
+}
+
+fn NK_LOOP() -> i32 {
+    35
+}
+
+fn NK_FOR() -> i32 {
+    36
+}
+
+fn NK_EXPR_STMT() -> i32 {
+    37
+}
+
+fn NK_COMPREHENSION() -> i32 {
+    38
+}
+
+fn NK_FN_DECL() -> i32 {
+    50
+}
+
+fn NK_STRUCT_DECL() -> i32 {
+    51
+}
+
+fn NK_ENUM_DECL() -> i32 {
+    52
+}
+
+fn NK_USE() -> i32 {
+    54
+}
+
+fn NK_TRAIT_DECL() -> i32 {
+    55
+}
+
+fn NK_IMPL_DECL() -> i32 {
+    56
+}
+
+fn NK_PAT_IDENT() -> i32 {
+    70
+}
+
+fn NK_PAT_WILDCARD() -> i32 {
+    71
+}
+
+fn NK_PAT_VARIANT() -> i32 {
+    73
+}

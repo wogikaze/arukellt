@@ -3,42 +3,8 @@
 // Walks the AST and builds a scope chain, binding each identifier
 // to its declaration. Reports undefined and duplicate names.
 use std::host::stdio
+use resolver_kinds
 
-fn SYM_LOCAL() -> i32 {
-    1
-}
-
-fn SYM_PARAM() -> i32 {
-    2
-}
-
-fn SYM_FN() -> i32 {
-    3
-}
-
-fn SYM_STRUCT() -> i32 {
-    4
-}
-
-fn SYM_ENUM() -> i32 {
-    5
-}
-
-fn SYM_VARIANT() -> i32 {
-    6
-}
-
-fn SYM_IMPORT() -> i32 {
-    7
-}
-
-fn SYM_BUILTIN() -> i32 {
-    8
-}
-
-fn SYM_MODULE() -> i32 {
-    9
-}
 
 // ── Symbol ───────────────────────────────────────────────────────────────────
 struct Symbol {
@@ -107,13 +73,13 @@ fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
     while i < sym_count {
         let existing = get_unchecked(scope.symbols, i)
         if eq(clone(existing.name), clone(name)) && existing.scope_depth == ctx.current_depth {
-            if kind == SYM_LOCAL() || kind == SYM_PARAM() {
+            if kind == resolver_kinds::SYM_LOCAL() || kind == resolver_kinds::SYM_PARAM() {
                 existing.kind = kind
                 existing.decl_index = idx
                 existing.is_pub = is_pub
                 return
             }
-            if (kind == SYM_FN() || kind == SYM_STRUCT() || kind == SYM_ENUM()) && existing.kind == SYM_MODULE() {
+            if (kind == resolver_kinds::SYM_FN() || kind == resolver_kinds::SYM_STRUCT() || kind == resolver_kinds::SYM_ENUM()) && existing.kind == resolver_kinds::SYM_MODULE() {
                 existing.kind = kind
                 existing.decl_index = idx
                 existing.is_pub = is_pub
@@ -258,293 +224,172 @@ pub fn register_module_export(ctx: ResolveCtx, module_name: String, symbol_name:
 
 // ── Builtin Registration ─────────────────────────────────────────────────────
 fn register_builtins(ctx: ResolveCtx) {
-    define(ctx, String_from("println"), SYM_BUILTIN())
-    define(ctx, String_from("print"), SYM_BUILTIN())
-    define(ctx, String_from("to_string"), SYM_BUILTIN())
-    define(ctx, String_from("len"), SYM_BUILTIN())
-    define(ctx, String_from("push"), SYM_BUILTIN())
-    define(ctx, String_from("get"), SYM_BUILTIN())
-    define(ctx, String_from("get_unchecked"), SYM_BUILTIN())
-    define(ctx, String_from("concat"), SYM_BUILTIN())
-    define(ctx, String_from("substring"), SYM_BUILTIN())
-    define(ctx, String_from("clone"), SYM_BUILTIN())
-    define(ctx, String_from("eq"), SYM_BUILTIN())
-    define(ctx, String_from("char_at"), SYM_BUILTIN())
-    define(ctx, String_from("String_from"), SYM_BUILTIN())
-    define(ctx, String_from("String_new"), SYM_BUILTIN())
-    define(ctx, String_from("Vec_new_i32"), SYM_BUILTIN())
-    define(ctx, String_from("Vec_new_String"), SYM_BUILTIN())
-    define(ctx, String_from("parse_f64"), SYM_BUILTIN())
-    define(ctx, String_from("parse_i32"), SYM_BUILTIN())
-    define(ctx, String_from("i32_to_string"), SYM_BUILTIN())
-    define(ctx, String_from("i64_to_string"), SYM_BUILTIN())
-    define(ctx, String_from("f64_to_string"), SYM_BUILTIN())
-    define(ctx, String_from("bool_to_string"), SYM_BUILTIN())
-    define(ctx, String_from("char_to_string"), SYM_BUILTIN())
-    define(ctx, String_from("push_char"), SYM_BUILTIN())
-    define(ctx, String_from("starts_with"), SYM_BUILTIN())
-    define(ctx, String_from("args"), SYM_BUILTIN())
-    define(ctx, String_from("exit"), SYM_BUILTIN())
-    define(ctx, String_from("values"), SYM_BUILTIN())
-    define(ctx, String_from("pop"), SYM_BUILTIN())
-    define(ctx, String_from("set"), SYM_BUILTIN())
-    define(ctx, String_from("is_empty"), SYM_BUILTIN())
-    define(ctx, String_from("unwrap"), SYM_BUILTIN())
-    define(ctx, String_from("unwrap_or"), SYM_BUILTIN())
-    define(ctx, String_from("slice"), SYM_BUILTIN())
-    define(ctx, String_from("split"), SYM_BUILTIN())
-    define(ctx, String_from("join"), SYM_BUILTIN())
-    define(ctx, String_from("reverse_i32"), SYM_BUILTIN())
-    define(ctx, String_from("remove_i32"), SYM_BUILTIN())
-    define(ctx, String_from("contains"), SYM_BUILTIN())
-    define(ctx, String_from("contains_i32"), SYM_BUILTIN())
-    define(ctx, String_from("contains_string"), SYM_BUILTIN())
-    define(ctx, String_from("contains_String"), SYM_BUILTIN())
-    define(ctx, String_from("reverse_String"), SYM_BUILTIN())
-    define(ctx, String_from("sum_i32"), SYM_BUILTIN())
-    define(ctx, String_from("product_i32"), SYM_BUILTIN())
-    define(ctx, String_from("is_some"), SYM_BUILTIN())
-    define(ctx, String_from("is_none"), SYM_BUILTIN())
-    define(ctx, String_from("is_ok"), SYM_BUILTIN())
-    define(ctx, String_from("is_err"), SYM_BUILTIN())
-    define(ctx, String_from("sqrt"), SYM_BUILTIN())
-    define(ctx, String_from("pow_i32"), SYM_BUILTIN())
-    define(ctx, String_from("gcd"), SYM_BUILTIN())
-    define(ctx, String_from("range_new"), SYM_BUILTIN())
-    define(ctx, String_from("range_contains"), SYM_BUILTIN())
-    define(ctx, String_from("range_len"), SYM_BUILTIN())
-    define(ctx, String_from("abs"), SYM_BUILTIN())
-    define(ctx, String_from("min"), SYM_BUILTIN())
-    define(ctx, String_from("max"), SYM_BUILTIN())
-    define(ctx, String_from("assert"), SYM_BUILTIN())
-    define(ctx, String_from("assert_eq"), SYM_BUILTIN())
-    define(ctx, String_from("assert_ne"), SYM_BUILTIN())
-    define(ctx, String_from("assert_eq_str"), SYM_BUILTIN())
-    define(ctx, String_from("assert_eq_i64"), SYM_BUILTIN())
-    define(ctx, String_from("ends_with"), SYM_BUILTIN())
-    define(ctx, String_from("trim"), SYM_BUILTIN())
-    define(ctx, String_from("repeat"), SYM_BUILTIN())
-    define(ctx, String_from("to_uppercase"), SYM_BUILTIN())
-    define(ctx, String_from("to_lowercase"), SYM_BUILTIN())
-    define(ctx, String_from("index_of"), SYM_BUILTIN())
-    define(ctx, String_from("replace"), SYM_BUILTIN())
-    define(ctx, String_from("clamp_i32"), SYM_BUILTIN())
-    define(ctx, String_from("to_lower"), SYM_BUILTIN())
-    define(ctx, String_from("to_upper"), SYM_BUILTIN())
-    define(ctx, String_from("sort_i32"), SYM_BUILTIN())
-    define(ctx, String_from("lines"), SYM_BUILTIN())
-    define(ctx, String_from("byte_len"), SYM_BUILTIN())
-    define(ctx, String_from("byte_at"), SYM_BUILTIN())
-    define(ctx, String_from("trim_start"), SYM_BUILTIN())
-    define(ctx, String_from("trim_end"), SYM_BUILTIN())
-    define(ctx, String_from("pad_left"), SYM_BUILTIN())
-    define(ctx, String_from("pad_right"), SYM_BUILTIN())
-    define(ctx, String_from("format_i32"), SYM_BUILTIN())
-    define(ctx, String_from("format_bool"), SYM_BUILTIN())
-    define(ctx, String_from("Some"), SYM_BUILTIN())
-    define(ctx, String_from("None"), SYM_BUILTIN())
-    define(ctx, String_from("Ok"), SYM_BUILTIN())
-    define(ctx, String_from("Err"), SYM_BUILTIN())
-    define(ctx, String_from("stdio"), SYM_MODULE())
-    define(ctx, String_from("fs"), SYM_MODULE())
-    define(ctx, String_from("process"), SYM_MODULE())
-    define(ctx, String_from("env"), SYM_MODULE())
-    define(ctx, String_from("text"), SYM_MODULE())
-    define(ctx, String_from("math"), SYM_MODULE())
-    define(ctx, String_from("core"), SYM_MODULE())
-    define(ctx, String_from("host"), SYM_MODULE())
-    define(ctx, String_from("clock"), SYM_MODULE())
-    define(ctx, String_from("random"), SYM_MODULE())
-    define(ctx, String_from("convert"), SYM_MODULE())
-    define(ctx, String_from("string"), SYM_MODULE())
-    define(ctx, String_from("collections"), SYM_MODULE())
-    define(ctx, String_from("parse_i64"), SYM_BUILTIN())
-    define(ctx, String_from("__intrinsic_println"), SYM_BUILTIN())
-    define(ctx, String_from("__intrinsic_i32_to_string"), SYM_BUILTIN())
-    define(ctx, String_from("__intrinsic_f64_to_string"), SYM_BUILTIN())
-    define(ctx, String_from("i8_to_i32"), SYM_BUILTIN())
-    define(ctx, String_from("i16_to_i32"), SYM_BUILTIN())
-    define(ctx, String_from("u8_to_i32"), SYM_BUILTIN())
-    define(ctx, String_from("u16_to_i32"), SYM_BUILTIN())
-    define(ctx, String_from("i32_to_u8"), SYM_BUILTIN())
-    define(ctx, String_from("i32_to_i8"), SYM_BUILTIN())
-    define(ctx, String_from("u32_to_u64"), SYM_BUILTIN())
-    define(ctx, String_from("i32_to_u32"), SYM_BUILTIN())
-    define(ctx, String_from("f32_to_f64"), SYM_BUILTIN())
-    define(ctx, String_from("f64_to_f32"), SYM_BUILTIN())
-    define(ctx, String_from("f32_to_string"), SYM_BUILTIN())
-    define(ctx, String_from("map_i32_i32"), SYM_BUILTIN())
-    define(ctx, String_from("map_i64_i64"), SYM_BUILTIN())
-    define(ctx, String_from("map_f64_f64"), SYM_BUILTIN())
-    define(ctx, String_from("map_String_String"), SYM_BUILTIN())
-    define(ctx, String_from("filter_i32"), SYM_BUILTIN())
-    define(ctx, String_from("filter_i64"), SYM_BUILTIN())
-    define(ctx, String_from("filter_f64"), SYM_BUILTIN())
-    define(ctx, String_from("filter_String"), SYM_BUILTIN())
-    define(ctx, String_from("any_i32"), SYM_BUILTIN())
-    define(ctx, String_from("any_i64"), SYM_BUILTIN())
-    define(ctx, String_from("any_f64"), SYM_BUILTIN())
-    define(ctx, String_from("any_String"), SYM_BUILTIN())
-    define(ctx, String_from("find_i32"), SYM_BUILTIN())
-    define(ctx, String_from("find_i64"), SYM_BUILTIN())
-    define(ctx, String_from("find_f64"), SYM_BUILTIN())
-    define(ctx, String_from("find_String"), SYM_BUILTIN())
-    define(ctx, String_from("fold_i32_i32"), SYM_BUILTIN())
-    define(ctx, String_from("fold_i64_i64"), SYM_BUILTIN())
-    define(ctx, String_from("fold_f64_f64"), SYM_BUILTIN())
-    define(ctx, String_from("map_option_i32_i32"), SYM_BUILTIN())
-    define(ctx, String_from("sort_i64"), SYM_BUILTIN())
-    define(ctx, String_from("sort_f64"), SYM_BUILTIN())
-    define(ctx, String_from("sort_String"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_i32_new"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_i32_insert"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_i32_get"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_i32_contains_key"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_i32_remove"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_i32_len"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_String_new"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_String_insert"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_String_get"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_String_contains_key"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_String_remove"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_i32_String_len"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_i32_new"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_i32_insert"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_i32_get"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_i32_contains_key"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_i32_remove"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_i32_len"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_String_new"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_String_insert"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_String_get"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_String_contains_key"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_String_remove"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_String_String_len"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_new_i32_i32"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_new_i32_String"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_new_String_i32"), SYM_BUILTIN())
-    define(ctx, String_from("HashMap_new_String_String"), SYM_BUILTIN())
-}
-
-// ── AST Node Kind Constants (from parser) ────────────────────────────────────
-fn NK_INT_LIT() -> i32 {
-    1
-}
-
-fn NK_IDENT() -> i32 {
-    5
-}
-
-fn NK_BINARY() -> i32 {
-    6
-}
-
-fn NK_UNARY() -> i32 {
-    7
-}
-
-fn NK_CALL() -> i32 {
-    8
-}
-
-fn NK_FIELD_ACCESS() -> i32 {
-    9
-}
-
-fn NK_PATH() -> i32 {
-    16
-}
-
-fn NK_STRUCT_LIT() -> i32 {
-    11
-}
-
-fn NK_IF_EXPR() -> i32 {
-    13
-}
-
-fn NK_MATCH_EXPR() -> i32 {
-    14
-}
-
-fn NK_BLOCK() -> i32 {
-    20
-}
-
-fn NK_ASSIGN() -> i32 {
-    18
-}
-
-fn NK_METHOD_CALL() -> i32 {
-    21
-}
-
-fn NK_LET() -> i32 {
-    30
-}
-
-fn NK_RETURN() -> i32 {
-    31
-}
-
-fn NK_WHILE() -> i32 {
-    34
-}
-
-fn NK_LOOP() -> i32 {
-    35
-}
-
-fn NK_FOR() -> i32 {
-    36
-}
-
-fn NK_EXPR_STMT() -> i32 {
-    37
-}
-
-fn NK_COMPREHENSION() -> i32 {
-    38
-}
-
-fn NK_FN_DECL() -> i32 {
-    50
-}
-
-fn NK_STRUCT_DECL() -> i32 {
-    51
-}
-
-fn NK_ENUM_DECL() -> i32 {
-    52
-}
-
-fn NK_USE() -> i32 {
-    54
-}
-
-fn NK_TRAIT_DECL() -> i32 {
-    55
-}
-
-fn NK_IMPL_DECL() -> i32 {
-    56
-}
-
-fn NK_TUPLE() -> i32 {
-    17
-}
-
-fn NK_PAT_IDENT() -> i32 {
-    70
-}
-
-fn NK_PAT_WILDCARD() -> i32 {
-    71
-}
-
-fn NK_PAT_VARIANT() -> i32 {
-    73
+    define(ctx, String_from("println"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("print"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("to_string"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("len"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("push"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("get"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("get_unchecked"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("concat"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("substring"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("clone"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("eq"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("char_at"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("String_from"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("String_new"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("Vec_new_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("Vec_new_String"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("parse_f64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("parse_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("i32_to_string"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("i64_to_string"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("f64_to_string"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("bool_to_string"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("char_to_string"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("push_char"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("starts_with"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("args"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("exit"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("values"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("pop"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("set"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("is_empty"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("unwrap"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("unwrap_or"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("slice"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("split"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("join"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("reverse_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("remove_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("contains"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("contains_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("contains_string"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("contains_String"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("reverse_String"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("sum_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("product_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("is_some"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("is_none"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("is_ok"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("is_err"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("sqrt"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("pow_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("gcd"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("range_new"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("range_contains"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("range_len"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("abs"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("min"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("max"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("assert"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("assert_eq"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("assert_ne"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("assert_eq_str"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("assert_eq_i64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("ends_with"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("trim"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("repeat"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("to_uppercase"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("to_lowercase"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("index_of"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("replace"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("clamp_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("to_lower"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("to_upper"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("sort_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("lines"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("byte_len"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("byte_at"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("trim_start"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("trim_end"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("pad_left"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("pad_right"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("format_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("format_bool"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("Some"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("None"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("Ok"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("Err"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("stdio"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("fs"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("process"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("env"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("text"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("math"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("core"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("host"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("clock"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("random"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("convert"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("string"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("collections"), resolver_kinds::SYM_MODULE())
+    define(ctx, String_from("parse_i64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("__intrinsic_println"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("__intrinsic_i32_to_string"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("__intrinsic_f64_to_string"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("i8_to_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("i16_to_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("u8_to_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("u16_to_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("i32_to_u8"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("i32_to_i8"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("u32_to_u64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("i32_to_u32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("f32_to_f64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("f64_to_f32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("f32_to_string"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("map_i32_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("map_i64_i64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("map_f64_f64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("map_String_String"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("filter_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("filter_i64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("filter_f64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("filter_String"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("any_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("any_i64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("any_f64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("any_String"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("find_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("find_i64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("find_f64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("find_String"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("fold_i32_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("fold_i64_i64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("fold_f64_f64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("map_option_i32_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("sort_i64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("sort_f64"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("sort_String"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_i32_new"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_i32_insert"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_i32_get"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_i32_contains_key"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_i32_remove"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_i32_len"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_new"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_insert"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_get"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_contains_key"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_remove"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_i32_String_len"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_new"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_insert"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_get"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_contains_key"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_remove"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_i32_len"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_new"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_insert"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_get"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_contains_key"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_remove"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_String_String_len"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_new_i32_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_new_i32_String"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_new_String_i32"), resolver_kinds::SYM_BUILTIN())
+    define(ctx, String_from("HashMap_new_String_String"), resolver_kinds::SYM_BUILTIN())
 }
 
 // ── AST Node (duplicated from parser for standalone compilation) ─────────────
@@ -594,20 +439,20 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Resolv
         let m = get_unchecked(modules, mi)
         let existing = lookup(ctx, clone(m.name))
         if existing < 0 {
-            define(ctx, clone(m.name), SYM_MODULE())
+            define(ctx, clone(m.name), resolver_kinds::SYM_MODULE())
         }
         let mdecl_count = len(m.decls)
         let mut di = 0
         while di < mdecl_count {
             let d = get_unchecked(m.decls, di)
-            if d.kind == NK_FN_DECL() {
-                register_module_export(ctx, clone(m.name), clone(d.text), SYM_FN(), d.is_pub)
+            if d.kind == resolver_kinds::NK_FN_DECL() {
+                register_module_export(ctx, clone(m.name), clone(d.text), resolver_kinds::SYM_FN(), d.is_pub)
             } else {
-                if d.kind == NK_STRUCT_DECL() {
-                    register_module_export(ctx, clone(m.name), clone(d.text), SYM_STRUCT(), d.is_pub)
+                if d.kind == resolver_kinds::NK_STRUCT_DECL() {
+                    register_module_export(ctx, clone(m.name), clone(d.text), resolver_kinds::SYM_STRUCT(), d.is_pub)
                 } else {
-                    if d.kind == NK_ENUM_DECL() {
-                        register_module_export(ctx, clone(m.name), clone(d.text), SYM_ENUM(), d.is_pub)
+                    if d.kind == resolver_kinds::NK_ENUM_DECL() {
+                        register_module_export(ctx, clone(m.name), clone(d.text), resolver_kinds::SYM_ENUM(), d.is_pub)
                     }
                 }
             }
@@ -619,30 +464,30 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Resolv
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)
-        if d.kind == NK_FN_DECL() {
-            define_with_vis(ctx, clone(d.text), SYM_FN(), d.is_pub)
+        if d.kind == resolver_kinds::NK_FN_DECL() {
+            define_with_vis(ctx, clone(d.text), resolver_kinds::SYM_FN(), d.is_pub)
         } else {
-            if d.kind == NK_STRUCT_DECL() {
-                define_with_vis(ctx, clone(d.text), SYM_STRUCT(), d.is_pub)
+            if d.kind == resolver_kinds::NK_STRUCT_DECL() {
+                define_with_vis(ctx, clone(d.text), resolver_kinds::SYM_STRUCT(), d.is_pub)
             } else {
-                if d.kind == NK_ENUM_DECL() {
-                    define_with_vis(ctx, clone(d.text), SYM_ENUM(), d.is_pub)
+                if d.kind == resolver_kinds::NK_ENUM_DECL() {
+                    define_with_vis(ctx, clone(d.text), resolver_kinds::SYM_ENUM(), d.is_pub)
                 } else {
-                    if d.kind == NK_IMPL_DECL() {
+                    if d.kind == resolver_kinds::NK_IMPL_DECL() {
                         let struct_name = clone(d.text)
                         let mcount = len(d.children)
                         let mut mi = 0
                         while mi < mcount {
                             let method = get_unchecked(d.children, mi)
                             let mangled = concat(clone(struct_name), concat(String_from("::"), clone(method.text)))
-                            define_with_vis(ctx, mangled, SYM_FN(), d.is_pub)
+                            define_with_vis(ctx, mangled, resolver_kinds::SYM_FN(), d.is_pub)
                             mi = mi + 1
                         }
                     } else {
-                        if d.kind == NK_USE() {
+                        if d.kind == resolver_kinds::NK_USE() {
                             let existing_use = lookup(ctx, clone(d.text))
                             if existing_use < 0 {
-                                define(ctx, clone(d.text), SYM_IMPORT())
+                                define(ctx, clone(d.text), resolver_kinds::SYM_IMPORT())
                             }
                             let short_name = if len(d.type_ann) > 0 {
                                 let alias_node = get_unchecked(d.type_ann, 0)
@@ -652,21 +497,21 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Resolv
                             }
                             let existing_mod = lookup(ctx, clone(short_name))
                             if existing_mod < 0 {
-                                define(ctx, clone(short_name), SYM_MODULE())
+                                define(ctx, clone(short_name), resolver_kinds::SYM_MODULE())
                             }
                             let num_children = len(d.children)
                             let mut ci = 0
                             while ci < num_children {
                                 let child = get_unchecked(d.children, ci)
-                                if child.kind == NK_USE() {
+                                if child.kind == resolver_kinds::NK_USE() {
                                     let existing_child = lookup(ctx, clone(child.text))
                                     if existing_child < 0 {
-                                        define(ctx, clone(child.text), SYM_IMPORT())
+                                        define(ctx, clone(child.text), resolver_kinds::SYM_IMPORT())
                                     }
                                     let child_short = use_module_short_name(clone(child.text))
                                     let existing_child_mod = lookup(ctx, clone(child_short))
                                     if existing_child_mod < 0 {
-                                        define(ctx, clone(child_short), SYM_MODULE())
+                                        define(ctx, clone(child_short), resolver_kinds::SYM_MODULE())
                                     }
                                 }
                                 ci = ci + 1
@@ -681,13 +526,13 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Resolv
     let mut j = 0
     while j < count {
         let d = get_unchecked(decls, j)
-        if d.kind == NK_FN_DECL() {
+        if d.kind == resolver_kinds::NK_FN_DECL() {
             resolve_fn(ctx, d)
         } else {
-            if d.kind == NK_ENUM_DECL() {
+            if d.kind == resolver_kinds::NK_ENUM_DECL() {
                 resolve_enum(ctx, d)
             } else {
-                if d.kind == NK_IMPL_DECL() {
+                if d.kind == resolver_kinds::NK_IMPL_DECL() {
                     let struct_name = clone(d.text)
                     let mcount = len(d.children)
                     let mut mi = 0
@@ -698,8 +543,8 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Resolv
                         let mut pi = 0
                         while pi < m_child_count - 1 {
                             let param = get_unchecked(method.children, pi)
-                            if param.kind == NK_IDENT() {
-                                define(ctx, clone(param.text), SYM_PARAM())
+                            if param.kind == resolver_kinds::NK_IDENT() {
+                                define(ctx, clone(param.text), resolver_kinds::SYM_PARAM())
                             }
                             pi = pi + 1
                         }
@@ -724,8 +569,8 @@ fn resolve_fn(ctx: ResolveCtx, node: AstNode) {
     let mut i = 0
     while i < child_count - 1 {
         let param = get_unchecked(node.children, i)
-        if param.kind == NK_IDENT() {
-            define(ctx, clone(param.text), SYM_PARAM())
+        if param.kind == resolver_kinds::NK_IDENT() {
+            define(ctx, clone(param.text), resolver_kinds::SYM_PARAM())
         }
         i = i + 1
     }
@@ -742,17 +587,17 @@ fn resolve_enum(ctx: ResolveCtx, node: AstNode) {
     while i < child_count {
         let variant = get_unchecked(node.children, i)
         let full_name = concat(clone(node.text), concat(String_from("::"), clone(variant.text)))
-        define_with_vis(ctx, full_name, SYM_VARIANT(), node.is_pub)
+        define_with_vis(ctx, full_name, resolver_kinds::SYM_VARIANT(), node.is_pub)
         i = i + 1
     }
 }
 
 fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
-    if pat.kind == NK_PAT_IDENT() {
-        define(ctx, clone(pat.text), SYM_LOCAL())
+    if pat.kind == resolver_kinds::NK_PAT_IDENT() {
+        define(ctx, clone(pat.text), resolver_kinds::SYM_LOCAL())
         return
     }
-    if pat.kind == NK_PAT_VARIANT() {
+    if pat.kind == resolver_kinds::NK_PAT_VARIANT() {
         let child_count = len(pat.children)
         let mut i = 0
         while i < child_count {
@@ -765,7 +610,7 @@ fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
 }
 
 fn resolve_node(ctx: ResolveCtx, node: AstNode) {
-    if node.kind == NK_IDENT() {
+    if node.kind == resolver_kinds::NK_IDENT() {
         let idx = lookup(ctx, clone(node.text))
         if idx < 0 {
             let name = clone(node.text)
@@ -782,14 +627,14 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         }
         return
     }
-    if node.kind == NK_FIELD_ACCESS() {
+    if node.kind == resolver_kinds::NK_FIELD_ACCESS() {
         if len(node.children) > 0 {
             let receiver = get_unchecked(node.children, 0)
             resolve_node(ctx, receiver)
         }
         return
     }
-    if node.kind == NK_PATH() {
+    if node.kind == resolver_kinds::NK_PATH() {
         let path = clone(node.text)
         let module_part = path_module_part(clone(path))
         let symbol_part = path_symbol_part(clone(path))
@@ -801,7 +646,7 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         let sym_idx = lookup(ctx, clone(path))
         if sym_idx >= 0 {
             let mod_kind = lookup_kind(ctx, clone(module_part))
-            if mod_kind != SYM_ENUM() {
+            if mod_kind != resolver_kinds::SYM_ENUM() {
                 if !lookup_is_pub(ctx, clone(path)) {
                     resolve_error(ctx, concat(String_from("visibility error: `"), concat(clone(symbol_part), concat(String_from("` is private and cannot be accessed from module `"), concat(clone(module_part), String_from("`"))))))
                 }
@@ -809,7 +654,7 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         }
         return
     }
-    if node.kind == NK_STRUCT_LIT() {
+    if node.kind == resolver_kinds::NK_STRUCT_LIT() {
         let idx = lookup(ctx, clone(node.text))
         if idx < 0 {
             resolve_error(ctx, concat(String_from("undefined struct: "), clone(node.text)))
@@ -826,7 +671,7 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         }
         return
     }
-    if node.kind == NK_METHOD_CALL() {
+    if node.kind == resolver_kinds::NK_METHOD_CALL() {
         let child_count = len(node.children)
         if child_count > 0 {
             let receiver = get_unchecked(node.children, 0)
@@ -840,18 +685,18 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         }
         return
     }
-    if node.kind == NK_LET() {
+    if node.kind == resolver_kinds::NK_LET() {
         let child_count = len(node.children)
         if child_count > 0 {
             let init = get_unchecked(node.children, 0)
             resolve_node(ctx, init)
         }
         if !eq(clone(node.text), "_") {
-            define(ctx, clone(node.text), SYM_LOCAL())
+            define(ctx, clone(node.text), resolver_kinds::SYM_LOCAL())
         }
         return
     }
-    if node.kind == NK_BLOCK() {
+    if node.kind == resolver_kinds::NK_BLOCK() {
         push_scope(ctx)
         let child_count = len(node.children)
         let mut i = 0
@@ -863,13 +708,13 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         pop_scope(ctx)
         return
     }
-    if node.kind == NK_FOR() {
+    if node.kind == resolver_kinds::NK_FOR() {
         push_scope(ctx)
         if len(node.children) > 0 {
             let iter = get_unchecked(node.children, 0)
             resolve_node(ctx, iter)
         }
-        define(ctx, clone(node.text), SYM_LOCAL())
+        define(ctx, clone(node.text), resolver_kinds::SYM_LOCAL())
         if len(node.children) > 1 {
             let body = get_unchecked(node.children, 1)
             resolve_node(ctx, body)
@@ -877,7 +722,7 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         pop_scope(ctx)
         return
     }
-    if node.kind == NK_COMPREHENSION() {
+    if node.kind == resolver_kinds::NK_COMPREHENSION() {
         // [expr for x in iter if filter]
         // children[0] = element expr, children[1] = iter expr, children[2] = filter (optional)
         push_scope(ctx)
@@ -885,7 +730,7 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
             let iter = get_unchecked(node.children, 1)
             resolve_node(ctx, iter)
         }
-        define(ctx, clone(node.text), SYM_LOCAL())
+        define(ctx, clone(node.text), resolver_kinds::SYM_LOCAL())
         if len(node.children) > 0 {
             let elem_expr = get_unchecked(node.children, 0)
             resolve_node(ctx, elem_expr)
@@ -897,7 +742,7 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         pop_scope(ctx)
         return
     }
-    if node.kind == NK_MATCH_EXPR() {
+    if node.kind == resolver_kinds::NK_MATCH_EXPR() {
         let child_count = len(node.children)
         if child_count > 0 {
             let scrutinee = get_unchecked(node.children, 0)
@@ -957,31 +802,31 @@ pub fn dump_scope(ctx: ResolveCtx) {
 }
 
 fn sym_kind_name(kind: i32) -> String {
-    if kind == SYM_LOCAL() {
+    if kind == resolver_kinds::SYM_LOCAL() {
         return String_from("local")
     }
-    if kind == SYM_PARAM() {
+    if kind == resolver_kinds::SYM_PARAM() {
         return String_from("param")
     }
-    if kind == SYM_FN() {
+    if kind == resolver_kinds::SYM_FN() {
         return String_from("fn")
     }
-    if kind == SYM_STRUCT() {
+    if kind == resolver_kinds::SYM_STRUCT() {
         return String_from("struct")
     }
-    if kind == SYM_ENUM() {
+    if kind == resolver_kinds::SYM_ENUM() {
         return String_from("enum")
     }
-    if kind == SYM_VARIANT() {
+    if kind == resolver_kinds::SYM_VARIANT() {
         return String_from("variant")
     }
-    if kind == SYM_IMPORT() {
+    if kind == resolver_kinds::SYM_IMPORT() {
         return String_from("import")
     }
-    if kind == SYM_BUILTIN() {
+    if kind == resolver_kinds::SYM_BUILTIN() {
         return String_from("builtin")
     }
-    if kind == SYM_MODULE() {
+    if kind == resolver_kinds::SYM_MODULE() {
         return String_from("module")
     }
     String_from("unknown")
@@ -990,8 +835,8 @@ fn sym_kind_name(kind: i32) -> String {
 // ── Entry Point ──────────────────────────────────────────────────────────────
 fn main() {
     let ctx = ResolveCtx_new()
-    define(ctx, String_from("x"), SYM_LOCAL())
-    define(ctx, String_from("add"), SYM_FN())
+    define(ctx, String_from("x"), resolver_kinds::SYM_LOCAL())
+    define(ctx, String_from("add"), resolver_kinds::SYM_FN())
     let idx_x = lookup(ctx, String_from("x"))
     let idx_add = lookup(ctx, String_from("add"))
     let idx_missing = lookup(ctx, String_from("missing"))
@@ -999,7 +844,7 @@ fn main() {
     stdio::println(concat(String_from("add found: "), to_string(idx_add >= 0)))
     stdio::println(concat(String_from("missing found: "), to_string(idx_missing >= 0)))
     push_scope(ctx)
-    define(ctx, String_from("y"), SYM_LOCAL())
+    define(ctx, String_from("y"), resolver_kinds::SYM_LOCAL())
     let idx_y = lookup(ctx, String_from("y"))
     stdio::println(concat(String_from("y found (inner): "), to_string(idx_y >= 0)))
     pop_scope(ctx)
@@ -1007,34 +852,34 @@ fn main() {
     stdio::println(concat(String_from("y found (outer): "), to_string(idx_y2 >= 0)))
     stdio::println(String_from("Resolver OK."))
     let vctx = ResolveCtx_new()
-    define(vctx, String_from("mymod"), SYM_IMPORT())
-    register_module_export(vctx, String_from("mymod"), String_from("pub_fn"), SYM_FN(), true)
-    register_module_export(vctx, String_from("mymod"), String_from("priv_fn"), SYM_FN(), false)
-    let pub_node = AstNode { kind: NK_PATH(), span: Span { start: 0, end: 0 }, text: String_from("mymod::pub_fn"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
+    define(vctx, String_from("mymod"), resolver_kinds::SYM_IMPORT())
+    register_module_export(vctx, String_from("mymod"), String_from("pub_fn"), resolver_kinds::SYM_FN(), true)
+    register_module_export(vctx, String_from("mymod"), String_from("priv_fn"), resolver_kinds::SYM_FN(), false)
+    let pub_node = AstNode { kind: resolver_kinds::NK_PATH(), span: Span { start: 0, end: 0 }, text: String_from("mymod::pub_fn"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
     let errors_before_pub = vctx.error_count
     resolve_node(vctx, pub_node)
     let pub_ok = vctx.error_count == errors_before_pub
     stdio::println(concat(String_from("pub access OK: "), bool_to_string(pub_ok)))
-    let priv_node = AstNode { kind: NK_PATH(), span: Span { start: 0, end: 0 }, text: String_from("mymod::priv_fn"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
+    let priv_node = AstNode { kind: resolver_kinds::NK_PATH(), span: Span { start: 0, end: 0 }, text: String_from("mymod::priv_fn"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
     let errors_before_priv = vctx.error_count
     resolve_node(vctx, priv_node)
     let priv_blocked = vctx.error_count > errors_before_priv
     stdio::println(concat(String_from("private access blocked: "), bool_to_string(priv_blocked)))
-    let unknown_node = AstNode { kind: NK_PATH(), span: Span { start: 0, end: 0 }, text: String_from("mymod::unknown_fn"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
+    let unknown_node = AstNode { kind: resolver_kinds::NK_PATH(), span: Span { start: 0, end: 0 }, text: String_from("mymod::unknown_fn"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
     let errors_before_unknown = vctx.error_count
     resolve_node(vctx, unknown_node)
     let unknown_ok = vctx.error_count == errors_before_unknown
     stdio::println(concat(String_from("unregistered access OK (graceful): "), bool_to_string(unknown_ok)))
     stdio::println(String_from("Visibility OK."))
     let mut mod_decls: Vec<AstNode> = Vec_new_AstNode()
-    let add_fn = AstNode { kind: NK_FN_DECL(), span: Span { start: 0, end: 0 }, text: String_from("add"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: true }
+    let add_fn = AstNode { kind: resolver_kinds::NK_FN_DECL(), span: Span { start: 0, end: 0 }, text: String_from("add"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: true }
     push(mod_decls, add_fn)
-    let priv_fn_decl = AstNode { kind: NK_FN_DECL(), span: Span { start: 0, end: 0 }, text: String_from("internal"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
+    let priv_fn_decl = AstNode { kind: resolver_kinds::NK_FN_DECL(), span: Span { start: 0, end: 0 }, text: String_from("internal"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
     push(mod_decls, priv_fn_decl)
     let mut modules: Vec<ModuleDecls> = Vec_new_ModuleDecls()
     push(modules, ModuleDecls_new(String_from("mymath"), mod_decls))
     let mut main_decls: Vec<AstNode> = Vec_new_AstNode()
-    let use_node = AstNode { kind: NK_USE(), span: Span { start: 0, end: 0 }, text: String_from("mymath"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
+    let use_node = AstNode { kind: resolver_kinds::NK_USE(), span: Span { start: 0, end: 0 }, text: String_from("mymath"), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false }
     push(main_decls, use_node)
     let mctx = resolve_program(main_decls, modules)
     let add_idx = lookup(mctx, String_from("mymath::add"))
@@ -1049,7 +894,7 @@ fn main() {
     let internal_private = !internal_pub
     stdio::println(concat(String_from("mymath::internal is private: "), bool_to_string(internal_private)))
     let mod_kind = lookup_kind(mctx, String_from("mymath"))
-    let mod_is_module = mod_kind == SYM_MODULE()
+    let mod_is_module = mod_kind == resolver_kinds::SYM_MODULE()
     stdio::println(concat(String_from("mymath is SYM_MODULE: "), bool_to_string(mod_is_module)))
     stdio::println(String_from("Module Import OK."))
 }

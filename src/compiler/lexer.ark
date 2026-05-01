@@ -5,284 +5,7 @@
 //         operators, delimiters, comments, newlines.
 use std::host::stdio
 
-fn TK_EOF() -> i32 {
-    0
-}
-
-fn TK_IDENT() -> i32 {
-    1
-}
-
-fn TK_INT() -> i32 {
-    2
-}
-
-fn TK_FLOAT() -> i32 {
-    3
-}
-
-fn TK_STRING() -> i32 {
-    4
-}
-
-fn TK_BOOL() -> i32 {
-    5
-}
-
-fn TK_NEWLINE() -> i32 {
-    6
-}
-
-fn TK_ERROR() -> i32 {
-    7
-}
-
-fn TK_FSTRING() -> i32 {
-    8
-}
-
-// Keywords
-fn TK_FN() -> i32 {
-    10
-}
-
-fn TK_STRUCT() -> i32 {
-    11
-}
-
-fn TK_ENUM() -> i32 {
-    12
-}
-
-fn TK_LET() -> i32 {
-    13
-}
-
-fn TK_MUT() -> i32 {
-    14
-}
-
-fn TK_IF() -> i32 {
-    15
-}
-
-fn TK_ELSE() -> i32 {
-    16
-}
-
-fn TK_MATCH() -> i32 {
-    17
-}
-
-fn TK_WHILE() -> i32 {
-    18
-}
-
-fn TK_LOOP() -> i32 {
-    19
-}
-
-fn TK_FOR() -> i32 {
-    20
-}
-
-fn TK_IN() -> i32 {
-    21
-}
-
-fn TK_BREAK() -> i32 {
-    22
-}
-
-fn TK_CONTINUE() -> i32 {
-    23
-}
-
-fn TK_RETURN() -> i32 {
-    24
-}
-
-fn TK_PUB() -> i32 {
-    25
-}
-
-fn TK_IMPORT() -> i32 {
-    26
-}
-
-fn TK_AS() -> i32 {
-    27
-}
-
-fn TK_TRAIT() -> i32 {
-    28
-}
-
-fn TK_IMPL() -> i32 {
-    29
-}
-
-fn TK_USE() -> i32 {
-    30
-}
-
-fn TK_WHERE() -> i32 {
-    31
-}
-
-// Operators
-fn TK_PLUS() -> i32 {
-    40
-}
-
-fn TK_MINUS() -> i32 {
-    41
-}
-
-fn TK_STAR() -> i32 {
-    42
-}
-
-fn TK_SLASH() -> i32 {
-    43
-}
-
-fn TK_PERCENT() -> i32 {
-    44
-}
-
-fn TK_EQ() -> i32 {
-    45
-}
-
-fn TK_EQEQ() -> i32 {
-    46
-}
-
-fn TK_BANGEQ() -> i32 {
-    47
-}
-
-fn TK_LT() -> i32 {
-    48
-}
-
-fn TK_LTEQ() -> i32 {
-    49
-}
-
-fn TK_GT() -> i32 {
-    50
-}
-
-fn TK_GTEQ() -> i32 {
-    51
-}
-
-fn TK_AMPAMP() -> i32 {
-    52
-}
-
-fn TK_PIPEPIPE() -> i32 {
-    53
-}
-
-fn TK_BANG() -> i32 {
-    54
-}
-
-fn TK_AMP() -> i32 {
-    55
-}
-
-fn TK_PIPE() -> i32 {
-    56
-}
-
-fn TK_CARET() -> i32 {
-    57
-}
-
-fn TK_TILDE() -> i32 {
-    58
-}
-
-fn TK_SHL() -> i32 {
-    59
-}
-
-fn TK_SHR() -> i32 {
-    60
-}
-
-// Delimiters
-fn TK_LPAREN() -> i32 {
-    70
-}
-
-fn TK_RPAREN() -> i32 {
-    71
-}
-
-fn TK_LBRACE() -> i32 {
-    72
-}
-
-fn TK_RBRACE() -> i32 {
-    73
-}
-
-fn TK_LBRACKET() -> i32 {
-    74
-}
-
-fn TK_RBRACKET() -> i32 {
-    75
-}
-
-fn TK_COMMA() -> i32 {
-    76
-}
-
-fn TK_SEMI() -> i32 {
-    77
-}
-
-fn TK_DOT() -> i32 {
-    78
-}
-
-fn TK_DOTDOT() -> i32 {
-    79
-}
-
-fn TK_ARROW() -> i32 {
-    80
-}
-
-fn TK_FATARROW() -> i32 {
-    81
-}
-
-fn TK_QUESTION() -> i32 {
-    82
-}
-
-fn TK_COLON() -> i32 {
-    83
-}
-
-fn TK_COLONCOLON() -> i32 {
-    84
-}
-
-fn TK_UNDERSCORE() -> i32 {
-    85
-}
-
-fn TK_CHAR() -> i32 {
-    86
-}
+use lexer_kinds
 
 // ── Token ────────────────────────────────────────────────────────────────────
 struct Token {
@@ -299,11 +22,11 @@ fn Token_new(kind: i32, text: String, start: i32, end: i32) -> Token {
 }
 
 fn Token_int(val: i32, text: String, start: i32, end: i32) -> Token {
-    Token { kind: TK_INT(), text: text, int_val: val, float_val: 0.0, start: start, end: end }
+    Token { kind: lexer_kinds::TK_INT(), text: text, int_val: val, float_val: 0.0, start: start, end: end }
 }
 
 fn Token_float(val: f64, text: String, start: i32, end: i32) -> Token {
-    Token { kind: TK_FLOAT(), text: text, int_val: 0, float_val: val, start: start, end: end }
+    Token { kind: lexer_kinds::TK_FLOAT(), text: text, int_val: 0, float_val: val, start: start, end: end }
 }
 
 // ── Diagnostic ───────────────────────────────────────────────────────────────
@@ -405,76 +128,76 @@ fn digit_value(c: i32) -> i32 {
 // ── Keyword Lookup ───────────────────────────────────────────────────────────
 fn keyword_kind(word: String) -> i32 {
     if eq(word, "fn") {
-        return TK_FN()
+        return lexer_kinds::TK_FN()
     }
     if eq(word, "struct") {
-        return TK_STRUCT()
+        return lexer_kinds::TK_STRUCT()
     }
     if eq(word, "enum") {
-        return TK_ENUM()
+        return lexer_kinds::TK_ENUM()
     }
     if eq(word, "let") {
-        return TK_LET()
+        return lexer_kinds::TK_LET()
     }
     if eq(word, "mut") {
-        return TK_MUT()
+        return lexer_kinds::TK_MUT()
     }
     if eq(word, "if") {
-        return TK_IF()
+        return lexer_kinds::TK_IF()
     }
     if eq(word, "else") {
-        return TK_ELSE()
+        return lexer_kinds::TK_ELSE()
     }
     if eq(word, "match") {
-        return TK_MATCH()
+        return lexer_kinds::TK_MATCH()
     }
     if eq(word, "while") {
-        return TK_WHILE()
+        return lexer_kinds::TK_WHILE()
     }
     if eq(word, "loop") {
-        return TK_LOOP()
+        return lexer_kinds::TK_LOOP()
     }
     if eq(word, "for") {
-        return TK_FOR()
+        return lexer_kinds::TK_FOR()
     }
     if eq(word, "in") {
-        return TK_IN()
+        return lexer_kinds::TK_IN()
     }
     if eq(word, "break") {
-        return TK_BREAK()
+        return lexer_kinds::TK_BREAK()
     }
     if eq(word, "continue") {
-        return TK_CONTINUE()
+        return lexer_kinds::TK_CONTINUE()
     }
     if eq(word, "return") {
-        return TK_RETURN()
+        return lexer_kinds::TK_RETURN()
     }
     if eq(word, "pub") {
-        return TK_PUB()
+        return lexer_kinds::TK_PUB()
     }
     if eq(word, "import") {
-        return TK_IMPORT()
+        return lexer_kinds::TK_IMPORT()
     }
     if eq(word, "as") {
-        return TK_AS()
+        return lexer_kinds::TK_AS()
     }
     if eq(word, "trait") {
-        return TK_TRAIT()
+        return lexer_kinds::TK_TRAIT()
     }
     if eq(word, "impl") {
-        return TK_IMPL()
+        return lexer_kinds::TK_IMPL()
     }
     if eq(word, "use") {
-        return TK_USE()
+        return lexer_kinds::TK_USE()
     }
     if eq(word, "where") {
-        return TK_WHERE()
+        return lexer_kinds::TK_WHERE()
     }
     if eq(word, "true") {
-        return TK_BOOL()
+        return lexer_kinds::TK_BOOL()
     }
     if eq(word, "false") {
-        return TK_BOOL()
+        return lexer_kinds::TK_BOOL()
     }
     0 - 1
 }
@@ -551,7 +274,7 @@ fn lex_ident(lex: Lexer) -> Token {
     if kw >= 0 {
         Token_new(kw, word, start, lex.pos)
     } else {
-        Token_new(TK_IDENT(), word, start, lex.pos)
+        Token_new(lexer_kinds::TK_IDENT(), word, start, lex.pos)
     }
 }
 
@@ -564,10 +287,10 @@ fn lex_fstring(lex: Lexer, start: i32) -> Token {
         if c == 34 && depth == 0 {
             let content = substring(lex.src, content_start, lex.pos)
             lex.pos = lex.pos + 1
-            return Token_new(TK_FSTRING(), content, start, lex.pos)
+            return Token_new(lexer_kinds::TK_FSTRING(), content, start, lex.pos)
         }
         if c == 10 {
-            return Token_new(TK_ERROR(), String_from("unterminated f-string"), start, lex.pos)
+            return Token_new(lexer_kinds::TK_ERROR(), String_from("unterminated f-string"), start, lex.pos)
         }
         if c == 123 {
             depth = depth + 1
@@ -577,7 +300,7 @@ fn lex_fstring(lex: Lexer, start: i32) -> Token {
         }
         lex.pos = lex.pos + 1
     }
-    Token_new(TK_ERROR(), String_from("unterminated f-string"), start, lex.pos)
+    Token_new(lexer_kinds::TK_ERROR(), String_from("unterminated f-string"), start, lex.pos)
 }
 
 // ── Lex Number ───────────────────────────────────────────────────────────────
@@ -667,7 +390,7 @@ fn lex_number(lex: Lexer) -> Token {
         if parse_ok {
             return Token_float(fv, text, start, lex.pos)
         }
-        Token_new(TK_ERROR(), text, start, lex.pos)
+        Token_new(lexer_kinds::TK_ERROR(), text, start, lex.pos)
     } else {
         Token_int(val, text, start, lex.pos)
     }
@@ -737,14 +460,14 @@ fn lex_string(lex: Lexer) -> Token {
             if c == 34 {
                 let text = substring(lex.src, content_start, lex.pos)
                 lex.pos = lex.pos + 1
-                return Token_new(TK_STRING(), text, start, lex.pos)
+                return Token_new(lexer_kinds::TK_STRING(), text, start, lex.pos)
             }
             if c == 10 {
-                return Token_new(TK_ERROR(), String_from("unterminated string"), start, lex.pos)
+                return Token_new(lexer_kinds::TK_ERROR(), String_from("unterminated string"), start, lex.pos)
             }
             lex.pos = lex.pos + 1
         }
-        return Token_new(TK_ERROR(), String_from("unterminated string"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_ERROR(), String_from("unterminated string"), start, lex.pos)
     }
     let mut result = String_new()
     let mut span_start = lex.pos
@@ -755,10 +478,10 @@ fn lex_string(lex: Lexer) -> Token {
                 result = concat(result, substring(lex.src, span_start, lex.pos))
             }
             lex.pos = lex.pos + 1
-            return Token_new(TK_STRING(), result, start, lex.pos)
+            return Token_new(lexer_kinds::TK_STRING(), result, start, lex.pos)
         }
         if c == 10 {
-            return Token_new(TK_ERROR(), String_from("unterminated string"), start, lex.pos)
+            return Token_new(lexer_kinds::TK_ERROR(), String_from("unterminated string"), start, lex.pos)
         }
         if c == 92 {
             if span_start < lex.pos {
@@ -766,7 +489,7 @@ fn lex_string(lex: Lexer) -> Token {
             }
             lex.pos = lex.pos + 1
             if lex.pos >= lex.src_len {
-                return Token_new(TK_ERROR(), String_from("unterminated escape"), start, lex.pos)
+                return Token_new(lexer_kinds::TK_ERROR(), String_from("unterminated escape"), start, lex.pos)
             }
             let esc = peek(lex)
             lex.pos = lex.pos + 1
@@ -796,20 +519,20 @@ fn lex_string(lex: Lexer) -> Token {
             lex.pos = lex.pos + 1
         }
     }
-    Token_new(TK_ERROR(), String_from("unterminated string"), start, lex.pos)
+    Token_new(lexer_kinds::TK_ERROR(), String_from("unterminated string"), start, lex.pos)
 }
 
 // ── Main Tokenize ────────────────────────────────────────────────────────────
 fn next_token(lex: Lexer) -> Token {
     skip_whitespace(lex)
     if lex.pos >= lex.src_len {
-        return Token_new(TK_EOF(), String_from(""), lex.pos, lex.pos)
+        return Token_new(lexer_kinds::TK_EOF(), String_from(""), lex.pos, lex.pos)
     }
     let start = lex.pos
     let c = peek(lex)
     if c == 10 {
         lex.pos = lex.pos + 1
-        return Token_new(TK_NEWLINE(), String_from("\n"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_NEWLINE(), String_from("\n"), start, lex.pos)
     }
     if c == 47 && lex.pos + 1 < lex.src_len {
         let c2 = peek_at(lex, 1)
@@ -867,147 +590,147 @@ fn next_token(lex: Lexer) -> Token {
                 }
                 if lex.pos < lex.src_len && char_at(lex.src, lex.pos) == 39 {
                     lex.pos = lex.pos + 1
-                    let t = Token_new(TK_CHAR(), substring(lex.src, char_start, lex.pos), char_start, lex.pos)
+                    let t = Token_new(lexer_kinds::TK_CHAR(), substring(lex.src, char_start, lex.pos), char_start, lex.pos)
                     t.int_val = cv
                     return t
                 }
             }
-            return Token_new(TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
+            return Token_new(lexer_kinds::TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
         }
         if lex.pos < lex.src_len {
             let cv = char_at(lex.src, lex.pos)
             lex.pos = lex.pos + 1
             if lex.pos < lex.src_len && char_at(lex.src, lex.pos) == 39 {
                 lex.pos = lex.pos + 1
-                let t = Token_new(TK_CHAR(), substring(lex.src, char_start, lex.pos), char_start, lex.pos)
+                let t = Token_new(lexer_kinds::TK_CHAR(), substring(lex.src, char_start, lex.pos), char_start, lex.pos)
                 t.int_val = cv
                 return t
             }
         }
-        return Token_new(TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
+        return Token_new(lexer_kinds::TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
     }
     lex.pos = lex.pos + 1
     if c == 61 {
         if peek(lex) == 61 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_EQEQ(), String_from("=="), start, lex.pos)
+            return Token_new(lexer_kinds::TK_EQEQ(), String_from("=="), start, lex.pos)
         }
         if peek(lex) == 62 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_FATARROW(), String_from("=>"), start, lex.pos)
+            return Token_new(lexer_kinds::TK_FATARROW(), String_from("=>"), start, lex.pos)
         }
-        return Token_new(TK_EQ(), String_from("="), start, lex.pos)
+        return Token_new(lexer_kinds::TK_EQ(), String_from("="), start, lex.pos)
     }
     if c == 33 {
         if peek(lex) == 61 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_BANGEQ(), String_from("!="), start, lex.pos)
+            return Token_new(lexer_kinds::TK_BANGEQ(), String_from("!="), start, lex.pos)
         }
-        return Token_new(TK_BANG(), String_from("!"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_BANG(), String_from("!"), start, lex.pos)
     }
     if c == 60 {
         if peek(lex) == 61 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_LTEQ(), String_from("<="), start, lex.pos)
+            return Token_new(lexer_kinds::TK_LTEQ(), String_from("<="), start, lex.pos)
         }
         if peek(lex) == 60 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_SHL(), String_from("<<"), start, lex.pos)
+            return Token_new(lexer_kinds::TK_SHL(), String_from("<<"), start, lex.pos)
         }
-        return Token_new(TK_LT(), String_from("<"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_LT(), String_from("<"), start, lex.pos)
     }
     if c == 62 {
         if peek(lex) == 61 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_GTEQ(), String_from(">="), start, lex.pos)
+            return Token_new(lexer_kinds::TK_GTEQ(), String_from(">="), start, lex.pos)
         }
         if peek(lex) == 62 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_SHR(), String_from(">>"), start, lex.pos)
+            return Token_new(lexer_kinds::TK_SHR(), String_from(">>"), start, lex.pos)
         }
-        return Token_new(TK_GT(), String_from(">"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_GT(), String_from(">"), start, lex.pos)
     }
     if c == 38 {
         if peek(lex) == 38 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_AMPAMP(), String_from("&&"), start, lex.pos)
+            return Token_new(lexer_kinds::TK_AMPAMP(), String_from("&&"), start, lex.pos)
         }
-        return Token_new(TK_AMP(), String_from("&"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_AMP(), String_from("&"), start, lex.pos)
     }
     if c == 124 {
         if peek(lex) == 124 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_PIPEPIPE(), String_from("||"), start, lex.pos)
+            return Token_new(lexer_kinds::TK_PIPEPIPE(), String_from("||"), start, lex.pos)
         }
-        return Token_new(TK_PIPE(), String_from("|"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_PIPE(), String_from("|"), start, lex.pos)
     }
     if c == 45 {
         if peek(lex) == 62 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_ARROW(), String_from("->"), start, lex.pos)
+            return Token_new(lexer_kinds::TK_ARROW(), String_from("->"), start, lex.pos)
         }
-        return Token_new(TK_MINUS(), String_from("-"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_MINUS(), String_from("-"), start, lex.pos)
     }
     if c == 58 {
         if peek(lex) == 58 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_COLONCOLON(), String_from("::"), start, lex.pos)
+            return Token_new(lexer_kinds::TK_COLONCOLON(), String_from("::"), start, lex.pos)
         }
-        return Token_new(TK_COLON(), String_from(":"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_COLON(), String_from(":"), start, lex.pos)
     }
     if c == 46 {
         if peek(lex) == 46 {
             lex.pos = lex.pos + 1
-            return Token_new(TK_DOTDOT(), String_from(".."), start, lex.pos)
+            return Token_new(lexer_kinds::TK_DOTDOT(), String_from(".."), start, lex.pos)
         }
-        return Token_new(TK_DOT(), String_from("."), start, lex.pos)
+        return Token_new(lexer_kinds::TK_DOT(), String_from("."), start, lex.pos)
     }
     if c == 43 {
-        return Token_new(TK_PLUS(), String_from("+"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_PLUS(), String_from("+"), start, lex.pos)
     }
     if c == 42 {
-        return Token_new(TK_STAR(), String_from("*"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_STAR(), String_from("*"), start, lex.pos)
     }
     if c == 47 {
-        return Token_new(TK_SLASH(), String_from("/"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_SLASH(), String_from("/"), start, lex.pos)
     }
     if c == 37 {
-        return Token_new(TK_PERCENT(), String_from("%"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_PERCENT(), String_from("%"), start, lex.pos)
     }
     if c == 94 {
-        return Token_new(TK_CARET(), String_from("^"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_CARET(), String_from("^"), start, lex.pos)
     }
     if c == 126 {
-        return Token_new(TK_TILDE(), String_from("~"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_TILDE(), String_from("~"), start, lex.pos)
     }
     if c == 40 {
-        return Token_new(TK_LPAREN(), String_from("("), start, lex.pos)
+        return Token_new(lexer_kinds::TK_LPAREN(), String_from("("), start, lex.pos)
     }
     if c == 41 {
-        return Token_new(TK_RPAREN(), String_from(")"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_RPAREN(), String_from(")"), start, lex.pos)
     }
     if c == 123 {
-        return Token_new(TK_LBRACE(), String_from("{"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_LBRACE(), String_from("{"), start, lex.pos)
     }
     if c == 125 {
-        return Token_new(TK_RBRACE(), String_from("}"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_RBRACE(), String_from("}"), start, lex.pos)
     }
     if c == 91 {
-        return Token_new(TK_LBRACKET(), String_from("["), start, lex.pos)
+        return Token_new(lexer_kinds::TK_LBRACKET(), String_from("["), start, lex.pos)
     }
     if c == 93 {
-        return Token_new(TK_RBRACKET(), String_from("]"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_RBRACKET(), String_from("]"), start, lex.pos)
     }
     if c == 44 {
-        return Token_new(TK_COMMA(), String_from(","), start, lex.pos)
+        return Token_new(lexer_kinds::TK_COMMA(), String_from(","), start, lex.pos)
     }
     if c == 59 {
-        return Token_new(TK_SEMI(), String_from(";"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_SEMI(), String_from(";"), start, lex.pos)
     }
     if c == 63 {
-        return Token_new(TK_QUESTION(), String_from("?"), start, lex.pos)
+        return Token_new(lexer_kinds::TK_QUESTION(), String_from("?"), start, lex.pos)
     }
-    Token_new(TK_ERROR(), substring(lex.src, start, lex.pos), start, lex.pos)
+    Token_new(lexer_kinds::TK_ERROR(), substring(lex.src, start, lex.pos), start, lex.pos)
 }
 
 pub fn tokenize(source: String) -> Vec<Token> {
@@ -1016,7 +739,7 @@ pub fn tokenize(source: String) -> Vec<Token> {
     let mut done = false
     while !done {
         let tok = next_token(lex)
-        if tok.kind == TK_EOF() {
+        if tok.kind == lexer_kinds::TK_EOF() {
             push(tokens, tok)
             done = true
         } else {
@@ -1038,7 +761,7 @@ pub fn lex_program(source: String) -> LexResult {
     let mut i = 0
     while i < count {
         let tok = get_unchecked(tokens, i)
-        if tok.kind == TK_ERROR() {
+        if tok.kind == lexer_kinds::TK_ERROR() {
             let code = classify_lex_error(tok)
             let msg = clone(tok.text)
             push(diagnostics, Diagnostic_new(code, msg, tok.start, tok.end))
@@ -1076,148 +799,148 @@ fn classify_lex_error(tok: Token) -> i32 {
 
 // ── Token Display Helpers ────────────────────────────────────────────────────
 pub fn token_kind_name(kind: i32) -> String {
-    if kind == TK_EOF() {
+    if kind == lexer_kinds::TK_EOF() {
         return String_from("EOF")
     }
-    if kind == TK_IDENT() {
+    if kind == lexer_kinds::TK_IDENT() {
         return String_from("IDENT")
     }
-    if kind == TK_INT() {
+    if kind == lexer_kinds::TK_INT() {
         return String_from("INT")
     }
-    if kind == TK_FLOAT() {
+    if kind == lexer_kinds::TK_FLOAT() {
         return String_from("FLOAT")
     }
-    if kind == TK_STRING() {
+    if kind == lexer_kinds::TK_STRING() {
         return String_from("STRING")
     }
-    if kind == TK_BOOL() {
+    if kind == lexer_kinds::TK_BOOL() {
         return String_from("BOOL")
     }
-    if kind == TK_NEWLINE() {
+    if kind == lexer_kinds::TK_NEWLINE() {
         return String_from("NEWLINE")
     }
-    if kind == TK_ERROR() {
+    if kind == lexer_kinds::TK_ERROR() {
         return String_from("ERROR")
     }
-    if kind == TK_FN() {
+    if kind == lexer_kinds::TK_FN() {
         return String_from("FN")
     }
-    if kind == TK_STRUCT() {
+    if kind == lexer_kinds::TK_STRUCT() {
         return String_from("STRUCT")
     }
-    if kind == TK_ENUM() {
+    if kind == lexer_kinds::TK_ENUM() {
         return String_from("ENUM")
     }
-    if kind == TK_LET() {
+    if kind == lexer_kinds::TK_LET() {
         return String_from("LET")
     }
-    if kind == TK_MUT() {
+    if kind == lexer_kinds::TK_MUT() {
         return String_from("MUT")
     }
-    if kind == TK_IF() {
+    if kind == lexer_kinds::TK_IF() {
         return String_from("IF")
     }
-    if kind == TK_ELSE() {
+    if kind == lexer_kinds::TK_ELSE() {
         return String_from("ELSE")
     }
-    if kind == TK_MATCH() {
+    if kind == lexer_kinds::TK_MATCH() {
         return String_from("MATCH")
     }
-    if kind == TK_WHILE() {
+    if kind == lexer_kinds::TK_WHILE() {
         return String_from("WHILE")
     }
-    if kind == TK_LOOP() {
+    if kind == lexer_kinds::TK_LOOP() {
         return String_from("LOOP")
     }
-    if kind == TK_FOR() {
+    if kind == lexer_kinds::TK_FOR() {
         return String_from("FOR")
     }
-    if kind == TK_IN() {
+    if kind == lexer_kinds::TK_IN() {
         return String_from("IN")
     }
-    if kind == TK_BREAK() {
+    if kind == lexer_kinds::TK_BREAK() {
         return String_from("BREAK")
     }
-    if kind == TK_CONTINUE() {
+    if kind == lexer_kinds::TK_CONTINUE() {
         return String_from("CONTINUE")
     }
-    if kind == TK_RETURN() {
+    if kind == lexer_kinds::TK_RETURN() {
         return String_from("RETURN")
     }
-    if kind == TK_PUB() {
+    if kind == lexer_kinds::TK_PUB() {
         return String_from("PUB")
     }
-    if kind == TK_IMPORT() {
+    if kind == lexer_kinds::TK_IMPORT() {
         return String_from("IMPORT")
     }
-    if kind == TK_AS() {
+    if kind == lexer_kinds::TK_AS() {
         return String_from("AS")
     }
-    if kind == TK_USE() {
+    if kind == lexer_kinds::TK_USE() {
         return String_from("USE")
     }
-    if kind == TK_WHERE() {
+    if kind == lexer_kinds::TK_WHERE() {
         return String_from("WHERE")
     }
-    if kind == TK_PLUS() {
+    if kind == lexer_kinds::TK_PLUS() {
         return String_from("PLUS")
     }
-    if kind == TK_MINUS() {
+    if kind == lexer_kinds::TK_MINUS() {
         return String_from("MINUS")
     }
-    if kind == TK_STAR() {
+    if kind == lexer_kinds::TK_STAR() {
         return String_from("STAR")
     }
-    if kind == TK_SLASH() {
+    if kind == lexer_kinds::TK_SLASH() {
         return String_from("SLASH")
     }
-    if kind == TK_EQ() {
+    if kind == lexer_kinds::TK_EQ() {
         return String_from("EQ")
     }
-    if kind == TK_EQEQ() {
+    if kind == lexer_kinds::TK_EQEQ() {
         return String_from("EQEQ")
     }
-    if kind == TK_BANGEQ() {
+    if kind == lexer_kinds::TK_BANGEQ() {
         return String_from("BANGEQ")
     }
-    if kind == TK_LT() {
+    if kind == lexer_kinds::TK_LT() {
         return String_from("LT")
     }
-    if kind == TK_GT() {
+    if kind == lexer_kinds::TK_GT() {
         return String_from("GT")
     }
-    if kind == TK_ARROW() {
+    if kind == lexer_kinds::TK_ARROW() {
         return String_from("ARROW")
     }
-    if kind == TK_FATARROW() {
+    if kind == lexer_kinds::TK_FATARROW() {
         return String_from("FATARROW")
     }
-    if kind == TK_COLON() {
+    if kind == lexer_kinds::TK_COLON() {
         return String_from("COLON")
     }
-    if kind == TK_COLONCOLON() {
+    if kind == lexer_kinds::TK_COLONCOLON() {
         return String_from("COLONCOLON")
     }
-    if kind == TK_LPAREN() {
+    if kind == lexer_kinds::TK_LPAREN() {
         return String_from("LPAREN")
     }
-    if kind == TK_RPAREN() {
+    if kind == lexer_kinds::TK_RPAREN() {
         return String_from("RPAREN")
     }
-    if kind == TK_LBRACE() {
+    if kind == lexer_kinds::TK_LBRACE() {
         return String_from("LBRACE")
     }
-    if kind == TK_RBRACE() {
+    if kind == lexer_kinds::TK_RBRACE() {
         return String_from("RBRACE")
     }
-    if kind == TK_COMMA() {
+    if kind == lexer_kinds::TK_COMMA() {
         return String_from("COMMA")
     }
-    if kind == TK_DOT() {
+    if kind == lexer_kinds::TK_DOT() {
         return String_from("DOT")
     }
-    if kind == TK_CHAR() {
+    if kind == lexer_kinds::TK_CHAR() {
         return String_from("CHAR")
     }
     String_from("UNKNOWN")
@@ -1226,19 +949,19 @@ pub fn token_kind_name(kind: i32) -> String {
 fn print_token(tok: Token) {
     let kind_str = token_kind_name(tok.kind)
     let pos_str = i32_to_string(tok.start)
-    if tok.kind == TK_IDENT() || tok.kind == TK_STRING() || tok.kind == TK_ERROR() {
+    if tok.kind == lexer_kinds::TK_IDENT() || tok.kind == lexer_kinds::TK_STRING() || tok.kind == lexer_kinds::TK_ERROR() {
         stdio::println(concat(concat(concat(kind_str, "("), tok.text), ")"))
     } else {
-        if tok.kind == TK_INT() {
+        if tok.kind == lexer_kinds::TK_INT() {
             stdio::println(concat(concat(concat(kind_str, "("), i32_to_string(tok.int_val)), ")"))
         } else {
-            if tok.kind == TK_FLOAT() {
+            if tok.kind == lexer_kinds::TK_FLOAT() {
                 stdio::println(concat(concat(concat(kind_str, "("), f64_to_string(tok.float_val)), ")"))
             } else {
-                if tok.kind == TK_BOOL() {
+                if tok.kind == lexer_kinds::TK_BOOL() {
                     stdio::println(concat(concat(concat(kind_str, "("), tok.text), ")"))
                 } else {
-                    if tok.kind == TK_NEWLINE() {
+                    if tok.kind == lexer_kinds::TK_NEWLINE() {
                     } else {
                         stdio::println(kind_str)
                     }
@@ -1257,7 +980,7 @@ fn main() {
     while !done {
         let tok = get_unchecked(tokens, i)
         print_token(tok)
-        if tok.kind == TK_EOF() {
+        if tok.kind == lexer_kinds::TK_EOF() {
             done = true
         }
         i = i + 1

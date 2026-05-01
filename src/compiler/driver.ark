@@ -11,8 +11,10 @@ use std::host::stdio
 use component_emitter
 use diagnostics
 use emitter
+use emit_wat
 use lexer
-use mir
+use mir_dump
+use mir_lower
 use parser
 use resolver
 use typechecker
@@ -430,10 +432,9 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     if config.check_only {
         return CompileResult_ok(PHASE_TYPECHECK())
     }
-    let mir_module = mir::lower_to_mir(all_decls, check_result)
+        let mir_module = mir_lower::lower_to_mir(all_decls, check_result)
     if config.dump_mir {
-        stdio::eprintln(String_from("=== MIR ==="))
-        mir::dump_mir(mir_module)
+        mir_dump::dump_mir(mir_module)
     }
     // Derive wasi_version from the target string
     let tgt = clone(config.target)
@@ -445,7 +446,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     }
     let emit_mode = clone(config.emit_mode)
     if eq(clone(emit_mode), "wat") {
-        let wat_text = emitter::emit_wat(mir_module, clone(config.target), config.opt_level)
+        let wat_text = emit_wat::emit_wat(mir_module, clone(config.target), config.opt_level)
         let mut result = CompileResult_ok(PHASE_EMIT())
         let wat_len = len(wat_text)
         let mut wat_bytes: Vec<i32> = Vec_new_i32()

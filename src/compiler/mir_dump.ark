@@ -1,0 +1,1145 @@
+// Arukellt Selfhost — MIR Dump
+//
+// Extracted from mir.ark for module-level organization.
+
+use std::host::process
+use std::host::stdio
+use mir_ir
+use mir_opcodes
+use mir_type_info
+
+// ── MIR Dump ─────────────────────────────────────────────────────────────────
+pub fn dump_mir(m: MirModule) {
+    mir_ir::mir_compute_dominance(m)
+    mir_ir::mir_ssa_rename_module(m)
+    let fn_count = len(m.functions)
+    stdio::eprintln(concat(String_from("MIR module: "), concat(to_string(fn_count), String_from(" function(s)"))))
+    let mut i = 0
+    while i < fn_count {
+        let f = get_unchecked(m.functions, i)
+        let block_count = len(f.blocks)
+        let local_count = len(f.locals)
+        stdio::eprintln(concat(String_from("  fn "), concat(clone(f.name), concat(String_from(" ("), concat(to_string(local_count), concat(String_from(" locals, "), concat(to_string(block_count), String_from(" blocks)"))))))))
+        let mut b = 0
+        while b < block_count {
+            let block = get_unchecked(f.blocks, b)
+            let phi_count = len(block.phis)
+            let inst_count = len(block.instructions)
+            let mut block_msg = concat(String_from("    bb"), to_string(b))
+            block_msg = concat(block_msg, String_from(": phis="))
+            block_msg = concat(block_msg, to_string(phi_count))
+            block_msg = concat(block_msg, String_from(" instructions="))
+            block_msg = concat(block_msg, to_string(inst_count))
+            block_msg = concat(block_msg, String_from(" succs="))
+            block_msg = concat(block_msg, mir_format_edges(block.succ0, block.succ1))
+            block_msg = concat(block_msg, String_from(" preds="))
+            block_msg = concat(block_msg, mir_format_block_ids(block.preds))
+            block_msg = concat(block_msg, String_from(" idom="))
+            block_msg = concat(block_msg, mir_format_edge(block.idom))
+            block_msg = concat(block_msg, String_from(" df="))
+            block_msg = concat(block_msg, mir_format_block_ids(block.dom_frontier))
+            stdio::eprintln(block_msg)
+            let mut p = 0
+            while p < phi_count {
+                let phi = get_unchecked(block.phis, p)
+                stdio::eprintln(concat(String_from("      "), mir_format_phi(f, phi)))
+                p = p + 1
+            }
+            let mut j = 0
+            while j < inst_count {
+                let inst = get_unchecked(block.instructions, j)
+                stdio::eprintln(concat(String_from("      "), concat(mir_op_name(inst.op), concat(String_from(" -> "), mir_format_local_ref(f, inst.dest)))))
+                j = j + 1
+            }
+            b = b + 1
+        }
+        i = i + 1
+    }
+    let str_count = len(m.string_constants)
+    if str_count > 0 {
+        stdio::eprintln(concat(String_from("  strings: "), to_string(str_count)))
+    }
+}
+
+fn mir_op_name(op: i32) -> String {
+    if op == mir_opcodes::MIR_CONST_I32() {
+        return String_from("const.i32")
+    }
+    if op == mir_opcodes::MIR_CONST_I64() {
+        return String_from("const.i64")
+    }
+    if op == mir_opcodes::MIR_CONST_F64() {
+        return String_from("const.f64")
+    }
+    if op == mir_opcodes::MIR_CONST_STRING() {
+        return String_from("const.string")
+    }
+    if op == mir_opcodes::MIR_LOCAL_GET() {
+        return String_from("local.get")
+    }
+    if op == mir_opcodes::MIR_LOCAL_SET() {
+        return String_from("local.set")
+    }
+    if op == mir_opcodes::MIR_ADD() {
+        return String_from("add")
+    }
+    if op == mir_opcodes::MIR_SUB() {
+        return String_from("sub")
+    }
+    if op == mir_opcodes::MIR_MUL() {
+        return String_from("mul")
+    }
+    if op == mir_opcodes::MIR_DIV() {
+        return String_from("div")
+    }
+    if op == mir_opcodes::MIR_MOD() {
+        return String_from("mod")
+    }
+    if op == mir_opcodes::MIR_EQ() {
+        return String_from("eq")
+    }
+    if op == mir_opcodes::MIR_NEQ() {
+        return String_from("neq")
+    }
+    if op == mir_opcodes::MIR_LT() {
+        return String_from("lt")
+    }
+    if op == mir_opcodes::MIR_LTEQ() {
+        return String_from("le")
+    }
+    if op == mir_opcodes::MIR_GT() {
+        return String_from("gt")
+    }
+    if op == mir_opcodes::MIR_GTEQ() {
+        return String_from("ge")
+    }
+    if op == mir_opcodes::MIR_AND() {
+        return String_from("and")
+    }
+    if op == mir_opcodes::MIR_OR() {
+        return String_from("or")
+    }
+    if op == mir_opcodes::MIR_NEG() {
+        return String_from("neg")
+    }
+    if op == mir_opcodes::MIR_NOT() {
+        return String_from("not")
+    }
+    if op == mir_opcodes::MIR_CALL() {
+        return String_from("call")
+    }
+    if op == mir_opcodes::MIR_RETURN() {
+        return String_from("return")
+    }
+    if op == mir_opcodes::MIR_BR() {
+        return String_from("br")
+    }
+    if op == mir_opcodes::MIR_BR_IF() {
+        return String_from("br_if")
+    }
+    if op == mir_opcodes::MIR_BLOCK() {
+        return String_from("block")
+    }
+    if op == mir_opcodes::MIR_LOOP() {
+        return String_from("loop")
+    }
+    if op == mir_opcodes::MIR_IF() {
+        return String_from("if")
+    }
+    if op == mir_opcodes::MIR_STRUCT_NEW() {
+        return String_from("struct.new")
+    }
+    if op == mir_opcodes::MIR_STRUCT_GET() {
+        return String_from("struct.get")
+    }
+    if op == mir_opcodes::MIR_STRUCT_SET() {
+        return String_from("struct.set")
+    }
+    if op == mir_opcodes::MIR_ARRAY_NEW() {
+        return String_from("array.new")
+    }
+    if op == mir_opcodes::MIR_ARRAY_GET() {
+        return String_from("array.get")
+    }
+    if op == mir_opcodes::MIR_ARRAY_SET() {
+        return String_from("array.set")
+    }
+    if op == mir_opcodes::MIR_ARRAY_LEN() {
+        return String_from("array.len")
+    }
+    if op == mir_opcodes::MIR_DROP() {
+        return String_from("drop")
+    }
+    if op == mir_opcodes::MIR_NOP() {
+        return String_from("nop")
+    }
+    if op == mir_opcodes::MIR_UNREACHABLE() {
+        return String_from("unreachable")
+    }
+    if op == mir_opcodes::MIR_PHI() {
+        return String_from("phi")
+    }
+    String_from("?op")
+}
+
+fn mir_value_type_name(vt: i32) -> String {
+    if vt == mir_ir::VT_I32() {
+        return String_from("i32")
+    }
+    if vt == mir_ir::VT_I64() {
+        return String_from("i64")
+    }
+    if vt == mir_ir::VT_F64() {
+        return String_from("f64")
+    }
+    if vt == mir_ir::VT_REF() {
+        return String_from("ref")
+    }
+    if vt == mir_ir::VT_VOID() {
+        return String_from("void")
+    }
+    String_from("?")
+}
+
+fn mir_format_local_ref(f: MirFunction, local_id: i32) -> String {
+    if local_id < 0 {
+        return String_from("%-")
+    }
+    if local_id >= len(f.locals) {
+        return concat(String_from("%"), to_string(local_id))
+    }
+    let local = get_unchecked(f.locals, local_id)
+    if local.ssa_version >= 0 {
+        let mut out = String_from("%")
+        out = concat(out, clone(local.ssa_name))
+        out = concat(out, String_from("."))
+        return concat(out, to_string(local.ssa_version))
+    }
+    concat(String_from("%"), to_string(local_id))
+}
+
+fn mir_format_phi_args(f: MirFunction, args: Vec<MirPhiArg>) -> String {
+    let count = len(args)
+    let mut out = String_from("[")
+    let mut i = 0
+    while i < count {
+        let arg = get_unchecked(args, i)
+        if i > 0 {
+            out = concat(out, String_from(", "))
+        }
+        out = concat(out, String_from("bb"))
+        out = concat(out, to_string(arg.pred_block))
+        out = concat(out, String_from(" -> "))
+        out = concat(out, mir_format_local_ref(f, arg.local))
+        i = i + 1
+    }
+    concat(out, String_from("]"))
+}
+
+fn mir_format_phi(f: MirFunction, phi: MirPhi) -> String {
+    let mut out = mir_op_name(phi.op)
+    out = concat(out, String_from(" "))
+    out = concat(out, mir_format_local_ref(f, phi.dest))
+    out = concat(out, String_from(" = "))
+    out = concat(out, mir_format_phi_args(f, phi.args))
+    out = concat(out, String_from(" : "))
+    concat(out, mir_value_type_name(phi.val_type))
+}
+
+fn mir_format_block_ids(ids: Vec<i32>) -> String {
+    let count = len(ids)
+    let mut out = String_from("[")
+    let mut i = 0
+    while i < count {
+        if i > 0 {
+            out = concat(out, String_from(","))
+        }
+        out = concat(out, to_string(get_unchecked(ids, i)))
+        i = i + 1
+    }
+    concat(out, String_from("]"))
+}
+
+fn mir_format_edge(edge: i32) -> String {
+    if edge < 0 {
+        return String_from("-")
+    }
+    to_string(edge)
+}
+
+fn mir_format_edges(succ0: i32, succ1: i32) -> String {
+    concat(String_from("["), concat(mir_format_edge(succ0), concat(String_from(","), concat(mir_format_edge(succ1), String_from("]")))))
+}
+
+fn mir_expect_preds(f: MirFunction, block_id: i32, expected_count: i32, expected0: i32, expected1: i32) {
+    let block = get_unchecked(f.blocks, block_id)
+    let actual_count = len(block.preds)
+    if actual_count != expected_count {
+        let msg = concat(String_from("pred check failed for bb"), concat(to_string(block_id), concat(String_from(": expected count="), concat(to_string(expected_count), concat(String_from(" actual="), concat(to_string(actual_count), concat(String_from(" preds="), mir_format_block_ids(block.preds))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    if expected_count > 0 && get_unchecked(block.preds, 0) != expected0 {
+        let msg = concat(String_from("pred check failed for bb"), concat(to_string(block_id), concat(String_from(": expected preds="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), mir_format_block_ids(block.preds)))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    if expected_count > 1 && get_unchecked(block.preds, 1) != expected1 {
+        let msg = concat(String_from("pred check failed for bb"), concat(to_string(block_id), concat(String_from(": expected preds="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), mir_format_block_ids(block.preds)))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
+fn mir_expect_idom(f: MirFunction, block_id: i32, expected_idom: i32) {
+    let block = get_unchecked(f.blocks, block_id)
+    if block.idom != expected_idom {
+        let msg = concat(String_from("idom check failed for bb"), concat(to_string(block_id), concat(String_from(": expected="), concat(mir_format_edge(expected_idom), concat(String_from(" actual="), mir_format_edge(block.idom))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
+fn mir_expect_frontier(f: MirFunction, block_id: i32, expected_count: i32, expected0: i32, expected1: i32) {
+    let block = get_unchecked(f.blocks, block_id)
+    let actual_count = len(block.dom_frontier)
+    if actual_count != expected_count {
+        let msg = concat(String_from("frontier check failed for bb"), concat(to_string(block_id), concat(String_from(": expected count="), concat(to_string(expected_count), concat(String_from(" actual="), concat(to_string(actual_count), concat(String_from(" frontier="), mir_format_block_ids(block.dom_frontier))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    if expected_count > 0 && get_unchecked(block.dom_frontier, 0) != expected0 {
+        let msg = concat(String_from("frontier check failed for bb"), concat(to_string(block_id), concat(String_from(": expected frontier="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), mir_format_block_ids(block.dom_frontier)))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    if expected_count > 1 && get_unchecked(block.dom_frontier, 1) != expected1 {
+        let msg = concat(String_from("frontier check failed for bb"), concat(to_string(block_id), concat(String_from(": expected frontier="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), mir_format_block_ids(block.dom_frontier)))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
+fn mir_expect_phi(f: MirFunction, block_id: i32, expected_dest: i32, expected_vt: i32, expected_count: i32, expected_pred0: i32, expected_local0: i32, expected_pred1: i32, expected_local1: i32) {
+    let block = get_unchecked(f.blocks, block_id)
+    let actual_count = len(block.phis)
+    if actual_count != 1 {
+        let mut msg = concat(String_from("phi check failed for bb"), to_string(block_id))
+        msg = concat(msg, String_from(": expected phi count=1 actual="))
+        msg = concat(msg, to_string(actual_count))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    let phi = get_unchecked(block.phis, 0)
+    if phi.op != mir_opcodes::MIR_PHI() || phi.dest != expected_dest || phi.val_type != expected_vt {
+        let mut msg = concat(String_from("phi check failed for bb"), to_string(block_id))
+        msg = concat(msg, String_from(": expected dest=%"))
+        msg = concat(msg, to_string(expected_dest))
+        msg = concat(msg, String_from(" type="))
+        msg = concat(msg, mir_value_type_name(expected_vt))
+        msg = concat(msg, String_from(" actual="))
+        msg = concat(msg, mir_format_phi(f, phi))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    let arg_count = len(phi.args)
+    if arg_count != expected_count {
+        let mut msg = concat(String_from("phi arg count check failed for bb"), to_string(block_id))
+        msg = concat(msg, String_from(": expected="))
+        msg = concat(msg, to_string(expected_count))
+        msg = concat(msg, String_from(" actual="))
+        msg = concat(msg, to_string(arg_count))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    if expected_count > 0 {
+        let arg0 = get_unchecked(phi.args, 0)
+        if arg0.pred_block != expected_pred0 || arg0.local != expected_local0 {
+            let msg = concat(String_from("phi arg0 check failed for bb"), concat(to_string(block_id), concat(String_from(": actual="), mir_format_phi(f, phi))))
+            stdio::eprintln(msg)
+            process::exit(1)
+        }
+    }
+    if expected_count > 1 {
+        let arg1 = get_unchecked(phi.args, 1)
+        if arg1.pred_block != expected_pred1 || arg1.local != expected_local1 {
+            let msg = concat(String_from("phi arg1 check failed for bb"), concat(to_string(block_id), concat(String_from(": actual="), mir_format_phi(f, phi))))
+            stdio::eprintln(msg)
+            process::exit(1)
+        }
+    }
+}
+
+fn mir_expect_local_ssa(f: MirFunction, local_id: i32, expected_name: String, expected_version: i32) {
+    if local_id < 0 || local_id >= len(f.locals) {
+        stdio::eprintln(String_from("ssa local check failed: local id out of range"))
+        process::exit(1)
+    }
+    let local = get_unchecked(f.locals, local_id)
+    if !eq(clone(local.ssa_name), clone(expected_name)) || local.ssa_version != expected_version {
+        let mut msg = concat(String_from("ssa local check failed for "), mir_format_local_ref(f, local_id))
+        msg = concat(msg, String_from(": expected %"))
+        msg = concat(msg, expected_name)
+        msg = concat(msg, String_from("."))
+        msg = concat(msg, to_string(expected_version))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
+fn mir_expect_local_ref_eq(f: MirFunction, local_id: i32, expected: String, label: String) {
+    let actual = mir_format_local_ref(f, local_id)
+    if !eq(clone(actual), clone(expected)) {
+        let mut msg = concat(String_from("ssa ref check failed for "), label)
+        msg = concat(msg, String_from(": expected "))
+        msg = concat(msg, expected)
+        msg = concat(msg, String_from(" actual "))
+        msg = concat(msg, actual)
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
+fn mir_expect_phi_format(f: MirFunction, block_id: i32, phi_index: i32, expected: String) {
+    if block_id < 0 || block_id >= len(f.blocks) {
+        stdio::eprintln(String_from("phi format check failed: block out of range"))
+        process::exit(1)
+    }
+    let block = get_unchecked(f.blocks, block_id)
+    if phi_index < 0 || phi_index >= len(block.phis) {
+        stdio::eprintln(String_from("phi format check failed: phi out of range"))
+        process::exit(1)
+    }
+    let phi = get_unchecked(block.phis, phi_index)
+    let actual = mir_format_phi(f, phi)
+    if !eq(clone(actual), clone(expected)) {
+        let mut msg = String_from("phi format check failed: expected ")
+        msg = concat(msg, expected)
+        msg = concat(msg, String_from(" actual "))
+        msg = concat(msg, actual)
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
+pub fn run_phi_representation_smoke() {
+    let m = mir_ir::MirModule_new()
+    let f = mir_ir::MirFunction_new(String_from("phi_repr_sample"))
+    let cond = mir_ir::alloc_local(f, String_from("cond"), mir_ir::VT_I32())
+    let then_val = mir_ir::alloc_local(f, String_from("then_val"), mir_ir::VT_I32())
+    let else_val = mir_ir::alloc_local(f, String_from("else_val"), mir_ir::VT_I32())
+    let join_val = mir_ir::alloc_local(f, String_from("join_val"), mir_ir::VT_I32())
+    f.return_type = mir_ir::VT_I32()
+    let entry = mir_ir::alloc_block(f)
+    let then_bb = mir_ir::alloc_block(f)
+    let else_bb = mir_ir::alloc_block(f)
+    let join_bb = mir_ir::alloc_block(f)
+    mir_ir::emit_inst(f, entry, mir_ir::MirInst_const_i32(1, cond))
+    let entry_block = get_unchecked(f.blocks, entry)
+    entry_block.succ0 = then_bb
+    entry_block.succ1 = else_bb
+    mir_ir::emit_inst(f, then_bb, mir_ir::MirInst_const_i32(10, then_val))
+    let then_block = get_unchecked(f.blocks, then_bb)
+    then_block.succ0 = join_bb
+    mir_ir::emit_inst(f, else_bb, mir_ir::MirInst_const_i32(20, else_val))
+    let else_block = get_unchecked(f.blocks, else_bb)
+    else_block.succ0 = join_bb
+    let phi = mir_ir::MirPhi_new(join_val, mir_ir::VT_I32())
+    mir_ir::mir_phi_add_arg(phi, then_bb, then_val)
+    mir_ir::mir_phi_add_arg(phi, else_bb, else_val)
+    mir_ir::emit_phi(f, join_bb, phi)
+    let ret_inst = mir_ir::MirInst_new(mir_opcodes::MIR_RETURN())
+    ret_inst.arg0 = join_val
+    mir_ir::emit_inst(f, join_bb, ret_inst)
+    mir_ir::mir_compute_dominance_for_function(f)
+    mir_ir::mir_ssa_rename_function(f)
+    mir_expect_preds(f, join_bb, 2, then_bb, else_bb)
+    mir_expect_frontier(f, then_bb, 1, join_bb, 0)
+    mir_expect_frontier(f, else_bb, 1, join_bb, 0)
+    mir_expect_phi(f, join_bb, join_val, mir_ir::VT_I32(), 2, then_bb, then_val, else_bb, else_val)
+    mir_expect_local_ssa(f, cond, String_from("cond"), 1)
+    mir_expect_local_ssa(f, then_val, String_from("then_val"), 1)
+    mir_expect_local_ssa(f, else_val, String_from("else_val"), 1)
+    mir_expect_local_ssa(f, join_val, String_from("join_val"), 1)
+    mir_expect_phi_format(f, join_bb, 0, String_from("phi %join_val.1 = [bb1 -> %then_val.1, bb2 -> %else_val.1] : i32"))
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR phi representation self-check OK."))
+}
+
+pub fn run_phi_insertion_smoke() {
+    let m = mir_ir::MirModule_new()
+    let f = mir_ir::MirFunction_new(String_from("phi_insert_sample"))
+    let cond = mir_ir::alloc_local(f, String_from("cond"), mir_ir::VT_I32())
+    let then_val = mir_ir::alloc_local(f, String_from("then_val"), mir_ir::VT_I32())
+    let else_val = mir_ir::alloc_local(f, String_from("else_val"), mir_ir::VT_I32())
+    let join_val = mir_ir::alloc_local(f, String_from("join_val"), mir_ir::VT_I32())
+    f.return_type = mir_ir::VT_I32()
+    let entry = mir_ir::alloc_block(f)
+    let then_bb = mir_ir::alloc_block(f)
+    let else_bb = mir_ir::alloc_block(f)
+    let join_bb = mir_ir::alloc_block(f)
+    mir_ir::emit_inst(f, entry, mir_ir::MirInst_const_i32(1, cond))
+    let entry_block = get_unchecked(f.blocks, entry)
+    entry_block.succ0 = then_bb
+    entry_block.succ1 = else_bb
+    mir_ir::emit_inst(f, then_bb, mir_ir::MirInst_const_i32(10, then_val))
+    let then_block = get_unchecked(f.blocks, then_bb)
+    then_block.succ0 = join_bb
+    mir_ir::emit_inst(f, else_bb, mir_ir::MirInst_const_i32(20, else_val))
+    let else_block = get_unchecked(f.blocks, else_bb)
+    else_block.succ0 = join_bb
+    let ret_inst = mir_ir::MirInst_new(mir_opcodes::MIR_RETURN())
+    ret_inst.arg0 = join_val
+    mir_ir::emit_inst(f, join_bb, ret_inst)
+    mir_ir::mir_compute_dominance_for_function(f)
+    if !mir_ir::mir_try_insert_simple_join_phi(f, join_bb, join_val) {
+        stdio::eprintln(String_from("simple join phi insertion failed"))
+        process::exit(1)
+    }
+    mir_ir::mir_ssa_rename_function(f)
+    mir_expect_preds(f, join_bb, 2, then_bb, else_bb)
+    mir_expect_frontier(f, then_bb, 1, join_bb, 0)
+    mir_expect_frontier(f, else_bb, 1, join_bb, 0)
+    mir_expect_phi(f, join_bb, join_val, mir_ir::VT_I32(), 2, then_bb, then_val, else_bb, else_val)
+    mir_expect_local_ssa(f, cond, String_from("cond"), 1)
+    mir_expect_local_ssa(f, then_val, String_from("then_val"), 1)
+    mir_expect_local_ssa(f, else_val, String_from("else_val"), 1)
+    mir_expect_local_ssa(f, join_val, String_from("join_val"), 1)
+    mir_expect_phi_format(f, join_bb, 0, String_from("phi %join_val.1 = [bb1 -> %then_val.1, bb2 -> %else_val.1] : i32"))
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR phi insertion self-check OK."))
+}
+
+pub fn run_phi_insertion_nested_join_smoke() {
+    let m = mir_ir::MirModule_new()
+    let f = mir_ir::MirFunction_new(String_from("phi_insert_nested_join_sample"))
+    let cond_outer = mir_ir::alloc_local(f, String_from("cond_outer"), mir_ir::VT_I32())
+    let cond_inner = mir_ir::alloc_local(f, String_from("cond_inner"), mir_ir::VT_I32())
+    let inner_then_val = mir_ir::alloc_local(f, String_from("inner_then_val"), mir_ir::VT_I32())
+    let inner_else_val = mir_ir::alloc_local(f, String_from("inner_else_val"), mir_ir::VT_I32())
+    let inner_join_val = mir_ir::alloc_local(f, String_from("inner_join_val"), mir_ir::VT_I32())
+    let outer_else_val = mir_ir::alloc_local(f, String_from("outer_else_val"), mir_ir::VT_I32())
+    let outer_join_val = mir_ir::alloc_local(f, String_from("outer_join_val"), mir_ir::VT_I32())
+    f.return_type = mir_ir::VT_I32()
+    let entry = mir_ir::alloc_block(f)
+    let outer_then_bb = mir_ir::alloc_block(f)
+    let inner_then_bb = mir_ir::alloc_block(f)
+    let inner_else_bb = mir_ir::alloc_block(f)
+    let inner_join_bb = mir_ir::alloc_block(f)
+    let outer_else_bb = mir_ir::alloc_block(f)
+    let outer_join_bb = mir_ir::alloc_block(f)
+    mir_ir::emit_inst(f, entry, mir_ir::MirInst_const_i32(1, cond_outer))
+    let entry_block = get_unchecked(f.blocks, entry)
+    entry_block.succ0 = outer_then_bb
+    entry_block.succ1 = outer_else_bb
+    mir_ir::emit_inst(f, outer_then_bb, mir_ir::MirInst_const_i32(1, cond_inner))
+    let outer_then_block = get_unchecked(f.blocks, outer_then_bb)
+    outer_then_block.succ0 = inner_then_bb
+    outer_then_block.succ1 = inner_else_bb
+    mir_ir::emit_inst(f, inner_then_bb, mir_ir::MirInst_const_i32(10, inner_then_val))
+    let inner_then_block = get_unchecked(f.blocks, inner_then_bb)
+    inner_then_block.succ0 = inner_join_bb
+    mir_ir::emit_inst(f, inner_else_bb, mir_ir::MirInst_const_i32(20, inner_else_val))
+    let inner_else_block = get_unchecked(f.blocks, inner_else_bb)
+    inner_else_block.succ0 = inner_join_bb
+    let inner_join_block = get_unchecked(f.blocks, inner_join_bb)
+    inner_join_block.succ0 = outer_join_bb
+    mir_ir::emit_inst(f, outer_else_bb, mir_ir::MirInst_const_i32(30, outer_else_val))
+    let outer_else_block = get_unchecked(f.blocks, outer_else_bb)
+    outer_else_block.succ0 = outer_join_bb
+    let ret_inst = mir_ir::MirInst_new(mir_opcodes::MIR_RETURN())
+    ret_inst.arg0 = outer_join_val
+    mir_ir::emit_inst(f, outer_join_bb, ret_inst)
+    mir_ir::mir_compute_dominance_for_function(f)
+    if !mir_ir::mir_try_insert_simple_join_phi(f, inner_join_bb, inner_join_val) {
+        stdio::eprintln(String_from("nested join phi insertion failed at inner join"))
+        process::exit(1)
+    }
+    if !mir_ir::mir_try_insert_simple_join_phi(f, outer_join_bb, outer_join_val) {
+        stdio::eprintln(String_from("nested join phi insertion failed at outer join"))
+        process::exit(1)
+    }
+    mir_ir::mir_ssa_rename_function(f)
+    mir_expect_phi(f, inner_join_bb, inner_join_val, mir_ir::VT_I32(), 2, inner_then_bb, inner_then_val, inner_else_bb, inner_else_val)
+    mir_expect_phi(f, outer_join_bb, outer_join_val, mir_ir::VT_I32(), 2, inner_join_bb, inner_join_val, outer_else_bb, outer_else_val)
+    mir_expect_phi_format(f, inner_join_bb, 0, String_from("phi %inner_join_val.1 = [bb2 -> %inner_then_val.1, bb3 -> %inner_else_val.1] : i32"))
+    mir_expect_phi_format(f, outer_join_bb, 0, String_from("phi %outer_join_val.1 = [bb4 -> %inner_join_val.1, bb5 -> %outer_else_val.1] : i32"))
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR nested phi insertion self-check OK."))
+}
+
+fn run_ssa_rename_smoke() {
+    let m = mir_ir::MirModule_new()
+    let f = mir_ir::MirFunction_new(String_from("ssa_rename_sample"))
+    let cond = mir_ir::alloc_local(f, String_from("cond"), mir_ir::VT_I32())
+    let then_val = mir_ir::alloc_local(f, String_from("then_val"), mir_ir::VT_I32())
+    let else_val = mir_ir::alloc_local(f, String_from("else_val"), mir_ir::VT_I32())
+    let join_val = mir_ir::alloc_local(f, String_from("join_val"), mir_ir::VT_I32())
+    f.return_type = mir_ir::VT_I32()
+    let entry = mir_ir::alloc_block(f)
+    let then_bb = mir_ir::alloc_block(f)
+    let else_bb = mir_ir::alloc_block(f)
+    let join_bb = mir_ir::alloc_block(f)
+    mir_ir::emit_inst(f, entry, mir_ir::MirInst_const_i32(1, cond))
+    let entry_block = get_unchecked(f.blocks, entry)
+    entry_block.succ0 = then_bb
+    entry_block.succ1 = else_bb
+    mir_ir::emit_inst(f, then_bb, mir_ir::MirInst_const_i32(10, then_val))
+    let then_block = get_unchecked(f.blocks, then_bb)
+    then_block.succ0 = join_bb
+    mir_ir::emit_inst(f, else_bb, mir_ir::MirInst_const_i32(20, else_val))
+    let else_block = get_unchecked(f.blocks, else_bb)
+    else_block.succ0 = join_bb
+    let phi = mir_ir::MirPhi_new(join_val, mir_ir::VT_I32())
+    mir_ir::mir_phi_add_arg(phi, then_bb, then_val)
+    mir_ir::mir_phi_add_arg(phi, else_bb, else_val)
+    mir_ir::emit_phi(f, join_bb, phi)
+    let ret_inst = mir_ir::MirInst_new(mir_opcodes::MIR_RETURN())
+    ret_inst.arg0 = join_val
+    mir_ir::emit_inst(f, join_bb, ret_inst)
+    mir_ir::mir_compute_dominance_for_function(f)
+    mir_ir::mir_ssa_rename_function(f)
+    mir_expect_local_ssa(f, cond, String_from("cond"), 1)
+    mir_expect_local_ssa(f, then_val, String_from("then_val"), 1)
+    mir_expect_local_ssa(f, else_val, String_from("else_val"), 1)
+    mir_expect_local_ssa(f, join_val, String_from("join_val"), 1)
+    mir_expect_phi_format(f, join_bb, 0, String_from("phi %join_val.1 = [bb1 -> %then_val.1, bb2 -> %else_val.1] : i32"))
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR SSA rename self-check OK."))
+}
+
+fn run_phi_elimination_smoke() {
+    let m = mir_ir::MirModule_new()
+    let f = mir_ir::MirFunction_new(String_from("phi_elim_sample"))
+    let cond = mir_ir::alloc_local(f, String_from("cond"), mir_ir::VT_I32())
+    let then_val = mir_ir::alloc_local(f, String_from("then_val"), mir_ir::VT_I32())
+    let else_val = mir_ir::alloc_local(f, String_from("else_val"), mir_ir::VT_I32())
+    let join_val = mir_ir::alloc_local(f, String_from("join_val"), mir_ir::VT_I32())
+    f.return_type = mir_ir::VT_I32()
+    let entry = mir_ir::alloc_block(f)
+    let then_bb = mir_ir::alloc_block(f)
+    let else_bb = mir_ir::alloc_block(f)
+    let join_bb = mir_ir::alloc_block(f)
+    mir_ir::emit_inst(f, entry, mir_ir::MirInst_const_i32(1, cond))
+    let entry_block = get_unchecked(f.blocks, entry)
+    entry_block.succ0 = then_bb
+    entry_block.succ1 = else_bb
+    mir_ir::emit_inst(f, then_bb, mir_ir::MirInst_const_i32(10, then_val))
+    let then_block = get_unchecked(f.blocks, then_bb)
+    then_block.succ0 = join_bb
+    mir_ir::emit_inst(f, else_bb, mir_ir::MirInst_const_i32(20, else_val))
+    let else_block = get_unchecked(f.blocks, else_bb)
+    else_block.succ0 = join_bb
+    let phi = mir_ir::MirPhi_new(join_val, mir_ir::VT_I32())
+    mir_ir::mir_phi_add_arg(phi, then_bb, then_val)
+    mir_ir::mir_phi_add_arg(phi, else_bb, else_val)
+    mir_ir::emit_phi(f, join_bb, phi)
+    let ret_inst = mir_ir::MirInst_new(mir_opcodes::MIR_RETURN())
+    ret_inst.arg0 = join_val
+    mir_ir::emit_inst(f, join_bb, ret_inst)
+    mir_ir::mir_compute_dominance_for_function(f)
+    mir_ir::mir_ssa_rename_function(f)
+    mir_expect_local_ssa(f, cond, String_from("cond"), 1)
+    mir_expect_local_ssa(f, then_val, String_from("then_val"), 1)
+    mir_expect_local_ssa(f, else_val, String_from("else_val"), 1)
+    mir_expect_local_ssa(f, join_val, String_from("join_val"), 1)
+    let join_block = get_unchecked(f.blocks, join_bb)
+    let phi0 = get_unchecked(join_block.phis, 0)
+    let phi_fmt = mir_format_phi(f, phi0)
+    if !eq(phi_fmt, String_from("phi %join_val.1 = [bb1 -> %then_val.1, bb2 -> %else_val.1] : i32")) {
+        stdio::eprintln(concat(String_from("phi elim smoke: unexpected phi line: "), phi_fmt))
+        process::exit(1)
+    }
+    mir_ir::mir_stdio_print_phi_elimination_preview(f, join_bb)
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR SSA phi elimination preview self-check OK."))
+}
+
+fn run_ssa_trivial_block_rename_smoke() {
+    let m = mir_ir::MirModule_new()
+    let f = mir_ir::MirFunction_new(String_from("ssa_trivial_block_sample"))
+    let p = mir_ir::alloc_local(f, String_from("p"), mir_ir::VT_I32())
+    push(f.params, MirLocal { name: String_from("p"), val_type: mir_ir::VT_I32(), ssa_name: String_from("p"), ssa_version: 0 - 1 })
+    let t = mir_ir::alloc_local(f, String_from("t"), mir_ir::VT_I32())
+    f.return_type = mir_ir::VT_I32()
+    let bb0 = mir_ir::alloc_block(f)
+    mir_ir::emit_inst(f, bb0, mir_ir::MirInst_const_i32(42, t))
+    let ret_inst = mir_ir::MirInst_new(mir_opcodes::MIR_RETURN())
+    ret_inst.arg0 = t
+    mir_ir::emit_inst(f, bb0, ret_inst)
+    mir_ir::mir_compute_dominance_for_function(f)
+    mir_ir::mir_ssa_rename_function(f)
+    mir_expect_local_ssa(f, p, String_from("p"), 0)
+    mir_expect_local_ssa(f, t, String_from("t"), 1)
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR SSA trivial-block rename self-check OK."))
+}
+
+fn run_ssa_sequential_def_rename_smoke() {
+    let m = mir_ir::MirModule_new()
+    let f = mir_ir::MirFunction_new(String_from("ssa_sequential_def_sample"))
+    let t = mir_ir::alloc_local(f, String_from("t"), mir_ir::VT_I32())
+    f.return_type = mir_ir::VT_I32()
+    let bb0 = mir_ir::alloc_block(f)
+    mir_ir::emit_inst(f, bb0, mir_ir::MirInst_const_i32(1, t))
+    mir_ir::emit_inst(f, bb0, mir_ir::MirInst_const_i32(2, t))
+    let ret_inst = mir_ir::MirInst_new(mir_opcodes::MIR_RETURN())
+    ret_inst.arg0 = t
+    mir_ir::emit_inst(f, bb0, ret_inst)
+    mir_ir::mir_compute_dominance_for_function(f)
+    mir_ir::mir_ssa_rename_function(f)
+    mir_expect_local_ssa(f, t, String_from("t"), 1)
+    let block = get_unchecked(f.blocks, bb0)
+    let second_def = get_unchecked(block.instructions, 1)
+    let ret = get_unchecked(block.instructions, 2)
+    mir_expect_local_ref_eq(f, second_def.dest, String_from("%t.2"), String_from("sequential second def"))
+    mir_expect_local_ref_eq(f, ret.arg0, String_from("%t.2"), String_from("sequential return use"))
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR SSA sequential-def rename self-check OK."))
+}
+
+// ── Entry Point ──────────────────────────────────────────────────────────────
+fn main() {
+    let m = mir_ir::MirModule_new()
+    let f = mir_ir::MirFunction_new(String_from("cfg_pred_sample"))
+    let pa = mir_ir::alloc_local(f, String_from("a"), mir_ir::VT_I32())
+    let pb = mir_ir::alloc_local(f, String_from("b"), mir_ir::VT_I32())
+    let tmp = mir_ir::alloc_local(f, String_from("_t0"), mir_ir::VT_I32())
+    f.return_type = mir_ir::VT_I32()
+    let entry = mir_ir::alloc_block(f)
+    let then_bb = mir_ir::alloc_block(f)
+    let else_bb = mir_ir::alloc_block(f)
+    let join_bb = mir_ir::alloc_block(f)
+    mir_ir::emit_inst(f, entry, mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_GET()))
+    mir_ir::emit_inst(f, entry, mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_GET()))
+    let entry_block = get_unchecked(f.blocks, entry)
+    entry_block.succ0 = then_bb
+    entry_block.succ1 = else_bb
+    mir_ir::emit_inst(f, then_bb, mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_GET()))
+    let then_block = get_unchecked(f.blocks, then_bb)
+    then_block.succ0 = join_bb
+    mir_ir::emit_inst(f, else_bb, mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_GET()))
+    let else_block = get_unchecked(f.blocks, else_bb)
+    else_block.succ0 = join_bb
+    mir_ir::emit_inst(f, join_bb, mir_ir::MirInst_binop(mir_opcodes::MIR_ADD(), tmp, pa, pb))
+    mir_ir::emit_inst(f, join_bb, mir_ir::MirInst_new(mir_opcodes::MIR_RETURN()))
+    mir_ir::mir_compute_dominance_for_function(f)
+    mir_expect_preds(f, entry, 0, 0, 0)
+    mir_expect_preds(f, then_bb, 1, entry, 0)
+    mir_expect_preds(f, else_bb, 1, entry, 0)
+    mir_expect_preds(f, join_bb, 2, then_bb, else_bb)
+    mir_expect_idom(f, entry, 0 - 1)
+    mir_expect_idom(f, then_bb, entry)
+    mir_expect_idom(f, else_bb, entry)
+    mir_expect_idom(f, join_bb, entry)
+    mir_expect_frontier(f, entry, 0, 0, 0)
+    mir_expect_frontier(f, then_bb, 1, join_bb, 0)
+    mir_expect_frontier(f, else_bb, 1, join_bb, 0)
+    mir_expect_frontier(f, join_bb, 0, 0, 0)
+    let dom_info = mir_ir::mir_collect_dom_info_for_function(f)
+    if len(dom_info.idom) != 4 {
+        stdio::eprintln(String_from("dominance snapshot check failed: expected 4 idom entries"))
+        process::exit(1)
+    }
+    push(m.functions, f)
+    let s0 = mir_ir::intern_string(m, String_from("hello"))
+    let s1 = mir_ir::intern_string(m, String_from("world"))
+    let s2 = mir_ir::intern_string(m, String_from("hello"))
+    stdio::println(concat(String_from("intern 'hello': "), to_string(s0)))
+    stdio::println(concat(String_from("intern 'world': "), to_string(s1)))
+    stdio::println(concat(String_from("intern 'hello' again: "), to_string(s2)))
+    dump_mir(m)
+    stdio::println(String_from("MIR predecessor self-check OK."))
+    stdio::println(String_from("MIR dominance self-check OK."))
+    stdio::println(String_from("MIR module OK."))
+    run_phi_representation_smoke()
+    run_phi_insertion_smoke()
+    run_phi_insertion_nested_join_smoke()
+    run_ssa_rename_smoke()
+    run_phi_elimination_smoke()
+    run_ssa_trivial_block_rename_smoke()
+    run_ssa_sequential_def_rename_smoke()
+}
+// ── MIR Instruction Tags ─────────────────────────────────────────────────────
+// underscore separator: skip (e.g. 1_000_000)
+// type suffix or other non-digit: stop parsing
+// closure / lambda — lowered via lambda lifting (#499)
+// Return value type for each function (parallel to fn_names): VT_VOID=0, VT_I32=1, VT_F64=3
+// Return struct/enum type name for each function (empty string if not a struct return)
+// Struct definitions: parallel arrays
+// Local variable struct type tracking (parallel arrays)
+// Enum variant→tag mapping (parallel arrays)
+// Variant names that belong to payload enums (for heap allocation)
+// Lambda-lifted closures (issue #499): synthetic fns + call-site capture injection
+// Start index into local_types/local_type_indices for the current function
+// Ensures type lookups are scoped to the current function even if reset fails
+// Try without module prefix (e.g. "resolver::dump_scope" → "dump_scope")
+// Strip __intrinsic_ prefix so stdlib wrappers like __intrinsic_print are
+// treated the same as their bare names below.
+// Known void stdlib/built-in functions
+// HashMap/HashSet insert/set functions are void
+// i64-returning builtin conversions
+// Unknown function: assume non-void (safe default for stdlib/builtins)
+// Try without module prefix
+// Search backwards from the end, but only within the current function's range
+// Option variants
+// Result variants
+// All Option/Result variants are payload enum variants
+// Detect whether this literal should be emitted as i64.
+// Cases that need i64:
+//   1. Explicit i64/u64 suffix:  "10000000000u64", "42i64"
+// Emit as CONST_I64 only when the decimal value actually overflows i32.
+// Suffix-annotated literals (100i64, 9001_i64) that fit in i32 stay as i32 —
+// the selfhost type system tracks locals as i32 and can't widen them yet.
+// Overflow detection: skip hex/binary, parse decimal (stops at suffix), compare with truncated i32.
+// Pattern literal (used in match arms): same as int/string/bool literal
+// Bool literals store "true"/"false" in text (not int_val); convert explicitly
+// Pattern wildcard: no value needed (used as default arm)
+// Pattern ident binding: treated as variable introduction (not needed for simple match)
+// Pattern variant: look up the discriminant tag from enum definitions
+// Path expression: enum variant constructor (e.g. Color::Green)
+// Payload enum: heap allocate [tag]
+// 1 field * 4 bytes (tag only)
+// byte offset 0
+// Simple enum: just push tag
+// If not a variant, might be a qualified function call — handled by NK_CALL
+// store intern index for emitter
+// Check if this is an enum variant name (e.g. None, Ok, Err)
+// Payload enum: heap allocate [tag] (fieldless variant of payload enum)
+// 1 tag * 4 bytes
+// Store tag
+// byte offset 0
+// Simple enum: just push tag
+// Short-circuit evaluation for && and ||
+// Store lhs result in a temp local
+// Push condition for if
+// For ||: enter if-block when lhs is FALSY (evaluate rhs)
+// if (condition) { sc_result = rhs }
+// Push final result
+// Determine if we'll be operating in i64 context by peeking at both sides.
+// Lower l; if operating in i64 context and l landed as i32, extend in-place.
+// Operator overloading: if lhs is a struct type, dispatch to a method call.
+// Refine binop_vt now that l is lowered
+// Lower r; if operating in i64 context and r landed as i32, extend in-place.
+// Final binop_vt refinement
+// Comparison ops always return i32 (boolean)
+// children[0] = callee, children[1..] = arguments
+// Check if this is a payload variant constructor (e.g. Some(42), Ok(val))
+// Payload variant construction: allocate [tag, payload1, ...]
+// First lower all payload expressions and save to locals
+// tag is always 4 bytes (i32)
+// Save value from stack to local (lower_expr leaves value on stack)
+// Store tag (field 0, byte offset 0)
+// byte offset 0
+// Store payload fields with correct byte offsets
+// after tag
+// Push value on stack via LOCAL_GET
+// Push result pointer on stack
+// Closure call: callee names a let-bound lambda; emit synthetic fn + capture args (#499)
+// HOF inline expansion for map_i64_i64, filter_i64, fold_i64_i64
+// Lower and save vec ptr
+// n = vec_len(vec)
+// idx = 0
+// map/filter: allocate result vec
+// fold: lower init, save as acc (i64)
+// BLOCK + LOOP
+// if idx >= n: br 1 (exit loop)
+// elem = vec_get_unchecked_i64(vec, idx)
+// map: mapped = callback(elem); push_i64(result, mapped)
+// filter: if callback(elem) { push_i64(result, elem) }
+// fold: acc = callback(acc, elem)
+// idx = idx + 1
+// BR 0 (loop back)
+// END loop, END block
+// Return result
+// HOF inline expansion for map_i32_i32, filter_i32, fold_i32_i32
+// String variants (map_String_String, filter_String) use same i32-pointer logic
+// Lower and save vec ptr
+// n = vec_len(vec)
+// idx = 0
+// map/filter: allocate result vec
+// String HOF variants: tag result vec as vec:String so element type
+// propagates as String (not i32) to callers using get_unchecked
+// fold: lower init, save as acc (i32)
+// BLOCK + LOOP
+// if idx >= n: br 1 (exit loop)
+// elem = get_unchecked(vec, idx)
+// map: mapped = callback(elem); push(result, mapped)
+// filter: if callback(elem) { push(result, elem) }
+// fold: acc = callback(acc, elem)
+// idx = idx + 1
+// BR 0 (loop back)
+// END loop, END block
+// Return result
+// HOF inline expansion for map_f64_f64, filter_f64
+// Lower and save vec ptr
+// n = vec_len(vec)
+// idx = 0
+// allocate result vec
+// BLOCK + LOOP
+// if idx >= n: br 1
+// elem = vec_get_unchecked_f64(vec, idx)
+// map: mapped = callback(elem); push_f64(result, mapped)
+// filter: if callback(elem) { push_f64(result, elem) }
+// idx = idx + 1
+// BR 0 (loop back)
+// END loop, END block
+// Return result
+// HOF inline expansion for map_option_i32_i32
+// Lower option argument
+// Read tag from option (offset 0): LOCAL_GET → STRUCT_GET → LOCAL_SET
+// Allocate new option: 8 bytes (tag + payload)
+// Push NOT(tag) as if-condition: tag==0 (Some) → NOT → 1 → enter if
+// Some branch: read payload, call callback, store result in new_opt
+// Store tag=0 (Some) in new_opt at offset 0
+// Store result in new_opt at offset 4
+// None branch: store tag=1 in new_opt at offset 0
+// Return new option ptr
+// Lower arguments and track first/second arg index for type dispatch
+// Auto-convert println(integer) to println(to_string(integer))
+// Check if variable has a numeric type annotation
+// Check if callee is a known i32/bool-returning function
+// Bool-returning functions
+// i32-returning functions
+// Check if the identifier has no struct type (likely an integer)
+// No type info — could be integer or string
+// Only auto-convert if the ident has a numeric type annotation in scope
+// For now, skip auto-conversion for plain identifiers without type info
+// Wrap with to_string / char_to_string / bool_to_string / i64_to_string
+// Dispatch to_string to char_to_string/f64_to_string/bool_to_string when arg has specific type
+// to_string on a string is identity — return arg directly
+// Dispatch len/push/get_unchecked to vec variants when arg is vec type
+// Extend i32 value to i64 if needed (e.g. push(v, 10) literal)
+// Mark dest as vec type when calling Vec_new_*
+// Dispatch pop -> vec_pop
+// Dispatch set -> vec_set
+// unwrap, unwrap_or, is_empty pass through as-is (no rename needed)
+// Track vec-returning builtins
+// Track string-returning functions
+// Propagate element type from vec_get_unchecked result
+// Infer struct return type from *_new naming convention
+// E.g., "Parser_new" -> struct type "Parser", "LoadState_new" -> "LoadState"
+// This allows len(parser.errors) to be correctly dispatched to vec_len
+// when `parser` was bound via `let parser = Parser_new(...)` without a type annotation.
+// Infer struct return type from typed_fns table (handles non-_new constructors like compile_source)
+// Skip single-letter type params like T, U, K, V (from generic functions)
+// If this user-defined function returns void, return -1 (no stack value)
+// children[0] = condition, children[1] = then-block, children[2] = else-block (optional)
+// Emit structured IF/ELSE/END (Wasm structured control flow)
+// Then block
+// Upgrade result local type if then-branch produces i64 or f64
+// Else block (optional)
+// Upgrade result local type if else-branch produces i64 or f64 and then-branch didn't
+// Only push result to stack if at least one branch produced a value
+// Void if-expression: no value on stack
+// children[0] = scrutinee, children[1..] = match arms (NK_MATCH_ARM)
+// Each arm: children[0]=pattern, children[1]=body (2 children) or
+//           children[0]=pattern, children[1]=guard, children[2]=body (3 children)
+// Save scrutinee value to its local (lower_expr pushes on stack;
+// we need it captured so LOCAL_GET works in arms)
+// Detect if this is a payload enum match (any arm has PAT_VARIANT with children)
+// Detect if scrutinee is Result<f64,...> or Option<f64>
+// For payload enum match, extract the tag from the heap once
+// LOCAL_GET scrut (push heap ptr)
+// STRUCT_GET field=0 (load tag from ptr)
+// LOCAL_SET tag_local (save tag)
+// Use nested if/else chain for match arms (structured control flow)
+// Last arm: default case
+// Bind pattern variable if PAT_IDENT
+// Bind payload variables if this arm has bindings
+// Determine field type from variant pseudo-struct (field bi+1 = payload field bi)
+// Override: if scrutinee is Result<f64,...>/Option<f64> and variant is Ok/Some
+// Check for guard (arm_child_count == 3)
+// Catch-all pattern: bind variable and check guard
+// OR pattern: 1 | 2 | 3 => emit (x==1) | (x==2) | (x==3) then IF
+// Push tag/scrutinee value onto stack for comparison
+// Compare against pattern tag
+// IF (match)
+// Bind payload variables BEFORE guard (guard may reference them)
+// Override: if scrutinee is Result<f64,...>/Option<f64> and variant is Ok/Some
+// Check guard if present
+// ELSE (try next arm)
+// Close all nested if/else
+// Push the match result onto the Wasm stack for the caller
+// node.text = method name, children[0] = receiver, children[1..] = args
+// Determine struct type of receiver for method dispatch
+// Lower remaining args (each emits LOCAL_GET, pushing value on WASM stack)
+// Propagate return struct type if applicable
+// Non-void: result is already on WASM stack from OP_CALL — no LOCAL_GET needed
+// Discard non-last statement results to keep the WASM stack balanced.
+// lower_expr returns -1 for void calls; >= 0 means a value is on the WASM stack.
+// children[0] = target, children[1] = value
+// struct field assignment: target.children[0] = struct, target.text = field
+// Simple base: look up local directly, no stack push
+// Complex base (chained field access): evaluate and save to temp
+// Resolve field index from struct type, then convert to byte offset
+// text = struct name, children = field initializers
+// Each child: NK_IDENT with text=field_name, children[0]=value
+// If ..base is used, last child is NK_RANGE with children[0]=base expr
+// Track struct type for this local
+// Check for spread base (NK_RANGE child)
+// Lower the base expression (children[0] of the NK_RANGE node)
+// lower_expr pushes the base ptr onto the WASM stack.
+// Consume it immediately with LOCAL_SET so the stack stays balanced.
+// The spread copy loop re-loads it via LOCAL_GET(base_idx) each iteration.
+// If we have a spread base, first copy ALL fields from base
+// Emit LOCAL_GET to push base ptr onto Wasm stack
+// STRUCT_GET reads from stack (base + offset), leaves value on stack
+// STRUCT_SET consumes value from stack, stores into dest struct
+// Then set explicitly provided fields (overwriting any base copies)
+// Push struct base pointer onto Wasm stack for caller
+// children[0] = base struct expression, text = field name
+// Resolve field index and type from struct type
+// Determine VT: also handle i64 fields
+// Propagate field type to dest for type dispatch (println, HOF, etc.)
+// fallback: 4 bytes per field
+// children = element expressions
+// Push array base pointer onto Wasm stack for caller
+// children[0] = base array, children[1] = index expression
+// expr? → if Ok, unwrap; if Err, return Err early
+// children[0] = inner expression (should return Result<T, E>)
+// Save the result ptr
+// Load tag
+// Check if Err (tag != 0): return the Result as-is
+// Ok path: extract payload (field 1)
+// Loop expression: delegate to stmt handler which has full loop logic
+// While expression: delegate to stmt handler
+// For expression: delegate to stmt handler
+// NK_CLOSURE: lambda-lift to a synthetic function; captures passed at each call site (#499).
+// return/break/continue in expression position (e.g. match arm body: Ok(v) => return x)
+// Unknown expression: emit NOP
+// text = binding name, children[0] = init expr (if present)
+// Determine val_type from type annotation (default i32)
+// Infer f64 from init expression when no annotation
+// Check binary expr with float operands
+// Evaluate the RHS BEFORE allocating the new local so that any use of the
+// same name on the RHS (shadowing re-bind: `let x = f(x)`) still resolves
+// to the old binding rather than the uninitialized new one.
+// Infer vt from evaluated result when annotation was absent
+// Check type annotation for primitive types and struct types
+// Known struct type from type annotation
+// NK_TYPE_GENERIC = 91: Vec<T>, Result<T,E>, Option<T> annotation
+// Post-correct local VT if init is f64 but local was allocated as i32
+// Sign-extend i32 → i64 when binding an integer literal/expr into an i64 local.
+// Propagate struct type from init expression to local
+// Skip single-letter type params (T, U, K, V) from generic function returns
+// Infer type from literal kind when no annotation and no propagated type
+// children[0] = condition, children[1] = body
+// Emit: block { loop { cond; i32.eqz; br_if 1; body; br 0; end; } end; }
+// BLOCK (break target)
+// LOOP (continue target)
+// Condition
+// i32.eqz (negate condition: break when cond is false)
+// br_if 1 (break to outer block if cond is false)
+// Body
+// br 0 (loop back)
+// END loop
+// END block
+// children[0] = body
+// Allocate a local for break value
+// BLOCK (break target)
+// LOOP (continue target)
+// br 0 (loop back)
+// END loop
+// END block
+// Push the break result local
+// If break has a value expression, store it in the break-result local
+// For loop: for i in start..end { body }
+// children[0] = range expr (NK_RANGE with children[0]=start, children[1]=end)
+// children[1] = body block
+// node.text = loop variable name
+// Get range bounds
+// Check for values(vec) form: for x in values(v)
+// NK_CALL children: [0]=callee, [1..]=args
+// for x in values(v) => for _i in 0..len(v), x = get_unchecked(v, _i)
+// Store vec ptr in a local (value is on stack from lower_expr)
+// Compute len(vec) via vec_len builtin: push vec, call vec_len, store result
+// Store len result from stack
+// Hidden index variable starting at 0
+// User-visible loop variable
+// BLOCK (break target)
+// LOOP (continue target)
+// Check: if idx >= len, break
+// x = get_unchecked(vec, idx): push vec, push idx, call, store to iter_var
+// Body
+// Increment: idx = idx + 1
+// br 0 (loop back)
+// END loop
+// END block
+// Lower start — leaves value on stack
+// Create loop variable and store start value from stack
+// Lower end — leaves value on stack
+// Store end value to its local so we can reference it in the loop
+// BLOCK (break target)
+// LOOP (continue target)
+// Check: if iter >= end, break
+// Body
+// Increment: iter = iter + 1
+// br 0 (loop back)
+// END loop
+// END block
+// Struct iterator: for x in s { ... } where s has fn next() -> Option<T>
+// Determine payload type from Option<T> return signature
+// Call next(iter_ptr) → opt_ptr on stack → LOCAL_SET
+// Load tag at byte offset 0: LOCAL_GET opt → STRUCT_GET(0) → LOCAL_SET tag
+// tag == 1 means None → break
+// Load payload at byte offset 4: LOCAL_GET opt → STRUCT_GET(4) → LOCAL_SET iter_var
+// Expression in statement position
+// Build function name→index map from declarations
+// Record return vt for void detection: VT_VOID=0, VT_I32=1, VT_F64=3
+// TY_VEC=10: record "vec:elem_type" so len/push/get_unchecked dispatch correctly
+// TY_STRUCT=21, TY_ENUM=22: record the struct/enum name
+// mir_type_info::NK_IMPL_DECL(56): collect all method names as StructName::method
+// Determine return VT from method's type_ann (__return node)
+// Default is VOID: methods without explicit return types return nothing
+// Vec<X> / Option<T> return
+// Struct/enum return type: i32 pointer, record type name
+// __return with no children = void
+// Lower each function
+// Collect struct definitions for field index resolution
+// NK_STRUCT_DECL = 51 (from parser.ark)
+// Track field types for type propagation through field access
+// NK_TYPE_GENERIC = 91 → Vec<X>, NK_TYPE_NAMED = 90
+// Track all field types for proper layout and println dispatch
+// u8 stored as i32
+// NK_ENUM_DECL = 52: collect variant→tag mapping
+// Check if any variant has fields (payload enum)
+// Note: variant fields are stored in type_ann, not children
+// Register payload variant as pseudo-struct for field type tracking
+// Field 0 = tag (i32), Field 1+ = payload fields (from type_ann)
+// Field 0: tag
+// Payload fields
+// Check if payload field is f64
+// Allocate parameters as locals AND register in f.params
+// Determine param val_type from type annotation
+// Register type for Vec/struct parameters so len/get_unchecked dispatch works
+// NK_TYPE_GENERIC
+// NK_TYPE_NAMED
+// Exclude primitive types and single-letter generic type params (T, U, K, V, E, etc.)
+// Set return type from type-check result
+// TY_I32=1, TY_I64=2, TY_F64=3, TY_BOOL=4, TY_STRING=5, TY_CHAR=6
+// TY_UNIT=7 means void, TY_UNKNOWN=0 means unresolved
+// TY_VEC=10, TY_OPTION=11, TY_RESULT=12, TY_STRUCT=21, TY_ENUM=22, TY_TUPLE=23
+// Create entry block
+// Lower body (last child is the block)
+// Implicit return: if the body produced a stack value but the function
+// is void, drop the value first to keep the wasm stack balanced.
+// mir_type_info::NK_IMPL_DECL(56): lower each method as a named function
+// Allocate parameters (self + regular params)
+// self param: i32 pointer to struct
+// Apply return type from fn_return_vts (looked up by mangled name)
+// Note: dominance computation and SSA renaming are skipped here.
+// They are only needed for dump_mir (debugging) and are not used
+// by the emitter for code generation.  Computing dominance for
+// large functions (e.g. emit_mir_inst_ctx with ~1500 blocks) causes
+// O(N^2) memory allocation in the T1 no-free heap model, consuming
+// hundreds of MB.  These passes are retained in dump_mir below.
+// Build a simple diamond-shaped CFG to self-check predecessor computation.
+// Intern some strings
