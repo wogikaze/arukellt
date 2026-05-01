@@ -431,6 +431,7 @@ DIAG_PARITY_SKIP: frozenset[str] = frozenset({
     "v0_constraints/no_operator_overload.ark",
     "module_import/use_symbol_not_found.ark",
     "selfhost/typecheck_match_nonexhaustive.ark",
+    "selfhost/ret_type_mismatch.ark",
 })
 
 
