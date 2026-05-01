@@ -4,7 +4,7 @@ This directory contains utility scripts for building, testing, verifying, and ma
 
 ## Overview
 
-- **35 scripts total**: 24 shell scripts (`.sh`) and 11 Python scripts (`.py`)
+- **36 scripts total**: 24 shell scripts (`.sh`) and 12 Python scripts (`.py`)
 - **Organized by domain**: `check/`, `run/`, `gen/`, `util/`, and domain-specific libraries
 - **CLI manager**: `scripts/manager.py` provides unified interface (Phase 1 complete: verify domain)
 
@@ -82,6 +82,7 @@ Utility libraries and helpers.
 | `check-diff-scope.py` | Python | Fail if `git diff` touches paths outside `--primary`/`--allowed` (or `--forbidden`) | `python3 scripts/util/check-diff-scope.py --base origin/master --head HEAD --primary path/` |
 | `benchmark_runner.py` | Python | Benchmark runner for performance data collection | Used by `python scripts/manager.py perf gate` and `bash scripts/update-baselines.sh` |
 | `collect-baseline.py` | Python | Collect performance baseline data | `python3 scripts/util/collect-baseline.py` |
+| `repo_metrics.py` | Python | Count lines/chars/bytes by extension, area, and content kind | `python3 scripts/util/repo_metrics.py [--mode git] [--csv out.csv] [--json out.json]` |
 
 ### Root Level Scripts
 

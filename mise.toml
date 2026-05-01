@@ -71,6 +71,14 @@ description = "Run the explicit heavy verification groups used by CI correctness
 run = "cargo fmt --all --check && cargo clippy --workspace -- -D warnings && python3 scripts/manager.py verify --docs"
 description = "Run the recommended pre-commit verification groups"
 
+[tasks."metrics"]
+run = "python3 scripts/util/repo_metrics.py"
+description = "Count lines/chars/bytes by extension, area, and content kind"
+
+[tasks."metrics:full"]
+run = "python3 scripts/util/repo_metrics.py --mode git --csv reports/repo-metrics.csv --json reports/repo-metrics.json"
+description = "Full repo metrics with CSV and JSON output"
+
 [tasks."hooks:install"]
 run = "bash scripts/gate/install-git-hooks.sh"
 description = "Install repository-managed git hooks"
