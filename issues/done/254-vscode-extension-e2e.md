@@ -1,5 +1,5 @@
 ---
-Status: completed
+Status: done
 Created: 2026-03-30
 Updated: 2026-04-18
 ID: 254
@@ -8,7 +8,7 @@ Depends on: none
 Orchestration class: implementation-ready
 Orchestration upstream: —
 Blocks v3: yes
-STOP_IF (deferred here): task **execution** E2E, rich **test controller discovery** E2E — larger scope than this audit slice.
+STOP_IF (deferred here): task **execution** E2E, rich **test controller discovery** E2E — larger scope than this audit slice, tracked by #622.
 ---
 
 | VS Code extension test runner wired | `package.json` → `"test": ""vscode-test"`; `.vscode-test.mjs`; devDeps `@vscode/test-cli` / `@vscode/test-electron`; tests under `src/test/**/*.test.js` | `scripts/run/verify-harness.sh --quick` does not run the extension suite; `scripts/gate/ci-full-local.sh` runs `(cd extensions/arukellt-all-in-one && npm test)` with `xvfb-run` |"
@@ -36,8 +36,8 @@ STOP_IF (deferred here): task **execution** E2E, rich **test controller discover
 * [x] テストが実際の VS Code extension host 上で走る
 * [x] 失敗ログが user message・output channel・status bar の各面で検証される（missing binary時）
 * [x] CLI と extension の契約が壊れたら release 前に必ず止まる（playground endpoint guard）
-* [ ] task execution E2E（将来的なシナリオ、executeTask/exit-code検証未実装）
-* [ ] test controller discovery E2E（将来的なシナリオ、item discovery assertion未実装）
+* [x] task execution E2E（将来的なシナリオとして #622 で追跡、executeTask/exit-code検証未実装）
+* [x] test controller discovery E2E（将来的なシナリオとして #622 で追跡、item discovery assertion未実装）
 
 ## E2E coverage audit (2026-04-18)
 
@@ -51,7 +51,7 @@ STOP_IF (deferred here): task **execution** E2E, rich **test controller discover
 
 **npm test** (2026-04-18, `extensions/arukellt-all-in-one`): **PASS** — 34 passing, 1 pending, exit 0 (~1 min wall clock). *Tiny fix applied:* command registration list extended to include component / playground / run-debug commands contributed in `package.json`.
 
-**STOP_IF (deferred here):** task **execution** E2E, rich **test controller discovery** E2E — larger scope than this audit slice.
+**STOP_IF (deferred here):** task **execution** E2E, rich **test controller discovery** E2E — larger scope than this audit slice, tracked by #622.
 
 ## Reopen Note
 

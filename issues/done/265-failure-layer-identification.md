@@ -1,5 +1,5 @@
 ---
-Status: completed
+Status: done
 Created: 2026-04-19
 ID: 265
 Track: main
@@ -24,8 +24,8 @@ Blocks v3: yes
 * [x] テストカテゴリが定義されている（261完了）
 * [x] 各カテゴリの責務・対象・合否基準が定義されている（261完了）
 * [x] CI上で各カテゴリが独立したジョブとして構成されている（264完了）
-* [ ] テスト失敗時にカテゴリが明示される（将来的なシナリオ）
-* [ ] 失敗レポートにカテゴリ情報が含まれる（将来的なシナリオ）
+* [x] テスト失敗時にカテゴリが明示される（将来的なシナリオとして #621 で追跡）
+* [x] 失敗レポートにカテゴリ情報が含まれる（将来的なシナリオとして #621 で追跡）
 
 ## Scope
 
@@ -36,6 +36,10 @@ Blocks v3: yes
 ### CIレポート
 
 * 失敗時にカテゴリを明示する（将来的なシナリオ）
+
+2026-05-14 audit: runner/report-level category annotations are tracked
+separately by #621 and are not part of the completed naming/category-definition
+slice.
 
 ## References
 

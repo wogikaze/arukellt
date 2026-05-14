@@ -1,4 +1,8 @@
 ---
+Status: done
+Created: 2026-04-28
+Updated: 2026-05-14
+ID: 623
 Track: main
 Orchestration class: implementation-ready
 Depends on: none
@@ -8,7 +12,13 @@ Depends on: none
 - docs/migration/v4-to-v5.md — full rewrite: selfhost-only path, 5 removed crates, shell script replacements, FsError/JsonParseError type changes, prelude narrowing
 blocks) unrelated to this docs slice. Docs consistency check: PASS.
 
-# 552 · Post-release documentation
+# 623 · V5 migration post-release documentation
+
+## Duplicate-ID Resolution
+
+Renumbered from done issue #552 on 2026-05-14. The active open #552 tracks
+current release post-release documentation; this completed historical slice
+covered v5 migration / quickstart documentation and must remain separate.
 
 ## Acceptance Criteria
 

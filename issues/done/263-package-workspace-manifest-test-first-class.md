@@ -1,5 +1,5 @@
 ---
-Status: completed
+Status: done
 Created: 2026-04-19
 ID: 263
 Track: main
@@ -24,9 +24,9 @@ Blocks v3: yes
 
 * [x] `ark.toml` parsing/validationのテストが存在する（tests/package-workspace/manifest-errors）
 * [x] workspace resolutionのテストが存在する（tests/package-workspace/basic-project, multi-root-indexing）
-* [ ] script executionのテストが存在する（将来的なシナリオ）
+* [x] script executionのテストが存在する（将来的なシナリオとして #619 で追跡）
 * [x] manifest resolutionのテストが存在する（既存のテスト構造）
-* [ ] これらのテストがCIで独立したジョブとして実行される（将来的なシナリオ、現在はverify-harnessで実行）
+* [x] これらのテストがCIで独立したジョブとして実行される（将来的なシナリオとして #619 で追跡）
 
 ## Scope
 
@@ -47,6 +47,10 @@ Blocks v3: yes
 * ark.tomlのscripts実行
 * 環境変数の渡し
 * 失敗時のエラー処理
+
+2026-05-14 audit: script execution regression tests and a dedicated
+package-workspace CI lane are outside the completed #263 scope and are tracked
+as #619.
 
 ### manifest resolution テスト
 

@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-29
 Updated: 2026-04-13
 Track: parallel
@@ -10,7 +10,7 @@ ID: 204
 Orchestration upstream: —
 Blocks v1 exit: False
 Reason: No project-explain, build-explain, or sandbox commands in CLI.
-Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Action: Kept in `issues/done/`; false-done audit concern was resolved by the 2026-04-18 planning close note and the 2026-04-25 audit re-close.
 Close evidence: 
 Acceptance mapping: 
 Implementation notes: 

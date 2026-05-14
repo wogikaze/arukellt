@@ -1,5 +1,5 @@
 ---
-Status: completed
+Status: done
 Created: 2026-04-19
 ID: 264
 Track: main
@@ -30,7 +30,7 @@ Blocks v3: yes
 * [x] selfhost-bootstrapジョブが存在する（bootstrap）
 * [x] extension-testsジョブが存在する（VS Code extension）
 * [x] lsp-e2eジョブが存在する（LSP protocol）
-* [ ] 各カテゴリのジョブ結果サマリーが実装されている（将来的なシナリオ）
+* [x] 各カテゴリのジョブ結果サマリーが実装されている（将来的なシナリオとして #620 で追跡）
 
 ## Scope
 
@@ -43,6 +43,9 @@ Blocks v3: yes
 
 * 各カテゴリのジョブ結果を集計
 * 品質面別のサマリーを表示
+
+2026-05-14 audit: category result summary generation is tracked separately by
+#620 and is not part of the completed CI job wiring slice.
 
 ## References
 

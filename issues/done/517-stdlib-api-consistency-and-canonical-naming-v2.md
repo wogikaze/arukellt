@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-15
 Updated: "2026-04-16 (impl-stdlib #517 slice: env/text inventory + triage)"
 ID: 517

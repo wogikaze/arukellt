@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 593

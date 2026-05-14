@@ -1,7 +1,7 @@
 ---
 Status: done
 Created: 2026-04-03
-Updated: 2026-04-03
+Updated: 2026-05-14
 ID: 470
 Track: docs-audit
 Depends on: 465
@@ -66,6 +66,14 @@ feature-claim correction は route wiring や deploy correction と別 issue で
 - `docs/language/README.md`
 - source proof files under `crates/ark-playground-wasm/` and `playground/src/`
 - docs consistency check result
+
+## Close note — 2026-05-14
+
+This issue is already complete: every acceptance item is checked, the file
+frontmatter is `Status: done`, and the issue is an internal docs-audit closeout
+rather than a feature implementation task. The close action here moves the issue
+out of the open queue and regenerates the issue index so the queue reflects the
+recorded state.
 
 ## False-done prevention checks
 

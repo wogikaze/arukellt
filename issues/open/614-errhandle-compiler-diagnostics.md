@@ -9,6 +9,13 @@ Depends on: —
 ---
 
 # Error Handling Convergence: Compiler Structured Diagnostics
+
+## Reopened by issue-health audit — 2026-05-14
+
+This file was under `issues/done/` while its frontmatter still said
+`Status: open`, and it contains no close note or checked acceptance evidence.
+Keep the issue open until the structured diagnostic model, CLI JSON output, and
+fixture evidence below are implemented.
 ---
 # Error Handling Convergence: Compiler Structured Diagnostics
 

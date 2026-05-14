@@ -1,7 +1,7 @@
 ---
-Status: Implementation-ready
+Status: open
 Created: 2026-04-03
-Updated: 2026-04-03
+Updated: 2026-05-14
 ID: 474
 Track: wasm-feature
 Depends on: "035 (v2-verification-cleanup, done), 074 (wasi-p2-native-component)"

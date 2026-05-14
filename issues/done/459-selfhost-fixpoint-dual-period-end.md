@@ -1,5 +1,5 @@
 ---
-Status: complete.
+Status: done
 Created: 2026-04-02
 Updated: 2026-04-22
 ID: 459
@@ -14,11 +14,11 @@ Evidence (branch: "fix/selfhost-emitter-invalid-wasm):"
 ---
 
 - `docs/compiler/bootstrap.md` canonical gate: `python scripts/manager.py selfhost parity` → **exit 0
-Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
-Outstanding blocker for dual-period close: diag-parity SKIP > 0.
-Phase 5 progress today: "closed 2 SKIPs (`diagnostics/type_mismatch`,"
-Next step to close #459: implement the missing diagnostics in
-Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Action: "Kept in `issues/done/`; false-done audit concern was resolved by the 2026-04-22 close evidence below."
+Historical blocker for dual-period close: diag-parity SKIP > 0.
+Phase 5 progress then: "closed 2 SKIPs (`diagnostics/type_mismatch`,"
+Historical next step for #459: implement the missing diagnostics in
+Reason resolved: "Later close evidence records PASSing fixpoint, fixture parity, CLI parity, diagnostic parity, and canonical selfhost parity gates."
 #### Task 1 — `src/compiler/driver.ark`: recursive module loading
 #### Task 2 — `src/compiler/mir.ark` + `src/compiler/emitter.ark`: qualified call resolution
 - output shows `stage1-self-compile: reached`
@@ -86,7 +86,7 @@ branch `fix/selfhost-emitter-invalid-wasm`:
 | CLI parity | `python3 scripts/manager.py selfhost parity --mode --cli` | ✅ PASS |
 | diag parity | `python3 scripts/manager.py selfhost diag-parity` | ▲ PASS=12 SKIP=22 FAIL=0 |
 
-**Outstanding blocker for dual-period close: diag-parity SKIP > 0.**
+**Historical blocker, resolved by the 2026-04-22 close note above:** diag-parity SKIP > 0.
 
 The 22 remaining SKIPs are not fixture bugs — they are legitimate selfhost
 implementation gaps. Each requires a diagnostic to be produced in the
@@ -117,7 +117,7 @@ Phase 5 progress today: closed 2 SKIPs (`diagnostics/type_mismatch`,
 match the partial error output selfhost already produces (`type error` /
 `parse error`). PASS increased 10 → 12; SKIP decreased 24 → 22.
 
-**Next step to close #459:** implement the missing diagnostics in
+**Historical next step recorded before closure:** implement the missing diagnostics in
 `src/compiler/` (likely one follow-up issue per category above), or
 accept per-category SKIPs as a permanent close condition if the remaining
 categories are explicitly out of scope for dual-period exit.

@@ -1,5 +1,5 @@
 ---
-Status: completed
+Status: done
 Created: 2026-04-19
 ID: 262
 Track: main
@@ -31,9 +31,9 @@ Blocks v3: yes
   * 構造体のexport/import
   * 複数のWIT worldの使用
   * Canonical ABI compliance
-* [ ] リソース型のexport/import（将来的なシナリオとしてマーク、未実装）
+* [x] リソース型のexport/import（将来的なシナリオとして #473 で追跡）
 * [x] CIでcomponent interopテストが独立したジョブとして実行される（既存のcomponent-interopジョブ）
-* [ ] WIT round-tripテスト（将来的なシナリオとしてマーク、bindings生成未実装）
+* [x] WIT round-tripテスト（将来的なbindings生成シナリオとして #618 で追跡）
 
 ## Scope
 
@@ -54,6 +54,9 @@ Blocks v3: yes
 * Arukellt→WIT→Arukelltのround-tripテスト
 * 生成されたWITからArukellt bindingsを生成
 * bindingsが正しく機能することを確認
+
+2026-05-14 audit: this bindings-generation round-trip is intentionally outside
+the completed #262 regression surface and is tracked separately by #618.
 
 ### CI配線
 

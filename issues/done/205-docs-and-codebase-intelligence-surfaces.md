@@ -1,16 +1,16 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-29
 Updated: 2026-04-13
 Track: parallel
-Orchestration class: blocked-by-upstream
+Orchestration class: done
 Depends on: 185, 188
 Closed: 2026-04-18
 ID: 205
 Orchestration upstream: #188
 Blocks v1 exit: no
 Reason: API explorer and dependency graph visualization partially missing.
-Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Action: Kept in `issues/done/`; false-done audit concern was resolved by the 2026-04-25 audit re-close.
 ---
 ## Reopened by audit
 

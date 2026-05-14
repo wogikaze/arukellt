@@ -1,7 +1,7 @@
 ---
-Status: blocked-by-upstream
+Status: open
 Created: 2026-04-14
-Updated: 2026-04-15
+Updated: 2026-05-14
 ID: 495
 Track: selfhost
 Depends on: 312, 504

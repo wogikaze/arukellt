@@ -1,5 +1,5 @@
 ---
-Status: blocked-by-upstream
+Status: done
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 562
@@ -15,8 +15,8 @@ REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
 ---
 
 # 562 — Phase 5: Delete `crates/ark-wasm`
-2026-04-22 pre-deletion scan result: blocked by an active downstream crate consumer.
-- `crates/ark-stdlib/Cargo.toml: 7` depends on `ark-wasm = { workspace = true }`
+2026-04-22 pre-deletion scan result (historical): initially blocked by an active downstream crate consumer.
+- `crates/ark-stdlib/Cargo.toml: 7` depended on `ark-wasm = { workspace = true }`; this reverse dependency was removed in the resolution below.
 - [x] No source / script / docs reference: "`rg -l "\bark_wasm\b\|\bark-wasm\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)"
 - [x] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
 1. [x] Directory truly absent: `test ! -d crates/ark-wasm` exit 0
@@ -65,11 +65,11 @@ Record numeric values; do **not** start the deletion if any item is missing.
 
 ## Status note
 
-2026-04-22 pre-deletion scan result: blocked by an active downstream crate consumer.
+2026-04-22 pre-deletion scan result (historical): initially blocked by an active downstream crate consumer; resolved during this issue.
 
-Active consumer:
+Historical active consumer:
 
-- `crates/ark-stdlib/Cargo.toml:7` depends on `ark-wasm = { workspace = true }`
+- `crates/ark-stdlib/Cargo.toml:7` depended on `ark-wasm = { workspace = true }`; the dependency was removed as dead code in the cleanup below.
 
 Exact commands run:
 

@@ -1,5 +1,5 @@
 ---
-Status: completed
+Status: done
 Created: 2026-03-30
 Updated: 2026-04-18
 ID: 268
@@ -8,8 +8,8 @@ Depends on: 267
 Orchestration class: verification-ready
 Orchestration upstream: —
 Blocks v3: yes
-Reason: Parity non-blocking and tolerant.
-Action: Moved from issues/done/ to issues/open/ by false-done audit.
+Reason: Parity CI gaps were closed by #530.
+Action: Keep in issues/done/; #530 added merge-blocking CLI and diagnostic parity gates.
 ---
 
 | `selfhost-bootstrap` (“Selfhost bootstrap (full)”) | Run selfhost fixture parity | `bash scripts/check/check-selfhost-parity.sh --fixture` (stdout to `tee parity-results.txt`; step suffix ignores failure) | Fixture / Stage1-style parity: "`manifest.txt` `run:` entries with `.expected`; compares Rust `run` stdout vs selfhost compile+run stdout | No for this step (exit status ignored) | First-line rust vs selfhost snippets printed to log; full step output in artifact `selfhost-bootstrap` (`parity-results.txt`). Not a unified `diff` of full outputs. |"
@@ -32,10 +32,10 @@ Evidence (executable truth from `.github/workflows/ci.yml` and `scripts/check/ch
 | --- | --- | --- | --- | --- | --- |
 | `selfhost-bootstrap` (“Selfhost bootstrap (full)”) | Run selfhost fixture parity | `bash scripts/check/check-selfhost-parity.sh --fixture` (stdout to `tee parity-results.txt`; step suffix ignores failure) | Fixture / Stage1-style parity: `manifest.txt` `run:` entries with `.expected`; compares Rust `run` stdout vs selfhost compile+run stdout | No for this step (exit status ignored) | First-line rust vs selfhost snippets printed to log; full step output in artifact `selfhost-bootstrap` (`parity-results.txt`). Not a unified `diff` of full outputs. |
 
-**Not present in CI today**
+**Historical CI gap closed by #530**
 
-- No workflow job with id or name `selfhost-parity`; parity is only the step above inside `selfhost-bootstrap`.
-- `check-selfhost-parity.sh --cli` and `--diag` are not invoked by CI (script supports them locally).
+- Earlier audit found no workflow job with id or name `selfhost-parity`; parity was only the step above inside `selfhost-bootstrap`.
+- Earlier audit found `check-selfhost-parity.sh --cli` and `--diag` were not invoked by CI. #530 added merge-blocking `selfhost-cli-parity` and `selfhost-diag-parity` jobs.
 - `playground-ci.yml` / `pages.yml`: no parity script references.
 
 **Script behavior notes (local contract)**
@@ -46,8 +46,8 @@ Evidence (executable truth from `.github/workflows/ci.yml` and `scripts/check/ch
 ## Acceptance
 
 - [x] CI に `selfhost-parity` ジョブが存在し、Rust 実装と selfhost 実装の両方で同一 fixture を実行して結果を比較する — **実態**: `selfhost-bootstrap` ジョブ内で `--fixture` を実行
-- [x] `CLI parity`（同一入力に対して同一 stdout/stderr）が検証されている — **将来的なシナリオ**: スクリプトの `--cli` はローカル向け、CI未実行
-- [x] `diagnostic parity`（エラーメッセージの内容・位置情報）が検証されている — **将来的なシナリオ**: スクリプトの `--diag` はローカル向け、CI未実行
+- [x] `CLI parity`（同一入力に対して同一 stdout/stderr）が検証されている — **実態**: #530 の `selfhost-cli-parity` が merge-blocking CI job として実行
+- [x] `diagnostic parity`（エラーメッセージの内容・位置情報）が検証されている — **実態**: #530 の `selfhost-diag-parity` が merge-blocking CI job として実行
 - [x] parity 乖離が検出された場合に diff が CI ログに出力される — **実態**: 要約行と artifact に出力
 
 ## Scope

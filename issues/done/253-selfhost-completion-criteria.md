@@ -1,5 +1,5 @@
 ---
-Status: completed
+Status: done
 Created: 2026-03-30
 Updated: 2026-04-13
 ID: 253
@@ -8,8 +8,8 @@ Depends on: none
 Orchestration class: verification-ready
 Orchestration upstream: —
 Blocks v3: yes
-Reason: Acceptance criteria remain unchecked in file. Completion not demonstrated.
-Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Reason: Acceptance criteria are checked and child issues #266-#270 are in issues/done/.
+Action: Keep in `issues/done/`; false-done audit concern is resolved by the child issue evidence.
 Doc pointer: "What `scripts/run/verify-bootstrap.sh` actually runs (commands, artifacts, partial modes, `--check`) is summarized under **Completion contract (draft)** in `docs/compiler/bootstrap.md`, separately from broader “language selfhost complete” criteria."
 ---
 # セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない
@@ -66,11 +66,11 @@ selfhost 周辺は `src/compiler/*.ark`、`docs/compiler/bootstrap.md`、`script
 * `scripts/run/verify-bootstrap.sh`
 * `docs/migration/v4-to-v5.md`
 * `issues/done/209-selfhost-cli-driver-connection.md`
-* `issues/open/266-selfhost-completion-definition.md`
-* `issues/open/267-verify-bootstrap-upgrade.md`
-* `issues/open/268-selfhost-parity-ci-verification.md`
-* `issues/open/269-dual-period-end-condition.md`
-* `issues/open/270-current-state-selfhost-verified-update.md`
+* `issues/done/266-selfhost-completion-definition.md`
+* `issues/done/267-verify-bootstrap-upgrade.md`
+* `issues/done/268-selfhost-parity-ci-verification.md`
+* `issues/done/269-dual-period-end-condition.md`
+* `issues/done/270-current-state-selfhost-verified-update.md`
 
 ---
 

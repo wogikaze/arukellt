@@ -18,10 +18,8 @@ graph LR
   I37["37 std: ":collections: Deque、PriorityQueue""]
   I39["39 std: ":collections: Arena、SlotMap、Interner ／ std::text: Rope""]
   I41["41 std: ":time + std::random: 時刻・期間・乱数""]
-  I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
-  I470["470 470-playground-feature-claims-match-implementation"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I474["474 Async component support (v5)"]
   I475["475 arukellt component subcommand"]
@@ -30,7 +28,6 @@ graph LR
   I507["507 507 — Placeholder"]
   I508["508 508-legacy-path-removal-unblocked-by"]
   I509["509 509 — Placeholder"]
-  I520["520 Stdlib: allocation / complexity / perf footgun を family 横断で監査する"]
   I529["529 100% selfhost transition plan"]
   I546["546 Release: Binary Smoke Tests"]
   I547["547 Release: Determinism Check"]
@@ -59,7 +56,12 @@ graph LR
   I607["607 Stdlib Baseline: Collections Hash Hardening"]
   I610["610 Optimization Uplift: Lowering Bottleneck Reduction"]
   I611["611 Optimization Uplift: T3-Safe Runtime Unlock"]
+  I614["614 Error Handling Convergence: Compiler Structured Diagnostics"]
+  I619["619 Package workspace script execution tests and CI lane"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
+  I620["620 CI category result summary"]
+  I621["621 Verification failure category reporting"]
+  I622["622 Extension task execution and test discovery E2E"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I60["60 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I126["126 126-eliminate-double-lowering"]
@@ -67,6 +69,7 @@ graph LR
   I36["36 std: ":collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>""]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
+  I618["618 WIT bindings round-trip regression surface"]
   I617["617 Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)"]
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I580["580 580 — Phase 7: Delete `crates/ark-manifest`"]
@@ -94,6 +97,7 @@ graph LR
   I312 --> I36
   I312 --> I495
   I475 --> I485
+  I476 --> I618
   I529 --> I617
   I564 --> I574
   I564 --> I580
@@ -153,19 +157,16 @@ graph LR
 - **37** depends on: 039, 041; blocks: none
 - **39** depends on: 039, 041; blocks: none
 - **41** depends on: 039, 040; blocks: none
-- **437** depends on: 431; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none
 - **45** depends on: 039, 042, 044; blocks: none
-- **470** depends on: 465; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **474** depends on: 035, done), 074; blocks: none
 - **475** depends on: 035, done), 074; blocks: 485
-- **476** depends on: 035, done), 074; blocks: none
+- **476** depends on: 035, done), 074; blocks: 618
 - **506** depends on: none; blocks: none
 - **507** depends on: none; blocks: none
 - **508** depends on: 593; blocks: none
 - **509** depends on: none; blocks: none
-- **520** depends on: none; blocks: none
 - **529** depends on: none; blocks: 617
 - **546** depends on: none; blocks: none
 - **547** depends on: none; blocks: none
@@ -194,7 +195,12 @@ graph LR
 - **607** depends on: 604; blocks: 608
 - **610** depends on: 609; blocks: none
 - **611** depends on: 609; blocks: 612
+- **614** depends on: none; blocks: none
+- **619** depends on: 263; blocks: none
 - **62** depends on: 074, 510; blocks: 543
+- **620** depends on: 264; blocks: none
+- **621** depends on: 265; blocks: none
+- **622** depends on: 254; blocks: none
 - **63** depends on: 074, 137; blocks: none
 - **60** depends on: 510, 121; blocks: none
 - **126** depends on: 125; blocks: none
@@ -202,6 +208,7 @@ graph LR
 - **36** depends on: 039, 041, 312; blocks: none
 - **495** depends on: 312, 504; blocks: 512
 - **485** depends on: 475; blocks: none
+- **618** depends on: 262, 476; blocks: none
 - **617** depends on: 529; blocks: none
 - **574** depends on: 564; blocks: 575, 582
 - **580** depends on: 564; blocks: 582

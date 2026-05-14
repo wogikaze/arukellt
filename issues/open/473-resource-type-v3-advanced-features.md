@@ -1,7 +1,7 @@
 ---
-Status: Implementation-ready
+Status: open
 Created: 2026-04-03
-Updated: 2026-04-03
+Updated: 2026-05-14
 ID: 473
 Track: wasm-feature
 Depends on: "032 (resource-type, done)"

@@ -1,5 +1,5 @@
 ---
-Status: "closed (#572 Phase 7 of #529)"
+Status: done
 Created: 2026-04-22
 Updated: 2026-04-22
 ID: 572

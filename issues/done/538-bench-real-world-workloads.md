@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-21
 ID: 538
 Track: benchmark

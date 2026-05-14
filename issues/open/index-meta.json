@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-04-29T23:42:14Z",
+  "generated_at": "2026-05-14T00:14:17Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -307,30 +307,6 @@
       }
     },
     {
-      "id": "437",
-      "path": "437-playground-deploy-preview-cache.md",
-      "title": "Playground: deployment / preview environment / asset cache 戦略を整える",
-      "track": "playground",
-      "status": "done",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "431"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "44",
       "path": "054-std-wit-component.md",
       "title": "std: \":wit + std::component: WIT 型、resource handle、canonical ABI\"",
@@ -383,35 +359,11 @@
       }
     },
     {
-      "id": "470",
-      "path": "470-playground-feature-claims-match-implementation.md",
-      "title": "470-playground-feature-claims-match-implementation",
-      "track": "docs-audit",
-      "status": "done",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "465"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "473",
       "path": "473-resource-type-v3-advanced-features.md",
       "title": "Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC",
       "track": "wasm-feature",
-      "status": "Implementation-ready",
+      "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
@@ -436,7 +388,7 @@
       "path": "474-async-component-support-v5.md",
       "title": "Async component support (v5)",
       "track": "wasm-feature",
-      "status": "Implementation-ready",
+      "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
@@ -501,7 +453,9 @@
         "done)",
         "074"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "618"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 5
@@ -599,28 +553,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "520",
-      "path": "520-stdlib-performance-allocation-and-complexity-audit.md",
-      "title": "Stdlib: allocation / complexity / perf footgun を family 横断で監査する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 1,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {
@@ -1287,6 +1219,52 @@
       }
     },
     {
+      "id": "614",
+      "path": "614-errhandle-compiler-diagnostics.md",
+      "title": "Error Handling Convergence: Compiler Structured Diagnostics",
+      "track": "compiler / selfhost",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "619",
+      "path": "619-package-workspace-script-execution-ci.md",
+      "title": "Package workspace script execution tests and CI lane",
+      "track": "tooling-contract",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "263"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "62",
       "path": "076-wasi-p2-filesystem.md",
       "title": "WASI P2 ネイティブ: \"wasi:filesystem ネイティブバインディング\"",
@@ -1310,6 +1288,78 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "620",
+      "path": "620-ci-category-result-summary.md",
+      "title": "CI category result summary",
+      "track": "tooling-contract",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "264"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "621",
+      "path": "621-verification-failure-category-reporting.md",
+      "title": "Verification failure category reporting",
+      "track": "tooling-contract",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "265"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "622",
+      "path": "622-extension-task-execution-test-discovery-e2e.md",
+      "title": "Extension task execution and test discovery E2E",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "254"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -1445,7 +1495,7 @@
       "path": "495-selfhost-trait-bounds.md",
       "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
       "track": "selfhost",
-      "status": "blocked-by-upstream",
+      "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
@@ -1488,6 +1538,31 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "618",
+      "path": "618-wit-bindings-round-trip.md",
+      "title": "WIT bindings round-trip regression surface",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "262",
+        "476"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "design-ready",
         "upstream_notes": "None"
       }
     },
