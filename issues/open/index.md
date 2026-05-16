@@ -206,7 +206,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 617 | [Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)](617-selfhost-corehir-pipeline.md) | pipeline-refactor | none | 529 | none | 0 checked / 4 open | blocked-by-upstream | None | |
 | 575 | [575 — Phase 7: Delete `crates/ark-parser`](575-phase7-delete-ark-parser.md) | selfhost-retirement | none | 564, 574 | 576, 579, 581, 582, 630 | 0 checked / 16 open | blocked-by-upstream | None | |
 | 625 | [529 Phase 4: Dual-Run Period (SAFETY)](625-dual-run-period.md) | main | none | 594 | 626 | 0 checked / 13 open | blocked-by-upstream | — | |
-| 597 | [Language Surface Uplift: Real `where` Clauses](597-lang-uplift-where.md) | selfhost-frontend / language-design | none | 595 | 599 | 0 checked / 0 open | blocked-by-upstream | — | |
+| 597 | [Language Surface Uplift: Real `where` Clauses](597-lang-uplift-where.md) | selfhost-frontend / language-design | none | 595 | 599 | 0 checked / 0 open | implementation-ready | — | |
 | 602 | [Type System Stage-Up: Qualified Constraints and Coherent Trait Solving](602-typesys-qualified-constraints.md) | selfhost / typechecker | none | 601 | 603 | 0 checked / 0 open | blocked-by-upstream | — | |
 | 608 | [608-stdlib-baseline-docs-bench](608-stdlib-baseline-docs-bench.md) | stdlib / docs | none | 604, 605, 606, 607 | none | 0 checked / 0 open | blocked-by-upstream | — | |
 | 612 | [Optimization Uplift: Binary Size Squeeze](612-opt-binary-size.md) | compiler / runtime-perf | none | 609, 611 | none | 0 checked / 0 open | blocked-by-upstream | — | |

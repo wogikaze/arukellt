@@ -585,24 +585,24 @@ diag:selfhost/comprehen_deny_elem_type_mismatch.ark (new)
 
 ## Acceptance
 
-- [ ] Parser: `[expr for x in iter]` and `[expr for x in iter if cond]` parse to `NK_COMPREHENSION` with correct children layout
-- [ ] Resolver: Loop variable is defined in a child scope; element and filter expressions resolve against it
-- [ ] Typechecker: Loop variable type is inferred from the iterable `Vec<E>`, not hardcoded
-- [ ] Typechecker: Filter expression is checked to be `bool` when present
-- [ ] Typechecker: Non-`Vec` iterable source is rejected with a diagnostic
-- [ ] Typechecker: Result type is `Vec<T_elem>` where `T_elem` is the element expression type
-- [ ] MIR lower: Comprehension lowers to Vec builder loop with correct type-specialized operations
-- [ ] Positive fixture A (map-only) passes: `comprehension_map.ark` output matches expected
-- [ ] Positive fixture B (map+filter) passes: `comprehension_map_filter.ark` output matches expected
-- [ ] Positive fixture C (nested access) passes: `comprehension_nested_access.ark` output matches expected
-- [ ] Positive fixture D (as function arg) passes: `comprehension_as_arg.ark` output matches expected
-- [ ] Positive fixture E (empty iterable) passes: `comprehension_empty_iter.ark` output matches expected
-- [ ] Negative fixture A (non-iterable source) produces a diagnostic: `comprehen_deny_non_iterable.ark`
-- [ ] Negative fixture B (filter not bool) produces a diagnostic: `comprehen_deny_filter_not_bool.ark`
-- [ ] Negative fixture C (unresolved in filter) produces a diagnostic: `comprehen_deny_unresolved_filter.ark`
-- [ ] Negative fixture D (element type mismatch) produces a diagnostic: `comprehen_deny_elem_type_mismatch.ark`
-- [ ] Existing `for` statement syntax and fixtures are unchanged
-- [ ] All existing verification passes: `python scripts/manager.py verify quick && python scripts/manager.py verify fixtures`
+- [x] Parser: `[expr for x in iter]` and `[expr for x in iter if cond]` parse to `NK_COMPREHENSION` with correct children layout
+- [x] Resolver: Loop variable is defined in a child scope; element and filter expressions resolve against it
+- [x] Typechecker: Loop variable type is inferred from the iterable `Vec<E>`, not hardcoded
+- [x] Typechecker: Filter expression is checked to be `bool` when present
+- [x] Typechecker: Non-`Vec` iterable source is rejected with a diagnostic
+- [x] Typechecker: Result type is `Vec<T_elem>` where `T_elem` is the element expression type
+- [x] MIR lower: Comprehension lowers to Vec builder loop with correct type-specialized operations
+- [x] Positive fixture A (map-only) passes: `comprehension_map.ark` output matches expected
+- [x] Positive fixture B (map+filter) passes: `comprehension_map_filter.ark` output matches expected
+- [x] Positive fixture C (nested access) passes: `comprehension_nested_access.ark` output matches expected
+- [x] Positive fixture D (as function arg) passes: `comprehension_as_arg.ark` output matches expected
+- [x] Positive fixture E (empty iterable) passes: `comprehension_empty_iter.ark` output matches expected
+- [x] Negative fixture A (non-iterable source) produces a diagnostic: `comprehen_deny_non_iterable.ark`
+- [x] Negative fixture B (filter not bool) produces a diagnostic: `comprehen_deny_filter_not_bool.ark`
+- [x] Negative fixture C (unresolved in filter) produces a diagnostic: `comprehen_deny_unresolved_filter.ark`
+- [x] Negative fixture D (element type mismatch) produces a diagnostic: `comprehen_deny_elem_type_mismatch.ark`
+- [x] Existing `for` statement syntax and fixtures are unchanged
+- [x] All existing verification passes: `python scripts/manager.py verify quick && python scripts/manager.py verify fixtures`
 
 ---
 
