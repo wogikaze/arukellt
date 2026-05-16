@@ -27,11 +27,7 @@ graph LR
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I588["588 Language surface uplift plan"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
-  I60["60 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
-  I605["605 Stdlib Baseline: Host Core-Platform Baseline"]
-  I606["606 Stdlib Baseline: Structured Data and Semantics Baseline"]
-  I607["607 Stdlib Baseline: Collections Hash Hardening"]
-  I610["610 Optimization Uplift: Lowering Bottleneck Reduction"]
+  I608["608 608-stdlib-baseline-docs-bench"]
   I612["612 Optimization Uplift: Binary Size Squeeze"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I625["625 529 Phase 4: Dual-Run Period (SAFETY)"]
@@ -40,7 +36,6 @@ graph LR
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I617["617 Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)"]
   I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
-  I608["608 608-stdlib-baseline-docs-bench"]
   I626["626 529 Phase 6/A: IDE-Ready Frontend"]
   I576["576 576 — Phase 7: Delete `crates/ark-resolve`"]
   I627["627 529 Phase 6/B: Analysis API"]
@@ -57,9 +52,6 @@ graph LR
   I475 --> I485
   I529 --> I617
   I574 --> I575
-  I605 --> I608
-  I606 --> I608
-  I607 --> I608
   I625 --> I626
   I575 --> I576
   I626 --> I627
@@ -111,11 +103,7 @@ graph LR
 - **574** depends on: 564; blocks: 575, 582
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
-- **60** depends on: 510, 121; blocks: none
-- **605** depends on: 604; blocks: 608
-- **606** depends on: 604; blocks: 608
-- **607** depends on: 604; blocks: 608
-- **610** depends on: 609; blocks: none
+- **608** depends on: 604, 605, 606, 607; blocks: none
 - **612** depends on: 609, 611; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **625** depends on: 594; blocks: 626
@@ -124,7 +112,6 @@ graph LR
 - **485** depends on: 475; blocks: none
 - **617** depends on: 529; blocks: none
 - **575** depends on: 564, 574; blocks: 576, 579, 581, 582, 630
-- **608** depends on: 604, 605, 606, 607; blocks: none
 - **626** depends on: 625; blocks: 627
 - **576** depends on: 564, 575; blocks: 577, 579, 582, 630
 - **627** depends on: 626; blocks: 628

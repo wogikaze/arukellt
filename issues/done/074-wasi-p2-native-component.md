@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 60
 Track: wasi-feature
 Depends on: 510, 121
