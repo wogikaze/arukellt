@@ -61,7 +61,8 @@ Audit of user-facing crates:
 |-------|----------------------|
 | `crates/arukellt/src/` | None |
 | `crates/ark-lsp/src/` | None (all `lock().unwrap()` are mutex-only) |
-| `crates/ark-manifest/src/` | None |
+| `crates/ark-resolve/src/` | None (manifest parsing migrated from `ark-manifest` in #580) |
+| ~~`crates/ark-manifest/src/`~~ | ~~None~~ (removed in #580) |
 | `crates/ark-driver/src/` | None |
 | `extensions/arukellt-all-in-one/src/` | None |
 

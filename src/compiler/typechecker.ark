@@ -1123,7 +1123,10 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
                     type_error(env, String_from("non-exhaustive match: Result requires `Ok` and `Err` arms or a wildcard"))
                 }
             }
-            if resolved_scrutinee.tag == typechecker_kinds::TY_ENUM() {
+            if resolved_scrutinee.tag == typechecker_kinds::TY_ENUM() || (!eq(clone(resolved_scrutinee.name), String_from("")) && len(enum_defs) > 0) {
+                // User-defined types may be resolved as TY_STRUCT (the type resolver
+                // does not distinguish structs from enums). Match by name against
+                // the collected enum definitions.
                 let enum_name = clone(resolved_scrutinee.name)
                 let mut found_enum = false
                 let mut enum_idx = 0

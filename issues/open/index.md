@@ -119,7 +119,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 24. [571 — 571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)"](571-phase6-debug-adapter-scaffold-deferred-priority.md)
 25. [588 — Language surface uplift plan](588-language-surface-uplift-plan.md)
 26. [590 — Stdlib Core Platform Baseline Plan (Operational Guide)](590-stdlib-core-platform-baseline-plan.md)
-27. [594 — Selfhost Phase 2: Fixture and Diagnostic Parity](594-selfhost-phase2-fixture-diag-parity.md)
+27. [594 — 594-selfhost-phase2-fixture-diag-parity](594-selfhost-phase2-fixture-diag-parity.md)
 28. [595 — 595-lang-uplift-multiclauses](595-lang-uplift-multiclauses.md)
 29. [598 — Language Surface Uplift: Expression-Level Comprehensions](598-lang-uplift-comprehensions.md)
 30. [60 — WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成](074-wasi-p2-native-component.md)
@@ -191,7 +191,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 571 | [571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)"](571-phase6-debug-adapter-scaffold-deferred-priority.md) | selfhost-frontend | none | 568 | none | 0 checked / 6 open | blocked-by-upstream | None | |
 | 588 | [Language surface uplift plan](588-language-surface-uplift-plan.md) | main | none | none | none | 0 checked / 8 open | implementation-ready | — | |
 | 590 | [Stdlib Core Platform Baseline Plan (Operational Guide)](590-stdlib-core-platform-baseline-plan.md) | main | none | none | none | 3 checked / 14 open | — | — | |
-| 594 | [Selfhost Phase 2: Fixture and Diagnostic Parity](594-selfhost-phase2-fixture-diag-parity.md) | selfhost | none | 593 | 625 | 0 checked / 0 open | blocked-by-upstream | — | |
+| 594 | [594-selfhost-phase2-fixture-diag-parity](594-selfhost-phase2-fixture-diag-parity.md) | selfhost | none | 593 | 625 | 0 checked / 0 open | blocked-by-upstream | — | |
 | 595 | [595-lang-uplift-multiclauses](595-lang-uplift-multiclauses.md) | selfhost-frontend / language-design | none | 629 | 596, 597, 599 | 0 checked / 0 open | implementation-ready | — | |
 | 598 | [Language Surface Uplift: Expression-Level Comprehensions](598-lang-uplift-comprehensions.md) | selfhost-frontend / language-design | none | none | 599 | 0 checked / 18 open | implementation-ready | — | |
 | 60 | [WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成](074-wasi-p2-native-component.md) | wasi-feature | none | 510, 121 | none | 0 checked / 0 open | blocked-by-upstream | None | |

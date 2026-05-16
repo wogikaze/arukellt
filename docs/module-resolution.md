@@ -5,7 +5,7 @@
 >
 > This document is the authoritative specification for how Arukellt resolves
 > modules, packages, workspaces, and dependencies. The implementation lives in
-> `crates/ark-manifest/src/lib.rs` and `crates/ark-resolve/src/lib.rs`.
+> `crates/ark-resolve/src/manifest.rs` and `crates/ark-resolve/src/lib.rs`.
 
 ## 1. Concepts
 
@@ -91,7 +91,7 @@ Given a starting directory `start_dir` (typically the current working directory)
 ```
 
 This is the algorithm in `Manifest::find_root(start_dir)` and
-`Manifest::find_and_load(start_dir)` in `crates/ark-manifest/src/lib.rs`.
+`Manifest::find_and_load(start_dir)` in `crates/ark-resolve/src/manifest.rs`.
 
 **CLI and LSP use the same algorithm.** Both `arukellt compile` and the
 selfhost LSP (`arukellt lsp`, source: `src/compiler/lsp.ark`) call

@@ -22,7 +22,7 @@
 | `crates/ark-typecheck/` | product | — | Type checking and inference |
 | `crates/ark-diagnostics/` | product | — | Diagnostic codes and messages |
 | `crates/ark-driver/` | product | — | Compilation driver and session |
-| `crates/ark-manifest/` | product | — | `ark.toml` manifest parsing |
+| `crates/ark-manifest/` | product | — | `ark.toml` manifest parsing (removed in #580) |
 | ~~`crates/ark-stdlib/`~~ | ~~product~~ | — | ~~Stdlib manifest metadata API (removed in #563)~~ |
 | `std/` | product | — | Standard library source and manifest |
 | `std/manifest.toml` | product | — | Canonical stdlib API definition |

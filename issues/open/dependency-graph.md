@@ -32,7 +32,7 @@ graph LR
   I571["571 571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)""]
   I588["588 Language surface uplift plan"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
-  I594["594 Selfhost Phase 2: Fixture and Diagnostic Parity"]
+  I594["594 594-selfhost-phase2-fixture-diag-parity"]
   I595["595 595-lang-uplift-multiclauses"]
   I598["598 Language Surface Uplift: Expression-Level Comprehensions"]
   I60["60 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]

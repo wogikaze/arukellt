@@ -415,7 +415,7 @@ All Rust crates currently in the workspace will be deleted once their Arukellt e
 | `ark-typecheck` | Type inference | Arukellt typechecker supports IDE-grade incremental analysis |
 | `ark-hir` | High-level IR | Arukellt HIR supports IDE-grade analysis |
 | `ark-diagnostics` | Shared diagnostics | Arukellt diagnostics system is complete |
-| `ark-manifest` | Project manifest | Arukellt manifest parser is complete |
+| ~~`ark-manifest`~~ | ~~Project manifest~~ | ~~Removed in #580. Manifest parsing moved into `ark-resolve`.~~ |
 | `ark-target` | Compilation targets | Arukellt target definitions are complete |
 | ~~`ark-lsp`~~ | ~~Language Server~~ | **Removed in #572 (Phase 7 of #529).** Selfhost `src/compiler/lsp.ark` invoked via `arukellt lsp` is the source of truth. |
 | `ark-dap` | Debug Adapter | Arukellt DAP implementation is complete |

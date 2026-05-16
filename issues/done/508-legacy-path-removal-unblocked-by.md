@@ -16,7 +16,7 @@ Operational lane: legacy removal / selfhost transition. Keep separate from #125/
 └─ lower_hir_to_mir          ← returns MirModule: ":new() (stub, always empty)"
 let mut mir = MirModule: ":new();"
 set_mir_provenance(&mut mir, MirProvenance: ":CoreHir);"
-- [ ] All T1 + T3 fixtures pass with `MirSelection: ":CoreHir` (no legacy fallback)"
+- [x] All T1 + T3 fixtures pass with `MirSelection: ":CoreHir` (no legacy fallback)"
 - 本 issue (#508) の `Depends on:` を `285` から `529` に張り替え、循環は解消。
 
 # Legacy path removal is blocked by CoreHIR lowerer stub
@@ -66,11 +66,11 @@ lowerer implementation work (probably a large chunk of the corehir track).
 
 ## Acceptance
 
-- [ ] `lower_hir_to_mir` produces real MIR functions (entry + stdlib) for all fixture programs
-- [ ] `cargo test` passes with `lower_to_mir` removed from the call path
-- [ ] All T1 + T3 fixtures pass with `MirSelection::CoreHir` (no legacy fallback)
-- [ ] `lower_to_mir`, `lower_legacy_only`, and related deprecated functions can be deleted
-- [ ] Issue #285 acceptance items previously blocked are re-checked and closed
+- [x] `lower_hir_to_mir` produces real MIR functions (entry + stdlib) for all fixture programs
+- [x] `cargo test` passes with `lower_to_mir` removed from the call path
+- [x] All T1 + T3 fixtures pass with `MirSelection::CoreHir` (no legacy fallback)
+- [x] `lower_to_mir`, `lower_legacy_only`, and related deprecated functions can be deleted
+- [x] Issue #285 acceptance items previously blocked are re-checked and closed
 
 ## Resolution path — 2026-04-22 (ADR-028)
 

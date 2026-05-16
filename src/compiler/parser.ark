@@ -1644,6 +1644,17 @@ fn parse_fn_clause(p: Parser) -> AstNode {
         push(node.type_ann, ret_node)
     }
     skip_newlines(p)
+    // Parse optional guard: | <expr>
+    if peek_kind(p) == TK_PIPE() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let guard = parse_expr(p)
+        let guard_node = AstNode_new(parser_kinds::NK_TYPE_NAMED(), guard.span)
+        guard_node.text = String_from("__guard")
+        push(guard_node.children, guard)
+        push(node.type_ann, guard_node)
+        skip_newlines(p)
+    }
     if peek_kind(p) == TK_EQ() {
         p.pos = p.pos + 1
         skip_newlines(p)
@@ -1725,12 +1736,14 @@ fn desugar_multiclause(clauses: Vec<AstNode>, is_pub: bool) -> AstNode {
     result.text = fn_name
     result.is_pub = is_pub
     
-    // Copy return type annotation from the first clause
+    // Copy return type annotation from the first clause (skip guard markers)
     let ann_count = len(first.type_ann)
     let mut ai = 0
     while ai < ann_count {
         let ann = get_unchecked(first.type_ann, ai)
-        push(result.type_ann, ann)
+        if !eq(clone(ann.text), String_from("__guard")) {
+            push(result.type_ann, ann)
+        }
         ai = ai + 1
     }
     
@@ -1788,9 +1801,22 @@ fn desugar_multiclause(clauses: Vec<AstNode>, is_pub: bool) -> AstNode {
         let clause_child_count = len(clause.children)
         let clause_param_count = clause_child_count - 1
         let body = get_unchecked(clause.children, clause_child_count - 1)
-        
+
+        // Check if clause has a guard (stored in type_ann as __guard)
+        let mut guard_node = AstNode_new(parser_kinds::NK_IDENT(), fn_span)
+        let mut has_guard = false
+        let mut gai = 0
+        while gai < len(clause.type_ann) {
+            let ann = get_unchecked(clause.type_ann, gai)
+            if eq(clone(ann.text), String_from("__guard")) {
+                guard_node = get_unchecked(ann.children, 0)
+                has_guard = true
+            }
+            gai = gai + 1
+        }
+
         let arm = AstNode_new(parser_kinds::NK_MATCH_ARM(), fn_span)
-        
+
         if clause_param_count == 1 {
             let pat = get_unchecked(clause.children, 0)
             let arm_pat = clause_param_to_arm_pattern(pat)
@@ -1807,7 +1833,13 @@ fn desugar_multiclause(clauses: Vec<AstNode>, is_pub: bool) -> AstNode {
             }
             push(arm.children, tuple_pat)
         }
-        
+
+        // Add guard between pattern and body if present (NK_MATCH_ARM child layout:
+        // children[0]=pattern, children[1]=guard(optional), children[n-1]=body)
+        if has_guard {
+            push(arm.children, guard_node)
+        }
+
         push(arm.children, body)
         push(match_node.children, arm)
         ci = ci + 1

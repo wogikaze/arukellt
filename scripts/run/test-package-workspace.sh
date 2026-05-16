@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Package-workspace manifest validation tests.
 #
-# Verifies that ark-manifest handles valid and invalid ark.toml correctly.
+# Verifies that the resolver handles valid and invalid ark.toml correctly.
 # These are integration-level tests that exercise the manifest loading,
 # project root discovery, and diagnostic output paths.
 #

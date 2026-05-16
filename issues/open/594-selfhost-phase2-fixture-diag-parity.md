@@ -1,17 +1,14 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 594
 Track: selfhost
 Orchestration class: blocked-by-upstream
 Depends on: 593
 Parent: None
-closing the parity gap: all `FAIL` counts in `selfhost fixture-parity` and
-In scope: 
-Out of scope: 
-# Selfhost Phase 2: Fixture and Diagnostic Parity
----
+In scope:
+Out of scope:
 # Selfhost Phase 2: Fixture and Diagnostic Parity
 
 ---
@@ -56,7 +53,7 @@ closing the parity gap: all `FAIL` counts in `selfhost fixture-parity` and
 
 ## Upstream / Depends on
 
-593 (fixpoint must be stable before parity work can produce reliable baselines)
+593 (done — closed 2026-04-28, fixpoint PASS, merged via `e0f419f3`)
 
 ## Blocks
 
@@ -64,11 +61,51 @@ closing the parity gap: all `FAIL` counts in `selfhost fixture-parity` and
 
 ---
 
+## Current status (2026-05-16 assessment)
+
+### Dep #593
+
+- **Fixpoint:** PASS (exit 0, sha256 identity)
+- **Close note:** `selfhost fixture-parity` = PASS; 17/22 verify quick (5 pre-existing failures)
+
+### `selfhost fixpoint` — SKIPPED (exit 2)
+
+- No current wasm build; fixpoint not yet reached in this worktree.
+
+### `selfhost fixture-parity` — PASS (exit 0)
+
+- `FIXTURE_PARITY_SKIP` = 2 fixtures (baseline):
+  - `stdlib_sort/sort_f64.ark` — f64_to_string digit extraction precision
+  - `functions/higher_order.ark` — funcref table / call_indirect not yet emitted
+
+### `selfhost diag-parity` — FAIL (1 check failed)
+
+- **PASS=20, SKIP=27, FAIL=2**
+- SKIP breakdown: 23 in `DIAG_PARITY_SKIP` + 4 with no `.diag` golden file
+- **FAIL=2:**
+  1. `selfhost/ret_stmt_mismatch.ark` — selfhost compiler does not produce the expected diagnostic:
+     - Golden: `return type mismatch: 'bad' declared to return i32 but body returns String`
+     - Selfhost: compiles successfully (no error emitted)
+     - Root cause: selfhost typechecker does not detect return type mismatches in explicit return statements.
+  2. `selfhost/match_non_exhaustive_enum.ark` — selfhost compiler does not produce the expected diagnostic:
+     - Golden: `non-exhaustive match: missing Direction::West`
+     - Selfhost: compiles successfully (no error emitted)
+     - Root cause: selfhost exhaustiveness checker does not detect non-exhaustive matches on user-defined enums.
+
+### `verify quick` — 19/22 pass, 0 skip, **3 fail** (all pre-existing hygiene/docs)
+
+1. docs consistency (generated docs out of date)
+2. doc example check (3 blocks in `docs/design/lang-uplift-gap-ledger.md`)
+3. broken internal links
+   - (Up from 5 failures at #593 close; #568 and #569 gates now pass)
+
+---
+
 ## Acceptance
 
-1. `python scripts/manager.py selfhost fixture-parity` reports FAIL=0
-2. `python scripts/manager.py selfhost diag-parity` reports FAIL=0
-3. SKIP count does not increase compared to the baseline recorded in #593
+1. `python scripts/manager.py selfhost fixture-parity` reports FAIL=0 — **DONE**
+2. `python scripts/manager.py selfhost diag-parity` reports FAIL=0 — **NOT DONE** (2 FAIL remain)
+3. SKIP count does not increase compared to the baseline recorded in #593 — **NEEDS VERIFICATION** (no explicit SKIP count was recorded in #593 close note)
 
 ---
 

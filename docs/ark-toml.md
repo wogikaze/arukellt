@@ -135,7 +135,7 @@ opt_level = 2
 
 - `docs/cli-startup-contract.md` — CLI / LSP binary interface
 - `docs/current-state.md` — current implementation state
-- `crates/ark-manifest/src/lib.rs` — schema implementation
+- `crates/ark-resolve/src/manifest.rs` — schema implementation
 
 ---
 
