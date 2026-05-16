@@ -10,6 +10,7 @@ Orchestration upstream: None
 ---
 
 # 572 — Phase 7: Delete `crates/ark-lsp`
+
 Blocks: 582
 Blocks v5: no
 Source: "#529 Phase 7 — Rust LSP server crate (replaced by `src/ide/lsp.ark`)."
@@ -41,9 +42,9 @@ Branch: `feat/572-delete-ark-lsp` → ff-merge to `master`
 - Pre-existing FAIL: "`Fixture manifest out of sync with disk`, `issues/done/ has no unchecked checkboxes`, `doc example check (ark blocks in docs/)`, `broken internal links detected`"
 - `cargo check --workspace`: rc=0
 - `rg "ark_lsp|ark-lsp" crates/ src/ scripts/ .github/workflows/ docs/ extensions/`: "enumerated upstream uses (all in: `crates/ark-lsp/**`, `Cargo.toml` workspace `members` + `default-members`, `scripts/check/check-panic-audit.sh`, `scripts/gate_domain/checks.py` (--exclude flags), `.github/workflows/ci.yml` (lsp-e2e job), `.github/agents/impl-{vscode-ide,editor-runtime}.agent.md`, `codex-skills/impl-{vscode-ide,editor-runtime}/SKILL.md`, `extensions/arukellt-all-in-one/{README.md,src/test/extension.test.js,src/test/fixtures/lsp-stub.js}` (comments only), `docs/{compiler/bootstrap.md,compiler/pipeline.md,directory-ownership.md,release-criteria.md,release-checklist.md,contributing.md,module-resolution.md}`, `README.md`, plus historical `docs/adr/ADR-015-no-panic-in-user-paths.md` and `docs/process/roadmap-v5.md` (left intact per #586/#561 precedent)"
-7. ✓ All gates: 17/21 PASS = baseline; FAIL=0 increase, SKIP=0 increase
-# 572 — Phase 7: Delete `crates/ark-lsp`
+1. ✓ All gates: 17/21 PASS = baseline; FAIL=0 increase, SKIP=0 increase
 
+## 572 — Phase 7: Delete `crates/ark-lsp`
 
 ## Summary
 
@@ -86,7 +87,6 @@ python scripts/manager.py selfhost diag-parity
 cargo check --workspace
 rg -l "\bark_lsp\b" crates/ scripts/ src/ docs/ .github/
 ```
-
 
 ## STOP_IF
 
@@ -152,7 +152,6 @@ remaining references (if any): <list with justification>
 
 ## Resolution
 
-
 ### Pre-deletion baseline (master @ 723b2e86)
 
 - `python scripts/manager.py verify quick`: 17 PASS / 4 FAIL / 0 SKIP
@@ -164,7 +163,7 @@ remaining references (if any): <list with justification>
 
 - `python scripts/manager.py verify quick`: 17 PASS / 4 FAIL / 0 SKIP — **identical** (same 4 pre-existing failures)
 - `cargo check --workspace`: rc=0
-- `rg "ark_lsp|ark-lsp"` outside `issues/done/**`, `docs/adr/**`, `docs/process/roadmap-v*`: only documented removal records and open issues (#548, #555, #563) that name `ark-lsp` as part of their own legacy plans (out of scope for this slice; will be reconciled by their respective close gates)
+- `rg "ark_lsp|ark-lsp"` outside `issues/done/**`, `docs/adr/**`, `docs/process/roadmap-v*`: only documented removal records and then-open issues (#548, #555, #563) that named `ark-lsp` as part of their own legacy plans (out of scope for this slice; reconciled by their respective close gates)
 
 ### Editor-extension migration
 
