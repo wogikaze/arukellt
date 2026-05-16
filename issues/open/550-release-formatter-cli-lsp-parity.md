@@ -44,6 +44,31 @@ The earlier evidence refers to retired Rust LSP paths. Current state:
 Updated verdict: close-candidate `no`. There is currently neither a selfhost CLI
 formatter nor a selfhost LSP formatting provider to compare.
 
+## Recheck — 2026-05-16
+
+No changes relevant to this issue since the previous recheck.
+
+- `src/compiler/main.ark` line 144: `"fmt"` still maps to `CMD_NOT_YET()`.
+- `src/compiler/lsp.ark` line 330: `build_initialize_response` still does not
+  advertise `documentFormattingProvider`. Supported capabilities remain:
+  `textDocumentSync`, `hoverProvider`, `definitionProvider`, `diagnosticProvider`.
+- `src/compiler/lsp.ark` `handle_message` (line 392+) handles: `initialize`,
+  `initialized`, `shutdown`, `exit`, `textDocument/didOpen`, `textDocument/didChange`,
+  `textDocument/hover`, `textDocument/definition`, `textDocument/completion` -- no
+  `textDocument/formatting` or `textDocument/rangeFormatting` handler.
+- The Rust `crates/ark-lsp` crate (which previously used `format_source`) has been
+  removed entirely. The only remaining consumers of the Rust `format_source()`
+  function are `crates/ark-parser/src/fmt.rs` itself and
+  `crates/ark-playground-wasm/src/lib.rs`. The thin `crates/arukellt` CLI shell
+  intentionally has no dependency on `ark-parser`.
+- Recent commits to `crates/ark-parser/src/fmt.rs` (comment preservation, import
+  sorting) improved the Rust formatter but do not affect the selfhost pipeline.
+
+Updated verdict: close-candidate `no`. Neither the selfhost CLI formatter nor the
+selfhost LSP formatting provider exist. The acceptance criterion ("Formatter output
+matches between CLI and LSP (shared `format_source()`)") cannot be verified or
+satisfied until a formatter is implemented in the selfhost compiler.
+
 ## Required Verification
 
 - Format same code using CLI formatter

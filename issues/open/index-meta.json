@@ -1,34 +1,8 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-14T17:01:04Z",
+  "generated_at": "2026-05-16T06:04:02Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
-    {
-      "id": "121",
-      "path": "121-wasi-p2-canonical-abi-hardening.md",
-      "title": "WASI P2: Canonical ABI ハンドリングの堅牢化",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "510"
-      ],
-      "blocks_issue_ids": [
-        "60"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
     {
       "id": "124",
       "path": "124-wit-component-import-syntax.md",
@@ -430,8 +404,8 @@
         "617"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 14
+        "checked": 2,
+        "unchecked": 13
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -668,32 +642,10 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 9
+        "unchecked": 8
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "589",
-      "path": "589-type-system-stage-up-plan.md",
-      "title": "Type System Stage-Up Plan (HM Core + Coherent Traits) (Operational Guide)",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
         "upstream_notes": null
       }
     },
@@ -720,28 +672,6 @@
       }
     },
     {
-      "id": "591",
-      "path": "591-optimization-uplift-plan.md",
-      "title": "Optimization Uplift Plan (Compile / Run / Size) (Operational Guide)",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "592",
       "path": "592-error-handling-convergence-plan.md",
       "title": "Error Handling Convergence Plan (Operational Guide)",
@@ -755,8 +685,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 6
+        "checked": 1,
+        "unchecked": 11
       },
       "orchestration": {
         "class": null,
@@ -777,7 +707,9 @@
       "depends_on": [
         "593"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "625"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -788,9 +720,9 @@
       }
     },
     {
-      "id": "595",
-      "path": "595-lang-uplift-multiclauses.md",
-      "title": "595-lang-uplift-multiclauses",
+      "id": "598",
+      "path": "598-lang-uplift-comprehensions.md",
+      "title": "Language Surface Uplift: Expression-Level Comprehensions",
       "track": "selfhost-frontend / language-design",
       "status": "open",
       "blocks_v1": "none",
@@ -800,13 +732,11 @@
       "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [
-        "596",
-        "597",
         "599"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
+        "unchecked": 18
       },
       "orchestration": {
         "class": "design-ready",
@@ -814,33 +744,34 @@
       }
     },
     {
-      "id": "598",
-      "path": "598-lang-uplift-comprehensions.md",
-      "title": "598-lang-uplift-comprehensions",
-      "track": "selfhost-frontend / language-design",
+      "id": "60",
+      "path": "074-wasi-p2-native-component.md",
+      "title": "WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成",
+      "track": "wasi-feature",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "599"
+      "depends_on": [
+        "510",
+        "121"
       ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": null
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
       }
     },
     {
       "id": "600",
       "path": "600-typesys-soundness-floor.md",
-      "title": "Type System Stage-Up: Soundness Floor",
+      "title": "600-typesys-soundness-floor",
       "track": "selfhost / typechecker",
       "status": "open",
       "blocks_v1": "none",
@@ -990,28 +921,6 @@
       }
     },
     {
-      "id": "614",
-      "path": "614-errhandle-compiler-diagnostics.md",
-      "title": "Error Handling Convergence: Compiler Structured Diagnostics",
-      "track": "compiler / selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "62",
       "path": "076-wasi-p2-filesystem.md",
       "title": "WASI P2 ネイティブ: \"wasi:filesystem ネイティブバインディング\"",
@@ -1037,6 +946,30 @@
       }
     },
     {
+      "id": "629",
+      "path": "629-lang-uplift-baseline.md",
+      "title": "Language Surface Uplift: Baseline and Syntax Contract",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "595"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "63",
       "path": "077-wasi-p2-http.md",
       "title": "WASI P2: \"`std::host::http` facade と runtime 検証\"",
@@ -1059,31 +992,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "60",
-      "path": "074-wasi-p2-native-component.md",
-      "title": "WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "510",
-        "121"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
       }
     },
     {
@@ -1316,10 +1224,10 @@
       }
     },
     {
-      "id": "596",
-      "path": "596-lang-uplift-guards.md",
-      "title": "596-lang-uplift-guards",
-      "track": "selfhost-frontend / language-design",
+      "id": "625",
+      "path": "625-dual-run-period.md",
+      "title": "529 Phase 4: Dual-Run Period (SAFETY)",
+      "track": "main",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
@@ -1327,40 +1235,14 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "595"
+        "594"
       ],
       "blocks_issue_ids": [
-        "599"
+        "626"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "597",
-      "path": "597-lang-uplift-where.md",
-      "title": "Language Surface Uplift: Real `where` Clauses",
-      "track": "selfhost-frontend / language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "595"
-      ],
-      "blocks_issue_ids": [
-        "599"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
+        "unchecked": 13
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -1447,6 +1329,34 @@
       }
     },
     {
+      "id": "595",
+      "path": "595-lang-uplift-multiclauses.md",
+      "title": "595-lang-uplift-multiclauses",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "629"
+      ],
+      "blocks_issue_ids": [
+        "596",
+        "597",
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "575",
       "path": "575-phase7-delete-ark-parser.md",
       "title": "575 — Phase 7: Delete `crates/ark-parser`",
@@ -1477,10 +1387,10 @@
       }
     },
     {
-      "id": "599",
-      "path": "599-lang-uplift-docs-rollout.md",
-      "title": "Language Surface Uplift: Docs, Fixtures, and Rollout",
-      "track": "docs / language-design",
+      "id": "626",
+      "path": "626-ide-ready-frontend.md",
+      "title": "529 Phase 6/A: IDE-Ready Frontend",
+      "track": "main",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
@@ -1488,15 +1398,14 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "595",
-        "596",
-        "597",
-        "598"
+        "625"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "627"
+      ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
+        "unchecked": 7
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -1519,6 +1428,58 @@
       ],
       "blocks_issue_ids": [
         "603"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "596",
+      "path": "596-lang-uplift-guards.md",
+      "title": "596-lang-uplift-guards",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595"
+      ],
+      "blocks_issue_ids": [
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "597",
+      "path": "597-lang-uplift-where.md",
+      "title": "Language Surface Uplift: Real `where` Clauses",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595"
+      ],
+      "blocks_issue_ids": [
+        "599"
       ],
       "acceptance": {
         "checked": 0,
@@ -1559,6 +1520,32 @@
       }
     },
     {
+      "id": "627",
+      "path": "627-analysis-api.md",
+      "title": "529 Phase 6/B: Analysis API",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "626"
+      ],
+      "blocks_issue_ids": [
+        "628"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "603",
       "path": "603-typesys-lowering-contract.md",
       "title": "603-typesys-lowering-contract",
@@ -1572,6 +1559,33 @@
       "depends_on": [
         "601",
         "602"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "599",
+      "path": "599-lang-uplift-docs-rollout.md",
+      "title": "Language Surface Uplift: Docs, Fixtures, and Rollout",
+      "track": "docs / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595",
+        "596",
+        "597",
+        "598"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -1611,6 +1625,30 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "628",
+      "path": "628-lsp-minimum-viable.md",
+      "title": "529 Phase 6/C: LSP Minimum Viable",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "627"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
       }
     },
     {

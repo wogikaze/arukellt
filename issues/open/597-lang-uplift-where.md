@@ -27,6 +27,7 @@ Replace the current `parse_optional_where_clause_stub` with real scoped helper d
 visible across all clauses in a function group.
 
 Example direction:
+
 ```ark
 fn magnitude_label(p: Point) -> String
 | sum == 0 = "origin"
@@ -75,7 +76,8 @@ mutual recursion may be deferred.
 
 ## Upstream / Depends on
 
-595 (multi-clause fn must exist; `where` attaches to a clause group)
+595 (multi-clause fn must exist; `where` attaches to a clause group).
+629 (Phase 0 scope contract is an indirect prerequisite).
 
 ## Blocks
 

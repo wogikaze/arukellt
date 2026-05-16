@@ -3,33 +3,49 @@ Implementation target: "Use Ark (`src/compiler/*.ark`) instead of Rust crates (`
 Track: main
 Orchestration class: implementation-ready
 Depends on: none
+Blocks: 629, 595, 596, 597, 598, 599
 ---
 
 # Language surface uplift plan
+
 Key property: this is **surface-level sugar over existing `match` + guard behavior**.
 fn magnitude_label(p: Point) -> String
 In other words: the repo already contains the *pieces*; this issue is about making them shape the surface of definitions instead of remaining isolated features.
-### Phase 0: Baseline and syntax contract
+
+## Phase 0: Baseline and syntax contract
+
 Purpose: Freeze the current gap before implementation.
-Tasks: 
-Exit condition: 
+Tasks:
+Exit condition:
+
 ### Phase 1: Multi-clause function definitions
+
 Goal: Make the uplift usable and teachable.
-Required work: 
-Semantic requirements: 
-Suggested initial restriction: 
-Verification (mandatory): 
-Phase 1 Exit Condition: 
+Required work:
+Semantic requirements:
+Suggested initial restriction:
+Verification (mandatory):
+Phase 1 Exit Condition:
+
 ### Phase 2: Function-level guards
-Phase 2 Exit Condition: 
+
+Phase 2 Exit Condition:
+
 ### Phase 3: Real `where` clauses
-Phase 3 Exit Condition: 
+
+Phase 3 Exit Condition:
+
 ### Phase 4: Expression-level comprehensions
-Phase 4 Exit Condition: 
+
+Phase 4 Exit Condition:
+
 ### Phase 5: Canonical surface, docs, and migration guidance
-Phase 5 Exit Condition: 
+
+### Phase 5 Exit Condition
+
 ---
-# Language Surface Uplift Plan (Operational Guide)
+
+## Language Surface Uplift Plan (Operational Guide)
 
 ## Summary
 
@@ -261,7 +277,7 @@ In other words: the repo already contains the *pieces*; this issue is about maki
 
 ## Execution phases
 
-### Phase 0: Baseline and syntax contract
+## Phase 0: Baseline and syntax contract — [#629](629-lang-uplift-baseline.md)
 
 **Purpose:** Freeze the current gap before implementation.
 
@@ -283,7 +299,7 @@ In other words: the repo already contains the *pieces*; this issue is about maki
 
 ---
 
-### Phase 1: Multi-clause function definitions
+### Phase 1: Multi-clause function definitions — [#595](595-lang-uplift-multiclauses.md)
 
 **Goal:** Let function definitions be written as grouped clauses rather than only a single block body.
 
@@ -322,7 +338,7 @@ In other words: the repo already contains the *pieces*; this issue is about maki
 
 ---
 
-### Phase 2: Function-level guards
+### Phase 2: Function-level guards — [#596](596-lang-uplift-guards.md)
 
 **Goal:** Allow guarded clauses outside `match`.
 
@@ -349,7 +365,7 @@ In other words: the repo already contains the *pieces*; this issue is about maki
 
 ---
 
-### Phase 3: Real `where` clauses
+### Phase 3: Real `where` clauses — [#597](597-lang-uplift-where.md)
 
 **Goal:** Replace the current parse stub with real scoped helper declarations.
 
@@ -383,7 +399,7 @@ In other words: the repo already contains the *pieces*; this issue is about maki
 
 ---
 
-### Phase 4: Expression-level comprehensions
+### Phase 4: Expression-level comprehensions — [#598](598-lang-uplift-comprehensions.md)
 
 **Goal:** Add a declarative collection-construction form that complements `for`.
 
@@ -413,7 +429,7 @@ In other words: the repo already contains the *pieces*; this issue is about maki
 
 ---
 
-### Phase 5: Canonical surface, docs, and migration guidance
+### Phase 5: Canonical surface, docs, and migration guidance — [#599](599-lang-uplift-docs-rollout.md)
 
 **Goal:** Make the uplift usable and teachable.
 
@@ -439,13 +455,12 @@ In other words: the repo already contains the *pieces*; this issue is about maki
 
 ## Acceptance
 
-- [ ] The syntax gap between current Arukellt and the target “pattern-first definition surface” is documented in one place
-- [ ] Multi-clause function definitions are supported and lowered deterministically
-- [ ] Function-level guards are supported
-- [ ] `where` is implemented as real syntax, not a parser stub
-- [ ] At least one expression-level comprehension form is implemented
-- [ ] Existing block-body `fn` syntax remains supported
-- [ ] `docs/language/spec.md` and `docs/language/syntax.md` describe the new syntax
+- [ ] [#629](629-lang-uplift-baseline.md) — Phase 0: The syntax gap between current Arukellt and the target “pattern-first definition surface” is documented in one place
+- [ ] [#595](595-lang-uplift-multiclauses.md) — Phase 1: Multi-clause function definitions are supported and lowered deterministically
+- [ ] [#596](596-lang-uplift-guards.md) — Phase 2: Function-level guards are supported
+- [ ] [#597](597-lang-uplift-where.md) — Phase 3: `where` is implemented as real syntax, not a parser stub
+- [ ] [#598](598-lang-uplift-comprehensions.md) — Phase 4: At least one expression-level comprehension form is implemented
+- [ ] [#599](599-lang-uplift-docs-rollout.md) — Phase 5: Existing block-body `fn` syntax remains supported and docs describe the new syntax
 - [ ] Fixture coverage includes both positive and negative cases for each added surface feature
 - [ ] The implementation is fully in the selfhost compiler (`src/compiler/*.ark`) and fits the #529 selfhost direction
 
@@ -480,13 +495,28 @@ If selfhost-specific syntax coverage is split into parse-only and semantic fixtu
 
 ---
 
-## Follow-up issues to split out after plan approval
+## Sub-issues
 
-1. Multi-clause function definitions and grouping rules
-2. Function-level guards
-3. Real `where` clause semantics
-4. Comprehension syntax and lowering
-5. Docs / fixtures / migration guidance rollout
+This parent issue is sliced into the following acceptance-based sub-issues.
+Dependency ordering is listed; implement in this order.
+
+| Phase | ID | Title | Track | Depends on |
+|-------|----|-------|-------|------------|
+| Phase 0 | [#629](629-lang-uplift-baseline.md) | Baseline and Syntax Contract | language-design | none |
+| Phase 1 | [#595](595-lang-uplift-multiclauses.md) | Multi-Clause Function Definitions | selfhost-frontend / language-design | #629 |
+| Phase 2 | [#596](596-lang-uplift-guards.md) | Function-Level Guards | selfhost-frontend / language-design | #595 |
+| Phase 3 | [#597](597-lang-uplift-where.md) | Real `where` Clauses | selfhost-frontend / language-design | #595 |
+| Phase 4 | [#598](598-lang-uplift-comprehensions.md) | Expression-Level Comprehensions | selfhost-frontend / language-design | none (independent) |
+| Phase 5 | [#599](599-lang-uplift-docs-rollout.md) | Docs, Fixtures, and Rollout | docs / language-design | #595, #596, #597, #598 |
+
+### Dependency order
+
+1. **#629** (Phase 0: Baseline) — freeze the scope contract first, no code changes
+2. **#595** (Phase 1: Multi-clause fn) — foundational syntax, no upstream dep except frozen scope
+3. **#596** (Phase 2: Guards) — requires clause syntax from #595
+4. **#597** (Phase 3: `where`) — requires clause syntax from #595
+5. **#598** (Phase 4: Comprehensions) — independent of #595-#597, can proceed in parallel
+6. **#599** (Phase 5: Docs/Rollout) — requires all four features implemented first
 
 ---
 

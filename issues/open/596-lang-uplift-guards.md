@@ -13,8 +13,11 @@ Out of scope:
 
 1. Positive fixtures: literal + guard, enum + guard, struct destructure + guard
 2. Negative fixtures: guard name not in scope, guard type is not `bool`
+
 # Language Surface Uplift: Function-Level Guards
+
 - Evaluation order: match pattern → bind → evaluate guard → choose body
+
 # Language Surface Uplift: Function-Level Guards
 
 ---
@@ -27,6 +30,7 @@ Reuse the existing guard expression model (already supported in `match` arms) an
 guarded clauses on function definitions defined via the multi-clause syntax from #595.
 
 Example direction:
+
 ```ark
 fn classify(n) -> String | n > 0 = "pos"
 fn classify(n) -> String | n < 0 = "neg"
@@ -61,7 +65,8 @@ fn classify(_) -> String = "zero"
 
 ## Upstream / Depends on
 
-595 (multi-clause fn syntax must exist before guards can attach to clause heads)
+595 (multi-clause fn syntax must exist before guards can attach to clause heads).
+629 (Phase 0 scope contract is an indirect prerequisite).
 
 ## Blocks
 

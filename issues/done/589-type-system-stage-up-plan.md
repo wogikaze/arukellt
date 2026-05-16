@@ -1,6 +1,7 @@
 # Type System Stage-Up Plan (HM Core + Coherent Traits) (Operational Guide)
 
-> **Status:** Design / Implementation Guide — ready for phased execution with verification checkpoints
+> **Status:** Complete — all child issues exist; execution tracked through child issues
+> **Closed:** 2026-05-16 — umbrella planning complete, baseline recorded, child issues delegated
 > **For agentic workers:** Execute phase-by-phase. Do not mix soundness work, solver semantics, and lowering work in the same slice.
 
 > ⚠️ **DO NOT IMPLEMENT DIRECTLY.** This is an operational guide umbrella. Dispatch child issues:
@@ -322,6 +323,27 @@ python scripts/manager.py verify
 ```
 
 **Phase 4 Exit Condition:** monomorphization is end-to-end complete for the feature set introduced here, and selfhost fixpoint still holds after the solver/type-scheme upgrade.
+
+---
+
+## Baseline Record — 2026-05-16
+
+Phase 0 baseline recorded by orchestrator:
+
+| Check | Result |
+|-------|--------|
+| `verify quick` | 22/22 pass |
+| `selfhost fixpoint` | PASS |
+| `selfhost diag-parity` | PASS |
+| Fixture health | 641 pass, 0 fail, 28 skip |
+
+**Child issues:**
+- #600 (Soundness Floor) — design-ready
+- #601 (Type Schemes) — blocked-by-upstream (#600)
+- #602 (Qualified Constraints) — blocked-by-upstream (#601)
+- #603 (Lowering Contract) — blocked-by-upstream (#601, #602)
+
+**Guide status:** Planning complete. All child issues exist. This operational guide serves as the reference; execution tracked through child issues.
 
 ---
 

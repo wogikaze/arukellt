@@ -2,72 +2,127 @@
 Track: main
 Orchestration class: implementation-ready
 Depends on: none
+Sub-issues: 624, 594, 625, 564, 626, 627, 628, 571, 574, 575, 576, 577, 578, 579, 580, 581, 582
 ---
 
 # 100% selfhost transition plan
-### Phase 1: "Fixpoint Achievement (CRITICAL)"
+
+## Sub-issue Index
+
+| Phase | Sub-issue | File | Status |
+|-------|-----------|------|--------|
+| Phase 1: Fixpoint Achievement | #624 | `529-phase1-fixpoint-achievement.md` | Done (fixpoint reached) |
+| Phase 2+3: Fixture & Diagnostic Parity | #594 | `594-selfhost-phase2-fixture-diag-parity.md` | Open |
+| Phase 4: Dual-Run Period (SAFETY) | #625 | `529-phase4-dual-run-period.md` | Open |
+| Phase 5: Delete `crates/arukellt` | #564 | `564-phase5-delete-arukellt.md` | Open |
+| Phase 6/A: IDE-Ready Frontend | #626 | `529-phase6a-ide-ready-frontend.md` | Open |
+| Phase 6/B: Analysis API | #627 | `529-phase6b-analysis-api.md` | Open |
+| Phase 6/C: LSP Minimum Viable | #628 | `529-phase6c-lsp-minimum-viable.md` | Open |
+| Phase 6/D: DAP Scaffold | #571 | `571-phase6-debug-adapter-scaffold-deferred-priority.md` | Open |
+| Phase 7: Delete `crates/ark-lexer` | #574 | `574-phase7-delete-ark-lexer.md` | Open |
+| Phase 7: Delete `crates/ark-parser` | #575 | `575-phase7-delete-ark-parser.md` | Open |
+| Phase 7: Delete `crates/ark-resolve` | #576 | `576-phase7-delete-ark-resolve.md` | Open |
+| Phase 7: Delete `crates/ark-typecheck` | #577 | `577-phase7-delete-ark-typecheck.md` | Open |
+| Phase 7: Delete `crates/ark-hir` | #578 | `578-phase7-delete-ark-hir.md` | Open |
+| Phase 7: Delete `crates/ark-diagnostics` | #579 | `579-phase7-delete-ark-diagnostics.md` | Open |
+| Phase 7: Delete `crates/ark-manifest` | #580 | `580-phase7-delete-ark-manifest.md` | Open |
+| Phase 7: Delete `crates/ark-target` | #581 | `581-phase7-delete-ark-target.md` | Open |
+| Phase 7: Delete workspace (Cargo.toml/Cargo.lock) | #582 | `582-phase7-remove-cargo-workspace.md` | Open |
+
+### Phase 1: "Fixpoint Achievement (CRITICAL)" — see `529-phase1-fixpoint-achievement.md` (#624)
+
 Goal: Error detection and reporting matches Rust compiler.
 Prerequisite: All determinism issues resolved BEFORE feature work.
-Scope for fixpoint only: 
+Scope for fixpoint only:
 NOT in scope yet: Package system, complex search paths, import cycle recovery
 Target: `src/compiler/driver.ark`
-Implementation: 
+Implementation:
 Recommendation: Start simple. Build module graph → determine file order → compile in batch.
 Current failure: Cross-module calls are unresolved/stubbed.
-Investigation: 
+Investigation:
 - Check how `lexer: ":tokenize` style qualified names are handled"
 - Verify path: `qualified name → resolved function symbol → deterministic function index`
 Caution: "Strip prefix only" may work temporarily but risks symbol collision. Acceptable for fixpoint if `src/compiler/*.ark` already assumes it. Full module namespace comes after parity.
-Requirements for fixpoint: 
-Verification (mandatory): 
+Requirements for fixpoint:
+Verification (mandatory):
 Phase 1 Exit Condition: "`stage1-self-compile: reached` AND `stage2-fixpoint: reached`"
-### Phase 2: Fixture Parity Expansion
-Approach: 
+
+### Phase 2: Fixture Parity Expansion — see `594-selfhost-phase2-fixture-diag-parity.md` (#594, also covers Phase 3)
+
+Approach:
 2. First: fixtures skipped due to compile errors
 3. Then: fixtures failing due to output differences
-Priority: 
+Priority:
 Strategy: Tackle by category, not all at once.
-### Phase 3: Diagnostic Parity Expansion
-Internal Milestones (do not skip): 
+
+### Phase 3: Diagnostic Parity Expansion — see `594-selfhost-phase2-fixture-diag-parity.md` (#594, combined with Phase 2)
+
+Internal Milestones (do not skip):
 - M1: Same error categories appear in both compilers
 - M2: Error codes match
 - M3: Primary messages match
 - M4: "Spans (line/column) match"
 Policy: Defer M4 until after Phase 4. Message/span exact matching is high-cost, low-value initially.
-### Phase 4: "Dual-Run Period (SAFETY)"
+
+### Phase 4: "Dual-Run Period (SAFETY)" — see `529-phase4-dual-run-period.md` (#625)
+
 Duration: Minimum several days to iterations.
-Exit Conditions: 
-### Phase 5: Core Compiler Crates Deletion
+Exit Conditions:
+
+### Phase 5: Core Compiler Crates Deletion — see `564-phase5-delete-arukellt.md` (#564)
+
 When: After 2+ weeks of clean dual-run results.
 Targets: `src/compiler/lexer.ark`, `src/compiler/parser.ark`, possibly `resolver.ark`, `typechecker.ark`
-Options: 
+Options:
 - Development: `wasmtime run .build/selfhost/arukellt-s1.wasm -- ...`
 - Or: promoted selfhost binary wrapper
-Changes: 
-### Phase 6: IDE Frontend/LSP/DAP Migration
+Changes:
+
+### Phase 6: IDE Frontend/LSP/DAP Migration — see sub-issues below
+
 Scope: Separate project-level effort. Not a compiler subtask.
-Requirements (different from batch compiler): 
-Goals: 
+
+**Sub-issues:**
+- Phase 6/A (IDE-Ready Frontend): `529-phase6a-ide-ready-frontend.md` (#626)
+- Phase 6/B (Analysis API): `529-phase6b-analysis-api.md` (#627)
+- Phase 6/C (LSP Minimum Viable): `529-phase6c-lsp-minimum-viable.md` (#628)
+- Phase 6/D (DAP Scaffold): `571-phase6-debug-adapter-scaffold-deferred-priority.md` (#571)
+
+Requirements (different from batch compiler):
+Goals:
 New entry point: ""document text → AST / symbols / diagnostics" (not CLI subprocess)"
 Create: `src/ide/lsp.ark`
-Handlers (in order): 
-### Phase 7: Full Rust Deletion
-Final targets: 
+Handlers (in order):
+
+### Phase 7: Full Rust Deletion — see individual crate deletion sub-issues
+
+**Crate deletion sub-issues:** #574 (ark-lexer), #575 (ark-parser), #576 (ark-resolve), #577 (ark-typecheck), #578 (ark-hir), #579 (ark-diagnostics), #580 (ark-manifest), #581 (ark-target), #582 (Cargo.toml/Cargo.lock)
+Final targets:
 Last to delete: "`Cargo.toml`, `Cargo.lock` — only when ALL Rust dependencies are gone (including VS Code extension and other tools)."
-Per work unit (single concern only): 
+Per work unit (single concern only):
 - Example: driver module loading only, OR emitter qualified call only, OR parser error recovery only
+
 ### Criterion A: Selfhost Bootstrap
+
 - [ ] `verify-bootstrap.sh --check` reports `stage2-fixpoint: reached`
+
 ### Criterion B: Compiler Parity
+
 - [ ] Fixture parity: 0 fails
 - [ ] Diagnostic parity: 0 critical fails
 - [ ] Skip count: temporarily acceptable, target 0 eventually
+
 ### Criterion C: Rust Core Compiler Retirement
+
 ### Criterion D: Full Rust Retirement
-STOP before LSP, Rust deletion, or other phases until these complete: 
-Rule: Do not proceed to Phase 2+ until Phase 1 fixpoint is stable. Root cause isolation becomes impossible if you mix phases.
+
+### STOP before LSP Rust deletion or other phases until these complete
+
+Rule: Do not proceed to Phase 2+ until Phase 1 fixpoint is stable. Root cause isolation becomes impossible if you mix phases
+
 ---
-# 100% Self-Hosting Transition Plan (Operational Guide)
+
+## 100% Self-Hosting Transition Plan (Operational Guide)
 
 ## Responsibility split — 2026-04-22
 
@@ -405,27 +460,28 @@ One branch per concern:
 
 ## Completion Criteria
 
-### Criterion A: Selfhost Bootstrap
+### Criterion A: Selfhost Bootstrap (Phase 1 — #624)
 
-- [ ] `python scripts/manager.py selfhost fixpoint` passes
-- [ ] `verify-bootstrap.sh --check` reports `stage2-fixpoint: reached`
+- [x] `python scripts/manager.py selfhost fixpoint` passes — ACHIEVED
+- [x] `verify-bootstrap.sh --check` reports `stage2-fixpoint: reached` — ACHIEVED
 
-### Criterion B: Compiler Parity
+### Criterion B: Compiler Parity (Phase 2+3 — #594)
 
 - [ ] Fixture parity: 0 fails
 - [ ] Diagnostic parity: 0 critical fails
 - [ ] Skip count: temporarily acceptable, target 0 eventually
 
-### Criterion C: Rust Core Compiler Retirement
+### Criterion C: Rust Core Compiler Retirement (Phase 4+5 — #625, #564)
 
-- [ ] Execution path switched to selfhost
-- [ ] Harness passes after core compiler crate deletion
+- [ ] Execution path switched to selfhost — ACHIEVED per ADR-029
+- [ ] Dual-run period stable for 2+ weeks (#625)
+- [ ] `crates/arukellt` deleted (#564)
 
-### Criterion D: Full Rust Retirement
+### Criterion D: Full Rust Retirement (Phase 6+7 — #626, #627, #628, #571, #574-#582)
 
-- [ ] IDE fully selfhost/native
-- [ ] No Cargo workspace needed
-- [ ] No Rust code in repository
+- [ ] IDE fully selfhost/native (Phase 6/A-C + #571)
+- [ ] No Cargo workspace needed (#582)
+- [ ] No Rust code in repository (#574-#582)
 
 ---
 

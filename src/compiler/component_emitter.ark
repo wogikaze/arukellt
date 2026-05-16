@@ -5810,8 +5810,20 @@ fn comp_wit_type_from_name(type_name: String, fallback_vt: i32) -> i32 {
 	if eq(clone(type_name), String_from("i16")) {
 		return WIT_VAL_S16()
 	}
+	if eq(clone(type_name), String_from("i32")) {
+		return WIT_VAL_S32()
+	}
+	if eq(clone(type_name), String_from("i64")) {
+		return WIT_VAL_S64()
+	}
 	if eq(clone(type_name), String_from("f32")) {
 		return WIT_VAL_FLOAT32()
+	}
+	if eq(clone(type_name), String_from("f64")) {
+		return WIT_VAL_FLOAT64()
+	}
+	if eq(clone(type_name), String_from("string")) {
+		return WIT_VAL_STRING()
 	}
 	val_type_to_comp(fallback_vt)
 }

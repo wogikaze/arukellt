@@ -59,6 +59,7 @@ with the final spec.
 ## Upstream / Depends on
 
 595, 596, 597, 598 — all implementation issues must be complete first.
+629 — also incorporates the Phase 0 gap ledger into final documentation.
 
 ## Blocks
 
