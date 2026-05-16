@@ -32,7 +32,6 @@ graph LR
   I588["588 Language surface uplift plan"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
   I60["60 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
-  I603["603 603-typesys-lowering-contract"]
   I605["605 Stdlib Baseline: Host Core-Platform Baseline"]
   I606["606 Stdlib Baseline: Structured Data and Semantics Baseline"]
   I607["607 Stdlib Baseline: Collections Hash Hardening"]
@@ -129,7 +128,6 @@ graph LR
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
 - **60** depends on: 510, 121; blocks: none
-- **603** depends on: 601, 602; blocks: none
 - **605** depends on: 604; blocks: 608
 - **606** depends on: 604; blocks: 608
 - **607** depends on: 604; blocks: 608

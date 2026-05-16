@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T09:40:37Z",
+  "generated_at": "2026-05-16T09:44:06Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -636,31 +636,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "603",
-      "path": "603-typesys-lowering-contract.md",
-      "title": "603-typesys-lowering-contract",
-      "track": "selfhost / typechecker / lowering",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "601",
-        "602"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
       }
     },
     {
