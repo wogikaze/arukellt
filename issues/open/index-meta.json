@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T22:20:16Z",
+  "generated_at": "2026-05-16T22:45:39Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -99,7 +99,7 @@
         "unchecked": 0
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -124,7 +124,7 @@
         "unchecked": 0
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -149,7 +149,7 @@
         "unchecked": 0
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
+        "class": "partially-blocked",
         "upstream_notes": "None"
       }
     },
@@ -397,38 +397,11 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 11,
-        "unchecked": 23
+        "checked": 13,
+        "unchecked": 25
       },
       "orchestration": {
         "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "608",
-      "path": "608-stdlib-baseline-docs-bench.md",
-      "title": "608-stdlib-baseline-docs-bench",
-      "track": "stdlib / docs",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "604",
-        "605",
-        "606",
-        "607"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },

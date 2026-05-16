@@ -44,4 +44,3 @@ Scoring criteria (0-5 each, total 25):
 | 31 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
 | 32 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
 | 33 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 34 | 608 | 608-stdlib-baseline-docs-bench | stdlib / docs | 0 | 0 | 1 | 3 | 2 | 6 |

@@ -22,7 +22,6 @@ graph LR
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I588["588 Language surface uplift plan"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
-  I608["608 608-stdlib-baseline-docs-bench"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I625["625 529 Phase 4: Dual-Run Period (SAFETY)"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
@@ -95,7 +94,6 @@ graph LR
 - **574** depends on: 564; blocks: 575, 582
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
-- **608** depends on: 604, 605, 606, 607; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **625** depends on: 594; blocks: 626
 - **63** depends on: 074, 137; blocks: none
