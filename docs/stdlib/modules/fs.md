@@ -50,25 +50,34 @@ These APIs perform real host I/O and require runtime directory access (e.g.
 `--dir`) on every call. Pure path manipulation lives in `std::path`; a
 smaller stable-shaped bridge over the same intrinsics lives in `std::fs`.
 
-This module is **not** a complete filesystem facade. There is no directory
-listing, metadata, or streaming I/O surface in-tree yet, and the `fd_*`
-helpers are explicitly experimental and currently T1 (WASI P1) only.
+This module is **not** a complete filesystem facade. Directory listing,
+structured metadata, and streaming I/O are not yet supported at the
+intrinsic level. The `fd_*` helpers are explicitly experimental and
+currently T1 (WASI P1) only.
 
-Honesty caveats (see `docs/stdlib/604-contract-honesty-gap-ledger.md`):
+### Honesty caveats (see `docs/stdlib/604-contract-honesty-gap-ledger.md`)
 
-- `exists(path)` is a **read probe / readable-file check**, not a general
-path-existence query. It is implemented on top of
-`__intrinsic_fs_read_file`, so directories, missing paths, and any other
-unreadable paths return `false`. True path semantics are tracked under
-issue #605.
+- `is_readable_file(path)` (formerly `exists`) is a **read probe /
+readable-file check**, not a general path-existence query. It is
+implemented on top of `__intrinsic_fs_read_file`, so directories,
+missing paths, and any other unreadable paths return `false`.
+- `read_dir` and `metadata` return errors on all current targets because
+the WASI P1/P2 intrinsic layer does not yet expose directory iteration
+or stat-based metadata. These are API contracts awaiting backend support.
+- `is_file` / `is_dir` are backed by the same read probe as
+`is_readable_file` and do **not** distinguish file types.
 - `fd_seek`, `fd_tell`, and `fd_fdstat_errno` operate on raw WASI P1 file
 descriptors and are experimental.
+- **T1** (WASI P1) and **T3** (WASI P2) both provide the three base intrinsics
+(`read_file`, `write_file`, `write_bytes`). Directory/metadata capabilities
+are future on both targets.
 
 ### Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
 | `FsError` | `enum` | - |
+| `FsMetadata` | `struct` | Placeholder for future structured metadata. |
 
 ### Public API
 
@@ -77,7 +86,7 @@ descriptors and are experimental.
 | `read_to_string` | `(String) -> Result<String, String>` | `provisional` | ✅ impl | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
-| `exists` | `(String) -> bool` | `stable` | ✅ impl | Read-probe semantics — not a general path-existence query. |
+| `exists` | `(String) -> bool` | `stable` | ✅ impl | @deprecated Use is_readable_file instead. This function has the same |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ impl | Seeks within an open file descriptor. |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ impl | Returns the current file offset for an open file descriptor. |
 | `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ impl | Returns the errno from fd_fdstat_get for an open file descriptor. |

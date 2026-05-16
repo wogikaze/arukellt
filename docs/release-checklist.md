@@ -5,13 +5,14 @@ Items marked **CI** are automated; items marked **Manual** require human verific
 
 ## Pre-release
 
-- [ ] **CI** — `cargo test --workspace` passes
-- [ ] **CI** — `cargo test -p arukellt --test harness` passes (all fixtures green)
+- [ ] **CI** — `cargo test --workspace` passes (unit tests; harness coverage via selfhost fixture parity below)
 - [ ] **CI** — `cargo clippy --workspace -- -D warnings` clean
 - [ ] **CI** — `cargo fmt --all -- --check` clean
 - [ ] **CI** — `python scripts/manager.py verify quick` passes
-- [ ] **CI** — `bash scripts/manager.py --component` passes (component interop)
-- [ ] **CI** — `bash scripts/manager.py --opt-equiv` passes (O0 == O1)
+- [ ] **CI** — `python scripts/manager.py verify component` passes (component interop)
+- [ ] **CI** — `python scripts/manager.py verify fixtures` passes (selfhost fixture parity)
+- [ ] **CI** — `python scripts/manager.py verify --selfhost-parity` passes (selfhost CLI + diag parity)
+- [ ] **CI** — opt-equiv (O0 == O1): not yet implemented (tracked in manager.py `_MISSING` set)
 - [ ] **CI** — Binary smoke: `arukellt --version` exits 0
 - [ ] **CI** — Binary smoke: `arukellt run tests/fixtures/hello_world.ark` outputs `Hello, World!`
 - [ ] **CI** — Binary smoke: `arukellt check tests/fixtures/type_error.diag` exits non-zero

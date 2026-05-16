@@ -1,0 +1,13 @@
+// Fixture: toml_parse_invalid_array_of_tables.ark
+// Array-of-tables ([[...]]) headers are outside the bounded TOML subset
+// and must be rejected with an error.
+use std::host::stdio
+use std::toml
+
+fn main() {
+    let doc = "[[products]]\nname = \"hammer\""
+    match toml::toml_parse(doc) {
+        Result::Ok(_) => stdio::println("unexpected ok"),
+        Result::Err(e) => stdio::println(concat("error:", e)),
+    }
+}

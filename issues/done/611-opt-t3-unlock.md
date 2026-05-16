@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-22
 Updated: 2026-05-16
 ID: 611
@@ -8,6 +8,16 @@ Orchestration class: implementation-ready
 Depends on: 609 (DONE)
 Dependency status: 609 is complete. Issue is TECHNICALLY UNBLOCKED but all primary paths are stale due to Rust crate retirement.
 Assessment date: 2026-05-16
+Resolved: 2026-05-16
+
+Implementation summary:
+- Extended `mir_prune_unreachable` to `mir_prune_unreachable_with_roots` (accepts extra root names)
+- Created `mir_prune_unreachable_for_t3` public function for driver use
+- Updated driver to use T3-aware pruning for component/wit emit mode:
+  - lower without initial pruning → collect exported pub fn names → prune with exports as additional roots
+- Created `docs/compiler/t3-reachability.md` documenting the root contract
+- Added regression fixture `tests/fixtures/component/export_dead_fn_elim.ark`
+- Registered fixture in manifest.txt
 ---
 
 # Optimization Uplift: T3-Safe Runtime Unlock

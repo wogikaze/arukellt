@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T12:17:25Z",
+  "generated_at": "2026-05-16T12:53:02Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -338,31 +338,6 @@
       }
     },
     {
-      "id": "512",
-      "path": "512-stdlib-trait-oriented-reuse-surface.md",
-      "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": true,
-      "depends_on": [
-        "504",
-        "495"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "529",
       "path": "529-100-percent-selfhost-transition-plan.md",
       "title": "100% selfhost transition plan",
@@ -466,8 +441,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 4,
-        "unchecked": 12
+        "checked": 7,
+        "unchecked": 17
       },
       "orchestration": {
         "class": null,
@@ -537,8 +512,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 3,
-        "unchecked": 14
+        "checked": 11,
+        "unchecked": 23
       },
       "orchestration": {
         "class": null,
@@ -673,9 +648,9 @@
       }
     },
     {
-      "id": "611",
-      "path": "611-opt-t3-unlock.md",
-      "title": "Optimization Uplift: T3-Safe Runtime Unlock",
+      "id": "612",
+      "path": "612-opt-binary-size.md",
+      "title": "Optimization Uplift: Binary Size Squeeze",
       "track": "compiler / runtime-perf",
       "status": "open",
       "blocks_v1": "none",
@@ -684,17 +659,16 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "609"
+        "609",
+        "611"
       ],
-      "blocks_issue_ids": [
-        "612"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },
@@ -896,31 +870,6 @@
         "605",
         "606",
         "607"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "612",
-      "path": "612-opt-binary-size.md",
-      "title": "Optimization Uplift: Binary Size Squeeze",
-      "track": "compiler / runtime-perf",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "609",
-        "611"
       ],
       "blocks_issue_ids": [],
       "acceptance": {

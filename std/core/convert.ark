@@ -1,6 +1,73 @@
 // std::core::convert — type conversion functions
 //
 // Unified namespace for type conversions (wraps existing intrinsics).
+
+/// Trait for types that can be converted to a human-readable string
+/// representation.
+///
+/// ## Protocol catalog: `Display`
+///
+/// | Type    | Status | Notes                           |
+/// |---------|--------|---------------------------------|
+/// | i32     | impl   | Via `__intrinsic_i32_to_string` |
+/// | i64     | impl   | Via `__intrinsic_i64_to_string` |
+/// | f64     | impl   | Via `__intrinsic_f64_to_string` |
+/// | bool    | impl   | Via `__intrinsic_bool_to_string`|
+/// | String  | impl   | Identity passthrough            |
+/// | char    | impl   | Via `__intrinsic_char_to_string`|
+/// | structs | user   | Custom `impl Display for T`     |
+///
+/// ## Migration order
+///
+/// 1. Define `Display` trait and provide impls for all built-in types (this module).
+/// 2. Replace ad-hoc `to_string(...)` calls with trait-based dispatch where possible.
+/// 3. Add Display-bound generic formatting helpers in `std::text::fmt`.
+trait Display {
+    fn to_string(self: Display) -> String
+}
+
+/// Display impl for `i32`.
+impl Display for i32 {
+    fn to_string(self: i32) -> String {
+        __intrinsic_i32_to_string(self)
+    }
+}
+
+/// Display impl for `i64`.
+impl Display for i64 {
+    fn to_string(self: i64) -> String {
+        __intrinsic_i64_to_string(self)
+    }
+}
+
+/// Display impl for `f64`.
+impl Display for f64 {
+    fn to_string(self: f64) -> String {
+        __intrinsic_f64_to_string(self)
+    }
+}
+
+/// Display impl for `bool`.
+impl Display for bool {
+    fn to_string(self: bool) -> String {
+        __intrinsic_bool_to_string(self)
+    }
+}
+
+/// Display impl for `char`.
+impl Display for char {
+    fn to_string(self: char) -> String {
+        __intrinsic_char_to_string(self)
+    }
+}
+
+/// Display impl for `String` — identity passthrough.
+impl Display for String {
+    fn to_string(self: String) -> String {
+        self
+    }
+}
+
 pub fn i32_to_string(x: i32) -> String {
     __intrinsic_i32_to_string(x)
 }

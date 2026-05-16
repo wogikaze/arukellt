@@ -1,0 +1,50 @@
+use std::host::stdio
+
+/// User-defined Hash trait demonstrating the trait-based hashing protocol.
+/// This mirrors the `Hash` trait defined in `std::core::hash`.
+trait Hash {
+    fn hash(self: Hash) -> i32
+}
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Hash for Point {
+    fn hash(self: Point) -> i32 {
+        let mut h = 37
+        h = h * 31 + self.x
+        if h < 0 {
+            h = 0 - h
+        }
+        h = h * 31 + self.y
+        if h < 0 {
+            h = 0 - h
+        }
+        h
+    }
+}
+
+/// Generic function with Hash trait bound (pass-through).
+fn get_hash<T: Hash>(value: T) -> T {
+    value
+}
+
+fn main() {
+    let p1 = Point { x: 1, y: 2 }
+    let p2 = Point { x: 1, y: 2 }
+    let p3 = Point { x: 3, y: 4 }
+
+    // Direct trait method call
+    let h1 = hash(p1)
+    let h2 = hash(p2)
+    let h3 = hash(p3)
+    stdio::println(bool_to_string(h1 == h2))
+    stdio::println(bool_to_string(h1 != h3))
+
+    // Generic function with Hash bound
+    let p = get_hash(p1)
+    let h4 = hash(p)
+    stdio::println(bool_to_string(h1 == h4))
+}

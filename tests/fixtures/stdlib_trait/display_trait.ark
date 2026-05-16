@@ -1,0 +1,34 @@
+use std::host::stdio
+
+/// User-defined Display trait demonstrating trait-based string conversion.
+/// This mirrors the `Display` trait defined in `std::core::convert`.
+trait Display {
+    fn to_string(self: Display) -> String
+}
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Display for Point {
+    fn to_string(self: Point) -> String {
+        concat(concat(concat(concat("(", to_string(self.x)), ", "), to_string(self.y)), ")")
+    }
+}
+
+/// Generic function with Display trait bound (pass-through).
+fn show<T: Display>(value: T) -> T {
+    value
+}
+
+fn main() {
+    let p = Point { x: 3, y: 4 }
+
+    // Direct trait method call
+    stdio::println(to_string(p))
+
+    // Generic function with Display bound
+    let p2 = show(p)
+    stdio::println(to_string(p2))
+}

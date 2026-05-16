@@ -1,23 +1,29 @@
 /// Small host-backed file helpers — a **partial bridge**, not a full filesystem API.
-/// 
+///
 /// `std::fs` tracks a narrow, stable-shaped subset of the same WASI filesystem
-/// intrinsics behind `std::host::fs` (`read_string` / `write_string` plus an
-/// `exists` read probe). Prefer `std::host::fs` for the full host rollout surface
-/// (`read_to_string`, `write_bytes`, experimental fd helpers, and future additions).
-/// This namespace exists so call sites can depend on a compact API while
-/// `std::host::*` continues to evolve.
-/// 
+/// intrinsics behind `std::host::fs` (`read_string` / `write_string` plus
+/// `is_readable_file` and `exists` read probes). Prefer `std::host::fs` for the
+/// full host rollout surface (`read_to_string`, `write_bytes`, `FsError` error
+/// type, experimental fd helpers, and future additions).  This namespace exists
+/// so call sites can depend on a compact API while `std::host::*` continues to
+/// evolve.
+///
 /// There is no in-tree directory listing, metadata API, or streaming I/O yet; do
 /// not treat this as a complete POSIX-style facade. Broader
 /// `wasi:filesystem/types`-class coverage remains future work.
-/// 
+///
 /// Paths are plain `String` values using `/` as the separator (POSIX/WASI
 /// convention). For pure path manipulation helpers see `std::path`.
-/// 
-/// **Probe notice**: `exists` is a **read probe** / readable-file check: it
-/// succeeds only when the same read operation as `read_string` succeeds. It is not
-/// a general path-existence or metadata query. Directories, missing paths,
-/// and unreadable paths may return `false`.
+///
+/// **Probe notice**: `exists` / `is_readable_file` are **read probes** / readable-file
+/// checks: they succeed only when the same read operation as `read_string` succeeds.
+/// They are not general path-existence or metadata queries. Directories, missing
+/// paths, and unreadable paths may return `false`.
+///
+/// **T1/T3 availability**: The three base operations (`read_string`, `write_string`,
+/// `is_readable_file`) are available on both T1 (WASI P1) and T3 (WASI P2) targets.
+/// Directory and metadata operations (`read_dir`, `metadata`, `is_dir`) are not yet
+/// supported on any target.
 /// Reads the entire contents of a file into a UTF-8 string.
 /// 
 /// Returns `Err` if the file does not exist, the path is not readable,
@@ -35,10 +41,10 @@ pub fn write_string(path: String, contents: String) -> Result<(), String> {
 }
 
 /// Read probe / readable-file check: `true` when a full read succeeds; not a path-existence query.
-/// 
+///
 /// Uses the same intrinsic as `read_string`. Directories, missing paths, and unreadable paths may
 /// return `false`.
-/// 
+///
 /// Example — Probe a readable file versus a broken symlink with `std::host::fs`:
 /// ```ark
 /// use std::host::fs
@@ -50,4 +56,45 @@ pub fn exists(path: String) -> bool {
         Result::Ok(_) => true,
         Result::Err(_) => false,
     }
+}
+
+/// Read probe — the new recommended name for the probe check.
+///
+/// Semantics are identical to `exists`. The name `is_readable_file` makes it
+/// explicit that this is a readability probe, not a general path-existence
+/// query.  New code should prefer this name.
+pub fn is_readable_file(path: String) -> bool {
+    exists(path)
+}
+
+/// Returns `true` when the path is a readable file.
+///
+/// On current targets without metadata intrinsics, this is equivalent to
+/// `is_readable_file` (a read probe). True file-type detection requires a
+/// WASI `path_filestat_get` intrinsic and is future work.
+pub fn is_file(path: String) -> bool {
+    is_readable_file(path)
+}
+
+/// Returns `false` unconditionally on current targets.
+///
+/// The current intrinsic layer does not expose directory-type detection.
+pub fn is_dir(path: String) -> bool {
+    false
+}
+
+/// List the entries in a directory.
+///
+/// **Not yet supported.** Returns an error because the current WASI intrinsic
+/// layer does not expose directory iteration.
+pub fn read_dir(path: String) -> Result<Vec<String>, String> {
+    Result::Err(concat("directory listing not yet supported: ", path))
+}
+
+/// Query file metadata for a given path.
+///
+/// **Not yet supported.** Returns an error because the current WASI intrinsic
+/// layer does not expose `path_filestat_get`.
+pub fn metadata(path: String) -> Result<String, String> {
+    Result::Err(concat("metadata not yet supported: ", path))
 }

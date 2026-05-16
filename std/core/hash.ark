@@ -1,4 +1,127 @@
 /// Small hashing helpers used by the current collection implementations.
+
+/// Trait for types that can be hashed to an `i32` hash value.
+///
+/// The hash value must be non-negative and deterministic: the same value must
+/// always produce the same hash. Different values should (probabilistically)
+/// produce different hashes.
+///
+/// ## Protocol catalog: `Hash`
+///
+/// | Type    | Status | Notes                           |
+/// |---------|--------|---------------------------------|
+/// | i32     | impl   | Byte-mixing multiplicative hash |
+/// | String  | impl   | FNV-1a variant                  |
+/// | i64     | impl   | Byte-mixing multiplicative hash |
+/// | bool    | impl   | Simple boolean hash             |
+/// | char    | impl   | Identity hash                   |
+/// | f64     | impl   | Bit-pattern hash                |
+///
+/// ## Migration order
+///
+/// 1. Define `Hash` trait and provide impls for i32 and String (this module).
+/// 2. Add Hash-bound generic `HashMap<K,V>` / `HashSet<T>` collection types.
+/// 3. Deprecate direct `hash_i32` / `hash_string` calls in favor of `Hash::hash()`.
+trait Hash {
+    fn hash(self: Hash) -> i32
+}
+
+/// Hash impl for `i32`: byte-mixing multiplicative hash (same algorithm as
+/// `hash_i32`). Takes the absolute value, mixes four base-256 bytes with
+/// multiplier 31, and returns the non-negative result.
+impl Hash for i32 {
+    fn hash(self: i32) -> i32 {
+        let mut h = 37
+        let mut v = self
+        if v < 0 {
+            v = 0 - v
+        }
+        let b0 = v - v / 256 * 256
+        h = h * 31 + b0
+        v = v / 256
+        let b1 = v - v / 256 * 256
+        h = h * 31 + b1
+        v = v / 256
+        let b2 = v - v / 256 * 256
+        h = h * 31 + b2
+        v = v / 256
+        let b3 = v - v / 256 * 256
+        h = h * 31 + b3
+        h
+    }
+}
+
+/// Hash impl for `String`: FNV-1a-like hash (same algorithm as `hash_string`).
+impl Hash for String {
+    fn hash(self: String) -> i32 {
+        let mut h = 216613626
+        let n = len(self)
+        let mut i = 0
+        while i < n {
+            let ch = char_at(self, i)
+            h = h * 16777619 ^ ch
+            if h < 0 {
+                h = 0 - h
+            }
+            i = i + 1
+        }
+        h
+    }
+}
+
+/// Hash impl for `i64`: byte-mixing hash (same algorithm as `hash_i32` for the low 32 bits,
+/// then folded with the high 32 bits).
+impl Hash for i64 {
+    fn hash(self: i64) -> i32 {
+        let mut h = 37
+        let mut v = self
+        if v < 0 {
+            v = 0 - v
+        }
+        let b0 = v - v / 256 * 256
+        h = h * 31 + b0
+        v = v / 256
+        let b1 = v - v / 256 * 256
+        h = h * 31 + b1
+        v = v / 256
+        let b2 = v - v / 256 * 256
+        h = h * 31 + b2
+        v = v / 256
+        let b3 = v - v / 256 * 256
+        h = h * 31 + b3
+        h
+    }
+}
+
+/// Hash impl for `bool`: 0 for false, 1 for true.
+impl Hash for bool {
+    fn hash(self: bool) -> i32 {
+        if self { 1 } else { 0 }
+    }
+}
+
+/// Hash impl for `char`: use the character value directly.
+impl Hash for char {
+    fn hash(self: char) -> i32 {
+        self
+    }
+}
+
+/// Hash impl for `f64`: use the low 32 bits of the bit pattern.
+impl Hash for f64 {
+    fn hash(self: f64) -> i32 {
+        let mut h = 37
+        let lo = f64_bits_lo(self)
+        h = h * 31 + lo
+        let hi = f64_bits_hi(self)
+        h = h * 31 + hi
+        if h < 0 {
+            h = 0 - h
+        }
+        h
+    }
+}
+
 /// Hashes an `i32` into a stable non-negative integer.
 pub fn hash_i32(value: i32) -> i32 {
     let mut h = 37

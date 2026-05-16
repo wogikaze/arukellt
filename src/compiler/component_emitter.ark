@@ -10167,14 +10167,6 @@ pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_
 	let interner = TypeInterner_new()
 	let mut color_type_idx = 0 - 1
 
-	// For P2 mode, pre-register the WASI module type so the component
-	// can declare it as a component-level import instead of embedding a stub.
-	let is_p2 = eq(clone(wasi_version), String_from("p2"))
-	let mut wasi_module_type_idx = 0 - 1
-	if is_p2 {
-		wasi_module_type_idx = type_interner_add(interner, comp_wasi_p2_module_type())
-	}
-
 	let mut ei = 0
 	while ei < export_count {
 		let idx = get_unchecked(export_indices, ei)
@@ -10217,104 +10209,48 @@ pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_
 		ei = ei + 1
 	}
 
-	if is_p2 {
-		// WASI Preview 2 native mode: declare the WASI module as a
-		// component-level import instead of embedding a stub, and
-		// wire it to the core module instantiation.
+	// Embed a WASI stub module to satisfy imports (same for P1 and P2).
 
-		// Component-level import: wasi_snapshot_preview1 as a core module
-		let import_name = String_from("wasi_snapshot_preview1")
-		let mut import_list: Vec<CompImport> = Vec_new_CompImport()
-		push(import_list, CompImport_new(import_name, COMP_SORT_CORE_MODULE(), wasi_module_type_idx))
-		comp_emit_import_section(out, import_list)
+	// Core module 0: a minimal WASI Preview 1 instance stub used to satisfy the
+	// unconditional imports emitted by the current core wasm emitter.
+	let wasi_stub_sec = ComponentWriter_new()
+	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 
-		// Alias: component import 0 -> core module 0
-		// Encoding: 0x01 (core module sort) 0x03 (from component import)
-		//           0x01 (source sort: core module) 0x00 (source index)
-		let alias_import_sec = ComponentWriter_new()
-		comp_emit_leb128_u(alias_import_sec, 1)
-		comp_emit_byte(alias_import_sec, COMP_SORT_CORE_MODULE())
-		comp_emit_byte(alias_import_sec, 0x03)
-		comp_emit_byte(alias_import_sec, 0x01)
-		comp_emit_leb128_u(alias_import_sec, 0)
-		comp_emit_section(out, COMP_SEC_ALIAS(), alias_import_sec)
+	// Core module 1: the compiled user module.
+	let core_module_sec = ComponentWriter_new()
+	comp_emit_bytes(core_module_sec, core_wasm)
+	comp_emit_section(out, COMP_SEC_CORE_MODULE(), core_module_sec)
 
-		// Core module: the compiled user module.
-		let core_module_sec = ComponentWriter_new()
-		comp_emit_bytes(core_module_sec, core_wasm)
-		comp_emit_section(out, COMP_SEC_CORE_MODULE(), core_module_sec)
+	// Instantiate the WASI stub, then instantiate the user module with the stub
+	// wired to the expected `wasi_snapshot_preview1` import namespace.
+	let core_instance_sec = ComponentWriter_new()
+	comp_emit_leb128_u(core_instance_sec, 2)
+	comp_emit_byte(core_instance_sec, 0x00)
+	comp_emit_leb128_u(core_instance_sec, 0)
+	comp_emit_leb128_u(core_instance_sec, 0)
+	comp_emit_byte(core_instance_sec, 0x00)
+	comp_emit_leb128_u(core_instance_sec, 1)
+	comp_emit_leb128_u(core_instance_sec, 1)
+	comp_emit_string(core_instance_sec, String_from("wasi_snapshot_preview1"))
+	comp_emit_byte(core_instance_sec, 0x12)
+	comp_emit_leb128_u(core_instance_sec, 0)
+	comp_emit_section(out, COMP_SEC_CORE_INSTANCE(), core_instance_sec)
 
-		// Instantiate the user module with the imported WASI module.
-		// 1 instantiation: module 0 (user), import wasi_snapshot_preview1 = aliased module 0
-		let core_instance_sec = ComponentWriter_new()
-		comp_emit_leb128_u(core_instance_sec, 1)
-		comp_emit_byte(core_instance_sec, 0x00)
-		comp_emit_leb128_u(core_instance_sec, 0)
-		comp_emit_leb128_u(core_instance_sec, 1)
-		comp_emit_string(core_instance_sec, String_from("wasi_snapshot_preview1"))
-		comp_emit_byte(core_instance_sec, 0x11)
-		comp_emit_leb128_u(core_instance_sec, 0)
-		comp_emit_section(out, COMP_SEC_CORE_INSTANCE(), core_instance_sec)
-
-		// Alias each core export from user instance 0 as a core function.
-		let alias_sec = ComponentWriter_new()
-		comp_emit_leb128_u(alias_sec, export_count)
-		let mut ai = 0
-		while ai < export_count {
-			let core_name = get_unchecked(export_names, ai)
-			comp_emit_byte(alias_sec, 0x00)
-			comp_emit_byte(alias_sec, 0x00)
-			comp_emit_byte(alias_sec, 0x01)
-			comp_emit_leb128_u(alias_sec, 0)
-			comp_emit_string(alias_sec, core_name)
-			ai = ai + 1
-		}
-		comp_emit_section(out, COMP_SEC_ALIAS(), alias_sec)
-	} else {
-		// Preview 1 mode: embed a WASI stub module to satisfy imports.
-
-		// Core module 0: a minimal WASI Preview 1 instance stub used to satisfy the
-		// unconditional imports emitted by the current core wasm emitter.
-		let wasi_stub_sec = ComponentWriter_new()
-		comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
-		comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
-
-		// Core module 1: the compiled user module.
-		let core_module_sec = ComponentWriter_new()
-		comp_emit_bytes(core_module_sec, core_wasm)
-		comp_emit_section(out, COMP_SEC_CORE_MODULE(), core_module_sec)
-
-		// Instantiate the WASI stub, then instantiate the user module with the stub
-		// wired to the expected `wasi_snapshot_preview1` import namespace.
-		let core_instance_sec = ComponentWriter_new()
-		comp_emit_leb128_u(core_instance_sec, 2)
-		comp_emit_byte(core_instance_sec, 0x00)
-		comp_emit_leb128_u(core_instance_sec, 0)
-		comp_emit_leb128_u(core_instance_sec, 0)
-		comp_emit_byte(core_instance_sec, 0x00)
-		comp_emit_leb128_u(core_instance_sec, 1)
-		comp_emit_leb128_u(core_instance_sec, 1)
-		comp_emit_string(core_instance_sec, String_from("wasi_snapshot_preview1"))
-		comp_emit_byte(core_instance_sec, 0x12)
-		comp_emit_leb128_u(core_instance_sec, 0)
-		comp_emit_section(out, COMP_SEC_CORE_INSTANCE(), core_instance_sec)
-
-		// Alias each core export from user instance 1 as a core function.
-		let alias_sec = ComponentWriter_new()
-		comp_emit_leb128_u(alias_sec, export_count)
-		let mut ai = 0
-		while ai < export_count {
-			let core_name = get_unchecked(export_names, ai)
-			comp_emit_byte(alias_sec, 0x00)
-			comp_emit_byte(alias_sec, 0x00)
-			comp_emit_byte(alias_sec, 0x01)
-			comp_emit_leb128_u(alias_sec, 1)
-			comp_emit_string(alias_sec, core_name)
-			ai = ai + 1
-		}
-		comp_emit_section(out, COMP_SEC_ALIAS(), alias_sec)
+	// Alias each core export from user instance 1 as a core function.
+	let alias_sec = ComponentWriter_new()
+	comp_emit_leb128_u(alias_sec, export_count)
+	let mut ai = 0
+	while ai < export_count {
+		let core_name = get_unchecked(export_names, ai)
+		comp_emit_byte(alias_sec, 0x00)
+		comp_emit_byte(alias_sec, 0x00)
+		comp_emit_byte(alias_sec, 0x01)
+		comp_emit_leb128_u(alias_sec, 1)
+		comp_emit_string(alias_sec, core_name)
+		ai = ai + 1
 	}
-
+	comp_emit_section(out, COMP_SEC_ALIAS(), alias_sec)
 	// Emit component type section from the interner.
 	type_interner_emit_section(out, interner)
 

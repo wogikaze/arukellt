@@ -1,0 +1,38 @@
+// Fixture: host_capability_contract.ark
+// Verifies the host filesystem capability contract:
+//   - is_readable_file (probe) vs is_file / is_dir boundary
+//   - read_dir / metadata return unsupported errors
+//   - typed FsError from read_to_string, write_string, write_bytes
+use std::host::fs
+use std::host::stdio
+
+fn main() {
+    // ── is_readable_file (probe, same as old exists) ──
+    // present.txt exists in the fixture dir
+    let probe_present = fs::is_readable_file("tests/fixtures/stdlib_fs/present.txt")
+    stdio::println(bool_to_string(probe_present))
+
+    // missing.txt does not exist
+    let probe_missing = fs::is_readable_file("tests/fixtures/stdlib_fs/missing.txt")
+    stdio::println(bool_to_string(probe_missing))
+
+    // ── is_file / is_dir (probe based) ──
+    // is_file is equivalent to is_readable_file on current targets
+    let f = fs::is_file("tests/fixtures/stdlib_fs/present.txt")
+    stdio::println(bool_to_string(f))
+    // is_dir always false on current targets
+    let d = fs::is_dir("tests/fixtures/stdlib_fs")
+    stdio::println(bool_to_string(d))
+
+    // ── read_dir returns unsupported error ──
+    match fs::read_dir("tests/fixtures/stdlib_fs") {
+        Result::Ok(_) => stdio::println("read_dir-unexpected-ok"),
+        Result::Err(e) => stdio::println(concat("read_dir:", fs::fs_error_message(e))),
+    }
+
+    // ── metadata returns unsupported error ──
+    match fs::metadata("tests/fixtures/stdlib_fs/present.txt") {
+        Result::Ok(_) => stdio::println("metadata-unexpected-ok"),
+        Result::Err(e) => stdio::println(concat("metadata:", fs::fs_error_message(e))),
+    }
+}

@@ -1,0 +1,31 @@
+// Regression fixture for T3 dead function elimination safety (#611).
+//
+// This fixture verifies that exported functions not called from main
+// survive reachability pruning, while truly dead functions are removed.
+//
+// Layout:
+//   pub fn exported_helper(x: i32) -> i32  -- exported, NOT called from main
+//     calls private fn helper_double(y: i32) -> i32  -- transitive callee, must survive
+//   fn truly_dead_never_called() -> i32  -- not exported, not called, should be pruned
+//   fn main() {}  -- entry root
+//
+// Expected behavior:
+//   - `exported_helper` is preserved (WIT export root)
+//   - `helper_double` is preserved (transitive callee of export root)
+//   - `truly_dead_never_called` is pruned (no root path)
+//   - Compilation succeeds with no missing-function errors
+
+pub fn exported_helper(x: i32) -> i32 {
+    helper_double(x)
+}
+
+fn helper_double(y: i32) -> i32 {
+    y * 2
+}
+
+fn truly_dead_never_called() -> i32 {
+    42
+}
+
+fn main() {
+}

@@ -1,6 +1,75 @@
 /// Comparison utilities for core scalar values.
 use std::core
 
+/// Trait for types that support equality comparison.
+///
+/// Implementors must provide `eq` which returns `true` when two values are equal.
+/// This is the foundation for trait-based equality throughout the stdlib.
+///
+/// ## Protocol catalog: `Eq`
+///
+/// | Type    | Status | Notes                            |
+/// |---------|--------|----------------------------------|
+/// | i32     | impl   | Built-in `==` operator           |
+/// | i64     | impl   | Built-in `==` operator           |
+/// | bool    | impl   | Built-in `==` operator           |
+/// | String  | impl   | Via `prelude::eq`                |
+/// | f64     | impl   | Built-in `==` operator           |
+/// | char    | impl   | Built-in `==` operator           |
+/// | Vec<T>  | future | Requires generic Eq bound        |
+/// | HashMap | future | Requires key Eq bound            |
+///
+/// ## Migration order
+///
+/// 1. Define `Eq` trait and provide impls for all built-in scalars (this module).
+/// 2. Add Eq-bound generic `contains` / `find` collections helpers.
+/// 3. Replace ad-hoc `==` comparisons in stdlib algorithms with `eq()` calls.
+trait Eq {
+    fn eq(self: Eq, other: Eq) -> bool
+}
+
+/// Built-in `i32` equality via the `==` operator.
+impl Eq for i32 {
+    fn eq(self: i32, other: i32) -> bool {
+        self == other
+    }
+}
+
+/// Built-in `i64` equality via the `==` operator.
+impl Eq for i64 {
+    fn eq(self: i64, other: i64) -> bool {
+        self == other
+    }
+}
+
+/// Built-in `String` equality via the prelude `eq` function.
+impl Eq for String {
+    fn eq(self: String, other: String) -> bool {
+        eq(self, other)
+    }
+}
+
+/// Built-in `bool` equality via the `==` operator.
+impl Eq for bool {
+    fn eq(self: bool, other: bool) -> bool {
+        self == other
+    }
+}
+
+/// Built-in `char` equality via the `==` operator.
+impl Eq for char {
+    fn eq(self: char, other: char) -> bool {
+        self == other
+    }
+}
+
+/// Built-in `f64` equality via the `==` operator.
+impl Eq for f64 {
+    fn eq(self: f64, other: f64) -> bool {
+        self == other
+    }
+}
+
 /// Returns the ordering relationship between two `i32` values.
 pub fn cmp(a: i32, b: i32) -> Ordering {
     if a < b {

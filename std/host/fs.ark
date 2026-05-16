@@ -4,19 +4,27 @@
 //! `--dir`) on every call. Pure path manipulation lives in `std::path`; a
 //! smaller stable-shaped bridge over the same intrinsics lives in `std::fs`.
 //!
-//! This module is **not** a complete filesystem facade. There is no directory
-//! listing, metadata, or streaming I/O surface in-tree yet, and the `fd_*`
-//! helpers are explicitly experimental and currently T1 (WASI P1) only.
+//! This module is **not** a complete filesystem facade. Directory listing,
+//! structured metadata, and streaming I/O are not yet supported at the
+//! intrinsic level. The `fd_*` helpers are explicitly experimental and
+//! currently T1 (WASI P1) only.
 //!
-//! Honesty caveats (see `docs/stdlib/604-contract-honesty-gap-ledger.md`):
+//! ## Honesty caveats (see `docs/stdlib/604-contract-honesty-gap-ledger.md`)
 //!
-//! - `exists(path)` is a **read probe / readable-file check**, not a general
-//!   path-existence query. It is implemented on top of
-//!   `__intrinsic_fs_read_file`, so directories, missing paths, and any other
-//!   unreadable paths return `false`. True path semantics are tracked under
-//!   issue #605.
+//! - `is_readable_file(path)` (formerly `exists`) is a **read probe /
+//!   readable-file check**, not a general path-existence query. It is
+//!   implemented on top of `__intrinsic_fs_read_file`, so directories,
+//!   missing paths, and any other unreadable paths return `false`.
+//! - `read_dir` and `metadata` return errors on all current targets because
+//!   the WASI P1/P2 intrinsic layer does not yet expose directory iteration
+//!   or stat-based metadata. These are API contracts awaiting backend support.
+//! - `is_file` / `is_dir` are backed by the same read probe as
+//!   `is_readable_file` and do **not** distinguish file types.
 //! - `fd_seek`, `fd_tell`, and `fd_fdstat_errno` operate on raw WASI P1 file
 //!   descriptors and are experimental.
+//! - **T1** (WASI P1) and **T3** (WASI P2) both provide the three base intrinsics
+//!   (`read_file`, `write_file`, `write_bytes`). Directory/metadata capabilities
+//!   are future on both targets.
 
 pub enum FsError {
     NotFound(String),
@@ -47,20 +55,42 @@ fn classify_fs_error(raw: String, path: String, op: String) -> FsError {
     FsError::IoError(concat(concat(op, ": "), raw))
 }
 
+// ─── Whole-file read / write (T1 + T3) ─────────────────────────────────────
+
 /// Reads a UTF-8 text file into memory.
-pub fn read_to_string(path: String) -> Result<String, String> {
-    __intrinsic_fs_read_file(path)
+///
+/// Returns `FsError` on failure, classifying the raw intrinsic error into
+/// `NotFound`, `PermissionDenied`, `Utf8Error`, or `IoError`.
+pub fn read_to_string(path: String) -> Result<String, FsError> {
+    match __intrinsic_fs_read_file(path) {
+        Result::Ok(s) => Result::Ok(s),
+        Result::Err(raw) => Result::Err(classify_fs_error(raw, path, "read_to_string")),
+    }
 }
 
 /// Writes a UTF-8 string to a file, replacing any existing contents.
-pub fn write_string(path: String, contents: String) -> Result<(), String> {
-    __intrinsic_fs_write_file(path, contents)
+///
+/// Returns `FsError` on failure, classifying the raw intrinsic error into
+/// `NotFound`, `PermissionDenied`, `Utf8Error`, or `IoError`.
+pub fn write_string(path: String, contents: String) -> Result<(), FsError> {
+    match __intrinsic_fs_write_file(path, contents) {
+        Result::Ok(_) => Result::Ok(()),
+        Result::Err(raw) => Result::Err(classify_fs_error(raw, path, "write_string")),
+    }
 }
 
 /// Writes a byte array to a file, replacing any existing contents.
-pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
-    __intrinsic_fs_write_bytes(path, bytes)
+///
+/// Returns `FsError` on failure, classifying the raw intrinsic error into
+/// `NotFound`, `PermissionDenied`, `Utf8Error`, or `IoError`.
+pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), FsError> {
+    match __intrinsic_fs_write_bytes(path, bytes) {
+        Result::Ok(_) => Result::Ok(()),
+        Result::Err(raw) => Result::Err(classify_fs_error(raw, path, "write_bytes")),
+    }
 }
+
+// ─── Path predicates (read-probe based) ────────────────────────────────────
 
 /// Read-probe semantics — **not** a general path-existence query.
 ///
@@ -78,16 +108,73 @@ pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
 ///   regular file.
 /// - For non-UTF-8 files this returns `false` even when the path does exist.
 ///
-/// True path-existence semantics (an lstat/access-style probe that cleanly
-/// separates *missing* from *unreadable*) are tracked under issue #605. Until
-/// that lands, `exists` is intentionally kept as a thin readability probe and
-/// must not be used as a general "does this path exist?" predicate.
-pub fn exists(path: String) -> bool {
+/// This is the renamed replacement for the old `exists` (which remains as a
+/// deprecated wrapper for backward compatibility). The new name makes it clear
+/// that only *readable regular files* are detected.
+pub fn is_readable_file(path: String) -> bool {
     match __intrinsic_fs_read_file(path) {
         Result::Ok(_) => true,
         Result::Err(_) => false,
     }
 }
+
+/// @deprecated Use `is_readable_file` instead. This function has the same
+/// read-probe semantics — see `is_readable_file` for details.
+pub fn exists(path: String) -> bool {
+    is_readable_file(path)
+}
+
+/// Returns `true` when the path is a readable file (same semantics as
+/// `is_readable_file`). This function does **not** distinguish regular files
+/// from other types; it reports whether the path can be read as UTF-8 text.
+///
+/// On targets without metadata intrinsics, this is equivalent to
+/// `is_readable_file`. True file-type detection is future work.
+pub fn is_file(path: String) -> bool {
+    is_readable_file(path)
+}
+
+/// Returns `false` unconditionally on current targets.
+///
+/// The current intrinsic layer does not expose directory-type detection.
+/// A `true` return here would require a WASI `path_filestat_get` or similar
+/// metadata intrinsic, which is not yet available.
+pub fn is_dir(_path: String) -> bool {
+    false
+}
+
+// ─── Directory / metadata (stubs, not yet supported) ───────────────────────
+
+/// List the entries in a directory.
+///
+/// **Not yet supported.** This function always returns
+/// `Err(FsError::IoError("directory listing not yet supported"))` because the
+/// current WASI intrinsic layer does not expose directory iteration. The API
+/// contract is established here so that callers can write portable code that
+/// will work once backend support lands.
+pub fn read_dir(path: String) -> Result<Vec<String>, FsError> {
+    Result::Err(FsError::IoError(concat("directory listing not yet supported: ", path)))
+}
+
+/// Placeholder for future structured metadata.
+pub struct FsMetadata {
+    pub len: i64,
+    pub is_file: bool,
+    pub is_dir: bool,
+}
+
+/// Query file metadata for a given path.
+///
+/// **Not yet supported.** This function always returns
+/// `Err(FsError::IoError("metadata not yet supported"))` because the current
+/// WASI intrinsic layer does not expose `path_filestat_get`. The API contract
+/// is established here so that callers can write portable code that will work
+/// once backend support lands.
+pub fn metadata(path: String) -> Result<FsMetadata, FsError> {
+    Result::Err(FsError::IoError(concat("metadata not yet supported: ", path)))
+}
+
+// ─── Raw fd helpers (experimental, T1 only) ───────────────────────────────
 
 /// Seeks within an open file descriptor.
 /// `whence`: 0 = SET (from start), 1 = CUR (from current), 2 = END (from end).

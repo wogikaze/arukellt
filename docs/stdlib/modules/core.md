@@ -94,7 +94,7 @@ _No module doc comment yet. Add `//!` comments in the source file to describe th
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `hash_i32` | `(i32) -> i32` | `stable` | Small hashing helpers used by the current collection implementations. |
+| `hash_i32` | `(i32) -> i32` | `stable` | Hashes an i32 into a stable non-negative integer. |
 | `hash_string` | `(String) -> i32` | `stable` | Hashes a string into a stable non-negative integer. |
 | `combine` | `(i32, i32) -> i32` | `stable` | - |
 | `hash_combine` | `(i32, i32) -> i32` | `stable` | - |

@@ -1,0 +1,37 @@
+// Fixture: host_module_contract.ark
+// Verifies the std::host module contracts:
+//   - clock: monotonic_now and now_ms return non-negative values
+//   - env: args and var are available
+//   - process: exit/abort are callable (no direct test of side effects)
+use std::host::clock
+use std::host::env
+use std::host::stdio
+
+fn main() {
+    // ── Host clock contract ──
+    let t_ns = clock::monotonic_now()
+    assert(t_ns >= 0)
+    let t_ms = clock::now_ms()
+    assert(t_ms >= 0)
+    if t_ns > 0 {
+        stdio::println("clock:non-zero-ns")
+    } else {
+        stdio::println("clock:zero-ns")
+    }
+    if t_ms > 0 {
+        stdio::println("clock:non-zero-ms")
+    } else {
+        stdio::println("clock:zero-ms")
+    }
+
+    // ── Host env contract ──
+    let ac = env::arg_count()
+    assert(ac >= 0)
+    stdio::println(concat("env:args:", i32_to_string(ac)))
+
+    // var may return None on targets without environ support
+    match env::var("PATH") {
+        Option::Some(_) => stdio::println("env:path-set"),
+        None => stdio::println("env:path-unset"),
+    }
+}

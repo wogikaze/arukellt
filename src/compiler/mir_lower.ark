@@ -110,6 +110,83 @@ fn mono_instance_mangled_at(instances: Vec<MonoInstance>, fn_name: String, ordin
     String_from("")
 }
 
+// ── Pre-indexed mono-instance lookups ──────────────────────────────────────
+// Build an index of fn_name → list of (mangled_name, mono_index) once,
+// avoiding repeated O(N*M) scans over mono_instances.
+struct MonoIndex {
+    names: Vec<String>,
+    counts: Vec<i32>,
+    mangled_names: Vec<String>,
+}
+
+fn build_mono_index(instances: Vec<MonoInstance>) -> MonoIndex {
+    let count = len(instances)
+    let mut names = Vec_new_String()
+    let mut counts = Vec_new_i32()
+    let mut mangled_names = Vec_new_String()
+    let mut i = 0
+    while i < count {
+        let mi = get_unchecked(instances, i)
+        let mut is_marker = false
+        if len(mi.type_args) > 0 {
+            let marker_ty = get_unchecked(mi.type_args, 0)
+            is_marker = marker_ty.tag < 0
+        }
+        if !is_marker {
+            let fn_name = clone(mi.fn_name)
+            let mut found_at = 0 - 1
+            let mut si = 0
+            while si < len(names) {
+                if eq(clone(get_unchecked(names, si)), clone(fn_name)) {
+                    found_at = si
+                }
+                si = si + 1
+            }
+            if found_at >= 0 {
+                let cur = get_unchecked(counts, found_at)
+                set(counts, found_at, cur + 1)
+                push(mangled_names, clone(mi.mangled_name))
+            } else {
+                push(names, fn_name)
+                push(counts, 1)
+                push(mangled_names, clone(mi.mangled_name))
+            }
+        }
+        i = i + 1
+    }
+    MonoIndex { names: names, counts: counts, mangled_names: mangled_names }
+}
+
+fn mono_index_count(idx: MonoIndex, fn_name: String) -> i32 {
+    let count = len(idx.names)
+    let mut i = 0
+    while i < count {
+        if eq(clone(get_unchecked(idx.names, i)), clone(fn_name)) {
+            return get_unchecked(idx.counts, i)
+        }
+        i = i + 1
+    }
+    0
+}
+
+fn mono_index_mangled_at(idx: MonoIndex, fn_name: String, ordinal: i32) -> String {
+    let count = len(idx.names)
+    let mut name_start = 0
+    let mut i = 0
+    while i < count {
+        if eq(clone(get_unchecked(idx.names, i)), clone(fn_name)) {
+            let idx_count = get_unchecked(idx.counts, i)
+            if ordinal < idx_count {
+                return clone(get_unchecked(idx.mangled_names, name_start + ordinal))
+            }
+            return String_from("")
+        }
+        name_start = name_start + get_unchecked(idx.counts, i)
+        i = i + 1
+    }
+    String_from("")
+}
+
 fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32) -> String {
     let count = len(ctx.mono_call_starts)
     let mut i = 0
@@ -3919,7 +3996,7 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     lower_expr(ctx, node)
 }
 
-fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_enabled: bool, extra_roots: Vec<String>) -> MirModule {
+fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_enabled: bool) -> MirModule {
     let m = mir_ir::MirModule_new()
     let decl_count = len(decls)
     let mut fn_names = Vec_new_String()
@@ -3927,6 +4004,8 @@ fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_e
     let mut fn_return_type_names = Vec_new_String()
     let mut fn_index = 0
     let typed_fn_count = len(check_result.typed_fns)
+    // Pre-index mono instances to avoid O(N*M) scans
+    let midx = build_mono_index(check_result.mono_instances)
     let mut mir_tr = MIR_LOWER_TRACE_FORCE()
     if mir_tr == 0 {
         mir_tr = MIR_LOWER_TRACE()
@@ -3998,11 +4077,11 @@ fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_e
                 push(fn_names, clone(decl.text))
                 push(fn_return_vts, rvt)
                 push(fn_return_type_names, clone(rtn))
-                let mono_count = mono_instance_count_for(check_result.mono_instances, clone(decl.text))
+                let mono_count = mono_index_count(midx, clone(decl.text))
                 if mono_count > 0 {
                     let mut mono_i = 0
                     while mono_i < mono_count {
-                        let mono_name = mono_instance_mangled_at(check_result.mono_instances, clone(decl.text), mono_i)
+                        let mono_name = mono_index_mangled_at(midx, clone(decl.text), mono_i)
                         push(fn_names, mono_safe_name(mono_name))
                         push(fn_return_vts, rvt)
                         push(fn_return_type_names, clone(rtn))
@@ -4086,11 +4165,11 @@ fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_e
                 }
                 push(fn_return_vts, mrvt)
                 push(fn_return_type_names, mrtn)
-                let method_mono_count = mono_instance_count_for(check_result.mono_instances, clone(mangled))
+                let method_mono_count = mono_index_count(midx, clone(mangled))
                 if method_mono_count > 0 {
                     let mut method_mono_i = 0
                     while method_mono_i < method_mono_count {
-                        let method_mono_name = mono_instance_mangled_at(check_result.mono_instances, clone(mangled), method_mono_i)
+                        let method_mono_name = mono_index_mangled_at(midx, clone(mangled), method_mono_i)
                         push(fn_names, mono_safe_name(method_mono_name))
                         push(fn_return_vts, mrvt)
                         push(fn_return_type_names, clone(mrtn))
@@ -4238,13 +4317,13 @@ fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_e
         if decl.kind == mir_type_info::NK_FN_DECL() {
             let skip_shadow_main = eq(clone(decl.text), String_from("main")) && i != entry_main_decl_index
             if !skip_shadow_main {
-                let mono_emit_count_raw = mono_instance_count_for(check_result.mono_instances, clone(decl.text))
+                let mono_emit_count_raw = mono_index_count(midx, clone(decl.text))
                 let mono_emit_count = mono_emit_count_raw + 1
                 let mut mono_emit_i = 0
                 while mono_emit_i < mono_emit_count {
                     let mut emit_fn_name = clone(decl.text)
                     if mono_emit_i > 0 {
-                        emit_fn_name = mono_safe_name(mono_instance_mangled_at(check_result.mono_instances, clone(decl.text), mono_emit_i - 1))
+                        emit_fn_name = mono_safe_name(mono_index_mangled_at(midx, clone(decl.text), mono_emit_i - 1))
                     }
             let tf = get_unchecked(check_result.typed_fns, fn_idx)
             let mf = mir_ir::MirFunction_new(emit_fn_name)
@@ -4341,13 +4420,13 @@ fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_e
             while mi < method_count {
                 let method = get_unchecked(decl.children, mi)
                 let mangled = concat(clone(struct_name), concat(String_from("::"), clone(method.text)))
-                let method_mono_emit_count_raw = mono_instance_count_for(check_result.mono_instances, clone(mangled))
+                let method_mono_emit_count_raw = mono_index_count(midx, clone(mangled))
                 let method_mono_emit_count = method_mono_emit_count_raw + 1
                 let mut method_mono_emit_i = 0
                 while method_mono_emit_i < method_mono_emit_count {
                 let mut emit_method_name = clone(mangled)
                 if method_mono_emit_i > 0 {
-                    emit_method_name = mono_safe_name(mono_instance_mangled_at(check_result.mono_instances, clone(mangled), method_mono_emit_i - 1))
+                    emit_method_name = mono_safe_name(mono_index_mangled_at(midx, clone(mangled), method_mono_emit_i - 1))
                 }
                 let mf = mir_ir::MirFunction_new(emit_method_name)
                 ctx.func = mf
@@ -4427,7 +4506,7 @@ fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_e
         i = i + 1
     }
     if prune_enabled {
-        let _mono_pruned = mir_prune_unreachable_with_roots(ctx.module, clone(extra_roots))
+        let _mono_pruned = mir_prune_unreachable(ctx.module)
     }
     ctx.module
 }
@@ -4436,22 +4515,14 @@ fn mir_prune_unreachable(m: MirModule) -> i32 {
     mir_prune_unreachable_with_roots(m, Vec_new_String())
 }
 
+pub fn mir_prune_unreachable_for_t3(m: MirModule, export_names: Vec<String>) -> i32 {
+    mir_prune_unreachable_with_roots(m, export_names)
+}
+
 pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
     lower_to_mir_impl(decls, check_result, true)
 }
 
 pub fn lower_to_mir_no_prune(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
     lower_to_mir_impl(decls, check_result, false)
-}
-
-pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult, extra_roots: Vec<String>) -> MirModule {
-    lower_to_mir_impl(decls, check_result, true, extra_roots)
-}
-
-pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
-    lower_to_mir_impl(decls, check_result, true, Vec_new_String())
-}
-
-pub fn lower_to_mir_no_prune(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
-    lower_to_mir_impl(decls, check_result, false, Vec_new_String())
 }

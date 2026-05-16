@@ -19,7 +19,6 @@ graph LR
   I474["474 Async component support (v5)"]
   I475["475 arukellt component subcommand"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
-  I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I529["529 100% selfhost transition plan"]
   I549["549 Release: Extension Activation Tests"]
   I553["553 Release: Binary Distribution"]
@@ -33,7 +32,7 @@ graph LR
   I606["606 Stdlib Baseline: Structured Data and Semantics Baseline"]
   I607["607 Stdlib Baseline: Collections Hash Hardening"]
   I610["610 Optimization Uplift: Lowering Bottleneck Reduction"]
-  I611["611 Optimization Uplift: T3-Safe Runtime Unlock"]
+  I612["612 Optimization Uplift: Binary Size Squeeze"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I625["625 529 Phase 4: Dual-Run Period (SAFETY)"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
@@ -42,7 +41,6 @@ graph LR
   I617["617 Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)"]
   I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
   I608["608 608-stdlib-baseline-docs-bench"]
-  I612["612 Optimization Uplift: Binary Size Squeeze"]
   I626["626 529 Phase 6/A: IDE-Ready Frontend"]
   I576["576 576 — Phase 7: Delete `crates/ark-resolve`"]
   I627["627 529 Phase 6/B: Analysis API"]
@@ -62,7 +60,6 @@ graph LR
   I605 --> I608
   I606 --> I608
   I607 --> I608
-  I611 --> I612
   I625 --> I626
   I575 --> I576
   I626 --> I627
@@ -106,7 +103,6 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: none
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
-- **512** depends on: 504, 495; blocks: none
 - **529** depends on: none; blocks: 617
 - **549** depends on: none; blocks: none
 - **553** depends on: none; blocks: none
@@ -120,7 +116,7 @@ graph LR
 - **606** depends on: 604; blocks: 608
 - **607** depends on: 604; blocks: 608
 - **610** depends on: 609; blocks: none
-- **611** depends on: 609; blocks: 612
+- **612** depends on: 609, 611; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **625** depends on: 594; blocks: 626
 - **63** depends on: 074, 137; blocks: none
@@ -129,7 +125,6 @@ graph LR
 - **617** depends on: 529; blocks: none
 - **575** depends on: 564, 574; blocks: 576, 579, 581, 582, 630
 - **608** depends on: 604, 605, 606, 607; blocks: none
-- **612** depends on: 609, 611; blocks: none
 - **626** depends on: 625; blocks: 627
 - **576** depends on: 564, 575; blocks: 577, 579, 582, 630
 - **627** depends on: 626; blocks: 628

@@ -114,6 +114,8 @@ component-compile:component/export_variant_renamed.ark
 component-compile:component/export_variant_roundtrip.ark
 component-compile:component/export_variant_roundtrip_renamed.ark
 component-compile:component/multi_export.ark
+# Issue #611 — T3 dead function elimination safety with exported roots
+component-compile:component/export_dead_fn_elim.ark
 compile-error:component/export_enum_color_bad_signature.ark
 compile-error:component/export_enum_color_bad_shape.ark
 compile-error:component/export_enum_color_bad_shape_order.ark
@@ -448,6 +450,9 @@ run:stdlib_core/to_string_bool.ark
 run:stdlib_core/to_string_f64.ark
 run:stdlib_core/to_string_i32.ark
 run:stdlib_core/to_string_i64.ark
+run:stdlib_trait/display_trait.ark
+run:stdlib_trait/eq_trait.ark
+run:stdlib_trait/hash_trait.ark
 run:stdlib_csv/csv_basic.ark
 run:stdlib_csv/csv_parse_row.ark
 run:stdlib_env/env_basic.ark
@@ -678,6 +683,9 @@ t3-compile:for_loops/for_range.ark
 t3-compile:for_loops/for_sum.ark
 t3-compile:for_loops/for_values.ark
 t3-compile:from_trait/from_auto_convert.ark
+t3-compile:stdlib_trait/display_trait.ark
+t3-compile:stdlib_trait/eq_trait.ark
+t3-compile:stdlib_trait/hash_trait.ark
 t3-compile:functions/basic_fn.ark
 t3-compile:functions/closure_basic.ark
 t3-compile:functions/closure_capture.ark
@@ -839,6 +847,9 @@ t3-run:diagnostics/nested_generic.ark
 t3-run:diagnostics/operator_overload.ark
 t3-run:diagnostics/trait_def.ark
 t3-run:display_trait/display_struct.ark
+t3-run:stdlib_trait/display_trait.ark
+t3-run:stdlib_trait/eq_trait.ark
+t3-run:stdlib_trait/hash_trait.ark
 t3-run:enums/enum_struct_variant.ark
 t3-run:enums/exhaustive_match.ark
 t3-run:enums/nested_enum.ark
@@ -1023,3 +1034,12 @@ component-compile:selfhost/component_emit_smoke.ark
 t3-run:stdlib_csv/csv_perf.ark
 t3-run:stdlib_json/json_perf_decode.ark
 t3-run:stdlib_json/json_perf_encode.ark
+run:stdlib_fs/host_capability_contract.ark
+t3-run:stdlib_fs/host_capability_contract.ark
+module-run:stdlib_fs/host_capability_contract.ark
+run:stdlib_host/host_module_contract.ark
+t3-run:stdlib_host/host_module_contract.ark
+run:stdlib_trait/display_trait.ark
+run:stdlib_trait/eq_trait.ark
+run:stdlib_trait/hash_trait.ark
+run:stdlib_toml/toml_parse_invalid_array_of_tables.ark

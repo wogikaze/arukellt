@@ -1,0 +1,6 @@
+true
+false
+true
+false
+read_dir:directory listing not yet supported: tests/fixtures/stdlib_fs
+metadata:metadata not yet supported: tests/fixtures/stdlib_fs/present.txt

@@ -1,0 +1,46 @@
+use std::core::cmp
+use std::host::stdio
+
+/// User-defined Eq trait demonstrating the trait-based equality protocol.
+/// This mirrors the `Eq` trait defined in `std::core::cmp`.
+trait Eq {
+    fn eq(self: Eq, other: Eq) -> bool
+}
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Eq for Point {
+    fn eq(self: Point, other: Point) -> bool {
+        self.x == other.x && self.y == other.y
+    }
+}
+
+/// Generic function with Eq trait bound (pass-through).
+fn check_eq<T: Eq>(a: T, b: T) -> T {
+    a
+}
+
+fn main() {
+    let p1 = Point { x: 1, y: 2 }
+    let p2 = Point { x: 1, y: 2 }
+    let p3 = Point { x: 3, y: 4 }
+
+    // Direct trait method call via fn_sig lookup
+    stdio::println(bool_to_string(eq(p1, p2)))
+    stdio::println(bool_to_string(eq(p1, p3)))
+
+    // Generic function with Eq trait bound
+    let p = check_eq(p1, p2)
+    stdio::println(bool_to_string(eq(p, p2)))
+    stdio::println(bool_to_string(eq(p, p3)))
+
+    // Re-use stdlib ordering function alongside the trait
+    match cmp::cmp(1, 2) {
+        Ordering::Less => stdio::println("less"),
+        Ordering::Equal => stdio::println("equal"),
+        Ordering::Greater => stdio::println("greater"),
+    }
+}
