@@ -89,3 +89,25 @@ Close-candidate status: not runnable in the current environment because the VS C
 Updated close-candidate status: still `no`. This issue requires manual
 live-editor checks in an actual VS Code session, including diagnostics and
 completion/hover/definition behavior after installing the VSIX.
+
+## Recheck — 2026-05-16
+
+- VSIX package exists: `extensions/arukellt-all-in-one/arukellt-all-in-one-0.0.1.vsix`
+  (327 files, 485.26 KB). Build and packaging confirmed PASS.
+- Runtime/CI blockers:
+  - `xvfb-run -a npm test`: cannot run in this WSL environment because the
+    VS Code test harness displays an interactive WSL detection prompt
+    ("To use Visual Studio Code with the Windows Subsystem for Linux...").
+  - `npm test` (without xvfb): shows 9 assertion failures (Debug Launch, Go to
+    Definition range, Hover content) — some or all of these may be environment
+    related.
+- All four acceptance items require manual verification in a native VS Code
+  session (outside WSL) with the VSIX installed:
+  1. VSIX installs and activates without errors
+  2. LSP connects and shows "Ready" in language status
+  3. Diagnostics appear on save for a file with type errors
+  4. Completion, hover, and go-to-definition work in live editor
+
+Updated close-candidate status: still `no`. This is a fully manual verification
+issue that cannot be closed from this environment. The VSIX is confirmed buildable
+and packagable; the remaining checks require interactive VS Code sessions.

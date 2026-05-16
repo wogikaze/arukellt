@@ -1,10 +1,10 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 595
 Track: selfhost-frontend / language-design
-Orchestration class: design-ready
+Orchestration class: implementation-ready
 Depends on: 629
 Parent: None
 In scope: 

@@ -4,7 +4,7 @@ Created: 2026-04-22
 Updated: 2026-05-16
 ID: 598
 Track: selfhost-frontend / language-design
-Orchestration class: design-ready
+Orchestration class: implementation-ready
 Depends on: —
 Parent: 588
 Initial restriction: array/Vec-style construction only. One generator, one optional filter.

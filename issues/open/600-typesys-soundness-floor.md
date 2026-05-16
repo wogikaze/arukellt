@@ -4,7 +4,7 @@ Created: 2026-04-22
 Updated: 2026-05-16
 ID: 600
 Track: selfhost / typechecker
-Orchestration class: design-ready
+Orchestration class: implementation-ready
 Depends on: —
 Parent: 589
 Close when: occurs check is implemented, function boundary enforcement is active,

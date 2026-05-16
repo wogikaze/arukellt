@@ -204,11 +204,11 @@ Do not close it just because one API or one diagnostic path was cleaned up.
 
 **Completion criteria status:**
 - [ ] 1. Runtime recoverable failures have typed `Result<T, E>` contracts — #613 (DONE), partially satisfied
-- [ ] 2. Compiler diagnostics are structured before rendering — #614 (in progress)
-- [ ] 3. Panic/ICE behavior reserved for internal bugs — #615 (DONE)
+- [x] 2. Compiler diagnostics are structured before rendering — #614 (DONE)
+- [x] 3. Panic/ICE behavior reserved for internal bugs — #615 (DONE)
 - [ ] 4. Negative fixtures prove user errors ≠ internal bugs
 - [ ] 5. Docs explain Option, Result, diagnostics, panic as separate mechanisms
-- [x] 6. Follow-up subissues exist for each lane — #613 (DONE), #614 (WIP), #615 (DONE)
+- [x] 6. Follow-up subissues exist for each lane — #613 (DONE), #614 (DONE), #615 (DONE)
 
 **Blocks unblocked:** #614 is now implementation-ready with structured diagnostic model in place.
 **Close gate:** Not yet — #614 must close first, then criteria 1/4/5 need evidence.

@@ -57,6 +57,21 @@ docs/release-checklist.md — Extension distribution section
 
 Updated close-candidate status: still `no` until the exact `xvfb-run -a npm test` gate exits 0 in a correctly configured local or CI Xvfb environment.
 
+## Recheck — 2026-05-16
+
+- `npm ci && npm run build` in `extensions/arukellt-all-in-one/`: PASS.
+  - VSIX generated: `extensions/arukellt-all-in-one/arukellt-all-in-one-0.0.1.vsix` (327 files, 485.26 KB).
+- `/tmp/.X11-unix` ownership issue RESOLVED: `xvfb-run -a true` now exits 0 (socket owned by `wogikaze`, not `root`).
+- `npm test` (without `xvfb-run`): FAILS with 9 test failures (exit code 1).
+  - Failures include Debug Launch (#255), Go to Definition range assertions, and Hover content checks.
+  - NOTE: Previous recheck (2026-05-14) reported `npm test` passing with exit code 0. The current failures may be environment-specific (existing Code instance) or genuine regressions.
+- `xvfb-run -a npm test`: BLOCKED by interactive WSL prompt:
+  - "To use Visual Studio Code with the Windows Subsystem for Linux, please install Visual Studio Code in Windows and uninstall the Linux version in WSL."
+  - The test harness blocks waiting for `[y/N]` input indefinitely.
+  - This prompt does not appear in CI (GitHub Actions runs on native Ubuntu, not WSL).
+
+Updated close-candidate status: still `no`. The `xvfb-run -a npm test` gate cannot complete in this WSL environment due to the VS Code WSL detection prompt. Additionally, the raw `npm test` run now shows 9 assertion failures that did not appear during the 2026-05-14 recheck, warranting investigation.
+
 ## Required Verification
 
 - Build extension from source

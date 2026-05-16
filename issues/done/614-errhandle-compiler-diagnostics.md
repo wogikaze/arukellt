@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-22
-Updated: 2026-05-15
+Updated: 2026-05-16
 ID: 614
 Track: compiler / selfhost
 Orchestration class: implementation-ready

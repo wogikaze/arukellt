@@ -189,16 +189,16 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 552 | [Release: Post-Release Documentation](552-release-post-release-documentation.md) | main | none | none | none | 1 checked / 1 open | — | — | |
 | 553 | [Release: Binary Distribution](553-release-binary-distribution.md) | main | none | none | none | 0 checked / 4 open | — | — | |
 | 554 | [Release: Extension Live Editor Tests](554-release-extension-live-editor-tests.md) | main | none | none | none | 0 checked / 4 open | — | — | |
-| 555 | [Release: Pre-Release CI Checks](555-release-pre-release-ci-checks.md) | main | none | none | none | 0 checked / 8 open | — | — | |
+| 555 | [Release: Pre-Release CI Checks](555-release-pre-release-ci-checks.md) | main | none | none | none | 4 checked / 12 open | — | — | |
 | 564 | [564 — Phase 5: Delete `crates/arukellt`](564-phase5-delete-arukellt.md) | selfhost-retirement | none | 559, 560, 561, 562, 563 | 574, 575, 576, 577, 578, 579, 580, 581 | 0 checked / 16 open | blocked-by-upstream | None | |
 | 571 | [571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)"](571-phase6-debug-adapter-scaffold-deferred-priority.md) | selfhost-frontend | none | 568 | none | 0 checked / 6 open | blocked-by-upstream | None | |
 | 588 | [Language surface uplift plan](588-language-surface-uplift-plan.md) | main | none | none | none | 0 checked / 8 open | implementation-ready | — | |
 | 590 | [Stdlib Core Platform Baseline Plan (Operational Guide)](590-stdlib-core-platform-baseline-plan.md) | main | none | none | none | 0 checked / 17 open | — | — | |
-| 592 | [Error Handling Convergence Plan (Operational Guide)](592-error-handling-convergence-plan.md) | main | none | none | none | 1 checked / 11 open | — | — | |
+| 592 | [Error Handling Convergence Plan (Operational Guide)](592-error-handling-convergence-plan.md) | main | none | none | none | 3 checked / 9 open | — | — | |
 | 594 | [Selfhost Phase 2: Fixture and Diagnostic Parity](594-selfhost-phase2-fixture-diag-parity.md) | selfhost | none | 593 | 625 | 0 checked / 0 open | blocked-by-upstream | — | |
-| 598 | [Language Surface Uplift: Expression-Level Comprehensions](598-lang-uplift-comprehensions.md) | selfhost-frontend / language-design | none | none | 599 | 0 checked / 18 open | design-ready | — | |
+| 598 | [Language Surface Uplift: Expression-Level Comprehensions](598-lang-uplift-comprehensions.md) | selfhost-frontend / language-design | none | none | 599 | 0 checked / 18 open | implementation-ready | — | |
 | 60 | [WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成](074-wasi-p2-native-component.md) | wasi-feature | none | 510, 121 | none | 0 checked / 0 open | blocked-by-upstream | None | |
-| 600 | [600-typesys-soundness-floor](600-typesys-soundness-floor.md) | selfhost / typechecker | none | none | 601 | 0 checked / 0 open | design-ready | — | |
+| 600 | [600-typesys-soundness-floor](600-typesys-soundness-floor.md) | selfhost / typechecker | none | none | 601 | 0 checked / 0 open | implementation-ready | — | |
 | 605 | [Stdlib Baseline: Host Core-Platform Baseline](605-stdlib-baseline-host-platform.md) | stdlib / wasi-feature | none | 604 | 608 | 0 checked / 0 open | blocked-by-upstream | — | |
 | 606 | [Stdlib Baseline: Structured Data and Semantics Baseline](606-stdlib-baseline-structured-data.md) | stdlib | none | 604 | 608 | 0 checked / 0 open | blocked-by-upstream | — | |
 | 607 | [Stdlib Baseline: Collections Hash Hardening](607-stdlib-baseline-hash-hardening.md) | stdlib | none | 604 | 608 | 0 checked / 0 open | blocked-by-upstream | — | |
@@ -220,7 +220,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 601 | [Type System Stage-Up: Type Schemes and Controlled Let-Generalization](601-typesys-type-schemes.md) | selfhost / typechecker | none | 600 | 602, 603 | 0 checked / 0 open | blocked-by-upstream | — | |
 | 608 | [608-stdlib-baseline-docs-bench](608-stdlib-baseline-docs-bench.md) | stdlib / docs | none | 604, 605, 606, 607 | none | 0 checked / 0 open | blocked-by-upstream | — | |
 | 612 | [Optimization Uplift: Binary Size Squeeze](612-opt-binary-size.md) | compiler / runtime-perf | none | 609, 611 | none | 0 checked / 0 open | blocked-by-upstream | — | |
-| 595 | [595-lang-uplift-multiclauses](595-lang-uplift-multiclauses.md) | selfhost-frontend / language-design | none | 629 | 596, 597, 599 | 0 checked / 0 open | design-ready | — | |
+| 595 | [595-lang-uplift-multiclauses](595-lang-uplift-multiclauses.md) | selfhost-frontend / language-design | none | 629 | 596, 597, 599 | 0 checked / 0 open | implementation-ready | — | |
 | 575 | [575 — Phase 7: Delete `crates/ark-parser`](575-phase7-delete-ark-parser.md) | selfhost-retirement | none | 564, 574 | 576, 579, 581, 582 | 0 checked / 16 open | blocked-by-upstream | None | |
 | 626 | [529 Phase 6/A: IDE-Ready Frontend](626-ide-ready-frontend.md) | main | none | 625 | 627 | 0 checked / 7 open | blocked-by-upstream | — | |
 | 602 | [Type System Stage-Up: Qualified Constraints and Coherent Trait Solving](602-typesys-qualified-constraints.md) | selfhost / typechecker | none | 601 | 603 | 0 checked / 0 open | blocked-by-upstream | — | |
