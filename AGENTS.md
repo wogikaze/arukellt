@@ -8,7 +8,7 @@ This repo contains:
 
 - compiler and runtime implementation under `crates/`
 - standard library sources under `std/`
-- CLI integration in `crates/arukellt`
+- CLI integration via selfhost wrapper (`scripts/run/arukellt-selfhost.sh`)
 - fixture / benchmark / verification infrastructure under `tests/`, `benchmarks/`, and `scripts/`
 - user-facing and design documentation under `docs/`
 
