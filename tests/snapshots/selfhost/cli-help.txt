@@ -26,3 +26,4 @@ Options:
   -V, --version  Print version
   --json         Emit machine-readable JSON diagnostics
   --output json  Alias for --json on diagnostic/check output
+  --wit <path>   Add a WIT import file for component compilation
