@@ -171,12 +171,12 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 574 | [574 — Phase 7: Delete `crates/ark-lexer`](574-phase7-delete-ark-lexer.md) | selfhost-retirement | none | 564 | 575, 582 | 0 checked / 16 open | blocked-by-upstream | None | |
 | 588 | [Language surface uplift plan](588-language-surface-uplift-plan.md) | main | none | none | none | 0 checked / 8 open | implementation-ready | — | |
 | 590 | [Stdlib Core Platform Baseline Plan (Operational Guide)](590-stdlib-core-platform-baseline-plan.md) | main | none | none | none | 3 checked / 14 open | — | — | |
-| 60 | [WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成](074-wasi-p2-native-component.md) | wasi-feature | none | 510, 121 | none | 0 checked / 0 open | blocked-by-upstream | None | |
-| 605 | [Stdlib Baseline: Host Core-Platform Baseline](605-stdlib-baseline-host-platform.md) | stdlib / wasi-feature | none | 604 | 608 | 0 checked / 0 open | blocked-by-upstream | — | |
-| 606 | [Stdlib Baseline: Structured Data and Semantics Baseline](606-stdlib-baseline-structured-data.md) | stdlib | none | 604 | 608 | 0 checked / 0 open | blocked-by-upstream | — | |
-| 607 | [Stdlib Baseline: Collections Hash Hardening](607-stdlib-baseline-hash-hardening.md) | stdlib | none | 604 | 608 | 0 checked / 0 open | blocked-by-upstream | — | |
-| 610 | [Optimization Uplift: Lowering Bottleneck Reduction](610-opt-lower-bottleneck.md) | compiler / selfhost | none | 609 | none | 0 checked / 0 open | blocked-by-upstream | — | |
-| 611 | [Optimization Uplift: T3-Safe Runtime Unlock](611-opt-t3-unlock.md) | compiler / runtime-perf | none | 609 | 612 | 0 checked / 0 open | blocked-by-upstream | — | |
+| 60 | [WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成](074-wasi-p2-native-component.md) | wasi-feature | none | 510, 121 | none | 0 checked / 0 open | implementation-ready | None | |
+| 605 | [Stdlib Baseline: Host Core-Platform Baseline](605-stdlib-baseline-host-platform.md) | stdlib / wasi-feature | none | 604 | 608 | 0 checked / 0 open | implementation-ready | — | |
+| 606 | [Stdlib Baseline: Structured Data and Semantics Baseline](606-stdlib-baseline-structured-data.md) | stdlib | none | 604 | 608 | 0 checked / 0 open | implementation-ready | — | |
+| 607 | [Stdlib Baseline: Collections Hash Hardening](607-stdlib-baseline-hash-hardening.md) | stdlib | none | 604 | 608 | 0 checked / 0 open | implementation-ready | — | |
+| 610 | [Optimization Uplift: Lowering Bottleneck Reduction](610-opt-lower-bottleneck.md) | compiler / selfhost | none | 609 | none | 0 checked / 0 open | implementation-ready | — | |
+| 611 | [Optimization Uplift: T3-Safe Runtime Unlock](611-opt-t3-unlock.md) | compiler / runtime-perf | none | 609 | 612 | 0 checked / 0 open | implementation-ready | — | |
 | 62 | [WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング"](076-wasi-p2-filesystem.md) | wasi-feature | none | 074, 510 | none | 0 checked / 0 open | blocked-by-upstream | None | |
 | 625 | [529 Phase 4: Dual-Run Period (SAFETY)](625-dual-run-period.md) | main | none | 594 | 626 | 0 checked / 13 open | blocked-by-upstream | — | |
 | 63 | [WASI P2: "`std::host::http` facade と runtime 検証"](077-wasi-p2-http.md) | wasi-feature | none | 074, 137 | none | 0 checked / 0 open | blocked-by-upstream | — | |

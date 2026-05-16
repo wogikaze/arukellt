@@ -4,7 +4,7 @@ Created: 2026-04-22
 Updated: 2026-05-14
 ID: 607
 Track: stdlib
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Depends on: 604
 ---
 # Stdlib Baseline: Collections Hash Hardening

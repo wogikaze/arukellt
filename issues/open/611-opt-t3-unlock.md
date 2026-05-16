@@ -4,7 +4,7 @@ Created: 2026-04-22
 Updated: 2026-05-16
 ID: 611
 Track: compiler / runtime-perf
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Depends on: 609 (DONE)
 Dependency status: 609 is complete. Issue is TECHNICALLY UNBLOCKED but all primary paths are stale due to Rust crate retirement.
 Assessment date: 2026-05-16

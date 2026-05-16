@@ -4,7 +4,7 @@ Created: 2026-04-22
 Updated: 2026-05-14
 ID: 606
 Track: stdlib
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Depends on: 604
 Parent: #590
 Fix contract ambiguity and semantic gaps in `std: ":json`, `std::toml`, `std::text`, and"
@@ -18,6 +18,7 @@ Close when: all four families have updated docs, negative fixtures pass, and the
 ---
 
 # Stdlib Baseline: Structured Data and Semantics Baseline
+
 `std: ":time` / `std::host::clock` boundary."
 - `std: ":text` must clearly distinguish byte-based vs char/Unicode-aware operations"
 - Add fixtures for at-boundary behavior: key types, array of tables edge cases
@@ -27,7 +28,8 @@ Close when: all four families have updated docs, negative fixtures pass, and the
 2. `std: ":toml` bounded subset is prominently documented with negative fixtures at boundaries"
 3. `std: ":text` distinguishes byte vs char operations in doc comments"
 4. `std: ":time` / `std::host::clock` split is explicit in docs and API surface"
-# Stdlib Baseline: Structured Data and Semantics Baseline
+
+## Stdlib Baseline: Structured Data and Semantics Baseline
 
 ---
 

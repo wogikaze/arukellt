@@ -4,7 +4,7 @@ Created: 2026-04-22
 Updated: 2026-05-14
 ID: 605
 Track: stdlib / wasi-feature
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Depends on: 604
 Parent: #590
 In scope: 
@@ -13,11 +13,13 @@ Close when: path edge cases have fixtures, at least one real directory capabilit
 ---
 
 # Stdlib Baseline: Host Core-Platform Baseline
+
 - Harden `std: ":host::fs` and `std::fs` whole-file read/write baseline with explicit error semantics"
 - `std: ":host::process`, `std::host::env`, `std::host::clock` contracts explicit and fixture-backed"
 1. `std: ":path` edge cases are fixture-backed for all listed operations"
 - Do not expand `std: ":host::http` or `std::host::sockets` in this issue"
-# Stdlib Baseline: Host Core-Platform Baseline
+
+## Stdlib Baseline: Host Core-Platform Baseline
 
 ---
 
