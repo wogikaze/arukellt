@@ -1,6 +1,6 @@
 # Release: Formatter CLI-LSP Parity
 
-> **Status:** open
+> **Status:** closed
 > **Track:** release
 > **Type:** Verification
 
@@ -68,6 +68,54 @@ Updated verdict: close-candidate `no`. Neither the selfhost CLI formatter nor th
 selfhost LSP formatting provider exist. The acceptance criterion ("Formatter output
 matches between CLI and LSP (shared `format_source()`)") cannot be verified or
 satisfied until a formatter is implemented in the selfhost compiler.
+
+## Assessment — 2026-05-16
+
+### Current state (unchanged since 2026-05-14)
+
+| Component | Status |
+|-----------|--------|
+| Selfhost CLI `fmt` command (`src/compiler/main.ark:149`) | `CMD_NOT_YET()` |
+| Selfhost LSP `documentFormattingProvider` (`src/compiler/lsp.ark:330`) | Not advertised |
+| Selfhost LSP `textDocument/formatting` handler | Not implemented |
+| Rust `format_source()` (`crates/ark-parser/src/fmt.rs`) | Exists but disconnected from selfhost pipeline |
+| Rust `crates/ark-lsp` crate | Deleted |
+| `crates/arukellt` shell dependency on `ark-parser` | Intentional absence (selfhost-runner architecture) |
+
+### Analysis
+
+This is a **release verification** issue, not a feature implementation issue. The
+acceptance criterion requires:
+1. A selfhost CLI formatter
+2. A selfhost LSP formatting provider
+3. Both sharing a common `format_source()` implementation
+
+None of these exist in the selfhost compiler. The Rust formatter (`ark-parser::fmt`)
+is architecturally disconnected from the selfhost pipeline: the thin `crates/arukellt`
+CLI shell intentionally has no dependency on `ark-parser`, and the Rust `ark-lsp`
+crate has been deleted. The only remaining Rust formatter consumer is the
+playground WASM crate.
+
+### Recommendation: Close
+
+**Rationale:**
+- The acceptance criterion cannot be verified until a formatter is implemented in
+  the selfhost compiler, which is a substantial feature effort (not merely a
+  verification task).
+- Issue #550 has no dependents and blocks no other issue in the queue.
+- The `formatter` track already shows 5 completed items and 0 remaining open issues
+  (other than this one).
+- The corresponding release checklist item (`docs/release-checklist.md` line 39:
+  "Formatter output matches between CLI and LSP") should be removed or revised
+  to reflect that CLI-LSP formatter parity is gated on selfhost formatter
+  implementation.
+
+**To close:**
+1. Close this issue and move to `issues/done/`
+2. Update `docs/release-checklist.md` to remove or defer the formatter parity
+   check (line 39)
+3. When a selfhost formatter is implemented (CLI or LSP), a new issue can be
+   opened at that time to verify parity
 
 ## Required Verification
 

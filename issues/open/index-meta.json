@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T12:01:06Z",
+  "generated_at": "2026-05-16T12:17:25Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -400,51 +400,7 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "550",
-      "path": "550-release-formatter-cli-lsp-parity.md",
-      "title": "Release: Formatter CLI-LSP Parity",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "552",
-      "path": "552-release-post-release-documentation.md",
-      "title": "Release: Post-Release Documentation",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 1,
+        "checked": 2,
         "unchecked": 1
       },
       "orchestration": {
@@ -466,8 +422,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 4
+        "checked": 3,
+        "unchecked": 1
       },
       "orchestration": {
         "class": null,

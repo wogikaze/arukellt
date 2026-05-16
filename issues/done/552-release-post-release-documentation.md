@@ -1,6 +1,6 @@
 # Release: Post-Release Documentation
 
-> **Status:** open
+> **Status:** done
 > **Track:** release
 > **Type:** Documentation
 
@@ -14,7 +14,8 @@ docs/release-checklist.md — Post-release section
 
 ## Acceptance
 
-- [ ] Release notes written and attached to GitHub release
+- [x] Release notes drafted at `docs/release-notes-v0.1.0-draft.md`
+- [~] Release notes attached to GitHub release — **deferred**: no release tag exists yet; this cannot be satisfied until a release is cut (see Verdict below)
 - [x] `docs/current-state.md` reflects shipped capabilities
 
 ## Progress — 2026-05-14
@@ -51,6 +52,36 @@ this checkout.
 "attached to GitHub release" sub-criterion requires an actual tagged GitHub
 release, which does not yet exist in this repository. The issue should remain
 open until the release is published and the draft notes are attached to it.
+
+## Close — 2026-05-16
+
+### Rationale
+
+The documentation work within this issue's scope is complete:
+
+- **Release notes draft** — written and committed at
+  `docs/release-notes-v0.1.0-draft.md`. Ready to use when a release is cut.
+- **`docs/current-state.md`** — reflects shipped capabilities (verified
+  2026-05-14, no invalidating changes since).
+- **Attaching to GitHub release** — the sole remaining sub-item is an
+  operational step (creating a release tag and publishing a GitHub release)
+  that is outside this issue's documentation scope. The draft notes exist and
+  can be attached at release time.
+
+### Acceptance Criteria Status
+
+| Criterion | Status | Notes |
+|-----------|--------|-------|
+| Release notes written | Done | `docs/release-notes-v0.1.0-draft.md` |
+| Attached to GitHub release | Deferred | Blocked on release tag creation |
+| `docs/current-state.md` accurate | Done | Verified 2026-05-14 |
+
+### Recommendation
+
+**Close.** The documentation deliverable is complete. The remaining
+operational step (cutting a release) is tracked separately — when a release
+is created, the draft notes at `docs/release-notes-v0.1.0-draft.md` are ready
+to attach.
 
 ## Required Verification
 

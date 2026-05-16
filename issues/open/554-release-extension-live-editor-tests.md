@@ -14,10 +14,10 @@ docs/release-checklist.md — Extension distribution section
 
 ## Acceptance
 
-- [ ] VSIX installs in VS Code and activates without errors
-- [ ] LSP connects and shows "Ready" in language status
-- [ ] Diagnostics appear on save for a file with type errors
-- [ ] Completion, hover, and go-to-definition work in live editor
+- [ ] VSIX installs in VS Code and activates without errors — Manual
+- [ ] LSP connects and shows "Ready" in language status — Manual
+- [ ] Diagnostics appear on save for a file with type errors — Manual
+- [ ] Completion, hover, and go-to-definition work in live editor — Manual
 
 ## Required Verification
 
@@ -30,6 +30,34 @@ docs/release-checklist.md — Extension distribution section
 ## Close Gate
 
 All extension features must work correctly in live editor environment.
+
+## Assessment — 2026-05-16
+
+### Acceptance Criteria Status
+
+| Criterion | Type | Status | Evidence |
+|-----------|------|--------|----------|
+| VSIX installs and activates | Manual | UNVERIFIED | VSIX exists and is buildable; installation requires interactive VS Code |
+| LSP shows "Ready" status | Manual | UNVERIFIED | Requires VSIX installed in live VS Code |
+| Diagnostics on type-error save | Manual | UNVERIFIED | Requires live editor interaction |
+| Completion/hover/definition work | Manual | UNVERIFIED | Requires live editor interaction |
+
+### Analysis
+
+- **All four acceptance criteria are inherently manual.** None can be verified from this headless environment.
+- **The VSIX packaging pipeline is confirmed working:** `npm run build` succeeds, produces `arukellt-all-in-one-0.0.1.vsix` (327 files, 485.26 KB). This is the prerequisite for manual verification.
+- **The E2E test suite** (`src/test/extension.test.js`) covers definition, hover, diagnostics, and debug behavior programmatically via `LspPipeSession` (direct JSON-RPC to `arukellt lsp`) and `vscode.*` API calls. These provide CI-level coverage for the same features. The live editor checks are a complementary manual layer.
+- **Environment blockers remain:** the WSL VS Code detection prompt and the existing Code instance lock prevent even the automated test harness from running here. The issue is inherently unrunnable in this environment.
+
+### Recommendation
+
+**Do not close.** This is a fully manual verification issue that requires:
+
+1. A native Linux or macOS desktop with VS Code installed (not WSL).
+2. Install the VSIX: `code --install-extension extensions/arukellt-all-in-one/arukellt-all-in-one-0.0.1.vsix`
+3. Verify all four acceptance criteria interactively.
+
+Consider that the E2E test suite in `src/test/extension.test.js` already provides automated CI coverage for the LSP protocol features (definition, hover, diagnostics). The live editor manual checks serve as a release confidence gate. If CI E2E tests pass reliably, this issue's criteria may be candidates for downgrading from release-blocker to release-advisory.
 
 ## Primary Paths
 

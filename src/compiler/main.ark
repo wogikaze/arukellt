@@ -80,10 +80,11 @@ struct CliOptions {
     show_version: bool,
     has_error: bool,
     error_msg: String,
+    show_timing: bool,
 }
 
 fn CliOptions_default() -> CliOptions {
-    CliOptions { command: CMD_UNKNOWN(), input_file: String_new(), output_file: String_new(), target: String_from("wasm32-wasi-p2"), wit_paths: Vec_new_String(), opt_level: 0, dump_phases: String_new(), emit_mode: String_from("wasm"), json_output: false, show_help: false, show_version: false, has_error: false, error_msg: String_new() }
+    CliOptions { command: CMD_UNKNOWN(), input_file: String_new(), output_file: String_new(), target: String_from("wasm32-wasi-p2"), wit_paths: Vec_new_String(), opt_level: 0, dump_phases: String_new(), emit_mode: String_from("wasm"), json_output: false, show_help: false, show_version: false, has_error: false, error_msg: String_new(), show_timing: false }
 }
 
 // ── Argument Parsing ─────────────────────────────────────────────────────────
@@ -292,6 +293,9 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
                                 if cli_str_eq(clone(arg), String_from("--json")) {
                                     opts.json_output = true
                                 } else {
+                                if cli_str_eq(clone(arg), String_from("--time")) {
+                                    opts.show_timing = true
+                                } else {
                                     if cli_str_eq(clone(arg), String_from("--version")) {
                                         opts.show_version = true
                                     } else {
@@ -475,6 +479,7 @@ fn cmd_compile_all(opts: CliOptions) {
     wasm_config.dump_hir = should_dump(opts, String_from("hir"))
     wasm_config.dump_mir = should_dump(opts, String_from("mir"))
     wasm_config.dump_wasm = should_dump(opts, String_from("wasm"))
+    wasm_config.show_timing = opts.show_timing
     let wasm_result = driver::compile_file(clone(input_file), wasm_config)
     if !wasm_result.success {
         if json_mode {
@@ -495,6 +500,7 @@ fn cmd_compile_all(opts: CliOptions) {
     comp_config.opt_level = opts.opt_level
     comp_config.emit_mode = String_from("component")
     comp_config.wit_paths = clone(opts.wit_paths)
+    comp_config.show_timing = opts.show_timing
     let comp_result = driver::compile_file(clone(input_file), comp_config)
     if !comp_result.success {
         if json_mode {

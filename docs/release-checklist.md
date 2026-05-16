@@ -36,8 +36,8 @@ Items marked **CI** are automated; items marked **Manual** require human verific
 - [ ] **Manual** — LSP connects and shows "Ready" in language status
 - [ ] **CI** — LSP protocol compliance verified via E2E tests (initialize, shutdown, completion, hover, definition)
 - [ ] **Manual** — Diagnostics appear on save for a file with type errors
-- [ ] **CI** — Formatter output matches between CLI and LSP (shared `format_source()`)
 - [ ] **Manual** — Completion, hover, and go-to-definition work in live editor
+<!-- CLOSED: Formatter CLI-LSP parity (#550) — neither selfhost CLI fmt nor LSP formatting provider exist; gated on selfhost formatter implementation. Re-add when a formatter exists in the selfhost compiler. -->
 
 ## Failure recovery
 

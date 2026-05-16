@@ -14,9 +14,9 @@ docs/release-checklist.md — Extension distribution section
 
 ## Acceptance
 
-- [ ] `cd extensions/arukellt-all-in-one && npm ci && npm run build` succeeds
-- [ ] VSIX package generated (`.vsix` file exists)
-- [ ] Extension activation tests pass (`xvfb-run -a npm test`)
+- [x] `cd extensions/arukellt-all-in-one && npm ci && npm run build` succeeds
+- [x] VSIX package generated (`.vsix` file exists)
+- [ ] Extension activation tests pass (`xvfb-run -a npm test`) — BLOCKED by WSL environment
 
 ## Verification Evidence
 
@@ -81,6 +81,32 @@ Updated close-candidate status: still `no`. The `xvfb-run -a npm test` gate cann
 ## Close Gate
 
 Extension build, VSIX generation, and activation tests must all pass.
+
+## Assessment — 2026-05-16
+
+### Acceptance Criteria Status
+
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| `npm ci && npm run build` succeeds | PASS | Confirmed across 3 recheck cycles (2026-05-14, 2026-05-16) |
+| VSIX package generated | PASS | `arukellt-all-in-one-0.0.1.vsix` (327 files, 485.26 KB) |
+| `xvfb-run -a npm test` passes | BLOCKED | Cannot run in WSL due to VS Code WSL detection interactive prompt |
+
+### Analysis
+
+- **AC 1 and AC 2 are stable and verified.** The build and packaging pipeline works reliably.
+- **AC 3 is not verifiable in this environment** for two reasons:
+  1. The VS Code WSL detection prompt (`"To use Visual Studio Code with the Windows Subsystem for Linux..."`) blocks the xvfb test harness in WSL. This does not occur in CI (native Ubuntu).
+  2. `npm test` without xvfb shows 9 assertion failures in this WSL session. These were not present during the 2026-05-14 recheck (which reported `Exit code: 0`), suggesting environment sensitivity (possibly a stale VS Code instance lock or configuration drift).
+- The **extension test suite** in `src/test/extension.test.js` is comprehensive: 18 test suites covering activation, command registration, task provider, test discovery, Go to Definition, Hover, Diagnostics, Debug Launch, Language Server restart, failure recovery, and project tree views. The test infrastructure itself is mature.
+
+### Recommendation
+
+**Do not close.** The `xvfb-run -a npm test` gate requires a native Linux CI run to verify. However:
+
+- Consider splitting AC 3 into a CI-only gate and marking this issue as **blocked-by-environment** rather than open/failing.
+- The 9 `npm test` assertion failures seen on 2026-05-16 should be investigated on a clean VS Code instance (not WSL). The failures affect Debug Launch (#255), Go to Definition range (#450/#453), Hover content (#451/#453), and Diagnostics (#452/#453) assertions — all of which use direct LSP pipe sessions or VS Code API calls that may behave differently under WSL interference.
+- After a clean CI run confirms `xvfb-run -a npm test` passes, this issue can be closed and the release checklist checkbox migrated to the existing CI pipeline.
 
 ## Primary Paths
 

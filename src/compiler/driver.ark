@@ -17,6 +17,8 @@ use mir_lower
 use parser
 use parser_kinds
 use resolver
+use std::host::clock
+use std::time
 use typechecker
 
 fn PHASE_LEX() -> i32 {
@@ -109,10 +111,11 @@ struct DriverConfig {
     parse_only: bool,
     check_only: bool,
     source_dir: String,
+    show_timing: bool,
 }
 
 pub fn DriverConfig_default() -> DriverConfig {
-    DriverConfig { target: String_from("wasm32-wasi-p2"), wasi_version: String_from("p2"), opt_level: 0, emit_mode: String_from("wasm"), wit_paths: Vec_new_String(), dump_tokens: false, dump_ast: false, dump_hir: false, dump_mir: false, dump_wasm: false, parse_only: false, check_only: false, source_dir: String_from(".") }
+    DriverConfig { target: String_from("wasm32-wasi-p2"), wasi_version: String_from("p2"), opt_level: 0, emit_mode: String_from("wasm"), wit_paths: Vec_new_String(), dump_tokens: false, dump_ast: false, dump_hir: false, dump_mir: false, dump_wasm: false, parse_only: false, check_only: false, source_dir: String_from("."), show_timing: false }
 }
 
 fn driver_export_name(name: String) -> String {
@@ -2277,12 +2280,24 @@ fn load_single_module(module_name: String, base_dir: String, state: LoadState) {
     }
 }
 
+// ── Phase Timing Helper ──────────────────────────────────────────────────────
+fn emit_phase_timing(t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64, t_emit: i64) {
+    stdio::eprintln(concat(String_from("[arukellt] lex: "), concat(to_string(time::duration_ms(t0, t_lex)), String_from(".000ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] parse: "), concat(to_string(time::duration_ms(t_lex, t_parse)), String_from(".000ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] resolve: "), concat(to_string(time::duration_ms(t_parse, t_resolve)), String_from(".000ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] typecheck: "), concat(to_string(time::duration_ms(t_resolve, t_typecheck)), String_from(".000ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] lower: "), concat(to_string(time::duration_ms(t_typecheck, t_lower)), String_from(".000ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] emit: "), concat(to_string(time::duration_ms(t_lower, t_emit)), String_from(".000ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] total: "), concat(to_string(time::duration_ms(t0, t_emit)), String_from(".000ms"))))
+}
+
 // ── Pipeline Orchestration ───────────────────────────────────────────────────
 pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     let wit_error = validate_wit_import_surface(config.wit_paths)
     if len(wit_error) > 0 {
         return CompileResult_err(PHASE_RESOLVE(), wit_error)
     }
+    let t0 = clock::monotonic_now()
     let tokens: Vec<Token> = lexer::tokenize(clone(source))
     let token_count = len(tokens)
     if config.dump_tokens {
@@ -2306,6 +2321,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     if lex_errors > 0 {
         return CompileResult_err(PHASE_LEX(), concat(to_string(lex_errors), String_from(" lexer error(s)")))
     }
+    let t_lex = clock::monotonic_now()
     let parser = parser::Parser_new(tokens)
     let decls: Vec<AstNode> = parser::parse_module(parser)
     if config.dump_ast {
@@ -2345,6 +2361,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
             return CompileResult_err(PHASE_EMIT(), component_error)
         }
     }
+    let t_parse = clock::monotonic_now()
     let load_state = LoadState_new()
     load_imported_modules(decls, clone(config.source_dir), load_state)
     if contains(clone(source), String_from("HashMap_")) || contains(clone(source), String_from("HashSet_")) {
@@ -2375,6 +2392,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         result.error_count = resolve_ctx.error_count
         return result
     }
+    let t_resolve = clock::monotonic_now()
     let all_decls = Vec_new_AstNode()
     let combined_mc = len(load_state.modules)
     let mut combined_mi = 0
@@ -2412,6 +2430,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     if config.check_only {
         return CompileResult_ok(PHASE_TYPECHECK())
     }
+    let t_typecheck = clock::monotonic_now()
         let mut mir_module = mir_lower::lower_to_mir(all_decls, check_result)
     if eq(clone(config.emit_mode), "component") || eq(clone(config.emit_mode), "wit") {
         mir_module = mir_lower::lower_to_mir_no_prune(all_decls, check_result)
@@ -2419,6 +2438,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     if config.dump_mir {
         mir_dump::dump_mir(mir_module)
     }
+    let t_lower = clock::monotonic_now()
     // Derive wasi_version from the target string
     let tgt = clone(config.target)
     let is_p2 = contains(clone(tgt), String_from("-p2"))
@@ -2435,6 +2455,9 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         let wit_text = emit_wit_text_from_decls(all_decls)
         let mut result = CompileResult_ok(PHASE_EMIT())
         result.output_bytes = string_to_bytes(wit_text)
+        if config.show_timing {
+            emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, clock::monotonic_now())
+        }
         result
     } else {
     if eq(clone(emit_mode), "wat") {
@@ -2448,6 +2471,9 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
             wi = wi + 1
         }
         result.output_bytes = wat_bytes
+        if config.show_timing {
+            emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, clock::monotonic_now())
+        }
         result
     } else {
         if eq(clone(emit_mode), "wasm") {
@@ -2458,6 +2484,9 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
             }
             let mut result = CompileResult_ok(PHASE_EMIT())
             result.output_bytes = wasm_bytes
+            if config.show_timing {
+                emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, clock::monotonic_now())
+            }
             result
         } else {
             if eq(clone(emit_mode), "component") {
@@ -2469,6 +2498,9 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
                 let comp_bytes = component_emitter::emit_component(core_wasm, mir_module, clone(config.target), clone(config.wasi_version))
                 let mut result = CompileResult_ok(PHASE_EMIT())
                 result.output_bytes = comp_bytes
+                if config.show_timing {
+                    emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, clock::monotonic_now())
+                }
                 result
             } else {
                 CompileResult_err(PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))

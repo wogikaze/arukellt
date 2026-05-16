@@ -22,8 +22,6 @@ graph LR
   I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I529["529 100% selfhost transition plan"]
   I549["549 Release: Extension Activation Tests"]
-  I550["550 Release: Formatter CLI-LSP Parity"]
-  I552["552 Release: Post-Release Documentation"]
   I553["553 Release: Binary Distribution"]
   I554["554 Release: Extension Live Editor Tests"]
   I555["555 Release: Pre-Release CI Checks"]
@@ -111,8 +109,6 @@ graph LR
 - **512** depends on: 504, 495; blocks: none
 - **529** depends on: none; blocks: 617
 - **549** depends on: none; blocks: none
-- **550** depends on: none; blocks: none
-- **552** depends on: none; blocks: none
 - **553** depends on: none; blocks: none
 - **554** depends on: none; blocks: none
 - **555** depends on: none; blocks: none

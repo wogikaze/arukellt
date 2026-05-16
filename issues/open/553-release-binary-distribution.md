@@ -14,10 +14,10 @@ docs/release-checklist.md — Binary distribution section
 
 ## Acceptance
 
-- [ ] Release binary built for linux-x86_64
-- [ ] Release binary size < 50 MB
-- [ ] SHA256 checksum generated alongside binary
-- [ ] Version in Cargo.toml matches the tag
+- [x] Release binary built for linux-x86_64
+- [x] Release binary size < 50 MB
+- [x] SHA256 checksum generated alongside binary
+- [ ] Version in Cargo.toml matches the tag — BLOCKED (no release tag exists in this checkout)
 
 ## Required Verification
 
@@ -72,6 +72,32 @@ Updated verdict: still blocked only on the release tag comparison / publication
 step. All CI-acceptance criteria (binary exists, size < 50 MB, SHA256 generated)
 pass. The manual gate "Version in Cargo.toml matches the tag" cannot be verified
 until a release tag is created.
+
+## Assessment — 2026-05-16
+
+### Acceptance Criteria Status
+
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| Release binary built for linux-x86_64 | PASS | `target/release/arukellt` exists, executable, reports `arukellt 0.1.0` |
+| Binary size < 50 MB | PASS | 520,008 bytes (~508 KB), well under limit |
+| SHA256 checksum generated | PASS | `e6de9ab9321eb80c3b426cefad75bb00f77d29c7a6db08eb0216abcb2a8d91a0` |
+| Version in Cargo.toml matches tag | BLOCKED | `Cargo.toml` version is `0.1.0`; `git describe --tags --abbrev=0` fails — no tags exist in this checkout |
+
+### Analysis
+
+- **Three of four criteria pass and have been stable across three recheck cycles** (2026-05-14, 2026-05-16, latest).
+- The binary smoke tests also pass: `--version` outputs `arukellt 0.1.0`, `run tests/fixtures/hello/hello.ark` outputs `Hello, world!`.
+- **AC 4 is inherently a manual release-time gate** — it cannot be verified until a release tag is created. This is correct behavior: the release checklist already marks this item as `Manual`.
+- The binary size (~508 KB) is extremely lean relative to the 50 MB limit and is stable.
+
+### Recommendation
+
+**Do not close.** The issue is blocked on a release tag that does not yet exist. This is expected for a pre-release state. When a release tag is created:
+
+1. Verify `git describe --tags --abbrev=0` returns a tag matching `0.1.0` (or whatever version `Cargo.toml` carries at that time).
+2. Mark AC 4 complete and close the issue.
+3. The binary distribution section of the release checklist can then be fully satisfied.
 
 ## Primary Paths
 
