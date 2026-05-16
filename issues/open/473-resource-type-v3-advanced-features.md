@@ -5,19 +5,19 @@ Updated: 2026-05-14
 ID: 473
 Track: wasm-feature
 Depends on: "032 (resource-type, done)"
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Orchestration upstream: None
 ---
 
 # Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC
----
-# Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC
 
+---
+
+## Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC
 
 ---
 
 ## Reopened by audit — 2026-04-03
-
 
 cross-component resource forwarding) are deferred to v3+." and
 "No garbage collection of handles is implemented in v2; leaked handles are a known limitation."

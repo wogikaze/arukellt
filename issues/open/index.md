@@ -157,7 +157,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 41 | [std: ":time + std::random: 時刻・期間・乱数"](051-std-time-random.md) | stdlib | none | 039, 040 | none | 0 checked / 0 open | blocked-by-upstream | None | |
 | 44 | [std: ":wit + std::component: WIT 型、resource handle、canonical ABI"](054-std-wit-component.md) | stdlib | none | 039, 044, 053 | none | 0 checked / 0 open | blocked-by-upstream | None | |
 | 45 | [std: ":json + std::toml + std::csv: データ形式パーサ"](055-std-json-toml-csv.md) | stdlib | none | 039, 042, 044 | none | 0 checked / 0 open | blocked-by-upstream | None | |
-| 473 | [Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC](473-resource-type-v3-advanced-features.md) | wasm-feature | none | 032, done) | none | 0 checked / 5 open | blocked-by-upstream | None | |
+| 473 | [Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC](473-resource-type-v3-advanced-features.md) | wasm-feature | none | 032, done) | none | 0 checked / 5 open | implementation-ready | None | |
 | 474 | [Async component support (v5)](474-async-component-support-v5.md) | wasm-feature | none | 035, done), 074 | none | 0 checked / 4 open | blocked-by-upstream | None | |
 | 475 | [arukellt component subcommand](475-arukellt-component-subcommand.md) | cli | none | 035, done), 074 | 485 | 1 checked / 5 open | blocked-by-upstream | None | |
 | 476 | [`wasm-tools compose` 統合 (v3 候補)](476-wasm-tools-compose-integration.md) | wasm-feature | none | 035, done), 074 | none | 0 checked / 5 open | blocked-by-upstream | None | |
