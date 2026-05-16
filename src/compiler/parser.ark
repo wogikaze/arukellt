@@ -725,19 +725,60 @@ fn parse_generic_params(p: Parser, out: Vec<AstNode>) {
     consume_closing_gt(p)
 }
 
-// Optional trailing `where` clause (stub): accepts `where` then nothing or a single `_`
-// placeholder. Real bound lists are deferred; this reserves the keyword and delimiter
-// for forward-compatible parsing after generic params on fn/trait.
+// Consume optional `where` keyword after fn/trait generics for forward compatibility.
+// Trait-bound where clauses are not yet implemented; this just skips the keyword
+// to avoid confusing parse errors.
 fn parse_optional_where_clause_stub(p: Parser) {
     skip_newlines(p)
     if peek_kind(p) != TK_WHERE() {
         return
     }
     p.pos = p.pos + 1
+}
+
+/// Parse an optional `where` block after a multi-clause function group.
+/// Syntax:
+///   where
+///       name1 = expr1
+///       name2 = expr2
+///
+/// Each binding becomes an NK_LET node (without the `let` keyword) that is
+/// injected into the function body, scoped to all clauses.
+/// Returns an empty vec if no `where` keyword is found.
+fn parse_optional_where_block(p: Parser) -> Vec<AstNode> {
     skip_newlines(p)
-    if peek_kind(p) == TK_UNDERSCORE() {
-        p.pos = p.pos + 1
+    let mut bindings = Vec_new_AstNode()
+    if peek_kind(p) != TK_WHERE() {
+        return bindings
     }
+    p.pos = p.pos + 1
+    skip_newlines(p)
+    // Parse one or more `name = expr` bindings on consecutive lines
+    while peek_kind(p) == TK_IDENT() {
+        // Look ahead: check if IDENT followed by `=`
+        let saved = p.pos
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let is_binding = peek_kind(p) == TK_EQ()
+        p.pos = saved
+
+        if !is_binding {
+            break
+        }
+
+        let name_tok = expect_token(p, TK_IDENT())
+        expect_token(p, TK_EQ())
+        skip_newlines(p)
+        let init = parse_expr(p)
+
+        let binding = AstNode_new(parser_kinds::NK_LET(), tok_span(name_tok))
+        binding.text = clone(name_tok.text)
+        push(binding.children, init)
+        push(bindings, binding)
+
+        skip_newlines(p)
+    }
+    bindings
 }
 
 // ── Pattern Parsing ──────────────────────────────────────────────────────────
@@ -1547,7 +1588,9 @@ fn parse_decl(p: Parser) -> AstNode {
                 push(stub.children, AstNode_new(parser_kinds::NK_BLOCK(), first_clause.span))
                 return stub
             }
-            let d = desugar_multiclause(clauses, is_pub)
+            // Parse optional where block with value bindings shared across all clauses
+            let where_bindings = parse_optional_where_block(p)
+            let d = desugar_multiclause(clauses, is_pub, where_bindings)
             return d
         }
         let d = parse_fn_decl(p)
@@ -1724,7 +1767,10 @@ fn clause_param_to_arm_pattern(param: AstNode) -> AstNode {
 ///   fn classify(_) -> String = "neg"
 /// →
 ///   fn classify(__arg0) -> String { classify(__arg0) { 0 => "zero", n => "pos", _ => "neg" } }
-fn desugar_multiclause(clauses: Vec<AstNode>, is_pub: bool) -> AstNode {
+///
+/// Optional `where_bindings` are NK_LET nodes injected as let statements
+/// before the match expression, scoped to the entire function body.
+fn desugar_multiclause(clauses: Vec<AstNode>, is_pub: bool, where_bindings: Vec<AstNode>) -> AstNode {
     let clause_count = len(clauses)
     // Use the first clause to determine name, return type visibility
     let first = get_unchecked(clauses, 0)
@@ -1847,12 +1893,21 @@ fn desugar_multiclause(clauses: Vec<AstNode>, is_pub: bool) -> AstNode {
     
     // Build the match as a block expression body (for MIR lowerer compatibility)
     let block_node = AstNode_new(parser_kinds::NK_BLOCK(), fn_span)
+
+    // Inject where bindings as let statements before the match expression
+    let mut wi = 0
+    while wi < len(where_bindings) {
+        let wb = get_unchecked(where_bindings, wi)
+        push(block_node.children, wb)
+        wi = wi + 1
+    }
+
     // Wrap match in an expression statement for block body
     let expr_stmt = AstNode_new(parser_kinds::NK_EXPR_STMT(), fn_span)
     push(expr_stmt.children, match_node)
     push(block_node.children, expr_stmt)
     push(result.children, block_node)
-    
+
     result
 }
 

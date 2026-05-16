@@ -20,6 +20,85 @@ fn TypeInfo_named(tag: i32, name: String) -> TypeInfo {
     TypeInfo { tag: tag, name: name, type_args: Vec_new_TypeInfo() }
 }
 
+// ── TypeScheme: quantified polymorphic type ──────────────────────────────────
+struct TypeScheme {
+    vars: Vec<String>,
+    body: TypeInfo,
+}
+
+fn TypeScheme_empty() -> TypeScheme {
+    TypeScheme { vars: Vec_new_String(), body: TypeInfo_simple(typechecker_kinds::TY_UNKNOWN()) }
+}
+
+fn collect_free_type_var_names(env: TypeEnv, ty: TypeInfo) -> Vec<String> {
+    let names = Vec_new_String()
+    if ty.tag == typechecker_kinds::TY_TYPE_VAR() {
+        let resolved = resolve_type(env, ty)
+        if resolved.tag == typechecker_kinds::TY_TYPE_VAR() {
+            push(names, clone(ty.name))
+        }
+        return names
+    }
+    let arg_count = len(ty.type_args)
+    let mut i = 0
+    while i < arg_count {
+        let arg = get_unchecked(ty.type_args, i)
+        let sub_names = collect_free_type_var_names(env, arg)
+        let snc = len(sub_names)
+        let mut j = 0
+        while j < snc {
+            let sn = get_unchecked(sub_names, j)
+            let mut found = false
+            let nc = len(names)
+            let mut k = 0
+            while k < nc {
+                if eq(clone(get_unchecked(names, k)), clone(sn)) {
+                    found = true
+                }
+                k = k + 1
+            }
+            if !found {
+                push(names, sn)
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+    names
+}
+
+fn generalize(env: TypeEnv, ty: TypeInfo) -> TypeScheme {
+    let free_vars = collect_free_type_var_names(env, ty)
+    TypeScheme { vars: free_vars, body: ty }
+}
+
+fn instantiate_scheme(env: TypeEnv, scheme: TypeScheme) -> TypeInfo {
+    let count = len(scheme.vars)
+    if count == 0 {
+        return scheme.body
+    }
+    let var_names = Vec_new_String()
+    let var_types = Vec_new_TypeInfo()
+    let mut i = 0
+    while i < count {
+        let vn = get_unchecked(scheme.vars, i)
+        push(var_names, clone(vn))
+        push(var_types, fresh_var(env))
+        i = i + 1
+    }
+    instantiate_type(scheme.body, var_names, var_types)
+}
+
+fn is_syntactic_value(node: AstNode) -> bool {
+    if node.kind == typechecker_kinds::NK_INT_LIT() { return true }
+    if node.kind == typechecker_kinds::NK_FLOAT_LIT() { return true }
+    if node.kind == typechecker_kinds::NK_STRING_LIT() { return true }
+    if node.kind == typechecker_kinds::NK_BOOL_LIT() { return true }
+    if node.kind == typechecker_kinds::NK_CLOSURE() { return true }
+    if node.kind == typechecker_kinds::NK_IDENT() { return true }
+    false
+}
+
 // ── Type Variable / Substitution ─────────────────────────────────────────────
 struct TypeVar {
     id: i32,
@@ -692,6 +771,8 @@ fn CheckCtx_new() -> CheckCtx {
 struct VarBinding {
     name: String,
     ty: TypeInfo,
+    scheme: TypeScheme,
+    is_generalized: bool,
 }
 
 struct LocalScope {
@@ -708,24 +789,33 @@ fn scope_child(parent: LocalScope) -> LocalScope {
     let mut i = 0
     while i < count {
         let binding = get_unchecked(parent.bindings, i)
-        push(child.bindings, VarBinding { name: clone(binding.name), ty: binding.ty })
+        push(child.bindings, VarBinding { name: clone(binding.name), ty: binding.ty, scheme: binding.scheme, is_generalized: binding.is_generalized })
         i = i + 1
     }
     child
 }
 
 fn scope_define(scope: LocalScope, name: String, ty: TypeInfo) {
-    push(scope.bindings, VarBinding { name: name, ty: ty })
+    push(scope.bindings, VarBinding { name: name, ty: ty, scheme: TypeScheme_empty(), is_generalized: false })
 }
 
-fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {
+fn scope_define_scheme(scope: LocalScope, name: String, scheme: TypeScheme) {
+    let body_ty = scheme.body
+    push(scope.bindings, VarBinding { name: name, ty: body_ty, scheme: scheme, is_generalized: true })
+}
+
+fn scope_lookup(env: TypeEnv, scope: LocalScope, name: String) -> TypeInfo {
     let count = len(scope.bindings)
     let mut found = TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
     let mut i = 0
     while i < count {
         let b = get_unchecked(scope.bindings, i)
         if eq(clone(b.name), clone(name)) {
-            found = b.ty
+            if b.is_generalized {
+                found = instantiate_scheme(env, b.scheme)
+            } else {
+                found = b.ty
+            }
         }
         i = i + 1
     }
@@ -779,7 +869,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         return TypeInfo_simple(typechecker_kinds::TY_BOOL())
     }
     if node.kind == typechecker_kinds::NK_IDENT() {
-        return scope_lookup(scope, clone(node.text))
+        return scope_lookup(env, scope, clone(node.text))
     }
     if node.kind == typechecker_kinds::NK_CLOSURE() {
         let closure_scope = scope_child(scope)
@@ -796,7 +886,18 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         let body = get_unchecked(node.children, child_count - 1)
         let body_ty = infer_expr(env, closure_scope, fn_sigs, enum_defs, body)
         resolve_type(env, body_ty)
-        return TypeInfo_simple(typechecker_kinds::TY_FN())
+        // Build a richer function type: TY_FN with type_args = [param_types..., return_type]
+        let mut fn_ty = TypeInfo_simple(typechecker_kinds::TY_FN())
+        let param_count = child_count - 1
+        let mut pi = 0
+        while pi < param_count {
+            let param = get_unchecked(node.children, pi)
+            let param_binding = scope_lookup(env, closure_scope, clone(param.text))
+            push(fn_ty.type_args, param_binding)
+            pi = pi + 1
+        }
+        push(fn_ty.type_args, body_ty)
+        return fn_ty
     }
     if node.kind == typechecker_kinds::NK_BINARY() {
         if len(node.children) >= 2 {

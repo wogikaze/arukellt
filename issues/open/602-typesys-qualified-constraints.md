@@ -1,10 +1,10 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 602
 Track: selfhost / typechecker
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Depends on: 601
 Parent: #589
 In scope: 
@@ -14,11 +14,13 @@ Close when: obligation-based solving is active, coherence is enforced, ambiguity
 ---
 
 # Type System Stage-Up: Qualified Constraints and Coherent Trait Solving
+
 discipline. Enforce coherence: "one visible impl per `(Trait, SelfType)` pair. Reject"
 - Ambiguity checks: reject signatures and call sites that cannot be solved to a unique meaning
 - Fixtures: "positive (trait bound satisfied), negative (unresolved, ambiguous, overlapping impl)"
 - `where` trait-bound syntax changes (use current `T: Trait` style)
-# Type System Stage-Up: Qualified Constraints and Coherent Trait Solving
+
+## Type System Stage-Up: Qualified Constraints and Coherent Trait Solving
 
 ---
 
