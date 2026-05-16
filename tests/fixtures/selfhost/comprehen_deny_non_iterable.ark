@@ -1,0 +1,5 @@
+// Error: non-iterable source in comprehension
+fn main() {
+    let x: i32 = 42
+    let ys = [v * 2 for v in x]
+}

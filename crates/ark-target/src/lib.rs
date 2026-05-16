@@ -22,7 +22,7 @@ pub enum TargetId {
     /// T2: Wasm GC, no WASI (validated compile-only scaffold)
     /// STATUS: implemented, compile only — a minimal core-Wasm emitter exists,
     /// the CLI/test surface exercises `--target wasm32-freestanding`, and the
-    /// emitted module is validated in `crates/arukellt/tests/t2_scaffold.rs`.
+    /// emitted module is validated in the selfhost fixture suite.
     /// Run support remains false and this does not imply browser wiring.
     /// See docs/target-contract.md § T2 for the current scaffold scope.
     Wasm32Freestanding,

@@ -101,8 +101,11 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash
           echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
-      - name: Build debug arukellt
-        run: cargo build -p arukellt
+      - name: Make selfhost wrapper available as arukellt
+        run: |
+          mkdir -p target/debug
+          cp scripts/run/arukellt-selfhost.sh target/debug/arukellt
+          chmod +x target/debug/arukellt
 
       - name: Package/workspace script and manifest tests
         env:
@@ -134,8 +137,11 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash
           echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
-      - name: Build debug arukellt
-        run: cargo build -p arukellt
+      - name: Make selfhost wrapper available as arukellt
+        run: |
+          mkdir -p target/debug
+          cp scripts/run/arukellt-selfhost.sh target/debug/arukellt
+          chmod +x target/debug/arukellt
 
       - name: Quick harness (manifest + docs hygiene)
         env:
@@ -163,23 +169,26 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Build release arukellt
-        run: cargo build --release -p arukellt
-
-      - name: T3 fixtures — run and capture harness output
+      - name: Run selfhost fixture parity (T3 primary)
         env:
           ARUKELLT_TARGET: wasm32-wasi-p2
-          ARUKELLT_BIN: ./target/release/arukellt
         run: |
-          cargo test -p arukellt --test harness -- --nocapture 2>&1 | tee harness-raw.log
-          python3 scripts/gen/gen-harness-report.py harness-raw.log > harness-report.json
+          python3 scripts/manager.py selfhost fixture-parity 2>&1 | tee fixture-parity-results.txt
 
-      - name: Upload harness report artifact
+      - name: Run selfhost diag parity
+        env:
+          ARUKELLT_TARGET: wasm32-wasi-p2
+        run: |
+          python3 scripts/manager.py selfhost diag-parity 2>&1 | tee diag-parity-results.txt
+
+      - name: Upload parity results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: harness-report-t3-${{ github.sha }}
-          path: harness-report.json
+          name: selfhost-parity-t3-${{ github.sha }}
+          path: |
+            fixture-parity-results.txt
+            diag-parity-results.txt
 
   # ── Layer 3: Fixture suite — T1 supported (non-blocking) ────────────────
   fixture-supported:
@@ -204,10 +213,10 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: T1 fixtures (run + module-run + diag + module-diag)
+      - name: T1 fixtures — selfhost fixture parity
         env:
           ARUKELLT_TARGET: wasm32-wasi-p1
-        run: cargo test -p arukellt --test harness -- --nocapture
+        run: python3 scripts/manager.py selfhost fixture-parity
 
   # ── Layer 4: Integration — CLI smoke (merge gate) ────────────────────────
   integration:
@@ -230,8 +239,11 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Build release arukellt
-        run: cargo build --release -p arukellt
+      - name: Make selfhost wrapper available as arukellt
+        run: |
+          mkdir -p target/release
+          cp scripts/run/arukellt-selfhost.sh target/release/arukellt
+          chmod +x target/release/arukellt
 
       - name: CLI smoke — help and version
         run: |
@@ -267,12 +279,14 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Build release arukellt
-        run: cargo build --release -p arukellt
-
-      - name: Packaging smoke — binary size and entrypoints
+      - name: Make selfhost wrapper available as arukellt
         run: |
-          ls -la target/release/arukellt
+          mkdir -p target/release
+          cp scripts/run/arukellt-selfhost.sh target/release/arukellt
+          chmod +x target/release/arukellt
+
+      - name: Packaging smoke — selfhost wrapper entrypoints
+        run: |
           ./target/release/arukellt --help | head -5
           ./target/release/arukellt --version
 
@@ -297,8 +311,11 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Build release arukellt
-        run: cargo build --release -p arukellt
+      - name: Make selfhost wrapper available as arukellt
+        run: |
+          mkdir -p target/release
+          cp scripts/run/arukellt-selfhost.sh target/release/arukellt
+          chmod +x target/release/arukellt
 
       - name: Determinism check — T3 compile same output twice
         run: |
@@ -338,14 +355,14 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Build debug arukellt
-        env:
-          CARGO_TARGET_DIR: ${{ runner.temp }}/target-heavy
-        run: cargo build -p arukellt
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
       - name: Verify harness (size + WAT + docs)
         env:
-          ARUKELLT_BIN: ${{ runner.temp }}/target-heavy/debug/arukellt
+          ARUKELLT_BIN: scripts/run/arukellt-selfhost.sh
         run: python3 scripts/manager.py verify --size --wat --docs
 
   # ── Layer 7b: Component interop (push only) ──────────────────────────────
@@ -378,9 +395,6 @@ jobs:
       - name: Install wasm-tools
         run: cargo install wasm-tools --locked --quiet
 
-      - name: Build arukellt
-        run: cargo build -p arukellt --quiet
-
       - name: Component interop tests
         run: python3 scripts/manager.py verify --component
 
@@ -406,8 +420,11 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Build release arukellt
-        run: cargo build --release -p arukellt
+      - name: Make selfhost wrapper available as arukellt
+        run: |
+          mkdir -p target/release
+          cp scripts/run/arukellt-selfhost.sh target/release/arukellt
+          chmod +x target/release/arukellt
 
       - name: Collect perf and fixture baselines
         run: python3 scripts/util/collect-baseline.py
@@ -444,14 +461,15 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash
           echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
-      - name: Build release arukellt
-        env:
-          CARGO_TARGET_DIR: ${{ runner.temp }}/target-selfhost
-        run: cargo build --release -p arukellt
+      - name: Make selfhost wrapper available as arukellt
+        run: |
+          mkdir -p target/release
+          cp scripts/run/arukellt-selfhost.sh target/release/arukellt
+          chmod +x target/release/arukellt
 
       - name: Run full bootstrap (Stage 0 + Stage 1 + Stage 2)
         env:
-          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
+          ARUKELLT_BIN: ./target/release/arukellt
         run: |
           # Run full bootstrap — Stage 2 fixpoint may fail (expected until selfhost reaches parity)
           bash scripts/run/verify-bootstrap.sh --check 2>&1 | tee bootstrap-results.txt || true
@@ -460,16 +478,12 @@ jobs:
           grep -q 'stage1-compile: reached' bootstrap-results.txt
 
       - name: Run selfhost fixture parity
-        env:
-          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
         run: python3 scripts/manager.py selfhost parity --mode --fixture 2>&1 | tee parity-results.txt || true
 
       # ── Merge-blocking CLI parity gate (#530) ─────────────────────────────
       # Fails the PR if the selfhost compiler's CLI surface diverges from the
       # reference Rust compiler. No `|| true`: this is required for merge.
       - name: Selfhost CLI parity (merge-blocking, #530)
-        env:
-          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
         run: |
           python3 scripts/manager.py selfhost parity --mode --cli 2>&1 \
             | tee cli-parity-results.txt
@@ -479,8 +493,6 @@ jobs:
       # from the reference Rust compiler. SKIP>0 is acceptable (unimplemented
       # diagnostics), but any FAIL blocks the merge.
       - name: Selfhost diagnostic parity (merge-blocking, #530)
-        env:
-          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
         run: |
           python3 scripts/manager.py selfhost diag-parity 2>&1 \
             | tee diag-parity-results.txt
@@ -522,14 +534,7 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash
           echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
-      - name: Build release arukellt
-        env:
-          CARGO_TARGET_DIR: ${{ runner.temp }}/target-selfhost
-        run: cargo build --release -p arukellt
-
       - name: Selfhost CLI parity check
-        env:
-          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
         run: |
           python3 scripts/manager.py selfhost parity --mode --cli 2>&1 \
             | tee cli-parity-results.txt
@@ -567,14 +572,7 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash
           echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
-      - name: Build release arukellt
-        env:
-          CARGO_TARGET_DIR: ${{ runner.temp }}/target-selfhost
-        run: cargo build --release -p arukellt
-
       - name: Selfhost diagnostic parity check
-        env:
-          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
         run: |
           python3 scripts/manager.py selfhost diag-parity 2>&1 \
             | tee diag-parity-results.txt
@@ -612,8 +610,11 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Build debug arukellt
-        run: cargo build -p arukellt
+      - name: Make selfhost wrapper available as arukellt
+        run: |
+          mkdir -p target/debug
+          cp scripts/run/arukellt-selfhost.sh target/debug/arukellt
+          chmod +x target/debug/arukellt
 
       - name: Install extension dependencies
         run: cd extensions/arukellt-all-in-one && npm install

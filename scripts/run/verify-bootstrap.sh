@@ -62,8 +62,10 @@ elif [[ -f "${REPO_ROOT}/target/debug/arukellt" ]]; then
     COMPILER="${REPO_ROOT}/target/debug/arukellt"
 elif [[ -f "${REPO_ROOT}/target/release/arukellt" ]]; then
     COMPILER="${REPO_ROOT}/target/release/arukellt"
+elif [[ -x "${REPO_ROOT}/scripts/run/arukellt-selfhost.sh" ]]; then
+    COMPILER="${REPO_ROOT}/scripts/run/arukellt-selfhost.sh"
 else
-    echo "error: no arukellt binary found. Run cargo build -p arukellt." >&2
+    echo "error: no arukellt entrypoint found. Set ARUKELLT_BIN or use scripts/run/arukellt-selfhost.sh." >&2
     exit 1
 fi
 SELFHOST_DIR="${REPO_ROOT}/src/compiler"

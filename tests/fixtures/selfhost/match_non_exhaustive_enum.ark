@@ -1,0 +1,23 @@
+// Test: selfhost typechecker detects non-exhaustive match on user-defined enum.
+// Exercises: match on Direction enum missing West variant (exhaustiveness check).
+use std::host::stdio
+
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+fn describe(d: Direction) -> i32 {
+    match d {
+        Direction::North => 1,
+        Direction::South => 2,
+        Direction::East => 3,
+    }
+}
+
+fn main() {
+    stdio::println(to_string(describe(Direction::North)))
+}
+// Non-exhaustive match: missing Direction::West

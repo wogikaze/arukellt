@@ -1,0 +1,20 @@
+// Test: array comprehension — field access on loop variable in element expr
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn main() {
+    let pts: Vec<Point> = Vec_new_Point()
+    push(pts, Point { x: 1, y: 10 })
+    push(pts, Point { x: 2, y: 20 })
+    push(pts, Point { x: 3, y: 30 })
+    let x_coords = [p.x for p in pts]
+    let mut sum = 0
+    for v in values(x_coords) {
+        sum = sum + v
+    }
+    stdio::println(i32_to_string(sum))
+}

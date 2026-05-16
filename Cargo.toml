@@ -9,7 +9,6 @@ members = [
     "crates/ark-diagnostics",
     "crates/ark-target",
     "crates/ark-manifest",
-    "crates/arukellt",
     "crates/ark-playground-wasm",
 ]
 default-members = [
@@ -21,7 +20,6 @@ default-members = [
     "crates/ark-diagnostics",
     "crates/ark-target",
     "crates/ark-manifest",
-    "crates/arukellt",
 ]
 
 [workspace.package]

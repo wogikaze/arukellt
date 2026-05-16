@@ -340,18 +340,11 @@ def cmd_verify_fixtures(args: argparse.Namespace) -> int:
     dry_run: bool = args.dry_run
     h = Harness(repo_root=root, dry_run=dry_run)
 
-    print(f"\n{YELLOW}[fixtures] Running fixture harness...{NC}")
-
-    arukellt_bin = os.environ.get("ARUKELLT_BIN", "")
-    env = os.environ.copy()
-    if arukellt_bin:
-        env["ARUKELLT_BIN"] = arukellt_bin
-
-    cmd = ["cargo", "test", "-p", "arukellt", "--test", "harness", "--", "--nocapture"]
+    print(f"\n{YELLOW}[fixtures] Running selfhost fixture parity...{NC}")
 
     if dry_run:
-        print(f"DRY-RUN: {cmd}")
-        h.check_pass("fixture harness (dry-run)")
+        print("DRY-RUN: cmd_verify_fixtures (selfhost fixture-parity)")
+        h.check_pass("selfhost fixture parity (dry-run)")
         total, passed, skipped, failed = h.summary()
         print(f"\n{YELLOW}Summary{NC}")
         print(f"Total checks: {total}")
@@ -360,24 +353,18 @@ def cmd_verify_fixtures(args: argparse.Namespace) -> int:
         print(f"Failed: {RED}{failed}{NC}")
         return h.exit_code()
 
-    result = subprocess.run(cmd, cwd=str(root), capture_output=True, text=True, env=env)
-    output = result.stdout + result.stderr
+    rc, output = run_fixture_parity(root, dry_run=False)
+    print(output)
 
-    if "FAIL: 0" in output:
-        summary_line = next(
-            (line for line in output.splitlines() if "PASS:" in line), ""
-        )
-        h.check_pass(f"fixture harness ({summary_line.strip()})")
+    if rc == 0:
+        h.check_pass("selfhost fixture parity")
     else:
         h.check_fail(
-            "fixture harness",
+            "selfhost fixture parity",
             category="fixture",
-            command="cargo test -p arukellt --test harness -- --nocapture",
+            command="python3 scripts/manager.py selfhost parity --mode --fixture",
             primary_path="tests/fixtures/manifest.txt",
         )
-        for line in output.splitlines():
-            if line.startswith(("PASS:", "FAIL ")):
-                print(line)
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")

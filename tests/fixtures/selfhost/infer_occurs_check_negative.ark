@@ -1,0 +1,14 @@
+// Test: selfhost typechecker rejects self-referential types.
+// Exercises: let x = x creates a self-reference that must be rejected.
+// Note: The resolver catches this as an undefined name before the
+// typechecker's occurs check would fire.
+use std::host::stdio
+
+fn self_ref() {
+    let x = x
+}
+
+fn main() {
+    stdio::println(String_from("should not reach"))
+}
+// Self-referential via undefined forward reference — rejected by resolution

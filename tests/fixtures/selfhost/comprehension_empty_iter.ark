@@ -1,0 +1,8 @@
+// Test: array comprehension on an empty iterable
+use std::host::stdio
+
+fn main() {
+    let xs: Vec<i32> = Vec_new_i32()
+    let result = [x * 2 for x in xs]
+    stdio::println(i32_to_string(len(result)))
+}

@@ -1,0 +1,6 @@
+// Error: element type mismatch
+fn main() {
+    let xs: Vec<i32> = Vec_new_i32()
+    push(xs, 1)
+    let ys: Vec<String> = [x * 2 for x in xs]
+}

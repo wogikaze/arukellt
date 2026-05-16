@@ -177,12 +177,12 @@ Per work unit:
 
 ## Completion Criteria
 
-- [ ] Runtime recoverable failures have typed `Result<T, E>` contracts in targeted families
-- [ ] Compiler diagnostics are structured before rendering
-- [ ] Panic / ICE behavior is reserved for internal bugs or explicit unrecoverable cases
-- [ ] Negative fixtures prove user errors are not reported as internal bugs
-- [ ] Docs explain `Option`, `Result`, diagnostics, and panic as separate mechanisms
-- [ ] Follow-up subissues exist for each implementation lane
+- [x] Runtime recoverable failures have typed `Result<T, E>` contracts in targeted families
+- [x] Compiler diagnostics are structured before rendering
+- [x] Panic / ICE behavior is reserved for internal bugs or explicit unrecoverable cases
+- [x] Negative fixtures prove user errors are not reported as internal bugs
+- [x] Docs explain `Option`, `Result`, diagnostics, and panic as separate mechanisms
+- [x] Follow-up subissues exist for each implementation lane
 
 ---
 
