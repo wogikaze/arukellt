@@ -163,6 +163,22 @@ gate is complete: CI now installs wasmtime for the selfhost wrapper, then runs
 remaining acceptance item requires native CI evidence or a local Xvfb socket
 directory owned by `root:root` with mode `1777`.
 
+## Recheck — 2026-05-17 late
+
+- `/tmp/.X11-unix` state: `nobody:nogroup` with mode `777`.
+- `xvfb-run -e /dev/stdout -a true`: **FAIL**.
+  - Xvfb reports `/tmp/.X11-unix` must be owned by `root` and have mode `1777`.
+- `env DONT_PROMPT_WSL_INSTALL=1 xvfb-run -e /dev/stdout -a npm test`: **FAIL**
+  for the exact release gate in this local environment.
+  - The VS Code test runner reports `Exit code: 0`.
+  - `xvfb-run` exits 1 because Xvfb cannot establish listening sockets with the
+    current `/tmp/.X11-unix` owner/mode.
+
+Updated verdict: still blocked only on environment/native-CI evidence. The
+extension test assertions are green under `vscode-test`, but this local
+workspace cannot satisfy the exact `xvfb-run -a npm test` gate until Xvfb can
+create its socket directory correctly.
+
 ## Primary Paths
 
 - `extensions/arukellt-all-in-one/` (extension source)

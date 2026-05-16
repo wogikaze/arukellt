@@ -1,6 +1,6 @@
-// Stdlib benchmark: hash map insert/get with string keys and i32 values.
-// Exercises std::collections::hash hashmap_str_* and hashmap_str_str_*
-// hot paths: insert, get, contains, remove, plus hash_i32/str_hash.
+// Stdlib benchmark: hash map insert/get with String keys and i32 values.
+// Exercises std::collections::hash hashmap_str_* hot paths: insert,
+// get (Option<i32>), contains, remove, plus hashmap_keys/values/clear.
 use std::collections::hash
 use std::host::stdio
 
@@ -9,35 +9,33 @@ fn main() {
     let mut checksum: i32 = 0
     let mut i: i32 = 0
 
-    // Insert 100 entries
+    // Insert 100 entries (String key, i32 value)
     while i < 100 {
         let key = concat("key_", i32_to_string(i))
-        let val = concat("val_", i32_to_string(i))
-        let prev = hash::hashmap_str_str_set(m, key, 1)
+        let prev = hash::hashmap_str_set(m, key, i * 7)
         if prev {
             checksum = checksum + 1000
-        } else {
-            checksum = checksum + 1
         }
         i = i + 1
     }
+    checksum = checksum + hash::hashmap_size(m)
 
     // Get each entry
     i = 0
     while i < 100 {
         let key = concat("key_", i32_to_string(i))
-        match hash::hashmap_str_str_get(m, key) {
-            Option::Some(v) => checksum = checksum + len(v),
+        match hash::hashmap_str_get(m, key) {
+            Option::Some(v) => checksum = checksum + v,
             None => checksum = checksum + 10000,
         }
         i = i + 1
     }
 
-    // Check containment
+    // Containment check
     i = 0
     while i < 100 {
         let key = concat("key_", i32_to_string(i))
-        if hash::hashmap_str_str_contains(m, key) {
+        if hash::hashmap_str_contains(m, key) {
             checksum = checksum + 1
         }
         i = i + 1
@@ -47,15 +45,15 @@ fn main() {
     i = 0
     while i < 100 {
         let key = concat("key_", i32_to_string(i))
-        match hash::hashmap_str_str_remove(m, key) {
+        match hash::hashmap_str_remove(m, key) {
             Option::Some(_) => checksum = checksum + 2,
             None => checksum = checksum + 20000,
         }
         i = i + 2
     }
 
-    // Check size
-    checksum = checksum + hash::hashmap_str_str_len(m)
+    // Remaining size
+    checksum = checksum + hash::hashmap_size(m)
 
     stdio::println(i32_to_string(checksum))
 }
