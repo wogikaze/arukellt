@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T08:15:52Z",
+  "generated_at": "2026-05-16T08:19:32Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -538,7 +538,7 @@
         "unchecked": 6
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -610,32 +610,6 @@
       },
       "orchestration": {
         "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "594",
-      "path": "594-selfhost-phase2-fixture-diag-parity.md",
-      "title": "594-selfhost-phase2-fixture-diag-parity",
-      "track": "selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "593"
-      ],
-      "blocks_issue_ids": [
-        "625"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },
@@ -870,6 +844,32 @@
       }
     },
     {
+      "id": "625",
+      "path": "625-dual-run-period.md",
+      "title": "529 Phase 4: Dual-Run Period (SAFETY)",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "594"
+      ],
+      "blocks_issue_ids": [
+        "626"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "63",
       "path": "077-wasi-p2-http.md",
       "title": "WASI P2: \"`std::host::http` facade と runtime 検証\"",
@@ -1078,32 +1078,6 @@
       }
     },
     {
-      "id": "625",
-      "path": "625-dual-run-period.md",
-      "title": "529 Phase 4: Dual-Run Period (SAFETY)",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "594"
-      ],
-      "blocks_issue_ids": [
-        "626"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 13
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "599",
       "path": "599-lang-uplift-docs-rollout.md",
       "title": "Language Surface Uplift: Docs, Fixtures, and Rollout",
@@ -1208,6 +1182,32 @@
       }
     },
     {
+      "id": "626",
+      "path": "626-ide-ready-frontend.md",
+      "title": "529 Phase 6/A: IDE-Ready Frontend",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "625"
+      ],
+      "blocks_issue_ids": [
+        "627"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "576",
       "path": "576-phase7-delete-ark-resolve.md",
       "title": "576 — Phase 7: Delete `crates/ark-resolve`",
@@ -1238,9 +1238,9 @@
       }
     },
     {
-      "id": "626",
-      "path": "626-ide-ready-frontend.md",
-      "title": "529 Phase 6/A: IDE-Ready Frontend",
+      "id": "627",
+      "path": "627-analysis-api.md",
+      "title": "529 Phase 6/B: Analysis API",
       "track": "main",
       "status": "open",
       "blocks_v1": "none",
@@ -1249,14 +1249,14 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "625"
+        "626"
       ],
       "blocks_issue_ids": [
-        "627"
+        "628"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 7
+        "unchecked": 8
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -1295,9 +1295,9 @@
       }
     },
     {
-      "id": "627",
-      "path": "627-analysis-api.md",
-      "title": "529 Phase 6/B: Analysis API",
+      "id": "628",
+      "path": "628-lsp-minimum-viable.md",
+      "title": "529 Phase 6/C: LSP Minimum Viable",
       "track": "main",
       "status": "open",
       "blocks_v1": "none",
@@ -1306,14 +1306,12 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "626"
+        "627"
       ],
-      "blocks_issue_ids": [
-        "628"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 8
+        "unchecked": 10
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -1406,30 +1404,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "628",
-      "path": "628-lsp-minimum-viable.md",
-      "title": "529 Phase 6/C: LSP Minimum Viable",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "627"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 10
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
       }
     },
     {

@@ -1,0 +1,18 @@
+// Positive fixture: where clause with value bindings shared across multi-clause fn
+// Tests that where bindings are scoped to all clauses and can reference the clause param
+use std::host::stdio
+
+struct Point { x: i32, y: i32 }
+
+fn describe(pt) -> String
+| m == 0 = "origin"
+| m < 10 = "near"
+| _ = "far"
+where
+    m = pt.x * pt.x + pt.y * pt.y
+
+fn main() {
+    stdio::println(describe(Point { x: 0, y: 0 }))
+    stdio::println(describe(Point { x: 1, y: 2 }))
+    stdio::println(describe(Point { x: 5, y: 5 }))
+}

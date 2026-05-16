@@ -1,11 +1,11 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 571
 Track: selfhost-frontend
 Depends on: 568
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks: 573
 Blocks v5: no
@@ -16,8 +16,9 @@ REBUILD_BEFORE_VERIFY: yes
 ---
 
 # 571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)"
+
 - [ ] Implements: `initialize`, `launch`, `disconnect`
-3. [ ] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+1. [ ] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
 - One logical commit per slice. Suggested message: "`feat(ide): src/ide/dap.ark scaffold (refs #571)`"
 commit: <hash>
 acceptance: "<each [ ] → [x] with evidence>"
@@ -26,8 +27,8 @@ fixture parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
 diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
 new tests added: <paths>
 false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
-# 571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)
 
+## 571 — Phase 6/D: src/ide/dap.ark — debug adapter scaffold (deferred priority)
 
 ## Summary
 
@@ -52,7 +53,6 @@ python scripts/manager.py selfhost fixture-parity
 python scripts/manager.py selfhost diag-parity
 
 ```
-
 
 ## STOP_IF
 

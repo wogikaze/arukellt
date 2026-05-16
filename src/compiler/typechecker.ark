@@ -114,15 +114,22 @@ struct TypeEnv {
     mono_instances: Vec<MonoInstance>,
     mono_call_sites: Vec<MonoCallSite>,
     trait_impls: Vec<TraitImplInfo>,
+    obligations: Vec<Obligation>,
 }
 
 fn TypeEnv_new() -> TypeEnv {
-    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite(), trait_impls: Vec_new_TraitImplInfo() }
+    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite(), trait_impls: Vec_new_TraitImplInfo(), obligations: Vec_new_Obligation() }
 }
 
 struct TraitImplInfo {
     trait_name: String,
     self_ty: TypeInfo,
+}
+
+// ── Obligation: deferred trait bound check ──────────────────────────────────
+struct Obligation {
+    ty: TypeInfo,
+    bound: TypeInfo,
 }
 
 // ── Monomorphization Instance Tracking ──────────────────────────────────────
@@ -445,6 +452,9 @@ fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
     while i < count {
         let existing = get_unchecked(env.trait_impls, i)
         if eq(clone(existing.trait_name), clone(trait_name)) && same_named_type(existing.self_ty, self_ty) {
+            let self_name = type_display_name(self_ty)
+            let msg = concat(String_from("overlapping trait impl: duplicate impl of "), concat(clone(trait_name), concat(String_from(" for "), self_name)))
+            type_error(env, msg)
             return
         }
         i = i + 1
@@ -455,7 +465,7 @@ fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
 fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bool {
     let resolved_ty = resolve_type(env, ty)
     if resolved_ty.tag == typechecker_kinds::TY_TYPE_VAR() {
-        return true
+        return false
     }
     let count = len(env.trait_impls)
     let mut i = 0
@@ -693,7 +703,7 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
     register_trait_impl(env, clone(node.text), resolve_type_ann_node(self_ty_node))
 }
 
-fn enforce_fn_sig_bounds(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types: Vec<TypeInfo>) {
+fn collect_fn_sig_obligations(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types: Vec<TypeInfo>) {
     let tp_count = len(sig.type_param_bounds)
     let mut i = 0
     while i < tp_count {
@@ -703,8 +713,27 @@ fn enforce_fn_sig_bounds(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types
         let mut j = 0
         while j < bound_count {
             let bound = get_unchecked(tp.bounds, j)
-            enforce_trait_bound(env, resolved_ty, bound)
+            push(env.obligations, Obligation { ty: resolved_ty, bound: clone(bound) })
             j = j + 1
+        }
+        i = i + 1
+    }
+}
+
+fn solve_obligations(env: TypeEnv) {
+    let count = len(env.obligations)
+    let mut i = 0
+    while i < count {
+        let obl = get_unchecked(env.obligations, i)
+        let resolved_ty = resolve_type(env, obl.ty)
+        if resolved_ty.tag == typechecker_kinds::TY_TYPE_VAR() {
+            let bound_name = type_display_name(obl.bound)
+            let ty_name = type_display_name(obl.ty)
+            type_error(env, concat(String_from("ambiguous trait bound: cannot determine if "), concat(ty_name, concat(String_from(" implements "), bound_name))))
+        } else if !type_satisfies_trait_bound(env, resolved_ty, obl.bound) {
+            let ty_name = type_display_name(resolved_ty)
+            let bound_name = type_display_name(obl.bound)
+            type_error(env, concat(String_from("trait bound not satisfied: "), concat(ty_name, concat(String_from(" does not implement "), bound_name))))
         }
         i = i + 1
     }
@@ -1058,7 +1087,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             push(resolved_type_args, resolved_tv)
             rv = rv + 1
         }
-        enforce_fn_sig_bounds(env, infer_env, sig, var_types)
+        collect_fn_sig_obligations(env, infer_env, sig, var_types)
         let mangled_name = record_mono_instance(env, clone(callee.text), resolved_type_args)
         record_mono_call_site(env, node.span.start, clone(callee.text), mangled_name)
         return ret_ty
@@ -1128,7 +1157,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             push(resolved_type_args, resolved_tv)
             rv = rv + 1
         }
-        enforce_fn_sig_bounds(env, infer_env, sig, var_types)
+        collect_fn_sig_obligations(env, infer_env, sig, var_types)
         let resolved_recv_ty = resolve_type_deep(infer_env, inst_p0)
         let mut mono_fn_name = clone(node.text)
         if resolved_recv_ty.tag == typechecker_kinds::TY_STRUCT() && len(resolved_recv_ty.name) > 0 {
@@ -1521,6 +1550,8 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         }
         i = i + 1
     }
+    // Solve all collected trait obligations after type inference is complete
+    solve_obligations(env)
     let err_count = env.error_count
     let mut e = 0
     while e < err_count {

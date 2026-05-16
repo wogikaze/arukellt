@@ -1,0 +1,15 @@
+// Negative fixture: where binding references a name not in scope
+// Should produce a compile error about undefined name
+use std::host::stdio
+
+struct Point { x: i32, y: i32 }
+
+fn describe(pt) -> String
+| m == 0 = "origin"
+| _ = "far"
+where
+    m = undefined_var * pt.x
+
+fn main() {
+    stdio::println(String_from("should not reach"))
+}
