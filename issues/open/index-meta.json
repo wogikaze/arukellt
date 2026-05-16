@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T09:44:06Z",
+  "generated_at": "2026-05-16T10:30:36Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -300,9 +300,7 @@
         "done)",
         "074"
       ],
-      "blocks_issue_ids": [
-        "618"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 5
@@ -361,28 +359,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "548",
-      "path": "548-release-lsp-e2e-tests.md",
-      "title": "Release: LSP E2E Tests",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": null,
         "upstream_notes": null
       }
     },
@@ -890,31 +866,6 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "618",
-      "path": "618-wit-bindings-round-trip.md",
-      "title": "WIT bindings round-trip regression surface",
-      "track": "component-model",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "262",
-        "476"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "design-ready",
         "upstream_notes": "None"
       }
     },

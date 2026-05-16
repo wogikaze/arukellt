@@ -20,7 +20,6 @@ graph LR
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I529["529 100% selfhost transition plan"]
-  I548["548 Release: LSP E2E Tests"]
   I549["549 Release: Extension Activation Tests"]
   I550["550 Release: Formatter CLI-LSP Parity"]
   I552["552 Release: Post-Release Documentation"]
@@ -42,7 +41,6 @@ graph LR
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
-  I618["618 WIT bindings round-trip regression surface"]
   I36["36 std: ":collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>""]
   I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I617["617 Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)"]
@@ -63,7 +61,6 @@ graph LR
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I139 --> I136
   I475 --> I485
-  I476 --> I618
   I495 --> I36
   I495 --> I512
   I529 --> I617
@@ -113,10 +110,9 @@ graph LR
 - **473** depends on: 032, done); blocks: none
 - **474** depends on: 035, done), 074; blocks: none
 - **475** depends on: 035, done), 074; blocks: 485
-- **476** depends on: 035, done), 074; blocks: 618
+- **476** depends on: 035, done), 074; blocks: none
 - **495** depends on: 312, 504; blocks: 36, 512
 - **529** depends on: none; blocks: 617
-- **548** depends on: none; blocks: none
 - **549** depends on: none; blocks: none
 - **550** depends on: none; blocks: none
 - **552** depends on: none; blocks: none
@@ -138,7 +134,6 @@ graph LR
 - **63** depends on: 074, 137; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
-- **618** depends on: 262, 476; blocks: none
 - **36** depends on: 039, 041, 312, 495; blocks: none
 - **512** depends on: 504, 495; blocks: none
 - **617** depends on: 529; blocks: none
