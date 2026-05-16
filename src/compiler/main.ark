@@ -12,6 +12,7 @@ use driver
 use diagnostics
 use analysis
 use lsp
+use dap
 fn CMD_PARSE() -> i32 {
     1
 }
@@ -58,6 +59,10 @@ fn CMD_IDE_ANALYZE() -> i32 {
 
 fn CMD_LSP() -> i32 {
     12
+}
+
+fn CMD_DAP() -> i32 {
+    13
 }
 
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
@@ -157,7 +162,7 @@ fn parse_command(name: String) -> i32 {
         return CMD_LSP()
     }
     if cli_str_eq(clone(name), String_from("debug-adapter")) {
-        return CMD_NOT_YET()
+        return CMD_DAP()
     }
     if cli_str_eq(clone(name), String_from("lint")) {
         return CMD_NOT_YET()
@@ -641,11 +646,29 @@ fn main() {
                     if command == CMD_LSP() {
                         cmd_lsp(opts)
                     } else {
-                        cmd_compile(opts)
+                        if command == CMD_DAP() {
+                            cmd_dap(opts)
+                        } else {
+                            cmd_compile(opts)
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+fn cmd_dap(opts: CliOptions) {
+    let input_file = clone(opts.input_file)
+    let read_result = fs::read_to_string(clone(input_file))
+    match read_result {
+        Result::Ok(text) => {
+            stdio::print(dap::run_dap_session(text))
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error reading input: "), e))
+            process::exit(1)
+        },
     }
 }
 

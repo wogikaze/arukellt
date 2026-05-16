@@ -216,6 +216,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "selfhost LSP lifecycle gate (#569)",
             "python3 scripts/check/check-lsp-lifecycle.py",
         ),
+        (
+            "selfhost DAP lifecycle gate (#571)",
+            "python3 scripts/check/check-dap-lifecycle.py",
+        ),
     ]
 
     bg_results: list[tuple[str, str, int, str]] = []
@@ -237,7 +241,7 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             if "package-workspace" in label:
                 category = "package-workspace"
                 primary_path = "tests/package-workspace/"
-            elif "LSP" in label:
+            elif "LSP" in label or "DAP" in label:
                 category = "editor-tooling"
                 primary_path = "tests/fixtures/selfhost/"
             else:

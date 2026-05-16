@@ -1,0 +1,9 @@
+Content-Length: 130
+
+{"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true}}Content-Length: 46
+
+{"seq":2,"type":"event","event":"initialized"}Content-Length: 87
+
+{"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch","body":{}}Content-Length: 91
+
+{"seq":4,"type":"response","request_seq":3,"success":true,"command":"disconnect","body":{}}

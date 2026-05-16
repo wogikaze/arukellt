@@ -1,0 +1,392 @@
+// Arukellt Selfhost — Debug Adapter Protocol scaffold
+//
+// Implements the three required DAP lifecycle handlers:
+//   initialize  → respond with capabilities
+//   launch      → acknowledge (success)
+//   disconnect  → acknowledge (success)
+//
+// Uses Content-Length framing (same transport as LSP).
+// This is a minimal scaffold; breakpoints and stepping are out of scope.
+
+struct DapState {
+    initialized: bool,
+    launched: bool,
+    disconnected: bool,
+    seq: i32,
+    output: String,
+}
+
+fn DapState_new() -> DapState {
+    DapState { initialized: false, launched: false, disconnected: false, seq: 1, output: String_new() }
+}
+
+// ── JSON helpers (prefixed dap_ to avoid collisions with lsp.ark) ──────────────
+
+fn dap_skip_ws(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut p = pos
+    while p < n {
+        let c = char_at(s, p)
+        if c != 32 && c != 9 && c != 10 && c != 13 {
+            return p
+        }
+        p = p + 1
+    }
+    p
+}
+
+fn dap_find_key(json: String, key: String, from: i32) -> i32 {
+    let needle = concat(String_from("\""), concat(clone(key), String_from("\"")))
+    let n = len(json)
+    let nlen = len(needle)
+    if from >= n {
+        return -1
+    }
+    let tail = substring(clone(json), from, n)
+    let rel = index_of(tail, clone(needle))
+    if rel < 0 {
+        return -1
+    }
+    from + rel + nlen
+}
+
+fn dap_parse_string_at(s: String, pos: i32) -> DapStrResult {
+    let n = len(s)
+    if pos >= n || char_at(s, pos) != 34 {
+        return DapStrResult { value: String_new(), next: pos, ok: false }
+    }
+    let mut p = pos + 1
+    let mut out = String_new()
+    let mut span_start = p
+    while p < n {
+        let c = char_at(s, p)
+        if c == 34 {
+            if span_start < p {
+                out = concat(out, substring(clone(s), span_start, p))
+            }
+            return DapStrResult { value: out, next: p + 1, ok: true }
+        }
+        if c == 92 {
+            if span_start < p {
+                out = concat(out, substring(clone(s), span_start, p))
+            }
+            p = p + 1
+            if p >= n {
+                return DapStrResult { value: out, next: p, ok: false }
+            }
+            let esc = char_at(s, p)
+            if esc == 34 {
+                out = concat(out, String_from("\""))
+            } else {
+                if esc == 92 {
+                    out = concat(out, String_from("\\"))
+                } else {
+                    if esc == 110 {
+                        out = concat(out, String_from("\n"))
+                    } else {
+                        if esc == 114 {
+                            out = concat(out, String_from("\r"))
+                        } else {
+                            if esc == 116 {
+                                out = concat(out, String_from("\t"))
+                            } else {
+                                out = concat(out, substring(clone(s), p, p + 1))
+                            }
+                        }
+                    }
+                }
+            }
+            p = p + 1
+            span_start = p
+        } else {
+            p = p + 1
+        }
+    }
+    DapStrResult { value: out, next: p, ok: false }
+}
+
+struct DapStrResult {
+    value: String,
+    next: i32,
+    ok: bool,
+}
+
+fn dap_parse_int_at(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut p = dap_skip_ws(clone(s), pos)
+    if p >= n {
+        return 0
+    }
+    let mut neg = false
+    if char_at(s, p) == 45 {
+        neg = true
+        p = p + 1
+    }
+    let mut v = 0
+    let mut any = false
+    while p < n {
+        let c = char_at(s, p)
+        if c < 48 || c > 57 {
+            break
+        }
+        v = v * 10 + (c - 48)
+        any = true
+        p = p + 1
+    }
+    if !any {
+        return 0
+    }
+    if neg {
+        return 0 - v
+    }
+    v
+}
+
+fn dap_get_str(json: String, key: String) -> String {
+    dap_get_str_after(clone(json), key, 0)
+}
+
+fn dap_get_str_after(json: String, key: String, from: i32) -> String {
+    let p = dap_find_key(clone(json), key, from)
+    if p < 0 {
+        return String_new()
+    }
+    let q = dap_skip_ws(clone(json), p)
+    let n = len(json)
+    if q >= n || char_at(json, q) != 58 {
+        return String_new()
+    }
+    let r = dap_skip_ws(clone(json), q + 1)
+    let parsed = dap_parse_string_at(clone(json), r)
+    if !parsed.ok {
+        return String_new()
+    }
+    parsed.value
+}
+
+fn dap_get_int(json: String, key: String) -> i32 {
+    let p = dap_find_key(clone(json), key, 0)
+    if p < 0 {
+        return 0
+    }
+    let q = dap_skip_ws(clone(json), p)
+    let n = len(json)
+    if q >= n || char_at(json, q) != 58 {
+        return 0
+    }
+    dap_parse_int_at(clone(json), q + 1)
+}
+
+fn dap_escape(s: String) -> String {
+    let n = len(s)
+    let mut out = String_new()
+    let mut i = 0
+    while i < n {
+        let c = char_at(s, i)
+        if c == 34 {
+            out = concat(out, String_from("\\\""))
+        } else {
+            if c == 92 {
+                out = concat(out, String_from("\\\\"))
+            } else {
+                if c == 10 {
+                    out = concat(out, String_from("\\n"))
+                } else {
+                    if c == 13 {
+                        out = concat(out, String_from("\\r"))
+                    } else {
+                        if c == 9 {
+                            out = concat(out, String_from("\\t"))
+                        } else {
+                            if c < 32 {
+                                out = concat(out, String_from("\\u00"))
+                                out = concat(out, dap_hex_byte(c))
+                            } else {
+                                out = concat(out, substring(clone(s), i, i + 1))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn dap_hex_nibble(n: i32) -> String {
+    if n < 10 {
+        return char_to_string(48 + n)
+    }
+    char_to_string(87 + n)
+}
+
+fn dap_hex_byte(b: i32) -> String {
+    let hi = (b / 16) & 15
+    let lo = b & 15
+    concat(dap_hex_nibble(hi), dap_hex_nibble(lo))
+}
+
+// ── Framing ────────────────────────────────────────────────────────────────────
+
+fn dap_frame(body: String) -> String {
+    let header = concat(String_from("Content-Length: "), concat(to_string(len(clone(body))), String_from("\r\n\r\n")))
+    concat(header, body)
+}
+
+fn dap_quote(s: String) -> String {
+    concat(String_from("\""), concat(dap_escape(s), String_from("\"")))
+}
+
+// ── Response Builders ──────────────────────────────────────────────────────────
+
+fn dap_init_resp(seq: i32, request_seq: i32) -> String {
+    let mut body = String_from("{\"seq\":")
+    body = concat(body, to_string(seq))
+    body = concat(body, String_from(",\"type\":\"response\",\"request_seq\":"))
+    body = concat(body, to_string(request_seq))
+    body = concat(body, String_from(",\"success\":true,\"command\":\"initialize\""))
+    body = concat(body, String_from(",\"body\":{\"supportsConfigurationDoneRequest\":true}}"))
+    body
+}
+
+fn dap_launch_resp(seq: i32, request_seq: i32) -> String {
+    let mut body = String_from("{\"seq\":")
+    body = concat(body, to_string(seq))
+    body = concat(body, String_from(",\"type\":\"response\",\"request_seq\":"))
+    body = concat(body, to_string(request_seq))
+    body = concat(body, String_from(",\"success\":true,\"command\":\"launch\",\"body\":{}}"))
+    body
+}
+
+fn dap_disconnect_resp(seq: i32, request_seq: i32) -> String {
+    let mut body = String_from("{\"seq\":")
+    body = concat(body, to_string(seq))
+    body = concat(body, String_from(",\"type\":\"response\",\"request_seq\":"))
+    body = concat(body, to_string(request_seq))
+    body = concat(body, String_from(",\"success\":true,\"command\":\"disconnect\",\"body\":{}}"))
+    body
+}
+
+fn dap_init_evt(seq: i32) -> String {
+    let mut body = String_from("{\"seq\":")
+    body = concat(body, to_string(seq))
+    body = concat(body, String_from(",\"type\":\"event\",\"event\":\"initialized\"}"))
+    body
+}
+
+// ── Handler ────────────────────────────────────────────────────────────────────
+
+fn dap_append(state: DapState, body: String) {
+    state.output = concat(clone(state.output), dap_frame(body))
+}
+
+fn dap_next_seq(state: DapState) -> i32 {
+    let s = clone(state.seq)
+    state.seq = state.seq + 1
+    s
+}
+
+fn dap_handle(state: DapState, body: String) {
+    let command = dap_get_str(clone(body), String_from("command"))
+    let msg_type = dap_get_str(clone(body), String_from("type"))
+    if len(msg_type) == 0 || !eq(clone(msg_type), String_from("request")) {
+        return
+    }
+    if len(command) == 0 {
+        return
+    }
+    let request_seq = dap_get_int(clone(body), String_from("seq"))
+    if eq(clone(command), String_from("initialize")) {
+        state.initialized = true
+        dap_append(state, dap_init_resp(dap_next_seq(state), request_seq))
+        dap_append(state, dap_init_evt(dap_next_seq(state)))
+        return
+    }
+    if eq(clone(command), String_from("launch")) {
+        state.launched = true
+        dap_append(state, dap_launch_resp(dap_next_seq(state), request_seq))
+        return
+    }
+    if eq(clone(command), String_from("disconnect")) {
+        state.disconnected = true
+        dap_append(state, dap_disconnect_resp(dap_next_seq(state), request_seq))
+        return
+    }
+}
+
+// ── Frame Parsing ──────────────────────────────────────────────────────────────
+
+struct DapFrameResult {
+    body: String,
+    next: i32,
+    ok: bool,
+}
+
+fn dap_parse_frame(input: String, pos: i32) -> DapFrameResult {
+    let n = len(input)
+    let mut p = pos
+    while p < n {
+        let c = char_at(input, p)
+        if c != 32 && c != 9 && c != 10 && c != 13 {
+            break
+        }
+        p = p + 1
+    }
+    if p >= n {
+        return DapFrameResult { body: String_new(), next: n, ok: false }
+    }
+    let header_end_rel = index_of(substring(clone(input), p, n), String_from("\r\n\r\n"))
+    if header_end_rel < 0 {
+        return DapFrameResult { body: String_new(), next: n, ok: false }
+    }
+    let header_block = substring(clone(input), p, p + header_end_rel)
+    let cl_idx = index_of(clone(header_block), String_from("Content-Length:"))
+    if cl_idx < 0 {
+        return DapFrameResult { body: String_new(), next: n, ok: false }
+    }
+    let block_len = len(header_block)
+    let mut q = cl_idx + 15
+    while q < block_len {
+        let c = char_at(header_block, q)
+        if c != 32 && c != 9 {
+            break
+        }
+        q = q + 1
+    }
+    let mut clen = 0
+    while q < block_len {
+        let c = char_at(header_block, q)
+        if c < 48 || c > 57 {
+            break
+        }
+        clen = clen * 10 + (c - 48)
+        q = q + 1
+    }
+    let body_start = p + header_end_rel + 4
+    if body_start + clen > n {
+        return DapFrameResult { body: String_new(), next: n, ok: false }
+    }
+    let body_text = substring(clone(input), body_start, body_start + clen)
+    DapFrameResult { body: body_text, next: body_start + clen, ok: true }
+}
+
+// ── Public Entry Point ─────────────────────────────────────────────────────────
+
+pub fn run_dap_session(input: String) -> String {
+    let state = DapState_new()
+    let n = len(input)
+    let mut pos = 0
+    while pos < n {
+        let f = dap_parse_frame(clone(input), pos)
+        if !f.ok {
+            break
+        }
+        dap_handle(state, clone(f.body))
+        pos = f.next
+        if state.disconnected {
+            break
+        }
+    }
+    state.output
+}
