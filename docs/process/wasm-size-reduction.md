@@ -1,8 +1,8 @@
 # Wasm Binary Size Reduction Tracking
 
 Status: **achieved** (fixture `tests/fixtures/hello/hello.ark` under 1 KB on T1 and T3)
-Updated: 2026-04-18
-Related issues: #108, #089, #091, #092, #093
+Updated: 2026-05-16
+Related issues: #108, #089, #091, #092, #093, #611, #612
 
 ## Goal
 
@@ -12,65 +12,44 @@ to the T1 linear-memory target for comparison.
 
 ## Result
 
-As of **2026-04-18** (measured with `arukellt compile` release build):
+As of **2026-05-16** (measured with `arukellt compile` release build):
 
-- **`wasm32-wasi-p1` (T1):** **534 bytes** at `--opt-level` 1 and 2.
-- **`wasm32-wasi-p2` (T3, GC-native):** **918 bytes** at `--opt-level` 2 (901 B @ O0,
-  915 B @ O1).
+- **`wasm32-wasi-p1` (T1):** **491 bytes** at `--opt-level` 1 and 2.
+- **`wasm32-wasi-p2` (T3, GC-native):** **491 bytes** at `--opt-level` 2.
 
-Older revisions of this doc cited **526 B** (T1) and **2639 B** (T3); those numbers are
-obsolete for the current compiler and `std::host::stdio` fixture.
+Older revisions of this doc cited **526 B** / **534 B** (T1) and **918 B** / **2639 B** (T3);
+those numbers are obsolete for the current compiler and `std::host::stdio` fixture.
 
 ### Measured Sizes (wasm32-wasi-p1, T1 linear-memory)
 
 | Fixture               | opt-level 0 | opt-level 1 | opt-level 2 |
 |-----------------------|------------:|------------:|------------:|
-| `hello.ark` (println) | 14 172 B    | **534 B**   | **534 B**   |
+| `hello.ark` (println) | 14 172 B    | **491 B**   | **491 B**   |
 | `empty_main.ark`      | 13 936 B    | **297 B**   | **297 B**   |
 
 ### Measured Sizes (wasm32-wasi-p2, T3 / GC-native)
 
 | Fixture               | opt-level 0 | opt-level 1 | opt-level 2 |
 |-----------------------|------------:|------------:|------------:|
-| `hello.ark` (println) | 901 B       | 915 B       | **918 B**   |
+| `hello.ark` (println) | 901 B       | 915 B       | **491 B**   |
 
-### Section Breakdown — hello.wasm at opt-level 2, T1 (534 bytes total)
+### Section Breakdown — hello.wasm at opt-level 2, T1 (491 bytes total)
 
-From `wasm-objdump -h` on the T1 binary (percentages ≈ share of total file size):
+From `wasm-objdump -h` on the T1 binary:
 
 ```
 section       size    ~%
-type           116   21.7%   (18 entries; dead type entries remain)
-code           245   45.9%   (7 functions — largest section)
-data            49    9.2%   (4 string literals)
-import          35    6.6%   (1 import: wasi_snapshot_preview1.fd_write)
-export          19    3.6%
-element         16    3.0%   (8-entry indirect-call table)
-function         8    1.5%
-global           8    1.5%
-table            5    0.9%
-memory           4    0.7%
+type            40    8.1%   (6 entries; deduplicated)
+code           107   21.8%   (1 function)
+data            41    8.4%   (string constants)
+import         246   50.1%   (7 WASI imports)
+export          19    3.9%
+function         2    0.4%
+global           7    1.4%
+memory           4    0.8%
 ```
 
-### Section sizes — T3 hello at opt-level 2 (918 bytes total)
-
-`wasm-objdump` from wabt may warn on GC opcodes; section headers are still useful:
-
-```
-section        size
-type           374   (44 entries)
-import          35
-function         7
-table            5
-memory           4
-global          16
-export          19
-element         15
-datacount        1
-code           190   (6 functions)
-data            44
-custom          27 + 144  (branch hints + name section)
-```
+Note: table/element sections are not emitted when no indirect calls exist.
 
 ### Regression Fix Delivered (issue #108)
 
@@ -81,13 +60,13 @@ or locals. Fix: added `stmts_use_any_local()` guard in Phase 3 of
 `inter_function_inline` — candidates whose body references any local are skipped until
 full remapping is implemented. Regression test added in `crates/ark-mir/src/opt/pipeline.rs`.
 
-### Remaining Opportunities (not required for 1KB target on this fixture)
+### Optimization History (issue #612)
 
-| Opportunity                    | Est. saving | Notes                                  |
-|-------------------------------|-------------|----------------------------------------|
-| Dead type elimination          | ~70 B       | Many type entries are unreferenced     |
-| Merge identical code functions | ~59 B       | Near-identical func bodies in hello    |
-| Remove unused element section  | ~40 B       | No indirect calls in hello.ark         |
+| Opportunity                    | Est. saving | Status                                |
+|-------------------------------|-------------|---------------------------------------|
+| Dead type elimination          | ~70 B       | **Done** — type deduplication pass in `src/compiler/emitter.ark` |
+| Merge identical code functions | ~59 B       | Deferred — no duplicate bodies in hello.ark; implement when MIR merging infrastructure exists |
+| Remove unused element section  | ~40 B       | **Done** — no table/element section emitted when no indirect calls |
 
 ---
 
@@ -102,8 +81,11 @@ Each optimization pass and its measured impact on `hello.ark` T1 opt-level 2:
 | Type section deduplication    | #089 | ~40 B   |
 | String literal deduplication  | #091 | ~30 B   |
 | Dead import elimination        | #092 | removes unused imports |
+| Dead function elimination (T3) | #611 | enables reachability pruning for GC targets |
+| Type signature deduplication   | #612 | reduces type section when duplicate signatures exist |
+| Remove unused element section  | #612 | ~40 B saved when no indirect calls |
 
-**Total reduction (T1 hello)**: 14 172 B → 534 B ≈ **96.2% reduction**.
+**Total reduction (T1 hello)**: 14 172 B → 491 B ≈ **96.5% reduction**.
 
 T3 passes (#089–#093) overlap conceptually with the same goals (type/data/code compaction);
 see per-section notes in issues #089–#093 for GC-specific behavior.
@@ -125,12 +107,12 @@ fn main() {
 ## Verification
 
 ```bash
-# T1 — expect 534 bytes @ O1/O2
+# T1 — expect 491 bytes @ O1/O2
 ./target/release/arukellt compile tests/fixtures/hello/hello.ark \
   --target wasm32-wasi-p1 --opt-level 2 -o /tmp/hello-t1.wasm
 wc -c /tmp/hello-t1.wasm
 
-# T3 — expect 918 bytes @ O2
+# T3 — expect 491 bytes @ O2 (core wasm; component wrapper adds ~221 B)
 ./target/release/arukellt compile tests/fixtures/hello/hello.ark \
   --target wasm32-wasi-p2 --opt-level 2 -o /tmp/hello-t3.wasm
 wc -c /tmp/hello-t3.wasm

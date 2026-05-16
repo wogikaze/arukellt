@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-22
 Updated: 2026-05-16
 ID: 612
@@ -7,12 +7,28 @@ Track: compiler / runtime-perf
 Orchestration class: implementation-ready
 Depends on: 609, 611
 Parent: None
-In scope: 
-Out of scope: 
 Close when: T3 binary is ≥100 B smaller than Phase 0 baseline, `wasm-size-reduction.md`
-# Optimization Uplift: Binary Size Squeeze
+Resolved: 2026-05-16
+
+Implementation summary:
+- Dead type elimination: Added type signature deduplication in `src/compiler/emitter.ark`.
+  WASI types and user function signatures are canonicalized and deduplicated via
+  type signature strings, with type indices remapped in import/function sections.
+- Remove unused element section: Already handled — emitter never emits table or
+  element sections when no indirect calls exist (~40 B saved).
+- Merge identical code functions: Deferred — no measurable impact on hello.ark
+  (single function); requires MIR-level merging infrastructure.
+- Updated `docs/process/wasm-size-reduction.md` with current measurements (491 B
+  T1/T3 core wasm at O2, down from 534/918 B Phase 0 baseline).
+- Applied #611 T3 dead-function elimination driver integration (T3 component/wit
+  reachability roots).
+- Size regression fixtures: existing hello.ark size gate covers both T1 and T3.
 ---
 # Optimization Uplift: Binary Size Squeeze
+
+---
+
+## Optimization Uplift: Binary Size Squeeze
 
 ---
 

@@ -19,6 +19,41 @@ use emit_intrinsic_vec
 use emit_intrinsic_io
 
 // ── Wasm Module Emitter ──────────────────────────────────────────────────────
+
+// ── Type signature helpers (for dead type elimination) ──────────────────────
+fn val_type_to_sig(vt: i32) -> String {
+    // Match mir_ir value types: 1=i32, 2=i64, 3=f64, 4=ref
+    if vt == 1 {
+        String_from("i32")
+    } else {
+        if vt == 2 {
+            String_from("i64")
+        } else {
+            if vt == 3 {
+                String_from("f64")
+            } else {
+                String_from("ref")
+            }
+        }
+    }
+}
+
+fn sig_to_wasm_type(sig: String) -> i32 {
+    if eq(clone(sig), "i32") {
+        emit_opcodes::WASM_I32()
+    } else {
+        if eq(clone(sig), "i64") {
+            emit_opcodes::WASM_I64()
+        } else {
+            if eq(clone(sig), "f64") {
+                emit_opcodes::WASM_F64()
+            } else {
+                emit_opcodes::WASM_I32()
+            }
+        }
+    }
+}
+
 fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
     let out = emit_writer::WasmWriter_new()
     emit_writer::emit_byte(out, 0)
@@ -79,111 +114,170 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     }
         main_check_idx = main_check_idx + 1
     }
-    let type_sec = emit_writer::WasmWriter_new()
-    emit_writer::emit_leb128_u(type_sec, fn_count + emit_scratch::NUM_WASI_TYPES() + needs_wrapper)
-    emit_writer::emit_byte(type_sec, 96)
-    emit_writer::emit_leb128_u(type_sec, 4)
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_leb128_u(type_sec, 1)
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, 96)
-    emit_writer::emit_leb128_u(type_sec, 2)
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_leb128_u(type_sec, 1)
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, 96)
-    emit_writer::emit_leb128_u(type_sec, 9)
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I64())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I64())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_leb128_u(type_sec, 1)
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, 96)
-    emit_writer::emit_leb128_u(type_sec, 1)
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_leb128_u(type_sec, 1)
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_byte(type_sec, 96)
-    emit_writer::emit_leb128_u(type_sec, 1)
-    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
-    emit_writer::emit_leb128_u(type_sec, 0)
-    let mut i = 0
-    while i < fn_count {
-        let f = get_unchecked(mir.functions, i)
-        emit_writer::emit_byte(type_sec, 96)
-        let param_count = len(f.params)
-        emit_writer::emit_leb128_u(type_sec, param_count)
-        let mut p = 0
-        while p < param_count {
-            let param = get_unchecked(f.params, p)
-            emit_writer::emit_byte(type_sec, val_type_to_wasm(param.val_type))
-            p = p + 1
+    // ── Dead type elimination ────────────────────────────────────────────────
+    // Build type signature strings, deduplicate identical signatures, then
+    // build a mapping from logical type index to canonical type index.
+    let num_wasi_types = emit_scratch::NUM_WASI_TYPES()
+    let type_sigs = Vec_new_String()
+    // WASI type 0: fd_write/fd_read: (i32,i32,i32,i32) -> i32
+    push(type_sigs, String_from("i32_i32_i32_i32_1i32"))
+    // WASI type 1: args_sizes_get/args_get: (i32,i32) -> i32
+    push(type_sigs, String_from("i32_i32_1i32"))
+    // WASI type 2: path_open: (i32,i32,i32,i32,i32,i64,i64,i32,i32) -> i32
+    push(type_sigs, String_from("i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32"))
+    // WASI type 3: fd_close: (i32) -> i32
+    push(type_sigs, String_from("i32_1i32"))
+    // WASI type 4: proc_exit: (i32) -> nil
+    push(type_sigs, String_from("i32_0"))
+    // User function types
+    let mut ui = 0
+    while ui < fn_count {
+        let uf = get_unchecked(mir.functions, ui)
+        let mut sig = String_new()
+        let pc = len(uf.params)
+        let mut pi2 = 0
+        while pi2 < pc {
+            let p = get_unchecked(uf.params, pi2)
+            sig = concat(sig, val_type_to_sig(p.val_type))
+            sig = concat(sig, String_from("_"))
+            pi2 = pi2 + 1
+        }
+        if uf.return_type == 0 {
+            sig = concat(sig, String_from("0"))
+        } else {
+            sig = concat(sig, String_from("1"))
+            sig = concat(sig, val_type_to_sig(uf.return_type))
+        }
+        push(type_sigs, sig)
+        ui = ui + 1
     }
-        if f.return_type == 0 {
+    // Optional wrapper type: () -> nil
+    if needs_wrapper == 1 {
+        push(type_sigs, String_from("0"))
+    }
+    // Deduplicate: build canonical type list and mapping
+    let canon_types = Vec_new_String()
+    let mut type_map = Vec_new_i32()
+    let ts_count = len(type_sigs)
+    let mut tsi = 0
+    while tsi < ts_count {
+        let sig = get_unchecked(type_sigs, tsi)
+        let mut found = 0 - 1
+        let mut cti = 0
+        while cti < len(canon_types) {
+            if eq(clone(get_unchecked(canon_types, cti)), clone(sig)) {
+                found = cti
+            }
+            cti = cti + 1
+        }
+        if found >= 0 {
+            push(type_map, found)
+        } else {
+            push(type_map, len(canon_types))
+            push(canon_types, sig)
+        }
+        tsi = tsi + 1
+    }
+    // Emit deduplicated type section by parsing canonical type signatures
+    let type_sec = emit_writer::WasmWriter_new()
+    emit_writer::emit_leb128_u(type_sec, len(canon_types))
+    let mut cti2 = 0
+    while cti2 < len(canon_types) {
+        let csig = get_unchecked(canon_types, cti2)
+        let sig_len = len(csig)
+        emit_writer::emit_byte(type_sec, 96)
+        // Parse signature: param types separated by '_', last segment is result
+        let mut param_segments = Vec_new_String()
+        let mut seg_start = 0
+        let mut si3 = 0
+        while si3 < sig_len {
+            if char_at(csig, si3) == 95 {
+                let seg = substring(csig, seg_start, si3)
+                push(param_segments, seg)
+                seg_start = si3 + 1
+            }
+            si3 = si3 + 1
+        }
+        // Last segment is result: "0" (0 results) or "1<type>" (1 result)
+        let result_seg = substring(csig, seg_start, sig_len)
+        let param_count = len(param_segments)
+        emit_writer::emit_leb128_u(type_sec, param_count)
+        let mut pi3 = 0
+        while pi3 < param_count {
+            let seg = get_unchecked(param_segments, pi3)
+            emit_writer::emit_byte(type_sec, sig_to_wasm_type(seg))
+            pi3 = pi3 + 1
+        }
+        if eq(clone(result_seg), "0") {
             emit_writer::emit_leb128_u(type_sec, 0)
         } else {
+            let rt = substring(result_seg, 1, sig_len)
             emit_writer::emit_leb128_u(type_sec, 1)
-            emit_writer::emit_byte(type_sec, val_type_to_wasm(f.return_type))
-    }
-        i = i + 1
-    }
-    if needs_wrapper == 1 {
-        emit_writer::emit_byte(type_sec, 96)
-        emit_writer::emit_leb128_u(type_sec, 0)
-        emit_writer::emit_leb128_u(type_sec, 0)
+            emit_writer::emit_byte(type_sec, sig_to_wasm_type(rt))
+        }
+        cti2 = cti2 + 1
     }
     emit_writer::emit_section(out, emit_opcodes::SEC_TYPE(), type_sec)
+    // Build type index maps for imports and functions
+    let mut wasi_type_map = Vec_new_i32()
+    let mut wti = 0
+    while wti < num_wasi_types {
+        push(wasi_type_map, get_unchecked(type_map, wti))
+        wti = wti + 1
+    }
+    let mut fn_type_map = Vec_new_i32()
+    let mut fti = 0
+    while fti < fn_count {
+        push(fn_type_map, get_unchecked(type_map, fti + num_wasi_types))
+        fti = fti + 1
+    }
+    let wrapper_type_idx = if needs_wrapper == 1 {
+        get_unchecked(type_map, num_wasi_types + fn_count)
+    } else {
+        0 - 1
+    }
     let import_sec = emit_writer::WasmWriter_new()
     let wasi_module = String_from("wasi_snapshot_preview1")
     emit_writer::emit_leb128_u(import_sec, emit_scratch::NUM_WASI_IMPORTS())
     emit_writer::emit_string(import_sec, clone(wasi_module))
     emit_writer::emit_string(import_sec, String_from("fd_write"))
     emit_writer::emit_byte(import_sec, 0)
-    emit_writer::emit_leb128_u(import_sec, 0)
+    emit_writer::emit_leb128_u(import_sec, get_unchecked(wasi_type_map, 0))
     emit_writer::emit_string(import_sec, clone(wasi_module))
     emit_writer::emit_string(import_sec, String_from("args_sizes_get"))
     emit_writer::emit_byte(import_sec, 0)
-    emit_writer::emit_leb128_u(import_sec, 1)
+    emit_writer::emit_leb128_u(import_sec, get_unchecked(wasi_type_map, 1))
     emit_writer::emit_string(import_sec, clone(wasi_module))
     emit_writer::emit_string(import_sec, String_from("args_get"))
     emit_writer::emit_byte(import_sec, 0)
-    emit_writer::emit_leb128_u(import_sec, 1)
+    emit_writer::emit_leb128_u(import_sec, get_unchecked(wasi_type_map, 1))
     emit_writer::emit_string(import_sec, clone(wasi_module))
     emit_writer::emit_string(import_sec, String_from("path_open"))
     emit_writer::emit_byte(import_sec, 0)
-    emit_writer::emit_leb128_u(import_sec, 2)
+    emit_writer::emit_leb128_u(import_sec, get_unchecked(wasi_type_map, 2))
     emit_writer::emit_string(import_sec, clone(wasi_module))
     emit_writer::emit_string(import_sec, String_from("fd_read"))
     emit_writer::emit_byte(import_sec, 0)
-    emit_writer::emit_leb128_u(import_sec, 0)
+    emit_writer::emit_leb128_u(import_sec, get_unchecked(wasi_type_map, 0))
     emit_writer::emit_string(import_sec, clone(wasi_module))
     emit_writer::emit_string(import_sec, String_from("fd_close"))
     emit_writer::emit_byte(import_sec, 0)
-    emit_writer::emit_leb128_u(import_sec, 3)
+    emit_writer::emit_leb128_u(import_sec, get_unchecked(wasi_type_map, 3))
     emit_writer::emit_string(import_sec, clone(wasi_module))
     emit_writer::emit_string(import_sec, String_from("proc_exit"))
     emit_writer::emit_byte(import_sec, 0)
-    emit_writer::emit_leb128_u(import_sec, 4)
+    emit_writer::emit_leb128_u(import_sec, get_unchecked(wasi_type_map, 4))
     emit_writer::emit_section(out, emit_opcodes::SEC_IMPORT(), import_sec)
     let func_sec = emit_writer::WasmWriter_new()
     emit_writer::emit_leb128_u(func_sec, fn_count + needs_wrapper)
     let mut fi = 0
     while fi < fn_count {
-        emit_writer::emit_leb128_u(func_sec, fi + emit_scratch::NUM_WASI_TYPES())
+        let mapped_type = get_unchecked(fn_type_map, fi)
+        emit_writer::emit_leb128_u(func_sec, mapped_type)
         fi = fi + 1
     }
     if needs_wrapper == 1 {
-        emit_writer::emit_leb128_u(func_sec, fn_count + emit_scratch::NUM_WASI_TYPES())
+        emit_writer::emit_leb128_u(func_sec, wrapper_type_idx)
     }
     emit_writer::emit_section(out, emit_opcodes::SEC_FUNCTION(), func_sec)
     let mem_sec = emit_writer::WasmWriter_new()

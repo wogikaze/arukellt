@@ -2433,7 +2433,22 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     let t_typecheck = clock::monotonic_now()
         let mut mir_module = mir_lower::lower_to_mir(all_decls, check_result)
     if eq(clone(config.emit_mode), "component") || eq(clone(config.emit_mode), "wit") {
+        // T3 component/wit: lower without pruning (preserve all functions),
+        // then prune with exported function names as additional reachability
+        // roots. This safely enables dead function elimination while keeping
+        // WIT-exported functions as reachable roots.
         mir_module = mir_lower::lower_to_mir_no_prune(all_decls, check_result)
+        // Collect exported function names as additional reachability roots
+        let export_roots = Vec_new_String()
+        let mut edi = 0
+        while edi < len(all_decls) {
+            let d = get_unchecked(all_decls, edi)
+            if d.kind == parser_kinds::NK_FN_DECL() && d.is_pub && driver_should_export_func(clone(d.text)) {
+                push(export_roots, clone(d.text))
+            }
+            edi = edi + 1
+        }
+        let _t3_pruned = mir_lower::mir_prune_unreachable_for_t3(mir_module, export_roots)
     }
     if config.dump_mir {
         mir_dump::dump_mir(mir_module)
