@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T08:11:53Z",
+  "generated_at": "2026-05-16T08:15:52Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -18,30 +18,6 @@
         "074"
       ],
       "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "125",
-      "path": "125-corehir-as-default-compile-path.md",
-      "title": "125-corehir-as-default-compile-path",
-      "track": "pipeline-refactor",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "126"
-      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -916,30 +892,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "126",
-      "path": "126-eliminate-double-lowering.md",
-      "title": "126-eliminate-double-lowering",
-      "track": "pipeline-refactor",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "125"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
       }
     },
     {

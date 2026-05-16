@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
-Updated: 2026-04-03
+Updated: 2026-05-16
 ID: 126
 Track: pipeline-refactor
 Depends on: 125
@@ -10,7 +10,7 @@ Orchestration upstream: None
 Blocks v4 exit: "no (compile-time optimization)"
 Implementation target: Trusted-base compiler route named below while it remains active; do not turn this into #529 selfhost-retirement work.
 Status note: Trusted-base compiler cleanup blocked on #125. Keep separate from #285/#508/#529 legacy removal and from #099 selfhost frontend design.
-Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
+Reason: "This issue has `Status: done` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
 
@@ -18,19 +18,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 2. `cargo bench` でコンパイル時間が短縮されること (v4 目標: 50ms / 500ms)
 - v4 コンパイル時間目標: hello.ark ≤ 50ms、arukellt.ark ≤ 500ms
 - `crates/ark-driver/src/session.rs: "296-370` (run_frontend — 二重 lower)"
+
 # `run_frontend()` の二重 lower を解消 (遅延 lower)
-
-
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/126-eliminate-double-lowering.md` — incorrect directory for an open issue.
-
 
 ## Summary
 
