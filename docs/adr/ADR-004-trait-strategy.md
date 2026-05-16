@@ -84,6 +84,18 @@ v0 スコープでは **選択肢 A**（trait なし）が最も安全。
 
 **選択肢 A: v0 では trait なしを採用する**
 
+ただし、#602 (Type System Stage-Up) により v0 時点でも以下の trait 機能が実装済み:
+
+- **Obligation-based trait solving**: トレイト境界のチェックは型推論中に義務 (obligation) として収集され、単一化後に解決される。これにより、未解決の型変数に対するトレイト境界の暗黙パスが防止される。
+- **Coherence**: 同一の `(Trait, SelfType)` ペアに対する重複 impl はコンパイルエラーとして拒否される。
+- **Ambiguity rejection**: 解決できないトレイト境界は明確な診断メッセージとともに拒否される。
+
+v0 で still NOT included:
+- ユーザー定義 trait (定義のみ可能だが dyn dispatch なし)
+- 関連型 (associated types)
+- 特殊化 (specialization)
+- 動的ディスパッチ (dyn trait objects)
+
 ### 決定内容
 
 v0 では trait / interface を導入しない。以下を受け入れる:

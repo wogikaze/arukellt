@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T08:19:32Z",
+  "generated_at": "2026-05-16T09:02:57Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -665,10 +665,10 @@
       }
     },
     {
-      "id": "602",
-      "path": "602-typesys-qualified-constraints.md",
-      "title": "Type System Stage-Up: Qualified Constraints and Coherent Trait Solving",
-      "track": "selfhost / typechecker",
+      "id": "603",
+      "path": "603-typesys-lowering-contract.md",
+      "title": "603-typesys-lowering-contract",
+      "track": "selfhost / typechecker / lowering",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
@@ -676,11 +676,10 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "601"
+        "601",
+        "602"
       ],
-      "blocks_issue_ids": [
-        "603"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -1093,31 +1092,6 @@
         "596",
         "597",
         "598"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "603",
-      "path": "603-typesys-lowering-contract.md",
-      "title": "603-typesys-lowering-contract",
-      "track": "selfhost / typechecker / lowering",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "601",
-        "602"
       ],
       "blocks_issue_ids": [],
       "acceptance": {

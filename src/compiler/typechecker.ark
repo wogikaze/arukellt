@@ -20,85 +20,6 @@ fn TypeInfo_named(tag: i32, name: String) -> TypeInfo {
     TypeInfo { tag: tag, name: name, type_args: Vec_new_TypeInfo() }
 }
 
-// ── TypeScheme: quantified polymorphic type ──────────────────────────────────
-struct TypeScheme {
-    vars: Vec<String>,
-    body: TypeInfo,
-}
-
-fn TypeScheme_empty() -> TypeScheme {
-    TypeScheme { vars: Vec_new_String(), body: TypeInfo_simple(typechecker_kinds::TY_UNKNOWN()) }
-}
-
-fn collect_free_type_var_names(env: TypeEnv, ty: TypeInfo) -> Vec<String> {
-    let names = Vec_new_String()
-    if ty.tag == typechecker_kinds::TY_TYPE_VAR() {
-        let resolved = resolve_type(env, ty)
-        if resolved.tag == typechecker_kinds::TY_TYPE_VAR() {
-            push(names, clone(ty.name))
-        }
-        return names
-    }
-    let arg_count = len(ty.type_args)
-    let mut i = 0
-    while i < arg_count {
-        let arg = get_unchecked(ty.type_args, i)
-        let sub_names = collect_free_type_var_names(env, arg)
-        let snc = len(sub_names)
-        let mut j = 0
-        while j < snc {
-            let sn = get_unchecked(sub_names, j)
-            let mut found = false
-            let nc = len(names)
-            let mut k = 0
-            while k < nc {
-                if eq(clone(get_unchecked(names, k)), clone(sn)) {
-                    found = true
-                }
-                k = k + 1
-            }
-            if !found {
-                push(names, sn)
-            }
-            j = j + 1
-        }
-        i = i + 1
-    }
-    names
-}
-
-fn generalize(env: TypeEnv, ty: TypeInfo) -> TypeScheme {
-    let free_vars = collect_free_type_var_names(env, ty)
-    TypeScheme { vars: free_vars, body: ty }
-}
-
-fn instantiate_scheme(env: TypeEnv, scheme: TypeScheme) -> TypeInfo {
-    let count = len(scheme.vars)
-    if count == 0 {
-        return scheme.body
-    }
-    let var_names = Vec_new_String()
-    let var_types = Vec_new_TypeInfo()
-    let mut i = 0
-    while i < count {
-        let vn = get_unchecked(scheme.vars, i)
-        push(var_names, clone(vn))
-        push(var_types, fresh_var(env))
-        i = i + 1
-    }
-    instantiate_type(scheme.body, var_names, var_types)
-}
-
-fn is_syntactic_value(node: AstNode) -> bool {
-    if node.kind == typechecker_kinds::NK_INT_LIT() { return true }
-    if node.kind == typechecker_kinds::NK_FLOAT_LIT() { return true }
-    if node.kind == typechecker_kinds::NK_STRING_LIT() { return true }
-    if node.kind == typechecker_kinds::NK_BOOL_LIT() { return true }
-    if node.kind == typechecker_kinds::NK_CLOSURE() { return true }
-    if node.kind == typechecker_kinds::NK_IDENT() { return true }
-    false
-}
-
 // ── Type Variable / Substitution ─────────────────────────────────────────────
 struct TypeVar {
     id: i32,
@@ -114,22 +35,15 @@ struct TypeEnv {
     mono_instances: Vec<MonoInstance>,
     mono_call_sites: Vec<MonoCallSite>,
     trait_impls: Vec<TraitImplInfo>,
-    obligations: Vec<Obligation>,
 }
 
 fn TypeEnv_new() -> TypeEnv {
-    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite(), trait_impls: Vec_new_TraitImplInfo(), obligations: Vec_new_Obligation() }
+    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite(), trait_impls: Vec_new_TraitImplInfo() }
 }
 
 struct TraitImplInfo {
     trait_name: String,
     self_ty: TypeInfo,
-}
-
-// ── Obligation: deferred trait bound check ──────────────────────────────────
-struct Obligation {
-    ty: TypeInfo,
-    bound: TypeInfo,
 }
 
 // ── Monomorphization Instance Tracking ──────────────────────────────────────
@@ -452,9 +366,6 @@ fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
     while i < count {
         let existing = get_unchecked(env.trait_impls, i)
         if eq(clone(existing.trait_name), clone(trait_name)) && same_named_type(existing.self_ty, self_ty) {
-            let self_name = type_display_name(self_ty)
-            let msg = concat(String_from("overlapping trait impl: duplicate impl of "), concat(clone(trait_name), concat(String_from(" for "), self_name)))
-            type_error(env, msg)
             return
         }
         i = i + 1
@@ -465,7 +376,7 @@ fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
 fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bool {
     let resolved_ty = resolve_type(env, ty)
     if resolved_ty.tag == typechecker_kinds::TY_TYPE_VAR() {
-        return false
+        return true
     }
     let count = len(env.trait_impls)
     let mut i = 0
@@ -703,7 +614,7 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
     register_trait_impl(env, clone(node.text), resolve_type_ann_node(self_ty_node))
 }
 
-fn collect_fn_sig_obligations(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types: Vec<TypeInfo>) {
+fn enforce_fn_sig_bounds(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types: Vec<TypeInfo>) {
     let tp_count = len(sig.type_param_bounds)
     let mut i = 0
     while i < tp_count {
@@ -713,27 +624,8 @@ fn collect_fn_sig_obligations(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_
         let mut j = 0
         while j < bound_count {
             let bound = get_unchecked(tp.bounds, j)
-            push(env.obligations, Obligation { ty: resolved_ty, bound: clone(bound) })
+            enforce_trait_bound(env, resolved_ty, bound)
             j = j + 1
-        }
-        i = i + 1
-    }
-}
-
-fn solve_obligations(env: TypeEnv) {
-    let count = len(env.obligations)
-    let mut i = 0
-    while i < count {
-        let obl = get_unchecked(env.obligations, i)
-        let resolved_ty = resolve_type(env, obl.ty)
-        if resolved_ty.tag == typechecker_kinds::TY_TYPE_VAR() {
-            let bound_name = type_display_name(obl.bound)
-            let ty_name = type_display_name(obl.ty)
-            type_error(env, concat(String_from("ambiguous trait bound: cannot determine if "), concat(ty_name, concat(String_from(" implements "), bound_name))))
-        } else if !type_satisfies_trait_bound(env, resolved_ty, obl.bound) {
-            let ty_name = type_display_name(resolved_ty)
-            let bound_name = type_display_name(obl.bound)
-            type_error(env, concat(String_from("trait bound not satisfied: "), concat(ty_name, concat(String_from(" does not implement "), bound_name))))
         }
         i = i + 1
     }
@@ -800,8 +692,6 @@ fn CheckCtx_new() -> CheckCtx {
 struct VarBinding {
     name: String,
     ty: TypeInfo,
-    scheme: TypeScheme,
-    is_generalized: bool,
 }
 
 struct LocalScope {
@@ -818,33 +708,24 @@ fn scope_child(parent: LocalScope) -> LocalScope {
     let mut i = 0
     while i < count {
         let binding = get_unchecked(parent.bindings, i)
-        push(child.bindings, VarBinding { name: clone(binding.name), ty: binding.ty, scheme: binding.scheme, is_generalized: binding.is_generalized })
+        push(child.bindings, VarBinding { name: clone(binding.name), ty: binding.ty })
         i = i + 1
     }
     child
 }
 
 fn scope_define(scope: LocalScope, name: String, ty: TypeInfo) {
-    push(scope.bindings, VarBinding { name: name, ty: ty, scheme: TypeScheme_empty(), is_generalized: false })
+    push(scope.bindings, VarBinding { name: name, ty: ty })
 }
 
-fn scope_define_scheme(scope: LocalScope, name: String, scheme: TypeScheme) {
-    let body_ty = scheme.body
-    push(scope.bindings, VarBinding { name: name, ty: body_ty, scheme: scheme, is_generalized: true })
-}
-
-fn scope_lookup(env: TypeEnv, scope: LocalScope, name: String) -> TypeInfo {
+fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {
     let count = len(scope.bindings)
     let mut found = TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
     let mut i = 0
     while i < count {
         let b = get_unchecked(scope.bindings, i)
         if eq(clone(b.name), clone(name)) {
-            if b.is_generalized {
-                found = instantiate_scheme(env, b.scheme)
-            } else {
-                found = b.ty
-            }
+            found = b.ty
         }
         i = i + 1
     }
@@ -898,7 +779,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         return TypeInfo_simple(typechecker_kinds::TY_BOOL())
     }
     if node.kind == typechecker_kinds::NK_IDENT() {
-        return scope_lookup(env, scope, clone(node.text))
+        return scope_lookup(scope, clone(node.text))
     }
     if node.kind == typechecker_kinds::NK_CLOSURE() {
         let closure_scope = scope_child(scope)
@@ -915,18 +796,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         let body = get_unchecked(node.children, child_count - 1)
         let body_ty = infer_expr(env, closure_scope, fn_sigs, enum_defs, body)
         resolve_type(env, body_ty)
-        // Build a richer function type: TY_FN with type_args = [param_types..., return_type]
-        let mut fn_ty = TypeInfo_simple(typechecker_kinds::TY_FN())
-        let param_count = child_count - 1
-        let mut pi = 0
-        while pi < param_count {
-            let param = get_unchecked(node.children, pi)
-            let param_binding = scope_lookup(env, closure_scope, clone(param.text))
-            push(fn_ty.type_args, param_binding)
-            pi = pi + 1
-        }
-        push(fn_ty.type_args, body_ty)
-        return fn_ty
+        return TypeInfo_simple(typechecker_kinds::TY_FN())
     }
     if node.kind == typechecker_kinds::NK_BINARY() {
         if len(node.children) >= 2 {
@@ -1087,7 +957,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             push(resolved_type_args, resolved_tv)
             rv = rv + 1
         }
-        collect_fn_sig_obligations(env, infer_env, sig, var_types)
+        enforce_fn_sig_bounds(env, infer_env, sig, var_types)
         let mangled_name = record_mono_instance(env, clone(callee.text), resolved_type_args)
         record_mono_call_site(env, node.span.start, clone(callee.text), mangled_name)
         return ret_ty
@@ -1157,7 +1027,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             push(resolved_type_args, resolved_tv)
             rv = rv + 1
         }
-        collect_fn_sig_obligations(env, infer_env, sig, var_types)
+        enforce_fn_sig_bounds(env, infer_env, sig, var_types)
         let resolved_recv_ty = resolve_type_deep(infer_env, inst_p0)
         let mut mono_fn_name = clone(node.text)
         if resolved_recv_ty.tag == typechecker_kinds::TY_STRUCT() && len(resolved_recv_ty.name) > 0 {
@@ -1550,8 +1420,6 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         }
         i = i + 1
     }
-    // Solve all collected trait obligations after type inference is complete
-    solve_obligations(env)
     let err_count = env.error_count
     let mut e = 0
     while e < err_count {
