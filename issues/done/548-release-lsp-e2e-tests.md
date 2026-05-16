@@ -14,8 +14,8 @@ docs/release-checklist.md — Pre-release section
 
 ## Acceptance
 
-- [ ] `cargo test -p ark-lsp --test lsp_e2e -- --test-threads=1` passes
-- [ ] LSP protocol compliance verified (initialize, shutdown, completion, hover, definition)
+- [x] `cargo test -p ark-lsp --test lsp_e2e -- --test-threads=1` passes
+- [x] LSP protocol compliance verified (initialize, shutdown, completion, hover, definition)
 
 ## Verification Evidence
 

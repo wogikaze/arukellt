@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-05-14
 Updated: 2026-05-14
 ID: 618
@@ -30,14 +30,14 @@ Issue #262 can remain complete without hiding the bindings-generation gap.
 
 ## Acceptance
 
-- [ ] A fixture emits WIT from Arukellt source and stores the expected WIT shape.
-- [ ] A bindings-generation step consumes the emitted WIT and produces Arukellt
+- [x] A fixture emits WIT from Arukellt source and stores the expected WIT shape.
+- [x] A bindings-generation step consumes the emitted WIT and produces Arukellt
   bindings or an explicitly documented interim binding artifact.
-- [ ] The generated bindings participate in a round-trip smoke test through the
+- [x] The generated bindings participate in a round-trip smoke test through the
   component pipeline.
-- [ ] The workflow is wired into `tests/component-interop/` or an adjacent
+- [x] The workflow is wired into `tests/component-interop/` or an adjacent
   component test directory with a stable runner.
-- [ ] `python scripts/manager.py verify` passes.
+- [x] `python scripts/manager.py verify` passes.
 
 ## Primary paths
 

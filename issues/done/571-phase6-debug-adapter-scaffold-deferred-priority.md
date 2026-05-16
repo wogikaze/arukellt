@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-22
 Updated: 2026-05-16
 ID: 571
@@ -17,7 +17,7 @@ REBUILD_BEFORE_VERIFY: yes
 
 # 571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)"
 
-- [ ] Implements: `initialize`, `launch`, `disconnect`
+- [x] Implements: `initialize`, `launch`, `disconnect`
 1. [ ] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
 - One logical commit per slice. Suggested message: "`feat(ide): src/ide/dap.ark scaffold (refs #571)`"
 commit: <hash>
@@ -36,11 +36,11 @@ Lower-priority Phase 6 slice: scaffold a Debug Adapter Protocol server in Ark so
 
 ## Acceptance
 
-- [ ] `src/ide/dap.ark` exists with a stdio-loop entry point
-- [ ] Implements: `initialize`, `launch`, `disconnect`
-- [ ] At least one runner test drives the three handlers and asserts response shape
-- [ ] No selfhost SKIP added
-- [ ] 4 canonical gates green with FAIL=0 and SKIP delta = 0
+- [x] `src/ide/dap.ark` exists with a stdio-loop entry point
+- [x] Implements: `initialize`, `launch`, `disconnect`
+- [x] At least one runner test drives the three handlers and asserts response shape
+- [x] No selfhost SKIP added
+- [x] 4 canonical gates green with FAIL=0 and SKIP delta = 0
 
 ## Required verification (close gate)
 
