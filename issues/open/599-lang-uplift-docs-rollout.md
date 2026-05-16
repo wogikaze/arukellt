@@ -1,10 +1,10 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 599
 Track: docs / language-design
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Depends on: 595, 596, 597, 598
 Parent: None
 In scope: 
