@@ -362,6 +362,11 @@ run:selfhost/fn_multiclause_ident.ark
 run:selfhost/fn_multiclause_literal.ark
 run:selfhost/fn_multiclause_single.ark
 run:selfhost/fn_multiclause_wildcard.ark
+run:selfhost/fn_multiclause_literal_guard.ark
+run:selfhost/fn_multiclause_ident_guard.ark
+run:selfhost/fn_multiclause_enum_guard.ark
+compile-error:selfhost/fn_multiclause_guard_unknown_name.ark
+compile-error:selfhost/fn_multiclause_guard_not_bool.ark
 run:selfhost/typecheck_trait_impl_smoke.ark
 module-diag:selfhost/resolver_circular_import/main.ark
 run:selfhost/resolver_import_basic/main.ark
@@ -381,6 +386,9 @@ diag:selfhost/typecheck_match_nonexhaustive.ark
 diag:selfhost/infer_occurs_check_negative.ark
 diag:selfhost/ret_stmt_mismatch.ark
 diag:selfhost/match_non_exhaustive_enum.ark
+# Issue #601 — TypeScheme / let-generalization
+run:selfhost/typescheme_poly_let.ark
+diag:selfhost/typescheme_deny_no_generalize.ark
 diag:selfhost/lexer_recovery_multi.ark
 diag:selfhost/parser_recovery_decls.ark
 diag:selfhost/json_diag_code_presence.ark

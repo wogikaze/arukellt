@@ -1,0 +1,15 @@
+use std::host::stdio
+
+fn cli_str_eq(a: String, b: String) -> bool {
+    let alen = len(clone(a))
+    let blen = len(clone(b))
+    if alen != blen {
+        return false
+    }
+    true
+}
+
+fn main() {
+    let r = cli_str_eq(String_from("hello"), String_from("world"))
+    stdio::println(to_string(r))
+}

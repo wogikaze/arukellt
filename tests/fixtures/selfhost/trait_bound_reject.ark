@@ -1,0 +1,28 @@
+use std::host::stdio
+
+trait Foo {
+    fn id(x: i32) -> i32
+}
+
+struct MyStruct {
+    value: i32,
+}
+
+impl Foo for MyStruct {
+    fn id(x: MyStruct) -> i32 {
+        x.value
+    }
+}
+
+struct OtherStruct {
+    value: i32,
+}
+
+fn take_foo<T: Foo>(x: T) -> T {
+    x
+}
+
+fn main() {
+    let item = take_foo(OtherStruct { value: 7 })
+    stdio::println(to_string(item.value))
+}

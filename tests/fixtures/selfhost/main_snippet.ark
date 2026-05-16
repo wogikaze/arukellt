@@ -1,0 +1,59 @@
+use std::host::stdio
+use std::host::env
+use std::host::process
+
+fn CMD_CHECK() -> i32 { 1 }
+fn CMD_COMPILE() -> i32 { 2 }
+fn CMD_PARSE() -> i32 { 3 }
+fn CMD_HELP() -> i32 { 4 }
+fn CMD_VERSION() -> i32 { 5 }
+fn CMD_NOT_YET() -> i32 { 0 }
+
+fn cli_str_eq(a: String, b: String) -> bool {
+    let alen = len(clone(a))
+    let blen = len(clone(b))
+    if alen != blen {
+        return false
+    }
+    let mut i = 0
+    while i < alen {
+        let ca = char_at(clone(a), i)
+        let cb = char_at(clone(b), i)
+        if ca != cb {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn cli_starts_with(a: String, prefix: String) -> bool {
+    let alen = len(clone(a))
+    let plen = len(clone(prefix))
+    if alen < plen {
+        return false
+    }
+    let mut i = 0
+    while i < plen {
+        let ca = char_at(clone(a), i)
+        let cp = char_at(clone(prefix), i)
+        if ca != cp {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn parse_command(name: String) -> i32 {
+    let name_len = len(clone(name))
+    if name_len == 5 && char_at(clone(name), 0) == 99 && char_at(clone(name), 1) == 104 {
+        return CMD_CHECK()
+    }
+    CMD_NOT_YET()
+}
+
+fn main() {
+    let cmd = parse_command(String_from("check"))
+    stdio::println(to_string(cmd))
+}

@@ -270,7 +270,63 @@ the limit is a design guideline per issue #159.
 Generics are compiled via **monomorphisation** — specialised code is
 generated for each concrete type instantiation (ADR-003).
 
-### 2.8 Traits and Impl Blocks (v1)
+### 2.8 Let-Generalization (TypeScheme) <!-- stability: provisional -->
+
+The type checker supports **let-generalization**: certain `let` bindings
+are wrapped in an internal `TypeScheme` that quantifies over free type
+variables. Each use of a generalized binding instantiates fresh type
+variables, enabling local polymorphic helpers. Without generalization,
+every use of the binding shares the same type variable state.
+
+#### Generalization rule
+
+**Only syntactic values are generalized.** A let-binding whose initializer
+is one of the following AST node kinds is eligible for generalization:
+
+- Literals: `NK_INT_LIT`, `NK_FLOAT_LIT`, `NK_STRING_LIT`, `NK_BOOL_LIT`
+- Closures/lambdas: `NK_CLOSURE`
+- Identifier references: `NK_IDENT`
+
+All other initializer forms (function calls, binary/unary expressions,
+blocks, if-expressions, match-expressions, comprehensions) are
+**expansive** and the binding is stored monomorphically.
+
+This is a conservative value-restriction rule equivalent to the ML
+value restriction.
+
+#### TypeScheme representation
+
+Internally, a `TypeScheme` consists of:
+- `vars`: quantified type variable names
+- `body`: the body type, which may reference the quantified variables
+
+The `generalize` function collects free (unbound) type variables from the
+inferred type and builds a scheme. The `instantiate_scheme` function
+creates fresh type variables for each quantified variable on each lookup.
+
+#### Example
+
+```ark
+// `id` is a syntactic value (closure) -> generalized
+let id = fn(x) { x }
+
+// Each call gets fresh type variables
+let a: i32 = id(42)     // fresh t0, unified with i32
+let b: bool = id(true)  // fresh t1, unified with bool
+let s: String = id("hello")  // fresh t2, unified with String
+```
+
+#### Scope
+
+- Top-level generic function declarations are handled via explicit
+  `FnSig.type_params` and are not affected by this let-generalization
+  mechanism.
+- Let-generalization is local to function bodies and the scope level
+  where the binding appears.
+- TypeScheme is an internal compiler representation and does not appear
+  in surface syntax.
+
+### 2.9 Traits and Impl Blocks (v1)
 
 <!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark

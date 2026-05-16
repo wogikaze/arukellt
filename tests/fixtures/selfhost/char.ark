@@ -1,0 +1,6 @@
+use std::host::stdio
+fn main() {
+    let c = char_at("hello", 0)
+    let cmp = c == 104
+    stdio::println(to_string(cmp))
+}

@@ -1,10 +1,10 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 597
 Track: selfhost-frontend / language-design
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Depends on: 595
 Parent: None
 fn magnitude_label(p: Point) -> String
