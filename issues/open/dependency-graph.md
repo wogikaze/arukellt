@@ -33,7 +33,6 @@ graph LR
   I571["571 571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)""]
   I588["588 Language surface uplift plan"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
-  I592["592 Error Handling Convergence Plan (Operational Guide)"]
   I594["594 Selfhost Phase 2: Fixture and Diagnostic Parity"]
   I595["595 595-lang-uplift-multiclauses"]
   I598["598 Language Surface Uplift: Expression-Level Comprehensions"]
@@ -159,7 +158,6 @@ graph LR
 - **571** depends on: 568; blocks: none
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
-- **592** depends on: none; blocks: none
 - **594** depends on: 593; blocks: 625
 - **595** depends on: 629; blocks: 596, 597, 599
 - **598** depends on: none; blocks: 599

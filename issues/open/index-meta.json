@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T06:14:38Z",
+  "generated_at": "2026-05-16T06:31:13Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -665,28 +665,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 17
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "592",
-      "path": "592-error-handling-convergence-plan.md",
-      "title": "Error Handling Convergence Plan (Operational Guide)",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 9
       },
       "orchestration": {
         "class": null,
