@@ -9,6 +9,7 @@ graph LR
   I124["124 WIT component import syntax"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I30["30 036-jco-javascript-interop"]
+  I36["36 std: ":collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>""]
   I37["37 std: ":collections: Deque、PriorityQueue""]
   I39["39 std: ":collections: Arena、SlotMap、Interner ／ std::text: Rope""]
   I41["41 std: ":time + std::random: 時刻・期間・乱数""]
@@ -18,7 +19,7 @@ graph LR
   I474["474 Async component support (v5)"]
   I475["475 arukellt component subcommand"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
-  I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
+  I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I529["529 100% selfhost transition plan"]
   I549["549 Release: Extension Activation Tests"]
   I550["550 Release: Formatter CLI-LSP Parity"]
@@ -26,7 +27,6 @@ graph LR
   I553["553 Release: Binary Distribution"]
   I554["554 Release: Extension Live Editor Tests"]
   I555["555 Release: Pre-Release CI Checks"]
-  I571["571 571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)""]
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I588["588 Language surface uplift plan"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
@@ -41,8 +41,6 @@ graph LR
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
-  I36["36 std: ":collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>""]
-  I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I617["617 Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)"]
   I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
   I608["608 608-stdlib-baseline-docs-bench"]
@@ -61,8 +59,6 @@ graph LR
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I139 --> I136
   I475 --> I485
-  I495 --> I36
-  I495 --> I512
   I529 --> I617
   I574 --> I575
   I605 --> I608
@@ -102,6 +98,7 @@ graph LR
 - **124** depends on: 074; blocks: none
 - **139** depends on: 074, 137; blocks: 136
 - **30** depends on: 27; blocks: none
+- **36** depends on: 039, 041, 312, 495; blocks: none
 - **37** depends on: 039, 041; blocks: none
 - **39** depends on: 039, 041; blocks: none
 - **41** depends on: 039, 040; blocks: none
@@ -111,7 +108,7 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: none
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
-- **495** depends on: 312, 504; blocks: 36, 512
+- **512** depends on: 504, 495; blocks: none
 - **529** depends on: none; blocks: 617
 - **549** depends on: none; blocks: none
 - **550** depends on: none; blocks: none
@@ -119,7 +116,6 @@ graph LR
 - **553** depends on: none; blocks: none
 - **554** depends on: none; blocks: none
 - **555** depends on: none; blocks: none
-- **571** depends on: 568; blocks: none
 - **574** depends on: 564; blocks: 575, 582
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
@@ -134,8 +130,6 @@ graph LR
 - **63** depends on: 074, 137; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
-- **36** depends on: 039, 041, 312, 495; blocks: none
-- **512** depends on: 504, 495; blocks: none
 - **617** depends on: 529; blocks: none
 - **575** depends on: 564, 574; blocks: 576, 579, 581, 582, 630
 - **608** depends on: 604, 605, 606, 607; blocks: none

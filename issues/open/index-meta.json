@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T10:33:04Z",
+  "generated_at": "2026-05-16T11:27:25Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -75,6 +75,33 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "36",
+      "path": "044-std-collections-hash.md",
+      "title": "std: \":collections::hash: HashMap\\<K,V\\> 汎用化と HashSet\\<T\\>\"",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "039",
+        "041",
+        "312",
+        "495"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -311,31 +338,28 @@
       }
     },
     {
-      "id": "495",
-      "path": "495-selfhost-trait-bounds.md",
-      "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
-      "track": "selfhost",
+      "id": "512",
+      "path": "512-stdlib-trait-oriented-reuse-surface.md",
+      "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
+      "track": "stdlib",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
       "blocks_v4": "none",
-      "blocks_v5": "none",
+      "blocks_v5": true,
       "depends_on": [
-        "312",
-        "504"
+        "504",
+        "495"
       ],
-      "blocks_issue_ids": [
-        "36",
-        "512"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 4
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": "—"
+        "upstream_notes": "None"
       }
     },
     {
@@ -492,30 +516,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "571",
-      "path": "571-phase6-debug-adapter-scaffold-deferred-priority.md",
-      "title": "571 — Phase 6/D: \"src/ide/dap.ark — debug adapter scaffold (deferred priority)\"",
-      "track": "selfhost-frontend",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": false,
-      "depends_on": [
-        "568"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
       }
     },
     {
@@ -863,58 +863,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "36",
-      "path": "044-std-collections-hash.md",
-      "title": "std: \":collections::hash: HashMap\\<K,V\\> 汎用化と HashSet\\<T\\>\"",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "039",
-        "041",
-        "312",
-        "495"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "512",
-      "path": "512-stdlib-trait-oriented-reuse-surface.md",
-      "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": true,
-      "depends_on": [
-        "504",
-        "495"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
       },
       "orchestration": {
         "class": "blocked-by-upstream",

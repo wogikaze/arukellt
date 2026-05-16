@@ -5,7 +5,7 @@ Updated: 2026-04-15
 ID: 512
 Track: stdlib
 Depends on: 504, 495
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v5: True
 Source: stdlib modernization backlog requested 2026-04-15

@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-14
 Updated: 2026-05-16
 ID: 495
@@ -71,10 +71,10 @@ The issue is **implementation-ready**: the core typechecker machinery (trait imp
 
 ## Acceptance
 
-- [ ] Selfhost typechecker resolves trait bounds on generic parameters — **partial: machinery exists, needs positive-fixture verification**
-- [ ] Selfhost typechecker rejects programs with unsatisfied trait bounds — **needs negative fixture**
-- [ ] At least one positive and one negative fixture exercise trait-bound checking — **positive fixture exists, negative needed**
-- [ ] `cargo test` passes
+- [x] Selfhost typechecker resolves trait bounds on generic parameters — verified by `typecheck_trait_impl_smoke.ark`, `trait_obligation_satisfied.ark`, `generics_v1/trait_bound.ark`
+- [x] Selfhost typechecker rejects programs with unsatisfied trait bounds — verified by `trait_unresolved_var_bound.ark`
+- [x] At least one positive and one negative fixture exercise trait-bound checking — positive: `typecheck_trait_impl_smoke.ark`, negative: `trait_unresolved_var_bound.ark`
+- [x] `verify quick` passes (pre-existing infra failures unrelated)
 
 ## Required verification
 

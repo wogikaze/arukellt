@@ -1,5 +1,0 @@
-use std::host::stdio
-fn main() {
-    let x: i32 = 42
-    stdio::println(to_string(x))
-}

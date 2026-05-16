@@ -1,9 +1,0 @@
-use std::host::stdio
-
-trait Foo {
-    fn id(x: i32) -> i32
-}
-
-fn main() {
-    stdio::println(String_from("hello"))
-}

@@ -5,7 +5,7 @@ Updated: 2026-05-14
 ID: 36
 Track: stdlib
 Depends on: 039, 041, 312, 495
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v3 exit: yes
 Status note: FROZEN — #312 generic monomorphization is complete, but true `HashMap<K,V>` / `HashSet<T>` still requires trait-bound hash/equality dispatch tracked by #495/#504. Current repo evidence is monomorphic `i32`/`String` wrapper coverage, not the accepted generic API.
@@ -15,6 +15,7 @@ Blocked by: "trait-bound hash/equality dispatch (#495/#504)"
 ---
 
 # std: ":collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"
+
 v3 ではジェネリクスを活用して汎用化する。hash 関数は #041 の std: ":core::hash に依存。"
 pub fn with_capacity<K, V>(cap: i32) -> HashMap<K, V>
 pub fn insert<K, V>(m: "HashMap<K, V>, key: K, value: V) -> Option<V>"
@@ -45,21 +46,18 @@ pub fn set_to_vec<T>(s: HashSet<T>) -> Vec<T>
 2. GC 表現: HashMap の内部配列は GC array — resize 時に新 array にコピー
 3. equality 比較: ジェネリック K に対する equality は型ごとにモノモーフ化で解決
 - HashMap は std: ":json (055), std::wit (054) 等で多用される"
-# std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>
 
+## std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/044-std-collections-hash.md` — incorrect directory for an open issue.
 
-
 ## Blocked — 2026-04-04
-
 
 True generic `HashMap<K,V>` and `HashSet<T>` require the compiler to be able to
 monomorphize generic type parameters at call sites.  
@@ -75,7 +73,8 @@ independently.
 
 ## Rechecked — 2026-05-14
 
-#312 is complete and the selfhost compiler now records and emits generic
+## 312 is complete and the selfhost compiler now records and emits generic
+
 monomorphization instances. That removes the old compiler-specialization
 blocker, but it does **not** satisfy this issue's acceptance criteria:
 

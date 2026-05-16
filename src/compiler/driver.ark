@@ -12,7 +12,6 @@ use component_emitter
 use diagnostics
 use emitter
 use emit_wat
-use lexer
 use mir_dump
 use mir_lower
 use parser
