@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T06:12:12Z",
+  "generated_at": "2026-05-16T06:14:38Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -720,6 +720,34 @@
       }
     },
     {
+      "id": "595",
+      "path": "595-lang-uplift-multiclauses.md",
+      "title": "595-lang-uplift-multiclauses",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "629"
+      ],
+      "blocks_issue_ids": [
+        "596",
+        "597",
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "598",
       "path": "598-lang-uplift-comprehensions.md",
       "title": "Language Surface Uplift: Expression-Level Comprehensions",
@@ -943,30 +971,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "629",
-      "path": "629-lang-uplift-baseline.md",
-      "title": "Language Surface Uplift: Baseline and Syntax Contract",
-      "track": "language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "595"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": null
       }
     },
     {
@@ -1250,6 +1254,58 @@
       }
     },
     {
+      "id": "596",
+      "path": "596-lang-uplift-guards.md",
+      "title": "596-lang-uplift-guards",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595"
+      ],
+      "blocks_issue_ids": [
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "597",
+      "path": "597-lang-uplift-where.md",
+      "title": "Language Surface Uplift: Real `where` Clauses",
+      "track": "selfhost-frontend / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595"
+      ],
+      "blocks_issue_ids": [
+        "599"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "601",
       "path": "601-typesys-type-schemes.md",
       "title": "Type System Stage-Up: Type Schemes and Controlled Let-Generalization",
@@ -1329,34 +1385,6 @@
       }
     },
     {
-      "id": "595",
-      "path": "595-lang-uplift-multiclauses.md",
-      "title": "595-lang-uplift-multiclauses",
-      "track": "selfhost-frontend / language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "629"
-      ],
-      "blocks_issue_ids": [
-        "596",
-        "597",
-        "599"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "575",
       "path": "575-phase7-delete-ark-parser.md",
       "title": "575 — Phase 7: Delete `crates/ark-parser`",
@@ -1413,6 +1441,33 @@
       }
     },
     {
+      "id": "599",
+      "path": "599-lang-uplift-docs-rollout.md",
+      "title": "Language Surface Uplift: Docs, Fixtures, and Rollout",
+      "track": "docs / language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "595",
+        "596",
+        "597",
+        "598"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "602",
       "path": "602-typesys-qualified-constraints.md",
       "title": "Type System Stage-Up: Qualified Constraints and Coherent Trait Solving",
@@ -1428,58 +1483,6 @@
       ],
       "blocks_issue_ids": [
         "603"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "596",
-      "path": "596-lang-uplift-guards.md",
-      "title": "596-lang-uplift-guards",
-      "track": "selfhost-frontend / language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "595"
-      ],
-      "blocks_issue_ids": [
-        "599"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "597",
-      "path": "597-lang-uplift-where.md",
-      "title": "Language Surface Uplift: Real `where` Clauses",
-      "track": "selfhost-frontend / language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "595"
-      ],
-      "blocks_issue_ids": [
-        "599"
       ],
       "acceptance": {
         "checked": 0,
@@ -1559,33 +1562,6 @@
       "depends_on": [
         "601",
         "602"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "599",
-      "path": "599-lang-uplift-docs-rollout.md",
-      "title": "Language Surface Uplift: Docs, Fixtures, and Rollout",
-      "track": "docs / language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "595",
-        "596",
-        "597",
-        "598"
       ],
       "blocks_issue_ids": [],
       "acceptance": {

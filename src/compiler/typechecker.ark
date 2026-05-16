@@ -765,7 +765,7 @@ fn is_logical_op(op: i32) -> bool {
     false
 }
 
-fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNode) -> TypeInfo {
+fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     if node.kind == typechecker_kinds::NK_INT_LIT() {
         return TypeInfo_simple(typechecker_kinds::TY_I32())
     }
@@ -794,7 +794,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             i = i + 1
         }
         let body = get_unchecked(node.children, child_count - 1)
-        let body_ty = infer_expr(env, closure_scope, fn_sigs, body)
+        let body_ty = infer_expr(env, closure_scope, fn_sigs, enum_defs, body)
         resolve_type(env, body_ty)
         return TypeInfo_simple(typechecker_kinds::TY_FN())
     }

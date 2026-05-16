@@ -35,6 +35,7 @@ graph LR
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
   I592["592 Error Handling Convergence Plan (Operational Guide)"]
   I594["594 Selfhost Phase 2: Fixture and Diagnostic Parity"]
+  I595["595 595-lang-uplift-multiclauses"]
   I598["598 Language Surface Uplift: Expression-Level Comprehensions"]
   I60["60 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I600["600 600-typesys-soundness-floor"]
@@ -44,7 +45,6 @@ graph LR
   I610["610 Optimization Uplift: Lowering Bottleneck Reduction"]
   I611["611 Optimization Uplift: T3-Safe Runtime Unlock"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
-  I629["629 Language Surface Uplift: Baseline and Syntax Contract"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I126["126 126-eliminate-double-lowering"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
@@ -56,19 +56,18 @@ graph LR
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I580["580 580 — Phase 7: Delete `crates/ark-manifest`"]
   I625["625 529 Phase 4: Dual-Run Period (SAFETY)"]
+  I596["596 596-lang-uplift-guards"]
+  I597["597 Language Surface Uplift: Real `where` Clauses"]
   I601["601 Type System Stage-Up: Type Schemes and Controlled Let-Generalization"]
   I608["608 608-stdlib-baseline-docs-bench"]
   I612["612 Optimization Uplift: Binary Size Squeeze"]
-  I595["595 595-lang-uplift-multiclauses"]
   I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
   I626["626 529 Phase 6/A: IDE-Ready Frontend"]
+  I599["599 Language Surface Uplift: Docs, Fixtures, and Rollout"]
   I602["602 Type System Stage-Up: Qualified Constraints and Coherent Trait Solving"]
-  I596["596 596-lang-uplift-guards"]
-  I597["597 Language Surface Uplift: Real `where` Clauses"]
   I576["576 576 — Phase 7: Delete `crates/ark-resolve`"]
   I627["627 529 Phase 6/B: Analysis API"]
   I603["603 603-typesys-lowering-contract"]
-  I599["599 Language Surface Uplift: Docs, Fixtures, and Rollout"]
   I577["577 577 — Phase 7: Delete `crates/ark-typecheck`"]
   I628["628 529 Phase 6/C: LSP Minimum Viable"]
   I578["578 578 — Phase 7: Delete `crates/ark-hir`"]
@@ -87,27 +86,26 @@ graph LR
   I564 --> I574
   I564 --> I580
   I594 --> I625
+  I595 --> I596
+  I595 --> I597
   I600 --> I601
   I605 --> I608
   I606 --> I608
   I607 --> I608
   I611 --> I612
-  I629 --> I595
   I564 --> I575
   I574 --> I575
   I625 --> I626
+  I595 --> I599
+  I596 --> I599
+  I597 --> I599
+  I598 --> I599
   I601 --> I602
-  I595 --> I596
-  I595 --> I597
   I564 --> I576
   I575 --> I576
   I626 --> I627
   I601 --> I603
   I602 --> I603
-  I595 --> I599
-  I596 --> I599
-  I597 --> I599
-  I598 --> I599
   I564 --> I577
   I576 --> I577
   I627 --> I628
@@ -163,6 +161,7 @@ graph LR
 - **590** depends on: none; blocks: none
 - **592** depends on: none; blocks: none
 - **594** depends on: 593; blocks: 625
+- **595** depends on: 629; blocks: 596, 597, 599
 - **598** depends on: none; blocks: 599
 - **60** depends on: 510, 121; blocks: none
 - **600** depends on: none; blocks: 601
@@ -172,7 +171,6 @@ graph LR
 - **610** depends on: 609; blocks: none
 - **611** depends on: 609; blocks: 612
 - **62** depends on: 074, 510; blocks: none
-- **629** depends on: none; blocks: 595
 - **63** depends on: 074, 137; blocks: none
 - **126** depends on: 125; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
@@ -184,19 +182,18 @@ graph LR
 - **574** depends on: 564; blocks: 575, 582
 - **580** depends on: 564; blocks: 582
 - **625** depends on: 594; blocks: 626
+- **596** depends on: 595; blocks: 599
+- **597** depends on: 595; blocks: 599
 - **601** depends on: 600; blocks: 602, 603
 - **608** depends on: 604, 605, 606, 607; blocks: none
 - **612** depends on: 609, 611; blocks: none
-- **595** depends on: 629; blocks: 596, 597, 599
 - **575** depends on: 564, 574; blocks: 576, 579, 581, 582
 - **626** depends on: 625; blocks: 627
+- **599** depends on: 595, 596, 597, 598; blocks: none
 - **602** depends on: 601; blocks: 603
-- **596** depends on: 595; blocks: 599
-- **597** depends on: 595; blocks: 599
 - **576** depends on: 564, 575; blocks: 577, 579, 582
 - **627** depends on: 626; blocks: 628
 - **603** depends on: 601, 602; blocks: none
-- **599** depends on: 595, 596, 597, 598; blocks: none
 - **577** depends on: 564, 576; blocks: 578, 579, 581, 582
 - **628** depends on: 627; blocks: none
 - **578** depends on: 564, 577; blocks: 582

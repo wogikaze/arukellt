@@ -81,6 +81,10 @@ fn NK_FN_DECL() -> i32 {
     50
 }
 
+fn NK_ENUM_DECL() -> i32 {
+    52
+}
+
 fn NK_IMPL_DECL() -> i32 {
     56
 }
