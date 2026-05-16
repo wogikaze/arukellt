@@ -189,7 +189,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 594 | [594-selfhost-phase2-fixture-diag-parity](594-selfhost-phase2-fixture-diag-parity.md) | selfhost | none | 593 | 625 | 0 checked / 0 open | blocked-by-upstream | — | |
 | 595 | [595-lang-uplift-multiclauses](595-lang-uplift-multiclauses.md) | selfhost-frontend / language-design | none | 629 | 597, 599 | 0 checked / 0 open | implementation-ready | — | |
 | 60 | [WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成](074-wasi-p2-native-component.md) | wasi-feature | none | 510, 121 | none | 0 checked / 0 open | blocked-by-upstream | None | |
-| 601 | [Type System Stage-Up: Type Schemes and Controlled Let-Generalization](601-typesys-type-schemes.md) | selfhost / typechecker | none | 600 | 602, 603 | 0 checked / 0 open | blocked-by-upstream | — | |
+| 601 | [Type System Stage-Up: Type Schemes and Controlled Let-Generalization](601-typesys-type-schemes.md) | selfhost / typechecker | none | 600 | 602, 603 | 0 checked / 0 open | implementation-ready | — | |
 | 605 | [Stdlib Baseline: Host Core-Platform Baseline](605-stdlib-baseline-host-platform.md) | stdlib / wasi-feature | none | 604 | 608 | 0 checked / 0 open | blocked-by-upstream | — | |
 | 606 | [Stdlib Baseline: Structured Data and Semantics Baseline](606-stdlib-baseline-structured-data.md) | stdlib | none | 604 | 608 | 0 checked / 0 open | blocked-by-upstream | — | |
 | 607 | [Stdlib Baseline: Collections Hash Hardening](607-stdlib-baseline-hash-hardening.md) | stdlib | none | 604 | 608 | 0 checked / 0 open | blocked-by-upstream | — | |

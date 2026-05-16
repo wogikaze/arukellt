@@ -1,10 +1,10 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 601
 Track: selfhost / typechecker
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Depends on: 600
 Parent: None
 Policy constraint: Do NOT generalize everything blindly. Use a conservative
