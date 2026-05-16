@@ -729,6 +729,7 @@ fn cmd_compile(opts: CliOptions) {
     config.dump_wasm = should_dump(opts, String_from("wasm"))
     config.parse_only = opts.command == CMD_PARSE()
     config.check_only = opts.command == CMD_CHECK()
+    config.show_timing = opts.show_timing
     let input_file = clone(opts.input_file)
     let json_mode = opts.json_output
     let result = driver::compile_file(clone(input_file), config)

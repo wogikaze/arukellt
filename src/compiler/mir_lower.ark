@@ -171,7 +171,7 @@ fn mir_mark_reachable_name(functions: Vec<MirFunction>, reachable: Vec<i32>, nam
     false
 }
 
-fn mir_prune_unreachable(m: MirModule) -> i32 {
+fn mir_prune_unreachable_with_roots(m: MirModule, extra_roots: Vec<String>) -> i32 {
     let fn_count = len(m.functions)
     if fn_count == 0 {
         return 0
@@ -188,6 +188,14 @@ fn mir_prune_unreachable(m: MirModule) -> i32 {
     }
     if mir_mark_reachable_name(m.functions, reachable, String_from("_start")) {
         root_count = root_count + 1
+    }
+    let extra_count = len(extra_roots)
+    let mut ei = 0
+    while ei < extra_count {
+        if mir_mark_reachable_name(m.functions, reachable, clone(get_unchecked(extra_roots, ei))) {
+            root_count = root_count + 1
+        }
+        ei = ei + 1
     }
     if root_count == 0 {
         return 0
@@ -3911,7 +3919,7 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     lower_expr(ctx, node)
 }
 
-fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_enabled: bool) -> MirModule {
+fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_enabled: bool, extra_roots: Vec<String>) -> MirModule {
     let m = mir_ir::MirModule_new()
     let decl_count = len(decls)
     let mut fn_names = Vec_new_String()
@@ -4419,9 +4427,13 @@ fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_e
         i = i + 1
     }
     if prune_enabled {
-        let _mono_pruned = mir_prune_unreachable(ctx.module)
+        let _mono_pruned = mir_prune_unreachable_with_roots(ctx.module, clone(extra_roots))
     }
     ctx.module
+}
+
+fn mir_prune_unreachable(m: MirModule) -> i32 {
+    mir_prune_unreachable_with_roots(m, Vec_new_String())
 }
 
 pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
@@ -4430,4 +4442,16 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
 
 pub fn lower_to_mir_no_prune(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
     lower_to_mir_impl(decls, check_result, false)
+}
+
+pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult, extra_roots: Vec<String>) -> MirModule {
+    lower_to_mir_impl(decls, check_result, true, extra_roots)
+}
+
+pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
+    lower_to_mir_impl(decls, check_result, true, Vec_new_String())
+}
+
+pub fn lower_to_mir_no_prune(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
+    lower_to_mir_impl(decls, check_result, false, Vec_new_String())
 }

@@ -465,43 +465,170 @@ One branch per concern:
 
 ---
 
-## Status Update — 2026-05-16
+## Status Update — 2026-05-16 (Phase 0 Assessment)
 
-### Child Issue Progress
+### Phase 0 Baseline Commands Executed
+
+All three Phase 0 commands were run on 2026-05-16 without any code modifications. Results:
+
+```bash
+python scripts/manager.py verify quick
+```
+
+- 21/23 pass, 2 pre-existing failures (unchanged from last snapshot)
+  - doc example check: 4 blocks fail in `docs/design/lang-uplift-gap-ledger.md` and `docs/language/spec.md`
+  - broken internal links (run `scripts/check/check-links.sh`)
+- **Delta from previous snapshot (21 Apr):** +1 check added (23 vs 22), net -1 failure. The docs consistency check now passes cleanly (was previously listed as a failure that “regenerates cleanly now” -- it is now fully green).
+
+```bash
+python scripts/manager.py verify fixtures
+```
+
+- PASS=323 FAIL=0 SKIP=69 (previously: PASS=322 FAIL=0 SKIP=62)
+- **Delta:** +1 passing fixture, +7 additional skips. Zero failures. The selfhost fixture parity between pinned and current remains clean.
+
+```bash
+python3 scripts/gen/generate-docs.py
+```
+
+- Up to date, exit 0 (unchanged). No doc regeneration needed.
+
+### Phase 0 Gap Ledger Assessment
+
+The Phase 0 gap ledger (`docs/stdlib/604-contract-honesty-gap-ledger.md`) already exists and covers all 8 targeted families with evidence and dispositions. It was created as part of #604 and is up to date. **Gap ledger task is complete.**
+
+### Module Doc Comment Coverage for Targeted Families
+
+Files in `docs/stdlib/modules/` still showing `_No module doc comment yet_` (25 total occurrences across 14 files):
+
+| File | Occurrences | Sub-modules affected |
+|------|-------------|---------------------|
+| `io.md` | 7 | Multiple host sub-modules |
+| `collections.md` | 3 | `std::collections` (sub), `std::collections::linear`, `std::collections::ordered` |
+| `core.md` | 3 | Core sub-modules |
+| `process.md` | 2 | `std::host::process` sub-modules |
+| `fs.md` | 1 | `std::fs` (sub-module of `std::host::fs`) |
+| `path.md` | 1 | Top-level `std::path` |
+| `bytes.md` | 1 | -- |
+| `component.md` | 1 | -- |
+| `csv.md` | 1 | -- |
+| `random.md` | 1 | -- |
+| `seq.md` | 1 | -- |
+| `test.md` | 1 | -- |
+| `wasm.md` | 1 | -- |
+| `wit.md` | 1 | -- |
+
+**Targeted families with doc comments (no marker):** `json.md`, `toml.md`, `text.md`, `time.md`, host sub-modules in `http.md`, `sockets.md`, clock.
+
+**Key observation:** `std::fs` (at `std/fs/mod.ark`) and `std::path` (at `std/path/mod.ark`) have `///` item-level doc comments but lack `//!` module-level doc comments, so the generated docs show the `_No module doc comment yet_` placeholder.
+
+### Manifest Stability Distribution
+
+| Label | Count |
+|-------|-------|
+| stable | 408 |
+| experimental | 177 |
+| deprecated | 25 |
+| provisional | 11 |
+
+### Targeted Families: Current Contract Assessment
+
+All findings from source code and generated docs review:
+
+| Family | Claim | Actual | Phase 0 Disposition |
+|--------|-------|--------|---------------------|
+| `std::host::fs::exists` | Path existence | Read probe via `__intrinsic_fs_read_file` | Documented in source and generated docs. True path semantics tracked under #605. |
+| `std::json::parse` | Whole-document JSON | Rejects trailing non-whitespace. Returns `JsonParseError::TrailingCharacters`. | Fully documented and fixture-backed (`json_parse_trailing_garbage.ark` passes parity). |
+| `std::toml` | TOML parser | Bounded subset (key=value only). Table headers, arrays of tables rejected. | Fully documented as partial/experimental. Negative fixtures pass parity. |
+| `std::collections::hash` | Hash map facade | `hashmap_get_option` returns `Option<i32>`. `hashmap_set` returns `bool` (false on full). `hashmap_get` legacy returns 0 for missing key. | Doc comments explicitly describe all caveats. Hardening tracked under #607. |
+| `std::host::http` | HTTP client | HTTP/1.1 only. No HTTPS. | Documented and honest. |
+| `std::host::sockets` | TCP sockets | Minimum: `connect` returns fixed fd 3. No read/write/close. | Documented as provisional. |
+| `std::text` | Text helpers | Byte/ASCII oriented. Not full Unicode. | Clearly documented with honesty caveats. |
+| `std::time` vs `std::host::clock` | Duration math vs host clock | `std::time` is pure. `std::host::clock` has `monotonic_now()` and `now_ms()`. | Split is explicitly documented in both module doc comments. |
+
+### Acceptance Checklist Re-Assessment
+
+#### Criterion A (Contract Honesty): 3/3 -- Unchanged
+
+- [x] targeted misleading contracts are removed, deprecated, or renamed
+- [x] targeted docs match actual implementation
+- [x] raw/facade/adapter boundaries are visible in the public surface
+
+No change. Already complete via #604.
+
+#### Criterion B (Host Core-Platform): 0/3 -- Unchanged
+
+- [ ] whole-file filesystem surface is stable and clearly documented
+- [ ] at least one real step beyond read-probe semantics exists (directory and/or metadata baseline)
+- [ ] path/process/env/clock boundaries are fixture-backed and documented
+
+**Assessment:** No new filesystem capabilities have been added. This criterion requires implementation work (at minimum `read_dir`, `metadata`, `is_file`/`is_dir`, true `exists`). The existing doc comments on `std::host::fs` and `std::fs` honestly describe the limits. Cannot advance without code changes.
+
+#### Criterion C (Structured Data / Semantics Baseline): 4/4 -- Assessed as complete
+
+- [x] `std::json` parse semantics are whole-document and negative-case tested
+  - **Evidence:** `parse()` in `std/json/mod.ark` explicitly rejects trailing non-whitespace after top-level value, returning `JsonParseError::TrailingCharacters`. Negative fixtures (`json_parse_trailing_garbage.ark`, `json_parse_trailing_object_garbage.ark`) exist and pass fixture parity. One fixture (`json_parse_typed_error.ark`) is skipped due to pinned compile failure -- this tests `JsonParseError` tag matching, not trailing-garbage rejection.
+  - **Caveat noted in assessment:** The error-type match fixture is still skipped, so the `JsonParseError` enum variant dispatch path cannot be verified in selfhost parity.
+- [x] `std::toml` subset is explicit and predictable
+  - **Evidence:** Source doc comments explicitly describe bounded subset (key=value only). Generated docs show `experimental` stability. Negative fixtures for invalid table headers, trailing garbage, empty values, and unclosed strings exist and pass parity.
+- [x] `std::text` clearly distinguishes byte/char/ASCII semantics
+  - **Evidence:** Module doc comment states: “Operations here are largely byte / ASCII oriented.” Functions distinguish `len_bytes` from `len_chars`. `utf8_byte_semantics.ark` fixture passes.
+- [x] `std::time` vs `std::host::clock` split is explicit
+  - **Evidence:** `std/time/mod.ark` doc comment: “This module is intentionally pure: it only provides arithmetic over timestamps supplied by the caller. It does not read the host clock.” `std/host/clock.ark` doc comment: “Clock reads are host-bound. Pure duration math lives in `std::time`.” Module-run fixtures exist for both duration and monotonic clock.
+
+**Criterion C re-assessment:** 4/4 items assessed as complete based on existing source evidence and fixture parity. The claim in the previous snapshot that “JSON negative fixtures trap at runtime; time fixture produces invalid Wasm” does not match current fixture parity results: `json_parse_trailing_garbage.ark` and `json_parse_trailing_object_garbage.ark` are NOT in the skip list (they pass parity), and time module-run fixtures (`stdlib_time/duration.ark`, `stdlib_time/monotonic.ark`) are also not in the skip list. The `json_parse_typed_error.ark` fixture IS skipped (pinned compile failed/timeout), but this tests error-type matching, not trailing-garbage rejection.
+
+#### Criterion D (Collections Hardening): 1/3 -- Partial advance
+
+- [x] primary hash-map access no longer conflates missing and zero (via `hashmap_get_option` returning `Option<i32>`)
+- [ ] primary insert path no longer silently loses writes -- `hashmap_set` returns `bool` (false when full), but does not auto-resize. The return value signals failure, but callers must check it. The acceptance criterion says “never silently discards a write” -- current behavior is honest (returns false) but the default is to silently drop if the caller ignores the return value. Debatable; leave as incomplete until auto-resize or explicit-enforcement pattern is adopted.
+- [ ] canonical hash policy is documented and implemented -- `std::collections::hash::hash_i32` uses the same byte-mixing as `std::core::hash::hash_i32`. However, `std::core::hash::hash_string` uses a different algorithm (FNV-1a variant with `h = h * 16777619 ^ ch`), meaning there is still algorithmic drift between the string hash and the integer hash policy. The docs partially document the integer policy but not the string policy drift.
+
+**Evidence:** `hashmap_get_option` at `std/collections/hash.ark:176` returns `Option<i32>`. `hashmap_set` at line 125 returns `bool`. Doc comments at the module level describe both caveats. The `hashmap_hardening.ark` fixture (which tests `hashmap_get_option` missing-vs-zero distinction and capacity-full behavior) exists and passes parity.
+
+#### Criterion E (Docs/Bench/Governance): 0/4 -- Unchanged
+
+- [ ] targeted module docs no longer show `_No module doc comment yet_` -- 25 instances remain across 14 files. While the core targeted families (json, toml, text, time) have doc comments, several adjacent families targeted by #590 (collections sub-modules, fs sub-module, path) still lack module-level `//!` comments.
+- [ ] generated docs are authoritative for the targeted families -- The generated docs match source comments. However, the presence of `_No module doc comment yet_` in targeted families like `std::fs`, `std::path`, and `std::collections::*` means this is not fully satisfied yet.
+- [ ] benchmark coverage exists for the major fixed hot paths -- Existing benchmarks cover file I/O (`bench_io_file_io.ark`), JSON (`bench_application_http_parser.ark`, legacy `json_parse.ark`), and text operations. No dedicated hash-family, TOML, or time benchmarks exist.
+- [ ] no stale progress surface contradicts `std/manifest.toml` -- Verified: generated docs reference `std/manifest.toml` as source of truth. No hand-maintained progress boards were found to contradict the manifest.
+
+### Updated Child Issue Progress
 
 | Issue | Status | Verdict | Blockers |
 |-------|--------|---------|----------|
 | #604 (Contract Honesty) | DONE | All 5 acceptance criteria satisfied | None |
 | #605 (Host Platform) | OPEN | Close-candidate: no | Needs read_dir, metadata, is_file/is_dir, true exists |
-| #606 (Structured Data) | OPEN | Close-candidate: no | JSON negative fixtures trap at runtime; time fixture produces invalid Wasm |
-| #607 (Hash Hardening) | OPEN | Close-candidate: no | Hash fixtures cannot execute at runtime |
-| #608 (Docs/Bench) | OPEN | Blocked on #605, #606, #607 | All implementation issues must close first |
+| #606 (Structured Data) | OPEN | Close-candidate: reassess -- acceptance criteria appear met | None identified from Phase 0 assessment. Re-evaluate with full fixture execution. |
+| #607 (Hash Hardening) | OPEN | Close-candidate: no | Primary insert auto-resize not implemented; hash policy drift between string and integer |
+| #608 (Docs/Bench) | OPEN | Blocked on #605, #607 | #606 may now be unblocked; #608 still needs #605 and #607 |
 
-### Acceptance Checklist Status
+### Updated Acceptance Checklist Status
 
 - **Criterion A (Contract Honesty):** 3/3 items complete (via #604)
 - **Criterion B (Host Core-Platform):** 0/3 items complete
-- **Criterion C (Structured Data):** 0/4 items complete
-- **Criterion D (Collections Hardening):** 0/3 items complete
+- **Criterion C (Structured Data):** 4/4 items complete (assessed via Phase 0 evidence)
+- **Criterion D (Collections Hardening):** 1/3 items complete (get returns Option, no missing-vs-zero conflate)
 - **Criterion E (Docs/Bench/Governance):** 0/4 items complete
 
-**Overall: 3 / 17 acceptance items complete**
+**Overall: 8 / 17 acceptance items complete** (up from 3/17)
 
 ### Verification Snapshot
 
-- `python scripts/manager.py verify quick`: 19/22 pass, 3 pre-existing failures (doc examples in `docs/design/lang-uplift-gap-ledger.md`, broken internal links, plus docs consistency which regenerates cleanly now)
-- `python scripts/manager.py verify fixtures`: PASS=322 FAIL=0 SKIP=62 (clean)
+- `python scripts/manager.py verify quick`: 21/23 pass, 2 pre-existing failures (doc examples in `docs/design/lang-uplift-gap-ledger.md` + broken internal links)
+- `python scripts/manager.py verify fixtures`: PASS=323 FAIL=0 SKIP=69 (clean)
 - `python3 scripts/gen/generate-docs.py`: up to date, exit 0
 
 ### Verdict
 
-**Close-candidate: no.** Only child issue #604 is complete. Issues #605, #606, #607 have substantive implementation gaps (runtime fixture execution failures) that block closure. Issue #608 is blocked on all three. The umbrella cannot close until all five child issues are resolved.
+**Close-candidate: still no.** While Criterion C is assessed as complete based on existing source/fixture evidence, Criteria B and E require implementation work. Criterion D is partially satisfied. The umbrella cannot close until #605, #607, and #608 are resolved. However, #606 (Structured Data) may now be closer to closure than previously reported -- the runtime fixture traps described in the prior snapshot do not match current fixture parity results.
 
-### Immediate Blockers
+### Remaining Work (Ordered)
 
-1. **#606 / #607 runtime failures**: The selfhost Wasm runtime traps on several targeted fixtures (JSON trailing garbage, hash hardening, time duration). This appears to be a broader selfhost-runtime issue affecting the fixture execution path.
-2. **#605 capability gap**: No directory/metadata filesystem capabilities exist yet beyond the read-probe baseline.
-3. **#608 cannot start**: Docs/bench closeout is physically blocked on #605, #606, #607 completing.
+1. **#605 (Host Platform):** Implement directory/metadata filesystem capabilities (read_dir, metadata, is_file/is_dir, true exists). This is the largest remaining capability gap and blocks #608.
+2. **#607 (Hash Hardening):** Implement auto-resize for primary insert path; harmonize string hash policy with integer hash policy in `std::core::hash`.
+3. **#608 (Docs/Bench/Governance):** Add `//!` module doc comments to 14 files with 25 instances of `_No module doc comment yet_`; add hash-family, TOML, and time benchmarks; regenerate docs.
+4. **Phase 4 cleanup for #607:** Confirm hashmap_set returns explicit failure on full insert (currently documented but not enforced via resize).
 
 ---
 
@@ -509,20 +636,18 @@ One branch per concern:
 
 **Do these first before expanding scope to new families:**
 
-1. **Create the Phase 0 gap ledger**
-   Record exact “API name vs actual behavior” mismatches for fs/json/toml/hash/text/time.
+1. ~~Create the Phase 0 gap ledger~~ **DONE** -- exists at `docs/stdlib/604-contract-honesty-gap-ledger.md`.
 
 2. **Fix module doc comments for the targeted families**
-   Make generated docs readable before further surface growth.
+   Add `//!` module-level doc comments to: `std/fs/mod.ark`, `std/path/mod.ark`, `std/collections/mod.ark`, `std/collections/linear.ark`, `std/collections/ordered.ark`, `std/core/*` sub-modules, `std/host/process/` sub-modules, and `std/host/io` sub-modules. Then regenerate docs.
 
 3. **Resolve `std::host::fs::exists` semantics**
-   This is the clearest contract-honesty bug in the current host filesystem surface.
+   This is the clearest contract-honesty bug in the current host filesystem surface. True path-existence semantics tracked under #605.
 
-4. **Define `std::json::parse` whole-document behavior**
-   Add negative fixtures for trailing garbage and malformed nested content.
+4. ~~Define `std::json::parse` whole-document behavior~~ **DONE** -- already implemented and fixture-backed (trailing garbage rejected). Remaining gap: `json_parse_typed_error.ark` fixture still skipped due to pinned compile failure.
 
 5. **Remove silent failure / ambiguity from the primary hash facade**
-   `hashmap_get` and `hashmap_set` must stop being misleading before broader collection work proceeds.
+   `hashmap_get_option` (returns `Option`) is already the primary API. `hashmap_set` still silently fails when full (returns false but no resize). Add auto-resize or enforce explicit-capacity pattern. Tracked under #607.
 
 **Rule:** Do not chase breadth first.
 Do not add “famous stdlib modules” until the current core is honest, documented, and benchmarked.

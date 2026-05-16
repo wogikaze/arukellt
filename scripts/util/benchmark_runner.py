@@ -491,7 +491,7 @@ def measure_compile(
         except FileNotFoundError:
             pass
         output = run_measured(
-            [str(compiler), "compile", "--target", target, "-o", str(wasm_path), str(ROOT / case.source)],
+            [str(compiler), "compile", "--time", "--target", target, "-o", str(wasm_path), str(ROOT / case.source)],
             cwd=ROOT,
             time_bin=time_bin,
         )
