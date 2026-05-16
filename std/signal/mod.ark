@@ -1,8 +1,8 @@
-/// FFT and simple spectral helpers over split-complex vectors.
-/// 
-/// The public surface uses two parallel `Vec<f64>` buffers: one for the real
-/// part and one for the imaginary part. Lengths must match and the transform
-/// size must be a power of two.
+//! FFT and simple spectral helpers over split-complex vectors.
+//!
+//! The public surface uses two parallel `Vec<f64>` buffers: one for the real
+//! part and one for the imaginary part. Lengths must match and the transform
+//! size must be a power of two.
 pub fn pi() -> f64 {
     3.141592653589793
 }

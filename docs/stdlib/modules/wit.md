@@ -37,13 +37,23 @@ let name = wit_type_name(t)   // "u32"
 - Manifest-backed functions: 16
 - Stability: experimental 16
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Experimental WIT helpers.
+
+Exposes WebAssembly Interface Types (WIT) primitive types as a typed
+`WitType` enum with constructors for all 13 WIT primitives (bool, u8/s8
+through u64/s64, f32/f64, char, string), plus explicit integer
+conversions (`wit_type_id`, `wit_type_from_id`) and human-readable
+names (`wit_type_name`).
+
+**Stability:** All APIs in this module are **experimental**.
+
+**Availability:** All targets (T1 + T3). No host capability required.
 
 ### Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
-| `WitType` | `enum` | Experimental WIT helpers. |
+| `WitType` | `enum` | - |
 
 ### Public API
 

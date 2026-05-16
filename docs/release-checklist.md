@@ -1,7 +1,8 @@
 # Release Checklist
 
 This checklist is executed before every tagged release.
-Items marked **CI** are automated; items marked **Manual** require human verification.
+Items marked **CI** are automated; items marked **CI on tag** run for tagged
+release refs; items marked **Manual** require human verification.
 
 ## Pre-release
 
@@ -12,21 +13,21 @@ Items marked **CI** are automated; items marked **Manual** require human verific
 - [ ] **CI** — `python scripts/manager.py verify component` passes (component interop)
 - [ ] **CI** — `python scripts/manager.py verify fixtures` passes (selfhost fixture parity)
 - [ ] **CI** — `python scripts/manager.py verify --selfhost-parity` passes (selfhost CLI + diag parity)
-- [ ] **CI** — opt-equiv (O0 == O1): not yet implemented (tracked in manager.py `_MISSING` set)
+<!-- DEFERRED: opt-equiv (O0 == O1) is not implemented; tracked in manager.py `_MISSING` set. Re-add as a CI checkbox when a real gate exists. -->
 - [ ] **CI** — Binary smoke: `arukellt --version` exits 0
 - [ ] **CI** — Binary smoke: `arukellt run tests/fixtures/hello_world.ark` outputs `Hello, World!`
 - [ ] **CI** — Binary smoke: `arukellt check tests/fixtures/type_error.diag` exits non-zero
 - [ ] **CI** — Determinism: same source produces identical `.wasm` across two builds
-- [ ] **CI** — Selfhost: `bash scripts/run/verify-bootstrap.sh --stage1-only` passes
+<!-- DEFERRED: legacy `bash scripts/run/verify-bootstrap.sh --stage1-only` uses the retired Rust bootstrap path and currently cannot parse the selfhost source surface. Current selfhost release coverage is `python scripts/manager.py verify fixtures` plus `python scripts/manager.py verify --selfhost-parity`. -->
 - [ ] **CI** — Selfhost LSP: `python scripts/manager.py verify quick` LSP gates (#568, #569) pass
   (Rust `ark-lsp` crate retired in #572; selfhost `src/compiler/lsp.ark` via `arukellt lsp` is the source of truth.)
 
 ## Binary distribution
 
-- [ ] **CI** — Release binary built for linux-x86_64
+- [ ] **CI** — Release CLI entrypoint prepared on linux-x86_64 runner
 - [ ] **CI** — Release binary size < 50 MB
 - [ ] **CI** — SHA256 checksum generated alongside binary
-- [ ] **Manual** — Version in `Cargo.toml` matches the tag
+- [ ] **CI on tag** — Version in `Cargo.toml` matches the tag
 
 ## Extension distribution
 

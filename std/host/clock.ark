@@ -1,6 +1,10 @@
-/// Host clock helpers.
-/// 
-/// Clock reads are host-bound. Pure duration math lives in `std::time`.
+//! Host clock helpers.
+//!
+//! Provides monotonic and wall-clock time reads backed by WASI clock intrinsics.
+//! Clock reads are host-bound. Pure duration math lives in `std::time`.
+//!
+//! **Availability:** All targets (T1 + T3). Requires `--allow-clock` capability.
+
 /// Returns a monotonic timestamp in nanoseconds.
 pub fn monotonic_now() -> i64 {
     __intrinsic_clock_now()

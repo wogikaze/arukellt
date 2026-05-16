@@ -1,8 +1,13 @@
-/// Eager sequence helpers over `Vec<i32>`.
-/// 
-/// Provides map/filter/take/skip/fold as functional stubs over Vec<i32>,
-/// alongside search, aggregation, and deduplication helpers.
-/// Lazy generic Seq<T> pipelines are deferred to a future release.
+//! Eager sequence helpers over `Vec<i32>`.
+//!
+//! Provides `map`, `filter`, `take`, `skip`, `fold` as functional stubs over
+//! `Vec<i32>`, alongside search (`binary_search`, `seq_contains`),
+//! aggregation (`min_i32`, `max_i32`, `sum_i32`), deduplication (`unique`),
+//! reversal (`seq_reverse`), and equality counting (`count_eq`).
+//!
+//! Lazy generic `Seq<T>` pipelines are deferred to a future release.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
 // ─── Transformation operations ──────────────────────────────────────────────
 /// Apply `f` to every element of `v` and collect the results.
 pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {

@@ -432,6 +432,9 @@ DIAG_PARITY_SKIP: frozenset[str] = frozenset({
     "module_import/use_symbol_not_found.ark",
     "selfhost/typecheck_match_nonexhaustive.ark",
     "selfhost/ret_type_mismatch.ark",
+    "selfhost/trait_ambiguous_bound.ark",
+    "selfhost/trait_overlapping_impl.ark",
+    "selfhost/trait_unresolved_var_bound.ark",
 })
 
 

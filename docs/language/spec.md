@@ -306,6 +306,7 @@ creates fresh type variables for each quantified variable on each lookup.
 
 #### Example
 
+<!-- skip-doc-check --> <!-- let-generalization illustration uses closure syntax not accepted as a standalone doc example -->
 ```ark
 // `id` is a syntactic value (closure) -> generalized
 let id = fn(x) { x }

@@ -46,13 +46,18 @@ println("Running as: " + name)
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Host process-control helpers.
+
+Provides process lifecycle operations: graceful exit and immediate abort.
+These APIs are host-bound and require WASI process capability.
+
+**Availability:** All targets (T1 + T3). Requires WASI runtime.
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `exit` | `(i32) -> ()` | `stable` | ✅ impl | Host process-control helpers. |
+| `exit` | `(i32) -> ()` | `stable` | ✅ impl | Requests process termination with the given exit code. |
 | `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately with exit code 134 (SIGABRT convention). |
 
 #### `exit`
@@ -71,13 +76,19 @@ Abort the process immediately with an abnormal-termination signal (non-zero exit
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Host environment helpers.
+
+Provides CLI argument access and environment variable lookup backed by
+WASI intrinsics (args_sizes_get / args_get, environ_sizes_get / environ_get).
+
+**Availability:** All targets (T1 + T3). Environment variable access
+(`var`) requires WASI Preview 2 component model (not available on P1).
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `args` | `() -> Vec<String>` | `stable` | ✅ impl | Host environment helpers. |
+| `args` | `() -> Vec<String>` | `stable` | ✅ impl | Returns the process argument vector (excluding argv[0]). |
 | `arg_count` | `() -> i32` | `stable` | ✅ impl | Returns the number of process arguments (excluding argv[0]). |
 | `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ impl | Returns the argument at the given index when in range. |
 | `var` | `(String) -> Option<String>` | `stable` | ✅ impl | Looks up an environment variable by name. |

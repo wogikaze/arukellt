@@ -41,13 +41,22 @@ let dedup = unique(nums)            // [3, 1, 4, 5, 9]
 - Manifest-backed functions: 13
 - Stability: stable 13
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Eager sequence helpers over `Vec<i32>`.
+
+Provides `map`, `filter`, `take`, `skip`, `fold` as functional stubs over
+`Vec<i32>`, alongside search (`binary_search`, `seq_contains`),
+aggregation (`min_i32`, `max_i32`, `sum_i32`), deduplication (`unique`),
+reversal (`seq_reverse`), and equality counting (`count_eq`).
+
+Lazy generic `Seq<T>` pipelines are deferred to a future release.
+
+**Availability:** All targets (T1 + T3). No host capability required.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `stable` | Eager sequence helpers over Vec<i32>. |
+| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `stable` | Apply f to every element of v and collect the results. |
 | `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `stable` | Keep only elements of v for which f returns true. |
 | `take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Return the first n elements of v. |
 | `skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Return all elements of v after skipping the first n. |

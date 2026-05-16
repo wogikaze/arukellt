@@ -1,6 +1,6 @@
-/// CSV parser/serializer for std::csv.
-/// 
-/// Supports RFC 4180 quoted fields and basic multi-row documents.
+//! CSV parser/serializer for std::csv.
+//!
+//! Supports RFC 4180 quoted fields and basic multi-row documents.
 // ─── Legacy helper ───────────────────────────────────────────────────────────
 /// Split a single CSV line on commas (no quote handling).
 pub fn csv_split_line(line: String) -> Vec<String> {

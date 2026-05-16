@@ -37,7 +37,10 @@ let shuffled = shuffle_i32(vec, 42) // deterministic shuffle
 - Manifest-backed functions: 3
 - Stability: stable 3
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Deterministic pseudo-random helper functions.
+
+Host entropy lives in `std::host::random`. This module only provides
+seeded helpers so callers can reason about reproducibility.
 
 ### Public API
 

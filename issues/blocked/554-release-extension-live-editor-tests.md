@@ -1,6 +1,16 @@
+---
+Status: blocked
+Updated: 2026-05-17
+ID: 554
+Track: release
+Type: Verification
+Depends on: none
+Blocked by: "manual live VS Code verification with the packaged VSIX"
+---
+
 # Release: Extension Live Editor Tests
 
-> **Status:** open
+> **Status:** blocked
 > **Track:** release
 > **Type:** Verification
 
@@ -47,7 +57,10 @@ All extension features must work correctly in live editor environment.
 - **All four acceptance criteria are inherently manual.** None can be verified from this headless environment.
 - **The VSIX packaging pipeline is confirmed working:** `npm run build` succeeds, produces `arukellt-all-in-one-0.0.1.vsix` (327 files, 485.26 KB). This is the prerequisite for manual verification.
 - **The E2E test suite** (`src/test/extension.test.js`) covers definition, hover, diagnostics, and debug behavior programmatically via `LspPipeSession` (direct JSON-RPC to `arukellt lsp`) and `vscode.*` API calls. These provide CI-level coverage for the same features. The live editor checks are a complementary manual layer.
-- **Environment blockers remain:** the WSL VS Code detection prompt and the existing Code instance lock prevent even the automated test harness from running here. The issue is inherently unrunnable in this environment.
+- **Environment blockers remain:** local Xvfb cannot start because `/tmp/.X11-unix`
+  has the wrong owner/mode in this environment. The WSL VS Code detection prompt
+  can be suppressed with `DONT_PROMPT_WSL_INSTALL=1`, and non-Xvfb `npm test`
+  now exits 0, but the exact `xvfb-run -a npm test` release gate still exits 1.
 
 ### Recommendation
 
@@ -94,12 +107,17 @@ Consider that the E2E test suite in `src/test/extension.test.js` already provide
 
 ## Blockers
 
-- A separate Code/VS Code instance is already running in this environment, so the extension test harness cannot claim the instance lock.
-- No live-editor assertions ran, so the manual release checks in this issue remain unrunnable here until the existing Code session is closed or the tests are rerun on a clean machine.
+- Local Xvfb cannot start because `/tmp/.X11-unix` is not `root:root` with mode
+  `1777` in this environment.
+- No live-editor assertions ran, so the manual release checks in this issue
+  remain unrunnable here until the VSIX is tested in a native VS Code desktop
+  session or a native Linux CI environment.
 
 ## Verdict
 
-Close-candidate status: not runnable in the current environment because the VS Code test harness is blocked by an existing Code instance, even though VSIX packaging itself is runnable.
+Close-candidate status: not runnable in the current environment because local
+Xvfb is blocked by `/tmp/.X11-unix` ownership/mode, even though VSIX packaging
+and non-Xvfb extension tests are runnable.
 
 ## Recheck — 2026-05-14
 
@@ -139,3 +157,38 @@ completion/hover/definition behavior after installing the VSIX.
 Updated close-candidate status: still `no`. This is a fully manual verification
 issue that cannot be closed from this environment. The VSIX is confirmed buildable
 and packagable; the remaining checks require interactive VS Code sessions.
+
+## Recheck — 2026-05-17
+
+- `npm ci` in `extensions/arukellt-all-in-one/`: PASS (392 packages installed).
+- `npm run build` in `extensions/arukellt-all-in-one/`: PASS.
+  - VSIX written to `extensions/arukellt-all-in-one/arukellt-all-in-one-0.0.1.vsix`
+    (327 files, 485.26 KB).
+- `npm run test:marketplace-metadata`: PASS (`marketplace metadata OK`).
+- `env DONT_PROMPT_WSL_INSTALL=1 npm test`: PASS (`Exit code: 0`).
+- `env DONT_PROMPT_WSL_INSTALL=1 xvfb-run -a npm test`: FAIL for the exact
+  release gate.
+  - The VS Code test runner reports `Exit code: 0`.
+  - `xvfb-run` exits 1 because Xvfb reports `/tmp/.X11-unix` must be owned by
+    `root` and have mode `1777`; the current directory is `nobody:nogroup` with
+    mode `777`.
+- Static/E2E coverage inventory:
+  - `src/test/extension.test.js` contains automated assertions for extension
+    activation, language status `$(check) Ready`, diagnostics stability,
+    completion, hover, go-to-definition, restart, failure recovery, task
+    provider, and project tree behavior.
+  - Those automated tests cannot be used as a substitute for this issue's manual
+    live-editor acceptance until they pass in native Linux CI or a clean
+    non-WSL VS Code environment.
+
+Updated close-candidate status: still `no`. The VSIX build prerequisite and
+non-Xvfb automated tests are green, but all four acceptance criteria remain
+manual and unverified in this environment.
+
+## Queue Move — 2026-05-17
+
+Moved from `issues/open/` to `issues/blocked/`. The automated prerequisites are
+green (`npm ci`, VSIX build, marketplace metadata, and non-Xvfb extension tests
+with the WSL prompt suppressed), but all acceptance criteria are manual live
+VS Code checks that require installing the packaged VSIX in an interactive
+editor session.

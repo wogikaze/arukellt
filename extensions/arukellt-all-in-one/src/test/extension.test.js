@@ -221,6 +221,19 @@ function lspHoverPlainText(h) {
   return "";
 }
 
+function lspCompletionItems(raw) {
+  if (!raw || typeof raw !== "object") {
+    return [];
+  }
+  if (Array.isArray(raw)) {
+    return raw;
+  }
+  if ("items" in raw && Array.isArray(raw.items)) {
+    return raw.items;
+  }
+  return [];
+}
+
 /**
  * Minimal JSON-RPC/LSP over stdio (Content-Length framing), same protocol as
  * the selfhost `arukellt lsp` server (`src/compiler/lsp.ark`). The previous
@@ -932,6 +945,72 @@ suite("Hover (#451 / #453)", function () {
     assert.ok(
       content.includes("println") || content.includes("fn"),
       `Hover should contain function name or signature, got: ${content.slice(0, 200)}`
+    );
+  });
+});
+
+// ============================================================
+// Release checklist — completion protocol coverage
+// ============================================================
+
+suite("Completion E2E (release gate)", function () {
+  this.timeout(60000);
+  /** @type {LspPipeSession | undefined} */
+  let lsp;
+  let docUri;
+  let basicSource;
+
+  suiteSetup(async function () {
+    this.timeout(60000);
+    if (!fs.existsSync(repoDebugBinary)) {
+      this.skip();
+      return;
+    }
+    const basicPath = path.join(__dirname, "fixtures", "basic.ark");
+    docUri = vscode.Uri.file(basicPath).toString();
+    basicSource = fs.readFileSync(basicPath, "utf8");
+    lsp = new LspPipeSession(repoDebugBinary);
+    const init = await lsp.sendRequest("initialize", {
+      processId: null,
+      rootUri: vscode.Uri.file(repoRoot).toString(),
+      capabilities: {},
+    });
+    assert.ok(
+      init?.capabilities?.completionProvider,
+      "initialize should advertise completionProvider"
+    );
+    lsp.notify("initialized", {});
+    await new Promise((r) => setTimeout(r, 300));
+    lsp.notify("textDocument/didOpen", {
+      textDocument: {
+        uri: docUri,
+        languageId: "arukellt",
+        version: 1,
+        text: basicSource,
+      },
+    });
+    await new Promise((r) => setTimeout(r, 500));
+  });
+
+  suiteTeardown(() => {
+    lsp?.close();
+  });
+
+  test("textDocument/completion returns language and stdlib items", async () => {
+    assert.ok(lsp);
+    const raw = await lsp.sendRequest("textDocument/completion", {
+      textDocument: { uri: docUri },
+      position: { line: 8, character: 11 },
+    });
+    const labels = lspCompletionItems(raw).map((item) => item.label);
+    assert.ok(labels.includes("fn"), `completion labels should include fn: ${labels.join(", ")}`);
+    assert.ok(
+      labels.includes("std::host::stdio"),
+      `completion labels should include std::host::stdio: ${labels.join(", ")}`
+    );
+    assert.ok(
+      labels.includes("println"),
+      `completion labels should include println: ${labels.join(", ")}`
     );
   });
 });

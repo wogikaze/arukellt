@@ -152,13 +152,38 @@ Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 - Manifest-backed functions: 3
 - Stability: stable 3
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Small host-backed file helpers — a **partial bridge**, not a full filesystem API.
+
+`std::fs` tracks a narrow, stable-shaped subset of the same WASI filesystem
+intrinsics behind `std::host::fs` (`read_string` / `write_string` plus
+`is_readable_file` and `exists` read probes). Prefer `std::host::fs` for the
+full host rollout surface (`read_to_string`, `write_bytes`, `FsError` error
+type, experimental fd helpers, and future additions).  This namespace exists
+so call sites can depend on a compact API while `std::host::*` continues to
+evolve.
+
+There is no in-tree directory listing, metadata API, or streaming I/O yet; do
+not treat this as a complete POSIX-style facade. Broader
+`wasi:filesystem/types`-class coverage remains future work.
+
+Paths are plain `String` values using `/` as the separator (POSIX/WASI
+convention). For pure path manipulation helpers see `std::path`.
+
+**Probe notice**: `exists` / `is_readable_file` are **read probes** / readable-file
+checks: they succeed only when the same read operation as `read_string` succeeds.
+They are not general path-existence or metadata queries. Directories, missing
+paths, and unreadable paths may return `false`.
+
+**T1/T3 availability**: The three base operations (`read_string`, `write_string`,
+`is_readable_file`) are available on both T1 (WASI P1) and T3 (WASI P2) targets.
+Directory and metadata operations (`read_dir`, `metadata`, `is_dir`) are not yet
+supported on any target.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `read_string` | `(String) -> Result<String, String>` | `stable` | Small host-backed file helpers — a partial bridge, not a full filesystem API. |
+| `read_string` | `(String) -> Result<String, String>` | `stable` | Reads the entire contents of a file into a UTF-8 string. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, creating or truncating it. |
 | `exists` | `(String) -> bool` | `stable` | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
 

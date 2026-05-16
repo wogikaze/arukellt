@@ -21,6 +21,8 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+TMP_DIR = ROOT / "target" / "tmp" / "doc-examples"
+BOOTSTRAP_SELFHOST = ROOT / "bootstrap" / "arukellt-selfhost.wasm"
 
 BLOCK_PATTERN = re.compile(r"```ark\n(.*?)```", re.DOTALL)
 SKIP_COMMENT_PATTERN = re.compile(r"<!--\s*skip-doc-check\s*-->")
@@ -86,17 +88,24 @@ def check_block(
     arukellt: str, code: str, md_path: Path, block_idx: int, target: str
 ) -> tuple[bool, str]:
     """Run arukellt check on a code snippet. Returns (passed, error_output)."""
+    TMP_DIR.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(
-        suffix=".ark", mode="w", encoding="utf-8", delete=False
+        suffix=".ark", mode="w", encoding="utf-8", delete=False, dir=TMP_DIR
     ) as f:
         f.write(code)
         tmp_path = Path(f.name)
 
     try:
+        arg_path = str(tmp_path.relative_to(ROOT))
+        env = os.environ.copy()
+        if "ARUKELLT_SELFHOST_WASM" not in env and BOOTSTRAP_SELFHOST.exists():
+            env["ARUKELLT_SELFHOST_WASM"] = str(BOOTSTRAP_SELFHOST)
         result = subprocess.run(
-            [arukellt, "check", str(tmp_path), "--target", target],
+            [arukellt, "check", arg_path, "--target", target],
             capture_output=True,
             text=True,
+            cwd=ROOT,
+            env=env,
         )
         if result.returncode == 0:
             return True, ""

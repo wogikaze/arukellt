@@ -43,13 +43,16 @@ let value = expect_ok_i32(result)  // 42
 - Manifest-backed functions: 17
 - Stability: experimental 1, stable 16
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Testing utilities for fixture and example code.
+
+The current module provides typed assertions and expectation helpers for
+`Result` and `Option`.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `assert_true` | `(bool) -> ()` | `stable` | Testing utilities for fixture and example code. |
+| `assert_true` | `(bool) -> ()` | `stable` | - |
 | `assert_false` | `(bool) -> ()` | `stable` | - |
 | `assert_eq_i32` | `(i32, i32) -> ()` | `stable` | - |
 | `assert_eq_i64` | `(i64, i64) -> ()` | `stable` | - |

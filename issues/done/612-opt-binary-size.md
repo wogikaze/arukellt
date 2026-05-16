@@ -9,8 +9,10 @@ Depends on: 609, 611
 Parent: None
 Close when: T3 binary is ≥100 B smaller than Phase 0 baseline, `wasm-size-reduction.md`
 Resolved: 2026-05-16
+---
 
-Implementation summary:
+## Implementation summary
+
 - Dead type elimination: Added type signature deduplication in `src/compiler/emitter.ark`.
   WASI types and user function signatures are canonicalized and deduplicated via
   type signature strings, with type indices remapped in import/function sections.
@@ -23,7 +25,7 @@ Implementation summary:
 - Applied #611 T3 dead-function elimination driver integration (T3 component/wit
   reachability roots).
 - Size regression fixtures: existing hello.ark size gate covers both T1 and T3.
----
+
 # Optimization Uplift: Binary Size Squeeze
 
 ---

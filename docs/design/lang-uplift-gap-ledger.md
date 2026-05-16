@@ -17,6 +17,7 @@ Recorded from `docs/language/spec.md`, `docs/language/syntax.md`, `docs/language
 
 **Spec** (`docs/language/spec.md` §6.1) describes only the single-body block form:
 
+<!-- skip-doc-check --> <!-- illustrative grammar shape, not a complete standalone program -->
 ```ark
 fn name(param1: T1, param2: T2) -> RetType {
     body
@@ -81,6 +82,7 @@ the stub accepts `trait Foo where { }` and `fn bar<T>() where _ { }`.
 
 **Spec** (`docs/language/spec.md` §4.5): Three forms of statement-style `for`:
 
+<!-- skip-doc-check --> <!-- illustrative loop grammar with placeholder expressions -->
 ```ark
 for i in start..end {     // range: [start, end)
     body
@@ -99,6 +101,7 @@ a statement form.
 **Parser reality**: The selfhost parser DOES have expression-level comprehension support
 (`parse_primary`, line 1204):
 
+<!-- skip-doc-check --> <!-- syntax forms only, not standalone checked examples -->
 ```ark
 [expr for x in iter]           // map-only
 [expr for x in iter if cond]   // map + filter
@@ -114,6 +117,7 @@ The comprehension feature exists in selfhost but is not documented in the spec.
 
 **Spec** (`docs/language/spec.md` §5.8): Match Guards are listed as a pattern form:
 
+<!-- skip-doc-check --> <!-- match-arm fragment, not standalone source -->
 ```ark
 x if x > 0 => ...
 ```

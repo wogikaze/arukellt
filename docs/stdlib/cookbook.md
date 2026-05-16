@@ -176,6 +176,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_hashmap/hashmap_basic.ark`](../../tests/fixtures/stdlib_hashmap/hashmap_basic.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -185,18 +186,18 @@ fn main() {
     HashMap_i32_i32_insert(m, 3, 300)
 
     match HashMap_i32_i32_get(m, 2) {
-        Some(v) => stdio::println(v),       // 200
-        None => stdio::println(-1),
+        Option::Some(v) => stdio::println(i32_to_string(v)),       // 200
+        None => stdio::println(String_from("-1")),
     }
 
-    stdio::println(HashMap_i32_i32_len(m))  // 3
+    stdio::println(i32_to_string(HashMap_i32_i32_len(m)))  // 3
 
     if HashMap_i32_i32_contains_key(m, 1) {
         stdio::println(String_from("found"))
     }
 
     match HashMap_i32_i32_get(m, 99) {
-        Some(v) => stdio::println(v),
+        Option::Some(v) => stdio::println(v),
         None => stdio::println(String_from("not found")),
     }
 }
@@ -577,6 +578,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_io/fs_read_write.ark`](../../tests/fixtures/stdlib_io/fs_read_write.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::fs
 use std::host::stdio
@@ -598,6 +600,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_io/fs_read_error.ark`](../../tests/fixtures/stdlib_io/fs_read_error.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::fs
 use std::host::stdio

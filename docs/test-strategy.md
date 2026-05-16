@@ -13,7 +13,7 @@ their responsibilities, and how they map to the CI pipeline.
 | **component-interop** | Component Model emit + host interop | push-only informational | `component-interop` job: `bash scripts/manager.py --component` |
 | **package-workspace** | `ark.toml`, workspace resolution, manifest, script execution | merge-blocking | `verification-package-workspace` job: `bash scripts/run/test-package-workspace.sh` |
 | **bootstrap** | Selfhost Stage 0→1→2 bootstrap and parity evidence | mixed: Stage 0/1 merge-blocking, Stage 2/parity informational | `selfhost-bootstrap` job |
-| **editor-tooling** | VS Code extension activation and LSP protocol behavior | merge-blocking | `extension-tests` and `lsp-e2e` jobs |
+| **editor-tooling** | VS Code extension activation and LSP protocol behavior | merge-blocking | `extension-tests` job |
 | **determinism** | Same input → same output | merge-blocking | `determinism` job |
 | **perf** | Compile/run time regression | push-only informational | `perf-baseline` job |
 | **diagnostics-snapshot** | Error message stability | merge-blocking when exercised by fixture diagnostics; no dedicated CI job | `fixture-primary` / `fixture-supported` for manifest-driven diagnostics |
@@ -77,8 +77,7 @@ today.
 | **Component interop** (`component-interop`) | push-only | component-interop | Optional component smoke coverage. |
 | **Perf baseline snapshot** (`perf-baseline`) | push-only | perf | Collects baseline JSON artifacts. |
 | **Selfhost bootstrap (full)** (`selfhost-bootstrap`) | merge-blocking with informational sub-results | bootstrap | Stage 0 and Stage 1 must pass; Stage 2 fixpoint and parity evidence are collected without failing the job. |
-| **VS Code extension tests** (`extension-tests`) | merge-blocking | editor-tooling | Extension activation and feature workflow coverage. |
-| **LSP E2E tests** (`lsp-e2e`) | merge-blocking | editor-tooling | Protocol-level LSP regression lane. |
+| **VS Code extension tests** (`extension-tests`) | merge-blocking | editor-tooling | Extension activation, feature workflow, and protocol-level LSP coverage. |
 | **Target contract drift check** (`target-contract-drift-check`) | merge-blocking | target-contract | Fails when `docs/target-contract.md` drifts from CI-described target truth. |
 | **Final Gate** (`verify`) | merge-blocking aggregator | required merge gates | Summary gate over the required blocking layers. |
 | **CI category summary** (`ci-category-summary`) | reporting only | all named verification categories | Always runs and writes the category state table to the GitHub job summary and `ci-category-summary-<run_id>` artifact. |
@@ -115,7 +114,7 @@ When adding a feature:
 | component-interop | 6 component-compile + 1 jco smoke | partial |
 | package-workspace | dedicated `verification-package-workspace` job for manifest discovery and script execution | active |
 | bootstrap | `selfhost-bootstrap` enforces Stage 0/1 and records Stage 2/parity evidence | partial |
-| editor-tooling | 25 automated tests across `extension-tests` and `lsp-e2e` | active |
+| editor-tooling | automated VS Code extension and selfhost LSP tests in `extension-tests` | active |
 | determinism | dedicated `determinism` CI job | active |
 | perf | 5 benchmark fixtures | active |
 | diagnostics-snapshot | MIR + diagnostics snapshots | partial |

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T13:19:12Z",
+  "generated_at": "2026-05-16T22:20:16Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -335,94 +335,6 @@
       }
     },
     {
-      "id": "549",
-      "path": "549-release-extension-activation-tests.md",
-      "title": "Release: Extension Activation Tests",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "553",
-      "path": "553-release-binary-distribution.md",
-      "title": "Release: Binary Distribution",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "554",
-      "path": "554-release-extension-live-editor-tests.md",
-      "title": "Release: Extension Live Editor Tests",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "555",
-      "path": "555-release-pre-release-ci-checks.md",
-      "title": "Release: Pre-Release CI Checks",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 7,
-        "unchecked": 17
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "574",
       "path": "574-phase7-delete-ark-lexer.md",
       "title": "574 — Phase 7: Delete `crates/ark-lexer`",
@@ -463,8 +375,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 8
+        "checked": 6,
+        "unchecked": 2
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -476,7 +388,7 @@
       "path": "590-stdlib-core-platform-baseline-plan.md",
       "title": "Stdlib Core Platform Baseline Plan (Operational Guide)",
       "track": "main",
-      "status": "open",
+      "status": "Implementation Guide — ready for execution with verification checkpoints",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
@@ -517,31 +429,6 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "612",
-      "path": "612-opt-binary-size.md",
-      "title": "Optimization Uplift: Binary Size Squeeze",
-      "track": "compiler / runtime-perf",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "609",
-        "611"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": null
       }
     },
@@ -1039,6 +926,30 @@
       "depends_on": [
         "30"
       ]
+    },
+    {
+      "id": "549",
+      "path": "549-release-extension-activation-tests.md",
+      "title": "Release: Extension Activation Tests",
+      "track": "release",
+      "blocked_by": "native Linux CI evidence or a local Xvfb environment where /tmp/.X11-unix is root:root with mode 1777",
+      "depends_on": []
+    },
+    {
+      "id": "553",
+      "path": "553-release-binary-distribution.md",
+      "title": "Release: Binary Distribution",
+      "track": "release",
+      "blocked_by": "release tag creation and passing tag workflow",
+      "depends_on": []
+    },
+    {
+      "id": "554",
+      "path": "554-release-extension-live-editor-tests.md",
+      "title": "Release: Extension Live Editor Tests",
+      "track": "release",
+      "blocked_by": "manual live VS Code verification with the packaged VSIX",
+      "depends_on": []
     }
   ]
 }

@@ -1,29 +1,29 @@
-/// std::io — I/O abstraction layer.
-/// 
-/// Provides Reader, Writer, and buffered I/O over in-memory byte buffers,
-/// plus standard I/O (stdin/stdout/stderr) backed by host intrinsics.
-/// 
-/// # STOP_IF notes
-/// 
-/// - Bytes type = Vec<i32> (byte values masked to 0–255).
-/// - WASI stdin reading intrinsic is not available in the current runtime.
-/// `stdin()` returns an empty Reader. `read_stdin_line()` returns `Ok("")`.
-/// - stdout/stderr Writers emit synchronously via print intrinsics (no
-/// kernel-level fd buffering). `writer_flush` is therefore a no-op.
-/// 
-/// # Type aliases (runtime representation)
-/// 
-/// - `Reader`    = `Vec<i32>`: `[cursor, b0, b1, ..., bn]`
-/// - `Writer`    = `Vec<i32>`: `[fd_tag, b0, b1, ..., bn]`
-/// - fd_tag: `0`=memory, `1`=stdout, `2`=stderr
-/// - `BufReader` = `Vec<i32>`: `[cursor, buf_cap, b0, b1, ..., bn]`
-/// - `BufWriter` = `Vec<i32>`: `[fd_tag, buf_cap, b0, b1, ..., bn]`
-/// 
-/// # Error types
-/// 
-/// `IoError` provides a typed error for I/O operations. Currently only
-/// `UnexpectedEof` is produced at runtime (by `reader_read_exact`);
-/// the other functions are typed with `IoError` for API consistency.
+//! std::io — I/O abstraction layer.
+//!
+//! Provides Reader, Writer, and buffered I/O over in-memory byte buffers,
+//! plus standard I/O (stdin/stdout/stderr) backed by host intrinsics.
+//!
+//! # STOP_IF notes
+//!
+//! - Bytes type = Vec<i32> (byte values masked to 0–255).
+//! - WASI stdin reading intrinsic is not available in the current runtime.
+//! `stdin()` returns an empty Reader. `read_stdin_line()` returns `Ok("")`.
+//! - stdout/stderr Writers emit synchronously via print intrinsics (no
+//! kernel-level fd buffering). `writer_flush` is therefore a no-op.
+//!
+//! # Type aliases (runtime representation)
+//!
+//! - `Reader`    = `Vec<i32>`: `[cursor, b0, b1, ..., bn]`
+//! - `Writer`    = `Vec<i32>`: `[fd_tag, b0, b1, ..., bn]`
+//! - fd_tag: `0`=memory, `1`=stdout, `2`=stderr
+//! - `BufReader` = `Vec<i32>`: `[cursor, buf_cap, b0, b1, ..., bn]`
+//! - `BufWriter` = `Vec<i32>`: `[fd_tag, buf_cap, b0, b1, ..., bn]`
+//!
+//! # Error types
+//!
+//! `IoError` provides a typed error for I/O operations. Currently only
+//! `UnexpectedEof` is produced at runtime (by `reader_read_exact`);
+//! the other functions are typed with `IoError` for API consistency.
 
 // ─── Error type ───────────────────────────────────────────────────────────────
 /// Typed error for I/O operations.

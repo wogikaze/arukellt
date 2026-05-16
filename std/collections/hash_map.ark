@@ -1,8 +1,8 @@
-/// std::collections::hash_map — HashMap API wrappers
-///
-/// Provides user-facing wrappers around the monomorphic HashMap intrinsics.
-/// For HashMap<i32,i32>:  use HashMap_i32_i32_new / HashMap_i32_i32_insert etc.
-/// For HashMap<String,i32>: use the functions below.
+//! std::collections::hash_map — HashMap API wrappers
+//!
+//! Provides user-facing wrappers around the monomorphic HashMap intrinsics.
+//! For HashMap<i32,i32>:  use HashMap_i32_i32_new / HashMap_i32_i32_insert etc.
+//! For HashMap<String,i32>: use the functions below.
 
 use std::collections::hash
 

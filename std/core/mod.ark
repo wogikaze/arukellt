@@ -1,7 +1,7 @@
-/// Fundamental types and helpers shared across the standard library.
-/// 
-/// This module exposes foundational types (`Ordering`, `Range`) and helpers
-/// that other stdlib modules build upon.
+//! Fundamental types and helpers shared across the standard library.
+//!
+//! This module exposes foundational types (`Ordering`, `Range`) and helpers
+//! that other stdlib modules build upon.
 /// Ordering relationship between two values.
 pub enum Ordering {
     Less,

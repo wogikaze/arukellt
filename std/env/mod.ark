@@ -1,8 +1,8 @@
-/// std::env — runtime environment access.
-/// 
-/// Exposes process arguments and environment variables.
-/// On WASI the backing intrinsics use `args_get` / `environ_get`.
-/// On non-WASI targets `var` / `vars` return `None` / empty results.
+//! std::env — runtime environment access.
+//!
+//! Exposes process arguments and environment variables.
+//! On WASI the backing intrinsics use `args_get` / `environ_get`.
+//! On non-WASI targets `var` / `vars` return `None` / empty results.
 /// Returns the argument vector for the current process (excluding argv[0]).
 pub fn args() -> Vec<String> {
     __intrinsic_args()

@@ -1,7 +1,7 @@
-/// Experimental component-model helpers.
-/// 
-/// The current module only exposes version constants while the rest of the
-/// component surface is still being designed.
+//! Experimental component-model helpers.
+//!
+//! The current module only exposes version constants while the rest of the
+//! component surface is still being designed.
 pub fn canonical_abi_version() -> i32 {
     1
 }

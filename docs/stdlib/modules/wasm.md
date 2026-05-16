@@ -40,13 +40,19 @@ let i32_type = valtype_i32()       // 0x7f
 - Manifest-backed functions: 61
 - Stability: experimental 61
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Experimental WebAssembly helpers.
+
+Exposes magic bytes, version bytes, section IDs, value-type constants,
+opcode constants, FuncType/Limits constructors, a minimal WasmModuleBuilder,
+and LEB128 encoding utilities.
+
+All APIs are Experimental and may change in v4+.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `wasm_magic` | `() -> Vec<i32>` | `experimental` | Experimental WebAssembly helpers. |
+| `wasm_magic` | `() -> Vec<i32>` | `experimental` | - |
 | `wasm_version` | `() -> Vec<i32>` | `experimental` | - |
 | `section_type` | `() -> i32` | `experimental` | - |
 | `section_import` | `() -> i32` | `experimental` | - |

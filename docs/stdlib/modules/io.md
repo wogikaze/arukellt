@@ -51,13 +51,18 @@ match content {
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Host standard I/O helpers backed by the current print intrinsics.
+
+These APIs are explicitly host-bound. They are not part of the pure
+standard-library surface and must be imported from `std::host::stdio`.
+
+**Availability:** All targets (T1 + T3). Requires WASI stdout/stderr capability.
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `print` | `(String) -> ()` | `stable` | ✅ impl | Host standard I/O helpers backed by the current print intrinsics. |
+| `print` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stdout without appending a newline. |
 | `println` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stdout and appends a newline. |
 | `eprintln` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stderr. |
 
@@ -210,13 +215,38 @@ Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 - Manifest-backed functions: 3
 - Stability: stable 3
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Small host-backed file helpers — a **partial bridge**, not a full filesystem API.
+
+`std::fs` tracks a narrow, stable-shaped subset of the same WASI filesystem
+intrinsics behind `std::host::fs` (`read_string` / `write_string` plus
+`is_readable_file` and `exists` read probes). Prefer `std::host::fs` for the
+full host rollout surface (`read_to_string`, `write_bytes`, `FsError` error
+type, experimental fd helpers, and future additions).  This namespace exists
+so call sites can depend on a compact API while `std::host::*` continues to
+evolve.
+
+There is no in-tree directory listing, metadata API, or streaming I/O yet; do
+not treat this as a complete POSIX-style facade. Broader
+`wasi:filesystem/types`-class coverage remains future work.
+
+Paths are plain `String` values using `/` as the separator (POSIX/WASI
+convention). For pure path manipulation helpers see `std::path`.
+
+**Probe notice**: `exists` / `is_readable_file` are **read probes** / readable-file
+checks: they succeed only when the same read operation as `read_string` succeeds.
+They are not general path-existence or metadata queries. Directories, missing
+paths, and unreadable paths may return `false`.
+
+**T1/T3 availability**: The three base operations (`read_string`, `write_string`,
+`is_readable_file`) are available on both T1 (WASI P1) and T3 (WASI P2) targets.
+Directory and metadata operations (`read_dir`, `metadata`, `is_dir`) are not yet
+supported on any target.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `read_string` | `(String) -> Result<String, String>` | `stable` | Small host-backed file helpers — a partial bridge, not a full filesystem API. |
+| `read_string` | `(String) -> Result<String, String>` | `stable` | Reads the entire contents of a file into a UTF-8 string. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, creating or truncating it. |
 | `exists` | `(String) -> bool` | `stable` | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
 
@@ -248,7 +278,16 @@ Read probe / readable-file check: true when a full read succeeds (same intrinsic
 - Manifest-backed functions: 9
 - Stability: stable 9
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Pure string-based path manipulation helpers.
+
+Paths are represented as `String` values and always use `/` as the
+separator to match POSIX and WASI conventions.
+
+Provides `join`, `normalize`, `parent`, `stem`, `extension`,
+`with_extension`, `file_name`, `is_absolute`, and `components`
+operations that work on plain strings without host I/O.
+
+**Availability:** All targets (T1 + T3). No host capability required.
 
 ### Public API
 
@@ -284,13 +323,18 @@ Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> 
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Host process-control helpers.
+
+Provides process lifecycle operations: graceful exit and immediate abort.
+These APIs are host-bound and require WASI process capability.
+
+**Availability:** All targets (T1 + T3). Requires WASI runtime.
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `exit` | `(i32) -> ()` | `stable` | ✅ impl | Host process-control helpers. |
+| `exit` | `(i32) -> ()` | `stable` | ✅ impl | Requests process termination with the given exit code. |
 | `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately with exit code 134 (SIGABRT convention). |
 
 #### `exit`
@@ -309,13 +353,19 @@ Abort the process immediately with an abnormal-termination signal (non-zero exit
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Host environment helpers.
+
+Provides CLI argument access and environment variable lookup backed by
+WASI intrinsics (args_sizes_get / args_get, environ_sizes_get / environ_get).
+
+**Availability:** All targets (T1 + T3). Environment variable access
+(`var`) requires WASI Preview 2 component model (not available on P1).
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `args` | `() -> Vec<String>` | `stable` | ✅ impl | Host environment helpers. |
+| `args` | `() -> Vec<String>` | `stable` | ✅ impl | Returns the process argument vector (excluding argv[0]). |
 | `arg_count` | `() -> i32` | `stable` | ✅ impl | Returns the number of process arguments (excluding argv[0]). |
 | `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ impl | Returns the argument at the given index when in range. |
 | `var` | `(String) -> Option<String>` | `stable` | ✅ impl | Looks up an environment variable by name. |
@@ -360,13 +410,18 @@ Return true if the given flag (e.g. "--verbose") was passed as a command-line ar
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Host clock helpers.
+
+Provides monotonic and wall-clock time reads backed by WASI clock intrinsics.
+Clock reads are host-bound. Pure duration math lives in `std::time`.
+
+**Availability:** All targets (T1 + T3). Requires `--allow-clock` capability.
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `monotonic_now` | `() -> i64` | `stable` | ✅ impl | Host clock helpers. |
+| `monotonic_now` | `() -> i64` | `stable` | ✅ impl | Returns a monotonic timestamp in nanoseconds. |
 | `now_ms` | `() -> i64` | `stable` | ✅ impl | Returns the current wall-clock time in milliseconds since the Unix epoch. |
 
 #### `monotonic_now`
@@ -389,13 +444,18 @@ Return the current wall-clock time in milliseconds since the Unix epoch.
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Host random helpers backed by the current entropy intrinsic.
+
+Provides cryptographically-secure random values from the host entropy source.
+Deterministic seeded utilities live in `std::random`.
+
+**Availability:** All targets (T1 + T3). Requires `--allow-random` capability.
 
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `random_i32` | `() -> i32` | `stable` | ✅ impl | Host random helpers backed by the current entropy intrinsic. |
+| `random_i32` | `() -> i32` | `stable` | ✅ impl | Returns a host-provided random i32. |
 | `random_i32_range` | `(i32, i32) -> i32` | `stable` | ✅ impl | Returns a host-provided random value in [lo, hi). |
 | `random_bool` | `() -> bool` | `stable` | ✅ impl | Returns a host-provided random boolean. |
 | `next_f64` | `() -> f64` | `stable` | ✅ impl | Returns a host-provided random f64 in the range [0.0, 1.0). |

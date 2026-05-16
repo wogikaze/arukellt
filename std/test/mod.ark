@@ -1,7 +1,7 @@
-/// Testing utilities for fixture and example code.
-/// 
-/// The current module provides typed assertions and expectation helpers for
-/// `Result` and `Option`.
+//! Testing utilities for fixture and example code.
+//!
+//! The current module provides typed assertions and expectation helpers for
+//! `Result` and `Option`.
 // === Typed assertions ===
 pub fn assert_true(cond: bool) {
     if !cond {

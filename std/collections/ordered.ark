@@ -1,6 +1,13 @@
-/// Ordered collection helpers backed by sorted vectors.
-/// 
-/// The current surface provides a sorted map and bitset-style utilities.
+//! Ordered collection helpers backed by sorted vectors.
+//!
+//! Provides `SortedMap` (sorted-vector map, i32 key/value), `BTreeMap`/
+//! `BTreeSet` (sorted-vector backed), `IndexMap`/`IndexSet` (insertion-order),
+//! and `BitSet` (compact bit-flag array).
+//!
+//! **Stability:** `sorted_map_*` and `bitset_new/mark/unmark/test` are stable;
+//! all other APIs in this module are **experimental**.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
 pub fn sorted_map_new() -> Vec<i32> {
     let m: Vec<i32> = Vec_new_i32()
     push(m, 0)

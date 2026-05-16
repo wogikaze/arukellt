@@ -10,6 +10,12 @@ VSIX or Marketplace release.
 - The repository root contains a runnable `arukellt` binary for extension tests.
 - For headless activation tests, no other VS Code instance may hold the
   `.vscode-test` instance lock.
+- On WSL, set `DONT_PROMPT_WSL_INSTALL=1` to suppress VS Code's WSL install
+  prompt, and ensure `/tmp/.X11-unix` is owned by `root:root` with mode `1777`
+  before relying on the exact `xvfb-run` gate. Native Linux CI is preferred for
+  release evidence.
+- The repository CI `extension-tests` job runs the same npm install, metadata,
+  build, and `xvfb-run` activation sequence on native Ubuntu.
 
 ## Verification
 

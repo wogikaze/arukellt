@@ -1,9 +1,15 @@
-use std::text
+//! Pure string-based path manipulation helpers.
+//!
+//! Paths are represented as `String` values and always use `/` as the
+//! separator to match POSIX and WASI conventions.
+//!
+//! Provides `join`, `normalize`, `parent`, `stem`, `extension`,
+//! `with_extension`, `file_name`, `is_absolute`, and `components`
+//! operations that work on plain strings without host I/O.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
 
-/// Pure string-based path manipulation helpers.
-/// 
-/// Paths are represented as `String` values and always use `/` as the
-/// separator to match POSIX and WASI conventions.
+use std::text
 
 /// Joins two path segments with a single `/` separator.
 pub fn join(base: String, child: String) -> String {

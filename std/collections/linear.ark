@@ -1,7 +1,11 @@
-/// Linear collection helpers such as deque and priority queue.
-/// 
-/// The current implementations are monomorphic `i32` containers backed by
-/// vectors.
+//! Linear collection helpers: deque and priority queue.
+//!
+//! Provides a ring-buffer `Deque` (double-ended queue with `push_back`,
+//! `push_front`, `pop_back`, `pop_front`) and a min-heap `PriorityQueue`.
+//! All current implementations are monomorphic `i32` containers backed by
+//! `Vec<i32>`.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
 // --- Deque (ring buffer) ---
 pub fn deque_new() -> Vec<i32> {
     let cap: i32 = 16

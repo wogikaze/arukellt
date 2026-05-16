@@ -1,7 +1,13 @@
-/// Experimental compiler-oriented collections.
-/// 
-/// Provides Arena, SlotMap, and Interner suitable for compiler/IDE toolchain
-/// use. All APIs are Experimental and may change in v4+.
+//! Experimental compiler-oriented collections.
+//!
+//! Provides Arena (bump allocator), SlotMap (deletion-safe handle map), and
+//! Interner (value-to-symbol bidirectional map) suitable for compiler/IDE
+//! toolchain use.
+//!
+//! **Stability:** All APIs in this module are **experimental** and may change
+//! in v4+.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
 // --- Arena (bump allocator) ---
 //
 // Layout of backing Vec<i32>: [count, value_0, value_1, ...]

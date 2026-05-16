@@ -14,7 +14,7 @@ docs/release-checklist.md — Pre-release section
 
 ## Acceptance
 
-- [x] `cargo test -p ark-lsp --test lsp_e2e -- --test-threads=1` passes
+- [x] Extension E2E tests exercise the active selfhost `arukellt lsp` server.
 - [x] LSP protocol compliance verified (initialize, shutdown, completion, hover, definition)
 
 ## Verification Evidence
@@ -87,11 +87,36 @@ Updated verdict remains close-candidate `no` until the active selfhost wasm can
 be rebuilt from source and an LSP E2E/golden test covers initialize, shutdown,
 completion, hover, and definition together.
 
+## Recheck — 2026-05-17
+
+The release gate now targets the current selfhost LSP and VS Code extension
+test harness, not the retired Rust `crates/ark-lsp` crate.
+
+Current coverage:
+
+- `src/compiler/lsp.ark` advertises `completionProvider` during `initialize`.
+- `src/compiler/lsp.ark` routes and handles `textDocument/completion`.
+- `extensions/arukellt-all-in-one/src/test/extension.test.js` directly drives
+  `arukellt lsp` over stdio for initialize, completion, hover, and definition.
+- Extension restart/shutdown coverage exercises language-client shutdown and
+  restart behavior.
+
+Verification:
+
+- `env DONT_PROMPT_WSL_INSTALL=1 npm test` in
+  `extensions/arukellt-all-in-one/`: PASS (`vscode-test` exit code 0).
+- `python3 scripts/manager.py verify quick`: PASS (23/23), including the
+  selfhost LSP lifecycle gate (#569).
+
+Updated verdict: close-candidate `yes`. The release checklist item for LSP
+protocol compliance is covered by the active extension E2E suite and the
+selfhost LSP lifecycle gate.
+
 ## Required Verification
 
-- Run LSP E2E test suite
-- Verify all protocol operations work correctly
-- Ensure single-threaded execution (--test-threads=1)
+- Run the VS Code extension E2E test suite.
+- Verify initialize, shutdown/restart, completion, hover, and definition against
+  the active selfhost LSP surface.
 
 ## Close Gate
 
@@ -99,9 +124,9 @@ All LSP E2E tests must pass with protocol compliance verified.
 
 ## Primary Paths
 
-- `crates/ark-lsp/` (LSP implementation)
-- LSP test fixtures
-- Extension E2E test suite
+- `src/compiler/lsp.ark` (selfhost LSP implementation)
+- `extensions/arukellt-all-in-one/src/test/extension.test.js`
+- Extension E2E fixtures
 
 ## Non-Goals
 

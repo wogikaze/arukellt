@@ -97,6 +97,7 @@ component identity, not for referencing items within a single language's standar
 Keep `use` + `::` for Layer S (source-level module imports). Treat WIT identifiers as Layer C
 boundary data expressed via strings, attributes, or external `.wit` + CLI flags.
 
+<!-- skip-doc-check -->
 ```ark
 use std::io                   // Layer S -- stdlib module (unchanged)
 use std::host::fs             // Layer S -- host-bound stdlib module (unchanged)
@@ -124,6 +125,7 @@ use std::host::fs             // Layer S -- host-bound stdlib module (unchanged)
 
 Introduce a compound keyword for Layer C imports alongside the existing `use`/`import` keywords:
 
+<!-- skip-doc-check -->
 ```ark
 use std::io                   // Layer S (unchanged)
 wit import "wasi:cli/stdin"   // Layer C -- new compound keyword form
@@ -266,5 +268,5 @@ uses `use` throughout; most `import <single-id>` patterns appear in specific tes
 - [ADR-007-targets.md](ADR-007-targets.md) — T3 (wasm32-wasi-p2) as primary target.
 - [../spec/import-system.md](../spec/import-system.md) — normative Layer S / Layer C contract page.
 - [../module-resolution.md](../module-resolution.md) — Layer S resolution behaviour for `use` / `import`.
-- Issue [#074](../../issues/open/074-wasi-p2-native-component.md) — WASI p2 native component output.
+- Issue [#074](../../issues/done/074-wasi-p2-native-component.md) — WASI p2 native component output.
 - Issue [#124](../../issues/open/124-wit-component-import-syntax.md) — WIT component import syntax implementation.

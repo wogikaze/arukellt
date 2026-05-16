@@ -1,7 +1,7 @@
-/// std::collections::hash_set — HashSet API
-///
-/// Re-exports the HashSet operations from std::collections::hash.
-/// HashSet<i32> is backed by the monomorphic hash::hashset_* functions.
+//! std::collections::hash_set — HashSet API
+//!
+//! Re-exports the HashSet operations from std::collections::hash.
+//! HashSet<i32> is backed by the monomorphic hash::hashset_* functions.
 
 use std::collections::hash
 

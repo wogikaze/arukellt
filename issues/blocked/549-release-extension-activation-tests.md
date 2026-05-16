@@ -1,6 +1,16 @@
+---
+Status: blocked
+Updated: 2026-05-17
+ID: 549
+Track: release
+Type: Verification
+Depends on: none
+Blocked by: "native Linux CI evidence or a local Xvfb environment where /tmp/.X11-unix is root:root with mode 1777"
+---
+
 # Release: Extension Activation Tests
 
-> **Status:** open
+> **Status:** blocked
 > **Track:** release
 > **Type:** Verification
 
@@ -16,7 +26,7 @@ docs/release-checklist.md — Extension distribution section
 
 - [x] `cd extensions/arukellt-all-in-one && npm ci && npm run build` succeeds
 - [x] VSIX package generated (`.vsix` file exists)
-- [ ] Extension activation tests pass (`xvfb-run -a npm test`) — BLOCKED by WSL environment
+- [ ] Extension activation tests pass (`xvfb-run -a npm test`) — BLOCKED by local Xvfb socket directory ownership
 
 ## Verification Evidence
 
@@ -43,7 +53,9 @@ docs/release-checklist.md — Extension distribution section
 ## Close Candidate
 
 - `no`
-- Blocker: the exact `xvfb-run -a npm test` release gate cannot complete in this checkout because Xvfb cannot start with the current `/tmp/.X11-unix` ownership.
+- Blocker: the exact `xvfb-run -a npm test` release gate cannot complete in this
+  checkout because local Xvfb cannot start with the current `/tmp/.X11-unix`
+  owner/mode. The WSL prompt can be suppressed with `DONT_PROMPT_WSL_INSTALL=1`.
 
 ## Recheck — 2026-05-14
 
@@ -107,6 +119,49 @@ Extension build, VSIX generation, and activation tests must all pass.
 - Consider splitting AC 3 into a CI-only gate and marking this issue as **blocked-by-environment** rather than open/failing.
 - The 9 `npm test` assertion failures seen on 2026-05-16 should be investigated on a clean VS Code instance (not WSL). The failures affect Debug Launch (#255), Go to Definition range (#450/#453), Hover content (#451/#453), and Diagnostics (#452/#453) assertions — all of which use direct LSP pipe sessions or VS Code API calls that may behave differently under WSL interference.
 - After a clean CI run confirms `xvfb-run -a npm test` passes, this issue can be closed and the release checklist checkbox migrated to the existing CI pipeline.
+
+## Recheck — 2026-05-17
+
+- `npm ci` in `extensions/arukellt-all-in-one/`: PASS (392 packages installed).
+- `npm run build` in `extensions/arukellt-all-in-one/`: PASS.
+  - `vsce package` completed.
+  - VSIX written to `extensions/arukellt-all-in-one/arukellt-all-in-one-0.0.1.vsix`
+    (327 files, 485.26 KB).
+- `npm run test:marketplace-metadata`: PASS (`marketplace metadata OK`).
+- Downloaded VS Code script check:
+  - `.vscode-test/vscode-linux-x64-1.120.0/bin/code` suppresses the WSL prompt
+    when `DONT_PROMPT_WSL_INSTALL` is set.
+- `env DONT_PROMPT_WSL_INSTALL=1 npm test`: PASS (`Exit code: 0`).
+- `xvfb-run -e /dev/stdout -a true`: FAIL.
+  - Xvfb reports `/tmp/.X11-unix` owner must be `root` and mode must be `1777`.
+  - Current `/tmp/.X11-unix` is `nobody:nogroup` with mode `777`.
+- `env DONT_PROMPT_WSL_INSTALL=1 xvfb-run -a npm test`: FAIL for the exact
+  release gate.
+  - The VS Code test runner reports `Exit code: 0`.
+  - `xvfb-run` exits 1 because Xvfb cannot establish its listening sockets in
+    this `/tmp/.X11-unix` state.
+- `.github/workflows/ci.yml` extension-tests job now mirrors the release
+  checklist in native Ubuntu CI:
+  - install wasmtime for the selfhost wrapper used as `target/debug/arukellt`
+  - `npm ci`
+  - `npm run test:marketplace-metadata`
+  - `npm run build`
+  - `DONT_PROMPT_WSL_INSTALL=1 xvfb-run -a npm test`
+
+Updated verdict: close-candidate `no`. Build, VSIX generation, marketplace
+metadata, and non-Xvfb `npm test` are green with the WSL prompt suppressed, but
+the exact release gate remains blocked by local Xvfb socket directory ownership.
+The next useful evidence must come from that native Linux CI job, or from a local
+environment where `/tmp/.X11-unix` is `root:root` with mode `1777`.
+
+## Queue Move — 2026-05-17
+
+Moved from `issues/open/` to `issues/blocked/`. Repo-side release prep for this
+gate is complete: CI now installs wasmtime for the selfhost wrapper, then runs
+`npm ci`, marketplace metadata validation, build, and
+`DONT_PROMPT_WSL_INSTALL=1 xvfb-run -a npm test` on native Ubuntu. The only
+remaining acceptance item requires native CI evidence or a local Xvfb socket
+directory owned by `root:root` with mode `1777`.
 
 ## Primary Paths
 

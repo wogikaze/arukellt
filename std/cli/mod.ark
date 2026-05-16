@@ -1,9 +1,9 @@
-/// std::cli — command-line argument helpers.
-/// 
-/// All functions that take an explicit `args` parameter accept any
-/// `Vec<String>` (typically produced by `env::args()` or `parse_args()`).
-/// Functions without an explicit `args` parameter read from the process
-/// argument vector directly.
+//! std::cli — command-line argument helpers.
+//!
+//! All functions that take an explicit `args` parameter accept any
+//! `Vec<String>` (typically produced by `env::args()` or `parse_args()`).
+//! Functions without an explicit `args` parameter read from the process
+//! argument vector directly.
 /// Returns the full process argument vector (excluding argv[0]).
 pub fn parse_args() -> Vec<String> {
     __intrinsic_args()

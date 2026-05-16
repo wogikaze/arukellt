@@ -102,7 +102,7 @@ The strategy is intentionally staged:
 - Stage 2: document the migration path and keep the compatibility fallback available
 - Stage 3: remove the fallback after the real CoreHIR lowerer exists and fixture parity is proven
 
-Removal is not date-driven alone. It is blocked by [../../issues/open/508-legacy-path-removal-unblocked-by.md](../../issues/open/508-legacy-path-removal-unblocked-by.md), because `lower_hir_to_mir` still returns empty MIR.
+Removal is not date-driven alone. It was blocked by [../../issues/done/508-legacy-path-removal-unblocked-by.md](../../issues/done/508-legacy-path-removal-unblocked-by.md), because `lower_hir_to_mir` still returned empty MIR.
 
 ## Recommended Migration Order
 
@@ -117,4 +117,4 @@ Removal is not date-driven alone. It is blocked by [../../issues/open/508-legacy
 - [pipeline.md](pipeline.md)
 - [ir-spec.md](ir-spec.md)
 - [../../issues/done/285-legacy-path-deprecation.md](../../issues/done/285-legacy-path-deprecation.md)
-- [../../issues/open/508-legacy-path-removal-unblocked-by.md](../../issues/open/508-legacy-path-removal-unblocked-by.md)
+- [../../issues/done/508-legacy-path-removal-unblocked-by.md](../../issues/done/508-legacy-path-removal-unblocked-by.md)

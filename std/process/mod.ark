@@ -1,7 +1,7 @@
-/// std::process — process exit and abort.
-/// 
-/// Provides cross-module wrappers for host-level process control.
-/// On WASI targets these map to `proc_exit` / an abort trap.
+//! std::process — process exit and abort.
+//!
+//! Provides cross-module wrappers for host-level process control.
+//! On WASI targets these map to `proc_exit` / an abort trap.
 /// Terminates the process with the given exit code.
 /// 
 /// This function does not return.

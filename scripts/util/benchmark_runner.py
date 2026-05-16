@@ -176,6 +176,27 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         tags=("io-bound", "string-heavy", "allocation-heavy"),
         runtime_args=("run", "--dir=/tmp"),
     ),
+    BenchmarkCase(
+        name="json_parse",
+        source="benchmarks/bench_stdlib_json_parse.ark",
+        expected="benchmarks/bench_stdlib_json_parse.expected",
+        description="JSON parse/access/stringify — std::json parse, json_get, stringify (50 iterations)",
+        tags=("stdlib", "json", "allocation-heavy", "string-heavy"),
+    ),
+    BenchmarkCase(
+        name="text_ops",
+        source="benchmarks/bench_stdlib_text_ops.ark",
+        expected="benchmarks/bench_stdlib_text_ops.expected",
+        description="Text operations — std::text split, join, replace, case, trim, contains (200 iterations)",
+        tags=("stdlib", "text", "string-heavy", "gc-pressure"),
+    ),
+    BenchmarkCase(
+        name="hash_ops",
+        source="benchmarks/bench_stdlib_hash_ops.ark",
+        expected="benchmarks/bench_stdlib_hash_ops.expected",
+        description="Hash map ops — std::collections::hash insert/get/contains/remove on 100 entries",
+        tags=("stdlib", "hash", "allocation-heavy", "container"),
+    ),
 )
 
 MODE_PRESETS: dict[str, dict[str, Any]] = {

@@ -1,0 +1,57 @@
+// Stdlib benchmark: text operations (split, join, replace, case, trim).
+// Exercises std::text hot paths: split, join, replace, to_lower, to_upper,
+// trim, repeat, and contains.
+use std::host::stdio
+use std::text
+
+fn main() {
+    let base = "  Hello, Arukellt World!  "
+    let mut checksum: i32 = 0
+    let mut iter: i32 = 0
+    while iter < 200 {
+        // Trim
+        let trimmed = text::trim(base)
+        checksum = checksum + text::len_bytes(trimmed)
+
+        // Split and join
+        let parts = text::split(trimmed, " ")
+        let rejoined = text::join(parts, ",")
+        checksum = checksum + text::len_bytes(rejoined)
+
+        // Replace
+        let replaced = text::replace(rejoined, "Arukellt", "STDLIB")
+        checksum = checksum + text::len_bytes(replaced)
+
+        // Case conversion
+        let lower = text::to_lower(replaced)
+        let upper = text::to_upper(replaced)
+        checksum = checksum + text::len_bytes(lower)
+        checksum = checksum + text::len_bytes(upper)
+
+        // Contains
+        if text::contains(replaced, "STDLIB") {
+            checksum = checksum + 1
+        }
+        if text::starts_with(replaced, "Hello") {
+            checksum = checksum + 2
+        }
+        if text::ends_with(replaced, "!") {
+            checksum = checksum + 4
+        }
+
+        // Repeat
+        let repeated = text::repeat("x", 10)
+        checksum = checksum + text::len_bytes(repeated)
+
+        // Builder
+        let mut sb = text::builder_new()
+        sb = text::builder_append(sb, "a")
+        sb = text::builder_append(sb, "b")
+        sb = text::builder_append_line(sb, "c")
+        sb = text::builder_build(sb)
+        checksum = checksum + text::len_bytes(sb)
+
+        iter = iter + 1
+    }
+    stdio::println(i32_to_string(checksum))
+}

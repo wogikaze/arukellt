@@ -14,7 +14,7 @@ docs/release-checklist.md — Extension distribution section
 
 ## Acceptance
 
-- [ ] Formatter output matches between CLI and LSP (shared `format_source()`)
+Deferred criterion: Formatter output matches between CLI and LSP (shared `format_source()`).
 
 ## Evidence
 

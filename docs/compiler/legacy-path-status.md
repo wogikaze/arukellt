@@ -12,7 +12,7 @@
 
 **Updated**: 2026-04-18
 **Related issue**: [issues/done/285-legacy-path-deprecation.md](../../issues/done/285-legacy-path-deprecation.md)
-**Blocker issue**: [issues/open/508-legacy-path-removal-unblocked-by.md](../../issues/open/508-legacy-path-removal-unblocked-by.md)
+**Blocker issue**: [issues/done/508-legacy-path-removal-unblocked-by.md](../../issues/done/508-legacy-path-removal-unblocked-by.md)
 **Migration guide**: [legacy-path-migration.md](legacy-path-migration.md)
 
 ## Current Pipeline State
@@ -62,7 +62,7 @@ implementation**. It processes the typed AST and produces all MIR functions that
 the Wasm backend needs. Until `lower_hir_to_mir` is implemented to produce actual
 MIR functions from CoreHIR, no compilation fixture will pass without it.
 
-This is tracked in [issues/open/508-legacy-path-removal-unblocked-by.md](../../issues/open/508-legacy-path-removal-unblocked-by.md).
+This was tracked in [issues/done/508-legacy-path-removal-unblocked-by.md](../../issues/done/508-legacy-path-removal-unblocked-by.md).
 
 ## What Has Changed (2026-04-15)
 

@@ -1,10 +1,10 @@
-/// Experimental WebAssembly helpers.
-/// 
-/// Exposes magic bytes, version bytes, section IDs, value-type constants,
-/// opcode constants, FuncType/Limits constructors, a minimal WasmModuleBuilder,
-/// and LEB128 encoding utilities.
-/// 
-/// All APIs are Experimental and may change in v4+.
+//! Experimental WebAssembly helpers.
+//!
+//! Exposes magic bytes, version bytes, section IDs, value-type constants,
+//! opcode constants, FuncType/Limits constructors, a minimal WasmModuleBuilder,
+//! and LEB128 encoding utilities.
+//!
+//! All APIs are Experimental and may change in v4+.
 pub fn wasm_magic() -> Vec<i32> {
     let b: Vec<i32> = Vec_new_i32()
     push(b, 0)

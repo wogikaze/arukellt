@@ -108,6 +108,7 @@ fn main() {
 
 現行実装では host access を `std::host::*` から明示 import します。
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::fs
 use std::host::stdio

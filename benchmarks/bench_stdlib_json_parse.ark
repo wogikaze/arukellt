@@ -1,0 +1,75 @@
+// Stdlib benchmark: JSON parse, access, and stringify.
+// Exercises std::json::parse, json_get, json_as_*, and stringify on
+// structured JSON data (nested objects, arrays, scalars).
+use std::host::stdio
+use std::json
+
+fn main() {
+    // Build a JSON object string
+    let json_str = concat(
+        "{\"name\":\"bench\",\"count\":42,\"active\":true,\"tags\":[\"a\",\"b\",\"c\"],\"meta\":{\"v\":1}}",
+        ""
+    )
+
+    let mut sum: i32 = 0
+    let mut iter: i32 = 0
+    while iter < 50 {
+        // Parse
+        match json::parse(json_str) {
+            Result::Ok(val) => {
+                // Object field access
+                let name = json::json_get(val, "name")
+                match name {
+                    Option::Some(_) => sum = sum + 1,
+                    None => sum = sum + 10,
+                }
+                let count = json::json_get(val, "count")
+                match count {
+                    Option::Some(cv) => {
+                        let n = json::json_as_i32(cv)
+                        match n {
+                            Option::Some(v) => sum = sum + v,
+                            None => sum = sum + 100,
+                        }
+                    },
+                    None => sum = sum + 200,
+                }
+                let active = json::json_get(val, "active")
+                match active {
+                    Option::Some(av) => {
+                        let b = json::json_as_bool(av)
+                        match b {
+                            Option::Some(v) => if v { sum = sum + 7 } else { sum = sum + 70 },
+                            None => sum = sum + 300,
+                        }
+                    },
+                    None => sum = sum + 400,
+                }
+                // Nested access
+                let meta = json::json_get(val, "meta")
+                match meta {
+                    Option::Some(mv) => {
+                        let v = json::json_get(mv, "v")
+                        match v {
+                            Option::Some(vv) => {
+                                let n = json::json_as_i32(vv)
+                                match n {
+                                    Option::Some(x) => sum = sum + x,
+                                    None => sum = sum + 500,
+                                }
+                            },
+                            None => sum = sum + 600,
+                        }
+                    },
+                    None => sum = sum + 700,
+                }
+                // Stringify
+                let _ = json::stringify(val)
+                let _ = json::stringify_pretty(val, 2)
+            },
+            Result::Err(_) => sum = sum + 1000,
+        }
+        iter = iter + 1
+    }
+    stdio::println(i32_to_string(sum))
+}

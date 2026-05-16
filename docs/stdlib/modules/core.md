@@ -41,13 +41,16 @@ let len = range_len(r)  // 10
 - Manifest-backed functions: 6
 - Stability: stable 6
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Fundamental types and helpers shared across the standard library.
+
+This module exposes foundational types (`Ordering`, `Range`) and helpers
+that other stdlib modules build upon.
 
 ### Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
-| `Ordering` | `enum` | Fundamental types and helpers shared across the standard library. |
+| `Ordering` | `enum` | Ordering relationship between two values. |
 | `Range` | `struct` | Half-open integer range [start, end). |
 | `RangeInclusive` | `struct` | Closed integer range [start, end]. |
 
@@ -68,13 +71,32 @@ _No module doc comment yet. Add `//!` comments in the source file to describe th
 - Manifest-backed functions: 1
 - Stability: stable 1
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Shared error types for manifest-backed stdlib modules.
+
+Provides the `Error` enum with variants used across all stdlib modules:
+`InvalidArgument`, `IndexOutOfBounds`, `ParseError`, `Utf8Error`,
+`IoError`, `NotFound`, `AlreadyExists`, `PermissionDenied`, `Timeout`,
+`WasmError`, and `ComponentError`.
+
+**Availability:** All targets (T1 + T3). No host capability required.
+
+### no-sentinel-i32 rule
+
+New public stdlib APIs MUST NOT return a raw `i32` value of `-1` (i.e.
+`0 - 1`) to signal absence or failure.  Use the preferred surface instead:
+
+- absence / EOF → `Option<T>` with `None`
+- distinguishable failures → `Result<T, Error>` using the variants below
+
+Existing `-1`-returning functions are kept only as backward-compatible
+adapters.  When adding new APIs, always provide a `try_*` / `Option`-first
+variant and document the legacy form as deprecated.
 
 ### Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
-| `Error` | `enum` | Shared error types for manifest-backed stdlib modules. |
+| `Error` | `enum` | - |
 
 ### Public API
 
@@ -88,7 +110,13 @@ _No module doc comment yet. Add `//!` comments in the source file to describe th
 - Manifest-backed functions: 4
 - Stability: stable 4
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Small hashing helpers used by the current collection implementations.
+
+Provides the `Hash` trait and built-in implementations for `i32`, `i64`,
+`String`, `bool`, `char`, and `f64`. Also exposes standalone `hash_i32`,
+`hash_string`, `combine`, and `hash_combine` functions.
+
+**Availability:** All targets (T1 + T3). No host capability required.
 
 ### Public API
 

@@ -40,7 +40,16 @@ let exists = hashmap_contains(map, 42)  // true
 - Manifest-backed functions: 18
 - Stability: experimental 18
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Experimental compiler-oriented collections.
+
+Provides Arena (bump allocator), SlotMap (deletion-safe handle map), and
+Interner (value-to-symbol bidirectional map) suitable for compiler/IDE
+toolchain use.
+
+**Stability:** All APIs in this module are **experimental** and may change
+in v4+.
+
+**Availability:** All targets (T1 + T3). No host capability required.
 
 ### Arena (bump allocator)
 
@@ -209,7 +218,14 @@ where flags are `0 = empty`, `1 = occupied`.
 - Manifest-backed functions: 31
 - Stability: stable 31
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Linear collection helpers: deque and priority queue.
+
+Provides a ring-buffer `Deque` (double-ended queue with `push_back`,
+`push_front`, `pop_back`, `pop_front`) and a min-heap `PriorityQueue`.
+All current implementations are monomorphic `i32` containers backed by
+`Vec<i32>`.
+
+**Availability:** All targets (T1 + T3). No host capability required.
 
 ### Deque (ring buffer)
 
@@ -335,13 +351,22 @@ Copy all deque elements (front to back) into a new Vec<i32>.
 - Manifest-backed functions: 37
 - Stability: experimental 27, stable 10
 
-_No module doc comment yet. Add `//!` comments in the source file to describe this module._
+Ordered collection helpers backed by sorted vectors.
+
+Provides `SortedMap` (sorted-vector map, i32 key/value), `BTreeMap`/
+`BTreeSet` (sorted-vector backed), `IndexMap`/`IndexSet` (insertion-order),
+and `BitSet` (compact bit-flag array).
+
+**Stability:** `sorted_map_*` and `bitset_new/mark/unmark/test` are stable;
+all other APIs in this module are **experimental**.
+
+**Availability:** All targets (T1 + T3). No host capability required.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `sorted_map_new` | `() -> Vec<i32>` | `stable` | Ordered collection helpers backed by sorted vectors. |
+| `sorted_map_new` | `() -> Vec<i32>` | `stable` | - |
 | `sorted_map_len` | `(Vec<i32>) -> i32` | `stable` | - |
 | `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `stable` | - |
 | `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `stable` | - |

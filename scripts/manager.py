@@ -75,6 +75,16 @@ def _run(cmd: list[str], *, cwd: Path, dry_run: bool) -> tuple[int, str, str]:
     return (result.returncode, result.stdout, result.stderr)
 
 
+def _run_env(
+    cmd: list[str], *, cwd: Path, dry_run: bool, env: dict[str, str]
+) -> tuple[int, str, str]:
+    if dry_run:
+        print(f"DRY-RUN: {cmd}")
+        return (0, "", "")
+    result = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, env=env)
+    return (result.returncode, result.stdout, result.stderr)
+
+
 # ── verify subcommands ────────────────────────────────────────────────────────
 
 
@@ -516,9 +526,18 @@ def cmd_verify_component(args: argparse.Namespace) -> int:
         if not run_scripts:
             h.check_skip("component interop scripts not found")
         else:
+            component_env = os.environ.copy()
+            pinned_selfhost = root / "bootstrap" / "arukellt-selfhost.wasm"
+            if "ARUKELLT_SELFHOST_WASM" not in component_env and pinned_selfhost.exists():
+                component_env["ARUKELLT_SELFHOST_WASM"] = str(pinned_selfhost)
             for run_sh in run_scripts:
                 fixture_name = run_sh.parent.name
-                rc, _, _ = _run(["bash", str(run_sh)], cwd=root, dry_run=dry_run)
+                rc, _, _ = _run_env(
+                    ["bash", str(run_sh)],
+                    cwd=root,
+                    dry_run=dry_run,
+                    env=component_env,
+                )
                 if rc == 0:
                     h.check_pass(f"component interop: {fixture_name} (wasmtime)")
                 else:

@@ -19,15 +19,10 @@ graph LR
   I475["475 arukellt component subcommand"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I529["529 100% selfhost transition plan"]
-  I549["549 Release: Extension Activation Tests"]
-  I553["553 Release: Binary Distribution"]
-  I554["554 Release: Extension Live Editor Tests"]
-  I555["555 Release: Pre-Release CI Checks"]
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I588["588 Language surface uplift plan"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
   I608["608 608-stdlib-baseline-docs-bench"]
-  I612["612 Optimization Uplift: Binary Size Squeeze"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I625["625 529 Phase 4: Dual-Run Period (SAFETY)"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
@@ -47,6 +42,9 @@ graph LR
   I630["630 Phase 7 Sequencing Fix: Circular Dependency in Crate Deletion Chain"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
+  I549["549 Release: Extension Activation Tests ⛔"]
+  I553["553 Release: Binary Distribution ⛔"]
+  I554["554 Release: Extension Live Editor Tests ⛔"]
   I139 --> I136
   I475 --> I485
   I529 --> I617
@@ -94,15 +92,10 @@ graph LR
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
 - **529** depends on: none; blocks: 617
-- **549** depends on: none; blocks: none
-- **553** depends on: none; blocks: none
-- **554** depends on: none; blocks: none
-- **555** depends on: none; blocks: none
 - **574** depends on: 564; blocks: 575, 582
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
 - **608** depends on: 604, 605, 606, 607; blocks: none
-- **612** depends on: 609, 611; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **625** depends on: 594; blocks: 626
 - **63** depends on: 074, 137; blocks: none
@@ -125,3 +118,6 @@ graph LR
 
 - **28** ⛔ blocked — depends on: 030, 031, 028b, 124; blocked by: #124 WIT component import syntax
 - **31** ⛔ blocked — depends on: 30; blocked by: jco upstream (<https://github.com/bytecodealliance/jco>)
+- **549** ⛔ blocked — depends on: none; blocked by: native Linux CI evidence or a local Xvfb environment where /tmp/.X11-unix is root:root with mode 1777
+- **553** ⛔ blocked — depends on: none; blocked by: release tag creation and passing tag workflow
+- **554** ⛔ blocked — depends on: none; blocked by: manual live VS Code verification with the packaged VSIX

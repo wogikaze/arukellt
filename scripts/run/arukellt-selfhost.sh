@@ -64,4 +64,29 @@ if ! wasm="$(resolve_selfhost_wasm)"; then
   exit 127
 fi
 
+if [[ "${1:-}" == "run" ]]; then
+  tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' EXIT
+  set +e
+  wasmtime run --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 0 ]]; then
+    cat "$tmpdir/stdout"
+    cat "$tmpdir/stderr" >&2
+    exit "$rc"
+  fi
+
+  out_path="$(sed -n 's/^compiled .* -> //p' "$tmpdir/stderr" | tail -n 1)"
+  if [[ -z "$out_path" ]]; then
+    cat "$tmpdir/stdout"
+    cat "$tmpdir/stderr" >&2
+    exit 0
+  fi
+  if [[ "$out_path" != /* ]]; then
+    out_path="$REPO_ROOT/$out_path"
+  fi
+  exec wasmtime run --dir="$REPO_ROOT" "$out_path"
+fi
+
 exec wasmtime run --dir="$REPO_ROOT" "$wasm" -- "$@"

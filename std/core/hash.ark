@@ -1,4 +1,10 @@
-/// Small hashing helpers used by the current collection implementations.
+//! Small hashing helpers used by the current collection implementations.
+//!
+//! Provides the `Hash` trait and built-in implementations for `i32`, `i64`,
+//! `String`, `bool`, `char`, and `f64`. Also exposes standalone `hash_i32`,
+//! `hash_string`, `combine`, and `hash_combine` functions.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
 
 /// Trait for types that can be hashed to an `i32` hash value.
 ///
