@@ -15,6 +15,7 @@ REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
 ---
 
 # 564 — Phase 5: Delete `crates/arukellt`
+
 - [ ] No source / script / docs reference: "`rg -l "\barukellt\b\|\barukellt\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)"
 - [ ] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
 1. [ ] Directory truly absent: `test ! -d crates/arukellt` exit 0
@@ -36,8 +37,8 @@ diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
 cargo check --workspace: rc=0
 false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
 remaining references (if any): <list with justification>
-# 564 — Phase 5: Delete `crates/arukellt`
 
+## 564 — Phase 5: Delete `crates/arukellt`
 
 ## Summary
 
@@ -80,7 +81,6 @@ python scripts/manager.py selfhost diag-parity
 cargo check --workspace
 rg -l "\barukellt\b" crates/ scripts/ src/ docs/ .github/
 ```
-
 
 ## STOP_IF
 

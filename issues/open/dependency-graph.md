@@ -28,15 +28,15 @@ graph LR
   I553["553 Release: Binary Distribution"]
   I554["554 Release: Extension Live Editor Tests"]
   I555["555 Release: Pre-Release CI Checks"]
-  I564["564 564 — Phase 5: Delete `crates/arukellt`"]
   I571["571 571 — Phase 6/D: "src/ide/dap.ark — debug adapter scaffold (deferred priority)""]
+  I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I588["588 Language surface uplift plan"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
   I594["594 594-selfhost-phase2-fixture-diag-parity"]
   I595["595 595-lang-uplift-multiclauses"]
   I598["598 Language Surface Uplift: Expression-Level Comprehensions"]
   I60["60 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
-  I600["600 600-typesys-soundness-floor"]
+  I601["601 Type System Stage-Up: Type Schemes and Controlled Let-Generalization"]
   I605["605 Stdlib Baseline: Host Core-Platform Baseline"]
   I606["606 Stdlib Baseline: Structured Data and Semantics Baseline"]
   I607["607 Stdlib Baseline: Collections Hash Hardening"]
@@ -51,26 +51,23 @@ graph LR
   I36["36 std: ":collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>""]
   I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I617["617 Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)"]
-  I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
-  I580["580 580 — Phase 7: Delete `crates/ark-manifest`"]
+  I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
   I625["625 529 Phase 4: Dual-Run Period (SAFETY)"]
   I596["596 596-lang-uplift-guards"]
   I597["597 Language Surface Uplift: Real `where` Clauses"]
-  I601["601 Type System Stage-Up: Type Schemes and Controlled Let-Generalization"]
+  I602["602 Type System Stage-Up: Qualified Constraints and Coherent Trait Solving"]
   I608["608 608-stdlib-baseline-docs-bench"]
   I612["612 Optimization Uplift: Binary Size Squeeze"]
-  I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
+  I576["576 576 — Phase 7: Delete `crates/ark-resolve`"]
   I626["626 529 Phase 6/A: IDE-Ready Frontend"]
   I599["599 Language Surface Uplift: Docs, Fixtures, and Rollout"]
-  I602["602 Type System Stage-Up: Qualified Constraints and Coherent Trait Solving"]
-  I576["576 576 — Phase 7: Delete `crates/ark-resolve`"]
-  I627["627 529 Phase 6/B: Analysis API"]
   I603["603 603-typesys-lowering-contract"]
   I577["577 577 — Phase 7: Delete `crates/ark-typecheck`"]
-  I628["628 529 Phase 6/C: LSP Minimum Viable"]
+  I627["627 529 Phase 6/B: Analysis API"]
   I578["578 578 — Phase 7: Delete `crates/ark-hir`"]
   I579["579 579 — Phase 7: Delete `crates/ark-diagnostics`"]
   I581["581 581 — Phase 7: Delete `crates/ark-target`"]
+  I628["628 529 Phase 6/C: LSP Minimum Viable"]
   I582["582 582 — Phase 7 final: remove `Cargo.toml` and `Cargo.lock`"]
   I630["630 Phase 7 Sequencing Fix: Circular Dependency in Crate Deletion Chain"]
   I28["28 034-wit-cli-integration ⛔"]
@@ -82,50 +79,39 @@ graph LR
   I495 --> I36
   I495 --> I512
   I529 --> I617
-  I564 --> I574
-  I564 --> I580
+  I574 --> I575
   I594 --> I625
   I595 --> I596
   I595 --> I597
-  I600 --> I601
+  I601 --> I602
   I605 --> I608
   I606 --> I608
   I607 --> I608
   I611 --> I612
-  I564 --> I575
-  I574 --> I575
+  I575 --> I576
   I625 --> I626
   I595 --> I599
   I596 --> I599
   I597 --> I599
   I598 --> I599
-  I601 --> I602
-  I564 --> I576
-  I575 --> I576
-  I626 --> I627
   I601 --> I603
   I602 --> I603
-  I564 --> I577
   I576 --> I577
-  I627 --> I628
-  I564 --> I578
+  I626 --> I627
   I577 --> I578
-  I564 --> I579
   I575 --> I579
   I576 --> I579
   I577 --> I579
-  I564 --> I581
   I575 --> I581
   I577 --> I581
+  I627 --> I628
   I574 --> I582
   I575 --> I582
   I576 --> I582
   I577 --> I582
   I578 --> I582
   I579 --> I582
-  I580 --> I582
   I581 --> I582
-  I564 --> I630
   I575 --> I630
   I576 --> I630
   I577 --> I630
@@ -160,15 +146,15 @@ graph LR
 - **553** depends on: none; blocks: none
 - **554** depends on: none; blocks: none
 - **555** depends on: none; blocks: none
-- **564** depends on: 559, 560, 561, 562, 563; blocks: 574, 575, 576, 577, 578, 579, 580, 581, 630
 - **571** depends on: 568; blocks: none
+- **574** depends on: 564; blocks: 575, 582
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
 - **594** depends on: 593; blocks: 625
 - **595** depends on: 629; blocks: 596, 597, 599
 - **598** depends on: none; blocks: 599
 - **60** depends on: 510, 121; blocks: none
-- **600** depends on: none; blocks: 601
+- **601** depends on: 600; blocks: 602, 603
 - **605** depends on: 604; blocks: 608
 - **606** depends on: 604; blocks: 608
 - **607** depends on: 604; blocks: 608
@@ -183,26 +169,23 @@ graph LR
 - **36** depends on: 039, 041, 312, 495; blocks: none
 - **512** depends on: 504, 495; blocks: none
 - **617** depends on: 529; blocks: none
-- **574** depends on: 564; blocks: 575, 582
-- **580** depends on: 564; blocks: 582
+- **575** depends on: 564, 574; blocks: 576, 579, 581, 582, 630
 - **625** depends on: 594; blocks: 626
 - **596** depends on: 595; blocks: 599
 - **597** depends on: 595; blocks: 599
-- **601** depends on: 600; blocks: 602, 603
+- **602** depends on: 601; blocks: 603
 - **608** depends on: 604, 605, 606, 607; blocks: none
 - **612** depends on: 609, 611; blocks: none
-- **575** depends on: 564, 574; blocks: 576, 579, 581, 582, 630
+- **576** depends on: 564, 575; blocks: 577, 579, 582, 630
 - **626** depends on: 625; blocks: 627
 - **599** depends on: 595, 596, 597, 598; blocks: none
-- **602** depends on: 601; blocks: 603
-- **576** depends on: 564, 575; blocks: 577, 579, 582, 630
-- **627** depends on: 626; blocks: 628
 - **603** depends on: 601, 602; blocks: none
 - **577** depends on: 564, 576; blocks: 578, 579, 581, 582, 630
-- **628** depends on: 627; blocks: none
+- **627** depends on: 626; blocks: 628
 - **578** depends on: 564, 577; blocks: 582, 630
 - **579** depends on: 564, 572, 575, 576, 577; blocks: 582, 630
 - **581** depends on: 564, 575, 577; blocks: 582, 630
+- **628** depends on: 627; blocks: none
 - **582** depends on: 572, 573, 574, 575, 576, 577, 578, 579, 580, 581; blocks: none
 - **630** depends on: 564, 575, 576, 577, 578, 579, 581; blocks: none
 

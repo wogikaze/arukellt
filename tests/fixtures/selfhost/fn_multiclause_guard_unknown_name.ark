@@ -1,0 +1,9 @@
+// Negative fixture: guard references name not in scope
+// Should produce a compile error about undefined name
+use std::host::stdio
+
+fn foo(x) -> String | y > 0 = "guard uses undefined y"
+
+fn main() {
+    stdio::println(String_from("should not reach"))
+}

@@ -1,0 +1,12 @@
+// Test: enum-pattern multi-clause function without payload
+use std::host::stdio
+
+enum Simple { A, B }
+
+fn describe(Simple::A) -> String = "first"
+fn describe(_) -> String = "other"
+
+fn main() {
+    stdio::println(describe(Simple::A))
+    stdio::println(describe(Simple::B))
+}

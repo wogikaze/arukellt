@@ -1,0 +1,13 @@
+// Positive fixture: literal-pattern multi-clause function with guards
+// Tests that literal patterns with guard expressions work on clause heads
+use std::host::stdio
+
+fn classify(n) -> String | n > 0 = "pos"
+fn classify(n) -> String | n < 0 = "neg"
+fn classify(_) -> String = "zero"
+
+fn main() {
+    stdio::println(classify(5))
+    stdio::println(classify(-3))
+    stdio::println(classify(0))
+}

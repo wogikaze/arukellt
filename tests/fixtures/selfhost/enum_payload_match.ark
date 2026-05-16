@@ -1,0 +1,13 @@
+// Test: enum with payload in regular match (not multi-clause)
+use std::host::stdio
+
+enum Num { Small(i32), Large(i32) }
+
+fn main() {
+    let x = Num::Small(5)
+    let result = match x {
+        Small(n) => "small",
+        _ => "other",
+    }
+    stdio::println(result)
+}

@@ -1,0 +1,9 @@
+// Negative fixture: guard expression does not evaluate to bool
+// Should produce a type error about guard not being bool
+use std::host::stdio
+
+fn foo(x) -> String | x = "guard is int, not bool"
+
+fn main() {
+    stdio::println(String_from("should not reach"))
+}

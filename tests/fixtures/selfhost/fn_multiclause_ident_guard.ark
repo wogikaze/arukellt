@@ -1,0 +1,15 @@
+// Positive fixture: identifier-binding multi-clause function with guards
+// Tests that identifier binding patterns with guards referencing the binding work
+use std::host::stdio
+
+struct Point { x: i32, y: i32 }
+
+fn describe(pt) -> String | pt.x > 0 = "right"
+fn describe(pt) -> String | pt.x < 0 = "left"
+fn describe(_) -> String = "center"
+
+fn main() {
+    stdio::println(describe(Point { x: 10, y: 0 }))
+    stdio::println(describe(Point { x: -5, y: 0 }))
+    stdio::println(describe(Point { x: 0, y: 0 }))
+}

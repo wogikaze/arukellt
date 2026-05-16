@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T07:05:56Z",
+  "generated_at": "2026-05-16T07:23:27Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -543,44 +543,6 @@
       }
     },
     {
-      "id": "564",
-      "path": "564-phase5-delete-arukellt.md",
-      "title": "564 — Phase 5: Delete `crates/arukellt`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": false,
-      "depends_on": [
-        "559",
-        "560",
-        "561",
-        "562",
-        "563"
-      ],
-      "blocks_issue_ids": [
-        "574",
-        "575",
-        "576",
-        "577",
-        "578",
-        "579",
-        "580",
-        "581",
-        "630"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 16
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "571",
       "path": "571-phase6-debug-adapter-scaffold-deferred-priority.md",
       "title": "571 — Phase 6/D: \"src/ide/dap.ark — debug adapter scaffold (deferred priority)\"",
@@ -598,6 +560,33 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "574",
+      "path": "574-phase7-delete-ark-lexer.md",
+      "title": "574 — Phase 7: Delete `crates/ark-lexer`",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": false,
+      "depends_on": [
+        "564"
+      ],
+      "blocks_issue_ids": [
+        "575",
+        "582"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 16
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -752,9 +741,9 @@
       }
     },
     {
-      "id": "600",
-      "path": "600-typesys-soundness-floor.md",
-      "title": "600-typesys-soundness-floor",
+      "id": "601",
+      "path": "601-typesys-type-schemes.md",
+      "title": "Type System Stage-Up: Type Schemes and Controlled Let-Generalization",
       "track": "selfhost / typechecker",
       "status": "open",
       "blocks_v1": "none",
@@ -762,16 +751,19 @@
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
+      "depends_on": [
+        "600"
+      ],
       "blocks_issue_ids": [
-        "601"
+        "602",
+        "603"
       ],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },
@@ -1130,9 +1122,9 @@
       }
     },
     {
-      "id": "574",
-      "path": "574-phase7-delete-ark-lexer.md",
-      "title": "574 — Phase 7: Delete `crates/ark-lexer`",
+      "id": "575",
+      "path": "575-phase7-delete-ark-parser.md",
+      "title": "575 — Phase 7: Delete `crates/ark-parser`",
       "track": "selfhost-retirement",
       "status": "open",
       "blocks_v1": "none",
@@ -1141,11 +1133,15 @@
       "blocks_v4": "none",
       "blocks_v5": false,
       "depends_on": [
-        "564"
+        "564",
+        "574"
       ],
       "blocks_issue_ids": [
-        "575",
-        "582"
+        "576",
+        "579",
+        "581",
+        "582",
+        "630"
       ],
       "acceptance": {
         "checked": 0,
@@ -1153,32 +1149,6 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "580",
-      "path": "580-phase7-delete-ark-manifest.md",
-      "title": "580 — Phase 7: Delete `crates/ark-manifest`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": false,
-      "depends_on": [
-        "564"
-      ],
-      "blocks_issue_ids": [
-        "582"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 16
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -1261,9 +1231,9 @@
       }
     },
     {
-      "id": "601",
-      "path": "601-typesys-type-schemes.md",
-      "title": "Type System Stage-Up: Type Schemes and Controlled Let-Generalization",
+      "id": "602",
+      "path": "602-typesys-qualified-constraints.md",
+      "title": "Type System Stage-Up: Qualified Constraints and Coherent Trait Solving",
       "track": "selfhost / typechecker",
       "status": "open",
       "blocks_v1": "none",
@@ -1272,10 +1242,9 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "600"
+        "601"
       ],
       "blocks_issue_ids": [
-        "602",
         "603"
       ],
       "acceptance": {
@@ -1340,9 +1309,9 @@
       }
     },
     {
-      "id": "575",
-      "path": "575-phase7-delete-ark-parser.md",
-      "title": "575 — Phase 7: Delete `crates/ark-parser`",
+      "id": "576",
+      "path": "576-phase7-delete-ark-resolve.md",
+      "title": "576 — Phase 7: Delete `crates/ark-resolve`",
       "track": "selfhost-retirement",
       "status": "open",
       "blocks_v1": "none",
@@ -1352,12 +1321,11 @@
       "blocks_v5": false,
       "depends_on": [
         "564",
-        "574"
+        "575"
       ],
       "blocks_issue_ids": [
-        "576",
+        "577",
         "579",
-        "581",
         "582",
         "630"
       ],
@@ -1424,88 +1392,6 @@
       }
     },
     {
-      "id": "602",
-      "path": "602-typesys-qualified-constraints.md",
-      "title": "Type System Stage-Up: Qualified Constraints and Coherent Trait Solving",
-      "track": "selfhost / typechecker",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "601"
-      ],
-      "blocks_issue_ids": [
-        "603"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "576",
-      "path": "576-phase7-delete-ark-resolve.md",
-      "title": "576 — Phase 7: Delete `crates/ark-resolve`",
-      "track": "selfhost-retirement",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": false,
-      "depends_on": [
-        "564",
-        "575"
-      ],
-      "blocks_issue_ids": [
-        "577",
-        "579",
-        "582",
-        "630"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 16
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "627",
-      "path": "627-analysis-api.md",
-      "title": "529 Phase 6/B: Analysis API",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "626"
-      ],
-      "blocks_issue_ids": [
-        "628"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "603",
       "path": "603-typesys-lowering-contract.md",
       "title": "603-typesys-lowering-contract",
@@ -1562,9 +1448,9 @@
       }
     },
     {
-      "id": "628",
-      "path": "628-lsp-minimum-viable.md",
-      "title": "529 Phase 6/C: LSP Minimum Viable",
+      "id": "627",
+      "path": "627-analysis-api.md",
+      "title": "529 Phase 6/B: Analysis API",
       "track": "main",
       "status": "open",
       "blocks_v1": "none",
@@ -1573,12 +1459,14 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "627"
+        "626"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "628"
+      ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 10
+        "unchecked": 8
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -1671,6 +1559,30 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "628",
+      "path": "628-lsp-minimum-viable.md",
+      "title": "529 Phase 6/C: LSP Minimum Viable",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "627"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
       }
     },
     {

@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-22
 Updated: 2026-05-16
 ID: 600
@@ -573,12 +573,12 @@ later phases, but do not block this issue.
 
 ## Acceptance
 
-1. `occurs_in_type` has a negative fixture proving self-referential types are rejected
-2. Function bodies whose final expression type mismatches the declared return type produce a diagnostic that identifies the function and both types
-3. Explicit `return` statements inside a function body are checked against the declared return type
-4. Selfhost exhaustiveness checker handles user-defined enums (variant enumeration) in addition to the existing bool/Option/Result coverage
-5. All new fixtures have `.selfhost.diag` files and are registered in manifest.txt
-6. All four selfhost parity gates have no new FAILs compared to Phase 0 baseline
+- [x] 1. `occurs_in_type` has a negative fixture proving self-referential types are rejected
+- [x] 2. Function bodies whose final expression type mismatches the declared return type produce a diagnostic that identifies the function and both types
+- [x] 3. Explicit `return` statements inside a function body are checked against the declared return type
+- [x] 4. Selfhost exhaustiveness checker handles user-defined enums (variant enumeration) in addition to the existing bool/Option/Result coverage
+- [x] 5. All new fixtures have `.selfhost.diag` files and are registered in manifest.txt
+- [x] 6. All four selfhost parity gates have no new FAILs compared to Phase 0 baseline
 
 ---
 

@@ -1648,7 +1648,7 @@ fn parse_fn_clause(p: Parser) -> AstNode {
     if peek_kind(p) == TK_PIPE() {
         p.pos = p.pos + 1
         skip_newlines(p)
-        let guard = parse_expr(p)
+        let guard = parse_expr_bp(p, 2)  // min_bp=2 to stop before `= body`
         let guard_node = AstNode_new(parser_kinds::NK_TYPE_NAMED(), guard.span)
         guard_node.text = String_from("__guard")
         push(guard_node.children, guard)

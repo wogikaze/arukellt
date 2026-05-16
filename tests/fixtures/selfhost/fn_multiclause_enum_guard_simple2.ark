@@ -1,0 +1,11 @@
+// Test: enum-pattern multi-clause function WITHOUT guard
+use std::host::stdio
+
+enum Num { Small(i32), Large(i32) }
+
+fn describe(Small(n)) -> String = "small"
+fn describe(_) -> String = "other"
+
+fn main() {
+    stdio::println(describe(Num::Small(5)))
+}
