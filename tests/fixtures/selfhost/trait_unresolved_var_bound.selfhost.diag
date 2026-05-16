@@ -1,0 +1,1 @@
+trait bound not satisfied: OtherStruct does not implement Foo

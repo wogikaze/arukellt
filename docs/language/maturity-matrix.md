@@ -23,7 +23,7 @@
 | Stability | Count |
 |-----------|-------|
 | stable | 80 |
-| provisional | 8 |
+| provisional | 12 |
 | experimental | 0 |
 | unimplemented | 0 |
 | deprecated | 0 |
@@ -69,6 +69,7 @@
 | 3.17 | Loop Expression | stable | — |
 | 3.18 | Return and Control Flow | stable | — |
 | 3.19 | Assignment | stable | — |
+| 3.20 | Array Comprehension | **provisional** | language uplift feature — interface may change before stable exit |
 | 4 | Statements | stable | — |
 | 4.1 | Let Binding | stable | — |
 | 4.2 | Expression Statement | stable | — |
@@ -87,6 +88,9 @@
 | 5.8 | Match Guards | stable | — |
 | 6 | Items | stable | — |
 | 6.1 | Function Definition | stable | — |
+| 6.1.1 | Multi-Clause Function Definitions | **provisional** | language uplift feature — interface may change before stable exit |
+| 6.1.2 | Clause Guards | **provisional** | language uplift feature — interface may change before stable exit |
+| 6.1.3 | Where Clauses | **provisional** | language uplift feature — interface may change before stable exit |
 | 6.2 | Struct Definition | stable | — |
 | 6.3 | Enum Definition | stable | — |
 | 6.4 | Trait Definition (v1) | **provisional** | version-gated feature — interface may change before stable exit |

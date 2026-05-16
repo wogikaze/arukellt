@@ -63,7 +63,7 @@ Source files are UTF-8 encoded. No BOM is required.
 ```
 fn   struct   enum   let   mut   if   else   match
 while   loop   for   in   break   continue   return
-pub   import   as
+pub   import   as   where
 ```
 
 **Active (v1)**
@@ -81,7 +81,7 @@ use
 **Reserved (future)**
 
 ```
-async   await   dyn   where   type   const   unsafe
+async   await   dyn   type   const   unsafe
 extern   mod   super   Self
 ```
 
@@ -555,6 +555,63 @@ v[i] = expr
 Assignment target must be a mutable variable, field, or index
 expression. Assignment returns `()`.
 
+### 3.20 Array Comprehension <!-- stability: provisional -->
+
+A lightweight collection-construction form that desugars into an explicit `for` loop
+with a `Vec` builder:
+
+<!-- skip-doc-check --> <!-- requires Vec type and prelude context -->
+```ark
+[x * 2 for x in xs]
+[x * 2 for x in xs if x > 0]
+```
+
+The canonical syntax is `[<expr> for <ident> in <iter>]`, with an optional filter
+`if <expr>` after the iterable.
+
+<!-- skip-doc-check --> <!-- requires Vec type and prelude context -->
+```ark
+let doubled = [x * 2 for x in xs]             // map only
+let evens = [x * 2 for x in xs if x % 2 == 0]  // map + filter
+```
+
+**Desugaring** (no filter):
+
+```ark
+{
+    let result: Vec<ElemType> = Vec_new_ElemType()
+    for VAR in values(ITER) {
+        push(result, ELEM)
+    }
+    result
+}
+```
+
+With filter:
+
+```ark
+{
+    let result: Vec<ElemType> = Vec_new_ElemType()
+    for VAR in values(ITER) {
+        if FILTER {
+            push(result, ELEM)
+        }
+    }
+    result
+}
+```
+
+**Type rules:**
+1. `ITER` must be `Vec<E>` for some element type `E`. A non-`Vec` iterable is a type error.
+2. The loop variable `VAR` is bound to type `E`.
+3. `ELEM` is type-checked in the loop scope. Its type `T` becomes the element type of the result.
+4. If `FILTER` is present, it must evaluate to `bool`.
+5. The overall comprehension has type `Vec<T>`.
+
+**Restrictions:** One generator only (no nested `for`). `break` and `continue` inside
+a comprehension are not allowed (they would refer to the implicit loop, which is
+confusing).
+
 ---
 
 ## 4. Statements <!-- stability: stable -->
@@ -633,7 +690,7 @@ tail expression (return value).
 
 ## 5. Pattern Matching <!-- stability: stable -->
 
-Patterns appear in `match` arms, `let` bindings, and `for` targets.
+Patterns appear in `match` arms, `let` bindings, `for` targets, and multi-clause `fn` clause heads.
 
 ### 5.1 Wildcard
 
@@ -723,6 +780,115 @@ pub fn name<T>(param: T) -> T {
 
 - `pub` makes the function visible to other modules.
 - Return type defaults to `()` if omitted.
+
+#### 6.1.1 Multi-Clause Function Definitions <!-- stability: provisional -->
+
+A function may be defined as a group of pattern-matching clauses rather than a single
+block body. Each clause consists of `fn <name>(<pattern-params>) -> Ret = <expr>`,
+where parameters are **patterns** (not typed identifiers). The body is a single expression
+after `=`.
+
+Clauses must be consecutive and share the same name, arity, and return type annotation.
+The group desugars to a single `fn` with a `match` body.
+
+<!-- skip-doc-check --> <!-- illustrative examples; needs prelude context -->
+```ark
+// Integer literal clauses with wildcard catch-all
+fn classify(0) -> String = "zero"
+fn classify(1) -> String = "one"
+fn classify(_) -> String = "other"
+
+// Boolean literal clauses
+fn negate(true) -> bool = false
+fn negate(false) -> bool = true
+
+// Enum variant clauses (single-param only)
+fn unwrap_or_zero(Option::Some(v)) -> i32 = v
+fn unwrap_or_zero(None) -> i32 = 0
+
+// String literal clauses
+fn greet("hello") -> String = "hi"
+fn greet("bye") -> String = "goodbye"
+fn greet(_) -> String = "huh?"
+
+// Identifier-binding clause (catch-all, binds the argument)
+fn answer(42) -> String = "life"
+fn answer(n) -> String = "unknown"
+
+// Single clause with typed identifier (degenerate clause group)
+fn identity(x: T) -> T = x
+
+// Pub visibility propagates from first clause
+pub fn is_zero(0) -> bool = true
+pub fn is_zero(_) -> bool = false
+```
+
+**Grouping rules:**
+1. **Same name**: every clause must have the same `IDENT`.
+2. **Same arity**: every clause must have the same number of parameters.
+3. **Compatible return**: all clauses must agree on the return type annotation.
+4. **Contiguous**: clauses must be consecutive in source without intervening items.
+
+**Desugaring:** Multi-clause groups are desugared at parse time into a single `fn`
+with a synthetic block body containing a `match` expression. All downstream passes
+(resolver, typechecker, code generation) see only the desugared form.
+
+Single-parameter multi-clause functions are supported. Multi-parameter clause groups
+are not yet supported in this release.
+
+The canonical block-body `fn` syntax (SS6.1) remains supported and interoperates with
+clause-style definitions in the same module. Clause syntax is preferred when the
+function body is naturally expressed as pattern dispatch on a single scrutinee.
+
+#### 6.1.2 Clause Guards <!-- stability: provisional -->
+
+Multi-clause function heads may carry a **guard expression** after the return type
+annotation using `| <expr>` syntax. Guards are boolean expressions evaluated after
+pattern matching: the pattern must match first, then the guard is evaluated. If the
+guard is `true`, the clause body is chosen; otherwise, evaluation falls through to
+the next clause.
+
+<!-- skip-doc-check --> <!-- guard syntax resolution depends on full function context -->
+```ark
+fn classify(n) -> String | n > 0 = "pos"
+fn classify(n) -> String | n < 0 = "neg"
+fn classify(_) -> String = "zero"
+```
+
+Guard expressions reuse the same evaluation model as `match` arm guards (SS5.8) and
+may reference the function parameter bindings established by the clause pattern.
+The guard must evaluate to `bool`.
+
+<!-- skip-doc-check --> <!-- struct type defined externally -->
+```ark
+struct Point { x: i32, y: i32 }
+
+fn describe(pt) -> String | pt.x > 0 = "right"
+fn describe(pt) -> String | pt.x < 0 = "left"
+fn describe(_) -> String = "center"
+```
+
+**Evaluation order:** match pattern -- bind parameters -- evaluate guard -- choose body.
+
+#### 6.1.3 Where Clauses <!-- stability: provisional -->
+
+A multi-clause function group may end with a `where` block declaring shared value
+bindings visible across all clauses. Each binding is `name = expr` on its own line.
+
+<!-- skip-doc-check --> <!-- struct type and guard syntax need full context -->
+```ark
+fn magnitude_label(p: Point) -> String | m == 0 = "origin"
+fn magnitude_label(p: Point) -> String | m < 10 = "near"
+fn magnitude_label(_) -> String = "far"
+where
+    m = p.x * p.x + p.y * p.y
+```
+
+Where-bindings are evaluated before the clause dispatch and are scoped to all clauses
+in the group. They are not visible outside the function.
+
+**Initial restriction:** non-recursive value bindings only. Local helper functions
+and mutual recursion are deferred.
 
 ### 6.2 Struct Definition
 
@@ -1300,11 +1466,26 @@ by the compiler without an ADR.
 module      = doc_comment* import* item* ;
 import      = "import" IDENT ("as" IDENT)?
             | "use" IDENT ("::" IDENT)+ ("as" IDENT)? ;
-item        = ("pub")? ( fn_def | struct_def | enum_def
+item        = ("pub")? ( fn_def | fn_clause_group | struct_def | enum_def
                         | trait_def | impl_block ) ;
 
 fn_def      = "fn" IDENT type_params? "(" param_list? ")"
               ("->" type_expr)? block ;
+              (* unchanged -- single body form *)
+
+fn_clause_group
+            = fn_clause+ where_block? ;
+              (* one or more consecutive fn_clause with same name *)
+              (* optionally followed by where block *)
+
+fn_clause   = "fn" IDENT type_params? "(" clause_params? ")"
+              ("->" type_expr)? ("|" expr)? "=" expr ;
+              (* mandatory `= expr` body -- no block form *)
+              (* optional guard via `| expr` before `=` *)
+
+clause_params = clause_param ("," clause_param)* ","? ;
+clause_param  = pattern ;
+              (* patterns instead of typed identifiers *)
 struct_def  = "struct" IDENT type_params? "{" field_list? "}" ;
 enum_def    = "enum" IDENT type_params? "{" variant_list? "}" ;
 trait_def   = "trait" IDENT type_params? "{" method_sig* "}" ;
@@ -1321,6 +1502,8 @@ variant     = IDENT
             | IDENT "(" type_expr ("," type_expr)* ")"
             | IDENT "{" field_list? "}" ;
 method_sig  = IDENT "(" param_list? ")" ("->" type_expr)? ;
+where_block = "where" ident_eq_expr+ ;
+ident_eq_expr = IDENT "=" expr ;
 
 block       = "{" stmt* expr? "}" ;
 stmt        = let_stmt | while_stmt | loop_stmt | for_stmt
@@ -1358,7 +1541,7 @@ primary_expr= INT_LIT | FLOAT_LIT | STRING_LIT | CHAR_LIT
             | "true" | "false"
             | IDENT | IDENT "::" IDENT
             | "(" expr_list? ")"
-            | "[" array_init "]"
+            | "[" (array_init | comprehension) "]"
             | IDENT "{" struct_fields "}"
             | "if" expr block ("else" (if_expr | block))?
             | "match" expr "{" match_arm* "}"
@@ -1370,6 +1553,8 @@ primary_expr= INT_LIT | FLOAT_LIT | STRING_LIT | CHAR_LIT
 
 array_init  = expr (";" expr)?
             | expr ("," expr)* ;
+
+comprehension = expr "for" IDENT "in" expr ("if" expr)? ;
 struct_fields = (IDENT ":" expr) ("," IDENT ":" expr)*
                 ("," ".." expr)? ;
 match_arm   = pattern ("if" expr)? "=>" expr ","? ;

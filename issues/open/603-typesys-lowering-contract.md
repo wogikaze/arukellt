@@ -1,10 +1,10 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 603
 Track: selfhost / typechecker / lowering
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Depends on: 601, 602
 Parent: None
 In scope: 
@@ -13,10 +13,13 @@ Close when: end-to-end generic lowering is deterministic, no unresolved trait di
 ---
 
 end-to-end lowering contract: generalized + constrained source types lower into
+
 # Type System Stage-Up: Monomorphization and Lowering Contract Closure
+
 - Close #312: finish generic specialization for direct calls, method calls, nested generics
 - Typechecker → CoreHIR/MIR contract: carry enough information to materialize concrete
 - Parity guardrails: ensure selfhost typechecker output is semantically equivalent to
+
 # Type System Stage-Up: Monomorphization and Lowering Contract Closure
 
 ---

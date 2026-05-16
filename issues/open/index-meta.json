@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T09:20:55Z",
+  "generated_at": "2026-05-16T09:40:37Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -610,33 +610,6 @@
       },
       "orchestration": {
         "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "599",
-      "path": "599-lang-uplift-docs-rollout.md",
-      "title": "Language Surface Uplift: Docs, Fixtures, and Rollout",
-      "track": "docs / language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "595",
-        "596",
-        "597",
-        "598"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },

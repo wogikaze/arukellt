@@ -1,0 +1,1 @@
+overlapping trait impl: duplicate impl of Foo for MyStruct

@@ -4,21 +4,24 @@ trait Foo {
     fn id(x: i32) -> i32,
 }
 
-impl Foo for i32 {
-    fn id(x: i32) -> i32 {
-        x
+struct MyStruct {
+    value: i32,
+}
+
+impl Foo for MyStruct {
+    fn id(x: MyStruct) -> i32 {
+        x.value
     }
 }
 
-// T appears only in return type, not in params, so T stays unresolved
-// from the argument types at call site
-fn ambiguous<T: Foo>() -> T {
-    // This won't type check either, but the ambiguity should be caught first
-    let x = 42
-    x // type mismatch
+// T only appears in the return type, so inference from call site
+// cannot resolve it to a concrete type
+fn ambiguous<T: Foo>() -> i32 {
+    0
 }
 
 fn main() {
+    // T cannot be inferred → ambiguous trait bound
     let item = ambiguous()
     stdio::println(to_string(item))
 }

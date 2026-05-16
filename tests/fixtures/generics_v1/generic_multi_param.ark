@@ -1,0 +1,38 @@
+// Issue #603 acceptance: multi-param generic lowering contract.
+// A generic function with two type parameters must produce distinct
+// concrete callees for each distinct instantiation, and the lowering
+// path must resolve all call sites to the correct specialized target.
+use std::host::stdio
+
+fn pair_first<A, B>(a: A, b: B) -> A {
+    a
+}
+
+fn pair_second<A, B>(a: A, b: B) -> B {
+    b
+}
+
+fn main() {
+    // pair_first<i32, String> returns the i32
+    let n: i32 = pair_first(42, String_from("hello"))
+    stdio::println(i32_to_string(n))
+
+    // pair_first<String, bool> returns the String
+    let s: String = pair_first(String_from("world"), true)
+    stdio::println(s)
+
+    // pair_second<i32, String> returns the String
+    let t: String = pair_second(99, String_from("second"))
+    stdio::println(t)
+
+    // pair_second<bool, i32> returns the i32
+    let m: i32 = pair_second(true, 7)
+    stdio::println(i32_to_string(m))
+
+    stdio::println(String_from("multi-param generic lowering OK."))
+}
+// Four distinct specializations:
+//   pair_first__i32__String  (returns i32, keeps 42)
+//   pair_first__String__bool (returns String, keeps "world")
+//   pair_second__i32__String (returns String, keeps "second")
+//   pair_second__bool__i32   (returns i32, keeps 7)

@@ -46,8 +46,8 @@ def check_maturity_matrix_freshness() -> int:
 
     matrix_text = matrix_path.read_text(encoding="utf-8")
 
-    # Count feature rows in the matrix (lines matching | N or N.M | pattern)
-    feature_rows = re.findall(r'^\| \d+(?:\.\d+)? \|', matrix_text, re.MULTILINE)
+    # Count feature rows in the matrix (lines matching | N or N.M or N.M.O | pattern)
+    feature_rows = re.findall(r'^\| \d+(?:\.\d+)* \|', matrix_text, re.MULTILINE)
     if len(features) != len(feature_rows):
         errors.append(
             f"maturity matrix stale: TOML has {len(features)} features "

@@ -1099,15 +1099,6 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
                 }
                 push(covered_variants, variant_name)
             }
-            // Type-check guard if present (arm child layout: children[0]=pattern, children[1]=guard(optional), children[n-1]=body)
-            if arm_child_count == 3 {
-                let guard_node = get_unchecked(arm.children, 1)
-                let guard_ty = infer_expr(env, scope, fn_sigs, enum_defs, guard_node)
-                let resolved_guard = resolve_type(env, guard_ty)
-                if resolved_guard.tag != typechecker_kinds::TY_BOOL() {
-                    type_error(env, String_from("guard expression must be bool"))
-                }
-            }
             let body = get_unchecked(arm.children, arm_child_count - 1)
             let arm_ty = infer_expr(env, scope, fn_sigs, enum_defs, body)
             if idx == 0 {

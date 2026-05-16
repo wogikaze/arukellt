@@ -215,7 +215,8 @@ parse-only:module_import/pub_use_basic.ark
 # std::host::clock and std::host::random import-acceptance fixtures (#138)
 parse-only:stdlib_host/clock_import.ark
 parse-only:stdlib_host/random_import.ark
-parse-only:selfhost/parse_where_clause_stub.ark
+run:selfhost/fn_multiclause_where.ark
+compile-error:selfhost/fn_multiclause_where_unresolved.ark
 module-run:stdlib_host/wasi_clock.ark
 module-run:stdlib_host/wasi_random.ark
 module-run:stdlib_host/wasi_args.ark
@@ -289,6 +290,7 @@ run:generics/option_generic.ark
 run:generics/result_generic.ark
 run:generics/two_params.ark
 run:generics/vec_generic.ark
+run:generics_v1/generic_multi_param.ark
 run:generics_v1/generic_struct.ark
 run:generics_v1/generic_method_call.ark
 run:generics_v1/nested_generics.ark
@@ -296,6 +298,7 @@ run:generics_v1/nested_generic_call.ark
 run:generics_v1/mir_specialization.ark
 run:generics_v1/nested_option.ark
 run:generics_v1/trait_bound.ark
+run:generics_v1/trait_method_resolve.ark
 run:hello/empty_main.ark
 run:hello/exit_code.ark
 run:hello/hello.ark
@@ -368,6 +371,7 @@ run:selfhost/fn_multiclause_enum_guard.ark
 compile-error:selfhost/fn_multiclause_guard_unknown_name.ark
 compile-error:selfhost/fn_multiclause_guard_not_bool.ark
 run:selfhost/typecheck_trait_impl_smoke.ark
+run:selfhost/trait_obligation_satisfied.ark
 module-diag:selfhost/resolver_circular_import/main.ark
 run:selfhost/resolver_import_basic/main.ark
 run:selfhost/resolver_stdlib_module/main.ark
@@ -407,6 +411,9 @@ diag:selfhost/analysis_lex_diagnostic.ark
 diag:selfhost/analysis_multi_phase.ark
 diag:selfhost/multi_diag_unresolved.ark
 diag:selfhost/multi_diag_dup.ark
+diag:selfhost/trait_unresolved_var_bound.ark
+diag:selfhost/trait_overlapping_impl.ark
+diag:selfhost/trait_ambiguous_bound.ark
 diag:diagnostics/parse_missing_rbrace.ark
 diag:diagnostics/parse_bad_token.ark
 diag:diagnostics/resolve_undefined_fn.ark
@@ -688,6 +695,7 @@ t3-compile:generics/option_generic.ark
 t3-compile:generics/result_generic.ark
 t3-compile:generics/two_params.ark
 t3-compile:generics/vec_generic.ark
+t3-compile:generics_v1/generic_multi_param.ark
 t3-compile:generics_v1/generic_struct.ark
 t3-compile:generics_v1/generic_method_call.ark
 t3-compile:generics_v1/nested_generics.ark
@@ -695,6 +703,7 @@ t3-compile:generics_v1/nested_generic_call.ark
 t3-compile:generics_v1/mir_specialization.ark
 t3-compile:generics_v1/nested_option.ark
 t3-compile:generics_v1/trait_bound.ark
+t3-compile:generics_v1/trait_method_resolve.ark
 t3-compile:hello/empty_main.ark
 t3-compile:hello/exit_code.ark
 t3-compile:hello/hello.ark
@@ -859,6 +868,7 @@ t3-run:generics/option_generic.ark
 t3-run:generics/result_generic.ark
 t3-run:generics/two_params.ark
 t3-run:generics/vec_generic.ark
+t3-run:generics_v1/generic_multi_param.ark
 t3-run:generics_v1/generic_struct.ark
 t3-run:generics_v1/generic_method_call.ark
 t3-run:generics_v1/nested_generics.ark
@@ -866,6 +876,7 @@ t3-run:generics_v1/nested_generic_call.ark
 t3-run:generics_v1/mir_specialization.ark
 t3-run:generics_v1/nested_option.ark
 t3-run:generics_v1/trait_bound.ark
+t3-run:generics_v1/trait_method_resolve.ark
 t3-run:hello/empty_main.ark
 t3-run:hello/exit_code.ark
 t3-run:hello/hello.ark

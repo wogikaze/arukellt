@@ -2,13 +2,10 @@
 // Should produce a compile error about undefined name
 use std::host::stdio
 
-struct Point { x: i32, y: i32 }
-
-fn describe(pt) -> String
-| m == 0 = "origin"
-| _ = "far"
+fn classify(x) -> String | x > 0 = "pos"
+fn classify(_) -> String = "other"
 where
-    m = undefined_var * pt.x
+    y = undefined_name + 1
 
 fn main() {
     stdio::println(String_from("should not reach"))

@@ -31,7 +31,6 @@ graph LR
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I588["588 Language surface uplift plan"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
-  I599["599 Language Surface Uplift: Docs, Fixtures, and Rollout"]
   I60["60 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I603["603 603-typesys-lowering-contract"]
   I605["605 Stdlib Baseline: Host Core-Platform Baseline"]
@@ -129,7 +128,6 @@ graph LR
 - **574** depends on: 564; blocks: 575, 582
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
-- **599** depends on: 595, 596, 597, 598; blocks: none
 - **60** depends on: 510, 121; blocks: none
 - **603** depends on: 601, 602; blocks: none
 - **605** depends on: 604; blocks: 608

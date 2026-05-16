@@ -237,6 +237,12 @@ name = "Assignment"
 stability = "stable"
 
 [[features]]
+id = "3.20"
+name = "Array Comprehension"
+stability = "provisional"
+notes = "language uplift feature — interface may change before stable exit"
+
+[[features]]
 id = "4"
 name = "Statements"
 stability = "stable"
@@ -325,6 +331,24 @@ stability = "stable"
 id = "6.1"
 name = "Function Definition"
 stability = "stable"
+
+[[features]]
+id = "6.1.1"
+name = "Multi-Clause Function Definitions"
+stability = "provisional"
+notes = "language uplift feature — interface may change before stable exit"
+
+[[features]]
+id = "6.1.2"
+name = "Clause Guards"
+stability = "provisional"
+notes = "language uplift feature — interface may change before stable exit"
+
+[[features]]
+id = "6.1.3"
+name = "Where Clauses"
+stability = "provisional"
+notes = "language uplift feature — interface may change before stable exit"
 
 [[features]]
 id = "6.2"
