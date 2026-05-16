@@ -1,0 +1,7 @@
+// Export with s32 parameter and f32 result maps to WIT s32 -> float32.
+pub fn half_count(n: i32) -> f32 {
+    f64_to_f32(0.5)
+}
+
+fn main() {
+}

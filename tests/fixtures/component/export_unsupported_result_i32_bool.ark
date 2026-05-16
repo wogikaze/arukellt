@@ -1,0 +1,12 @@
+// Export with Result<i32, bool> return — non-s32 result error payload canonical ABI is not supported yet.
+// WIT: result<s32, bool> requires a dedicated mixed-payload result lift/lower adapter.
+// Expected: E0401 compile-time error.
+pub fn maybe_count(flag: bool) -> Result<i32, bool> {
+    if flag {
+        return Ok(7)
+    }
+    Err(false)
+}
+
+fn main() {
+}

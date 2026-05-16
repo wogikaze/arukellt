@@ -158,9 +158,23 @@ mod tests {
     fn test_import() {
         let (module, sink) = parse_src("import io\nfn main() {}");
         assert!(!sink.has_errors());
+        assert_eq!(sink.diagnostics().len(), 1);
+        assert_eq!(
+            sink.diagnostics()[0].code,
+            ark_diagnostics::DiagnosticCode::W0101
+        );
         assert!(module.docs.is_empty());
         assert_eq!(module.imports.len(), 1);
         assert_eq!(module.imports[0].module_name, "io");
+    }
+
+    #[test]
+    fn test_legacy_import_deprecation_fix_it_preserves_alias() {
+        let (_module, sink) = parse_src("import io as host_io\nfn main() {}");
+        assert!(!sink.has_errors());
+        let diag = &sink.diagnostics()[0];
+        assert_eq!(diag.code, ark_diagnostics::DiagnosticCode::W0101);
+        assert_eq!(diag.fix_its[0].replacement, "use io as host_io");
     }
 
     #[test]

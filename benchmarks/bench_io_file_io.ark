@@ -1,0 +1,47 @@
+// I/O-heavy benchmark: repeated host filesystem read/write with string payloads.
+// Exercises std::host::fs write/read host calls, string construction, Result
+// matching, and deterministic checksum accumulation.
+use std::host::fs
+use std::host::stdio
+
+fn line_for(i: i32) -> String {
+    concat(concat(concat("record:", i32_to_string(i)), ":payload:abcdefghijklmnopqrstuvwxyz0123456789"), "\n")
+}
+
+fn main() {
+    let path = "arukellt_bench_io_file_io.txt"
+    let mut data = String_new()
+    let mut i: i32 = 0
+    while i < 200 {
+        data = concat(data, line_for(i))
+        i = i + 1
+    }
+
+    let mut checksum: i32 = 0
+    let mut iter: i32 = 0
+    while iter < 20 {
+        let write_result = fs::write_string(path, clone(data))
+        match write_result {
+            Result::Ok(_) => {},
+            Result::Err(e) => {
+                stdio::println(concat("write error: ", e))
+                return
+            },
+        }
+
+        let read_result = fs::read_to_string(path)
+        match read_result {
+            Result::Ok(contents) => {
+                checksum = checksum + len(contents)
+            },
+            Result::Err(e) => {
+                stdio::println(concat("read error: ", e))
+                return
+            },
+        }
+        iter = iter + 1
+    }
+
+    stdio::println(i32_to_string(len(data)))
+    stdio::println(i32_to_string(checksum))
+}

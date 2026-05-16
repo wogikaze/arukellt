@@ -1,0 +1,9 @@
+// Export with Vec<Option<i32>> parameter — nested list payload canonical ABI is not supported yet.
+// WIT: list<option<s32>> requires nested compound lift/lower.
+// Expected: E0401 compile-time error.
+pub fn nested_option_count(values: Vec<Option<i32>>) -> i32 {
+    0
+}
+
+fn main() {
+}

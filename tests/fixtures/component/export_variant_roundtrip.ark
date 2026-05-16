@@ -1,0 +1,15 @@
+// Export with WIT variant parameter/result canonical ABI.
+enum Shape {
+    Circle(f64),
+    Square(f64),
+}
+
+pub fn normalize_shape(s: Shape) -> Shape {
+    match s {
+        Shape::Circle(r) => Shape::Square(r + 1.0),
+        Shape::Square(side) => Shape::Circle(side + 2.0),
+    }
+}
+
+fn main() {
+}

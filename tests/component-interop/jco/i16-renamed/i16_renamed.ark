@@ -1,0 +1,8 @@
+// Component interop smoke test: renamed i16 scalar parameter/result.
+
+pub fn nudge_medium(n: i16) -> i16 {
+    n - 11i16
+}
+
+fn main() {
+}

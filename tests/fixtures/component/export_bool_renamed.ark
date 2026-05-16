@@ -1,0 +1,7 @@
+// Export with renamed bool parameter/result maps to WIT bool.
+pub fn flip_flag(flag: bool) -> bool {
+    !flag
+}
+
+fn main() {
+}

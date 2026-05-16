@@ -1,0 +1,25 @@
+// Component interop test: multi-export enum adapters are name-independent.
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+pub fn rotate_color(c: Color) -> Color {
+    match c {
+        Color::Red => Color::Green,
+        Color::Green => Color::Blue,
+        Color::Blue => Color::Red,
+    }
+}
+
+pub fn color_rank(c: Color) -> i32 {
+    match c {
+        Color::Red => 1,
+        Color::Green => 2,
+        Color::Blue => 3,
+    }
+}
+
+fn main() {
+}

@@ -1,0 +1,8 @@
+// Component interop smoke test: renamed u16 scalar parameter/result.
+
+pub fn widen_small(n: u16) -> u16 {
+    n + 321u16
+}
+
+fn main() {
+}

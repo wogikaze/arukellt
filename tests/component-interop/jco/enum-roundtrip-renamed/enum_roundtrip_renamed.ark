@@ -1,0 +1,18 @@
+// Component interop smoke test: renamed WIT enum parameter/result canonical ABI.
+
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+pub fn cycle_color(c: Color) -> Color {
+    match c {
+        Color::Red => Color::Green,
+        Color::Green => Color::Blue,
+        Color::Blue => Color::Red,
+    }
+}
+
+fn main() {
+}

@@ -1,0 +1,8 @@
+// Component interop smoke test: renamed u32 scalar parameter/result.
+
+pub fn widen_count(n: u32) -> u32 {
+    n + 12345u32
+}
+
+fn main() {
+}

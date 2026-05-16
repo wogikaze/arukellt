@@ -1,0 +1,11 @@
+// Component interop smoke test: string parameter canonical ABI with u8 result.
+
+pub fn byte_text(text: String) -> u8 {
+    if len(text) == 0 {
+        return 7u8
+    }
+    9u8
+}
+
+fn main() {
+}

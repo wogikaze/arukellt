@@ -1,0 +1,12 @@
+// Export with Result<i64, i64> return — only selected s32/string result shapes are supported yet.
+// WIT: result<s64, s64> requires a dedicated wide-payload result lift/lower adapter.
+// Expected: E0401 compile-time error.
+pub fn maybe_wide_result(flag: bool) -> Result<i64, i64> {
+    if flag {
+        return Ok(42i64)
+    }
+    Err(7i64)
+}
+
+fn main() {
+}

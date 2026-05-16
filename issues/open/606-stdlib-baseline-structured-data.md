@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-14
 ID: 606
 Track: stdlib
 Orchestration class: blocked-by-upstream
@@ -114,6 +114,43 @@ python scripts/manager.py verify quick
 python scripts/manager.py verify fixtures
 python3 scripts/gen/generate-docs.py
 ```
+
+---
+
+## Recheck — 2026-05-14
+
+Current implementation status:
+
+- `std::json` documents whole-document parse semantics and has registered
+  negative fixtures:
+  - `tests/fixtures/stdlib_json/json_parse_trailing_garbage.ark`
+  - `tests/fixtures/stdlib_json/json_parse_trailing_object_garbage.ark`
+  - `tests/fixtures/stdlib_json/json_parse_multiple_values.ark`
+- `std::toml` documents the bounded subset and has registered negative
+  fixtures for unsupported table headers, trailing garbage, empty values, and
+  unclosed strings.
+- `std::text` doc comments and generated docs explicitly state byte / ASCII
+  semantics, best-effort `len_chars`, and ASCII-only case/trim behavior.
+- `std::time` only exposes duration helpers; `std::host::clock` owns host clock
+  reads. The deprecated `time::monotonic_now()` diagnostic fixture is registered.
+
+Verification findings:
+
+- `python3 scripts/manager.py verify fixtures` initially failed before running
+  fixtures because `tests/fixtures/lsp_perf/*.ark` is intentionally skipped by
+  `scripts/verify/fixtures.py` but was still considered an orphan by the Rust
+  fixture harness self-check. The Rust harness was updated to use the same
+  `lsp_perf/` skip rule.
+- After that harness-contract fix, full fixture execution still failed
+  (`PASS: 413 FAIL: 405 SKIP: 20`).
+- Targeted #606 failures remain:
+  - `target/release/arukellt run tests/fixtures/stdlib_json/json_parse_trailing_garbage.ark`
+    traps at runtime instead of printing `error:trailing characters`.
+  - `target/release/arukellt run tests/fixtures/stdlib_time/duration.ark`
+    produces invalid Wasm (`type mismatch: expected i64, found i32`).
+
+Updated verdict: close-candidate `no`. The docs/API split is mostly present, but
+the required negative/time fixtures do not pass yet.
 
 ---
 

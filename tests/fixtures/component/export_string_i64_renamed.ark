@@ -1,0 +1,11 @@
+// Export with renamed String parameter and i64 result maps to WIT string -> s64.
+
+pub fn large_count(text: String) -> i64 {
+    if len(text) == 0 {
+        return 0i64 - 7000000000i64
+    }
+    7000000000i64
+}
+
+fn main() {
+}

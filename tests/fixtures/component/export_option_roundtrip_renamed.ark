@@ -1,0 +1,9 @@
+// Export with renamed Option<i32> parameter/result maps to WIT option<s32> roundtrip shape.
+pub fn adjust_optional(v: Option<i32>) -> Option<i32> {
+    let n = unwrap_or(v, 0)
+    if n > 1 {
+        Some(n - 1)
+    } else {
+        None
+    }
+}

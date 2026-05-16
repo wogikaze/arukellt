@@ -1,0 +1,13 @@
+// Export with unsupported payload variant shape — only the fixture-specific Shape variant adapters exist.
+// Expected: E0401 compile-time error.
+enum Event {
+    Count(i32),
+    Done,
+}
+
+pub fn event_code(e: Event) -> i32 {
+    0
+}
+
+fn main() {
+}

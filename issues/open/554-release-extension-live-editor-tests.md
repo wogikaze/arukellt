@@ -72,3 +72,20 @@ All extension features must work correctly in live editor environment.
 ## Verdict
 
 Close-candidate status: not runnable in the current environment because the VS Code test harness is blocked by an existing Code instance, even though VSIX packaging itself is runnable.
+
+## Recheck — 2026-05-14
+
+- VSIX package exists: `extensions/arukellt-all-in-one/arukellt-all-in-one-0.0.1.vsix`
+  (`498414` bytes).
+- `npm test` in `extensions/arukellt-all-in-one/`: PASS in the local extension
+  harness (`vscode-test` reports `Exit code: 0`).
+- `xvfb-run -a npm test`: still not usable in this workspace, but the current
+  blocker is Xvfb startup rather than an extension assertion:
+  - `xvfb-run -a true` exits 1.
+  - Xvfb reports `/tmp/.X11-unix` should be owned by root.
+  - `sudo chown root:root /tmp/.X11-unix` could not be run here because sudo
+    requires a password.
+
+Updated close-candidate status: still `no`. This issue requires manual
+live-editor checks in an actual VS Code session, including diagnostics and
+completion/hover/definition behavior after installing the VSIX.

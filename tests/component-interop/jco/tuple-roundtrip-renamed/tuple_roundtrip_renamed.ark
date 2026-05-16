@@ -1,0 +1,8 @@
+// Component interop smoke test: tuple<s32, s32> parameter/result canonical ABI is name-independent.
+
+pub fn rotate_pair(p: (i32, i32)) -> (i32, i32) {
+    (6, 3)
+}
+
+fn main() {
+}

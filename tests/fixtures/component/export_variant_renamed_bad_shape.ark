@@ -1,0 +1,17 @@
+// The Shape adapter only supports variant shape { circle(f64), square(f64) }.
+enum Shape {
+    Circle(f64),
+    Square(f64),
+    Triangle(f64),
+}
+
+pub fn measure(s: Shape) -> f64 {
+    match s {
+        Shape::Circle(r) => 3.14159 * r * r,
+        Shape::Square(side) => side * side,
+        Shape::Triangle(side) => side * side,
+    }
+}
+
+fn main() {
+}

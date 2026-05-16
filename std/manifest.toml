@@ -3100,7 +3100,7 @@ returns = "i64"
 name = "std::collections::hash"
 stability = "stable"
 family = "collections"
-doc = "HashMap<i32,i32> and HashSet<i32> monomorphic surface (i32-keyed, i32-valued). Raw bucket layout and user-facing helpers are still co-located; deeper hardening, generic key/value support, and raw/facade separation are tracked under issue #607."
+doc = "HashMap<i32,i32> and HashSet<i32> monomorphic surface (i32-keyed, i32-valued). `hashmap_get_option` is the primary lookup API because it distinguishes missing keys from stored zero values. `hashmap_set` returns bool so fixed-capacity insertion failure is explicit. The i32 hash policy matches std::core::hash::hash_i32. Raw bucket layout remains documented for compatibility but is not the recommended user path."
 
 [[functions]]
 name = "hashmap_new"
@@ -3132,7 +3132,7 @@ module = "std::collections::hash"
 doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32", "i32"]
-returns = "()"
+returns = "bool"
 
 [[functions]]
 name = "hashmap_size"

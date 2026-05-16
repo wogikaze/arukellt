@@ -1,0 +1,7 @@
+// Export with renamed i16 parameter/result maps to WIT s16.
+pub fn nudge_medium(n: i16) -> i16 {
+    n - 11i16
+}
+
+fn main() {
+}

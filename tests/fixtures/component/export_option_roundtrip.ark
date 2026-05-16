@@ -1,0 +1,9 @@
+// Export with Option<i32> parameter and result maps to WIT option<s32> roundtrip shape.
+pub fn keep_positive(v: Option<i32>) -> Option<i32> {
+    let n = unwrap_or(v, 0)
+    if n > 0 {
+        Some(n + 1)
+    } else {
+        None
+    }
+}

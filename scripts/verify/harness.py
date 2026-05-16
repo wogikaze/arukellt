@@ -49,9 +49,35 @@ class Harness:
         self._passed += 1
         self._total += 1
 
-    def check_fail(self, label: str) -> None:
+    def check_fail(
+        self,
+        label: str,
+        *,
+        category: str = "",
+        command: str = "",
+        primary_path: str = "",
+    ) -> None:
         print(f"{RED}\u2717 {label}{NC}")
+        self._print_failure_context(
+            category=category,
+            command=command,
+            primary_path=primary_path,
+        )
         self._total += 1
+
+    def _print_failure_context(
+        self,
+        *,
+        category: str = "",
+        command: str = "",
+        primary_path: str = "",
+    ) -> None:
+        if category:
+            print(f"  category: {category}")
+        if command:
+            print(f"  command: {command}")
+        if primary_path:
+            print(f"  primary path: {primary_path}")
 
     def check_skip(self, label: str) -> None:
         print(f"{YELLOW}\u2299 {label} (skipped){NC}")
@@ -60,7 +86,15 @@ class Harness:
 
     # ── run_check ────────────────────────────────────────────────────────────
 
-    def run_check(self, label: str, cmd: list[str], tail_lines: int = 30) -> bool:
+    def run_check(
+        self,
+        label: str,
+        cmd: list[str],
+        tail_lines: int = 30,
+        *,
+        category: str = "",
+        primary_path: str = "",
+    ) -> bool:
         """Run cmd; print pass/fail with last tail_lines of output on failure.
 
         Returns True on pass, False on fail.
@@ -82,7 +116,12 @@ class Harness:
             self.check_pass(label)
             return True
         else:
-            self.check_fail(label)
+            self.check_fail(
+                label,
+                category=category,
+                command=" ".join(cmd),
+                primary_path=primary_path,
+            )
             combined = (result.stdout + result.stderr).splitlines()
             tail = combined[-tail_lines:]
             for line in tail:

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-14T00:14:17Z",
+  "generated_at": "2026-05-14T17:01:04Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -27,28 +27,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "123",
-      "path": "123-import-syntax-unification.md",
-      "title": "123-import-syntax-unification",
-      "track": "language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "—"
       }
     },
     {
@@ -127,60 +105,6 @@
       }
     },
     {
-      "id": "214",
-      "path": "214-extension-quality-packaging-and-marketplace.md",
-      "title": "Extension quality / packaging / marketplace readiness",
-      "track": "parallel",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "184",
-        "185",
-        "186",
-        "187",
-        "188"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "28",
-      "path": "034-wit-cli-integration.md",
-      "title": "034-wit-cli-integration",
-      "track": "component-model",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "030",
-        "031",
-        "028b"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 10,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "30",
       "path": "036-jco-javascript-interop.md",
       "title": "036-jco-javascript-interop",
@@ -202,33 +126,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "312",
-      "path": "312-selfhost-generic-monomorphization.md",
-      "title": "312-selfhost-generic-monomorphization",
-      "track": "selfhost-frontend",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": true,
-      "depends_on": [
-        "311"
-      ],
-      "blocks_issue_ids": [
-        "36",
-        "495"
-      ],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
       }
     },
     {
@@ -466,47 +363,31 @@
       }
     },
     {
-      "id": "506",
-      "path": "506-placeholder-placeholder.md",
-      "title": "506 — Placeholder",
-      "track": "main",
+      "id": "495",
+      "path": "495-selfhost-trait-bounds.md",
+      "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
+      "track": "selfhost",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
+      "depends_on": [
+        "312",
+        "504"
+      ],
+      "blocks_issue_ids": [
+        "36",
+        "512"
+      ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
+        "unchecked": 4
       },
       "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "507",
-      "path": "507-placeholder-placeholder.md",
-      "title": "507 — Placeholder",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
       }
     },
     {
@@ -534,28 +415,6 @@
       }
     },
     {
-      "id": "509",
-      "path": "509-placeholder-placeholder.md",
-      "title": "509 — Placeholder",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "529",
       "path": "529-100-percent-selfhost-transition-plan.md",
       "title": "100% selfhost transition plan",
@@ -576,50 +435,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "546",
-      "path": "546-release-binary-smoke-tests.md",
-      "title": "Release: Binary Smoke Tests",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "547",
-      "path": "547-release-determinism-check.md",
-      "title": "Release: Determinism Check",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
         "upstream_notes": null
       }
     },
@@ -690,28 +505,6 @@
       }
     },
     {
-      "id": "551",
-      "path": "551-release-failure-recovery-tests.md",
-      "title": "Release: Failure Recovery Tests",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "552",
       "path": "552-release-post-release-documentation.md",
       "title": "Release: Post-Release Documentation",
@@ -725,8 +518,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 2
+        "checked": 1,
+        "unchecked": 1
       },
       "orchestration": {
         "class": null,
@@ -858,28 +651,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "584",
-      "path": "584-placeholder-placeholder.md",
-      "title": "584 — Placeholder",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
       }
     },
     {
@@ -1241,30 +1012,6 @@
       }
     },
     {
-      "id": "619",
-      "path": "619-package-workspace-script-execution-ci.md",
-      "title": "Package workspace script execution tests and CI lane",
-      "track": "tooling-contract",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "263"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "62",
       "path": "076-wasi-p2-filesystem.md",
       "title": "WASI P2 ネイティブ: \"wasi:filesystem ネイティブバインディング\"",
@@ -1279,87 +1026,13 @@
         "074",
         "510"
       ],
-      "blocks_issue_ids": [
-        "543"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "620",
-      "path": "620-ci-category-result-summary.md",
-      "title": "CI category result summary",
-      "track": "tooling-contract",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "264"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "621",
-      "path": "621-verification-failure-category-reporting.md",
-      "title": "Verification failure category reporting",
-      "track": "tooling-contract",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "265"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "622",
-      "path": "622-extension-task-execution-test-discovery-e2e.md",
-      "title": "Extension task execution and test discovery E2E",
-      "track": "vscode-ide",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "254"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -1465,59 +1138,6 @@
       }
     },
     {
-      "id": "36",
-      "path": "044-std-collections-hash.md",
-      "title": "std: \":collections::hash: HashMap\\<K,V\\> 汎用化と HashSet\\<T\\>\"",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "039",
-        "041",
-        "312"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "495",
-      "path": "495-selfhost-trait-bounds.md",
-      "title": "495 — Selfhost typechecker: trait bounds and constraint solving",
-      "track": "selfhost",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "312",
-        "504"
-      ],
-      "blocks_issue_ids": [
-        "512"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "485",
       "path": "485-arukellt-component-cli-docs.md",
       "title": "docs: arukellt component サブコマンド CLI リファレンス",
@@ -1563,6 +1183,58 @@
       },
       "orchestration": {
         "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "36",
+      "path": "044-std-collections-hash.md",
+      "title": "std: \":collections::hash: HashMap\\<K,V\\> 汎用化と HashSet\\<T\\>\"",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "039",
+        "041",
+        "312",
+        "495"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "512",
+      "path": "512-stdlib-trait-oriented-reuse-surface.md",
+      "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": true,
+      "depends_on": [
+        "504",
+        "495"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
         "upstream_notes": "None"
       }
     },
@@ -1772,55 +1444,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "543",
-      "path": "543-bench-file-io.md",
-      "title": "543 — Benchmark: \"file I/O (I/O-heavy workloads)\"",
-      "track": "benchmark",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "62"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "—"
-      }
-    },
-    {
-      "id": "512",
-      "path": "512-stdlib-trait-oriented-reuse-surface.md",
-      "title": "Stdlib: trait ベースの再利用可能 surface へ段階移行する",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": true,
-      "depends_on": [
-        "504",
-        "495"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
       }
     },
     {
@@ -2110,6 +1733,19 @@
     }
   ],
   "blocked_external": [
+    {
+      "id": "28",
+      "path": "034-wit-cli-integration.md",
+      "title": "034-wit-cli-integration",
+      "track": "component-model",
+      "blocked_by": "#124 WIT component import syntax",
+      "depends_on": [
+        "030",
+        "031",
+        "028b",
+        "124"
+      ]
+    },
     {
       "id": "31",
       "path": "037-jco-gc-support.md",

@@ -223,7 +223,7 @@
 | `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_set` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
@@ -1192,7 +1192,7 @@ Expected output: `hello world`
 | `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_set` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |

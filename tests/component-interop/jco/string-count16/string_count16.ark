@@ -1,0 +1,11 @@
+// Component interop smoke test: string parameter canonical ABI with u16 result.
+
+pub fn count16_text(text: String) -> u16 {
+    if len(text) == 0 {
+        return 16u16
+    }
+    1600u16
+}
+
+fn main() {
+}

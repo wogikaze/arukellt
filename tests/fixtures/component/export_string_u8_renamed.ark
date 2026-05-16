@@ -1,0 +1,11 @@
+// Export with renamed String parameter and u8 result maps to WIT string -> u8.
+
+pub fn small_code(text: String) -> u8 {
+    if len(text) == 0 {
+        return 3u8
+    }
+    5u8
+}
+
+fn main() {
+}

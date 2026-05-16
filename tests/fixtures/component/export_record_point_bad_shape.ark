@@ -1,0 +1,16 @@
+// The Point adapter only supports record point { x: s32, y: s32 }.
+struct Point {
+    x: i64,
+    y: i64,
+}
+
+pub fn distance_sq(p: Point) -> i32 {
+    0
+}
+
+pub fn add_points(a: Point, b: Point) -> Point {
+    a
+}
+
+fn main() {
+}

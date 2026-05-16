@@ -1,0 +1,8 @@
+// Component interop smoke test: renamed option<s32> parameter canonical ABI.
+
+pub fn decode_optional(v: Option<i32>) -> i32 {
+    unwrap_or(v, -7)
+}
+
+fn main() {
+}

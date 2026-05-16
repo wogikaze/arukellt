@@ -1,0 +1,10 @@
+// Component interop smoke test: result<bool, bool> result canonical ABI.
+pub fn classify_flag(flag: bool) -> Result<bool, bool> {
+    if flag {
+        return Ok(true)
+    }
+    Err(false)
+}
+
+fn main() {
+}

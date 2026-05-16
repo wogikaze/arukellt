@@ -1,0 +1,9 @@
+// Export with tuple<String, String> parameter — only tuple<s32, s32> canonical ABI is supported yet.
+// WIT: tuple<string, string> requires nested string field lowering.
+// Expected: E0401 compile-time error.
+pub fn string_pair_len(pair: (String, String)) -> i32 {
+    0
+}
+
+fn main() {
+}

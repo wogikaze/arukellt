@@ -48,6 +48,135 @@ async function waitFor(check, options = {}) {
   throw lastError ?? new Error(`Timed out waiting for ${description}`);
 }
 
+function createArukelltStub() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "arukellt-e2e-"));
+  const scriptPath = path.join(
+    dir,
+    process.platform === "win32" ? "arukellt-stub.cmd" : "arukellt-stub"
+  );
+  const js = String.raw`
+const fs = require("fs");
+const args = process.argv.slice(2);
+const logPath = process.env.ARUKELLT_E2E_STUB_LOG;
+if (logPath) {
+  fs.appendFileSync(logPath, JSON.stringify({ argv: args, cwd: process.cwd() }) + "\n");
+}
+
+if (args[0] === "--version") {
+  console.log("arukellt stub 0.0.0");
+  process.exit(0);
+}
+
+if (args[0] === "check") {
+  console.log("check ok");
+  process.exit(0);
+}
+
+if (args[0] === "fmt" && args[1] === "--check") {
+  console.error("formatting drift");
+  process.exit(7);
+}
+
+if (args[0] === "test" && args.includes("--list") && args.includes("--json")) {
+  console.log(JSON.stringify(["test_addition", "test_failure_path"]));
+  process.exit(0);
+}
+
+if (args[0] === "test" && args.includes("--json")) {
+  console.log(JSON.stringify({
+    tests: [
+      { name: "test_addition", status: "pass" },
+      { name: "test_failure_path", status: "fail", message: "expected failure" }
+    ]
+  }));
+  process.exit(1);
+}
+
+console.error("unexpected arukellt stub args: " + args.join(" "));
+process.exit(3);
+`;
+
+  if (process.platform === "win32") {
+    fs.writeFileSync(
+      scriptPath,
+      `@echo off\r\nnode -e ${JSON.stringify(js)} %*\r\n`,
+      "utf8"
+    );
+  } else {
+    fs.writeFileSync(
+      scriptPath,
+      `#!/usr/bin/env node\n${js}\n`,
+      "utf8"
+    );
+    fs.chmodSync(scriptPath, 0o755);
+  }
+  return { dir, scriptPath };
+}
+
+function readStubCalls(logPath) {
+  if (!fs.existsSync(logPath)) {
+    return [];
+  }
+  return fs
+    .readFileSync(logPath, "utf8")
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+}
+
+function readLspStubSpyEntries(logPath) {
+  if (!fs.existsSync(logPath)) {
+    return [];
+  }
+  return fs
+    .readFileSync(logPath, "utf8")
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const [timestamp, pid, kind] = line.trim().split(/\s+/);
+      return {
+        timestamp: Number(timestamp),
+        pid: Number(pid),
+        kind,
+      };
+    });
+}
+
+async function executeTaskAndWait(task, options = {}) {
+  const timeoutMs = options.timeoutMs ?? 20000;
+  let execution;
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      subscription.dispose();
+      reject(new Error(`Timed out waiting for task '${task.name}' to finish`));
+    }, timeoutMs);
+
+    const subscription = vscode.tasks.onDidEndTaskProcess((event) => {
+      if (
+        (execution && event.execution === execution) ||
+        event.execution.task.name === task.name
+      ) {
+        clearTimeout(timeout);
+        subscription.dispose();
+        resolve(event.exitCode);
+      }
+    });
+
+    vscode.tasks.executeTask(task).then(
+      (value) => {
+        execution = value;
+      },
+      (error) => {
+        clearTimeout(timeout);
+        subscription.dispose();
+        reject(error);
+      }
+    );
+  });
+}
+
 /** Raw LSP definition result → list of Location / LocationLink */
 function lspDefinitionItems(raw) {
   if (raw == null) {
@@ -482,6 +611,7 @@ suite("Task Provider (#273)", () => {
       "arukellt:run",
       "arukellt:test",
       "arukellt:fmt",
+      "arukellt:fmt-check",
       "arukellt:watch",
     ];
     for (const name of expected) {
@@ -499,6 +629,101 @@ suite("Task Provider (#273)", () => {
         "Watch task should be background"
       );
     }
+  });
+});
+
+suite("Task execution and test discovery (#622)", () => {
+  let savedPath;
+  let savedArgs;
+  let stub;
+  let logPath;
+
+  setup(async () => {
+    const cfg = vscode.workspace.getConfiguration("arukellt");
+    savedPath = cfg.get("server.path");
+    savedArgs = cfg.get("server.args");
+    stub = createArukelltStub();
+    logPath = path.join(stub.dir, "calls.jsonl");
+    process.env.ARUKELLT_E2E_STUB_LOG = logPath;
+    await cfg.update(
+      "server.path",
+      stub.scriptPath,
+      vscode.ConfigurationTarget.Global
+    );
+    await cfg.update("server.args", [], vscode.ConfigurationTarget.Global);
+  });
+
+  teardown(async () => {
+    const cfg = vscode.workspace.getConfiguration("arukellt");
+    delete process.env.ARUKELLT_E2E_STUB_LOG;
+    await cfg.update("server.path", savedPath, vscode.ConfigurationTarget.Global);
+    await cfg.update("server.args", savedArgs, vscode.ConfigurationTarget.Global);
+  });
+
+  test("provided tasks execute with command arguments and exit status", async function () {
+    this.timeout(45000);
+
+    const tasks = await vscode.tasks.fetchTasks({ type: "arukellt" });
+    const checkTask = tasks.find((t) => t.name === "arukellt:check");
+    const fmtCheckTask = tasks.find((t) => t.name === "arukellt:fmt-check");
+    assert.ok(checkTask, "arukellt:check task should be provided");
+    assert.ok(fmtCheckTask, "arukellt:fmt-check task should be provided");
+
+    const checkExit = await executeTaskAndWait(checkTask);
+    const fmtCheckExit = await executeTaskAndWait(fmtCheckTask);
+    assert.strictEqual(checkExit, 0, "check task should report success");
+    assert.strictEqual(fmtCheckExit, 7, "fmt-check task should report stub failure");
+
+    const calls = readStubCalls(logPath);
+    assert.ok(
+      calls.some((call) => JSON.stringify(call.argv) === JSON.stringify(["check"])),
+      `check task should execute 'check'; calls: ${JSON.stringify(calls)}`
+    );
+    assert.ok(
+      calls.some((call) => JSON.stringify(call.argv) === JSON.stringify(["fmt", "--check"])),
+      `fmt-check task should execute 'fmt --check'; calls: ${JSON.stringify(calls)}`
+    );
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (workspaceFolder) {
+      assert.ok(
+        calls.some((call) => call.cwd === workspaceFolder.uri.fsPath),
+        "tasks should run in the workspace folder"
+      );
+    }
+  });
+
+  test("test controller discovers concrete test items from a fixture", async function () {
+    this.timeout(30000);
+
+    const { api } = await activateExtension();
+    assert.strictEqual(
+      typeof api.__discoverTestsForTests,
+      "function",
+      "extension should expose the test discovery hook for E2E"
+    );
+
+    const fixturePath = path.join(__dirname, "fixtures", "test_discovery.ark");
+    const doc = await vscode.workspace.openTextDocument(fixturePath);
+    await vscode.window.showTextDocument(doc);
+
+    const result = await api.__discoverTestsForTests(vscode.Uri.file(fixturePath));
+    const labels = result.tests.map((item) => item.label).sort();
+    assert.ok(result.file.endsWith("test_discovery.ark"), "file item should identify the fixture");
+    assert.deepStrictEqual(labels, ["test_addition", "test_failure_path"]);
+
+    const state = api.__getTestState();
+    assert.ok(state.testControllerItemCount > 0, "test controller should retain discovered file items");
+
+    const calls = readStubCalls(logPath);
+    assert.ok(
+      calls.some((call) =>
+        call.argv[0] === "test" &&
+        call.argv[1] === fixturePath &&
+        call.argv.includes("--list") &&
+        call.argv.includes("--json")
+      ),
+      `test discovery should call 'test <fixture> --list --json'; calls: ${JSON.stringify(calls)}`
+    );
   });
 });
 
@@ -838,6 +1063,94 @@ suite("Language Server Restart — stub LSP (#254)", () => {
       },
       { description: "restart with stub server", timeoutMs: 30000 }
     );
+  });
+
+  test("unexpected LSP process exit shows Error status and manual restart recovers (#551)", async function () {
+    this.timeout(45000);
+    const { api } = await activateExtension();
+    const beforeSession = api.__getTestState().clientSessionId;
+    const entries = readLspStubSpyEntries(spyLogPath);
+    assert.ok(entries.length > 0, "stub LSP should have recorded at least one process");
+    const pid = entries[entries.length - 1].pid;
+    assert.ok(Number.isInteger(pid) && pid > 0, `expected valid stub pid, got ${pid}`);
+
+    process.kill(pid);
+
+    await waitFor(
+      () => {
+        const state = api.__getTestState();
+        assert.strictEqual(state.hasClient, false, "client should be cleared after process exit");
+        assert.strictEqual(state.languageStatusText, "$(error) Error");
+        assert.strictEqual(
+          state.languageStatusSeverity,
+          vscode.LanguageStatusSeverity.Error
+        );
+        assert.match(state.languageStatusDetail ?? "", /exited unexpectedly/i);
+        assert.match(state.statusBarText ?? "", /LSP error/i);
+        assert.ok(
+          state.outputChannelLines.some((line) => /process exited unexpectedly/i.test(line)),
+          `expected crash telemetry line, got: ${state.outputChannelLines.join(" | ")}`
+        );
+        assert.match(state.lastErrorMessage ?? "", /stopped unexpectedly/i);
+      },
+      { description: "error status after killed LSP process", timeoutMs: 30000 }
+    );
+
+    await vscode.commands.executeCommand("arukellt.restartLanguageServer");
+
+    await waitFor(
+      () => {
+        const state = api.__getTestState();
+        assert.ok(
+          state.clientSessionId > beforeSession,
+          "manual restart should create a fresh language client session"
+        );
+        assert.strictEqual(state.hasClient, true);
+        assert.strictEqual(state.languageStatusText, "$(check) Ready");
+      },
+      { description: "manual restart after killed LSP process", timeoutMs: 30000 }
+    );
+  });
+});
+
+// ============================================================
+// #551 — missing ark.toml fallback
+// ============================================================
+
+suite("Failure Recovery — missing project manifest (#551)", () => {
+  test("workspace without ark.toml falls back to single-file mode", async function () {
+    this.timeout(15000);
+    const { api } = await activateExtension();
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspaceFolder, "test workspace should have a root folder");
+    const root = workspaceFolder.uri.fsPath;
+    assert.strictEqual(
+      fs.existsSync(path.join(root, "ark.toml")),
+      false,
+      "test workspace should exercise the missing ark.toml path"
+    );
+
+    const fileName = `single_file_recovery_${process.pid}.ark`;
+    const filePath = path.join(root, fileName);
+    try {
+      fs.writeFileSync(filePath, "fn main() {\n  println(\"single file\")\n}\n", "utf8");
+      const snapshot = api.__refreshProjectTreeForTests();
+      assert.ok(
+        snapshot.projects.some((project) => project.name === workspaceFolder.name && project.hasManifest === false),
+        `expected missing-manifest project entry, got ${JSON.stringify(snapshot.projects)}`
+      );
+      assert.ok(
+        snapshot.modules.includes(fileName),
+        `expected single-file module ${fileName}, got ${snapshot.modules.join(", ")}`
+      );
+    } finally {
+      try {
+        fs.unlinkSync(filePath);
+      } catch (_) {
+        /* ignore */
+      }
+      api.__refreshProjectTreeForTests?.();
+    }
   });
 });
 

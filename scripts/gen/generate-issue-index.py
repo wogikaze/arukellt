@@ -9,8 +9,58 @@ from collections import defaultdict, deque
 try:
     import frontmatter
 except ImportError:
-    print("ERROR: frontmatter library not installed. Install with: pip install python-frontmatter")
-    sys.exit(1)
+    frontmatter = None
+
+
+class SimplePost:
+    def __init__(self, metadata, content):
+        self.metadata = metadata
+        self.content = content
+
+
+def _parse_scalar(value):
+    value = value.strip()
+    if value.startswith("#"):
+        return ""
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1]
+    lowered = value.lower()
+    if lowered in {"true", "yes"}:
+        return True
+    if lowered in {"false", "no"}:
+        return False
+    return value
+
+
+def load_issue_frontmatter(path):
+    if frontmatter is not None:
+        return frontmatter.load(path)
+
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("---\n"):
+        return SimplePost({}, text)
+
+    parts = text.split("---\n", 2)
+    if len(parts) < 3:
+        return SimplePost({}, text)
+
+    raw_meta = parts[1]
+    metadata = {}
+    current_key = ""
+    for raw_line in raw_meta.splitlines():
+        if not raw_line.strip() or raw_line.lstrip().startswith("#"):
+            continue
+        if raw_line[0].isspace():
+            if current_key:
+                metadata[current_key] = f"{metadata[current_key]} {raw_line.strip()}".strip()
+            continue
+        if ":" not in raw_line:
+            continue
+        key, value = raw_line.split(":", 1)
+        current_key = key.strip()
+        metadata[current_key] = _parse_scalar(value)
+
+    return SimplePost(metadata, parts[2].lstrip("\n"))
 
 ROOT = Path(__file__).parent.parent.parent
 OPEN_DIR = ROOT / "issues/open"
@@ -62,7 +112,7 @@ def normalize_deps(raw):
     return deps
 
 def parse_file(path):
-    post = frontmatter.load(path)
+    post = load_issue_frontmatter(path)
     content = post.content
     lines = content.splitlines()
     title = lines[0][2:].strip() if lines and lines[0].startswith('# ') else path.stem

@@ -1,0 +1,5 @@
+package test:host;
+
+interface async-host {
+    wait: func() -> future<string>;
+}

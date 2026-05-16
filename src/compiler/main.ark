@@ -52,12 +52,21 @@ fn CMD_NOT_YET() -> i32 {
     10
 }
 
+fn CMD_IDE_ANALYZE() -> i32 {
+    11
+}
+
+fn CMD_LSP() -> i32 {
+    12
+}
+
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
 struct CliOptions {
     command: i32,
     input_file: String,
     output_file: String,
     target: String,
+    wit_paths: Vec<String>,
     opt_level: i32,
     dump_phases: String,
     emit_mode: String,
@@ -69,66 +78,100 @@ struct CliOptions {
 }
 
 fn CliOptions_default() -> CliOptions {
-    CliOptions { command: CMD_UNKNOWN(), input_file: String_new(), output_file: String_new(), target: String_from("wasm32-wasi-p2"), opt_level: 0, dump_phases: String_new(), emit_mode: String_from("wasm"), json_output: false, show_help: false, show_version: false, has_error: false, error_msg: String_new() }
+    CliOptions { command: CMD_UNKNOWN(), input_file: String_new(), output_file: String_new(), target: String_from("wasm32-wasi-p2"), wit_paths: Vec_new_String(), opt_level: 0, dump_phases: String_new(), emit_mode: String_from("wasm"), json_output: false, show_help: false, show_version: false, has_error: false, error_msg: String_new() }
 }
 
 // ── Argument Parsing ─────────────────────────────────────────────────────────
+fn cli_str_eq(a: String, b: String) -> bool {
+    let n = len(clone(a))
+    if n != len(clone(b)) {
+        return false
+    }
+    let mut i = 0
+    while i < n {
+        if char_at(clone(a), i) != char_at(clone(b), i) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
 fn parse_command(name: String) -> i32 {
-    if eq(name, "parse") {
-        return CMD_PARSE()
-    }
-    if eq(name, "compile") {
-        return CMD_COMPILE()
-    }
-    if eq(name, "check") {
+    let name_len = len(clone(name))
+    if name_len == 5 && char_at(clone(name), 0) == 99 && char_at(clone(name), 1) == 104 && char_at(clone(name), 2) == 101 && char_at(clone(name), 3) == 99 && char_at(clone(name), 4) == 107 {
         return CMD_CHECK()
     }
-    if eq(name, "run") {
-        return CMD_RUN()
+    if name_len == 7 && char_at(clone(name), 0) == 99 && char_at(clone(name), 1) == 111 && char_at(clone(name), 2) == 109 && char_at(clone(name), 3) == 112 && char_at(clone(name), 4) == 105 && char_at(clone(name), 5) == 108 && char_at(clone(name), 6) == 101 {
+        return CMD_COMPILE()
     }
-    if eq(name, "build") {
-        return CMD_BUILD()
+    if name_len == 5 && char_at(clone(name), 0) == 112 && char_at(clone(name), 1) == 97 && char_at(clone(name), 2) == 114 && char_at(clone(name), 3) == 115 && char_at(clone(name), 4) == 101 {
+        return CMD_PARSE()
     }
-    if eq(name, "test") {
-        return CMD_TEST()
-    }
-    if eq(name, "help") {
+    if name_len == 4 && char_at(clone(name), 0) == 104 && char_at(clone(name), 1) == 101 && char_at(clone(name), 2) == 108 && char_at(clone(name), 3) == 112 {
         return CMD_HELP()
     }
-    if eq(name, "version") {
+    if name_len == 7 && char_at(clone(name), 0) == 118 && char_at(clone(name), 1) == 101 && char_at(clone(name), 2) == 114 && char_at(clone(name), 3) == 115 && char_at(clone(name), 4) == 105 && char_at(clone(name), 5) == 111 && char_at(clone(name), 6) == 110 {
         return CMD_VERSION()
     }
-    if eq(name, "init") {
+    if cli_str_eq(clone(name), String_from("parse")) {
+        return CMD_PARSE()
+    }
+    if cli_str_eq(clone(name), String_from("compile")) {
+        return CMD_COMPILE()
+    }
+    if cli_str_eq(clone(name), String_from("check")) {
+        return CMD_CHECK()
+    }
+    if cli_str_eq(clone(name), String_from("run")) {
+        return CMD_RUN()
+    }
+    if cli_str_eq(clone(name), String_from("build")) {
+        return CMD_BUILD()
+    }
+    if cli_str_eq(clone(name), String_from("test")) {
+        return CMD_TEST()
+    }
+    if cli_str_eq(clone(name), String_from("help")) {
+        return CMD_HELP()
+    }
+    if cli_str_eq(clone(name), String_from("version")) {
+        return CMD_VERSION()
+    }
+    if cli_str_eq(clone(name), String_from("init")) {
         return CMD_NOT_YET()
     }
-    if eq(name, "fmt") {
+    if cli_str_eq(clone(name), String_from("fmt")) {
         return CMD_NOT_YET()
     }
-    if eq(name, "targets") {
+    if cli_str_eq(clone(name), String_from("targets")) {
         return CMD_NOT_YET()
     }
-    if eq(name, "script") {
+    if cli_str_eq(clone(name), String_from("script")) {
         return CMD_NOT_YET()
     }
-    if eq(name, "component") {
+    if cli_str_eq(clone(name), String_from("component")) {
         return CMD_NOT_YET()
     }
-    if eq(name, "lsp") {
+    if cli_str_eq(clone(name), String_from("lsp")) {
+        return CMD_LSP()
+    }
+    if cli_str_eq(clone(name), String_from("debug-adapter")) {
         return CMD_NOT_YET()
     }
-    if eq(name, "debug-adapter") {
+    if cli_str_eq(clone(name), String_from("lint")) {
         return CMD_NOT_YET()
     }
-    if eq(name, "lint") {
+    if cli_str_eq(clone(name), String_from("analyze")) {
         return CMD_NOT_YET()
     }
-    if eq(name, "analyze") {
+    if cli_str_eq(clone(name), String_from("ide-analyze")) {
+        return CMD_IDE_ANALYZE()
+    }
+    if cli_str_eq(clone(name), String_from("doc")) {
         return CMD_NOT_YET()
     }
-    if eq(name, "doc") {
-        return CMD_NOT_YET()
-    }
-    if eq(name, "compose") {
+    if cli_str_eq(clone(name), String_from("compose")) {
         return CMD_NOT_YET()
     }
     CMD_UNKNOWN()
@@ -142,15 +185,32 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
         return opts
     }
     let cmd_str = get_unchecked(argv, 1)
-    if eq(clone(cmd_str), "--help") || eq(clone(cmd_str), "-h") {
+    let cmd_len = len(clone(cmd_str))
+    let cmd_is_check = cmd_len == 5 && char_at(clone(cmd_str), 0) == 99 && char_at(clone(cmd_str), 1) == 104 && char_at(clone(cmd_str), 2) == 101 && char_at(clone(cmd_str), 3) == 99 && char_at(clone(cmd_str), 4) == 107
+    let cmd_is_compile = cmd_len == 7 && char_at(clone(cmd_str), 0) == 99 && char_at(clone(cmd_str), 1) == 111 && char_at(clone(cmd_str), 2) == 109 && char_at(clone(cmd_str), 3) == 112 && char_at(clone(cmd_str), 4) == 105 && char_at(clone(cmd_str), 5) == 108 && char_at(clone(cmd_str), 6) == 101
+    if cmd_len == 6 && char_at(clone(cmd_str), 0) == 45 && char_at(clone(cmd_str), 1) == 45 && char_at(clone(cmd_str), 2) == 104 && char_at(clone(cmd_str), 3) == 101 && char_at(clone(cmd_str), 4) == 108 && char_at(clone(cmd_str), 5) == 112 {
         opts.show_help = true
         return opts
     }
-    if eq(clone(cmd_str), "--version") || eq(clone(cmd_str), "-V") {
+    if cmd_len == 2 && char_at(clone(cmd_str), 0) == 45 && char_at(clone(cmd_str), 1) == 104 {
+        opts.show_help = true
+        return opts
+    }
+    if cmd_len == 9 && char_at(clone(cmd_str), 0) == 45 && char_at(clone(cmd_str), 1) == 45 && char_at(clone(cmd_str), 2) == 118 && char_at(clone(cmd_str), 3) == 101 && char_at(clone(cmd_str), 4) == 114 && char_at(clone(cmd_str), 5) == 115 && char_at(clone(cmd_str), 6) == 105 && char_at(clone(cmd_str), 7) == 111 && char_at(clone(cmd_str), 8) == 110 {
+        opts.show_version = true
+        return opts
+    }
+    if cmd_len == 2 && char_at(clone(cmd_str), 0) == 45 && char_at(clone(cmd_str), 1) == 86 {
         opts.show_version = true
         return opts
     }
     opts.command = parse_command(clone(cmd_str))
+    if cmd_is_check {
+        opts.command = CMD_CHECK()
+    }
+    if cmd_is_compile {
+        opts.command = CMD_COMPILE()
+    }
     if opts.command == CMD_HELP() {
         opts.show_help = true
         return opts
@@ -166,54 +226,68 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
     let mut i = 2
     while i < argc {
         let arg = get_unchecked(argv, i)
-        if eq(clone(arg), "--target") {
+        if cli_str_eq(clone(arg), String_from("--target")) {
             i = i + 1
             if i < argc {
                 opts.target = clone(get_unchecked(argv, i))
             }
         } else {
-            if eq(clone(arg), "--opt-level") {
+            if cli_str_eq(clone(arg), String_from("--opt-level")) {
                 i = i + 1
                 if i < argc {
                     let val = get_unchecked(argv, i)
-                    if eq(clone(val), "0") {
+                    if cli_str_eq(clone(val), String_from("0")) {
                         opts.opt_level = 0
                     } else {
-                        if eq(clone(val), "1") {
+                        if cli_str_eq(clone(val), String_from("1")) {
                             opts.opt_level = 1
                         } else {
-                            if eq(clone(val), "2") {
+                            if cli_str_eq(clone(val), String_from("2")) {
                                 opts.opt_level = 2
                             }
                         }
                     }
                 }
             } else {
-                if eq(clone(arg), "--emit") {
+                if cli_str_eq(clone(arg), String_from("--emit")) {
                     i = i + 1
                     if i < argc {
                         opts.emit_mode = clone(get_unchecked(argv, i))
                     }
                 } else {
-                    if eq(clone(arg), "-o") {
+                    if cli_str_eq(clone(arg), String_from("--wit")) {
                         i = i + 1
                         if i < argc {
-                            opts.output_file = clone(get_unchecked(argv, i))
+                            push(opts.wit_paths, clone(get_unchecked(argv, i)))
+                        } else {
+                            opts.has_error = true
+                            opts.error_msg = String_from("--wit requires a path")
                         }
                     } else {
-                        if eq(clone(arg), "--dump-phases") {
+                    if cli_str_eq(clone(arg), String_from("-o")) || cli_str_eq(clone(arg), String_from("--output")) {
+                        i = i + 1
+                        if i < argc {
+                            let out_arg = clone(get_unchecked(argv, i))
+                            if cli_str_eq(clone(arg), String_from("--output")) && cli_str_eq(clone(out_arg), String_from("json")) {
+                                opts.json_output = true
+                            } else {
+                                opts.output_file = clone(out_arg)
+                            }
+                        }
+                    } else {
+                        if cli_str_eq(clone(arg), String_from("--dump-phases")) {
                             i = i + 1
                             if i < argc {
                                 opts.dump_phases = clone(get_unchecked(argv, i))
                             }
                         } else {
-                            if eq(clone(arg), "--help") {
+                            if cli_str_eq(clone(arg), String_from("--help")) {
                                 opts.show_help = true
                             } else {
-                                if eq(clone(arg), "--json") {
+                                if cli_str_eq(clone(arg), String_from("--json")) {
                                     opts.json_output = true
                                 } else {
-                                    if eq(clone(arg), "--version") {
+                                    if cli_str_eq(clone(arg), String_from("--version")) {
                                         opts.show_version = true
                                     } else {
                                         if len(opts.input_file) == 0 {
@@ -226,6 +300,7 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
                                 }
                             }
                         }
+                    }
                     }
                 }
             }
@@ -263,6 +338,9 @@ fn print_usage() {
     stdio::println(String_from("Options:"))
     stdio::println(String_from("  -h, --help     Print help"))
     stdio::println(String_from("  -V, --version  Print version"))
+    stdio::println(String_from("  --json         Emit machine-readable JSON diagnostics"))
+    stdio::println(String_from("  --output json  Alias for --json on diagnostic/check output"))
+    stdio::println(String_from("  --wit <path>   Add a WIT import file for component compilation"))
 }
 
 fn print_version() {
@@ -292,6 +370,152 @@ fn should_dump(opts: CliOptions, phase: String) -> bool {
         i = i + 1
     }
     false
+}
+
+fn stem_from_input(path: String) -> String {
+    let n = len(clone(path))
+    if n > 4 {
+        let ext = substring(clone(path), n - 4, n)
+        if eq(ext, String_from(".ark")) {
+            return substring(path, 0, n - 4)
+        }
+    }
+    path
+}
+
+fn wasm_path_for_all(opts: CliOptions) -> String {
+    if len(opts.output_file) > 0 {
+        return clone(opts.output_file)
+    }
+    concat(stem_from_input(clone(opts.input_file)), String_from(".wasm"))
+}
+
+fn component_path_for_all(opts: CliOptions) -> String {
+    if len(opts.output_file) > 0 {
+        let out = clone(opts.output_file)
+        let n = len(clone(out))
+        if n > 5 {
+            let ext = substring(clone(out), n - 5, n)
+            if eq(ext, String_from(".wasm")) {
+                return concat(substring(out, 0, n - 5), String_from(".component.wasm"))
+            }
+        }
+        return concat(out, String_from(".component.wasm"))
+    }
+    concat(stem_from_input(clone(opts.input_file)), String_from(".component.wasm"))
+}
+
+fn validate_wit_paths(opts: CliOptions) -> bool {
+    let mut i = 0
+    while i < len(opts.wit_paths) {
+        let path = get_unchecked(opts.wit_paths, i)
+        let read_result = fs::read_to_string(clone(path))
+        match read_result {
+            Result::Ok(_) => {
+            },
+            Result::Err(e) => {
+                stdio::eprintln(concat(String_from("error: unable to read WIT file "), concat(clone(path), concat(String_from(": "), e))))
+                return false
+            },
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool {
+    let write_result = fs::write_bytes(clone(path), bytes)
+    match write_result {
+        Result::Ok(_) => {
+            if !json_mode {
+                stdio::eprintln(concat(String_from("wrote "), concat(to_string(len(bytes)), concat(String_from(" bytes to "), clone(path)))))
+            }
+            true
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error writing output: "), e))
+            false
+        },
+    }
+}
+
+fn print_compile_errors(input_file: String, result: driver::CompileResult, json_mode: bool) {
+    if json_mode {
+        stdio::println(format_error_json(clone(input_file), result.phase_reached, result.diagnostics))
+    } else {
+        let err_count = len(result.error_messages)
+        let mut i = 0
+        while i < err_count {
+            let msg = get_unchecked(result.error_messages, i)
+            stdio::eprintln(format_error_phased(clone(input_file), result.phase_reached, clone(msg)))
+            i = i + 1
+        }
+    }
+}
+
+fn cmd_compile_all(opts: CliOptions) {
+    if !validate_wit_paths(opts) {
+        process::exit(1)
+        return
+    }
+    let input_file = clone(opts.input_file)
+    let json_mode = opts.json_output
+    let wasm_config = driver::DriverConfig_default()
+    wasm_config.target = clone(opts.target)
+    wasm_config.opt_level = opts.opt_level
+    wasm_config.emit_mode = String_from("wasm")
+    wasm_config.wit_paths = clone(opts.wit_paths)
+    wasm_config.dump_tokens = should_dump(opts, String_from("tokens"))
+    wasm_config.dump_ast = should_dump(opts, String_from("ast"))
+    wasm_config.dump_hir = should_dump(opts, String_from("hir"))
+    wasm_config.dump_mir = should_dump(opts, String_from("mir"))
+    wasm_config.dump_wasm = should_dump(opts, String_from("wasm"))
+    let wasm_result = driver::compile_file(clone(input_file), wasm_config)
+    if !wasm_result.success {
+        if json_mode {
+            stdio::println(format_error_json(clone(input_file), wasm_result.phase_reached, wasm_result.diagnostics))
+        } else {
+            let mut ei = 0
+            while ei < len(wasm_result.error_messages) {
+                let msg = get_unchecked(wasm_result.error_messages, ei)
+                stdio::eprintln(format_error_phased(clone(input_file), wasm_result.phase_reached, clone(msg)))
+                ei = ei + 1
+            }
+        }
+        process::exit(1)
+        return
+    }
+    let comp_config = driver::DriverConfig_default()
+    comp_config.target = clone(opts.target)
+    comp_config.opt_level = opts.opt_level
+    comp_config.emit_mode = String_from("component")
+    comp_config.wit_paths = clone(opts.wit_paths)
+    let comp_result = driver::compile_file(clone(input_file), comp_config)
+    if !comp_result.success {
+        if json_mode {
+            stdio::println(format_error_json(clone(input_file), comp_result.phase_reached, comp_result.diagnostics))
+        } else {
+            let mut ei2 = 0
+            while ei2 < len(comp_result.error_messages) {
+                let msg2 = get_unchecked(comp_result.error_messages, ei2)
+                stdio::eprintln(format_error_phased(clone(input_file), comp_result.phase_reached, clone(msg2)))
+                ei2 = ei2 + 1
+            }
+        }
+        process::exit(1)
+        return
+    }
+    if !write_compile_output(wasm_path_for_all(opts), wasm_result.output_bytes, json_mode) {
+        process::exit(1)
+        return
+    }
+    if !write_compile_output(component_path_for_all(opts), comp_result.output_bytes, json_mode) {
+        process::exit(1)
+        return
+    }
+    if json_mode {
+        stdio::println(format_success_json(clone(input_file), comp_result.phase_reached, len(comp_result.output_bytes)))
+    }
 }
 
 // ── Structured Error Formatting ──────────────────────────────────────────────
@@ -411,18 +635,64 @@ fn main() {
             if command == CMD_RUN() {
                 cmd_run(opts)
             } else {
-                cmd_compile(opts)
+                if command == CMD_IDE_ANALYZE() {
+                    cmd_ide_analyze(opts)
+                } else {
+                    if command == CMD_LSP() {
+                        cmd_lsp(opts)
+                    } else {
+                        cmd_compile(opts)
+                    }
+                }
             }
         }
     }
 }
 
+fn cmd_ide_analyze(opts: CliOptions) {
+    let input_file = clone(opts.input_file)
+    let read_result = fs::read_to_string(clone(input_file))
+    match read_result {
+        Result::Ok(text) => {
+            let snap = analysis::analyze(clone(input_file), text)
+            stdio::print(analysis::snapshot_summary(snap))
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error reading input: "), e))
+            process::exit(1)
+        },
+    }
+}
+
+fn cmd_lsp(opts: CliOptions) {
+    let input_file = clone(opts.input_file)
+    let read_result = fs::read_to_string(clone(input_file))
+    match read_result {
+        Result::Ok(text) => {
+            stdio::print(lsp::run_session(text))
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error reading input: "), e))
+            process::exit(1)
+        },
+    }
+}
+
 // ── Command: compile / parse / check ─────────────────────────────────────────
 fn cmd_compile(opts: CliOptions) {
+    if cli_str_eq(clone(opts.emit_mode), String_from("all")) && opts.command != CMD_PARSE() && opts.command != CMD_CHECK() {
+        cmd_compile_all(opts)
+        return
+    }
+    if !validate_wit_paths(opts) {
+        process::exit(1)
+        return
+    }
     let config = driver::DriverConfig_default()
     config.target = clone(opts.target)
     config.opt_level = opts.opt_level
     config.emit_mode = clone(opts.emit_mode)
+    config.wit_paths = clone(opts.wit_paths)
     config.dump_tokens = should_dump(opts, String_from("tokens"))
     config.dump_ast = should_dump(opts, String_from("ast"))
     config.dump_hir = should_dump(opts, String_from("hir"))

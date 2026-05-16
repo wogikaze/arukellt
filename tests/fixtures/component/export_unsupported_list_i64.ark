@@ -1,0 +1,9 @@
+// Export with Vec<i64> parameter — only list<s32> canonical ABI is supported yet.
+// WIT: list<s64> requires a dedicated wide-element list lift/lower adapter.
+// Expected: E0401 compile-time error.
+pub fn wide_count(values: Vec<i64>) -> i32 {
+    0
+}
+
+fn main() {
+}

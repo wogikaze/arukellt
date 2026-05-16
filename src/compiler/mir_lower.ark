@@ -43,10 +43,210 @@ struct LowerCtx {
     closure_bind_caps: Vec<String>,
     closure_bind_extra: Vec<i32>,
     local_type_start: i32,
+    mono_call_starts: Vec<i32>,
+    mono_call_targets: Vec<String>,
+    mono_call_sources: Vec<String>,
+    mono_call_used: Vec<i32>,
 }
 
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
-    LowerCtx { module: m, func: mir_ir::MirFunction_new(String_from("")), cur_block: 0, local_names: Vec_new_String(), local_indices: Vec_new_i32(), fn_names: Vec_new_String(), fn_indices: Vec_new_i32(), fn_return_vts: Vec_new_i32(), fn_return_type_names: Vec_new_String(), loop_exit_block: 0 - 1, loop_cond_block: 0 - 1, nesting_depth: 0, loop_break_depth: 0 - 1, loop_continue_depth: 0 - 1, loop_break_local: 0 - 1, struct_names: Vec_new_String(), struct_field_counts: Vec_new_i32(), struct_all_fields: Vec_new_String(), struct_field_types: Vec_new_String(), local_types: Vec_new_String(), local_type_indices: Vec_new_i32(), variant_names: Vec_new_String(), variant_tags: Vec_new_i32(), payload_variants: Vec_new_String(), closure_counter: 0, closure_last_synth: String_new(), closure_last_caps: String_new(), closure_last_extra: 0, closure_bind_names: Vec_new_String(), closure_bind_synth: Vec_new_String(), closure_bind_caps: Vec_new_String(), closure_bind_extra: Vec_new_i32(), local_type_start: 0 }
+    LowerCtx { module: m, func: mir_ir::MirFunction_new(String_from("")), cur_block: 0, local_names: Vec_new_String(), local_indices: Vec_new_i32(), fn_names: Vec_new_String(), fn_indices: Vec_new_i32(), fn_return_vts: Vec_new_i32(), fn_return_type_names: Vec_new_String(), loop_exit_block: 0 - 1, loop_cond_block: 0 - 1, nesting_depth: 0, loop_break_depth: 0 - 1, loop_continue_depth: 0 - 1, loop_break_local: 0 - 1, struct_names: Vec_new_String(), struct_field_counts: Vec_new_i32(), struct_all_fields: Vec_new_String(), struct_field_types: Vec_new_String(), local_types: Vec_new_String(), local_type_indices: Vec_new_i32(), variant_names: Vec_new_String(), variant_tags: Vec_new_i32(), payload_variants: Vec_new_String(), closure_counter: 0, closure_last_synth: String_new(), closure_last_caps: String_new(), closure_last_extra: 0, closure_bind_names: Vec_new_String(), closure_bind_synth: Vec_new_String(), closure_bind_caps: Vec_new_String(), closure_bind_extra: Vec_new_i32(), local_type_start: 0, mono_call_starts: Vec_new_i32(), mono_call_targets: Vec_new_String(), mono_call_sources: Vec_new_String(), mono_call_used: Vec_new_i32() }
+}
+
+fn mono_safe_name(name: String) -> String {
+    let mut out = String_from("")
+    let n = len(name)
+    let mut i = 0
+    while i < n {
+        let ch = char_at(name, i)
+        if ch == 60 || ch == 62 || ch == 44 || ch == 58 || ch == 32 {
+            out = concat(out, String_from("_"))
+        } else {
+            out = concat(out, substring(name, i, i + 1))
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn mono_instance_count_for(instances: Vec<MonoInstance>, fn_name: String) -> i32 {
+    let count = len(instances)
+    let mut found = 0
+    let mut i = 0
+    while i < count {
+        let mi = get_unchecked(instances, i)
+        let mut is_marker = false
+        if len(mi.type_args) > 0 {
+            let marker_ty = get_unchecked(mi.type_args, 0)
+            is_marker = marker_ty.tag < 0
+        }
+        if !is_marker && eq(clone(mi.fn_name), clone(fn_name)) {
+            found = found + 1
+        }
+        i = i + 1
+    }
+    found
+}
+
+fn mono_instance_mangled_at(instances: Vec<MonoInstance>, fn_name: String, ordinal: i32) -> String {
+    let count = len(instances)
+    let mut seen = 0
+    let mut i = 0
+    while i < count {
+        let mi = get_unchecked(instances, i)
+        let mut is_marker = false
+        if len(mi.type_args) > 0 {
+            let marker_ty = get_unchecked(mi.type_args, 0)
+            is_marker = marker_ty.tag < 0
+        }
+        if !is_marker && eq(clone(mi.fn_name), clone(fn_name)) {
+            if seen == ordinal {
+                return clone(mi.mangled_name)
+            }
+            seen = seen + 1
+        }
+        i = i + 1
+    }
+    String_from("")
+}
+
+fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32) -> String {
+    let count = len(ctx.mono_call_starts)
+    let mut i = 0
+    while i < count {
+        if get_unchecked(ctx.mono_call_starts, i) == span_start {
+            return clone(get_unchecked(ctx.mono_call_targets, i))
+        }
+        i = i + 1
+    }
+    String_from("")
+}
+
+fn mir_short_name(name: String) -> String {
+    let nlen = len(name)
+    let mut colon_pos = 0 - 1
+    let mut ci = nlen - 1
+    while ci >= 0 {
+        if char_at(name, ci) == 58 {
+            colon_pos = ci
+            ci = 0 - 1
+        }
+        ci = ci - 1
+    }
+    if colon_pos >= 0 {
+        return substring(name, colon_pos + 1, nlen)
+    }
+    clone(name)
+}
+
+fn mir_mark_reachable_name(functions: Vec<MirFunction>, reachable: Vec<i32>, name: String) -> bool {
+    let count = len(functions)
+    let mut i = 0
+    while i < count {
+        let f = get_unchecked(functions, i)
+        if eq(clone(f.name), clone(name)) {
+            if get_unchecked(reachable, i) == 0 {
+                set(reachable, i, 1)
+                return true
+            }
+            return false
+        }
+        i = i + 1
+    }
+    let short = mir_short_name(clone(name))
+    if !eq(clone(short), clone(name)) {
+        let mut j = 0
+        while j < count {
+            let f = get_unchecked(functions, j)
+            if eq(clone(f.name), clone(short)) {
+                if get_unchecked(reachable, j) == 0 {
+                    set(reachable, j, 1)
+                    return true
+                }
+                return false
+            }
+            j = j + 1
+        }
+    }
+    false
+}
+
+fn mir_prune_unreachable(m: MirModule) -> i32 {
+    let fn_count = len(m.functions)
+    if fn_count == 0 {
+        return 0
+    }
+    let reachable = Vec_new_i32()
+    let mut i = 0
+    while i < fn_count {
+        push(reachable, 0)
+        i = i + 1
+    }
+    let mut root_count = 0
+    if mir_mark_reachable_name(m.functions, reachable, String_from("main")) {
+        root_count = root_count + 1
+    }
+    if mir_mark_reachable_name(m.functions, reachable, String_from("_start")) {
+        root_count = root_count + 1
+    }
+    if root_count == 0 {
+        return 0
+    }
+    let mut changed = true
+    while changed {
+        changed = false
+        let mut fi = 0
+        while fi < fn_count {
+            if get_unchecked(reachable, fi) != 0 {
+                let f = get_unchecked(m.functions, fi)
+                let block_count = len(f.blocks)
+                let mut bi = 0
+                while bi < block_count {
+                    let block = get_unchecked(f.blocks, bi)
+                    let inst_count = len(block.instructions)
+                    let mut ii = 0
+                    while ii < inst_count {
+                        let inst = get_unchecked(block.instructions, ii)
+                        if inst.op == mir_opcodes::MIR_CALL() {
+                            if mir_mark_reachable_name(m.functions, reachable, clone(inst.str_val)) {
+                                changed = true
+                            }
+                        }
+                        ii = ii + 1
+                    }
+                    bi = bi + 1
+                }
+            }
+            fi = fi + 1
+        }
+    }
+    let kept = Vec_new_MirFunction()
+    let mut pruned = 0
+    i = 0
+    while i < fn_count {
+        let f = get_unchecked(m.functions, i)
+        if get_unchecked(reachable, i) != 0 {
+            push(kept, f)
+        } else {
+            pruned = pruned + 1
+        }
+        i = i + 1
+    }
+    m.functions = kept
+    m.mono_pruned_count = pruned
+    pruned
+}
+
+fn ctx_has_fn_name(ctx: LowerCtx, name: String) -> bool {
+    let fc = len(ctx.fn_names)
+    let mut i = 0
+    while i < fc {
+        if eq(clone(get_unchecked(ctx.fn_names, i)), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 // Look up return VT for a named function (VT_VOID=0 if not found or void, VT_I32=1, VT_F64=3)
@@ -583,7 +783,7 @@ fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<St
             let pvt = mir_ir::VT_I32()
             let _idx = ctx_alloc_local(ctx, clone(p.text), pvt)
             let mut fparam = ctx.func
-            push(fparam.params, MirLocal { name: clone(p.text), val_type: pvt, ssa_name: clone(p.text), ssa_version: 0 - 1 })
+            push(fparam.params, MirLocal { name: clone(p.text), val_type: pvt, type_name: String_new(), ssa_name: clone(p.text), ssa_version: 0 - 1 })
             ctx.func = fparam
         }
         pi = pi + 1
@@ -594,7 +794,7 @@ fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<St
         let pvt = get_unchecked(cap_vts, ci)
         let _idx2 = ctx_alloc_local(ctx, clone(cname), pvt)
         let mut fparam2 = ctx.func
-        push(fparam2.params, MirLocal { name: clone(cname), val_type: pvt, ssa_name: clone(cname), ssa_version: 0 - 1 })
+        push(fparam2.params, MirLocal { name: clone(cname), val_type: pvt, type_name: String_new(), ssa_name: clone(cname), ssa_version: 0 - 1 })
         ctx.func = fparam2
         ci = ci + 1
     }
@@ -707,6 +907,54 @@ fn ctx_apply_fn_return_type_for_rt_tag(ctx: LowerCtx, rt_tag: i32) {
         f.return_type = mir_ir::VT_I32()
     }
     ctx.func = f
+}
+
+fn mir_decl_return_type_name(fn_node: AstNode) -> String {
+    let ta_count = len(fn_node.type_ann)
+    let mut i = 0
+    while i < ta_count {
+        let ann = get_unchecked(fn_node.type_ann, i)
+        if eq(clone(ann.text), "__return") {
+            if len(ann.children) > 0 {
+                let ret_node = get_unchecked(ann.children, 0)
+                if ret_node.kind == 91 {
+                    if eq(clone(ret_node.text), "Option") && len(ret_node.children) >= 2 {
+                        let elem = get_unchecked(ret_node.children, 1)
+                        return concat(String_from("Option:"), clone(elem.text))
+                    }
+                    if eq(clone(ret_node.text), "Result") && len(ret_node.children) >= 3 {
+                        let ok_ty = get_unchecked(ret_node.children, 1)
+                        let err_ty = get_unchecked(ret_node.children, 2)
+                        return concat(String_from("Result:"), concat(clone(ok_ty.text), concat(String_from(":"), clone(err_ty.text))))
+                    }
+                }
+                return clone(ret_node.text)
+            }
+            return String_from("()")
+        }
+        i = i + 1
+    }
+    String_from("()")
+}
+
+fn mir_param_type_name_from_ann(ty: AstNode) -> String {
+    if ty.kind == 91 {
+        if eq(clone(ty.text), "Option") && len(ty.children) >= 2 {
+            let elem = get_unchecked(ty.children, 1)
+            return concat(String_from("Option:"), clone(elem.text))
+        }
+        if eq(clone(ty.text), "Result") && len(ty.children) >= 3 {
+            let ok_ty = get_unchecked(ty.children, 1)
+            let err_ty = get_unchecked(ty.children, 2)
+            return concat(String_from("Result:"), concat(clone(ok_ty.text), concat(String_from(":"), clone(err_ty.text))))
+        }
+    }
+    if ty.kind == 93 && len(ty.children) == 2 {
+        let a = get_unchecked(ty.children, 0)
+        let b = get_unchecked(ty.children, 1)
+        return concat(String_from("Tuple:"), concat(clone(a.text), concat(String_from(":"), clone(b.text))))
+    }
+    clone(ty.text)
 }
 
 fn binop_to_mir(op: i32) -> i32 {
@@ -965,7 +1213,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 let sc_result = ctx_fresh_local(ctx, mir_ir::VT_I32())
                 let set_sc = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                 set_sc.arg0 = sc_result
-                set_sc.arg1 = l_idx
                 ctx_emit(ctx, set_sc)
                 let get_cond = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_GET())
                 get_cond.arg0 = sc_result
@@ -980,7 +1227,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 let r_idx = lower_expr(ctx, rhs)
                 let set_sc2 = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                 set_sc2.arg0 = sc_result
-                set_sc2.arg1 = r_idx
                 ctx_emit(ctx, set_sc2)
                 ctx_emit(ctx, mir_ir::MirInst_new(mir_opcodes::MIR_END()))
                 let get_sc_final = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_GET())
@@ -1173,7 +1419,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     ctx_emit(ctx, save_inst)
                     push(payload_locals, save_local)
                     push(payload_vts, p_vt)
-                    if p_vt == mir_ir::VT_F64() {
+                    if p_vt == mir_ir::VT_F64() || p_vt == mir_ir::VT_I64() {
                         total_bytes = total_bytes + 8
                     } else {
                         total_bytes = total_bytes + 4
@@ -1209,7 +1455,12 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         set_p.val_type = mir_ir::VT_F64()
                         byte_off = byte_off + 8
                     } else {
-                        byte_off = byte_off + 4
+                        if p_vt == mir_ir::VT_I64() {
+                            set_p.val_type = mir_ir::VT_I64()
+                            byte_off = byte_off + 8
+                        } else {
+                            byte_off = byte_off + 4
+                        }
                     }
                     ctx_emit(ctx, set_p)
                     pi = pi + 1
@@ -1902,6 +2153,9 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let call_inst = mir_ir::MirInst_new(mir_opcodes::MIR_CALL())
             call_inst.str_val = clone(callee.text)
             let is_println = eq(clone(callee.text), "stdio::println") || eq(clone(callee.text), "println") || eq(clone(callee.text), "stdio::print") || eq(clone(callee.text), "print") || eq(clone(callee.text), "stdio::eprintln") || eq(clone(callee.text), "eprintln") || eq(clone(callee.text), "__intrinsic_println")
+            let stage_call_args = eq(clone(callee.text), "push")
+            let staged_arg_locals = Vec_new_i32()
+            let mut push_i64_needs_extend = false
             let mut first_arg_idx = 0 - 1
             let mut second_arg_idx = 0 - 1
             let mut a = 1
@@ -1961,6 +2215,19 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         arg_idx = wrap_dest
                     }
                 }
+                if stage_call_args && arg_idx >= 0 {
+                    let staged_vt = ctx_local_vt(ctx, arg_idx)
+                    let staged_local = ctx_fresh_local(ctx, staged_vt)
+                    let staged_type = ctx_get_local_type(ctx, arg_idx)
+                    if len(staged_type) > 0 {
+                        ctx_set_local_type(ctx, staged_local, staged_type)
+                    }
+                    let save_arg = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
+                    save_arg.arg0 = staged_local
+                    ctx_emit(ctx, save_arg)
+                    push(staged_arg_locals, staged_local)
+                    arg_idx = staged_local
+                }
                 if a == 1 {
                     first_arg_idx = arg_idx
                 }
@@ -2003,7 +2270,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     if eq(clone(arg_type_push), "vec:i64") {
                         call_inst.str_val = String_from("push_i64")
                         if second_arg_idx >= 0 && ctx_local_vt(ctx, second_arg_idx) == mir_ir::VT_I32() {
-                            ctx_emit(ctx, mir_ir::MirInst_new(mir_opcodes::MIR_EXTEND_I32_TO_I64()))
+                            if stage_call_args {
+                                push_i64_needs_extend = true
+                            } else {
+                                ctx_emit(ctx, mir_ir::MirInst_new(mir_opcodes::MIR_EXTEND_I32_TO_I64()))
+                            }
                         }
                     } else {
                         if eq(clone(arg_type_push), "vec:f64") {
@@ -2045,6 +2316,35 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             }
             if eq(clone(call_inst.str_val), "set") {
                 call_inst.str_val = String_from("vec_set")
+            }
+            let mut mono_resolved_by_type = false
+            if first_arg_idx >= 0 {
+                let mono_arg_type = ctx_get_local_type(ctx, first_arg_idx)
+                let mut mono_type_key = clone(mono_arg_type)
+                if starts_with(clone(mono_arg_type), String_from("vec:")) {
+                    mono_type_key = substring(mono_arg_type, 4, len(mono_arg_type))
+                }
+                if len(mono_type_key) > 0 {
+                    let mono_candidate = mono_safe_name(concat(clone(call_inst.str_val), concat(String_from("__"), mono_type_key)))
+                    if ctx_has_fn_name(ctx, clone(mono_candidate)) {
+                        call_inst.str_val = mono_candidate
+                        mono_resolved_by_type = true
+                    } else {
+                        if eq(clone(mono_type_key), String_from("string")) {
+                            let mono_candidate_string = mono_safe_name(concat(clone(call_inst.str_val), String_from("__String")))
+                            if ctx_has_fn_name(ctx, clone(mono_candidate_string)) {
+                                call_inst.str_val = mono_candidate_string
+                                mono_resolved_by_type = true
+                            }
+                        }
+                    }
+                }
+            }
+            if !mono_resolved_by_type {
+                let mono_target = ctx_mono_lookup_call(ctx, node.span.start)
+                if len(mono_target) > 0 {
+                    call_inst.str_val = mono_target
+                }
             }
             let callee_name = clone(call_inst.str_val)
             let call_ret_vt = ctx_fn_return_vt(ctx, clone(callee_name))
@@ -2114,6 +2414,21 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     ctx_set_local_type(ctx, dest, rtn)
                 }
             }
+            if stage_call_args {
+                let mut sai = 0
+                let sac = len(staged_arg_locals)
+                while sai < sac {
+                    let staged_arg = get_unchecked(staged_arg_locals, sai)
+                    let get_staged = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_GET())
+                    get_staged.arg0 = staged_arg
+                    get_staged.dest = staged_arg
+                    ctx_emit(ctx, get_staged)
+                    sai = sai + 1
+                }
+                if push_i64_needs_extend {
+                    ctx_emit(ctx, mir_ir::MirInst_new(mir_opcodes::MIR_EXTEND_I32_TO_I64()))
+                }
+            }
             ctx_emit(ctx, call_inst)
             if ctx_fn_return_vt(ctx, clone(callee_name)) == mir_ir::VT_VOID() {
                 return 0 - 1
@@ -2139,7 +2454,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 }
                 let set_inst = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                 set_inst.arg0 = result
-                set_inst.arg1 = then_result
                 ctx_emit(ctx, set_inst)
             }
             let mut else_result = 0 - 1
@@ -2154,7 +2468,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     }
                     let set_inst2 = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                     set_inst2.arg0 = result
-                    set_inst2.arg1 = else_result
                     ctx_emit(ctx, set_inst2)
                 }
             }
@@ -2296,7 +2609,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         }
                         let set_inst = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                         set_inst.arg0 = result
-                        set_inst.arg1 = arm_result
                         ctx_emit(ctx, set_inst)
                     }
                     if arm_child_count == 3 {
@@ -2422,7 +2734,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         }
                         let set_inst = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                         set_inst.arg0 = result
-                        set_inst.arg1 = arm_result
                         ctx_emit(ctx, set_inst)
                     }
                     ctx_emit(ctx, mir_ir::MirInst_new(mir_opcodes::MIR_ELSE()))
@@ -2451,16 +2762,64 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 struct_name = ctx_get_local_type(ctx, receiver_idx)
             }
             let method_name = clone(node.text)
-            let callee_name = if len(struct_name) > 0 {
+            let mut callee_name = if len(struct_name) > 0 {
                 concat(clone(struct_name), concat(String_from("::"), clone(method_name)))
             } else {
                 clone(method_name)
             }
             let mut a = 1
+            let mut first_method_arg_idx = 0 - 1
             while a < child_count {
                 let arg = get_unchecked(node.children, a)
-                lower_expr(ctx, arg)
+                let method_arg_idx = lower_expr(ctx, arg)
+                if a == 1 {
+                    first_method_arg_idx = method_arg_idx
+                }
                 a = a + 1
+            }
+            let mut method_mono_resolved_by_type = false
+            if first_method_arg_idx >= 0 {
+                let mut method_mono_type_key = ctx_get_local_type(ctx, first_method_arg_idx)
+                if len(method_mono_type_key) == 0 {
+                    let method_arg_vt = ctx_local_vt(ctx, first_method_arg_idx)
+                    if method_arg_vt == mir_ir::VT_I64() {
+                        method_mono_type_key = String_from("i64")
+                    } else {
+                        if method_arg_vt == mir_ir::VT_F64() {
+                            method_mono_type_key = String_from("f64")
+                        } else {
+                            method_mono_type_key = String_from("i32")
+                        }
+                    }
+                }
+                if eq(clone(method_mono_type_key), String_from("string")) {
+                    method_mono_type_key = String_from("String")
+                }
+                if len(method_mono_type_key) > 0 {
+                    let method_mono_candidate = mono_safe_name(concat(clone(callee_name), concat(String_from("__"), method_mono_type_key)))
+                    if ctx_has_fn_name(ctx, clone(method_mono_candidate)) {
+                        callee_name = method_mono_candidate
+                        method_mono_resolved_by_type = true
+                    }
+                }
+            }
+            if !method_mono_resolved_by_type {
+                let mono_target = ctx_mono_lookup_call(ctx, node.span.start)
+                if len(mono_target) > 0 {
+                    callee_name = mono_target
+                } else {
+                    let mono_count_by_name = len(ctx.mono_call_sources)
+                    let mut mono_i_by_name = 0
+                    let mut mono_done_by_name = false
+                    while mono_i_by_name < mono_count_by_name && !mono_done_by_name {
+                        if get_unchecked(ctx.mono_call_used, mono_i_by_name) == 0 && eq(clone(get_unchecked(ctx.mono_call_sources, mono_i_by_name)), clone(callee_name)) {
+                            callee_name = clone(get_unchecked(ctx.mono_call_targets, mono_i_by_name))
+                            set(ctx.mono_call_used, mono_i_by_name, 1)
+                            mono_done_by_name = true
+                        }
+                        mono_i_by_name = mono_i_by_name + 1
+                    }
+                }
             }
             let call_ret_vt = ctx_fn_return_vt(ctx, clone(callee_name))
             let dest = ctx_fresh_local(ctx, call_ret_vt)
@@ -2508,7 +2867,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 if local_idx >= 0 && val_idx >= 0 {
                     let set_inst = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                     set_inst.arg0 = local_idx
-                    set_inst.arg1 = val_idx
                     ctx_emit(ctx, set_inst)
                 }
             }
@@ -2524,7 +2882,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         let temp = ctx_fresh_local(ctx, mir_ir::VT_REF())
                         let save_inst = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                         save_inst.arg0 = temp
-                        save_inst.arg1 = raw_idx
                         ctx_emit(ctx, save_inst)
                         struct_idx = temp
                     }
@@ -2639,6 +2996,65 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         ctx_emit(ctx, get_inst)
         return dest
     }
+    if kind == mir_type_info::NK_TUPLE() {
+        let child_count = len(node.children)
+        let mut field_locals = Vec_new_i32()
+        let mut field_vts = Vec_new_i32()
+        let mut total_bytes = 0
+        let mut ti = 0
+        while ti < child_count {
+            let child = get_unchecked(node.children, ti)
+            let child_idx = lower_expr(ctx, child)
+            let child_vt = ctx_local_vt(ctx, child_idx)
+            let save_local = ctx_fresh_local(ctx, child_vt)
+            let save_inst = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
+            save_inst.arg0 = save_local
+            save_inst.arg1 = child_idx
+            ctx_emit(ctx, save_inst)
+            push(field_locals, save_local)
+            push(field_vts, child_vt)
+            if child_vt == mir_ir::VT_F64() {
+                total_bytes = total_bytes + 8
+            } else {
+                total_bytes = total_bytes + 4
+            }
+            ti = ti + 1
+        }
+        let dest = ctx_fresh_local(ctx, mir_ir::VT_REF())
+        let new_inst = mir_ir::MirInst_new(mir_opcodes::MIR_STRUCT_NEW())
+        new_inst.dest = dest
+        new_inst.int_val = total_bytes
+        ctx_emit(ctx, new_inst)
+        let mut byte_off = 0
+        ti = 0
+        while ti < child_count {
+            let field_local = get_unchecked(field_locals, ti)
+            let field_vt = get_unchecked(field_vts, ti)
+            let get_val = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_GET())
+            get_val.arg0 = field_local
+            ctx_emit(ctx, get_val)
+            let set_inst = mir_ir::MirInst_new(mir_opcodes::MIR_STRUCT_SET())
+            set_inst.arg0 = dest
+            set_inst.arg1 = field_local
+            set_inst.int_val = byte_off
+            if field_vt == mir_ir::VT_F64() {
+                set_inst.val_type = mir_ir::VT_F64()
+                byte_off = byte_off + 8
+            } else {
+                if field_vt == mir_ir::VT_I64() {
+                    set_inst.val_type = mir_ir::VT_I64()
+                }
+                byte_off = byte_off + 4
+            }
+            ctx_emit(ctx, set_inst)
+            ti = ti + 1
+        }
+        let get_inst = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_GET())
+        get_inst.arg0 = dest
+        get_inst.dest = dest
+        ctx_emit(ctx, get_inst)
+        return dest
+    }
     if kind == mir_type_info::NK_FIELD_ACCESS() {
         let child_count = len(node.children)
         if child_count >= 1 {
@@ -2738,7 +3154,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let res_ptr = ctx_fresh_local(ctx, mir_ir::VT_I32())
             let save_res = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
             save_res.arg0 = res_ptr
-            save_res.arg1 = inner_idx
             ctx_emit(ctx, save_res)
             let tag_local = ctx_fresh_local(ctx, mir_ir::VT_I32())
             let get_ptr = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_GET())
@@ -2800,7 +3215,6 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let comp_vec_local = ctx_fresh_local(ctx, mir_ir::VT_I32())
             let comp_set_vec = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
             comp_set_vec.arg0 = comp_vec_local
-            comp_set_vec.arg1 = comp_vec_idx
             ctx_emit(ctx, comp_set_vec)
             ctx_set_local_type(ctx, comp_vec_local, String_from("vec:i32"))
             // Create result Vec
@@ -3099,7 +3513,6 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                 }
                 let set_inst = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                 set_inst.arg0 = local_idx
-                set_inst.arg1 = actual_val_idx
                 ctx_emit(ctx, set_inst)
                 let init_type = ctx_get_local_type(ctx, val_idx)
                 if len(init_type) > 1 {
@@ -3224,7 +3637,6 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                 let bv_idx = lower_expr(ctx, break_val)
                 let set_inst = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                 set_inst.arg0 = ctx.loop_break_local
-                set_inst.arg1 = bv_idx
                 ctx_emit(ctx, set_inst)
             }
             let br_inst = mir_ir::MirInst_new(mir_opcodes::MIR_BR())
@@ -3259,7 +3671,6 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                 let vec_local = ctx_fresh_local(ctx, mir_ir::VT_I32())
                 let set_vec = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                 set_vec.arg0 = vec_local
-                set_vec.arg1 = vec_idx
                 ctx_emit(ctx, set_vec)
                 let get_vec_len = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_GET())
                 get_vec_len.arg0 = vec_local
@@ -3340,13 +3751,11 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                     let iter_var = ctx_alloc_local(ctx, clone(node.text), mir_ir::VT_I32())
                     let set_init = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                     set_init.arg0 = iter_var
-                    set_init.arg1 = start_idx
                     ctx_emit(ctx, set_init)
                     let end_idx = lower_expr(ctx, end_node)
                     let end_local = ctx_fresh_local(ctx, mir_ir::VT_I32())
                     let set_end = mir_ir::MirInst_new(mir_opcodes::MIR_LOCAL_SET())
                     set_end.arg0 = end_local
-                    set_end.arg1 = end_idx
                     ctx_emit(ctx, set_end)
                     let prev_break = ctx.loop_break_depth
                     let prev_continue = ctx.loop_continue_depth
@@ -3493,7 +3902,7 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     lower_expr(ctx, node)
 }
 
-pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
+fn lower_to_mir_impl(decls: Vec<AstNode>, check_result: TypeCheckResult, prune_enabled: bool) -> MirModule {
     let m = mir_ir::MirModule_new()
     let decl_count = len(decls)
     let mut fn_names = Vec_new_String()
@@ -3506,11 +3915,21 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
         mir_tr = MIR_LOWER_TRACE()
     }
     mir_lower_trace_line(mir_tr, -1, decl_count, typed_fn_count, 0, 0)
+    let mut entry_main_decl_index = 0 - 1
+    let mut scan_main = 0
+    while scan_main < decl_count {
+        let scan_decl = get_unchecked(decls, scan_main)
+        if scan_decl.kind == mir_type_info::NK_FN_DECL() {
+            if eq(clone(scan_decl.text), String_from("main")) {
+                entry_main_decl_index = scan_main
+            }
+        }
+        scan_main = scan_main + 1
+    }
     let mut d = 0
     while d < decl_count {
         let decl = get_unchecked(decls, d)
         if decl.kind == mir_type_info::NK_FN_DECL() {
-            push(fn_names, clone(decl.text))
             let mut rvt = mir_ir::VT_I32()
             let mut rtn = String_from("")
             if fn_index < typed_fn_count {
@@ -3557,8 +3976,23 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                     }
                 }
             }
-            push(fn_return_vts, rvt)
-            push(fn_return_type_names, rtn)
+            let skip_shadow_main = eq(clone(decl.text), String_from("main")) && d != entry_main_decl_index
+            if !skip_shadow_main {
+                push(fn_names, clone(decl.text))
+                push(fn_return_vts, rvt)
+                push(fn_return_type_names, clone(rtn))
+                let mono_count = mono_instance_count_for(check_result.mono_instances, clone(decl.text))
+                if mono_count > 0 {
+                    let mut mono_i = 0
+                    while mono_i < mono_count {
+                        let mono_name = mono_instance_mangled_at(check_result.mono_instances, clone(decl.text), mono_i)
+                        push(fn_names, mono_safe_name(mono_name))
+                        push(fn_return_vts, rvt)
+                        push(fn_return_type_names, clone(rtn))
+                        mono_i = mono_i + 1
+                    }
+                }
+            }
             fn_index = fn_index + 1
         }
         if decl.kind == mir_type_info::NK_IMPL_DECL() {
@@ -3583,9 +4017,9 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                                 mrvt = mir_ir::VT_F64()
                                 mrtn = String_from("f64")
                             } else {
-                                if eq(clone(ret_text), "i64") {
+                                if eq(clone(ret_text), "i64") || eq(clone(ret_text), "u64") {
                                     mrvt = mir_ir::VT_I64()
-                                    mrtn = String_from("i64")
+                                    mrtn = clone(ret_text)
                                 } else {
                                     if eq(clone(ret_text), "void") || eq(clone(ret_text), "()") {
                                         mrvt = mir_ir::VT_VOID()
@@ -3635,6 +4069,17 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                 }
                 push(fn_return_vts, mrvt)
                 push(fn_return_type_names, mrtn)
+                let method_mono_count = mono_instance_count_for(check_result.mono_instances, clone(mangled))
+                if method_mono_count > 0 {
+                    let mut method_mono_i = 0
+                    while method_mono_i < method_mono_count {
+                        let method_mono_name = mono_instance_mangled_at(check_result.mono_instances, clone(mangled), method_mono_i)
+                        push(fn_names, mono_safe_name(method_mono_name))
+                        push(fn_return_vts, mrvt)
+                        push(fn_return_type_names, clone(mrtn))
+                        method_mono_i = method_mono_i + 1
+                    }
+                }
                 fn_index = fn_index + 1
                 mi = mi + 1
             }
@@ -3645,6 +4090,52 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
     ctx.fn_names = fn_names
     ctx.fn_return_vts = fn_return_vts
     ctx.fn_return_type_names = fn_return_type_names
+    let mono_site_count = len(check_result.mono_instances)
+    let mut mono_site_i = 0
+    while mono_site_i < mono_site_count {
+        let site_marker = get_unchecked(check_result.mono_instances, mono_site_i)
+        let mut is_marker_entry = false
+        if len(site_marker.type_args) > 0 {
+            let span_ty = get_unchecked(site_marker.type_args, 0)
+            let is_marker = span_ty.tag < 0
+            is_marker_entry = is_marker
+            if is_marker {
+            let safe_target = mono_safe_name(clone(site_marker.mangled_name))
+            let mut has_target = false
+            let mut target_i = 0
+            while target_i < len(ctx.fn_names) {
+                if eq(clone(get_unchecked(ctx.fn_names, target_i)), clone(safe_target)) {
+                    has_target = true
+                }
+                target_i = target_i + 1
+            }
+            if has_target {
+                push(ctx.mono_call_starts, 0 - span_ty.tag - 1000)
+                push(ctx.mono_call_targets, safe_target)
+            }
+            }
+        }
+        if !is_marker_entry {
+            let safe_target2 = mono_safe_name(clone(site_marker.mangled_name))
+            let mut has_target2 = false
+            let mut target2_i = 0
+            while target2_i < len(ctx.fn_names) {
+                if eq(clone(get_unchecked(ctx.fn_names, target2_i)), clone(safe_target2)) {
+                    has_target2 = true
+                }
+                target2_i = target2_i + 1
+            }
+            if has_target2 {
+                push(ctx.mono_call_sources, clone(site_marker.fn_name))
+                push(ctx.mono_call_targets, safe_target2)
+                push(ctx.mono_call_used, 0)
+            }
+        }
+        mono_site_i = mono_site_i + 1
+    }
+    if mir_tr != 0 {
+        stdio::eprintln(concat(String_from("mir-lower mono rewrites: "), to_string(len(ctx.mono_call_sources))))
+    }
     ctx_register_builtin_variants(ctx)
     let mut sd = 0
     while sd < decl_count {
@@ -3728,8 +4219,18 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         if decl.kind == mir_type_info::NK_FN_DECL() {
+            let skip_shadow_main = eq(clone(decl.text), String_from("main")) && i != entry_main_decl_index
+            if !skip_shadow_main {
+                let mono_emit_count_raw = mono_instance_count_for(check_result.mono_instances, clone(decl.text))
+                let mono_emit_count = mono_emit_count_raw + 1
+                let mut mono_emit_i = 0
+                while mono_emit_i < mono_emit_count {
+                    let mut emit_fn_name = clone(decl.text)
+                    if mono_emit_i > 0 {
+                        emit_fn_name = mono_safe_name(mono_instance_mangled_at(check_result.mono_instances, clone(decl.text), mono_emit_i - 1))
+                    }
             let tf = get_unchecked(check_result.typed_fns, fn_idx)
-            let mf = mir_ir::MirFunction_new(clone(decl.text))
+            let mf = mir_ir::MirFunction_new(emit_fn_name)
             ctx.func = mf
             ctx.local_names = Vec_new_String()
             ctx.local_indices = Vec_new_i32()
@@ -3744,24 +4245,40 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                 let param = get_unchecked(decl.children, p)
                 if param.kind == mir_type_info::NK_IDENT() {
                     let mut pvt = mir_ir::VT_I32()
+                    let mut p_type_name = String_new()
                     if len(param.type_ann) >= 1 {
                         let pta = get_unchecked(param.type_ann, 0)
+                        p_type_name = mir_param_type_name_from_ann(pta)
                         if eq(clone(pta.text), "f64") {
                             pvt = mir_ir::VT_F64()
                         } else {
-                            if eq(clone(pta.text), "i64") {
+                            if eq(clone(pta.text), "i64") || eq(clone(pta.text), "u64") {
                                 pvt = mir_ir::VT_I64()
                             }
                         }
                     }
                     let param_local = ctx_alloc_local(ctx, clone(param.text), pvt)
-                    ctx_push_func_param(ctx, MirLocal { name: clone(param.text), val_type: pvt, ssa_name: clone(param.text), ssa_version: 0 - 1 })
+                    ctx_push_func_param(ctx, MirLocal { name: clone(param.text), val_type: pvt, type_name: p_type_name, ssa_name: clone(param.text), ssa_version: 0 - 1 })
                     if len(param.type_ann) >= 1 {
                         let p_ty = get_unchecked(param.type_ann, 0)
                         if p_ty.kind == 91 {
                             if eq(clone(p_ty.text), "Vec") && len(p_ty.children) >= 2 {
                                 let p_elem = get_unchecked(p_ty.children, 1)
                                 ctx_set_local_type(ctx, param_local, concat(String_from("vec:"), clone(p_elem.text)))
+                            }
+                            if eq(clone(p_ty.text), "Option") && len(p_ty.children) >= 2 {
+                                let p_elem2 = get_unchecked(p_ty.children, 1)
+                                if eq(clone(p_elem2.text), "i64") {
+                                    ctx_set_local_type(ctx, param_local, String_from("Option_i64"))
+                                } else {
+                                    if eq(clone(p_elem2.text), "f64") {
+                                        ctx_set_local_type(ctx, param_local, String_from("Option_f64"))
+                                    } else {
+                                        if eq(clone(p_elem2.text), "i32") {
+                                            ctx_set_local_type(ctx, param_local, String_from("Option_i32"))
+                                        }
+                                    }
+                                }
                             }
                         } else {
                             if p_ty.kind == 90 {
@@ -3778,6 +4295,9 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
             mir_lower_trace_ctx(mir_tr, ctx, 1)
             let rt_tag = tf.return_type.tag
             ctx_apply_fn_return_type_for_rt_tag(ctx, rt_tag)
+            let mut typed_func = ctx.func
+            typed_func.return_type_name = mir_decl_return_type_name(decl)
+            ctx.func = typed_func
             mir_lower_trace_ctx(mir_tr, ctx, 2)
             let entry = mir_ir::ctx_alloc_block(ctx)
             ctx.cur_block = entry
@@ -3792,6 +4312,9 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
             }
             mir_lower_trace_ctx(mir_tr, ctx, 4)
             push(ctx.module.functions, ctx.func)
+                    mono_emit_i = mono_emit_i + 1
+                }
+            }
             fn_idx = fn_idx + 1
         }
         if decl.kind == mir_type_info::NK_IMPL_DECL() {
@@ -3801,7 +4324,15 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
             while mi < method_count {
                 let method = get_unchecked(decl.children, mi)
                 let mangled = concat(clone(struct_name), concat(String_from("::"), clone(method.text)))
-                let mf = mir_ir::MirFunction_new(clone(mangled))
+                let method_mono_emit_count_raw = mono_instance_count_for(check_result.mono_instances, clone(mangled))
+                let method_mono_emit_count = method_mono_emit_count_raw + 1
+                let mut method_mono_emit_i = 0
+                while method_mono_emit_i < method_mono_emit_count {
+                let mut emit_method_name = clone(mangled)
+                if method_mono_emit_i > 0 {
+                    emit_method_name = mono_safe_name(mono_instance_mangled_at(check_result.mono_instances, clone(mangled), method_mono_emit_i - 1))
+                }
+                let mf = mir_ir::MirFunction_new(emit_method_name)
                 ctx.func = mf
                 ctx.local_names = Vec_new_String()
                 ctx.local_indices = Vec_new_i32()
@@ -3817,12 +4348,14 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                         let p_name = clone(param.text)
                         if eq(clone(p_name), "self") || eq(clone(p_name), "&self") || eq(clone(p_name), "&mut self") {
                             let self_local = ctx_alloc_local(ctx, String_from("self"), mir_ir::VT_I32())
-                            ctx_push_func_param(ctx, MirLocal { name: String_from("self"), val_type: mir_ir::VT_I32(), ssa_name: String_from("self"), ssa_version: 0 - 1 })
+                            ctx_push_func_param(ctx, MirLocal { name: String_from("self"), val_type: mir_ir::VT_I32(), type_name: clone(struct_name), ssa_name: String_from("self"), ssa_version: 0 - 1 })
                             ctx_set_local_type(ctx, self_local, clone(struct_name))
                         } else {
                             let mut pvt = mir_ir::VT_I32()
+                            let mut p_type_name = String_new()
                             if len(param.type_ann) >= 1 {
                                 let pta = get_unchecked(param.type_ann, 0)
+                                p_type_name = mir_param_type_name_from_ann(pta)
                                 if eq(clone(pta.text), "f64") {
                                     pvt = mir_ir::VT_F64()
                                 } else {
@@ -3832,7 +4365,7 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                                 }
                             }
                             let param_local = ctx_alloc_local(ctx, clone(p_name), pvt)
-                            ctx_push_func_param(ctx, MirLocal { name: clone(p_name), val_type: pvt, ssa_name: clone(p_name), ssa_version: 0 - 1 })
+                            ctx_push_func_param(ctx, MirLocal { name: clone(p_name), val_type: pvt, type_name: p_type_name, ssa_name: clone(p_name), ssa_version: 0 - 1 })
                             if len(param.type_ann) >= 1 {
                                 let p_ty = get_unchecked(param.type_ann, 0)
                                 if p_ty.kind == 91 {
@@ -3856,6 +4389,7 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                 let mrvt = ctx_fn_return_vt(ctx, clone(mangled))
                 let mut mfunc = ctx.func
                 mfunc.return_type = mrvt
+                mfunc.return_type_name = mir_decl_return_type_name(method)
                 ctx.func = mfunc
                 let entry = mir_ir::ctx_alloc_block(ctx)
                 ctx.cur_block = entry
@@ -3868,10 +4402,23 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                     ctx_emit(ctx, mir_ir::MirInst_new(mir_opcodes::MIR_RETURN()))
                 }
                 push(ctx.module.functions, ctx.func)
+                method_mono_emit_i = method_mono_emit_i + 1
+                }
                 mi = mi + 1
             }
         }
         i = i + 1
     }
+    if prune_enabled {
+        let _mono_pruned = mir_prune_unreachable(ctx.module)
+    }
     ctx.module
+}
+
+pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
+    lower_to_mir_impl(decls, check_result, true)
+}
+
+pub fn lower_to_mir_no_prune(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
+    lower_to_mir_impl(decls, check_result, false)
 }

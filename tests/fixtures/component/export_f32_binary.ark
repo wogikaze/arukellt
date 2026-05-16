@@ -1,0 +1,7 @@
+// Export with f32 binary parameter/result maps to WIT float32, float32 -> float32.
+pub fn right32(a: f32, b: f32) -> f32 {
+    b
+}
+
+fn main() {
+}

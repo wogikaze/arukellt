@@ -1,0 +1,22 @@
+use std::collections::hash
+use std::host::stdio
+
+fn main() {
+    let m: Vec<i32> = hash::hashmap_with_capacity(2)
+    stdio::println(bool_to_string(hash::hashmap_set(m, 1, 0)))
+    stdio::println(bool_to_string(hash::hashmap_set(m, 3, 30)))
+
+    match hash::hashmap_get_option(m, 1) {
+        Option::Some(v) => stdio::println(concat("zero:", i32_to_string(v))),
+        None => stdio::println("missing-zero"),
+    }
+
+    match hash::hashmap_get_option(m, 2) {
+        Option::Some(v) => stdio::println(concat("unexpected:", i32_to_string(v))),
+        None => stdio::println("missing"),
+    }
+
+    stdio::println(bool_to_string(hash::hashmap_set(m, 5, 50)))
+    stdio::println(i32_to_string(hash::hashmap_size(m)))
+    stdio::println(bool_to_string(hash::hashmap_contains(m, 5)))
+}

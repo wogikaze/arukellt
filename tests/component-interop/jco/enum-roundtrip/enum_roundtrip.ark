@@ -1,0 +1,18 @@
+// Component interop smoke test: WIT enum parameter and result canonical ABI.
+
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+pub fn rotate_color(c: Color) -> Color {
+    match c {
+        Color::Red => Color::Green,
+        Color::Green => Color::Blue,
+        Color::Blue => Color::Red,
+    }
+}
+
+fn main() {
+}

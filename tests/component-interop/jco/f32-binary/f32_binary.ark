@@ -1,0 +1,7 @@
+// Component interop smoke test: f32 binary parameter/result canonical ABI.
+pub fn right32(a: f32, b: f32) -> f32 {
+    b
+}
+
+fn main() {
+}

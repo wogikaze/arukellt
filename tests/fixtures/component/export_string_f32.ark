@@ -1,0 +1,11 @@
+// Export with String parameter and f32 result maps to WIT string -> float32.
+
+pub fn score32_text(text: String) -> f32 {
+    if len(text) == 0 {
+        return f64_to_f32(0.5)
+    }
+    f64_to_f32(2.5)
+}
+
+fn main() {
+}

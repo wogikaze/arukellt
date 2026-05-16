@@ -349,9 +349,21 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
         emit(f"  ⊙ {name} (skipped)")
         skipped += 1
 
-    def fail_step(name: str) -> None:
+    def fail_step(
+        name: str,
+        *,
+        category: str = "",
+        command: str = "",
+        primary_path: str = "",
+    ) -> None:
         nonlocal failed
         emit(f"  ✗ {name}")
+        if category:
+            emit(f"    category: {category}")
+        if command:
+            emit(f"    command: {command}")
+        if primary_path:
+            emit(f"    primary path: {primary_path}")
         failed += 1
 
     emit("=== arukellt Full Local CI ===")
@@ -394,7 +406,12 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
     rc, out = _run([sys.executable, "scripts/manager.py", "verify", "--fixtures"], root, env=env3)
     out_lines.append(out)
     if rc != 0:
-        fail_step("T3 fixtures")
+        fail_step(
+            "T3 fixtures",
+            category="fixture",
+            command="python3 scripts/manager.py verify --fixtures",
+            primary_path="tests/fixtures/manifest.txt",
+        )
         emit("✗ Full CI failed")
         return (rc, "".join(out_lines))
     ok("T3 fixtures")
@@ -408,7 +425,12 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
     if rc == 0:
         ok("T1 fixtures")
     else:
-        fail_step("T1 fixtures (non-blocking — recorded but not fatal)")
+        fail_step(
+            "T1 fixtures (non-blocking — recorded but not fatal)",
+            category="fixture",
+            command="python3 scripts/manager.py verify --fixtures",
+            primary_path="tests/fixtures/manifest.txt",
+        )
 
     # ── 5. Release build ──
     step(5, "Release build")
@@ -435,7 +457,12 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
         rc, out = _run(["bash", str(pkg_ws)], root)
         out_lines.append(out)
         if rc != 0:
-            fail_step("Package workspace")
+            fail_step(
+                "Package workspace",
+                category="package-workspace",
+                command="bash scripts/run/test-package-workspace.sh",
+                primary_path="tests/package-workspace/",
+            )
             emit("✗ Full CI failed")
             return (rc, "".join(out_lines))
     ok("Integration & packaging")
@@ -472,7 +499,12 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
     rc, out = _run(["bash", "scripts/run/verify-bootstrap.sh", "--stage1-only"], root)
     out_lines.append(out)
     if rc != 0:
-        fail_step("Selfhost stage 0")
+        fail_step(
+            "Selfhost stage 0",
+            category="bootstrap",
+            command="bash scripts/run/verify-bootstrap.sh --stage1-only",
+            primary_path="src/compiler/main.ark",
+        )
         emit("✗ Full CI failed")
         return (rc, "".join(out_lines))
     ok("Selfhost stage 0")
@@ -483,7 +515,14 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
         rc, out = _run([sys.executable, "scripts/manager.py", "verify"] + args, root)
         out_lines.append(out)
         if rc != 0:
-            fail_step(f"Component/size/WAT: {' '.join(args)}")
+            category = "component-interop" if "--component" in args else "target-contract"
+            primary_path = "tests/component-interop/" if "--component" in args else "scripts/run/wat-roundtrip.sh"
+            fail_step(
+                f"Component/size/WAT: {' '.join(args)}",
+                category=category,
+                command=f"python3 scripts/manager.py verify {' '.join(args)}",
+                primary_path=primary_path,
+            )
             emit("✗ Full CI failed")
             return (rc, "".join(out_lines))
     ok("Component + size + WAT")
@@ -501,7 +540,12 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
         if rc1 == 0 and rc2 == 0:
             ok("Extension tests")
         else:
-            fail_step("Extension tests")
+            fail_step(
+                "Extension tests",
+                category="editor-tooling",
+                command="xvfb-run -a npm test",
+                primary_path="extensions/arukellt-all-in-one/",
+            )
             emit("✗ Full CI failed")
             return (max(rc1, rc2), "".join(out_lines))
     else:

@@ -1,0 +1,4 @@
+// Export with renamed Result<i32, i32> parameter maps to WIT result<s32, s32>.
+pub fn decode_result(r: Result<i32, i32>) -> i32 {
+    unwrap_or(r, -4)
+}

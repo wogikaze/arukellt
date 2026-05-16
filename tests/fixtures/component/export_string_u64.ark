@@ -1,0 +1,11 @@
+// Export with String parameter and u64 result maps to WIT string -> u64.
+
+pub fn countu64_text(text: String) -> u64 {
+    if len(text) == 0 {
+        return 0u64
+    }
+    5000000000u64
+}
+
+fn main() {
+}

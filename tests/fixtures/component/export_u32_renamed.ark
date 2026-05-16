@@ -1,0 +1,7 @@
+// Export with renamed u32 parameter/result maps to WIT u32.
+pub fn widen_count(n: u32) -> u32 {
+    n + 12345u32
+}
+
+fn main() {
+}

@@ -41,10 +41,10 @@ Items marked **CI** are automated; items marked **Manual** require human verific
 
 ## Failure recovery
 
-- [ ] **Manual** — After killing the LSP process, the extension shows "Error" status
-- [ ] **Manual** — `Arukellt: Restart Language Server` command restarts successfully
-- [ ] **Manual** — Invalid `arukellt.path` setting shows a clear error message
-- [ ] **Manual** — Missing `ark.toml` gracefully falls back to single-file mode
+- [ ] **CI** — After killing the LSP process, the extension shows "Error" status
+- [ ] **CI** — `Arukellt: Restart Language Server` command restarts successfully
+- [ ] **CI** — Invalid `arukellt.server.path` setting shows a clear error message
+- [ ] **CI** — Missing `ark.toml` gracefully falls back to single-file mode
 
 ## Post-release
 

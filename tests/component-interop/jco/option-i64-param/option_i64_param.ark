@@ -1,0 +1,10 @@
+// Component interop smoke test: option<s64> parameter canonical ABI.
+pub fn wide_or_zero(value: Option<i64>) -> i64 {
+    match value {
+        Option::Some(v) => v,
+        Option::None => 0i64,
+    }
+}
+
+fn main() {
+}

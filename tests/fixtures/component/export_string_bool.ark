@@ -1,0 +1,8 @@
+// Export with String parameter and bool result maps to WIT string -> bool.
+
+pub fn is_empty_text(text: String) -> bool {
+    len(text) == 0
+}
+
+fn main() {
+}

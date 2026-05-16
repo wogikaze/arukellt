@@ -1,0 +1,15 @@
+// Component interop smoke test: WIT variant parameter canonical ABI is name-independent.
+enum Shape {
+    Circle(f64),
+    Square(f64),
+}
+
+pub fn measure(s: Shape) -> f64 {
+    match s {
+        Shape::Circle(r) => 3.14159 * r * r,
+        Shape::Square(side) => side * side,
+    }
+}
+
+fn main() {
+}

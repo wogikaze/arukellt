@@ -1,0 +1,10 @@
+// Export with Result<bool, bool> return maps to WIT result<bool, bool>.
+pub fn classify_flag(flag: bool) -> Result<bool, bool> {
+    if flag {
+        return Ok(true)
+    }
+    Err(false)
+}
+
+fn main() {
+}

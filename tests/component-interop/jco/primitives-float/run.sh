@@ -11,7 +11,9 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 
 ARUKELLT="${ARUKELLT_BIN:-$REPO_ROOT/target/debug/arukellt}"
 WASMTIME="${WASMTIME_BIN:-$(command -v wasmtime 2>/dev/null || echo "")}"
-COMPONENT_WASM="$SCRIPT_DIR/primitives_float.component.wasm"
+COMPONENT_WASM="tests/component-interop/jco/primitives-float/primitives_float.component.wasm"
+SOURCE_REL="tests/component-interop/jco/primitives-float/primitives_float.ark"
+cd "$REPO_ROOT"
 
 if [[ ! -x "$ARUKELLT" ]]; then
     echo "SKIP: arukellt not found at $ARUKELLT"
@@ -27,7 +29,7 @@ echo "[1/3] Compiling primitives_float.ark -> primitives_float.component.wasm"
 "$ARUKELLT" compile \
     --emit component \
     --target wasm32-wasi-p2 \
-    "$SCRIPT_DIR/primitives_float.ark" \
+    "$SOURCE_REL" \
     -o "$COMPONENT_WASM"
 echo "      OK ($(wc -c < "$COMPONENT_WASM") bytes)"
 

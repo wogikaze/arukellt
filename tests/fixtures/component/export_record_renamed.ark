@@ -1,0 +1,12 @@
+// Export with Point record should not depend on the specific function name used by the smoke fixture.
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn length_sq(p: Point) -> i32 {
+    p.x * p.x + p.y * p.y
+}
+
+fn main() {
+}

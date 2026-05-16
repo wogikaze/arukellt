@@ -1,0 +1,8 @@
+// Export with tuple<s32, s32, s32> result — only tuple<s32, s32> is supported yet.
+// Expected: E0401 compile-time error.
+pub fn make_triple(a: i32, b: i32, c: i32) -> (i32, i32, i32) {
+    (a, b, c)
+}
+
+fn main() {
+}

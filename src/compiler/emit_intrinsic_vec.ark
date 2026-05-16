@@ -5,7 +5,7 @@ use emit_inst_ctx
 
 
 // Handler for: Vec_new_i64, Vec_new_f64
-pub fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, 35)
                                                                                                                                                                                                                                                             emit_writer::emit_leb128_u(w, 0)
                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
@@ -56,22 +56,21 @@ pub fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEm
                                                                                                                                                                                                                                                             emit_writer::emit_leb128_s(w, 76)
                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_I32_SUB())
                                                                                                                                                                                                                                                             emit_inst_ctx::ctx_mark_vec_local(ctx, inst.dest)
-    true
-}
+    return true
+    }
 
 
 // Handler for: vec_len
-pub fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, 2)
                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, 0)
-    true
-}
+    return true
+    }
 
 
 // Handler for: vec_push, push
-pub fn emit_push(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
-                                                                                                                                                                                                                                                                        let is_void_push = eq(clone(callee), "push")
+pub fn emit_push(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool) -> bool {
                                                                                                                                                                                                                                                                         let s_val = ctx.scratch_base
                                                                                                                                                                                                                                                                         let s_vec = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                         let s_data = ctx.scratch_base + 2
@@ -206,12 +205,12 @@ pub fn emit_push(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) 
                                                                                                                                                                                                                                                                         if is_void_push {
                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
                                                                                                                                                                                                                                                                         }
-    true
-}
+    return true
+    }
 
 
 // Handler for: vec_get_unchecked, get_unchecked
-pub fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                             let s_idx = ctx.scratch_base
                                                                                                                                                                                                                                                                             let s_vec2 = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
@@ -235,13 +234,12 @@ pub fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::Self
                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, 2)
                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, 0)
-    true
-}
+    return true
+    }
 
 
 // Handler for: vec_push_i64, push_i64
-pub fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
-                                                                                                                                                                                                                                                                                let is_void_push_i64 = eq(clone(callee), "push_i64")
+pub fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i64: bool) -> bool {
                                                                                                                                                                                                                                                                                 let s_val_i64 = ctx.scratch_base + 14
                                                                                                                                                                                                                                                                                 let s_vec_i64 = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                 let s_data_i64 = ctx.scratch_base + 2
@@ -376,12 +374,12 @@ pub fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitC
                                                                                                                                                                                                                                                                                 if is_void_push_i64 {
                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
                                                                                                                                                                                                                                                                                 }
-    true
-}
+    return true
+    }
 
 
 // Handler for: push_f64
-pub fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                     let s_val_f64 = ctx.scratch_base + 12
                                                                                                                                                                                                                                                                                     let s_vec_f64 = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                     let s_data_f64 = ctx.scratch_base + 2
@@ -514,12 +512,12 @@ pub fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitC
                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                                                                     emit_writer::emit_leb128_u(w, s_vec_f64)
                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
-    true
-}
+    return true
+    }
 
 
 // Handler for: vec_get_unchecked_i64
-pub fn emit_vec_get_unchecked_i64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_vec_get_unchecked_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                         let s_idx_i64 = ctx.scratch_base
                                                                                                                                                                                                                                                                                         let s_vec_i64c = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
@@ -543,12 +541,12 @@ pub fn emit_vec_get_unchecked_i64(w: WasmWriter, inst: MirInst, ctx: emit_inst_c
                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_I64_LOAD())
                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, 3)
                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, 0)
-    true
-}
+    return true
+    }
 
 
 // Handler for: vec_get_unchecked_f64
-pub fn emit_vec_get_unchecked_f64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_vec_get_unchecked_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                             let s_idx_f64 = ctx.scratch_base
                                                                                                                                                                                                                                                                                             let s_vec_f64c = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
@@ -572,12 +570,12 @@ pub fn emit_vec_get_unchecked_f64(w: WasmWriter, inst: MirInst, ctx: emit_inst_c
                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_F64_LOAD())
                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, 3)
                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, 0)
-    true
-}
+    return true
+    }
 
 
 // Handler for: vec_get
-pub fn emit_vec_get(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_vec_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                 let s_idx2 = ctx.scratch_base
                                                                                                                                                                                                                                                                                                 let s_vec3 = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                                 let s_res = ctx.scratch_base + 2
@@ -662,12 +660,12 @@ pub fn emit_vec_get(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCt
                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                                                                                 emit_writer::emit_leb128_u(w, s_res)
                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, 11)
-    true
-}
+    return true
+    }
 
 
 // Handler for: vec_pop
-pub fn emit_vec_pop(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_vec_pop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                     let s_vec_pop = ctx.scratch_base
                                                                                                                                                                                                                                                                                                     let s_newlen = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                                     let s_optptr = ctx.scratch_base + 2
@@ -771,12 +769,12 @@ pub fn emit_vec_pop(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCt
                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                                                                                     emit_writer::emit_leb128_u(w, s_optptr)
                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_END())
-    true
-}
+    return true
+    }
 
 
 // Handler for: vec_set
-pub fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                         let s_val_set = ctx.scratch_base
                                                                                                                                                                                                                                                                                                         let s_idx_set = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                                         let s_vec_set = ctx.scratch_base + 2
@@ -807,12 +805,12 @@ pub fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCt
                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, 0)
                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                                                                                         emit_writer::emit_leb128_u(w, s_vec_set)
-    true
-}
+    return true
+    }
 
 
 // Handler for: is_empty
-pub fn emit_is_empty(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
                                                                                                                                                                                                                                                                                                                     emit_writer::emit_leb128_s(w, 4)
                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_SUB())
@@ -820,12 +818,12 @@ pub fn emit_is_empty(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitC
                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, 2)
                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, 0)
                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQZ())
-    true
-}
+    return true
+    }
 
 
 // Handler for: contains_i32, seq::seq_contains
-pub fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                         let s_needle = ctx.scratch_base
                                                                                                                                                                                                                                                                                                                                         let s_vec_ci = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                                                                         let s_ci_i = ctx.scratch_base + 2
@@ -908,12 +906,12 @@ pub fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfE
                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, 11)
                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_leb128_u(w, s_ci_found)
-    true
-}
+    return true
+    }
 
 
 // Handler for: reverse_i32
-pub fn emit_reverse_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_reverse_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                             let s_vec_rv = ctx.scratch_base
                                                                                                                                                                                                                                                                                                                                             let s_rv_lo = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                                                                             let s_rv_hi = ctx.scratch_base + 2
@@ -1024,12 +1022,12 @@ pub fn emit_reverse_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEm
                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, 11)
                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_leb128_u(w, s_vec_rv)
-    true
-}
+    return true
+    }
 
 
 // Handler for: remove_i32
-pub fn emit_remove_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_remove_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                 let s_rm_idx = ctx.scratch_base
                                                                                                                                                                                                                                                                                                                                                 let s_rm_vec = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                                                                                 let s_rm_data = ctx.scratch_base + 2
@@ -1122,6 +1120,5 @@ pub fn emit_remove_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmi
                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, 0)
                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_leb128_u(w, s_rm_vec)
-    true
-}
-
+    return true
+    }

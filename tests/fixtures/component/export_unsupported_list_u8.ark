@@ -1,0 +1,9 @@
+// Export with Vec<u8> parameter — non-s32 list element canonical ABI is not supported yet.
+// WIT: list<u8> requires a dedicated byte-list lift/lower adapter.
+// Expected: E0401 compile-time error.
+pub fn byte_count(values: Vec<u8>) -> i32 {
+    0
+}
+
+fn main() {
+}

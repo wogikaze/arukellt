@@ -1,0 +1,13 @@
+// String adapter paths are single-export only.
+// Extra public exports must be rejected instead of being silently omitted.
+// Expected: E0401 compile-time error.
+pub fn echo_text(text: String) -> String {
+    text
+}
+
+pub fn extra_count(n: i32) -> i32 {
+    n
+}
+
+fn main() {
+}

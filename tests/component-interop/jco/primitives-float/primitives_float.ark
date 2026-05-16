@@ -7,7 +7,7 @@ pub fn square_f64(x: f64) -> f64 {
 }
 
 pub fn average(a: f64, b: f64) -> f64 {
-    a + b / 2.0
+    (a + b) / 2.0
 }
 
 pub fn negate_f64(x: f64) -> f64 {

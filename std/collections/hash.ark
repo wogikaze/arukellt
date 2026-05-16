@@ -15,6 +15,21 @@
 //!   co-located in this single module. Splitting the raw layer from
 //!   the facade is tracked under #607; this module intentionally does
 //!   not pre-empt that split.
+//! - `hashmap_get_option` is the primary lookup API. Legacy
+//!   `hashmap_get` remains for older fixtures and returns `0` for
+//!   missing keys, which means it cannot distinguish missing from a
+//!   stored zero value.
+//! - `hashmap_set` returns `true` when the write is stored and `false`
+//!   when the fixed-capacity backing store is full. Callers that need
+//!   insertion certainty must check this return value.
+//!
+//! ## Hash policy
+//!
+//! `hash_i32` uses the same stable byte-mixing policy as
+//! `std::core::hash::hash_i32`: take the absolute i32 value, mix four
+//! base-256 bytes with multiplier 31, and return the non-negative
+//! result. This is a deterministic compatibility hash, not a
+//! cryptographic or collision-resistant hash.
 //!
 //! ## Layout
 //!
@@ -36,12 +51,23 @@ pub fn hashmap_new() -> Vec<i32> {
 }
 
 pub fn hash_i32(key: i32) -> i32 {
-    let h: i32 = key * 1000003
-    if h < 0 {
-        0 - h
-    } else {
-        h
+    let mut h = 37
+    let mut v = key
+    if v < 0 {
+        v = 0 - v
     }
+    let b0 = v - v / 256 * 256
+    h = h * 31 + b0
+    v = v / 256
+    let b1 = v - v / 256 * 256
+    h = h * 31 + b1
+    v = v / 256
+    let b2 = v - v / 256 * 256
+    h = h * 31 + b2
+    v = v / 256
+    let b3 = v - v / 256 * 256
+    h = h * 31 + b3
+    h
 }
 
 pub fn hashmap_get(m: Vec<i32>, key: i32) -> i32 {
@@ -62,7 +88,7 @@ pub fn hashmap_get(m: Vec<i32>, key: i32) -> i32 {
                 found = true
                 probes = cap
             } else {
-                idx = idx + 1 % cap
+                idx = (idx + 1) % cap
                 probes = probes + 1
             }
         }
@@ -86,7 +112,7 @@ pub fn hashmap_contains(m: Vec<i32>, key: i32) -> bool {
                 found = true
                 probes = cap
             } else {
-                idx = idx + 1 % cap
+                idx = (idx + 1) % cap
                 probes = probes + 1
             }
         }
@@ -94,7 +120,9 @@ pub fn hashmap_contains(m: Vec<i32>, key: i32) -> bool {
     found
 }
 
-pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) {
+/// Insert or update a key. Returns true when the value was stored, or false
+/// when the fixed-capacity backing store is full.
+pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) -> bool {
     let cap: i32 = get_unchecked(m, 0)
     let h: i32 = hash_i32(key)
     let mut idx: i32 = h % cap
@@ -117,11 +145,12 @@ pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) {
                 done = true
                 probes = cap
             } else {
-                idx = idx + 1 % cap
+                idx = (idx + 1) % cap
                 probes = probes + 1
             }
         }
     }
+    done
 }
 
 pub fn hashmap_size(m: Vec<i32>) -> i32 {
@@ -160,7 +189,7 @@ pub fn hashmap_get_option(m: Vec<i32>, key: i32) -> Option<i32> {
                 result = Some(get_unchecked(m, 2 + cap + idx))
                 probes = cap
             } else {
-                idx = idx + 1 % cap
+                idx = (idx + 1) % cap
                 probes = probes + 1
             }
         }
@@ -231,7 +260,7 @@ pub fn hashmap_remove(m: Vec<i32>, key: i32) -> Option<i32> {
             let k: i32 = get_unchecked(ks, i)
             let v: i32 = get_unchecked(vs, i)
             if k != key {
-                hashmap_set(m, k, v)
+                let _ = hashmap_set(m, k, v)
             }
             i = i + 1
         }
@@ -252,7 +281,6 @@ pub fn hashset_insert(s: Vec<i32>, value: i32) -> bool {
         false
     } else {
         hashmap_set(s, value, 1)
-        true
     }
 }
 

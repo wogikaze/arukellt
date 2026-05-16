@@ -168,6 +168,14 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         description="Template engine — HashMap<String,String>, recursive expansion, string ops",
         tags=("application", "string-heavy", "container", "recursion-heavy", "gc-pressure"),
     ),
+    BenchmarkCase(
+        name="file_io",
+        source="benchmarks/bench_io_file_io.ark",
+        expected="benchmarks/bench_io_file_io.expected",
+        description="File I/O — repeated host fs write/read with string payload checksums",
+        tags=("io-bound", "string-heavy", "allocation-heavy"),
+        runtime_args=("run", "--dir=/tmp"),
+    ),
 )
 
 MODE_PRESETS: dict[str, dict[str, Any]] = {

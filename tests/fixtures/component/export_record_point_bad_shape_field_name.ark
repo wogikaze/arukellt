@@ -1,0 +1,13 @@
+// The Point adapter only supports record point { x: s32, y: s32 }.
+// Wrong field names must be rejected before the fixed-layout adapter is selected.
+struct Point {
+    x: i32,
+    z: i32,
+}
+
+pub fn distance_sq(p: Point) -> i32 {
+    p.x * p.x + p.z * p.z
+}
+
+fn main() {
+}

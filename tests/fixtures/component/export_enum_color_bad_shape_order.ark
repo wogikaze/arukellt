@@ -1,0 +1,17 @@
+// The Color adapter only supports unit enum color { red, green, blue } in that order.
+enum Color {
+    Red,
+    Blue,
+    Green,
+}
+
+pub fn color_code(c: Color) -> i32 {
+    match c {
+        Color::Red => 1,
+        Color::Blue => 3,
+        Color::Green => 2,
+    }
+}
+
+fn main() {
+}

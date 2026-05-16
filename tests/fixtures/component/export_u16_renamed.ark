@@ -1,0 +1,7 @@
+// Export with renamed u16 parameter/result maps to WIT u16.
+pub fn widen_small(n: u16) -> u16 {
+    n + 321u16
+}
+
+fn main() {
+}

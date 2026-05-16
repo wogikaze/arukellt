@@ -1,8 +1,8 @@
 [project]
 name = "Arukellt"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
-updated = "2026-04-14"
-verification_command = "bash scripts/run/verify-harness.sh (fast local gate; use --full for full local verification)"
+updated = "2026-05-14"
+verification_command = "python3 scripts/manager.py verify quick"
 current_state_doc = "docs/current-state.md"
 
 [pipeline]
@@ -78,9 +78,9 @@ role = "Not started: WASI p3 spec not finalized"
 fixture_passed = 641
 fixture_skipped = 28
 fixture_failures = 0
-fixture_manifest_count = 733
-checks_passed = 19
-checks_total = 19
+fixture_manifest_count = 838
+checks_passed = 22
+checks_total = 22
 unit_tests_note = "current count is verified by `cargo test --workspace`"
 
 [perf]
@@ -117,6 +117,12 @@ code = "W0005"
 severity = "warning"
 phase = "component"
 summary = "non-exportable function skipped from component exports"
+
+[[diagnostics]]
+code = "W0101"
+severity = "warning"
+phase = "parse"
+summary = "deprecated `import <name>` syntax; use `use <name>`"
 
 [[diagnostics]]
 code = "E0500"

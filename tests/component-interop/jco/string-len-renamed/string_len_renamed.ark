@@ -1,0 +1,8 @@
+// Component interop smoke test: string parameter canonical ABI with scalar result is name-independent.
+
+pub fn measure_text(text: String) -> i32 {
+    len(text) + 1
+}
+
+fn main() {
+}

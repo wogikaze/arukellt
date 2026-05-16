@@ -1,0 +1,11 @@
+// Export with renamed String parameter and f64 result maps to WIT string -> float64.
+
+pub fn ratio_text(text: String) -> f64 {
+    if len(text) == 0 {
+        return 1.25
+    }
+    3.75
+}
+
+fn main() {
+}

@@ -1,0 +1,16 @@
+// result<s32, string> adapter paths are single-export only.
+// Extra public exports must be rejected instead of being silently omitted.
+// Expected: E0401 compile-time error.
+pub fn checked_sub(a: i32, b: i32) -> Result<i32, String> {
+    if a < b {
+        return Err(String_from("negative"))
+    }
+    Ok(a - b)
+}
+
+pub fn extra_count(n: i32) -> i32 {
+    n
+}
+
+fn main() {
+}

@@ -1,0 +1,11 @@
+// Export with renamed String parameter and u16 result maps to WIT string -> u16.
+
+pub fn wide_code16(text: String) -> u16 {
+    if len(text) == 0 {
+        return 21u16
+    }
+    2100u16
+}
+
+fn main() {
+}

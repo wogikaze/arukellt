@@ -3,7 +3,7 @@
 > This document reflects the actual, verified state of the project.
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
-> Updated: 2026-04-14.
+> Updated: 2026-05-14.
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -45,9 +45,9 @@ and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 
 - Unit tests: current count is verified by `cargo test --workspace`
 - Fixture harness: 641 passed, 0 failed, 28 skipped (manifest-driven)
-- Fixture manifest: 733 entries
+- Fixture manifest: 838 entries
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `bash scripts/run/verify-harness.sh (fast local gate; use --full for full local verification)` — **19/19 checks pass**
+- Verification entry point: `python3 scripts/manager.py verify quick` — **22/22 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ## GC-Native Data Model (T3, wasm32-wasi-p2)
@@ -72,7 +72,7 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
 
 ## Performance Snapshot
 
-Current benchmark measurements (target: `wasm32-wasi-p1`, mode: `full`, 5 iterations).
+Current benchmark measurements (target: `wasm32-wasi-p1`, mode: `update-baseline`, 5 iterations).
 Full results and history are tracked in [`docs/process/benchmark-results.md`](process/benchmark-results.md).
 
 Run benchmarks locally with:
@@ -86,20 +86,24 @@ mise bench:compare    # compare against stored baseline
 
 | Benchmark | Suite | Compile ms | Run ms | Binary bytes | Correctness |
 |-----------|-------|------------|--------|--------------|-------------|
-| fib | cpu | ~14 | ~11 | 993 | pass |
-| binary_tree | cpu | ~14 | ~19 | 977 | pass |
-| vec_ops | cpu | ~21 | ~12 | 1,983 | pass |
-| string_concat | cpu | ~14 | ~12 | 1,248 | pass |
-| enum_dispatch | cpu | ~15 | ~14 | 1,555 | pass |
-| closure_map | cpu | ~15 | ~10 | 2,013 | pass |
-| struct_graph | memory | ~18 | ~12 | 1,416 | pass |
-| error_chain | compute | ~16 | ~12 | 1,771 | pass |
-| parse_tree_distance | parse | ~23 | ~36 | 7,287 | pass |
-| http_parser | application | ~14 | ~11 | 1,657 | pass |
-| log_processor | application | ~15 | ~12 | 1,906 | pass |
-| config_loader | application | ~17 | ~11 | 1,841 | pass |
+| fib | cpu | 29.088 | 22.592 | 767 | pass |
+| binary_tree | cpu | 27.950 | 29.617 | 747 | pass |
+| vec_ops | cpu | 28.690 | 23.429 | 1,694 | pass |
+| string_concat | cpu | 27.631 | 24.030 | 784 | pass |
+| enum_dispatch | cpu | n/a | n/a | n/a | skipped |
+| closure_map | cpu | n/a | n/a | n/a | skipped |
+| struct_graph | memory | 31.499 | 29.425 | 1,346 | pass |
+| error_chain | compute | n/a | n/a | n/a | skipped |
+| parse_tree_distance | parse | 25.884 | 55.124 | 4,030 | fail |
+| http_parser | application | n/a | n/a | n/a | skipped |
+| log_processor | application | 34.965 | 27.468 | 1,598 | pass |
+| config_loader | application | n/a | n/a | n/a | skipped |
+| data_pipeline | application | n/a | n/a | n/a | skipped |
+| template_engine | application | 29.678 | n/a | 2,407 | failed |
+| file_io | io | 27.699 | 37.690 | 2,899 | pass |
 
-Source: `tests/baselines/perf/baselines.json` (generated 2026-04-22, wasm32-wasi-p1, selfhost compiler).
+Source: `tests/baselines/perf/baselines.json` (generated 2026-05-14, wasm32-wasi-p1, selfhost compiler).
+Some expanded benchmark fixtures currently record compile/runtime skips or correctness failures in this environment; the benchmark runner preserves those statuses instead of hiding them.
 
 Legacy fixtures (`fib`, `binary_tree`, `vec_ops`, `string_concat`) live under `benchmarks/legacy/`
 and are retained for cross-language C/Rust comparison. New benchmarks follow the
@@ -139,6 +143,7 @@ Canonical hello.ark sizes at opt-level 2 from [`docs/process/wasm-size-reduction
 - `W0002`: deprecated target alias warning (warning, `target`)
 - `W0004`: generated Wasm failed backend validation (error, `backend-validate`)
 - `W0005`: non-exportable function skipped from component exports (warning, `component`)
+- `W0101`: deprecated `import <name>` syntax; use `use <name>` (warning, `parse`)
 - `E0500`: module requires a different target (e.g. `std::host::sockets` on T1 emits E0500; use `--target wasm32-wasi-p2`) (error, `resolve`)
 - `E0501`: symbol not found in module (e.g. `string::nonexistent_fn()` when the function is not exported by the imported module) (error, `typecheck`)
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`
@@ -212,18 +217,25 @@ All v1 exit criteria are satisfied as of 2026-03-27.
 v2 (Component Model) implementation is complete as of 2026-03-28.
 
 1. ✅ **Component emit**: `--emit component` produces `.component.wasm` outputs on the supported `wasm32-wasi-p2` path.
-2. ✅ **WIT generation**: `--emit wit` generates WIT for the supported export surface.
-3. ✅ **CLI integration**: `--wit <path>`, `--emit component`, and `--emit all` are wired into the CLI.
-  WIT-imported functions are accepted as callable host imports during component compilation.
+2. ✅ **WIT generation**: `--emit wit` generates WIT from source-level export type annotations for the supported export surface, including bool, char, string, list, option, result, tuple, record, enum, and variant shapes used by the component fixture surface.
+3. ✅ **CLI integration**: `--wit <path>`, `--emit wit`, `--emit component`, and `--emit all` are wired into the selfhost CLI.
+  `--wit` paths are accepted, validated, and threaded into driver configuration; full WIT import binding remains limited by the current resolver/MIR import surface.
+  Unsupported WIT import shapes such as `flags` are rejected with `E0090`; WIT
+  `resource` declarations, `own<T>` / `borrow<T>` resource handles, and
+  `stream<T>` / `future<T>` async resource shapes are rejected with `E0402`.
+  WIT function imports are rejected with `E0401` until callable host imports are lowered into resolver/MIR/component glue.
 4. ✅ **Current export behavior**: non-exportable functions surface `W0005` warnings.
 5. ✅ **No regression to core Wasm paths**: T1/T3 core Wasm flows remain available.
 
 ### Known v2 carry-over limitations
 
-- `--emit component` / `--emit all` require external `wasm-tools` on `PATH` (also probed under `~/.cargo/bin`). The driver runs `wasm-tools component embed` then `wasm-tools component new`; unless `--wasi-version p2` / `--p2-native` is used, `component new` links the **WASI Preview 1** adapter when a matching adapter module is found (reactor/command `.wasm`, or `ARK_WASI_ADAPTER`).
-- **WASI Preview 2 native components** (core Wasm imports `wasi:cli/*` etc. directly, no Preview 1 adapter — [issue 074](../issues/open/074-wasi-p2-native-component.md)) are **deferred to v5+** pending WASI P2 runtime maturity. Today, `--wasi-version p2` only skips the adapter in `wasm-tools` while the T3 core module still uses `wasi_snapshot_preview1` imports (`W0009`; import-table work: [issue 510](../issues/done/510-t3-p2-import-table-switch.md)).
+- The current selfhost `--emit component` path emits a direct Component Model wrapper around the core Wasm module and injects a minimal WASI Preview 1 stub instance so the existing core module's `wasi_snapshot_preview1` imports can instantiate.
+- **WASI Preview 2 native components** (core Wasm imports `wasi:cli/*` etc. directly, no Preview 1 adapter — [issue 074](../issues/open/074-wasi-p2-native-component.md)) are **deferred to v5+** pending WASI P2 runtime maturity. The T3 core module still uses `wasi_snapshot_preview1` imports while the wrapper exposes the component export surface.
 - Component output is still T3-only: use `--target wasm32-wasi-p2` for `--emit component`, `--emit wit`, and `--emit all`
-- string/list/complex canonical ABI lift-lower coverage is not complete for every case
+- The selfhost component interop gate currently passes 101/101 fixtures (`bool-logic`, `bool-renamed`, `calculator`, `char-renamed`, `enum-color-code`, `enum-color-code-renamed`, `enum-colors`, `enum-colors-renamed`, `enum-roundtrip`, `enum-roundtrip-renamed`, `f32-binary`, `f32-param-i32`, `f32-renamed`, `f32-result-i32`, `f32-square`, `f64-renamed`, `i16-renamed`, `i32-renamed`, `i64-renamed`, `i8-renamed`, `int-widths`, `list-first`, `list-renamed`, `list-return`, `list-return-renamed`, `list-roundtrip`, `list-roundtrip-renamed`, `metadata-names`, `metadata-scalars`, `multi-type-exports`, `option-bool`, `option-i64`, `option-i64-param`, `option-maybe`, `option-param`, `option-param-renamed`, `option-renamed`, `option-roundtrip`, `option-roundtrip-renamed`, `primitives-float`, `record-add`, `record-add-renamed`, `record-distance`, `record-distance-renamed`, `record-point`, `record-point-renamed`, `record-roundtrip`, `record-roundtrip-renamed`, `result-bool`, `result-param`, `result-param-renamed`, `result-renamed`, `result-roundtrip`, `result-roundtrip-renamed`, `result-safe-div`, `result-string-param`, `string-byte`, `string-byte-renamed`, `string-char`, `string-char-renamed`, `string-count16`, `string-count16-renamed`, `string-count32`, `string-count32-renamed`, `string-count64`, `string-count64-renamed`, `string-countu64`, `string-countu64-renamed`, `string-empty`, `string-empty-renamed`, `string-greet`, `string-len`, `string-len-renamed`, `string-renamed`, `string-return`, `string-return-renamed`, `string-score`, `string-score-renamed`, `string-score32`, `string-score32-renamed`, `string-signed16`, `string-signed16-renamed`, `string-signed8`, `string-signed8-renamed`, `tuple-bool-param`, `tuple-i64-result`, `tuple-mixed-param`, `tuple-param`, `tuple-param-renamed`, `tuple-renamed`, `tuple-roundtrip`, `tuple-roundtrip-renamed`, `tuple-swap`, `u16-renamed`, `u32-renamed`, `u64-renamed`, `u8-renamed`, `variant-roundtrip`, `variant-roundtrip-renamed`, `variant-shape-area`, `variant-shape-area-renamed`).
+- WIT function imports supplied through `--wit` are detected and rejected with `E0401`; WIT `resource` declarations, `own<T>` / `borrow<T>` handles, and `stream<T>` / `future<T>` async resource shapes are rejected with `E0402`. This prevents silently compiling components that ignore unsupported host imports or resource/async handles.
+- Nested or otherwise unsupported component export shapes such as mixed-export f32, extra exports next to single-export string/list/option/result adapter shapes, non-`Color` enums, non-`Shape` payload variants, `Option<String>`, `Option<Vec<i32>>`, `Result<i32, bool>`, `Result<i64, i64>`, `Result<String, i32>`, `Result<String, String>`, `Result<Vec<i32>, String>` parameters, `Vec<bool>`, `Vec<u8>`, `Vec<i64>`, `Vec<Option<i32>>`, `Vec<String>`, `tuple<String, String>`, and 3-element tuples are rejected with `E0401` before backend emission.
+- general string/general list/general option/result/general enum/general record/complex canonical ABI lift-lower coverage is not complete for every case
 - async Component Model features are not supported
 - jco browser-facing flow remains blocked upstream (`issues/blocked/037`)
 
@@ -233,11 +245,13 @@ The compiler enforces type-tier restrictions on component exports at compile tim
 
 | Tier | Types | Status | Error |
 |------|-------|--------|-------|
-| Tier 1 | i32, i64, f32, f64, bool, char, unit enum, scalar record | Supported | — |
-| Tier 2 | string, list, option, result | Blocked (canonical ABI lift/lower) | E0401 |
+| Tier 1 | i32, i64, f64, bool, char, u8, u16, u32, u64, i8, i16 | Supported | — |
+| Tier 1 carry-over | f32 | Partially blocked (single-export `(f32) -> f32`, `(f32, f32) -> f32`, `f32 -> i32`, and `i32 -> f32` functions use name-independent bit-reinterpret adapters; broader f32 preservation remains #121) | #121 |
+| Tier 1 carry-over | enum, record, variant | Partially blocked (single-export `Color -> i32`, single-export `Color -> Color`, paired `Color -> Color` / `Color -> i32`, single-export `Point -> i32`, single-export `Point -> Point`, single-export `(Point, Point) -> Point`, paired `Point -> i32` / `(Point, Point) -> Point`, `Shape -> f64`, and `Shape -> Shape` functions use name-independent adapters; general descriptors/adapters remain #121) | #121 |
+| Tier 2 | string, list, option, result, tuple | Partially blocked (single-export `String -> String`, `String -> u8`, `String -> u16`, `String -> u32`, `String -> i8`, `String -> i16`, `String -> i32`, `String -> bool`, `String -> char`, `String -> f32`, `String -> f64`, `String -> i64`, `String -> u64`, `i32 -> String`, `Vec<i32> -> i32`, `i32 -> Vec<i32>`, `Vec<i32> -> Vec<i32>`, `i32 -> Option<i32>`, `bool -> Option<bool>`, `bool -> Option<i64>`, `Option<i32> -> i32`, `Option<i64> -> i64`, `Option<i32> -> Option<i32>`, `bool -> Result<bool, bool>`, `(i32, i32) -> Result<i32, String>`, `Result<i32, i32> -> i32`, `Result<i32, String> -> i32`, `Result<i32, i32> -> Result<i32, i32>`, `(i32, i32) -> tuple<i32, i32>`, `(i64, i64) -> tuple<i64, i64>`, structural `tuple<i32, i32> -> i32`, structural `tuple<i32, bool> -> i32`, structural `tuple<bool, bool> -> i32`, and structural `tuple<i32, i32> -> tuple<i32, i32>` functions have name-independent adapters; general adapters remain #121) | E0401/#121 |
 | Tier 3 | resource, stream, future, flags (complex) | Not implemented | E0400/E0402 |
 
-Functions using Tier 2/3 types in exports produce compile errors. Functions with non-exportable
+Unsupported Tier 2/3 export shapes produce compile errors. Functions with non-exportable
 types are excluded from component exports with W0005 warning. Core Wasm binary validation
 catches GC reference types that bypass WIT-level checks (W0004).
 
@@ -294,11 +308,11 @@ The #122 opt-level separation work established the `passes/` directory and the u
 
 Verification status of each bootstrap stage (source: `src/compiler/*.ark`):
 
-The selfhost compiler records generic call specializations in the typechecker (`mono_instances`) but does not yet monomorphize or prune them before MIR lowering (see issue #312).
+The selfhost compiler records generic call specializations in the typechecker (`mono_instances`) and emits the current selfhost compiler at a byte-stable bootstrap fixpoint (see issue #312).
 
 | Stage | Description | Status |
 |-------|-------------|--------|
-| **Stage 0** | Pinned-reference selfhost wasm (`bootstrap/arukellt-selfhost.wasm`, ADR-029) | ✅ **Committed** — 524 KiB, sha256 `3a035037…f2c` |
+| **Stage 0** | Pinned-reference selfhost wasm (`bootstrap/arukellt-selfhost.wasm`, ADR-029) | ✅ **Committed** — 842 KiB, sha256 `f62ecf…f8a` |
 | **Stage 2** | Pinned wasm compiles current `src/compiler/main.ark` → `s2.wasm` | ✅ **Verified** |
 | **Stage 3** | `sha256(s2) == sha256(s3)` fixpoint (selfhost reproduces itself) | ✅ **Reached** — `attainment: reached` |
 | **Fixture parity** | Selfhost compiler passes pinned-vs-current behavioural parity | ✅ **Reached** — 321 PASS, 0 FAIL, 41 SKIP (ADR-029) |
@@ -321,10 +335,10 @@ same source.
 
 ```
 pinned: bootstrap/arukellt-selfhost.wasm
-  sha256 = 3a0350371f9dbc37becef03efffa8d20b90827161a0d9fab97163a19de341f2c
-  size   = 536 277 bytes
+  sha256 = f62ecf3b863338916998c65c58c9fd2c8ad42d37e7fe0cfc125eb989341e0f8a
+  size   = 862 369 bytes
 s2/s3 (current):
-  sha256 = c16e32efb1b68e1921eb4915e414f554b165d45e299e0c5fd679934e0ba180cc
+  sha256 = f62ecf3b863338916998c65c58c9fd2c8ad42d37e7fe0cfc125eb989341e0f8a
 ```
 
 CI checks (`python3 scripts/manager.py selfhost <gate>`) — all four are

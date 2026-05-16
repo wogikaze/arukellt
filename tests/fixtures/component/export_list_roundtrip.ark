@@ -1,0 +1,15 @@
+// Export with list<s32> parameter and result maps to WIT list<s32> -> list<s32>.
+
+pub fn append_marker(v: Vec<i32>) -> Vec<i32> {
+    let mut out: Vec<i32> = Vec_new_i32()
+    let mut i = 0
+    while i < len(v) {
+        push(out, get_unchecked(v, i))
+        i = i + 1
+    }
+    push(out, 99)
+    out
+}
+
+fn main() {
+}

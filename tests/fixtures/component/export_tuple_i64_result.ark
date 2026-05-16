@@ -1,0 +1,7 @@
+// Export with tuple<s64, s64> result maps to WIT tuple<s64, s64>.
+pub fn wide_pair(a: i64, b: i64) -> (i64, i64) {
+    (b, a)
+}
+
+fn main() {
+}

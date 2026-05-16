@@ -5,6 +5,11 @@
   "version": "0.0.1",
   "publisher": "arukellt",
   "license": "MIT",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#111827",
+    "theme": "dark"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/wogikaze/arukellt.git",
@@ -451,8 +456,9 @@
   "scripts": {
     "lint": "node -e \"const ext=require('./src/extension.js'); const result=ext.verifyBootstrap(); if(!result.command){process.exit(1)}\"",
     "test:playground-endpoint": "node ./test/playground-endpoint-guard.js",
+    "test:marketplace-metadata": "node ./test/marketplace-metadata-guard.js",
     "test": "vscode-test",
-    "package": "vsce package",
+    "package": "node ./test/run-vsce-package.js package",
     "build": "npm run package"
   },
   "dependencies": {

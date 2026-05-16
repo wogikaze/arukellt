@@ -1,0 +1,11 @@
+// Component interop smoke test: option<s32> result canonical ABI is name-independent.
+pub fn wrap_positive(n: i32) -> Option<i32> {
+    if n > 0 {
+        Some(n)
+    } else {
+        None
+    }
+}
+
+fn main() {
+}

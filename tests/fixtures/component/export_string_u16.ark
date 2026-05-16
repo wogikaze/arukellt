@@ -1,0 +1,11 @@
+// Export with String parameter and u16 result maps to WIT string -> u16.
+
+pub fn count16_text(text: String) -> u16 {
+    if len(text) == 0 {
+        return 16u16
+    }
+    1600u16
+}
+
+fn main() {
+}

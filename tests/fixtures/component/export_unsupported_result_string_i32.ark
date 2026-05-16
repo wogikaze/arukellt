@@ -1,0 +1,12 @@
+// Export with Result<String, i32> return — string result payload canonical ABI is not supported yet.
+// WIT: result<string, s32> requires string payload result lift/lower.
+// Expected: E0401 compile-time error.
+pub fn maybe_label(flag: bool) -> Result<String, i32> {
+    if flag {
+        return Ok(String_from("ready"))
+    }
+    Err(3)
+}
+
+fn main() {
+}

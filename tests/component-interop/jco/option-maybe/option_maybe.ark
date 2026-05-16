@@ -1,0 +1,11 @@
+// Component interop smoke test: option<s32> result canonical ABI.
+pub fn maybe_double(n: i32) -> Option<i32> {
+    if n > 0 {
+        Some(n * 2)
+    } else {
+        None
+    }
+}
+
+fn main() {
+}

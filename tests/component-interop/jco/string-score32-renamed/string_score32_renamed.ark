@@ -1,0 +1,11 @@
+// Component interop smoke test: string parameter canonical ABI with f32 result is name-independent.
+
+pub fn ratio32_text(text: String) -> f32 {
+    if len(text) == 0 {
+        return f64_to_f32(1.25)
+    }
+    f64_to_f32(3.75)
+}
+
+fn main() {
+}

@@ -1,6 +1,9 @@
 # Arukellt All-in-One
 
-Minimal VS Code extension scaffold for Arukellt.
+VS Code support for Arukellt: language registration, syntax highlighting,
+snippets, command palette workflows, and the `arukellt lsp` language server.
+
+![Arukellt command palette workflow](media/command-palette.png)
 
 ## Current scope
 
@@ -18,6 +21,10 @@ Minimal VS Code extension scaffold for Arukellt.
 - `Arukellt: Check Current File`
 - `Arukellt: Compile Current File`
 - `Arukellt: Run Current File`
+- `Arukellt: Build Component (wasm32-wasi-p2, all outputs)`
+- `Arukellt: Build Component - Show WIT Interface`
+- `Arukellt: Run Component (wasm32-wasi-p2)`
+- `Arukellt: Open in Playground`
 
 ## Extension Settings
 
@@ -41,6 +48,44 @@ The following five settings (added in #477/#478/#479) control LSP server behavio
 | `arukellt.emit` | `string` | `"core-wasm"` | Default emit kind for compile commands. |
 | `arukellt.playgroundUrl` | `string` | `"https://wogikaze.github.io/arukellt/playground/"` | Base URL used by the `Open in Playground` command. Only the repo-proved route is supported: `https://wogikaze.github.io/arukellt/playground/` backed by `docs/playground/index.html`. |
 
+## Supported Targets
+
+| Target | Status | Notes |
+|--------|--------|-------|
+| `wasm32-wasi-p1` | supported | Compatibility target for core Wasm run/check/compile workflows. |
+| `wasm32-wasi-p2` | primary | Component Model and WIT workflows use this target. |
+
+## Compatibility
+
+- Desktop VS Code is supported.
+- VS Code Remote, Dev Containers, and Codespaces are supported when the
+  configured `arukellt.server.path` resolves inside the remote environment.
+- Browser/web extension hosts are not supported yet because the extension
+  launches `arukellt lsp` as a process.
+
+## Troubleshooting
+
+| Symptom | Action |
+|---------|--------|
+| Language server does not start | Set `arukellt.server.path` to the absolute path of a runnable `arukellt` binary. |
+| Commands fail in Remote or Codespaces | Install `arukellt` in the remote environment or point `arukellt.server.path` at the remote binary. |
+| Component commands fail | Verify `wasm32-wasi-p2` is selected and required Component Model tools are installed for the current workflow. |
+| Diagnostics do not update | Run `Arukellt: Restart Language Server` and check the Arukellt output channel. |
+
+## Packaging and Release
+
+Release packaging is documented in [RELEASE.md](RELEASE.md). The short local
+check is:
+
+```bash
+npm run test:marketplace-metadata
+npm run build
+```
+
+`npm run build` packages the extension with `vsce package` and writes a
+versioned `.vsix` file in this directory.
+
 ## Notes
 
-This is the bootstrap scaffold tracked by issue #189. It intentionally keeps the language client thin and uses the existing `arukellt lsp` command as the server entrypoint.
+This extension intentionally keeps the language client thin and uses the
+existing `arukellt lsp` command as the server entrypoint.

@@ -1,0 +1,6 @@
+package test:host;
+
+interface async-host {
+    push: func(s: stream<u8>);
+    wait: func() -> future<string>;
+}

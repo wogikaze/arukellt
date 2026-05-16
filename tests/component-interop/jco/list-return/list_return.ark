@@ -1,0 +1,11 @@
+// Component interop smoke test: list<s32> result canonical ABI is name-independent.
+
+pub fn numbers_after(n: i32) -> Vec<i32> {
+    let mut out: Vec<i32> = Vec_new_i32()
+    push(out, n)
+    push(out, n + 1)
+    out
+}
+
+fn main() {
+}

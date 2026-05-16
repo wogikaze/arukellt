@@ -1,0 +1,11 @@
+// Export with String parameter and i8 result maps to WIT string -> s8.
+
+pub fn signed8_text(text: String) -> i8 {
+    if len(text) == 0 {
+        return 0i8 - 7i8
+    }
+    8i8
+}
+
+fn main() {
+}

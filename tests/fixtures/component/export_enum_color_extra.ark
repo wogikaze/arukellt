@@ -1,0 +1,29 @@
+// Color is only supported by the fixture-specific next_color/color_to_value adapter.
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+pub fn next_color(c: Color) -> Color {
+    match c {
+        Color::Red => Color::Green,
+        Color::Green => Color::Blue,
+        Color::Blue => Color::Red,
+    }
+}
+
+pub fn color_to_value(c: Color) -> i32 {
+    match c {
+        Color::Red => 1,
+        Color::Green => 2,
+        Color::Blue => 3,
+    }
+}
+
+pub fn color_identity(c: Color) -> Color {
+    c
+}
+
+fn main() {
+}

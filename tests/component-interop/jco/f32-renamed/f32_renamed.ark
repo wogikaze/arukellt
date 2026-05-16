@@ -1,0 +1,7 @@
+// Component interop smoke test: f32 parameter/result canonical ABI is name-independent.
+pub fn halve32(x: f32) -> f32 {
+    x
+}
+
+fn main() {
+}

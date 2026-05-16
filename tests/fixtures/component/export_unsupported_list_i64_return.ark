@@ -1,0 +1,11 @@
+// Export with Vec<i64> result — only list<s32> canonical ABI is supported yet.
+// WIT: list<s64> results require a dedicated wide-element list lift adapter.
+// Expected: E0401 compile-time error.
+pub fn wide_numbers(n: i64) -> Vec<i64> {
+    let mut out: Vec<i64> = Vec_new_i64()
+    push(out, n)
+    out
+}
+
+fn main() {
+}

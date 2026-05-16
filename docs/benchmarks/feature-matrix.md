@@ -22,6 +22,7 @@ Cross-reference of benchmarks against language features they exercise.
 | `bench_application_config_loader.ark` | application | — | ✔ | ✔ | — | — | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `bench_application_data_pipeline.ark` | application | — | ✔ | ✔ | ✔ | — | ✔ | — | — | ✔ | ✔ | ✔ |
 | `bench_application_template_engine.ark` | application | ✔ | — | — | — | ✔ | — | ✔ | ✔ | ✔ | ✔ | ✔ |
+| `bench_io_file_io.ark` | io | — | ✔ | — | — | ✔ | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `parser.ark` (sample) | application | ✔ | ✔ | ✔ | ✔ | ✔ | — | ✔ | ✔ | ✔ | ✔ | ✔ |
 
 ### Legend
@@ -39,7 +40,7 @@ The following language features have **no dedicated benchmark**:
 | **Enum / pattern matching** | `bench_cpu_enum_dispatch.ark` (dedicated dispatch benchmark) | Covered |
 | **Error paths / Result handling** | `bench_compute_error_chain.ark` (Result / error propagation chain) | Covered |
 | **HashMap / container operations** | `bench_application_template_engine.ark` (HashMap<String,String> CRUD, template expansion) | Covered |
-| **I/O-heavy workloads** | Only trivial `println` calls | Medium |
+| **I/O-heavy workloads** | `bench_io_file_io.ark` (host fs write/read loop with string payload checksums) | Covered |
 | **Struct-heavy allocation** | `bench_memory_struct_graph.ark` (nested structs, recursive graph) | Covered |
 | **Nested structs / composite types** | `bench_memory_struct_graph.ark` (Vec2→Rect→BBox, depth-10 recursion) | Covered |
 | **Host function calls (FFI)** | Only `stdio::println` | Low |
@@ -55,7 +56,6 @@ The following language features have **no dedicated benchmark**:
 | `bench_error_chain.ark` | compute | Result, error propagation, match | Error paths |
 | `bench_data_pipeline.ark` | application | Closures, Vec, struct iteration, filter/map/reduce | Multi-feature application pipeline |
 | `bench_template_engine.ark` | application | HashMap, strings, recursion, template expansion | Template rendering |
-| `bench_file_io.ark` | io | File read/write, String, I/O host calls | I/O-heavy |
 | `bench_parser_lite.ark` | application | String, structs, enums, loops, recursion | Multi-feature application |
 
 ### Priority

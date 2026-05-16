@@ -1,0 +1,8 @@
+// Component interop smoke test: renamed i32 scalar parameter/result.
+
+pub fn offset_count(n: i32) -> i32 {
+    n + 37
+}
+
+fn main() {
+}

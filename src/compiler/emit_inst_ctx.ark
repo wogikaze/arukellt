@@ -12,8 +12,6 @@ pub struct SelfEmitCtx {
     true_str_idx: i32,
     false_str_idx: i32,
     vec_locals: Vec<i32>,
-    peek_next_op: i32,
-    peek_next_dest: i32,
 }
 
 pub fn ctx_mark_vec_local(ctx: SelfEmitCtx, local_idx: i32) {
@@ -37,8 +35,8 @@ pub fn ctx_is_vec_local(ctx: SelfEmitCtx, local_idx: i32) -> bool {
         }
         i = i + 1
     }
-    false
-}
+    return false
+    }
 
 pub fn strip_module_prefix(name: String) -> String {
     let n = len(name)

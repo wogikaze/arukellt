@@ -12,3 +12,6 @@ opt_level = 1
 
 [scripts]
 test = "arukellt run src/main.ark"
+env-check = "printf '%s' \"$ARUKELLT_SCRIPT_SENTINEL\" > script-env.out"
+arg-check = "printf '%s' \"$1\" > script-arg.out"
+fail = "echo scripted failure >&2; exit 42"

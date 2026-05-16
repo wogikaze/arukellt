@@ -1,0 +1,10 @@
+// Export with Option<i64> return maps to WIT option<s64>.
+pub fn maybe_wide(flag: bool) -> Option<i64> {
+    if flag {
+        return Some(42i64)
+    }
+    None
+}
+
+fn main() {
+}

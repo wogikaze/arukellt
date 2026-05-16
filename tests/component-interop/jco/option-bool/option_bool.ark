@@ -1,0 +1,10 @@
+// Component interop smoke test: option<bool> result canonical ABI.
+pub fn maybe_flag(flag: bool) -> Option<bool> {
+    if flag {
+        return Some(true)
+    }
+    None
+}
+
+fn main() {
+}

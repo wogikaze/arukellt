@@ -1,0 +1,7 @@
+// Export with renamed i32 parameter/result maps to WIT s32.
+pub fn offset_count(n: i32) -> i32 {
+    n + 37
+}
+
+fn main() {
+}

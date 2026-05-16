@@ -128,8 +128,8 @@ pub fn emit_bytes(w: WasmWriter, src: Vec<i32>) {
 }
 
 pub fn emit_f64(w: WasmWriter, val: f64) {
-    let lo = f64_bits_lo(val)
-    let hi = f64_bits_hi(val)
+    let lo: i32 = f64_bits_lo(val)
+    let hi: i32 = f64_bits_hi(val)
     emit_u32_le(w, lo)
     emit_u32_le(w, hi)
 }

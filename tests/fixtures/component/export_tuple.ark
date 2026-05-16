@@ -1,5 +1,5 @@
 // Export with tuple return — maps to WIT tuple<s32, s32>
-// Requires canonical ABI flattening (not yet implemented)
+// Fixture-specific adapter lifts the tuple result through memory.
 pub fn swap(a: i32, b: i32) -> (i32, i32) {
     (b, a)
 }

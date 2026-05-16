@@ -1,0 +1,11 @@
+// Export with String parameter and char result maps to WIT string -> char.
+
+pub fn marker_char(text: String) -> char {
+    if len(text) == 0 {
+        return 'x'
+    }
+    'a'
+}
+
+fn main() {
+}

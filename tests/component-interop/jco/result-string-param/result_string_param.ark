@@ -1,0 +1,8 @@
+// Component interop smoke test: result<s32, string> parameter canonical ABI.
+
+pub fn result_or_default(r: Result<i32, String>) -> i32 {
+    unwrap_or(r, -5)
+}
+
+fn main() {
+}

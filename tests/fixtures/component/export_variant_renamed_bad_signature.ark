@@ -1,0 +1,15 @@
+// The Shape adapter requires a single Shape -> f64 export.
+enum Shape {
+    Circle(f64),
+    Square(f64),
+}
+
+pub fn measure(s: Shape) -> i32 {
+    match s {
+        Shape::Circle(_) => 1,
+        Shape::Square(_) => 2,
+    }
+}
+
+fn main() {
+}

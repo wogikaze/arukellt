@@ -1,0 +1,11 @@
+// Component interop smoke test: string parameter canonical ABI with i16 result.
+
+pub fn signed16_text(text: String) -> i16 {
+    if len(text) == 0 {
+        return 0i16 - 123i16
+    }
+    160i16
+}
+
+fn main() {
+}

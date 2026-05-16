@@ -1,229 +1,205 @@
-// Arukellt Selfhost — Wasm Binary Emitter: Emit Inst Arith
-//
-// Extracted from emitter.ark for module-level organization.
+// Arukellt Selfhost — Wasm Binary Emitter: arithmetic instruction handlers.
 
 use emit_opcodes
 use emit_writer
 use emit_inst_ctx
 
-pub fn emit_add(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_add(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.val_type == VT_F64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_F64_ADD())
+        emit_writer::emit_byte(w, emit_opcodes::OP_F64_ADD())
     } else {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_ADD())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
+        if inst.val_type == VT_I64() {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_ADD())
+        } else {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
+        }
     }
-    }
-    } else {
 }
 
-pub fn emit_sub(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_sub(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.val_type == VT_F64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_F64_SUB())
+        emit_writer::emit_byte(w, emit_opcodes::OP_F64_SUB())
     } else {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_SUB())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_SUB())
+        if inst.val_type == VT_I64() {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_SUB())
+        } else {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_SUB())
+        }
     }
-    }
-    } else {
 }
 
-pub fn emit_mul(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_mul(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.val_type == VT_F64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_F64_MUL())
+        emit_writer::emit_byte(w, emit_opcodes::OP_F64_MUL())
     } else {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_MUL())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_MUL())
+        if inst.val_type == VT_I64() {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_MUL())
+        } else {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_MUL())
+        }
     }
-    }
-    } else {
 }
 
-pub fn emit_div(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_div(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.val_type == VT_F64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_F64_DIV())
+        emit_writer::emit_byte(w, emit_opcodes::OP_F64_DIV())
     } else {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_DIV_S())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_DIV_S())
+        if inst.val_type == VT_I64() {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_DIV_S())
+        } else {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_DIV_S())
+        }
     }
-    }
-    } else {
 }
 
-pub fn emit_mod(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_mod(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_REM_S())
+        emit_writer::emit_byte(w, emit_opcodes::OP_I64_REM_S())
     } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_REM_S())
+        emit_writer::emit_byte(w, emit_opcodes::OP_I32_REM_S())
     }
-    } else {
 }
 
-pub fn emit_eq(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.val_type == VT_F64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_F64_EQ())
+        emit_writer::emit_byte(w, emit_opcodes::OP_F64_EQ())
     } else {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_EQ())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQ())
+        if inst.val_type == VT_I64() {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_EQ())
+        } else {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQ())
+        }
     }
-    }
-    } else {
 }
 
-pub fn emit_ne(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.val_type == VT_F64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_F64_NE())
+        emit_writer::emit_byte(w, emit_opcodes::OP_F64_NE())
     } else {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_NE())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_NE())
+        if inst.val_type == VT_I64() {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_NE())
+        } else {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_NE())
+        }
     }
-    }
-    } else {
 }
 
-pub fn emit_lt(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_lt(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.val_type == VT_F64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_F64_LT())
+        emit_writer::emit_byte(w, emit_opcodes::OP_F64_LT())
     } else {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_LT_S())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_LT_S())
+        if inst.val_type == VT_I64() {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_LT_S())
+        } else {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_LT_S())
+        }
     }
-    }
-    } else {
 }
 
-pub fn emit_le(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_le(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.val_type == VT_F64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_F64_LE())
+        emit_writer::emit_byte(w, emit_opcodes::OP_F64_LE())
     } else {
+        if inst.val_type == VT_I64() {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_LE_S())
+        } else {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_LE_S())
+        }
+    }
+}
+
+pub fn emit_gt(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst.val_type == VT_F64() {
+        emit_writer::emit_byte(w, emit_opcodes::OP_F64_GT())
+    } else {
+        if inst.val_type == VT_I64() {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_GT_S())
+        } else {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_GT_S())
+        }
+    }
+}
+
+pub fn emit_ge(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst.val_type == VT_F64() {
+        emit_writer::emit_byte(w, emit_opcodes::OP_F64_GE())
+    } else {
+        if inst.val_type == VT_I64() {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_GE_S())
+        } else {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_GE_S())
+        }
+    }
+}
+
+pub fn emit_and(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_LE_S())
+        emit_writer::emit_byte(w, emit_opcodes::OP_I64_AND())
     } else {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I32_AND())
+    }
+}
+
+pub fn emit_or(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst.val_type == VT_I64() {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I64_OR())
+    } else {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I32_OR())
+    }
+}
+
+pub fn emit_bit_and(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst.val_type == VT_I64() {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I64_AND())
+    } else {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I32_AND())
+    }
+}
+
+pub fn emit_bit_or(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst.val_type == VT_I64() {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I64_OR())
+    } else {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I32_OR())
+    }
+}
+
+pub fn emit_bit_xor(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst.val_type == VT_I64() {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I64_XOR())
+    } else {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I32_XOR())
+    }
+}
+
+pub fn emit_shl(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst.val_type == VT_I64() {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I64_SHL())
+    } else {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I32_SHL())
+    }
+}
+
+pub fn emit_shr(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst.val_type == VT_I64() {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I64_SHR_S())
+    } else {
+        emit_writer::emit_byte(w, emit_opcodes::OP_I32_SHR_S())
+    }
+}
+
+pub fn emit_le_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_I32_LE_S())
-    }
-    }
-    } else {
 }
 
-pub fn emit_gt(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    if inst.val_type == VT_F64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_F64_GT())
-    } else {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_GT_S())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_GT_S())
-    }
-    }
-    } else {
-}
-
-pub fn emit_ge(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    if inst.val_type == VT_F64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_F64_GE())
-    } else {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_GE_S())
-    } else {
+pub fn emit_ge_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_I32_GE_S())
-    }
-    }
-    } else {
 }
 
-pub fn emit_and(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_AND())
-    } else {
+pub fn emit_and_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_I32_AND())
-    }
-    } else {
 }
 
-pub fn emit_or(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_OR())
-    } else {
+pub fn emit_or_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_I32_OR())
-    }
-    } else {
-}
-
-pub fn emit_bit_and(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_AND())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_AND())
-    }
-    } else {
-}
-
-pub fn emit_bit_or(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_OR())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_OR())
-    }
-    } else {
-}
-
-pub fn emit_bit_xor(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_XOR())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_XOR())
-    }
-    } else {
-}
-
-pub fn emit_shl(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_SHL())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_SHL())
-    }
-    } else {
-}
-
-pub fn emit_shr(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    if inst.val_type == VT_I64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I64_SHR_S())
-    } else {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_SHR_S())
-    }
-    } else {
-}
-
-pub fn emit_le_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_LE_S())
-    } else {
-}
-
-pub fn emit_ge_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_GE_S())
-    } else {
-}
-
-pub fn emit_and_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_AND())
-    } else {
-}
-
-pub fn emit_or_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_OR())
-    } else {
 }

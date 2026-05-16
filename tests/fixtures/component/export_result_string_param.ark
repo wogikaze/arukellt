@@ -1,0 +1,7 @@
+// Export with Result<i32, String> parameter maps to WIT result<s32, string>.
+pub fn result_or_default(r: Result<i32, String>) -> i32 {
+    unwrap_or(r, -5)
+}
+
+fn main() {
+}

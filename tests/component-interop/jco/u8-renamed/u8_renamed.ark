@@ -1,0 +1,8 @@
+// Component interop smoke test: renamed u8 scalar parameter/result.
+
+pub fn bump_byte(n: u8) -> u8 {
+    n + 5u8
+}
+
+fn main() {
+}

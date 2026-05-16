@@ -82,7 +82,7 @@ import "wasi:cli/stdin@0.2.10"
 |---------|--------|
 | 即時 (v3) | `docs/spec/import-system.md` に 2 層の構文を明記 |
 | v3 (issue #124) | `--wit <path>` CLI flag で WIT ファイルからの型バインディング生成 (Phase 1: stub/parse only) |
-| v4 | `import 単識別子` を `use` に統一 (W0101 deprecation 警告) |
+| v4 | `import 単識別子` を `use` に統一 (`W0101` deprecation 警告; implemented as a non-breaking warning) |
 | v4 | `import "namespace:package/interface"` 構文の設計・実装 |
 | v4 (issue #124) | WIT-imported 関数を ARK ソースから通常の `use` import と同じパターンで参照可能に |
 | v5 | `import 単識別子` の完全除去 |

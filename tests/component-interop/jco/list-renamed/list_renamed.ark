@@ -1,0 +1,12 @@
+// Component interop smoke test: list<s32> parameter canonical ABI is name-independent.
+
+pub fn head_or_zero(v: Vec<i32>) -> i32 {
+    if len(v) > 0 {
+        unwrap(get(v, 0))
+    } else {
+        0
+    }
+}
+
+fn main() {
+}

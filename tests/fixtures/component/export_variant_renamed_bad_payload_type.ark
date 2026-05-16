@@ -1,0 +1,12 @@
+// The Shape adapter only supports variant shape { circle(f64), square(f64) }.
+enum Shape {
+    Circle(i32),
+    Square(f64),
+}
+
+pub fn measure(s: Shape) -> f64 {
+    0.0
+}
+
+fn main() {
+}

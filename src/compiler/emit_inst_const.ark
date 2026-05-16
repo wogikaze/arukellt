@@ -6,12 +6,12 @@
 use emit_opcodes
 use emit_writer
 
-pub fn emit_const_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_const_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
     emit_writer::emit_leb128_s(w, inst.int_val)
 }
 
-pub fn emit_const_i64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_const_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_I64_CONST())
     if len(inst.str_val) > 0 {
         let val64 = emit_writer::parse_decimal_as_i64_emitter(clone(inst.str_val))
@@ -21,15 +21,15 @@ pub fn emit_const_i64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmit
     }
 }
 
-pub fn emit_const_f64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_const_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_F64_CONST())
-    let lo = f64_bits_lo(inst.float_val)
-    let hi = f64_bits_hi(inst.float_val)
+    let lo: i32 = f64_bits_lo(inst.float_val)
+    let hi: i32 = f64_bits_hi(inst.float_val)
     emit_writer::emit_u32_le(w, lo)
     emit_writer::emit_u32_le(w, hi)
 }
 
-pub fn emit_const_string(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_const_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let str_count = len(ctx.string_offsets)
     let mut found = false
     let mut si = 0

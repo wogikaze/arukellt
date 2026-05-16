@@ -1,0 +1,12 @@
+// Component interop test fixture: list<s32> parameter canonical ABI.
+
+pub fn first_or_zero(v: Vec<i32>) -> i32 {
+    if len(v) > 0 {
+        unwrap(get(v, 0))
+    } else {
+        0
+    }
+}
+
+fn main() {
+}

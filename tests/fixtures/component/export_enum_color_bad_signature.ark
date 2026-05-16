@@ -1,0 +1,17 @@
+// The Color adapter only supports next_color(Color) -> Color and color_to_value(Color) -> i32.
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+pub fn next_color(c: Color) -> i32 {
+    1
+}
+
+pub fn color_to_value(c: Color) -> i32 {
+    1
+}
+
+fn main() {
+}

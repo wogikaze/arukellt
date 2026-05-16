@@ -1,0 +1,7 @@
+// Export with tuple return should not depend on the specific function name used by the smoke fixture.
+pub fn pair_flip(a: i32, b: i32) -> (i32, i32) {
+    (b, a)
+}
+
+fn main() {
+}

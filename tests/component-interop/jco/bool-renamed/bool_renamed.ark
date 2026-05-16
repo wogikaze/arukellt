@@ -1,0 +1,8 @@
+// Component interop smoke test: renamed bool scalar parameter/result.
+
+pub fn flip_flag(flag: bool) -> bool {
+    !flag
+}
+
+fn main() {
+}

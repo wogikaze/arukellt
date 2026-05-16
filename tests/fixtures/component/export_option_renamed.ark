@@ -1,0 +1,11 @@
+// Export with Option<i32> should not depend on the specific function name used by the smoke fixture.
+pub fn wrap_positive(n: i32) -> Option<i32> {
+    if n > 0 {
+        Some(n)
+    } else {
+        None
+    }
+}
+
+fn main() {
+}

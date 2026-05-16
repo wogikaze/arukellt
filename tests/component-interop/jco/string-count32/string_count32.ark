@@ -1,0 +1,11 @@
+// Component interop smoke test: string parameter canonical ABI with u32 result.
+
+pub fn count32_text(text: String) -> u32 {
+    if len(text) == 0 {
+        return 32u32
+    }
+    123456u32
+}
+
+fn main() {
+}

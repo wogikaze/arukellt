@@ -1,0 +1,12 @@
+// Multiple component exports including f32 — current f32 adapter is single-export only.
+// Expected: E0401 compile-time error.
+pub fn keep32(x: f32) -> f32 {
+    x
+}
+
+pub fn id_count(n: i32) -> i32 {
+    n
+}
+
+fn main() {
+}

@@ -6,6 +6,7 @@
 struct MonoInstance {
     fn_name: String,
     mangled_name: String,
+    type_args: Vec<TypeInfo>,
 }
 
 struct TypeCheckResult {
@@ -165,6 +166,10 @@ fn NK_PAT_OR() -> i32 {
 
 fn NK_PATH() -> i32 {
     16
+}
+
+fn NK_TUPLE() -> i32 {
+    17
 }
 
 fn NK_RANGE() -> i32 {

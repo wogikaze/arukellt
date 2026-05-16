@@ -1,0 +1,12 @@
+// Export with WIT record parameter/result canonical ABI using a non-fixture name.
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn move_point(p: Point) -> Point {
+    Point { x: p.x + 2, y: p.y - 2 }
+}
+
+fn main() {
+}

@@ -407,6 +407,7 @@ fn mir_compute_dominance(m: MirModule) {
 struct MirLocal {
     name: String,
     val_type: i32,
+    type_name: String,
     ssa_name: String,
     ssa_version: i32,
 }
@@ -417,18 +418,19 @@ struct MirFunction {
     locals: Vec<MirLocal>,
     blocks: Vec<MirBlock>,
     return_type: i32,
+    return_type_name: String,
     next_local: i32,
     next_block: i32,
 }
 
 fn MirFunction_new(name: String) -> MirFunction {
-    MirFunction { name: name, params: Vec_new_MirLocal(), locals: Vec_new_MirLocal(), blocks: Vec_new_MirBlock(), return_type: VT_VOID(), next_local: 0, next_block: 0 }
+    MirFunction { name: name, params: Vec_new_MirLocal(), locals: Vec_new_MirLocal(), blocks: Vec_new_MirBlock(), return_type: VT_VOID(), return_type_name: String_new(), next_local: 0, next_block: 0 }
 }
 
 fn alloc_local(f: MirFunction, name: String, vt: i32) -> i32 {
     let idx = f.next_local
     f.next_local = f.next_local + 1
-    push(f.locals, MirLocal { name: clone(name), val_type: vt, ssa_name: name, ssa_version: 0 - 1 })
+    push(f.locals, MirLocal { name: clone(name), val_type: vt, type_name: String_new(), ssa_name: name, ssa_version: 0 - 1 })
     idx
 }
 
@@ -690,7 +692,7 @@ fn mir_ssa_record_block_exit(state: MirSsaRenameState, block_id: i32) {
 fn mir_ssa_append_value_slot(f: MirFunction, original_local: i32, ssa_name: String, ssa_version: i32) -> i32 {
     let source = get_unchecked(f.locals, original_local)
     let idx = len(f.locals)
-    push(f.locals, MirLocal { name: clone(source.name), val_type: source.val_type, ssa_name: ssa_name, ssa_version: ssa_version })
+    push(f.locals, MirLocal { name: clone(source.name), val_type: source.val_type, type_name: clone(source.type_name), ssa_name: ssa_name, ssa_version: ssa_version })
     idx
 }
 
@@ -888,10 +890,11 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
 struct MirModule {
     functions: Vec<MirFunction>,
     string_constants: Vec<String>,
+    mono_pruned_count: i32,
 }
 
 fn MirModule_new() -> MirModule {
-    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String() }
+    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String(), mono_pruned_count: 0 }
 }
 
 fn intern_string(m: MirModule, s: String) -> i32 {

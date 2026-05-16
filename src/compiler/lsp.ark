@@ -429,6 +429,10 @@ if eq(clone(method), "textDocument/definition") {
 handle_definition(state, clone(body))
 return
 }
+if eq(clone(method), "textDocument/completion") {
+handle_completion(state, clone(body))
+return
+}
 }
 fn handle_did_open(state: LspState, body: String) {
 let uri = extract_string_field(clone(body), String_from("uri"))
@@ -515,6 +519,46 @@ body = concat(body, to_string(end.character))
 body = concat(body, String_from("}}}}"))
 body
 }
+fn completion_item(label: String, kind: i32, detail: String) -> String {
+let mut out = String_from("{\"label\":")
+out = concat(out, quote_string(label))
+out = concat(out, String_from(",\"kind\":"))
+out = concat(out, to_string(kind))
+out = concat(out, String_from(",\"detail\":"))
+out = concat(out, quote_string(detail))
+out = concat(out, String_from("}"))
+out
+}
+fn append_completion_item(items: String, item: String) -> String {
+if len(items) == 0 {
+return item
+}
+concat(concat(items, String_from(",")), item)
+}
+fn build_completion_response(id: i32) -> String {
+let mut items = String_new()
+items = append_completion_item(items, completion_item(String_from("fn"), 14, String_from("keyword")))
+items = append_completion_item(items, completion_item(String_from("let"), 14, String_from("keyword")))
+items = append_completion_item(items, completion_item(String_from("mut"), 14, String_from("keyword")))
+items = append_completion_item(items, completion_item(String_from("if"), 14, String_from("keyword")))
+items = append_completion_item(items, completion_item(String_from("else"), 14, String_from("keyword")))
+items = append_completion_item(items, completion_item(String_from("match"), 14, String_from("keyword")))
+items = append_completion_item(items, completion_item(String_from("use"), 14, String_from("keyword")))
+items = append_completion_item(items, completion_item(String_from("pub"), 14, String_from("keyword")))
+items = append_completion_item(items, completion_item(String_from("return"), 14, String_from("keyword")))
+items = append_completion_item(items, completion_item(String_from("std::host::stdio"), 9, String_from("module")))
+items = append_completion_item(items, completion_item(String_from("std::host::fs"), 9, String_from("module")))
+items = append_completion_item(items, completion_item(String_from("std::path"), 9, String_from("module")))
+items = append_completion_item(items, completion_item(String_from("println"), 3, String_from("function")))
+items = append_completion_item(items, completion_item(String_from("i32_to_string"), 3, String_from("function")))
+items = append_completion_item(items, completion_item(String_from("String_from"), 3, String_from("function")))
+let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+body = concat(body, to_string(id))
+body = concat(body, String_from(",\"result\":{\"isIncomplete\":false,\"items\":["))
+body = concat(body, items)
+body = concat(body, String_from("]}}"))
+body
+}
 fn handle_hover(state: LspState, body: String) {
 let id = extract_int_field(clone(body), String_from("id"))
 let uri = extract_string_field(clone(body), String_from("uri"))
@@ -533,7 +577,7 @@ return
 }
 let md = analysis::render_hover_markdown(info)
 let start = offset_to_position(clone(text), info.decl_start)
-let end = offset_to_position(clone(text), info.decl_end)
+let end = offset_to_position(clone(text), info.decl_start + len(info.name) + 3)
 append_framed(state, build_hover_response(id, md, start, end))
 }
 fn handle_definition(state: LspState, body: String) {
@@ -553,8 +597,12 @@ append_framed(state, build_null_response(id))
 return
 }
 let start = offset_to_position(clone(text), info.decl_start)
-let end = offset_to_position(clone(text), info.decl_end)
+let end = offset_to_position(clone(text), info.decl_start + len(info.name) + 3)
 append_framed(state, build_definition_response(id, uri, start, end))
+}
+fn handle_completion(state: LspState, body: String) {
+let id = extract_int_field(clone(body), String_from("id"))
+append_framed(state, build_completion_response(id))
 }
 struct FrameResult {
 body: String,

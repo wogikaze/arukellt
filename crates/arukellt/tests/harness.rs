@@ -78,6 +78,9 @@ fn entry_points(fixture_dir: &Path) -> HashSet<String> {
     let mut result = HashSet::new();
     for path in &all_ark {
         let rel = path.strip_prefix(fixture_dir).unwrap();
+        if rel.starts_with("lsp_perf") {
+            continue;
+        }
         let dir = path.parent().unwrap();
         let is_main = path.file_name() == Some(std::ffi::OsStr::new("main.ark"));
         // Skip helper files in module directories

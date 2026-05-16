@@ -1,0 +1,11 @@
+// Export with renamed String parameter and u32 result maps to WIT string -> u32.
+
+pub fn wide_code32(text: String) -> u32 {
+    if len(text) == 0 {
+        return 42u32
+    }
+    654321u32
+}
+
+fn main() {
+}

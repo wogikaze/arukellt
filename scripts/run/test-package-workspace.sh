@@ -51,6 +51,27 @@ run_test() {
     fi
 }
 
+run_test_contains() {
+    local desc="$1"
+    local cmd="$2"
+    local expected_exit="$3"
+    local expected_text="$4"
+
+    local actual_exit=0
+    eval "$cmd" > /tmp/pw_test_out.txt 2>&1 || actual_exit=$?
+
+    if [[ "$actual_exit" -eq "$expected_exit" ]] && grep -q "$expected_text" /tmp/pw_test_out.txt; then
+        echo -e "  ${GREEN}PASS${NC}  $desc"
+        PASS=$((PASS + 1))
+    else
+        echo -e "  ${RED}FAIL${NC}  $desc"
+        echo "       Expected exit $expected_exit and output containing: $expected_text"
+        echo "       Got exit $actual_exit"
+        cat /tmp/pw_test_out.txt | head -5 | sed 's/^/       /'
+        FAIL=$((FAIL + 1))
+    fi
+}
+
 check
 
 echo "Package/workspace manifest tests"
@@ -68,6 +89,32 @@ run_test "arukellt build in basic-project succeeds" \
 run_test "arukellt build is idempotent" \
     "cd '$BASIC' && '$ARUKELLT' build 2>&1 | grep -q ''" \
     0
+
+echo
+echo "── Script execution ──"
+
+run_test_contains "script list includes manifest scripts" \
+    "cd '$BASIC' && '$ARUKELLT' script list" \
+    0 \
+    "env-check"
+
+run_test_contains "script list --json is machine-readable" \
+    "cd '$BASIC' && '$ARUKELLT' script list --json" \
+    0 \
+    '"name":"arg-check"'
+
+run_test "script run propagates environment" \
+    "cd '$BASIC' && rm -f script-env.out && ARUKELLT_SCRIPT_SENTINEL=from-env '$ARUKELLT' script run env-check && grep -qx 'from-env' script-env.out && rm -f script-env.out" \
+    0
+
+run_test "script run passes extra arguments" \
+    "cd '$BASIC' && rm -f script-arg.out && '$ARUKELLT' script run arg-check from-arg && grep -qx 'from-arg' script-arg.out && rm -f script-arg.out" \
+    0
+
+run_test_contains "script run reports command failure" \
+    "cd '$BASIC' && '$ARUKELLT' script run fail" \
+    42 \
+    "script 'fail' failed with exit code 42"
 
 echo
 echo "── Manifest discovery from subdirectory ──"

@@ -1,0 +1,7 @@
+// Export with tuple<s32, bool> parameter maps to WIT tuple<s32, bool>.
+pub fn mixed_pair_score(pair: (i32, bool)) -> i32 {
+    11
+}
+
+fn main() {
+}

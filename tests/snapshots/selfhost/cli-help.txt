@@ -24,3 +24,5 @@ Commands:
 Options:
   -h, --help     Print help
   -V, --version  Print version
+  --json         Emit machine-readable JSON diagnostics
+  --output json  Alias for --json on diagnostic/check output

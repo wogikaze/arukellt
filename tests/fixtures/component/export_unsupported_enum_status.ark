@@ -1,0 +1,16 @@
+// Export with unsupported unit enum name — only the fixture-specific Color enum adapters exist.
+// Expected: E0401 compile-time error.
+enum Status {
+    Ready,
+    Waiting,
+}
+
+pub fn status_code(s: Status) -> i32 {
+    match s {
+        Status::Ready => 1,
+        Status::Waiting => 2,
+    }
+}
+
+fn main() {
+}

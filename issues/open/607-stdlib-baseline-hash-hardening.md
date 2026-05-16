@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-14
 ID: 607
 Track: stdlib
 Orchestration class: blocked-by-upstream
@@ -90,6 +90,40 @@ python scripts/manager.py verify quick
 python scripts/manager.py verify fixtures
 mise bench
 ```
+
+---
+
+## Progress — 2026-05-14
+
+Implemented the monomorphic hash hardening slice:
+
+- `std::collections::hash::hash_i32` now uses the same stable byte-mixing
+  policy as `std::core::hash::hash_i32`.
+- Linear probing now advances with `(idx + 1) % cap` instead of `idx + 1 % cap`.
+- `hashmap_set` returns `bool`: `true` when the key/value was stored, `false`
+  when the fixed-capacity table is full.
+- `hashset_insert` now propagates `hashmap_set` insertion failure instead of
+  returning success unconditionally.
+- `hashmap_get_option` is documented as the primary lookup API, with legacy
+  `hashmap_get` called out as unable to distinguish missing keys from stored
+  zero values.
+- Added `tests/fixtures/stdlib_hashmap/hashmap_hardening.ark` to cover:
+  stored zero via `Some(0)`, missing via `None`, explicit full-table insert
+  failure, unchanged size after failed insertion, and no false containment.
+
+Verification:
+
+- `target/release/arukellt check tests/fixtures/stdlib_hashmap/hashmap_hardening.ark`
+  passes.
+- `target/release/arukellt compile tests/fixtures/stdlib_hashmap/hashmap_hardening.ark`
+  passes.
+- `python3 scripts/manager.py verify quick` passes 22/22.
+- Runtime fixture execution is still blocked: `target/release/arukellt run
+  tests/fixtures/stdlib_hashmap/hashmap_hardening.ark` traps at runtime, matching
+  the broader current full-fixture failure mode observed while rechecking #606.
+
+Updated verdict: close-candidate `no` until the hash fixtures can be executed
+successfully and the full required fixture gate passes.
 
 ---
 

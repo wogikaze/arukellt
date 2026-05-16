@@ -1,0 +1,8 @@
+// Component interop smoke test: tuple<s32, bool> parameter canonical ABI.
+
+pub fn mixed_pair_score(pair: (i32, bool)) -> i32 {
+    11
+}
+
+fn main() {
+}

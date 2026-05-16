@@ -23,6 +23,31 @@ docs/release-checklist.md — Pre-release section
 - [ ] `bash scripts/run/test-opt-equivalence.sh` passes (O0 == O1)
 - [ ] LSP unit tests: `cargo test -p ark-lsp --lib` passes
 
+## Recheck — 2026-05-14
+
+Current command evidence:
+
+- `cargo fmt --all -- --check` passes.
+- `cargo clippy --workspace -- -D warnings` initially failed on one
+  `needless_borrows_for_generic_args` warning in `crates/arukellt/src/main.rs`;
+  the warning was fixed and the command now passes.
+- `python3 scripts/manager.py verify quick` passes 22/22.
+- `cargo test --workspace --exclude ark-llvm` runs unit tests successfully, then
+  fails at the `arukellt` fixture harness. Cargo also warns that `ark-llvm` is
+  not present in the current workspace.
+- `cargo test -p arukellt --test harness` / full fixture execution remains red:
+  latest observed summary is `PASS: 413 FAIL: 406 SKIP: 20`.
+- `python3 scripts/manager.py verify component` fails all 6 component interop
+  smoke tests because selfhost currently reports
+  `error[E0500|emit]: unsupported emit mode: component`.
+- The old `cargo test -p ark-lsp --lib` acceptance item is no longer a valid
+  command after Rust `ark-lsp` retirement; current selfhost LSP coverage lives
+  under `python3 scripts/manager.py verify quick`.
+
+Updated verdict: close-candidate `no`. The formatting, clippy, and quick gates
+are green, but the full fixture harness and component interop gates are still
+red, and the checklist still contains a retired `ark-lsp` command.
+
 ## Required Verification
 
 - Run full test suite (excluding ark-llvm)

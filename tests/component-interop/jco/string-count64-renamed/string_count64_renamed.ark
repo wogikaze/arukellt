@@ -1,0 +1,11 @@
+// Component interop smoke test: string parameter canonical ABI with i64 result is name-independent.
+
+pub fn large_count(text: String) -> i64 {
+    if len(text) == 0 {
+        return 0i64 - 7000000000i64
+    }
+    7000000000i64
+}
+
+fn main() {
+}

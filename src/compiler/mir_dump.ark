@@ -14,6 +14,9 @@ pub fn dump_mir(m: MirModule) {
     mir_ir::mir_ssa_rename_module(m)
     let fn_count = len(m.functions)
     stdio::eprintln(concat(String_from("MIR module: "), concat(to_string(fn_count), String_from(" function(s)"))))
+    if m.mono_pruned_count > 0 {
+        stdio::eprintln(concat(String_from("MIR mono pruned: "), concat(to_string(m.mono_pruned_count), String_from(" function(s)"))))
+    }
     let mut i = 0
     while i < fn_count {
         let f = get_unchecked(m.functions, i)
@@ -664,7 +667,7 @@ fn run_ssa_trivial_block_rename_smoke() {
     let m = mir_ir::MirModule_new()
     let f = mir_ir::MirFunction_new(String_from("ssa_trivial_block_sample"))
     let p = mir_ir::alloc_local(f, String_from("p"), mir_ir::VT_I32())
-    push(f.params, MirLocal { name: String_from("p"), val_type: mir_ir::VT_I32(), ssa_name: String_from("p"), ssa_version: 0 - 1 })
+    push(f.params, MirLocal { name: String_from("p"), val_type: mir_ir::VT_I32(), type_name: String_from("i32"), ssa_name: String_from("p"), ssa_version: 0 - 1 })
     let t = mir_ir::alloc_local(f, String_from("t"), mir_ir::VT_I32())
     f.return_type = mir_ir::VT_I32()
     let bb0 = mir_ir::alloc_block(f)

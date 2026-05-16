@@ -1,0 +1,11 @@
+// Component interop smoke test: string parameter canonical ABI with char result is name-independent.
+
+pub fn first_marker(text: String) -> char {
+    if len(text) == 0 {
+        return 'z'
+    }
+    'b'
+}
+
+fn main() {
+}

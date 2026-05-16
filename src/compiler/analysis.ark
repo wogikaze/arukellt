@@ -39,6 +39,74 @@ end: i32,
 fn AnalysisDiagnostic_new(phase: i32, msg: String, start: i32, end: i32) -> AnalysisDiagnostic {
 AnalysisDiagnostic { phase: phase, message: msg, start: start, end: end }
 }
+fn analysis_lex_diag_code_string(code: i32) -> String {
+if code == 1 {
+return String_from("LEX0001")
+}
+if code == 2 {
+return String_from("LEX0002")
+}
+if code == 3 {
+return String_from("LEX0003")
+}
+if code == 4 {
+return String_from("LEX0004")
+}
+if code == 5 {
+return String_from("LEX0005")
+}
+if code == 6 {
+return String_from("LEX0006")
+}
+String_from("LEX0000")
+}
+fn analysis_lex_diag_code_message(code: i32) -> String {
+if code == 1 {
+return String_from("unterminated string")
+}
+if code == 2 {
+return String_from("unterminated char literal")
+}
+if code == 3 {
+return String_from("unterminated f-string")
+}
+if code == 4 {
+return String_from("unterminated escape")
+}
+if code == 5 {
+return String_from("invalid number")
+}
+if code == 6 {
+return String_from("unknown character")
+}
+String_from("lexical error")
+}
+fn analysis_offset_to_line(text: String, offset: i32) -> i32 {
+let mut line = 1
+let mut i = 0
+let n = len(text)
+while i < offset && i < n {
+if char_at(clone(text), i) == 10 {
+line = line + 1
+}
+i = i + 1
+}
+line
+}
+fn analysis_offset_to_column(text: String, offset: i32) -> i32 {
+let mut col = 1
+let mut i = 0
+let n = len(text)
+while i < offset && i < n {
+if char_at(clone(text), i) == 10 {
+col = 1
+} else {
+col = col + 1
+}
+i = i + 1
+}
+col
+}
 pub struct AnalysisSnapshot {
 uri: String,
 decl_count: i32,
@@ -78,11 +146,11 @@ let lex_legacy_count = len(lex_result.diagnostics)
 let mut li = 0
 while li < lex_legacy_count {
 let ld = get_unchecked(lex_result.diagnostics, li)
-let dline = lexer::lex_offset_to_line(clone(text), ld.start)
-let dcol = lexer::lex_offset_to_column(clone(text), ld.start)
+let dline = analysis_offset_to_line(clone(text), ld.start)
+let dcol = analysis_offset_to_column(clone(text), ld.start)
 let dfile = clone(snap.uri)
 let dmsg = clone(ld.message)
-let dcode = lexer::lex_diag_code_string(ld.code)
+let dcode = analysis_lex_diag_code_string(ld.code)
 let dspan = DiagnosticSpan { file: dfile, line: dline, column: dcol }
 let d = Diagnostic { code: dcode, severity: SEV_ERROR(), span: dspan, message: dmsg }
 let mut rmsg = String_from("[")
@@ -96,7 +164,7 @@ rmsg = concat(rmsg, to_string(d.span.line))
 rmsg = concat(rmsg, String_from(":"))
 rmsg = concat(rmsg, to_string(d.span.column))
 rmsg = concat(rmsg, String_from("] "))
-rmsg = concat(rmsg, lexer::lex_diag_code_message(ld.code))
+rmsg = concat(rmsg, analysis_lex_diag_code_message(ld.code))
 snapshot_push(snap, AnalysisDiagnostic_new(PHASE_LEX(), rmsg, ld.start, ld.end))
 li = li + 1
 }

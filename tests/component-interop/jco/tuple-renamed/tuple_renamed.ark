@@ -1,0 +1,7 @@
+// Component interop smoke test: tuple<s32, s32> result canonical ABI is name-independent.
+pub fn pair_flip(a: i32, b: i32) -> (i32, i32) {
+    (b, a)
+}
+
+fn main() {
+}

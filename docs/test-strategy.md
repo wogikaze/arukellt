@@ -11,7 +11,7 @@ their responsibilities, and how they map to the CI pipeline.
 | **fixture** | End-to-end `.ark` → stdout/diagnostic correctness | mixed: T3 merge-blocking, T1 non-blocking | `fixture-primary` and `fixture-supported` jobs |
 | **target-contract** | Per-target behavior and CI/doc target drift | mixed: T3 merge-blocking, T1 non-blocking, drift merge-blocking | `fixture-primary`, `fixture-supported`, and `target-contract-drift-check` |
 | **component-interop** | Component Model emit + host interop | push-only informational | `component-interop` job: `bash scripts/manager.py --component` |
-| **package-workspace** | `ark.toml`, workspace resolution, manifest | merge-blocking, but currently piggybacks another layer | `unit-tests` job via `ark-manifest` / `ark-resolve` tests; no dedicated CI job yet |
+| **package-workspace** | `ark.toml`, workspace resolution, manifest, script execution | merge-blocking | `verification-package-workspace` job: `bash scripts/run/test-package-workspace.sh` |
 | **bootstrap** | Selfhost Stage 0→1→2 bootstrap and parity evidence | mixed: Stage 0/1 merge-blocking, Stage 2/parity informational | `selfhost-bootstrap` job |
 | **editor-tooling** | VS Code extension activation and LSP protocol behavior | merge-blocking | `extension-tests` and `lsp-e2e` jobs |
 | **determinism** | Same input → same output | merge-blocking | `determinism` job |
@@ -27,6 +27,22 @@ When a test fails, the category tells you which subsystem to investigate:
 | **Language** (syntax, types, semantics) | unit, fixture, diagnostics-snapshot |
 | **Backend** (codegen, optimization, emit) | fixture, target-contract, component-interop, determinism |
 | **Tooling** (CLI, LSP, extension, DAP) | editor-tooling, package-workspace, bootstrap |
+
+## Failure Reporting
+
+Local verification failures report the responsible category, command, and
+primary path next to the failed check. Use those fields to decide which owner
+or test lane should be investigated before opening the full log. The category
+values match the table above; examples include `fixture`,
+`component-interop`, `package-workspace`, `bootstrap`, `editor-tooling`,
+`target-contract`, `perf`, and `docs`.
+
+The metadata is emitted by `scripts/verify/harness.py` and by the full local
+gate in `scripts/gate_domain/checks.py`. CI jobs still keep their own job names,
+and the `CI category summary` job publishes the same vocabulary to the run job
+summary plus the `ci-category-summary-<run_id>` artifact. Reviewers should open
+that summary first when a run fails, then follow the responsible job link for
+the failed category.
 
 ## Fixture kinds and their categories
 
@@ -49,7 +65,8 @@ today.
 
 | CI layer / job | Gate level | Primary categories covered | Notes |
 |----------------|------------|----------------------------|-------|
-| **Unit tests** (`unit-tests`) | merge-blocking | unit, package-workspace | Also runs clippy and rustfmt so compiler / manifest regressions fail in the first layer. |
+| **Unit tests** (`unit-tests`) | merge-blocking | unit | Also runs clippy and rustfmt so compiler regressions fail in the first layer. |
+| **Package/workspace verification** (`verification-package-workspace`) | merge-blocking | package-workspace | Runs `bash scripts/run/test-package-workspace.sh`, covering manifest discovery and `ark.toml` script execution behavior. |
 | **Verification harness — quick gate** (`verification-harness-quick`) | merge-blocking | docs/size/WAT auxiliary checks (quick slice) | Runs `python scripts/manager.py verify quick` in its own job so manifest / docs hygiene / repo-structure failures identify this layer immediately (distinct from `unit-tests`). |
 | **Fixture suite - T3 primary** (`fixture-primary`) | merge-blocking | fixture, target-contract | Primary target behavior gate for `wasm32-wasi-p2`. |
 | **Fixture suite - T1 supported** (`fixture-supported`) | non-blocking | fixture, target-contract | Supported target alerting lane for `wasm32-wasi-p1`. |
@@ -64,12 +81,19 @@ today.
 | **LSP E2E tests** (`lsp-e2e`) | merge-blocking | editor-tooling | Protocol-level LSP regression lane. |
 | **Target contract drift check** (`target-contract-drift-check`) | merge-blocking | target-contract | Fails when `docs/target-contract.md` drifts from CI-described target truth. |
 | **Final Gate** (`verify`) | merge-blocking aggregator | required merge gates | Summary gate over the required blocking layers. |
+| **CI category summary** (`ci-category-summary`) | reporting only | all named verification categories | Always runs and writes the category state table to the GitHub job summary and `ci-category-summary-<run_id>` artifact. |
 
 Not every category has its own dedicated job yet. In particular,
-`package-workspace` and `diagnostics-snapshot` still ride inside broader jobs,
-while `component-interop` and `perf` remain push-only lanes. That is current
+`diagnostics-snapshot` still rides inside broader jobs, while
+`component-interop` and `perf` remain push-only lanes. That is current
 truth, and the names above are the ones to use when identifying which CI layer
 failed.
+
+The category summary records these piggyback mappings explicitly:
+`package-workspace` maps to `verification-package-workspace`,
+`diagnostics-snapshot` maps to `fixture-primary`, and the selfhost LSP lifecycle check maps to
+`verification-harness-quick`. Push-only lanes appear as `skipped` on pull
+requests, which is expected.
 
 ## Adding a new test
 
@@ -89,7 +113,7 @@ When adding a feature:
 | fixture | 434 manifest entries | active |
 | target-contract | 247 (T1) + 182 (T3) via ARUKELLT_TARGET, plus drift enforcement in `target-contract-drift-check` | active |
 | component-interop | 6 component-compile + 1 jco smoke | partial |
-| package-workspace | ark-manifest / ark-resolve tests in `unit-tests` | partial |
+| package-workspace | dedicated `verification-package-workspace` job for manifest discovery and script execution | active |
 | bootstrap | `selfhost-bootstrap` enforces Stage 0/1 and records Stage 2/parity evidence | partial |
 | editor-tooling | 25 automated tests across `extension-tests` and `lsp-e2e` | active |
 | determinism | dedicated `determinism` CI job | active |

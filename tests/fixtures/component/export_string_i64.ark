@@ -1,0 +1,11 @@
+// Export with String parameter and i64 result maps to WIT string -> s64.
+
+pub fn count64_text(text: String) -> i64 {
+    if len(text) == 0 {
+        return 0i64
+    }
+    5000000000i64
+}
+
+fn main() {
+}

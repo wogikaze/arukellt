@@ -1,0 +1,4 @@
+// Export with Result<i32, i32> parameter maps to WIT result<s32, s32>.
+pub fn ok_or_zero(r: Result<i32, i32>) -> i32 {
+    unwrap_or(r, 0)
+}

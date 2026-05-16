@@ -1,0 +1,12 @@
+// Export with two WIT record parameters and a record result.
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn add_points(a: Point, b: Point) -> Point {
+    Point { x: a.x + b.x, y: a.y + b.y }
+}
+
+fn main() {
+}

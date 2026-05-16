@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-15
 ID: 614
 Track: compiler / selfhost
 Orchestration class: implementation-ready
@@ -16,6 +16,57 @@ This file was under `issues/done/` while its frontmatter still said
 `Status: open`, and it contains no close note or checked acceptance evidence.
 Keep the issue open until the structured diagnostic model, CLI JSON output, and
 fixture evidence below are implemented.
+
+## Progress — 2026-05-14
+
+- Confirmed `src/compiler/diagnostics.ark` already defines structured
+  `Diagnostic` and `DiagnosticSpan` values with code, severity, span, and
+  message fields.
+- Confirmed parser diagnostics are carried into `CompileResult.diagnostics`
+  in `src/compiler/driver.ark`.
+- Confirmed JSON formatting includes a top-level `diagnostics` array with
+  `code`, `severity`, `span`, and `message`.
+- Added `--output json` as a compatibility alias for existing `--json` mode in
+  `src/compiler/main.ark`; `-o json` remains available for a literal output file.
+
+Verification completed:
+
+- `python3 scripts/check/check-docs-consistency.py` passed
+- `python3 scripts/manager.py verify` passed
+- `git diff --check` passed
+
+Not closed yet: required `python3 scripts/manager.py selfhost diag-parity` is
+currently blocked by failure to bootstrap current selfhost wasm from the pinned
+bootstrap wasm, so the issue close gate cannot be honestly satisfied in this
+workspace state.
+
+## Recheck — 2026-05-14
+
+- The previous selfhost diagnostic-parity blocker is cleared:
+  `python scripts/manager.py selfhost diag-parity` now passes.
+- `wasmtime run --dir . bootstrap/arukellt-selfhost.wasm -- check
+  tests/fixtures/selfhost/json_diag_code_presence.ark --output json` emits a
+  machine-readable `diagnostics` array with `code`, `severity`, `span`, and
+  `message` fields.
+- Fixture evidence exists for the structured diagnostic value path
+  (`tests/fixtures/diagnostics/structured_value.ark`) and coded diagnostic
+  presence (`tests/fixtures/selfhost/json_diag_code_presence.ark`).
+
+Not closed yet: the required `python scripts/manager.py verify fixtures` gate is
+still red in this workspace (`PASS: 398 FAIL: 421 SKIP: 20`). Until the fixture
+gate is either repaired or the close gate is intentionally narrowed, this issue
+remains open.
+
+## Recheck — 2026-05-15
+
+- Re-ran the issue close gate with `python scripts/manager.py verify fixtures`.
+- The fixture gate is still red in this workspace: `PASS: 417 FAIL: 410 SKIP: 20`.
+- Early failures include `scalar/f32_local.ark`, `component/import_flags_type.ark`,
+  and `component/import_scalar_func.ark`, followed by broad diagnostic/module/run
+  fixture failures.
+
+Not closed yet: structured diagnostic evidence is present, but the issue's
+current close gate still requires a green full fixture pass.
 ---
 # Error Handling Convergence: Compiler Structured Diagnostics
 

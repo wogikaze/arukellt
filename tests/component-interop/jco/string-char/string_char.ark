@@ -1,0 +1,11 @@
+// Component interop smoke test: string parameter canonical ABI with char result.
+
+pub fn marker_char(text: String) -> char {
+    if len(text) == 0 {
+        return 'x'
+    }
+    'a'
+}
+
+fn main() {
+}

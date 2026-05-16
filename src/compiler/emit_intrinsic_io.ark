@@ -5,7 +5,7 @@ use emit_inst_ctx
 
 
 // Handler for: stdio::println, println, __intrinsic_println
-pub fn emit_println(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
                                                                                                                 emit_writer::emit_leb128_u(w, inst.dest)
                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
@@ -71,12 +71,12 @@ pub fn emit_println(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCt
                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_CALL())
                                                                                                                 emit_writer::emit_leb128_u(w, 0)
                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
-    false
-}
+    return false
+    }
 
 
 // Handler for: stdio::print, print
-pub fn emit_print(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
                                                                                                                     emit_writer::emit_leb128_u(w, inst.dest)
                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
@@ -110,12 +110,12 @@ pub fn emit_print(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx)
                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_CALL())
                                                                                                                     emit_writer::emit_leb128_u(w, 0)
                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
-    false
-}
+    return false
+    }
 
 
 // Handler for: stdio::eprintln, eprintln
-pub fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
                                                                                                                             emit_writer::emit_leb128_u(w, inst.dest)
                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
@@ -181,12 +181,12 @@ pub fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitC
                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_CALL())
                                                                                                                             emit_writer::emit_leb128_u(w, 0)
                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
-    false
-}
+    return false
+    }
 
 
 // Handler for: fs::exists
-pub fn emit_fs_exists(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_fs_exists(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                 let s_ex = ctx.scratch_base + 2
                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
                                                                                                                                                                                                                 emit_writer::emit_leb128_u(w, s_ex)
@@ -235,12 +235,12 @@ pub fn emit_fs_exists(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmit
                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
                                                                                                                                                                                                                 emit_writer::emit_leb128_s(w, 0)
                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_END())
-    true
-}
+    return true
+    }
 
 
 // Handler for: fs::read_to_string
-pub fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                     let s_path = ctx.scratch_base + 2
                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
                                                                                                                                                                                                                     emit_writer::emit_leb128_u(w, s_path)
@@ -502,12 +502,12 @@ pub fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::
                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_SET())
                                                                                                                                                                                                                     emit_writer::emit_leb128_u(w, 0)
                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_END())
-    true
-}
+    return true
+    }
 
 
 // Handler for: fs::write_string
-pub fn emit_fs_write_string(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_fs_write_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                         let s_path_w = ctx.scratch_base + 2
                                                                                                                                                                                                                         let s_content = ctx.scratch_base + 3
                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
@@ -703,12 +703,12 @@ pub fn emit_fs_write_string(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::Se
                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_SET())
                                                                                                                                                                                                                         emit_writer::emit_leb128_u(w, 0)
                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_END())
-    true
-}
+    return true
+    }
 
 
 // Handler for: fs::write_bytes
-pub fn emit_fs_write_bytes(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_fs_write_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                             let s_bvec = ctx.scratch_base + 0
                                                                                                                                                                                                                             let s_path3 = ctx.scratch_base + 1
                                                                                                                                                                                                                             let s_bdata = ctx.scratch_base + 2
@@ -961,12 +961,12 @@ pub fn emit_fs_write_bytes(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::Sel
                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_SET())
                                                                                                                                                                                                                             emit_writer::emit_leb128_u(w, 0)
                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_END())
-    true
-}
+    return true
+    }
 
 
 // Handler for: env::var, env_var
-pub fn emit_env_var(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_env_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_GET())
                                                                                                                                                                                                                                 emit_writer::emit_leb128_u(w, 0)
@@ -994,12 +994,12 @@ pub fn emit_env_var(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCt
                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_SET())
                                                                                                                                                                                                                                 emit_writer::emit_leb128_u(w, 0)
-    true
-}
+    return true
+    }
 
 
 // Handler for: env::get_var
-pub fn emit_env_get_var(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_env_get_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_GET())
                                                                                                                                                                                                                                     emit_writer::emit_leb128_u(w, 0)
@@ -1027,36 +1027,36 @@ pub fn emit_env_get_var(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEm
                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_SET())
                                                                                                                                                                                                                                     emit_writer::emit_leb128_u(w, 0)
-    true
-}
+    return true
+    }
 
 
 // Handler for: env::var_or_default
-pub fn emit_env_var_or_default(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_env_var_or_default(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                         let tmp_default = ctx.scratch_base
                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
                                                                                                                                                                                                                                         emit_writer::emit_leb128_u(w, tmp_default)
                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                         emit_writer::emit_leb128_u(w, tmp_default)
-    true
-}
+    return true
+    }
 
 
 // Handler for: unwrap
-pub fn emit_unwrap_l4771(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_unwrap_l4771(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
                                                                                                                                                                                                                                                                                                             emit_writer::emit_leb128_s(w, 4)
                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, 2)
                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, 0)
-    true
-}
+    return true
+    }
 
 
 // Handler for: unwrap_or
-pub fn emit_unwrap_or_l4779(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_unwrap_or_l4779(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                 let s_def = ctx.scratch_base
                                                                                                                                                                                                                                                                                                                 let s_opt = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
@@ -1083,43 +1083,43 @@ pub fn emit_unwrap_or_l4779(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::Se
                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                                                                                                 emit_writer::emit_leb128_u(w, s_def)
                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, 11)
-    true
-}
+    return true
+    }
 
 
 // Handler for: is_some, is_ok
-pub fn emit_is_ok(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_is_ok(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, 2)
                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, 0)
                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQZ())
-    true
-}
+    return true
+    }
 
 
 // Handler for: is_none, is_err
-pub fn emit_is_err(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_is_err(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, 2)
                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, 0)
-    true
-}
+    return true
+    }
 
 
 // Handler for: unwrap
-pub fn emit_unwrap_l4827(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_unwrap_l4827(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_leb128_s(w, 4)
                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_I32_ADD())
                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, 2)
                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, 0)
-    true
-}
+    return true
+    }
 
 
 // Handler for: unwrap_or
-pub fn emit_unwrap_or_l4835(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_unwrap_or_l4835(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                     let s_opt = ctx.scratch_base
                                                                                                                                                                                                                                                                                                                                     let s_def = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
@@ -1146,12 +1146,12 @@ pub fn emit_unwrap_or_l4835(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::Se
                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_leb128_u(w, s_def)
                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_END())
-    true
-}
+    return true
+    }
 
 
 // Handler for: env::arg_count
-pub fn emit_env_arg_count(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_env_arg_count(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
                                                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_leb128_s(w, emit_scratch::SCRATCH_ARGC())
                                                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
@@ -1167,12 +1167,12 @@ pub fn emit_env_arg_count(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::Self
                                                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
                                                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_leb128_s(w, 1)
                                                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_I32_SUB())
-    true
-}
+    return true
+    }
 
 
 // Handler for: env::args
-pub fn emit_env_args(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_env_args(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_leb128_s(w, emit_scratch::SCRATCH_ARGC())
                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
@@ -1419,21 +1419,21 @@ pub fn emit_env_args(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitC
                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, 11)
                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_leb128_u(w, s_vec)
-    true
-}
+    return true
+    }
 
 
 // Handler for: env::has_flag
-pub fn emit_env_has_flag(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_env_has_flag(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_leb128_s(w, 0)
-    true
-}
+    return true
+    }
 
 
 // Handler for: env::arg_at
-pub fn emit_env_arg_at(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_env_arg_at(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_GLOBAL_GET())
                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_leb128_u(w, 0)
@@ -1454,78 +1454,78 @@ pub fn emit_env_arg_at(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmi
                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_leb128_u(w, 0)
                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_leb128_u(w, s_none)
-    true
-}
+    return true
+    }
 
 
 // Handler for: is_some
-pub fn emit_is_some(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_is_some(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, 2)
                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, 0)
                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQZ())
-    true
-}
+    return true
+    }
 
 
 // Handler for: is_none
-pub fn emit_is_none(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_is_none(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, 2)
                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, 0)
                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_leb128_s(w, 0)
                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_I32_NE())
-    true
-}
+    return true
+    }
 
 
 // Handler for: assert
-pub fn emit_assert(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_assert(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQZ())
                                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_IF())
                                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, 64)
                                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_UNREACHABLE())
                                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_END())
-    true
-}
+    return true
+    }
 
 
 // Handler for: assert_eq
-pub fn emit_assert_eq(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_assert_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_I32_NE())
                                                                                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_IF())
                                                                                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, 64)
                                                                                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_UNREACHABLE())
                                                                                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_END())
-    true
-}
+    return true
+    }
 
 
 // Handler for: assert_eq_i64
-pub fn emit_assert_eq_i64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_assert_eq_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_I64_NE())
                                                                                                                                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_IF())
                                                                                                                                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, 64)
                                                                                                                                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_UNREACHABLE())
                                                                                                                                                                                                                                                                                                                                                                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_END())
-    true
-}
+    return true
+    }
 
 
 // Handler for: assert_ne
-pub fn emit_assert_ne(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_assert_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQ())
                                                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_IF())
                                                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, 64)
                                                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_UNREACHABLE())
                                                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_END())
-    true
-}
+    return true
+    }
 
 
 // Handler for: assert_eq_str
-pub fn emit_assert_eq_str(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_assert_eq_str(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         let s0 = ctx.scratch_base + 0
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         let s1 = ctx.scratch_base + 1
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         let s2 = ctx.scratch_base + 2
@@ -1606,62 +1606,71 @@ pub fn emit_assert_eq_str(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::Self
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_leb128_u(w, 0)
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_END())
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_END())
-    true
-}
+    return true
+    }
 
 
 // Handler for: process::exit, host::process::exit
-pub fn emit_process_exit(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_process_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_CALL())
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_leb128_u(w, 6)
-    false
-}
+    return false
+    }
 
 
 // Handler for: i32_to_i64
-pub fn emit_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_I64_EXTEND_I32_S())
-    true
-}
+    return true
+    }
 
 
 // Handler for: i64_to_i32
-pub fn emit_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             emit_writer::emit_byte(w, emit_opcodes::OP_I32_WRAP_I64())
-    true
-}
+    return true
+    }
 
 
 // Handler for: i8_to_i32, u8_to_i32, i16_to_i32, u16_to_i32
-pub fn emit_i8_to_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
-    true
-}
+pub fn emit_i8_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    return true
+    }
 
 
 // Handler for: i32_to_u8, i32_to_i8
-pub fn emit_i32_to_u8(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_i32_to_u8(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_leb128_s(w, 255)
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     emit_writer::emit_byte(w, emit_opcodes::OP_I32_AND())
-    true
-}
+    return true
+    }
 
 
 // Handler for: u32_to_u64
-pub fn emit_u32_to_u64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
+pub fn emit_u32_to_u64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         emit_writer::emit_byte(w, emit_opcodes::OP_I64_EXTEND_I32_U())
-    true
-}
+    return true
+    }
 
 
 // Handler for: i32_to_u32
-pub fn emit_i32_to_u32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
-    true
-}
+pub fn emit_i32_to_u32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    return true
+    }
 
 
 // Handler for: f32_to_f64, f64_to_f32
-pub fn emit_f32_to_f64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) -> bool {
-    true
-}
-
+pub fn emit_f32_to_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if eq(clone(inst.str_val), "f64_to_f32") || eq(clone(inst.str_val), "__intrinsic_f64_to_f32") {
+        emit_writer::emit_byte(w, 0xb6)
+        emit_writer::emit_byte(w, 0xbc)
+        return true
+    }
+    if eq(clone(inst.str_val), "f32_to_f64") || eq(clone(inst.str_val), "__intrinsic_f32_to_f64") {
+        emit_writer::emit_byte(w, 0xbe)
+        emit_writer::emit_byte(w, 0xbb)
+        return true
+    }
+    return true
+    }

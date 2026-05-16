@@ -1,0 +1,7 @@
+// Component interop smoke test: f32 parameter and s32 result canonical ABI.
+pub fn classify32(x: f32) -> i32 {
+    7
+}
+
+fn main() {
+}

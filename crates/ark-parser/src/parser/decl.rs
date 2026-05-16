@@ -15,11 +15,27 @@ impl Parser<'_> {
         } else {
             None
         };
+        let end = self.span();
+        let span = start.merge(end);
+        let replacement = if let Some(alias) = &alias {
+            format!("use {} as {}", name, alias)
+        } else {
+            format!("use {}", name)
+        };
+        self.sink.emit(
+            Diagnostic::new(DiagnosticCode::W0101)
+                .with_message("`import <name>` is deprecated; use `use <name>`")
+                .with_label(span, "legacy import syntax")
+                .with_fix_it(span, replacement, "replace with `use` import")
+                .with_note(
+                    "`import` is reserved for future Component Model / WIT boundary declarations",
+                ),
+        );
         Import {
             module_name: name,
             alias,
             kind: ImportKind::Simple,
-            span: start.merge(self.span()),
+            span,
         }
     }
 

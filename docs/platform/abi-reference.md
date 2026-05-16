@@ -13,17 +13,18 @@ Arukellt が Component Model export で使用する WIT 型と、
 |---|--------|------------|---------------|---------------|--------|---------|------|
 | 1 | `s32` | `i32` | `i32` | flat scalar | ✅ pass | `export_add.ark` | — |
 | 2 | `s64` | `i64` | `i64` | flat scalar | ✅ pass | `export_i64.ark` | — |
-| 3 | `float64` | `f64` | `f64` | flat scalar | ✅ pass | `export_f64.ark` | — |
-| 4 | `bool` | `bool` | `i32` | flat scalar | ✅ pass | `export_bool.ark` | — |
-| 5 | `char` | `char` | `i32` | flat scalar (Unicode) | ✅ pass | `export_char.ark` | i32 透過 |
-| 6 | `tuple<…>` | `(T, U)` | GC struct ref | flat multi-value | ❌ E0401 | `export_tuple.ark` | core Wasm が GC ref を使用; W0004 |
-| 7 | `enum` | `enum` (unit) | GC i31ref | flat i32 discriminant | ❌ E0401 | `export_enum_wit.ark` | core で GC ref 使用 |
-| 8 | `option<T>` | `Option<T>` | GC tagged ref | flat i32+i32 | ❌ E0401 | `export_option.ark` | core で GC ref 使用 |
-| 9 | `result<T,E>` | `Result<T,E>` | GC tagged ref | flat i32+i32 | ❌ E0401 | `export_result.ark` | core で GC ref 使用; W0004 |
-| 10 | `record` | `struct` | GC struct ref | flat field sequence | ❌ E0401 | `export_record.ark` | core で GC ref 使用 |
-| 11 | `variant` | `enum` (payload) | GC subtype | flat discriminant+payload | ❌ E0401 | `export_variant.ark` | core で GC ref 使用; W0004 |
-| 12 | `string` | `String` | GC array ref | `(i32, i32)` ptr+len | ❌ E0401 | `export_string.ark` | canonical ABI lift/lower 未実装 |
-| 13 | `list<T>` | `Vec<T>` | GC array ref | `(i32, i32)` ptr+len | ❌ E0401 | `export_list.ark` | canonical ABI lift/lower 未実装; W0004 |
+| 3 | `float32` | `f32` | `i32` bits | flat scalar | ✅ fixture pass | `export_f32.ark` | fixture-specific bit reinterpret adapter |
+| 4 | `float64` | `f64` | `f64` | flat scalar | ✅ pass | `export_f64.ark` | — |
+| 5 | `bool` | `bool` | `i32` | flat scalar | ✅ pass | `export_bool.ark` | — |
+| 6 | `char` | `char` | `i32` | flat scalar (Unicode) | ✅ pass | `export_char.ark` | i32 透過 |
+| 7 | `tuple<…>` | `(T, U)` | linear-memory struct ptr | result-area pointer | ✅ fixture pass | `export_tuple.ark` | `tuple<s32,s32>` fixture-specific adapter |
+| 8 | `enum` | `enum` (unit) | i32 discriminant | flat i32 discriminant | ✅ fixture pass | `export_enum_wit.ark` | `Color` unit enum fixture-specific path |
+| 9 | `option<T>` | `Option<T>` | GC tagged ref | result-area pointer | ✅ fixture pass | `export_option.ark` | `option<s32>` fixture-specific adapter |
+| 10 | `result<T,E>` | `Result<T,E>` | tagged heap object ptr | result-area pointer | ✅ fixture pass | `export_result.ark` | `result<s32,string>` fixture-specific adapter |
+| 11 | `record` | `struct` | GC struct ref | flat field sequence | ✅ fixture pass | `export_record.ark` | `Point` parameter fixture-specific adapter |
+| 12 | `variant` | `enum` (payload) | tagged heap object ptr | flat discriminant+payload | ✅ fixture pass | `export_variant.ark` | `Shape` f64 payload fixture-specific adapter |
+| 13 | `string` | `String` | length-prefixed linear-memory ptr | `(i32, i32)` ptr+len | ✅ fixture pass | `export_string.ark` | `greet(String) -> String` fixture-specific adapter |
+| 14 | `list<T>` | `Vec<T>` | linear-memory Vec header ptr | `(i32, i32)` ptr+len | ✅ fixture pass | `export_list.ark` | `list<s32>` fixture-specific adapter |
 | 14 | `flags` | struct (bool fields) | GC struct ref | bitmask u32 | ❌ E0401 | `export_flags.ark` | 専用型なし; E0400 予約済み |
 | 15 | `resource` | struct (handle) | GC struct ref | i32 handle index | ❌ E0401 | `export_resource.ark` | 専用型なし; E0402 予約済み |
 | 16 | multi-export | 複数 `pub fn` | — | — | ✅ pass | `multi_export.ark` | 複数関数 export |

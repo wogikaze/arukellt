@@ -1,0 +1,7 @@
+// Export with renamed u8 parameter/result maps to WIT u8.
+pub fn bump_byte(n: u8) -> u8 {
+    n + 5u8
+}
+
+fn main() {
+}

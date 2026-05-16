@@ -1,0 +1,7 @@
+// Export with Vec<i32> result maps to WIT list<s32>.
+pub fn numbers_after(n: i32) -> Vec<i32> {
+    let mut out: Vec<i32> = Vec_new_i32()
+    push(out, n)
+    push(out, n + 1)
+    out
+}

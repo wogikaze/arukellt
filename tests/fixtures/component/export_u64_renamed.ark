@@ -1,0 +1,7 @@
+// Export with renamed u64 parameter/result maps to WIT u64.
+pub fn widen_unsigned(n: u64) -> u64 {
+    n + 4000000000u64
+}
+
+fn main() {
+}

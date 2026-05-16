@@ -1,0 +1,11 @@
+// Component interop smoke test: string parameter canonical ABI with u16 result is name-independent.
+
+pub fn wide_code16(text: String) -> u16 {
+    if len(text) == 0 {
+        return 21u16
+    }
+    2100u16
+}
+
+fn main() {
+}

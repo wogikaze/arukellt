@@ -1,0 +1,10 @@
+// Component interop smoke test: option<s64> result canonical ABI.
+pub fn maybe_wide(flag: bool) -> Option<i64> {
+    if flag {
+        return Some(42i64)
+    }
+    None
+}
+
+fn main() {
+}

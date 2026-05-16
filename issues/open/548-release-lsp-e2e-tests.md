@@ -37,6 +37,56 @@ docs/release-checklist.md — Pre-release section
 - Blockers: None for the requested verification command; the ignored shadowing snapshot is expected and non-blocking for this release slice
 - DONE_WHEN: no
 
+## Recheck — 2026-05-14
+
+The older evidence above refers to the retired Rust `crates/ark-lsp` test
+suite. In the current repository state, `crates/ark-lsp` has been removed and
+the active LSP implementation is the selfhost server in `src/compiler/lsp.ark`
+exposed through `arukellt lsp`.
+
+Current evidence:
+
+- `python3 scripts/manager.py verify quick` passes 22/22 and includes the
+  selfhost LSP lifecycle gate (#569).
+- `extensions/arukellt-all-in-one/src/test/extension.test.js` directly drives
+  `arukellt lsp` for initialize, hover, and definition coverage.
+- At this recheck point, `src/compiler/lsp.ark` advertised `hoverProvider` and
+  `definitionProvider` but did not advertise or handle
+  `textDocument/completion`.
+- Rebuilding a fresh selfhost `s2` wasm from the pinned bootstrap wasm still
+  fails in this workspace, so changing `src/compiler/lsp.ark` cannot yet be
+  honestly verified through the selfhost lifecycle gate.
+
+Updated verdict: close-candidate `no`. The current release checklist asks for
+initialize, shutdown, completion, hover, and definition protocol compliance.
+Completion coverage was not implemented in the active selfhost LSP surface at
+the time of this recheck, and the old
+`cargo test -p ark-lsp --test lsp_e2e -- --test-threads=1` command is no longer
+valid after the crate retirement.
+
+## Progress — 2026-05-14
+
+Implemented the missing completion surface in `src/compiler/lsp.ark`:
+
+- Initialize capabilities now advertise `completionProvider` with
+  `resolveProvider: false` and trigger characters `"."` / `":"`.
+- `textDocument/completion` is routed in the selfhost LSP dispatcher.
+- Added a minimal static `CompletionList` response containing language keywords,
+  common std modules, and common builtins.
+
+Verification status:
+
+- Source inspection confirms `completionProvider`, `textDocument/completion`,
+  `build_completion_response`, and `handle_completion` are present.
+- `target/release/arukellt check src/compiler/main.ark` still fails before it can
+  validate the updated source because the current selfhost/bootstrap compiler
+  traps with an out-of-bounds memory access. This is the same class of blocker
+  noted above for rebuilding fresh selfhost `s2` wasm.
+
+Updated verdict remains close-candidate `no` until the active selfhost wasm can
+be rebuilt from source and an LSP E2E/golden test covers initialize, shutdown,
+completion, hover, and definition together.
+
 ## Required Verification
 
 - Run LSP E2E test suite

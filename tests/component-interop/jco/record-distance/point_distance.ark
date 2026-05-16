@@ -1,0 +1,12 @@
+// Component interop smoke test: single record parameter canonical ABI.
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn distance_sq(p: Point) -> i32 {
+    p.x * p.x + p.y * p.y
+}
+
+fn main() {
+}

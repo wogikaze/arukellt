@@ -1,0 +1,9 @@
+// Export with Result<Vec<i32>, String> parameter — nested list result payload is not supported yet.
+// WIT: result<list<s32>, string> requires nested compound payload lowering.
+// Expected: E0401 compile-time error.
+pub fn nested_result_count(value: Result<Vec<i32>, String>) -> i32 {
+    0
+}
+
+fn main() {
+}

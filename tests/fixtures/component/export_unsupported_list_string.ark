@@ -1,0 +1,13 @@
+// Export with Vec<String> return — list<string> canonical ABI is not supported yet.
+// WIT: list<string> requires nested string list lift/lower.
+// Expected: E0401 compile-time error.
+pub fn names(flag: bool) -> Vec<String> {
+    let mut out: Vec<String> = Vec_new_String()
+    if flag {
+        push(out, String_from("alpha"))
+    }
+    out
+}
+
+fn main() {
+}

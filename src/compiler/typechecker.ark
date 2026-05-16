@@ -33,11 +33,12 @@ struct TypeEnv {
     errors: Vec<String>,
     error_count: i32,
     mono_instances: Vec<MonoInstance>,
+    mono_call_sites: Vec<MonoCallSite>,
     trait_impls: Vec<TraitImplInfo>,
 }
 
 fn TypeEnv_new() -> TypeEnv {
-    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), trait_impls: Vec_new_TraitImplInfo() }
+    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite(), trait_impls: Vec_new_TraitImplInfo() }
 }
 
 struct TraitImplInfo {
@@ -47,6 +48,13 @@ struct TraitImplInfo {
 
 // ── Monomorphization Instance Tracking ──────────────────────────────────────
 struct MonoInstance {
+    fn_name: String,
+    mangled_name: String,
+    type_args: Vec<TypeInfo>,
+}
+
+struct MonoCallSite {
+    span_start: i32,
     fn_name: String,
     mangled_name: String,
 }
@@ -82,7 +90,7 @@ fn mono_type_key(ty: TypeInfo) -> String {
     result
 }
 
-fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
+fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
     let mut mangled = clone(fn_name)
     let count = len(resolved_types)
     let mut i = 0
@@ -96,11 +104,44 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
     while j < mi_count {
         let mi = get_unchecked(env.mono_instances, j)
         if eq(clone(mi.mangled_name), clone(mangled)) {
-            return
+            return mangled
         }
         j = j + 1
     }
-    push(env.mono_instances, MonoInstance { fn_name: fn_name, mangled_name: mangled })
+    push(env.mono_instances, MonoInstance { fn_name: fn_name, mangled_name: clone(mangled), type_args: resolved_types })
+    mangled
+}
+
+fn record_mono_call_site(env: TypeEnv, span_start: i32, fn_name: String, mangled_name: String) {
+    let count = len(env.mono_call_sites)
+    let mut i = 0
+    while i < count {
+        let site = get_unchecked(env.mono_call_sites, i)
+        if site.span_start == span_start && eq(clone(site.fn_name), clone(fn_name)) {
+            return
+        }
+        i = i + 1
+    }
+    push(env.mono_call_sites, MonoCallSite { span_start: span_start, fn_name: clone(fn_name), mangled_name: clone(mangled_name) })
+    let marker_args = Vec_new_TypeInfo()
+    push(marker_args, TypeInfo_simple(0 - span_start - 1000))
+    push(env.mono_instances, MonoInstance { fn_name: clone(fn_name), mangled_name: mangled_name, type_args: marker_args })
+}
+
+fn builtin_call_return_type(name: String) -> TypeInfo {
+    if eq(clone(name), "String_from") || eq(clone(name), "i32_to_string") || eq(clone(name), "i64_to_string") || eq(clone(name), "f64_to_string") || eq(clone(name), "bool_to_string") || eq(clone(name), "char_to_string") || eq(clone(name), "to_string") {
+        return TypeInfo_simple(typechecker_kinds::TY_STRING())
+    }
+    if eq(clone(name), "len") {
+        return TypeInfo_simple(typechecker_kinds::TY_I32())
+    }
+    if starts_with(clone(name), "Vec_new_") {
+        let elem_name = substring(name, 8, len(name))
+        let mut vec_ty = TypeInfo_simple(typechecker_kinds::TY_VEC())
+        push(vec_ty.type_args, resolve_type_name(elem_name))
+        return vec_ty
+    }
+    TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
 }
 
 fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> bool {
@@ -398,6 +439,9 @@ fn resolve_type_name(name: String) -> TypeInfo {
     }
     if eq(clone(name), "u32") {
         return TypeInfo_simple(typechecker_kinds::TY_I32())
+    }
+    if eq(clone(name), "u64") {
+        return TypeInfo_simple(typechecker_kinds::TY_I64())
     }
     if eq(clone(name), "i8") {
         return TypeInfo_simple(typechecker_kinds::TY_I32())
@@ -820,10 +864,28 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         }
         let callee = get_unchecked(node.children, 0)
         if callee.kind != typechecker_kinds::NK_IDENT() {
+            let non_ident_arg_count = len(node.children) - 1
+            let mut non_ident_a = 0
+            while non_ident_a < non_ident_arg_count {
+                let non_ident_arg = get_unchecked(node.children, non_ident_a + 1)
+                let _non_ident_arg_ty = infer_expr(env, scope, fn_sigs, non_ident_arg)
+                non_ident_a = non_ident_a + 1
+            }
             return TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
         }
         let sig = lookup_fn_sig(fn_sigs, clone(callee.text))
         if eq(clone(sig.name), String_from("")) {
+            let unknown_arg_count = len(node.children) - 1
+            let mut unknown_a = 0
+            while unknown_a < unknown_arg_count {
+                let unknown_arg = get_unchecked(node.children, unknown_a + 1)
+                let _unknown_arg_ty = infer_expr(env, scope, fn_sigs, unknown_arg)
+                unknown_a = unknown_a + 1
+            }
+            let builtin_ret = builtin_call_return_type(clone(callee.text))
+            if builtin_ret.tag != typechecker_kinds::TY_UNKNOWN() {
+                return builtin_ret
+            }
             let loc_ty = scope_lookup(scope, clone(callee.text))
             if loc_ty.tag == typechecker_kinds::TY_FN() {
                 return TypeInfo_simple(typechecker_kinds::TY_I32())
@@ -831,6 +893,16 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             return TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
         }
         if len(sig.type_params) == 0 {
+            let arg_count_plain = len(node.children) - 1
+            let param_count_plain = len(sig.param_types)
+            let mut plain_a = 0
+            while plain_a < arg_count_plain && plain_a < param_count_plain {
+                let arg_node_plain = get_unchecked(node.children, plain_a + 1)
+                let arg_ty_plain = infer_expr(env, scope, fn_sigs, arg_node_plain)
+                let param_ty_plain = get_unchecked(sig.param_types, plain_a)
+                unify(env, param_ty_plain, arg_ty_plain)
+                plain_a = plain_a + 1
+            }
             return sig.return_type
         }
         let infer_env = TypeEnv_new()
@@ -867,7 +939,8 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             rv = rv + 1
         }
         enforce_fn_sig_bounds(env, infer_env, sig, var_types)
-        record_mono_instance(env, clone(callee.text), resolved_type_args)
+        let mangled_name = record_mono_instance(env, clone(callee.text), resolved_type_args)
+        record_mono_call_site(env, node.span.start, clone(callee.text), mangled_name)
         return ret_ty
     }
     if node.kind == typechecker_kinds::NK_METHOD_CALL() {
@@ -936,7 +1009,13 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             rv = rv + 1
         }
         enforce_fn_sig_bounds(env, infer_env, sig, var_types)
-        record_mono_instance(env, clone(node.text), resolved_type_args)
+        let resolved_recv_ty = resolve_type_deep(infer_env, inst_p0)
+        let mut mono_fn_name = clone(node.text)
+        if resolved_recv_ty.tag == typechecker_kinds::TY_STRUCT() && len(resolved_recv_ty.name) > 0 {
+            mono_fn_name = concat(clone(resolved_recv_ty.name), concat(String_from("::"), clone(node.text)))
+        }
+        let mangled_name = record_mono_instance(env, clone(mono_fn_name), resolved_type_args)
+        record_mono_call_site(env, node.span.start, mono_fn_name, mangled_name)
         return ret_ty
     }
     if node.kind == typechecker_kinds::NK_MATCH_EXPR() {
@@ -1124,7 +1203,6 @@ struct TypedFn {
 pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeCheckResult {
     let result = TypeCheckResult { error_count: 0, errors: Vec_new_String(), typed_fns: Vec_new_TypedFn(), mono_instances: Vec_new_MonoInstance() }
     let env = TypeEnv_new()
-    result.error_count = resolve_ctx.error_count
     result.errors = resolve_ctx.errors
     let decl_count = len(decls)
     let mut i = 0
@@ -1187,7 +1265,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         }
         i = i + 1
     }
-    let err_count = len(env.errors)
+    let err_count = env.error_count
     let mut e = 0
     while e < err_count {
         let err = get_unchecked(env.errors, e)
@@ -1206,12 +1284,33 @@ pub fn dump_typed_hir(result: TypeCheckResult) {
         stdio::eprintln(concat(to_string(result.error_count), String_from(" type error(s)")))
     }
     let mi_count = len(result.mono_instances)
-    if mi_count > 0 {
-        stdio::eprintln(concat(String_from("mono instances: "), to_string(mi_count)))
+    let mut visible_mi_count = 0
+    let mut vc = 0
+    while vc < mi_count {
+        let vmi = get_unchecked(result.mono_instances, vc)
+        let mut is_marker = false
+        if len(vmi.type_args) > 0 {
+            let marker_ty = get_unchecked(vmi.type_args, 0)
+            is_marker = marker_ty.tag < 0
+        }
+        if !is_marker {
+            visible_mi_count = visible_mi_count + 1
+        }
+        vc = vc + 1
+    }
+    if visible_mi_count > 0 {
+        stdio::eprintln(concat(String_from("mono instances: "), to_string(visible_mi_count)))
         let mut k = 0
         while k < mi_count {
             let mi = get_unchecked(result.mono_instances, k)
-            stdio::eprintln(concat(String_from("  "), clone(mi.mangled_name)))
+            let mut is_marker2 = false
+            if len(mi.type_args) > 0 {
+                let marker_ty2 = get_unchecked(mi.type_args, 0)
+                is_marker2 = marker_ty2.tag < 0
+            }
+            if !is_marker2 {
+                stdio::eprintln(concat(String_from("  "), clone(mi.mangled_name)))
+            }
             k = k + 1
         }
     }

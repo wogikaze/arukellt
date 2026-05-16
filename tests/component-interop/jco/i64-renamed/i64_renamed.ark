@@ -1,0 +1,8 @@
+// Component interop smoke test: renamed i64 scalar parameter/result.
+
+pub fn shift_large(n: i64) -> i64 {
+    n + 10000000000i64
+}
+
+fn main() {
+}

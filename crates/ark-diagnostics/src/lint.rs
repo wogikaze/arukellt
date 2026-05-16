@@ -129,6 +129,14 @@ impl LintRegistry {
                 default_level: LintLevel::Warn,
                 has_fix: true,
             },
+            LintRule {
+                code: DiagnosticCode::W0101,
+                id: "W0101",
+                description: "deprecated legacy import syntax",
+                category: LintCategory::Migration,
+                default_level: LintLevel::Warn,
+                has_fix: true,
+            },
         ];
         Self { rules }
     }
@@ -180,7 +188,7 @@ mod tests {
     #[test]
     fn registry_has_all_builtin_rules() {
         let reg = LintRegistry::new();
-        assert_eq!(reg.len(), 7);
+        assert_eq!(reg.len(), 8);
     }
 
     #[test]

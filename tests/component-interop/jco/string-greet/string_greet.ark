@@ -1,0 +1,8 @@
+// Component interop test fixture: string parameter/result canonical ABI.
+
+pub fn greet(name: String) -> String {
+    name
+}
+
+fn main() {
+}

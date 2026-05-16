@@ -1,0 +1,9 @@
+// Export with renamed Result<i32, i32> parameter/result maps to WIT result<s32, s32> roundtrip shape.
+pub fn normalize_result(r: Result<i32, i32>) -> Result<i32, i32> {
+    let n = unwrap_or(r, -1)
+    if n >= 0 {
+        Ok(n + 2)
+    } else {
+        Err(11)
+    }
+}

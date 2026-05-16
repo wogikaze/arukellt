@@ -1,0 +1,4 @@
+// Export with renamed tuple parameter maps to WIT tuple<s32, s32>.
+pub fn accept_pair(pair: (i32, i32)) -> i32 {
+    13
+}

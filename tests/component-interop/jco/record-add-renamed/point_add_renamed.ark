@@ -1,0 +1,13 @@
+// Component interop smoke test: two record params/result canonical ABI is name-independent.
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn merge_points(a: Point, b: Point) -> Point {
+    Point { x: a.x + b.x, y: a.y + b.y }
+}
+
+fn main() {
+}

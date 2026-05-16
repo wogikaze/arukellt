@@ -1,0 +1,16 @@
+// The paired Point adapter requires Point -> i32 and (Point, Point) -> Point exports.
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn length_sq(p: Point) -> Point {
+    p
+}
+
+pub fn translate(a: Point, b: Point) -> Point {
+    Point { x: a.x + b.x, y: a.y + b.y }
+}
+
+fn main() {
+}

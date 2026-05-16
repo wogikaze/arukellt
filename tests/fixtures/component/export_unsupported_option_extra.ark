@@ -1,0 +1,16 @@
+// option<s32> adapter paths are single-export only.
+// Extra public exports must be rejected instead of being silently omitted.
+// Expected: E0401 compile-time error.
+pub fn wrap_positive(n: i32) -> Option<i32> {
+    if n > 0 {
+        return Some(n)
+    }
+    None
+}
+
+pub fn extra_count(n: i32) -> i32 {
+    n
+}
+
+fn main() {
+}

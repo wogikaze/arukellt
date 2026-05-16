@@ -846,6 +846,36 @@ one, please file a bug report.
 | W0007 | warning | typecheck | unused binding |
 | W0008 | warning | resolve | deprecated API |
 | W0009 | warning | backend-validate | WASI Preview 2 native Wasm imports are not fully implemented |
+| W0101 | warning | parse | deprecated `import <name>` syntax |
+
+---
+
+### W0101 — deprecated `import <name>` syntax
+
+| Field | Value |
+|-------|-------|
+| **Severity** | warning |
+| **Phase** | parse |
+| **Message** | deprecated import syntax |
+
+`import <name>` remains accepted for local file module compatibility, but it is
+deprecated in favor of `use <name>`. The `import` keyword is reserved for future
+Component Model / WIT boundary declarations.
+
+```text
+// Deprecated
+import math
+
+// Preferred
+use math
+```
+
+Aliases migrate directly:
+
+```text
+import math as m  // W0101
+use math as m
+```
 
 ---
 

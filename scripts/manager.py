@@ -89,7 +89,12 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     manifest_ok = True
     fixture_count = 0
     if not manifest_file.exists():
-        h.check_fail("Fixture manifest not found: tests/fixtures/manifest.txt")
+        h.check_fail(
+            "Fixture manifest not found: tests/fixtures/manifest.txt",
+            category="fixture",
+            command="python3 scripts/manager.py verify quick",
+            primary_path="tests/fixtures/manifest.txt",
+        )
         manifest_ok = False
     else:
         fixture_count = count_fixtures(manifest_file)
@@ -103,7 +108,12 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             }
         )
         if disk_paths != manifest_entries:
-            h.check_fail("Fixture manifest out of sync with disk")
+            h.check_fail(
+                "Fixture manifest out of sync with disk",
+                category="fixture",
+                command="python3 scripts/manager.py verify quick",
+                primary_path="tests/fixtures/manifest.txt",
+            )
             disk_set = set(disk_paths)
             manifest_set = set(manifest_entries)
             for p in sorted(disk_set - manifest_set)[:10]:
@@ -208,20 +218,37 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         ),
     ]
 
-    bg_results: list[tuple[str, int, str]] = []
+    bg_results: list[tuple[str, str, int, str]] = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = {executor.submit(_shell, cmd_str): label for label, cmd_str in bg_checks}
+        futures = {
+            executor.submit(_shell, cmd_str): (label, cmd_str)
+            for label, cmd_str in bg_checks
+        }
         for future in concurrent.futures.as_completed(futures):
-            label = futures[future]
+            label, cmd_str = futures[future]
             rc, out = future.result()
-            bg_results.append((label, rc, out))
+            bg_results.append((label, cmd_str, rc, out))
 
     print(f"\n{YELLOW}[bg] Collecting background check results...{NC}")
-    for label, rc, out in bg_results:
+    for label, cmd_str, rc, out in bg_results:
         if rc == 0:
             h.check_pass(label)
         else:
-            h.check_fail(label)
+            if "package-workspace" in label:
+                category = "package-workspace"
+                primary_path = "tests/package-workspace/"
+            elif "LSP" in label:
+                category = "editor-tooling"
+                primary_path = "tests/fixtures/selfhost/"
+            else:
+                category = "verification-hygiene"
+                primary_path = "scripts/manager.py"
+            h.check_fail(
+                label,
+                category=category,
+                command=cmd_str,
+                primary_path=primary_path,
+            )
             for line in out.splitlines()[-30:]:
                 print(line)
 
@@ -244,13 +271,23 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     if stdlib_missing == 0:
         h.check_pass("all stdlib fixtures registered in manifest.txt")
     else:
-        h.check_fail(f"stdlib fixtures missing from manifest.txt ({stdlib_missing})")
+        h.check_fail(
+            f"stdlib fixtures missing from manifest.txt ({stdlib_missing})",
+            category="fixture",
+            command="python3 scripts/manager.py verify quick",
+            primary_path="tests/fixtures/manifest.txt",
+        )
 
     stdlib_fixture_count = manifest_text.count("stdlib_")
     if stdlib_fixture_count >= 5:
         h.check_pass(f"v3 stdlib fixtures registered ({stdlib_fixture_count} entries in manifest)")
     else:
-        h.check_fail(f"v3 stdlib fixtures insufficient ({stdlib_fixture_count} < 5)")
+        h.check_fail(
+            f"v3 stdlib fixtures insufficient ({stdlib_fixture_count} < 5)",
+            category="fixture",
+            command="python3 scripts/manager.py verify quick",
+            primary_path="tests/fixtures/manifest.txt",
+        )
 
     # ── Internal link integrity ───────────────────────────────────────────────
     links_script = root / "scripts" / "check" / "check-links.sh"
@@ -259,7 +296,12 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         if rc == 0:
             h.check_pass("internal link integrity")
         else:
-            h.check_fail("broken internal links detected (run scripts/check/check-links.sh)")
+            h.check_fail(
+                "broken internal links detected (run scripts/check/check-links.sh)",
+                category="docs",
+                command="bash scripts/check/check-links.sh",
+                primary_path="docs/",
+            )
 
     # ── Diagnostic codes check ────────────────────────────────────────────────
     diag_script = root / "scripts" / "check" / "check-diagnostic-codes.sh"
@@ -268,7 +310,12 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         if rc == 0:
             h.check_pass("diagnostic codes aligned")
         else:
-            h.check_fail("diagnostic codes out of sync (run scripts/check/check-diagnostic-codes.sh)")
+            h.check_fail(
+                "diagnostic codes out of sync (run scripts/check/check-diagnostic-codes.sh)",
+                category="diagnostics-snapshot",
+                command="bash scripts/check/check-diagnostic-codes.sh",
+                primary_path="crates/ark-diagnostics/",
+            )
 
     # ── Summary ───────────────────────────────────────────────────────────────
     total, passed, skipped, failed = h.summary()
@@ -322,7 +369,12 @@ def cmd_verify_fixtures(args: argparse.Namespace) -> int:
         )
         h.check_pass(f"fixture harness ({summary_line.strip()})")
     else:
-        h.check_fail("fixture harness")
+        h.check_fail(
+            "fixture harness",
+            category="fixture",
+            command="cargo test -p arukellt --test harness -- --nocapture",
+            primary_path="tests/fixtures/manifest.txt",
+        )
         for line in output.splitlines():
             if line.startswith(("PASS:", "FAIL ")):
                 print(line)
@@ -367,7 +419,12 @@ def cmd_verify_size(args: argparse.Namespace) -> int:
         return h.exit_code()
 
     if not arukellt_bin:
-        h.check_fail("hello.wasm size gate (arukellt binary not found — build first)")
+        h.check_fail(
+            "hello.wasm size gate (arukellt binary not found — build first)",
+            category="target-contract",
+            command="python3 scripts/manager.py verify size",
+            primary_path="tests/fixtures/hello/hello.ark",
+        )
     else:
         compile_cmd = [
             arukellt_bin,
@@ -386,13 +443,28 @@ def cmd_verify_size(args: argparse.Namespace) -> int:
                 if size <= HELLO_SIZE_MAX:
                     h.check_pass(f"hello.wasm binary size: {size} bytes (<= {HELLO_SIZE_MAX})")
                 else:
-                    h.check_fail(f"hello.wasm binary size: {size} bytes (> {HELLO_SIZE_MAX} threshold)")
+                    h.check_fail(
+                        f"hello.wasm binary size: {size} bytes (> {HELLO_SIZE_MAX} threshold)",
+                        category="target-contract",
+                        command=" ".join(compile_cmd),
+                        primary_path="tests/fixtures/hello/hello.ark",
+                    )
             else:
                 wasm_path.unlink(missing_ok=True)
-                h.check_fail("hello.wasm compilation failed")
+                h.check_fail(
+                    "hello.wasm compilation failed",
+                    category="target-contract",
+                    command=" ".join(compile_cmd),
+                    primary_path="tests/fixtures/hello/hello.ark",
+                )
         except Exception:
             wasm_path.unlink(missing_ok=True)
-            h.check_fail("hello.wasm compilation failed")
+            h.check_fail(
+                "hello.wasm compilation failed",
+                category="target-contract",
+                command=" ".join(compile_cmd),
+                primary_path="tests/fixtures/hello/hello.ark",
+            )
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
@@ -418,7 +490,12 @@ def cmd_verify_wat(args: argparse.Namespace) -> int:
     if rc == 0:
         h.check_pass("WAT roundtrip (wasm2wat \u21c4 wat2wasm)")
     else:
-        h.check_fail("WAT roundtrip (wasm2wat \u21c4 wat2wasm)")
+        h.check_fail(
+            "WAT roundtrip (wasm2wat \u21c4 wat2wasm)",
+            category="target-contract",
+            command="bash scripts/run/wat-roundtrip.sh",
+            primary_path="scripts/run/wat-roundtrip.sh",
+        )
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
@@ -454,7 +531,12 @@ def cmd_verify_component(args: argparse.Namespace) -> int:
                 if rc == 0:
                     h.check_pass(f"component interop: {fixture_name} (wasmtime)")
                 else:
-                    h.check_fail(f"component interop: {fixture_name} (wasmtime)")
+                    h.check_fail(
+                        f"component interop: {fixture_name} (wasmtime)",
+                        category="component-interop",
+                        command=f"bash {run_sh}",
+                        primary_path=str(run_sh.relative_to(root)),
+                    )
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
@@ -482,7 +564,12 @@ def cmd_verify_selfhost_parity(args: argparse.Namespace) -> int:
     if rc_cli == 0:
         h.check_pass("selfhost CLI parity")
     else:
-        h.check_fail("selfhost CLI parity")
+        h.check_fail(
+            "selfhost CLI parity",
+            category="bootstrap",
+            command="python3 scripts/manager.py selfhost parity --mode --cli",
+            primary_path="tests/snapshots/selfhost/",
+        )
         for line in out_cli.splitlines()[-30:]:
             print(line)
 
@@ -490,7 +577,12 @@ def cmd_verify_selfhost_parity(args: argparse.Namespace) -> int:
     if rc_diag == 0:
         h.check_pass("selfhost diagnostic parity")
     else:
-        h.check_fail("selfhost diagnostic parity")
+        h.check_fail(
+            "selfhost diagnostic parity",
+            category="bootstrap",
+            command="python3 scripts/manager.py selfhost diag-parity",
+            primary_path="tests/fixtures/",
+        )
         for line in out_diag.splitlines()[-30:]:
             print(line)
 
@@ -850,7 +942,12 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
     elif res.skipped:
         h.check_skip(f"selfhost fixpoint not yet reached (exit {res.exit_code})")
     else:
-        h.check_fail("selfhost fixpoint check failed")
+        h.check_fail(
+            "selfhost fixpoint check failed",
+            category="bootstrap",
+            command="python3 scripts/manager.py selfhost fixpoint --build",
+            primary_path="src/compiler/main.ark",
+        )
         for line in res.output.splitlines()[-30:]:
             print(line)
 
@@ -873,7 +970,12 @@ def cmd_selfhost_fixture_parity(args: argparse.Namespace) -> int:
     if rc == 0:
         h.check_pass("selfhost fixture parity")
     else:
-        h.check_fail("selfhost fixture parity")
+        h.check_fail(
+            "selfhost fixture parity",
+            category="bootstrap",
+            command="python3 scripts/manager.py selfhost fixture-parity",
+            primary_path="tests/fixtures/manifest.txt",
+        )
         for line in out.splitlines()[-30:]:
             print(line)
 
@@ -896,7 +998,12 @@ def cmd_selfhost_diag_parity(args: argparse.Namespace) -> int:
     if rc == 0:
         h.check_pass("selfhost diagnostic parity")
     else:
-        h.check_fail("selfhost diagnostic parity")
+        h.check_fail(
+            "selfhost diagnostic parity",
+            category="bootstrap",
+            command="python3 scripts/manager.py selfhost diag-parity",
+            primary_path="tests/fixtures/",
+        )
         for line in out.splitlines()[-30:]:
             print(line)
 
@@ -920,7 +1027,12 @@ def cmd_selfhost_parity(args: argparse.Namespace) -> int:
     if rc == 0:
         h.check_pass(f"selfhost parity{' ' + mode if mode else ''}")
     else:
-        h.check_fail(f"selfhost parity{' ' + mode if mode else ''}")
+        h.check_fail(
+            f"selfhost parity{' ' + mode if mode else ''}",
+            category="bootstrap",
+            command=f"python3 scripts/manager.py selfhost parity{(' --mode ' + mode) if mode else ''}",
+            primary_path="bootstrap/arukellt-selfhost.wasm",
+        )
         for line in out.splitlines()[-30:]:
             print(line)
 
@@ -957,7 +1069,12 @@ def cmd_docs_check(args: argparse.Namespace) -> int:
             if rc == 0:
                 h.check_pass(label)
             else:
-                h.check_fail(label)
+                h.check_fail(
+                    label,
+                    category="docs",
+                    command=f"python3 scripts/manager.py docs check ({label})",
+                    primary_path="docs/",
+                )
                 for line in out.splitlines()[-20:]:
                     print(line)
 
@@ -984,7 +1101,12 @@ def cmd_docs_regenerate(args: argparse.Namespace) -> int:
     if rc == 0:
         h.check_pass(label)
     else:
-        h.check_fail(label)
+        h.check_fail(
+            label,
+            category="docs",
+            command="python3 scripts/manager.py docs regenerate",
+            primary_path="docs/",
+        )
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
@@ -1011,7 +1133,12 @@ def cmd_perf_gate(args: argparse.Namespace) -> int:
     if rc == 0:
         h.check_pass("perf gate")
     else:
-        h.check_fail("perf gate")
+        h.check_fail(
+            "perf gate",
+            category="perf",
+            command="python3 scripts/manager.py perf gate",
+            primary_path="tests/baselines/perf/baselines.json",
+        )
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
@@ -1034,7 +1161,12 @@ def cmd_perf_baseline(args: argparse.Namespace) -> int:
     if rc == 0:
         h.check_pass("perf baseline")
     else:
-        h.check_fail("perf baseline")
+        h.check_fail(
+            "perf baseline",
+            category="perf",
+            command="python3 scripts/manager.py perf baseline",
+            primary_path="tests/baselines/",
+        )
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
@@ -1058,7 +1190,12 @@ def cmd_perf_benchmarks(args: argparse.Namespace) -> int:
     if rc == 0:
         h.check_pass("perf benchmarks")
     else:
-        h.check_fail("perf benchmarks")
+        h.check_fail(
+            "perf benchmarks",
+            category="perf",
+            command="python3 scripts/manager.py perf benchmarks",
+            primary_path="benchmarks/",
+        )
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
@@ -1085,7 +1222,12 @@ def cmd_gate_local(args: argparse.Namespace) -> int:
     if rc == 0:
         h.check_pass("gate local")
     else:
-        h.check_fail("gate local")
+        h.check_fail(
+            "gate local",
+            category="local-ci",
+            command="python3 scripts/manager.py gate local",
+            primary_path="scripts/gate_domain/checks.py",
+        )
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
@@ -1108,7 +1250,12 @@ def cmd_gate_pre_commit(args: argparse.Namespace) -> int:
     if rc == 0:
         h.check_pass("gate pre-commit")
     else:
-        h.check_fail("gate pre-commit")
+        h.check_fail(
+            "gate pre-commit",
+            category="local-ci",
+            command="python3 scripts/manager.py gate pre-commit",
+            primary_path="scripts/gate/pre-commit-verify.sh",
+        )
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
@@ -1131,7 +1278,12 @@ def cmd_gate_pre_push(args: argparse.Namespace) -> int:
     if rc == 0:
         h.check_pass("gate pre-push")
     else:
-        h.check_fail("gate pre-push")
+        h.check_fail(
+            "gate pre-push",
+            category="local-ci",
+            command="python3 scripts/manager.py gate pre-push",
+            primary_path="scripts/gate_domain/checks.py",
+        )
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
@@ -1162,7 +1314,12 @@ def cmd_gate_repro(args: argparse.Namespace) -> int:
     elif rc == 0:
         h.check_pass("gate repro")
     else:
-        h.check_fail("gate repro")
+        h.check_fail(
+            "gate repro",
+            category="determinism",
+            command="python3 scripts/manager.py gate repro",
+            primary_path="docs/examples/hello.ark",
+        )
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")

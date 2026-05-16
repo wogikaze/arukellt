@@ -1,0 +1,11 @@
+// Export with String parameter and i16 result maps to WIT string -> s16.
+
+pub fn signed16_text(text: String) -> i16 {
+    if len(text) == 0 {
+        return 0i16 - 123i16
+    }
+    160i16
+}
+
+fn main() {
+}

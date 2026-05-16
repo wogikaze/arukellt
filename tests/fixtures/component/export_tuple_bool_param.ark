@@ -1,0 +1,7 @@
+// Export with tuple<bool, bool> parameter maps to WIT tuple<bool, bool>.
+pub fn flag_pair_score(pair: (bool, bool)) -> i32 {
+    13
+}
+
+fn main() {
+}

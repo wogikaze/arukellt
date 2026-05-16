@@ -42,6 +42,19 @@ All binary distribution requirements must be satisfied.
 
 Blocked. The binary distribution evidence is present, but the release tag gate cannot be completed because no git tag is available to compare against the `Cargo.toml` version.
 
+## Recheck — 2026-05-14
+
+- `target/release/arukellt` exists and is executable.
+- `target/release/arukellt --version` prints `arukellt 0.1.0`.
+- Binary size: `990400` bytes, below the `50 MB` limit.
+- SHA256: `0c675ef4ac0d48c86b11245dfeef73d63161902ec550cd3812669fb3b651f646`.
+- Workspace package version in `Cargo.toml`: `0.1.0`.
+- Git tag state: still blocked; `git describe --tags --abbrev=0` fails with
+  `fatal: No names found, cannot describe anything.`
+
+Updated verdict: still blocked only on the release tag comparison / publication
+step. Do not close until a tag exists and matches `0.1.0`.
+
 ## Primary Paths
 
 - `Cargo.toml` (version configuration)

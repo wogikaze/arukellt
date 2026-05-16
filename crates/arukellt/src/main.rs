@@ -22,6 +22,7 @@
 //! Wasmtime is invoked as `wasmtime run --dir=<repo_root> <wasm> -- <args...>`.
 //! Users who want richer plumbing should prefer `scripts/run/arukellt-selfhost.sh`.
 
+use std::collections::BTreeMap;
 use std::env;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
@@ -106,6 +107,296 @@ fn find_selfhost_wasm(root: &Path) -> Option<PathBuf> {
         }
     }
     None
+}
+
+fn find_manifest_root(start_dir: &Path) -> Option<PathBuf> {
+    let mut current = start_dir.to_path_buf();
+    loop {
+        if current.join("ark.toml").is_file() {
+            return Some(current);
+        }
+        if !current.pop() {
+            return None;
+        }
+    }
+}
+
+fn json_escape(value: &str) -> String {
+    let mut out = String::new();
+    for ch in value.chars() {
+        match ch {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if c.is_control() => out.push_str(&format!("\\u{:04x}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+fn load_manifest_scripts(root: &Path) -> Result<BTreeMap<String, String>, String> {
+    let manifest_path = root.join("ark.toml");
+    let manifest = load_manifest_value(&manifest_path)?;
+    let Some(scripts) = manifest.get("scripts") else {
+        return Ok(BTreeMap::new());
+    };
+    let table = scripts
+        .as_table()
+        .ok_or_else(|| "[scripts] must be a TOML table".to_string())?;
+    let mut result = BTreeMap::new();
+    for (name, value) in table {
+        let command = value
+            .as_str()
+            .ok_or_else(|| format!("[scripts].{name} must be a string command"))?;
+        result.insert(name.to_string(), command.to_string());
+    }
+    Ok(result)
+}
+
+fn load_manifest_value(manifest_path: &Path) -> Result<toml::Value, String> {
+    let content = std::fs::read_to_string(manifest_path)
+        .map_err(|e| format!("failed to read {}: {e}", manifest_path.display()))?;
+    content
+        .parse()
+        .map_err(|e| format!("failed to parse {}: {e}", manifest_path.display()))
+}
+
+fn manifest_string(manifest: &toml::Value, keys: &[&str]) -> Option<String> {
+    let mut value = manifest;
+    for key in keys {
+        value = value.get(*key)?;
+    }
+    value.as_str().map(ToString::to_string)
+}
+
+fn print_script_usage() {
+    eprintln!("Usage:");
+    eprintln!("  arukellt script list [--json]");
+    eprintln!("  arukellt script run <name> [args...]");
+}
+
+fn cmd_script(script_args: &[String]) -> ExitCode {
+    if script_args.is_empty() || script_args[0] == "--help" || script_args[0] == "-h" {
+        print_script_usage();
+        return ExitCode::from(if script_args.is_empty() { 2 } else { 0 });
+    }
+
+    let cwd = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let root = match find_manifest_root(&cwd) {
+        Some(root) => root,
+        None => {
+            eprintln!("arukellt script: ark.toml not found in current directory or any parent");
+            return ExitCode::from(2);
+        }
+    };
+    let scripts = match load_manifest_scripts(&root) {
+        Ok(scripts) => scripts,
+        Err(message) => {
+            eprintln!("arukellt script: {message}");
+            return ExitCode::from(2);
+        }
+    };
+
+    match script_args[0].as_str() {
+        "list" => {
+            let json = script_args.iter().skip(1).any(|arg| arg == "--json");
+            if json {
+                let mut first = true;
+                print!("[");
+                for (name, command) in &scripts {
+                    if !first {
+                        print!(",");
+                    }
+                    first = false;
+                    print!(
+                        "{{\"name\":\"{}\",\"command\":\"{}\"}}",
+                        json_escape(name),
+                        json_escape(command)
+                    );
+                }
+                println!("]");
+            } else {
+                for name in scripts.keys() {
+                    println!("{name}");
+                }
+            }
+            ExitCode::SUCCESS
+        }
+        "run" => {
+            let Some(name) = script_args.get(1) else {
+                eprintln!("arukellt script run: missing script name");
+                print_script_usage();
+                return ExitCode::from(2);
+            };
+            let Some(command) = scripts.get(name) else {
+                eprintln!("arukellt script run: script '{name}' not found");
+                if scripts.is_empty() {
+                    eprintln!("  no scripts are defined in ark.toml");
+                } else {
+                    eprintln!(
+                        "  available scripts: {}",
+                        scripts.keys().cloned().collect::<Vec<_>>().join(", ")
+                    );
+                }
+                return ExitCode::from(2);
+            };
+
+            #[cfg(windows)]
+            let mut child = {
+                let mut cmd = Command::new("cmd");
+                cmd.arg("/C").arg(command);
+                cmd
+            };
+            #[cfg(not(windows))]
+            let mut child = {
+                let mut cmd = Command::new("sh");
+                cmd.arg("-c").arg(command).arg(name);
+                for arg in script_args.iter().skip(2) {
+                    cmd.arg(arg);
+                }
+                cmd
+            };
+
+            child.current_dir(&root);
+            child.env("ARUKELLT_PACKAGE_ROOT", &root);
+            child.env("ARUKELLT_SCRIPT_NAME", name);
+            let status = match child.status() {
+                Ok(status) => status,
+                Err(e) => {
+                    eprintln!("arukellt script run: failed to launch script '{name}': {e}");
+                    return ExitCode::from(127);
+                }
+            };
+            match classify_child_exit(status.code()) {
+                Ok(0) => ExitCode::SUCCESS,
+                Ok(code) => {
+                    eprintln!("arukellt script run: script '{name}' failed with exit code {code}");
+                    ExitCode::from(code)
+                }
+                Err(reason) => report_ice(&reason),
+            }
+        }
+        other => {
+            eprintln!("arukellt script: unknown subcommand '{other}'");
+            print_script_usage();
+            ExitCode::from(2)
+        }
+    }
+}
+
+fn cmd_build_project(build_args: &[String], repo_root: &Path) -> ExitCode {
+    let user_cwd = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let project_root = match find_manifest_root(&user_cwd) {
+        Some(root) => root,
+        None => {
+            eprintln!("arukellt build: ark.toml not found in current directory or any parent");
+            return ExitCode::from(1);
+        }
+    };
+    let manifest_path = project_root.join("ark.toml");
+    let manifest = match load_manifest_value(&manifest_path) {
+        Ok(manifest) => manifest,
+        Err(message) => {
+            eprintln!("arukellt build: {message}");
+            return ExitCode::from(2);
+        }
+    };
+    let Some(entry) = manifest_string(&manifest, &["bin", "path"])
+        .or_else(|| manifest_string(&manifest, &["entry"]))
+    else {
+        eprintln!("arukellt build: no 'path' (under [bin]) or 'entry' field found in ark.toml");
+        return ExitCode::from(2);
+    };
+    let package_name =
+        manifest_string(&manifest, &["package", "name"]).unwrap_or_else(|| "output".to_string());
+
+    let mut target = "wasm32-wasi-p2".to_string();
+    let mut emit = "wasm".to_string();
+    let mut output = project_root.join(format!("{package_name}.wasm"));
+    let mut passthrough = Vec::new();
+    let mut i = 0;
+    while i < build_args.len() {
+        match build_args[i].as_str() {
+            "--target" => {
+                i += 1;
+                if let Some(value) = build_args.get(i) {
+                    target = value.clone();
+                }
+            }
+            "--emit" => {
+                i += 1;
+                if let Some(value) = build_args.get(i) {
+                    emit = value.clone();
+                }
+            }
+            "-o" | "--output" => {
+                i += 1;
+                if let Some(value) = build_args.get(i) {
+                    let path = PathBuf::from(value);
+                    output = if path.is_absolute() {
+                        path
+                    } else {
+                        project_root.join(path)
+                    };
+                }
+            }
+            "--opt-level" => {
+                passthrough.push(build_args[i].clone());
+                i += 1;
+                if let Some(value) = build_args.get(i) {
+                    passthrough.push(value.clone());
+                }
+            }
+            other if other.starts_with('-') => passthrough.push(other.to_string()),
+            other => {
+                eprintln!("arukellt build: unexpected argument '{other}'");
+                return ExitCode::from(2);
+            }
+        }
+        i += 1;
+    }
+
+    let wasm = match find_selfhost_wasm(repo_root) {
+        Some(p) => p,
+        None => {
+            eprintln!("arukellt build: selfhost wasm not found (needed to compile).");
+            return ExitCode::from(127);
+        }
+    };
+    let mut compile_cmd = Command::new("wasmtime");
+    compile_cmd.current_dir("/");
+    compile_cmd.arg("run").arg("--dir=/::/");
+    compile_cmd.arg(format!("--dir={}", repo_root.display()));
+    compile_cmd.arg(format!("--dir={}", project_root.display()));
+
+    let mut compile_args = vec![
+        "compile".to_string(),
+        rewrite_path_arg(&project_root, &entry),
+        "-o".to_string(),
+        rewrite_path_arg(&project_root, &output.to_string_lossy()),
+        "--emit".to_string(),
+        emit,
+        "--target".to_string(),
+        target,
+    ];
+    compile_args.extend(passthrough);
+    compile_cmd.arg(&wasm).arg("--").args(&compile_args);
+
+    let status = match compile_cmd.status() {
+        Ok(status) => status,
+        Err(e) => {
+            eprintln!("arukellt build: failed to invoke `wasmtime` for compilation: {e}");
+            return ExitCode::from(127);
+        }
+    };
+    match classify_child_exit(status.code()) {
+        Ok(0) => ExitCode::SUCCESS,
+        Ok(code) => ExitCode::from(code),
+        Err(reason) => report_ice(&reason),
+    }
 }
 
 /// Rewrite a path-like argument so it resolves under wasmtime's `/` cwd.
@@ -259,9 +550,15 @@ fn main() -> ExitCode {
 
     let args: Vec<String> = env::args().skip(1).collect();
 
-    // Intercept `arukellt run <file>` — two-step compile + execute.
+    // Intercept commands that need host-side project/script handling.
     if args.first().map(|s| s.as_str()) == Some("run") {
         return cmd_run(&args[1..], &find_repo_root());
+    }
+    if args.first().map(|s| s.as_str()) == Some("script") {
+        return cmd_script(&args[1..]);
+    }
+    if args.first().map(|s| s.as_str()) == Some("build") {
+        return cmd_build_project(&args[1..], &find_repo_root());
     }
 
     let root = find_repo_root();

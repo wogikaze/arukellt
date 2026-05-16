@@ -1,17 +1,17 @@
 ---
 Status: open
 Created: 2026-03-28
-Updated: 2026-04-22
+Updated: 2026-05-14
 ID: 36
 Track: stdlib
-Depends on: 039, 041, 312
+Depends on: 039, 041, 312, 495
 Orchestration class: blocked-by-upstream
 Orchestration upstream: None
 Blocks v3 exit: yes
-Status note: FROZEN — generic `HashMap<K,V>` / `HashSet<T>` depends on #312 generic monomorphization. Do not re-dispatch this lane until #312 is actually complete and accepted.
+Status note: FROZEN — #312 generic monomorphization is complete, but true `HashMap<K,V>` / `HashSet<T>` still requires trait-bound hash/equality dispatch tracked by #495/#504. Current repo evidence is monomorphic `i32`/`String` wrapper coverage, not the accepted generic API.
 Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
-Blocked by: "compiler generic monomorphization (#312)"
+Blocked by: "trait-bound hash/equality dispatch (#495/#504)"
 ---
 
 # std: ":collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"
@@ -72,6 +72,27 @@ This issue is in the **generic-blocked stdlib lane**. Keep it frozen together
 with #054 and #055 while #312 remains incomplete. Do not treat this as part of
 the blocker-free stdlib lane (#045, #047, #051); those issues can continue
 independently.
+
+## Rechecked — 2026-05-14
+
+#312 is complete and the selfhost compiler now records and emits generic
+monomorphization instances. That removes the old compiler-specialization
+blocker, but it does **not** satisfy this issue's acceptance criteria:
+
+- `std/collections/hash.ark` still documents that true generic
+  `HashMap<K,V>` / `HashSet<T>` are absent.
+- `std/collections/hash_map.ark` exposes concrete wrappers for
+  `HashMap<i32,i32>`, `HashMap<String,i32>`, `HashMap<i32,String>`, and
+  `HashMap<String,String>`.
+- `std/collections/hash_set.ark` exposes `HashSet<i32>` wrappers and a
+  `Vec<String>`-backed `HashSet<String>` facade.
+- Resolver/typechecker/emitter builtin tables still enumerate monomorphic
+  `HashMap_*` intrinsic names rather than a single generic collection API.
+
+The remaining upstream requirement is trait-bound or equivalent coherent
+dispatch for `Hash`/`Eq` over generic keys, tracked by #495/#504. Keep this
+issue open until the accepted `HashMap<K,V>` / `HashSet<T>` functions exist and
+fixtures exercise the generic surface directly.
 
 ## Summary
 

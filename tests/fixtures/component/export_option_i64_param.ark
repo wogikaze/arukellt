@@ -1,0 +1,10 @@
+// Export with Option<i64> parameter maps to WIT option<s64>.
+pub fn wide_or_zero(value: Option<i64>) -> i64 {
+    match value {
+        Option::Some(v) => v,
+        Option::None => 0i64,
+    }
+}
+
+fn main() {
+}

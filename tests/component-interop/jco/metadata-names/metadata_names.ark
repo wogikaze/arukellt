@@ -1,0 +1,12 @@
+// Component interop test fixture: export names must not imply scalar types.
+
+pub fn boolish_i32(x: i32) -> i32 {
+    x + 1
+}
+
+pub fn is_count(x: i32) -> i32 {
+    x
+}
+
+fn main() {
+}

@@ -11,7 +11,9 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 
 ARUKELLT="${ARUKELLT_BIN:-$REPO_ROOT/target/debug/arukellt}"
 WASMTIME="${WASMTIME_BIN:-$(command -v wasmtime 2>/dev/null || echo "")}"
-COMPONENT_WASM="$SCRIPT_DIR/multi_type_exports.component.wasm"
+COMPONENT_WASM="tests/component-interop/jco/multi-type-exports/multi_type_exports.component.wasm"
+SOURCE_REL="tests/component-interop/jco/multi-type-exports/multi_type_exports.ark"
+cd "$REPO_ROOT"
 
 if [[ ! -x "$ARUKELLT" ]]; then
     echo "SKIP: arukellt not found at $ARUKELLT (run cargo build -p arukellt first)"
@@ -27,7 +29,7 @@ echo "[1/3] Compiling multi_type_exports.ark -> component wasm"
 "$ARUKELLT" compile \
     --emit component \
     --target wasm32-wasi-p2 \
-    "$SCRIPT_DIR/multi_type_exports.ark" \
+    "$SOURCE_REL" \
     -o "$COMPONENT_WASM"
 echo "      OK ($(wc -c < "$COMPONENT_WASM") bytes)"
 

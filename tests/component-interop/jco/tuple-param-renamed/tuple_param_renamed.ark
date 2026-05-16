@@ -1,0 +1,8 @@
+// Component interop smoke test: renamed tuple<s32, s32> parameter canonical ABI.
+
+pub fn accept_pair(pair: (i32, i32)) -> i32 {
+    13
+}
+
+fn main() {
+}

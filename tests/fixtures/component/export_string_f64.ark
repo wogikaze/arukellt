@@ -1,0 +1,11 @@
+// Export with String parameter and f64 result maps to WIT string -> float64.
+
+pub fn score_text(text: String) -> f64 {
+    if len(text) == 0 {
+        return 0.5
+    }
+    2.5
+}
+
+fn main() {
+}

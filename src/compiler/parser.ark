@@ -612,11 +612,20 @@ fn parse_type(p: Parser) -> AstNode {
     let t = cur(p)
     if t.kind == TK_IDENT() {
         p.pos = p.pos + 1
-        let base = AstNode_leaf(parser_kinds::NK_TYPE_NAMED(), clone(t.text), tok_span(t))
+        let mut type_name = clone(t.text)
+        let mut end_span = t.end
+        while peek_kind(p) == TK_COLONCOLON() {
+            p.pos = p.pos + 1
+            let seg = expect_token(p, TK_IDENT())
+            type_name = concat(type_name, concat(String_from("::"), clone(seg.text)))
+            end_span = seg.end
+        }
+        let base_span = Span_new(t.start, end_span)
+        let base = AstNode_leaf(parser_kinds::NK_TYPE_NAMED(), clone(type_name), base_span)
         if peek_kind(p) == TK_LT() {
             p.pos = p.pos + 1
-            let node = AstNode_new(parser_kinds::NK_TYPE_GENERIC(), tok_span(t))
-            node.text = clone(t.text)
+            let node = AstNode_new(parser_kinds::NK_TYPE_GENERIC(), base_span)
+            node.text = clone(type_name)
             push(node.children, base)
             let mut first = true
             while !at(p, TK_GT()) && !at(p, TK_SHR()) && !at_eof(p) {

@@ -154,6 +154,21 @@ documented in issue #044.
 co-located in this single module. Splitting the raw layer from
 the facade is tracked under #607; this module intentionally does
 not pre-empt that split.
+- `hashmap_get_option` is the primary lookup API. Legacy
+`hashmap_get` remains for older fixtures and returns `0` for
+missing keys, which means it cannot distinguish missing from a
+stored zero value.
+- `hashmap_set` returns `true` when the write is stored and `false`
+when the fixed-capacity backing store is full. Callers that need
+insertion certainty must check this return value.
+
+### Hash policy
+
+`hash_i32` uses the same stable byte-mixing policy as
+`std::core::hash::hash_i32`: take the absolute i32 value, mix four
+base-256 bytes with multiplier 31, and return the non-negative
+result. This is a deterministic compatibility hash, not a
+cryptographic or collision-resistant hash.
 
 ### Layout
 
@@ -168,7 +183,7 @@ where flags are `0 = empty`, `1 = occupied`.
 | `hashmap_new` | `() -> Vec<i32>` | `stable` | - |
 | `hashmap_get` | `(Vec<i32>, i32) -> i32` | `stable` | - |
 | `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
-| `hashmap_set` | `(Vec<i32>, i32, i32) -> ()` | `stable` | - |
+| `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `stable` | Insert or update a key. Returns true when the value was stored, or false |
 | `hashmap_size` | `(Vec<i32>) -> i32` | `stable` | - |
 | `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `stable` | Create a new HashMap with a specific initial capacity. |
 | `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | Look up a key and return Some(value) or None. |

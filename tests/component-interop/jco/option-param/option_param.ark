@@ -1,0 +1,8 @@
+// Component interop smoke test: option<s32> parameter canonical ABI is name-independent.
+
+pub fn value_or_zero(v: Option<i32>) -> i32 {
+    unwrap_or(v, 0)
+}
+
+fn main() {
+}

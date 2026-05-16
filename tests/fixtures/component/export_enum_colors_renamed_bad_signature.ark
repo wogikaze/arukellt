@@ -1,0 +1,21 @@
+// The paired Color adapter requires one Color -> Color export and one Color -> i32 export.
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+pub fn rotate_color(c: Color) -> i32 {
+    1
+}
+
+pub fn color_rank(c: Color) -> i32 {
+    match c {
+        Color::Red => 1,
+        Color::Green => 2,
+        Color::Blue => 3,
+    }
+}
+
+fn main() {
+}

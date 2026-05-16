@@ -1,0 +1,12 @@
+// Export with two WIT record parameters and a record result using a non-fixture name.
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn merge_points(a: Point, b: Point) -> Point {
+    Point { x: a.x + b.x, y: a.y + b.y }
+}
+
+fn main() {
+}

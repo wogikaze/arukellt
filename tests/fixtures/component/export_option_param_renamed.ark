@@ -1,0 +1,4 @@
+// Export with renamed Option<i32> parameter maps to WIT option<s32>.
+pub fn decode_optional(v: Option<i32>) -> i32 {
+    unwrap_or(v, -7)
+}

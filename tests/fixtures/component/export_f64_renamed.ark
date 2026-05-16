@@ -1,0 +1,7 @@
+// Export with renamed f64 parameter/result maps to WIT float64.
+pub fn scale_value(x: f64) -> f64 {
+    x * 1.5
+}
+
+fn main() {
+}

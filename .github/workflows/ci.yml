@@ -5,6 +5,7 @@ name: CI
 #  Category / layer        Job id                        Merge gate?   Description
 #  ─────────────────────── ───────────────────────────── ───────────── ───────────────────────────────────────
 #  unit                    unit-tests                    yes           clippy + rustfmt + workspace unit/bin tests
+#  package-workspace       verification-package-workspace yes          ark.toml workspace + script execution tests
 #  fixture / target(T3)    fixture-primary               yes           T3 wasm32-wasi-p2 fixture behavior gate
 #  fixture / target(T1)    fixture-supported             no            T1 wasm32-wasi-p1 supported-target alert lane
 #  integration             integration                   yes           CLI compile/run smoke on known examples
@@ -20,6 +21,7 @@ name: CI
 #  editor-tooling          extension-tests               yes           VS Code extension workflow tests
 #  editor-tooling          lsp-e2e                       yes           LSP protocol unit + end-to-end tests
 #  target-contract drift   target-contract-drift-check   yes           docs/target-contract.md matches CI truth
+#  reporting               ci-category-summary           no            always-on category result summary
 #
 # * `selfhost-bootstrap` is merge-blocking for Stage 0/1 attainment only.
 # All push-only lanes are informational. `fixture-supported` alerts but does not block.
@@ -72,6 +74,40 @@ jobs:
           cargo test --workspace
           --lib --bins
           -- --nocapture
+
+  # ── Package/workspace verification (merge gate) ─────────────────────────
+  verification-package-workspace:
+    name: "Package/workspace verification"
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
+
+      - name: Build debug arukellt
+        run: cargo build -p arukellt
+
+      - name: Package/workspace script and manifest tests
+        env:
+          ARUKELLT_BIN: ./target/debug/arukellt
+        run: bash scripts/run/test-package-workspace.sh
 
   # ── Verification harness — quick gate (merge gate) ───────────────────────
   verification-harness-quick:
@@ -621,7 +657,70 @@ jobs:
   # ── Final gate ───────────────────────────────────────────────────────────
   verify:
     name: "Final Gate"
-    needs: [unit-tests, verification-harness-quick, fixture-primary, integration, packaging, determinism, selfhost-bootstrap, selfhost-cli-parity, selfhost-diag-parity, extension-tests]
+    needs: [unit-tests, verification-package-workspace, verification-harness-quick, fixture-primary, integration, packaging, determinism, selfhost-bootstrap, selfhost-cli-parity, selfhost-diag-parity, extension-tests]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All required CI layers passed (unit + verification-harness-quick + fixture/T3 + integration + packaging + determinism + selfhost-bootstrap + selfhost-cli-parity + selfhost-diag-parity + extension-tests)"
+      - run: echo "All required CI layers passed (unit + package-workspace + verification-harness-quick + fixture/T3 + integration + packaging + determinism + selfhost-bootstrap + selfhost-cli-parity + selfhost-diag-parity + extension-tests)"
+
+  # ── Category result summary ─────────────────────────────────────────────
+  ci-category-summary:
+    name: "CI category summary"
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - unit-tests
+      - verification-package-workspace
+      - verification-harness-quick
+      - fixture-primary
+      - fixture-supported
+      - integration
+      - packaging
+      - determinism
+      - heavy-checks
+      - component-interop
+      - perf-baseline
+      - selfhost-bootstrap
+      - selfhost-cli-parity
+      - selfhost-diag-parity
+      - extension-tests
+      - target-contract-drift-check
+      - verify
+    steps:
+      - name: Write category summary
+        run: |
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          summary="ci-category-summary.md"
+          {
+            echo "# CI Category Summary"
+            echo
+            echo "Run: ${run_url}"
+            echo
+            echo "| Category | State | Responsible job/log |"
+            echo "|---|---|---|"
+            echo "| unit | ${{ needs['unit-tests'].result }} | [unit-tests](${run_url}) |"
+            echo "| verification-harness | ${{ needs['verification-harness-quick'].result }} | [verification-harness-quick](${run_url}) |"
+            echo "| fixture / target-contract (T3 primary) | ${{ needs['fixture-primary'].result }} | [fixture-primary](${run_url}) |"
+            echo "| fixture / target-contract (T1 supported) | ${{ needs['fixture-supported'].result }} | [fixture-supported](${run_url}) |"
+            echo "| integration | ${{ needs['integration'].result }} | [integration](${run_url}) |"
+            echo "| packaging | ${{ needs['packaging'].result }} | [packaging](${run_url}) |"
+            echo "| package-workspace | ${{ needs['verification-package-workspace'].result }} | [verification-package-workspace](${run_url}) |"
+            echo "| determinism | ${{ needs['determinism'].result }} | [determinism](${run_url}) |"
+            echo "| docs / size / WAT | ${{ needs['heavy-checks'].result }} | [heavy-checks](${run_url}) |"
+            echo "| component-interop | ${{ needs['component-interop'].result }} | [component-interop](${run_url}) |"
+            echo "| perf | ${{ needs['perf-baseline'].result }} | [perf-baseline](${run_url}) |"
+            echo "| bootstrap | ${{ needs['selfhost-bootstrap'].result }} | [selfhost-bootstrap](${run_url}) |"
+            echo "| selfhost-parity / CLI | ${{ needs['selfhost-cli-parity'].result }} | [selfhost-cli-parity](${run_url}) |"
+            echo "| selfhost-parity / diagnostics | ${{ needs['selfhost-diag-parity'].result }} | [selfhost-diag-parity](${run_url}) |"
+            echo "| diagnostics-snapshot | ${{ needs['fixture-primary'].result }} | [fixture-primary](${run_url}) |"
+            echo "| editor-tooling / extension | ${{ needs['extension-tests'].result }} | [extension-tests](${run_url}) |"
+            echo "| editor-tooling / LSP lifecycle | ${{ needs['verification-harness-quick'].result }} | [verification-harness-quick](${run_url}) |"
+            echo "| target-contract drift | ${{ needs['target-contract-drift-check'].result }} | [target-contract-drift-check](${run_url}) |"
+            echo "| final gate | ${{ needs['verify'].result }} | [verify](${run_url}) |"
+          } | tee "${summary}" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload category summary artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-category-summary-${{ github.run_id }}
+          path: ci-category-summary.md

@@ -43,7 +43,19 @@ docs/release-checklist.md — Extension distribution section
 ## Close Candidate
 
 - `no`
-- Blocker: activation test suite still fails in headless VS Code on existing extension tests, so release checklist verification is not complete.
+- Blocker: the exact `xvfb-run -a npm test` release gate cannot complete in this checkout because Xvfb cannot start with the current `/tmp/.X11-unix` ownership.
+
+## Recheck — 2026-05-14
+
+- `npm ci && npm run build` in `extensions/arukellt-all-in-one/`: PASS.
+- VSIX generated: `extensions/arukellt-all-in-one/arukellt-all-in-one-0.0.1.vsix`.
+- `npm test` without `xvfb-run`: PASS (`vscode-test` reports `Exit code: 0`).
+- `xvfb-run -a npm test`: BLOCKED by local Xvfb socket ownership, not by extension tests:
+  - `xvfb-run -a true` exits 1.
+  - `/tmp/.X11-unix` is owned by `wgkz:wgkz`; Xvfb reports `Owner of /tmp/.X11-unix should be set to root`.
+  - `sudo chown root:root /tmp/.X11-unix` could not run here because sudo requires a password.
+
+Updated close-candidate status: still `no` until the exact `xvfb-run -a npm test` gate exits 0 in a correctly configured local or CI Xvfb environment.
 
 ## Required Verification
 

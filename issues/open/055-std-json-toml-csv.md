@@ -1,14 +1,14 @@
 ---
 Status: open
 Created: 2026-03-28
-Updated: 2026-04-22
+Updated: 2026-05-14
 ID: 45
 Track: stdlib
 Depends on: 039, 042, 044
 Orchestration class: blocked-by-upstream
 Orchestration upstream: None
 Blocks v3 exit: "no (Experimental — json のみ Stable 候補)"
-Status note: FROZEN — depends on #044, which is blocked by #312 generic monomorphization. Do not re-dispatch until #044 is unfrozen.
+Status note: FROZEN — depends on #044. #312 generic monomorphization is complete, but #044 remains blocked on trait-bound hash/equality dispatch (#495/#504), so this lane stays frozen until #044 is unfrozen.
 Reason: The issue remained under `issues/done/` even after the earlier reopen note, and the product claim still overstates reality. Current repo evidence uses tagged raw-text wrappers for `JsonValue` / `TomlValue`, while the done issue still claims recursive enum surfaces and broad parser coverage as completed.
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
@@ -81,6 +81,13 @@ JSON は Stable 候補、TOML/CSV は Experimental。
 This issue is in the **generic-blocked stdlib lane** through #044. It should not
 be bundled with blocker-free stdlib issues (#045, #047, #051) for dispatch or
 priority decisions.
+
+## Rechecked — 2026-05-14
+
+The #044 blocker changed shape: it is no longer waiting on #312 generic
+monomorphization, but it still lacks the trait-bound `Hash`/`Eq` dispatch
+needed for accepted generic collection surfaces. Keep this issue blocked via
+#044 until that stdlib collection prerequisite is real.
 
 ## 受け入れ条件
 

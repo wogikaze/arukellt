@@ -1,0 +1,15 @@
+// Component interop smoke test: list<s32> parameter/result canonical ABI is name-independent.
+
+pub fn copy_with_tail(v: Vec<i32>) -> Vec<i32> {
+    let mut out: Vec<i32> = Vec_new_i32()
+    let mut i = 0
+    while i < len(v) {
+        push(out, get_unchecked(v, i))
+        i = i + 1
+    }
+    push(out, 77)
+    out
+}
+
+fn main() {
+}

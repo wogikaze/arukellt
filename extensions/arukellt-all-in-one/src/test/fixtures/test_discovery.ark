@@ -1,0 +1,7 @@
+fn test_addition() {
+    let x = 1 + 1
+}
+
+fn test_failure_path() {
+    let y = 2 + 2
+}

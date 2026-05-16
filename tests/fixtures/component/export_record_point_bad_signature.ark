@@ -1,0 +1,16 @@
+// The Point adapter only supports distance_sq(Point) -> i32 and add_points(Point, Point) -> Point.
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn distance_sq(p: Point) -> Point {
+    p
+}
+
+pub fn add_points(a: Point, b: Point) -> Point {
+    Point { x: a.x + b.x, y: a.y + b.y }
+}
+
+fn main() {
+}

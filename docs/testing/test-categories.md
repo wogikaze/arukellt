@@ -2,6 +2,24 @@
 
 This document defines the classification scheme for all tests in the Arukellt project. Each test should belong to exactly one primary category, with clear responsibility, scope, and acceptance criteria.
 
+## Failure report fields
+
+Verification runners should attach these fields when a check fails:
+
+- `category`: one category from this document, such as `fixture`,
+  `component-interop`, `package-workspace`, `bootstrap`, or `editor-tooling`.
+- `command`: the command that owns the failing check.
+- `primary path`: the first repo path to inspect for the failure.
+
+This metadata is required for package-workspace, fixture, component,
+bootstrap, LSP, and extension checks so local logs identify the responsible
+area without requiring path inference.
+
+CI publishes the same category vocabulary in the `CI category summary` job. The
+job writes the table to the GitHub run summary and uploads a
+`ci-category-summary-<run_id>` artifact; each row includes the category state
+and the responsible CI job/log pointer.
+
 ## Categories
 
 ### unit
@@ -145,11 +163,13 @@ This document defines the classification scheme for all tests in the Arukellt pr
 - Valid `ark.toml` files are correctly parsed
 - Invalid `ark.toml` files produce clear error messages
 - Workspace dependencies are correctly resolved
-- Scripts execute with correct environment
+- Scripts execute with correct environment, argument passthrough, and failure
+  exit-code reporting
 
 **Naming Convention**:
 - Test files: `tests/package-workspace/<scenario>.rs` or `<scenario>.test.ark`
 - Manifest files: `tests/package-workspace/<scenario>/ark.toml`
+- Shell integration tests: `scripts/run/test-package-workspace.sh`
 
 **CI Job**: `verification-package-workspace`
 

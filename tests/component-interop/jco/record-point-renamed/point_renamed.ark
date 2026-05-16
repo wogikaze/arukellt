@@ -1,0 +1,16 @@
+// Component interop test: multi-export record adapters are name-independent.
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn length_sq(p: Point) -> i32 {
+    p.x * p.x + p.y * p.y
+}
+
+pub fn translate(a: Point, b: Point) -> Point {
+    Point { x: a.x + b.x, y: a.y + b.y }
+}
+
+fn main() {
+}

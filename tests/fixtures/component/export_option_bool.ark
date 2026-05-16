@@ -1,0 +1,10 @@
+// Export with Option<bool> return maps to WIT option<bool>.
+pub fn maybe_flag(flag: bool) -> Option<bool> {
+    if flag {
+        return Some(true)
+    }
+    None
+}
+
+fn main() {
+}

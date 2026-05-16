@@ -1,0 +1,13 @@
+// list<s32> adapter paths are single-export only.
+// Extra public exports must be rejected instead of being silently omitted.
+// Expected: E0401 compile-time error.
+pub fn first_or_zero(values: Vec<i32>) -> i32 {
+    0
+}
+
+pub fn extra_count(n: i32) -> i32 {
+    n
+}
+
+fn main() {
+}

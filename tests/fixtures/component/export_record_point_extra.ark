@@ -1,0 +1,20 @@
+// Point is only supported by the fixture-specific distance_sq/add_points adapter.
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn distance_sq(p: Point) -> i32 {
+    p.x * p.x + p.y * p.y
+}
+
+pub fn add_points(a: Point, b: Point) -> Point {
+    Point { x: a.x + b.x, y: a.y + b.y }
+}
+
+pub fn mirror_point(p: Point) -> Point {
+    p
+}
+
+fn main() {
+}

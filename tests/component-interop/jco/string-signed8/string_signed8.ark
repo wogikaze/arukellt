@@ -1,0 +1,11 @@
+// Component interop smoke test: string parameter canonical ABI with i8 result.
+
+pub fn signed8_text(text: String) -> i8 {
+    if len(text) == 0 {
+        return 0i8 - 7i8
+    }
+    8i8
+}
+
+fn main() {
+}

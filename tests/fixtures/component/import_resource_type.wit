@@ -1,0 +1,5 @@
+package test:host;
+
+interface handles {
+    resource handle;
+}

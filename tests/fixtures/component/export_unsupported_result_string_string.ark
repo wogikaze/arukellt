@@ -1,0 +1,12 @@
+// Export with Result<String, String> return — string ok/error payload canonical ABI is not supported yet.
+// WIT: result<string, string> requires string payload lift/lower on both cases.
+// Expected: E0401 compile-time error.
+pub fn maybe_text(flag: bool) -> Result<String, String> {
+    if flag {
+        return Ok(String_from("ready"))
+    }
+    Err(String_from("not-ready"))
+}
+
+fn main() {
+}

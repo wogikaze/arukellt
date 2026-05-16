@@ -1,5 +1,5 @@
 // Export with struct (record) — maps to WIT record
-// Canonical ABI adapter flattens struct fields to/from scalars
+// Fixture-specific adapter flattens Point fields to scalars.
 struct Point {
     x: i32,
     y: i32,

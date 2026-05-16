@@ -1,4 +1,5 @@
 analysis tests/fixtures/selfhost/analysis_lex_diagnostic.ark
-decls=1 symbols=1 typed=1 diagnostics=2
-lex: [LEX0006 error tests/fixtures/selfhost/analysis_lex_diagnostic.ark:1:8] unknown character
+decls=1 symbols=1 typed=1 diagnostics=3
+lex: [LEX0001 error tests/fixtures/selfhost/analysis_lex_diagnostic.ark:1:2] unterminated string
 parse: unexpected token in expression: 7
+resolve: undefined name: _error

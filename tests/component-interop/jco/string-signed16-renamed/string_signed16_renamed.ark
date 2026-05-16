@@ -1,0 +1,11 @@
+// Component interop smoke test: string parameter canonical ABI with i16 result is name-independent.
+
+pub fn medium_delta(text: String) -> i16 {
+    if len(text) == 0 {
+        return 0i16 - 321i16
+    }
+    610i16
+}
+
+fn main() {
+}

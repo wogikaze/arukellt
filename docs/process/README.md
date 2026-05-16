@@ -5,9 +5,9 @@
 
 ## Current Snapshot
 
-- Verification command: `bash scripts/run/verify-harness.sh (fast local gate; use --full for full local verification)`
-- Current verification gate: 19/19 checks pass
-- Fixture manifest size: 838 entries
+- Verification command: `python3 scripts/manager.py verify quick`
+- Current verification gate: 22/22 checks pass
+- Fixture manifest size: 966 entries
 - Generated docs pull state from `docs/data/project-state.toml`, `std/manifest.toml`, and fixture manifests.
 
 ## Documents

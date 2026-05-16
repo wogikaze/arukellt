@@ -1,0 +1,9 @@
+// Export with Result<i64, i64> parameter — only result<s32, s32> parameter canonical ABI is supported yet.
+// WIT: result<s64, s64> parameters require a dedicated wide-payload result lower adapter.
+// Expected: E0401 compile-time error.
+pub fn wide_result_or_zero(value: Result<i64, i64>) -> i64 {
+    unwrap_or(value, 0i64)
+}
+
+fn main() {
+}

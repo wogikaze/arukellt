@@ -68,6 +68,8 @@ function activate(context) {
 
   return {
     __getTestState: getTestState,
+    __discoverTestsForTests: discoverTestsForTests,
+    __refreshProjectTreeForTests: refreshProjectTreeForTests,
     shutdownForTests,
     verifyBootstrap,
   }
@@ -245,14 +247,14 @@ function startLanguageServer(context, options = {}) {
         if (isDeactivating || suppressClientRestart) {
           return { action: 1 /* DoNotRestart */ }
         }
-        if (restartCount < 5) {
-          restartCount++
-          updateLanguageStatus('warning', `Restarting (attempt ${restartCount})…`)
-          return { action: 2 /* Restart */ }
-        }
-        updateLanguageStatus('error', 'Server crashed repeatedly')
-        vscode.window.showErrorMessage(
-          'Arukellt language server crashed 5 times. Use "Arukellt: Restart Language Server" to try again.',
+        const detail = 'Language server process exited unexpectedly. Use "Arukellt: Restart Language Server" to try again.'
+        client = null
+        restartCount++
+        appendLanguageServerOutputLine('[arukellt] language server: process exited unexpectedly')
+        updateStatus('$(error) Arukellt: LSP error', detail)
+        updateLanguageStatus('error', detail)
+        showRecordedErrorMessage(
+          'Arukellt language server stopped unexpectedly. Use "Arukellt: Restart Language Server" to try again.',
         )
         return { action: 1 /* DoNotRestart */ }
       },
@@ -1097,6 +1099,28 @@ async function discoverTestsInFile(item) {
   }
 }
 
+async function discoverTestsForTests(uri) {
+  if (!testController) {
+    return { file: null, tests: [] }
+  }
+  let item = testController.items.get(uri.toString())
+  if (!item) {
+    item = testController.createTestItem(
+      uri.toString(),
+      vscode.workspace.asRelativePath(uri),
+      uri
+    )
+    item.canResolveChildren = true
+    testController.items.add(item)
+  }
+  await discoverTestsInFile(item)
+  const tests = []
+  item.children.forEach(child => {
+    tests.push({ id: child.id, label: child.label, uri: child.uri ? child.uri.toString() : null })
+  })
+  return { file: item.label, tests }
+}
+
 async function runSingleTest(run, test, token) {
   run.started(test)
   const startTime = Date.now()
@@ -1264,8 +1288,9 @@ class ProjectTreeProvider {
       const hasManifest = fs.existsSync(manifestPath)
       const prefix = folders.length > 1 ? `${folder.name}/` : ''
 
+      this._projects.push({ name: folder.name, hasManifest })
+
       if (hasManifest) {
-        this._projects.push({ name: folder.name, hasManifest: true })
         try {
           const content = fs.readFileSync(manifestPath, 'utf8')
           const scriptMatch = content.match(/\[scripts\]([\s\S]*?)(?=\n\[|$)/m)
@@ -1427,12 +1452,38 @@ function getTestState() {
     activeDebugSessionType: debugSessionState.activeSessionType,
     lastStoppedEvent: debugSessionState.lastStoppedEvent,
     debugStoppedEventCount: debugSessionState.stoppedEventCount,
+    testControllerItemCount: testController ? testController.items.size : 0,
+    projectTreeSnapshot: getProjectTreeSnapshotForTests(),
   }
+}
+
+function getProjectTreeSnapshotForTests() {
+  if (!projectTreeProvider) {
+    return { projects: [], modules: [], scripts: [], targets: [] }
+  }
+  return {
+    projects: [...(projectTreeProvider._projects || [])].map(project => ({
+      name: project.name,
+      hasManifest: project.hasManifest,
+    })),
+    modules: [...projectTreeProvider._modules].map(module => module.name),
+    scripts: [...projectTreeProvider._scripts],
+    targets: [...projectTreeProvider._targets],
+  }
+}
+
+function refreshProjectTreeForTests() {
+  if (projectTreeProvider) {
+    projectTreeProvider.refresh()
+  }
+  return getProjectTreeSnapshotForTests()
 }
 
 module.exports = {
   activate,
   deactivate,
   __getTestState: getTestState,
+  __discoverTestsForTests: discoverTestsForTests,
+  __refreshProjectTreeForTests: refreshProjectTreeForTests,
   verifyBootstrap,
 }

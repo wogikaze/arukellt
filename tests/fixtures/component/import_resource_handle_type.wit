@@ -1,0 +1,6 @@
+package test:host;
+
+interface handles {
+    take: func(h: own<handle>);
+    peek: func(h: borrow<handle>);
+}

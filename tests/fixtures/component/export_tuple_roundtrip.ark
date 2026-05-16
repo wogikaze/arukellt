@@ -1,0 +1,4 @@
+// Export with tuple parameter and tuple result maps to WIT tuple<s32, s32> roundtrip shape.
+pub fn flip_pair(p: (i32, i32)) -> (i32, i32) {
+    (9, 4)
+}

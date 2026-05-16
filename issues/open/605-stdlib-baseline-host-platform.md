@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-14
 ID: 605
 Track: stdlib / wasi-feature
 Orchestration class: blocked-by-upstream
@@ -95,6 +95,33 @@ python scripts/manager.py verify quick
 python scripts/manager.py verify fixtures
 python3 scripts/gen/generate-docs.py
 ```
+
+---
+
+## Recheck — 2026-05-14
+
+Current evidence:
+
+- `std::path` has edge-case fixtures for path basics, join, normalize, stem/ext,
+  and parent-style edge behavior under `tests/fixtures/stdlib_path/`.
+- `std::host::fs` and `std::fs` document the whole-file read/write baseline and
+  explicitly state that current `exists` is a read probe, not true path
+  existence.
+- `docs/stdlib/modules/io.md` generated docs show availability for file I/O,
+  fd helpers, host clock, env, random, and process APIs.
+- `tests/fixtures/stdlib_fs/exists_probe_contract.ark` fixture-backs the current
+  read-probe semantics.
+
+Still missing for this issue's acceptance:
+
+- No `read_dir` facade is implemented.
+- No `metadata(path)` structured result is implemented.
+- No `is_file` / `is_dir` split is implemented.
+- No true `exists(path)` backed by real path query semantics is available.
+
+Updated verdict: close-candidate `no`. This issue cannot be closed from the
+current read-probe-only filesystem surface; it needs a real directory or
+metadata capability and fixture coverage.
 
 ---
 

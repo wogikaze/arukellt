@@ -1,0 +1,8 @@
+// Component interop smoke test: string parameter canonical ABI with scalar result.
+
+pub fn text_len(text: String) -> i32 {
+    len(text)
+}
+
+fn main() {
+}

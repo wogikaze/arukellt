@@ -1,0 +1,8 @@
+// Component interop smoke test: tuple<bool, bool> parameter canonical ABI.
+
+pub fn flag_pair_score(pair: (bool, bool)) -> i32 {
+    13
+}
+
+fn main() {
+}

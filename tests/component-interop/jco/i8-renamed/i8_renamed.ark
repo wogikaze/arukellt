@@ -1,0 +1,8 @@
+// Component interop smoke test: renamed i8 scalar parameter/result.
+
+pub fn nudge_tiny(n: i8) -> i8 {
+    n - 3i8
+}
+
+fn main() {
+}

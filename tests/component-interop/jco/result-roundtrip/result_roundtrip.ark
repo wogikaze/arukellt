@@ -1,0 +1,13 @@
+// Component interop smoke test: result<s32, s32> parameter and result canonical ABI.
+
+pub fn bump_ok(r: Result<i32, i32>) -> Result<i32, i32> {
+    let n = unwrap_or(r, 0)
+    if n > 0 {
+        Ok(n + 1)
+    } else {
+        Err(7)
+    }
+}
+
+fn main() {
+}

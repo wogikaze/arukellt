@@ -1,0 +1,11 @@
+// Export with Result<i32, String> should not depend on the specific function name used by the smoke fixture.
+pub fn checked_sub(a: i32, b: i32) -> Result<i32, String> {
+    if a < b {
+        Err("negative")
+    } else {
+        Ok(a - b)
+    }
+}
+
+fn main() {
+}

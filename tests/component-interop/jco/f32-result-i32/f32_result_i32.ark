@@ -1,0 +1,7 @@
+// Component interop smoke test: s32 parameter and f32 result canonical ABI.
+pub fn half_count(n: i32) -> f32 {
+    f64_to_f32(0.5)
+}
+
+fn main() {
+}

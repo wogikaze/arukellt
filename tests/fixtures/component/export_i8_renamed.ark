@@ -1,0 +1,7 @@
+// Export with renamed i8 parameter/result maps to WIT s8.
+pub fn nudge_tiny(n: i8) -> i8 {
+    n - 3i8
+}
+
+fn main() {
+}

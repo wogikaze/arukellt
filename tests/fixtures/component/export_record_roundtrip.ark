@@ -1,0 +1,9 @@
+// Export with Point parameter and result maps to WIT point record roundtrip shape.
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn shift_point(p: Point) -> Point {
+    Point { x: p.x + 1, y: p.y - 1 }
+}

@@ -6,62 +6,53 @@ use emit_opcodes
 use emit_writer
 use emit_inst_ctx
 
-pub fn emit_return(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.arg0 >= 0 {
-    emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-    emit_writer::emit_leb128_u(w, inst.arg0)
+        emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
+        emit_writer::emit_leb128_u(w, inst.arg0)
     }
     emit_writer::emit_byte(w, emit_opcodes::OP_RETURN())
-    } else {
 }
 
-pub fn emit_extend_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_extend_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_I64_EXTEND_I32_S())
-    } else {
 }
 
-pub fn emit_wrap_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_wrap_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_I32_WRAP_I64())
-    } else {
 }
 
-pub fn emit_drop(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_drop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
-    } else {
 }
 
-pub fn emit_nop(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_nop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_NOP())
-    } else {
 }
 
-pub fn emit_unreachable(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_unreachable(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_UNREACHABLE())
-    } else {
 }
 
-pub fn emit_neg(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_neg(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.val_type == VT_F64() {
-    emit_writer::emit_byte(w, emit_opcodes::OP_F64_NEG())
+        emit_writer::emit_byte(w, emit_opcodes::OP_F64_NEG())
     } else {
-    let scratch = ctx.scratch_base + 2
-    emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
-    emit_writer::emit_leb128_u(w, scratch)
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
-    emit_writer::emit_leb128_s(w, 0)
-    emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
-    emit_writer::emit_leb128_u(w, scratch)
-    emit_writer::emit_byte(w, emit_opcodes::OP_I32_SUB())
+        let scratch = ctx.scratch_base + 2
+        emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())
+        emit_writer::emit_leb128_u(w, scratch)
+        emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+        emit_writer::emit_leb128_s(w, 0)
+        emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_GET())
+        emit_writer::emit_leb128_u(w, scratch)
+        emit_writer::emit_byte(w, emit_opcodes::OP_I32_SUB())
     }
-    } else {
 }
 
-pub fn emit_eqz(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_eqz(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQZ())
-    } else {
 }
 
-pub fn emit_eqz_dup(w: WasmWriter, inst: MirInst, ctx: emit_inst_ctx::SelfEmitCtx) {
+pub fn emit_eqz_dup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_writer::emit_byte(w, emit_opcodes::OP_I32_EQZ())
-    } else {
 }
