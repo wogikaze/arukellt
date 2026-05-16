@@ -222,7 +222,7 @@ def run_repro(
     # Locate compiler binary
     arukellt_bin = os.environ.get("ARUKELLT_BIN", "")
     if not arukellt_bin:
-        for candidate in ["./target/debug/arukellt", "./target/release/arukellt"]:
+        for candidate in ["./target/debug/arukellt", "./target/release/arukellt", "scripts/run/arukellt-selfhost.sh"]:
             if (root / candidate).is_file() and os.access(root / candidate, os.X_OK):
                 arukellt_bin = candidate
                 break
@@ -432,15 +432,18 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
             primary_path="tests/fixtures/manifest.txt",
         )
 
-    # ── 5. Release build ──
-    step(5, "Release build")
-    rc, out = _run(["cargo", "build", "--release", "-p", "arukellt"], root, env=env)
+    # ── 5. Selfhost wrapper setup ──
+    step(5, "Selfhost wrapper setup")
+    rc, out = _run(
+        ["bash", "-c", "mkdir -p target/release && cp scripts/run/arukellt-selfhost.sh target/release/arukellt && chmod +x target/release/arukellt"],
+        root,
+    )
     out_lines.append(out)
     if rc != 0:
-        fail_step("Release build")
+        fail_step("Selfhost wrapper setup")
         emit("✗ Full CI failed")
         return (rc, "".join(out_lines))
-    ok("Release build")
+    ok("Selfhost wrapper ready")
 
     # ── 6. Integration & Packaging ──
     step(6, "Integration & Packaging")

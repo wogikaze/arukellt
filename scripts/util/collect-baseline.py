@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 BIN = ROOT / "target" / "release" / "arukellt"
+SELFHOST_WRAPPER = ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
 PERF_CASES = [
     ROOT / "docs" / "examples" / "hello.ark",
     ROOT / "docs" / "examples" / "vec.ark",
@@ -27,11 +28,16 @@ def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 def ensure_binary() -> None:
     if BIN.exists():
         return
-    build = run(["cargo", "build", "--release", "-p", "arukellt"])
-    if build.returncode != 0:
-        sys.stderr.write(build.stdout)
-        sys.stderr.write(build.stderr)
-        raise SystemExit(build.returncode)
+    if SELFHOST_WRAPPER.exists() and SELFHOST_WRAPPER.stat().st_mode & 0o111:
+        BIN.parent.mkdir(parents=True, exist_ok=True)
+        import shutil
+        shutil.copy2(str(SELFHOST_WRAPPER), str(BIN))
+        return
+    raise SystemExit(
+        f"error: no arukellt entrypoint found.\n"
+        f"  Tried: {BIN} (binary) and {SELFHOST_WRAPPER} (selfhost wrapper).\n"
+        f"  Use scripts/run/arukellt-selfhost.sh or set ARUKELLT_BIN."
+    )
 
 
 def benchmark_command(args: list[str], iterations: int = 5) -> dict:

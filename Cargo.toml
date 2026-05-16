@@ -8,7 +8,6 @@ members = [
     "crates/ark-hir",
     "crates/ark-diagnostics",
     "crates/ark-target",
-    "crates/ark-manifest",
     "crates/ark-playground-wasm",
 ]
 default-members = [
@@ -19,7 +18,6 @@ default-members = [
     "crates/ark-hir",
     "crates/ark-diagnostics",
     "crates/ark-target",
-    "crates/ark-manifest",
 ]
 
 [workspace.package]
@@ -36,7 +34,6 @@ ark-typecheck = { path = "crates/ark-typecheck" }
 ark-hir = { path = "crates/ark-hir" }
 ark-diagnostics = { path = "crates/ark-diagnostics" }
 ark-target = { path = "crates/ark-target" }
-ark-manifest = { path = "crates/ark-manifest" }
 ark-playground-wasm = { path = "crates/ark-playground-wasm" }
 
 # Shared dependencies

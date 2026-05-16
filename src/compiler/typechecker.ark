@@ -838,6 +838,12 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             return infer_expr(env, scope, fn_sigs, enum_defs, then_node)
         }
     }
+    if node.kind == typechecker_kinds::NK_EXPR_STMT() {
+        if len(node.children) > 0 {
+            return infer_expr(env, scope, fn_sigs, enum_defs, get_unchecked(node.children, 0))
+        }
+        return TypeInfo_simple(typechecker_kinds::TY_UNIT())
+    }
     if node.kind == typechecker_kinds::NK_COMPREHENSION() {
         // [expr for x in iter if filter]
         // children[0] = element expr, children[1] = iter expr, children[2] = filter (optional)

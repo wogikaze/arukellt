@@ -1,9 +1,9 @@
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
+use crate::manifest::Manifest;
 use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink};
 use ark_lexer::Lexer;
-use ark_manifest::Manifest;
 use ark_parser::{ast, ast::ImportKind, parse};
 use ark_target::TargetId;
 

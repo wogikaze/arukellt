@@ -15,16 +15,16 @@ class TestHarnessFailureContext(unittest.TestCase):
 
         with redirect_stdout(buf):
             h.check_fail(
-                "fixture harness",
+                "selfhost fixture parity",
                 category="fixture",
-                command="cargo test -p arukellt --test harness",
+                command="python3 scripts/manager.py selfhost parity --mode --fixture",
                 primary_path="tests/fixtures/manifest.txt",
             )
 
         output = buf.getvalue()
-        self.assertIn("fixture harness", output)
+        self.assertIn("selfhost fixture parity", output)
         self.assertIn("category: fixture", output)
-        self.assertIn("command: cargo test -p arukellt --test harness", output)
+        self.assertIn("command: python3 scripts/manager.py selfhost parity --mode --fixture", output)
         self.assertIn("primary path: tests/fixtures/manifest.txt", output)
 
 

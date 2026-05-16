@@ -433,9 +433,9 @@ One branch per concern:
 
 ### Criterion A: Contract Honesty
 
-- [ ] targeted misleading contracts are removed, deprecated, or renamed
-- [ ] targeted docs match actual implementation
-- [ ] raw/facade/adapter boundaries are visible in the public surface
+- [x] targeted misleading contracts are removed, deprecated, or renamed
+- [x] targeted docs match actual implementation
+- [x] raw/facade/adapter boundaries are visible in the public surface
 
 ### Criterion B: Host Core-Platform Baseline
 
@@ -462,6 +462,46 @@ One branch per concern:
 - [ ] generated docs are authoritative for the targeted families
 - [ ] benchmark coverage exists for the major fixed hot paths
 - [ ] no stale progress surface contradicts `std/manifest.toml`
+
+---
+
+## Status Update — 2026-05-16
+
+### Child Issue Progress
+
+| Issue | Status | Verdict | Blockers |
+|-------|--------|---------|----------|
+| #604 (Contract Honesty) | DONE | All 5 acceptance criteria satisfied | None |
+| #605 (Host Platform) | OPEN | Close-candidate: no | Needs read_dir, metadata, is_file/is_dir, true exists |
+| #606 (Structured Data) | OPEN | Close-candidate: no | JSON negative fixtures trap at runtime; time fixture produces invalid Wasm |
+| #607 (Hash Hardening) | OPEN | Close-candidate: no | Hash fixtures cannot execute at runtime |
+| #608 (Docs/Bench) | OPEN | Blocked on #605, #606, #607 | All implementation issues must close first |
+
+### Acceptance Checklist Status
+
+- **Criterion A (Contract Honesty):** 3/3 items complete (via #604)
+- **Criterion B (Host Core-Platform):** 0/3 items complete
+- **Criterion C (Structured Data):** 0/4 items complete
+- **Criterion D (Collections Hardening):** 0/3 items complete
+- **Criterion E (Docs/Bench/Governance):** 0/4 items complete
+
+**Overall: 3 / 17 acceptance items complete**
+
+### Verification Snapshot
+
+- `python scripts/manager.py verify quick`: 19/22 pass, 3 pre-existing failures (doc examples in `docs/design/lang-uplift-gap-ledger.md`, broken internal links, plus docs consistency which regenerates cleanly now)
+- `python scripts/manager.py verify fixtures`: PASS=322 FAIL=0 SKIP=62 (clean)
+- `python3 scripts/gen/generate-docs.py`: up to date, exit 0
+
+### Verdict
+
+**Close-candidate: no.** Only child issue #604 is complete. Issues #605, #606, #607 have substantive implementation gaps (runtime fixture execution failures) that block closure. Issue #608 is blocked on all three. The umbrella cannot close until all five child issues are resolved.
+
+### Immediate Blockers
+
+1. **#606 / #607 runtime failures**: The selfhost Wasm runtime traps on several targeted fixtures (JSON trailing garbage, hash hardening, time duration). This appears to be a broader selfhost-runtime issue affecting the fixture execution path.
+2. **#605 capability gap**: No directory/metadata filesystem capabilities exist yet beyond the read-probe baseline.
+3. **#608 cannot start**: Docs/bench closeout is physically blocked on #605, #606, #607 completing.
 
 ---
 

@@ -20,7 +20,6 @@ graph LR
   I475["475 arukellt component subcommand"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
-  I508["508 508-legacy-path-removal-unblocked-by"]
   I529["529 100% selfhost transition plan"]
   I548["548 Release: LSP E2E Tests"]
   I549["549 Release: Extension Activation Tests"]
@@ -73,6 +72,7 @@ graph LR
   I579["579 579 — Phase 7: Delete `crates/ark-diagnostics`"]
   I581["581 581 — Phase 7: Delete `crates/ark-target`"]
   I582["582 582 — Phase 7 final: remove `Cargo.toml` and `Cargo.lock`"]
+  I630["630 Phase 7 Sequencing Fix: Circular Dependency in Crate Deletion Chain"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I125 --> I126
@@ -125,6 +125,13 @@ graph LR
   I579 --> I582
   I580 --> I582
   I581 --> I582
+  I564 --> I630
+  I575 --> I630
+  I576 --> I630
+  I577 --> I630
+  I578 --> I630
+  I579 --> I630
+  I581 --> I630
   I124 --> I28
   I30 --> I31
 ```
@@ -145,7 +152,6 @@ graph LR
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: 618
 - **495** depends on: 312, 504; blocks: 36, 512
-- **508** depends on: 593; blocks: none
 - **529** depends on: none; blocks: 617
 - **548** depends on: none; blocks: none
 - **549** depends on: none; blocks: none
@@ -154,7 +160,7 @@ graph LR
 - **553** depends on: none; blocks: none
 - **554** depends on: none; blocks: none
 - **555** depends on: none; blocks: none
-- **564** depends on: 559, 560, 561, 562, 563; blocks: 574, 575, 576, 577, 578, 579, 580, 581
+- **564** depends on: 559, 560, 561, 562, 563; blocks: 574, 575, 576, 577, 578, 579, 580, 581, 630
 - **571** depends on: 568; blocks: none
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
@@ -185,19 +191,20 @@ graph LR
 - **601** depends on: 600; blocks: 602, 603
 - **608** depends on: 604, 605, 606, 607; blocks: none
 - **612** depends on: 609, 611; blocks: none
-- **575** depends on: 564, 574; blocks: 576, 579, 581, 582
+- **575** depends on: 564, 574; blocks: 576, 579, 581, 582, 630
 - **626** depends on: 625; blocks: 627
 - **599** depends on: 595, 596, 597, 598; blocks: none
 - **602** depends on: 601; blocks: 603
-- **576** depends on: 564, 575; blocks: 577, 579, 582
+- **576** depends on: 564, 575; blocks: 577, 579, 582, 630
 - **627** depends on: 626; blocks: 628
 - **603** depends on: 601, 602; blocks: none
-- **577** depends on: 564, 576; blocks: 578, 579, 581, 582
+- **577** depends on: 564, 576; blocks: 578, 579, 581, 582, 630
 - **628** depends on: 627; blocks: none
-- **578** depends on: 564, 577; blocks: 582
-- **579** depends on: 564, 572, 575, 576, 577; blocks: 582
-- **581** depends on: 564, 575, 577; blocks: 582
+- **578** depends on: 564, 577; blocks: 582, 630
+- **579** depends on: 564, 572, 575, 576, 577; blocks: 582, 630
+- **581** depends on: 564, 575, 577; blocks: 582, 630
 - **582** depends on: 572, 573, 574, 575, 576, 577, 578, 579, 580, 581; blocks: none
+- **630** depends on: 564, 575, 576, 577, 578, 579, 581; blocks: none
 
 ### Blocked
 

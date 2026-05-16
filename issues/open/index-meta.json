@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T06:38:01Z",
+  "generated_at": "2026-05-16T06:57:18Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -360,32 +360,8 @@
         "unchecked": 4
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "508",
-      "path": "508-legacy-path-removal-unblocked-by.md",
-      "title": "508-legacy-path-removal-unblocked-by",
-      "track": "corehir",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "593"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
+        "class": "implementation-ready",
+        "upstream_notes": "—"
       }
     },
     {
@@ -592,7 +568,8 @@
         "578",
         "579",
         "580",
-        "581"
+        "581",
+        "630"
       ],
       "acceptance": {
         "checked": 0,
@@ -663,8 +640,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 17
+        "checked": 3,
+        "unchecked": 14
       },
       "orchestration": {
         "class": null,
@@ -1175,7 +1152,7 @@
         "unchecked": 16
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
         "upstream_notes": "None"
       }
     },
@@ -1381,7 +1358,8 @@
         "576",
         "579",
         "581",
-        "582"
+        "582",
+        "630"
       ],
       "acceptance": {
         "checked": 0,
@@ -1489,7 +1467,8 @@
       "blocks_issue_ids": [
         "577",
         "579",
-        "582"
+        "582",
+        "630"
       ],
       "acceptance": {
         "checked": 0,
@@ -1570,7 +1549,8 @@
         "578",
         "579",
         "581",
-        "582"
+        "582",
+        "630"
       ],
       "acceptance": {
         "checked": 0,
@@ -1621,7 +1601,8 @@
         "577"
       ],
       "blocks_issue_ids": [
-        "582"
+        "582",
+        "630"
       ],
       "acceptance": {
         "checked": 0,
@@ -1651,7 +1632,8 @@
         "577"
       ],
       "blocks_issue_ids": [
-        "582"
+        "582",
+        "630"
       ],
       "acceptance": {
         "checked": 0,
@@ -1679,7 +1661,8 @@
         "577"
       ],
       "blocks_issue_ids": [
-        "582"
+        "582",
+        "630"
       ],
       "acceptance": {
         "checked": 0,
@@ -1721,6 +1704,36 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "630",
+      "path": "630-phase7-sequencing-fix.md",
+      "title": "Phase 7 Sequencing Fix: Circular Dependency in Crate Deletion Chain",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "564",
+        "575",
+        "576",
+        "577",
+        "578",
+        "579",
+        "581"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
       }
     }
   ],

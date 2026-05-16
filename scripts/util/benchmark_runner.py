@@ -251,12 +251,13 @@ def resolve_compiler(explicit: str | None) -> Path:
     candidates = [
         ROOT / "target" / "release" / "arukellt",
         ROOT / "target" / "debug" / "arukellt",
+        ROOT / "scripts" / "run" / "arukellt-selfhost.sh",
     ]
     for candidate in candidates:
         if candidate.exists() and os.access(candidate, os.X_OK):
             return candidate
     raise SystemExit(
-        "arukellt binary not found. Run `cargo build --release -p arukellt` or use `mise bench`."
+        "arukellt entrypoint not found. Set ARUKELLT_BIN, use scripts/run/arukellt-selfhost.sh, or use `mise bench`."
     )
 
 

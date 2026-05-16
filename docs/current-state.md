@@ -364,12 +364,12 @@ in bootstrap.md for the exact criteria that close this period.
 
 ### Selfhost-only execution path (#559, #583, ADR-029)
 
-The user-facing `arukellt` CLI is now invoked through a thin wrapper that runs
-the **selfhost wasm exclusively** under `wasmtime`. Per #583 the legacy
+The user-facing `arukellt` CLI is served by a shell wrapper that runs the
+**selfhost wasm exclusively** under `wasmtime`. Per #583 the legacy
 `ARUKELLT_USE_RUST=1` opt-in has been **retired** and the `crates/arukellt`
-Rust core consumers (`commands.rs`, `cmd_doc.rs`, `native.rs`, `runtime.rs`)
-have been deleted; the `arukellt` crate now exists only as a thin wasm-runner
-shell that locates the selfhost wasm and execs it under `wasmtime`.
+Rust crate (the final Phase 5 deletion, #564) has been removed. There is no
+longer any Rust CLI crate; all compiler behaviour comes from the selfhost
+compiler (`src/compiler/main.ark`).
 
 Wrapper artifact: [`scripts/run/arukellt-selfhost.sh`](../scripts/run/arukellt-selfhost.sh).
 
@@ -396,9 +396,7 @@ scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark -o hello.wasm
 Selfhost gates (`scripts/manager.py selfhost {fixpoint,fixture-parity,parity,diag-parity}`)
 are **selfhost-native** per ADR-029 (#585): they bootstrap from the committed
 pinned-reference wasm at `bootstrap/arukellt-selfhost.wasm` and never call any
-Rust binary. With #583 landed, the `crates/arukellt` shell no longer depends
-on `ark-driver`, `ark-mir`, or `ark-stdlib`. Phase 5 has progressed:
-`crates/ark-driver` was removed in #560, the legacy Rust Wasm emitter crate
-was removed in #562, the T4 LLVM scaffold was removed in #586, and
-`crates/ark-mir` was removed in #561. `ark-stdlib` was removed in #563.
-Remaining Rust core crate (`ark-typecheck`) is tracked by #564.
+Rust binary. Phase 5 is complete: `crates/ark-driver` was removed in #560,
+`crates/ark-mir` was removed in #561, the legacy Rust Wasm emitter crate was
+removed in #562, `ark-stdlib` was removed in #563, and `crates/arukellt` was
+removed in #564. Remaining Rust core crate (`ark-typecheck`) is tracked by #567.

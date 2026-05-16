@@ -2401,7 +2401,14 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         typechecker::dump_typed_hir(check_result)
     }
     if check_result.error_count > 0 {
-        return CompileResult_err(PHASE_TYPECHECK(), concat(to_string(check_result.error_count), String_from(" type error(s)")))
+        let mut result = CompileResult_err(PHASE_TYPECHECK(), concat(to_string(check_result.error_count), String_from(" type error(s)")))
+        let mut ei = 0
+        while ei < len(check_result.errors) {
+            push(result.error_messages, clone(get_unchecked(check_result.errors, ei)))
+            ei = ei + 1
+        }
+        result.error_count = check_result.error_count
+        return result
     }
     if config.check_only {
         return CompileResult_ok(PHASE_TYPECHECK())

@@ -8,4 +8,6 @@ ark-parser = { workspace = true }
 ark-diagnostics = { workspace = true }
 ark-lexer = { workspace = true }
 ark-target = { workspace = true }
-ark-manifest = { workspace = true }
+serde = { workspace = true }
+toml = { workspace = true }
+thiserror = { workspace = true }

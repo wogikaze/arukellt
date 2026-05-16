@@ -40,11 +40,13 @@ if [ -z "$ARUKELLT" ]; then
         ARUKELLT="target/debug/arukellt"
     elif [ -x "target/release/arukellt" ]; then
         ARUKELLT="target/release/arukellt"
+    elif [ -x "scripts/run/arukellt-selfhost.sh" ]; then
+        ARUKELLT="scripts/run/arukellt-selfhost.sh"
     fi
 fi
 
 if [ -z "$ARUKELLT" ] || [ ! -x "$ARUKELLT" ]; then
-    echo -e "${YELLOW}SKIP: arukellt binary not found (build with: cargo build -p arukellt)${NC}" >&2
+    echo -e "${YELLOW}SKIP: arukellt entrypoint not found (set ARUKELLT_BIN or use scripts/run/arukellt-selfhost.sh)${NC}" >&2
     exit 0
 fi
 

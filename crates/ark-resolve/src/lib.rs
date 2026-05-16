@@ -6,6 +6,7 @@
 mod analyze;
 mod bind;
 mod load;
+mod manifest;
 mod module_graph;
 mod reachability;
 mod registry;

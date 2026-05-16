@@ -12,8 +12,8 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
+use crate::manifest::{DependencySpec, Manifest};
 use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink, Span};
-use ark_manifest::{DependencySpec, Manifest};
 
 /// Sentinel path string returned by `resolve_registry_path` when an error was
 /// already emitted and the rest of the resolver should skip this import.
@@ -167,7 +167,7 @@ pub(crate) fn resolve_registry_path(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ark_manifest::Manifest;
+    use crate::manifest::Manifest;
 
     fn make_manifest_with_registry(
         dep_name: &str,

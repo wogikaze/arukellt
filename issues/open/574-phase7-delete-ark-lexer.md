@@ -1,11 +1,12 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 574
 Track: selfhost-retirement
 Depends on: 564
-Orchestration class: implementation-ready
+Orchestration class: blocked-by-upstream
+Blocked reason: 3 consumer crates (ark-parser, ark-resolve, ark-playground-wasm) still reference ark_lexer symbols. Phase 7 chain needs re-sequencing — consumer crates must be migrated before upstream crate deletion.
 Orchestration upstream: None
 Blocks: 582
 Blocks v5: no
@@ -15,6 +16,7 @@ REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
 ---
 
 # 574 — Phase 7: Delete `crates/ark-lexer`
+
 - [ ] No source / script / docs reference: "`rg -l "\bark_lexer\b\|\bark-lexer\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)"
 - [ ] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
 1. [ ] Directory truly absent: `test ! -d crates/ark-lexer` exit 0
@@ -36,8 +38,8 @@ diag parity: PASS=<N> FAIL=0 SKIP=<N> → PASS=<N> FAIL=0 SKIP=<N>
 cargo check --workspace: rc=0
 false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓ 10✓
 remaining references (if any): <list with justification>
-# 574 — Phase 7: Delete `crates/ark-lexer`
 
+## 574 — Phase 7: Delete `crates/ark-lexer`
 
 ## Summary
 
@@ -78,7 +80,6 @@ python scripts/manager.py selfhost diag-parity
 cargo check --workspace
 rg -l "\bark_lexer\b" crates/ scripts/ src/ docs/ .github/
 ```
-
 
 ## STOP_IF
 
