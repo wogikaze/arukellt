@@ -1,5 +1,4 @@
-// Positive fixture: enum-pattern multi-clause function with guards
-// Tests that enum variant patterns with guards work on clause heads
+// Two clauses: enum variant with guard
 use std::host::stdio
 
 enum Level { Low, Medium, High }

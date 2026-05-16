@@ -1,0 +1,11 @@
+// Two clauses: one enum+guard, one catch-all, single call
+use std::host::stdio
+
+enum Level { Low, Medium, High }
+
+fn describe(Level::Low) -> String | true = "low"
+fn describe(_) -> String = "other"
+
+fn main() {
+    stdio::println(describe(Level::Medium))
+}

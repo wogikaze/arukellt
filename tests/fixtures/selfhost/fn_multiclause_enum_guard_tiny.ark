@@ -1,0 +1,14 @@
+// Minimal enum guard test
+use std::host::stdio
+
+enum Level { Low, Medium, High }
+
+fn describe(Level::Low) -> String = "low"
+fn describe(Level::Medium) -> String = "medium"
+fn describe(_) -> String = "high"
+
+fn main() {
+    stdio::println(describe(Level::Low))
+    stdio::println(describe(Level::Medium))
+    stdio::println(describe(Level::High))
+}

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T07:27:47Z",
+  "generated_at": "2026-05-16T07:34:42Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -678,37 +678,12 @@
         "629"
       ],
       "blocks_issue_ids": [
-        "596",
         "597",
         "599"
       ],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "598",
-      "path": "598-lang-uplift-comprehensions.md",
-      "title": "Language Surface Uplift: Expression-Level Comprehensions",
-      "track": "selfhost-frontend / language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "599"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 18
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1172,32 +1147,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 13
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "596",
-      "path": "596-lang-uplift-guards.md",
-      "title": "596-lang-uplift-guards",
-      "track": "selfhost-frontend / language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "595"
-      ],
-      "blocks_issue_ids": [
-        "599"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
       },
       "orchestration": {
         "class": "blocked-by-upstream",

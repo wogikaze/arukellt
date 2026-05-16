@@ -1,0 +1,14 @@
+// Test: enum variant pattern with guard in regular match expression
+use std::host::stdio
+
+enum Level { Low, Medium, High }
+
+fn main() {
+    let x = Level::Low
+    let result = match x {
+        Level::Low if true => "low",
+        Level::Medium if true => "medium",
+        _ => "high",
+    }
+    stdio::println(result)
+}

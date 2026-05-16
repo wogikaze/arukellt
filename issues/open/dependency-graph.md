@@ -34,7 +34,6 @@ graph LR
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
   I594["594 594-selfhost-phase2-fixture-diag-parity"]
   I595["595 595-lang-uplift-multiclauses"]
-  I598["598 Language Surface Uplift: Expression-Level Comprehensions"]
   I60["60 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I601["601 Type System Stage-Up: Type Schemes and Controlled Let-Generalization"]
   I605["605 Stdlib Baseline: Host Core-Platform Baseline"]
@@ -53,7 +52,6 @@ graph LR
   I617["617 Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)"]
   I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
   I625["625 529 Phase 4: Dual-Run Period (SAFETY)"]
-  I596["596 596-lang-uplift-guards"]
   I597["597 Language Surface Uplift: Real `where` Clauses"]
   I602["602 Type System Stage-Up: Qualified Constraints and Coherent Trait Solving"]
   I608["608 608-stdlib-baseline-docs-bench"]
@@ -81,7 +79,6 @@ graph LR
   I529 --> I617
   I574 --> I575
   I594 --> I625
-  I595 --> I596
   I595 --> I597
   I601 --> I602
   I605 --> I608
@@ -91,9 +88,7 @@ graph LR
   I575 --> I576
   I625 --> I626
   I595 --> I599
-  I596 --> I599
   I597 --> I599
-  I598 --> I599
   I601 --> I603
   I602 --> I603
   I576 --> I577
@@ -151,8 +146,7 @@ graph LR
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
 - **594** depends on: 593; blocks: 625
-- **595** depends on: 629; blocks: 596, 597, 599
-- **598** depends on: none; blocks: 599
+- **595** depends on: 629; blocks: 597, 599
 - **60** depends on: 510, 121; blocks: none
 - **601** depends on: 600; blocks: 602, 603
 - **605** depends on: 604; blocks: 608
@@ -171,7 +165,6 @@ graph LR
 - **617** depends on: 529; blocks: none
 - **575** depends on: 564, 574; blocks: 576, 579, 581, 582, 630
 - **625** depends on: 594; blocks: 626
-- **596** depends on: 595; blocks: 599
 - **597** depends on: 595; blocks: 599
 - **602** depends on: 601; blocks: 603
 - **608** depends on: 604, 605, 606, 607; blocks: none
