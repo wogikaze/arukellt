@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 564
 Track: selfhost-retirement
 Depends on: 559, 560, 561, 562, 563
