@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T09:02:57Z",
+  "generated_at": "2026-05-16T09:20:55Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -614,10 +614,10 @@
       }
     },
     {
-      "id": "597",
-      "path": "597-lang-uplift-where.md",
-      "title": "Language Surface Uplift: Real `where` Clauses",
-      "track": "selfhost-frontend / language-design",
+      "id": "599",
+      "path": "599-lang-uplift-docs-rollout.md",
+      "title": "Language Surface Uplift: Docs, Fixtures, and Rollout",
+      "track": "docs / language-design",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
@@ -625,17 +625,18 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "595"
+        "595",
+        "596",
+        "597",
+        "598"
       ],
-      "blocks_issue_ids": [
-        "599"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },
@@ -1074,33 +1075,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "599",
-      "path": "599-lang-uplift-docs-rollout.md",
-      "title": "Language Surface Uplift: Docs, Fixtures, and Rollout",
-      "track": "docs / language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "595",
-        "596",
-        "597",
-        "598"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
       }
     },
     {

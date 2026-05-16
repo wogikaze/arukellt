@@ -31,7 +31,7 @@ graph LR
   I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I588["588 Language surface uplift plan"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
-  I597["597 Language Surface Uplift: Real `where` Clauses"]
+  I599["599 Language Surface Uplift: Docs, Fixtures, and Rollout"]
   I60["60 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I603["603 603-typesys-lowering-contract"]
   I605["605 Stdlib Baseline: Host Core-Platform Baseline"]
@@ -49,7 +49,6 @@ graph LR
   I512["512 Stdlib: trait ベースの再利用可能 surface へ段階移行する"]
   I617["617 Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)"]
   I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
-  I599["599 Language Surface Uplift: Docs, Fixtures, and Rollout"]
   I608["608 608-stdlib-baseline-docs-bench"]
   I612["612 Optimization Uplift: Binary Size Squeeze"]
   I626["626 529 Phase 6/A: IDE-Ready Frontend"]
@@ -71,7 +70,6 @@ graph LR
   I495 --> I512
   I529 --> I617
   I574 --> I575
-  I597 --> I599
   I605 --> I608
   I606 --> I608
   I607 --> I608
@@ -131,7 +129,7 @@ graph LR
 - **574** depends on: 564; blocks: 575, 582
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
-- **597** depends on: 595; blocks: 599
+- **599** depends on: 595, 596, 597, 598; blocks: none
 - **60** depends on: 510, 121; blocks: none
 - **603** depends on: 601, 602; blocks: none
 - **605** depends on: 604; blocks: 608
@@ -149,7 +147,6 @@ graph LR
 - **512** depends on: 504, 495; blocks: none
 - **617** depends on: 529; blocks: none
 - **575** depends on: 564, 574; blocks: 576, 579, 581, 582, 630
-- **599** depends on: 595, 596, 597, 598; blocks: none
 - **608** depends on: 604, 605, 606, 607; blocks: none
 - **612** depends on: 609, 611; blocks: none
 - **626** depends on: 625; blocks: 627
