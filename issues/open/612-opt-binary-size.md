@@ -1,10 +1,10 @@
 ---
 Status: open
 Created: 2026-04-22
-Updated: 2026-04-22
+Updated: 2026-05-16
 ID: 612
 Track: compiler / runtime-perf
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Depends on: 609, 611
 Parent: None
 In scope: 
@@ -90,6 +90,7 @@ python scripts/manager.py perf gate
 ```
 
 Measure T1/T3 hello.ark sizes manually:
+
 ```bash
 ./target/release/arukellt compile tests/fixtures/hello/hello.ark \
   --target wasm32-wasi-p1 --opt-level 2 -o /tmp/hello-t1.wasm

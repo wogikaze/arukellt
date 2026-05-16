@@ -1,0 +1,76 @@
+use std::collections::hash
+use std::collections::hash_map
+use std::host::stdio
+
+fn main() {
+    // --- HashMap<String, i32> via wrapper API ---
+    let m = hash_map::hashmap_str_i32_new()
+    hash_map::hashmap_str_i32_insert(m, "alpha", 1)
+    hash_map::hashmap_str_i32_insert(m, "beta", 2)
+    hash_map::hashmap_str_i32_insert(m, "alpha", 10)
+    stdio::println(i32_to_string(hash_map::hashmap_str_i32_len(m)))
+    match hash_map::hashmap_str_i32_get(m, "alpha") {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
+    }
+    match hash_map::hashmap_str_i32_get(m, "gamma") {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
+    }
+    stdio::println(bool_to_string(hash_map::hashmap_str_i32_contains(m, "beta")))
+    stdio::println(bool_to_string(hash_map::hashmap_str_i32_contains(m, "unknown")))
+
+    // --- HashMap<i32, String> via wrapper API ---
+    let m2 = hash_map::hashmap_i32_str_new()
+    hash_map::hashmap_i32_str_insert(m2, 1, "one")
+    hash_map::hashmap_i32_str_insert(m2, 2, "two")
+    hash_map::hashmap_i32_str_insert(m2, 1, "ONE")
+    stdio::println(i32_to_string(hash_map::hashmap_i32_str_len(m2)))
+    match hash_map::hashmap_i32_str_get(m2, 1) {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
+    }
+
+    // --- HashMap<String, String> via wrapper API ---
+    let m3 = hash_map::hashmap_str_str_new()
+    hash_map::hashmap_str_str_insert(m3, "greeting", "hello")
+    hash_map::hashmap_str_str_insert(m3, "farewell", "goodbye")
+    stdio::println(i32_to_string(hash_map::hashmap_str_str_len(m3)))
+    match hash_map::hashmap_str_str_get(m3, "greeting") {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println("not found"),
+    }
+    stdio::println(bool_to_string(hash_map::hashmap_str_str_contains(m3, "farewell")))
+
+    // --- HashSet<String> via wrapper API ---
+    let s = hash_map::hashset_str_new()
+    stdio::println(bool_to_string(hash_map::hashset_str_insert(s, "red")))
+    stdio::println(bool_to_string(hash_map::hashset_str_insert(s, "green")))
+    stdio::println(bool_to_string(hash_map::hashset_str_insert(s, "red")))
+    stdio::println(i32_to_string(hash_map::hashset_str_len(s)))
+    stdio::println(bool_to_string(hash_map::hashset_str_contains(s, "green")))
+    stdio::println(bool_to_string(hash_map::hashset_str_contains(s, "blue")))
+    stdio::println(bool_to_string(hash_map::hashset_str_remove(s, "green")))
+    stdio::println(i32_to_string(hash_map::hashset_str_len(s)))
+
+    // --- HashSet<i32> operations via direct hash module ---
+    let s2 = hash::hashset_new()
+    let _ = hash::hashset_insert(s2, 10)
+    let _ = hash::hashset_insert(s2, 20)
+    let _ = hash::hashset_insert(s2, 30)
+    let s3 = hash::hashset_new()
+    let _ = hash::hashset_insert(s3, 20)
+    let _ = hash::hashset_insert(s3, 30)
+    let _ = hash::hashset_insert(s3, 40)
+    let u = hash::hashset_union(s2, s3)
+    stdio::println(i32_to_string(hash::hashset_len(u)))
+    let i = hash::hashset_intersection(s2, s3)
+    stdio::println(i32_to_string(hash::hashset_len(i)))
+    let d = hash::hashset_difference(s2, s3)
+    stdio::println(i32_to_string(hash::hashset_len(d)))
+}
+// HashMap<String,i32> basic operations
+// HashMap<i32,String> basic operations
+// HashMap<String,String> basic operations
+// HashSet<String> operations
+// HashSet<i32> set operations (union/intersection/difference)

@@ -139,30 +139,30 @@ Return the number of interned strings.
 
 Hash-based collection helpers.
 
-The current implementation uses open addressing with linear probing
-and a **monomorphic `i32 -> i32`** map representation. There is no
-generic `HashMap<K, V>` or `HashSet<T>` here yet.
+Provides core HashMap and HashSet implementations backed by a flat `Vec<i32>`
+with open addressing and linear probing.  Generic `<K, V>` / `<T>` functions
+are exposed as compiler builtins (`HashMap_new<K,V>`, `HashSet_new<T>`, etc.)
+that the selfhost emitter monomorphizes per concrete key/value type.
 
-### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+### Generic dispatch
 
-- True generic `HashMap<K, V>` / `HashSet<T>` require trait-based
-hashing and equality which are not yet supported at the Arukellt
-runtime level. All functions below are monomorphic (i32 key /
-i32 value / i32 element) per the impl-stdlib STOP_IF policy
-documented in issue #044.
-- Raw layout helpers and the user-facing facade are still
-co-located in this single module. Splitting the raw layer from
-the facade is tracked under #607; this module intentionally does
-not pre-empt that split.
-- `hashmap_get_option` is the primary lookup API. Legacy
-`hashmap_get` remains for older fixtures and returns `0` for
-missing keys, which means it cannot distinguish missing from a
-stored zero value.
-- `hashmap_set` returns `true` when the write is stored and `false`
-when the fixed-capacity backing store is full. Callers that need
-insertion certainty must check this return value.
+The compiler registers generic signatures for:
 
-### Hash policy
+- `HashMap_new<K,V>() -> HashMap<K,V>`
+- `HashMap_insert<K,V>(m, key: K, value: V) -> Option<V>`
+- `HashMap_get<K,V>(m, key: K) -> Option<V>`
+- `HashMap_contains_key<K,V>(m, key: K) -> bool`
+- `HashMap_remove<K,V>(m, key: K) -> Option<V>`
+- `HashMap_len<K,V>(m) -> i32`
+
+Each monomorphized instance (e.g. `HashMap_insert__String_i32`) is aliased
+by the emitter to the appropriate concrete function in this module.
+
+### Monomorphic wrappers
+
+User-facing monomorphic wrappers live in `hash_map.ark` and `hash_set.ark`.
+The functions in this module operate on `Vec<i32>` and serve as the internal
+implementation layer.
 
 `hash_i32` uses the same stable byte-mixing policy as
 `std::core::hash::hash_i32`: take the absolute i32 value, mix four

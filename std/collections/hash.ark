@@ -1,29 +1,29 @@
 //! Hash-based collection helpers.
 //!
-//! The current implementation uses open addressing with linear probing
-//! and a **monomorphic `i32 -> i32`** map representation. There is no
-//! generic `HashMap<K, V>` or `HashSet<T>` here yet.
+//! Provides core HashMap and HashSet implementations backed by a flat `Vec<i32>`
+//! with open addressing and linear probing.  Generic `<K, V>` / `<T>` functions
+//! are exposed as compiler builtins (`HashMap_new<K,V>`, `HashSet_new<T>`, etc.)
+//! that the selfhost emitter monomorphizes per concrete key/value type.
 //!
-//! ## Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+//! ## Generic dispatch
 //!
-//! - True generic `HashMap<K, V>` / `HashSet<T>` require trait-based
-//!   hashing and equality which are not yet supported at the Arukellt
-//!   runtime level. All functions below are monomorphic (i32 key /
-//!   i32 value / i32 element) per the impl-stdlib STOP_IF policy
-//!   documented in issue #044.
-//! - Raw layout helpers and the user-facing facade are still
-//!   co-located in this single module. Splitting the raw layer from
-//!   the facade is tracked under #607; this module intentionally does
-//!   not pre-empt that split.
-//! - `hashmap_get_option` is the primary lookup API. Legacy
-//!   `hashmap_get` remains for older fixtures and returns `0` for
-//!   missing keys, which means it cannot distinguish missing from a
-//!   stored zero value.
-//! - `hashmap_set` returns `true` when the write is stored and `false`
-//!   when the fixed-capacity backing store is full. Callers that need
-//!   insertion certainty must check this return value.
+//! The compiler registers generic signatures for:
 //!
-//! ## Hash policy
+//! - `HashMap_new<K,V>() -> HashMap<K,V>`
+//! - `HashMap_insert<K,V>(m, key: K, value: V) -> Option<V>`
+//! - `HashMap_get<K,V>(m, key: K) -> Option<V>`
+//! - `HashMap_contains_key<K,V>(m, key: K) -> bool`
+//! - `HashMap_remove<K,V>(m, key: K) -> Option<V>`
+//! - `HashMap_len<K,V>(m) -> i32`
+//!
+//! Each monomorphized instance (e.g. `HashMap_insert__String_i32`) is aliased
+//! by the emitter to the appropriate concrete function in this module.
+//!
+//! ## Monomorphic wrappers
+//!
+//! User-facing monomorphic wrappers live in `hash_map.ark` and `hash_set.ark`.
+//! The functions in this module operate on `Vec<i32>` and serve as the internal
+//! implementation layer.
 //!
 //! `hash_i32` uses the same stable byte-mixing policy as
 //! `std::core::hash::hash_i32`: take the absolute i32 value, mix four
@@ -36,6 +36,8 @@
 //! `Vec<i32>` backing store:
 //! `[capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]`,
 //! where flags are `0 = empty`, `1 = occupied`.
+
+// ─── Core HashMap (monomorphic i32→i32) ─────────────────────────────────────
 
 pub fn hashmap_new() -> Vec<i32> {
     let cap: i32 = 16
@@ -157,7 +159,7 @@ pub fn hashmap_size(m: Vec<i32>) -> i32 {
     get_unchecked(m, 1)
 }
 
-// ─── Extended HashMap API (monomorphic i32→i32) ───────────────────────────
+// ─── Extended HashMap API (monomorphic i32→i32) ─────────────────────────────
 /// Create a new HashMap with a specific initial capacity.
 /// Capacity is rounded up to the given value; must be >= 1.
 pub fn hashmap_with_capacity(cap: i32) -> Vec<i32> {
@@ -266,6 +268,198 @@ pub fn hashmap_remove(m: Vec<i32>, key: i32) -> Option<i32> {
         }
         Some(old_val)
     }
+}
+
+// ─── String-keyed HashMap primitives ─────────────────────────────────────────
+// These use `hash_string` and `eq()` instead of `hash_i32` and `==`.
+// Used by the `HashMap_String_*` builtin aliases.
+
+fn hash_string_key(key: String) -> i32 {
+    let mut h = 216613626
+    let n = len(key)
+    let mut i = 0
+    while i < n {
+        let ch = char_at(key, i)
+        h = h * 16777619 ^ ch
+        if h < 0 {
+            h = 0 - h
+        }
+        i = i + 1
+    }
+    h
+}
+
+/// String-keyed set: store key in keys array, value in values array.
+pub fn hashmap_str_set(m: Vec<i32>, key: String, value: i32) -> bool {
+    let cap: i32 = get_unchecked(m, 0)
+    let h: i32 = hash_string_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut done: bool = false
+    while probes < cap {
+        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
+        if flag == 0 {
+            set(m, 2 + idx, key)
+            set(m, 2 + cap + idx, value)
+            set(m, 2 + cap * 2 + idx, 1)
+            let sz: i32 = get_unchecked(m, 1) + 1
+            set(m, 1, sz)
+            done = true
+            probes = cap
+        } else {
+            let k: String = get_unchecked(m, 2 + idx)
+            if eq(k, key) {
+                set(m, 2 + cap + idx, value)
+                done = true
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    done
+}
+
+/// String-keyed get: return Some(value) or None.
+pub fn hashmap_str_get(m: Vec<i32>, key: String) -> Option<i32> {
+    let cap: i32 = get_unchecked(m, 0)
+    let h: i32 = hash_string_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut result: Option<i32> = None
+    while probes < cap {
+        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            let k: String = get_unchecked(m, 2 + idx)
+            if eq(k, key) {
+                result = Some(get_unchecked(m, 2 + cap + idx))
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    result
+}
+
+/// String-keyed contains.
+pub fn hashmap_str_contains(m: Vec<i32>, key: String) -> bool {
+    let cap: i32 = get_unchecked(m, 0)
+    let h: i32 = hash_string_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut found: bool = false
+    while probes < cap {
+        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            let k: String = get_unchecked(m, 2 + idx)
+            if eq(k, key) {
+                found = true
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    found
+}
+
+/// String-keyed remove.
+pub fn hashmap_str_remove(m: Vec<i32>, key: String) -> Option<i32> {
+    if !hashmap_str_contains(m, key) {
+        None
+    } else {
+        let g: i32 = hashmap_str_get(m, key)
+        let old_val: i32
+        match g {
+            Option::Some(v) => old_val = v,
+            None => return None,
+        }
+        let ks: Vec<i32> = hashmap_keys(m)
+        let vs: Vec<i32> = hashmap_values(m)
+        hashmap_clear(m)
+        let n: i32 = len(ks)
+        let mut i: i32 = 0
+        while i < n {
+            let k_stored: String = get_unchecked(ks, i)
+            let v_stored: i32 = get_unchecked(vs, i)
+            if !eq(k_stored, key) {
+                let _ = hashmap_str_set(m, k_stored, v_stored)
+            }
+            i = i + 1
+        }
+        Some(old_val)
+    }
+}
+
+/// String-keyed len (same as hashmap_size since the backing layout is identical).
+pub fn hashmap_str_len(m: Vec<i32>) -> i32 {
+    hashmap_size(m)
+}
+
+// ─── String-value HashMap primitives (i32 key, String value) ─────────────────
+/// i32-keyed, String-valued set.
+pub fn hashmap_str_val_set(m: Vec<i32>, key: i32, value: String) -> bool {
+    hashmap_set(m, key, value)
+}
+
+/// i32-keyed, String-valued get.
+pub fn hashmap_str_val_get(m: Vec<i32>, key: i32) -> Option<String> {
+    let cap: i32 = get_unchecked(m, 0)
+    let h: i32 = hash_i32(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut result: Option<String> = None
+    while probes < cap {
+        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            let k: i32 = get_unchecked(m, 2 + idx)
+            if k == key {
+                result = Some(get_unchecked(m, 2 + cap + idx))
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    result
+}
+
+// ─── String-String HashMap primitives ────────────────────────────────────────
+
+/// String-keyed, String-valued set.
+pub fn hashmap_str_str_set(m: Vec<i32>, key: String, value: String) -> bool {
+    hashmap_str_set(m, key, value)
+}
+
+/// String-keyed, String-valued get.
+pub fn hashmap_str_str_get(m: Vec<i32>, key: String) -> Option<String> {
+    hashmap_str_get(m, key)
+}
+
+/// String-keyed, String-valued contains.
+pub fn hashmap_str_str_contains(m: Vec<i32>, key: String) -> bool {
+    hashmap_str_contains(m, key)
+}
+
+/// String-keyed, String-valued remove.
+pub fn hashmap_str_str_remove(m: Vec<i32>, key: String) -> Option<String> {
+    hashmap_str_remove(m, key)
+}
+
+/// String-keyed, String-valued len.
+pub fn hashmap_str_str_len(m: Vec<i32>) -> i32 {
+    hashmap_size(m)
 }
 
 // ─── HashSet API (monomorphic i32, backed by HashMap<i32,i32>) ──────────────
@@ -458,10 +652,3 @@ pub fn hashset_str_len(s: Vec<String>) -> i32 {
 pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
     len(s) == 0
 }
-// Layout: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]
-// Stored as a flat Vec<i32>
-// keys, values, flags (all zeroed via push)
-// Simple hash: multiply by prime
-// collect elements to keep
-// drain s
-// refill s from tmp
