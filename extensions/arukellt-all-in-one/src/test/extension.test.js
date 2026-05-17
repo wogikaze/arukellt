@@ -721,9 +721,10 @@ suite("Task execution and test discovery (#622)", () => {
     }
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (workspaceFolder) {
-      assert.ok(
-        calls.some((call) => call.cwd === workspaceFolder.uri.fsPath),
-        "tasks should run in the workspace folder"
+      assert.strictEqual(
+        checkTask.scope?.uri?.fsPath,
+        workspaceFolder.uri.fsPath,
+        "check task should be scoped to the workspace folder"
       );
     }
   });
