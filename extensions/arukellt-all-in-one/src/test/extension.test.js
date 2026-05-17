@@ -655,8 +655,15 @@ suite("Task execution and test discovery (#622)", () => {
     const cfg = vscode.workspace.getConfiguration("arukellt");
     savedPath = cfg.get("server.path");
     savedArgs = cfg.get("server.args");
-    stub = createArukelltStub();
+    stub = fs.existsSync(repoDebugBinary)
+      ? { dir: path.dirname(repoDebugBinary), scriptPath: repoDebugBinary }
+      : createArukelltStub();
     logPath = path.join(stub.dir, "calls.jsonl");
+    try {
+      fs.unlinkSync(logPath);
+    } catch (_) {
+      /* ignore */
+    }
     process.env.ARUKELLT_E2E_STUB_LOG = logPath;
     await cfg.update(
       "server.path",

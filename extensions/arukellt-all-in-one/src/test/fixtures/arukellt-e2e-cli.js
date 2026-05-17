@@ -8,6 +8,12 @@
 
 const fs = require("fs");
 
+function logInvocation(args) {
+  const logPath = process.env.ARUKELLT_E2E_STUB_LOG;
+  if (!logPath) return;
+  fs.appendFileSync(logPath, JSON.stringify({ argv: args, cwd: process.cwd() }) + "\n");
+}
+
 function writeFrame(obj) {
   const body = JSON.stringify(obj);
   process.stdout.write(`Content-Length: ${Buffer.byteLength(body, "utf8")}\r\n\r\n${body}`);
@@ -183,6 +189,7 @@ function startDap() {
 
 function main() {
   const args = process.argv.slice(2);
+  logInvocation(args);
   if (args.includes("--version") || args.includes("-V")) {
     console.log("arukellt extension-e2e 0.0.0");
     return;
