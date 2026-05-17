@@ -1,16 +1,15 @@
 ---
-Status: blocked
+Status: done
 Updated: 2026-05-17
 ID: 549
 Track: release
 Type: Verification
 Depends on: none
-Blocked by: "native Linux CI evidence or a local Xvfb environment where /tmp/.X11-unix is root:root with mode 1777"
 ---
 
 # Release: Extension Activation Tests
 
-> **Status:** blocked
+> **Status:** done
 > **Track:** release
 > **Type:** Verification
 
@@ -26,7 +25,7 @@ docs/release-checklist.md — Extension distribution section
 
 - [x] `cd extensions/arukellt-all-in-one && npm ci && npm run build` succeeds
 - [x] VSIX package generated (`.vsix` file exists)
-- [ ] Extension activation tests pass (`xvfb-run -a npm test`) — BLOCKED by local Xvfb socket directory ownership
+- [x] Extension activation tests pass (`xvfb-run -a npm test`) — verified in native Ubuntu CI
 
 ## Verification Evidence
 
@@ -52,10 +51,10 @@ docs/release-checklist.md — Extension distribution section
 
 ## Close Candidate
 
-- `no`
-- Blocker: the exact `xvfb-run -a npm test` release gate cannot complete in this
-  checkout because local Xvfb cannot start with the current `/tmp/.X11-unix`
-  owner/mode. The WSL prompt can be suppressed with `DONT_PROMPT_WSL_INSTALL=1`.
+- `yes`
+- Native Ubuntu CI now runs and passes the extension activation gate. This local
+  WSL checkout still cannot provide a trustworthy Xvfb socket directory, but
+  that is no longer blocking because the release gate is covered by CI evidence.
 
 ## Recheck — 2026-05-14
 
@@ -178,6 +177,25 @@ Updated verdict: still blocked only on environment/native-CI evidence. The
 extension test assertions are green under `vscode-test`, but this local
 workspace cannot satisfy the exact `xvfb-run -a npm test` gate until Xvfb can
 create its socket directory correctly.
+
+## CI Close Evidence — 2026-05-17
+
+- CI run: `25977063697`
+  (`https://github.com/wogikaze/arukellt/actions/runs/25977063697`)
+- Commit: `a4aa675af3ddc838ddbb2dec028fd8a58fc4b795`
+- Run conclusion: **success**
+- `VS Code extension tests` job `76358970846`: **PASS**
+  - `Install extension dependencies`: PASS
+  - `Check extension marketplace metadata`: PASS
+  - `Build extension VSIX`: PASS
+  - `Run extension tests`: PASS
+- `Final Gate` job `76359022001`: **PASS**
+  - Required CI layers included extension tests.
+- `Component interop` job `76358984672`: **PASS**
+
+Close verdict: **done**. The remaining local Xvfb issue is environment-specific
+to this WSL checkout and is superseded by native Ubuntu CI evidence for the
+release gate.
 
 ## Primary Paths
 

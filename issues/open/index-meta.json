@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-16T22:48:28Z",
+  "generated_at": "2026-05-17T02:58:01Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -899,14 +899,6 @@
       "depends_on": [
         "30"
       ]
-    },
-    {
-      "id": "549",
-      "path": "549-release-extension-activation-tests.md",
-      "title": "Release: Extension Activation Tests",
-      "track": "release",
-      "blocked_by": "native Linux CI evidence or a local Xvfb environment where /tmp/.X11-unix is root:root with mode 1777",
-      "depends_on": []
     },
     {
       "id": "553",

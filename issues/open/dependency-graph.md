@@ -41,7 +41,6 @@ graph LR
   I630["630 Phase 7 Sequencing Fix: Circular Dependency in Crate Deletion Chain"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
-  I549["549 Release: Extension Activation Tests ⛔"]
   I553["553 Release: Binary Distribution ⛔"]
   I554["554 Release: Extension Live Editor Tests ⛔"]
   I139 --> I136
@@ -116,6 +115,5 @@ graph LR
 
 - **28** ⛔ blocked — depends on: 030, 031, 028b, 124; blocked by: #124 WIT component import syntax
 - **31** ⛔ blocked — depends on: 30; blocked by: jco upstream (<https://github.com/bytecodealliance/jco>)
-- **549** ⛔ blocked — depends on: none; blocked by: native Linux CI evidence or a local Xvfb environment where /tmp/.X11-unix is root:root with mode 1777
 - **553** ⛔ blocked — depends on: none; blocked by: release tag creation and passing tag workflow
 - **554** ⛔ blocked — depends on: none; blocked by: manual live VS Code verification with the packaged VSIX
