@@ -177,9 +177,9 @@ and packagable; the remaining checks require interactive VS Code sessions.
     activation, language status `$(check) Ready`, diagnostics stability,
     completion, hover, go-to-definition, restart, failure recovery, task
     provider, and project tree behavior.
-  - Those automated tests cannot be used as a substitute for this issue's manual
-    live-editor acceptance until they pass in native Linux CI or a clean
-    non-WSL VS Code environment.
+  - Those automated tests are still not a substitute for this issue's manual
+    live-editor acceptance because the release checklist labels the remaining
+    VSIX install/editor interaction checks as **Manual**.
 
 Updated close-candidate status: still `no`. The VSIX build prerequisite and
 non-Xvfb automated tests are green, but all four acceptance criteria remain
@@ -192,3 +192,25 @@ green (`npm ci`, VSIX build, marketplace metadata, and non-Xvfb extension tests
 with the WSL prompt suppressed), but all acceptance criteria are manual live
 VS Code checks that require installing the packaged VSIX in an interactive
 editor session.
+
+## Recheck — 2026-05-17 after release tag
+
+- Current shell environment cannot run live VS Code manual checks:
+  - `which code`: not found
+  - `code --version`: command not found
+- Native Ubuntu CI evidence now covers the automated extension prerequisites:
+  - Master CI run `25979900976`: **success**
+  - `VS Code extension tests` job `76366652508`: **PASS**
+  - `Final Gate` job `76366707397`: **PASS**
+- Release tag CI evidence also passed:
+  - Tag: `v0.1.0`
+  - Tag CI run `25979799253`: **success**
+  - `VS Code extension tests` job `76366349953`: **PASS**
+  - `Packaging — binary smoke` job `76366349926`: **PASS**
+  - `Final Gate` job `76366406810`: **PASS**
+
+Updated verdict: still blocked, but only on the explicit manual live-editor
+checks. The CI-backed extension activation, LSP protocol, diagnostics,
+completion, hover, and go-to-definition coverage is green on native Ubuntu.
+Closing this issue still requires an interactive VS Code desktop session with
+the packaged VSIX installed.
