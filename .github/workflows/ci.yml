@@ -668,15 +668,10 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Install wasmtime
-        run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
-          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
-
-      - name: Make selfhost wrapper available as arukellt
+      - name: Make extension E2E CLI available as arukellt
         run: |
           mkdir -p target/debug
-          cp scripts/run/arukellt-selfhost.sh target/debug/arukellt
+          cp extensions/arukellt-all-in-one/src/test/fixtures/arukellt-e2e-cli.js target/debug/arukellt
           chmod +x target/debug/arukellt
 
       - name: Install extension dependencies
@@ -695,9 +690,9 @@ jobs:
 
   # ── Layer 11: (removed) Rust ark-lsp E2E tests ─────────────────────────
   # The Rust LSP server crate (`crates/ark-lsp`) was deleted in #572 (Phase 7
-  # of #529). The selfhost LSP (`src/compiler/lsp.ark`, exposed as
-  # `arukellt lsp`) is the source of truth. Editor-extension E2E coverage is
-  # provided by the VS Code extension job above.
+  # of #529). The selfhost LSP/DAP protocol lifecycle checks run through the
+  # verification harness; editor-extension E2E coverage uses a live CLI fixture
+  # in the VS Code extension job above.
 
   # ── Layer 12: Target-contract drift check (merge gate) ──────────────────
   #

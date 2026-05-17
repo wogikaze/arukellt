@@ -77,7 +77,7 @@ today.
 | **Component interop** (`component-interop`) | push-only | component-interop | Optional component smoke coverage. |
 | **Perf baseline snapshot** (`perf-baseline`) | push-only | perf | Collects baseline JSON artifacts. |
 | **Selfhost bootstrap (full)** (`selfhost-bootstrap`) | merge-blocking | bootstrap | Runs `python scripts/manager.py selfhost fixpoint`; fixture parity is informational in this job, while CLI and diagnostic parity have dedicated merge-blocking jobs. |
-| **VS Code extension tests** (`extension-tests`) | merge-blocking | editor-tooling | Extension activation, feature workflow, and protocol-level LSP coverage. |
+| **VS Code extension tests** (`extension-tests`) | merge-blocking | editor-tooling | Extension activation and feature workflow coverage against a live E2E CLI fixture. Selfhost LSP/DAP protocol lifecycle coverage remains in the verification harness. |
 | **Target contract drift check** (`target-contract-drift-check`) | merge-blocking | target-contract | Fails when `docs/target-contract.md` drifts from CI-described target truth. |
 | **Final Gate** (`verify`) | merge-blocking aggregator | required merge gates | Summary gate over the required blocking layers. |
 | **CI category summary** (`ci-category-summary`) | reporting only | all named verification categories | Always runs and writes the category state table to the GitHub job summary and `ci-category-summary-<run_id>` artifact. |
@@ -90,7 +90,7 @@ failed.
 
 The category summary records these piggyback mappings explicitly:
 `package-workspace` maps to the non-blocking `verification-package-workspace` alert lane,
-`diagnostics-snapshot` maps to `fixture-primary`, and the selfhost LSP lifecycle check maps to
+`diagnostics-snapshot` maps to `fixture-primary`, and the selfhost LSP/DAP lifecycle checks map to
 `verification-harness-quick`. Push-only lanes appear as `skipped` on pull
 requests, which is expected.
 
@@ -114,7 +114,7 @@ When adding a feature:
 | component-interop | 6 component-compile + 1 jco smoke | partial |
 | package-workspace | dedicated non-blocking `verification-package-workspace` alert lane for manifest discovery and script execution | partial |
 | bootstrap | `selfhost-bootstrap` enforces selfhost fixpoint; dedicated CLI/diagnostic parity jobs enforce parity | active |
-| editor-tooling | automated VS Code extension and selfhost LSP tests in `extension-tests` | active |
+| editor-tooling | automated VS Code extension tests in `extension-tests`; selfhost protocol lifecycle tests in `verification-harness-quick` | active |
 | determinism | dedicated `determinism` CI job | active |
 | perf | 5 benchmark fixtures | active |
 | diagnostics-snapshot | MIR + diagnostics snapshots | partial |

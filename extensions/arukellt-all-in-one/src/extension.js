@@ -34,6 +34,7 @@ let debugSessionState = {
 
 const REPO_PLAYGROUND_URL = 'https://wogikaze.github.io/arukellt/playground/'
 const ALLOWED_PLAYGROUND_BASE_URLS = new Set([REPO_PLAYGROUND_URL])
+const REPO_DOCS_URL = 'https://wogikaze.github.io/arukellt/'
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -770,6 +771,17 @@ function registerCommands(context) {
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.showSetupDoctor', showSetupDoctor))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.showCommandGraph', showCommandGraph))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.showEnvironmentDiff', showEnvironmentDiff))
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.openDocs', () => {
+    vscode.env.openExternal(vscode.Uri.parse(REPO_DOCS_URL))
+  }))
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.explainCode', () => {
+    const editor = vscode.window.activeTextEditor
+    if (!editor || editor.document.languageId !== 'arukellt') {
+      vscode.window.showInformationMessage('Arukellt: open an .ark file to explain code.')
+      return
+    }
+    vscode.window.showInformationMessage('Arukellt: code explanation is not available in this extension build.')
+  }))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.showPipeline', showPipeline))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.securityReview', showSecurityReview))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.showOutput', () => {
