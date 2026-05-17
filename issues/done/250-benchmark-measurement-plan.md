@@ -10,14 +10,23 @@ Blocks v1 exit: no
 ---
 
 # benchmark measurement plan: GC vs linear memory decision data
+
 元ドキュメント: `docs/process/benchmark-plan.md`（issue 化により移動済み）
+
 ### Case 1: Hello World（最小バイナリサイズ比較）
+
 成功基準: ファイルアクセス時間 + 1ms 以内
+
 ### Case 2: 文字列連結 100 回（アロケーション負荷比較）
+
 ### Case 3: Vec push/pop 10k（コンテナ性能比較）
+
 ### Case 4: 二分木 depth 20（再帰と参照比較）
+
 ### Case 5: Result ベースエラー処理（エラー経路オーバーヘッド）
+
 ### Case 6: WASI ファイル読込（I/O 経路比較）
+
 # benchmark measurement plan: GC vs linear memory decision data
 
 ## Summary

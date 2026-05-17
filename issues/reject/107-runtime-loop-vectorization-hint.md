@@ -13,7 +13,6 @@ Status note: "Depends on #064 (branch hinting MIR infrastructure). WASM SIMD aut
 ---
 # 実行時性能: ループのベクトル化可能性アノテーション
 
-
 ## Summary
 
 Branch Hinting 提案 (#064) の発展として、

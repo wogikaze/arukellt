@@ -14,6 +14,7 @@ Priority: 17
 - `docs/current-state.md`: "bootstrap status セクションなし (bootstrap.md からのリンクが 404)"
 - `docs/compiler/bootstrap.md: "246-316` — completion criteria (2 箇所目)"
 - `docs/test-strategy.md`: bootstrap は informational / scaffold 扱い
+
 # Bootstrap docs の重複を解消し truth を一本化する
 
 ## Summary

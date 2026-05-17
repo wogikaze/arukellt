@@ -14,26 +14,23 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # Formatter: parse error 時の動作契約を定義する
+
 - `crates/ark-parser/src/fmt.rs: "11-16` — `format_source()` error 無視"
 - CLI `cmd_fmt()` (`commands.rs: 67-127`) も error check なしで write back
 - `crates/arukellt/src/commands.rs: "67-127` — `cmd_fmt()` error check なし"
 - `crates/ark-lsp/src/server.rs: 2731-2761` — LSP formatting
+
 # Formatter: parse error 時の動作契約を定義する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/344-fmt-parse-error-contract.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

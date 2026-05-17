@@ -11,6 +11,7 @@ Priority: 14
 ---
 
 - `scripts/run/verify-bootstrap.sh: 175-180` — main.wasm を期待するロジック
+
 # Selfhost の統一バイナリを生成する
 
 ## Summary

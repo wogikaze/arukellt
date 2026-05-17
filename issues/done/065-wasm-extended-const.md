@@ -12,7 +12,6 @@ Status note: Infrastructure added. Extended const used for heap pointer init at 
 ---
 # Wasm Extended Const: 定数式での算術演算
 
-
 ## Summary
 
 WebAssembly Extended Const 提案 (`docs/spec/spec-3.0.0/proposals/extended-const/Overview.md`) により、

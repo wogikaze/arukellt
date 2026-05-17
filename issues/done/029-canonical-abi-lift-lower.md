@@ -11,6 +11,7 @@ Blocks v1 exit: no
 
 - [x] Linear memory allocation strategy for canonical ABI buffers is defined: reuse the existing
 - `crates/ark-target/src/plan.rs` — may need `AbiClass: ":CanonicalAbi` or similar"
+
 # Canonical ABI lift/lower for GC-native types
 
 ## Summary

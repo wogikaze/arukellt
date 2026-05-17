@@ -14,17 +14,16 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
 └── scan.rs         # スキャン実装: "scan_ident, scan_number, scan_string, scan_comment (~1100行)"
+
 # ark-lexer lib.rs (1698行) をサブモジュールに分割
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/134-split-lexer.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

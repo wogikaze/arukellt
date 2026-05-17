@@ -15,11 +15,10 @@ Action: Moved from issues/done/ to issues/open/ by false-done audit.
 - `crates/arukellt/src/main.rs`: compile/build のデフォルトは `"legacy"`、run は `"corehir"`
 - `crates/arukellt/src/commands.rs: "1033-1045`: `parse_mir_select()` でパース"
 - `crates/ark-driver/src/session.rs: "445-510`: 選択に基づき MIR を使い分け"
+
 # CoreHIR path をデフォルトに昇格する
 
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Summary
 

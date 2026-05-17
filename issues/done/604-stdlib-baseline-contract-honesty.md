@@ -15,15 +15,17 @@ Close when: "gap ledger exists, targeted module docs are real (no placeholder te
 ---
 
 # Stdlib Baseline: Contract and Facade Honesty
+
 `std: ":host::http`, `std::host::sockets`, `std::text`, `std::time`."
 - Write Phase 0 gap ledger: record exact "API name vs actual behavior" mismatches
 - For `std: ":collections::hash`: separate raw layout helpers from user-facing facade"
 - depends_on_open: none
 - depends_on_done: none
 - blocks: #605, #606, #607, #608
-3. `std: ":host::fs::exists` is explicitly documented as read-probe / best-effort semantics in `std/host/fs.ark` and the manifest `doc` field; rename deferred (breaking change) and tracked under #605."
-4. `std: ":json` and `std::toml` partial surfaces are marked `experimental` in `std/manifest.toml` (per-function and per-module entries with explicit subset doc)."
-5. `std/manifest.toml` carries `[[modules]]` entries for all eight targeted families (`std: ":host::fs`, `std::host::http`, `std::host::sockets`, `std::json`, `std::toml`, `std::collections::hash`, `std::text`, `std::time`) with stability and family-level honesty caveats matching the gap ledger dispositions."
+1. `std: ":host::fs::exists` is explicitly documented as read-probe / best-effort semantics in `std/host/fs.ark` and the manifest `doc` field; rename deferred (breaking change) and tracked under #605."
+2. `std: ":json` and `std::toml` partial surfaces are marked `experimental` in `std/manifest.toml` (per-function and per-module entries with explicit subset doc)."
+3. `std/manifest.toml` carries `[[modules]]` entries for all eight targeted families (`std: ":host::fs`, `std::host::http`, `std::host::sockets`, `std::json`, `std::toml`, `std::collections::hash`, `std::text`, `std::time`) with stability and family-level honesty caveats matching the gap ledger dispositions."
+
 # Stdlib Baseline: Contract and Facade Honesty
 
 ---

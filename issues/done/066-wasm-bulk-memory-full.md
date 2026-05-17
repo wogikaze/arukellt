@@ -15,21 +15,20 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
 # Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応
+
 1. `ark-wasm/src/emit/t3_wasm_gc.rs`: `memory.copy` / `memory.fill` emit ヘルパー追加
 2. `std/wasm/mod.ark`: "`memory_copy(dst, src, len)` / `memory_fill(ptr, val, len)` 追加"
 3. `std/bytes/mod.ark`: "内部実装で `wasm::memory_copy` を呼ぶように変更"
-# Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応
 
+# Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/066-wasm-bulk-memory-full.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

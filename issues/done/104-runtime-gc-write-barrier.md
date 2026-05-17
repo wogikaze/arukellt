@@ -12,12 +12,14 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # 実行時性能: "GC write barrier 削減 (immutable フィールド検出)"
+
 `Assign(Place: ":Field(…), …)` sites (including nested IfStmt/WhileStmt bodies)"
 - `Ctx: ":immutable_struct_fields` (`HashSet<(String, String)>`) is populated in"
 declared with `mutable: "false` (`immutable_field(…)`) in the WasmGC struct type"
 - 4 unit tests cover: empty module, init-only fields, post-construction write,
 - Added `immutable_struct_fields: "HashSet<(String, String)>` to `Ctx`."
 - [x] T3 emitter でそのフィールドを immutable として宣言 (WasmGC `mutable: false`)
+
 # 実行時性能: GC write barrier 削減 (immutable フィールド検出)
 
 ---
@@ -55,8 +57,6 @@ declared with `mutable: "false` (`immutable_field(…)`) in the WasmGC struct ty
   (Benchmark measurement deferred to issue #141 compile latency / #109 benchmark infrastructure; immutable fields are now generated correctly — the GC reduction follows structurally)
 
 ## Reopened by audit — 2026-04-03
-
-
 
 ## Summary
 

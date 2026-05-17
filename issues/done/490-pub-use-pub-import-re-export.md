@@ -13,6 +13,7 @@ Priority: 50
 ---
 
 # pub use / pub import re-export
+
 - [x] `pub use <module>: ":<item>` syntax is parsed and resolved"
 Summary line: "PASS: 723 FAIL: 29 SKIP: 31 (scheduled: 783, total manifest: 783)"
 - `module-run: "modules/pub_use_reexport_visible/main.ark` — not among harness failures; manual check: compile `wasm32-wasi-p1`, `wasmtime run` → stdout `7` (matches `.expected`)."
@@ -21,21 +22,20 @@ Summary line: "PASS: 723 FAIL: 29 SKIP: 31 (scheduled: 783, total manifest: 783)
 Top unrelated fixture failures (do not mass-fix under this slice): "harness reports multiple buckets, including `FAIL [run] stdlib_io_rw/reader_basic.ark` (empty stdout vs expected), `FAIL [t3-compile] from_trait/from_auto_convert.ark` (stderr warning line), `FAIL [compile-error] component/import_flags_type.ark`, and several `selfhost/*` run fixtures — pre-existing / out of scope for #490."
 - Added parser support for `pub use <module>: ":<item>` form in `crates/ark-parser/src/parser/decl.rs` and related AST/format plumbing."
 Closed as complete. The audit contradiction is resolved: pub use re-export functionality is implemented and working; unrelated fixture failures do not block this issue.
-Close evidence: 
+Close evidence:
 - Parser slice landed in commit 87dcbfb: "added parser support for `pub use <module>::<item>` form"
 - Resolver/typecheck slice landed in commit cf701a9: wired re-export visibility flow
 - Verification: "`bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)"
-Acceptance mapping: 
+Acceptance mapping:
 - ✓ `pub use <module>: ":<item>` syntax parsed and resolved"
-Implementation notes: 
+Implementation notes:
 ---
+
 # pub use / pub import re-export
 
 ## Created by audit — 2026-04-13
 
-
 ## Reopened by audit — 2026-04-18
-
 
 **Audit evidence**:
 

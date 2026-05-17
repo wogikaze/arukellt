@@ -14,6 +14,7 @@ Priority: 9
 - `src/compiler/parser.ark`: `pub` を fn/struct の修飾として parse する
 - `src/compiler/resolver.ark`: symbol 登録時に visibility 情報を保持しない — 全 symbol が暗黙 public
 - `src/compiler/resolver.ark: "22-30` — SymbolKind 定義 (visibility 情報なし)"
+
 # Selfhost resolver に visibility enforcement を実装する
 
 ## Summary

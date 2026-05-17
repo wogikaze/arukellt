@@ -11,6 +11,7 @@ Orchestration class: implementation-ready
 - 214/214 `run: "` fixtures compile with `--mir-select corehir` (0 failures)"
 `is_backend_legal_operand` correctly rejects exactly 3 operands: IfExpr, LoopExpr, TryExpr.
 - `crates/ark-mir/src/mir.rs: 419-424`
+
 # Backend-illegal operand の棚卸し
 
 ## Summary

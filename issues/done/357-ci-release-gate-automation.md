@@ -11,7 +11,9 @@ Priority: 25
 ---
 
 # Tooling Contract: release gate を手動チェックリストから自動検証に移行する
+
 - `docs/release-checklist.md`: "全 extension 検証が manual (10 項目)"
+
 # Tooling Contract: release gate を手動チェックリストから自動検証に移行する
 
 ## Summary

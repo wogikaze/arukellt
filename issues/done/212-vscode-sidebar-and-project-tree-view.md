@@ -13,6 +13,7 @@ Blocks v1 exit: no
 - editor title: `Run` / `Check` / `Compile` ボタン
 - editor context: `Run Selection` / `Explain Code`（#205 連携）
 - `Arukellt: Script…` — script quick pick（#203 連携）
+
 # Extension sidebar + project UI tree view
 
 ## Summary

@@ -15,21 +15,21 @@ WASI Preview 2 の `wasi: "http/incoming-handler` と `wasi:http/outgoing-handle
 ---
 
 # WASI P2: "`std::host::http` facade と runtime 検証"
+
 `std: ":host::http` として提供する。"
 1. `std: ":host::http` に request / response / headers / body streaming の最小 API を追加する"
 2. T1 で `use std: ":host::http` した場合は専用 diagnostics で compile-time error になる"
 3. Arukellt プログラムが `wasi: http/proxy` world として HTTP サーバになれる
-2. `wasi: http` binding と host lowering を backend に追加する
+4. `wasi: http` binding と host lowering を backend に追加する
 - `docs/spec/spec-WASI-0.2.10/OVERVIEW.md` §wasi: http
+
 # WASI P2: `std::host::http` facade と runtime 検証
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/077-wasi-p2-http.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

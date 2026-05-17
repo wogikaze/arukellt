@@ -12,12 +12,16 @@ Source: stdlib modernization backlog requested 2026-04-15
 ---
 
 # Stdlib: canonical naming / module layering / surface consistency の第2監査
+
 | `std: ":text` | **yes** | `std/manifest.toml:2079-2086` defines `std::text::concat`, while `std/text/string.ark` still duplicates `concat` and `docs/stdlib/reference.md:857` + `docs/stdlib/name-index.md:750-751` currently list both `prelude` and `std::text` surfaces as canonical stable names. | The duplicate text surface is still rendered as first-class API, so docs/search index need metadata to distinguish canonical vs historical placement. |"
 | representative collections family: "`HashMap_*` prelude surface | **yes** | `std/manifest.toml:1260-1440` shows the old monomorphic `HashMap_*` surface as plain `stable` entries with no `deprecated_by`; `docs/stdlib/reference.md:1018-1034` and `docs/stdlib/name-index.md:240-245,852-865` likewise render them as canonical stable names. | The monomorphic historical naming is still present in the generated docs/search index as active API, so policy-aligned historical/deprecated metadata is needed here too. |"
 Bottom line: the current generator is sufficient, but these families still need
-English summary (same policy): 
+English summary (same policy):
+
 ### Triage vocabulary (per-row: exactly one of)
+
 ## Inventory: "`concat` — `std::text` vs prelude（代表 1 件）"
+
 | `args` | `std/env/mod.ark: "8` | Process argv (excluding argv[0]); WASI `args_get` | **keep** |"
 | `arg_count` | `std/env/mod.ark: "13` | Count of args (excluding argv[0]) | **keep** |"
 | `arg_at` | `std/env/mod.ark: "18` | Indexed access via `args()` + `get` | **keep** |"
@@ -32,6 +36,7 @@ Open decision (text): "`std::text::string::concat` は **deprecate** 後、canon
 - Date: 2026-04-22
 - Commit: 4667a7a6
 - Acceptance: "all [x]"
+
 # Stdlib: canonical naming / module layering / surface consistency の第2監査
 
 ## Summary

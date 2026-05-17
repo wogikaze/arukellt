@@ -15,7 +15,9 @@ Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (cra
 ---
 
 # Stdlib JSON: parity と differential tests を round-trip corpus で拡張する
+
 `std: ":json` family は regression fixtures はあるが、round-trip parity と differential testing がまだ queue 上で focused に切られていない。"
+
 # Stdlib JSON: parity と differential tests を round-trip corpus で拡張する
 
 ## Close note
@@ -33,8 +35,6 @@ All 5 fixtures registered in `tests/fixtures/manifest.txt`.
 Normalization rules documented in `tests/fixtures/stdlib_json/NORMALIZATION.md`.
 
 Verification: `cargo test -p arukellt --test harness` — PASS: 750 FAIL: 31 (all FAILs pre-existing, none in stdlib_json new fixtures). No production `std/json/mod.ark` changes made.
-
-
 
 ## Summary
 

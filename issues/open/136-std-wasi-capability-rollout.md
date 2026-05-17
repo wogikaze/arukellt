@@ -19,11 +19,9 @@ ADR-011 で決定した `std: ":host::*` layering を、stdlib・compiler・docs
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/136-std-wasi-capability-rollout.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

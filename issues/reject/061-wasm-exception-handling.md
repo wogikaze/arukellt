@@ -18,7 +18,6 @@ Status note: Wasm proposal — deferred to v5+. Not implemented.
 ---
 # Wasm native 例外処理: try_table / throw / exnref 実装
 
-
 ## Summary
 
 WebAssembly 3.0 例外処理提案 (`docs/spec/spec-3.0.0/proposals/exception-handling/Exceptions.md`) の

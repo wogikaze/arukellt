@@ -11,6 +11,7 @@ Closed 2026-04-09. (1) Binary not-found: "extension discoverBinary() logs each p
 ---
 
 - 「LSP: Restart Server」コマンドの案内
+
 # エラー時の診断案内（何が足りないか・どこを直すか）を実装する
 
 ## Summary

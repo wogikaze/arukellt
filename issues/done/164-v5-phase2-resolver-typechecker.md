@@ -11,7 +11,6 @@ Status note: Parent issue for semantic analysis. MIR lowering is tracked under
 ---
 # v5 Phase 2: Resolver + TypeChecker epic
 
-
 ## Summary
 
 旧 issue では Phase 2 に resolver / typechecker / HIR / MIR lowering / optimization が混在していた。semantic analysis と backend preparation を分離し、この issue は名前解決・型検査・typed HIR 完了の親 issue にする。

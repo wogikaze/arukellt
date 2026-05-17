@@ -11,8 +11,10 @@ Priority: 6
 ---
 
 # LSP: rename を semantic-aware に置き換える
+
 - `crates/ark-lsp/src/server.rs: "2496-2520` — `prepare_rename()` identifier check のみ"
 - false positive: 同名の別変数、struct field 名、enum variant 名が巻き込まれる
+
 # LSP: rename を semantic-aware に置き換える
 
 ## Summary

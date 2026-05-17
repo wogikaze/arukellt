@@ -14,25 +14,22 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # LSP: completion をコンテキスト対応にする
+
 - `crates/ark-lsp/src/server.rs: "185-198` — `completion_prefix()` テキスト抽出"
 - dot completion なし: `x.` の後でメソッド / field を提案しない
-- [x] 型注釈位置 (`: ` の後) で型名が優先表示される
+- [x] 型注釈位置 (`:` の後) で型名が優先表示される
+
 # LSP: completion をコンテキスト対応にする
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/342-lsp-completion-context.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

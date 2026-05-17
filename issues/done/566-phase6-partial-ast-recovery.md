@@ -15,7 +15,8 @@ REBUILD_BEFORE_VERIFY: yes
 ---
 
 # 566 — Phase 6/A2: Selfhost parser.ark — partial AST recovery
-3. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+
+1. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
 - One logical commit per slice. Suggested message: "`feat(ide): parser.ark partial AST recovery for IDE consumers (refs #566)`"
 commit: <filled-after-merge>
 acceptance: <each checkbox marked with evidence>
@@ -31,8 +32,8 @@ false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
 - Well-formed inputs unchanged: "NK_ERROR/NK_MISSING are only produced on error paths; existing 321 run: fixtures byte-identical (fixture-parity PASS=321)"
 cli parity: rc=0 → rc=0
 - tests/fixtures/manifest.txt (registered new diag: entry)
-# 566 — Phase 6/A2: Selfhost parser.ark — partial AST recovery
 
+# 566 — Phase 6/A2: Selfhost parser.ark — partial AST recovery
 
 ## Summary
 
@@ -57,7 +58,6 @@ python scripts/manager.py selfhost fixture-parity
 python scripts/manager.py selfhost diag-parity
 
 ```
-
 
 ## STOP_IF
 

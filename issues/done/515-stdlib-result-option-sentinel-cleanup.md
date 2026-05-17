@@ -8,6 +8,7 @@ Depends on: none
 ---
 
 # Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる
+
 Closed: 2026-04-22
 Close commit: ea5f5184
 ID: 515
@@ -15,7 +16,9 @@ Orchestration upstream: —
 Blocks v{N}: none
 Source: "`std/bytes/mod.ark` (read-only audit). Classification uses this issue’s axes: prefer **`Option`** when the only failure is absence / EOF, **`Result<_, Error>`** (or a small typed enum) when callers need distinguishable errors, and **`adapter`** for a thin compatibility layer that preserves the old `i32` / `-1` contract next to a modern API."
 - [x] `String` error を `std: ":core::Error` へ寄せる migration 方針が family ごとに整理される"
+
 ## Inventory (std: ":text / std::path / std::seq)"
+
 | `hex_val_char` | `std/bytes/mod.ark: "144` (return at `:167`) | Invalid hex digit → `0 - 1` | **Option** (`Option<i32>` nibble) or **Result** (invalid input); **adapter**: keep `-> i32` with documented `-1` beside `try_*` |"
 | `read_u8` | `: "396–404` (`:399`) | No byte remaining → `0 - 1` (doc: “error sentinel”) | **Option** (`None` = EOF); **Result** if cursor errors should be typed; **adapter**: legacy `read_u8` returning `-1` |"
 | `read_u16_le` | `: "409–416` (`:411`) | Fewer than 2 bytes → `0 - 1` | Same family as `read_u8`: **Option** / **Result** for underflow; **adapter** for `-1` preserve |"
@@ -44,6 +47,7 @@ Fixture added: `tests/fixtures/stdlib_bytes/cursor_try_read.ark`
 (10 assertions: success + None paths for all implemented `try_*` variants)
 Verification: `python scripts/manager.py verify quick` — 18/19 pass;
 unrelated to this change. Fixture pass count: "746 (+1 vs base 745)."
+
 # Stdlib: sentinel 値 / raw String error を Result / Option / Error enum に寄せる
 
 ## Summary

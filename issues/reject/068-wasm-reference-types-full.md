@@ -12,7 +12,6 @@ Status note: Partially implemented. Remaining items deferred to v5+.
 ---
 # Wasm Reference Types: table.get / table.set / externref フル対応
 
-
 ## Summary
 
 WebAssembly Reference Types 提案の `table.get`・`table.set`・`table.fill`・`table.copy`・

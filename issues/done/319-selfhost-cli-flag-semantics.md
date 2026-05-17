@@ -12,6 +12,7 @@ Priority: 7
 
 - `src/compiler/main.ark`: "`--emit` を parse するが、driver::compile() に渡していない"
 - `src/compiler/driver.ark`: DriverConfig に `target` / `opt_level` / dump flags はあるが `emit_mode` がない
+
 # Selfhost CLI のフラグ semantics を driver に接続する
 
 ## Summary

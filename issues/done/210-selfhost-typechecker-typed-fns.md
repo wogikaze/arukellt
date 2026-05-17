@@ -13,11 +13,12 @@ Implemented: "`typecheck_module` now walks `Vec<AstNode>` decls, finds NK_FN_DEC
 ---
 
 # selfhost: typechecker builds real typed_fns from resolved AST
+
 `typecheck_module(resolve_ctx: "ResolveCtx) -> TypeCheckResult` currently returns:"
 - Handle: "`i32`, `bool`, `String`, `()` (unit), `let`, `return`, binary ops, function calls, `if`"
 - [x] A file `fn add(a: "i32, b: i32) -> i32 { a + b }` produces `TypedFn { name: "add", return_type: TY_I32 }`"
-# selfhost: typechecker builds real typed_fns from resolved AST
 
+# selfhost: typechecker builds real typed_fns from resolved AST
 
 ## Summary
 

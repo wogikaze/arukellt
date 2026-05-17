@@ -10,8 +10,10 @@ Blocks v1 exit: no
 ---
 
 # Task provider: background task support and pre-execution validation
+
 - [x] background task（`isBackground: true`）が動作し、ウォッチモードなどで継続実行できる
 - `isBackground: true` task の定義
+
 # Task provider: background task support and pre-execution validation
 
 ## Summary

@@ -13,8 +13,8 @@ Orchestration upstream: None
 
 ## Summary
 
-#264 established the category-oriented CI job wiring. Its remaining future
-bullet is a separate reporting concern: aggregate category job results and show
+# 264 established the category-oriented CI job wiring. Its remaining future bullet is a separate
+
 a quality-area summary that reviewers can scan without opening every CI log.
 
 ## Why this matters

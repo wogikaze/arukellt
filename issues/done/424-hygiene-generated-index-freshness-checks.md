@@ -16,8 +16,6 @@ Action: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Summary
 
 docs index、issue index の freshness を自動検出。

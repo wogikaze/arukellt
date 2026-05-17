@@ -16,11 +16,14 @@ Implementation notes:
 ---
 
 # Stdlib: 数値タグ / if 連鎖を enum + match 優先へ移行する
+
 - `std/json/mod.ark` は `JsonValue { tag: "i32, raw: String }` と `v.tag == 0..5` を広く使っている"
 - `std/toml/mod.ark` も `TomlValue { tag: "i32, raw: String }` ベースで型を表現している"
 対象は「公開 API から見える数値タグ / raw id surface」に限定する。`std: ":bytes` の `hex_char` / `hex_val_char`"
 | `std: ":wit` id conversion boundary | `wit_type_id(ty)`, `wit_type_from_id(id)` | WIT primitive code を `i32` で往復させる | `keep raw id temporarily for interop/ABI` | WIT / component-model tooling では canonical numeric code との相互変換が必要。raw id surface は削除せず、typed enum との明示的 boundary API に閉じ込める。 |"
+
 ### `std: ":wit`"
+
 - 現行の `raw: String` 依存は、配列や table を再帰型に即時移行できない間の staging payload として variant payload に押し込める。
 - 「公開 struct の `tag: i32` を読ませる」形は新規採用しない
 - `std: ":json` / `std::toml` / `std::wit` の module ごとの migration 方針を個別に記録した"
@@ -30,6 +33,7 @@ Implementation notes:
 - Per-module migration notes documented for std: ":json, std::toml, std::wit"
 - Rule fixed: "new stdlib APIs must not expose raw numeric tag" documented in issue note
 - ✓ Individual migration policies for std: ":json, std::toml, std::wit documented"
+
 # Stdlib: 数値タグ / if 連鎖を enum + match 優先へ移行する
 
 ## Summary

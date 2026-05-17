@@ -15,8 +15,6 @@ Close gate: satisfied by current-first docs alignment.
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Completed — 2026-04-15
 
 **Evidence review**:
@@ -24,7 +22,6 @@ Close gate: satisfied by current-first docs alignment.
 - The guide now states the dual period explicitly and points readers to
   `docs/current-state.md` and `docs/compiler/bootstrap.md` for the verified status.
 - `python3 scripts/check/check-docs-consistency.py` passed for the correction slice.
-
 
 ## Summary
 

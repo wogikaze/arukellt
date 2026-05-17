@@ -12,7 +12,6 @@ Status note: Parent issue for debug metadata, runtime inspection, and advanced d
 ---
 # Debug UX: source-level debugging と DAP surface
 
-
 ## Summary
 
 Arukellt の debug UX は、metadata / DAP foundation、通常の inspect/step/evaluate surface、高度な履歴・可視化 DX で分けて扱う必要がある。

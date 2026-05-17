@@ -14,24 +14,21 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # Tooling Contract: LSP protocol E2E テストを追加する
+
 - `crates/ark-lsp/src/server.rs`: "3 件の unit test (completion のみ)"
 - LSP 仕様: JSON-RPC over stdio protocol
+
 # Tooling Contract: LSP protocol E2E テストを追加する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/355-lsp-protocol-e2e-tests.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

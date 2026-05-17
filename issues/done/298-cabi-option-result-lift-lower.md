@@ -15,22 +15,18 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 - `crates/ark-wasm/src/component/wit.rs: "30-34`: `WitType::Option` / `WitType::Result` が定義済み"
 - `crates/ark-wasm/src/emit/t3/cabi_adapters.rs`: option / result のアダプタなし
+
 # option / result 型の canonical ABI lift-lower を実装する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/298-cabi-option-result-lift-lower.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

@@ -11,6 +11,7 @@ Priority: 3
 ---
 
 # LSP: Full Multi-Root Workspace and Cross-Package Resolution
+
 - `workspace_roots: Mutex<Vec<PathBuf>>` — populated on init, never used post-init
 `Manifest` already parses `dependencies: HashMap<String, DependencySpec>`.  A new
 `DependencySpec: ":Path { path }` and potentially future registry deps) and return a"
@@ -21,6 +22,7 @@ imports (e.g. `use my_lib: ":utils`) need the resolver to also search the indexe
 - Estimated scope: 200–300 lines across `ark-manifest` and `ark-lsp`.
 - `crates/ark-manifest/src/lib.rs` — `DependencySpec` enum, `Manifest: ":find_root`"
 - Spawned from: `issues/done/441-vscode-project-aware-workspace-package-ark-toml.md`
+
 # LSP: Full Multi-Root Workspace and Cross-Package Resolution
 
 ## Context

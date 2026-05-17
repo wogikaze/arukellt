@@ -28,9 +28,9 @@ Done in this slice (reachability/liveness pruning of unused MonoInstances):
 - `src/compiler/hir.ark`: generic parameter metadata exists on HIR shapes; full concrete expansion before codegen is still missing.
 - Rust: "`crates/ark-mir` (lowering submodules, see crate doc comment in `crates/ark-mir/src/lib.rs`) performs monomorphization-style specialization on the non-selfhost pipeline."
 `tests/fixtures/manifest.txt` under `run: "`, `t3-compile:`, and"
-`t3-run: ` sections).  After slice-c the MIR module exposes
+`t3-run:` sections).  After slice-c the MIR module exposes
 - generic fn の呼び出しで型引数が推論される — partial: `NK_CALL` and
-registered it in `tests/fixtures/manifest.txt` under `run: `,
+registered it in `tests/fixtures/manifest.txt` under `run:`,
 `t3-compile: "`, and `t3-run:`."
 - Extended `MonoInstance` with concrete `type_args: Vec<TypeInfo>` and added a
 sites resolve to them.  Remaining work: deeper substitution of `T`
@@ -38,16 +38,14 @@ sites resolve to them.  Remaining work: deeper substitution of `T`
 - New `mir_prune_unreachable(m: MirModule) -> i32` pass added to
 - New `MirModule.mono_pruned_count: i32` field records the number of
 line — `MIR mono pruned: "N function(s)` — when the count is"
-(registered in `tests/fixtures/manifest.txt` under `run: `).
+(registered in `tests/fixtures/manifest.txt` under `run:`).
 - Behavioural witness: "program prints `3` (the surviving i32"
+
 # Selfhost に generic instantiation と monomorphization を実装する
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Consistency audit — 2026-04-18
-
 
 **Evidence (selfhost)**:
 

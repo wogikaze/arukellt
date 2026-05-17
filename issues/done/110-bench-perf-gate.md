@@ -21,7 +21,9 @@ Implementation notes:
 ---
 
 # CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック
+
 ## Historical: reopened by audit — 2026-04-13
+
 - `scripts/check/perf-gate.sh`: invokes `scripts/util/benchmark_runner.py` with baseline/current paths
 - `scripts/update-baselines.sh`: baseline refresh, supports `--dry-run`
 - `tests/baselines/perf/`: "`baselines.json` (5 benchmarks), `current.json`, `hello-wasm-size.json`"
@@ -30,11 +32,10 @@ Implementation notes:
 (Outcome environment-dependent: on 2026-04-18 audit host, runs alternated between PASS and FAIL on compile/run variance vs frozen baseline; failure path prints thresholds + `update-baselines.sh` hint. Opt-in gate remains appropriate for CI hardware profiles.)
 - CI messaging tightened: perf-gate.sh prints remediation on non-zero exit
 - Thresholds: compile time +20%, runtime +10%, binary size +15%
+
 # CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック
 
 ## Historical: reopened by audit — 2026-04-13
-
-
 
 ## Summary
 

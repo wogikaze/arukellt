@@ -11,6 +11,7 @@ Priority: 15
 ---
 
 - `src/compiler/ark.toml` (307 bytes): selfhost 自身の manifest は存在する
+
 # Selfhost CLI に package/workspace 統合を実装する
 
 ## Summary

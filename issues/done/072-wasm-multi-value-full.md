@@ -14,19 +14,19 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
 # Wasm Multi-Value: ブロック / ループの複数値返却フル活用
+
 - `Operand: ":IfExpr` now recognizes concrete tuple results (`__tupleN` / `__tupleN_any`) where both"
 `BlockType: ":FunctionType(...)` multi-value `if` block."
+
 # Wasm Multi-Value: ブロック / ループの複数値返却フル活用
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/072-wasm-multi-value-full.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

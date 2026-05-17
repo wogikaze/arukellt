@@ -11,7 +11,9 @@ Priority: 5
 ---
 
 # Stdlib: module family ごとの拡張原則を定義する
+
 - Added `family = "expansion"` to `std: ":host::http` and `std::host::sockets` in `std/manifest.toml`"
+
 # Stdlib: module family ごとの拡張原則を定義する
 
 ## Summary

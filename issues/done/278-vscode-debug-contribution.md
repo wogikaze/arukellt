@@ -13,22 +13,18 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 - [x] `type: "arukellt"` の launch configuration で `arukellt debug-adapter` が起動する
+
 # VS Code 拡張に debug contribution を追加する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/278-vscode-debug-contribution.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

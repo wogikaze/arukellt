@@ -13,7 +13,9 @@ Implementation-backed close evidence: "commit `da6f11b` (`design(stdlib): split 
 ---
 
 # Stdlib: property / differential / parity test を family 横断で拡張する
+
 - 2026-04-18: follow-up extraction completed as `#526` JSON parity/differential tests, `#527` TOML parity/differential tests, and `#528` collections/hash property-differential tests.
+
 # Stdlib: property / differential / parity test を family 横断で拡張する
 
 ## Summary
@@ -78,7 +80,6 @@ The rows below propose **property-style or differential** additions on top of th
 - 2026-04-18: follow-up extraction completed as `#526` JSON parity/differential tests, `#527` TOML parity/differential tests, and `#528` collections/hash property-differential tests.
 
 ## Closed by orchestration — 2026-04-18
-
 
 **Why this closes the issue**:
 

@@ -22,11 +22,9 @@ data section: "0.3KB (5%)"
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/111-bench-wasm-size-analysis.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

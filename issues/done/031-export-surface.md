@@ -12,6 +12,7 @@ Blocks v1 exit: no
 - [x] `WitWorld` struct extended with `imports: Vec<WitFunction>` to hold import declarations
 - [x] At least 3 test cases: "(a) simple scalar export, (b) struct parameter + string return,"
 - The export adapter function naming convention: "`$__cabi_export_{name}` (following the"
+
 # pub fn export surface & WIT export generation
 
 ## Summary

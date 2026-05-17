@@ -11,7 +11,9 @@ Priority: 11
 ---
 
 # Formatter: コメントと trivia の保存を実装する
+
 - Added 4 new tests: line comments between items, leading comments, block comments, idempotency
+
 # Formatter: コメントと trivia の保存を実装する
 
 ## Summary

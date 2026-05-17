@@ -6,6 +6,7 @@ Orchestration class: source-of-truth-transition
 ---
 
 # 583 — Phase 5 prerequisite: retire ARUKELLT_USE_RUST opt-in and purge `arukellt` Rust core consumers
+
 Blocks: 560, 561, 562, 563, 564
 blocker: "`crates/arukellt` (and `crates/ark-lsp` for ark-stdlib) actively"
 - [x] `crates/arukellt/src/cmd_doc.rs` no longer depends on `ark_stdlib: ":StdlibManifest`"
@@ -21,14 +22,17 @@ arukellt-selfhost: ARUKELLT_USE_RUST is set, but the legacy Rust CLI has
 warning: "`ark-wasm` (lib) generated 2 warnings  # pre-existing, unrelated"
 Usage: arukellt <COMMAND>
 Total checks: "19  Passed: 16  Failed: 3"
+
 # Net delta vs master baseline: +1 passing top-level check
-#563 ark-stdlib, #564 ark-llvm) can now proceed: each Rust core crate
+
+# 563 ark-stdlib, #564 ark-llvm) can now proceed: each Rust core crate
+
 # 583 — Phase 5 prerequisite: retire ARUKELLT_USE_RUST opt-in and purge `arukellt` Rust core consumers
 
 ## Why
 
-#560/#561/#562/#563 each STOPped at slice-attempt with the same structural
-blocker: `crates/arukellt` (and `crates/ark-lsp` for ark-stdlib) actively
+# 560/#561/#562/#563 each STOPped at slice-attempt with the same structural blocker
+
 consume Rust core crates via the `ARUKELLT_USE_RUST=1` legacy CLI path
 implemented in `crates/arukellt/src/commands.rs` and `crates/arukellt/src/cmd_doc.rs`.
 
@@ -229,8 +233,8 @@ status note is committed.
 
 ## Close note 2026-04-22 (DONE — unblocked by #585 / ADR-029)
 
-#585 (master commit `c5a67f3c`, ADR-029) replaced the Rust-baseline
-parity contract in `scripts/selfhost/checks.py` with a selfhost-native
+# 585 (master commit `c5a67f3c`, ADR-029) replaced the Rust-baseline parity contract
+
 contract anchored on `bootstrap/arukellt-selfhost.wasm` and
 `tests/snapshots/selfhost/cli-{help,version}.txt`. With that contract
 landed the four canonical selfhost gates no longer consult
@@ -350,8 +354,6 @@ Total checks: 19  Passed: 16  Failed: 3
 
 ### Phase 5 unblock confirmation
 
-`crates/arukellt` no longer pins any of the soon-to-be-deleted core
-crates. Phase 5 (#560 ark-driver, #561 ark-mir, #562 ark-wasm,
-#563 ark-stdlib, #564 ark-llvm) can now proceed: each Rust core crate
-is reachable only via its own internal API surface (no consumer in
+`crates/arukellt` no longer pins any of the soon-to-be-deleted core crates. Phase 5 (#560 ark-driver, #561 ark-mir, #562 ark-wasm, #563 ark-stdlib, #564 ark-llvm) can now proceed: each Rust core crate is reachable
+
 `crates/arukellt`).

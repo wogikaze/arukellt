@@ -14,8 +14,11 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
 # std: ":path + std::fs: パス操作とファイル I/O"
+
 (read, write, exists, create_dir_all, metadata) を std: ":path と std::fs として実装する。"
+
 ### std: ":fs"
+
 pub fn from_string(s: String) -> Path
 pub fn to_string(p: Path) -> String
 pub fn join(base: "Path, child: String) -> Path"
@@ -50,17 +53,16 @@ pub fn copy(src: "Path, dst: Path) -> Result<(), Error>"
 1. Path separator: "WASI/POSIX では `/` 固定。Windows パス (`\`) は非対応を明示"
 2. 既存 `fs_read_file(path: "String)` との移行: Path wrapper を挟む"
 - `docs/stdlib/path-fs-reference.md`: path, fs API リファレンス
+
 # std::path + std::fs: パス操作とファイル I/O
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/049-std-path-fs.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

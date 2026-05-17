@@ -11,7 +11,9 @@ Priority: 21
 ---
 
 # Tooling Contract: ark-lsp を CI merge gate に含める
+
 - `.github/workflows/ci.yml: 57,64` — `--exclude ark-lsp`
+
 # Tooling Contract: ark-lsp を CI merge gate に含める
 
 ## Summary

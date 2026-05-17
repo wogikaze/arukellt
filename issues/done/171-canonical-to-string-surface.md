@@ -13,11 +13,13 @@ Reason: "This issue has `Status: open` in its frontmatter but was filed under `i
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
 
-#171 はこの順序の最後: "実装 (#484) が完了するまで docs を更新してはならない。"
+# 171 はこの順序の最後: "実装 (#484) が完了するまで docs を更新してはならない。"
+
 - `<!-- fixture: stdlib_core/to_string_i32.ark -->` link in docs/language/guide.md
 - New fixture: "`tests/fixtures/stdlib_core/to_string_i64.ark` (+ `.expected`) added and registered in manifest.txt"
 - `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
 - `python3 scripts/check/check-docs-consistency.py`: PASS
+
 # canonical stringification surface を `to_string(x)` に統一する
 
 ---
@@ -32,16 +34,13 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 | implementation | #484 | compiler/stdlib で to_string() を実装 |
 | docs + fixtures | **#171 (this issue)** | docs/quickstart 更新 + fixture coverage |
 
-
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/171-canonical-to-string-surface.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

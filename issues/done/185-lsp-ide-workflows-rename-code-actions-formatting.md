@@ -12,7 +12,6 @@ Status note: Parent issue for authoring intelligence beyond today’s base LSP f
 ---
 # IDE surface: rename / code actions / workspace symbols / formatting
 
-
 ## Summary
 
 現在の `ark-lsp` に不足している編集系 / authoring 系の責務は、補完知能、refactor/search/navigation、semantic preview/diff、partial execution preview で性質が分かれる。

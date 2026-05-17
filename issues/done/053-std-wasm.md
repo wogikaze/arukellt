@@ -12,8 +12,11 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # std: ":wasm: Wasm バイナリ型・opcode・module builder"
+
 module builder、binary reader/writer を Arukellt の std: ":wasm として実装する。"
+
 ### std: ":wasm::leb128"
+
 // They will be added in std: ":wasm::gc (v4+) once GC proposal is finalized in wasm-tools"
 pub struct FuncType { params: "Vec<ValType>, results: Vec<ValType> }"
 pub struct Limits { min: "u32, max: Option<u32> }"
@@ -42,17 +45,16 @@ pub fn size_u32(x: u32) -> i32  // encoded byte count
 5. `std/wasm/opcode.ark`: "主要命令の定数定義 (i32.const = 0x41 等)"
 - fixture: `stdlib_wasm/valtype.ark`, `stdlib_wasm/leb128_roundtrip.ark`,
 - `docs/stdlib/wasm-reference.md`: types, binary, leb128, opcode のリファレンス
+
 # std::wasm: Wasm バイナリ型・opcode・module builder
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/053-std-wasm.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

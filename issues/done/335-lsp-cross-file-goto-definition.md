@@ -14,26 +14,23 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # LSP: cross-file go to definition を実装する
+
 - `crates/ark-lsp/src/server.rs: "3037-3080` — `goto_type_definition()` 同一ファイル探索"
 - `find_definition_span()` (506-546): top-level item → impl block method → let binding → param の順で同一 module 内を探索
 - qualified name (`module: ":item`) の解決なし"
 - [x] qualified name (`module: ":fn()`) の定義元に飛べる"
+
 # LSP: cross-file go to definition を実装する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/335-lsp-cross-file-goto-definition.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

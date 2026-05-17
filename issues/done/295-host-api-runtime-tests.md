@@ -19,6 +19,7 @@ Priority: 15
 - [x] fs: 存在しないファイルの読み取りエラーを確認する fixture（既存 `fs_read_error.ark` で可）
 - [x] env: arg_count / args の引数受け渡しを確認する fixture
 - [x] process: "exit(0) の正常終了を確認する fixture"
+
 # host API の run-time テストを拡充する
 
 ## Summary

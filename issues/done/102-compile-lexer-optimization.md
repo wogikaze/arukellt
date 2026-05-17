@@ -17,11 +17,9 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/102-compile-lexer-optimization.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

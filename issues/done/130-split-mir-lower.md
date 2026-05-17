@@ -18,17 +18,16 @@ Implementation notes:
 
 - Build succeeds: `cargo build --workspace --exclude ark-llvm --exclude ark-lsp` → exit 0
 - Verification: "`bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)"
+
 # MIR lower.rs (4360行) をサブモジュールに分割
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/130-split-mir-lower.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

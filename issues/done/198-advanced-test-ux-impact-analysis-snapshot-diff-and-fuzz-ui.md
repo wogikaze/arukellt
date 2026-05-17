@@ -20,8 +20,6 @@ Implementation notes:
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Summary
 
 テスト差分からの impact analysis、snapshot side-by-side diff と approve 導線、fuzz/property test UI、failure clustering など、runner の上に載る高度な test UX を追う。

@@ -12,9 +12,11 @@ Source: docs/benchmarks/feature-matrix.md coverage gap
 ---
 
 # 539 — Benchmark: "closure map (higher-order functions)"
+
 - [x] Tags: `cpu-bound`, `closure-heavy`, `allocation-heavy`, `iteration`
 - [x] `mise bench: update-baseline` includes the new benchmark
 deterministic output `6017000` (map: "`x * 3 + 7` over 2000 elements, reduce: sum). Closures"
+
 # 539 — Benchmark: closure map (higher-order functions)
 
 ## Summary

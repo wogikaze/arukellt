@@ -16,6 +16,7 @@ STOP_IF (deferred here): task **execution** E2E, rich **test controller discover
 | Failure logs: "user message, output channel, status bar | `extension.test.js` — *missing binary* test asserts `showErrorMessage` recording, output channel lines, language status + status bar text/tooltip | *Output Channels* / *Status Bar* (#275) suites are mostly presence smoke; other failure modes not mirrored |"
 | CLI ↔ extension contract blocks bad release | `npm run test: "playground-endpoint` (`test/playground-endpoint-guard.js`) pins playground URL vs `package.json` / `extension.js` / docs; CI full gate runs `npm test` | No single guard that extension spawn argv stays in lockstep with `arukellt lsp` CLI (relies on integration tests + manual review) |"
 2026-04-15 audit: reopened from `issues/done/` because extension tests and CI wiring exist, but the parent acceptance still lacks verified failure-surface coverage for user messages, restart behavior, and missing-binary error handling.
+
 # VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる
 
 ## Summary

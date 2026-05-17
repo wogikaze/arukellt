@@ -12,14 +12,14 @@ Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (cra
 ---
 
 # Async component support (v5)
+
 ---
+
 # Async Component Support (v5/T5)
 
 ---
 
 ## Reopened by audit — 2026-04-03
-
-
 
 have a corresponding open issue.
 

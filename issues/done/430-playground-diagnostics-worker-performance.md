@@ -11,7 +11,9 @@ Priority: 3
 ---
 
 # Playground: diagnostics worker と incremental parse loop の性能予算を作る
+
 - [x] 性能予算（例: 典型ファイルでの更新時間）が定義される。
+
 # Playground: diagnostics worker と incremental parse loop の性能予算を作る
 
 ## Summary

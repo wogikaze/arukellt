@@ -12,10 +12,12 @@ Priority: 20
 ---
 
 # Linter: ark.toml で lint 設定を管理する
+
 - `crates/ark-manifest/src/lib.rs`: "LintConfig struct (allow/warn/deny), LintLevel enum, severity_for() method"
 - `crates/ark-driver/src/session.rs`: "lint_allow/lint_deny fields, filtering in check()"
 - `crates/arukellt/src/commands.rs`: Load lint config from ark.toml in cmd_check/cmd_lint
 - `docs/ark-toml.md`: "[lint] section documentation"
+
 # Linter: ark.toml で lint 設定を管理する
 
 ## Summary

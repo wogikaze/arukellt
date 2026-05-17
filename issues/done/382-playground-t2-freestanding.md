@@ -25,6 +25,7 @@ Implementation notes:
 ---
 
 # Playground: "wasm32-freestanding (T2) target の downstream 実装を開始する"
+
 - `crates/ark-target/src/lib.rs`: "`wasm32-freestanding` registered, `implemented: true`, `run_supported: false` (compile-only; see #501)"
 - `crates/ark-wasm/src/emit/t2_freestanding.rs`: "minimal scaffold emitter (linear memory + empty `_start`, no WASI imports)"
 - `docs/target-contract.md` / `docs/current-state.md`: "T2 scaffold tier, proof path `tests/fixtures/t2/t2_scaffold.ark` + `cargo test -p arukellt --test t2_scaffold` (synced 2026-04-18, issue #382 docs slice)"
@@ -37,10 +38,10 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 - Integration test passes: `cargo test -p arukellt --test t2_scaffold` → exit 0
 - Verification: "`bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)"
 - T2 scaffold tier achieved: "compile-only, run_supported: false in target registry"
+
 # Playground: wasm32-freestanding (T2) target の downstream 実装を開始する
 
 ## Audit correction — 2026-04-14
-
 
 **Audit findings**:
 - `[x]` I/O surface ADR → `docs/adr/ADR-020-t2-io-surface.md` **EXISTS** (genuine ✓)
@@ -53,8 +54,6 @@ Emitter work broken out to `issues/open/501-t2-wasm-emit-implementation.md`.
 This issue remains open tracking the ADR slice only.
 
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Summary
 

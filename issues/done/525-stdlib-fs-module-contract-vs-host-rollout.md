@@ -16,12 +16,14 @@ Implementation notes:
 ---
 
 # Stdlib FS: module-level docs を host rollout reality に合わせる
+
 `std: ":fs` namespace は module 名だけ見ると一般 filesystem facade に見える一方、current implementation は"
 module-level docs と generated reference を `std: ":host::*` rollout reality に合わせて明示する。"
 - current queue に `std: ":fs` module contract wording だけを close gate にした issue がない"
 - [x] docs explain how `std: ":fs` relates to the broader `std::host::*` rollout without overclaiming durable surface area"
 - Verification: "`python3 scripts/check/check-docs-consistency.py` → PASS (2026-04-18)"
 - ✓ Docs explain `std: ":fs` relation to `std::host::*` rollout without overclaiming"
+
 # Stdlib FS: module-level docs を host rollout reality に合わせる
 
 ## Summary

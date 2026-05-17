@@ -14,9 +14,11 @@ All four acceptance criteria met: three property/differential fixtures added and
 ---
 
 # Stdlib collections/hash: property と differential tests を map / set invariant で拡張する
+
 `std: ":collections::hash` family は regression fixtures がある一方で、map / set の property invariant と differential replay を focused queue item として追跡していない。"
 - `tests/fixtures/stdlib_hashmap/property_snapshot_normalized.ark` — differential replay: "two maps built with different insertion orders produce byte-identical stdout under the documented normalization rule (collect `hashmap_keys` → inline ascending insertion sort → emit `key`/`value` lines in sorted order)."
-- Registered in `tests/fixtures/manifest.txt` under the `run: ` section for `stdlib_hashmap`.
+- Registered in `tests/fixtures/manifest.txt` under the `run:` section for `stdlib_hashmap`.
+
 # Stdlib collections/hash: property と differential tests を map / set invariant で拡張する
 
 ## Summary

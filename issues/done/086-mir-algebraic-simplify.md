@@ -14,20 +14,20 @@ Commit hash evidence: df4f672
 ---
 
 # MIR: 代数的簡略化 — 恒等式・吸収則・ド・モルガン則
+
 1. `passes/algebraic_simplify.rs`: 上記パターンのマッチング・置換
 - `crates/ark-mir/src/opt/algebraic_simplify.rs` — all identity/absorbing-element patterns: `x+0→x`, `x*1→x`, `x*0→0`, `x-0→x`, `x/1→x`, `x&0→0`, `x|0→x`, `x^0→x`, `x&&true→x`, `x&&false→false`, `x||false→x`, `x||true→true`, `!!x→x`, `--x→x`
 - `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass: ":AlgebraicSimplify`; in `DEFAULT_PASS_ORDER`"
+
 # MIR: 代数的簡略化 — 恒等式・吸収則・ド・モルガン則
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/086-mir-algebraic-simplify.md` — incorrect directory for an open issue.
-
 
 ## Summary
 
@@ -58,7 +58,6 @@ Commit hash evidence: df4f672
 **Verified implementation files** (actual paths, not acceptance-stated paths):
 - `crates/ark-mir/src/opt/algebraic_simplify.rs` — all identity/absorbing-element patterns: `x+0→x`, `x*1→x`, `x*0→0`, `x-0→x`, `x/1→x`, `x&0→0`, `x|0→x`, `x^0→x`, `x&&true→x`, `x&&false→false`, `x||false→x`, `x||true→true`, `!!x→x`, `--x→x`
 - `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass::AlgebraicSimplify`; in `DEFAULT_PASS_ORDER`
-
 
 **Accepted criteria**:
 1. ✅ All specified patterns matched and replaced

@@ -14,22 +14,18 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 - `scripts/run/verify-harness.sh`: "docs consistency check (生成 docs 一致) はある"
+
 # verify-harness.sh に docs freshness check を追加する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/304-harness-docs-freshness.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

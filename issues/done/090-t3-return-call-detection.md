@@ -13,6 +13,7 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # T3: 末尾位置の call → return_call 自動変換
+
 - `crates/ark-wasm/src/emit/t3/helpers.rs`: Added `try_emit_let_call_tail_return` method
 1. `MirStmt: ":Call { dest: Some(Local(id)), func: FnId, args }` + `Return(Place(id))`"
 2. `MirStmt: ":Assign(Local(id), Rvalue::Use(Operand::Call(name, args)))` + `Return(Place(id))`"
@@ -20,12 +21,12 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `grep -c "return_call" crates/ark-wasm/src/emit/t3/helpers.rs`: "13 (was 12)."
 - `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS.
 - `cargo test -p arukellt --test harness`: "649 PASS, 1 pre-existing FAIL (stdlib_core/to_string_i64.ark, unrelated)."
+
 # T3: 末尾位置の call → return_call 自動変換
 
 ---
 
 ## Completed — 2026-04-29
-
 
 **Evidence**:
 - `crates/ark-wasm/src/emit/t3/helpers.rs`: Added `try_emit_let_call_tail_return` method
@@ -43,11 +44,9 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/090-t3-return-call-detection.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

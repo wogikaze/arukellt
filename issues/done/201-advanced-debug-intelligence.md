@@ -19,8 +19,6 @@ Implementation notes:
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Summary
 
 time-travel debug、value history graph、`why panic?` explain、cross-module stepping visualization、step 間 state diff など、最小 DAP の上に載る高度な debug DX を追う。

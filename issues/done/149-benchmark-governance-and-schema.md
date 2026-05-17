@@ -12,21 +12,21 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # 基盤: benchmark schema・命名・実行モードの標準化
+
 - `benchmarks/README.md`: "updated with conceptual field reference (`compile_time_ms`, `runtime_ms`, `wasm_size_bytes`, `peak_memory_bytes`), `<suite>/<name>.<ext>` fixture naming convention, and tag/taxonomy guidance."
 - `docs/process/benchmark-plan.md`: "created with run-mode definitions (`quick` smoke <30s, `full`, `compare`, `ci` PR gate, `update-baseline`), regression thresholds, and baseline update rules (when/who/how)."
 - `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
 - `python3 scripts/check/check-docs-consistency.py`: PASS
+
 # 基盤: benchmark schema・命名・実行モードの標準化
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/149-benchmark-governance-and-schema.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

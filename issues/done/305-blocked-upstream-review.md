@@ -12,6 +12,7 @@ Priority: 25
 
 - `issues/blocked/037`: jco v1.16.1/v1.17.5 が Wasm GC components を transpile できない
 - <https: //github.com/bytecodealliance/jco>
+
 # blocked issue の upstream 状態を確認・更新する
 
 ## Summary

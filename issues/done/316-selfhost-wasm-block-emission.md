@@ -11,7 +11,9 @@ Priority: 8
 ---
 
 # Selfhost Wasm emitter: 構造化ブロック出力を実装する
+
 - `src/compiler/emitter.ark` (513 行): 70+ Wasm opcode 定義、LEB128 encoding、section header 出力
+
 # Selfhost Wasm emitter: 構造化ブロック出力を実装する
 
 ## Summary

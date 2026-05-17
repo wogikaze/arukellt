@@ -12,7 +12,6 @@ Status note: Partially implemented. Remaining items deferred to v5+.
 ---
 # Wasm GC Abstract Heap Types: any/eq/none/func/nofunc の完全活用
 
-
 ## Summary
 
 WasmGC 提案の抽象ヒープ型 (`anyref`, `eqref`, `structref`, `arrayref`, `noneref`, `funcref`, `nofuncref`)

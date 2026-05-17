@@ -12,7 +12,6 @@ Status note: Parent issue for extension bootstrap, command/task wiring, and setu
 ---
 # VS Code: `arukellt-all-in-one` 拡張の基盤整備
 
-
 ## Summary
 
 `arukellt-all-in-one` の foundation は、language client の起動、VS Code command / task surface、環境診断や command graph などの土台を分けて追う必要がある。

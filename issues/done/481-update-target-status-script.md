@@ -11,9 +11,11 @@ Downstream: "#260 (CI drift-check) — この issue 完了後に着手"
 ---
 
 # scripts/update-target-status.sh: CI 出力から target-contract.md を更新
+
 - `--dry-run` mode works: shows unified diff of proposed changes without modifying file
 - `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
 $ echo '{"wasm32-wasi-p1": "{"parse": "smoke"}}' | bash scripts/update-target-status.sh --dry-run"
+
 # scripts/update-target-status.sh: CI 出力から target-contract.md を更新
 
 ---

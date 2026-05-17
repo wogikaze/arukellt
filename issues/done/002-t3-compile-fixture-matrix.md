@@ -9,7 +9,8 @@ Orchestration class: implementation-ready
 Blocks v1 exit: yes
 ---
 
-- Extend `crates/arukellt/tests/harness.rs` and manifest parsing to support a T3 compile-only fixture kind (for example `t3-compile: `) without changing public CLI.
+- Extend `crates/arukellt/tests/harness.rs` and manifest parsing to support a T3 compile-only fixture kind (for example `t3-compile:`) without changing public CLI.
+
 # T3 compile fixture matrix
 
 ## Summary

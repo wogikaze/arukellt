@@ -8,6 +8,7 @@ Depends on: —
 ---
 
 # std モジュールシステム基盤: "`use std::*` import インフラ"
+
 Closed: 2026-04-14
 ID: 039
 Orchestration upstream: —
@@ -28,11 +29,11 @@ v3 標準ライブラリの全モジュールが `use std: ":collections::hash_m
 1. `use std: ":collections::*` (wildcard import) を v3 で入れるか、v4 に送るか"
 2. `use std: ":collections::{vec, hash_map}` の destructuring import が動作する"
 3. `use std: ":bytes` のようなモジュール全体 import が動作する"
-1. `ark-parser`: "`use std::foo::{bar, baz}` の destructuring import 構文を AST に追加"
-2. `ark-resolve`: "モジュール修飾名 (`foo::bar`) の名前解決を実装"
-3. `ark-resolve`: `std/` 配下のサブディレクトリ構造に対応するモジュール検索パスを実装
-4. `ark-typecheck`: モジュール修飾呼び出しの型検査を通す
-6. エラー診断: "`E0500: module not found`, `E0501: symbol not found in module`"
+4. `ark-parser`: "`use std::foo::{bar, baz}` の destructuring import 構文を AST に追加"
+5. `ark-resolve`: "モジュール修飾名 (`foo::bar`) の名前解決を実装"
+6. `ark-resolve`: `std/` 配下のサブディレクトリ構造に対応するモジュール検索パスを実装
+7. `ark-typecheck`: モジュール修飾呼び出しの型検査を通す
+8. エラー診断: "`E0500: module not found`, `E0501: symbol not found in module`"
 - fixture: `module_import/use_std_basic.ark`, `module_import/use_destructure.ark`,
 - `use std: ":text` whole-module import resolves: `text::is_empty` and `text::len_bytes`"
 1. prelude との優先順位: prelude で定義済みの名前とモジュール import が衝突した場合の解決規則を決める
@@ -101,6 +102,7 @@ Reviewer: "closure slice (verify-issue-closure checklist)"
 - Acceptance items map to files/fixtures or code: yes
 - `Depends on` satisfied: "yes (none)"
 - No `[ ]` left on acceptance list: "yes (narrative criteria covered by evidence table)"
+
 # std モジュールシステム基盤: `use std::*` import インフラ
 
 ---
@@ -121,11 +123,9 @@ Remaining slices: resolver wiring (#2), stdlib path resolution (#3), typecheck (
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/039-module-system-infrastructure.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

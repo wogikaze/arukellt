@@ -30,15 +30,14 @@ W0100: "`Vec_new_i32` is deprecated. Use `std::collections::vec::new<i32>()` ins
 3. `ark-diagnostics`: "W0100 (deprecated function) 警告コードを追加"
 4. `ark-resolve`: deprecated 関数呼び出し時に W0100 を emit
 - fixture: "`stdlib_migration/new_api_basic.ark` (新 API で動作することを確認)"
-3. prelude 縮小は二段階: v3 で warning、v4 で旧 API 除去
+1. prelude 縮小は二段階: v3 で warning、v4 で旧 API 除去
 - `docs/migration/v2-to-v3.md`: 旧 API → 新 API の完全写像表、移行手順
 - `docs/stdlib/prelude.md`: 新 prelude の内容と設計理由
 1. deprecated warning を出すタイミング: パース時 vs 型検査時 vs emit 時
+
 # Prelude 再構成と API 移行
 
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Summary
 

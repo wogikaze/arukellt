@@ -11,7 +11,9 @@ Priority: 8
 ---
 
 # Stdlib: test モジュールの assertion / snapshot helper を拡充する
+
 `std: ":test` family を fixture 実行の裏方ではなく、ユーザーが使う test support API として育てる。"
+
 # Stdlib: test モジュールの assertion / snapshot helper を拡充する
 
 ## Summary

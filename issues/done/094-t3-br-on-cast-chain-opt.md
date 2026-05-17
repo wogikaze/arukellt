@@ -8,6 +8,7 @@ Depends on: —
 ---
 
 # T3: enum dispatch の br_on_cast 連鎖最適化
+
 Closed: 2026-04-18
 ID: 094
 Orchestration upstream: "Rescoped 2026-04-18 — original i31 / monolithic `br_on_cast` acceptance deferred; see §Rescope — 2026-04-18; partial IfStmt→`br_table` work landed under #505 (`issues/done/505-t3-br-table-type-info-gap.md`)"
@@ -28,21 +29,20 @@ Estimated change: ≥ 180 lines across 4 files — exceeds the 150-line limit
 This optimization was tracked at: "`issues/done/505-t3-br-table-type-info-gap.md` (done)."
 Purpose: Lift the hard **STOP_IF** gate for orchestration by recording the
 STOP_IF historical note: The §STOP_IF section remains as **audit evidence**;
-Close evidence: 
+Close evidence:
 - Documentation rescope complete: "issue documents why original acceptance is incompatible with HEAD (§STOP_IF + table)"
 - Verification: "`bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)"
-Acceptance mapping: 
+Acceptance mapping:
+
 # T3: enum dispatch の br_on_cast 連鎖最適化
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/094-t3-br-on-cast-chain-opt.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

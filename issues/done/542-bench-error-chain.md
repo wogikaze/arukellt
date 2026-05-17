@@ -14,8 +14,10 @@ Source: docs/benchmarks/feature-matrix.md coverage gap
 ---
 
 # 542 — Benchmark: "error chain (Result / error propagation)"
+
 - [x] Tags: `cpu-bound`, `error-heavy`, `match-heavy`, `iteration`
 - [x] `mise bench: update-baseline` includes the new benchmark
+
 # 542 — Benchmark: error chain (Result / error propagation)
 
 ## Summary

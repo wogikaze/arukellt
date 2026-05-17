@@ -19,8 +19,6 @@ Implementation notes:
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Summary
 
 関数 / 式単位の partial execution preview、hover / code lens 上での入力例・推論結果・sandbox 実行結果提示など、ローカル理解を助ける semantic insight surface を追う。

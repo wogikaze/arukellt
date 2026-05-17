@@ -30,11 +30,9 @@ All acceptance criteria verified:
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/150-cross-cutting-spec-and-ir-docs.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

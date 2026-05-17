@@ -11,9 +11,11 @@ Priority: 6
 ---
 
 # Selfhost MIR lowering: 集合体操作を実装する
+
 - `src/compiler/mir.ark`: MIR_STRUCT_NEW, MIR_FIELD_GET 等の opcode は定義済みだが生成コードなし
 - `src/compiler/parser.ark`: struct literal / field access / enum variant は parse 可能
 - `src/compiler/hir.ark`: StructType / EnumType の定義構造あり
+
 # Selfhost MIR lowering: 集合体操作を実装する
 
 ## Summary

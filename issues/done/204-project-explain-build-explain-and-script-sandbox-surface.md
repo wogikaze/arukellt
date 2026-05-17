@@ -19,8 +19,6 @@ Implementation notes:
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Summary
 
 workspace knowledge graph、`why is this compiled?`、build/target explain、script sandbox preview、environment diff、reachability/dead-code reporting など、project understanding の explain/inspection surface を追う。

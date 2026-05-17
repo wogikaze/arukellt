@@ -17,6 +17,7 @@ Source: benchmarks/ directory cleanup request
 - Date: 2026-04-22
 - Commit: b531b7eb
 - Acceptance: all YES
+
 # 544 — Benchmark suite reorganization and docs integration
 
 ## Summary

@@ -9,7 +9,9 @@ Orchestration class: implementation-ready
 ---
 
 # Repo Hygiene: scaffold / internal コンポーネントの露出 tier を README と docs に反映する
+
 - Component tiers documented: product, generated, internal, archive
+
 # Repo Hygiene: scaffold / internal コンポーネントの露出 tier を README と docs に反映する
 
 ## Acceptance

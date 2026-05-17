@@ -14,6 +14,7 @@ Total checks: "19 / Passed: 19 / Failed: 0"
 ---
 
 # Scalar 型完全化: u8/u16/u32/u64/i8/i16/f32
+
 操作に unsigned 幅付き整数が不可欠であり、std: ":bytes と std::wasm の前提条件。"
 2. リテラル表記: `42u8`, `1000u32`, `0xFFu8` 等の suffix リテラル
 3. 型間の明示変換関数: `u8_to_i32`, `i32_to_u8`, `u32_to_u64` 等
@@ -37,17 +38,16 @@ Total checks: "19 / Passed: 19 / Failed: 0"
 151: "pub fn u32_to_u64(x: u32) -> u64 {"
 168: "pub fn f32_to_f64(x: f32) -> f64 {"
 `f32_to_f64` function is defined in prelude.ark and handles f32→f64 promotion via Wasm `f64.promote_f32`. However, f32-typed local variables (e.g. `let x: f32 = 1.5f32`) require f32 local tracking in the MIR lowerer which is not yet fully implemented. The conversion function itself works when f32 values come from struct fields or function params.
+
 # Scalar 型完全化: u8/u16/u32/u64/i8/i16/f32
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/040-scalar-type-completeness.md` — incorrect directory for an open issue.
-
 
 ## Summary
 
@@ -124,7 +124,6 @@ Wasm 自体が u8/u16/u32/u64 を要求するため、Bytes 操作や LEB128 に
 3. hex リテラル (`0xFF`) は全 integer 型で有効にするか、u8 のみか
 
 ## 完了証拠 / Closure Evidence
-
 
 ### 受け入れ条件チェック / Acceptance Criteria
 

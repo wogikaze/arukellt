@@ -18,11 +18,9 @@ Commit hash evidence: df4f672
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/092-t3-dead-import-elimination.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

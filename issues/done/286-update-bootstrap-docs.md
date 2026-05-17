@@ -15,8 +15,6 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Acceptance
 
 - [x] `docs/current-state.md` が fixpoint **未到達**を明記している

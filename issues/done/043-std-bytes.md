@@ -18,6 +18,7 @@ Acceptance mapping:
 ---
 
 # std: ":bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128"
+
 raw binary 処理のための std: ":bytes モジュールを新設する。"
 pub fn bytes_from_array(xs: Vec<u8>) -> Bytes
 pub fn bytes_len(b: Bytes) -> i32
@@ -63,7 +64,7 @@ pub fn leb128_decode_u64(c: ByteCursor) -> Result<u64, Error>
 9. `std/bytes/leb128.ark`: "LEB128 codec (source 実装)"
 - fixture: `stdlib_bytes/bytes_basic.ark`, `stdlib_bytes/buf_basic.ark`,
 1. Bytes の Wasm 表現: "`(array mut i8)` を流用するか `(array u8)` を新設するかの判断 — u8 型 (#040) の完成度に依存"
-3. LEB128 の最大バイト数制限 (u32: "5 bytes, u64: 10 bytes) を超えた場合は Error を返す"
+2. LEB128 の最大バイト数制限 (u32: "5 bytes, u64: 10 bytes) を超えた場合は Error を返す"
 - std: ":io (050) の Reader/Writer は Bytes を入出力単位とする"
 - `docs/stdlib/bytes-reference.md`: 全 API リファレンス + endian/leb128 の使用例
 pub fn bytes_view(b: "Bytes, start: i32, len: i32) -> ByteView   // zero-copy view"
@@ -72,20 +73,19 @@ pub fn byte_view_get(v: "ByteView, i: i32) -> u8"
 pub fn byte_view_to_bytes(v: ByteView) -> Bytes                  // copy out
 pub fn byte_view_to_cursor(v: ByteView) -> ByteCursor
 実装ファイル: `std/bytes/view.ark`
-2. エンディアン指定を enum (`Endian: ":Little`, `Endian::Big`) にするか関数名で分けるか"
+1. エンディアン指定を enum (`Endian: ":Little`, `Endian::Big`) にするか関数名で分けるか"
 - 9 fixtures covering all functionality: bytes_basic, bytes_helpers, bytes_slice, buf_basic, cursor_read, endian, hex, base64, leb128
 - Verification: "`bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)"
+
 # std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/043-std-bytes.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

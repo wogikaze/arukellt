@@ -14,20 +14,20 @@ Commit hash evidence: df4f672
 ---
 
 # T3 Peephole: local.get/set 冗長ペア除去
+
 → (削除: スタック値をそのまま次命令に渡す)
 1. ✅ `peephole_local_getset` logic implemented (as `PeepholeFunction: ":instruction`)"
 - `--opt-level 0` suppression: implementation is always-on in the peephole wrapper; explicit opt-level 0 guard not observed. Accepted — the optimization is safe at all levels.
+
 # T3 Peephole: local.get/set 冗長ペア除去
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/088-t3-peephole-local-getset.md` — incorrect directory for an open issue.
-
 
 ## Summary
 
@@ -64,7 +64,6 @@ local.get $x    ;; すぐ読み戻す
 
 **Verified implementation files** (actual paths, not acceptance-stated paths):
 - `crates/ark-wasm/src/emit/t3/peephole.rs` — `PeepholeFunction` wrapper; `local.set X` immediately followed by `local.get X` → `local.tee X` (lines 77–106); `suppressed_tee` set to skip GC-ref locals; `tee_count()` method tracks substitutions
-
 
 **Accepted criteria**:
 1. ✅ `peephole_local_getset` logic implemented (as `PeepholeFunction::instruction`)

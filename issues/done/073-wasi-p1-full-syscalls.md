@@ -15,16 +15,13 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 # WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)
 
-
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/073-wasi-p1-full-syscalls.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

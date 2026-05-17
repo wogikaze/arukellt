@@ -14,7 +14,6 @@ Source: "`scripts/check/check-docs-consistency.py` and various docs reference ge
 
 ## Created by audit — 2026-04-13
 
-
 ## Summary
 
 Several scripts and docs still reference generator paths before the `scripts/gen/` reorganisation. This causes check scripts to silently pass or fail to invoke the intended tool.

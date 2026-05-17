@@ -15,17 +15,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 status: done
 closed: 2026-03-28
 resolution: "W0004 already promoted to Severity::Error in ark-diagnostics. Wasm validation is a hard error at backend-validate phase."
+
 # Wasm 検証エラーをエラーに昇格 (W0004 warning → error)
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/114-wasm-validation-error-upgrade.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

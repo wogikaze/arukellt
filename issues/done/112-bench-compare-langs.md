@@ -19,11 +19,9 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/112-bench-compare-langs.md` — incorrect directory for an open issue.
-
 
 ## Summary
 
@@ -58,7 +56,6 @@ An earlier edit marked this issue closed while **`Status` remained `open`** and 
 | 2 | Markdown table written to `docs/process/benchmark-results.md` | **Yes** | Embedded between `<!-- arukellt:cross-lang-compare:start/end -->` via `--compare-write-md` (default from `compare-benchmarks.sh`) |
 | 3 | C-ratio gates fib ≤1.5×, vec_ops ≤2.0× vs C | **Yes** | `--compare-c-ratio-gate` (default from `compare-benchmarks.sh`); **skipped** if `benchmarks/*.c` or `cc` missing — no fake fail |
 | 4 | Grain comparison | **Yes** | Added `benchmarks/fib.grain` and integrated `--compare-lang grain` executing hyperfine in `scripts/compare-benchmarks.sh`. |
-
 
 ## Close note — 2026-04-25
 

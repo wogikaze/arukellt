@@ -9,7 +9,9 @@ Orchestration class: implementation-ready
 ---
 
 # Repo Hygiene: pre-commit / pre-push の検証項目を cleanup 観点で拡張する
+
 - Pre-commit hook runs `verify-harness.sh --quick` which now includes: docs consistency, link integrity, asset naming, generated boundary, stdlib manifest, panic audit
+
 # Repo Hygiene: pre-commit / pre-push の検証項目を cleanup 観点で拡張する
 
 ## Acceptance

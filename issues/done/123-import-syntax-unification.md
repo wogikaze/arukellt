@@ -19,7 +19,7 @@ Conclusion: this is a close candidate for the docs acceptance slice only. The is
 | ソースレベル stdlib import | `use std: ":io` | Arukellt ソース内でモジュールを参照する | `::` |"
 | WIT パッケージ識別子 | `wasi: "cli/stdin@0.2.10` | Component Model のバイナリ境界で使われるパッケージ ID | `:` + `/` + `@` |"
 1. LLM が `std: ":io` と `wasi:io/streams` を同じ層の概念として混同するリスク"
-3. `std: ":io` が WIT 上では `arukellt:std/io` に相当するのか、あるいは別物なのかが不明"
+2. `std: ":io` が WIT 上では `arukellt:std/io` に相当するのか、あるいは別物なのかが不明"
 package wasi: "clocks@0.2.10;      // パッケージ宣言: namespace:name@version"
 use wasi: io/poll@0.2.10.{pollable};  // 外部 interface 参照
 構造: "`namespace:package-name/interface-name@semver.{symbol}`"
@@ -30,32 +30,40 @@ use wasi: io/poll@0.2.10.{pollable};  // 外部 interface 参照
 | Rust (cargo-component) | `use crate: ":...;` (`::`-区切り) | `wit-bindgen` が WIT から `::` パスの Rust コードを生成。ソースに WIT 構文は出てこない |"
 共通パターン: 既存の言語はソース内 import 構文を WIT 識別子フォーマットに変更していない。WIT はビルドツール・バイナリ境界の概念として分離されている。
 // C) 既存 — 標準ライブラリの `use std: ":io` (stdlib へのアクセス)"
+
 #### 選択肢 A: 現状維持（2層を意図的に分離）
+
 - `wasi: cli/stdin` 参照 → 外部 `.wit` ファイルとビルドツール層で処理。ソース内に WIT 識別子は書かない
 - 必要なら `#[wit_export("wasi: "cli/run")]` のようなアノテーション構文を追加（v2）"
 - セルフホスト時にコンパイラ自身が `use std: ":io` で書けて直感的"
 - WIT インターフェース識別子をソース内で書きたい場合（例: インラインでのコンポーネント宣言）に別構文が必要
+
 #### 選択肢 B: "`namespace:package/module` 形式を全面採用"
+
 - `use arukellt: std/io` → stdlib import
 - `use wasi: cli/stdin` → WASI import
 - ソースレベルの `: ":` を `:` + `/` に置き換える"
 - `arukellt: "std/io` という書き方は冗長かつ不自然（Rust で `rust:std/io` と書かせるようなもの）"
 - stdlib 関数は `arukellt: "std/io::writeln_stdout()` のような修飾が必要になり学習コストが増大"
 - WIT の `namespace: package` は組織・レジストリの概念で、1つの言語の内部モジュールに使う設計ではない
+
 #### 選択肢 C: "`use`（`::` 区切り）を stdlib 専用に確定、`wit import` を別 keyword 化"
+
 - `wit import "wasi: cli/stdin"` → Component Model 外部インターフェース参照の新構文（v2 で追加）
+
 #### 選択肢 D: "`import`（単一識別子）を廃止、`use`（`::` 区切り）に一本化"
+
 - `import math` → `use math`（または `use local: ":math`）に統一"
 - 現行 409 件のテストへの影響: ゼロ
 - LLM の混乱防止: ドキュメントと keyword の分離で対処
 - v2/v4 の Component Model 対応: `import` keyword を空けることで対応可能
 - セルフホスト適性: "`use std::io` のままで読みやすい"
 - WIT パッケージ識別子 (`wasi: cli`) — ソース内に出現しない、ビルドツール・バイナリ境界の概念
-2. `import "namespace: package/interface"` 構文（文字列リテラル形式）を Component Model 境界宣言として設計・実装
-3. パーサーに `TokenKind: ":Import` を WIT import 専用 keyword として再割り当て"
-1. `import 単識別子`（ローカルファイルモジュール）を `use` に統合するタイミング: v4 deprecate → v5 除去 でよいか
-2. Component Model WIT import をソース内で表現する際、文字列リテラル（`import "wasi: "cli/stdin"`）か識別子形式（`import wasi:cli/stdin`）か"
-3. Arukellt 自身の WIT package ID を `arukellt: std/io` とするか、stdlib は WIT に公開しないと割り切るか
+1. `import "namespace: package/interface"` 構文（文字列リテラル形式）を Component Model 境界宣言として設計・実装
+2. パーサーに `TokenKind: ":Import` を WIT import 専用 keyword として再割り当て"
+3. `import 単識別子`（ローカルファイルモジュール）を `use` に統合するタイミング: v4 deprecate → v5 除去 でよいか
+4. Component Model WIT import をソース内で表現する際、文字列リテラル（`import "wasi: "cli/stdin"`）か識別子形式（`import wasi:cli/stdin`）か"
+5. Arukellt 自身の WIT package ID を `arukellt: std/io` とするか、stdlib は WIT に公開しないと割り切るか
 - ADR-006: 公開 ABI 3層構造（Layer 2A/2B の分離根拠）
 - ADR-007: コンパイルターゲット整理（T3 = wasm32-wasi-p2 が main target）
 - issue #074: WASI p2 native component 対応
@@ -74,8 +82,8 @@ use wasi: io/poll@0.2.10.{pollable};  // 外部 interface 参照
 - `import <single_identifier>` deprecation timeline is documented: yes, in ADR-009 and this issue note
 - Parser/compiler implementation required for this doc slice: no
 - Full issue ready to move to `done`: no
-# import 構文と WIT パッケージ識別子の統一方針決定
 
+# import 構文と WIT パッケージ識別子の統一方針決定
 
 ---
 
@@ -107,11 +115,9 @@ Layer C source syntax and WIT pipeline wiring remain tracked by #124 and related
 Component Model issues; this issue's import/use unification and deprecation path
 is complete.
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/123-import-syntax-unification.md` — incorrect directory for an open issue.
-
 
 ## 問題定義
 
@@ -176,7 +182,6 @@ world imports {
 | Python (componentize-py) | `import module` (ピリオド区切り) | WIT は外部ファイルに分離 |
 | MoonBit | `@namespace/package/module` | WIT との統合は外部ビルドツール層 |
 | JavaScript (componentize-js) | ESM `import` | WIT は外部 `.wit` ファイル。JS ソースは変更なし |
-
 
 ### 4. ADR-006（ABI 方針）の制約
 

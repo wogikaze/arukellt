@@ -15,6 +15,7 @@ REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
 ---
 
 # 562 — Phase 5: Delete `crates/ark-wasm`
+
 2026-04-22 pre-deletion scan result (historical): initially blocked by an active downstream crate consumer.
 - `crates/ark-stdlib/Cargo.toml: 7` depended on `ark-wasm = { workspace = true }`; this reverse dependency was removed in the resolution below.
 - [x] No source / script / docs reference: "`rg -l "\bark_wasm\b\|\bark-wasm\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)"
@@ -42,8 +43,8 @@ remaining references (if any): <list with justification>
 - Dead reverse dependency removed: `crates/ark-stdlib/Cargo.toml` previously
 source actually used `ark_wasm: ":*` (verified by"
 retrospective. Updated files: `crates/arukellt/Cargo.toml`,
-# 562 — Phase 5: Delete `crates/ark-wasm`
 
+# 562 — Phase 5: Delete `crates/ark-wasm`
 
 ## Summary
 
@@ -100,7 +101,6 @@ python scripts/manager.py selfhost diag-parity
 cargo check --workspace
 rg -l "\bark_wasm\b" crates/ scripts/ src/ docs/ .github/
 ```
-
 
 ## STOP_IF
 

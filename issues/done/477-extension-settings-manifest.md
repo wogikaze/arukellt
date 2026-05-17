@@ -10,6 +10,7 @@ Blocks v1 exit: no
 ---
 
 # Extension package.json: 5 arukellt 設定項目の宣言
+
 - #478: "extension.js initializationOptions wiring (depends on this)"
 - #479: "LSP server LspConfig + handler behavior (depends on #478)"
 - #480: "README settings table (depends on #479)"
@@ -18,6 +19,7 @@ Blocks v1 exit: no
 → これは意図通り: この issue は manifest 宣言のみを担当する
 - LSP が設定を無視していても close できる → これは意図通り: LSP は #479 で担当
 - `grep "check.onSave" extensions/arukellt-all-in-one/package.json` → 1 match (`"arukellt.check.onSave": {`)
+
 # Extension package.json: 5 arukellt 設定項目の宣言
 
 ---

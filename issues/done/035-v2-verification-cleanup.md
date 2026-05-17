@@ -13,6 +13,7 @@ Blocks v1 exit: no
 - [x] `docs/current-state.md` updated with V2 exit status: COMPLETE.
 - Binary size comparison: add component binary sizes to the existing T1/T3 comparison table
 - Performance note: "component call overhead (canonical ABI lift/lower) should be measured"
+
 # V2 exit verification & cleanup
 
 ## Summary

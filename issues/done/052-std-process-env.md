@@ -12,8 +12,11 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # std: ":process + std::env + std::cli: 実行環境 API"
+
 exit code 制御を std: ":process, std::env, std::cli として提供する。"
+
 ### std: ":cli (将来の引数パーサ基盤)"
+
 pub fn exit(code: i32) -> !
 pub fn var(name: String) -> Option<String>
 pub fn arg_at(index: i32) -> Option<String>
@@ -22,19 +25,18 @@ pub fn has_flag(flag: String) -> bool  // --flag の有無
 2. `std/env/env.ark`: "args/var/vars (WASI P2 cli/environment)"
 3. `std/cli/cli.ark`: "引数ヘルパー (source 実装、args() を内部使用)"
 4. `ark-wasm/src/emit`: "WASI P2 `wasi:cli/environment` import"
-6. T1 での fallback: args は空 Vec を返す、var は None を返す
+5. T1 での fallback: args は空 Vec を返す、var は None を返す
 - fixture: `stdlib_process/exit_zero.ark`, `stdlib_env/args_basic.ark`,
+
 # std::process + std::env + std::cli: 実行環境 API
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/052-std-process-env.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

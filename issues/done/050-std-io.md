@@ -12,6 +12,7 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # std: ":io: Reader、Writer、stdin/stdout/stderr、buffered I/O"
+
 pub fn read_all(r: Reader) -> Result<Bytes, Error>
 pub fn read_exact(r: "Reader, n: i32) -> Result<Bytes, Error>"
 pub fn read_line(r: Reader) -> Result<String, Error>
@@ -29,17 +30,16 @@ pub fn buffered_writer(w: "Writer, buf_size: i32) -> Writer"
 6. `std/io/copy.ark`: stream コピー
 - fixture: `stdlib_io/stdout_write.ark`, `stdlib_io/stderr_write.ark`,
 - `docs/stdlib/io-reference.md`: Reader, Writer, stdin/stdout/stderr, buffered I/O
+
 # std::io: Reader、Writer、stdin/stdout/stderr、buffered I/O
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/050-std-io.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

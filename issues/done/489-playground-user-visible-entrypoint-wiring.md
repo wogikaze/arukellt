@@ -14,9 +14,7 @@ Close gate: satisfied by repo entrypoint evidence plus build proof.
 ---
 ## Reopened by audit
 
-
 ## Created by audit — 2026-04-13
-
 
 ## Summary
 
@@ -36,7 +34,6 @@ freestanding target track.
 - `npm --prefix playground run build` succeeded during the completion slice.
 - Commit `eaea05d42b4ae9ef22b4db87ae0a2c3f7dc9364b` contains the user-visible entrypoint
   wiring required by this issue.
-
 
 ## Acceptance
 

@@ -15,15 +15,15 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
 # CoreHIR lowering: TryExpr を制御フローに desugar する
+
 `Operand: ":TryExpr` (`expr?` 構文) が backend-illegal のまま。match-on-result + early-return への変換が必要。"
 - `crates/ark-mir/src/mir.rs`: `TryExpr { expr, from_fn }` が Operand enum に存在
 - [x] `Operand: ":TryExpr` が match-on-Result + early-return 形式の MirStmt 列に変換される"
 - 2026-04-18: "Added `lower_try_expr_removes_tryexpr_from_return_terminator` in `crates/ark-mir/src/lower/tests.rs` to cover `Terminator::Return(Some(TryExpr))` desugar (distinct from assign+rvalue path)."
+
 # CoreHIR lowering: TryExpr を制御フローに desugar する
 
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Summary
 

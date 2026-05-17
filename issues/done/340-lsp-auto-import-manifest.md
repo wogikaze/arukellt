@@ -11,7 +11,9 @@ Priority: 5
 ---
 
 # LSP: auto-import 候補を manifest / module graph 駆動にする
+
 - `crates/ark-lsp/src/server.rs: "200-220` — `already_imported_modules()` / `imported_aliases()`"
+
 # LSP: auto-import 候補を manifest / module graph 駆動にする
 
 ## Summary

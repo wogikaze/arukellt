@@ -12,7 +12,6 @@ Status note: Wasm proposal — deferred to v5+. Not implemented.
 ---
 # Wasm Typed Function References: ref.func / call_ref フル活用
 
-
 ## Summary
 
 WebAssembly Typed Function References 提案 (`docs/spec/spec-3.0.0/proposals/function-references/Overview.md`) の

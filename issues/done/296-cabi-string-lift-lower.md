@@ -13,6 +13,7 @@ Priority: 17
 
 - `ParamAdaptation: ":String` lifts linear memory (ptr, len) → GC `(array (mut i8))`"
 - `ReturnAdaptation: ":String` lowers GC array → linear memory + result ptr"
+
 # string 型の canonical ABI lift-lower を実装する
 
 ## Summary

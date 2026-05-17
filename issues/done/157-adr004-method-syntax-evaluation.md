@@ -16,16 +16,13 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 # ADR-004 P4: メソッド構文 / trait 再評価
 
-
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/157-adr004-method-syntax-evaluation.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

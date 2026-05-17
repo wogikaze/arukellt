@@ -11,8 +11,10 @@ Priority: 10
 ---
 
 # LSP: organize imports を formatter 副作用から独立した semantic 操作にする
+
 - `crates/ark-lsp/src/server.rs`: "`source.organizeImports` code action が `format_source()` を呼ぶ"
 - 責務が混在: import 操作と formatting が同じ entry point を共有
+
 # LSP: organize imports を formatter 副作用から独立した semantic 操作にする
 
 ## Summary

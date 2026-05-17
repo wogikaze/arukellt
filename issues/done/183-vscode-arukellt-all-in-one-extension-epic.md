@@ -12,7 +12,6 @@ Status note: Parent issue for the all-in-one VS Code experience. Core editor, te
 ---
 # VS Code: `arukellt-all-in-one` 拡張機能 epic
 
-
 ## Summary
 
 `arukellt-all-in-one` は Arukellt 向け VS Code 体験を 1 つの拡張に集約する epic である。

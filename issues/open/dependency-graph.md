@@ -22,6 +22,7 @@ graph LR
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
+  I632["632 Playground compiler-Wasm build/run loop"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I28["28 034-wit-cli-integration ⛔"]
@@ -50,6 +51,7 @@ graph LR
 - **590** depends on: none; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **63** depends on: 074, 137; blocks: none
+- **632** depends on: 501; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
 

@@ -13,18 +13,18 @@ Commit hash evidence: df4f672
 ---
 
 # T3: "関数型セクション重複排除 (Type Section Dedup)"
+
 - `crates/ark-wasm/src/emit/t3/mod.rs` — `TypeAlloc` struct (line 265) with `func_cache: "HashMap<(Vec<ValType>, Vec<ValType>), u32>` (line 268); `add_func` method checks cache before inserting into TypeSection (lines 284–291)"
+
 # T3: 関数型セクション重複排除 (Type Section Dedup)
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/089-t3-type-section-dedup.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

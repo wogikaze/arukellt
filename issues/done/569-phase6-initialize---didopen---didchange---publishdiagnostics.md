@@ -17,8 +17,9 @@ Commit: "(set by commit hash below)"
 ---
 
 # 569 — Phase 6/C1: src/ide/lsp.ark — initialize / didOpen / didChange / publishDiagnostics
+
 - [x] Implements: `initialize`, `textDocument/didOpen`, `textDocument/didChange`, `textDocument/publishDiagnostics`
-3. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+1. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
 - One logical commit per slice. Suggested message: "`feat(ide): src/ide/lsp.ark MVP handlers (refs #569)`"
 commit: <hash>
 acceptance: <each checkbox marked with evidence>
@@ -38,10 +39,10 @@ false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
 - Real stdin transport: blocked on selfhost stdin intrinsic
 - Incremental sync (TextDocumentContentChangeEvent with range): MVP uses full-sync only
 - UTF-16 character offsets in `Position`: byte offsets are used, acceptable for ASCII-only fixtures
-3. ✓ 4 canonical gates: FAIL=0 and SKIP delta=0
-9. ✓ New behavioral test: `tests/fixtures/selfhost/lsp_lifecycle.lsp-script`
-# 569 — Phase 6/C1: src/ide/lsp.ark — initialize / didOpen / didChange / publishDiagnostics
+1. ✓ 4 canonical gates: FAIL=0 and SKIP delta=0
+2. ✓ New behavioral test: `tests/fixtures/selfhost/lsp_lifecycle.lsp-script`
 
+# 569 — Phase 6/C1: src/ide/lsp.ark — initialize / didOpen / didChange / publishDiagnostics
 
 ## Summary
 
@@ -67,7 +68,6 @@ python scripts/manager.py selfhost fixture-parity
 python scripts/manager.py selfhost diag-parity
 
 ```
-
 
 ## STOP_IF
 
@@ -123,7 +123,6 @@ false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
 ```
 
 ## Resolution
-
 
 ### Implementation
 

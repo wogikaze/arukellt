@@ -13,20 +13,20 @@ Commit hash evidence: df4f672
 ---
 
 # T3: 同一文字列リテラルのデータセグメント共有
+
 同じ文字列リテラル (例: `"hello"` が複数箇所に出現) を
 1. `EmitContext.string_segments: "HashMap<String, u32>` (文字列→セグメントインデックス) を持つ"
 - `crates/ark-wasm/src/emit/t3/mod.rs` — `EmitContext.string_seg_cache: "HashMap<Vec<u8>, u32>` (line 437); `add_string_segment` method reuses existing segment on second occurrence (lines 813–818); `err_string_seg` and `err_float_string_seg` cached singletons (lines 502–503, 1327–1331)"
+
 # T3: 同一文字列リテラルのデータセグメント共有
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/091-t3-string-literal-dedup.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

@@ -14,23 +14,20 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # Formatter: import sort を formatter から分離する
+
 - `crates/ark-parser/src/fmt.rs`: "`format_module()` が import を stdlib / project / alias の順にソートする副作用を持つ"
+
 # Formatter: import sort を formatter から分離する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/346-fmt-import-sort-separation.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

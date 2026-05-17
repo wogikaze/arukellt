@@ -10,7 +10,6 @@ Status note: Parent issue for bootstrap verification. End-user documentation is 
 ---
 # v5 Bootstrap verification epic
 
-
 ## Summary
 
 ブートストラップ検証は、fixpoint を確認する比較スクリプトと、verify-harness / CI への接続を分けて扱う必要がある。手順書は検証コードとは別の成果物なので #169 に分離する。

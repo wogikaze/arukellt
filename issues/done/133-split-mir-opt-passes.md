@@ -13,6 +13,7 @@ Blocks v4 exit: no
 use crate: ":mir::MirFunction;"
 use super: ":super::orchestrate::OptimizationSummary;"
 pub fn const_fold(func: &mut MirFunction) -> OptimizationSummary { ... }
+
 # MIR opt/pipeline.rs (916行) を passes/ ディレクトリに分割
 
 ## Summary

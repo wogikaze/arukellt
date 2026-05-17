@@ -15,6 +15,7 @@ Changed files:
 ---
 
 # Optimization Uplift: Measurement Truth Repair
+
 - Restore cross-language visibility: ensure `scripts/compare-benchmarks.sh` embeds
 - Sync: `docs/current-state.md`, `docs/process/benchmark-results.md`,
 - depends_on_open: none
@@ -22,7 +23,8 @@ Changed files:
 - blocks: #610, #611, #612
 `docs/process/benchmark-results.md` inside `<!-- arukellt: "cross-lang-compare:start/end -->`"
 - `issues/open/dependency-graph.md`: I609 --> I610, I609 --> I611, I609 --> I612 confirmed
-- `scripts/util/benchmark_runner.py` — removed `--time` from compile command; fixed `# equivalent: ` comment; phase fallback to baseline JSON
+- `scripts/util/benchmark_runner.py` — removed `--time` from compile command; fixed `# equivalent:` comment; phase fallback to baseline JSON
+
 # Optimization Uplift: Measurement Truth Repair
 
 ---

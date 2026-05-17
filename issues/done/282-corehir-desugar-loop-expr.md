@@ -15,14 +15,14 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
 # CoreHIR lowering: LoopExpr を制御フローに desugar する
+
 `Operand: ":LoopExpr` が backend-illegal のまま残っている。loop header + back-edge + break への変換が必要。"
 - `crates/ark-mir/src/mir.rs`: `LoopExpr { init, body, result }` が Operand enum に存在
 - [x] `Operand: ":LoopExpr` が loop header / back-edge / break 形式の MirStmt 列に変換される"
+
 # CoreHIR lowering: LoopExpr を制御フローに desugar する
 
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Summary
 

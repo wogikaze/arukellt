@@ -16,8 +16,6 @@ Doc pointer: "What `scripts/run/verify-bootstrap.sh` actually runs (commands, ar
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Summary
 
 selfhost 周辺は `src/compiler/*.ark`、`docs/compiler/bootstrap.md`、`scripts/run/verify-bootstrap.sh`、`docs/migration/v4-to-v5.md`、`issues/done/209` 以降の一連の issue により前進しているが、「selfhost 用の部品が揃ってきた」ことと「selfhost compiler が達成された」ことがまだ厳密には同義ではない。

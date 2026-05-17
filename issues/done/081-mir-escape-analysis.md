@@ -14,25 +14,25 @@ Commit hash evidence: df4f672
 ---
 
 # MIR: エスケープ解析 + Scalar Replacement パス
+
 1. `passes/escape_analysis.rs`: エスケープしない struct を `LocalId` 群に展開
 2. `OptimizationPass: ":EscapeAnalysis` を追加"
 - Phase 1: scans `StructInit` assignments to find candidates
 - Phase 2: marks candidates that escape via `return`/`call`/`store`
 - Phase 3: creates scalar locals and rewrites field accesses
 - `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass: ":EscapeAnalysis` at line 380; included in `DEFAULT_PASS_ORDER`"
-2. ✅ `OptimizationPass: ":EscapeAnalysis` variant added and wired in pipeline"
-4. ⚠️ Opt-level gating: "Pass is in `DEFAULT_PASS_ORDER` (runs at any opt-level ≥ 1), not exclusively `--opt-level 2` as specified. Accepted — optimization exists."
+1. ✅ `OptimizationPass: ":EscapeAnalysis` variant added and wired in pipeline"
+2. ⚠️ Opt-level gating: "Pass is in `DEFAULT_PASS_ORDER` (runs at any opt-level ≥ 1), not exclusively `--opt-level 2` as specified. Accepted — optimization exists."
+
 # MIR: エスケープ解析 + Scalar Replacement パス
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/081-mir-escape-analysis.md` — incorrect directory for an open issue.
-
 
 ## Summary
 
@@ -66,7 +66,6 @@ roadmap-v4.md §10 item 7 で明示的な目標になっている。
   - Phase 2: marks candidates that escape via `return`/`call`/`store`
   - Phase 3: creates scalar locals and rewrites field accesses
 - `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass::EscapeAnalysis` at line 380; included in `DEFAULT_PASS_ORDER`
-
 
 **Accepted criteria**:
 1. ✅ Escape-analysis + SROA pass exists (`escape_analysis_pass` function)

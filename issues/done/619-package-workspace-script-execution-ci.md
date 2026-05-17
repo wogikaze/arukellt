@@ -13,8 +13,8 @@ Orchestration upstream: None
 
 ## Summary
 
-#263 closed the first-class package/workspace/manifest regression surface for
-the existing manifest and workspace tests, but it left two future bullets:
+# 263 closed the first-class package/workspace/manifest regression surface for the existing manifest
+
 `ark.toml` script execution tests and a dedicated package-workspace CI lane.
 This issue tracks those as a separate implementation slice.
 

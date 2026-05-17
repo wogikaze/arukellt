@@ -12,11 +12,13 @@ Action: Audited acceptance items against actual code; partial scaffolding confir
 ---
 
 # VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする
+
 - `ArukellBackend.workspace_roots: Mutex<Vec<PathBuf>>` is populated from
 `workspace_folders` on LSP initialization (`server.rs: 3696–3740`).
 - `ArukellBackend.project_root` is discovered via `Manifest: ":find_root` on init."
 symbol index for the primary project root (`server.rs: 3862–3930`).
 (`server.rs: 4083–4176`).
+
 # VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする
 
 ## Audit normalization — 2026-04-18

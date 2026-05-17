@@ -14,6 +14,7 @@ Priority: 16
 - 未対応: string, list, option, result, tuple, variant with payload, resource
 - W0005 warning: non-exportable 関数に対して出力されるが、型レベルの拒否はない
 - [x] 対応型 tier が文書化される (Tier 1: "scalar+enum+record, Tier 2: string+list+option+result, Tier 3: resource+stream)"
+
 # Component Model の対応型 tier を宣言し、未対応型 export を compile error にする
 
 ## Summary

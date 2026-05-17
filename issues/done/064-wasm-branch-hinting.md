@@ -17,16 +17,13 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 # Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント
 
-
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/064-wasm-branch-hinting.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

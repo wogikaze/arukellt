@@ -17,22 +17,18 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `std/host/sockets.ark`: "`connect()` が `Err("not implemented")` を返す"
 - `std/manifest.toml: 1685-1720`
 - [x] テスト: "http::get を呼ぶコードが compile error を出す fixture"
+
 # stub host module (http, sockets) の使用を compile error にする
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/292-stub-host-compile-error.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

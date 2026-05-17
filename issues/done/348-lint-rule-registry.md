@@ -11,7 +11,9 @@ Priority: 13
 ---
 
 # Linter: lint rule registry を作る
+
 - `crates/ark-diagnostics/src/codes.rs`: warning コードは W0001-W0005 の 5 個のみ、全て compiler 内部由来
+
 # Linter: lint rule registry を作る
 
 ## Summary

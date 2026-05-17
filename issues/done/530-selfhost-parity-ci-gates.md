@@ -18,7 +18,8 @@ Depends on: none
 needs: "[..., selfhost-cli-parity, selfhost-diag-parity, ...]"
 - `selfhost-cli-parity`: runs `python3 scripts/manager.py selfhost parity --mode --cli`, no continue-on-error, depends on selfhost-bootstrap
 - `selfhost-diag-parity`: runs `python3 scripts/manager.py selfhost diag-parity`, no continue-on-error, depends on selfhost-bootstrap
-Both jobs are in the final `verify` gate `needs: ` list, making them merge-blocking.
+Both jobs are in the final `verify` gate `needs:` list, making them merge-blocking.
+
 ## Why this must exist
 
 Issue #268 (selfhost-parity-ci-verification) was closed with 2/4 acceptance criteria unchecked:

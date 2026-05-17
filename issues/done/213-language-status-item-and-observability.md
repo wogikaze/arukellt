@@ -10,6 +10,7 @@ Blocks v1 exit: no
 ---
 
 - `Arukellt: Toggle Verbose Logging` コマンド
+
 # Language status item + observability surface
 
 ## Summary

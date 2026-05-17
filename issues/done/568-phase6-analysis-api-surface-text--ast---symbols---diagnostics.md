@@ -20,8 +20,9 @@ False-done checklist: "1✓ 2✓ 3✓ 4✓ (no SKIP added) 5✓ 6✓"
 ---
 
 # 568 — Phase 6/B: "src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)"
+
 - [x] `src/ide/api.ark` exists and exports `analyze(uri: "String, text: String) -> AnalysisSnapshot`"
-3. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
+1. [x] 4 canonical gates: numeric Δ recorded; `FAIL=0` and `SKIP_delta=0`
 - One logical commit per slice. Suggested message: "`feat(ide): src/ide/api.ark analysis API entry point (refs #568)`"
 commit: <hash>
 acceptance: <each checkbox marked with evidence>
@@ -35,16 +36,16 @@ entry points (`lexer: ":lex_program` from \#565, `parser::parse_program` from"
 \#566, `resolver: ":resolve_program` + `typechecker::typecheck_module` from \#567)"
 `src/compiler/main.ark` (`cmd_ide_analyze` → `analysis: ":analyze` →"
 `analysis: ":snapshot_summary` printed on stdout). Not listed in `--help` so"
-- `analysis_clean.ark` (kind `run: `, `.expected = "3\n"`,
+- `analysis_clean.ark` (kind `run:`, `.expected = "3\n"`,
 `.analysis-expected` snapshot golden) — happy path: 2 decls, 2 symbols,
-- `analysis_multi_phase.ark` (kind `diag: `, `.diag` + `.selfhost.diag`
+- `analysis_multi_phase.ark` (kind `diag:`, `.diag` + `.selfhost.diag`
 pattern `parse`, `.analysis-expected` snapshot golden) — error path: a
 parse error (`) ) )` between decls) plus a type error (`let x: i32 =
-and 2 accumulated diagnostics tagged `parse: "` and `typecheck:`. This"
+and 2 accumulated diagnostics tagged`parse: "` and `typecheck:`. This"
 verify quick: 16/20 pass, 4 pre-existing failures inherited from master
 passing: ""selfhost analysis API gate (#568)"."
-# 568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)
 
+# 568 — Phase 6/B: src/ide/api.ark — analysis API surface (text → AST / symbols / diagnostics)
 
 ## Summary
 
@@ -70,7 +71,6 @@ python scripts/manager.py selfhost fixture-parity
 python scripts/manager.py selfhost diag-parity
 
 ```
-
 
 ## STOP_IF
 

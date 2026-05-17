@@ -14,23 +14,36 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 `std: ":host::*` および capability-gated API について「補完には出るが hover で非対応表示」「compile 時は E0500 で止める」「代替 target を提案する」を compiler / LSP / docs で統一する。"
+
 ### Step 1: manifest の `availability` field を canonical source として確定する
+
 - `availability.t1: "bool` — T1 (wasm32-wasi-p1 / Wasmtime core) で利用可能か"
 - `availability.t3: "bool` — T3 (wasm32-wasi-p2 / component) で利用可能か"
 - `availability.note: "Option<String>` — 補足（例: "T3 only via WASI Preview 2"）"
+
 ### Step 2: "LSP hover に availability を表示する (`crates/ark-lsp/src/server.rs`)"
+
 fn format_availability(func: "&ManifestFunction, current_target: Option<&TargetId>) -> Option<String> {"
 let is_t1 = target == TargetId: ":WasmP1;"
 let is_t3 = target == TargetId: ":WasmP2;"
+
 ### Step 3: LSP completion で target 非対応 symbol を降順に並べるか除外する
+
 実装場所: `handle_completion` 関数（server.rs 内）。
+
 ### Step 4: signature help に availability 情報を追加する
+
 ### Step 5: generate-docs.py の `target_constraints` を manifest-driven に変更する
+
 def availability_string(functions: "list[dict]) -> str:"
+
 ### Step 6: docs/stdlib 各 module page に availability badge を追加する
+
 生成された module page（例: `docs/stdlib/io.md`）の関数テーブルに availability カラムを追加する。
 | `get` | `get(url: String) -> Result<String, String>` | experimental | T3 only |
+
 ### Step 7: end-to-end 検証ケース
+
 1. `std: ":host::http::get` — T3 only"
 2. `std: ":host::sockets::connect` — T3 only"
 - manifest に `availability: "{ t1: false, t3: true }` が設定されている"
@@ -40,22 +53,18 @@ def availability_string(functions: "list[dict]) -> str:"
 - [x] `std: ":host::http::get` の hover に `Supported on: wasm32-wasi-p2 (T3 only)` が出る"
 1. LSP hover test: `http_get` を T1 target 設定で hover → "Not available on current target" が markdown に含まれる
 2. LSP hover test: `http_get` を T3 target 設定で hover → availability string が正しい
+
 # T1/T3 API 可用性の compiler / LSP / docs 統一表現
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/457-t1-t3-availability-unified.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

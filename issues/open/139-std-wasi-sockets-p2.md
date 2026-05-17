@@ -20,11 +20,9 @@ WASI Preview 2 の sockets capability を `std: ":host::sockets` として提供
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/139-std-wasi-sockets-p2.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

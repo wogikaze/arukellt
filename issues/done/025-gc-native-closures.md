@@ -13,10 +13,12 @@ CallIndirect mapping:
 ---
 
 # GC-native closures: call_ref + ref.func
+
 - [x] `Operand: ":CallIndirect { callee, args }` emits args + callee ref"
 then `Instruction: ":CallRef(type_idx)`."
 - [x] All `t3-compile: "integration/*` fixtures compile (those using closures)."
 - [x] All `run: integration/*` fixtures pass execution.
+
 # GC-native closures: call_ref + ref.func
 
 ## Summary

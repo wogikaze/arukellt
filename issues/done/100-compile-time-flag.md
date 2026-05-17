@@ -12,6 +12,7 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # CLI: --time フラグ + フェーズ別コンパイル時間計測
+
 [arukellt] lex: 1.2ms
 [arukellt] parse: 4.5ms
 [arukellt] resolve: 8.3ms
@@ -21,17 +22,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 [arukellt] emit: 18.7ms
 [arukellt] total: 50.3ms
 2. `ark-driver/src/session.rs` の各フェーズ呼び出しを `Instant: ":now()` で囲む"
+
 # CLI: --time フラグ + フェーズ別コンパイル時間計測
 
 ---
 
 ## Reopened by audit — 2026-04-10
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/100-compile-time-flag.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

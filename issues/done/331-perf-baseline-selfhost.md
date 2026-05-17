@@ -15,6 +15,7 @@ Priority: 24
 - `--selfhost`: runs benchmarks using selfhost compiler only
 - Added `mise bench: "compare` and `mise bench:selfhost` tasks"
 Verification: `bash scripts/run/run-benchmarks.sh --quick --compare` — runs successfully, shows fib/binary_tree/string_concat at 1.1-1.7x compile overhead with 0.48-0.54x binary size.
+
 # Perf baseline を selfhost binary 対応にする
 
 ## Summary

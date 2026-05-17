@@ -14,32 +14,43 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 `arukellt doc println` / `arukellt doc std: ":host::http::get` で CLI から標準ライブラリの説明・シグネチャ・target 可用性・stability・代替候補を引けるようにする `doc` サブコマンドを新設する。"
+
 ### Step 1: "`Commands` enum に `Doc` variant を追加 (`crates/arukellt/src/main.rs`)"
+
 /// Symbol or module to look up (e.g. "println", "std: ":host::http::get", "std::host::http")"
 symbol: String,
 json: bool,
 target: Option<TargetId>,
 all: bool,
 `Commands: ":Doc` の処理ルーティングを `main.rs` の match に追加する。"
+
 ### Step 2: `commands.rs` に `cmd_doc` 関数を実装する
+
 #### 2.1: manifest のロード
+
 pub fn cmd_doc(symbol: "&str, json: bool, target: Option<&TargetId>, all: bool) -> bool {"
 Err(e) => { eprintln!("error: "could not load stdlib manifest: {}", e); return false; }"
 `load_stdlib_manifest()` は `StdlibManifest: ":load_from_repo` を呼ぶ。repo root の探索は既存の LSP 初期化コードを参照する（`std::env::current_dir` → 親ディレクトリを遡る方法または `CARGO_MANIFEST_DIR` 相当）。"
+
 #### 2.2: シンボル解決
+
 - ユーザー入力 `std: ":host::http::get` を `http_get` に変換するルール: `std::host::X::Y` → `X_Y`（末尾の module::function）。"
 - このルールを `pub fn user_symbol_to_manifest_name(input: &str) -> String` として実装する。
+
 #### 2.3: テキスト出力フォーマット
+
 fn get(url: String) -> Result<String, String>
 Module: "std::host::http"
 Stability: experimental
 Supported on: wasm32-wasi-p2
 DNS 解決失敗は Err("dns: "..."), 接続拒否は Err("connection refused: ...")"
-let body = http: ":get("https://example.com")"
+let body = http: ":get("<https://example.com>")"
 See also: "http::request"
 - 幅: ターミナル幅に合わせる（`terminal_size` crate があれば使用、なければ 80 固定）。
 - ANSI カラー: "`std::env::var("NO_COLOR")` が設定されていない場合のみ使う。bold, dim で強調。"
+
 #### 2.4: "JSON 出力フォーマット (`--json`)"
+
 "kind": "function",
 "name": "http_get",
 "display_name": ""http::get","
@@ -55,47 +66,54 @@ See also: "http::request"
 { "code": ""...", "description": "..." }"
 "see_also": "http_request",
 "deprecated_by": null
+
 #### 2.5: "target-aware フィルタリング (`--target`)"
+
 #### 2.6: fuzzy match（見つからない場合）
+
 fn find_closest_symbols(query: "&str, manifest: &StdlibManifest, limit: usize) -> Vec<String> {"
 let mut candidates: "Vec<(usize, String)> = manifest"
 error: symbol 'httq_get' not found
 http_get    (std: ":host::http)"
 http_request  (std: ":host::http)"
+
 #### 2.7: モジュール表示
+
 `symbol = "std: ":host::http"` の場合:"
 module std: ":host::http"
 get(url: "String) -> Result<String, String>  [experimental]"
 request(method, url, body: "String) -> Result<String, String>  [experimental]"
+
 ### Step 3: `Cargo.toml` への依存追加
+
 ### Step 4: manifest の探索パス
+
 ### Step 5: ヘルプテキストの整備
+
 Usage: "arukellt doc [OPTIONS] <SYMBOL>"
 <SYMBOL>  Symbol or module to look up (e.g. "println", "std: ":host::http::get")"
 --target <TARGET>   Show availability for a specific target [possible values: "wasm32-wasi-p1, wasm32-wasi-p2]"
+
 ### Step 6: `arukellt targets` との統合確認
+
 既存の `Commands: ":Targets` が存在する。`arukellt doc` と `arukellt targets` は独立しており、重複しない。"
 - `crates/arukellt/src/main.rs`（`Commands: ":Doc` variant 追加）"
 - [x] `arukellt doc std: ":host::http` がモジュール内関数一覧を表示する"
 - [x] `arukellt doc --target wasm32-wasi-p1 std: ":host::http::get` が「T1 非対応」を明示する"
 1. `cargo test -p arukellt`: `cmd_doc` の unit test（manifest から正しくシンボルを解決する）
 2. `user_symbol_to_manifest_name` 変換の unit test（`std: ":host::http::get` → `http_get` 等）"
+
 # `arukellt doc` サブコマンドの新設
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/456-arukellt-doc-command.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

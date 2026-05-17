@@ -12,7 +12,6 @@ Status note: Wasm proposal — deferred to v5+. Not implemented.
 ---
 # Wasm Multi-Memory: 複数メモリモジュール対応
 
-
 ## Summary
 
 WebAssembly Multi-Memory 提案 (`docs/spec/spec-3.0.0/proposals/multi-memory/Overview.md`) を実装し、

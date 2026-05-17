@@ -14,7 +14,9 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # std: ":wit + std::component: WIT 型、resource handle、canonical ABI"
+
 ### std: ":component"
+
 pub struct WitFunc { name: "String, params: Vec<(String, WitType)>, result: Option<WitType> }"
 pub struct Interface { name: "String, functions: Vec<WitFunc> }"
 pub struct World { name: "String, imports: Vec<Interface>, exports: Vec<Interface> }"
@@ -38,18 +40,16 @@ pub fn canonical_lift_list<T>(ptr: "i32, len: i32) -> Result<Vec<T>, Error>"
 6. `std/component/canonical.ark`: "canonical ABI lower/lift (linear memory 経由)"
 - fixture: `stdlib_wit/wit_type_basic.ark`, `stdlib_wit/world_build.ark`,
 が上限を超える場合は `Error: ":MemoryOverflow` を返すこと。"
-# std::wit + std::component: WIT 型、resource handle、canonical ABI
 
+# std::wit + std::component: WIT 型、resource handle、canonical ABI
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/054-std-wit-component.md` — incorrect directory for an open issue.
-
 
 ## Summary
 
@@ -72,7 +72,7 @@ priority decisions.
 The #044 blocker changed shape: it is no longer waiting on #312 generic
 monomorphization, but it still lacks the trait-bound `Hash`/`Eq` dispatch
 needed for accepted generic collection surfaces. Keep this issue blocked via
-#044 until that stdlib collection prerequisite is real.
+# 044 until that stdlib collection prerequisite is real.
 
 ## 受け入れ条件
 

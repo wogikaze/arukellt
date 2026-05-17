@@ -45,7 +45,8 @@ Blocks v3: yes
 * 品質面別のサマリーを表示
 
 2026-05-14 audit: category result summary generation is tracked separately by
-#620 and is not part of the completed CI job wiring slice.
+
+# 620 and is not part of the completed CI job wiring slice
 
 ## References
 

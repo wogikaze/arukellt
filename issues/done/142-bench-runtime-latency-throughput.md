@@ -44,11 +44,9 @@ change required.
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/142-bench-runtime-latency-throughput.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

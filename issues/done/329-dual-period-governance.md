@@ -14,6 +14,7 @@ Priority: 22
 - 残す crate: "ark-lsp, ark-dap, ark-diagnostics (IDE tooling)"
 - 消す crate: "ark-driver, ark-mir, ark-wasm, arukellt (compiler pipeline)"
 - [x] 各 compiler crate の deletion 条件: 「selfhost equivalent が parity check を pass」が明記される
+
 # Dual-period governance を確定する
 
 ## Summary

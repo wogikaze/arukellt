@@ -13,10 +13,11 @@ Source: docs/benchmarks/feature-matrix.md coverage gap
 ---
 
 # 541 — Benchmark: "struct graph (nested structs / recursive types)"
+
 - [x] Tags: `allocation-heavy`, `struct-heavy`, `recursion-heavy`, `container`
 - [x] `mise bench: update-baseline` includes the new benchmark
-# 541 — Benchmark: struct graph (nested structs / recursive types)
 
+# 541 — Benchmark: struct graph (nested structs / recursive types)
 
 ## Summary
 

@@ -23,9 +23,10 @@ Blocks v3 exit: yes
 - [x] Check 18: `stdlib_core/`, `stdlib_text/`, `stdlib_bytes/` の全 fixture が `manifest.txt` に登録されているか確認
 - [x] Check 19: "deprecated API 使用禁止ゲート (`grep -r "Vec_new_i32\|filter_i32\|map_i32" tests/fixtures/ → 0件`)"
 - [x] Check 20: "v3 stdlib fixture 一括実行 (`cargo test -p arukellt --test harness -- stdlib_`)"
-3. `tests/fixtures/manifest.txt` に全エントリを追加 (`compile: tests/fixtures/stdlib_*/...`)
-1. ファイルシステム系 fixture (fs_exists, fs_read_bytes など) は WASI filesystem preopened dir が必要なため、`skip: ` フラグを使うか wasmtime `--dir` オプションが必要
+1. `tests/fixtures/manifest.txt` に全エントリを追加 (`compile: tests/fixtures/stdlib_*/...`)
+1. ファイルシステム系 fixture (fs_exists, fs_read_bytes など) は WASI filesystem preopened dir が必要なため、`skip:` フラグを使うか wasmtime `--dir` オプションが必要
 - `docs/stdlib/testing-guide.md`: v3 stdlib fixture 追加方法のガイド
+
 # v3 fixture 統合 + verify-harness.sh v3 ゲート
 
 ## Summary

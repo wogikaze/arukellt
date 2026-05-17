@@ -19,8 +19,6 @@ Implementation notes:
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Summary
 
 text diff を超えて AST / symbol / behavior diff を提示し、rename / format / organize imports / structural rewrite を仮想適用で preview できるようにする。refactor の見える化専用の child issue。

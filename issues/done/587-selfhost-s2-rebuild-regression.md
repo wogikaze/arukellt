@@ -15,10 +15,13 @@ Cold-rebuild verification numbers (post-fix, fresh `.build/selfhost/`):
 ---
 
 # 587 — Selfhost s2 rebuild regression: type errors on every fixture from current `src/compiler/main.ark`
+
 wasmtime run --dir=/: ":/  /tmp/s2.wasm -- check tests/fixtures/<any>.ark"
 - `MonoInstance` gained `type_args: Vec<TypeInfo>`
 - `TypeCheckResult` gained `mono_call_sites: "Vec<MonoCallSite>` (and a brand-new `MonoCallSite` struct)"
-#   failures: fixture manifest, done/
+
+# failures: fixture manifest, done/
+
 # 587 — Selfhost s2 rebuild regression: type errors on every fixture from current `src/compiler/main.ark`
 
 ## Summary

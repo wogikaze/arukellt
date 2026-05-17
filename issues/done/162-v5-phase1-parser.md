@@ -11,7 +11,6 @@ Status note: Parent issue for v5 parser work. Close when the child issues are co
 ---
 # v5 Phase 1: Parser epic
 
-
 ## Summary
 
 v5 の parser 作業は、AST surface 定義・構文解析本体・fixture parity / diagnostics で性質が分かれる。1 本の issue だと進捗と依存が見えにくいため、この issue は parser 系の完了マーカーとして扱う。

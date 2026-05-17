@@ -15,7 +15,6 @@ Evidence: "docs/playground/index.html exists, calls createPlaygroundApp() 3× (l
 
 ## Closed by decomposition audit — 2026-04-03
 
-
 ## Summary
 
 repo 内でユーザーがどこから playground を開くのかを示す browser entrypoint を作る。`playground/src/**` の部品があること自体はこの issue の完了条件ではなく、repo-visible な mount 済み entrypoint があることのみを扱う。

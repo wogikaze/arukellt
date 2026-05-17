@@ -21,14 +21,17 @@ Acceptance mapping:
 Implementation notes: 
 ---
 
-3. 最大のセクション (通常: type, code, data) について削減策を立案
+1. 最大のセクション (通常: type, code, data) について削減策を立案
+
 # 実行時性能: hello.wasm 1KB 以下 達成プラン
+
 params/locals. Regression: `inline_skips_callee_with_locals_no_undeclared_local_error` in
 - T1 (wasm32-wasi-p1, opt-level 2): "534 bytes** (under 1KB)"
 - T2/T3 (wasm32-wasi-p2, opt-level 2, GC): "918 bytes** (under 1KB)"
 - ✓ hello.wasm under 1KB at opt-level 2: "MET (534 B T1, 918 B T2)"
 - ✓ docs/process/wasm-size-reduction.md maintained: "MET (updated 2026-04-18)"
 - ~ manager.py verify size perf gate with binary size check: "PARTIAL (verify size exists but verify quick doesn't run it by default)"
+
 # 実行時性能: hello.wasm 1KB 以下 達成プラン
 
 ---

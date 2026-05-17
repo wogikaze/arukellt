@@ -10,7 +10,9 @@ Blocks v1 exit: no
 ---
 
 # migration guide v3→v4: MIR optimization pipeline completed
+
 元ドキュメント: `docs/migration/v3-to-v4.md`（issue 化により移動済み）
+
 # migration guide v3→v4: MIR optimization pipeline completed
 
 ## Summary

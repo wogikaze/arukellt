@@ -12,7 +12,6 @@ Status note: Parent issue for test discovery/runner, VS Code test integration, a
 ---
 # Test UX: `arukellt test` と VS Code Test Explorer surface
 
-
 ## Summary
 
 Arukellt の test UX は、CLI runner の整備、VS Code Test Explorer 連携、高度な snapshot / impact / fuzz UX で責務が分かれる。

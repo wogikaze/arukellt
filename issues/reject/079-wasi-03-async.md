@@ -15,7 +15,6 @@ WASI 0.3 では `wasi: http/handler` の `handle` が `async func` になり、
 ---
 # WASI 0.3-rc: async func / stream<T> / future<T> コンパイルサポート
 
-
 ## Audit classification
 
 - **Date**: 2026-04-21

@@ -15,7 +15,6 @@ Evidence: "docs/_sidebar.md: '▶ Try Playground' links to playground/index.html
 
 ## Closed by decomposition audit — 2026-04-03
 
-
 ## Summary
 
 repo 内 docs / site navigation から actual playground entrypoint へ到達できるようにする。entrypoint 自体の存在とは別 issue とし、link / route wiring だけを扱う。

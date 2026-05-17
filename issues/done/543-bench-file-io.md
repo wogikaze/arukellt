@@ -12,8 +12,10 @@ Source: docs/benchmarks/feature-matrix.md coverage gap
 ---
 
 # 543 — Benchmark: "file I/O (I/O-heavy workloads)"
+
 - [x] Tags: `io-bound`, `string-heavy`, `allocation-heavy`
 - [x] `mise bench:update-baseline` includes the new benchmark
+
 # 543 — Benchmark: file I/O (I/O-heavy workloads)
 
 ## Summary

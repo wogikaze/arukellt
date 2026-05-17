@@ -12,8 +12,10 @@ Priority: 19
 ---
 
 # Linter: lint 結果を LSP diagnostics / code action として配信する
+
 - `lint_diagnostics_have_arukellt_lint_source`: W0006/W0007 が arukellt-lint source で発行されることを検証
 - `compiler_diagnostics_have_arukellt_source`: compiler error が arukellt source のままであることを検証
+
 # Linter: lint 結果を LSP diagnostics / code action として配信する
 
 ## Summary

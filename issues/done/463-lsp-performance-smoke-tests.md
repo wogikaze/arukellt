@@ -14,13 +14,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 ### Step 1: "大規模 fixture の作成 (`tests/fixtures/lsp_perf/`)"
+
 ├── stdlib_heavy.ark          # std: ":host::* の大量 use import"
 `large_module.ark` の生成: 手書きまたはスクリプトで生成。以下の要素を含む。
 use std: ":io::Write;"
 fn helper_001(x: i32) -> i32 { x + 1 }
 fn helper_002(x: i32) -> i32 { x + 2 }
 stdio: ":println(v001)"
+
 ### Step 2: 計測テストを `crates/ark-lsp/tests/lsp_perf.rs` として追加する
+
 const WARN_MULTIPLIER: f64 = 5.0;
 const BASELINE_HOVER_MS: f64 = 50.0;
 const BASELINE_DEFINITION_MS: f64 = 30.0;
@@ -31,7 +34,9 @@ let pos = Position { line: "250, character: 10 };"
 let start = Instant: ":now();"
 "PERF WARNING: "open+diagnose took {:.1}ms ({:.1}x baseline)","
 let _diags = server.wait_for_diagnostics("large_module.ark", Duration: ":from_secs(10));"
+
 ### Step 3: `record_perf_result` 関数の実装
+
 fn record_perf_result(name: "&str, elapsed: Duration) {"
 let results_path = std: ":env::var("LSP_PERF_OUTPUT")"
 let entry = serde_json: ":json!({"
@@ -40,28 +45,29 @@ let entry = serde_json: ":json!({"
 "timestamp": "std::time::SystemTime::now()"
 .duration_since(std: ":time::UNIX_EPOCH)"
 if let Ok(mut f) = OpenOptions: ":new().create(true).append(true).open(&results_path) {"
+
 ### Step 4: `did_change` の計測も追加する
-let _ = server.wait_for_diagnostics("large_module.ark", Duration: ":from_secs(10));"
+
+let _= server.wait_for_diagnostics("large_module.ark", Duration: ":from_secs(10));"
 // Incremental change: edit one line
+
 ### Step 5: baseline 値の調整フロー
+
 ### Step 6: テストを通常テストと分離する
+
 - Issue 454（LSP snapshot fixtures）: "`start_lsp_test_server()` helper が整備されていることが前提。未完了の場合は同等の helper を本 issue で追加する。"
+
 # LSP 性能スモークテストの追加
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/463-lsp-performance-smoke-tests.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

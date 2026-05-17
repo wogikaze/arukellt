@@ -45,11 +45,9 @@ the standalone trend inspection surface (`--mode trend`).
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/148-bench-result-storage-and-trend-report.md` — incorrect directory for an open issue.
-
 
 ## Summary
 
@@ -76,11 +74,9 @@ the standalone trend inspection surface (`--mode trend`).
 - `scripts/compare-benchmarks.sh`
 - `scripts/update-perf-baselines.sh`
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/148-bench-result-storage-and-trend-report.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

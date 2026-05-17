@@ -16,8 +16,6 @@ Action: Kept in `issues/done/`; false-done audit concern was resolved by the 202
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Summary
 
 bidirectional docs、`explain this codebase`、doc drift warnings をまとめて、docs と code understanding を接続する cross-cutting DX surface として追う。

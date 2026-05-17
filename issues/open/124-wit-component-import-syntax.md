@@ -13,6 +13,7 @@ Status note: BLOCKED — downstream of the #074 WASI P2 native parent gate. Do n
 ---
 
 # WIT component import syntax
+
 package namespace: tui@0.1.0;
 title: string,
 body: string,
@@ -36,9 +37,13 @@ import_stmt: ":= "import" string_literal "as" ident"
 string_literal: ":= '"' namespace ':' package '/' interface ('@' version)? '"'"
 import "wasi: filesystem/types" as fs_types
 "namespace: tui/render",
+
 # "wasi: http" = { path = "vendor/wasi-http", version = "0.2.10" }
+
 "wasi: "cli/run",      # main() → wasi:cli/run の export"
+
 ### Phase 1: "CLI `--wit` フラグ (最小実装、約1-2週)"
+
 Stdlib,               // use std: ":host::stdio  (既存)"
 Wit { package_id: "String },  // import "namespace:pkg/iface" (新規)"
 1-3. ark-resolve: WIT import を型/関数として登録
@@ -54,14 +59,20 @@ args: Vec<Operand>,
 T3 emitter で `MirStmt: ":WitCall` を受け取り、Wasm の import call に変換。"
 import section に `(import "namespace: "markdown-parser/parse" "parse-markdown" (func ...))` を追加。"
 │       ├── mod.wit          # interface simple-host { add: "func(a: s32, b: s32) -> s32; }"
+
 ### Phase 2: "型バインディング生成 (struct/enum)"
+
 WIT の `record document { title: string, ... }` を
 `struct Document { title: String, ... }` として型システムに登録。
+
 ### Phase 3: `ark.toml` プロジェクトマニフェスト
+
 pub package: PackageMetadata,
 pub dependencies: HashMap<String, Dependency>,
 pub world: Option<WorldConfig>,
+
 ### Phase 4: ドキュメント・cookbook
+
 - `use std: ":host::stdio` (stdlib) と `import "wasi:cli/stdin"` (WIT) の区別を明記"
 import "test: calculator/math" as calc
 let result = calc: ":add(10, 32)"
@@ -76,9 +87,8 @@ multiply: "func(a: s32, b: s32) -> s32;"
 - ADR-008: "component wrapping (wasm-tools 依存)"
 - `crates/ark-wasm/src/component/wit_parse.rs`: 既存 WIT パーサー
 ---
+
 # WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成
-
-
 
 ---
 
@@ -86,11 +96,9 @@ multiply: "func(a: s32, b: s32) -> s32;"
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/124-wit-component-import-syntax.md` — incorrect directory for an open issue.
-
 
 ## 概要
 

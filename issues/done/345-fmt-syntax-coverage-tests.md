@@ -11,7 +11,9 @@ Priority: 14
 ---
 
 # Formatter: 現行構文全域のスナップショットテストを追加する
+
 - `crates/ark-parser/src/fmt.rs: 879-917` — 既存 4 テスト
+
 # Formatter: 現行構文全域のスナップショットテストを追加する
 
 ## Summary

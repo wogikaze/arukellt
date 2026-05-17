@@ -13,6 +13,7 @@ Priority: 19
 - `scripts/run/verify-harness.sh`: Rust binary を直接参照
 - `.github/workflows/ci.yml`: `cargo build -p arukellt` → `./target/release/arukellt`
 - `tests/harness.rs`: Rust binary 前提のテスト構造
+
 # Selfhost CLI を CI canonical path として使えるようにする
 
 ## Summary

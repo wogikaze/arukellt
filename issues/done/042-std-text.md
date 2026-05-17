@@ -12,6 +12,7 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # std: ":text: String API 拡張、StringBuilder、format ユーティリティ"
+
 現在 prelude に散在する String 操作関数を `std: ":text::string` モジュールに再配置し、"
 flat に定義されている。v3 ではこれらを `std: ":text::string` に移動し、"
 `string: ":split(s, sep)` のような修飾呼び出しで使えるようにする。"
@@ -49,25 +50,24 @@ pub fn pad_right(s: "String, width: i32, fill: char) -> String"
 1. `std/text/string.ark`: "上記 API の実装 (intrinsic + source)"
 2. `std/text/builder.ark`: "StringBuilder (GC array の動的拡張で実装)"
 3. `std/text/fmt.ark`: format ユーティリティ
-5. `ark-typecheck`: StringBuilder 型の登録
-6. `ark-wasm/src/emit`: "StringBuilder の intrinsic (append → array concat) を実装"
+4. `ark-typecheck`: StringBuilder 型の登録
+5. `ark-wasm/src/emit`: "StringBuilder の intrinsic (append → array concat) を実装"
 - fixture: `stdlib_text/string_from_utf8.ark`, `stdlib_text/string_lines.ark`,
 - 上記 API が `use std: ":text::string` で利用可能"
-2. `lines()` の改行判定: `\n` と `\r\n` の両方に対応
+1. `lines()` の改行判定: `\n` と `\r\n` の両方に対応
 - text モジュールは std: ":bytes (043) の from_utf8 / to_utf8_bytes で接続される"
 - Rope (#047) は std: ":text の拡張として後続 issue で追加"
 - `docs/stdlib/text-reference.md`: string, builder, fmt の API リファレンス + 使用例
+
 # std::text: String API 拡張、StringBuilder、format ユーティリティ
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/042-std-text.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

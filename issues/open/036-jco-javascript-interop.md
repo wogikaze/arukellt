@@ -24,11 +24,10 @@ and `pub fn greet(name: String) -> String`
 - ⚠️  `greet(String) -> String`: BLOCKED — canonical ABI string adapters not implemented.
 - ⚠️  `docs/platform/wasm-features.md` jco documentation: "deferred (jco not usable)."
 - jco version pin: "fix the jco version in `run.sh` (`npm exec --package=@bytecodealliance/jco@<version>`)"
+
 # jco JavaScript interop smoke test
 
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Summary
 
@@ -92,7 +91,6 @@ toolchain (Rust + wasmtime). Separating the issue allows:
 - `README.md` / `docs/contributing.md` — Node.js dependency note
 
 ## Resolution
-
 
 ### What was discovered
 

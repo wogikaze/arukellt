@@ -16,10 +16,7 @@ Action: Code-level guardrail added. All acceptance criteria met.
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Closed — 2026-04-15
-
 
 **Evidence**:
 - `playground/src/telemetry.ts` — adds `TELEMETRY_DISABLED = true` (compile-time constant),

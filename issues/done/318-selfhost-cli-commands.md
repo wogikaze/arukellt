@@ -15,6 +15,7 @@ Priority: 12
 - [x] `arukellt run file.ark` が compile → wasm 出力のワンステップで動作する (wasmtime 実行は process: ":exec 未実装のため手動)"
 - `run` は compile + ファイル出力まで行い、wasmtime 実行は案内のみ (process: ":exec が stdlib にないため)"
 - `test` は単一ファイル指定のみ (fs: ":read_dir が stdlib にないため)"
+
 # Selfhost CLI にコマンド surface を追加する
 
 ## Summary

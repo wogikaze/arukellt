@@ -22,15 +22,15 @@ run = "python3 scripts/manager.py verify --quick"
 description = "Run quick verification"
 
 [tasks.fmt]
-run = "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json"
+run = "npx markdownlint-cli2 '**/*.md' --fix"
 description = "Format documentation"
 
 [tasks."fmt:docs"]
-run = "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json"
+run = "npx markdownlint-cli2 '**/*.md' --fix"
 description = "Format documentation"
 
 [tasks."fmt:check"]
-run = "npx markdownlint-cli2 '**/*.md' --config .markdownlint.json"
+run = "npx markdownlint-cli2 '**/*.md'"
 description = "Check documentation formatting"
 
 [tasks.verify]

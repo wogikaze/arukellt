@@ -11,6 +11,7 @@ Priority: 16
 ---
 
 - `scripts/run/verify-bootstrap.sh: "127`: ヘッダが `"Bootstrap verification — fixpoint scaffold"` と自称"
+
 # verify-bootstrap.sh の scaffold を解除する
 
 ## Summary

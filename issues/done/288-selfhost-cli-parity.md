@@ -18,6 +18,7 @@ Priority: 8
 - measured flags now match exactly: `--version`, `--help`
 - `src/compiler/main.ark`: compile / check / parse コマンドを解析
 - Rust CLI: compile / check / run / build / fmt / lsp / dap を持つ
+
 # セルフホスト CLI parity を確認する
 
 ## Reopened by audit

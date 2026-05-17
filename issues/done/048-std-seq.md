@@ -14,6 +14,7 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 ---
 
 # std: ":seq: Seq\<T\> 遅延シーケンスとアルゴリズム"
+
 pub fn from_vec<T>(v: Vec<T>) -> Seq<T>
 pub fn range_i32(start: "i32, end: i32) -> Seq<i32>"
 pub fn map<T, U>(s: "Seq<T>, f: fn(T) -> U) -> Seq<U>"
@@ -48,25 +49,24 @@ pub fn group_by<T, K>(v: "Vec<T>, key: fn(T) -> K) -> Vec<(K, Vec<T>)>"
 3. `std/seq/seq.ark`: map/filter/take 等の変換操作
 4. `std/seq/collect.ark`: "終端操作 (collect_vec, fold, any, all 等)"
 5. `std/seq/algo.ark`: sort, binary_search, dedup 等のアルゴリズム
-7. sort 実装: "merge sort (安定ソート) に改善 (現在は bubble sort)"
+6. sort 実装: "merge sort (安定ソート) に改善 (現在は bubble sort)"
 - fixture: `stdlib_seq/seq_map_filter.ark`, `stdlib_seq/seq_take_skip.ark`,
 1. Seq の遅延性: `map` した時点では何も計算せず、`collect_vec` で初めて実行
 2. 無限列への対応: `take` なしの `collect_vec` はメモリ枯渇 — 警告を出すか制限するか
 3. 既存 HOF との移行: 旧 API は prelude に deprecated wrapper として残す
 - `docs/stdlib/seq-reference.md`: Seq API, アルゴリズム, 使用パターン
 1. Seq の内部表現: closure-based vs coroutine-based
-3. `sort_by` の比較関数の戻り値: "`i32` (-1/0/1) vs `Ordering`"
+2. `sort_by` の比較関数の戻り値: "`i32` (-1/0/1) vs `Ordering`"
+
 # std::seq: Seq\<T\> 遅延シーケンスとアルゴリズム
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/048-std-seq.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

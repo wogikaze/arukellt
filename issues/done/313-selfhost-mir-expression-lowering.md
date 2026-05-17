@@ -11,8 +11,10 @@ Priority: 3
 ---
 
 # Selfhost MIR lowering: 式のコンパイルを実装する
+
 - `src/compiler/mir.ark` (323 行): 43 opcodes 定義済み、MirInst / MirBlock / MirFunction / MirModule の構造体あり
 - `lower_to_mir()` は約 13 行のスタブ: typed_fns をループし、各関数に entry block + MIR_NOP 1 個を置くだけ
+
 # Selfhost MIR lowering: 式のコンパイルを実装する
 
 ## Summary

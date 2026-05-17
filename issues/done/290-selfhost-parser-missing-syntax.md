@@ -14,6 +14,7 @@ Priority: 10
 - `src/compiler/parser.ark`: NK_* 定数に上記が未定義
 - Rust parser `crates/ark-parser/src/ast.rs: "254-282`: ArrayRepeat, Try, Assign 等がある"
 - [x] `Struct { field: val, ..base }` 構文が selfhost parser で parse できる
+
 # セルフホスト parser に不足構文を追加する
 
 ## Summary

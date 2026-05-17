@@ -10,6 +10,7 @@ Blocks v1 exit: yes
 ---
 
 - [x] `RuntimeModel: ":T3FallbackToT1` is no longer the runtime model used for completed T3 execution."
+
 # T3 runtime and ABI completion
 
 ## Summary

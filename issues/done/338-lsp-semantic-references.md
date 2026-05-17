@@ -11,8 +11,10 @@ Priority: 2
 ---
 
 # LSP: references を semantic symbol ID ベースに置き換える
+
 - `crates/ark-lsp/src/server.rs: "2316-2358` — `document_highlight()` text-based 実装"
 - shadowing を区別しない: 内側 scope の `x` と外側の `x` が同一 reference 扱い
+
 # LSP: references を semantic symbol ID ベースに置き換える
 
 ## Summary

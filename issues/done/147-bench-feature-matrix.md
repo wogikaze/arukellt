@@ -12,18 +12,18 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # ベンチスイート: workload taxonomy と機能マトリクス整備
+
 - [x] `benchmarks/workload-taxonomy.md` に feature coverage matrix 表がある (STOP_IF: README より taxonomy file を拡張)
+
 # ベンチスイート: workload taxonomy と機能マトリクス整備
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/147-bench-feature-matrix.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

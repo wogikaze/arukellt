@@ -12,18 +12,18 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化
+
 - `tests/fixtures/manifest.txt` に `t3-run: structs/rmw_noop.ark` を追加.
+
 # T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/156-t3-read-modify-write-peephole.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

@@ -12,6 +12,7 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # std: ":collections: BTreeMap、BTreeSet、IndexMap、IndexSet、BitSet"
+
 pub fn btree_insert<K, V>(m: "BTreeMap<K, V>, key: K, value: V) -> Option<V>"
 pub fn btree_get<K, V>(m: "BTreeMap<K, V>, key: K) -> Option<V>"
 pub fn btree_remove<K, V>(m: "BTreeMap<K, V>, key: K) -> Option<V>"
@@ -39,17 +40,16 @@ pub fn bitset_intersection(a: "BitSet, b: BitSet) -> BitSet"
 4. BitSet: GC array of i32, ビット操作で実装
 - fixture: `stdlib_collections/btree_basic.ark`, `stdlib_collections/btree_range.ark`,
 1. BTree 実装の複雑さ: ノード分割・マージが正しく動作することの検証が重い
+
 # std::collections: BTreeMap、BTreeSet、IndexMap、IndexSet、BitSet
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/046-std-collections-ordered.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

@@ -11,6 +11,7 @@ Blocks v1 exit: no
 
 - [x] All `t3-compile: variables/*` fixtures compile successfully.
 - [x] All `run: variables/*` fixtures pass execution with correct output.
+
 # GC-native scalars, control flow, and direct calls
 
 ## Summary

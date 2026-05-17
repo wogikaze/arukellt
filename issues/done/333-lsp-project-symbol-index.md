@@ -14,25 +14,22 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # LSP: project-wide symbol index を構築する
+
 - `crates/ark-lsp/src/server.rs` (3,429 行): "`analysis_cache: Mutex<HashMap<Url, CachedAnalysis>>` が per-URI"
 - [x] index が top-level symbol (fn, struct, enum, trait, impl) を file: span 付きで保持する
 - `crates/ark-lsp/src/server.rs: 2428-2446` — `workspace/symbol` が open file のみ検索
+
 # LSP: project-wide symbol index を構築する
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/333-lsp-project-symbol-index.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

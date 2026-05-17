@@ -19,8 +19,6 @@ Implementation notes:
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Summary
 
 parse → typecheck → lower → emit の phase 可視化と、関数単位の inline perf / profiler overlays をまとめて、compiler pipeline understanding を強化する cross-cutting DX surface として追う。

@@ -10,8 +10,10 @@ Blocks v1 exit: no
 ---
 
 # VS Code extension: multi-root workspace + per-project configuration UI
+
 - `ark.toml` 不在: 単一ファイルモード、minimum 設定
 - `ark.toml` あり: package / workspace / tool defaults 読み取り
+
 # VS Code extension: multi-root workspace + per-project configuration UI
 
 ## Summary

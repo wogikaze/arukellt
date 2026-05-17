@@ -11,9 +11,11 @@ IfStmt { cond: "BinOp(Eq, EnumTag(Place(local_x)), ConstI32(k_0)), ... }"
 ---
 
 # T3: br_table enum dispatch — feasible IfStmt-chain optimization
+
 `MirStmt: ":IfStmt` at `opt_level >= 1`:"
 else [IfStmt { cond: "BinOp(Eq, EnumTag(Place(local_x)), ConstI32(k_1)), ... }]"
 - For each arm body: "`End`, emit body stmts, `Br(n-1-i)` to exit `$done`."
+
 # T3: br_table enum dispatch — feasible IfStmt-chain optimization
 
 ---

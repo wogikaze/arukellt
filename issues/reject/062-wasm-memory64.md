@@ -16,7 +16,6 @@ Status note: Wasm proposal — deferred to v5+. Not implemented.
 ---
 # Wasm Memory64: i64 アドレス空間対応
 
-
 ## Summary
 
 WebAssembly Memory64 提案 (`docs/spec/spec-3.0.0/proposals/memory64/Overview.md`) を T3 emitter に実装する。

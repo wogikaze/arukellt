@@ -8,15 +8,11 @@
 
 # Extension: playground surface は repo で証明できる endpoint だけを指す
 
-
 ---
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Closed by orchestration — 2026-04-14
-
 
 **Evidence**:
 - `extensions/arukellt-all-in-one/test/playground-endpoint-guard.js` enforces that extension-exposed endpoint equals repo-proved route and requires `docs/playground/index.html` entrypoint proof.
@@ -25,19 +21,13 @@
 - `extensions/arukellt-all-in-one/README.md` now states only the repo-proved route is supported.
 - Verification in slice commit `0426b64`: `python scripts/manager.py verify quick` PASS, `npm --prefix extensions/arukellt-all-in-one run test:playground-endpoint` PASS.
 
-
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/469-extension-playground-surface-points-to-repo-proved-endpoint.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

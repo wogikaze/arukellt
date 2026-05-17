@@ -11,6 +11,7 @@ Monomorphize per element type: vec_i32, vec_i64, vec_f64, vec_string.
 ---
 
 # GC-native Vec<T>: struct + array, monomorphized
+
 ;; Vec: ":new() with initial capacity 16"
 ;; 1. Check: "len == array.len(data) → grow (2× cap, array.copy, replace)"
 - [x] Vec literal / `Vec: ":new()` → `array.new_default` + `struct.new $vec_T`."
@@ -20,6 +21,7 @@ Monomorphize per element type: vec_i32, vec_i64, vec_f64, vec_string.
 - [x] All `run: stdlib_hof_i64_f64/*` fixtures pass execution.
 - Current bridge mode encodes Vec as `[data_ptr: "i32, len:i32, cap:i32]` in"
 linear memory. The GC version is structurally different: capacity is
+
 # GC-native Vec<T>: struct + array, monomorphized
 
 ## Summary

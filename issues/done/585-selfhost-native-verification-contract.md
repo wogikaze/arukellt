@@ -15,7 +15,9 @@ Total checks: "1  Passed: 1  Skipped: 0  Failed: 0"
 - sha256: `3a0350371f9dbc37becef03efffa8d20b90827161a0d9fab97163a19de341f2c`
 - provenance: "[`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md)"
 - built from: master commit `662c3f58`
+
 # detailed: "PASS=6 FAIL=0 (--version, --help, unknown-cmd, compile|check|run no-args)"
+
 # 585 — Replace Rust-baseline parity gates with selfhost-native verification contract
 
 ## Why

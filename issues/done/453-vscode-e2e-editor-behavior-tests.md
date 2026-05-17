@@ -17,53 +17,53 @@ FYI: "`test.skip("unresolved name produces E0100 diagnostic")` remains pending i
 Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 Evidence: "extension.test.js:259 definition range test, :360 hover-string-literal test, :424 zero-diagnostics test; fixtures/basic.ark present"
+
 ### Step 1: テスト fixture `.ark` ファイルの追加
+
 fn greet(name: String) -> String {
+
 ### Step 2: Go to Definition E2E テスト追加
+
 assert.ok(rangeLen <= 10, `Range too wide: ${rangeLen} chars`);
 assert.ok(rangeLen <= 8, `greet range too wide: ${rangeLen}`);
+
 ### Step 3: Hover E2E テスト追加
+
 (c) => (typeof c === "string" ? c: "c.value || "").includes("string literal")"
 .map((c) => (typeof c === "string" ? c: c.value || ""))
+
 ### Step 4: Diagnostics E2E テスト追加
+
 `Valid file should have no diagnostics, got: "${diags.map((d) => d.message).join(", ")}`"
 language: "arukellt",
 content: ""fn main() { println(\"hello\") }\n","
+
 ### Step 5: テスト実行環境の確認
+
 ### Step 6: CI での実行確認
+
 `.github/workflows/` または `scripts/` にある CI 設定で extension テストが実行されているか確認する。実行されていない場合は、テストを CI に組み込む手順を記載する（本 issue のスコープ: 確認のみ。CI 組み込みは別 issue でも可）。
 Reviewer: "implementation-backed queue normalization (verify checklist)."
+
 # VSCode API を使った editor behavior E2E テストを追加する
 
 ---
 
 ## Audit — 2026-04-18 (#453 E2E)
 
-
 **npm test** (`extensions/arukellt-all-in-one`): Pass — `vscode-test` exit 0, 34 passing (2026-04-18).
-
-
 
 ## Closed — 2026-04-15
 
-
-
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/453-vscode-e2e-editor-behavior-tests.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

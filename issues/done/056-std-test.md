@@ -12,6 +12,7 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # std: ":test: assert、snapshot テスト、bench-lite"
+
 テスト支援ライブラリを std: ":test として実装する。"
 pub fn assert_eq_i32(actual: "i32, expected: i32)"
 pub fn assert_eq_i64(actual: "i64, expected: i64)"
@@ -36,19 +37,18 @@ pub fn bench(name: "String, iterations: i32, f: fn() -> ())"
 4. `std/test/bench.ark`: "簡易ベンチマーク (monotonic clock 使用)"
 5. 失敗時のエラーメッセージ: `expected X, got Y` 形式で出力
 - fixture: `stdlib_test/assert_eq.ark`, `stdlib_test/assert_ne.ark`,
-3. bench の精度: monotonic clock が ns 解像度でなければ ms で表示
+1. bench の精度: monotonic clock が ns 解像度でなければ ms で表示
 - `docs/stdlib/test-reference.md`: テスト関数一覧、snapshot 使い方、bench パターン
+
 # std::test: assert、snapshot テスト、bench-lite
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/056-std-test.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

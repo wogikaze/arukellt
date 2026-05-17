@@ -13,10 +13,11 @@ WASI Preview 2 の `wasi: "filesystem/types` と `wasi:filesystem/preopens` を"
 ---
 
 # WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング"
-1. `wasi: filesystem/types.{open-at, read-via-stream, write-via-stream, close}` を stdlib から呼ぶ
-4. fixture: `wasi_fs_p2.ark` でファイル読み書き確認
-# WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング
 
+1. `wasi: filesystem/types.{open-at, read-via-stream, write-via-stream, close}` を stdlib から呼ぶ
+2. fixture: `wasi_fs_p2.ark` でファイル読み書き確認
+
+# WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング
 
 ## Reopened by audit
 

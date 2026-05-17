@@ -22,11 +22,9 @@ T1/T3 の両方で意味を共有できる host capability を `std: ":host::*` 
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/138-std-wasi-shared-capabilities-t1-t3.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

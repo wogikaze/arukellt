@@ -10,8 +10,10 @@ Blocks v1 exit: no
 ---
 
 # 計測: allocation / live-set / GC pause / RSS telemetry
+
 - `scripts/util/benchmark_runner.py`: "`measure_memory()` 関数追加; 各 benchmark 結果に `"memory"` セクション追加; テキスト/Markdown レンダラーにメモリテーブル追加"
 - `benchmarks/schema.json`: `memory_metrics` 定義追加; `benchmark_result` に `"memory"` フィールド追加
+
 # 計測: allocation / live-set / GC pause / RSS telemetry
 
 ## Summary

@@ -9,10 +9,12 @@ Orchestration class: implementation-ready
 Blocks v1 exit: no
 ---
 
-#260 の acceptance を絞り込む: "acceptance 1 (スクリプト実装) は #481 担当に変更。"
+# 260 の acceptance を絞り込む: "acceptance 1 (スクリプト実装) は #481 担当に変更。"
+
 Reason: False-done. All 4 acceptance criteria reference implementations that do not exist in the repo.
 Completion Note analysis: "The completion note claims "generate-docs.py renders it" and "CI determinism layer verifies SHA256 match" but:"
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+
 # current-state.md の target 表を CI 結果からのみ更新する仕組みを作る
 
 ## Decomposition note — 2026-04-03
@@ -31,7 +33,6 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 ## Reopened by audit — 2026-04-03
 
-
 **Violated acceptance**:
 - `scripts/update-target-status.sh` (または同等のスクリプト) — file does not exist anywhere under `scripts/`
 - CI target-behavior job reads results and updates target-contract.md — no such CI job in `.github/workflows/ci.yml`
@@ -47,7 +48,6 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `scripts/` — no `update-target-status.sh` found
 - `.github/workflows/ci.yml` — no `target-contract` drift check job found
 - `scripts/gen/generate-docs.py` — no `target-contract.md` rendering found
-
 
 ## Summary
 

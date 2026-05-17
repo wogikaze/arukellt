@@ -11,7 +11,9 @@ Priority: 23
 ---
 
 # Playground: editor / diagnostics UI を実装する
+
 - `docs/index.html`: Docsify ベースの static docs shell、editor なし
+
 # Playground: editor / diagnostics UI を実装する
 
 ## Status note (2026-04-03)

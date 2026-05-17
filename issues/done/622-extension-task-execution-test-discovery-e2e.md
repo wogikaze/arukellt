@@ -13,8 +13,8 @@ Orchestration upstream: None
 
 ## Summary
 
-#254 closed the extension E2E audit slice, but it intentionally deferred two
-larger assertions: executing provided VS Code tasks and asserting discovered
+# 254 closed the extension E2E audit slice, but it intentionally deferred two larger assertions
+
 test items, not only controller presence. Existing #273/#274 coverage verifies
 registration/fetching and restart health, but does not prove `executeTask`
 exit-code behavior or rich test item discovery.

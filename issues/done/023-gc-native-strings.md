@@ -12,6 +12,7 @@ Operations:
 ---
 
 # GC-native strings: array i8 + array.new_data
+
 ;; Result: "(ref $string) with 5 elements"
 ;; Print helper: copy GC string → linear mem → fd_write
 ;; Loop: "for i in 0..len { i32.store8 (12+i) (array.get_u $string s i) }"
@@ -19,6 +20,7 @@ Operations:
 - [x] All `run: hello/*` fixtures pass execution.
 - `(mut i8)` is required: `array.copy` and `array.new_data` target arrays
 - Print buffer size: linear memory scratch area at offset 12 can hold up to
+
 # GC-native strings: array i8 + array.new_data
 
 ## Summary

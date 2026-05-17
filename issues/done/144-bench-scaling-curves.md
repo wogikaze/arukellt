@@ -12,10 +12,12 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # 計測: 入力サイズ sweep とスケーリングカーブ可視化
+
 - [x] Scaling fixture set defined: at least 3 input sizes applied to at least one benchmark
 - `benchmarks/schema.json`: added `"scaling"` to mode enum
 - `benchmarks/README.md`: added "Scaling Curve Mode" section + scaling class method table
 - `bash scripts/run/verify-harness.sh --quick`: "PASS** (19/19)"
+
 # 計測: 入力サイズ sweep とスケーリングカーブ可視化
 
 ---
@@ -47,11 +49,9 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/144-bench-scaling-curves.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

@@ -16,6 +16,7 @@ REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
 ---
 
 # 560 — Phase 5: Delete `crates/ark-driver`
+
 - [x] No source / script / docs reference: "`rg -l "\bark_driver\b\|\bark-driver\b" crates/ scripts/ src/ docs/ .github/` returns only entries explicitly enumerated in the close note (e.g. archived ADRs)"
 - [x] 4 canonical selfhost gates: rc=0, no FAIL increase, no SKIP increase
 1. [x] Directory truly absent: `test ! -d crates/ark-driver` exit 0
@@ -47,8 +48,8 @@ crates/arukellt/src/commands.rs: "7:use ark_driver::{MirSelection, OptLevel, Ses
 only `crates/ark-driver/tests/wit_import_roundtrip.rs: "8` (internal to"
 the deleted crate). `crates/ark-lsp/Cargo.toml: 15` and
 `scripts/check/check-panic-audit.sh: 8` were the two remaining manifest
-# 560 — Phase 5: Delete `crates/ark-driver`
 
+# 560 — Phase 5: Delete `crates/ark-driver`
 
 ## Summary
 
@@ -89,7 +90,6 @@ python scripts/manager.py selfhost diag-parity
 cargo check --workspace
 rg -l "\bark_driver\b" crates/ scripts/ src/ docs/ .github/
 ```
-
 
 ## STOP_IF
 

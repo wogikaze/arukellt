@@ -11,7 +11,9 @@ Priority: 9
 ---
 
 # LSP: signature help を stdlib 連携で完成させる
+
 - `crates/ark-lsp/src/server.rs`: signature_help handler 実装あり
+
 # LSP: signature help を stdlib 連携で完成させる
 
 ## Summary

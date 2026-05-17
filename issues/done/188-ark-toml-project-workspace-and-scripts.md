@@ -19,10 +19,7 @@ Implementation notes:
 ---
 # `ark.toml`: project / workspace metadata と `script run` surface
 
-
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Summary
 

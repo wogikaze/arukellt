@@ -11,6 +11,7 @@ Priority: 7
 ---
 
 - `scripts/run/verify-bootstrap.sh: "282`: `fixture-parity: not-verified` と出力するだけ"
+
 # セルフホスト fixture parity テストを構築する
 
 ## Summary

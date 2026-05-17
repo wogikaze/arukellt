@@ -12,7 +12,6 @@ Status note: Compiler architecture improvement — deferred to v5+. hello.ark al
 ---
 # コンパイル速度: MIR lowering のアリーナ割り当て
 
-
 ## Summary
 
 `ark-mir` の MIR lowering は多数の `Vec<MirStmt>` / `Box<Operand>` を個別にヒープ確保する。

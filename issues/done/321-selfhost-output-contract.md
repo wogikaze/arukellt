@@ -19,6 +19,7 @@ Priority: 13
 - [x] 終了コード: "0 (成功) / 1 (compile error) / 2 (usage error) が統一される"
 - Exit codes: usage error → 2, compile error → 1, success → 0
 - JSON output: "`--json` produces `{"file":"...","phase":...,"diagnostics":[...]}` or `{"file":"...","success":true,"output_size":...}`"
+
 # Selfhost compiler の出力契約を統一する
 
 ## Summary

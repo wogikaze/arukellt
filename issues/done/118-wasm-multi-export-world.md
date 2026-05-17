@@ -13,20 +13,20 @@ WASI P2 の `wasi: "cli/command`・`wasi:http/proxy` など標準 world への"
 ---
 
 # Component Model: 複数エクスポート world の自動生成
+
 `--world wasi: cli/command` フラグで標準 world にバインドしたコンポーネントを生成する。
 1. `arukellt compile --world wasi: cli/command` で標準 CLI world を生成
 2. `--world wasi: http/proxy` で HTTP サーバ world を生成
+
 # Component Model: 複数エクスポート world の自動生成
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/118-wasm-multi-export-world.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

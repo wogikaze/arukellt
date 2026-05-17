@@ -15,9 +15,11 @@ Evidence: "`crates/arukellt/tests/harness.rs:97-113` — arukellt_binary() reads
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
 
-#330 の acceptance を絞り込む: "acceptance 1 (ARUKELLT_BIN が harness で使われる) は #482 担当。"
+# 330 の acceptance を絞り込む: "acceptance 1 (ARUKELLT_BIN が harness で使われる) は #482 担当。"
+
 - `tests/harness.rs`: Rust binary を直接呼び出し
 - .github/workflows/ci.yml modified: ARUKELLT_BIN env var + harness artifact upload
+
 # Fixture harness を selfhost binary 対応にする
 
 ---
@@ -38,17 +40,11 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 ## False-Done Audit Note — 2026-04-03
 
-
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/330-fixture-harness-selfhost-compat.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

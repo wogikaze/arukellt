@@ -14,7 +14,9 @@ Source: stdlib modernization backlog requested 2026-04-15
 ---
 
 # Stdlib: "実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する"
+
 - [x] 少なくとも `std: ":core::hash`, `std::collections::hash`, `std::json`, `std::toml`, `std::fs` の監査結果が文書化される"
+
 # Stdlib: 実装品質監査 (hash / parsing / collection algorithm の甘さ) を実施する
 
 ## Summary

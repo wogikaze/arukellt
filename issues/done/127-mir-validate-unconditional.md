@@ -14,17 +14,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - 最適化なし (`MirSelection: ":CoreHir`) での emit 前に validate が走らない"
 if matches!(selection, MirSelection: ":OptimizedLegacy | MirSelection::OptimizedCoreHir) {"
 - `crates/ark-driver/src/session.rs: "438-470` (compile_selected)"
+
 # `MIRValidate` をコンパイル経路で無条件実行
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/127-mir-validate-unconditional.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

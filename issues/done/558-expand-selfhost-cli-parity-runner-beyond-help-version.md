@@ -17,6 +17,7 @@ depends-on: "[459, 531]"
 `scripts/selfhost/checks.py: "482`, `:492`, `:504`, `:515`)."
 not expose a top-level `test` subcommand that maps 1: 1 to the selfhost
 7961fce3 feat(selfhost-harness): "extend CLI parity runner beyond --version/--help (#558)"
+
 ## Why this must exist
 
 The current canonical runner `python3 scripts/manager.py selfhost parity --mode --cli` only compares exact output for `--help` and `--version`. That is insufficient to prove CLI parity for dual-period exit.

@@ -14,6 +14,7 @@ Priority: 2
 - 式の型推論なし: `let x = 1 + 2` で `x` の型が決まらない
 - call site の引数型検査なし: "`fn(i32)` に string を渡してもエラーにならない"
 - [x] `let x = 1 + 2` で `x: i32` が推論される
+
 # Selfhost typechecker に型推論エンジンを構築する
 
 ## Summary

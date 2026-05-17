@@ -19,8 +19,6 @@ Implementation notes:
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Summary
 
 breakpoint、continue、step、stack frames、locals、evaluate、panic/trap source mapping をまとめて、通常の source-level debugging で必要な inspection surface を追う。

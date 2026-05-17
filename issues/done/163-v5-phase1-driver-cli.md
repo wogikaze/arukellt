@@ -11,7 +11,6 @@ Status note: Parent issue for the selfhost driver / CLI surface. Debug dumping i
 ---
 # v5 Phase 1: Driver + CLI epic
 
-
 ## Summary
 
 Phase 1 の driver/CLI は、コマンド surface とコンパイルパイプライン接続を分けて追う必要がある。特に `ARUKELLT_DUMP_PHASES` は継続的に拡張されるため、この issue から切り離して #167 に集約する。

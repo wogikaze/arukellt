@@ -9,7 +9,9 @@ Orchestration class: implementation-ready
 ---
 
 # Repo Hygiene: scaffold / internal コンポーネントの露出 tier を定める
+
 - Created `docs/directory-ownership.md` with 4-tier classification: product / generated / internal / archive
+
 # Repo Hygiene: scaffold / internal コンポーネントの露出 tier を定める
 
 ## Acceptance

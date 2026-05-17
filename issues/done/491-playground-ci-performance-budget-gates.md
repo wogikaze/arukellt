@@ -12,6 +12,7 @@ Depends on: none
 - `scripts/check/check-playground-size.sh`: reusable size check script; exits 1 when threshold exceeded
 - `docs/playground/deployment-strategy.md §4.3`: updated with enforcement status table, defers Lighthouse CI to issue #498
 - `issues/open/498-playground-lighthouse-ci.md`: explicit tracking reference for deferred Lighthouse CI
+
 # 491 — Playground CI performance budget enforcement
 
 ## Summary

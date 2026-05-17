@@ -17,16 +17,11 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/257-target-contract-table.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

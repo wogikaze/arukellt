@@ -14,6 +14,7 @@ Close when: inventory is written, top-impact fs/json APIs have typed errors,
 ---
 
 # Error Handling Convergence: Stdlib Result Surface
+
 - recoverable runtime failure: typed `Result<T, E>` with stable error categories
 - optional absence: `Option<T>`, not stringly error messages
 `std: ":host::fs`, `std::json`, `std::io` (or equivalent)"
@@ -21,6 +22,7 @@ Close when: inventory is written, top-impact fs/json APIs have typed errors,
 1. Phase 0 inventory: list of stdlib APIs returning `Result<_, String>` is written
 2. At least the top 3 highest-impact APIs in `std: ":host::fs` / `std::json` have typed error enums"
 - Do not implement `std: ":error::Error` trait abstraction before #495 / #512 are ready"
+
 # Error Handling Convergence: Stdlib Result Surface
 
 ---

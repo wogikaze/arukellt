@@ -12,9 +12,10 @@ Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (cra
 ---
 
 # arukellt component subcommand
----
-# `arukellt component` サブコマンド (v3 候補)
 
+---
+
+# `arukellt component` サブコマンド (v3 候補)
 
 ---
 
@@ -27,14 +28,11 @@ Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (cra
 | CLI implementation | **#475 (this issue)** | build/inspect/validate subcommands 実装 |
 | docs | #485 | CLI リファレンス docs 追加 |
 
-
 475 の close gate から docs 更新を除外した。docs は #485 が担当する。
 
 ---
 
 ## Reopened by audit — 2026-04-03
-
-
 
 have a corresponding open issue.
 

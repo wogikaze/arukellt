@@ -14,8 +14,8 @@ Resolution: Failure metadata emitted by verification harness and local gate; doc
 
 ## Summary
 
-#265 defined the categories and naming structure needed to identify failure
-layers, but its future reporting bullets were not their own open work item.
+# 265 defined the categories and naming structure needed to identify failure layers, but its
+
 This issue tracks runner/report-level category annotations when verification
 fails.
 

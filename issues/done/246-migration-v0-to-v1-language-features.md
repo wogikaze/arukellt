@@ -10,7 +10,9 @@ Blocks v1 exit: no
 ---
 
 # migration guide v0→v1: language features completed, user migration tracking
+
 元ドキュメント: `docs/migration/v0-to-v1.md`（issue 化により移動済み）
+
 # migration guide v0→v1: language features completed, user migration tracking
 
 ## Summary

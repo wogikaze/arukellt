@@ -11,8 +11,10 @@ Priority: 5
 ---
 
 # Repo Hygiene: benchmark / test asset の naming linter を入れる
+
 - `scripts/check/check-asset-naming.sh`: checks benchmarks/*.ark and tests/fixtures/**/*.ark
 - snake_case enforced: lowercase letters, digits, underscores, must start with letter
+
 # Repo Hygiene: benchmark / test asset の naming linter を入れる
 
 ## Summary

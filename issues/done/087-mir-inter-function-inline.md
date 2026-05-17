@@ -21,11 +21,9 @@ Commit hash evidence: df4f672
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/087-mir-inter-function-inline.md` — incorrect directory for an open issue.
-
 
 ## Summary
 
@@ -50,7 +48,6 @@ roadmap-v4.md §5.2 item 4 および §10 item 3 に対応。
 
 **Verified implementation files** (actual paths, not acceptance-stated paths):
 - `crates/ark-mir/src/opt/pipeline.rs` — `inter_function_inline(module, 20, 3)` at line 298; `max_stmts=20`, `max_calls=3`; full implementation starting at line 1543 with call-count tracking and recursion guard
-
 
 **Accepted criteria**:
 1. ✅ `--opt-level 2` threshold: body ≤ 20 stmts + calls ≤ 3 — `inter_function_inline(module, 20, 3)` confirms both limits

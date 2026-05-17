@@ -12,6 +12,7 @@ Priority: 22
 
 - Added `check_capability_state()`: validates host_stub functions are mentioned in current-state.md
 - Added `check_fixture_count_freshness()`: validates project-state.toml matches manifest.txt count
+
 # check-docs-consistency の検証範囲を拡張する
 
 ## Summary

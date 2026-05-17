@@ -17,22 +17,18 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `.github/workflows/ci.yml`: `cargo build -p arukellt` + `./target/release/arukellt` を直接参照
 - `scripts/run/run-benchmarks.sh`: Rust binary 前提
 - perf baseline: Rust binary の compile time / output size を記録
+
 # コンパイラパスを抽象化して compiler-agnostic にする
 
 ---
 
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/328-rust-compiler-path-abstraction.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

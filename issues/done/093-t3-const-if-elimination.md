@@ -13,18 +13,18 @@ Commit hash evidence: df4f672
 ---
 
 # T3: 定数条件 if の emit 時除去
+
 - `crates/ark-wasm/src/emit/t3/stmts.rs` — `MirStmt: ":IfStmt` handler (lines 231–242); when `cond` is `Operand::ConstBool(value)`, the `if`/`else`/`end` Wasm instructions are skipped entirely and only the matching branch body is emitted directly"
+
 # T3: 定数条件 if の emit 時除去
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/093-t3-const-if-elimination.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

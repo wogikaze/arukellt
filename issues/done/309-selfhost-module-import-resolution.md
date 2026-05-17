@@ -19,6 +19,7 @@ Priority: 4
 - `tests/fixtures/selfhost/resolver_import_basic/main.ark` passes (output: 42\n42)
 - `tests/fixtures/selfhost/resolver_circular_import/main.ark` passes (diag: circular import detected)
 - `tests/fixtures/selfhost/resolver_stdlib_module/main.ark` passes (output: stdlib module resolved)
+
 # Selfhost resolver に module/import resolution を実装する
 
 ## Summary

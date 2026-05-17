@@ -11,8 +11,10 @@ Priority: 4
 ---
 
 # Repo Hygiene: generated と hand-written の境界を明確化し ownership を付与する
+
 - `.generated-files`: 39 entries with path | generator | command format
 - `scripts/check/check-generated-files.sh`: validates existence, banners, unlisted files
+
 # Repo Hygiene: generated と hand-written の境界を明確化し ownership を付与する
 
 ## Summary

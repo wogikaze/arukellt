@@ -14,11 +14,14 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # std: ":json + std::toml + std::csv: データ形式パーサ"
+
 - `issues/open/055-std-json-toml-csv.md`: this file itself says it had been moved back to `issues/open/`, but it remained under `issues/done/` until this audit.
 - `std/json/mod.ark`: current JSON surface is not the recursive enum API claimed in the acceptance block.
 - `std/toml/mod.ark`: current TOML surface is not the recursive enum API claimed in the acceptance block.
 - `docs/stdlib/modules/json.md`: pretty-printing is still deferred and described as pass-through rather than fully implemented formatting semantics.
+
 ### std: ":csv"
+
 pub fn parse(s: String) -> Result<JsonValue, Error>
 pub fn stringify(v: JsonValue) -> String
 pub fn stringify_pretty(v: "JsonValue, indent: i32) -> String"
@@ -41,21 +44,18 @@ pub fn csv_parse_with_header(s: "String) -> Result<(Vec<String>, Vec<Vec<String>
 - fixture: `stdlib_json/json_parse.ark`, `stdlib_json/json_stringify.ark`,
 1. JSON パーサの数値精度: f64 で表現。i64 を超える整数は精度損失 — 警告を出すか
 2. TOML の datetime 型は v3 では String として扱い、std: ":time 連携は v4"
-# std::json + std::toml + std::csv: データ形式パーサ
 
+# std::json + std::toml + std::csv: データ形式パーサ
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/055-std-json-toml-csv.md` — incorrect directory for an open issue.
 
-
 ## Reopened by audit — 2026-04-18
-
 
 **Audit evidence**:
 
@@ -87,7 +87,8 @@ priority decisions.
 The #044 blocker changed shape: it is no longer waiting on #312 generic
 monomorphization, but it still lacks the trait-bound `Hash`/`Eq` dispatch
 needed for accepted generic collection surfaces. Keep this issue blocked via
-#044 until that stdlib collection prerequisite is real.
+
+# 044 until that stdlib collection prerequisite is real
 
 ## 受け入れ条件
 

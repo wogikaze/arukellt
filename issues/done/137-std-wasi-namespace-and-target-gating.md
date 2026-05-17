@@ -12,6 +12,7 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ---
 
 # `std: ":host::*` namespace 導入と migration / target-gated 診断"
+
 `use std: ":host::*` を compiler / stdlib / generated docs に通し、"
 旧 `std: ":io/fs/env/process/cli` import と旧 prelude host API を compile-time に移行案内付きで reject する。"
 同時に `std: ":host::http` のような P2 専用 module は T1 で明示的に reject する。"
@@ -24,17 +25,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
 - [x] `std: ":host::*` modules registered in `std/manifest.toml` and resolver T3_ONLY_MODULES"
 - [x] Deprecated import paths (`std: ":io`, `std::fs`, etc.) already emit E0104 migration diagnostics"
+
 # `std::host::*` namespace 導入と migration / target-gated 診断
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/137-std-wasi-namespace-and-target-gating.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

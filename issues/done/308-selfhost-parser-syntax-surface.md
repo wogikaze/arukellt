@@ -14,6 +14,7 @@ Priority: 1
 - [x] `fn foo<T>(x: "T) -> T` が parse される (generic type parameter on fn)"
 - [x] `struct Foo<T> { x: "T }` が parse される (generic type parameter on struct)"
 - [x] `Struct { x: "1, ..base }` が parse される (struct base syntax)"
+
 # Selfhost parser の構文 surface を拡張する
 
 ## Summary

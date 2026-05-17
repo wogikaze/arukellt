@@ -12,6 +12,7 @@ Priority: 15
 ---
 
 # Linter: unused import / unused binding の検出を実装する
+
 - `crates/ark-resolve/src/unused.rs`: AST walker による未使用検出
 - lint registry に rule として登録済み (has_fix: true)
 - `check_unused_imports()`: "import のモジュール名が QualifiedIdent/TypeExpr::Qualified で参照されているか確認"
@@ -19,6 +20,7 @@ Priority: 15
 - `crates/ark-diagnostics/src/codes.rs`: W0006, W0007 コード追加
 - `crates/ark-diagnostics/src/lint.rs`: LintRegistry に登録
 - `crates/ark-driver/src/session.rs`: resolve 後に unused check を呼び出し
+
 # Linter: unused import / unused binding の検出を実装する
 
 ## Summary

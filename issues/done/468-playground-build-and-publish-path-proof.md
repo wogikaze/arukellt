@@ -16,10 +16,10 @@ Close gate met: concrete files enumerated; workflow/build/output alignment confi
 - App build: "npm run build:app -- exit 0; output in docs/playground/wasm/ and docs/playground/dist/"
 - Deploy: .github/workflows/pages.yml uses upload-pages-artifact@v3 with path ./docs
 - Proof record: docs/playground/build-path-proof.md in HEAD
+
 ## Reopened by audit
 
 ## Closed by decomposition audit — 2026-04-03
-
 
 ## Summary
 

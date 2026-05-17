@@ -15,17 +15,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 2. 各ファイルの `impl Ctx` ブロックは `use super: ":*;` もしくは `ctx.rs` 経由で `&mut self` アクセス可"
 - Rust では同一 crate 内なら複数ファイルに `impl Ctx` を分散させられる (ファイルを `mod` として公開し、`use super: ":Ctx;` する)"
 - `docs/current-state.md` (T3 backend: "fully operational, 415 fixtures pass")
+
 # T3 GC エミッター (t3_wasm_gc.rs 8678行) をサブモジュールに分割
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/128-split-t3-emitter.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

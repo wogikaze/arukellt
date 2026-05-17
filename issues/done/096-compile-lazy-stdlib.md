@@ -17,6 +17,7 @@ Implementation notes:
 ---
 
 # コンパイル速度: "未使用 stdlib 関数の遅延解決 (lazy-resolve)"
+
 1. `ark-resolve/src/resolve.rs`: 呼び出しグラフ構築 + 到達可能集合計算
 2. `ark-typecheck`: 未到達関数の型チェックをスキップ
 3. `ark-mir/src/lower.rs`: 未到達関数の MIR lowering をスキップ
@@ -31,17 +32,16 @@ Implementation notes:
 - ✓ Performance improvement: "lazy-resolve skips unreachable stdlib functions (verified by unit tests; actual 30% benchmark deferred to runtime-perf tracking)"
 - Conservative reachability: "traces `f(...)` and `mod::f(...)` calls; unqualified calls through `use` imports, method calls, closures not yet traced (intentional limitation for this slice)"
 - Entry seeds: `main` when present, otherwise all `pub fn` in entry module, falling back to all entry `fn` items
+
 # コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/096-compile-lazy-stdlib.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

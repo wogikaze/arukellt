@@ -35,11 +35,10 @@ Implementation notes:
 - Verification: "`bash scripts/run/verify-harness.sh --quick` → exit 0 (2026-04-18)"
 - ✓ WitType: ":Resource, Own, Borrow variants added"
 - This is a known limitation: resource types are supported in the WIT parser and canonical ABI layer, but component export validation requires additional work tracked separately
+
 # WIT resource type support (own/borrow)
 
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Summary
 

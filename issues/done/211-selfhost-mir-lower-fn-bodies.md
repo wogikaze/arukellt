@@ -13,10 +13,11 @@ Implemented: "`lower_to_mir` now accepts Vec<AstNode> decls and typed check resu
 ---
 
 # selfhost: MIR lowering lowers function bodies from typed HIR
+
 `lower_to_mir(check_result: "TypeCheckResult) -> MirModule` must:"
 3. Minimum instruction set: "`MIR_CONST_I32`, `MIR_LOCAL_GET/SET`, binary ops (`MIR_ADD` etc.), `MIR_CALL`, `MIR_RETURN`, `MIR_BRANCH`"
-# selfhost: MIR lowering lowers function bodies from typed HIR
 
+# selfhost: MIR lowering lowers function bodies from typed HIR
 
 ## Summary
 

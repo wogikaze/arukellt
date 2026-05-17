@@ -14,7 +14,9 @@ Source: stdlib modernization backlog requested 2026-04-15
 ---
 
 # Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する
+
 - [x] 少なくとも `std: ":wit`, `std::json`, `std::bytes`, `std::io` family の examples 更新計画がある"
+
 # Stdlib: docs / fixtures / cookbook を「良い Arukellt コード例」として再監査する
 
 ## Summary

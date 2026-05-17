@@ -18,17 +18,16 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 - Directory `t1/` contains 6 submodules: `mod.rs`, `helpers.rs`, `operands.rs`, `sections.rs`, `stdlib.rs`, `stmts.rs`
 - `cargo build --workspace --exclude ark-llvm --exclude ark-lsp`: PASS
 - `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
+
 # T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/129-split-t1-emitter.md` — incorrect directory for an open issue.
-
 
 ## Summary
 

@@ -20,11 +20,10 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 - [x] `crates/ark-resolve/src/lib.rs` gains an `extern` function registration path: when
 - [x] A round-trip test exists: parse a WIT file → resolve extern bindings → lower to MIR →
 2026-04-18: "Repo audit (table above) confirms the CLI → `Session.wit_files` → resolve/type-check"
+
 # WIT import parsing & host function binding
 
 ## Reopened by audit — 2026-04-13
-
-
 
 ## Verification audit — 2026-04-15
 

@@ -16,7 +16,6 @@ WASI Preview 2 の `wasi: "sockets/tcp`・`wasi:sockets/udp`・`wasi:sockets/ip-
 ---
 # WASI P2: wasi:sockets TCP/UDP ネイティブバインディング
 
-
 ## Audit classification
 
 - **Date**: 2026-04-21

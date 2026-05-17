@@ -17,6 +17,7 @@ for all 11 unimplemented commands: `init`, `fmt`, `targets`, `script`, `componen
 `"error: command not yet implemented in selfhost compiler"`. No command falls through to
 init: "exit=1 | error: command not yet implemented in selfhost compiler"
 fmt: "exit=1 | error: command not yet implemented in selfhost compiler"
+
 ## Why this must exist
 
 The current canonical CLI parity runner passes only for `--version` and `--help`, but the selfhost `--help` output now advertises a Rust-level top-level command surface that the selfhost CLI does not actually implement. This is a user-visible claim mismatch.

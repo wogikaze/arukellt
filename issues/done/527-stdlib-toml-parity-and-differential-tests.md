@@ -14,9 +14,11 @@ All 3 new fixtures pass (`python scripts/manager.py verify fixtures`: 748 PASS v
 ---
 
 # Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する
+
 `std: ":toml` family には regression fixtures はあるが、valid/invalid corpus に対する parity と differential testing を focused issue として追跡する queue artifact がない。"
 - `toml_roundtrip_basic.ark` — basic table round-trip: "documents that `toml_parse` → `toml_stringify` on a tag=5 table value preserves the raw source text exactly (no normalisation)."
 - `toml_parity_nested_section.ark` — differential contract: "multi-section `[table]` docs valid in full TOML 1.0 are rejected by the bounded subset; flat key=value docs are accepted by both."
+
 # Stdlib TOML: parity と differential tests を valid / invalid corpus で拡張する
 
 ## Summary

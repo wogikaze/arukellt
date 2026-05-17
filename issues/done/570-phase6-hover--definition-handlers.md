@@ -10,6 +10,7 @@ Orchestration upstream: None
 ---
 
 # 570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers
+
 Blocks: 572
 Blocks v5: no
 Source: #529 Phase 6 — IDE Frontend / LSP / DAP migration
@@ -34,8 +35,8 @@ Fixture: `tests/fixtures/selfhost/lsp_hover_definition.lsp-script` plus
 - hover response contains `{"contents": "{"kind":"markdown","value":"\`\`\`ark\nfn answer()\n\`\`\`"}, …}`"
 - definition response contains `{"uri": ""file:///hover.ark","range":{ … }}`"
 (same 4 pre-existing failures on master baseline: fixture-manifest sync,
-# 570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers
 
+# 570 — Phase 6/C2: src/ide/lsp.ark — hover & definition handlers
 
 ## Summary
 
@@ -61,7 +62,6 @@ python scripts/manager.py selfhost fixture-parity
 python scripts/manager.py selfhost diag-parity
 
 ```
-
 
 ## STOP_IF
 

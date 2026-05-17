@@ -25,6 +25,7 @@ with `run_supported: false`
 - exposed surface consistency: `crates/ark-target/src/lib.rs` and `docs/target-contract.md`
 - fixture proof: `tests/fixtures/t2/t2_scaffold.ark` is registered in `tests/fixtures/manifest.txt`
 Emitter stub + fixture + registry update: ~150–300 lines new Rust + ~20 lines Ark
+
 # T2 (`wasm32-freestanding`) Wasm Emitter Implementation
 
 ## Summary

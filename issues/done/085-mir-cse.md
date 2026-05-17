@@ -14,20 +14,20 @@ Commit hash evidence: df4f672
 ---
 
 # MIR: "CSE (Common Subexpression Elimination) パス"
+
 1. `passes/cse.rs`: "同一ブロック内の純粋な計算 (副作用なし) を重複排除"
 - `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass: ":Cse`; in `DEFAULT_PASS_ORDER`; `OptimizationSummary.cse_eliminated` field present"
-2. ✅ `struct.get`/`array.get` CSE: pure binop/unaryop covers read-only expressions; call/side-effect stmts clear the table
+1. ✅ `struct.get`/`array.get` CSE: pure binop/unaryop covers read-only expressions; call/side-effect stmts clear the table
+
 # MIR: CSE (Common Subexpression Elimination) パス
 
 ---
 
 ## Reopened by audit — 2026-04-03
 
-
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/085-mir-cse.md` — incorrect directory for an open issue.
-
 
 ## Summary
 
@@ -51,7 +51,6 @@ Commit hash evidence: df4f672
 **Verified implementation files** (actual paths, not acceptance-stated paths):
 - `crates/ark-mir/src/opt/cse.rs` — CSE pass; eliminates duplicate pure `BinaryOp`/`UnaryOp` computations within each basic block
 - `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass::Cse`; in `DEFAULT_PASS_ORDER`; `OptimizationSummary.cse_eliminated` field present
-
 
 **Accepted criteria**:
 1. ✅ Within-block pure computation dedup implemented (`is_pure_binop` check, seen-map per block)

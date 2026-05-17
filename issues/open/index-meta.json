@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-17T06:50:15Z",
+  "generated_at": "2026-05-17T08:46:23Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -401,6 +401,30 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "632",
+      "path": "632-playground-compiler-wasm-build-run-loop.md",
+      "title": "Playground compiler-Wasm build/run loop",
+      "track": "playground",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": true,
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "501"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": null
       }
     },

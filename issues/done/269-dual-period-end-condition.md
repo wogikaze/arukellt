@@ -19,8 +19,6 @@ Implementation notes:
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Summary
 
 selfhost が進んでも、Rust 実装をいつ削除するかの条件が定義されていないため、二重管理が続く可能性がある。dual period を終わらせるトリガー条件と移行手順を明文化する。

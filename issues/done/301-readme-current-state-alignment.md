@@ -16,26 +16,20 @@ Evidence: generate-docs.py generates README/current-state, check-docs-consistenc
 - README.md: 588 entries と記載
 - current-state.md: 586 entries と記載
 - `docs/data/project-state.toml: "81`: `fixture_manifest_count = 586`"
+
 # current-state.md と README.md の整合を取る
 
 ---
 
 ## Reopened by audit — 2026-04-13
 
-
-
 ## Closed by audit — 2026-04-03
 
-
-
-
 ## Reopened by audit — 2026-04-03
-
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/301-readme-current-state-alignment.md` — incorrect directory for an open issue.
-
 
 ## Summary
 
