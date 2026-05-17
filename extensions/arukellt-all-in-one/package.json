@@ -468,6 +468,7 @@
     "test:playground-endpoint": "node ./test/playground-endpoint-guard.js",
     "test:marketplace-metadata": "node ./test/marketplace-metadata-guard.js",
     "test": "vscode-test",
+    "test:vsix-live": "vscode-test --config .vscode-test.vsix.mjs --fail-zero",
     "package": "node ./test/run-vsce-package.js package",
     "build": "npm run package"
   },

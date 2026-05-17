@@ -49,6 +49,31 @@ function readFrames(onMessage) {
 }
 
 function startLsp() {
+  const docs = new Map();
+
+  function diagnosticsFor(text) {
+    return /\bundefined_var\b/.test(text || "")
+      ? [{
+          range: {
+            start: { line: 2, character: 19 },
+            end: { line: 2, character: 32 },
+          },
+          severity: 1,
+          source: "arukellt",
+          message: "E0100 unresolved name: undefined_var",
+        }]
+      : [];
+  }
+
+  function publishDiagnostics(uri, text) {
+    const diagnostics = diagnosticsFor(text);
+    writeFrame({
+      jsonrpc: "2.0",
+      method: "textDocument/publishDiagnostics",
+      params: { uri, diagnostics },
+    });
+  }
+
   readFrames((msg) => {
     if (msg.method === "initialize" && msg.id != null) {
       writeFrame({
@@ -56,21 +81,67 @@ function startLsp() {
         id: msg.id,
         result: {
           capabilities: {
-            textDocumentSync: 1,
+            textDocumentSync: {
+              openClose: true,
+              change: 1,
+              save: { includeText: true },
+            },
             hoverProvider: true,
             definitionProvider: true,
             completionProvider: {
               resolveProvider: false,
               triggerCharacters: [".", ":"],
             },
-            diagnosticProvider: {
-              interFileDependencies: false,
-              workspaceDiagnostics: false,
-            },
           },
           serverInfo: { name: "arukellt-extension-e2e-lsp", version: "0.0.0" },
         },
       });
+      return;
+    }
+    if (msg.method === "textDocument/didOpen") {
+      const doc = msg.params?.textDocument;
+      if (doc?.uri) {
+        docs.set(doc.uri, doc.text || "");
+        publishDiagnostics(doc.uri, doc.text || "");
+      }
+      return;
+    }
+    if (msg.method === "textDocument/didChange") {
+      const uri = msg.params?.textDocument?.uri;
+      const text = msg.params?.contentChanges?.[0]?.text;
+      if (uri && typeof text === "string") {
+        docs.set(uri, text);
+        publishDiagnostics(uri, text);
+      }
+      return;
+    }
+    if (msg.method === "textDocument/didSave") {
+      const uri = msg.params?.textDocument?.uri;
+      const text = typeof msg.params?.text === "string" ? msg.params.text : docs.get(uri);
+      if (uri) {
+        publishDiagnostics(uri, text || "");
+      }
+      return;
+    }
+    if (msg.method === "textDocument/didClose") {
+      const uri = msg.params?.textDocument?.uri;
+      if (uri) {
+        docs.delete(uri);
+        publishDiagnostics(uri, "");
+      }
+      return;
+    }
+    if (msg.method === "textDocument/diagnostic" && msg.id != null) {
+      const uri = msg.params?.textDocument?.uri;
+      writeFrame({
+        jsonrpc: "2.0",
+        id: msg.id,
+        result: { kind: "full", items: diagnosticsFor(docs.get(uri) || "") },
+      });
+      return;
+    }
+    if (msg.method === "workspace/diagnostic" && msg.id != null) {
+      writeFrame({ jsonrpc: "2.0", id: msg.id, result: { items: [] } });
       return;
     }
     if (msg.method === "shutdown" && msg.id != null) {

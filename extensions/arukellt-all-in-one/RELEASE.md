@@ -25,6 +25,7 @@ npm ci
 npm run test:marketplace-metadata
 npm run build
 xvfb-run -a npm test
+xvfb-run -a npm run test:vsix-live
 ```
 
 Expected outputs:
@@ -32,6 +33,9 @@ Expected outputs:
 - `npm run test:marketplace-metadata` exits 0.
 - `npm run build` produces `arukellt-all-in-one-<version>.vsix`.
 - `xvfb-run -a npm test` passes the activation and workflow suite.
+- `xvfb-run -a npm run test:vsix-live` installs the packaged VSIX and passes
+  the live editor smoke checks for activation, Ready status, diagnostics, and
+  completion/hover/definition.
 
 ## Marketplace Metadata
 

@@ -34,11 +34,11 @@ release refs; items marked **Manual** require human verification.
 - [ ] **CI** — `cd extensions/arukellt-all-in-one && npm ci && npm run build` succeeds
 - [ ] **CI** — VSIX package generated (`.vsix` file exists)
 - [ ] **CI** — Extension activation tests pass (`xvfb-run -a npm test`)
-- [ ] **Manual** — VSIX installs in VS Code and activates without errors
-- [ ] **Manual** — LSP connects and shows "Ready" in language status
+- [ ] **CI** — Packaged VSIX installs in VS Code and activates without errors (`xvfb-run -a npm run test:vsix-live`)
+- [ ] **CI** — LSP connects and shows "Ready" in language status through the installed VSIX
 - [ ] **CI** — LSP protocol compliance verified via E2E tests (initialize, shutdown, completion, hover, definition)
-- [ ] **Manual** — Diagnostics appear on save for a file with type errors
-- [ ] **Manual** — Completion, hover, and go-to-definition work in live editor
+- [ ] **CI** — Diagnostics appear on save for a file with type errors through the installed VSIX
+- [ ] **CI** — Completion, hover, and go-to-definition work in live editor through the installed VSIX
 <!-- CLOSED: Formatter CLI-LSP parity (#550) — neither selfhost CLI fmt nor LSP formatting provider exist; gated on selfhost formatter implementation. Re-add when a formatter exists in the selfhost compiler. -->
 
 ## Failure recovery

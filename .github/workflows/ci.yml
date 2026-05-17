@@ -688,6 +688,11 @@ jobs:
           DONT_PROMPT_WSL_INSTALL: "1"
         run: cd extensions/arukellt-all-in-one && xvfb-run -a npm test
 
+      - name: Run VSIX live editor smoke
+        env:
+          DONT_PROMPT_WSL_INSTALL: "1"
+        run: cd extensions/arukellt-all-in-one && xvfb-run -a npm run test:vsix-live
+
   # ── Layer 11: (removed) Rust ark-lsp E2E tests ─────────────────────────
   # The Rust LSP server crate (`crates/ark-lsp`) was deleted in #572 (Phase 7
   # of #529). The selfhost LSP/DAP protocol lifecycle checks run through the

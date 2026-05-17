@@ -540,17 +540,19 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
         out_lines.append(out1)
         rc2, out2 = _run(["xvfb-run", "-a", "npm", "test"], Path(ext_dir))
         out_lines.append(out2)
-        if rc1 == 0 and rc2 == 0:
+        rc3, out3 = _run(["xvfb-run", "-a", "npm", "run", "test:vsix-live"], Path(ext_dir))
+        out_lines.append(out3)
+        if rc1 == 0 and rc2 == 0 and rc3 == 0:
             ok("Extension tests")
         else:
             fail_step(
                 "Extension tests",
                 category="editor-tooling",
-                command="xvfb-run -a npm test",
+                command="xvfb-run -a npm test && xvfb-run -a npm run test:vsix-live",
                 primary_path="extensions/arukellt-all-in-one/",
             )
             emit("✗ Full CI failed")
-            return (max(rc1, rc2), "".join(out_lines))
+            return (max(rc1, rc2, rc3), "".join(out_lines))
     else:
         skip_step("Extension tests (npm or xvfb-run not found)")
 

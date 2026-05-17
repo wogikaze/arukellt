@@ -1,0 +1,14 @@
+{
+  "name": "arukellt-vsix-live-test-runner",
+  "displayName": "Arukellt VSIX Live Test Runner",
+  "version": "0.0.0",
+  "publisher": "arukellt",
+  "private": true,
+  "engines": {
+    "vscode": "^1.113.0"
+  },
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./extension.js"
+}

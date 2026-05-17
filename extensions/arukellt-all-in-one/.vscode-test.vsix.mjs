@@ -16,12 +16,17 @@ const localDownloadedInstall = fs.existsSync(downloadedCode)
 
 export default defineConfig([
   {
-    files: "src/test/extension.test.js",
+    files: "src/test/vsix-live.test.js",
+    extensionDevelopmentPath: "./src/test/vsix-runner",
     workspaceFolder: "./src/test/fixtures",
+    installExtensions: [path.join(__dirname, "arukellt-all-in-one-0.0.1.vsix")],
     launchArgs: ["--no-sandbox"],
+    env: {
+      ARUKELLT_VSIX_LIVE_MARKER: process.env.ARUKELLT_VSIX_LIVE_MARKER,
+    },
     ...localDownloadedInstall,
     mocha: {
-      timeout: 30000,
+      timeout: 45000,
     },
   },
 ]);

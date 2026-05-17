@@ -3,6 +3,7 @@
 .markdownlintignore
 .gitignore
 .vscode-test.mjs
+.vscode-test.vsix.mjs
 package-lock.json
 bun.lock
 tests/**
