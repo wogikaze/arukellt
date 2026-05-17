@@ -19,6 +19,7 @@ PERF_CASES = [
 ]
 FIXTURE_MANIFEST = ROOT / "tests" / "fixtures" / "manifest.txt"
 OUTPUT_DIR = ROOT / "tests" / "baselines"
+TMP_DIR = ROOT / "target" / "ci" / "baselines"
 
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
@@ -67,12 +68,16 @@ def benchmark_command(args: list[str], iterations: int = 5) -> dict:
 
 def collect_perf_baseline() -> dict:
     rows = []
+    TMP_DIR.mkdir(parents=True, exist_ok=True)
     for case in PERF_CASES:
-        check_result = benchmark_command([str(BIN), "check", str(case)])
-        compile_t1 = benchmark_command([str(BIN), "compile", str(case), "--target", "wasm32-wasi-p1", "--output", "/tmp/arukellt-baseline-t1.wasm"])
-        compile_t3 = benchmark_command([str(BIN), "compile", str(case), "--target", "wasm32-wasi-p2", "--output", "/tmp/arukellt-baseline-t3.wasm"])
-        t1_size = Path("/tmp/arukellt-baseline-t1.wasm").stat().st_size if Path("/tmp/arukellt-baseline-t1.wasm").exists() else None
-        t3_size = Path("/tmp/arukellt-baseline-t3.wasm").stat().st_size if Path("/tmp/arukellt-baseline-t3.wasm").exists() else None
+        rel_case = str(case.relative_to(ROOT))
+        t1_out = TMP_DIR / "arukellt-baseline-t1.wasm"
+        t3_out = TMP_DIR / "arukellt-baseline-t3.wasm"
+        check_result = benchmark_command([str(BIN), "check", rel_case])
+        compile_t1 = benchmark_command([str(BIN), "compile", rel_case, "--target", "wasm32-wasi-p1", "--output", str(t1_out.relative_to(ROOT))])
+        compile_t3 = benchmark_command([str(BIN), "compile", rel_case, "--target", "wasm32-wasi-p2", "--output", str(t3_out.relative_to(ROOT))])
+        t1_size = t1_out.stat().st_size if t1_out.exists() else None
+        t3_size = t3_out.stat().st_size if t3_out.exists() else None
         rows.append(
             {
                 "file": str(case.relative_to(ROOT)),
@@ -107,8 +112,7 @@ def parse_manifest() -> list[tuple[str, str]]:
 def collect_fixture_baseline() -> dict:
     rows = []
     for kind, rel in parse_manifest():
-        fixture = ROOT / "tests" / "fixtures" / rel
-        proc = run([str(BIN), "run", str(fixture)])
+        proc = run([str(BIN), "run", f"tests/fixtures/{rel}"])
         primary_stream = proc.stderr if "diag" in kind else proc.stdout
         rows.append(
             {

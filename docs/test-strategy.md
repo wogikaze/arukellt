@@ -11,8 +11,8 @@ their responsibilities, and how they map to the CI pipeline.
 | **fixture** | End-to-end `.ark` → stdout/diagnostic correctness | mixed: T3 merge-blocking, T1 non-blocking | `fixture-primary` and `fixture-supported` jobs |
 | **target-contract** | Per-target behavior and CI/doc target drift | mixed: T3 merge-blocking, T1 non-blocking, drift merge-blocking | `fixture-primary`, `fixture-supported`, and `target-contract-drift-check` |
 | **component-interop** | Component Model emit + host interop | push-only informational | `component-interop` job: `bash scripts/manager.py --component` |
-| **package-workspace** | `ark.toml`, workspace resolution, manifest, script execution | merge-blocking | `verification-package-workspace` job: `bash scripts/run/test-package-workspace.sh` |
-| **bootstrap** | Selfhost Stage 0→1→2 bootstrap and parity evidence | mixed: Stage 0/1 merge-blocking, Stage 2/parity informational | `selfhost-bootstrap` job |
+| **package-workspace** | `ark.toml`, workspace resolution, manifest, script execution | non-blocking alert | `verification-package-workspace` job: `bash scripts/run/test-package-workspace.sh` |
+| **bootstrap** | Selfhost fixpoint and parity evidence | merge-blocking fixpoint plus parity gates | `selfhost-bootstrap`, `selfhost-cli-parity`, and `selfhost-diag-parity` jobs |
 | **editor-tooling** | VS Code extension activation and LSP protocol behavior | merge-blocking | `extension-tests` job |
 | **determinism** | Same input → same output | merge-blocking | `determinism` job |
 | **perf** | Compile/run time regression | push-only informational | `perf-baseline` job |
@@ -66,7 +66,7 @@ today.
 | CI layer / job | Gate level | Primary categories covered | Notes |
 |----------------|------------|----------------------------|-------|
 | **Unit tests** (`unit-tests`) | merge-blocking | unit | Also runs clippy and rustfmt so compiler regressions fail in the first layer. |
-| **Package/workspace verification** (`verification-package-workspace`) | merge-blocking | package-workspace | Runs `bash scripts/run/test-package-workspace.sh`, covering manifest discovery and `ark.toml` script execution behavior. |
+| **Package/workspace verification** (`verification-package-workspace`) | non-blocking alert | package-workspace | Runs `bash scripts/run/test-package-workspace.sh`, covering manifest discovery and `ark.toml` script execution behavior. This remains an alert lane until selfhost `build` / `script` semantics are implemented. |
 | **Verification harness — quick gate** (`verification-harness-quick`) | merge-blocking | docs/size/WAT auxiliary checks (quick slice) | Runs `python scripts/manager.py verify quick` in its own job so manifest / docs hygiene / repo-structure failures identify this layer immediately (distinct from `unit-tests`). |
 | **Fixture suite - T3 primary** (`fixture-primary`) | merge-blocking | fixture, target-contract | Primary target behavior gate for `wasm32-wasi-p2`. |
 | **Fixture suite - T1 supported** (`fixture-supported`) | non-blocking | fixture, target-contract | Supported target alerting lane for `wasm32-wasi-p1`. |
@@ -76,7 +76,7 @@ today.
 | **Heavy checks (size, WAT, docs)** (`heavy-checks`) | push-only | docs/size/WAT auxiliary checks | Executes `verify-harness.sh --size --wat --docs` (includes the same default harness checks as `--quick`, plus size/WAT/markdownlint); useful for drift detection, not a merge gate. |
 | **Component interop** (`component-interop`) | push-only | component-interop | Optional component smoke coverage. |
 | **Perf baseline snapshot** (`perf-baseline`) | push-only | perf | Collects baseline JSON artifacts. |
-| **Selfhost bootstrap (full)** (`selfhost-bootstrap`) | merge-blocking with informational sub-results | bootstrap | Stage 0 and Stage 1 must pass; Stage 2 fixpoint and parity evidence are collected without failing the job. |
+| **Selfhost bootstrap (full)** (`selfhost-bootstrap`) | merge-blocking | bootstrap | Runs `python scripts/manager.py selfhost fixpoint`; fixture parity is informational in this job, while CLI and diagnostic parity have dedicated merge-blocking jobs. |
 | **VS Code extension tests** (`extension-tests`) | merge-blocking | editor-tooling | Extension activation, feature workflow, and protocol-level LSP coverage. |
 | **Target contract drift check** (`target-contract-drift-check`) | merge-blocking | target-contract | Fails when `docs/target-contract.md` drifts from CI-described target truth. |
 | **Final Gate** (`verify`) | merge-blocking aggregator | required merge gates | Summary gate over the required blocking layers. |
@@ -89,7 +89,7 @@ truth, and the names above are the ones to use when identifying which CI layer
 failed.
 
 The category summary records these piggyback mappings explicitly:
-`package-workspace` maps to `verification-package-workspace`,
+`package-workspace` maps to the non-blocking `verification-package-workspace` alert lane,
 `diagnostics-snapshot` maps to `fixture-primary`, and the selfhost LSP lifecycle check maps to
 `verification-harness-quick`. Push-only lanes appear as `skipped` on pull
 requests, which is expected.
@@ -112,8 +112,8 @@ When adding a feature:
 | fixture | 434 manifest entries | active |
 | target-contract | 247 (T1) + 182 (T3) via ARUKELLT_TARGET, plus drift enforcement in `target-contract-drift-check` | active |
 | component-interop | 6 component-compile + 1 jco smoke | partial |
-| package-workspace | dedicated `verification-package-workspace` job for manifest discovery and script execution | active |
-| bootstrap | `selfhost-bootstrap` enforces Stage 0/1 and records Stage 2/parity evidence | partial |
+| package-workspace | dedicated non-blocking `verification-package-workspace` alert lane for manifest discovery and script execution | partial |
+| bootstrap | `selfhost-bootstrap` enforces selfhost fixpoint; dedicated CLI/diagnostic parity jobs enforce parity | active |
 | editor-tooling | automated VS Code extension and selfhost LSP tests in `extension-tests` | active |
 | determinism | dedicated `determinism` CI job | active |
 | perf | 5 benchmark fixtures | active |
