@@ -1,16 +1,15 @@
 ---
-Status: blocked
+Status: done
 Updated: 2026-05-17
 ID: 553
 Track: release
 Type: Verification
 Depends on: none
-Blocked by: "release tag creation and passing tag workflow"
 ---
 
 # Release: Binary Distribution
 
-> **Status:** blocked
+> **Status:** done
 > **Track:** release
 > **Type:** Verification
 
@@ -27,7 +26,7 @@ docs/release-checklist.md — Binary distribution section
 - [x] Release CLI entrypoint prepared on linux-x86_64
 - [x] Release binary size < 50 MB
 - [x] SHA256 checksum generated alongside binary
-- [ ] Version in Cargo.toml matches the tag — BLOCKED until a release tag exists; tag push CI now enforces this comparison
+- [x] Version in Cargo.toml matches the tag — verified by tag push CI for `v0.1.0`
 
 ## Required Verification
 
@@ -50,7 +49,8 @@ All binary distribution requirements must be satisfied.
 
 ## Verdict
 
-Blocked. The binary distribution evidence is present, but the release tag gate cannot be completed because no git tag is available to compare against the `Cargo.toml` version.
+Done. The binary distribution evidence is present, and the release tag gate
+passed for `v0.1.0`.
 
 ## Recheck — 2026-05-14
 
@@ -148,6 +148,25 @@ Moved from `issues/open/` to `issues/blocked/`. Repo-side packaging work is now
 covered by CI: release CLI entrypoint preparation, size gate, SHA256 generation,
 artifact upload, and tag/version comparison for tag pushes. The only remaining
 acceptance item requires an actual release tag and a passing tag workflow.
+
+## CI Close Evidence — 2026-05-17
+
+- Release tag: `v0.1.0`
+- Tagged commit: `f76306d6286e561933d28b4cd56ce16ea3d6d9e1`
+- CI run: `25979799253`
+  (`https://github.com/wogikaze/arukellt/actions/runs/25979799253`)
+- Run conclusion: **success**
+- `Packaging — binary smoke` job `76366349926`: **PASS**
+  - `Packaging smoke — selfhost wrapper entrypoints`: PASS
+  - `Packaging gate — size and checksum`: PASS
+  - `Release tag/version gate`: PASS
+  - `Upload release CLI entrypoint artifact`: PASS
+- Artifact uploaded:
+  `arukellt-linux-x86_64-f76306d6286e561933d28b4cd56ce16ea3d6d9e1`
+- `Final Gate` job `76366406810`: **PASS**
+
+Close verdict: **done**. `v0.1.0` matches `Cargo.toml`
+`workspace.package.version = "0.1.0"`, and the tag workflow passed.
 
 ## Primary Paths
 
