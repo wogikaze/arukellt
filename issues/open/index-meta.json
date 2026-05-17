@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-05-17T03:15:20Z",
+  "generated_at": "2026-05-17T03:45:20Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -899,14 +899,6 @@
       "depends_on": [
         "30"
       ]
-    },
-    {
-      "id": "554",
-      "path": "554-release-extension-live-editor-tests.md",
-      "title": "Release: Extension Live Editor Tests",
-      "track": "release",
-      "blocked_by": "manual live VS Code verification with the packaged VSIX",
-      "depends_on": []
     }
   ]
 }
