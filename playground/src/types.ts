@@ -1,9 +1,8 @@
 /**
  * TypeScript type definitions for the Arukellt playground API.
  *
- * These types mirror the JSON response shapes returned by the
- * `ark-playground-wasm` module. See `crates/ark-playground-wasm/README.md`
- * for the canonical Rust definitions.
+ * These types define the JSON-compatible response shapes returned by the
+ * browser-native playground engine.
  *
  * @module
  */
@@ -154,12 +153,10 @@ export interface TypecheckResponse {
 /** Options for initialising the playground. */
 export interface PlaygroundOptions {
   /**
-   * URL or path to the `.wasm` binary.
+   * Deprecated compatibility field retained for callers of the former
+   * Wasm-backed API. The browser-native engine does not fetch this URL.
    *
-   * When using the `web` target from `wasm-pack`, this is the
-   * `ark_playground_wasm_bg.wasm` file.
-   *
-   * @example "/assets/ark_playground_wasm_bg.wasm"
+   * @example "/assets/playground-engine"
    */
   wasmUrl: string | URL;
 }
@@ -190,9 +187,9 @@ export interface Playground {
   tokenize(source: string): TokenizeResponse;
   /** Type-check Arukellt source and return diagnostics. */
   typecheck(source: string): TypecheckResponse;
-  /** Return the Wasm module version. */
+  /** Return the playground engine version. */
   version(): string;
-  /** Release the Wasm module resources. */
+  /** Release playground resources. */
   destroy(): void;
 }
 
@@ -200,7 +197,7 @@ export interface Playground {
  * Asynchronous playground API (Web Worker execution).
  *
  * All methods return promises because they dispatch to a background
- * Web Worker. The Wasm module never blocks the main thread.
+ * Web Worker. Playground work never blocks the main thread.
  */
 export interface WorkerPlayground {
   /** Parse Arukellt source and return AST summary + diagnostics. */
@@ -211,7 +208,7 @@ export interface WorkerPlayground {
   tokenize(source: string): Promise<TokenizeResponse>;
   /** Type-check Arukellt source and return diagnostics. */
   typecheck(source: string): Promise<TypecheckResponse>;
-  /** Return the Wasm module version. */
+  /** Return the playground engine version. */
   version(): Promise<string>;
   /** Terminate the worker and release resources. */
   destroy(): void;

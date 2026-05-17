@@ -11,7 +11,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - CLI default target: `wasm32-wasi-p1`
 - Canonical target: `wasm32-wasi-p2`
 - Component/WIT target: `wasm32-wasi-p2`
-- Unit tests: current count is verified by `cargo test --workspace`
+- Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness: 641 passed, 28 skipped / 1016 entries
 - Verification: `python3 scripts/manager.py verify quick` — 22/22 checks pass
 - Stdlib manifest-backed public API: 594 functions
@@ -26,14 +26,12 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 
 ## Workspace overview
 
-- `crates/arukellt` — CLI (`check` / `compile` / `run`)
-- `crates/ark-lexer` 〜 `crates/ark-mir` — 主要コンパイラパイプライン（Rust 側）。Wasm 出力は selfhost (`src/compiler/emitter.ark`) が担当
-- `crates/ark-driver` — 共有 analysis/session 層
-- `crates/ark-target` — ターゲット定義
-- LSP — selfhost (`src/compiler/lsp.ark`)、`arukellt lsp` で起動。Rust `crates/ark-lsp` は #572 (Phase 7 of #529) で削除済み。
-- `extensions/arukellt-all-in-one` — VS Code extension bootstrap
+- `src/compiler/` — selfhost compiler pipeline (`lexer.ark`, `parser.ark`, `resolver.ark`, `typechecker.ark`, MIR, emitters, diagnostics, LSP)
+- `scripts/run/arukellt-selfhost.sh` — CLI wrapper (`check` / `compile` / `run` / `lsp`)
 - `std/` — source-backed stdlib wrappers
 - `tests/fixtures/` — manifest-driven end-to-end fixtures
+- `playground/` — browser playground source
+- `extensions/arukellt-all-in-one` — VS Code extension bootstrap
 - `docs/` — 利用者向け・設計向けドキュメント
 
 ## Notes

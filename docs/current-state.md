@@ -14,7 +14,7 @@ The legacy path remains available as an opt-in fallback via `--mir-select legacy
 - **corehir** (default): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
 - **legacy** (opt-in fallback): `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm`
 - Component path (v2): `... → MIR → WasmEmit → WIT generation → wasm-tools component embed → wasm-tools component new` (default wrap passes `--adapt wasi_snapshot_preview1=…` to `component new` when a Preview 1 adapter module is discoverable; see [target-contract.md](target-contract.md#component-output-separate-guarantee-tier))
-- Shared orchestration entry point: selfhost driver (`src/compiler/driver.ark`); the legacy `crates/ark-driver` Rust crate was removed in #560 (Phase 5).
+- Shared orchestration entry point: selfhost driver (`src/compiler/driver.ark`).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
@@ -31,7 +31,7 @@ The legacy path remains available as an opt-in fallback via `--mir-select legacy
 
 ### `wasm32-freestanding` (T2)
 
-`wasm32-freestanding` is **implemented for compile-only** in `crates/ark-target`
+`wasm32-freestanding` is **implemented for compile-only** in `src/compiler/driver.ark`
 (`implemented: true`, `run_supported: false`). The minimal core Wasm scaffold
 (linear memory plus empty `_start`, no WASI imports) is emitted by the
 selfhost emitter (`src/compiler/emitter.ark`). Regression proof:
@@ -43,7 +43,7 @@ and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 <!-- BEGIN GENERATED:CURRENT_STATE_TEST_HEALTH -->
 ## Test Health
 
-- Unit tests: current count is verified by `cargo test --workspace`
+- Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness: 641 passed, 0 failed, 28 skipped (manifest-driven)
 - Fixture manifest: 838 entries
 - Wasm validation is a hard error (W0004)
@@ -137,7 +137,7 @@ Canonical hello.ark sizes at opt-level 2 from [`docs/process/wasm-size-reduction
 <!-- BEGIN GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 ## Diagnostics and Validation
 
-- Canonical diagnostics registry lives in `crates/ark-diagnostics`
+- Canonical diagnostics registry lives in `src/compiler/diagnostics.ark`
 - Diagnostics are tracked by code, severity, and phase origin
 - `W0001`: same-body heuristic warning for shared mutable aliasing (warning, `typecheck`)
 - `W0002`: deprecated target alias warning (warning, `target`)
@@ -267,7 +267,7 @@ catches GC reference types that bypass WIT-level checks (W0004).
 
 The v4 optimization pipeline is fully implemented and active. See [docs/compiler/optimization.md](docs/compiler/optimization.md) for the complete reference.
 
-- **20 MIR passes** implemented in selfhost `src/compiler/passes/` (the Rust `crates/ark-mir/src/opt/` source was retired in #561 — selfhost is now the source of truth), running up to 3 fixed-point rounds
+- **20 MIR passes** implemented in selfhost `src/compiler/passes/`, running up to 3 fixed-point rounds
 - **`--opt-level` 0/1/2** controls which passes run; default is O1 (9 safe passes)
 - **Dead function elimination** removes unreachable stdlib functions at O1+ (T1/T2 only — disabled for T3; see below)
 - **T3 backend peephole**: `local.set`/`local.get` → `local.tee` conversion at O1+
@@ -288,8 +288,7 @@ stabilize fixture tests. Issue #486 replaced the blanket override with per-pass 
 - Dead function elimination remains **disabled for T3** — WASI-exported functions that
   are not called from the Arukellt entry point would be incorrectly removed
 - Six O2/O3 passes remain gated via `T3_GATED_PASSES` in `session.rs` until each is
-  independently verified GC-safe (see selfhost `src/compiler/passes/README.md`; the
-  prior Rust `crates/ark-mir/src/passes/README.md` was retired with the crate in #561)
+  independently verified GC-safe (see selfhost `src/compiler/passes/README.md`)
 
 The #122 opt-level separation work established the `passes/` directory and the unified
 `fn run(module: &mut MirModule, level: OptLevel) -> PassStats` interface that #486 builds on.
@@ -357,17 +356,15 @@ pinned wasm is documented in `bootstrap/PROVENANCE.md`.
 
 ### Dual-period policy
 
-The dual-period continues until fixture and diagnostic parity criteria are fully met.
-Both the Rust compiler and the selfhost sources are maintained in parallel.
-See [When the Dual Period Ends](docs/compiler/bootstrap.md#when-the-dual-period-ends)
-in bootstrap.md for the exact criteria that close this period.
+The historical Rust/selfhost dual-period has ended. The current verification
+contract is selfhost-native and pinned by ADR-029.
 
 ### Selfhost-only execution path (#559, #583, ADR-029)
 
 The user-facing `arukellt` CLI is served by a shell wrapper that runs the
 **selfhost wasm exclusively** under `wasmtime`. Per #583 the legacy
-`ARUKELLT_USE_RUST=1` opt-in has been **retired** and the `crates/arukellt`
-Rust crate (the final Phase 5 deletion, #564) has been removed. There is no
+`ARUKELLT_USE_RUST=1` opt-in has been **retired** and the former Rust CLI
+entrypoint has been removed. There is no
 longer any Rust CLI crate; all compiler behaviour comes from the selfhost
 compiler (`src/compiler/main.ark`).
 
@@ -396,7 +393,5 @@ scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark -o hello.wasm
 Selfhost gates (`scripts/manager.py selfhost {fixpoint,fixture-parity,parity,diag-parity}`)
 are **selfhost-native** per ADR-029 (#585): they bootstrap from the committed
 pinned-reference wasm at `bootstrap/arukellt-selfhost.wasm` and never call any
-Rust binary. Phase 5 is complete: `crates/ark-driver` was removed in #560,
-`crates/ark-mir` was removed in #561, the legacy Rust Wasm emitter crate was
-removed in #562, `ark-stdlib` was removed in #563, and `crates/arukellt` was
-removed in #564. Remaining Rust core crate (`ark-typecheck`) is tracked by #567.
+Rust binary. The former package workspace has been retired; compiler behaviour
+comes from selfhost sources plus the pinned reference wasm.

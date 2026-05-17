@@ -7,11 +7,11 @@
 
 ```text
 source (.ark)
-  → ark-lexer
-  → ark-parser
-  → ark-resolve
-  → ark-typecheck
-  → MIR (selfhost `src/compiler/mir.ark` + lowering/passes — the Rust `crates/ark-mir` crate was retired in #561)
+  → src/compiler/lexer.ark
+  → src/compiler/parser.ark
+  → src/compiler/resolver.ark
+  → src/compiler/typechecker.ark
+  → MIR (selfhost `src/compiler/mir.ark` + lowering/passes)
   → selfhost emitter (src/compiler/emitter.ark)
 ```
 
@@ -49,8 +49,7 @@ Lex
 ## MIR lowering: legacy fallback state (2026-04-15)
 
 The `LowerToMIR` step is currently implemented entirely via the **legacy AST lowerer**
-in selfhost `src/compiler/lower/`. (The historical Rust `crates/ark-mir/src/lower/func.rs`
-implementation was retired with the crate in #561; selfhost is now the source of truth.)
+in selfhost `src/compiler/lower/`; selfhost is now the source of truth.
 The CoreHIR lowerer (`lower_hir_to_mir`) is a placeholder returning empty MIR; every
 compilation therefore falls back to the legacy path.
 
@@ -63,21 +62,18 @@ compilation therefore falls back to the legacy path.
 - Migration examples and warning behavior are documented in
   [legacy-path-migration.md](legacy-path-migration.md)
 
-## 現在の crate map
+## 現在の source map
 
-- `crates/ark-lexer`
-- `crates/ark-parser`
-- `crates/ark-resolve`
-- `crates/ark-typecheck`
-- `crates/ark-hir`
-- MIR (selfhost `src/compiler/mir.ark`; the Rust `crates/ark-mir` crate was retired in #561)
+- `src/compiler/lexer.ark`
+- `src/compiler/parser.ark`
+- `src/compiler/resolver.ark`
+- `src/compiler/typechecker.ark`
+- `src/compiler/corehir.ark`
+- MIR (selfhost `src/compiler/mir.ark`)
 - `src/compiler/emitter.ark` (selfhost Wasm emitter)
-- `crates/ark-target`
-- `crates/ark-diagnostics`
-- `crates/ark-driver`
-- ~~`crates/ark-stdlib` (removed in #563)~~
-- LSP (selfhost `src/compiler/lsp.ark`; the Rust `crates/ark-lsp` crate was retired in #572)
-- `crates/arukellt`
+- `src/compiler/driver.ark`
+- `src/compiler/diagnostics.ark`
+- LSP (selfhost `src/compiler/lsp.ark`)
 
 ## Session / Artifact Graph 方針
 
@@ -127,7 +123,7 @@ Several O2/O3 passes remain gated for T3 (`T3_GATED_PASSES`) until each is
 independently verified GC-safe: `escape_analysis`, `type_narrowing`, `loop_unroll`,
 `licm`, `bounds_check_elim`, `inline_small_leaf`, `aggregate_simplify`, `gc_hint`,
 `branch_hint_infer`. See selfhost `src/compiler/passes/README.md` for unlock conditions
-(the prior Rust `crates/ark-mir/src/passes/README.md` was retired with the crate in #561).
+(`src/compiler/passes/README.md`).
 
 Full documentation: [optimization.md](optimization.md)
 

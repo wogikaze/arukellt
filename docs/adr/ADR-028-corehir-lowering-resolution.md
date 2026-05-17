@@ -97,7 +97,7 @@ ADR-027 (v3 完了時点で selfhost 完了, v4 スキップ) と #529 の方針
 退役までの期間、Rust 側 `lower_hir_to_mir` は以下の凍結契約を持つ。
 新規機能実装は禁止 (ADR-028 違反となる):
 
-- **Input**: `(core_hir: &ark_hir::Program, checker: &TypeChecker, sink: &mut DiagnosticSink)`
+- **Input**: `(core_hir: &CoreHirProgram, checker: &TypeChecker, sink: &mut DiagnosticSink)`
 - **Output**: `Result<MirModule, String>` — 常に `Ok(MirModule::new())` 相当を
   返し、`MirProvenance::CoreHir` をセットし `corehir-snapshot ...`
   の optimization trace のみを残す (現状そのまま)。

@@ -32,13 +32,13 @@ v4 までに確立した最適化済みコンパイラと安定 stdlib の上で
 
 | コンポーネント | Phase | 理由 |
 |--------------|-------|------|
-| Lexer (`ark-lexer`) | Phase 1 | 文字列処理中心、stdlib で十分 |
-| Parser (`ark-parser`) | Phase 1 | パターンマッチ + 再帰下降 |
+| Lexer (`src/compiler/lexer.ark`) | Phase 1 | 文字列処理中心、stdlib で十分 |
+| Parser (`src/compiler/parser.ark`) | Phase 1 | パターンマッチ + 再帰下降 |
 | Driver (`ark-driver`) | Phase 1 | オーケストレーション |
 | CLI (`arukellt`) | Phase 1 | 引数解析 + dispatch |
-| Resolver (`ark-resolve`) | Phase 2 | HashMap + スコープ管理 |
-| TypeChecker (`ark-typecheck`) | Phase 2 | 最も複雑、ユニフィケーション要 |
-| HIR (`ark-hir`) | Phase 2 | データ構造変換 |
+| Resolver (`src/compiler/resolver.ark`) | Phase 2 | HashMap + スコープ管理 |
+| TypeChecker (`src/compiler/typechecker.ark`) | Phase 2 | 最も複雑、ユニフィケーション要 |
+| HIR (`src/compiler/corehir.ark`) | Phase 2 | データ構造変換 |
 | MIR (`ark-mir`) + 最適化パス | Phase 2 | 最適化パス含む |
 | Wasm Emitter (selfhost: `src/compiler/emitter.ark`) | Phase 3 | バイナリ出力、最も低レベル |
 | LLVM Backend (`ark-llvm`) | **非対象** | LLVM C API 依存、FFI 必須 |

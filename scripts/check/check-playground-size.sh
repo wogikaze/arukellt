@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# scripts/check/check-playground-size.sh — Playground Wasm and JS bundle size gates
+# scripts/check/check-playground-size.sh — Playground JS bundle size gate
 #
 # Usage:
 #   check-playground-size.sh [--wasm <file>] [--wasm-limit <bytes>]
 #                            [--bundle-dir <dir>] [--bundle-limit <bytes>]
 #
 # Environment overrides (lower precedence than CLI flags):
-#   PLAYGROUND_WASM_LIMIT   bytes; default 307200 (300 KB)
+#   PLAYGROUND_WASM_LIMIT   legacy bytes; accepted for historical invocations
 #   PLAYGROUND_BUNDLE_LIMIT bytes; default 524288 (512 KB)
 #
 # Exits 0 when all checked sizes are within budget.
 # Exits 1 when any checked size exceeds budget.
 # Prints a skip notice (exit 0) when a checked path does not exist.
 #
-# Thresholds documented in docs/playground/deployment-strategy.md §4.3.
+# Thresholds documented in docs/playground/deployment-strategy.md.
 # To adjust a threshold: update the environment variable in the CI workflow
 # (.github/workflows/playground-ci.yml) and document the rationale in a PR.
 
@@ -49,23 +49,9 @@ done
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 to_kb() { echo "$(( ($1 + 1023) / 1024 )) KB"; }
 
-# ─── Check Wasm binary ────────────────────────────────────────────────────────
+# ─── Check retired Wasm binary argument ───────────────────────────────────────
 if [[ -n "$WASM_FILE" ]]; then
-    if [[ ! -f "$WASM_FILE" ]]; then
-        echo "[playground-size] SKIP: wasm file not found: $WASM_FILE"
-        echo "[playground-size]   Run 'npm run build:wasm' in playground/ to build the wasm binary."
-    else
-        SIZE=$(stat -c%s "$WASM_FILE" 2>/dev/null || stat -f%z "$WASM_FILE")
-        echo "[playground-size] Wasm binary: $(to_kb "$SIZE") / budget $(to_kb "$WASM_LIMIT")"
-        if [[ "$SIZE" -le "$WASM_LIMIT" ]]; then
-            echo "[playground-size] PASS: wasm binary within budget"
-        else
-            echo "[playground-size] FAIL: wasm binary $(to_kb "$SIZE") exceeds budget $(to_kb "$WASM_LIMIT")" >&2
-            echo "[playground-size]   To raise the budget: update PLAYGROUND_WASM_LIMIT in" >&2
-            echo "[playground-size]   .github/workflows/playground-ci.yml and document the reason." >&2
-            FAIL=1
-        fi
-    fi
+    echo "[playground-size] SKIP: wasm size gate retired with the Rust playground wasm crate"
 fi
 
 # ─── Check JS bundle directory ────────────────────────────────────────────────

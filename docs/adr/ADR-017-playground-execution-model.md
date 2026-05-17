@@ -12,7 +12,7 @@ The Arukellt web playground needs a concrete product contract before any
 implementation work begins.  Two constraints drive the decision:
 
 1. **T2 (`wasm32-freestanding`) is not implemented.**
-   `crates/ark-target/src/lib.rs` registers the target with
+   `src/compiler/driver.ark` registers the target with
    `implemented: false` and `run_supported: false`.
    `docs/target-contract.md` states: "identifier is registered but nothing
    downstream handles it."  Building a playground that runs user code in the
@@ -105,11 +105,11 @@ The following compiler components run **entirely in the browser** via a
 
 | Component | Crate(s) | Notes |
 |-----------|----------|-------|
-| Lexer | `ark-lexer` (or equivalent frontend crate) | No WASI dependency |
-| Parser | `ark-parser` (or equivalent frontend crate) | No WASI dependency |
-| Type checker (check-only path) | `ark-typecheck` / `ark-driver` check gate | No codegen needed |
+| Lexer | `src/compiler/lexer.ark` (or equivalent frontend crate) | No WASI dependency |
+| Parser | `src/compiler/parser.ark` (or equivalent frontend crate) | No WASI dependency |
+| Type checker (check-only path) | `src/compiler/typechecker.ark` / `ark-driver` check gate | No codegen needed |
 | Formatter | formatter surface | Pure transformation, no WASI |
-| Diagnostics renderer | `ark-diagnostics` | Structured output, no WASI |
+| Diagnostics renderer | `src/compiler/diagnostics.ark` | Structured output, no WASI |
 
 The backend (codegen, Wasm emit, wasmtime runner) is **not included** in the
 v1 browser bundle.
@@ -229,7 +229,7 @@ compiler's actual capabilities without requiring a separate CI pipeline.
 
 ## References
 
-- `crates/ark-target/src/lib.rs` — target registry (T2: `implemented: false`)
+- `src/compiler/driver.ark` — target registry (T2: `implemented: false`)
 - `docs/target-contract.md` — T2 status: "not-started"
 - `docs/current-state.md` — authoritative implementation status
 - [ADR-007](ADR-007-targets.md) — target taxonomy (T1–T5)

@@ -29,7 +29,7 @@ v1 で確立した GC-native T3 バックエンドの上に、Wasm Component Mod
 | `src/compiler/component_canonical_abi.ark` (selfhost) | GC ref ↔ linear memory のリフト/ロワリング |
 | `src/compiler/emitter.ark` (selfhost) | `EmitKind::Component` の hard error 解除 |
 | `crates/ark-driver/src/session.rs` | `compile_wit()` の完全実装 |
-| `crates/ark-target/src/lib.rs` | `BackendPlan` に `EmitKind::Component` ルーティング追加 |
+| `src/compiler/driver.ark` | `BackendPlan` に `EmitKind::Component` ルーティング追加 |
 | `tests/e2e/` (新規) | Component 相互運用テスト |
 | `docs/adr/ADR-008-component-model.md` (新規) | wasm-tools 内製化 vs 外部依存の判断記録 |
 
@@ -88,7 +88,7 @@ v2 での設計選択:
 
 1. **`src/compiler/component_wit.ark` (selfhost) の拡張**  
    - 既存マッピング (s32, s64, f64, bool, char, string, list, option, result, record, variant) に `resource`, `tuple`, `flags`, `enum (WIT)`, `borrow<T>`, `own<T>` を追加。
-   - 非対応型 (closure, TypeVar, raw ref) のエラーメッセージを `ark-diagnostics` の診断コード (W5001 等) として定義。
+   - 非対応型 (closure, TypeVar, raw ref) のエラーメッセージを `src/compiler/diagnostics.ark` の診断コード (W5001 等) として定義。
 
 2. **`src/compiler/component_canonical_abi.ark` (selfhost) の実装**  
    - GC `(ref $string)` → canonical ABI string (linear memory utf-8) のリフト関数
@@ -104,7 +104,7 @@ v2 での設計選択:
    - 現在の stub を完全実装: `Session::compile_wit(src) -> Result<Vec<u8>, Diagnostics>`
    - 出力: `.component.wasm` バイト列
 
-5. **`BackendPlan` の拡張** (`crates/ark-target/src/lib.rs`)  
+5. **`BackendPlan` の拡張** (`src/compiler/driver.ark`)  
    - `EmitKind::Component` ルーティングを `BackendPlan::select()` に追加。
    - `--emit component` CLI フラグの有効化 (`crates/arukellt/src/main.rs`)。
 

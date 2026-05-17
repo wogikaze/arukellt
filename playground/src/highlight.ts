@@ -1,7 +1,7 @@
 /**
  * Syntax highlighting for Arukellt source code.
  *
- * Maps token kinds from the `ark-playground-wasm` tokenizer to CSS class
+ * Maps token kinds from the playground tokenizer to CSS class
  * names and produces highlighted HTML from a token stream.
  *
  * @module
@@ -137,6 +137,8 @@ const PREFIX_MAP: ReadonlyArray<[string, HighlightCategory]> = [
   // Comments
   ["OuterDocComment", "comment"],
   ["InnerDocComment", "comment"],
+  ["LineComment", "comment"],
+  ["BlockComment", "comment"],
   // Identifiers
   ["Ident", "identifier"],
   // Reserved keywords

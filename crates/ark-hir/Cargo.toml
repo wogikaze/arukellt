@@ -1,7 +1,0 @@
-[package]
-name = "ark-hir"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
-ark-diagnostics = { workspace = true }

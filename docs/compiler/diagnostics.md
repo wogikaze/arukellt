@@ -5,7 +5,7 @@
 
 ## 現在の方針
 
-- 診断 code は `crates/ark-diagnostics` に正規化されている
+- 診断 code は `src/compiler/diagnostics.ark` に正規化されている
 - 各 code は **severity** と **phase origin** を持つ
 - renderer は phase、primary span、expected/actual、fix hint を出せる
 - structured snapshot は tests / baseline / docs 同期用の補助出力

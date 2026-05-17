@@ -34,7 +34,7 @@ closer to source:
 ### Current parser state (v3)
 
 ```
-// crates/ark-parser/src/parser.rs
+// src/compiler/parser.ark
 // TokenKind::ColonColon  -> path separator for `use`
 // TokenKind::Import      -> `import foo` (single identifier; local file)
 // TokenKind::Use         -> `use std::io::something` (:: separated path; stdlib)

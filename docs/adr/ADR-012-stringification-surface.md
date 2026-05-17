@@ -113,5 +113,5 @@ trait / method syntax を主導線にする。
 
 - `docs/adr/ADR-004-trait-strategy.md`
 - `issues/open/157-adr004-method-syntax-evaluation.md`
-- `crates/ark-parser/src/parser/expr.rs`
+- `src/compiler/parser.ark`
 - `std/manifest.toml`

@@ -1,14 +1,13 @@
 # @arukellt/playground
 
-Browser API for the Arukellt language playground — wraps the
-`ark-playground-wasm` WebAssembly module with TypeScript types and Web Worker
-support.
+Browser API for the Arukellt language playground with TypeScript types and Web
+Worker support.
 
 ## Overview
 
-This package provides a typed JavaScript/TypeScript wrapper around the
-[`ark-playground-wasm`](../crates/ark-playground-wasm/) Wasm module. It offers
-two execution modes:
+This package provides a typed JavaScript/TypeScript browser engine for
+playground parsing, formatting, tokenization, and diagnostics. It offers two
+execution modes:
 
 | Mode | Import | API | Thread |
 |------|--------|-----|--------|
@@ -20,7 +19,8 @@ Both modes expose the same set of operations:
 - **`parse(source)`** — Parse Arukellt source → AST summary + diagnostics
 - **`format(source)`** — Format Arukellt source (returns error on syntax errors)
 - **`tokenize(source)`** — Tokenize source → token stream + diagnostics
-- **`version()`** — Return the Wasm module version string
+- **`typecheck(source)`** — Return diagnostics from the browser engine
+- **`version()`** — Return the playground engine version string
 
 ## Installation
 
@@ -35,10 +35,9 @@ npm install @arukellt/playground
 ```ts
 import { createPlayground } from "@arukellt/playground";
 
-// Pass the path to the wasm-pack JS glue and the .wasm binary URL.
 const pg = await createPlayground(
-  "/assets/ark_playground_wasm.js",
-  { wasmUrl: "/assets/ark_playground_wasm_bg.wasm" },
+  "/assets/playground-engine",
+  { wasmUrl: "/assets/playground-engine" },
 );
 
 const result = pg.parse("fn main() {}");
@@ -50,13 +49,13 @@ console.log(result.module?.items);  // [{ kind: "fn", name: "main", ... }]
 ### Worker-based (non-blocking)
 
 For editor-like UIs where responsiveness matters, use the worker-based API.
-Wasm execution happens off the main thread.
+Playground execution happens off the main thread.
 
 ```ts
 import { createWorkerPlayground } from "@arukellt/playground";
 
 const pg = await createWorkerPlayground({
-  wasmUrl: "/assets/ark_playground_wasm_bg.wasm",
+  wasmUrl: "/assets/playground-engine",
   workerUrl: "/assets/worker.js",  // built from src/worker.ts
 });
 
@@ -75,8 +74,8 @@ Create a main-thread playground instance.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `wasmModulePath` | `string` | Path to the wasm-pack generated JS module (`ark_playground_wasm.js`) |
-| `opts.wasmUrl` | `string \| URL` | URL to the `.wasm` binary |
+| `wasmModulePath` | `string` | Compatibility placeholder; the engine is bundled |
+| `opts.wasmUrl` | `string \| URL` | Compatibility placeholder; not fetched |
 
 Returns a `Playground` with synchronous methods.
 
@@ -86,7 +85,7 @@ Create a worker-based playground instance.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `opts.wasmUrl` | `string \| URL` | URL to the `.wasm` binary |
+| `opts.wasmUrl` | `string \| URL` | Compatibility placeholder; not fetched |
 | `opts.workerUrl` | `string \| URL` | *(optional)* URL to the worker script |
 
 Returns a `WorkerPlayground` with async (Promise-based) methods.
@@ -176,17 +175,8 @@ interface ModuleItem {
 ### Prerequisites
 
 - Node.js ≥ 18
-- Rust with `wasm32-unknown-unknown` target
-- `wasm-pack` (for building the Wasm module)
 
-### Build the Wasm module
-
-```bash
-cd crates/ark-playground-wasm
-wasm-pack build --target web --release
-```
-
-### Build the TypeScript wrapper
+### Build the TypeScript engine
 
 ```bash
 cd playground
@@ -204,7 +194,7 @@ npm run build:all
 ## Testing
 
 ```bash
-# Type-check only (no Wasm required)
+# Type-check only
 npm run test:typecheck
 
 # Run structural tests (requires build first)
@@ -230,9 +220,9 @@ npm test
 │  ┌────────────────────────────▼──────────────────┐  │
 │  │  Web Worker (optional)                        │  │
 │  │  ┌─────────────────────────────────────────┐  │  │
-│  │  │  ark-playground-wasm (WebAssembly)      │  │  │
+│  │  │  TypeScript playground engine           │  │  │
 │  │  │  • parse()  • format()                  │  │  │
-│  │  │  • tokenize()  • version()              │  │  │
+│  │  │  • tokenize()  • typecheck()            │  │  │
 │  │  └─────────────────────────────────────────┘  │  │
 │  └───────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────┘
@@ -240,10 +230,10 @@ npm test
 
 The package provides two execution paths:
 
-1. **Direct mode** — The Wasm module is loaded on the main thread.
-   Simple, low-latency, but blocks the UI during parsing.
+1. **Direct mode** — The engine runs on the main thread. Simple and
+   low-latency, but blocks the UI during parsing.
 
-2. **Worker mode** — The Wasm module runs in a dedicated Web Worker.
+2. **Worker mode** — The engine runs in a dedicated Web Worker.
    All calls are non-blocking. Recommended for editor integrations.
 
 ## Design references

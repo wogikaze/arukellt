@@ -6,8 +6,8 @@ Used by orchestrators and CI to reject out-of-scope diffs before merge.
 Examples:
   python3 scripts/util/check-diff-scope.py \\
     --base origin/master --head HEAD \\
-    --primary crates/arukellt/src/main.rs \\
-    --allowed crates/arukellt/
+    --primary src/compiler/driver.ark \\
+    --allowed src/compiler/
 
   # Staged changes only (pre-commit style):
   python3 scripts/util/check-diff-scope.py --staged \\
@@ -27,7 +27,7 @@ from pathlib import Path
 def _repo_root() -> Path:
     current = Path(__file__).resolve().parent
     while True:
-        if (current / "Cargo.toml").exists():
+        if (current / "AGENTS.md").exists() and (current / "scripts/manager.py").exists():
             return current
         parent = current.parent
         if parent == current:

@@ -5,7 +5,9 @@
 #         and any code inside #[cfg(test)] module blocks.
 set -uo pipefail
 
-DIRS=(crates/arukellt/src/)
+# The legacy Rust CLI crate was removed in #564. Add user-facing Rust crate
+# source roots here if a future shipped Rust entry point is introduced.
+DIRS=()
 PATTERN='\.unwrap()\|panic!\|todo!()\|unimplemented!()'
 EXCLUDE='lock().unwrap\|#\[test\]\|//\|expect('
 

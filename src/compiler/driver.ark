@@ -1,7 +1,7 @@
 // Arukellt Selfhost — Compilation Driver
 //
 // Orchestrates the compilation pipeline:
-//   source → tokens → AST → (resolve → typecheck → HIR → MIR → Wasm)
+//   source → tokens → AST → resolve → typecheck → CoreHIR → MIR → Wasm
 // Error propagation stops at first phase failure.
 use std::host::env
 use std::host::fs
@@ -9,6 +9,7 @@ use std::host::process
 use std::host::stdio
 
 use component_emitter
+use corehir
 use diagnostics
 use emitter
 use emit_wat
@@ -2431,13 +2432,15 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         return CompileResult_ok(PHASE_TYPECHECK())
     }
     let t_typecheck = clock::monotonic_now()
-        let mut mir_module = mir_lower::lower_to_mir(all_decls, check_result)
+    let core_program = corehir::build_program(all_decls, check_result)
+    let mut mir_module = corehir::lower_to_mir(core_program)
     if eq(clone(config.emit_mode), "component") || eq(clone(config.emit_mode), "wit") {
         // T3 component/wit: lower without pruning (preserve all functions),
         // then prune with exported function names as additional reachability
         // roots. This safely enables dead function elimination while keeping
         // WIT-exported functions as reachable roots.
-        mir_module = mir_lower::lower_to_mir_no_prune(all_decls, check_result)
+        let core_program_no_prune = corehir::build_program(all_decls, check_result)
+        mir_module = corehir::lower_to_mir_no_prune(core_program_no_prune)
         // Collect exported function names as additional reachability roots
         let export_roots = Vec_new_String()
         let mut edi = 0

@@ -1,7 +1,7 @@
 {
   "name": "@arukellt/playground",
   "version": "0.1.0",
-  "description": "Browser API for the Arukellt language playground — wraps ark-playground-wasm with TypeScript types and Web Worker support",
+  "description": "Browser API for the Arukellt language playground with TypeScript types and Web Worker support",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -58,9 +58,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "build:wasm": "cd ../crates/ark-playground-wasm && wasm-pack build --target web --release",
-    "build:all": "npm run build:wasm && npm run build",
-    "build:app": "npm run build && mkdir -p ../docs/playground/dist && cp -r dist/. ../docs/playground/dist/ && mkdir -p ../docs/playground/wasm && (cp -r ../crates/ark-playground-wasm/pkg/. ../docs/playground/wasm/ 2>/dev/null || true) && bash ../scripts/gen/stamp-playground-assets.sh",
+    "build:all": "npm run build",
+    "build:app": "npm run build && mkdir -p ../docs/playground/dist && cp -r dist/. ../docs/playground/dist/ && bash ../scripts/gen/stamp-playground-assets.sh",
     "typecheck": "tsc --noEmit",
     "test": "node --test dist/tests/*.test.js",
     "test:typecheck": "tsc --noEmit",
@@ -70,7 +69,6 @@
   "keywords": [
     "arukellt",
     "playground",
-    "wasm",
     "parser",
     "formatter",
     "web"

@@ -6,9 +6,9 @@ This document defines which tooling features are available in the CLI, LSP, and 
 
 | Feature | CLI | LSP | VS Code Extension | Source of Truth |
 |---------|-----|-----|-------------------|-----------------|
-| **Format** (`fmt`) | `arukellt fmt` | `textDocument/formatting` | Format Document | `ark_parser::fmt::format_source()` (shared) |
-| **Check** (`check`) | `arukellt check` | diagnostics on open/change | Problems panel | `ark_typecheck` + `ark_resolve` (shared) |
-| **Lint** | `arukellt lint` | diagnostics (W-codes) | Problems panel | `ark_diagnostics` (shared) |
+| **Format** (`fmt`) | `arukellt fmt` | `textDocument/formatting` | Format Document | `selfhost formatter` (shared) |
+| **Check** (`check`) | `arukellt check` | diagnostics on open/change | Problems panel | `selfhost typechecker` + `selfhost resolver` (shared) |
+| **Lint** | `arukellt lint` | diagnostics (W-codes) | Problems panel | `selfhost diagnostics` (shared) |
 | **Go to Definition** | — | `textDocument/definition` | Ctrl+Click / F12 | LSP `goto_definition()` with symbol index |
 | **Go to Type Definition** | — | `textDocument/typeDefinition` | — | LSP `goto_type_definition()` |
 | **Find References** | — | `textDocument/references` | Shift+F12 | LSP `references()` scope-aware |
@@ -23,14 +23,14 @@ This document defines which tooling features are available in the CLI, LSP, and 
 | **Auto-import** | — | code action (quickfix) | Lightbulb | LSP + manifest `import_candidates()` |
 | **Organize Imports** | — | `source.organizeImports` | Organize Imports | LSP (sort + remove unused) |
 | **Fix All** | — | `source.fixAll` | Source Action | LSP (formatter + lint fixes) |
-| **Diagnostics** | exit code + stderr | `textDocument/publishDiagnostics` | Problems panel | `ark_diagnostics` (shared) |
+| **Diagnostics** | exit code + stderr | `textDocument/publishDiagnostics` | Problems panel | `selfhost diagnostics` (shared) |
 
 ## Source of Truth Details
 
 ### Shared Code Paths (CLI = LSP)
 
-- **Formatter**: Both CLI `arukellt fmt` and LSP `textDocument/formatting` call `ark_parser::fmt::format_source()`. Output is guaranteed identical.
-- **Diagnostics**: Both CLI `arukellt check` and LSP produce diagnostics via `ark_typecheck::TypeChecker` and `ark_resolve` using the same error codes.
+- **Formatter**: Both CLI `arukellt fmt` and LSP `textDocument/formatting` call `selfhost formatter`. Output is guaranteed identical.
+- **Diagnostics**: Both CLI `arukellt check` and LSP produce diagnostics via `selfhost typechecker` and `selfhost resolver` using the same error codes.
 - **Lint**: Both CLI `arukellt lint` and LSP lint diagnostics use the same warning codes (W0001–W0006+).
 
 ### LSP-Only Features

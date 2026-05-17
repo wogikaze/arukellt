@@ -7,7 +7,7 @@ This document defines what must be true before each release tier.
 
 | Guarantee | Verification method |
 |-----------|-------------------|
-| T3 (`wasm32-wasi-p2`) compiles all v1 fixture set | `cargo test -p arukellt --test harness` |
+| T3 (`wasm32-wasi-p2`) compiles all v1 fixture set | `python scripts/manager.py selfhost fixture-parity` |
 | All values use Wasm GC heap | T3 type system + Wasm validator |
 | T1 (`wasm32-wasi-p1`) still passes | Harness `run:` kind tests |
 | No output-channel panics | ADR-015 audit + verify-harness.sh |
@@ -29,7 +29,7 @@ This document defines what must be true before each release tier.
 | Manifest-backed stdlib reference generated | `python3 scripts/gen/generate-docs.py` exit 0 |
 | Prelude migration completed | Deprecated APIs flagged, migration guide exists |
 | Stability labels applied to stdlib surface | `docs/stdlib-compatibility.md` verification |
-| All v3 stdlib fixtures pass | `cargo test -p arukellt --test harness` (stdlib subset) |
+| All v3 stdlib fixtures pass | `python scripts/manager.py verify fixtures` (stdlib subset) |
 
 ## Pre-release Checklist
 
@@ -37,13 +37,13 @@ Run before any tagged release:
 
 ```bash
 # 1. Full fixture harness
-cargo test -p arukellt --test harness
+python scripts/manager.py verify fixtures
 
 # 2. Verification gate
 python scripts/manager.py verify quick
 
 # 3. Full verification (optional, before stable releases)
-bash scripts/manager.py --full
+python scripts/manager.py verify --full
 
 # 4. Determinism check
 arukellt compile docs/examples/hello.ark --target wasm32-wasi-p2 -o /tmp/h1.wasm
@@ -51,8 +51,9 @@ arukellt compile docs/examples/hello.ark --target wasm32-wasi-p2 -o /tmp/h2.wasm
 sha256sum /tmp/h1.wasm /tmp/h2.wasm  # must match
 
 # 5. Panic audit (included in verify-harness.sh --quick)
-# no panic/unwrap in: crates/arukellt/src/
-# (crates/ark-lsp removed in #572; crates/ark-manifest removed in #580; crates/ark-driver removed earlier in #529)
+# no legacy Rust CLI crate remains; the audit root list is intentionally empty
+# until a shipped Rust entry point is introduced again.
+# (the former Rust entrypoint and support packages were removed during #529)
 ```
 
 ## Guarantee Tiers

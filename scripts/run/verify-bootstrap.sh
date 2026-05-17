@@ -197,7 +197,7 @@ fi
 
 if [[ ! -x "$COMPILER" ]]; then
     echo -e "${RED}ERROR: compiler not found at ${COMPILER}${NC}" >&2
-    echo "       Run 'cargo build --release' first." >&2
+    echo "       Set ARUKELLT_BIN or place the selfhost wrapper at target/release/arukellt." >&2
     exit 1
 fi
 

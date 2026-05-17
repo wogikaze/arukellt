@@ -1,11 +1,11 @@
 # Module, Package, Workspace, and Dependency Resolution
 
 > **Status**: v1. Workspace features are scaffolded. Package registry resolution
-> is implemented in `crates/ark-resolve/src/registry.rs` (ADR-023).
+> is implemented in `src/compiler/resolver.ark` (ADR-023).
 >
 > This document is the authoritative specification for how Arukellt resolves
 > modules, packages, workspaces, and dependencies. The implementation lives in
-> `crates/ark-resolve/src/manifest.rs` and `crates/ark-resolve/src/lib.rs`.
+> `src/compiler/main.ark` and `src/compiler/resolver.ark`.
 
 ## 1. Concepts
 
@@ -91,7 +91,7 @@ Given a starting directory `start_dir` (typically the current working directory)
 ```
 
 This is the algorithm in `Manifest::find_root(start_dir)` and
-`Manifest::find_and_load(start_dir)` in `crates/ark-resolve/src/manifest.rs`.
+`Manifest::find_and_load(start_dir)` in `src/compiler/main.ark`.
 
 **CLI and LSP use the same algorithm.** Both `arukellt compile` and the
 selfhost LSP (`arukellt lsp`, source: `src/compiler/lsp.ark`) call

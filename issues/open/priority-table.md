@@ -11,36 +11,21 @@ Scoring criteria (0-5 each, total 25):
 
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
-| 1 | 575 | 575 — Phase 7: Delete `crates/ark-parser` | selfhost-retirement | 5 | 0 | 1 | 5 | 3 | 14 |
-| 2 | 577 | 577 — Phase 7: Delete `crates/ark-typecheck` | selfhost-retirement | 5 | 0 | 1 | 5 | 3 | 14 |
-| 3 | 588 | Language surface uplift plan | main | 0 | 0 | 4 | 5 | 5 | 14 |
-| 4 | 576 | 576 — Phase 7: Delete `crates/ark-resolve` | selfhost-retirement | 4 | 0 | 1 | 5 | 3 | 13 |
-| 5 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
-| 6 | 574 | 574 — Phase 7: Delete `crates/ark-lexer` | selfhost-retirement | 2 | 0 | 1 | 5 | 3 | 11 |
-| 7 | 578 | 578 — Phase 7: Delete `crates/ark-hir` | selfhost-retirement | 2 | 0 | 1 | 5 | 3 | 11 |
-| 8 | 124 | WIT component import syntax | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
-| 9 | 529 | 100% selfhost transition plan | main | 1 | 0 | 1 | 5 | 3 | 10 |
-| 10 | 579 | 579 — Phase 7: Delete `crates/ark-diagnostics` | selfhost-retirement | 2 | 0 | 1 | 5 | 2 | 10 |
-| 11 | 581 | 581 — Phase 7: Delete `crates/ark-target` | selfhost-retirement | 2 | 0 | 1 | 5 | 2 | 10 |
-| 12 | 617 | Selfhost Compiler: Implement CoreHIR pipeline (Refactor tar... | pipeline-refactor | 0 | 0 | 1 | 5 | 4 | 10 |
-| 13 | 625 | 529 Phase 4: Dual-Run Period (SAFETY) | main | 1 | 0 | 1 | 5 | 3 | 10 |
-| 14 | 626 | 529 Phase 6/A: IDE-Ready Frontend | main | 1 | 0 | 1 | 5 | 3 | 10 |
-| 15 | 627 | 529 Phase 6/B: Analysis API | main | 1 | 0 | 1 | 5 | 3 | 10 |
-| 16 | 473 | Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
-| 17 | 628 | 529 Phase 6/C: LSP Minimum Viable | main | 0 | 0 | 1 | 5 | 3 | 9 |
-| 18 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 19 | 485 | docs: arukellt component サブコマンド CLI リファレンス | docs | 0 | 0 | 1 | 3 | 4 | 8 |
-| 20 | 582 | 582 — Phase 7 final: remove `Cargo.toml` and `Cargo.lock` | selfhost-retirement | 0 | 0 | 1 | 5 | 2 | 8 |
-| 21 | 590 | Stdlib Core Platform Baseline Plan (Operational Guide) | main | 0 | 0 | 2 | 3 | 3 | 8 |
-| 22 | 630 | Phase 7 Sequencing Fix: Circular Dependency in Crate Deleti... | selfhost-retirement | 0 | 0 | 1 | 5 | 2 | 8 |
-| 23 | 37 | std: ":collections: Deque、PriorityQueue" | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 24 | 39 | std: ":collections: Arena、SlotMap、Interner ／ std::text: Rope" | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 25 | 41 | std: ":time + std::random: 時刻・期間・乱数" | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 26 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 27 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 28 | 475 | arukellt component subcommand | cli | 1 | 0 | 1 | 3 | 2 | 7 |
-| 29 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 30 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 31 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 32 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 33 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 1 | 588 | Language surface uplift plan | main | 0 | 0 | 4 | 5 | 5 | 14 |
+| 2 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
+| 3 | 124 | WIT component import syntax | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
+| 4 | 473 | Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
+| 5 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 6 | 485 | docs: arukellt component サブコマンド CLI リファレンス | docs | 0 | 0 | 1 | 3 | 4 | 8 |
+| 7 | 590 | Stdlib Core Platform Baseline Plan (Operational Guide) | main | 0 | 0 | 2 | 3 | 3 | 8 |
+| 8 | 37 | std: ":collections: Deque、PriorityQueue" | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 9 | 39 | std: ":collections: Arena、SlotMap、Interner ／ std::text: Rope" | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 10 | 41 | std: ":time + std::random: 時刻・期間・乱数" | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 11 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 12 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 13 | 475 | arukellt component subcommand | cli | 1 | 0 | 1 | 3 | 2 | 7 |
+| 14 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 15 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 16 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 17 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 18 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |

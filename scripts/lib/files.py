@@ -4,10 +4,10 @@ from pathlib import Path
 
 
 def repo_root() -> Path:
-    """Walk up from this file to find the directory containing pyproject.toml or Cargo.toml."""
+    """Walk up from this file to find the Arukellt repository root."""
     current = Path(__file__).resolve().parent
     while True:
-        if (current / "pyproject.toml").exists() or (current / "Cargo.toml").exists():
+        if (current / "AGENTS.md").exists() and (current / "scripts/manager.py").exists():
             return current
         parent = current.parent
         if parent == current:

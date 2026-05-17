@@ -19,7 +19,7 @@ this script”) are defined in the header comments of
 [`scripts/run/verify-bootstrap.sh`](../../scripts/run/verify-bootstrap.sh).
 
 ```
-Stage 0 (Rust compiler)
+Stage 0 (trusted compiler entrypoint)
   └─ compiles src/compiler/main.ark → arukellt-s1.wasm   (trusted base)
 
 Stage 1 (arukellt-s1.wasm under wasmtime)
@@ -31,26 +31,26 @@ Stage 2 (fixpoint check — standard bootstrap fixpoint)
 ```
 
 This is the **standard bootstrap fixpoint**: the selfhost compiler (`s2`) reproduces
-itself (`s3`) byte-for-byte. Note that `s1 ≠ s2` is expected — the Rust emitter and
-selfhost emitter produce different binary encodings for the same source (e.g. the Rust
-emitter includes a function names section; the selfhost emitter uses index-only encoding).
+itself (`s3`) byte-for-byte. Note that `s1 ≠ s2` can occur when the trusted
+entrypoint and selfhost runtime use different binary encodings for the same source.
 The fixpoint `s2 == s3` proves the selfhost is deterministic and self-consistent.
 
 ## Prerequisites
 
 | Tool | Purpose | Install |
 |------|---------|---------|
-| Rust toolchain (rustc 1.85+) | Build the Stage 0 Rust compiler | `rustup` or `mise` |
 | wasmtime | Execute `.wasm` artifacts | `mise` installs automatically |
 | sha256sum | Compare fixpoint checksums | coreutils (pre-installed on Linux) |
 
 ## Quick Start
 
 ```bash
-# Build the Rust compiler first
-cargo build --release
+# Make the selfhost wrapper available first
+mkdir -p target/release
+cp scripts/run/arukellt-selfhost.sh target/release/arukellt
+chmod +x target/release/arukellt
 
-# Stage 0 only — Rust compiles selfhost sources (partial smoke only)
+# Stage 0 only — trusted entrypoint compiles selfhost sources (partial smoke only)
 scripts/run/verify-bootstrap.sh --stage1-only
 
 # Full fixpoint verification (Stages 0 → 1 → 2)
@@ -71,9 +71,9 @@ parser/front-end alignment work; it does **not** by itself mean Stage 2 fixpoint
 
 ## Verification Stages
 
-### Stage 0 — Compile with Rust compiler
+### Stage 0 — Compile with trusted entrypoint
 
-The Rust-hosted `arukellt` binary (see `scripts/run/verify-bootstrap.sh` for
+The configured `arukellt` binary (see `scripts/run/verify-bootstrap.sh` for
 `ARUKELLT_BIN` / `target/debug` / `target/release` resolution) compiles
 `src/compiler/main.ark` with `--target wasm32-wasi-p1` and writes
 `.bootstrap-build/arukellt-s1.wasm`.  This is the **trusted base**: if the
@@ -117,7 +117,7 @@ every executed stage records success internally and Stage 2 proves
 `sha256(arukellt-s2.wasm) == sha256(arukellt-s3.wasm)`.  That gate shows a
 **fixpoint for the unified selfhost compiler** built from
 `src/compiler/main.ark`; it does **not** by itself prove fixture parity, CLI
-parity, diagnostic parity, or Rust compiler retirement.
+parity, diagnostic parity, or compiler-retirement governance.
 
 **Language selfhost complete.** Broader than this script: additional checks
 and governance live in the issue pointers above (for example
@@ -141,10 +141,10 @@ Stage **0** compiles **only** `src/compiler/main.ark` into the unified
 - **`--check`** together with any partial selector (`--stage …`,
   `--stage1-only`, **`--fixture-parity`**): `ERROR:` message on stderr, exit **1**.
 - Missing selfhost tree: `src/compiler` directory not found, exit **1**.
-- Rust `arukellt` resolution: if `ARUKELLT_BIN` is set, that path is used;
+- `arukellt` resolution: if `ARUKELLT_BIN` is set, that path is used;
   otherwise the script picks `target/debug/arukellt` if that file exists, else
   `target/release/arukellt` if that file exists; if none of these yield a path,
-  it prints `error: no arukellt binary found. Run cargo build -p arukellt.` and
+  it prints an error asking for `ARUKELLT_BIN` or `target/release/arukellt` and
   exits **1**.
 - Chosen compiler path not executable: `ERROR:` on stderr, exit **1**.
 
@@ -203,13 +203,13 @@ message.
 
 Both compilers support phase dumping for debugging.
 
-**Rust compiler** — uses the `ARUKELLT_DUMP_PHASES` environment variable
+**Selfhost wrapper** — uses the `ARUKELLT_DUMP_PHASES` environment variable
 (output on stderr):
 
 ```bash
 # Available phases: parse, resolve, corehir, mir, optimized-mir, backend-plan
-ARUKELLT_DUMP_PHASES=parse cargo run -- compile hello.ark
-ARUKELLT_DUMP_PHASES=mir,optimized-mir cargo run -- compile hello.ark
+ARUKELLT_DUMP_PHASES=parse scripts/run/arukellt-selfhost.sh compile hello.ark
+ARUKELLT_DUMP_PHASES=mir,optimized-mir scripts/run/arukellt-selfhost.sh compile hello.ark
 ```
 
 **Selfhost compiler** — uses the `--dump-phases` CLI flag
@@ -366,11 +366,11 @@ simultaneously and be verified by CI on every merge to `master`:
 
 | Criterion | Description | Verification script/command |
 |-----------|-------------|----------------------------|
-| **Stage 0 compile** | Rust compiler compiles `src/compiler/main.ark` to `.bootstrap-build/arukellt-s1.wasm` with zero errors | `scripts/run/verify-bootstrap.sh --stage1-only` |
+| **Stage 0 compile** | Trusted entrypoint compiles `src/compiler/main.ark` to `.bootstrap-build/arukellt-s1.wasm` with zero errors | `scripts/run/verify-bootstrap.sh --stage1-only` |
 | **Stage 1 compile** | `arukellt-s1.wasm` compiles the same `main.ark` to `.bootstrap-build/arukellt-s2.wasm` with zero errors | `scripts/run/verify-bootstrap.sh` Stage 1 |
 | **Stage 2 fixpoint** | `sha256(s2) == sha256(s3)` — selfhost compiler reproduces itself byte-for-byte | `scripts/run/verify-bootstrap.sh` Stage 2 |
-| **Fixture parity** | Selfhost compiler passes all 575+ fixture tests identically to the Rust compiler | `python scripts/manager.py selfhost parity` |
-| **CLI parity** | Rust and selfhost compilers agree on a representative set of CLI surface cases — exact output for `--version`/`--help`, and matching non-zero exit for unknown commands and no-arg `compile`/`check`/`run` | `python scripts/manager.py selfhost parity --mode --cli` |
+| **Fixture parity** | Selfhost compiler passes all fixture tests identically to the reference snapshots | `python scripts/manager.py selfhost fixture-parity` |
+| **CLI parity** | The selfhost CLI agrees with the reference CLI snapshots for `--version`/`--help`, unknown commands, and no-arg `compile`/`check`/`run` | `python scripts/manager.py selfhost parity --mode --cli` |
 | **Diagnostic parity** | Error message text, line/column positions, and exit codes match for all error fixtures | `python scripts/manager.py selfhost parity --mode --diag` |
 | **Determinism** | Running Stage 0 twice on the same input produces identical bytes | part of `verify-bootstrap.sh` Stage 2 |
 
@@ -381,26 +381,24 @@ for the authoritative stage-by-stage verification status.
 
 ### What is *not* required for "complete"
 
-- Performance parity with the Rust compiler (acceptable to be slower)
+- Performance parity with the former implementation (acceptable to be slower)
 - LLVM backend support in the selfhost compiler
 - LSP support in the selfhost compiler
 - Identical binary output for *all possible* inputs (only the fixture set)
 
 ## Dual-Period Governance
 
-During the dual period, **both** the Rust compiler (`crates/`) and the selfhost
-sources (`src/compiler/`) are maintained in parallel. Every bug fix applied to
-the Rust compiler must also be applied to the selfhost sources.
+The dual period has ended. The maintained compiler source is `src/compiler/`.
 
 ### 100% Self-Hosting Transition
 
-The ultimate goal of the Arukellt project is **100% self-hosting**. All Rust code, including the compiler pipeline, IDE tooling (LSP, DAP), and foundational libraries (lexer, parser, typechecker), will be entirely rewritten in Arukellt.
+The ultimate goal of the Arukellt project is **100% self-hosting**. The compiler pipeline, IDE tooling (LSP, DAP), and foundational libraries (lexer, parser, typechecker) are maintained in Arukellt sources.
 
-There are no "permanent" Rust crates. The entire `crates/` directory is a deletion candidate.
+The legacy package workspace has been retired.
 
 ### Deletion Candidates
 
-All Rust crates currently in the workspace will be deleted once their Arukellt equivalents are complete and pass parity checks:
+Former package surfaces were deleted once their Arukellt equivalents passed parity checks:
 
 | Crate | Role | Deletion Condition |
 |-------|------|--------------------|
@@ -409,14 +407,14 @@ All Rust crates currently in the workspace will be deleted once their Arukellt e
 | Wasm emitter (removed in #562) | Wasm binary emitter | Selfhost `emitter.ark` is now sole producer |
 | ~~`ark-stdlib` (removed in #563)~~ | ~~Stdlib binary embedding~~ | ~~Removed — no longer needed~~ |
 | `arukellt` | CLI binary | Selfhost `main.ark` passes parity |
-| `ark-lexer` | Tokenizer | Arukellt lexer supports IDE-grade error recovery |
-| `ark-parser` | Parser | Arukellt parser supports IDE-grade error recovery |
-| `ark-resolve` | Name resolution | Arukellt resolver supports IDE-grade incremental analysis |
-| `ark-typecheck` | Type inference | Arukellt typechecker supports IDE-grade incremental analysis |
-| `ark-hir` | High-level IR | Arukellt HIR supports IDE-grade analysis |
-| `ark-diagnostics` | Shared diagnostics | Arukellt diagnostics system is complete |
-| ~~`ark-manifest`~~ | ~~Project manifest~~ | ~~Removed in #580. Manifest parsing moved into `ark-resolve`.~~ |
-| `ark-target` | Compilation targets | Arukellt target definitions are complete |
+| `src/compiler/lexer.ark` | Tokenizer | Arukellt lexer supports IDE-grade error recovery |
+| `src/compiler/parser.ark` | Parser | Arukellt parser supports IDE-grade error recovery |
+| `src/compiler/resolver.ark` | Name resolution | Arukellt resolver supports IDE-grade incremental analysis |
+| `src/compiler/typechecker.ark` | Type inference | Arukellt typechecker supports IDE-grade incremental analysis |
+| `src/compiler/corehir.ark` | High-level IR | Arukellt HIR supports IDE-grade analysis |
+| `src/compiler/diagnostics.ark` | Shared diagnostics | Arukellt diagnostics system is complete |
+| ~~`ark-manifest`~~ | ~~Project manifest~~ | ~~Removed in #580. Manifest parsing moved into `src/compiler/resolver.ark`.~~ |
+| `src/compiler/driver.ark` | Compilation targets | Arukellt target definitions are complete |
 | ~~`ark-lsp`~~ | ~~Language Server~~ | **Removed in #572 (Phase 7 of #529).** Selfhost `src/compiler/lsp.ark` invoked via `arukellt lsp` is the source of truth. |
 | `ark-dap` | Debug Adapter | Arukellt DAP implementation is complete |
 

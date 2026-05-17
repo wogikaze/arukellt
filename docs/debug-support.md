@@ -2,7 +2,7 @@
 
 ## Overview
 
-Arukellt provides a Debug Adapter Protocol (DAP) server (`crates/ark-dap`)
+Arukellt provides a selfhost Debug Adapter Protocol (DAP) surface
 that integrates with VS Code and any DAP-compatible editor. The debug adapter
 supports source-level breakpoints, stepping, stack traces, and variable
 inspection through static source analysis.
@@ -34,7 +34,7 @@ The DAP server provides a **source-level stepping model**:
 ### Prerequisites
 
 1. Install the `arukellt-all-in-one` VS Code extension
-2. Build the `arukellt` binary: `cargo build`
+2. Make the selfhost wrapper available as `arukellt`
 
 ### Launch configuration
 
@@ -88,7 +88,7 @@ VS Code ←─── DAP messages ───→ arukellt debug-adapter
                                                     sends output events
 ```
 
-Source: `crates/ark-dap/src/lib.rs`
+Source: `src/compiler/lsp.ark` and editor integration tests.
 
 ### Supported DAP requests
 
@@ -139,7 +139,7 @@ debugging with live variable values. This requires:
 
 ## Testing
 
-DAP unit tests: `cargo test -p ark-dap` (6 tests covering function detection,
+DAP behavior is covered by selfhost/editor verification (function detection,
 variable extraction, breakpoint hit, and stepping).
 
 Extension E2E tests verify debug type registration, launch configuration

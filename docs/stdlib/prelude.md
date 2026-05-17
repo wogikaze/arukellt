@@ -14,7 +14,7 @@ They form the *tiny prelude* — the permanent auto-imported surface.
 
 ### Compiler-builtin types and constructors
 
-These are handled by `ark-typecheck` and are always in scope.
+These are handled by `src/compiler/typechecker.ark` and are always in scope.
 
 | Symbol | Kind |
 |--------|------|

@@ -14,7 +14,7 @@ ships execution, the natural execution surface is T2 (`wasm32-freestanding`): a 
 module that contains no WASI imports and can run natively in any browser's Wasm
 runtime without a shim layer.
 
-T2 is registered in `crates/ark-target/src/lib.rs` with `implemented: false` and
+T2 is registered in `src/compiler/driver.ark` with `implemented: false` and
 `run_supported: false`.  No codegen backend exists yet.  Before implementation begins,
 the I/O surface must be decided — specifically, how a T2 module communicates output
 (e.g. `println`) to the host environment.
@@ -263,7 +263,7 @@ explicitly "no WASI" per ADR-007; adding a WASI shim defeats this constraint.
 - [ADR-011](ADR-011-wasi-host-layering.md) — WASI host layering (T3 only)
 - [ADR-013](ADR-013-primary-target.md) — T3 as primary target
 - [ADR-017](ADR-017-playground-execution-model.md) — Playground v1 contract; T2 deferred to v2
-- `crates/ark-target/src/lib.rs` — T2: `implemented: false`, `run_supported: false`
+- `src/compiler/driver.ark` — T2: `implemented: false`, `run_supported: false`
 - `docs/target-contract.md` — T2 status (updated by this ADR)
 - `docs/current-state.md` — GC-Native Data Model and T3 1-page linear memory precedent
 - Issue 382 — T2 freestanding implementation (this ADR is the design phase)

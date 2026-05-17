@@ -2,10 +2,9 @@
 
 ## Prerequisites
 
-- Rust stable toolchain (install via [rustup](https://rustup.rs/))
-- `cargo`, `clippy`, `rustfmt`
 - `python3`
 - `npx` / `markdownlint-cli2` for the markdown check used by the harness
+- `wasmtime` for run fixtures
 
 ## Start Here
 
@@ -18,14 +17,16 @@ Before changing behavior, read:
 ## Quick Start
 
 ```bash
-# Build the CLI
-cargo build --release -p arukellt
+# Make the selfhost CLI wrapper available
+mkdir -p target/release
+cp scripts/run/arukellt-selfhost.sh target/release/arukellt
+chmod +x target/release/arukellt
 
 # Run the fast local verification gate
 python scripts/manager.py verify
 
 # Run the full local verification set when needed
-bash scripts/manager.py --full
+python scripts/manager.py verify --full
 
 # Run a sample program
 ./target/release/arukellt run docs/examples/hello.ark
@@ -34,13 +35,9 @@ bash scripts/manager.py --full
 ## Common Commands
 
 ```bash
-cargo fmt --all --check
-cargo clippy --workspace -- -D warnings
-cargo test --workspace
 python scripts/manager.py verify
-cargo test --workspace
 python scripts/manager.py verify fixtures
-bash scripts/manager.py --full
+python scripts/manager.py verify --full
 python3 scripts/gen/generate-docs.py
 python3 scripts/check/check-docs-consistency.py
 python3 scripts/util/collect-baseline.py
@@ -50,21 +47,9 @@ bash scripts/gate/install-git-hooks.sh
 ## Project Structure
 
 ```text
-crates/
-  ark-lexer/        # tokenizer
-  ark-parser/       # parser / AST
-  ark-resolve/      # name resolution, imports, module loading
-  ark-typecheck/    # type checking
-  ark-hir/          # shared HIR crate
-  ark-target/       # target registry + backend planning
-  ark-diagnostics/  # diagnostics registry + rendering
-  ark-driver/       # session / orchestration
-  # ark-stdlib/     # stdlib support crate (removed in #563)
-  arukellt/         # CLI entry point
-  # (Rust ark-lsp removed in #572; selfhost LSP via `arukellt lsp` →
-  #  src/compiler/lsp.ark)
 extensions/
   arukellt-all-in-one/  # VS Code extension bootstrap
+src/compiler/       # selfhost compiler, including lexer.ark, parser.ark, resolver.ark, typechecker.ark, corehir.ark, diagnostics.ark, and target planning in driver.ark
 std/                # source-backed stdlib wrappers and manifest
 tests/fixtures/     # manifest-driven fixtures
 benchmarks/         # perf cases
@@ -120,9 +105,8 @@ It covers, among other checks:
 Run heavier groups explicitly when needed:
 
 ```bash
-cargo test --workspace
 python scripts/manager.py verify fixtures
-bash scripts/manager.py --full
+python scripts/manager.py verify --full
 ```
 
 Heavy checks also belong in CI. The pre-commit hook can be installed via:

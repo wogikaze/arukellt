@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that a release git tag matches Cargo.toml workspace version."""
+"""Check that a release git tag matches the project release version."""
 
 from __future__ import annotations
 
@@ -20,14 +20,14 @@ TAG_PREFIX = "refs/tags/"
 VERSION_RE = re.compile(r"^v?([0-9]+[.][0-9]+[.][0-9]+(?:[-+][0-9A-Za-z.-]+)?)$")
 
 
-def load_workspace_version() -> str:
-    cargo = tomllib.loads((ROOT / "Cargo.toml").read_text(encoding="utf-8"))
+def load_project_version() -> str:
+    project_state = tomllib.loads((ROOT / "docs/data/project-state.toml").read_text(encoding="utf-8"))
     try:
-        version = cargo["workspace"]["package"]["version"]
+        version = project_state["project"]["version"]
     except KeyError as exc:
-        raise SystemExit(f"Cargo.toml missing workspace.package.version: {exc}") from exc
+        raise SystemExit(f"docs/data/project-state.toml missing project.version: {exc}") from exc
     if not isinstance(version, str) or not version:
-        raise SystemExit("Cargo.toml workspace.package.version must be a non-empty string")
+        raise SystemExit("docs/data/project-state.toml project.version must be a non-empty string")
     return version
 
 
@@ -48,7 +48,7 @@ def normalize_tag(tag: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the release tag matches Cargo.toml workspace.package.version."
+        description="Validate that the release tag matches docs/data/project-state.toml project.version."
     )
     parser.add_argument(
         "--ref",
@@ -69,15 +69,15 @@ def main() -> int:
         print(f"release tag/version check skipped for non-tag ref: {args.ref or '<empty>'}")
         return 0
 
-    cargo_version = load_workspace_version()
+    project_version = load_project_version()
     tag_version = normalize_tag(tag)
-    if tag_version != cargo_version:
+    if tag_version != project_version:
         raise SystemExit(
             f"release tag version mismatch: tag '{tag}' resolves to '{tag_version}', "
-            f"but Cargo.toml workspace.package.version is '{cargo_version}'"
+            f"but docs/data/project-state.toml project.version is '{project_version}'"
         )
 
-    print(f"release tag/version check passed: {tag} matches Cargo.toml {cargo_version}")
+    print(f"release tag/version check passed: {tag} matches project version {project_version}")
     return 0
 
 

@@ -5,11 +5,10 @@ Arukellt compiler, from parsed source through to Wasm output. It is the
 authoritative reference for re-implementing the IR in another language.
 
 > **Source of truth**: selfhost `src/compiler/mir.ark` (and the lowering /
-> validation / optimization passes inside it). The Rust `crates/ark-mir`
-> implementation that previously held these surfaces was retired in #561;
-> selfhost is now the single MIR authority. Frontend surfaces remain in
-> `crates/ark-parser/src/ast.rs`, `crates/ark-hir/src/hir.rs`,
-> `crates/ark-typecheck/src/types.rs`.
+> validation / optimization passes inside it). Selfhost is the single MIR
+> authority. Frontend surfaces remain in
+> `src/compiler/parser.ark`, `src/compiler/corehir.ark`,
+> `src/compiler/typechecker.ark`.
 
 ---
 
@@ -36,13 +35,13 @@ Source text
 Lexer ──► Tokens
   │
   ▼
-Parser ──► AST  (crates/ark-parser — ast.rs)
+Parser ──► AST  (src/compiler/parser.ark — ast.rs)
   │
   ▼
-Resolver ──► Resolved AST  (crates/ark-resolve)
+Resolver ──► Resolved AST  (src/compiler/resolver.ark)
   │
   ▼
-Type-checker ──► Typed HIR / CoreHIR  (crates/ark-typecheck, crates/ark-hir)
+Type-checker ──► Typed HIR / CoreHIR  (src/compiler/typechecker.ark, src/compiler/corehir.ark)
   │
   ▼
 MIR Lowering ──► MirModule  (selfhost src/compiler/mir.ark — lower/)
@@ -59,10 +58,10 @@ Wasm Emitter ──► .wasm binary  (selfhost: src/compiler/emitter.ark)
 
 | Phase | Input | Output | Crate |
 |-------|-------|--------|-------|
-| Lexer | Source text | Token stream | `ark-lexer` |
-| Parser | Tokens | `ast::Module` | `ark-parser` |
-| Resolver | `ast::Module` | Resolved AST with name bindings | `ark-resolve` |
-| Type-checker | Resolved AST | `hir::Program` with typed nodes | `ark-typecheck` / `ark-hir` |
+| Lexer | Source text | Token stream | `src/compiler/lexer.ark` |
+| Parser | Tokens | `ast::Module` | `src/compiler/parser.ark` |
+| Resolver | `ast::Module` | Resolved AST with name bindings | `src/compiler/resolver.ark` |
+| Type-checker | Resolved AST | `hir::Program` with typed nodes | `src/compiler/typechecker.ark` / `src/compiler/corehir.ark` |
 | MIR lowering | `hir::Program` or `ast::Module` | `MirModule` | selfhost `src/compiler/mir.ark` |
 | MIR optimization | `MirModule` | Optimized `MirModule` | selfhost `src/compiler/mir.ark` |
 | MIR validation | `MirModule` | Validated `MirModule` | selfhost `src/compiler/mir.ark` |
@@ -84,7 +83,7 @@ For deprecation status, migration examples, and blocker details, see
 
 ## 2. AST Specification
 
-Defined in `crates/ark-parser/src/ast.rs`.
+Defined in `src/compiler/parser.ark`.
 
 ### 2.1 Top-Level
 
@@ -295,7 +294,7 @@ struct MatchArm {
 
 ## 3. CoreHIR Specification
 
-Defined in `crates/ark-hir/src/hir.rs`. CoreHIR is a typed, resolved IR that
+Defined in `src/compiler/corehir.ark`. CoreHIR is a typed, resolved IR that
 sits between the raw AST and MIR. Method calls, operator syntax, and
 qualified-import syntax are already resolved to canonical call targets.
 
@@ -548,7 +547,7 @@ survive into CoreHIR; they appear as resolved `CallTarget::Selected` nodes.
 
 ### 4.1 Type-Checker Type (`Type`)
 
-Defined in `crates/ark-typecheck/src/types.rs`. This is the type used by
+Defined in `src/compiler/typechecker.ark`. This is the type used by
 `MirLocal.ty` and `MirFunction.return_ty`.
 
 ```rust
@@ -617,7 +616,7 @@ struct TypeId(pub u32);
 
 ## 5. MIR Data Structures
 
-Defined in selfhost `src/compiler/mir.ark` (the prior Rust `crates/ark-mir/src/mir.rs` was retired in #561).
+Defined in selfhost `src/compiler/mir.ark`.
 
 ### 5.1 MirModule
 
@@ -1035,7 +1034,7 @@ struct MirStats {
 
 ## 6. HIR → MIR Lowering Rules
 
-Lowering is implemented in selfhost `src/compiler/mir.ark` (lowering surface; the prior Rust `crates/ark-mir/src/lower/` was retired in #561). Two paths exist:
+Lowering is implemented in selfhost `src/compiler/mir.ark`. Two paths exist:
 the **legacy** path (AST → MIR) and the **CoreHIR** path (typed HIR → MIR).
 Both produce the same `MirModule` structure.
 
@@ -1196,7 +1195,7 @@ During lowering, the `TypeTable` is populated:
 
 ## 7. MIR Optimization Passes
 
-Implemented in selfhost `src/compiler/mir.ark` (optimization passes; the prior Rust `crates/ark-mir/src/opt/` was retired in #561). The optimizer runs up to 3 rounds
+Implemented in selfhost `src/compiler/mir.ark`. The optimizer runs up to 3 rounds
 (`MAX_OPT_ROUNDS = 3`) of the full pass pipeline. Each round runs all passes in
 order; if no pass changes anything, iteration stops early.
 
@@ -1300,7 +1299,7 @@ The optimizer supports several modes:
 
 ## 8. MIR Validation Rules
 
-Implemented in selfhost `src/compiler/mir.ark` (validation surface; the prior Rust `crates/ark-mir/src/validate.rs` was retired in #561).
+Implemented in selfhost `src/compiler/mir.ark`.
 
 ### 8.1 Validation Entry Points
 

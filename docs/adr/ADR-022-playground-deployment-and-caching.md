@@ -78,9 +78,9 @@ distinct cacheable resource.
 
 ### D3: PR preview deployments via GitHub Actions
 
-Every PR that modifies playground source (`playground/`, `crates/ark-playground-wasm/`)
+Every PR that modifies playground source (`playground/`)
 receives an automatic preview deployment. The CI bot comments on the PR with
-the preview URL, Wasm size, and build time.
+the preview URL and build time.
 
 Preview deployments are cleaned up when the PR is merged or closed.
 

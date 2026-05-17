@@ -2,10 +2,10 @@
 # check-diagnostic-codes.sh — verify error/warning codes match between implementation and docs
 set -euo pipefail
 
-CODES_RS="crates/ark-diagnostics/src/codes.rs"
+DIAGNOSTICS_SRC="src/compiler"
 ERROR_CODES_MD="docs/compiler/error-codes.md"
 
-impl_codes=$(grep -oP '[EW]\d{4}' "$CODES_RS" | sort -u)
+impl_codes=$(grep -RhoP '[EW]\d{4}' "$DIAGNOSTICS_SRC" | sort -u)
 doc_codes=$(grep -oP '[EW]\d{4}' "$ERROR_CODES_MD" | sort -u)
 
 missing_from_docs=$(comm -23 <(echo "$impl_codes") <(echo "$doc_codes"))

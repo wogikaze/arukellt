@@ -1,55 +1,45 @@
 [tools]
-rust = "1.94"
 wasmtime = "latest"
 
 [tasks.build]
-run = "cargo build"
-description = "Build all crates"
-
-[tasks."build:release"]
-run = "cargo build --release"
-description = "Build all crates in release mode"
+run = "python3 scripts/manager.py selfhost fixpoint --build"
+description = "Build and verify the selfhost compiler"
 
 [tasks.test]
-run = "cargo test --workspace"
-description = "Run all unit tests"
-
-[tasks."test:unit"]
-run = "cargo test --workspace --lib"
-description = "Run library unit tests only"
+run = "python3 scripts/manager.py verify"
+description = "Run repository verification"
 
 [tasks."test:t1"]
-run = "cargo test --test harness -- --nocapture"
-description = "Run T1 fixture harness"
+run = "ARUKELLT_TARGET=wasm32-wasi-p1 python3 scripts/manager.py selfhost fixture-parity"
+description = "Run T1 selfhost fixture parity"
+
+[tasks."test:t3"]
+run = "ARUKELLT_TARGET=wasm32-wasi-p2 python3 scripts/manager.py selfhost fixture-parity"
+description = "Run T3 selfhost fixture parity"
 
 [tasks.lint]
-run = "cargo clippy --workspace -- -D warnings"
-description = "Run clippy lints"
+run = "python3 scripts/manager.py verify --quick"
+description = "Run quick verification"
 
 [tasks.fmt]
-run = "cargo fmt --all"
-description = "Format all code"
+run = "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json"
+description = "Format documentation"
 
 [tasks."fmt:docs"]
 run = "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json"
-description = "Formatting for documentation"
-
+description = "Format documentation"
 
 [tasks."fmt:check"]
-run = "cargo fmt --all --check"
-description = "Check formatting"
+run = "npx markdownlint-cli2 '**/*.md' --config .markdownlint.json"
+description = "Check documentation formatting"
 
 [tasks.verify]
-run = "python3 scripts/manager.py verify --quick"
-description = "Run fast local verification"
+run = "python3 scripts/manager.py verify"
+description = "Run repository verification"
 
 [tasks."verify:quick"]
 run = "python3 scripts/manager.py verify --quick"
-description = "Run fast local verification (alias)"
-
-[tasks."verify:cargo"]
-run = "cargo fmt --all --check && cargo clippy --workspace -- -D warnings && cargo test --workspace"
-description = "Run cargo fmt, clippy, and workspace tests"
+description = "Run fast local verification"
 
 [tasks."verify:fixtures"]
 run = "python3 scripts/manager.py verify --fixtures"
@@ -60,16 +50,16 @@ run = "python3 scripts/util/collect-baseline.py"
 description = "Collect baseline snapshots"
 
 [tasks."verify:full"]
-run = "python3 scripts/manager.py verify --quick --fixtures --size --wat --docs"
+run = "python3 scripts/manager.py verify --full"
 description = "Run full local verification"
 
 [tasks."verify:ci"]
-run = "cargo fmt --all --check && cargo clippy --workspace -- -D warnings && cargo test --workspace && python3 scripts/manager.py verify --size --wat --docs"
-description = "Run the explicit heavy verification groups used by CI correctness"
+run = "python3 scripts/manager.py verify && python3 scripts/manager.py selfhost fixpoint && python3 scripts/manager.py selfhost fixture-parity && python3 scripts/manager.py selfhost parity --mode --cli && python3 scripts/manager.py selfhost diag-parity"
+description = "Run the CI verification groups"
 
 [tasks."verify:pre-commit"]
-run = "cargo fmt --all --check && cargo clippy --workspace -- -D warnings && python3 scripts/manager.py verify --docs"
-description = "Run the recommended pre-commit verification groups"
+run = "python3 scripts/manager.py verify --quick && python3 scripts/check/check-docs-consistency.py"
+description = "Run recommended pre-commit checks"
 
 [tasks."metrics"]
 run = "python3 scripts/util/repo_metrics.py"
@@ -92,25 +82,25 @@ run = "bash scripts/gate/install-git-hooks.sh --remove"
 description = "Remove repository-managed git hooks"
 
 [tasks.check]
-run = "cargo check --workspace"
-description = "Type-check all crates"
+run = "python3 scripts/manager.py verify --quick"
+description = "Run quick verification"
 
 [tasks.bench]
-run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode full"
-description = "Run default local benchmark workflow (release build + compile/runtime/size/memory)"
+run = "python3 scripts/util/benchmark_runner.py --mode full"
+description = "Run default local benchmark workflow"
 
 [tasks."bench:quick"]
-run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode quick"
+run = "python3 scripts/util/benchmark_runner.py --mode quick"
 description = "Run quick single-sample benchmark smoke workflow"
 
 [tasks."bench:compare"]
-run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode compare"
+run = "python3 scripts/util/benchmark_runner.py --mode compare"
 description = "Run benchmarks and compare current results against stored baseline"
 
 [tasks."bench:update-baseline"]
-run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode update-baseline"
+run = "python3 scripts/util/benchmark_runner.py --mode update-baseline"
 description = "Update benchmark baselines from current measurements"
 
 [tasks."bench:ci"]
-run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode ci"
-description = "Run benchmark regression gate for CI (fail on threshold regression)"
+run = "python3 scripts/util/benchmark_runner.py --mode ci"
+description = "Run benchmark regression gate for CI"

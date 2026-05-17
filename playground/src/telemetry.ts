@@ -58,7 +58,8 @@ export function reportError(context: string, error: unknown): void {
 }
 
 /**
- * Report a Wasm load failure and return a user-facing message string.
+ * Report a playground engine load failure and return a user-facing message
+ * string.
  *
  * The error is written to the console; the returned string can be
  * displayed in the UI so users know what happened and what to do next.
@@ -66,18 +67,18 @@ export function reportError(context: string, error: unknown): void {
  * Example:
  * ```ts
  * try {
- *   await wasm.default(wasmUrl);
+ *   await createPlayground(engineUrl, opts);
  * } catch (err) {
  *   const msg = reportWasmLoadError(err);
  *   showErrorBanner(msg);
  * }
  * ```
  *
- * @param error - The caught error value from the Wasm initialisation call.
+ * @param error - The caught error value from engine initialisation.
  * @returns A user-facing error message string (never null).
  */
 export function reportWasmLoadError(error: unknown): string {
-  reportError("Wasm load failed", error);
+  reportError("Playground engine load failed", error);
   return (
     "The compiler could not be loaded. " +
     "Check your network connection and reload the page. " +
@@ -88,7 +89,7 @@ export function reportWasmLoadError(error: unknown): string {
 /**
  * Report an unexpected compiler panic and return a user-facing message string.
  *
- * Use this when a Wasm call throws an unexpected exception (panic boundary).
+ * Use this when the playground engine throws an unexpected exception.
  * The error is written to the console; the returned string should be shown
  * in the diagnostics area or a modal.
  *

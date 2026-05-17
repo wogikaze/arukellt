@@ -22,7 +22,7 @@ above agree.
 
 ### How diagnostics are formatted
 
-**Rust compiler** (`crates/ark-diagnostics/`):
+**Rust compiler** (`src/compiler/diagnostics.ark`):
 
 ```
 error[E0100|resolve]: unresolved name

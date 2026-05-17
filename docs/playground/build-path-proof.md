@@ -1,73 +1,49 @@
 # Playground Build and Publish Path - Proof Record
 
-**Issue**: #468
-**Status**: PROVED (2026-04-25)
-**Evidence gathered by**: impl-playground agent
+**Issue**: #468; updated by #631
+**Status**: PROVED
+**Current proof date**: 2026-05-17
 
----
+## Current Build Commands
 
-## Build Commands
+Run from repo root:
 
-Run in order from repo root:
+```bash
+cd playground
+npm run build:app
+```
 
-    # 1. Build the Wasm module
-    cd playground && npm run build:wasm
-    # output: crates/ark-playground-wasm/pkg/ark_playground_wasm_bg.wasm (568 KB)
+This compiles the TypeScript playground engine and UI package, then copies the
+compiled output to `docs/playground/dist/`.
 
-    # 2. Build playground JS + copy all assets into docs/playground/
-    cd playground && npm run build:app
-    # output: docs/playground/dist/  (compiled TypeScript)
-    #         docs/playground/wasm/  (wasm pkg: .wasm + .js glue + .d.ts)
+## Current Output Paths
 
-Both commands exit 0. Total build time: ~21 s (dominated by Rust compile).
+- `playground/dist/` - compiled TypeScript package
+- `docs/playground/dist/` - deployable copy used by GitHub Pages
 
----
-
-## Output Paths
-
-- crates/ark-playground-wasm/pkg/ark_playground_wasm_bg.wasm  (568248 bytes)
-- crates/ark-playground-wasm/pkg/ark_playground_wasm.js        (wasm-bindgen glue)
-- docs/playground/wasm/ark_playground_wasm_bg.wasm             (deployed copy)
-- docs/playground/dist/                                        (compiled TS)
-
----
-
-## Artifact Validation
-
-Built with wasm-pack 0.13.1 and wasm-opt optimization pass (exit 0).
-File size: 568248 bytes. Wasm magic bytes 0061736d confirmed valid.
-
----
+The retired Rust playground Wasm package is no longer part of the build path.
+`docs/playground/wasm/` is not populated by CI.
 
 ## Publish Path
 
-.github/workflows/pages.yml uploads ./docs to GitHub Pages:
+`.github/workflows/pages.yml` uploads `./docs` to GitHub Pages:
 
-    - uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./docs
-    - uses: actions/deploy-pages@v4
+```yaml
+- uses: actions/upload-pages-artifact@v3
+  with:
+    path: ./docs
+- uses: actions/deploy-pages@v4
+```
 
-`docs/playground/dist/` and `docs/playground/wasm/` are within `./docs` and are
-assembled by CI before each GitHub Pages upload (they are gitignored — not
-committed). The workflow triggers on changes to `docs/**`, `playground/**`,
-`crates/ark-playground-wasm/**`, or `.github/workflows/pages.yml`.
-
----
+The workflow triggers on changes to `docs/**`, `playground/**`, or
+`.github/workflows/pages.yml`.
 
 ## Toolchain Requirements
 
-- Rust stable + wasm32-unknown-unknown target (rustup target add wasm32-unknown-unknown)
-- wasm-pack >= 0.13 (cargo install wasm-pack)
-- wasm-opt is bundled by wasm-pack
 - Node.js >= 18
 
----
+## Historical Note
 
-## Notes
-
-- build:app uses || true when copying pkg/, so it silently skips the wasm copy
-  if build:wasm has not been run first. Always run build:wasm before build:app.
-- scripts/gen/stamp-playground-assets.sh is referenced by build:app but does
-  not exist on disk; cache-busting is inactive (tracked by #437).
-- No local dev-server (npm run dev) exists in playground/package.json.
+Earlier proof records used a Rust Wasm bridge and wasm-pack-generated assets.
+That path was retired in #631 during the selfhost cleanup phase. Current
+playground behavior is provided by `playground/src/engine.ts`.

@@ -6,13 +6,11 @@ release refs; items marked **Manual** require human verification.
 
 ## Pre-release
 
-- [ ] **CI** — `cargo test --workspace` passes (unit tests; harness coverage via selfhost fixture parity below)
-- [ ] **CI** — `cargo clippy --workspace -- -D warnings` clean
-- [ ] **CI** — `cargo fmt --all -- --check` clean
-- [ ] **CI** — `python scripts/manager.py verify quick` passes
-- [ ] **CI** — `python scripts/manager.py verify component` passes (component interop)
-- [ ] **CI** — `python scripts/manager.py verify fixtures` passes (selfhost fixture parity)
-- [ ] **CI** — `python scripts/manager.py verify --selfhost-parity` passes (selfhost CLI + diag parity)
+- [ ] **CI** — `python3 scripts/manager.py verify` passes
+- [ ] **CI** — `python3 scripts/manager.py selfhost fixpoint` passes
+- [ ] **CI** — `python3 scripts/manager.py selfhost fixture-parity` passes
+- [ ] **CI** — `python3 scripts/manager.py selfhost parity --mode --cli` passes
+- [ ] **CI** — `python3 scripts/manager.py selfhost diag-parity` passes
 <!-- DEFERRED: opt-equiv (O0 == O1) is not implemented; tracked in manager.py `_MISSING` set. Re-add as a CI checkbox when a real gate exists. -->
 - [ ] **CI** — Binary smoke: `arukellt --version` exits 0
 - [ ] **CI** — Binary smoke: `arukellt run tests/fixtures/hello_world.ark` outputs `Hello, World!`
@@ -27,7 +25,7 @@ release refs; items marked **Manual** require human verification.
 - [ ] **CI** — Release CLI entrypoint prepared on linux-x86_64 runner
 - [ ] **CI** — Release binary size < 50 MB
 - [ ] **CI** — SHA256 checksum generated alongside binary
-- [ ] **CI on tag** — Version in `Cargo.toml` matches the tag
+- [ ] **CI on tag** — Version in `docs/data/project-state.toml` matches the tag
 
 ## Extension distribution
 

@@ -18,57 +18,16 @@ graph LR
   I474["474 Async component support (v5)"]
   I475["475 arukellt component subcommand"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
-  I529["529 100% selfhost transition plan"]
-  I574["574 574 — Phase 7: Delete `crates/ark-lexer`"]
   I588["588 Language surface uplift plan"]
   I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
-  I625["625 529 Phase 4: Dual-Run Period (SAFETY)"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
-  I617["617 Selfhost Compiler: Implement CoreHIR pipeline (Refactor target)"]
-  I575["575 575 — Phase 7: Delete `crates/ark-parser`"]
-  I626["626 529 Phase 6/A: IDE-Ready Frontend"]
-  I576["576 576 — Phase 7: Delete `crates/ark-resolve`"]
-  I627["627 529 Phase 6/B: Analysis API"]
-  I577["577 577 — Phase 7: Delete `crates/ark-typecheck`"]
-  I628["628 529 Phase 6/C: LSP Minimum Viable"]
-  I578["578 578 — Phase 7: Delete `crates/ark-hir`"]
-  I579["579 579 — Phase 7: Delete `crates/ark-diagnostics`"]
-  I581["581 581 — Phase 7: Delete `crates/ark-target`"]
-  I582["582 582 — Phase 7 final: remove `Cargo.toml` and `Cargo.lock`"]
-  I630["630 Phase 7 Sequencing Fix: Circular Dependency in Crate Deletion Chain"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I139 --> I136
   I475 --> I485
-  I529 --> I617
-  I574 --> I575
-  I625 --> I626
-  I575 --> I576
-  I626 --> I627
-  I576 --> I577
-  I627 --> I628
-  I577 --> I578
-  I575 --> I579
-  I576 --> I579
-  I577 --> I579
-  I575 --> I581
-  I577 --> I581
-  I574 --> I582
-  I575 --> I582
-  I576 --> I582
-  I577 --> I582
-  I578 --> I582
-  I579 --> I582
-  I581 --> I582
-  I575 --> I630
-  I576 --> I630
-  I577 --> I630
-  I578 --> I630
-  I579 --> I630
-  I581 --> I630
   I124 --> I28
   I30 --> I31
 ```
@@ -87,27 +46,12 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: none
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
-- **529** depends on: none; blocks: 617
-- **574** depends on: 564; blocks: 575, 582
 - **588** depends on: none; blocks: none
 - **590** depends on: none; blocks: none
 - **62** depends on: 074, 510; blocks: none
-- **625** depends on: 594; blocks: 626
 - **63** depends on: 074, 137; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
-- **617** depends on: 529; blocks: none
-- **575** depends on: 564, 574; blocks: 576, 579, 581, 582, 630
-- **626** depends on: 625; blocks: 627
-- **576** depends on: 564, 575; blocks: 577, 579, 582, 630
-- **627** depends on: 626; blocks: 628
-- **577** depends on: 564, 576; blocks: 578, 579, 581, 582, 630
-- **628** depends on: 627; blocks: none
-- **578** depends on: 564, 577; blocks: 582, 630
-- **579** depends on: 564, 572, 575, 576, 577; blocks: 582, 630
-- **581** depends on: 564, 575, 577; blocks: 582, 630
-- **582** depends on: 572, 573, 574, 575, 576, 577, 578, 579, 580, 581; blocks: none
-- **630** depends on: 564, 575, 576, 577, 578, 579, 581; blocks: none
 
 ### Blocked
 

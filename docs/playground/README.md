@@ -6,34 +6,34 @@
 ## Current Snapshot
 
 - ADR-017 defines a client-side browser execution model for playground work.
-- Current repo proof: `crates/ark-playground-wasm` exports `parse`, `format`, `tokenize`, and `version`.
+- Current repo proof: `playground/src/engine.ts` exports parse, format, tokenize, typecheck, and version functions.
 - Current repo proof: `playground/src/**` contains editor / diagnostics / share / examples components.
 - Current repo proof: `docs/playground/index.html` provides a browser entrypoint with parse + diagnostics.
 - Current repo proof: `docs/_sidebar.md` links to the playground page.
-- Current repo proof: `.github/workflows/pages.yml` builds Wasm + playground JS, populates `docs/playground/dist/` and `docs/playground/wasm/`, and deploys to GitHub Pages (those outputs are not committed).
+- Current repo proof: `.github/workflows/pages.yml` builds playground JS into `docs/playground/dist/` and deploys to GitHub Pages (those outputs are not committed).
 - Not yet repo-proved: browser type-checking surface (tracked by `issues/open/472`).
 
 ## What is in this directory today?
 
 This section documents the browser-side playground work in the repository:
-the Wasm engine, editor/diagnostics/share/example components, design/operations documents,
+the browser-native engine, editor/diagnostics/share/example components, design/operations documents,
 and the live browser entrypoint at [`playground/index.html`](index.html).
 
-**Build outputs in this folder:** `dist/` (TypeScript emit) and `wasm/` (wasm-pack glue + `.wasm`)
-are produced by `playground`'s `npm run build:app` after Wasm is built; they are **not** tracked in git.
-`.github/workflows/pages.yml` builds them before uploading `./docs` to GitHub Pages.
+**Build outputs in this folder:** `dist/` (TypeScript emit)
+is produced by `playground`'s `npm run build:app`; it is **not** tracked in git.
+`.github/workflows/pages.yml` builds it before uploading `./docs` to GitHub Pages.
 
 ### Current repo-proved surfaces
 
 | Surface | Repo proof today | Notes |
 |---------|------------------|-------|
-| Parse | ✅ | `crates/ark-playground-wasm` exports `parse(source)` |
-| Format | ✅ | `crates/ark-playground-wasm` exports `format(source)` |
-| Tokenize | ✅ | `crates/ark-playground-wasm` exports `tokenize(source)` |
+| Parse | ✅ | `playground/src/engine.ts` exports `parseSource(source)` |
+| Format | ✅ | `playground/src/engine.ts` exports `formatSource(source)` |
+| Tokenize | ✅ | `playground/src/engine.ts` exports `tokenizeSource(source)` |
 | Editor components | ✅ | `playground/src/**` contains editor / diagnostics UI building blocks |
 | Share helpers | ✅ | `playground/src/share.ts` provides fragment helpers |
 | Curated examples catalog | ✅ | `playground/src/examples.ts` contains example metadata |
-| Browser entrypoint | ✅ | [`docs/playground/index.html`](index.html) — editor shell with parse + diagnostics (issue 466). Format and tokenize are exported by the Wasm API (`lib.rs`) but not yet wired in the browser UI. |
+| Browser entrypoint | ✅ | [`docs/playground/index.html`](index.html) — editor shell with parse + diagnostics (issue 466). Format and tokenize are exported by the browser engine but not yet wired in the browser UI. |
 | Docs route to live playground | ✅ | [`playground/index.html`](index.html) — linked from docs site navigation (issue 467) |
 | Publish / deploy path | ✅ | `.github/workflows/pages.yml` builds and deploys to GitHub Pages (issue 468) |
 | Privacy / telemetry guardrail | ✅ | `playground/src/telemetry.ts` — `TELEMETRY_DISABLED=true`; `reportError`/`reportWasmLoadError`/`reportCompilerPanic` log locally only. Policy: [`privacy-telemetry-policy.md`](privacy-telemetry-policy.md) (issue 438) |
@@ -42,9 +42,9 @@ are produced by `playground`'s `npm run build:app` after Wasm is built; they are
 
 ### Architecture status
 
-The current browser-side engine is the `wasm32-unknown-unknown` playground Wasm package plus
+The current browser-side engine is the TypeScript playground engine plus
 TypeScript UI components. The browser entrypoint `docs/playground/index.html` provides an
-editor shell with parse + diagnostics display. Format and tokenize are available as Wasm API
+editor shell with parse + diagnostics display. Format and tokenize are available as engine API
 exports but are not yet wired into the browser UI. The docs site navigation links to it. See
 [ADR-017](../adr/ADR-017-playground-execution-model.md) for the intended execution model and
 [issues/done/465-playground-false-done-audit-and-status-rollback.md](../../issues/done/465-playground-false-done-audit-and-status-rollback.md)
@@ -67,7 +67,7 @@ the browser-side implementation work and remaining product-proof gaps.
 
 | Document | Summary |
 |----------|---------|
-| [build-path-proof.md](build-path-proof.md) | Issue: #468 |
+| [build-path-proof.md](build-path-proof.md) | Issue: #468; updated by #631 |
 | [deployment-strategy.md](deployment-strategy.md) | Status: DRAFT |
 | [diagnostics-worker-performance-budget.md](diagnostics-worker-performance-budget.md) | Status: DRAFT |
 | [examples-catalog.md](examples-catalog.md) | The playground ships a curated catalog of example programs defined in |

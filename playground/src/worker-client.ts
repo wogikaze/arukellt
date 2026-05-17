@@ -2,7 +2,7 @@
  * Worker-based playground client.
  *
  * Provides the same API as the main-thread {@link Playground}, but all
- * operations are dispatched to a dedicated Web Worker so the Wasm module
+ * operations are dispatched to a dedicated Web Worker so playground work
  * never blocks the main thread.
  *
  * @module
@@ -25,7 +25,7 @@ import type {
  * import { createWorkerPlayground } from "@arukellt/playground";
  *
  * const pg = await createWorkerPlayground({
- *   wasmUrl: "/assets/ark_playground_wasm_bg.wasm",
+ *   wasmUrl: "/assets/playground-engine",
  *   workerUrl: "/assets/worker.js",
  * });
  *
@@ -99,7 +99,7 @@ export async function createWorkerPlayground(
     });
   }
 
-  // Initialise the Wasm module inside the worker.
+  // Initialise the playground engine inside the worker.
   await send({ cmd: "init", wasmUrl: opts.wasmUrl.toString() });
 
   let destroyed = false;

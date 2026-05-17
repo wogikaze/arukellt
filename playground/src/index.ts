@@ -1,9 +1,8 @@
 /**
  * @arukellt/playground — Browser API for the Arukellt language playground.
  *
- * This package wraps the `ark-playground-wasm` WebAssembly module and
- * provides a typed, ergonomic API for parsing, formatting, and tokenizing
- * Arukellt source code in the browser.
+ * This package provides a typed, ergonomic API for parsing, formatting,
+ * tokenizing, and type-checking Arukellt source code in the browser.
  *
  * ## Quick start
  *
@@ -13,8 +12,8 @@
  * import { createPlayground } from "@arukellt/playground";
  *
  * const pg = await createPlayground(
- *   "/assets/ark_playground_wasm.js",
- *   { wasmUrl: "/assets/ark_playground_wasm_bg.wasm" },
+ *   "/assets/playground-engine",
+ *   { wasmUrl: "/assets/playground-engine" },
  * );
  *
  * const result = pg.parse("fn main() {}");
@@ -28,7 +27,7 @@
  * import { createWorkerPlayground } from "@arukellt/playground";
  *
  * const pg = await createWorkerPlayground({
- *   wasmUrl: "/assets/ark_playground_wasm_bg.wasm",
+ *   wasmUrl: "/assets/playground-engine",
  *   workerUrl: "/assets/worker.js",
  * });
  *

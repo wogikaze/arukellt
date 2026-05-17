@@ -30,9 +30,9 @@ policy alone.**
 ## 2. Foundational Privacy Principles
 
 1. **User code never leaves the browser** — parsing, formatting,
-   and diagnostics all execute in a Wasm module running locally in the user's
-   browser. No source code is transmitted to any server at any time during
-   normal operation. (Type-checking is not yet available; tracked by `issues/open/472`.)
+   tokenization, and diagnostics execute in the browser-native playground
+   engine. No source code is transmitted to any server at any time during
+   normal operation.
 
 2. **Share URLs are fragment-based** — when a user shares a snippet, the code is
    encoded in the URL fragment (`#`), which is never sent to the HTTP server
@@ -107,14 +107,14 @@ shared source code.
 In v1, all error reporting is **local to the user's browser**:
 
 - **Compiler diagnostics** (parse errors, type errors) are displayed in the
-  playground's diagnostics panel. They are computed in the Wasm module and
+  playground's diagnostics panel. They are computed in the browser engine and
   rendered in the browser DOM. They are never transmitted anywhere.
 
-- **Application errors** (Wasm instantiation failure, JS runtime exceptions)
+- **Application errors** (engine load failure, JS runtime exceptions)
   are logged to the browser's developer console via `console.error()`. They
   are never transmitted anywhere.
 
-- **Wasm panics** (unexpected compiler crashes) are caught by the Wasm
+- **Engine errors** (unexpected compiler frontend crashes) are caught by the
   error-handling boundary and displayed as a user-facing error message
   ("The compiler encountered an unexpected error. Please try again or
   report a bug."). The panic message is shown to the user but not
@@ -177,7 +177,7 @@ The v1 playground collects **zero telemetry**. There are:
 - No outbound network requests from the application
 
 The playground is a fully self-contained static application. After the
-initial page load (HTML, JS, CSS, Wasm from GitHub Pages), no further
+initial page load (HTML, JS, and CSS from GitHub Pages), no further
 network communication occurs.
 
 ### 5.2 v2+: Privacy-respecting analytics (future)
@@ -339,7 +339,6 @@ The v1 playground loads only first-party assets from its own origin:
 - `index.html` — entry point
 - `playground-<hash>.js` — application bundle (first-party code)
 - `playground-<hash>.css` — styles (first-party)
-- `ark-playground-<hash>.wasm` — compiler frontend (first-party Rust code)
 - `worker-<hash>.js` — Web Worker (first-party)
 - `examples-<hash>.json` — curated examples (first-party)
 

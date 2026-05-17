@@ -226,8 +226,8 @@ Trigger fires (T1+T2+T3 met)
 The outcome of this decision tree must be one of:
 
 - **`ADOPT-UFCS`**: implement the minimal desugaring described in §4. Record as
-  an ADR-004 amendment. File implementation issues against `ark-parser`,
-  `ark-resolve`, and `ark-typecheck`.
+  an ADR-004 amendment. File implementation issues against `src/compiler/parser.ark`,
+  `src/compiler/resolver.ark`, and `src/compiler/typechecker.ark`.
 - **`ADOPT-FULL`**: require `impl` blocks (depends on P3 landing). Only valid
   if P3 has landed or has a firm schedule.
 - **`DEFER-AGAIN`**: complexity cost is too high; set a new explicit trigger and

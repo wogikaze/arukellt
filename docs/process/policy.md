@@ -67,7 +67,6 @@ The default invocation is the fast local gate. It covers:
 
 Heavier groups are explicit and opt-in locally:
 
-- `--cargo` for fmt / clippy / workspace tests
 - `--fixtures` for the manifest-driven fixture harness
 - `--baseline` for baseline collection smoke
 - `--size` for the hello.wasm size gate

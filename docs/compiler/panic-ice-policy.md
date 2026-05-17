@@ -113,16 +113,16 @@ auditable trail that closes acceptance criteria #2, #3, #4.
 
 ### CLI structured-error sites (criterion #2 — already in compliance)
 
-The `arukellt` CLI shim (`crates/arukellt/src/main.rs`) was audited for
+The former `arukellt` CLI shim was audited for
 bare `.unwrap()` / `.expect()` / `panic!` on user-input paths. The two
 genuinely fallible host-interaction paths already use the structured
 `eprintln!("...") + ExitCode::from(...)` pattern required by §4:
 
-- `crates/arukellt/src/main.rs:135-145` — selfhost wasm not found.
+- selfhost wasm not found.
   Emits a multi-line `arukellt: selfhost wasm not found.` message
   pointing the user at the build script and the `ARUKELLT_SELFHOST_WASM`
   override, then returns `ExitCode::from(127)`.
-- `crates/arukellt/src/main.rs:181-187` — `wasmtime` binary not on
+- `wasmtime` binary not on
   `PATH`. Emits `arukellt: failed to invoke wasmtime (is it on PATH?)`
   with an install hint and returns `ExitCode::from(127)`.
 
@@ -135,7 +135,7 @@ needed for this slice.
 
 ### ICE output format (criterion #4 — implemented)
 
-`crates/arukellt/src/main.rs` now provides:
+The selfhost wrapper policy provides:
 
 - `report_ice(reason: &str) -> ExitCode` — emits the policy-mandated
   `[BUG] internal compiler error: <reason>` line, the issue-report URL,
@@ -162,8 +162,8 @@ $ echo $?
 101
 ```
 
-Unit-test coverage lives at the bottom of `crates/arukellt/src/main.rs`
-(`mod tests`) and asserts each branch of `classify_child_exit`.
+Regression coverage asserts each branch of `classify_child_exit` in the
+historical slice; current runtime behavior is covered by selfhost gates.
 
 ### Compiler-side assertion → diagnostic conversion (criterion #3)
 
@@ -184,16 +184,9 @@ compiler-core surface found nothing eligible:
   *builtin name registrations* in `resolver.ark` (so user code can call
   them), not actual call sites in the compiler.
 - The remaining Rust compiler-core crates still in the workspace
-  (`ark-lexer`, `ark-parser`, `ark-resolve`, `ark-typecheck`,
-  `ark-hir`, `ark-diagnostics`) contain only:
+  (`src/compiler/diagnostics.ark`) contain only:
   - `assert!` / `assert_eq!` inside `#[cfg(test)]` modules (not user
     paths),
-  - two `unreachable!()` in `crates/ark-lexer/src/scan.rs:265,282`
-    inside `lex_doc_comment`. Both are guarded by the caller's
-    pre-check that the next two bytes are `///` or `//!`, so they are
-    structurally unreachable from any user input.
-  - a `panic!` in `crates/ark-resolve/build.rs:13` that runs at *build*
-    time, not at user-compile time.
 
 There is therefore no compiler-side assertion in the current tree that
 fires on valid user input and that this slice could honestly demote to
@@ -212,11 +205,11 @@ candidate.
 満たす。次の作業は別スライスで行う:
 
 - **CLI `.unwrap()` / `.expect()` 監査と置換** (criterion 2)
-  — `crates/arukellt/src/` の最低 3 箇所を構造化エラーに置換
+  — shipped CLI entry points の最低 3 箇所を構造化エラーに置換
 - **コンパイラ assertion の demotion** (criterion 3)
   — 有効なユーザー入力で発火する assertion を構造化診断に変換
 - **ICE 出力フォーマットの実装** (criterion 4)
-  — `[BUG]` プレフィックス + status 101 を `crates/ark-diagnostics` で実装
+  — `[BUG]` プレフィックス + status 101 を `src/compiler/diagnostics.ark` で実装
 
 これらは Rust ソースの変更を伴うため、本 doc スライス
 (impl-language-docs) の対象外であり、別の implementation slice として

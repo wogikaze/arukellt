@@ -136,7 +136,7 @@ v3 までに確立した言語仕様と stdlib の上で、コンパイル時間
 9. **メソッド構文 (ADR-004 P4) の評価** (v4 後半)  
    - ADR-004 P4 の開始条件: v4 の最適化パスが全て stable であること
    - 評価対象: `.map()`, `.filter()`, `.len()`, `.push()` 等の基本メソッド
-   - 解禁する場合は ADR-004 補遺として記録し、`ark-parser` + `ark-resolve` + `ark-typecheck` に追加
+   - 解禁する場合は ADR-004 補遺として記録し、`src/compiler/parser.ark` + `src/compiler/resolver.ark` + `src/compiler/typechecker.ark` に追加
 
 ---
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-gen-harness-report.py — Parse `cargo test -p arukellt --test harness` output
+gen-harness-report.py — Parse legacy fixture harness output
 and produce a structured JSON (or text) pass/fail report for CI artifact upload
 and regression tracking between runs.
 
 Usage:
   python3 scripts/gen/gen-harness-report.py [OPTIONS] [LOG_FILE]
-  cargo test -p arukellt --test harness -- --nocapture 2>&1 | \
+  python3 scripts/manager.py verify --fixtures 2>&1 | \
     python3 scripts/gen/gen-harness-report.py
 
 Options:
@@ -15,7 +15,7 @@ Options:
   --text            Output plain text instead of JSON
   --help            Show this help message
 
-The ARUKELLT_BIN env var can be set before running `cargo test` to point at
+The ARUKELLT_BIN env var can be set before running the fixture harness to point at
 a selfhost binary; this script captures whatever binary path the harness reports.
 """
 
@@ -182,7 +182,7 @@ def format_text_report(report):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Parse cargo test harness output and produce a structured pass/fail report.",
+        description="Parse fixture harness output and produce a structured pass/fail report.",
         epilog="Output JSON fields: generated_at, summary, failures, failures_by_kind, arukellt_bin, target, baseline_comparison"
     )
     parser.add_argument(

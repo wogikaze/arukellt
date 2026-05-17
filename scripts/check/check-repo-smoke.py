@@ -15,7 +15,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 REQUIRED_DIRS = [
-    "crates",
     "docs",
     "docs/adr",
     "docs/language",
@@ -35,7 +34,6 @@ REQUIRED_DIRS = [
 
 REQUIRED_FILES = [
     "AGENTS.md",
-    "Cargo.toml",
     "docs/current-state.md",
     "issues/open/index.md",
     "issues/open/dependency-graph.md",
@@ -61,7 +59,7 @@ def check() -> int:
             errors += 1
 
     # Check tool availability
-    tools = ["python3", "git", "cargo", "rustc"]
+    tools = ["python3", "git"]
     if shutil.which("wasmtime"):
         pass  # optional
     for tool in tools:

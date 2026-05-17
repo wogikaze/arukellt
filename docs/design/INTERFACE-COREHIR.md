@@ -15,7 +15,7 @@ The default is `--mir-select corehir`.
 
 ## CoreHIR node inventory
 
-Defined in `crates/ark-hir/src/hir.rs`.
+Defined in `src/compiler/corehir.ark`.
 
 - Top level: `Program`, `Module`, `Item`, `Body`
 - Item kinds: `Function`, `Struct`, `Enum`, `Trait`, `Impl`
@@ -42,7 +42,7 @@ Method-call raw syntax, operator raw syntax, and qualified-import raw syntax mus
 
 ## Validator invariants
 
-Implemented in `crates/ark-hir/src/validate.rs`.
+Implemented in `src/compiler/corehir.ark`.
 
 The validator currently enforces:
 - every program/module/item/body/expr/pattern expected by downstream code has a source-map entry
@@ -76,7 +76,7 @@ Current invariant: do not rewrite `SharedRef` paths into deep copies. This prese
 
 ## Source-map contract
 
-`crates/ark-hir/src/source_map.rs` stores spans keyed by stable HIR IDs.
+`src/compiler/corehir.ark` stores spans keyed by stable HIR IDs.
 
 Downstream code may assume:
 - every validated `ExprId` has an `expr_span`

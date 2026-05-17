@@ -16,14 +16,10 @@
 
 | Directory | Tier | Owner/Generator | Description |
 |-----------|------|-----------------|-------------|
-| `crates/arukellt/` | product | — | CLI binary and entry point |
-| `crates/ark-parser/` | product | — | Lexer, parser, AST, formatter |
-| `crates/ark-resolve/` | product | — | Name resolution and module loading |
-| `crates/ark-typecheck/` | product | — | Type checking and inference |
-| `crates/ark-diagnostics/` | product | — | Diagnostic codes and messages |
-| `crates/ark-driver/` | product | — | Compilation driver and session |
-| `crates/ark-manifest/` | product | — | `ark.toml` manifest parsing (removed in #580) |
-| ~~`crates/ark-stdlib/`~~ | ~~product~~ | — | ~~Stdlib manifest metadata API (removed in #563)~~ |
+| `src/compiler/parser.ark` | product | — | Lexer, parser, AST, formatter |
+| `src/compiler/resolver.ark` | product | — | Name resolution and module loading |
+| `src/compiler/typechecker.ark` | product | — | Type checking and inference |
+| `src/compiler/diagnostics.ark` | product | — | Diagnostic codes and messages |
 | `std/` | product | — | Standard library source and manifest |
 | `std/manifest.toml` | product | — | Canonical stdlib API definition |
 | `src/compiler/` | product | — | Selfhost compiler sources (`.ark`) |
@@ -63,4 +59,4 @@ These files are auto-generated. Run the generator instead of editing manually:
 
 | Directory | Reason | How to Include |
 |-----------|--------|----------------|
-| _(none)_ | The Rust `crates/ark-lsp` was retired in #572 (Phase 7 of #529); selfhost LSP via `arukellt lsp` is the source of truth. | — |
+| _(none)_ | Selfhost LSP via `arukellt lsp` is the source of truth. | — |

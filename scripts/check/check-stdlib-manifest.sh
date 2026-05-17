@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify stdlib manifest matches resolve/typecheck/prelude.ark.
+# Verify stdlib manifest matches prelude.ark.
 # Exits non-zero if any drift detected.
 
 set -euo pipefail
@@ -11,10 +11,9 @@ NC='\033[0m'
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 MANIFEST="$REPO_ROOT/std/manifest.toml"
-CHECKER="$REPO_ROOT/crates/ark-typecheck/src/checker/builtins.rs"
 PRELUDE="$REPO_ROOT/std/prelude.ark"
 
-python3 - "$MANIFEST" "$CHECKER" "$PRELUDE" <<'PY'
+python3 - "$MANIFEST" "$PRELUDE" <<'PY'
 from __future__ import annotations
 
 import re
@@ -32,16 +31,11 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 manifest_path = Path(sys.argv[1])
-checker_path = Path(sys.argv[2])
-prelude_path = Path(sys.argv[3])
+prelude_path = Path(sys.argv[2])
 
 manifest = tomllib.loads(manifest_path.read_text())
 functions = manifest.get('functions', [])
 manifest_public = sorted({entry['name'] for entry in functions if not entry['name'].startswith('__intrinsic_')})
-manifest_all = sorted({entry['name'] for entry in functions} | {entry['intrinsic'] for entry in functions if 'intrinsic' in entry})
-
-checker_text = checker_path.read_text()
-checker_names = sorted(set(re.findall(r'fn_sigs\.insert\(\s*\n\s*"([^"]+)"\.into\(\)', checker_text)))
 prelude_names = sorted(set(re.findall(r'^pub fn\s+([A-Za-z0-9_]+)\s*\(', prelude_path.read_text(), re.M)))
 
 errors = 0
@@ -62,18 +56,7 @@ if extra_manifest:
     for name in extra_manifest:
         print(f"    {name}")
 
-print(f"{YELLOW}[2/3] Checking checker/builtins.rs FnSig names vs manifest...{NC}")
-ignored = {'Some', 'Ok', 'Err'}
-missing_checker = [name for name in checker_names if name not in manifest_all and name not in ignored]
-if missing_checker:
-    print(f"{RED}  FnSigs in checker/builtins.rs but NOT in manifest:{NC}")
-    for name in missing_checker:
-        print(f"    {name}")
-    errors += 1
-else:
-    print(f"{GREEN}  ✓ All checker/builtins.rs FnSig names present in manifest{NC}")
-
-print(f"{YELLOW}[3/3] Checking intrinsic coverage in manifest...{NC}")
+print(f"{YELLOW}[2/3] Checking intrinsic coverage in manifest...{NC}")
 manifest_intrinsics = sorted({entry['intrinsic'] for entry in functions if 'intrinsic' in entry})
 if not manifest_intrinsics:
     print(f"{RED}  Manifest does not expose any intrinsic mappings{NC}")
@@ -81,7 +64,7 @@ if not manifest_intrinsics:
 else:
     print(f"{GREEN}  ✓ Manifest contains intrinsic mappings ({len(manifest_intrinsics)}){NC}")
 
-print(f"{YELLOW}[4/4] Checking stability labels in manifest...{NC}")
+print(f"{YELLOW}[3/3] Checking stability labels in manifest...{NC}")
 # Check that all module-based functions have stability
 module_fns = [entry for entry in functions if 'module' in entry]
 missing_stability = [entry['name'] for entry in module_fns if 'stability' not in entry]

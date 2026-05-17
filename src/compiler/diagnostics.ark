@@ -21,11 +21,58 @@ String_from("unknown")
 }
 
 // ── Diagnostic Code Constants ──────────────────────────────────────────────────
-// Parser diagnostic codes
+// Frontend and validation diagnostic codes. Keep this list aligned with
+// docs/compiler/error-codes.md.
 pub fn DIAG_PARSE_UNEXPECTED() -> String { String_from("E0001") }
 pub fn DIAG_PARSE_MISSING_RBRACE() -> String { String_from("E0002") }
 pub fn DIAG_PARSE_EXPECTED_TYPE() -> String { String_from("E0003") }
 pub fn DIAG_PARSE_EXPECTED_TOKEN() -> String { String_from("E0004") }
+pub fn DIAG_WIT_UNSUPPORTED_FLAGS() -> String { String_from("E0090") }
+pub fn DIAG_RESOLVE_UNKNOWN_NAME() -> String { String_from("E0100") }
+pub fn DIAG_RESOLVE_DUPLICATE_SYMBOL() -> String { String_from("E0101") }
+pub fn DIAG_RESOLVE_MODULE_NOT_FOUND() -> String { String_from("E0102") }
+pub fn DIAG_RESOLVE_AMBIGUOUS_IMPORT() -> String { String_from("E0103") }
+pub fn DIAG_RESOLVE_PRIVATE_SYMBOL() -> String { String_from("E0104") }
+pub fn DIAG_RESOLVE_CAPABILITY_UNAVAILABLE() -> String { String_from("E0120") }
+pub fn DIAG_RESOLVE_CAPABILITY_MISSING_TARGET() -> String { String_from("E0121") }
+pub fn DIAG_RESOLVE_CAPABILITY_CONFLICT() -> String { String_from("E0122") }
+pub fn DIAG_RESOLVE_HOST_IMPORT_UNAVAILABLE() -> String { String_from("E0123") }
+pub fn DIAG_RESOLVE_HOST_IMPORT_FORBIDDEN() -> String { String_from("E0124") }
+pub fn DIAG_TYPE_MISMATCH() -> String { String_from("E0200") }
+pub fn DIAG_TYPE_UNKNOWN() -> String { String_from("E0201") }
+pub fn DIAG_TYPE_NOT_CALLABLE() -> String { String_from("E0202") }
+pub fn DIAG_TYPE_BAD_ARITY() -> String { String_from("E0203") }
+pub fn DIAG_TYPE_FIELD_NOT_FOUND() -> String { String_from("E0204") }
+pub fn DIAG_TYPE_NOT_INDEXABLE() -> String { String_from("E0205") }
+pub fn DIAG_TYPE_NON_BOOL_CONDITION() -> String { String_from("E0206") }
+pub fn DIAG_TYPE_RETURN_MISMATCH() -> String { String_from("E0207") }
+pub fn DIAG_TYPE_UNSUPPORTED_OPERATOR() -> String { String_from("E0208") }
+pub fn DIAG_TYPE_PATTERN_MISMATCH() -> String { String_from("E0209") }
+pub fn DIAG_TYPE_GENERIC_INFERENCE() -> String { String_from("E0210") }
+pub fn DIAG_TYPE_TRAIT_BOUND() -> String { String_from("E0211") }
+pub fn DIAG_TARGET_UNKNOWN() -> String { String_from("E0300") }
+pub fn DIAG_TARGET_UNIMPLEMENTED() -> String { String_from("E0301") }
+pub fn DIAG_TARGET_RUN_UNSUPPORTED() -> String { String_from("E0302") }
+pub fn DIAG_TARGET_CAPABILITY_MISSING() -> String { String_from("E0303") }
+pub fn DIAG_TARGET_CAPABILITY_FORBIDDEN() -> String { String_from("E0304") }
+pub fn DIAG_TARGET_DEPRECATED_ALIAS() -> String { String_from("E0305") }
+pub fn DIAG_TARGET_INVALID_EMIT() -> String { String_from("E0306") }
+pub fn DIAG_TARGET_COMPONENT_UNSUPPORTED() -> String { String_from("E0307") }
+pub fn DIAG_BACKEND_VALIDATE() -> String { String_from("E0400") }
+pub fn DIAG_COMPONENT_CANONICAL_ABI() -> String { String_from("E0401") }
+pub fn DIAG_COMPONENT_RESOURCE_UNSUPPORTED() -> String { String_from("E0402") }
+pub fn DIAG_EMIT_FAILED() -> String { String_from("E0500") }
+pub fn DIAG_EMIT_VALIDATION_FAILED() -> String { String_from("E0501") }
+pub fn DIAG_WARN_SHARED_MUT_ALIAS() -> String { String_from("W0001") }
+pub fn DIAG_WARN_DEPRECATED_TARGET_ALIAS() -> String { String_from("W0002") }
+pub fn DIAG_WARN_UNUSED_SYMBOL() -> String { String_from("W0003") }
+pub fn DIAG_WARN_WASM_VALIDATION() -> String { String_from("W0004") }
+pub fn DIAG_WARN_CAPABILITY_STUB() -> String { String_from("W0005") }
+pub fn DIAG_WARN_UNREACHABLE_CODE() -> String { String_from("W0006") }
+pub fn DIAG_WARN_EXPERIMENTAL_FEATURE() -> String { String_from("W0007") }
+pub fn DIAG_WARN_DOC_DRIFT() -> String { String_from("W0008") }
+pub fn DIAG_WARN_DEPRECATED_API() -> String { String_from("W0009") }
+pub fn DIAG_WARN_COMPONENT_LOWERING_NOTE() -> String { String_from("W0101") }
 
 pub fn diag_parse_phase_tag() -> String { String_from("parse") }
 pub fn diag_lex_phase_tag() -> String { String_from("lex") }

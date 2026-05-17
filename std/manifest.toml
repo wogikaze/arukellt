@@ -2,15 +2,15 @@
 # Single source of truth for all builtins, intrinsics, and prelude functions.
 #
 # Sources cross-referenced:
-#   - crates/ark-resolve/src/resolve.rs   (PRELUDE_FUNCTIONS, PRELUDE_TYPES, PRELUDE_VALUES)
-#   - crates/ark-typecheck/src/checker.rs (register_builtins — FnSig registrations)
+#   - src/compiler/resolver.ark           (prelude symbols)
+#   - src/compiler/typechecker.ark        (builtin signatures)
 #   - std/prelude.ark                     (wrapper functions)
 #   - src/compiler/emitter.ark            (selfhost emitter dispatch)
 #
 # Discrepancies found during initial audit (documented, not fixed):
-#   - f32_to_string: registered in checker.rs but NOT in PRELUDE_FUNCTIONS (resolve.rs)
-#   - __intrinsic_string_is_empty: listed in PRELUDE_FUNCTIONS but has no FnSig in checker.rs
-#   - Several builtins in PRELUDE_FUNCTIONS lack FnSig in checker.rs:
+#   - f32_to_string: typechecker signature exists without a resolver prelude entry.
+#   - __intrinsic_string_is_empty: resolver prelude entry exists without a builtin signature.
+#   - Several resolver prelude builtins lack direct typechecker signatures:
 #       unwrap_or_else, clear, is_ok, is_err, Vec_with_capacity_i32,
 #       Vec_with_capacity_String, as_slice, ok_or, ok, err, expect,
 #       map_option_String_String, map_result_i32_i32

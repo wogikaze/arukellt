@@ -93,7 +93,7 @@ not require T2 and is not blocked on it (see ADR-017).
 | Surface | Status | Detail |
 |---------|--------|--------|
 | I/O surface | ADR written | ADR-020 defines the long-term `arukellt_io.write`/`flush` contract |
-| compile (core Wasm) | scaffold | `cargo test -p arukellt --test t2_scaffold` compiles `--target wasm32-freestanding` against `tests/fixtures/t2/t2_scaffold.ark` and validates the emitted module |
+| compile (core Wasm) | scaffold | selfhost gates compile `--target wasm32-freestanding` against `tests/fixtures/t2/t2_scaffold.ark` and validate the emitted module |
 | run | none | No runtime/browser execution support yet |
 | validator pass | scaffold | Dedicated `t2_scaffold` proof runs `wasmparser::Validator::validate_all` on emitted output |
 
@@ -101,7 +101,7 @@ not require T2 and is not blocked on it (see ADR-017).
 
 **Status: not-implemented**
 
-The Rust `crates/ark-llvm` scaffold was removed in #586 (Phase 5 selfhost
+The former native backend scaffold was removed in #586 (Phase 5 selfhost
 retirement). T4 has no current backend, no tests, and no scaffold code. If a
 future native target is desired, it will be built selfhost-native per #529
 Phase 7 strategy (no Rust crate revival).
@@ -119,7 +119,7 @@ Phase 7 strategy (no Rust crate revival).
 **Status: not-started**
 
 T5 (interpreter or WASI P3 async) is not started.  The `wasm32-wasi-p3` target
-identifier exists in `ark-target` but no codegen backend or runtime handles it.
+identifier exists in `src/compiler/driver.ark` but no codegen backend or runtime handles it.
 There is no scaffold code.
 
 | Surface | Status | Detail |
@@ -130,21 +130,19 @@ There is no scaffold code.
 
 | CI job | Target | What runs |
 |--------|--------|-----------|
-| `correctness` | all | `verify-harness.sh --cargo --size --wat --docs` |
-| `target-behavior (wasm32-wasi-p1)` | T1 | `ARUKELLT_TARGET=wasm32-wasi-p1 cargo test -p arukellt --test harness` |
-| `target-behavior (wasm32-wasi-p2)` | T3 | `ARUKELLT_TARGET=wasm32-wasi-p2 cargo test -p arukellt --test harness` |
-| `perf-baseline` | T1 | `scripts/util/collect-baseline.py` (push-only) |
+| `verification` | all | `python3 scripts/manager.py verify` |
+| `selfhost` | T1/T3 | fixpoint, fixture parity, CLI parity, diagnostic parity |
+| `docs` | docs | `python3 scripts/check/check-docs-consistency.py` |
 
 ## Component output: separate guarantee tier
 
-`--emit component` / `--emit all` require external `wasm-tools` (on `PATH`,
-with a fallback lookup under `~/.cargo/bin`).  The driver emits core Wasm plus
+`--emit component` / `--emit all` require external `wasm-tools` (on `PATH`).
+The driver emits core Wasm plus
 WIT, then runs `wasm-tools component embed` and `wasm-tools component new`.
 Unless `--wasi-version p2` / `--p2-native` is selected, the `component new` step
 passes `--adapt wasi_snapshot_preview1=…` when a Preview 1 adapter module is
 found (`wasi_snapshot_preview1.reactor.wasm` or `wasi_snapshot_preview1.command.wasm`,
-including project-local paths, `~/.cargo/bin`, `~/.local/share/arukellt/`, or
-`ARK_WASI_ADAPTER`).
+including project-local paths, `~/.local/share/arukellt/`, or `ARK_WASI_ADAPTER`).
 
 **WASI Preview 2 native** component output (no Preview 1 adapter; core Wasm
 imports Component-Model `wasi:cli/*` directly — [issue

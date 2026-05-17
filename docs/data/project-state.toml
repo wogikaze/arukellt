@@ -1,5 +1,6 @@
 [project]
 name = "Arukellt"
+version = "0.1.0"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
 updated = "2026-05-14"
 verification_command = "python3 scripts/manager.py verify quick"
@@ -81,7 +82,7 @@ fixture_failures = 0
 fixture_manifest_count = 838
 checks_passed = 22
 checks_total = 22
-unit_tests_note = "current count is verified by `cargo test --workspace`"
+unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
 
 [perf]
 check_budget_pct = 10

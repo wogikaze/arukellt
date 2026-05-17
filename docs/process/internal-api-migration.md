@@ -24,7 +24,7 @@
 | `Session::check(path)` | `Session::parse/bind/load/analyze/resolve/check_core_hir` | `check` should stop before backend work |
 | `Session::compile(path, target)` | `Session::lower_mir/opt_mir/plan_backend/emit_wasm` | full path only for compile/run |
 | direct `resolve → typecheck → mir → wasm` chaining | Session-owned artifact/query flow | keep phase control centralized in Session |
-| ad-hoc warning rendering | canonical diagnostics registry | code/severity/phase must come from `ark-diagnostics` |
+| ad-hoc warning rendering | canonical diagnostics registry | code/severity/phase must come from `src/compiler/diagnostics.ark` |
 
 ## Compatibility guidance
 

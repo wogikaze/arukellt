@@ -9,7 +9,7 @@ Domains:
 
 Subcommands for verify:
     quick       Run the fast local gate checks (default behavior of verify-harness.sh).
-    fixtures    Run the fixture harness via cargo test.
+    fixtures    Run the manifest-driven fixture harness.
     size        Run the hello.wasm binary size gate.
     wat         Run the WAT roundtrip gate.
     component   Run the component interop smoke test.
@@ -328,7 +328,7 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
                 "diagnostic codes out of sync (run scripts/check/check-diagnostic-codes.sh)",
                 category="diagnostics-snapshot",
                 command="bash scripts/check/check-diagnostic-codes.sh",
-                primary_path="crates/ark-diagnostics/",
+                primary_path="src/compiler/diagnostics.ark",
             )
 
     # ── Summary ───────────────────────────────────────────────────────────────
@@ -609,7 +609,7 @@ def cmd_verify_selfhost_parity(args: argparse.Namespace) -> int:
 
 # Flags not yet migrated to manager.py (Phase 1 out-of-scope).
 _VERIFY_OUT_OF_SCOPE_FLAGS = {
-    "--cargo", "--baseline", "--fixpoint", "--selfhost-fixture-parity",
+    "--baseline", "--fixpoint", "--selfhost-fixture-parity",
     "--selfhost-diag-parity", "--lsp-perf", "--memory-gate", "--repro",
     "--opt-equiv", "--perf-gate",
 }
@@ -631,7 +631,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     verify_parser.add_argument("--dry-run", action="store_true", help="Print intent but do not execute.")
     verify_parser.add_argument("--quick",     action="store_true", help="Run the fast local gate checks (default)")
-    verify_parser.add_argument("--fixtures",  action="store_true", help="Run the fixture harness via cargo test")
+    verify_parser.add_argument("--fixtures",  action="store_true", help="Run the manifest-driven fixture harness")
     verify_parser.add_argument("--size",      action="store_true", help="Run the hello.wasm binary size gate")
     verify_parser.add_argument("--wat",       action="store_true", help="Run the WAT roundtrip gate")
     verify_parser.add_argument("--component", action="store_true", help="Run the component interop smoke test")
@@ -651,7 +651,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     for name, help_text in [
         ("quick",     "Run the fast local gate checks"),
-        ("fixtures",  "Run the fixture harness via cargo test"),
+        ("fixtures",  "Run the manifest-driven fixture harness"),
         ("size",      "Run the hello.wasm binary size gate"),
         ("wat",       "Run the WAT roundtrip gate"),
         ("component", "Run the component interop smoke test"),

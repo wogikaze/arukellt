@@ -85,7 +85,7 @@ def _git_changed_files(root: Path) -> str:
 def _has_rust_changes(changed: str) -> bool:
     import re
     return bool(re.search(
-        r'^(crates/|src/|tests/|benches/|examples/|build\.rs|Cargo\.toml|Cargo\.lock)',
+        r'^(src/|tests/|benches/|examples/)',
         changed, re.MULTILINE
     ))
 
@@ -104,15 +104,13 @@ def _has_extension_changes(changed: str) -> bool:
 
 
 def run_pre_push(root: Path, dry_run: bool) -> tuple[int, str]:
-    """Lightweight pre-push gate: fmt/clippy/test, docs freshness, extension syntax."""
+    """Lightweight pre-push gate: quick verification, docs freshness, extension syntax."""
     cmd_repr = ["<pre-push logic>"]
     if dry_run:
         print(f"DRY-RUN: {cmd_repr}")
         return (0, "")
 
     env = os.environ.copy()
-    env["RUSTFLAGS"] = "-D warnings"
-    env["CARGO_TERM_COLOR"] = "always"
 
     out_lines: list[str] = []
 
@@ -127,21 +125,17 @@ def run_pre_push(root: Path, dry_run: bool) -> tuple[int, str]:
     rust_changed = _has_rust_changes(changed) or not changed.strip()
     doc_changed = _has_doc_changes(changed) or rust_changed
 
-    # 1. Rust checks
+    # 1. Selfhost checks
     if rust_changed:
-        emit("\n── Rust checks ──")
-        for cmd in [
-            ["cargo", "fmt", "--check", "--all"],
-            ["cargo", "clippy", "--workspace", "--all-targets", "--", "-D", "warnings"],
-            ["cargo", "test", "--workspace"],
-        ]:
-            rc, out = _run(cmd, root, env=env)
-            out_lines.append(out)
-            if rc != 0:
-                emit(f"FAILED: {cmd[0]} {cmd[1]}")
-                return (rc, "".join(out_lines))
+        emit("\n── Selfhost quick checks ──")
+        cmd = [sys.executable, "scripts/manager.py", "verify", "--quick"]
+        rc, out = _run(cmd, root, env=env)
+        out_lines.append(out)
+        if rc != 0:
+            emit(f"FAILED: {' '.join(cmd)}")
+            return (rc, "".join(out_lines))
     else:
-        emit("\n⊙ No Rust changes — skipping cargo fmt/clippy/test")
+        emit("\n⊙ No compiler changes — skipping quick verification")
 
     # 2. Docs freshness
     if doc_changed:
@@ -368,20 +362,15 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
 
     emit("=== arukellt Full Local CI ===")
 
-    # ── 1. Unit ──
-    step(1, "Unit (fmt + clippy + test)")
-    for cmd_args in [
-        ["cargo", "fmt", "--check", "--all"],
-        ["cargo", "clippy", "--workspace", "--all-targets", "--", "-D", "warnings"],
-        ["cargo", "test", "--workspace"],
-    ]:
-        rc, out = _run(cmd_args, root, env=env)
-        out_lines.append(out)
-        if rc != 0:
-            fail_step(f"Unit: {' '.join(cmd_args[:2])}")
-            emit("✗ Full CI failed")
-            return (rc, "".join(out_lines))
-    ok("Unit checks")
+    # ── 1. Quick manager verification ──
+    step(1, "Quick verification")
+    rc, out = _run([sys.executable, "scripts/manager.py", "verify", "--quick"], root, env=env)
+    out_lines.append(out)
+    if rc != 0:
+        fail_step("Quick verification")
+        emit("✗ Full CI failed")
+        return (rc, "".join(out_lines))
+    ok("Quick checks")
 
     # ── 2. Docs ──
     step(2, "Docs (freshness + consistency)")

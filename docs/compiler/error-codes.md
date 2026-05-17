@@ -1,7 +1,7 @@
 # Error Code Reference
 
 > Canonical listing of every diagnostic code emitted by the Arukellt compiler.
-> Source of truth: `crates/ark-diagnostics/src/codes.rs`.
+> Source of truth: `src/compiler/diagnostics.ark`.
 
 ## Overview
 
@@ -10,12 +10,12 @@ The first digit after the prefix identifies the compiler phase:
 
 | Range | Phase | Crate(s) |
 |-------|-------|----------|
-| `E000x` | Parse / Lex | `ark-lexer`, `ark-parser` |
-| `E01xx` | Name resolution | `ark-resolve` |
-| `E02xx` | Type checking | `ark-typecheck` |
-| `E03xx` | v0 version constraints / target | `ark-typecheck`, target selection |
+| `E000x` | Parse / Lex | `src/compiler/lexer.ark`, `src/compiler/parser.ark` |
+| `E01xx` | Name resolution | `src/compiler/resolver.ark` |
+| `E02xx` | Type checking | `src/compiler/typechecker.ark` |
+| `E03xx` | v0 version constraints / target | `src/compiler/typechecker.ark`, target selection |
 | `E04xx` | Component Model / canonical ABI | backend validate |
-| `E05xx` | Resolve / target gating | `ark-resolve` |
+| `E05xx` | Resolve / target gating | `src/compiler/resolver.ark` |
 | `W0xxx` | Warnings & validation gate | various |
 | `ICE-*` | Internal compiler errors | runtime |
 
@@ -74,6 +74,17 @@ fn main() {
     let s = "unterminated
 }
 ```
+
+### E0004 — expected token
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | parse |
+| **Message** | expected token |
+
+Emitted when parser recovery expected a specific token kind at the current
+position.
 
 ### E0090 — WIT flags type is not supported in v2
 
@@ -901,7 +912,7 @@ error[E0200|typecheck]: type mismatch
 ## Update Policy
 
 This document is maintained manually. When adding or modifying diagnostic codes
-in `crates/ark-diagnostics/src/codes.rs`, update this file to match.
+in `src/compiler/diagnostics.ark`, update this file to match.
 `scripts/check/check-docs-consistency.py` includes a check for error-code-to-doc
 alignment.
 

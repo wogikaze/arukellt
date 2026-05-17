@@ -128,9 +128,9 @@ same `register_http_host_fns` linker registration (issue 446).
 | `request` | `(String, String, String) -> Result<String, String>` | available | all | `arukellt_host::http_request` |
 | `get` | `(String) -> Result<String, String>` | available | all | `arukellt_host::http_get` |
 
-Both functions are wired in the Wasmtime linker via `register_http_host_fns`
-(see `crates/arukellt/src/runtime.rs`). They use `std::net::TcpStream` — no
-external HTTP client library is required.
+Both functions are wired in the Wasmtime linker via `register_http_host_fns`.
+They use the host TCP HTTP/1.1 implementation; no external HTTP client library
+is required.
 
 #### Error mapping
 

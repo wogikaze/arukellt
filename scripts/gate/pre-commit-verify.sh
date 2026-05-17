@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/gate/pre-commit-verify.sh — Pre-commit gate: repo structure check + cargo fmt check + markdownlint (staged files only).
+# scripts/gate/pre-commit-verify.sh — Pre-commit gate: repo structure check + quick verification + markdownlint (staged files only).
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -30,12 +30,12 @@ else
   FAIL=1
 fi
 
-# ── 2. cargo fmt check ──────────────────────────────────────────────────────
-banner "cargo fmt --check"
-if cargo fmt --all --check; then
+# ── 2. quick verification ──────────────────────────────────────────────────
+banner "manager verify --quick"
+if python3 scripts/manager.py verify --quick; then
   step "OK"
 else
-  echo "FAIL: cargo fmt check failed. Run 'cargo fmt --all' to fix." >&2
+  echo "FAIL: quick verification failed." >&2
   FAIL=1
 fi
 

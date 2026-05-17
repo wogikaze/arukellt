@@ -212,7 +212,7 @@ generated the share link. This serves two purposes:
 #### 4.1 Version String Format
 
 The `ver` field uses **semver** format (`MAJOR.MINOR.PATCH`, e.g. `"0.1.0"`), matching the
-version of the `ark-parser` / playground Wasm bundle. Pre-release suffixes (e.g. `"0.2.0-dev"`)
+version of the `src/compiler/parser.ark` / playground Wasm bundle. Pre-release suffixes (e.g. `"0.2.0-dev"`)
 are allowed.
 
 #### 4.2 Version Mismatch Behavior
