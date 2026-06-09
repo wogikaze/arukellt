@@ -49,8 +49,8 @@ Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced 
 
 ## Current Run
 
-- Mode: `update-baseline`
-- Generated at: `2026-05-14T04:49:22+00:00`
+- Mode: `full`
+- Generated at: `2026-06-09T15:42:05+00:00`
 - Target: `wasm32-wasi-p1`
 - Compiler: `target/release/arukellt`
 
@@ -58,7 +58,7 @@ Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced 
 
 | Tool | Status | Path |
 |------|--------|------|
-| wasmtime | available | /home/wgkz/.local/share/mise/installs/wasmtime/latest/wasmtime-v44.0.1-x86_64-linux/wasmtime |
+| wasmtime | available | /home/wogikaze/.local/share/mise/installs/wasmtime/44.0.0/wasmtime-v44.0.0-x86_64-linux/wasmtime |
 | hyperfine | missing | n/a |
 | /usr/bin/time | available | /usr/bin/time |
 
@@ -66,43 +66,26 @@ Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced 
 
 | Benchmark | Tags | Compile ms | Run ms | Binary bytes | Compile RSS KB | Run RSS KB | Correctness |
 |-----------|------|------------|--------|--------------|----------------|------------|-------------|
-| fib | cpu-bound, loop, scalar | 29.088 | 22.592 | 767 | 21672 | 25330 | pass |
-| binary_tree | recursion-heavy, allocation-light, call-heavy | 27.950 | 29.617 | 747 | 21704 | 25148 | pass |
-| vec_ops | allocation-heavy, container, iteration | 28.690 | 23.429 | 1694 | 21608 | 25590 | pass |
-| string_concat | string-heavy, allocation-heavy, gc-pressure | 27.631 | 24.030 | 784 | 21792 | 25186 | pass |
-| parse_tree_distance | parse, allocation-heavy, container, iteration | 25.884 | 55.124 | 4030 | 21976 | 34646 | fail |
+| fib | cpu-bound, loop, scalar | n/a | n/a | n/a | n/a | n/a | skipped |
+| binary_tree | recursion-heavy, allocation-light, call-heavy | n/a | n/a | n/a | n/a | n/a | skipped |
+| vec_ops | allocation-heavy, container, iteration | n/a | n/a | n/a | n/a | n/a | skipped |
+| string_concat | string-heavy, allocation-heavy, gc-pressure | n/a | n/a | n/a | n/a | n/a | skipped |
+| parse_tree_distance | parse, allocation-heavy, container, iteration | n/a | n/a | n/a | n/a | n/a | skipped |
 | enum_dispatch | cpu-bound, match-heavy, allocation-heavy, iteration | n/a | n/a | n/a | n/a | n/a | skipped |
-| struct_graph | allocation-heavy, struct-heavy, recursion-heavy, container | 31.499 | 29.425 | 1346 | 21864 | 26306 | pass |
+| struct_graph | allocation-heavy, struct-heavy, recursion-heavy, container | n/a | n/a | n/a | n/a | n/a | skipped |
 | error_chain | cpu-bound, error-heavy, match-heavy, iteration | n/a | n/a | n/a | n/a | n/a | skipped |
 | closure_map | cpu-bound, closure-heavy, iteration, allocation-light | n/a | n/a | n/a | n/a | n/a | skipped |
 | http_parser | application, enum-heavy, match-heavy, struct-heavy, iteration | n/a | n/a | n/a | n/a | n/a | skipped |
-| log_processor | application, enum-heavy, allocation-heavy, iteration, match-heavy | 34.965 | 27.468 | 1598 | 21784 | 25504 | pass |
+| log_processor | application, enum-heavy, allocation-heavy, iteration, match-heavy | n/a | n/a | n/a | n/a | n/a | skipped |
 | config_loader | application, struct-heavy, error-heavy, match-heavy, allocation-heavy | n/a | n/a | n/a | n/a | n/a | skipped |
 | data_pipeline | application, closure-heavy, allocation-heavy, iteration, container | n/a | n/a | n/a | n/a | n/a | skipped |
-| template_engine | application, string-heavy, container, recursion-heavy, gc-pressure | 29.678 | n/a | 2407 | 21868 | n/a | failed |
-| file_io | io-bound, string-heavy, allocation-heavy | 27.699 | 37.690 | 2899 | 21780 | 27422 | pass |
-
-## Wasm Section Breakdown (bytes)
-
-Section sizes parsed directly from the .wasm binary header using pure-Python LEB128 decoding (no external tools required). `symbol_attribution` is `unavailable` — the Arukellt emitter does not emit a name section so function-level attribution is not available; use `wasm-objdump` from `wabt` for deeper inspection.
-
-| Benchmark | type | import | function | code | data | export | symbol_attribution |
-|-----------|------|--------|----------|------|------|--------|-------------------|
-| fib | 45 | 246 | 3 | 393 | 24 | 19 | unavailable |
-| binary_tree | 45 | 246 | 3 | 373 | 24 | 19 | unavailable |
-| vec_ops | 40 | 246 | 2 | 1264 | 86 | 19 | unavailable |
-| string_concat | 40 | 246 | 2 | 407 | 33 | 19 | unavailable |
-| parse_tree_distance | 52 | 246 | 4 | 3585 | 87 | 19 | unavailable |
-| enum_dispatch | n/a | n/a | n/a | n/a | n/a | n/a | unavailable |
-| struct_graph | 70 | 246 | 7 | 935 | 32 | 19 | unavailable |
-| error_chain | n/a | n/a | n/a | n/a | n/a | n/a | unavailable |
-| closure_map | n/a | n/a | n/a | n/a | n/a | n/a | unavailable |
-| http_parser | n/a | n/a | n/a | n/a | n/a | n/a | unavailable |
-| log_processor | 50 | 246 | 4 | 1218 | 24 | 19 | unavailable |
-| config_loader | n/a | n/a | n/a | n/a | n/a | n/a | unavailable |
-| data_pipeline | n/a | n/a | n/a | n/a | n/a | n/a | unavailable |
-| template_engine | 46 | 246 | 3 | 1795 | 260 | 19 | unavailable |
-| file_io | 45 | 246 | 3 | 2392 | 156 | 19 | unavailable |
+| template_engine | application, string-heavy, container, recursion-heavy, gc-pressure | n/a | n/a | n/a | n/a | n/a | skipped |
+| file_io | io-bound, string-heavy, allocation-heavy | n/a | n/a | n/a | n/a | n/a | skipped |
+| json_parse | stdlib, json, allocation-heavy, string-heavy | n/a | n/a | n/a | n/a | n/a | skipped |
+| text_ops | stdlib, text, string-heavy, gc-pressure | n/a | n/a | n/a | n/a | n/a | skipped |
+| hash_ops | stdlib, hash, allocation-heavy, container | n/a | n/a | n/a | n/a | n/a | skipped |
+| toml_ops | stdlib, toml, string-heavy, allocation-heavy | n/a | n/a | n/a | n/a | n/a | skipped |
+| time_ops | stdlib, time, cpu-bound | n/a | n/a | n/a | n/a | n/a | skipped |
 
 ## Threshold Policy
 
@@ -112,49 +95,32 @@ Section sizes parsed directly from the .wasm binary header using pure-Python LEB
 | Run time | +10% |
 | Binary size | +15% |
 
-## Variance / Coefficient of Variation
-
-Benchmarks with CV > 5.0% are flagged as **unstable** — high variance may indicate OS scheduling noise, thermal throttling, or a flaky workload. Run with more iterations or pin CPU frequency for reliable results.
-
-| Benchmark | Compile CV% | Compile Stable | Runtime CV% | Runtime Stable |
-|-----------|-------------|----------------|-------------|----------------|
-| fib | 5.10 | ✗ unstable | 7.93 | ✗ unstable |
-| binary_tree | 6.38 | ✗ unstable | 10.21 | ✗ unstable |
-| vec_ops | 3.88 | ✓ | 9.62 | ✗ unstable |
-| string_concat | 7.87 | ✗ unstable | 17.93 | ✗ unstable |
-| parse_tree_distance | 7.53 | ✗ unstable | 10.48 | ✗ unstable |
-| enum_dispatch | n/a | n/a | n/a | n/a |
-| struct_graph | 14.58 | ✗ unstable | 17.00 | ✗ unstable |
-| error_chain | n/a | n/a | n/a | n/a |
-| closure_map | n/a | n/a | n/a | n/a |
-| http_parser | n/a | n/a | n/a | n/a |
-| log_processor | 49.83 | ✗ unstable | 15.63 | ✗ unstable |
-| config_loader | n/a | n/a | n/a | n/a |
-| data_pipeline | n/a | n/a | n/a | n/a |
-| template_engine | 7.30 | ✗ unstable | n/a | n/a |
-| file_io | 5.43 | ✗ unstable | 45.60 | ✗ unstable |
-
 ## Baseline Comparison
 
 Baseline source: `tests/baselines/perf/baselines.json`
 
 | Benchmark | Compile Δ | Run Δ | Size Δ | Status |
 |-----------|-----------|-------|--------|--------|
-| fib | -1.94% | +7.55% | +0.00% | pass |
-| binary_tree | +6.45% | -12.77% | +0.00% | pass |
-| vec_ops | +2.81% | +0.27% | +0.00% | pass |
-| string_concat | +7.34% | +22.87% | +0.00% | fail |
-| parse_tree_distance | -7.55% | +5.01% | +0.00% | pass |
+| fib | n/a | n/a | n/a | skipped |
+| binary_tree | n/a | n/a | n/a | skipped |
+| vec_ops | n/a | n/a | n/a | skipped |
+| string_concat | n/a | n/a | n/a | skipped |
+| parse_tree_distance | n/a | n/a | n/a | skipped |
 | enum_dispatch | n/a | n/a | n/a | skipped |
-| struct_graph | +7.12% | +20.86% | +0.00% | fail |
+| struct_graph | n/a | n/a | n/a | skipped |
 | error_chain | n/a | n/a | n/a | skipped |
 | closure_map | n/a | n/a | n/a | skipped |
 | http_parser | n/a | n/a | n/a | skipped |
-| log_processor | +21.16% | +20.38% | +0.00% | fail |
+| log_processor | n/a | n/a | n/a | skipped |
 | config_loader | n/a | n/a | n/a | skipped |
 | data_pipeline | n/a | n/a | n/a | skipped |
-| template_engine | -8.15% | n/a | +0.00% | pass |
-| file_io | +0.60% | +14.81% | +0.00% | fail |
+| template_engine | n/a | n/a | n/a | skipped |
+| file_io | n/a | n/a | n/a | skipped |
+| json_parse | n/a | n/a | n/a | skipped |
+| text_ops | n/a | n/a | n/a | skipped |
+| hash_ops | n/a | n/a | n/a | skipped |
+| toml_ops | n/a | n/a | n/a | skipped |
+| time_ops | n/a | n/a | n/a | skipped |
 
 ### Wasm Section Δ vs Baseline (bytes)
 
@@ -162,19 +128,19 @@ Positive delta = size grew. Negative = shrank. `n/a` = section absent in one sid
 
 | Benchmark | code | data | export | function | global | import | memory | type |
 |-----------|------|------|--------|----------|--------|--------|--------|------|
-| fib | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
-| binary_tree | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
-| vec_ops | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
-| string_concat | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
-| parse_tree_distance | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
-| struct_graph | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
-| log_processor | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
-| template_engine | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
-| file_io | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) | +0 (+0.0%) |
+| fib | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| binary_tree | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| vec_ops | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| string_concat | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| parse_tree_distance | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| struct_graph | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| log_processor | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| template_engine | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| file_io | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 
-- Pass: 21
-- Fail: 5
-- Skipped: 19
+- Pass: 0
+- Fail: 0
+- Skipped: 60
 
 ## Schema
 
@@ -192,34 +158,23 @@ RSS peaks are sourced from `/usr/bin/time -f %M` (null when the tool is absent).
 
 | Benchmark | Tags | Compiler RSS KB | Runtime RSS KB | GC pauses |
 |-----------|------|-----------------|----------------|-----------|
-| fib | cpu-bound, loop, scalar | 21672 | 25330 | unavailable |
-| binary_tree | recursion-heavy, allocation-light, call-heavy | 21704 | 25148 | unavailable |
-| vec_ops | allocation-heavy, container, iteration | 21608 | 25590 | unavailable |
-| string_concat | string-heavy, allocation-heavy, gc-pressure | 21792 | 25186 | unavailable |
-| parse_tree_distance | parse, allocation-heavy, container, iteration | 21976 | 34646 | unavailable |
+| fib | cpu-bound, loop, scalar | n/a | n/a | unavailable |
+| binary_tree | recursion-heavy, allocation-light, call-heavy | n/a | n/a | unavailable |
+| vec_ops | allocation-heavy, container, iteration | n/a | n/a | unavailable |
+| string_concat | string-heavy, allocation-heavy, gc-pressure | n/a | n/a | unavailable |
+| parse_tree_distance | parse, allocation-heavy, container, iteration | n/a | n/a | unavailable |
 | enum_dispatch | cpu-bound, match-heavy, allocation-heavy, iteration | n/a | n/a | unavailable |
-| struct_graph | allocation-heavy, struct-heavy, recursion-heavy, container | 21864 | 26306 | unavailable |
+| struct_graph | allocation-heavy, struct-heavy, recursion-heavy, container | n/a | n/a | unavailable |
 | error_chain | cpu-bound, error-heavy, match-heavy, iteration | n/a | n/a | unavailable |
 | closure_map | cpu-bound, closure-heavy, iteration, allocation-light | n/a | n/a | unavailable |
 | http_parser | application, enum-heavy, match-heavy, struct-heavy, iteration | n/a | n/a | unavailable |
-| log_processor | application, enum-heavy, allocation-heavy, iteration, match-heavy | 21784 | 25504 | unavailable |
+| log_processor | application, enum-heavy, allocation-heavy, iteration, match-heavy | n/a | n/a | unavailable |
 | config_loader | application, struct-heavy, error-heavy, match-heavy, allocation-heavy | n/a | n/a | unavailable |
 | data_pipeline | application, closure-heavy, allocation-heavy, iteration, container | n/a | n/a | unavailable |
-| template_engine | application, string-heavy, container, recursion-heavy, gc-pressure | 21868 | n/a | unavailable |
-| file_io | io-bound, string-heavy, allocation-heavy | 21780 | 27422 | unavailable |
-
-## Runtime Latency Breakdown (ms)
-
-Startup latency is the median time to instantiate and exit the `startup.ark` no-op fixture.
-Guest execution time = median total − startup overhead.
-
-| Benchmark | startup | guest | p50 | p95 | p99 | stddev |
-|-----------|---------|-------|-----|-----|-----|--------|
-| fib | 19.846 | 2.746 | 22.592 | 25.941 | 26.555 | 1.819 |
-| binary_tree | 19.846 | 9.771 | 29.617 | 33.836 | 39.287 | 3.112 |
-| vec_ops | 19.846 | 3.583 | 23.429 | 27.117 | 27.559 | 2.273 |
-| string_concat | 19.846 | 4.184 | 24.030 | 32.438 | 32.793 | 4.394 |
-| parse_tree_distance | 19.846 | 35.278 | 55.124 | 63.317 | 74.962 | 5.966 |
-| struct_graph | 19.846 | 9.579 | 29.425 | 38.732 | 42.110 | 5.153 |
-| log_processor | 19.846 | 7.622 | 27.468 | 34.263 | 38.462 | 4.342 |
-| file_io | 19.846 | 17.844 | 37.690 | 51.810 | 106.570 | 18.949 |
+| template_engine | application, string-heavy, container, recursion-heavy, gc-pressure | n/a | n/a | unavailable |
+| file_io | io-bound, string-heavy, allocation-heavy | n/a | n/a | unavailable |
+| json_parse | stdlib, json, allocation-heavy, string-heavy | n/a | n/a | unavailable |
+| text_ops | stdlib, text, string-heavy, gc-pressure | n/a | n/a | unavailable |
+| hash_ops | stdlib, hash, allocation-heavy, container | n/a | n/a | unavailable |
+| toml_ops | stdlib, toml, string-heavy, allocation-heavy | n/a | n/a | unavailable |
+| time_ops | stdlib, time, cpu-bound | n/a | n/a | unavailable |

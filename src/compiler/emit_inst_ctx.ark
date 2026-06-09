@@ -87,7 +87,6 @@ pub fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
 
 /// Map monomorphic HashMap/HashSet builtin names to hash module function names.
 pub fn hashmap_builtin_alias(name: String) -> String {
-    // --- HashMap<i32,i32> ---
     if eq(clone(name), String_from("HashMap_i32_i32_new")) {
         return String_from("hashmap_new")
     }
@@ -105,63 +104,6 @@ pub fn hashmap_builtin_alias(name: String) -> String {
     }
     if eq(clone(name), String_from("HashMap_i32_i32_len")) {
         return String_from("hashmap_size")
-    }
-    // --- HashMap<String,i32> ---
-    if eq(clone(name), String_from("HashMap_new_String_i32")) {
-        return String_from("hashmap_new")
-    }
-    if eq(clone(name), String_from("HashMap_String_i32_insert")) {
-        return String_from("hashmap_str_set")
-    }
-    if eq(clone(name), String_from("HashMap_String_i32_get")) {
-        return String_from("hashmap_str_get")
-    }
-    if eq(clone(name), String_from("HashMap_String_i32_contains_key")) {
-        return String_from("hashmap_str_contains")
-    }
-    if eq(clone(name), String_from("HashMap_String_i32_remove")) {
-        return String_from("hashmap_str_remove")
-    }
-    if eq(clone(name), String_from("HashMap_String_i32_len")) {
-        return String_from("hashmap_str_len")
-    }
-    // --- HashMap<i32,String> ---
-    if eq(clone(name), String_from("HashMap_new_i32_String")) {
-        return String_from("hashmap_new")
-    }
-    if eq(clone(name), String_from("HashMap_i32_String_insert")) {
-        return String_from("hashmap_str_val_set")
-    }
-    if eq(clone(name), String_from("HashMap_i32_String_get")) {
-        return String_from("hashmap_str_val_get")
-    }
-    if eq(clone(name), String_from("HashMap_i32_String_contains_key")) {
-        return String_from("hashmap_contains")
-    }
-    if eq(clone(name), String_from("HashMap_i32_String_remove")) {
-        return String_from("hashmap_remove")
-    }
-    if eq(clone(name), String_from("HashMap_i32_String_len")) {
-        return String_from("hashmap_size")
-    }
-    // --- HashMap<String,String> ---
-    if eq(clone(name), String_from("HashMap_new_String_String")) {
-        return String_from("hashmap_new")
-    }
-    if eq(clone(name), String_from("HashMap_String_String_insert")) {
-        return String_from("hashmap_str_str_set")
-    }
-    if eq(clone(name), String_from("HashMap_String_String_get")) {
-        return String_from("hashmap_str_str_get")
-    }
-    if eq(clone(name), String_from("HashMap_String_String_contains_key")) {
-        return String_from("hashmap_str_str_contains")
-    }
-    if eq(clone(name), String_from("HashMap_String_String_remove")) {
-        return String_from("hashmap_str_str_remove")
-    }
-    if eq(clone(name), String_from("HashMap_String_String_len")) {
-        return String_from("hashmap_str_str_len")
     }
     clone(name)
 }

@@ -1,8 +1,8 @@
 {
   "schema_version": "arukellt-bench-v1",
-  "generated_at": "2026-05-14T04:49:22+00:00",
-  "mode": "update-baseline",
-  "mode_description": "measure current results and replace baseline",
+  "generated_at": "2026-06-09T15:42:05+00:00",
+  "mode": "full",
+  "mode_description": "default local benchmark profile",
   "target": "wasm32-wasi-p1",
   "thresholds": {
     "compile_ms": 20,
@@ -13,17 +13,17 @@
     "path": "target/release/arukellt"
   },
   "environment": {
-    "platform": "Linux-6.8.0-60-generic-x86_64-with-glibc2.39",
-    "python": "3.12.3",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.10.12",
     "machine": "x86_64",
     "processor": "x86_64",
-    "kernel": "6.8.0-60-generic"
+    "kernel": "6.6.87.2-microsoft-standard-WSL2"
   },
   "tooling": {
     "wasmtime": {
       "name": "wasmtime",
       "available": true,
-      "path": "/home/wgkz/.local/share/mise/installs/wasmtime/latest/wasmtime-v44.0.1-x86_64-linux/wasmtime"
+      "path": "/home/wogikaze/.local/share/mise/installs/wasmtime/44.0.0/wasmtime-v44.0.0-x86_64-linux/wasmtime"
     },
     "hyperfine": {
       "name": "hyperfine",
@@ -37,8 +37,8 @@
     },
     "wasm-objdump": {
       "name": "wasm-objdump",
-      "available": false,
-      "path": null
+      "available": true,
+      "path": "/usr/bin/wasm-objdump"
     }
   },
   "benchmarks": [
@@ -59,77 +59,36 @@
         "memory"
       ],
       "compile": {
-        "status": "ok",
-        "iterations": 5,
-        "samples_ms": [
-          29.088,
-          28.983,
-          29.033,
-          30.472,
-          32.52
-        ],
-        "median_ms": 29.088,
-        "stddev_ms": 1.531,
-        "cv_pct": 5.1,
-        "variance_unstable": true,
-        "max_rss_kb": 21672,
-        "binary_bytes": 767,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/fib.wasm /home/wgkz/arukellt/benchmarks/legacy/fib.ark",
-        "wasm_sections": {
-          "type": 45,
-          "import": 246,
-          "function": 3,
-          "memory": 4,
-          "global": 7,
-          "export": 19,
-          "code": 393,
-          "data": 24,
-          "symbol_attribution": "unavailable"
-        }
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/fib.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/fib.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/legacy/fib.ark"
+        ]
       },
       "runtime": {
-        "status": "ok",
-        "iterations": 20,
-        "warmups": 1,
-        "samples_ms": [
-          25.807,
-          22.473,
-          22.366,
-          26.709,
-          22.711,
-          23.986,
-          22.145,
-          22.782,
-          21.953,
-          23.057,
-          20.778,
-          21.915,
-          24.72,
-          20.316,
-          20.884,
-          21.199,
-          21.202,
-          23.245,
-          25.901,
-          24.412
-        ],
-        "median_ms": 22.592,
-        "p50_ms": 22.592,
-        "p95_ms": 25.941,
-        "p99_ms": 26.555,
-        "stddev_ms": 1.819,
-        "cv_pct": 7.93,
-        "variance_unstable": true,
-        "max_rss_kb": 25330,
-        "stdout": "9227465\n",
-        "correctness": "pass",
-        "command": "/home/wgkz/.local/share/mise/installs/wasmtime/latest/wasmtime-v44.0.1-x86_64-linux/wasmtime /tmp/arukellt-bench-1at3p82u/fib.wasm",
-        "startup_ms": 19.846,
-        "guest_ms": 2.746
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
       },
       "memory": {
-        "compiler_rss_peak_kb": 21672,
-        "runtime_rss_peak_kb": 25330,
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
         "gc_pause_total_ms": "unavailable",
         "gc_pause_max_ms": "unavailable",
         "gc_pause_count": "unavailable",
@@ -154,77 +113,36 @@
         "memory"
       ],
       "compile": {
-        "status": "ok",
-        "iterations": 5,
-        "samples_ms": [
-          30.58,
-          30.681,
-          27.765,
-          26.576,
-          27.95
-        ],
-        "median_ms": 27.95,
-        "stddev_ms": 1.831,
-        "cv_pct": 6.38,
-        "variance_unstable": true,
-        "max_rss_kb": 21704,
-        "binary_bytes": 747,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/binary_tree.wasm /home/wgkz/arukellt/benchmarks/legacy/binary_tree.ark",
-        "wasm_sections": {
-          "type": 45,
-          "import": 246,
-          "function": 3,
-          "memory": 4,
-          "global": 7,
-          "export": 19,
-          "code": 373,
-          "data": 24,
-          "symbol_attribution": "unavailable"
-        }
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/binary_tree.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/binary_tree.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/legacy/binary_tree.ark"
+        ]
       },
       "runtime": {
-        "status": "ok",
-        "iterations": 20,
-        "warmups": 1,
-        "samples_ms": [
-          32.694,
-          30.83,
-          28.495,
-          28.691,
-          27.991,
-          29.439,
-          27.456,
-          29.794,
-          32.409,
-          26.339,
-          29.99,
-          33.364,
-          28.689,
-          32.014,
-          33.477,
-          28.8,
-          28.831,
-          40.65,
-          30.822,
-          29.087
-        ],
-        "median_ms": 29.617,
-        "p50_ms": 29.617,
-        "p95_ms": 33.836,
-        "p99_ms": 39.287,
-        "stddev_ms": 3.112,
-        "cv_pct": 10.21,
-        "variance_unstable": true,
-        "max_rss_kb": 25148,
-        "stdout": "2097151\n",
-        "correctness": "pass",
-        "command": "/home/wgkz/.local/share/mise/installs/wasmtime/latest/wasmtime-v44.0.1-x86_64-linux/wasmtime /tmp/arukellt-bench-1at3p82u/binary_tree.wasm",
-        "startup_ms": 19.846,
-        "guest_ms": 9.771
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
       },
       "memory": {
-        "compiler_rss_peak_kb": 21704,
-        "runtime_rss_peak_kb": 25148,
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
         "gc_pause_total_ms": "unavailable",
         "gc_pause_max_ms": "unavailable",
         "gc_pause_count": "unavailable",
@@ -249,77 +167,36 @@
         "memory"
       ],
       "compile": {
-        "status": "ok",
-        "iterations": 5,
-        "samples_ms": [
-          30.797,
-          29.453,
-          28.69,
-          28.633,
-          27.8
-        ],
-        "median_ms": 28.69,
-        "stddev_ms": 1.127,
-        "cv_pct": 3.88,
-        "variance_unstable": false,
-        "max_rss_kb": 21608,
-        "binary_bytes": 1694,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/vec_ops.wasm /home/wgkz/arukellt/benchmarks/legacy/vec_ops.ark",
-        "wasm_sections": {
-          "type": 40,
-          "import": 246,
-          "function": 2,
-          "memory": 4,
-          "global": 7,
-          "export": 19,
-          "code": 1264,
-          "data": 86,
-          "symbol_attribution": "unavailable"
-        }
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/vec_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/vec_ops.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/legacy/vec_ops.ark"
+        ]
       },
       "runtime": {
-        "status": "ok",
-        "iterations": 20,
-        "warmups": 1,
-        "samples_ms": [
-          26.149,
-          22.831,
-          27.67,
-          21.442,
-          25.192,
-          22.062,
-          20.758,
-          24.047,
-          22.731,
-          25.531,
-          24.304,
-          26.223,
-          25.124,
-          22.948,
-          21.673,
-          21.68,
-          19.047,
-          23.91,
-          27.088,
-          22.292
-        ],
-        "median_ms": 23.429,
-        "p50_ms": 23.429,
-        "p95_ms": 27.117,
-        "p99_ms": 27.559,
-        "stddev_ms": 2.273,
-        "cv_pct": 9.62,
-        "variance_unstable": true,
-        "max_rss_kb": 25590,
-        "stdout": "1000\n499500\nfound 500\nnot found 9999\n",
-        "correctness": "pass",
-        "command": "/home/wgkz/.local/share/mise/installs/wasmtime/latest/wasmtime-v44.0.1-x86_64-linux/wasmtime /tmp/arukellt-bench-1at3p82u/vec_ops.wasm",
-        "startup_ms": 19.846,
-        "guest_ms": 3.583
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
       },
       "memory": {
-        "compiler_rss_peak_kb": 21608,
-        "runtime_rss_peak_kb": 25590,
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
         "gc_pause_total_ms": "unavailable",
         "gc_pause_max_ms": "unavailable",
         "gc_pause_count": "unavailable",
@@ -344,77 +221,36 @@
         "memory"
       ],
       "compile": {
-        "status": "ok",
-        "iterations": 5,
-        "samples_ms": [
-          26.779,
-          26.402,
-          27.631,
-          30.267,
-          31.483
-        ],
-        "median_ms": 27.631,
-        "stddev_ms": 2.244,
-        "cv_pct": 7.87,
-        "variance_unstable": true,
-        "max_rss_kb": 21792,
-        "binary_bytes": 784,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/string_concat.wasm /home/wgkz/arukellt/benchmarks/legacy/string_concat.ark",
-        "wasm_sections": {
-          "type": 40,
-          "import": 246,
-          "function": 2,
-          "memory": 4,
-          "global": 7,
-          "export": 19,
-          "code": 407,
-          "data": 33,
-          "symbol_attribution": "unavailable"
-        }
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/string_concat.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/string_concat.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/legacy/string_concat.ark"
+        ]
       },
       "runtime": {
-        "status": "ok",
-        "iterations": 20,
-        "warmups": 1,
-        "samples_ms": [
-          25.22,
-          32.882,
-          27.771,
-          31.727,
-          27.95,
-          27.531,
-          25.234,
-          32.415,
-          25.64,
-          24.092,
-          20.922,
-          21.717,
-          23.969,
-          19.358,
-          22.326,
-          19.583,
-          19.152,
-          19.574,
-          21.166,
-          21.8
-        ],
-        "median_ms": 24.03,
-        "p50_ms": 24.03,
-        "p95_ms": 32.438,
-        "p99_ms": 32.793,
-        "stddev_ms": 4.394,
-        "cv_pct": 17.93,
-        "variance_unstable": true,
-        "max_rss_kb": 25186,
-        "stdout": "100\n",
-        "correctness": "pass",
-        "command": "/home/wgkz/.local/share/mise/installs/wasmtime/latest/wasmtime-v44.0.1-x86_64-linux/wasmtime /tmp/arukellt-bench-1at3p82u/string_concat.wasm",
-        "startup_ms": 19.846,
-        "guest_ms": 4.184
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
       },
       "memory": {
-        "compiler_rss_peak_kb": 21792,
-        "runtime_rss_peak_kb": 25186,
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
         "gc_pause_total_ms": "unavailable",
         "gc_pause_max_ms": "unavailable",
         "gc_pause_count": "unavailable",
@@ -440,77 +276,36 @@
         "memory"
       ],
       "compile": {
-        "status": "ok",
-        "iterations": 5,
-        "samples_ms": [
-          24.987,
-          23.637,
-          25.884,
-          28.198,
-          28.039
-        ],
-        "median_ms": 25.884,
-        "stddev_ms": 1.969,
-        "cv_pct": 7.53,
-        "variance_unstable": true,
-        "max_rss_kb": 21976,
-        "binary_bytes": 4030,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/parse_tree_distance.wasm /home/wgkz/arukellt/benchmarks/bench_parse_tree_distance.ark",
-        "wasm_sections": {
-          "type": 52,
-          "import": 246,
-          "function": 4,
-          "memory": 4,
-          "global": 7,
-          "export": 19,
-          "code": 3585,
-          "data": 87,
-          "symbol_attribution": "unavailable"
-        }
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/parse_tree_distance.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_parse_tree_distance.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_parse_tree_distance.ark"
+        ]
       },
       "runtime": {
-        "status": "ok",
-        "iterations": 20,
-        "warmups": 1,
-        "samples_ms": [
-          57.442,
-          54.528,
-          51.036,
-          59.994,
-          57.865,
-          62.465,
-          56.269,
-          54.453,
-          53.91,
-          53.824,
-          55.043,
-          62.551,
-          77.873,
-          54.012,
-          56.395,
-          53.815,
-          59.818,
-          50.99,
-          51.417,
-          55.206
-        ],
-        "median_ms": 55.124,
-        "p50_ms": 55.124,
-        "p95_ms": 63.317,
-        "p99_ms": 74.962,
-        "stddev_ms": 5.966,
-        "cv_pct": 10.48,
-        "variance_unstable": true,
-        "max_rss_kb": 34646,
-        "stdout": "No\n",
-        "correctness": "fail",
-        "command": "/home/wgkz/.local/share/mise/installs/wasmtime/latest/wasmtime-v44.0.1-x86_64-linux/wasmtime run --dir=. /tmp/arukellt-bench-1at3p82u/parse_tree_distance.wasm",
-        "startup_ms": 19.846,
-        "guest_ms": 35.278
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
       },
       "memory": {
-        "compiler_rss_peak_kb": 21976,
-        "runtime_rss_peak_kb": 34646,
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
         "gc_pause_total_ms": "unavailable",
         "gc_pause_max_ms": "unavailable",
         "gc_pause_count": "unavailable",
@@ -542,18 +337,9 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/enum_dispatch.wasm /home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/enum_dispatch.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark",
         "stderr_head": [
-          "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: 22 parse error(s)",
-          "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: expected token kind 81, got 72",
-          "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: expected pattern",
-          "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: expected token kind 81, got 72",
-          "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: expected pattern",
-          "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: expected token kind 81, got 72",
-          "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: unexpected token in expression: 76",
-          "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: expected pattern",
-          "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: expected token kind 81, got 72",
-          "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: unexpected token in expression: 76"
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark"
         ]
       },
       "runtime": {
@@ -600,77 +386,36 @@
         "memory"
       ],
       "compile": {
-        "status": "ok",
-        "iterations": 5,
-        "samples_ms": [
-          26.526,
-          32.787,
-          29.476,
-          31.499,
-          39.011
-        ],
-        "median_ms": 31.499,
-        "stddev_ms": 4.644,
-        "cv_pct": 14.58,
-        "variance_unstable": true,
-        "max_rss_kb": 21864,
-        "binary_bytes": 1346,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/struct_graph.wasm /home/wgkz/arukellt/benchmarks/bench_memory_struct_graph.ark",
-        "wasm_sections": {
-          "type": 70,
-          "import": 246,
-          "function": 7,
-          "memory": 4,
-          "global": 7,
-          "export": 19,
-          "code": 935,
-          "data": 32,
-          "symbol_attribution": "unavailable"
-        }
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/struct_graph.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_memory_struct_graph.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_memory_struct_graph.ark"
+        ]
       },
       "runtime": {
-        "status": "ok",
-        "iterations": 20,
-        "warmups": 1,
-        "samples_ms": [
-          28.285,
-          29.556,
-          29.903,
-          34.392,
-          35.932,
-          25.938,
-          28.421,
-          29.716,
-          22.877,
-          29.295,
-          38.51,
-          24.609,
-          42.955,
-          36.481,
-          33.094,
-          27.724,
-          27.748,
-          30.327,
-          24.057,
-          26.541
-        ],
-        "median_ms": 29.425,
-        "p50_ms": 29.425,
-        "p95_ms": 38.732,
-        "p99_ms": 42.11,
-        "stddev_ms": 5.153,
-        "cv_pct": 17.0,
-        "variance_unstable": true,
-        "max_rss_kb": 26306,
-        "stdout": "4094000\ndone\n",
-        "correctness": "pass",
-        "command": "/home/wgkz/.local/share/mise/installs/wasmtime/latest/wasmtime-v44.0.1-x86_64-linux/wasmtime /tmp/arukellt-bench-1at3p82u/struct_graph.wasm",
-        "startup_ms": 19.846,
-        "guest_ms": 9.579
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
       },
       "memory": {
-        "compiler_rss_peak_kb": 21864,
-        "runtime_rss_peak_kb": 26306,
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
         "gc_pause_total_ms": "unavailable",
         "gc_pause_max_ms": "unavailable",
         "gc_pause_count": "unavailable",
@@ -702,16 +447,9 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/error_chain.wasm /home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/error_chain.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark",
         "stderr_head": [
-          "home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark: error[E0100|resolve]: 7 resolve error(s)",
-          "home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark: error[E0100|resolve]: undefined module: Result",
-          "home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark: error[E0100|resolve]: undefined module: Result",
-          "home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark: error[E0100|resolve]: undefined module: Result",
-          "home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark: error[E0100|resolve]: undefined module: Result",
-          "home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark: error[E0100|resolve]: undefined module: Result",
-          "home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark: error[E0100|resolve]: undefined module: Result",
-          "home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark: error[E0100|resolve]: undefined module: Result"
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark"
         ]
       },
       "runtime": {
@@ -764,18 +502,9 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/closure_map.wasm /home/wgkz/arukellt/benchmarks/bench_cpu_closure_map.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/closure_map.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_closure_map.ark",
         "stderr_head": [
-          "Error: failed to run main module `/home/wgkz/arukellt/bootstrap/arukellt-selfhost.wasm`",
-          "",
-          "Caused by:",
-          "    0: failed to invoke command default",
-          "    1: error while executing at wasm backtrace:",
-          "    0:  0x5cd06 - <unknown>!<wasm function 705>",
-          "    1:  0x5f8e5 - <unknown>!<wasm function 720>",
-          "    2:  0x60826 - <unknown>!<wasm function 722>",
-          "    3:  0x5e99d - <unknown>!<wasm function 719>",
-          "    4:  0x5e78f - <unknown>!<wasm function 718>"
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_closure_map.ark"
         ]
       },
       "runtime": {
@@ -829,18 +558,9 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/http_parser.wasm /home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/http_parser.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_http_parser.ark",
         "stderr_head": [
-          "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: 12 parse error(s)",
-          "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: unexpected token in expression: 83",
-          "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: unexpected token in expression: 83",
-          "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: unexpected token in expression: 83",
-          "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: unexpected token in expression: 83",
-          "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: expected token kind 81, got 72",
-          "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: expected pattern",
-          "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: expected token kind 81, got 72",
-          "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: expected pattern",
-          "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: expected token kind 81, got 72"
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_application_http_parser.ark"
         ]
       },
       "runtime": {
@@ -888,77 +608,36 @@
         "memory"
       ],
       "compile": {
-        "status": "ok",
-        "iterations": 5,
-        "samples_ms": [
-          34.155,
-          87.973,
-          59.202,
-          34.965,
-          29.844
-        ],
-        "median_ms": 34.965,
-        "stddev_ms": 24.531,
-        "cv_pct": 49.83,
-        "variance_unstable": true,
-        "max_rss_kb": 21784,
-        "binary_bytes": 1598,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/log_processor.wasm /home/wgkz/arukellt/benchmarks/bench_application_log_processor.ark",
-        "wasm_sections": {
-          "type": 50,
-          "import": 246,
-          "function": 4,
-          "memory": 4,
-          "global": 7,
-          "export": 19,
-          "code": 1218,
-          "data": 24,
-          "symbol_attribution": "unavailable"
-        }
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/log_processor.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_log_processor.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_application_log_processor.ark"
+        ]
       },
       "runtime": {
-        "status": "ok",
-        "iterations": 20,
-        "warmups": 1,
-        "samples_ms": [
-          39.512,
-          30.427,
-          28.883,
-          27.778,
-          26.039,
-          30.587,
-          33.987,
-          26.244,
-          25.88,
-          25.051,
-          23.997,
-          28.329,
-          22.457,
-          27.374,
-          22.476,
-          32.725,
-          29.917,
-          24.791,
-          27.561,
-          21.436
-        ],
-        "median_ms": 27.468,
-        "p50_ms": 27.468,
-        "p95_ms": 34.263,
-        "p99_ms": 38.462,
-        "stddev_ms": 4.342,
-        "cv_pct": 15.63,
-        "variance_unstable": true,
-        "max_rss_kb": 25504,
-        "stdout": "771250\n1250\n",
-        "correctness": "pass",
-        "command": "/home/wgkz/.local/share/mise/installs/wasmtime/latest/wasmtime-v44.0.1-x86_64-linux/wasmtime /tmp/arukellt-bench-1at3p82u/log_processor.wasm",
-        "startup_ms": 19.846,
-        "guest_ms": 7.622
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
       },
       "memory": {
-        "compiler_rss_peak_kb": 21784,
-        "runtime_rss_peak_kb": 25504,
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
         "gc_pause_total_ms": "unavailable",
         "gc_pause_max_ms": "unavailable",
         "gc_pause_count": "unavailable",
@@ -991,18 +670,9 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/config_loader.wasm /home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/config_loader.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_config_loader.ark",
         "stderr_head": [
-          "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: 12 parse error(s)",
-          "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: unexpected token in expression: 83",
-          "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: unexpected token in expression: 83",
-          "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: unexpected token in expression: 83",
-          "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: unexpected token in expression: 83",
-          "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: expected token kind 81, got 72",
-          "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: expected pattern",
-          "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: expected token kind 81, got 72",
-          "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: expected pattern",
-          "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: expected token kind 81, got 72"
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_application_config_loader.ark"
         ]
       },
       "runtime": {
@@ -1056,18 +726,9 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/data_pipeline.wasm /home/wgkz/arukellt/benchmarks/bench_application_data_pipeline.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/data_pipeline.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_data_pipeline.ark",
         "stderr_head": [
-          "Error: failed to run main module `/home/wgkz/arukellt/bootstrap/arukellt-selfhost.wasm`",
-          "",
-          "Caused by:",
-          "    0: failed to invoke command default",
-          "    1: error while executing at wasm backtrace:",
-          "    0:  0x5cc36 - <unknown>!<wasm function 705>",
-          "    1:  0x5f8d2 - <unknown>!<wasm function 720>",
-          "    2:  0x60826 - <unknown>!<wasm function 722>",
-          "    3:  0x5e99d - <unknown>!<wasm function 719>",
-          "    4:  0x5e78f - <unknown>!<wasm function 718>"
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_application_data_pipeline.ark"
         ]
       },
       "runtime": {
@@ -1115,58 +776,35 @@
         "memory"
       ],
       "compile": {
-        "status": "ok",
-        "iterations": 5,
-        "samples_ms": [
-          31.595,
-          29.678,
-          28.89,
-          28.479,
-          33.854
-        ],
-        "median_ms": 29.678,
-        "stddev_ms": 2.225,
-        "cv_pct": 7.3,
-        "variance_unstable": true,
-        "max_rss_kb": 21868,
-        "binary_bytes": 2407,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/template_engine.wasm /home/wgkz/arukellt/benchmarks/bench_application_template_engine.ark",
-        "wasm_sections": {
-          "type": 46,
-          "import": 246,
-          "function": 3,
-          "memory": 4,
-          "global": 7,
-          "export": 19,
-          "code": 1795,
-          "data": 260,
-          "symbol_attribution": "unavailable"
-        }
-      },
-      "runtime": {
         "status": "error",
-        "reason": "warmup execution failed",
-        "iterations": 0,
-        "warmups": 1,
+        "iterations": 1,
         "samples_ms": [],
         "median_ms": null,
         "max_rss_kb": null,
-        "stdout": "",
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/template_engine.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_template_engine.ark",
         "stderr_head": [
-          "Error: failed to run main module `/tmp/arukellt-bench-1at3p82u/template_engine.wasm`",
-          "",
-          "Caused by:",
-          "    0: failed to invoke command default",
-          "    1: error while executing at wasm backtrace:",
-          "    0:    0x6a3 - <unknown>!<wasm function 8>",
-          "    2: wasm trap: wasm `unreachable` instruction executed",
-          ""
-        ],
-        "correctness": "failed",
-        "command": "/home/wgkz/.local/share/mise/installs/wasmtime/latest/wasmtime-v44.0.1-x86_64-linux/wasmtime /tmp/arukellt-bench-1at3p82u/template_engine.wasm"
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_application_template_engine.ark"
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
       },
       "memory": {
-        "compiler_rss_peak_kb": 21868,
+        "compiler_rss_peak_kb": null,
         "runtime_rss_peak_kb": null,
         "gc_pause_total_ms": "unavailable",
         "gc_pause_max_ms": "unavailable",
@@ -1192,77 +830,310 @@
         "memory"
       ],
       "compile": {
-        "status": "ok",
-        "iterations": 5,
-        "samples_ms": [
-          27.32,
-          30.8,
-          26.982,
-          27.918,
-          27.699
-        ],
-        "median_ms": 27.699,
-        "stddev_ms": 1.527,
-        "cv_pct": 5.43,
-        "variance_unstable": true,
-        "max_rss_kb": 21780,
-        "binary_bytes": 2899,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/file_io.wasm /home/wgkz/arukellt/benchmarks/bench_io_file_io.ark",
-        "wasm_sections": {
-          "type": 45,
-          "import": 246,
-          "function": 3,
-          "memory": 4,
-          "global": 7,
-          "export": 19,
-          "code": 2392,
-          "data": 156,
-          "symbol_attribution": "unavailable"
-        }
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/file_io.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_io_file_io.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_io_file_io.ark"
+        ]
       },
       "runtime": {
-        "status": "ok",
-        "iterations": 20,
-        "warmups": 1,
-        "samples_ms": [
-          35.319,
-          36.775,
-          38.53,
-          37.636,
-          40.268,
-          38.399,
-          30.257,
-          32.626,
-          33.131,
-          43.044,
-          41.929,
-          34.924,
-          35.219,
-          36.108,
-          37.743,
-          34.079,
-          38.733,
-          48.207,
-          120.26,
-          37.946
-        ],
-        "median_ms": 37.69,
-        "p50_ms": 37.69,
-        "p95_ms": 51.81,
-        "p99_ms": 106.57,
-        "stddev_ms": 18.949,
-        "cv_pct": 45.6,
-        "variance_unstable": true,
-        "max_rss_kb": 27422,
-        "stdout": "11090\n221800\n",
-        "correctness": "pass",
-        "command": "/home/wgkz/.local/share/mise/installs/wasmtime/latest/wasmtime-v44.0.1-x86_64-linux/wasmtime run --dir=/tmp /tmp/arukellt-bench-1at3p82u/file_io.wasm",
-        "startup_ms": 19.846,
-        "guest_ms": 17.844
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
       },
       "memory": {
-        "compiler_rss_peak_kb": 21780,
-        "runtime_rss_peak_kb": 27422,
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "json_parse",
+      "source": "benchmarks/bench_stdlib_json_parse.ark",
+      "expected": "benchmarks/bench_stdlib_json_parse.expected",
+      "description": "JSON parse/access/stringify \u2014 std::json parse, json_get, stringify (50 iterations)",
+      "tags": [
+        "stdlib",
+        "json",
+        "allocation-heavy",
+        "string-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/json_parse.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_json_parse.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_json_parse.ark"
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "text_ops",
+      "source": "benchmarks/bench_stdlib_text_ops.ark",
+      "expected": "benchmarks/bench_stdlib_text_ops.expected",
+      "description": "Text operations \u2014 std::text split, join, replace, case, trim, contains (200 iterations)",
+      "tags": [
+        "stdlib",
+        "text",
+        "string-heavy",
+        "gc-pressure"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/text_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_text_ops.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_text_ops.ark"
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "hash_ops",
+      "source": "benchmarks/bench_stdlib_hash_ops.ark",
+      "expected": "benchmarks/bench_stdlib_hash_ops.expected",
+      "description": "Hash map ops \u2014 std::collections::hash insert/get/contains/remove on 100 entries",
+      "tags": [
+        "stdlib",
+        "hash",
+        "allocation-heavy",
+        "container"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/hash_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_hash_ops.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_hash_ops.ark"
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "toml_ops",
+      "source": "benchmarks/bench_stdlib_toml.ark",
+      "expected": "benchmarks/bench_stdlib_toml.expected",
+      "description": "TOML parse/access/stringify \u2014 std::toml parse, toml_get, stringify (100 iterations)",
+      "tags": [
+        "stdlib",
+        "toml",
+        "string-heavy",
+        "allocation-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/toml_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_toml.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_toml.ark"
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "time_ops",
+      "source": "benchmarks/bench_stdlib_time.ark",
+      "expected": "benchmarks/bench_stdlib_time.expected",
+      "description": "Time ops \u2014 std::time duration creation, arithmetic, clock measurement pattern (200 iterations)",
+      "tags": [
+        "stdlib",
+        "time",
+        "cpu-bound"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "error",
+        "iterations": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "binary_bytes": null,
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/time_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_time.ark",
+        "stderr_head": [
+          "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_time.ark"
+        ]
+      },
+      "runtime": {
+        "status": "skipped",
+        "reason": "compile failed",
+        "iterations": 0,
+        "warmups": 0,
+        "samples_ms": [],
+        "median_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "stddev_ms": null,
+        "max_rss_kb": null,
+        "stdout": null,
+        "correctness": "skipped",
+        "command": null
+      },
+      "memory": {
+        "compiler_rss_peak_kb": null,
+        "runtime_rss_peak_kb": null,
         "gc_pause_total_ms": "unavailable",
         "gc_pause_max_ms": "unavailable",
         "gc_pause_count": "unavailable",

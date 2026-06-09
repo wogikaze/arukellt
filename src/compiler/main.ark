@@ -12,7 +12,6 @@ use driver
 use diagnostics
 use analysis
 use lsp
-use dap
 fn CMD_PARSE() -> i32 {
     1
 }
@@ -61,10 +60,6 @@ fn CMD_LSP() -> i32 {
     12
 }
 
-fn CMD_DAP() -> i32 {
-    13
-}
-
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
 struct CliOptions {
     command: i32,
@@ -80,11 +75,10 @@ struct CliOptions {
     show_version: bool,
     has_error: bool,
     error_msg: String,
-    show_timing: bool,
 }
 
 fn CliOptions_default() -> CliOptions {
-    CliOptions { command: CMD_UNKNOWN(), input_file: String_new(), output_file: String_new(), target: String_from("wasm32-wasi-p2"), wit_paths: Vec_new_String(), opt_level: 0, dump_phases: String_new(), emit_mode: String_from("wasm"), json_output: false, show_help: false, show_version: false, has_error: false, error_msg: String_new(), show_timing: false }
+    CliOptions { command: CMD_UNKNOWN(), input_file: String_new(), output_file: String_new(), target: String_from("wasm32-wasi-p2"), wit_paths: Vec_new_String(), opt_level: 0, dump_phases: String_new(), emit_mode: String_from("wasm"), json_output: false, show_help: false, show_version: false, has_error: false, error_msg: String_new() }
 }
 
 // ── Argument Parsing ─────────────────────────────────────────────────────────
@@ -163,7 +157,7 @@ fn parse_command(name: String) -> i32 {
         return CMD_LSP()
     }
     if cli_str_eq(clone(name), String_from("debug-adapter")) {
-        return CMD_DAP()
+        return CMD_NOT_YET()
     }
     if cli_str_eq(clone(name), String_from("lint")) {
         return CMD_NOT_YET()
@@ -292,9 +286,6 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
                             } else {
                                 if cli_str_eq(clone(arg), String_from("--json")) {
                                     opts.json_output = true
-                                } else {
-                                if cli_str_eq(clone(arg), String_from("--time")) {
-                                    opts.show_timing = true
                                 } else {
                                     if cli_str_eq(clone(arg), String_from("--version")) {
                                         opts.show_version = true
@@ -479,7 +470,6 @@ fn cmd_compile_all(opts: CliOptions) {
     wasm_config.dump_hir = should_dump(opts, String_from("hir"))
     wasm_config.dump_mir = should_dump(opts, String_from("mir"))
     wasm_config.dump_wasm = should_dump(opts, String_from("wasm"))
-    wasm_config.show_timing = opts.show_timing
     let wasm_result = driver::compile_file(clone(input_file), wasm_config)
     if !wasm_result.success {
         if json_mode {
@@ -500,7 +490,6 @@ fn cmd_compile_all(opts: CliOptions) {
     comp_config.opt_level = opts.opt_level
     comp_config.emit_mode = String_from("component")
     comp_config.wit_paths = clone(opts.wit_paths)
-    comp_config.show_timing = opts.show_timing
     let comp_result = driver::compile_file(clone(input_file), comp_config)
     if !comp_result.success {
         if json_mode {
@@ -652,29 +641,11 @@ fn main() {
                     if command == CMD_LSP() {
                         cmd_lsp(opts)
                     } else {
-                        if command == CMD_DAP() {
-                            cmd_dap(opts)
-                        } else {
-                            cmd_compile(opts)
-                        }
+                        cmd_compile(opts)
                     }
                 }
             }
         }
-    }
-}
-
-fn cmd_dap(opts: CliOptions) {
-    let input_file = clone(opts.input_file)
-    let read_result = fs::read_to_string(clone(input_file))
-    match read_result {
-        Result::Ok(text) => {
-            stdio::print(dap::run_dap_session(text))
-        },
-        Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error reading input: "), e))
-            process::exit(1)
-        },
     }
 }
 
@@ -729,7 +700,6 @@ fn cmd_compile(opts: CliOptions) {
     config.dump_wasm = should_dump(opts, String_from("wasm"))
     config.parse_only = opts.command == CMD_PARSE()
     config.check_only = opts.command == CMD_CHECK()
-    config.show_timing = opts.show_timing
     let input_file = clone(opts.input_file)
     let json_mode = opts.json_output
     let result = driver::compile_file(clone(input_file), config)

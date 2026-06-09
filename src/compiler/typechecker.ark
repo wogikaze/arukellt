@@ -141,12 +141,6 @@ fn builtin_call_return_type(name: String) -> TypeInfo {
         push(vec_ty.type_args, resolve_type_name(elem_name))
         return vec_ty
     }
-    if eq(clone(name), "__intrinsic_clock_now") || eq(clone(name), "__intrinsic_clock_now_ms") {
-        return TypeInfo_simple(typechecker_kinds::TY_I64())
-    }
-    if eq(clone(name), "__intrinsic_random_i32") {
-        return TypeInfo_simple(typechecker_kinds::TY_I32())
-    }
     TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
 }
 
@@ -771,11 +765,8 @@ fn is_logical_op(op: i32) -> bool {
     false
 }
 
-fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNode) -> TypeInfo {
     if node.kind == typechecker_kinds::NK_INT_LIT() {
-        if ends_with(clone(node.text), String_from("i64")) {
-            return TypeInfo_simple(typechecker_kinds::TY_I64())
-        }
         return TypeInfo_simple(typechecker_kinds::TY_I32())
     }
     if node.kind == typechecker_kinds::NK_FLOAT_LIT() {
@@ -803,7 +794,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             i = i + 1
         }
         let body = get_unchecked(node.children, child_count - 1)
-        let body_ty = infer_expr(env, closure_scope, fn_sigs, enum_defs, body)
+        let body_ty = infer_expr(env, closure_scope, fn_sigs, body)
         resolve_type(env, body_ty)
         return TypeInfo_simple(typechecker_kinds::TY_FN())
     }
@@ -811,8 +802,8 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         if len(node.children) >= 2 {
             let lhs_node = get_unchecked(node.children, 0)
             let rhs_node = get_unchecked(node.children, 1)
-            let lhs_ty = infer_expr(env, scope, fn_sigs, enum_defs, lhs_node)
-            let rhs_ty = infer_expr(env, scope, fn_sigs, enum_defs, rhs_node)
+            let lhs_ty = infer_expr(env, scope, fn_sigs, lhs_node)
+            let rhs_ty = infer_expr(env, scope, fn_sigs, rhs_node)
             if is_comparison_op(node.op) {
                 return TypeInfo_simple(typechecker_kinds::TY_BOOL())
             }
@@ -825,7 +816,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
     if node.kind == typechecker_kinds::NK_UNARY() {
         if len(node.children) > 0 {
             let operand = get_unchecked(node.children, 0)
-            return infer_expr(env, scope, fn_sigs, enum_defs, operand)
+            return infer_expr(env, scope, fn_sigs, operand)
         }
     }
     if node.kind == typechecker_kinds::NK_BLOCK() {
@@ -834,9 +825,9 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         while i < count {
             let child = get_unchecked(node.children, i)
             if i == count - 1 {
-                return infer_expr(env, scope, fn_sigs, enum_defs, child)
+                return infer_expr(env, scope, fn_sigs, child)
             }
-            check_stmt(env, scope, fn_sigs, enum_defs, child)
+            check_stmt(env, scope, fn_sigs, child)
             i = i + 1
         }
         return TypeInfo_simple(typechecker_kinds::TY_UNIT())
@@ -844,47 +835,22 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
     if node.kind == typechecker_kinds::NK_IF_EXPR() {
         if len(node.children) >= 2 {
             let then_node = get_unchecked(node.children, 1)
-            let then_ty = infer_expr(env, scope, fn_sigs, enum_defs, then_node)
-            if len(node.children) >= 3 {
-                let else_node = get_unchecked(node.children, 2)
-                let else_ty = infer_expr(env, scope, fn_sigs, enum_defs, else_node)
-                return unify(env, then_ty, else_ty)
-            }
-            return then_ty
+            return infer_expr(env, scope, fn_sigs, then_node)
         }
-    }
-    if node.kind == typechecker_kinds::NK_EXPR_STMT() {
-        if len(node.children) > 0 {
-            return infer_expr(env, scope, fn_sigs, enum_defs, get_unchecked(node.children, 0))
-        }
-        return TypeInfo_simple(typechecker_kinds::TY_UNIT())
     }
     if node.kind == typechecker_kinds::NK_COMPREHENSION() {
         // [expr for x in iter if filter]
         // children[0] = element expr, children[1] = iter expr, children[2] = filter (optional)
+        // Type-check the iter expression
+        if len(node.children) > 1 {
+            let _iter_ty = infer_expr(env, scope, fn_sigs, get_unchecked(node.children, 1))
+        }
         // Create child scope with the loop variable
         let comp_scope = scope_child(scope)
-        // Infer element type from the iterable Vec<E>
-        let mut elem_ty_of_iter = TypeInfo_simple(typechecker_kinds::TY_I32())
-        if len(node.children) > 1 {
-            let iter_ty = infer_expr(env, scope, fn_sigs, enum_defs, get_unchecked(node.children, 1))
-            if iter_ty.tag == typechecker_kinds::TY_VEC() && len(iter_ty.type_args) > 0 {
-                elem_ty_of_iter = get_unchecked(iter_ty.type_args, 0)
-            } else {
-                type_error(env, String_from("non-iterable source: expected Vec<T> in comprehension"))
-            }
-        }
-        scope_define(comp_scope, clone(node.text), elem_ty_of_iter)
+        scope_define(comp_scope, clone(node.text), TypeInfo_simple(typechecker_kinds::TY_I32()))
         // Type-check the element expression
         if len(node.children) > 0 {
-            let elem_ty = infer_expr(env, comp_scope, fn_sigs, enum_defs, get_unchecked(node.children, 0))
-            // Type-check the filter expression if present
-            if len(node.children) > 2 {
-                let filter_ty = infer_expr(env, comp_scope, fn_sigs, enum_defs, get_unchecked(node.children, 2))
-                if filter_ty.tag != typechecker_kinds::TY_BOOL() {
-                    type_error(env, String_from("filter expression must be bool"))
-                }
-            }
+            let elem_ty = infer_expr(env, comp_scope, fn_sigs, get_unchecked(node.children, 0))
             // Result type is Vec<element_type>
             let mut vec_ty = TypeInfo_simple(typechecker_kinds::TY_VEC())
             push(vec_ty.type_args, elem_ty)
@@ -902,7 +868,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             let mut non_ident_a = 0
             while non_ident_a < non_ident_arg_count {
                 let non_ident_arg = get_unchecked(node.children, non_ident_a + 1)
-                let _non_ident_arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, non_ident_arg)
+                let _non_ident_arg_ty = infer_expr(env, scope, fn_sigs, non_ident_arg)
                 non_ident_a = non_ident_a + 1
             }
             return TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
@@ -913,7 +879,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             let mut unknown_a = 0
             while unknown_a < unknown_arg_count {
                 let unknown_arg = get_unchecked(node.children, unknown_a + 1)
-                let _unknown_arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, unknown_arg)
+                let _unknown_arg_ty = infer_expr(env, scope, fn_sigs, unknown_arg)
                 unknown_a = unknown_a + 1
             }
             let builtin_ret = builtin_call_return_type(clone(callee.text))
@@ -927,11 +893,16 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             return TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
         }
         if len(sig.type_params) == 0 {
-            // Non-generic function: skip argument unification to avoid false
-            // positives from flat fn-sig table (same-named functions from
-            // different modules collide in the global lookup).  Generic-path
-            // fallthrough (fresh env / infer_env) handles this safely because
-            // the type variable binds to the first compatible type.
+            let arg_count_plain = len(node.children) - 1
+            let param_count_plain = len(sig.param_types)
+            let mut plain_a = 0
+            while plain_a < arg_count_plain && plain_a < param_count_plain {
+                let arg_node_plain = get_unchecked(node.children, plain_a + 1)
+                let arg_ty_plain = infer_expr(env, scope, fn_sigs, arg_node_plain)
+                let param_ty_plain = get_unchecked(sig.param_types, plain_a)
+                unify(env, param_ty_plain, arg_ty_plain)
+                plain_a = plain_a + 1
+            }
             return sig.return_type
         }
         let infer_env = TypeEnv_new()
@@ -951,7 +922,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         let mut a = 0
         while a < arg_count && a < param_count {
             let arg_node = get_unchecked(node.children, a + 1)
-            let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+            let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
             let param_ty = get_unchecked(sig.param_types, a)
             let inst_param = instantiate_type(param_ty, var_names, var_types)
             unify(infer_env, inst_param, arg_ty)
@@ -981,7 +952,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             return TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
         }
         let recv_node = get_unchecked(node.children, 0)
-        let recv_ty = infer_expr(env, scope, fn_sigs, enum_defs, recv_node)
+        let recv_ty = infer_expr(env, scope, fn_sigs, recv_node)
         let explicit_args = len(node.children) - 1
         let param_count = len(sig.param_types)
         if param_count < 1 {
@@ -996,7 +967,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             let mut a = 0
             while a < explicit_args {
                 let arg_node = get_unchecked(node.children, a + 1)
-                let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+                let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
                 let pty = get_unchecked(sig.param_types, a + 1)
                 unify(env, pty, arg_ty)
                 a = a + 1
@@ -1021,7 +992,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         let mut a = 0
         while a < explicit_args {
             let arg_node = get_unchecked(node.children, a + 1)
-            let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+            let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
             let pty = get_unchecked(sig.param_types, a + 1)
             let inst_pt = instantiate_type(pty, var_names, var_types)
             unify(infer_env, inst_pt, arg_ty)
@@ -1054,7 +1025,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
             return TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
         }
         let scrutinee_node = get_unchecked(node.children, 0)
-        let scrutinee_ty = infer_expr(env, scope, fn_sigs, enum_defs, scrutinee_node)
+        let scrutinee_ty = infer_expr(env, scope, fn_sigs, scrutinee_node)
         let mut result_ty = TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
         let mut has_wildcard = false
         let mut has_bool_true = false
@@ -1063,7 +1034,6 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         let mut has_option_none = false
         let mut has_result_ok = false
         let mut has_result_err = false
-        let mut covered_variants = Vec_new_String()
         let mut idx = 0
         while idx < arm_count {
             let arm = get_unchecked(node.children, idx + 1)
@@ -1100,17 +1070,9 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
                 if eq(clone(pat.text), String_from("Err")) || ends_with(clone(pat.text), String_from("::Err")) {
                     has_result_err = true
                 }
-                // Record variant name for user-defined enum exhaustiveness checking.
-                // Strip namespace prefix if present (e.g., "Direction::North" -> "North")
-                let mut variant_name = clone(pat.text)
-                let colon_pos = index_of(clone(variant_name), String_from("::"))
-                if colon_pos >= 0 {
-                    variant_name = substring(variant_name, colon_pos + 2, len(variant_name))
-                }
-                push(covered_variants, variant_name)
             }
             let body = get_unchecked(arm.children, arm_child_count - 1)
-            let arm_ty = infer_expr(env, scope, fn_sigs, enum_defs, body)
+            let arm_ty = infer_expr(env, scope, fn_sigs, body)
             if idx == 0 {
                 result_ty = arm_ty
             }
@@ -1133,45 +1095,6 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
                     type_error(env, String_from("non-exhaustive match: Result requires `Ok` and `Err` arms or a wildcard"))
                 }
             }
-            if resolved_scrutinee.tag == typechecker_kinds::TY_ENUM() || (!eq(clone(resolved_scrutinee.name), String_from("")) && len(enum_defs) > 0) {
-                // User-defined types may be resolved as TY_STRUCT (the type resolver
-                // does not distinguish structs from enums). Match by name against
-                // the collected enum definitions.
-                let enum_name = clone(resolved_scrutinee.name)
-                let mut found_enum = false
-                let mut enum_idx = 0
-                let enum_def_count = len(enum_defs)
-                while enum_idx < enum_def_count {
-                    let edef = get_unchecked(enum_defs, enum_idx)
-                    if eq(clone(edef.name), clone(enum_name)) {
-                        found_enum = true
-                        let variant_count = len(edef.variant_names)
-                        let mut v = 0
-                        while v < variant_count {
-                            let vname = get_unchecked(edef.variant_names, v)
-                            let mut covered = false
-                            let cv_count = len(covered_variants)
-                            let mut cv = 0
-                            while cv < cv_count {
-                                let cname = get_unchecked(covered_variants, cv)
-                                if eq(clone(cname), clone(vname)) {
-                                    covered = true
-                                }
-                                cv = cv + 1
-                            }
-                            if !covered {
-                                type_error(env, concat(String_from("non-exhaustive match: missing "),
-                                    concat(clone(enum_name), concat(String_from("::"), clone(vname)))))
-                            }
-                            v = v + 1
-                        }
-                    }
-                    enum_idx = enum_idx + 1
-                }
-                if !found_enum {
-                    type_error(env, concat(String_from("non-exhaustive match: unknown enum '"), clone(enum_name)))
-                }
-            }
         }
         return result_ty
     }
@@ -1179,12 +1102,12 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
 }
 
 // ── Statement Type Checking ─────────────────────────────────────────────────
-fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNode) {
     if node.kind == typechecker_kinds::NK_LET() {
         let mut bind_ty = TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
         if len(node.children) > 0 {
             let init = get_unchecked(node.children, 0)
-            bind_ty = infer_expr(env, scope, fn_sigs, enum_defs, init)
+            bind_ty = infer_expr(env, scope, fn_sigs, init)
         }
         if len(node.type_ann) > 0 {
             let ann = get_unchecked(node.type_ann, 0)
@@ -1199,14 +1122,14 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
     if node.kind == typechecker_kinds::NK_EXPR_STMT() {
         if len(node.children) > 0 {
             let child = get_unchecked(node.children, 0)
-            infer_expr(env, scope, fn_sigs, enum_defs, child)
+            infer_expr(env, scope, fn_sigs, child)
         }
         return
     }
     if node.kind == typechecker_kinds::NK_RETURN() {
         if len(node.children) > 0 {
             let child = get_unchecked(node.children, 0)
-            infer_expr(env, scope, fn_sigs, enum_defs, child)
+            infer_expr(env, scope, fn_sigs, child)
         }
         return
     }
@@ -1215,7 +1138,7 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         let mut i = 0
         while i < count {
             let child = get_unchecked(node.children, i)
-            check_stmt(env, scope, fn_sigs, enum_defs, child)
+            check_stmt(env, scope, fn_sigs, child)
             i = i + 1
         }
         return
@@ -1225,73 +1148,16 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         let mut i = 0
         while i < count {
             let child = get_unchecked(node.children, i)
-            check_stmt(env, scope, fn_sigs, enum_defs, child)
+            check_stmt(env, scope, fn_sigs, child)
             i = i + 1
         }
         return
     }
-    infer_expr(env, scope, fn_sigs, enum_defs, node)
+    infer_expr(env, scope, fn_sigs, node)
 }
 
 // ── Function Body Type Checking ─────────────────────────────────────────────
-fn check_return_type_compat(env: TypeEnv, fn_name: String, ret_type: TypeInfo, val_ty: TypeInfo) {
-    let resolved_ret = resolve_type(env, ret_type)
-    let resolved_val = resolve_type(env, val_ty)
-    if resolved_ret.tag == typechecker_kinds::TY_UNKNOWN() || resolved_val.tag == typechecker_kinds::TY_UNKNOWN() {
-        return
-    }
-    if resolved_ret.tag != resolved_val.tag {
-        let ret_name = type_display_name(resolved_ret)
-        let val_name = type_display_name(resolved_val)
-        type_error(env, concat(String_from("return type mismatch: '"),
-            concat(clone(fn_name),
-            concat(String_from("' declared to return "),
-            concat(ret_name,
-            concat(String_from(" but body returns "), val_name))))))
-        return
-    }
-    if (resolved_ret.tag == typechecker_kinds::TY_STRUCT() || resolved_ret.tag == typechecker_kinds::TY_ENUM())
-        && !eq(clone(resolved_ret.name), clone(resolved_val.name)) {
-        type_error(env, concat(String_from("return type mismatch: '"),
-            concat(clone(fn_name),
-            concat(String_from("' declared to return "),
-            concat(clone(resolved_ret.name),
-            concat(String_from(" but body returns "), clone(resolved_val.name))))))))
-    }
-}
-
-fn check_return_stmts(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
-    if body.kind == typechecker_kinds::NK_RETURN() {
-        if len(body.children) > 0 {
-            let ret_val = get_unchecked(body.children, 0)
-            let ret_val_ty = infer_expr(env, scope, fn_sigs, enum_defs, ret_val)
-            check_return_type_compat(env, clone(sig.name), sig.return_type, ret_val_ty)
-        }
-        return
-    }
-    if body.kind == typechecker_kinds::NK_BLOCK() {
-        let count = len(body.children)
-        let mut i = 0
-        while i < count {
-            let child = get_unchecked(body.children, i)
-            check_return_stmts(env, scope, fn_sigs, enum_defs, sig, child)
-            i = i + 1
-        }
-        return
-    }
-    if body.kind == typechecker_kinds::NK_WHILE() || body.kind == typechecker_kinds::NK_FOR() {
-        let count = len(body.children)
-        let mut i = 0
-        while i < count {
-            let child = get_unchecked(body.children, i)
-            check_return_stmts(env, scope, fn_sigs, enum_defs, sig, child)
-            i = i + 1
-        }
-        return
-    }
-}
-
-fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode) {
+fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, fn_node: AstNode) {
     let scope = LocalScope_new()
     let type_param_bounds = collect_type_param_bounds(fn_node.type_ann)
     let type_params = collect_type_param_names(type_param_bounds)
@@ -1311,16 +1177,12 @@ fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn
     }
     if child_count > 0 {
         let body = get_unchecked(fn_node.children, child_count - 1)
-        check_stmt(env, scope, fn_sigs, enum_defs, body)
-        // Function boundary contract: check body type against declared return type
+        check_stmt(env, scope, fn_sigs, body)
+        // Function boundary contract: unify body type with declared return type
         let sig = lookup_fn_sig(fn_sigs, clone(fn_node.text))
         if sig.return_type.tag != typechecker_kinds::TY_UNKNOWN() && sig.return_type.tag != typechecker_kinds::TY_UNIT() {
-            let body_ty = infer_expr(env, scope, fn_sigs, enum_defs, body)
-            check_return_type_compat(env, clone(sig.name), sig.return_type, body_ty)
-        }
-        // Also check explicit return statements inside the body
-        if sig.return_type.tag != typechecker_kinds::TY_UNKNOWN() && sig.return_type.tag != typechecker_kinds::TY_UNIT() {
-            check_return_stmts(env, scope, fn_sigs, enum_defs, sig, body)
+            let body_ty = infer_expr(env, scope, fn_sigs, body)
+            unify(env, body_ty, sig.return_type)
         }
     }
 }
@@ -1369,24 +1231,6 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         }
         i = i + 1
     }
-    // Collect enum definitions for exhaustiveness checking
-    let enum_defs = Vec_new_EnumInfo()
-    i = 0
-    while i < decl_count {
-        let node = get_unchecked(decls, i)
-        if node.kind == typechecker_kinds::NK_ENUM_DECL() {
-            let variant_names = Vec_new_String()
-            let vc = len(node.children)
-            let mut vi = 0
-            while vi < vc {
-                let variant = get_unchecked(node.children, vi)
-                push(variant_names, clone(variant.text))
-                vi = vi + 1
-            }
-            push(enum_defs, EnumInfo { name: clone(node.text), variant_names: variant_names })
-        }
-        i = i + 1
-    }
     i = 0
     while i < decl_count {
         let node = get_unchecked(decls, i)
@@ -1406,7 +1250,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
                 j = j + 1
             }
             push(result.typed_fns, TypedFn { name: fn_name, return_type: return_type })
-            check_fn_body(env, fn_sigs, enum_defs, node)
+            check_fn_body(env, fn_sigs, node)
         }
         if node.kind == typechecker_kinds::NK_IMPL_DECL() {
             let impl_child_count = len(node.children)
@@ -1414,7 +1258,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
             while ic < impl_child_count {
                 let meth = get_unchecked(node.children, ic)
                 if meth.kind == typechecker_kinds::NK_FN_DECL() {
-                    check_fn_body(env, fn_sigs, enum_defs, meth)
+                    check_fn_body(env, fn_sigs, meth)
                 }
                 ic = ic + 1
             }

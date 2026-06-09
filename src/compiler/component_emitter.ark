@@ -567,91 +567,6 @@ fn comp_emit_wasm_section(out: ComponentWriter, section_id: i32, contents: Compo
 	comp_emit_section(out, section_id, contents)
 }
 
-fn comp_wasi_p2_module_type() -> Vec<i32> {
-	// Emit a core module type for the WASI snapshot preview1 module.
-	// This type describes the exported functions of wasi_snapshot_preview1
-	// so that the component can declare it as a component-level import.
-	// Module type encoding in component model:
-	//   0x01 0x00  (module type sort + version)
-	//   imports: vec(core:importdesc)
-	//   exports: vec(core:exportdesc)
-	let w = ComponentWriter_new()
-	// Module type sort byte = 0x01
-	comp_emit_byte(w, COMP_SORT_CORE_MODULE())
-	// Module type prefix (0x00 for the module type structure)
-	comp_emit_byte(w, 0x00)
-	// No imports (wasi_snapshot_preview1 is a host module with no imports)
-	comp_emit_leb128_u(w, 0)
-	// 7 exported functions
-	comp_emit_leb128_u(w, 7)
-
-	// Export: fd_write (func (i32 i32 i32 i32) -> i32)
-	comp_emit_string(w, String_from("fd_write"))
-	comp_emit_byte(w, 0x00)
-	comp_emit_byte(w, 0x60)
-	comp_emit_leb128_u(w, 4)
-	comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7f)
-	comp_emit_leb128_u(w, 1)
-	comp_emit_byte(w, 0x7f)
-
-	// Export: args_sizes_get (func (i32 i32) -> i32)
-	comp_emit_string(w, String_from("args_sizes_get"))
-	comp_emit_byte(w, 0x00)
-	comp_emit_byte(w, 0x60)
-	comp_emit_leb128_u(w, 2)
-	comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7f)
-	comp_emit_leb128_u(w, 1)
-	comp_emit_byte(w, 0x7f)
-
-	// Export: args_get (func (i32 i32) -> i32)
-	comp_emit_string(w, String_from("args_get"))
-	comp_emit_byte(w, 0x00)
-	comp_emit_byte(w, 0x60)
-	comp_emit_leb128_u(w, 2)
-	comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7f)
-	comp_emit_leb128_u(w, 1)
-	comp_emit_byte(w, 0x7f)
-
-	// Export: path_open (func (i32 i32 i32 i32 i32 i64 i64 i32 i32) -> i32)
-	comp_emit_string(w, String_from("path_open"))
-	comp_emit_byte(w, 0x00)
-	comp_emit_byte(w, 0x60)
-	comp_emit_leb128_u(w, 9)
-	comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7f)
-	comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7e); comp_emit_byte(w, 0x7e); comp_emit_byte(w, 0x7f)
-	comp_emit_byte(w, 0x7f)
-	comp_emit_leb128_u(w, 1)
-	comp_emit_byte(w, 0x7f)
-
-	// Export: fd_read (func (i32 i32 i32 i32) -> i32)
-	comp_emit_string(w, String_from("fd_read"))
-	comp_emit_byte(w, 0x00)
-	comp_emit_byte(w, 0x60)
-	comp_emit_leb128_u(w, 4)
-	comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7f); comp_emit_byte(w, 0x7f)
-	comp_emit_leb128_u(w, 1)
-	comp_emit_byte(w, 0x7f)
-
-	// Export: fd_close (func (i32) -> i32)
-	comp_emit_string(w, String_from("fd_close"))
-	comp_emit_byte(w, 0x00)
-	comp_emit_byte(w, 0x60)
-	comp_emit_leb128_u(w, 1)
-	comp_emit_byte(w, 0x7f)
-	comp_emit_leb128_u(w, 1)
-	comp_emit_byte(w, 0x7f)
-
-	// Export: proc_exit (func (i32))
-	comp_emit_string(w, String_from("proc_exit"))
-	comp_emit_byte(w, 0x00)
-	comp_emit_byte(w, 0x60)
-	comp_emit_leb128_u(w, 1)
-	comp_emit_byte(w, 0x7f)
-	comp_emit_leb128_u(w, 0)
-
-	w.bytes
-}
-
 fn comp_wasi_stub_core_module() -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
@@ -5895,20 +5810,8 @@ fn comp_wit_type_from_name(type_name: String, fallback_vt: i32) -> i32 {
 	if eq(clone(type_name), String_from("i16")) {
 		return WIT_VAL_S16()
 	}
-	if eq(clone(type_name), String_from("i32")) {
-		return WIT_VAL_S32()
-	}
-	if eq(clone(type_name), String_from("i64")) {
-		return WIT_VAL_S64()
-	}
 	if eq(clone(type_name), String_from("f32")) {
 		return WIT_VAL_FLOAT32()
-	}
-	if eq(clone(type_name), String_from("f64")) {
-		return WIT_VAL_FLOAT64()
-	}
-	if eq(clone(type_name), String_from("string")) {
-		return WIT_VAL_STRING()
 	}
 	val_type_to_comp(fallback_vt)
 }
@@ -10209,8 +10112,6 @@ pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_
 		ei = ei + 1
 	}
 
-	// Embed a WASI stub module to satisfy imports (same for P1 and P2).
-
 	// Core module 0: a minimal WASI Preview 1 instance stub used to satisfy the
 	// unconditional imports emitted by the current core wasm emitter.
 	let wasi_stub_sec = ComponentWriter_new()
@@ -10251,6 +10152,7 @@ pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_
 		ai = ai + 1
 	}
 	comp_emit_section(out, COMP_SEC_ALIAS(), alias_sec)
+
 	// Emit component type section from the interner.
 	type_interner_emit_section(out, interner)
 

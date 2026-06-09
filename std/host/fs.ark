@@ -158,9 +158,9 @@ pub fn read_dir(path: String) -> Result<Vec<String>, FsError> {
 
 /// Placeholder for future structured metadata.
 pub struct FsMetadata {
-    pub len: i64,
-    pub is_file: bool,
-    pub is_dir: bool,
+    len: i64,
+    is_file: bool,
+    is_dir: bool,
 }
 
 /// Query file metadata for a given path.
