@@ -80,7 +80,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         main_check_idx = main_check_idx + 1
     }
     let type_sec = emit_writer::WasmWriter_new()
-    emit_writer::emit_leb128_u(type_sec, fn_count + 6 + needs_wrapper)
+    emit_writer::emit_leb128_u(type_sec, fn_count + emit_scratch::NUM_WASI_TYPES() + needs_wrapper)
     emit_writer::emit_byte(type_sec, 96)
     emit_writer::emit_leb128_u(type_sec, 4)
     emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
@@ -195,11 +195,11 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     emit_writer::emit_leb128_u(func_sec, fn_count + needs_wrapper)
     let mut fi = 0
     while fi < fn_count {
-        emit_writer::emit_leb128_u(func_sec, fi + 6)
+        emit_writer::emit_leb128_u(func_sec, fi + emit_scratch::NUM_WASI_TYPES())
         fi = fi + 1
     }
     if needs_wrapper == 1 {
-        emit_writer::emit_leb128_u(func_sec, fn_count + 6)
+        emit_writer::emit_leb128_u(func_sec, fn_count + emit_scratch::NUM_WASI_TYPES())
     }
     emit_writer::emit_section(out, emit_opcodes::SEC_FUNCTION(), func_sec)
     let mem_sec = emit_writer::WasmWriter_new()

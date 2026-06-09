@@ -1065,3 +1065,5 @@ run:stdlib_trait/display_trait.ark
 run:stdlib_trait/eq_trait.ark
 run:stdlib_trait/hash_trait.ark
 run:stdlib_toml/toml_parse_invalid_array_of_tables.ark
+# issue 487: Vec<Struct> len() correctness (fix in mir_lower)
+run:regression/vec_struct_len.ark
