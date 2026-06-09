@@ -12,6 +12,7 @@ Status note: Blocker-free stdlib lane. This issue does not carry the #312 generi
 Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 BLOCKED: "This issue hit a STOP_IF during Wave 2 dispatch. The selfhost compiler transition (#529) removed `ark-wasm/src/emit`, and the new pure-Ark `src/compiler/emitter.ark` was believed to lack the requisite core GC intrinsic translation rules (ring buffer semantics) to emit these collections natively. Execution was frozen until #529 or downstream emitter roadmap restores intrinsic capabilities."
+RESOLUTION: "Investigated 2026-06-09: `emit_intrinsic_vec` provides all necessary primitives (push/get/set/pop/len/is_empty) via linear memory. Deque ring buffer can be implemented entirely in stdlib Ark code without new emitter intrinsics. STOP_IF is liftable."
 ---
 
 # std: ":collections: Deque、PriorityQueue"

@@ -36,8 +36,13 @@ docs/playground/wasm/
 /*.sh
 /_test_*.ark
 /archive.zip
-/test_*.wat
 /check_layout
+
+# WAT is a generated text format of WASM; not a source format in this project
+*.wat
+
+# s2 debug disassembly dumps
+s2_disasm*
 /audit-*.json
 
 # benchmark build artifacts (result summaries are tracked separately)
