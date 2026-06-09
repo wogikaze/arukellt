@@ -1,4 +1,5 @@
 ---
+Status: done
 Implementation target: "Use Ark (`src/compiler/*.ark`) instead of Rust crates (`crates/*`) per #529 100% selfhost transition plan."
 Track: main
 Orchestration class: implementation-ready
