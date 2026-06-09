@@ -129,6 +129,8 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     push(type_sigs, String_from("i32_1i32"))
     // WASI type 4: proc_exit: (i32) -> nil
     push(type_sigs, String_from("i32_0"))
+    // WASI type 5: clock_time_get: (i32,i64,i32) -> i32
+    push(type_sigs, String_from("i32_i64_i32_1i32"))
     // User function types
     let mut ui = 0
     while ui < fn_count {
@@ -267,6 +269,16 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     emit_writer::emit_string(import_sec, String_from("proc_exit"))
     emit_writer::emit_byte(import_sec, 0)
     emit_writer::emit_leb128_u(import_sec, get_unchecked(wasi_type_map, 4))
+    // clock_time_get(clock_id: i32, precision: i64, result: i32) -> errno
+    emit_writer::emit_string(import_sec, clone(wasi_module))
+    emit_writer::emit_string(import_sec, String_from("clock_time_get"))
+    emit_writer::emit_byte(import_sec, 0)
+    emit_writer::emit_leb128_u(import_sec, get_unchecked(wasi_type_map, 5))
+    // random_get(buf: i32, buf_len: i32) -> errno
+    emit_writer::emit_string(import_sec, clone(wasi_module))
+    emit_writer::emit_string(import_sec, String_from("random_get"))
+    emit_writer::emit_byte(import_sec, 0)
+    emit_writer::emit_leb128_u(import_sec, get_unchecked(wasi_type_map, 1))
     emit_writer::emit_section(out, emit_opcodes::SEC_IMPORT(), import_sec)
     let func_sec = emit_writer::WasmWriter_new()
     emit_writer::emit_leb128_u(func_sec, fn_count + needs_wrapper)
@@ -1371,6 +1383,67 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i3
         if eq(clone(callee), "f32_to_string") {
             let _result_on_stack = emit_intrinsic_string::emit_f32_to_string(w, inst, ctx)
             emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return
+        }
+        if eq(clone(callee), "__intrinsic_clock_now") {
+            // clock_time_get(WASI_CLOCK_MONOTONIC=1, precision=0, result_ptr=SCRATCH_CLOCK_RESULT)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, 1)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_CONST())
+            emit_writer::emit_leb128_s_i64(w, 0)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, emit_scratch::SCRATCH_CLOCK_RESULT())
+            emit_writer::emit_byte(w, emit_opcodes::OP_CALL())
+            emit_writer::emit_leb128_u(w, 7)
+            emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
+            // Load i64 result from scratch buffer
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, emit_scratch::SCRATCH_CLOCK_RESULT())
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_LOAD())
+            emit_writer::emit_byte(w, 2)
+            emit_writer::emit_byte(w, 0)
+            emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+            return
+        }
+        if eq(clone(callee), "__intrinsic_clock_now_ms") {
+            // clock_time_get(WASI_CLOCK_REALTIME=0, precision=0, result_ptr=SCRATCH_CLOCK_RESULT)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, 0)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_CONST())
+            emit_writer::emit_leb128_s_i64(w, 0)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, emit_scratch::SCRATCH_CLOCK_RESULT())
+            emit_writer::emit_byte(w, emit_opcodes::OP_CALL())
+            emit_writer::emit_leb128_u(w, 7)
+            emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
+            // Load i64 result, divide by 1000000 to get ms
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, emit_scratch::SCRATCH_CLOCK_RESULT())
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_LOAD())
+            emit_writer::emit_byte(w, 2)
+            emit_writer::emit_byte(w, 0)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_CONST())
+            emit_writer::emit_leb128_s_i64(w, 1000000)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_DIV_U())
+            emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+            return
+        }
+        if eq(clone(callee), "__intrinsic_random_i32") {
+            // random_get(buf=SCRATCH_I32BUF, buf_len=4)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, emit_scratch::SCRATCH_I32BUF())
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, 4)
+            emit_writer::emit_byte(w, emit_opcodes::OP_CALL())
+            emit_writer::emit_leb128_u(w, 8)
+            emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
+            // Load i32 from scratch
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, emit_scratch::SCRATCH_I32BUF())
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
+            emit_writer::emit_byte(w, 2)
+            emit_writer::emit_byte(w, 0)
+            emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
             return
         }
         if starts_with(clone(callee), "Vec_new_") {

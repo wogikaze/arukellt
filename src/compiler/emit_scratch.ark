@@ -107,18 +107,23 @@ pub fn FS_BUF_SIZE() -> i32 {
     4096
 }
 
-// Number of WASI imports (fd_write, args_sizes_get, args_get, path_open, fd_read, fd_close, proc_exit)
+// Number of WASI imports (fd_write, args_sizes_get, args_get, path_open, fd_read, fd_close, proc_exit, clock_time_get, random_get)
 pub fn NUM_WASI_IMPORTS() -> i32 {
-    7
+    9
 }
 
 // Number of fixed WASI type signatures (before user types)
 pub fn NUM_WASI_TYPES() -> i32 {
-    5
+    6
 }
 
 pub fn DATA_START() -> i32 {
     128
+}
+
+// clock_time_get result (i64, 8 bytes at offset 120-127)
+pub fn SCRATCH_CLOCK_RESULT() -> i32 {
+    120
 }
 
 // Emit context for passing module info to instruction emitter
