@@ -69,6 +69,14 @@ fn CMD_TARGETS() -> i32 {
     14
 }
 
+fn CMD_LINT() -> i32 {
+    15
+}
+
+fn CMD_ANALYZE() -> i32 {
+    16
+}
+
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
 struct CliOptions {
     command: i32,
@@ -153,10 +161,10 @@ fn parse_command(name: String) -> i32 {
         return CMD_DEBUG_ADAPTER()
     }
     if cli_str_eq(clone(name), String_from("lint")) {
-        return CMD_NOT_YET()
+        return CMD_LINT()
     }
     if cli_str_eq(clone(name), String_from("analyze")) {
-        return CMD_NOT_YET()
+        return CMD_ANALYZE()
     }
     if cli_str_eq(clone(name), String_from("ide-analyze")) {
         return CMD_IDE_ANALYZE()
@@ -632,7 +640,7 @@ fn main() {
             if command == CMD_RUN() {
                 cmd_run(opts)
             } else {
-                if command == CMD_IDE_ANALYZE() {
+                if command == CMD_IDE_ANALYZE() || command == CMD_LINT() || command == CMD_ANALYZE() {
                     cmd_ide_analyze(opts)
                 } else {
                     if command == CMD_LSP() {
