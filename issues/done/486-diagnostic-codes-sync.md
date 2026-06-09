@@ -1,8 +1,9 @@
 # Diagnostic codes sync: implement missing codes
 
-**Status:** open  
+**Status:** done  
 **Track:** verification-hygiene  
-**Updated:** 2026-06-10
+**Updated:** 2026-06-10  
+**Closed:** 2026-06-10
 
 ## Summary
 

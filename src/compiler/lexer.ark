@@ -1037,4 +1037,4 @@ fn main() {
 // Single-character tokens
 // Unknown character
 // skip printing newlines to reduce noise
-// Iterate until EOF token (len() has a bug with Vec<Struct>); tracked as #487
+// Iterate until EOF token

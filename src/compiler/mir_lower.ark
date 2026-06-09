@@ -927,6 +927,10 @@ fn mir_decl_return_type_name(fn_node: AstNode) -> String {
                         let err_ty = get_unchecked(ret_node.children, 2)
                         return concat(String_from("Result:"), concat(clone(ok_ty.text), concat(String_from(":"), clone(err_ty.text))))
                     }
+                    if eq(clone(ret_node.text), "Vec") && len(ret_node.children) >= 2 {
+                        let elem = get_unchecked(ret_node.children, 1)
+                        return concat(String_from("vec:"), clone(elem.text))
+                    }
                 }
                 return clone(ret_node.text)
             }
