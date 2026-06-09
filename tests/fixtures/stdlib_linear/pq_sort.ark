@@ -1,0 +1,37 @@
+use std::collections::linear
+use std::host::stdio
+
+fn main() {
+    let pq: Vec<i32> = linear::pq_new()
+
+    // Push in arbitrary order
+    linear::pq_push(pq, 50)
+    linear::pq_push(pq, 10)
+    linear::pq_push(pq, 90)
+    linear::pq_push(pq, 30)
+    linear::pq_push(pq, 70)
+    linear::pq_push(pq, 20)
+    linear::pq_push(pq, 80)
+    linear::pq_push(pq, 40)
+    linear::pq_push(pq, 60)
+
+    stdio::println(i32_to_string(linear::pq_len(pq)))  // 9
+
+    // Pop all: should come out sorted ascending (min-heap)
+    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 10
+    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 20
+    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 30
+    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 40
+    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 50
+    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 60
+    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 70
+    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 80
+    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 90
+
+    stdio::println(bool_to_string(linear::pq_is_empty(pq)))  // true
+    stdio::println(i32_to_string(linear::pq_len(pq)))  // 0
+}
+// pq_len after 9 pushes
+// pq_pop returns sorted ascending (min-heap property)
+// pq_is_empty after draining all
+// pq_len after draining all
