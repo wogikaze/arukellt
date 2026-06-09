@@ -1,9 +1,6 @@
 // Arukellt Selfhost — Wasm Binary Emitter: I/O and Misc Intrinsic Handlers
 // Extracted from emit_intrinsic.ark
 
-use emit_inst_ctx
-
-
 // Handler for: stdio::println, println, __intrinsic_println
 pub fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
                                                                                                                 emit_writer::emit_byte(w, emit_opcodes::OP_LOCAL_SET())

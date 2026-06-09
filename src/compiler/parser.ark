@@ -5,7 +5,6 @@
 use std::host::stdio
 
 use lexer
-use diagnostics
 
 use parser_kinds
 

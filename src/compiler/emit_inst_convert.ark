@@ -4,7 +4,6 @@
 
 use emit_opcodes
 use emit_writer
-use emit_inst_ctx
 
 pub fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.arg0 >= 0 {

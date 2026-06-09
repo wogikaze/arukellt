@@ -4,10 +4,7 @@
 // The current representation preserves the checked AST and typecheck bundle,
 // while routing all MIR lowering through this module so the driver no longer
 // calls AST-to-MIR lowering directly.
-use mir_ir
 use mir_lower
-use parser
-use typechecker
 
 struct CoreHirProgram {
     decls: Vec<AstNode>,
