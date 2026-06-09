@@ -1,0 +1,3 @@
+// Multi-clause fn with different arities across clauses — should error
+fn classify(x) -> String = "single"
+fn classify(x, y) -> String = "double"

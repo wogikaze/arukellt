@@ -1,0 +1,4 @@
+// Unreachable clause after wildcard — should error
+fn match_val(x: i32) -> String = "first"
+fn match_val(_: i32) -> String = "catch-all"
+fn match_val(x: i32) -> String = "dead"

@@ -9,7 +9,6 @@ graph LR
   I124["124 WIT component import syntax"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I30["30 036-jco-javascript-interop"]
-  I37["37 std: ":collections: Deque、PriorityQueue""]
   I39["39 std: ":collections: Arena、SlotMap、Interner ／ std::text: Rope""]
   I41["41 std: ":time + std::random: 時刻・期間・乱数""]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
@@ -36,7 +35,6 @@ graph LR
 - **124** depends on: 074; blocks: none
 - **139** depends on: 074, 137; blocks: 136
 - **30** depends on: 27; blocks: none
-- **37** depends on: 039, 041; blocks: none
 - **39** depends on: 039, 041; blocks: none
 - **41** depends on: 039, 040; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none

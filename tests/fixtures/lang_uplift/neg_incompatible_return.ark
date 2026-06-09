@@ -1,0 +1,3 @@
+// Multi-clause fn with conflicting return annotations — should error
+fn pick(x: i32) -> String = "hello"
+fn pick(x: String) -> i32 = 42

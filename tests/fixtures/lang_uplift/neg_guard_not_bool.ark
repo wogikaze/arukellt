@@ -1,0 +1,3 @@
+// Guard expression is not bool — should error
+fn magnitude(x: i32) -> String | x = "self"
+fn magnitude(_: i32) -> String = "other"

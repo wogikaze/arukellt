@@ -461,8 +461,8 @@ In other words: the repo already contains the *pieces*; this issue is about maki
 - [x] [#597](../done/597-lang-uplift-where.md) — Phase 3: `where` is implemented as real syntax, not a parser stub
 - [x] [#598](../done/598-lang-uplift-comprehensions.md) — Phase 4: At least one expression-level comprehension form is implemented
 - [x] [#599](../done/599-lang-uplift-docs-rollout.md) — Phase 5: Existing block-body `fn` syntax remains supported and docs describe the new syntax
-- [ ] Fixture coverage includes both positive and negative cases for each added surface feature
-- [ ] The implementation is fully in the selfhost compiler (`src/compiler/*.ark`) and fits the #529 selfhost direction
+- [x] Fixture coverage includes both positive and negative cases for each added surface feature
+- [x] The implementation is fully in the selfhost compiler (`src/compiler/*.ark`) and fits the #529 selfhost direction
 
 ---
 

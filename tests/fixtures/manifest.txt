@@ -411,6 +411,13 @@ run:lang_uplift/guard_neg_range.ark
 run:lang_uplift/comprehension_guard.ark
 run:lang_uplift/guard_const_enum_destructure.ark
 run:lang_uplift/lambda_pattern.ark
+compile-error:lang_uplift/neg_mixed_arity.ark
+compile-error:lang_uplift/neg_incompatible_return.ark
+compile-error:lang_uplift/neg_guard_name_not_in_scope.ark
+compile-error:lang_uplift/neg_guard_not_bool.ark
+compile-error:lang_uplift/neg_comprehension_non_iterable.ark
+compile-error:lang_uplift/neg_comprehension_filter_not_bool.ark
+compile-error:lang_uplift/neg_unreachable_clause.ark
 diag:selfhost/comprehen_deny_non_iterable.ark
 diag:selfhost/comprehen_deny_filter_not_bool.ark
 diag:selfhost/comprehen_deny_unresolved_filter.ark

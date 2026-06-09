@@ -1,0 +1,3 @@
+// Guard references a name not in scope — should error
+fn describe(x: i32) -> String | undefined_name = "oops"
+fn describe(_: i32) -> String = "fallback"

@@ -1,0 +1,4 @@
+// Comprehension over non-iterable — should error
+pub fn main() {
+    let xs = [x for x in 42]
+}
