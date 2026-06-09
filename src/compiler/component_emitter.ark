@@ -5851,7 +5851,7 @@ fn comp_should_export_func(name: String) -> bool {
 	true
 }
 
-fn emit_color_enum_component(core_wasm: Vec<i32>, next_name: String, value_name: String) -> Vec<i32> {
+fn emit_color_enum_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, next_name: String, value_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -5863,7 +5863,7 @@ fn emit_color_enum_component(core_wasm: Vec<i32>, next_name: String, value_name:
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -5962,7 +5962,7 @@ fn emit_color_enum_component(core_wasm: Vec<i32>, next_name: String, value_name:
 	out.bytes
 }
 
-fn emit_color_code_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_color_code_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -5974,7 +5974,7 @@ fn emit_color_code_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -6052,7 +6052,7 @@ fn emit_color_code_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 	out.bytes
 }
 
-fn emit_color_roundtrip_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_color_roundtrip_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -6064,7 +6064,7 @@ fn emit_color_roundtrip_component(core_wasm: Vec<i32>, export_name: String) -> V
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -6142,7 +6142,7 @@ fn emit_color_roundtrip_component(core_wasm: Vec<i32>, export_name: String) -> V
 	out.bytes
 }
 
-fn emit_record_point_component(core_wasm: Vec<i32>, distance_name: String, add_name: String) -> Vec<i32> {
+fn emit_record_point_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, distance_name: String, add_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -6154,7 +6154,7 @@ fn emit_record_point_component(core_wasm: Vec<i32>, distance_name: String, add_n
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -6273,7 +6273,7 @@ fn emit_record_point_component(core_wasm: Vec<i32>, distance_name: String, add_n
 	out.bytes
 }
 
-fn emit_record_point_add_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_record_point_add_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -6285,7 +6285,7 @@ fn emit_record_point_add_component(core_wasm: Vec<i32>, export_name: String) -> 
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -6382,7 +6382,7 @@ fn emit_record_point_add_component(core_wasm: Vec<i32>, export_name: String) -> 
 	out.bytes
 }
 
-fn emit_record_distance_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_record_distance_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -6394,7 +6394,7 @@ fn emit_record_distance_component(core_wasm: Vec<i32>, export_name: String) -> V
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -6483,7 +6483,7 @@ fn emit_record_distance_component(core_wasm: Vec<i32>, export_name: String) -> V
 	out.bytes
 }
 
-fn emit_record_point_roundtrip_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_record_point_roundtrip_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -6495,7 +6495,7 @@ fn emit_record_point_roundtrip_component(core_wasm: Vec<i32>, export_name: Strin
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -6591,7 +6591,7 @@ fn emit_record_point_roundtrip_component(core_wasm: Vec<i32>, export_name: Strin
 	out.bytes
 }
 
-fn emit_string_unary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_string_unary_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -6603,7 +6603,7 @@ fn emit_string_unary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -6686,7 +6686,7 @@ fn emit_string_unary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<
 	out.bytes
 }
 
-fn emit_string_to_i32_component(core_wasm: Vec<i32>, export_name: String, result_wit_type: i32) -> Vec<i32> {
+fn emit_string_to_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String, result_wit_type: i32) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -6698,7 +6698,7 @@ fn emit_string_to_i32_component(core_wasm: Vec<i32>, export_name: String, result
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -6781,27 +6781,27 @@ fn emit_string_to_i32_component(core_wasm: Vec<i32>, export_name: String, result
 	out.bytes
 }
 
-fn emit_string_to_u8_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_string_to_i32_component(core_wasm, export_name, WIT_VAL_U8())
+fn emit_string_to_u8_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, wasi_stub_bytes, export_name, WIT_VAL_U8())
 }
 
-fn emit_string_to_u16_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_string_to_i32_component(core_wasm, export_name, WIT_VAL_U16())
+fn emit_string_to_u16_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, wasi_stub_bytes, export_name, WIT_VAL_U16())
 }
 
-fn emit_string_to_u32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_string_to_i32_component(core_wasm, export_name, WIT_VAL_U32())
+fn emit_string_to_u32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, wasi_stub_bytes, export_name, WIT_VAL_U32())
 }
 
-fn emit_string_to_i8_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_string_to_i32_component(core_wasm, export_name, WIT_VAL_S8())
+fn emit_string_to_i8_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, wasi_stub_bytes, export_name, WIT_VAL_S8())
 }
 
-fn emit_string_to_i16_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_string_to_i32_component(core_wasm, export_name, WIT_VAL_S16())
+fn emit_string_to_i16_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, wasi_stub_bytes, export_name, WIT_VAL_S16())
 }
 
-fn emit_string_to_bool_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_string_to_bool_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -6813,7 +6813,7 @@ fn emit_string_to_bool_component(core_wasm: Vec<i32>, export_name: String) -> Ve
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -6896,7 +6896,7 @@ fn emit_string_to_bool_component(core_wasm: Vec<i32>, export_name: String) -> Ve
 	out.bytes
 }
 
-fn emit_string_to_char_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_string_to_char_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -6908,7 +6908,7 @@ fn emit_string_to_char_component(core_wasm: Vec<i32>, export_name: String) -> Ve
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -6991,7 +6991,7 @@ fn emit_string_to_char_component(core_wasm: Vec<i32>, export_name: String) -> Ve
 	out.bytes
 }
 
-fn emit_string_to_f64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_string_to_f64_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -7003,7 +7003,7 @@ fn emit_string_to_f64_component(core_wasm: Vec<i32>, export_name: String) -> Vec
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -7086,7 +7086,7 @@ fn emit_string_to_f64_component(core_wasm: Vec<i32>, export_name: String) -> Vec
 	out.bytes
 }
 
-fn emit_string_to_f32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_string_to_f32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -7098,7 +7098,7 @@ fn emit_string_to_f32_component(core_wasm: Vec<i32>, export_name: String) -> Vec
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -7181,7 +7181,7 @@ fn emit_string_to_f32_component(core_wasm: Vec<i32>, export_name: String) -> Vec
 	out.bytes
 }
 
-fn emit_string_to_i64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_string_to_i64_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -7193,7 +7193,7 @@ fn emit_string_to_i64_component(core_wasm: Vec<i32>, export_name: String) -> Vec
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -7276,7 +7276,7 @@ fn emit_string_to_i64_component(core_wasm: Vec<i32>, export_name: String) -> Vec
 	out.bytes
 }
 
-fn emit_string_to_u64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_string_to_u64_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -7288,7 +7288,7 @@ fn emit_string_to_u64_component(core_wasm: Vec<i32>, export_name: String) -> Vec
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -7371,7 +7371,7 @@ fn emit_string_to_u64_component(core_wasm: Vec<i32>, export_name: String) -> Vec
 	out.bytes
 }
 
-fn emit_i32_to_string_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_i32_to_string_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -7383,7 +7383,7 @@ fn emit_i32_to_string_component(core_wasm: Vec<i32>, export_name: String) -> Vec
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -7466,7 +7466,7 @@ fn emit_i32_to_string_component(core_wasm: Vec<i32>, export_name: String) -> Vec
 	out.bytes
 }
 
-fn emit_list_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_list_i32_to_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -7478,7 +7478,7 @@ fn emit_list_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> V
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -7562,7 +7562,7 @@ fn emit_list_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> V
 	out.bytes
 }
 
-fn emit_i32_to_list_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_i32_to_list_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -7574,7 +7574,7 @@ fn emit_i32_to_list_i32_component(core_wasm: Vec<i32>, export_name: String) -> V
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -7651,7 +7651,7 @@ fn emit_i32_to_list_i32_component(core_wasm: Vec<i32>, export_name: String) -> V
 	out.bytes
 }
 
-fn emit_list_i32_to_list_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_list_i32_to_list_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -7663,7 +7663,7 @@ fn emit_list_i32_to_list_i32_component(core_wasm: Vec<i32>, export_name: String)
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -7747,7 +7747,7 @@ fn emit_list_i32_to_list_i32_component(core_wasm: Vec<i32>, export_name: String)
 	out.bytes
 }
 
-fn emit_i32_to_option_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_i32_to_option_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -7759,7 +7759,7 @@ fn emit_i32_to_option_i32_component(core_wasm: Vec<i32>, export_name: String) ->
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -7836,7 +7836,7 @@ fn emit_i32_to_option_i32_component(core_wasm: Vec<i32>, export_name: String) ->
 	out.bytes
 }
 
-fn emit_bool_to_option_bool_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_bool_to_option_bool_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -7848,7 +7848,7 @@ fn emit_bool_to_option_bool_component(core_wasm: Vec<i32>, export_name: String) 
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -7925,7 +7925,7 @@ fn emit_bool_to_option_bool_component(core_wasm: Vec<i32>, export_name: String) 
 	out.bytes
 }
 
-fn emit_bool_to_option_i64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_bool_to_option_i64_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -7937,7 +7937,7 @@ fn emit_bool_to_option_i64_component(core_wasm: Vec<i32>, export_name: String) -
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -8014,7 +8014,7 @@ fn emit_bool_to_option_i64_component(core_wasm: Vec<i32>, export_name: String) -
 	out.bytes
 }
 
-fn emit_option_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_option_i32_to_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -8026,7 +8026,7 @@ fn emit_option_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) ->
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -8103,7 +8103,7 @@ fn emit_option_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) ->
 	out.bytes
 }
 
-fn emit_option_i64_to_i64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_option_i64_to_i64_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -8115,7 +8115,7 @@ fn emit_option_i64_to_i64_component(core_wasm: Vec<i32>, export_name: String) ->
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -8192,7 +8192,7 @@ fn emit_option_i64_to_i64_component(core_wasm: Vec<i32>, export_name: String) ->
 	out.bytes
 }
 
-fn emit_option_i32_to_option_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_option_i32_to_option_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -8204,7 +8204,7 @@ fn emit_option_i32_to_option_i32_component(core_wasm: Vec<i32>, export_name: Str
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -8281,7 +8281,7 @@ fn emit_option_i32_to_option_i32_component(core_wasm: Vec<i32>, export_name: Str
 	out.bytes
 }
 
-fn emit_i32_i32_to_result_i32_string_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_i32_i32_to_result_i32_string_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -8293,7 +8293,7 @@ fn emit_i32_i32_to_result_i32_string_component(core_wasm: Vec<i32>, export_name:
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -8371,7 +8371,7 @@ fn emit_i32_i32_to_result_i32_string_component(core_wasm: Vec<i32>, export_name:
 	out.bytes
 }
 
-fn emit_bool_to_result_bool_bool_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_bool_to_result_bool_bool_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -8383,7 +8383,7 @@ fn emit_bool_to_result_bool_bool_component(core_wasm: Vec<i32>, export_name: Str
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -8460,7 +8460,7 @@ fn emit_bool_to_result_bool_bool_component(core_wasm: Vec<i32>, export_name: Str
 	out.bytes
 }
 
-fn emit_result_i32_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_result_i32_i32_to_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -8472,7 +8472,7 @@ fn emit_result_i32_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -8549,7 +8549,7 @@ fn emit_result_i32_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String
 	out.bytes
 }
 
-fn emit_result_i32_string_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_result_i32_string_to_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -8561,7 +8561,7 @@ fn emit_result_i32_string_to_i32_component(core_wasm: Vec<i32>, export_name: Str
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -8645,7 +8645,7 @@ fn emit_result_i32_string_to_i32_component(core_wasm: Vec<i32>, export_name: Str
 	out.bytes
 }
 
-fn emit_result_i32_i32_to_result_i32_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_result_i32_i32_to_result_i32_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -8657,7 +8657,7 @@ fn emit_result_i32_i32_to_result_i32_i32_component(core_wasm: Vec<i32>, export_n
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -8734,7 +8734,7 @@ fn emit_result_i32_i32_to_result_i32_i32_component(core_wasm: Vec<i32>, export_n
 	out.bytes
 }
 
-fn emit_shape_area_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_shape_area_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -8746,7 +8746,7 @@ fn emit_shape_area_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -8835,7 +8835,7 @@ fn emit_shape_area_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 	out.bytes
 }
 
-fn emit_shape_roundtrip_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_shape_roundtrip_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -8847,7 +8847,7 @@ fn emit_shape_roundtrip_component(core_wasm: Vec<i32>, export_name: String) -> V
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -8943,7 +8943,7 @@ fn emit_shape_roundtrip_component(core_wasm: Vec<i32>, export_name: String) -> V
 	out.bytes
 }
 
-fn emit_i32_i32_to_tuple_i32_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_i32_i32_to_tuple_i32_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -8955,7 +8955,7 @@ fn emit_i32_i32_to_tuple_i32_i32_component(core_wasm: Vec<i32>, export_name: Str
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -9027,7 +9027,7 @@ fn emit_i32_i32_to_tuple_i32_i32_component(core_wasm: Vec<i32>, export_name: Str
 	out.bytes
 }
 
-fn emit_i64_i64_to_tuple_i64_i64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_i64_i64_to_tuple_i64_i64_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -9039,7 +9039,7 @@ fn emit_i64_i64_to_tuple_i64_i64_component(core_wasm: Vec<i32>, export_name: Str
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -9122,7 +9122,7 @@ fn emit_i64_i64_to_tuple_i64_i64_component(core_wasm: Vec<i32>, export_name: Str
 	out.bytes
 }
 
-fn emit_tuple_i32_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_tuple_i32_i32_to_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -9134,7 +9134,7 @@ fn emit_tuple_i32_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String)
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -9214,7 +9214,7 @@ fn emit_tuple_i32_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String)
 	out.bytes
 }
 
-fn emit_tuple_i32_bool_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_tuple_i32_bool_to_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -9226,7 +9226,7 @@ fn emit_tuple_i32_bool_to_i32_component(core_wasm: Vec<i32>, export_name: String
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -9306,7 +9306,7 @@ fn emit_tuple_i32_bool_to_i32_component(core_wasm: Vec<i32>, export_name: String
 	out.bytes
 }
 
-fn emit_tuple_bool_bool_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_tuple_bool_bool_to_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -9318,7 +9318,7 @@ fn emit_tuple_bool_bool_to_i32_component(core_wasm: Vec<i32>, export_name: Strin
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -9398,7 +9398,7 @@ fn emit_tuple_bool_bool_to_i32_component(core_wasm: Vec<i32>, export_name: Strin
 	out.bytes
 }
 
-fn emit_tuple_i32_i32_to_tuple_i32_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_tuple_i32_i32_to_tuple_i32_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -9410,7 +9410,7 @@ fn emit_tuple_i32_i32_to_tuple_i32_i32_component(core_wasm: Vec<i32>, export_nam
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -9490,7 +9490,7 @@ fn emit_tuple_i32_i32_to_tuple_i32_i32_component(core_wasm: Vec<i32>, export_nam
 	out.bytes
 }
 
-fn emit_f32_unary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_f32_unary_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -9502,7 +9502,7 @@ fn emit_f32_unary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -9571,7 +9571,7 @@ fn emit_f32_unary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32
 	out.bytes
 }
 
-fn emit_f32_binary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_f32_binary_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -9583,7 +9583,7 @@ fn emit_f32_binary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -9653,7 +9653,7 @@ fn emit_f32_binary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 	out.bytes
 }
 
-fn emit_f32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_f32_to_i32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -9665,7 +9665,7 @@ fn emit_f32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -9734,7 +9734,7 @@ fn emit_f32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 	out.bytes
 }
 
-fn emit_i32_to_f32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+fn emit_i32_to_f32_component(core_wasm: Vec<i32>, wasi_stub_bytes: Vec<i32>, export_name: String) -> Vec<i32> {
 	let out = ComponentWriter_new()
 	comp_emit_byte(out, 0x00)
 	comp_emit_byte(out, 0x61)
@@ -9746,7 +9746,7 @@ fn emit_i32_to_f32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 	comp_emit_byte(out, 0x00)
 
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 	let core_module_sec = ComponentWriter_new()
 	comp_emit_bytes(core_module_sec, core_wasm)
@@ -9835,6 +9835,10 @@ pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_
 	comp_emit_byte(out, 0x01)
 	comp_emit_byte(out, 0x00)
 
+	// Precompute the WASI stub core module bytes (deterministic, reused by all
+	// emit_*_component functions and the inline fallback path below).
+	let wasi_stub_bytes = comp_wasi_stub_core_module()
+
 	// Count exportable functions
 	let fn_count = len(mir.functions)
 	let mut export_count = 0
@@ -9861,209 +9865,209 @@ pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_
 	}
 
 	if comp_has_record_point_exports(export_names) {
-		return emit_record_point_component(core_wasm, String_from("distance_sq"), String_from("add_points"))
+		return emit_record_point_component(core_wasm, wasi_stub_bytes, String_from("distance_sq"), String_from("add_points"))
 	}
 	let point_distance_name = comp_point_to_i32_pair_export_name(mir)
 	let point_add_name = comp_point_point_to_point_pair_export_name(mir)
 	if len(point_distance_name) > 0 && len(point_add_name) > 0 {
-		return emit_record_point_component(core_wasm, point_distance_name, point_add_name)
+		return emit_record_point_component(core_wasm, wasi_stub_bytes, point_distance_name, point_add_name)
 	}
 	if comp_has_record_distance_exports(export_names) {
-		return emit_record_distance_component(core_wasm, String_from("distance_sq"))
+		return emit_record_distance_component(core_wasm, wasi_stub_bytes, String_from("distance_sq"))
 	}
 	let point_to_i32_name = comp_single_point_to_i32_export_name(mir)
 	if len(point_to_i32_name) > 0 {
-		return emit_record_distance_component(core_wasm, point_to_i32_name)
+		return emit_record_distance_component(core_wasm, wasi_stub_bytes, point_to_i32_name)
 	}
 	let point_to_point_name = comp_single_point_to_point_export_name(mir)
 	if len(point_to_point_name) > 0 {
-		return emit_record_point_roundtrip_component(core_wasm, point_to_point_name)
+		return emit_record_point_roundtrip_component(core_wasm, wasi_stub_bytes, point_to_point_name)
 	}
 	let point_point_to_point_name = comp_single_point_point_to_point_export_name(mir)
 	if len(point_point_to_point_name) > 0 {
-		return emit_record_point_add_component(core_wasm, point_point_to_point_name)
+		return emit_record_point_add_component(core_wasm, wasi_stub_bytes, point_point_to_point_name)
 	}
 	if comp_has_color_code_exports(export_names) {
-		return emit_color_code_component(core_wasm, String_from("color_code"))
+		return emit_color_code_component(core_wasm, wasi_stub_bytes, String_from("color_code"))
 	}
 	if comp_has_color_enum_exports(export_names) {
-		return emit_color_enum_component(core_wasm, String_from("next_color"), String_from("color_to_value"))
+		return emit_color_enum_component(core_wasm, wasi_stub_bytes, String_from("next_color"), String_from("color_to_value"))
 	}
 	let color_next_name = comp_color_to_color_export_name(mir)
 	let color_value_name = comp_color_to_i32_pair_export_name(mir)
 	if len(color_next_name) > 0 && len(color_value_name) > 0 {
-		return emit_color_enum_component(core_wasm, color_next_name, color_value_name)
+		return emit_color_enum_component(core_wasm, wasi_stub_bytes, color_next_name, color_value_name)
 	}
 	let color_to_i32_name = comp_single_color_to_i32_export_name(mir)
 	if len(color_to_i32_name) > 0 {
-		return emit_color_code_component(core_wasm, color_to_i32_name)
+		return emit_color_code_component(core_wasm, wasi_stub_bytes, color_to_i32_name)
 	}
 	let color_to_color_name = comp_single_color_to_color_export_name(mir)
 	if len(color_to_color_name) > 0 {
-		return emit_color_roundtrip_component(core_wasm, color_to_color_name)
+		return emit_color_roundtrip_component(core_wasm, wasi_stub_bytes, color_to_color_name)
 	}
 	let string_unary_name = comp_single_string_unary_export_name(mir)
 	if len(string_unary_name) > 0 {
-		return emit_string_unary_component(core_wasm, string_unary_name)
+		return emit_string_unary_component(core_wasm, wasi_stub_bytes, string_unary_name)
 	}
 	let string_to_i32_name = comp_single_string_to_i32_export_name(mir)
 	if len(string_to_i32_name) > 0 {
-		return emit_string_to_i32_component(core_wasm, string_to_i32_name, WIT_VAL_S32())
+		return emit_string_to_i32_component(core_wasm, wasi_stub_bytes, string_to_i32_name, WIT_VAL_S32())
 	}
 	let string_to_u8_name = comp_single_string_to_named_i32_export_name(mir, String_from("u8"))
 	if len(string_to_u8_name) > 0 {
-		return emit_string_to_u8_component(core_wasm, string_to_u8_name)
+		return emit_string_to_u8_component(core_wasm, wasi_stub_bytes, string_to_u8_name)
 	}
 	let string_to_u16_name = comp_single_string_to_named_i32_export_name(mir, String_from("u16"))
 	if len(string_to_u16_name) > 0 {
-		return emit_string_to_u16_component(core_wasm, string_to_u16_name)
+		return emit_string_to_u16_component(core_wasm, wasi_stub_bytes, string_to_u16_name)
 	}
 	let string_to_u32_name = comp_single_string_to_named_i32_export_name(mir, String_from("u32"))
 	if len(string_to_u32_name) > 0 {
-		return emit_string_to_u32_component(core_wasm, string_to_u32_name)
+		return emit_string_to_u32_component(core_wasm, wasi_stub_bytes, string_to_u32_name)
 	}
 	let string_to_i8_name = comp_single_string_to_named_i32_export_name(mir, String_from("i8"))
 	if len(string_to_i8_name) > 0 {
-		return emit_string_to_i8_component(core_wasm, string_to_i8_name)
+		return emit_string_to_i8_component(core_wasm, wasi_stub_bytes, string_to_i8_name)
 	}
 	let string_to_i16_name = comp_single_string_to_named_i32_export_name(mir, String_from("i16"))
 	if len(string_to_i16_name) > 0 {
-		return emit_string_to_i16_component(core_wasm, string_to_i16_name)
+		return emit_string_to_i16_component(core_wasm, wasi_stub_bytes, string_to_i16_name)
 	}
 	let string_to_bool_name = comp_single_string_to_bool_export_name(mir)
 	if len(string_to_bool_name) > 0 {
-		return emit_string_to_bool_component(core_wasm, string_to_bool_name)
+		return emit_string_to_bool_component(core_wasm, wasi_stub_bytes, string_to_bool_name)
 	}
 	let string_to_char_name = comp_single_string_to_char_export_name(mir)
 	if len(string_to_char_name) > 0 {
-		return emit_string_to_char_component(core_wasm, string_to_char_name)
+		return emit_string_to_char_component(core_wasm, wasi_stub_bytes, string_to_char_name)
 	}
 	let string_to_f32_name = comp_single_string_to_f32_export_name(mir)
 	if len(string_to_f32_name) > 0 {
-		return emit_string_to_f32_component(core_wasm, string_to_f32_name)
+		return emit_string_to_f32_component(core_wasm, wasi_stub_bytes, string_to_f32_name)
 	}
 	let string_to_f64_name = comp_single_string_to_f64_export_name(mir)
 	if len(string_to_f64_name) > 0 {
-		return emit_string_to_f64_component(core_wasm, string_to_f64_name)
+		return emit_string_to_f64_component(core_wasm, wasi_stub_bytes, string_to_f64_name)
 	}
 	let string_to_i64_name = comp_single_string_to_i64_export_name(mir)
 	if len(string_to_i64_name) > 0 {
-		return emit_string_to_i64_component(core_wasm, string_to_i64_name)
+		return emit_string_to_i64_component(core_wasm, wasi_stub_bytes, string_to_i64_name)
 	}
 	let string_to_u64_name = comp_single_string_to_u64_export_name(mir)
 	if len(string_to_u64_name) > 0 {
-		return emit_string_to_u64_component(core_wasm, string_to_u64_name)
+		return emit_string_to_u64_component(core_wasm, wasi_stub_bytes, string_to_u64_name)
 	}
 	let string_result_name = comp_single_i32_to_string_export_name(mir)
 	if len(string_result_name) > 0 {
-		return emit_i32_to_string_component(core_wasm, string_result_name)
+		return emit_i32_to_string_component(core_wasm, wasi_stub_bytes, string_result_name)
 	}
 	let list_i32_name = comp_single_list_i32_to_i32_export_name(mir)
 	if len(list_i32_name) > 0 {
-		return emit_list_i32_to_i32_component(core_wasm, list_i32_name)
+		return emit_list_i32_to_i32_component(core_wasm, wasi_stub_bytes, list_i32_name)
 	}
 	let list_i32_result_name = comp_single_i32_to_list_i32_export_name(mir)
 	if len(list_i32_result_name) > 0 {
-		return emit_i32_to_list_i32_component(core_wasm, list_i32_result_name)
+		return emit_i32_to_list_i32_component(core_wasm, wasi_stub_bytes, list_i32_result_name)
 	}
 	let list_i32_roundtrip_name = comp_single_list_i32_to_list_i32_export_name(mir)
 	if len(list_i32_roundtrip_name) > 0 {
-		return emit_list_i32_to_list_i32_component(core_wasm, list_i32_roundtrip_name)
+		return emit_list_i32_to_list_i32_component(core_wasm, wasi_stub_bytes, list_i32_roundtrip_name)
 	}
 	let option_i32_name = comp_single_i32_to_option_i32_export_name(mir)
 	if len(option_i32_name) > 0 {
-		return emit_i32_to_option_i32_component(core_wasm, option_i32_name)
+		return emit_i32_to_option_i32_component(core_wasm, wasi_stub_bytes, option_i32_name)
 	}
 	let option_bool_name = comp_single_bool_to_option_bool_export_name(mir)
 	if len(option_bool_name) > 0 {
-		return emit_bool_to_option_bool_component(core_wasm, option_bool_name)
+		return emit_bool_to_option_bool_component(core_wasm, wasi_stub_bytes, option_bool_name)
 	}
 	let option_i64_name = comp_single_bool_to_option_i64_export_name(mir)
 	if len(option_i64_name) > 0 {
-		return emit_bool_to_option_i64_component(core_wasm, option_i64_name)
+		return emit_bool_to_option_i64_component(core_wasm, wasi_stub_bytes, option_i64_name)
 	}
 	let option_i32_param_name = comp_single_option_i32_to_i32_export_name(mir)
 	if len(option_i32_param_name) > 0 {
-		return emit_option_i32_to_i32_component(core_wasm, option_i32_param_name)
+		return emit_option_i32_to_i32_component(core_wasm, wasi_stub_bytes, option_i32_param_name)
 	}
 	let option_i64_param_name = comp_single_option_i64_to_i64_export_name(mir)
 	if len(option_i64_param_name) > 0 {
-		return emit_option_i64_to_i64_component(core_wasm, option_i64_param_name)
+		return emit_option_i64_to_i64_component(core_wasm, wasi_stub_bytes, option_i64_param_name)
 	}
 	let option_i32_roundtrip_name = comp_single_option_i32_to_option_i32_export_name(mir)
 	if len(option_i32_roundtrip_name) > 0 {
-		return emit_option_i32_to_option_i32_component(core_wasm, option_i32_roundtrip_name)
+		return emit_option_i32_to_option_i32_component(core_wasm, wasi_stub_bytes, option_i32_roundtrip_name)
 	}
 	let result_i32_string_name = comp_single_i32_i32_to_result_i32_string_export_name(mir)
 	if len(result_i32_string_name) > 0 {
-		return emit_i32_i32_to_result_i32_string_component(core_wasm, result_i32_string_name)
+		return emit_i32_i32_to_result_i32_string_component(core_wasm, wasi_stub_bytes, result_i32_string_name)
 	}
 	let result_bool_name = comp_single_bool_to_result_bool_bool_export_name(mir)
 	if len(result_bool_name) > 0 {
-		return emit_bool_to_result_bool_bool_component(core_wasm, result_bool_name)
+		return emit_bool_to_result_bool_bool_component(core_wasm, wasi_stub_bytes, result_bool_name)
 	}
 	let result_i32_i32_param_name = comp_single_result_i32_i32_to_i32_export_name(mir)
 	if len(result_i32_i32_param_name) > 0 {
-		return emit_result_i32_i32_to_i32_component(core_wasm, result_i32_i32_param_name)
+		return emit_result_i32_i32_to_i32_component(core_wasm, wasi_stub_bytes, result_i32_i32_param_name)
 	}
 	let result_i32_string_param_name = comp_single_result_i32_string_to_i32_export_name(mir)
 	if len(result_i32_string_param_name) > 0 {
-		return emit_result_i32_string_to_i32_component(core_wasm, result_i32_string_param_name)
+		return emit_result_i32_string_to_i32_component(core_wasm, wasi_stub_bytes, result_i32_string_param_name)
 	}
 	let result_i32_i32_roundtrip_name = comp_single_result_i32_i32_to_result_i32_i32_export_name(mir)
 	if len(result_i32_i32_roundtrip_name) > 0 {
-		return emit_result_i32_i32_to_result_i32_i32_component(core_wasm, result_i32_i32_roundtrip_name)
+		return emit_result_i32_i32_to_result_i32_i32_component(core_wasm, wasi_stub_bytes, result_i32_i32_roundtrip_name)
 	}
 	if comp_has_shape_area_exports(export_names) {
-		return emit_shape_area_component(core_wasm, String_from("area"))
+		return emit_shape_area_component(core_wasm, wasi_stub_bytes, String_from("area"))
 	}
 	let shape_to_f64_name = comp_single_shape_to_f64_export_name(mir)
 	if len(shape_to_f64_name) > 0 {
-		return emit_shape_area_component(core_wasm, shape_to_f64_name)
+		return emit_shape_area_component(core_wasm, wasi_stub_bytes, shape_to_f64_name)
 	}
 	let shape_to_shape_name = comp_single_shape_to_shape_export_name(mir)
 	if len(shape_to_shape_name) > 0 {
-		return emit_shape_roundtrip_component(core_wasm, shape_to_shape_name)
+		return emit_shape_roundtrip_component(core_wasm, wasi_stub_bytes, shape_to_shape_name)
 	}
 	let tuple_i32_name = comp_single_i32_i32_to_tuple_i32_i32_export_name(mir)
 	if len(tuple_i32_name) > 0 {
-		return emit_i32_i32_to_tuple_i32_i32_component(core_wasm, tuple_i32_name)
+		return emit_i32_i32_to_tuple_i32_i32_component(core_wasm, wasi_stub_bytes, tuple_i32_name)
 	}
 	let tuple_i64_name = comp_single_i64_i64_to_tuple_i64_i64_export_name(mir)
 	if len(tuple_i64_name) > 0 {
-		return emit_i64_i64_to_tuple_i64_i64_component(core_wasm, tuple_i64_name)
+		return emit_i64_i64_to_tuple_i64_i64_component(core_wasm, wasi_stub_bytes, tuple_i64_name)
 	}
 	let tuple_i32_param_name = comp_single_tuple_i32_i32_to_i32_export_name(mir)
 	if len(tuple_i32_param_name) > 0 {
-		return emit_tuple_i32_i32_to_i32_component(core_wasm, tuple_i32_param_name)
+		return emit_tuple_i32_i32_to_i32_component(core_wasm, wasi_stub_bytes, tuple_i32_param_name)
 	}
 	let tuple_i32_bool_param_name = comp_single_tuple_i32_bool_to_i32_export_name(mir)
 	if len(tuple_i32_bool_param_name) > 0 {
-		return emit_tuple_i32_bool_to_i32_component(core_wasm, tuple_i32_bool_param_name)
+		return emit_tuple_i32_bool_to_i32_component(core_wasm, wasi_stub_bytes, tuple_i32_bool_param_name)
 	}
 	let tuple_bool_bool_param_name = comp_single_tuple_bool_bool_to_i32_export_name(mir)
 	if len(tuple_bool_bool_param_name) > 0 {
-		return emit_tuple_bool_bool_to_i32_component(core_wasm, tuple_bool_bool_param_name)
+		return emit_tuple_bool_bool_to_i32_component(core_wasm, wasi_stub_bytes, tuple_bool_bool_param_name)
 	}
 	let tuple_i32_roundtrip_name = comp_single_tuple_i32_i32_to_tuple_i32_i32_export_name(mir)
 	if len(tuple_i32_roundtrip_name) > 0 {
-		return emit_tuple_i32_i32_to_tuple_i32_i32_component(core_wasm, tuple_i32_roundtrip_name)
+		return emit_tuple_i32_i32_to_tuple_i32_i32_component(core_wasm, wasi_stub_bytes, tuple_i32_roundtrip_name)
 	}
 	let f32_binary_name = comp_single_f32_binary_export_name(mir)
 	if len(f32_binary_name) > 0 {
-		return emit_f32_binary_component(core_wasm, f32_binary_name)
+		return emit_f32_binary_component(core_wasm, wasi_stub_bytes, f32_binary_name)
 	}
 	let f32_to_i32_name = comp_single_f32_to_i32_export_name(mir)
 	if len(f32_to_i32_name) > 0 {
-		return emit_f32_to_i32_component(core_wasm, f32_to_i32_name)
+		return emit_f32_to_i32_component(core_wasm, wasi_stub_bytes, f32_to_i32_name)
 	}
 	let i32_to_f32_name = comp_single_i32_to_f32_export_name(mir)
 	if len(i32_to_f32_name) > 0 {
-		return emit_i32_to_f32_component(core_wasm, i32_to_f32_name)
+		return emit_i32_to_f32_component(core_wasm, wasi_stub_bytes, i32_to_f32_name)
 	}
 	let f32_unary_name = comp_single_f32_unary_export_name(mir)
 	if len(f32_unary_name) > 0 {
-		return emit_f32_unary_component(core_wasm, f32_unary_name)
+		return emit_f32_unary_component(core_wasm, wasi_stub_bytes, f32_unary_name)
 	}
 
 	// Build component function type definitions using the TypeInterner
@@ -10115,7 +10119,7 @@ pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_
 	// Core module 0: a minimal WASI Preview 1 instance stub used to satisfy the
 	// unconditional imports emitted by the current core wasm emitter.
 	let wasi_stub_sec = ComponentWriter_new()
-	comp_emit_bytes(wasi_stub_sec, comp_wasi_stub_core_module())
+	comp_emit_bytes(wasi_stub_sec, clone(wasi_stub_bytes))
 	comp_emit_section(out, COMP_SEC_CORE_MODULE(), wasi_stub_sec)
 
 	// Core module 1: the compiled user module.
