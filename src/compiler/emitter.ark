@@ -80,7 +80,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         main_check_idx = main_check_idx + 1
     }
     let type_sec = emit_writer::WasmWriter_new()
-    emit_writer::emit_leb128_u(type_sec, fn_count + emit_scratch::NUM_WASI_TYPES() + needs_wrapper)
+    emit_writer::emit_leb128_u(type_sec, fn_count + 6 + needs_wrapper)
     emit_writer::emit_byte(type_sec, 96)
     emit_writer::emit_leb128_u(type_sec, 4)
     emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
@@ -117,6 +117,14 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     emit_writer::emit_leb128_u(type_sec, 1)
     emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
     emit_writer::emit_leb128_u(type_sec, 0)
+    // WASI type 5: clock_time_get (i32, i64, i32) -> i32
+    emit_writer::emit_byte(type_sec, 96)
+    emit_writer::emit_leb128_u(type_sec, 3)
+    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
+    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I64())
+    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
+    emit_writer::emit_leb128_u(type_sec, 1)
+    emit_writer::emit_byte(type_sec, emit_opcodes::WASM_I32())
     let mut i = 0
     while i < fn_count {
         let f = get_unchecked(mir.functions, i)
@@ -145,7 +153,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     emit_writer::emit_section(out, emit_opcodes::SEC_TYPE(), type_sec)
     let import_sec = emit_writer::WasmWriter_new()
     let wasi_module = String_from("wasi_snapshot_preview1")
-    emit_writer::emit_leb128_u(import_sec, emit_scratch::NUM_WASI_IMPORTS())
+    emit_writer::emit_leb128_u(import_sec, 9)
     emit_writer::emit_string(import_sec, clone(wasi_module))
     emit_writer::emit_string(import_sec, String_from("fd_write"))
     emit_writer::emit_byte(import_sec, 0)
@@ -174,16 +182,24 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     emit_writer::emit_string(import_sec, String_from("proc_exit"))
     emit_writer::emit_byte(import_sec, 0)
     emit_writer::emit_leb128_u(import_sec, 4)
+    emit_writer::emit_string(import_sec, clone(wasi_module))
+    emit_writer::emit_string(import_sec, String_from("clock_time_get"))
+    emit_writer::emit_byte(import_sec, 0)
+    emit_writer::emit_leb128_u(import_sec, 5)
+    emit_writer::emit_string(import_sec, clone(wasi_module))
+    emit_writer::emit_string(import_sec, String_from("random_get"))
+    emit_writer::emit_byte(import_sec, 0)
+    emit_writer::emit_leb128_u(import_sec, 1)
     emit_writer::emit_section(out, emit_opcodes::SEC_IMPORT(), import_sec)
     let func_sec = emit_writer::WasmWriter_new()
     emit_writer::emit_leb128_u(func_sec, fn_count + needs_wrapper)
     let mut fi = 0
     while fi < fn_count {
-        emit_writer::emit_leb128_u(func_sec, fi + emit_scratch::NUM_WASI_TYPES())
+        emit_writer::emit_leb128_u(func_sec, fi + 6)
         fi = fi + 1
     }
     if needs_wrapper == 1 {
-        emit_writer::emit_leb128_u(func_sec, fn_count + emit_scratch::NUM_WASI_TYPES())
+        emit_writer::emit_leb128_u(func_sec, fn_count + 6)
     }
     emit_writer::emit_section(out, emit_opcodes::SEC_FUNCTION(), func_sec)
     let mem_sec = emit_writer::WasmWriter_new()
@@ -228,9 +244,9 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         emit_writer::emit_string(export_sec, String_from("_start"))
         emit_writer::emit_byte(export_sec, 0)
         if needs_wrapper == 1 {
-            emit_writer::emit_leb128_u(export_sec, fn_count + emit_scratch::NUM_WASI_IMPORTS())
+            emit_writer::emit_leb128_u(export_sec, fn_count + 9)
         } else {
-            emit_writer::emit_leb128_u(export_sec, main_idx + emit_scratch::NUM_WASI_IMPORTS())
+            emit_writer::emit_leb128_u(export_sec, main_idx + 9)
     }
     }
     let mut exi = 0
@@ -243,7 +259,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
             if !(ef_len > 2 && char_at(ef_name, 0) == 95 && char_at(ef_name, 1) == 95) {
                 emit_writer::emit_string(export_sec, ef_name)
                 emit_writer::emit_byte(export_sec, 0)
-                emit_writer::emit_leb128_u(export_sec, exi + emit_scratch::NUM_WASI_IMPORTS())
+                emit_writer::emit_leb128_u(export_sec, exi + 9)
             }
         }
         exi = exi + 1
@@ -370,7 +386,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         let wrapper_body = emit_writer::WasmWriter_new()
         emit_writer::emit_leb128_u(wrapper_body, 0)
         emit_writer::emit_byte(wrapper_body, emit_opcodes::OP_CALL())
-        emit_writer::emit_leb128_u(wrapper_body, main_idx + emit_scratch::NUM_WASI_IMPORTS())
+        emit_writer::emit_leb128_u(wrapper_body, main_idx + 9)
         emit_writer::emit_byte(wrapper_body, emit_opcodes::OP_DROP())
         emit_writer::emit_byte(wrapper_body, emit_opcodes::OP_END())
         emit_writer::emit_leb128_u(code_sec, emit_writer::writer_size(wrapper_body))
@@ -1279,6 +1295,64 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i3
             emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
             return
         }
+        if eq(clone(callee), "__intrinsic_clock_now") {
+            let zero_ts: i64 = 0
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, 0)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_CONST())
+            emit_writer::emit_leb128_s_i64(w, zero_ts)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, 120)
+            emit_writer::emit_byte(w, emit_opcodes::OP_CALL())
+            emit_writer::emit_leb128_u(w, 7)
+            emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, 120)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_LOAD())
+            emit_writer::emit_byte(w, 2)
+            emit_writer::emit_byte(w, 0)
+            emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+            return
+        }
+        if eq(clone(callee), "__intrinsic_clock_now_ms") {
+            let zero_ts: i64 = 0
+            let million: i64 = 1000000
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, 0)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_CONST())
+            emit_writer::emit_leb128_s_i64(w, zero_ts)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, 120)
+            emit_writer::emit_byte(w, emit_opcodes::OP_CALL())
+            emit_writer::emit_leb128_u(w, 7)
+            emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, 120)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_LOAD())
+            emit_writer::emit_byte(w, 2)
+            emit_writer::emit_byte(w, 0)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_CONST())
+            emit_writer::emit_leb128_s_i64(w, million)
+            emit_writer::emit_byte(w, emit_opcodes::OP_I64_DIV_U())
+            emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+            return
+        }
+        if eq(clone(callee), "__intrinsic_random_i32") {
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, emit_scratch::SCRATCH_I32BUF())
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, 4)
+            emit_writer::emit_byte(w, emit_opcodes::OP_CALL())
+            emit_writer::emit_leb128_u(w, 8)
+            emit_writer::emit_byte(w, emit_opcodes::OP_DROP())
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_CONST())
+            emit_writer::emit_leb128_s(w, emit_scratch::SCRATCH_I32BUF())
+            emit_writer::emit_byte(w, emit_opcodes::OP_I32_LOAD())
+            emit_writer::emit_byte(w, 2)
+            emit_writer::emit_byte(w, 0)
+            emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+            return
+        }
         if starts_with(clone(callee), "Vec_new_") {
             emit_writer::emit_byte(w, 35)
             emit_writer::emit_leb128_u(w, 0)
@@ -1336,7 +1410,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i3
         let fn_idx = emit_inst_ctx::resolve_fn_index(ctx, clone(callee))
         if fn_idx >= 0 {
             emit_writer::emit_byte(w, emit_opcodes::OP_CALL())
-            emit_writer::emit_leb128_u(w, fn_idx + emit_scratch::NUM_WASI_IMPORTS())
+            emit_writer::emit_leb128_u(w, fn_idx + 9)
             let called = get_unchecked(ctx.functions, fn_idx)
             if called.return_type != VT_VOID() {
                 emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
