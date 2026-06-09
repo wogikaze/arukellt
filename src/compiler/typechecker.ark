@@ -141,6 +141,12 @@ fn builtin_call_return_type(name: String) -> TypeInfo {
         push(vec_ty.type_args, resolve_type_name(elem_name))
         return vec_ty
     }
+    if eq(clone(name), "__intrinsic_clock_now") || eq(clone(name), "__intrinsic_clock_now_ms") {
+        return TypeInfo_simple(typechecker_kinds::TY_I64())
+    }
+    if eq(clone(name), "__intrinsic_random_i32") {
+        return TypeInfo_simple(typechecker_kinds::TY_I32())
+    }
     TypeInfo_simple(typechecker_kinds::TY_UNKNOWN())
 }
 
@@ -767,6 +773,9 @@ fn is_logical_op(op: i32) -> bool {
 
 fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     if node.kind == typechecker_kinds::NK_INT_LIT() {
+        if ends_with(clone(node.text), String_from("i64")) {
+            return TypeInfo_simple(typechecker_kinds::TY_I64())
+        }
         return TypeInfo_simple(typechecker_kinds::TY_I32())
     }
     if node.kind == typechecker_kinds::NK_FLOAT_LIT() {
@@ -835,7 +844,13 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
     if node.kind == typechecker_kinds::NK_IF_EXPR() {
         if len(node.children) >= 2 {
             let then_node = get_unchecked(node.children, 1)
-            return infer_expr(env, scope, fn_sigs, enum_defs, then_node)
+            let then_ty = infer_expr(env, scope, fn_sigs, enum_defs, then_node)
+            if len(node.children) >= 3 {
+                let else_node = get_unchecked(node.children, 2)
+                let else_ty = infer_expr(env, scope, fn_sigs, enum_defs, else_node)
+                return unify(env, then_ty, else_ty)
+            }
+            return then_ty
         }
     }
     if node.kind == typechecker_kinds::NK_EXPR_STMT() {
