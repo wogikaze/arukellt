@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 862 369 bytes (≈ 842 KiB) |
-| sha256 | `f62ecf3b863338916998c65c58c9fd2c8ad42d37e7fe0cfc125eb989341e0f8a` |
-| Built from commit | `7911a527` plus the current #312/#121/#034 selfhost worktree changes, including the #121 Result<i32,String>, Result<bool,bool>, tuple<i32,bool>, tuple<bool,bool> parameter, tuple<i64,i64> result, f32 binary/f32-param-i32/f32-result-i32 adapters, option<bool>/option<i64> result/parameter adapters, i64 payload variant lowering, and record-add alias adapter fixes |
+| Size | 864 923 bytes (≈ 845 KiB) |
+| sha256 | `9080f639727cba3d1371c4a14a4ea0cd9fe49c3a81429ad43710609b993e5ff7` |
+| Built from commit | `30a6b62c` — includes parser pub-field fix, multiclause/guard/where cleanup, diagnostics harmonization, emitter simplification, and FsMetadata struct fix |
 | Build target | `wasm32-wasi-p1` |
 | Producer | Selfhost compiler stage 2 (`s2.wasm`), confirmed by Stage-3 fixpoint |
 

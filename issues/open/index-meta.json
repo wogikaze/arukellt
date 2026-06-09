@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-09T15:42:14Z",
+  "generated_at": "2026-06-09T15:52:41Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -329,28 +329,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "590",
-      "path": "590-stdlib-core-platform-baseline-plan.md",
-      "title": "Stdlib Core Platform Baseline Plan (Operational Guide)",
-      "track": "main",
-      "status": "Implementation Guide — ready for execution with verification checkpoints",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 13,
-        "unchecked": 25
-      },
-      "orchestration": {
-        "class": null,
         "upstream_notes": null
       }
     },

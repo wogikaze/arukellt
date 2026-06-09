@@ -19,7 +19,6 @@ graph LR
   I475["475 arukellt component subcommand"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I588["588 Language surface uplift plan"]
-  I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
@@ -47,7 +46,6 @@ graph LR
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
 - **588** depends on: none; blocks: none
-- **590** depends on: none; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **63** depends on: 074, 137; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
