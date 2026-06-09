@@ -9,7 +9,6 @@ graph LR
   I124["124 WIT component import syntax"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I30["30 036-jco-javascript-interop"]
-  I39["39 std: ":collections: Arena、SlotMap、Interner ／ std::text: Rope""]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
@@ -33,7 +32,6 @@ graph LR
 - **124** depends on: 074; blocks: none
 - **139** depends on: 074, 137; blocks: 136
 - **30** depends on: 27; blocks: none
-- **39** depends on: 039, 041; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none
 - **45** depends on: 039, 042, 044; blocks: none
 - **473** depends on: 032, done); blocks: none
