@@ -15,7 +15,7 @@ the four gates do **not** require the legacy Rust binary
 | Path | `bootstrap/arukellt-selfhost.wasm` |
 | Size | 866 179 bytes (≈ 846 KiB) |
 | sha256 | `17db5799d8839b26935a6ac577cc2524544008988e282c615096cbd20f331045` |
-| Built from commit | `8a79248f` — #41: adds clock_time_get/random_get WASI imports, time/random intrinsic dispatch handlers, and SCRATCH_CLOCK_RESULT scratch constant
+| Built from commit | `12ea153d` — #41: adds clock_time_get/random_get WASI imports, time/random intrinsic dispatch handlers, and SCRATCH_CLOCK_RESULT scratch constant
 | Build target | `wasm32-wasi-p1` |
 | Producer | Selfhost compiler stage 2 (`s2.wasm`), confirmed by Stage-3 fixpoint |
 
