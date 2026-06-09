@@ -1,4 +1,9 @@
-// Unreachable clause after wildcard — should error
-fn match_val(x: i32) -> String = "first"
-fn match_val(_: i32) -> String = "catch-all"
-fn match_val(x: i32) -> String = "dead"
+// Error: unreachable clause after wildcard (wildcard matches everything)
+// The _ wildcard matches any value, making subsequent clauses unreachable
+fn match_val(0) -> String = "zero"
+fn match_val(_) -> String = "catch-all"
+fn match_val(1) -> String = "one"
+
+fn main() {
+    __intrinsic_print(match_val(0))
+}

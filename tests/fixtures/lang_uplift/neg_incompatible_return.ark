@@ -1,3 +1,8 @@
-// Multi-clause fn with conflicting return annotations — should error
-fn pick(x: i32) -> String = "hello"
-fn pick(x: String) -> i32 = 42
+// Error: clauses in the same fn group have conflicting return types
+// The desugared match arms must all produce the same type
+fn pick(0) -> String = "zero"
+fn pick(_) -> i32 = 42
+
+fn main() {
+    __intrinsic_print(pick(0))
+}
