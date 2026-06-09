@@ -4,6 +4,11 @@
 //! `String`, `bool`, `char`, and `f64`. Also exposes standalone `hash_i32`,
 //! `hash_string`, `combine`, and `hash_combine` functions.
 //!
+//! **Hash policy:** All integer and string hashing uses a consistent FNV-1
+//! algorithm (offset_basis=216613626, prime=16777619) applied byte-by-byte
+//! over the key representation.  This avoids policy drift between key types
+//! and provides reasonable distribution for hash table operations.
+//!
 //! **Availability:** All targets (T1 + T3). No host capability required.
 
 /// Trait for types that can be hashed to an `i32` hash value.
@@ -16,12 +21,12 @@
 ///
 /// | Type    | Status | Notes                           |
 /// |---------|--------|---------------------------------|
-/// | i32     | impl   | Byte-mixing multiplicative hash |
-/// | String  | impl   | FNV-1a variant                  |
-/// | i64     | impl   | Byte-mixing multiplicative hash |
+/// | i32     | impl   | FNV-1 over 4 bytes             |
+/// | String  | impl   | FNV-1 over each char           |
+/// | i64     | impl   | FNV-1 over 8 bytes             |
 /// | bool    | impl   | Simple boolean hash             |
 /// | char    | impl   | Identity hash                   |
-/// | f64     | impl   | Bit-pattern hash                |
+/// | f64     | impl   | FNV-1 over lo+hi bit halves    |
 ///
 /// ## Migration order
 ///
@@ -32,27 +37,31 @@ trait Hash {
     fn hash(self: Hash) -> i32
 }
 
-/// Hash impl for `i32`: byte-mixing multiplicative hash (same algorithm as
-/// `hash_i32`). Takes the absolute value, mixes four base-256 bytes with
-/// multiplier 31, and returns the non-negative result.
+/// Hash impl for `i32`: FNV-1 hash over the four base-256 bytes of the
+/// absolute value.  Uses the same FNV-1 parameters as `hash_string`
+/// (offset_basis=216613626, prime=16777619) for consistent hash policy
+/// across all key types.
 impl Hash for i32 {
     fn hash(self: i32) -> i32 {
-        let mut h = 37
+        let mut h = 216613626
         let mut v = self
         if v < 0 {
             v = 0 - v
         }
         let b0 = v - v / 256 * 256
-        h = h * 31 + b0
+        h = h * 16777619 ^ b0
         v = v / 256
         let b1 = v - v / 256 * 256
-        h = h * 31 + b1
+        h = h * 16777619 ^ b1
         v = v / 256
         let b2 = v - v / 256 * 256
-        h = h * 31 + b2
+        h = h * 16777619 ^ b2
         v = v / 256
         let b3 = v - v / 256 * 256
-        h = h * 31 + b3
+        h = h * 16777619 ^ b3
+        if h < 0 {
+            h = 0 - h
+        }
         h
     }
 }
@@ -75,26 +84,43 @@ impl Hash for String {
     }
 }
 
-/// Hash impl for `i64`: byte-mixing hash (same algorithm as `hash_i32` for the low 32 bits,
-/// then folded with the high 32 bits).
+/// Hash impl for `i64`: FNV-1 hash over the eight base-256 bytes of the
+/// absolute value.  Uses the same FNV-1 parameters as `hash_string`
+/// (offset_basis=216613626, prime=16777619) for consistent hash policy
+/// across all key types.
 impl Hash for i64 {
     fn hash(self: i64) -> i32 {
-        let mut h = 37
+        let mut h = 216613626
         let mut v = self
         if v < 0 {
             v = 0 - v
         }
         let b0 = v - v / 256 * 256
-        h = h * 31 + b0
+        h = h * 16777619 ^ b0
         v = v / 256
         let b1 = v - v / 256 * 256
-        h = h * 31 + b1
+        h = h * 16777619 ^ b1
         v = v / 256
         let b2 = v - v / 256 * 256
-        h = h * 31 + b2
+        h = h * 16777619 ^ b2
         v = v / 256
         let b3 = v - v / 256 * 256
-        h = h * 31 + b3
+        h = h * 16777619 ^ b3
+        v = v / 256
+        let b4 = v - v / 256 * 256
+        h = h * 16777619 ^ b4
+        v = v / 256
+        let b5 = v - v / 256 * 256
+        h = h * 16777619 ^ b5
+        v = v / 256
+        let b6 = v - v / 256 * 256
+        h = h * 16777619 ^ b6
+        v = v / 256
+        let b7 = v - v / 256 * 256
+        h = h * 16777619 ^ b7
+        if h < 0 {
+            h = 0 - h
+        }
         h
     }
 }
@@ -113,14 +139,16 @@ impl Hash for char {
     }
 }
 
-/// Hash impl for `f64`: use the low 32 bits of the bit pattern.
+/// Hash impl for `f64`: FNV-1 hash over the lo and hi 32-bit halves of the
+/// IEEE 754 bit pattern.  Uses the same FNV-1 parameters (prime=16777619)
+/// for consistent hash policy across all key types.
 impl Hash for f64 {
     fn hash(self: f64) -> i32 {
-        let mut h = 37
+        let mut h = 216613626
         let lo = f64_bits_lo(self)
-        h = h * 31 + lo
+        h = h * 16777619 ^ lo
         let hi = f64_bits_hi(self)
-        h = h * 31 + hi
+        h = h * 16777619 ^ hi
         if h < 0 {
             h = 0 - h
         }
@@ -128,24 +156,32 @@ impl Hash for f64 {
     }
 }
 
-/// Hashes an `i32` into a stable non-negative integer.
+/// Hashes an `i32` into a stable non-negative integer using FNV-1 over the
+/// four base-256 bytes of the absolute value.
+///
+/// Uses the same FNV-1 parameters (offset_basis=216613626, prime=16777619)
+/// as `hash_string`, providing a consistent canonical hash policy across all
+/// key types.
 pub fn hash_i32(value: i32) -> i32 {
-    let mut h = 37
+    let mut h = 216613626
     let mut v = value
     if v < 0 {
         v = 0 - v
     }
     let b0 = v - v / 256 * 256
-    h = h * 31 + b0
+    h = h * 16777619 ^ b0
     v = v / 256
     let b1 = v - v / 256 * 256
-    h = h * 31 + b1
+    h = h * 16777619 ^ b1
     v = v / 256
     let b2 = v - v / 256 * 256
-    h = h * 31 + b2
+    h = h * 16777619 ^ b2
     v = v / 256
     let b3 = v - v / 256 * 256
-    h = h * 31 + b3
+    h = h * 16777619 ^ b3
+    if h < 0 {
+        h = 0 - h
+    }
     h
 }
 
@@ -167,7 +203,10 @@ pub fn hash_string(value: String) -> i32 {
 
 pub fn combine(h1: i32, h2: i32) -> i32 {
     let mut h = h1
-    h = h * 31 + h2
+    h = h * 16777619 ^ h2
+    if h < 0 {
+        h = 0 - h
+    }
     h
 }
 

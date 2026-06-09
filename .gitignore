@@ -80,6 +80,9 @@ docs/playground/dist/benchmarks/results/
 # Cursor IDE settings
 .cursor/
 
+# Claude session state (lock files, worktrees)
+.claude/
+
 # Powers(力)
 superpowers/
 .worktrees

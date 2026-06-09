@@ -27,7 +27,7 @@ pub fn deque_push_back(d: Vec<i32>, val: i32) {
     let count: i32 = get_unchecked(d, 2)
     let cap: i32 = get_unchecked(d, 3)
     set(d, 4 + tail, val)
-    set(d, 1, tail + 1 % cap)
+    set(d, 1, (tail + 1) % cap)
     set(d, 2, count + 1)
 }
 
@@ -35,7 +35,7 @@ pub fn deque_push_front(d: Vec<i32>, val: i32) {
     let head: i32 = get_unchecked(d, 0)
     let count: i32 = get_unchecked(d, 2)
     let cap: i32 = get_unchecked(d, 3)
-    let new_head: i32 = head - 1 + cap % cap
+    let new_head: i32 = (head - 1 + cap) % cap
     set(d, 4 + new_head, val)
     set(d, 0, new_head)
     set(d, 2, count + 1)
@@ -45,7 +45,7 @@ pub fn deque_pop_front(d: Vec<i32>) -> i32 {
     let head: i32 = get_unchecked(d, 0)
     let cap: i32 = get_unchecked(d, 3)
     let val: i32 = get_unchecked(d, 4 + head)
-    set(d, 0, head + 1 % cap)
+    set(d, 0, (head + 1) % cap)
     let count: i32 = get_unchecked(d, 2)
     set(d, 2, count - 1)
     val
@@ -54,7 +54,7 @@ pub fn deque_pop_front(d: Vec<i32>) -> i32 {
 pub fn deque_pop_back(d: Vec<i32>) -> i32 {
     let tail: i32 = get_unchecked(d, 1)
     let cap: i32 = get_unchecked(d, 3)
-    let new_tail: i32 = tail - 1 + cap % cap
+    let new_tail: i32 = (tail - 1 + cap) % cap
     let val: i32 = get_unchecked(d, 4 + new_tail)
     set(d, 1, new_tail)
     let count: i32 = get_unchecked(d, 2)
@@ -84,7 +84,7 @@ pub fn pq_push(pq: Vec<i32>, val: i32) {
     let mut idx: i32 = count
     let mut cont: bool = idx > 0
     while cont {
-        let parent: i32 = idx - 1 / 2
+        let parent: i32 = (idx - 1) / 2
         let child_val: i32 = get_unchecked(pq, 1 + idx)
         let parent_val: i32 = get_unchecked(pq, 1 + parent)
         if child_val < parent_val {
@@ -162,7 +162,7 @@ pub fn deque_front(d: Vec<i32>) -> i32 {
 pub fn deque_back(d: Vec<i32>) -> i32 {
     let tail: i32 = get_unchecked(d, 1)
     let cap: i32 = get_unchecked(d, 3)
-    let back_idx: i32 = tail - 1 + cap % cap
+    let back_idx: i32 = (tail - 1 + cap) % cap
     get_unchecked(d, 4 + back_idx)
 }
 
@@ -181,7 +181,7 @@ pub fn deque_to_vec(d: Vec<i32>) -> Vec<i32> {
     let result: Vec<i32> = Vec_new_i32()
     let mut i: i32 = 0
     while i < count {
-        let idx: i32 = head + i % cap
+        let idx: i32 = (head + i) % cap
         push(result, get_unchecked(d, 4 + idx))
         i = i + 1
     }

@@ -25,11 +25,13 @@
 //! The functions in this module operate on `Vec<i32>` and serve as the internal
 //! implementation layer.
 //!
-//! `hash_i32` uses the same stable byte-mixing policy as
-//! `std::core::hash::hash_i32`: take the absolute i32 value, mix four
-//! base-256 bytes with multiplier 31, and return the non-negative
-//! result. This is a deterministic compatibility hash, not a
-//! cryptographic or collision-resistant hash.
+//! ## Hash policy
+//!
+//! All hash functions in this module use a consistent FNV-1 algorithm
+//! (offset_basis=216613626, prime=16777619) applied byte-by-byte over the key
+//! representation.  This matches the canonical hash policy in
+//! `std::core::hash` and avoids policy drift between i32-keyed and
+//! String-keyed hash map operations.
 //!
 //! ## Layout
 //!
@@ -53,22 +55,25 @@ pub fn hashmap_new() -> Vec<i32> {
 }
 
 pub fn hash_i32(key: i32) -> i32 {
-    let mut h = 37
+    let mut h = 216613626
     let mut v = key
     if v < 0 {
         v = 0 - v
     }
     let b0 = v - v / 256 * 256
-    h = h * 31 + b0
+    h = h * 16777619 ^ b0
     v = v / 256
     let b1 = v - v / 256 * 256
-    h = h * 31 + b1
+    h = h * 16777619 ^ b1
     v = v / 256
     let b2 = v - v / 256 * 256
-    h = h * 31 + b2
+    h = h * 16777619 ^ b2
     v = v / 256
     let b3 = v - v / 256 * 256
-    h = h * 31 + b3
+    h = h * 16777619 ^ b3
+    if h < 0 {
+        h = 0 - h
+    }
     h
 }
 

@@ -116,13 +116,18 @@ Provides the `Hash` trait and built-in implementations for `i32`, `i64`,
 `String`, `bool`, `char`, and `f64`. Also exposes standalone `hash_i32`,
 `hash_string`, `combine`, and `hash_combine` functions.
 
+**Hash policy:** All integer and string hashing uses a consistent FNV-1
+algorithm (offset_basis=216613626, prime=16777619) applied byte-by-byte
+over the key representation.  This avoids policy drift between key types
+and provides reasonable distribution for hash table operations.
+
 **Availability:** All targets (T1 + T3). No host capability required.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `hash_i32` | `(i32) -> i32` | `stable` | Hashes an i32 into a stable non-negative integer. |
+| `hash_i32` | `(i32) -> i32` | `stable` | Hashes an i32 into a stable non-negative integer using FNV-1 over the |
 | `hash_string` | `(String) -> i32` | `stable` | Hashes a string into a stable non-negative integer. |
 | `combine` | `(i32, i32) -> i32` | `stable` | - |
 | `hash_combine` | `(i32, i32) -> i32` | `stable` | - |

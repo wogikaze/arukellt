@@ -173,11 +173,13 @@ User-facing monomorphic wrappers live in `hash_map.ark` and `hash_set.ark`.
 The functions in this module operate on `Vec<i32>` and serve as the internal
 implementation layer.
 
-`hash_i32` uses the same stable byte-mixing policy as
-`std::core::hash::hash_i32`: take the absolute i32 value, mix four
-base-256 bytes with multiplier 31, and return the non-negative
-result. This is a deterministic compatibility hash, not a
-cryptographic or collision-resistant hash.
+### Hash policy
+
+All hash functions in this module use a consistent FNV-1 algorithm
+(offset_basis=216613626, prime=16777619) applied byte-by-byte over the key
+representation.  This matches the canonical hash policy in
+`std::core::hash` and avoids policy drift between i32-keyed and
+String-keyed hash map operations.
 
 ### Layout
 
