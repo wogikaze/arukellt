@@ -1,0 +1,8 @@
+fn check(x) -> String | !(x >= 1 && x <= 10) = "out of range"
+fn check(_) -> String = "in range"
+
+fn main() {
+    __intrinsic_print(concat(check(3), "\n"))
+    __intrinsic_print(concat(check(0), "\n"))
+    __intrinsic_print(concat(check(11), "\n"))
+}

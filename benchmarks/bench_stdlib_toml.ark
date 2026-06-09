@@ -1,0 +1,83 @@
+// Stdlib benchmark: TOML parse, access, and stringify.
+// Exercises std::toml::toml_parse, toml_get, toml_as_*, toml_stringify
+// on simple key-value TOML with string/int/bool scalars and array values.
+use std::host::stdio
+use std::toml
+
+pub fn main() {
+    let simple_toml = concat(
+        "name = \"bench\"\n",
+        concat("count = 42\n", "active = true\n")
+    )
+    let array_toml = "tags = [\"a\", \"b\", \"c\"]\n"
+
+    let mut checksum: i32 = 0
+    let mut iter: i32 = 0
+    while iter < 100 {
+        // ── Parse simple key=value TOML ─────────────────────────────────
+        match toml::toml_parse(simple_toml) {
+            Result::Ok(v) => {
+                // String field: name
+                match toml::toml_get(v, "name") {
+                    Option::Some(nv) => {
+                        match toml::toml_as_string(nv) {
+                            Option::Some(_) => checksum = checksum + 1,
+                            None => checksum = checksum + 10,
+                        }
+                    },
+                    None => checksum = checksum + 100,
+                }
+                // Integer field: count
+                match toml::toml_get(v, "count") {
+                    Option::Some(cv) => {
+                        match toml::toml_as_int(cv) {
+                            Option::Some(n) => checksum = checksum + n,
+                            None => checksum = checksum + 1000,
+                        }
+                    },
+                    None => checksum = checksum + 10000,
+                }
+                // Boolean field: active
+                match toml::toml_get(v, "active") {
+                    Option::Some(av) => {
+                        match toml::toml_as_bool(av) {
+                            Option::Some(b) => {
+                                if b { checksum = checksum + 7 } else { checksum = checksum + 70 }
+                            },
+                            None => checksum = checksum + 100000,
+                        }
+                    },
+                    None => checksum = checksum + 1000000,
+                }
+                // Serialize back to string
+                let _ = toml::toml_stringify(v)
+            },
+            Result::Err(_) => checksum = checksum + 10000000,
+        }
+
+        // ── Parse TOML with array values ────────────────────────────────
+        match toml::toml_parse(array_toml) {
+            Result::Ok(v) => {
+                match toml::toml_get(v, "tags") {
+                    Option::Some(tv) => {
+                        // Array values have tag=4; toml_as_string returns None
+                        match toml::toml_as_string(tv) {
+                            Option::Some(_) => checksum = checksum + 3,
+                            None => checksum = checksum + 30,
+                        }
+                    },
+                    None => checksum = checksum + 300,
+                }
+                let _ = toml::toml_stringify(v)
+            },
+            Result::Err(_) => checksum = checksum + 3000,
+        }
+
+        // ── Legacy line-level parse ─────────────────────────────────────
+        let _ = toml::toml_parse_line("key = \"val\"")
+        let _ = toml::toml_parse_line("# comment")
+
+        iter = iter + 1
+    }
+    stdio::println(i32_to_string(checksum))
+}

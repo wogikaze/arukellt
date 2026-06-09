@@ -1,0 +1,19 @@
+fn classify_len<T>(items: Vec<T>) -> String | m == 0 = "empty"
+fn classify_len<T>(items: Vec<T>) -> String | m == 1 = "single"
+fn classify_len<T>(_) -> String = "many"
+where
+    m = len(items)
+
+fn main() {
+    let empty: Vec<i32> = Vec_new_i32()
+    let single: Vec<i32> = Vec_new_i32()
+    push(single, 42)
+    let many: Vec<i32> = Vec_new_i32()
+    push(many, 1)
+    push(many, 2)
+    push(many, 3)
+
+    __intrinsic_print(concat(classify_len(empty), "\n"))
+    __intrinsic_print(concat(classify_len(single), "\n"))
+    __intrinsic_print(concat(classify_len(many), "\n"))
+}

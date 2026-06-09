@@ -404,6 +404,13 @@ run:selfhost/comprehension_map_filter.ark
 run:selfhost/comprehension_nested_access.ark
 run:selfhost/comprehension_as_arg.ark
 run:selfhost/comprehension_empty_iter.ark
+# Issue #588 — language surface uplift fixtures (selfhost compiler coverage)
+run:lang_uplift/multi_clause_boolean.ark
+run:lang_uplift/where_clause_generic.ark
+run:lang_uplift/guard_neg_range.ark
+run:lang_uplift/comprehension_guard.ark
+run:lang_uplift/guard_const_enum_destructure.ark
+run:lang_uplift/lambda_pattern.ark
 diag:selfhost/comprehen_deny_non_iterable.ark
 diag:selfhost/comprehen_deny_filter_not_bool.ark
 diag:selfhost/comprehen_deny_unresolved_filter.ark

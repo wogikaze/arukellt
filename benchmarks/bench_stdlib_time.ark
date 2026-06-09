@@ -1,0 +1,51 @@
+// Stdlib benchmark: time operations (duration creation, arithmetic, measurement pattern).
+// Exercises std::time duration_ms/us/ns computation and std::host::clock::monotonic_now
+// for the measurement start/stop/elapsed pattern.
+use std::host::clock
+use std::host::stdio
+use std::time
+
+fn bench_duration_creation() -> i64 {
+    let start: i64 = 1000000000i64
+    let end: i64 = 5000000000i64
+    let ms = time::duration_ms(start, end)
+    let us = time::duration_us(start, end)
+    let ns = time::duration_ns(start, end)
+    ms + us + ns
+}
+
+fn bench_duration_arithmetic() -> i64 {
+    let t0: i64 = 1000000000i64
+    let t1: i64 = 2500000000i64
+    let t2: i64 = 4500000000i64
+    let t3: i64 = 7000000000i64
+    // Segment durations in ms
+    let seg1 = time::duration_ms(t0, t1)
+    let seg2 = time::duration_ms(t1, t2)
+    let seg3 = time::duration_ms(t2, t3)
+    let total = seg1 + seg2 + seg3
+    // Reversed endpoint: should return 0 via the diff<0 guard
+    let zero_case = time::duration_ms(t3, t0)
+    total + zero_case
+}
+
+fn bench_measurement_pattern() {
+    // Real monotonic clock start/stop with all three duration functions
+    let t0 = clock::monotonic_now()
+    let t1 = clock::monotonic_now()
+    let _ = time::duration_ms(t0, t1)
+    let _ = time::duration_us(t0, t1)
+    let _ = time::duration_ns(t0, t1)
+}
+
+pub fn main() {
+    let mut checksum: i64 = 0
+    let mut iter: i32 = 0
+    while iter < 200 {
+        checksum = checksum + bench_duration_creation()
+        checksum = checksum + bench_duration_arithmetic()
+        bench_measurement_pattern()
+        iter = iter + 1
+    }
+    stdio::println(i64_to_string(checksum))
+}
