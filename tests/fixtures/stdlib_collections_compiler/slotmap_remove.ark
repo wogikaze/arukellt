@@ -1,0 +1,50 @@
+use std::collections::compiler
+use std::host::stdio
+
+fn main() {
+    let m = compiler::slotmap_new()
+    let k0 = compiler::slotmap_insert(m, 10)
+    let k1 = compiler::slotmap_insert(m, 20)
+    let k2 = compiler::slotmap_insert(m, 30)
+    stdio::println(i32_to_string(compiler::slotmap_len(m)))
+    // Remove middle element
+    let r1 = compiler::slotmap_remove(m, k1)
+    match r1 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
+    }
+    stdio::println(i32_to_string(compiler::slotmap_len(m)))
+    // Verify removed slot is gone
+    stdio::println(bool_to_string(compiler::slotmap_contains(m, k1)))
+    // Verify other slots still work
+    let g0 = compiler::slotmap_get(m, k0)
+    match g0 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
+    }
+    let g2 = compiler::slotmap_get(m, k2)
+    match g2 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
+    }
+    // Try to get removed slot
+    let g1 = compiler::slotmap_get(m, k1)
+    match g1 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
+    }
+    // Double remove should return None
+    let r1_again = compiler::slotmap_remove(m, k1)
+    match r1_again {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
+    }
+    // Insert after remove
+    let k3 = compiler::slotmap_insert(m, 40)
+    stdio::println(i32_to_string(compiler::slotmap_len(m)))
+    let g3 = compiler::slotmap_get(m, k3)
+    match g3 {
+        Option::Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
+    }
+}

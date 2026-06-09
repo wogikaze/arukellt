@@ -1,0 +1,15 @@
+use std::collections::compiler
+use std::host::stdio
+
+fn main() {
+    let a = compiler::arena_new()
+    stdio::println(i32_to_string(compiler::arena_len(a)))
+    let id0 = compiler::arena_alloc(a, 42)
+    stdio::println(i32_to_string(compiler::arena_len(a)))
+    let id1 = compiler::arena_alloc(a, 99)
+    let id2 = compiler::arena_alloc(a, 77)
+    stdio::println(i32_to_string(compiler::arena_len(a)))
+    stdio::println(i32_to_string(compiler::arena_get(a, id0)))
+    stdio::println(i32_to_string(compiler::arena_get(a, id1)))
+    stdio::println(i32_to_string(compiler::arena_get(a, id2)))
+}

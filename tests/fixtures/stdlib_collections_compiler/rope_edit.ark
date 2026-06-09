@@ -1,0 +1,29 @@
+use std::host::stdio
+use std::text::rope
+
+fn main() {
+    // Start with a base string
+    let r = rope::rope_from_string("Hello World")
+    stdio::println(rope::rope_to_string(r))
+    // Insert comma at position 5 (after "Hello")
+    let r2 = rope::rope_insert(r, 5, ",")
+    stdio::println(rope::rope_to_string(r2))
+    // Insert exclamation at end
+    let r3 = rope::rope_insert(r2, 12, "!")
+    stdio::println(rope::rope_to_string(r3))
+    // Delete " World" (indices 6..12)
+    let r4 = rope::rope_delete(r3, 6, 12)
+    stdio::println(rope::rope_to_string(r4))
+    // Slice the remaining text
+    let s = rope::rope_slice(r4, 0, 6)
+    stdio::println(s)
+    // Empty rope
+    let empty = rope::rope_new()
+    stdio::println(i32_to_string(rope::rope_len(empty)))
+    // Insert into empty rope
+    let e2 = rope::rope_insert(empty, 0, "hello")
+    stdio::println(rope::rope_to_string(e2))
+    // Delete from beginning
+    let e3 = rope::rope_delete(e2, 0, 2)
+    stdio::println(rope::rope_to_string(e3))
+}
