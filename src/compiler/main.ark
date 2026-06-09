@@ -65,6 +65,10 @@ fn CMD_DEBUG_ADAPTER() -> i32 {
     13
 }
 
+fn CMD_TARGETS() -> i32 {
+    14
+}
+
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
 struct CliOptions {
     command: i32,
@@ -134,7 +138,7 @@ fn parse_command(name: String) -> i32 {
         return CMD_NOT_YET()
     }
     if cli_str_eq(clone(name), String_from("targets")) {
-        return CMD_NOT_YET()
+        return CMD_TARGETS()
     }
     if cli_str_eq(clone(name), String_from("script")) {
         return CMD_NOT_YET()
@@ -608,6 +612,10 @@ fn main() {
         process::exit(1)
         return
     }
+    if command == CMD_TARGETS() {
+        cmd_targets()
+        return
+    }
     if len(opts.input_file) == 0 && opts.command != CMD_BUILD() && opts.command != CMD_TEST() {
         stdio::eprintln(String_from("error: no input file specified"))
         print_usage()
@@ -683,6 +691,12 @@ fn cmd_debug_adapter(opts: CliOptions) {
             process::exit(1)
         },
     }
+}
+
+fn cmd_targets() {
+    stdio::println(String_from("Available targets:"))
+    stdio::println(String_from("  wasm32-wasi-p1    WebAssembly + WASI Preview 1 (32-bit)"))
+    stdio::println(String_from("  wasm32-wasi-p2    WebAssembly + WASI Preview 2 (32-bit, default)"))
 }
 
 // ── Command: compile / parse / check ─────────────────────────────────────────
