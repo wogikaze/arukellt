@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-09T16:11:00Z",
+  "generated_at": "2026-06-09T19:35:50Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -100,31 +100,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "41",
-      "path": "051-std-time-random.md",
-      "title": "std: \":time + std::random: 時刻・期間・乱数\"",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "039",
-        "040"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "partially-blocked",
         "upstream_notes": "None"
       }
     },
@@ -283,28 +258,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "588",
-      "path": "588-language-surface-uplift-plan.md",
-      "title": "Language surface uplift plan",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 8,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
       }
     },
     {
