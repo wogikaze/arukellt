@@ -26,6 +26,60 @@ pub fn DIAG_PARSE_UNEXPECTED() -> String { String_from("E0001") }
 pub fn DIAG_PARSE_MISSING_RBRACE() -> String { String_from("E0002") }
 pub fn DIAG_PARSE_EXPECTED_TYPE() -> String { String_from("E0003") }
 pub fn DIAG_PARSE_EXPECTED_TOKEN() -> String { String_from("E0004") }
+// Component Model diagnostic codes
+pub fn DIAG_COMPONENT_FLAGS_UNSUPPORTED() -> String { String_from("E0090") }
+
+// Name resolution diagnostic codes
+pub fn DIAG_RESOLVE_DUPLICATE_DEFINITION() -> String { String_from("E0101") }
+pub fn DIAG_RESOLVE_PRIVATE_SYMBOL() -> String { String_from("E0102") }
+pub fn DIAG_RESOLVE_CIRCULAR_IMPORT() -> String { String_from("E0103") }
+pub fn DIAG_RESOLVE_MODULE_NOT_FOUND() -> String { String_from("E0104") }
+pub fn DIAG_RESOLVE_REGISTRY_UNREACHABLE() -> String { String_from("E0120") }
+pub fn DIAG_RESOLVE_PACKAGE_NOT_FOUND() -> String { String_from("E0121") }
+pub fn DIAG_RESOLVE_VERSION_NOT_FOUND() -> String { String_from("E0122") }
+pub fn DIAG_RESOLVE_INTEGRITY_FAILED() -> String { String_from("E0123") }
+pub fn DIAG_RESOLVE_NO_REGISTRY() -> String { String_from("E0124") }
+
+// Type checking diagnostic codes
+pub fn DIAG_TYPECHECK_MISSING_ANNOTATION() -> String { String_from("E0201") }
+pub fn DIAG_TYPECHECK_WRONG_ARG_COUNT() -> String { String_from("E0202") }
+pub fn DIAG_TYPECHECK_INVALID_GENERIC() -> String { String_from("E0203") }
+pub fn DIAG_TYPECHECK_NON_EXHAUSTIVE_MATCH() -> String { String_from("E0204") }
+pub fn DIAG_TYPECHECK_MISMATCHED_ARM_TYPES() -> String { String_from("E0205") }
+pub fn DIAG_TYPECHECK_INVALID_PATTERN() -> String { String_from("E0206") }
+pub fn DIAG_TYPECHECK_CANNOT_MUTATE() -> String { String_from("E0207") }
+pub fn DIAG_TYPECHECK_MISSING_RETURN() -> String { String_from("E0208") }
+pub fn DIAG_TYPECHECK_UNREACHABLE_PATTERN() -> String { String_from("E0209") }
+pub fn DIAG_TYPECHECK_INCOMPATIBLE_ERROR_TYPE() -> String { String_from("E0210") }
+pub fn DIAG_RESOLVE_UNIMPLEMENTED_HOST_STUBS() -> String { String_from("E0211") }
+
+// v0 version constraints and target diagnostic codes
+pub fn DIAG_V0_TRAITS_NOT_AVAILABLE() -> String { String_from("E0300") }
+pub fn DIAG_V0_METHOD_SYNTAX() -> String { String_from("E0301") }
+pub fn DIAG_V0_NESTED_GENERICS() -> String { String_from("E0302") }
+pub fn DIAG_V0_FOR_LOOP() -> String { String_from("E0303") }
+pub fn DIAG_V0_OPERATOR_OVERLOADING() -> String { String_from("E0304") }
+pub fn DIAG_TARGET_UNSUPPORTED() -> String { String_from("E0305") }
+pub fn DIAG_TARGET_INVALID_EMIT_KIND() -> String { String_from("E0306") }
+pub fn DIAG_TARGET_FEATURE_NOT_AVAILABLE() -> String { String_from("E0307") }
+
+// Component Model / canonical ABI diagnostic codes
+pub fn DIAG_COMPONENT_CANONICAL_ABI() -> String { String_from("E0401") }
+
+// Resolve / target gating diagnostic codes
+pub fn DIAG_RESOLVE_SYMBOL_NOT_FOUND() -> String { String_from("E0501") }
+
+// Warning diagnostic codes
+pub fn DIAG_WARN_SHARING_REFERENCE() -> String { String_from("W0001") }
+pub fn DIAG_WARN_DEPRECATED_TARGET() -> String { String_from("W0002") }
+pub fn DIAG_WARN_AMBIGUOUS_IMPORT() -> String { String_from("W0003") }
+pub fn DIAG_WARN_WASM_VALIDATION_FAILED() -> String { String_from("W0004") }
+pub fn DIAG_WARN_NON_EXPORTABLE_FN() -> String { String_from("W0005") }
+pub fn DIAG_WARN_UNUSED_IMPORT() -> String { String_from("W0006") }
+pub fn DIAG_WARN_UNUSED_BINDING() -> String { String_from("W0007") }
+pub fn DIAG_WARN_DEPRECATED_API() -> String { String_from("W0008") }
+pub fn DIAG_WARN_WASI_IMPORTS_INCOMPLETE() -> String { String_from("W0009") }
+pub fn DIAG_WARN_DEPRECATED_IMPORT_SYNTAX() -> String { String_from("W0101") }
 
 pub fn diag_parse_phase_tag() -> String { String_from("parse") }
 pub fn diag_lex_phase_tag() -> String { String_from("lex") }
