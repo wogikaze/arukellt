@@ -9,7 +9,6 @@ use std::host::process
 use std::host::stdio
 
 use driver
-use diagnostics
 use analysis
 use lsp
 use dap
@@ -75,6 +74,10 @@ fn CMD_LINT() -> i32 {
 
 fn CMD_ANALYZE() -> i32 {
     16
+}
+
+fn CMD_DOC() -> i32 {
+    17
 }
 
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
@@ -170,7 +173,7 @@ fn parse_command(name: String) -> i32 {
         return CMD_IDE_ANALYZE()
     }
     if cli_str_eq(clone(name), String_from("doc")) {
-        return CMD_NOT_YET()
+        return CMD_DOC()
     }
     if cli_str_eq(clone(name), String_from("compose")) {
         return CMD_NOT_YET()
@@ -624,6 +627,10 @@ fn main() {
         cmd_targets()
         return
     }
+    if command == CMD_DOC() {
+        cmd_doc(opts)
+        return
+    }
     if len(opts.input_file) == 0 && opts.command != CMD_BUILD() && opts.command != CMD_TEST() {
         stdio::eprintln(String_from("error: no input file specified"))
         print_usage()
@@ -705,6 +712,79 @@ fn cmd_targets() {
     stdio::println(String_from("Available targets:"))
     stdio::println(String_from("  wasm32-wasi-p1    WebAssembly + WASI Preview 1 (32-bit)"))
     stdio::println(String_from("  wasm32-wasi-p2    WebAssembly + WASI Preview 2 (32-bit, default)"))
+}
+
+// ── Command: doc ──────────────────────────────────────────────────────────────
+fn cmd_doc(opts: CliOptions) {
+    let symbol = clone(opts.input_file)
+    if len(symbol) == 0 {
+        stdio::eprintln(String_from("usage: arukellt doc <symbol-or-module>"))
+        stdio::eprintln(String_from(""))
+        stdio::eprintln(String_from("Look up standard library documentation for a symbol or module."))
+        stdio::eprintln(String_from(""))
+        stdio::eprintln(String_from("Examples:"))
+        stdio::eprintln(String_from("  arukellt doc std::core"))
+        stdio::eprintln(String_from("  arukellt doc std::host::fs"))
+        stdio::eprintln(String_from("  arukellt doc text"))
+        stdio::eprintln(String_from(""))
+        stdio::eprintln(String_from("Available modules:"))
+        stdio::eprintln(String_from("  std::bytes         Binary data, LEB128, endian, hex, base64"))
+        stdio::eprintln(String_from("  std::collections   Vec, HashMap, HashSet, trees, arenas"))
+        stdio::eprintln(String_from("  std::component     Wasm Component Model"))
+        stdio::eprintln(String_from("  std::core          Ranges, errors, hashing"))
+        stdio::eprintln(String_from("  std::csv           CSV parsing"))
+        stdio::eprintln(String_from("  std::env           Environment variables"))
+        stdio::eprintln(String_from("  std::fs            File system operations"))
+        stdio::eprintln(String_from("  std::host::fs      Host filesystem"))
+        stdio::eprintln(String_from("  std::host::http    HTTP"))
+        stdio::eprintln(String_from("  std::io            Input/output"))
+        stdio::eprintln(String_from("  std::json          JSON"))
+        stdio::eprintln(String_from("  std::path          Path manipulation"))
+        stdio::eprintln(String_from("  std::process       Process management"))
+        stdio::eprintln(String_from("  std::random        Random number generation"))
+        stdio::eprintln(String_from("  std::seq           Sequence algorithms"))
+        stdio::eprintln(String_from("  std::sockets       Network sockets"))
+        stdio::eprintln(String_from("  std::test          Testing utilities"))
+        stdio::eprintln(String_from("  std::text          String and formatting helpers"))
+        stdio::eprintln(String_from("  std::time          Time and duration"))
+        stdio::eprintln(String_from("  std::toml          TOML parsing"))
+        stdio::eprintln(String_from("  std::wasm          WebAssembly utilities"))
+        stdio::eprintln(String_from("  std::wit           WIT interface definitions"))
+        process::exit(2)
+        return
+    }
+    // Extract the base module name: "std::host::fs" -> "fs"
+    let mut base = clone(symbol)
+    let n = len(symbol)
+    let mut last_sep = 0
+    let mut found_sep = false
+    let mut i = 0
+    while i < n {
+        if i + 1 < n && char_at(symbol, i) == 58 && char_at(symbol, i + 1) == 58 {
+            last_sep = i + 2
+            found_sep = true
+            i = i + 2
+        } else {
+            i = i + 1
+        }
+    }
+    if found_sep {
+        base = substring(symbol, last_sep, n)
+    }
+    // Look for docs/stdlib/modules/<base>.md
+    let doc_path = concat(concat(String_from("docs/stdlib/modules/"), clone(base)), String_from(".md"))
+    let read_result = fs::read_to_string(clone(doc_path))
+    match read_result {
+        Result::Ok(content) => {
+            stdio::println(concat(String_from("--- "), concat(clone(symbol), String_from(" ---"))))
+            stdio::println(String_from(""))
+            stdio::print(content)
+        },
+        Result::Err(_) => {
+            stdio::eprintln(concat(String_from("error: no documentation found for '"), concat(clone(symbol), String_from("'"))))
+            process::exit(1)
+        },
+    }
 }
 
 // ── Command: compile / parse / check ─────────────────────────────────────────
