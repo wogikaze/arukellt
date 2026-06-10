@@ -710,6 +710,33 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
         lines.append(f"  FAIL: doc (exit={rc_d}, output={out_d.strip()!r})")
         fail_count += 1
 
+    # Case 15: component build — compile to component wasm
+    rc_cb, out_cb = run_self("component", "build", "tests/fixtures/hello_world.ark")
+    if rc_cb == 0:
+        lines.append(f"  pass: component build (exit 0)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: component build (exit={rc_cb}, output={out_cb.strip()!r})")
+        fail_count += 1
+
+    # Case 16: component inspect — should gracefully report not-yet-implemented
+    rc_ci, out_ci = run_self("component", "inspect", "nonexistent.wasm")
+    if rc_ci == 1 and "not yet implemented" in out_ci:
+        lines.append(f"  pass: component inspect (exit 1, graceful)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: component inspect (exit={rc_ci}, output={out_ci.strip()!r})")
+        fail_count += 1
+
+    # Case 17: component validate — should gracefully report not-yet-implemented
+    rc_cv, out_cv = run_self("component", "validate", "nonexistent.wasm")
+    if rc_cv == 1 and "not yet implemented" in out_cv:
+        lines.append(f"  pass: component validate (exit 1, graceful)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: component validate (exit={rc_cv}, output={out_cv.strip()!r})")
+        fail_count += 1
+
     lines.append("")
     lines.append(f"{YELLOW}cli-parity: PASS={pass_count} FAIL={fail_count}{NC}")
     if fail_count > 0:
