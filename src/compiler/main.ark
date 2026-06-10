@@ -96,9 +96,22 @@ fn CMD_SCRIPT() -> i32 {
     21
 }
 
+fn COMP_ACTION_BUILD() -> i32 {
+    0
+}
+
+fn COMP_ACTION_INSPECT() -> i32 {
+    1
+}
+
+fn COMP_ACTION_VALIDATE() -> i32 {
+    2
+}
+
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
 struct CliOptions {
     command: i32,
+    component_action: i32,
     input_file: String,
     output_file: String,
     target: String,
@@ -114,7 +127,7 @@ struct CliOptions {
 }
 
 fn CliOptions_default() -> CliOptions {
-    CliOptions { command: CMD_UNKNOWN(), input_file: String_new(), output_file: String_new(), target: String_from("wasm32-wasi-p2"), wit_paths: Vec_new_String(), opt_level: 0, dump_phases: String_new(), emit_mode: String_from("wasm"), json_output: false, show_help: false, show_version: false, has_error: false, error_msg: String_new() }
+    CliOptions { command: CMD_UNKNOWN(), component_action: COMP_ACTION_BUILD(), input_file: String_new(), output_file: String_new(), target: String_from("wasm32-wasi-p2"), wit_paths: Vec_new_String(), opt_level: 0, dump_phases: String_new(), emit_mode: String_from("wasm"), json_output: false, show_help: false, show_version: false, has_error: false, error_msg: String_new() }
 }
 
 // ── Argument Parsing ─────────────────────────────────────────────────────────
@@ -235,7 +248,25 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
         opts.command = CMD_COMPILE()
         opts.input_file = clone(cmd_str)
     }
+    if opts.command == CMD_COMPONENT() {
+        if argc > 2 {
+            let sub = get_unchecked(argv, 2)
+            if cli_str_eq(clone(sub), String_from("inspect")) {
+                opts.component_action = COMP_ACTION_INSPECT()
+            } else {
+                if cli_str_eq(clone(sub), String_from("validate")) {
+                    opts.component_action = COMP_ACTION_VALIDATE()
+                }
+            }
+        }
+    }
     let mut i = 2
+    if opts.command == CMD_COMPONENT() && argc > 2 {
+        let sub2 = get_unchecked(argv, 2)
+        if cli_str_eq(clone(sub2), String_from("build")) || opts.component_action != COMP_ACTION_BUILD() {
+            i = 3
+        }
+    }
     while i < argc {
         let arg = get_unchecked(argv, i)
         if cli_str_eq(clone(arg), String_from("--target")) {
@@ -338,7 +369,8 @@ fn print_usage() {
     stdio::println(String_from("  test           Discover and run tests"))
     stdio::println(String_from("  targets        List available compile targets"))
     stdio::println(String_from("  script         Manage and run project scripts"))
-    stdio::println(String_from("  component      Build and inspect WebAssembly components"))
+    stdio::println(String_from("  component      Build, inspect and validate WebAssembly components"))
+    stdio::println(String_from("                 Subcommands: build, inspect, validate"))
     stdio::println(String_from("  lsp            Start the LSP server (stdio transport)"))
     stdio::println(String_from("  debug-adapter  Start the DAP debug adapter (stdio transport)"))
     stdio::println(String_from("  lint           Run lint rules on .ark source files"))
@@ -677,9 +709,17 @@ fn main() {
                             cmd_debug_adapter(opts)
                         } else {
                             if command == CMD_COMPONENT() {
-                                opts.emit_mode = String_from("component")
-                                opts.target = String_from("wasm32-wasi-p2")
-                                cmd_compile(opts)
+                                if opts.component_action == COMP_ACTION_INSPECT() {
+                                    cmd_component_inspect(opts)
+                                } else {
+                                    if opts.component_action == COMP_ACTION_VALIDATE() {
+                                        cmd_component_validate(opts)
+                                    } else {
+                                        opts.emit_mode = String_from("component")
+                                        opts.target = String_from("wasm32-wasi-p2")
+                                        cmd_compile(opts)
+                                    }
+                                }
                             } else {
                                 cmd_compile(opts)
                             }
@@ -738,6 +778,22 @@ fn cmd_targets() {
     stdio::println(String_from("Available targets:"))
     stdio::println(String_from("  wasm32-wasi-p1    WebAssembly + WASI Preview 1 (32-bit)"))
     stdio::println(String_from("  wasm32-wasi-p2    WebAssembly + WASI Preview 2 (32-bit, default)"))
+}
+
+fn cmd_component_inspect(opts: CliOptions) {
+    stdio::eprintln(String_from("error: component inspect is not yet implemented in the selfhost compiler"))
+    stdio::eprintln(String_from(""))
+    stdio::eprintln(String_from("Use wasm-tools instead:"))
+    stdio::eprintln(concat(String_from("  wasm-tools component wit "), clone(opts.input_file)))
+    process::exit(1)
+}
+
+fn cmd_component_validate(opts: CliOptions) {
+    stdio::eprintln(String_from("error: component validate is not yet implemented in the selfhost compiler"))
+    stdio::eprintln(String_from(""))
+    stdio::eprintln(String_from("Use wasm-tools instead:"))
+    stdio::eprintln(concat(String_from("  wasm-tools validate "), clone(opts.input_file)))
+    process::exit(1)
 }
 
 fn cmd_init(opts: CliOptions) {
