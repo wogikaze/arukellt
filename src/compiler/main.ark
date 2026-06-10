@@ -80,6 +80,10 @@ fn CMD_DOC() -> i32 {
     17
 }
 
+fn CMD_INIT() -> i32 {
+    18
+}
+
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
 struct CliOptions {
     command: i32,
@@ -143,7 +147,7 @@ fn parse_command(name: String) -> i32 {
         return CMD_VERSION()
     }
     if cli_str_eq(clone(name), String_from("init")) {
-        return CMD_NOT_YET()
+        return CMD_INIT()
     }
     if cli_str_eq(clone(name), String_from("fmt")) {
         return CMD_NOT_YET()
@@ -623,6 +627,10 @@ fn main() {
         cmd_doc(opts)
         return
     }
+    if command == CMD_INIT() {
+        cmd_init(opts)
+        return
+    }
     if len(opts.input_file) == 0 && opts.command != CMD_BUILD() && opts.command != CMD_TEST() {
         stdio::eprintln(String_from("error: no input file specified"))
         print_usage()
@@ -704,6 +712,38 @@ fn cmd_targets() {
     stdio::println(String_from("Available targets:"))
     stdio::println(String_from("  wasm32-wasi-p1    WebAssembly + WASI Preview 1 (32-bit)"))
     stdio::println(String_from("  wasm32-wasi-p2    WebAssembly + WASI Preview 2 (32-bit, default)"))
+}
+
+fn cmd_init(opts: CliOptions) {
+    let project_name = clone(opts.input_file)
+    if len(project_name) == 0 {
+        stdio::eprintln(String_from("usage: arukellt init <project-name>"))
+        process::exit(2)
+        return
+    }
+    let src_main = concat(clone(project_name), String_from("/src/main.ark"))
+    let ark_toml = concat(clone(project_name), String_from("/ark.toml"))
+    let main_content = String_from("use std::host::stdio\n\nfn main() {\n    stdio::println(\"Hello from Arukellt!\")\n}\n")
+    let toml_content = concat(concat(concat(concat(concat(concat(String_from("[package]\nname = \""), clone(project_name)), String_from("\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[bin]\npath = \"src/main.ark\"\n\n[targets.wasm32-wasi-p2]\nout = \""), clone(project_name)), String_from(".wasm\"\n")), String_from("\n[world]\nimports = []\nexports = []\n"))
+    let write_main = std::host::fs::write_string(src_main, main_content)
+    match write_main {
+        Result::Ok(_) => {
+            let write_toml = std::host::fs::write_string(ark_toml, toml_content)
+            match write_toml {
+                Result::Ok(_) => {
+                    stdio::println(concat(String_from("Created project: "), clone(project_name)))
+                },
+                Result::Err(e) => {
+                    stdio::eprintln(concat(String_from("error creating ark.toml: "), e))
+                    process::exit(1)
+                },
+            }
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error creating project: "), e))
+            process::exit(1)
+        },
+    }
 }
 
 // ── Command: doc ──────────────────────────────────────────────────────────────
