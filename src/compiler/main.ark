@@ -84,6 +84,10 @@ fn CMD_INIT() -> i32 {
     18
 }
 
+fn CMD_FMT() -> i32 {
+    19
+}
+
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
 struct CliOptions {
     command: i32,
@@ -150,7 +154,7 @@ fn parse_command(name: String) -> i32 {
         return CMD_INIT()
     }
     if cli_str_eq(clone(name), String_from("fmt")) {
-        return CMD_NOT_YET()
+        return CMD_FMT()
     }
     if cli_str_eq(clone(name), String_from("targets")) {
         return CMD_TARGETS()
@@ -631,6 +635,10 @@ fn main() {
         cmd_init(opts)
         return
     }
+    if command == CMD_FMT() {
+        cmd_fmt(opts)
+        return
+    }
     if len(opts.input_file) == 0 && opts.command != CMD_BUILD() && opts.command != CMD_TEST() {
         stdio::eprintln(String_from("error: no input file specified"))
         print_usage()
@@ -744,6 +752,120 @@ fn cmd_init(opts: CliOptions) {
             process::exit(1)
         },
     }
+}
+
+// ── Command: fmt ───────────────────────────────────────────────────────────────
+fn cmd_fmt(opts: CliOptions) {
+    let input_file = clone(opts.input_file)
+    if len(input_file) == 0 {
+        stdio::eprintln(String_from("usage: arukellt fmt <file.ark>"))
+        process::exit(2)
+        return
+    }
+    let read_result = fs::read_to_string(clone(input_file))
+    match read_result {
+        Result::Ok(text) => {
+            let formatted = fmt_source(text)
+            let write_result = fs::write_string(clone(input_file), clone(formatted))
+            match write_result {
+                Result::Ok(_) => {
+                    stdio::eprintln(concat(String_from("formatted "), clone(input_file)))
+                },
+                Result::Err(e) => {
+                    stdio::eprintln(concat(String_from("error writing formatted file: "), e))
+                    process::exit(1)
+                },
+            }
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error reading input: "), e))
+            process::exit(1)
+        },
+    }
+}
+
+fn fmt_line(line: String) -> String {
+    let n = len(clone(line))
+    // Find end of trailing whitespace
+    let mut end = n
+    while end > 0 {
+        let c = char_at(clone(line), end - 1)
+        if c != 32 && c != 9 {
+            break
+        }
+        end = end - 1
+    }
+    // Build result: replace tabs with spaces in [0, end)
+    let mut result = String_new()
+    let mut pos = 0
+    while pos < end {
+        let c = char_at(clone(line), pos)
+        if c == 9 {
+            result = concat(result, String_from("    "))
+        } else {
+            result = concat(result, substring(clone(line), pos, pos + 1))
+        }
+        pos = pos + 1
+    }
+    result
+}
+
+fn fmt_source(input: String) -> String {
+    // Split into lines
+    let mut lines = Vec_new_String()
+    let n = len(clone(input))
+    let mut start = 0
+    let mut i = 0
+    while i < n {
+        if char_at(clone(input), i) == 10 {
+            push(lines, substring(clone(input), start, i))
+            start = i + 1
+        }
+        i = i + 1
+    }
+    // Push the last line (after the final newline, or whole string if no newline)
+    push(lines, substring(clone(input), start, n))
+
+    // Process each line: trim trailing whitespace, replace tabs; collapse blank lines
+    let line_count = len(lines)
+    let mut out_lines = Vec_new_String()
+    let mut prev_blank = false
+    let mut j = 0
+    while j < line_count {
+        let raw = get_unchecked(lines, j)
+        let processed = fmt_line(raw)
+        let is_blank = len(processed) == 0
+        if !(is_blank && prev_blank) {
+            push(out_lines, processed)
+        }
+        prev_blank = is_blank
+        j = j + 1
+    }
+
+    // Remove trailing blank lines
+    let out_count = len(out_lines)
+    let mut end = out_count
+    while end > 0 {
+        let last = get_unchecked(out_lines, end - 1)
+        if len(last) == 0 {
+            end = end - 1
+        } else {
+            break
+        }
+    }
+
+    // Join lines with newlines; ensure exactly one trailing newline
+    let mut result = String_new()
+    let mut k = 0
+    while k < end {
+        if k > 0 {
+            result = concat(result, String_from("\n"))
+        }
+        result = concat(result, clone(get_unchecked(out_lines, k)))
+        k = k + 1
+    }
+    result = concat(result, String_from("\n"))
+    result
 }
 
 // ── Command: doc ──────────────────────────────────────────────────────────────
