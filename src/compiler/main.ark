@@ -92,6 +92,10 @@ fn CMD_COMPONENT() -> i32 {
     20
 }
 
+fn CMD_SCRIPT() -> i32 {
+    21
+}
+
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
 struct CliOptions {
     command: i32,
@@ -164,7 +168,7 @@ fn parse_command(name: String) -> i32 {
         return CMD_TARGETS()
     }
     if cli_str_eq(clone(name), String_from("script")) {
-        return CMD_NOT_YET()
+        return CMD_SCRIPT()
     }
     if cli_str_eq(clone(name), String_from("component")) {
         return CMD_COMPONENT()
@@ -641,6 +645,10 @@ fn main() {
     }
     if command == CMD_FMT() {
         cmd_fmt(opts)
+        return
+    }
+    if command == CMD_SCRIPT() {
+        cmd_script(opts)
         return
     }
     if len(opts.input_file) == 0 && opts.command != CMD_BUILD() && opts.command != CMD_TEST() {
@@ -1169,6 +1177,115 @@ fn cmd_test(opts: CliOptions) {
         stdio::eprintln(String_from("  usage: arukellt-s1 test <file.ark>"))
         process::exit(2)
     }
+}
+
+// ── Command: script (ark.toml scripts) ─────────────────────────────────────
+fn cmd_script(opts: CliOptions) {
+    let manifest_result = fs::read_to_string(String_from("ark.toml"))
+    match manifest_result {
+        Result::Ok(content) => {
+            let script_name = clone(opts.input_file)
+            let scripts_content = find_toml_section(clone(content), String_from("scripts"))
+            if len(script_name) == 0 {
+                // List available scripts
+                stdio::println(String_from("Available scripts:"))
+                if len(scripts_content) > 0 {
+                    let sc_len = len(scripts_content)
+                    let mut line_start = 0
+                    let mut i = 0
+                    while i < sc_len {
+                        if char_at(scripts_content, i) == 10 || i == sc_len - 1 {
+                            let line_end = if char_at(scripts_content, i) == 10 { i } else { i + 1 }
+                            let line = substring(scripts_content, line_start, line_end)
+                            let line_len = len(line)
+                            let mut j = 0
+                            while j < line_len && char_at(line, j) == 32 {
+                                j = j + 1
+                            }
+                            let key_start = j
+                            while j < line_len && char_at(line, j) != 32 && char_at(line, j) != 61 {
+                                j = j + 1
+                            }
+                            if key_start < j {
+                                let key = substring(line, key_start, j)
+                                while j < line_len && char_at(line, j) == 32 {
+                                    j = j + 1
+                                }
+                                if j < line_len && char_at(line, j) == 61 {
+                                    j = j + 1
+                                    while j < line_len && char_at(line, j) == 32 {
+                                        j = j + 1
+                                    }
+                                    if j < line_len && char_at(line, j) == 34 {
+                                        j = j + 1
+                                        let val_start = j
+                                        while j < line_len && char_at(line, j) != 34 {
+                                            j = j + 1
+                                        }
+                                        let val = substring(line, val_start, j)
+                                        stdio::println(concat(String_from("  "), concat(clone(key), concat(String_from(" = "), clone(val)))))
+                                    }
+                                }
+                            }
+                            line_start = i + 1
+                        }
+                        i = i + 1
+                    }
+                } else {
+                    stdio::println(String_from("  (none defined)"))
+                }
+            } else {
+                // Look up specific script command
+                let found = find_toml_value(clone(scripts_content), clone(script_name))
+                if len(found) > 0 {
+                    stdio::println(clone(found))
+                } else {
+                    stdio::eprintln(concat(String_from("error: script '"), concat(clone(script_name), String_from("' not found in ark.toml [scripts]"))))
+                    process::exit(1)
+                }
+            }
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error: cannot read ark.toml: "), e))
+            process::exit(1)
+        },
+    }
+}
+
+fn find_toml_section(content: String, section: String) -> String {
+    let section_header = concat(String_from("["), concat(clone(section), String_from("]")))
+    let header_len = len(section_header)
+    let content_len = len(content)
+    let mut i = 0
+    while i < content_len {
+        if i == 0 || char_at(content, i - 1) == 10 {
+            let j_max = content_len - i
+            let match_len = if header_len < j_max { header_len } else { j_max }
+            let mut j = 0
+            while j < match_len && char_at(content, i + j) == char_at(section_header, j) {
+                j = j + 1
+            }
+            if j == header_len && (i + j >= content_len || char_at(content, i + j) == 10) {
+                // Found section header, extract content until next section or EOF
+                let section_start = i + j
+                if section_start >= content_len {
+                    return String_new()
+                }
+                // Skip the newline after the header
+                let body_start = if char_at(content, section_start) == 10 { section_start + 1 } else { section_start }
+                let mut k = body_start
+                while k < content_len {
+                    if char_at(content, k) == 10 && k + 1 < content_len && char_at(content, k + 1) == 91 {
+                        return substring(content, body_start, k)
+                    }
+                    k = k + 1
+                }
+                return substring(content, body_start, content_len)
+            }
+        }
+        i = i + 1
+    }
+    String_new()
 }
 
 // ── TOML Value Extraction ────────────────────────────────────────────────────
