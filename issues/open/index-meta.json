@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-10T08:03:36Z",
+  "generated_at": "2026-06-10T08:39:52Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -182,34 +182,6 @@
       }
     },
     {
-      "id": "475",
-      "path": "475-arukellt-component-subcommand.md",
-      "title": "arukellt component subcommand",
-      "track": "cli",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "035",
-        "done)",
-        "074"
-      ],
-      "blocks_issue_ids": [
-        "485"
-      ],
-      "acceptance": {
-        "checked": 1,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "476",
       "path": "476-wasm-tools-compose-integration.md",
       "title": "`wasm-tools compose` 統合 (v3 候補)",
@@ -301,30 +273,6 @@
         "138",
         "077",
         "139"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "485",
-      "path": "485-arukellt-component-cli-docs.md",
-      "title": "docs: arukellt component サブコマンド CLI リファレンス",
-      "track": "docs",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "475"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
