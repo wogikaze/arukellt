@@ -1,0 +1,93 @@
+// Arukellt Selfhost - shared component wrapper base sections
+
+use component::constants_sections_linkage
+use component::wasi_stub
+use component::writer_core
+
+fn comp_new_component_writer_with_header() -> writer_core::ComponentWriter {
+	let out = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_byte(out, 0x00)
+	writer_core::comp_emit_byte(out, 0x61)
+	writer_core::comp_emit_byte(out, 0x73)
+	writer_core::comp_emit_byte(out, 0x6d)
+	writer_core::comp_emit_byte(out, 0x0d)
+	writer_core::comp_emit_byte(out, 0x00)
+	writer_core::comp_emit_byte(out, 0x01)
+	writer_core::comp_emit_byte(out, 0x00)
+	out
+}
+
+fn comp_new_component_writer() -> writer_core::ComponentWriter {
+	comp_new_component_writer_with_header()
+}
+
+fn comp_emit_wasi_and_core_instance_sections(out: writer_core::ComponentWriter, core_wasm: Vec<i32>) {
+	comp_emit_wasi_and_core_modules(out, core_wasm)
+	comp_emit_wasi_and_core_instance_section(out)
+}
+
+fn comp_emit_wasi_core_adapter_instance_sections(out: writer_core::ComponentWriter, core_wasm: Vec<i32>, adapter_wasm: Vec<i32>) {
+	comp_emit_wasi_core_adapter_modules(out, core_wasm, adapter_wasm)
+	comp_emit_wasi_core_adapter_instance_section(out)
+}
+
+fn comp_emit_wasi_and_core_modules(out: writer_core::ComponentWriter, core_wasm: Vec<i32>) {
+	comp_emit_wasi_stub_core_module(out)
+	comp_emit_user_core_module(out, core_wasm)
+}
+
+fn comp_emit_wasi_core_adapter_modules(out: writer_core::ComponentWriter, core_wasm: Vec<i32>, adapter_wasm: Vec<i32>) {
+	comp_emit_wasi_stub_core_module(out)
+	comp_emit_user_core_module(out, core_wasm)
+	comp_emit_adapter_core_module(out, adapter_wasm)
+}
+
+fn comp_emit_wasi_stub_core_module(out: writer_core::ComponentWriter) {
+	let wasi_stub_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_bytes(wasi_stub_sec, wasi_stub::comp_wasi_stub_core_module())
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CORE_MODULE(), wasi_stub_sec)
+}
+
+fn comp_emit_user_core_module(out: writer_core::ComponentWriter, core_wasm: Vec<i32>) {
+	let core_module_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_bytes(core_module_sec, core_wasm)
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CORE_MODULE(), core_module_sec)
+}
+
+fn comp_emit_adapter_core_module(out: writer_core::ComponentWriter, adapter_wasm: Vec<i32>) {
+	let adapter_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_bytes(adapter_sec, adapter_wasm)
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CORE_MODULE(), adapter_sec)
+}
+
+fn comp_emit_wasi_and_core_instance_section(out: writer_core::ComponentWriter) {
+	let core_instance_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(core_instance_sec, 2)
+	comp_emit_core_instance_ref(core_instance_sec, 0, 0)
+	comp_emit_core_instance_import(core_instance_sec, 1, 1, String_from("wasi_snapshot_preview1"), 0)
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CORE_INSTANCE(), core_instance_sec)
+}
+
+fn comp_emit_wasi_core_adapter_instance_section(out: writer_core::ComponentWriter) {
+	let core_instance_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(core_instance_sec, 3)
+	comp_emit_core_instance_ref(core_instance_sec, 0, 0)
+	comp_emit_core_instance_import(core_instance_sec, 1, 1, String_from("wasi_snapshot_preview1"), 0)
+	comp_emit_core_instance_import(core_instance_sec, 2, 1, String_from("user"), 1)
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CORE_INSTANCE(), core_instance_sec)
+}
+
+fn comp_emit_core_instance_ref(sec: writer_core::ComponentWriter, module_index: i32, instance_index: i32) {
+	writer_core::comp_emit_byte(sec, 0x00)
+	writer_core::comp_emit_leb128_u(sec, module_index)
+	writer_core::comp_emit_leb128_u(sec, instance_index)
+}
+
+fn comp_emit_core_instance_import(sec: writer_core::ComponentWriter, module_index: i32, import_count: i32, import_name: String, instance_index: i32) {
+	writer_core::comp_emit_byte(sec, 0x00)
+	writer_core::comp_emit_leb128_u(sec, module_index)
+	writer_core::comp_emit_leb128_u(sec, import_count)
+	writer_core::comp_emit_string(sec, import_name)
+	writer_core::comp_emit_byte(sec, 0x12)
+	writer_core::comp_emit_leb128_u(sec, instance_index)
+}

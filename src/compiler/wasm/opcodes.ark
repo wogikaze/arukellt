@@ -1,0 +1,141 @@
+// Arukellt Wasm - opcode and section ID constants.
+
+// Structured control opcodes.
+fn OP_UNREACHABLE() -> i32 { 0 }
+fn OP_NOP() -> i32 { 1 }
+fn OP_BLOCK() -> i32 { 2 }
+fn OP_LOOP() -> i32 { 3 }
+fn OP_IF() -> i32 { 4 }
+fn OP_ELSE() -> i32 { 5 }
+fn OP_END() -> i32 { 11 }
+
+// Branch opcodes.
+fn OP_BR() -> i32 { 12 }
+fn OP_BR_IF() -> i32 { 13 }
+fn OP_RETURN() -> i32 { 15 }
+
+// Call and stack opcodes.
+fn OP_CALL() -> i32 { 16 }
+fn OP_DROP() -> i32 { 26 }
+fn OP_SELECT() -> i32 { 27 }
+
+// Local and global opcodes.
+fn OP_LOCAL_GET() -> i32 { 32 }
+fn OP_LOCAL_SET() -> i32 { 33 }
+fn OP_LOCAL_TEE() -> i32 { 34 }
+fn OP_GLOBAL_GET() -> i32 { 35 }
+fn OP_GLOBAL_SET() -> i32 { 36 }
+
+// Memory opcodes.
+fn OP_I32_LOAD() -> i32 { 40 }
+fn OP_I64_LOAD() -> i32 { 41 }
+fn OP_F64_LOAD() -> i32 { 43 }
+fn OP_I32_LOAD8_U() -> i32 { 45 }
+fn OP_I32_STORE() -> i32 { 54 }
+fn OP_I64_STORE() -> i32 { 55 }
+fn OP_F64_STORE() -> i32 { 57 }
+fn OP_I32_STORE8() -> i32 { 58 }
+fn OP_MEMORY_SIZE() -> i32 { 63 }
+fn OP_MEMORY_GROW() -> i32 { 64 }
+
+// Const opcodes.
+fn OP_I32_CONST() -> i32 { 65 }
+fn OP_I64_CONST() -> i32 { 66 }
+fn OP_F64_CONST() -> i32 { 68 }
+
+// i32 compare opcodes.
+fn OP_I32_EQZ() -> i32 { 69 }
+fn OP_I32_EQ() -> i32 { 70 }
+fn OP_I32_NE() -> i32 { 71 }
+fn OP_I32_LT_S() -> i32 { 72 }
+fn OP_I32_LT_U() -> i32 { 73 }
+fn OP_I32_GT_S() -> i32 { 74 }
+fn OP_I32_GT_U() -> i32 { 75 }
+fn OP_I32_LE_S() -> i32 { 76 }
+fn OP_I32_LE_U() -> i32 { 77 }
+fn OP_I32_GE_S() -> i32 { 78 }
+fn OP_I32_GE_U() -> i32 { 79 }
+
+// i64 compare opcodes.
+fn OP_I64_EQZ() -> i32 { 80 }
+fn OP_I64_EQ() -> i32 { 81 }
+fn OP_I64_NE() -> i32 { 82 }
+fn OP_I64_LT_S() -> i32 { 83 }
+fn OP_I64_GT_S() -> i32 { 85 }
+fn OP_I64_LE_S() -> i32 { 87 }
+fn OP_I64_GE_S() -> i32 { 89 }
+
+// f64 comparison opcodes.
+fn OP_F64_EQ() -> i32 { 97 }
+fn OP_F64_NE() -> i32 { 98 }
+fn OP_F64_LT() -> i32 { 99 }
+fn OP_F64_GT() -> i32 { 100 }
+fn OP_F64_LE() -> i32 { 101 }
+fn OP_F64_GE() -> i32 { 102 }
+
+// i32 arithmetic and bitwise opcodes.
+fn OP_I32_ADD() -> i32 { 106 }
+fn OP_I32_SUB() -> i32 { 107 }
+fn OP_I32_MUL() -> i32 { 108 }
+fn OP_I32_DIV_S() -> i32 { 109 }
+fn OP_I32_DIV_U() -> i32 { 110 }
+fn OP_I32_REM_S() -> i32 { 111 }
+fn OP_I32_REM_U() -> i32 { 112 }
+fn OP_I32_AND() -> i32 { 113 }
+fn OP_I32_OR() -> i32 { 114 }
+fn OP_I32_XOR() -> i32 { 115 }
+fn OP_I32_SHL() -> i32 { 116 }
+fn OP_I32_SHR_S() -> i32 { 117 }
+fn OP_I32_SHR_U() -> i32 { 118 }
+
+// i64 arithmetic and bitwise opcodes.
+fn OP_I64_ADD() -> i32 { 124 }
+fn OP_I64_SUB() -> i32 { 125 }
+fn OP_I64_MUL() -> i32 { 126 }
+fn OP_I64_DIV_S() -> i32 { 127 }
+fn OP_I64_DIV_U() -> i32 { 128 }
+fn OP_I64_REM_S() -> i32 { 129 }
+fn OP_I64_REM_U() -> i32 { 130 }
+fn OP_I64_AND() -> i32 { 131 }
+fn OP_I64_OR() -> i32 { 132 }
+fn OP_I64_XOR() -> i32 { 133 }
+fn OP_I64_SHL() -> i32 { 134 }
+fn OP_I64_SHR_S() -> i32 { 135 }
+fn OP_I64_SHR_U() -> i32 { 136 }
+
+// f64 arithmetic and unary numeric opcodes.
+fn OP_F64_ABS() -> i32 { 153 }
+fn OP_F64_NEG() -> i32 { 154 }
+fn OP_F64_FLOOR() -> i32 { 156 }
+fn OP_F64_TRUNC() -> i32 { 159 }
+fn OP_F64_ADD() -> i32 { 160 }
+fn OP_F64_SUB() -> i32 { 161 }
+fn OP_F64_MUL() -> i32 { 162 }
+fn OP_F64_DIV() -> i32 { 163 }
+
+// Conversion opcodes.
+fn OP_I32_WRAP_I64() -> i32 { 167 }
+fn OP_I32_TRUNC_F64_S() -> i32 { 170 }
+fn OP_I64_EXTEND_I32_S() -> i32 { 172 }
+fn OP_I64_EXTEND_I32_U() -> i32 { 173 }
+fn OP_F64_CONVERT_I32_S() -> i32 { 183 }
+fn OP_F64_CONVERT_I32_U() -> i32 { 184 }
+
+// Signature/declaration section IDs.
+fn SEC_TYPE() -> i32 { 1 }
+fn SEC_IMPORT() -> i32 { 2 }
+fn SEC_FUNCTION() -> i32 { 3 }
+
+// Runtime state section IDs.
+fn SEC_TABLE() -> i32 { 4 }
+fn SEC_MEMORY() -> i32 { 5 }
+fn SEC_GLOBAL() -> i32 { 6 }
+
+// Export/start/element section IDs.
+fn SEC_EXPORT() -> i32 { 7 }
+fn SEC_START() -> i32 { 8 }
+fn SEC_ELEMENT() -> i32 { 9 }
+
+// Code/data section IDs.
+fn SEC_CODE() -> i32 { 10 }
+fn SEC_DATA() -> i32 { 11 }

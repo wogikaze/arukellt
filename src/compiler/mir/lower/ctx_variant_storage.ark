@@ -1,0 +1,30 @@
+// Arukellt MIR lowering context - variant tag and payload storage.
+
+fn ctx_variant_count(ctx: LowerCtx) -> i32 {
+    len(ctx.variant_names)
+}
+
+fn ctx_variant_name_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.variant_names, index))
+}
+
+fn ctx_variant_tag_at(ctx: LowerCtx, index: i32) -> i32 {
+    get_unchecked(ctx.variant_tags, index)
+}
+
+fn ctx_variant_push_tag(ctx: LowerCtx, name: String, tag: i32) {
+    push(ctx.variant_names, name)
+    push(ctx.variant_tags, tag)
+}
+
+fn ctx_payload_variant_count(ctx: LowerCtx) -> i32 {
+    len(ctx.payload_variants)
+}
+
+fn ctx_payload_variant_name_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.payload_variants, index))
+}
+
+fn ctx_payload_variant_push(ctx: LowerCtx, name: String) {
+    push(ctx.payload_variants, name)
+}

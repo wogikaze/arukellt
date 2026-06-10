@@ -1,0 +1,37 @@
+use lexer::tokens
+// Arukellt Parser - Pratt infix left binding powers.
+
+
+pub fn infix_bp_left(kind: i32) -> i32 {
+    if kind == tokens::TK_PIPEPIPE() {
+        return 3
+    }
+    if kind == tokens::TK_AMPAMP() {
+        return 5
+    }
+    if kind == tokens::TK_PIPE() {
+        return 7
+    }
+    if kind == tokens::TK_CARET() {
+        return 9
+    }
+    if kind == tokens::TK_AMP() {
+        return 11
+    }
+    if kind == tokens::TK_EQEQ() || kind == tokens::TK_BANGEQ() {
+        return 13
+    }
+    if kind == tokens::TK_LT() || kind == tokens::TK_LTEQ() || kind == tokens::TK_GT() || kind == tokens::TK_GTEQ() {
+        return 15
+    }
+    if kind == tokens::TK_SHL() || kind == tokens::TK_SHR() {
+        return 17
+    }
+    if kind == tokens::TK_PLUS() || kind == tokens::TK_MINUS() {
+        return 19
+    }
+    if kind == tokens::TK_STAR() || kind == tokens::TK_SLASH() || kind == tokens::TK_PERCENT() {
+        return 21
+    }
+    0
+}

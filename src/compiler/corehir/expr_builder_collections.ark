@@ -1,0 +1,25 @@
+use corehir::expr_factory
+use corehir::kinds
+// Arukellt Selfhost - CoreHIR collection and access expression constructors.
+
+use corehir::value_types
+
+fn corehir_expr_array_lit(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_ARRAY_LIT(), String_new(), 0, 0.0, value_types::VT_REF(), String_new(), span_start, children)
+}
+
+fn corehir_expr_tuple(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_TUPLE(), String_new(), 0, 0.0, value_types::VT_REF(), String_new(), span_start, children)
+}
+
+fn corehir_expr_comprehension(text: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_COMPREHENSION(), text, 0, 0.0, value_types::VT_REF(), String_new(), span_start, children)
+}
+
+fn corehir_expr_field_access(text: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_FIELD_ACCESS(), text, 0, 0.0, value_types::VT_I32(), String_new(), span_start, children)
+}
+
+fn corehir_expr_index(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_INDEX(), String_new(), 0, 0.0, value_types::VT_I32(), String_new(), span_start, children)
+}

@@ -1,0 +1,20 @@
+// Arukellt Resolver - lexical scope stack lifecycle.
+
+use resolver::ctx_record
+use resolver::scope_record
+use resolver::scope_stack_scopes
+
+fn push_scope(ctx: ResolveCtx) {
+    ctx_record::resolve_ctx_push_depth(ctx)
+    let current_depth = ctx_record::resolve_ctx_current_depth(ctx)
+    if current_depth < ctx_record::resolve_ctx_scope_count(ctx) {
+        let scope = ctx_record::resolve_ctx_scope_at(ctx, current_depth)
+        scope_record::scope_clear_symbols(scope)
+    } else {
+        ctx_record::resolve_ctx_push_scope_value(ctx, scope_stack_scopes::Scope_new(current_depth - 1))
+    }
+}
+
+fn pop_scope(ctx: ResolveCtx) {
+    ctx_record::resolve_ctx_pop_depth(ctx)
+}

@@ -1,0 +1,31 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering array aggregate emission
+
+use mir::inst_array
+use mir::inst_local_get
+use mir::value_types
+
+fn mir_emit_array_new(ctx: LowerCtx, child_count: i32) -> i32 {
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_REF())
+    ctx_api_emit::ctx_emit(ctx, inst_array::MirInst_array_new(dest, child_count))
+    dest
+}
+
+fn mir_emit_array_set(ctx: LowerCtx, dest: i32, val_idx: i32, elem_index: i32) {
+    ctx_api_emit::ctx_emit(ctx, inst_array::MirInst_array_set(dest, val_idx, elem_index))
+}
+
+fn mir_emit_local_get_ref(ctx: LowerCtx, local_idx: i32) -> i32 {
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(local_idx, local_idx))
+    local_idx
+}
+
+fn mir_emit_array_index(ctx: LowerCtx, base_idx: i32, index_idx: i32) -> i32 {
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
+    ctx_api_emit::ctx_emit(ctx, inst_array::MirInst_array_get(base_idx, index_idx, dest))
+    dest
+}

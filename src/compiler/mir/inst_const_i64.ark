@@ -1,0 +1,10 @@
+// Arukellt Selfhost - MIR i64 constant instruction constructors.
+
+use mir::inst_factory
+use mir::opcodes
+use mir::types
+use mir::value_types
+
+fn MirInst_const_i64_text(text: String, dest: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_CONST_I64(), dest, 0 - 1, 0 - 1, 0, 0.0, text, value_types::VT_I64())
+}

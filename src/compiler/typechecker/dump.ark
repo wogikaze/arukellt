@@ -1,0 +1,46 @@
+// Arukellt Selfhost - typed HIR dump output
+
+use std::host::stdio
+use typechecker::contract_mono
+use typechecker::contract_result_state
+use typechecker::contract_type_access
+
+fn dump_typed_hir(result: TypeCheckResult) {
+    let fn_count = contract_result_state::typecheck_result_typed_fn_count(result)
+    stdio::eprintln(concat(String_from("typed functions: "), to_string(fn_count)))
+    let type_error_count = contract_result_state::typecheck_result_error_count(result)
+    if type_error_count > 0 {
+        stdio::eprintln(concat(to_string(type_error_count), String_from(" type error(s)")))
+    }
+    let mi_count = contract_result_state::typecheck_result_mono_instance_count(result)
+    let mut visible_mi_count = 0
+    let mut vc = 0
+    while vc < mi_count {
+        let vmi = contract_result_state::typecheck_result_mono_instance_at(result, vc)
+        let mut is_marker = false
+        if contract_mono::MonoInstance_type_arg_count(vmi) > 0 {
+            let marker_ty = contract_mono::MonoInstance_type_arg_at(vmi, 0)
+            is_marker = contract_type_access::TypeInfo_tag(marker_ty) < 0
+        }
+        if !is_marker {
+            visible_mi_count = visible_mi_count + 1
+        }
+        vc = vc + 1
+    }
+    if visible_mi_count > 0 {
+        stdio::eprintln(concat(String_from("mono instances: "), to_string(visible_mi_count)))
+        let mut k = 0
+        while k < mi_count {
+            let mi = contract_result_state::typecheck_result_mono_instance_at(result, k)
+            let mut is_marker2 = false
+            if contract_mono::MonoInstance_type_arg_count(mi) > 0 {
+                let marker_ty2 = contract_mono::MonoInstance_type_arg_at(mi, 0)
+                is_marker2 = contract_type_access::TypeInfo_tag(marker_ty2) < 0
+            }
+            if !is_marker2 {
+                stdio::eprintln(concat(String_from("  "), contract_mono::MonoInstance_mangled_name(mi)))
+            }
+            k = k + 1
+        }
+    }
+}

@@ -1,0 +1,53 @@
+use typechecker::kinds
+// Arukellt Typechecker - trait bound checking.
+
+use typechecker::contract_fn_sig
+use typechecker::contract_type_param_bounds
+use typechecker::contract_trait_impl
+use typechecker::contract_env_record
+use typechecker::contract_type_access
+use typechecker::names
+use typechecker::unify
+
+fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bool {
+    let resolved_ty = unify::resolve_type(env, ty)
+    if contract_type_access::TypeInfo_tag(resolved_ty) == commands::TY_TYPE_VAR() {
+        return true
+    }
+    let count = len(env.trait_impls)
+    let mut i = 0
+    while i < count {
+        let impl_info = get_unchecked(env.trait_impls, i)
+        if eq(contract_trait_impl::TraitImplInfo_trait_name(impl_info), contract_type_access::TypeInfo_name(bound)) && names::same_named_type(contract_trait_impl::TraitImplInfo_self_ty(impl_info), resolved_ty) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn enforce_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) {
+    if type_satisfies_trait_bound(env, ty, bound) {
+        return
+    }
+    let ty_name = names::type_display_name(unify::resolve_type(env, ty))
+    let bound_name = names::type_display_name(bound)
+    unify::type_error(env, concat(String_from("trait bound not satisfied: "), concat(ty_name, concat(String_from(" does not implement "), bound_name))))
+}
+
+fn enforce_fn_sig_bounds(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types: Vec<TypeInfo>) {
+    let tp_count = contract_fn_sig::FnSig_type_param_bound_count(sig)
+    let mut i = 0
+    while i < tp_count {
+        let tp = contract_fn_sig::FnSig_type_param_bound_at(sig, i)
+        let resolved_ty = unify::resolve_type(infer_env, get_unchecked(var_types, i))
+        let bound_count = contract_type_param_bounds::TypeParamBounds_bound_count(tp)
+        let mut j = 0
+        while j < bound_count {
+            let bound = contract_type_param_bounds::TypeParamBounds_bound_at(tp, j)
+            enforce_trait_bound(env, resolved_ty, bound)
+            j = j + 1
+        }
+        i = i + 1
+    }
+}

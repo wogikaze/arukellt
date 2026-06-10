@@ -1,0 +1,32 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR call rewrite rules for Vec access.
+
+
+fn mir_rewrite_vec_get(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
+    if first_arg_idx >= 0 {
+        let arg_type_get2 = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        if starts_with(clone(arg_type_get2), "vec:") {
+            return String_from("vec_get")
+        }
+    }
+    callee_name
+}
+
+fn mir_rewrite_vec_get_unchecked(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
+    if first_arg_idx >= 0 {
+        let arg_type_get = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        if eq(clone(arg_type_get), "vec:i64") {
+            return String_from("vec_get_unchecked_i64")
+        } else {
+            if eq(clone(arg_type_get), "vec:f64") {
+                return String_from("vec_get_unchecked_f64")
+            } else {
+                if starts_with(clone(arg_type_get), "vec:") {
+                    return String_from("vec_get_unchecked")
+                }
+            }
+        }
+    }
+    callee_name
+}

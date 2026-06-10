@@ -1,0 +1,40 @@
+// Arukellt Lexer - character classification helpers
+
+use lexer::char_class
+use lexer::char_skip
+
+fn is_alpha(c: i32) -> bool {
+    char_class::is_alpha(c)
+}
+
+fn is_digit(c: i32) -> bool {
+    char_class::is_digit(c)
+}
+
+fn is_hex_digit(c: i32) -> bool {
+    char_class::is_hex_digit(c)
+}
+
+fn is_alnum(c: i32) -> bool {
+    char_class::is_alnum(c)
+}
+
+fn is_whitespace_not_newline(c: i32) -> bool {
+    char_class::is_whitespace_not_newline(c)
+}
+
+fn digit_value(c: i32) -> i32 {
+    char_class::digit_value(c)
+}
+
+fn skip_whitespace(lex: Lexer) {
+    char_skip::skip_whitespace_impl(lex)
+}
+
+fn skip_line_comment(lex: Lexer) {
+    char_skip::skip_line_comment_impl(lex)
+}
+
+fn skip_block_comment(lex: Lexer) {
+    char_skip::skip_block_comment_impl(lex)
+}

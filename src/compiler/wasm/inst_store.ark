@@ -1,0 +1,29 @@
+use mir::inst_accessors_operands
+// Arukellt Selfhost - Wasm local store policy after MIR instruction emission.
+
+use wasm::inst_store_policy
+use wasm::constants
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+
+fn emit_store_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) {
+    if !result_on_stack {
+        return
+    }
+    let action = inst_store_policy::store_result_action(inst, next_op, next_arg0, next_arg1, next2_op)
+    if action == constants::STORE_ACTION_SKIP() {
+        return
+    }
+    emit_store_action(w, inst_accessors_operands::MirInst_dest(inst), action)
+}
+
+fn emit_store_action(w: WasmWriter, dest: i32, action: i32) {
+    if action == constants::STORE_ACTION_TEE() {
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+        writer_leb::emit_leb128_u(w, dest)
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, dest)
+}

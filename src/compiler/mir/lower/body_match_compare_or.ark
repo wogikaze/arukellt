@@ -1,0 +1,34 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_nesting
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::opcodes
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - OR-pattern match comparison prefix.
+
+use mir::inst_structured_control
+use mir::inst_local_get
+use mir::inst_op
+use mir::lower::match
+use mir::value_types
+
+fn lower_or_match_compare_prefix(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, if_depth: i32) -> i32 {
+    let compare_idx = match::mir_match_payload_compare_idx(payload_info)
+    let alt_count = ast_node::node_child_count(pat)
+    let mut or_oi = 0
+    while or_oi < alt_count {
+        let or_alt = ast_node::node_child_at(pat, or_oi)
+        ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
+        lower_expr(ctx, or_alt)
+        let or_cmp = ctx_fresh_local(ctx, value_types::VT_I32())
+        ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), or_cmp, compare_idx, or_cmp))
+        if or_oi > 0 {
+            let or_dummy = ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_BIT_OR(), or_dummy, or_cmp, or_cmp))
+        }
+        or_oi = or_oi + 1
+    }
+    ctx_emit(ctx, inst_structured_control::MirInst_if())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    if_depth + 1
+}

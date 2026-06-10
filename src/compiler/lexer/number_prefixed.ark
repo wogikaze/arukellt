@@ -1,0 +1,26 @@
+// Arukellt Lexer - prefixed integer literals
+
+use lexer::number_binary
+use lexer::number_hex
+
+fn is_prefixed_number_start(lex: Lexer) -> bool {
+    if peek(lex) != 48 {
+        return false
+    }
+    if lex.pos + 1 >= lex.src_len {
+        return false
+    }
+    let c1 = peek_at(lex, 1)
+    if c1 == 120 || c1 == 88 {
+        return true
+    }
+    c1 == 98 || c1 == 66
+}
+
+fn lex_prefixed_number(lex: Lexer, start: i32) -> Token {
+    let c1 = peek_at(lex, 1)
+    if c1 == 120 || c1 == 88 {
+        return number_hex::lex_hex_number(lex, start)
+    }
+    number_binary::lex_binary_number(lex, start)
+}

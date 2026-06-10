@@ -1,0 +1,13 @@
+use lexer::tokens
+use parser::kinds
+// Arukellt Parser - Pratt arithmetic binary operator mapping.
+
+
+fn token_to_arith_binop(kind: i32) -> i32 {
+    if kind == tokens::TK_PLUS() { return kinds::OP_ADD() }
+    if kind == tokens::TK_MINUS() { return kinds::OP_SUB() }
+    if kind == tokens::TK_STAR() { return kinds::OP_MUL() }
+    if kind == tokens::TK_SLASH() { return kinds::OP_DIV() }
+    if kind == tokens::TK_PERCENT() { return kinds::OP_MOD() }
+    0
+}

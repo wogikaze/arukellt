@@ -1,0 +1,23 @@
+// Arukellt Selfhost - typecheck DTO shape adapter for MIR lowering.
+
+use mir::type_contracts
+
+fn mir_type_info_tag(ty: TypeInfo) -> i32 {
+    type_contracts::TypeInfo_tag(ty)
+}
+
+fn mir_type_info_name(ty: TypeInfo) -> String {
+    type_contracts::TypeInfo_name(ty)
+}
+
+fn mir_type_info_type_arg_count(ty: TypeInfo) -> i32 {
+    type_contracts::TypeInfo_type_arg_count(ty)
+}
+
+fn mir_type_info_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
+    type_contracts::TypeInfo_type_arg_at(ty, index)
+}
+
+fn mir_typed_fn_return_type(fn_info: TypedFn) -> TypeInfo {
+    type_contracts::TypedFn_return_type(fn_info)
+}

@@ -1,0 +1,12 @@
+// Arukellt HIR - dump tag names.
+
+use hir::dump_names_expr
+use hir::dump_names_stmt
+
+fn hir_tag_name(tag: i32) -> String {
+    let expr_name = dump_names_expr::hir_expr_tag_name(tag)
+    if len(expr_name) > 0 { return expr_name }
+    let stmt_name = dump_names_stmt::hir_stmt_tag_name(tag)
+    if len(stmt_name) > 0 { return stmt_name }
+    String_from("HirNode")
+}

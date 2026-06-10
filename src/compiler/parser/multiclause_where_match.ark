@@ -1,0 +1,16 @@
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - where-backed multi-clause match statement assembly.
+
+use parser::multiclause_arms
+
+fn append_where_match_stmt(block_node: AstNode, clauses: Vec<AstNode>, param_name: String, fn_span: Span) {
+    let scrutinee = AstNode_leaf(kinds::NK_IDENT(), clone(param_name), fn_span)
+    let match_node = AstNode_new(kinds::NK_MATCH_EXPR(), fn_span)
+    core_ast_children::AstNode_push_child(match_node, scrutinee)
+    multiclause_arms::append_clause_match_arms(match_node, clauses, fn_span)
+    let expr_stmt = AstNode_new(kinds::NK_EXPR_STMT(), fn_span)
+    core_ast_children::AstNode_push_child(expr_stmt, match_node)
+    core_ast_children::AstNode_push_child(block_node, expr_stmt)
+}

@@ -1,0 +1,12 @@
+// Arukellt Parser - top-level declarations and modules
+
+use parser::decl_dispatch
+use parser::decl_module
+
+fn parse_decl(p: Parser) -> AstNode {
+    decl_dispatch::parse_decl(p)
+}
+
+fn parse_module(p: Parser) -> Vec<AstNode> {
+    decl_module::parse_module_impl(p)
+}

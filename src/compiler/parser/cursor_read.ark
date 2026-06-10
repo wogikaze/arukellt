@@ -1,0 +1,27 @@
+use lexer::tokens
+// Arukellt Parser - parser cursor read operations.
+
+use parser::core_types
+use parser::state_record
+use parser::token_state
+
+fn cur(p: Parser) -> Token {
+    if state_record::parser_at_end(p) {
+        let tok = token_state::Token_new(tokens::TK_EOF(), String_from(""), 0, 0)
+        return tok
+    }
+    state_record::parser_current_token(p)
+}
+
+fn peek_kind(p: Parser) -> i32 {
+    let t = cur(p)
+    token_state::Token_kind(t)
+}
+
+fn at(p: Parser, kind: i32) -> bool {
+    peek_kind(p) == kind
+}
+
+fn at_eof(p: Parser) -> bool {
+    at(p, tokens::TK_EOF())
+}

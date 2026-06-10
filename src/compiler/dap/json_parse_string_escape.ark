@@ -1,0 +1,21 @@
+// Arukellt Selfhost - DAP JSON string escape decoding.
+
+fn dap_decode_string_escape(s: String, pos: i32) -> String {
+	let esc = char_at(s, pos)
+	if esc == 34 {
+		return String_from("\"")
+	}
+	if esc == 92 {
+		return String_from("\\")
+	}
+	if esc == 110 {
+		return String_from("\n")
+	}
+	if esc == 114 {
+		return String_from("\r")
+	}
+	if esc == 116 {
+		return String_from("\t")
+	}
+	substring(s, pos, pos + 1)
+}

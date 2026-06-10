@@ -1,0 +1,64 @@
+// Arukellt Selfhost - legacy driver CLI compile options.
+
+use driver::config_record
+
+struct LegacyCompileOptions {
+    output_path: String,
+    has_output: bool,
+    config: DriverConfig,
+}
+
+fn LegacyCompileOptions_new(output_path: String, has_output: bool, config: DriverConfig) -> LegacyCompileOptions {
+    LegacyCompileOptions { output_path: output_path, has_output: has_output, config: config }
+}
+
+fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, config: DriverConfig) -> LegacyCompileOptions {
+    let mut output_path = String_from("")
+    let mut has_output = false
+    let mut i = start
+    while i < argc {
+        let flag = get_unchecked(args, i)
+        if eq(clone(flag), String_from("-o")) {
+            if i + 1 < argc {
+                output_path = get_unchecked(args, i + 1)
+                has_output = true
+                i = i + 2
+            } else {
+                i = i + 1
+            }
+        } else {
+            if eq(clone(flag), String_from("--target")) {
+                if i + 1 < argc {
+                    config_record::config_set_target(config, get_unchecked(args, i + 1))
+                    i = i + 2
+                } else {
+                    i = i + 1
+                }
+            } else {
+                if eq(clone(flag), String_from("--emit")) {
+                    if i + 1 < argc {
+                        config_record::config_set_emit_mode(config, get_unchecked(args, i + 1))
+                        i = i + 2
+                    } else {
+                        i = i + 1
+                    }
+                } else {
+                    i = i + 1
+                }
+            }
+        }
+    }
+    LegacyCompileOptions_new(output_path, has_output, config)
+}
+
+fn legacy_compile_options_output_path(options: LegacyCompileOptions) -> String {
+    clone(options.output_path)
+}
+
+fn legacy_compile_options_has_output(options: LegacyCompileOptions) -> bool {
+    options.has_output
+}
+
+fn legacy_compile_options_config(options: LegacyCompileOptions) -> DriverConfig {
+    options.config
+}

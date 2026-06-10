@@ -1,0 +1,11 @@
+// Arukellt Selfhost - MIR local DTO construction.
+
+use mir::local_record
+
+fn MirLocal_new(name: String, val_type: i32, type_name: String) -> MirLocal {
+    local_record::MirLocal_new(name, val_type, type_name)
+}
+
+fn MirLocal_copy_with_ssa(source: MirLocal, ssa_name: String, ssa_version: i32) -> MirLocal {
+    local_record::mir_local_copy_with_ssa(source, ssa_name, ssa_version)
+}

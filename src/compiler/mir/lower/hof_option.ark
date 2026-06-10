@@ -1,0 +1,24 @@
+use mir::lower::ctx_api_nesting
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering for Option higher-order helpers.
+
+use mir::inst_structured_control
+use mir::value_types
+use mir::lower::hof_option_branches
+use mir::lower::hof_option_setup
+
+fn mir_lower_map_option_i32(ctx: LowerCtx, mopt_fn_name: String, mopt_opt_local: i32) -> i32 {
+    let mopt_tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    let mopt_new_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    hof_option_setup::emit_map_option_setup(ctx, mopt_opt_local, mopt_tag_local, mopt_new_local)
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    hof_option_branches::emit_map_option_some_i32(ctx, mopt_fn_name, mopt_opt_local, mopt_new_local)
+    ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_else())
+    hof_option_branches::emit_map_option_none_i32(ctx, mopt_new_local)
+    hof_option_branches::emit_map_option_end(ctx)
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+    hof_option_branches::emit_map_option_result(ctx, mopt_new_local)
+    mopt_new_local
+}

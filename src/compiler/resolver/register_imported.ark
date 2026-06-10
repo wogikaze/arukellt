@@ -1,0 +1,47 @@
+// Arukellt Resolver - imported module declaration registration
+
+use resolver::scope_lookup
+use resolver::ast_decl_predicates
+use resolver::ast_access
+use resolver::scope_define
+use resolver::kinds
+use resolver::modules
+use resolver::register_exports
+
+fn register_imported_modules(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
+    let mod_count = len(modules)
+    let mut mi = 0
+    while mi < mod_count {
+        let m = get_unchecked(modules, mi)
+        let module_name = modules::module_name(m)
+        let existing = scope_lookup::lookup(ctx, clone(module_name))
+        if existing < 0 {
+            scope_define::define(ctx, module_name, commands::SYM_MODULE())
+        }
+        register_imported_module_exports(ctx, m)
+        mi = mi + 1
+    }
+}
+
+fn register_imported_module_exports(ctx: ResolveCtx, m: ModuleDecls) {
+    let module_name = modules::module_name(m)
+    let mdecl_count = modules::module_decl_count(m)
+    let mut di = 0
+    while di < mdecl_count {
+        let d = modules::module_decl_at(m, di)
+        let symbol_name = ast_access::node_text(d)
+        let is_pub = ast_access::node_is_pub(d)
+        if ast_decl_predicates::node_is_fn_decl(d) {
+            register_exports::register_module_export(ctx, clone(module_name), clone(symbol_name), commands::SYM_FN(), is_pub)
+        } else {
+            if ast_decl_predicates::node_is_struct_decl(d) {
+                register_exports::register_module_export(ctx, clone(module_name), clone(symbol_name), commands::SYM_STRUCT(), is_pub)
+            } else {
+                if ast_decl_predicates::node_is_enum_decl(d) {
+                    register_exports::register_module_export(ctx, clone(module_name), clone(symbol_name), commands::SYM_ENUM(), is_pub)
+                }
+            }
+        }
+        di = di + 1
+    }
+}

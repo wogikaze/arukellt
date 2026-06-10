@@ -1,0 +1,29 @@
+use parser::core_ast_text_fields
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - f-string AST node helpers.
+
+
+fn fstring_string_lit(text: String, span: Span) -> AstNode {
+    let lit_node = core_ast_factory::AstNode_new(kinds::NK_STRING_LIT(), span)
+    core_ast_text_fields::AstNode_set_text(lit_node, text)
+    lit_node
+}
+
+fn fstring_to_string_call(expr: AstNode, span: Span) -> AstNode {
+    let ts_node = core_ast_factory::AstNode_new(kinds::NK_CALL(), span)
+    let fn_node = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), String_from("to_string"), span)
+    core_ast_children::AstNode_push_child(ts_node, fn_node)
+    core_ast_children::AstNode_push_child(ts_node, expr)
+    ts_node
+}
+
+fn fstring_concat_call(lhs: AstNode, rhs: AstNode, span: Span) -> AstNode {
+    let concat_call = core_ast_factory::AstNode_new(kinds::NK_CALL(), span)
+    let fn_concat = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), String_from("concat"), span)
+    core_ast_children::AstNode_push_child(concat_call, fn_concat)
+    core_ast_children::AstNode_push_child(concat_call, lhs)
+    core_ast_children::AstNode_push_child(concat_call, rhs)
+    concat_call
+}

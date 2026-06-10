@@ -1,0 +1,45 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - match expression emission
+
+use mir::inst_local_set
+use mir::value_types
+use mir::lower::body_match_arm_last
+use mir::lower::body_match_arm_nonlast
+use mir::lower::match
+
+fn lower_match_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count < 2 {
+        return 0 - 1
+    }
+    let scrutinee = ast_node::node_child_at(node, 0)
+    let scrut_idx = lower_expr(ctx, scrutinee)
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(scrut_idx))
+    let result = ctx_fresh_local(ctx, value_types::VT_I32())
+    let payload_info = match::mir_prepare_match_payload(ctx, node, child_count, scrut_idx)
+    let mut arm = 1
+    let mut if_depth = 0
+    while arm < child_count {
+        let arm_node = ast_node::node_child_at(node, arm)
+        let is_last = arm == child_count - 1
+        if_depth = lower_match_arm(ctx, arm_node, is_last, payload_info, scrut_idx, result, if_depth)
+        arm = arm + 1
+    }
+    match::mir_emit_match_end_nested_ifs(ctx, if_depth)
+    match::mir_emit_match_result_get(ctx, result)
+}
+
+fn lower_match_arm(ctx: LowerCtx, arm_node: AstNode, is_last: bool, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32) -> i32 {
+    let arm_child_count = ast_node::node_child_count(arm_node)
+    let pat_idx_in_arm = 0
+    let body_idx_in_arm = arm_child_count - 1
+    let pat = ast_node::node_child_at(arm_node, pat_idx_in_arm)
+    let body = ast_node::node_child_at(arm_node, body_idx_in_arm)
+    if is_last {
+        return body_match_arm_last::lower_last_match_arm(ctx, arm_node, arm_child_count, pat, body, payload_info, scrut_idx, result, if_depth)
+    }
+    body_match_arm_nonlast::lower_nonlast_match_arm(ctx, arm_node, arm_child_count, pat, body, payload_info, scrut_idx, result, if_depth)
+}

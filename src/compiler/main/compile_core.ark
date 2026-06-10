@@ -1,0 +1,197 @@
+// Arukellt Selfhost - main namespace: compile_core
+
+use main::args_record
+use main::commands
+use main::kinds
+use driver::types
+use driver::config_record
+use std::host::stdio
+use driver::result_record
+use main::output
+use std::host::fs
+use std::host::process
+use driver::file
+
+// Arukellt Selfhost - CLI compile DriverConfig builders
+
+pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: bool) -> DriverConfig {
+	let config = config_record::DriverConfig_default()
+	config_record::config_set_target(config, args_record::cli_target(opts))
+	config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
+	config_record::config_set_emit_mode(config, emit_mode)
+	config_record::config_set_wit_paths(config, args_record::cli_wit_paths(opts))
+	config_record::config_set_show_timing(config, args_record::cli_show_timing(opts))
+	if include_dumps {
+		config_record::config_set_dump_tokens(config, should_dump(opts, String_from("tokens")))
+		config_record::config_set_dump_ast(config, should_dump(opts, String_from("ast")))
+		config_record::config_set_dump_hir(config, should_dump(opts, String_from("hir")))
+		config_record::config_set_dump_mir(config, should_dump(opts, String_from("mir")))
+		config_record::config_set_dump_wasm(config, should_dump(opts, String_from("wasm")))
+	}
+	config
+}
+
+pub fn build_command_config(opts: CliOptions) -> DriverConfig {
+	let command = args_record::cli_command(opts)
+	let config = build_emit_config(opts, args_record::cli_emit_mode(opts), true)
+	config_record::config_set_parse_only(config, command == kinds::CMD_PARSE())
+	config_record::config_set_check_only(config, command == kinds::CMD_CHECK())
+	config
+}
+
+// Arukellt Selfhost - CLI compile dump phase matching
+
+fn should_dump(opts: CliOptions, phase: String) -> bool {
+	if len(args_record::cli_dump_phases(opts)) == 0 {
+		return false
+	}
+	let phases = args_record::cli_dump_phases(opts)
+	let phase_len = len(phase)
+	let phases_len = len(phases)
+	let mut i = 0
+	while i <= phases_len - phase_len {
+		let sub = substring(clone(phases), i, i + phase_len)
+		if eq(sub, clone(phase)) {
+			let at_start = i == 0
+			let after_comma = i > 0 && char_at(phases, i - 1) == 44
+			let at_end = i + phase_len == phases_len
+			let before_comma = i + phase_len < phases_len && char_at(phases, i + phase_len) == 44
+			if at_start || after_comma && at_end || before_comma {
+				return true
+			}
+		}
+		i = i + 1
+	}
+	false
+}
+
+// Arukellt Selfhost - CLI compile error reporting
+
+fn print_compile_errors(input_file: String, result: CompileResult, json_mode: bool) {
+	if json_mode {
+		stdio::println(output::format_error_json(clone(input_file), result_record::compile_result_phase_reached(result), result_record::compile_result_diagnostics(result)))
+	} else {
+		let err_count = len(result.error_messages)
+		let mut i = 0
+		while i < err_count {
+			let msg = result_record::compile_result_error_message_at(result, i)
+			stdio::eprintln(output::format_error_phased(clone(input_file), result_record::compile_result_phase_reached(result), clone(msg)))
+			i = i + 1
+		}
+	}
+}
+
+// Arukellt Selfhost - CLI compile output file writing
+
+fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool {
+	let write_result = fs::write_bytes(clone(path), bytes)
+	match write_result {
+		Result::Ok(_) => {
+			if !json_mode {
+				stdio::eprintln(concat(String_from("wrote "), concat(to_string(len(bytes)), concat(String_from(" bytes to "), clone(path)))))
+			}
+			true
+		},
+		Result::Err(e) => {
+			stdio::eprintln(concat(String_from("error writing output: "), e))
+			false
+		},
+	}
+}
+
+// Arukellt Selfhost - CLI compile output path helpers
+
+fn stem_from_input(path: String) -> String {
+	let n = len(clone(path))
+	if n > 4 {
+		let ext = substring(clone(path), n - 4, n)
+		if eq(ext, String_from(".ark")) {
+			return substring(path, 0, n - 4)
+		}
+	}
+	path
+}
+
+fn wasm_path_for_all(opts: CliOptions) -> String {
+	if args_record::cli_has_output_file(opts) {
+		return args_record::cli_output_file(opts)
+	}
+	concat(stem_from_input(args_record::cli_input_file(opts)), String_from(".wasm"))
+}
+
+fn component_path_for_all(opts: CliOptions) -> String {
+	if args_record::cli_has_output_file(opts) {
+		let out = args_record::cli_output_file(opts)
+		let n = len(clone(out))
+		if n > 5 {
+			let ext = substring(clone(out), n - 5, n)
+			if eq(ext, String_from(".wasm")) {
+				return concat(substring(out, 0, n - 5), String_from(".component.wasm"))
+			}
+		}
+		return concat(out, String_from(".component.wasm"))
+	}
+	concat(stem_from_input(args_record::cli_input_file(opts)), String_from(".component.wasm"))
+}
+
+// Arukellt Selfhost - CLI single compile/check/parse implementation.
+
+pub fn cmd_compile_single(opts: CliOptions) {
+	if !validate_wit_paths(opts) {
+		process::exit(1)
+		return
+	}
+	let config = build_command_config(opts)
+	let input_file = args_record::cli_input_file(opts)
+	let json_mode = args_record::cli_json_output(opts)
+	let result = file::compile_file(clone(input_file), config)
+	if result_record::compile_result_success(result) {
+		handle_single_compile_success(opts, clone(input_file), result, json_mode)
+	} else {
+		print_compile_errors(clone(input_file), result, json_mode)
+		process::exit(1)
+	}
+}
+
+// Arukellt Selfhost - CLI single compile success handling.
+
+fn print_compile_success(input_file: String, result: CompileResult, json_mode: bool) {
+    if json_mode {
+        stdio::println(output::format_success_json(clone(input_file), result_record::compile_result_phase_reached(result), result_record::compile_result_output_byte_count(result)))
+        return
+    }
+    stdio::eprintln(concat(String_from("compilation succeeded (phase "), concat(to_string(result_record::compile_result_phase_reached(result)), String_from(")"))))
+}
+
+fn handle_single_compile_success(opts: CliOptions, input_file: String, result: CompileResult, json_mode: bool) {
+    print_compile_success(clone(input_file), result, json_mode)
+    if args_record::cli_has_output_file(opts) {
+        if !write_compile_output(args_record::cli_output_file(opts), result_record::compile_result_output_bytes(result), json_mode) {
+            process::exit(1)
+        }
+        return
+    }
+    if !json_mode {
+        stdio::println(concat(String_from("ok: "), concat(to_string(result_record::compile_result_output_byte_count(result)), String_from(" bytes"))))
+    }
+}
+
+// Arukellt Selfhost - CLI compile WIT input validation
+
+fn validate_wit_paths(opts: CliOptions) -> bool {
+	let mut i = 0
+	while i < args_record::cli_wit_path_count(opts) {
+		let path = args_record::cli_wit_path_at(opts, i)
+		let read_result = fs::read_to_string(clone(path))
+		match read_result {
+			Result::Ok(_) => {
+			},
+			Result::Err(e) => {
+				stdio::eprintln(concat(String_from("error: unable to read WIT file "), concat(clone(path), concat(String_from(": "), e))))
+				return false
+			},
+		}
+		i = i + 1
+	}
+	true
+}

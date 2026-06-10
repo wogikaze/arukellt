@@ -1,0 +1,31 @@
+// Arukellt Selfhost - MIR block dominance query API.
+
+use mir::types_block
+
+fn MirBlock_idom(block: MirBlock) -> i32 {
+    block.idom
+}
+
+fn MirBlock_dom_set(block: MirBlock) -> Vec<i32> {
+    block.dom_set
+}
+
+fn MirBlock_dom_set_count(block: MirBlock) -> i32 {
+    len(block.dom_set)
+}
+
+fn MirBlock_dom_set_at(block: MirBlock, idx: i32) -> i32 {
+    get_unchecked(block.dom_set, idx)
+}
+
+fn MirBlock_dom_frontier_count(block: MirBlock) -> i32 {
+    len(block.dom_frontier)
+}
+
+fn MirBlock_dom_frontier_at(block: MirBlock, idx: i32) -> i32 {
+    get_unchecked(block.dom_frontier, idx)
+}
+
+fn MirBlock_dom_frontier(block: MirBlock) -> Vec<i32> {
+    block.dom_frontier
+}

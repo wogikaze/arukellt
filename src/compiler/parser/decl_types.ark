@@ -1,0 +1,12 @@
+// Arukellt Parser - struct and enum declaration facade
+
+use parser::decl_enum
+use parser::decl_struct
+
+fn parse_struct_decl(p: Parser) -> AstNode {
+    decl_struct::parse_struct_decl(p)
+}
+
+fn parse_enum_decl(p: Parser) -> AstNode {
+    decl_enum::parse_enum_decl(p)
+}

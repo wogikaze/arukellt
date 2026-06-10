@@ -1,0 +1,33 @@
+use mir::ssa_state_slots
+use mir::function_param_view
+use mir::function_locals_view
+use mir::local_access
+use mir::local_mutation
+// Arukellt Selfhost - MIR SSA function initialization.
+
+use mir::ssa_phi
+use mir::ssa_state_types
+
+fn mir_ssa_reset_local_slots(f: MirFunction) {
+    let lc = function_locals_view::MirFunction_local_count(f)
+    let mut i = 0
+    while i < lc {
+        let loc = function_locals_view::MirFunction_local_at(f, i)
+        local_mutation::MirLocal_set_ssa(loc, local_access::MirLocal_name(loc), 0 - 1)
+        i = i + 1
+    }
+}
+
+fn mir_ssa_tag_function_params(f: MirFunction, state: ssa_state_types::MirSsaRenameState) {
+    let pc = function_param_view::MirFunction_param_count(f)
+    let mut pi = 0
+    while pi < pc {
+        let p = function_param_view::MirFunction_param_at(f, pi)
+        if pi < ssa_state_types::MirSsaRenameState_original_local_count(state) {
+            ssa_phi::mir_assign_local_ssa(f, pi, local_access::MirLocal_name(p), 0)
+            ssa_state_slots::mir_ssa_set_version(state, pi, 0)
+            ssa_state_slots::mir_ssa_set_current(state, pi, pi)
+        }
+        pi = pi + 1
+    }
+}

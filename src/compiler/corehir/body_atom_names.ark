@@ -1,0 +1,16 @@
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR name/path atom builders.
+
+use corehir::expr_builder_atoms
+use corehir::expr_node_access
+use corehir::expr_node_predicates
+
+fn corehir_name_expr_from_node(node: AstNode) -> CoreHirExpr {
+    if expr_node_predicates::expr_is_ident(node) {
+        return expr_builder_atoms::corehir_expr_ident(expr_node_access::expr_text(node), expr_node_access::expr_span_start(node))
+    }
+    if expr_node_predicates::expr_is_path(node) {
+        return expr_builder_atoms::corehir_expr_path(expr_node_access::expr_text(node), expr_node_access::expr_span_start(node))
+    }
+    expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node))
+}

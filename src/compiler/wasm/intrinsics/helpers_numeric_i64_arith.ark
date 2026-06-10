@@ -1,0 +1,8 @@
+// Arukellt Selfhost - Wasm i64 arithmetic helper recipes.
+
+use wasm::opcodes
+use wasm::writer_core
+
+fn emit_i64_sub(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I64_SUB()) }
+fn emit_i64_div_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I64_DIV_U()) }
+fn emit_i64_rem_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I64_REM_U()) }

@@ -1,0 +1,12 @@
+use corehir::kinds
+// Arukellt Selfhost - CoreHIR expression factory.
+
+use corehir::expr_raw
+
+fn CoreHirExpr_new(kind: i32, text: String, int_val: i32, float_val: f64, val_type: i32, type_name: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_raw::corehir_expr_new(kind, text, int_val, float_val, val_type, type_name, span_start, children)
+}
+
+fn CoreHirExpr_unsupported(span_start: i32) -> CoreHirExpr {
+    CoreHirExpr_new(commands::COREHIR_EXPR_UNSUPPORTED(), String_new(), 0, 0.0, 0, String_new(), span_start, Vec_new_i32())
+}

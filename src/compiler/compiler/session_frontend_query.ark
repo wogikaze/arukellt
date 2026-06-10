@@ -1,0 +1,27 @@
+// Arukellt Selfhost - compiler frontend session query.
+
+use compiler::session_lex_query
+use compiler::session_parse_tokens
+
+struct CompilerSessionFrontendResult {
+    lex_result: LexResult,
+    parse_result: ParseResult,
+}
+
+fn CompilerSessionFrontendResult_new(lex_result: LexResult, parse_result: ParseResult) -> CompilerSessionFrontendResult {
+    CompilerSessionFrontendResult { lex_result: lex_result, parse_result: parse_result }
+}
+
+fn frontend_result_parse(result: CompilerSessionFrontendResult) -> ParseResult {
+    result.parse_result
+}
+
+fn frontend_result_lex(result: CompilerSessionFrontendResult) -> LexResult {
+    result.lex_result
+}
+
+fn session_parse_source(text: String) -> CompilerSessionFrontendResult {
+    let lex_result = session_lex_query::session_lex(text)
+    let parse_result = session_parse_tokens::session_parse_tokens(session_lex_query::session_lex_tokens(lex_result))
+    CompilerSessionFrontendResult_new(lex_result, parse_result)
+}

@@ -1,0 +1,38 @@
+use mir::function_locals_view
+use mir::local_access
+// Arukellt Selfhost - MIR dump local SSA expectations
+
+use std::host::process
+use std::host::stdio
+use mir::dump_format_local
+use mir::types
+
+fn mir_expect_local_ssa(f: MirFunction, local_id: i32, expected_name: String, expected_version: i32) {
+    if local_id < 0 || local_id >= function_locals_view::MirFunction_local_count(f) {
+        stdio::eprintln(String_from("ssa local check failed: local id out of range"))
+        process::exit(1)
+    }
+    let local = function_locals_view::MirFunction_local_at(f, local_id)
+    if !eq(local_access::MirLocal_ssa_name(local), clone(expected_name)) || local_access::MirLocal_ssa_version(local) != expected_version {
+        let mut msg = concat(String_from("ssa local check failed for "), dump_format_local::mir_format_local_ref(f, local_id))
+        msg = concat(msg, String_from(": expected %"))
+        msg = concat(msg, expected_name)
+        msg = concat(msg, String_from("."))
+        msg = concat(msg, to_string(expected_version))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
+fn mir_expect_local_ref_eq(f: MirFunction, local_id: i32, expected: String, label: String) {
+    let actual = dump_format_local::mir_format_local_ref(f, local_id)
+    if !eq(clone(actual), clone(expected)) {
+        let mut msg = concat(String_from("ssa ref check failed for "), label)
+        msg = concat(msg, String_from(": expected "))
+        msg = concat(msg, expected)
+        msg = concat(msg, String_from(" actual "))
+        msg = concat(msg, actual)
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}

@@ -1,0 +1,43 @@
+// Arukellt Selfhost - MIR lowering call target rewrites
+
+use mir::lower::call_mono
+use mir::lower::call_rewrite_string
+use mir::lower::call_rewrite_vec
+
+struct MirCallRewrite {
+    callee_name: String,
+    return_local: i32,
+    push_i64_needs_extend: bool,
+}
+
+fn MirCallRewrite_new(callee_name: String, return_local: i32, push_i64_needs_extend: bool) -> MirCallRewrite {
+    MirCallRewrite { callee_name: callee_name, return_local: return_local, push_i64_needs_extend: push_i64_needs_extend }
+}
+
+fn MirCallRewrite_callee_name(rewrite: MirCallRewrite) -> String {
+    clone(rewrite.callee_name)
+}
+
+fn MirCallRewrite_return_local(rewrite: MirCallRewrite) -> i32 {
+    rewrite.return_local
+}
+
+fn MirCallRewrite_push_i64_needs_extend(rewrite: MirCallRewrite) -> bool {
+    rewrite.push_i64_needs_extend
+}
+
+fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool, span_start: i32) -> MirCallRewrite {
+    let mut rewritten = clone(callee_name)
+    let mut return_local = 0 - 1
+    let mut push_i64_needs_extend = false
+    if eq(clone(rewritten), "to_string") {
+        let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, rewritten, first_arg_idx)
+        rewritten = call_rewrite_string::mir_string_call_rewrite_callee_name(string_rewrite)
+        return_local = call_rewrite_string::mir_string_call_rewrite_return_local(string_rewrite)
+    }
+    let vec_rewrite = call_rewrite_vec::mir_rewrite_vec_call(ctx, rewritten, first_arg_idx, second_arg_idx, stage_call_args)
+    rewritten = call_rewrite_vec::mir_vec_call_rewrite_callee_name(vec_rewrite)
+    push_i64_needs_extend = call_rewrite_vec::mir_vec_call_rewrite_push_i64_needs_extend(vec_rewrite)
+    rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)
+    MirCallRewrite_new(rewritten, return_local, push_i64_needs_extend)
+}

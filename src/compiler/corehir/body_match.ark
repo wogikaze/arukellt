@@ -1,0 +1,36 @@
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR body builder for match expressions.
+
+use corehir::expr_builder_calls
+use corehir::expr_predicates
+use corehir::expr_node_access
+use corehir::body_match_arm
+
+fn corehir_build_match_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let child_count = expr_node_access::expr_child_count(node)
+    if child_count < 2 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let children = Vec_new_i32()
+    let scrut_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
+    push(children, scrut_index)
+    let scrut_expr = corehir_body_expr_at(table, scrut_index)
+    if expr_predicates::expr_is_unsupported(scrut_expr) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let mut i = 1
+    let mut unsupported = false
+    while i < child_count {
+        let arm_index = body_match_arm::corehir_build_match_arm_expr(table, expr_node_access::expr_child_at(node, i))
+        push(children, arm_index)
+        let arm_expr = corehir_body_expr_at(table, arm_index)
+        if expr_predicates::expr_is_unsupported(arm_expr) {
+            unsupported = true
+        }
+        i = i + 1
+    }
+    if unsupported {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_calls::corehir_expr_match(expr_node_access::expr_span_start(node), children))
+}

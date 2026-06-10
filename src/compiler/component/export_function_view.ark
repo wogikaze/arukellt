@@ -1,0 +1,33 @@
+use mir::function_return_view
+use mir::function_param_view
+use mir::function_identity
+// Arukellt Selfhost - Component export view over MIR function metadata.
+
+
+fn export_function_name(f: MirFunction) -> String {
+    function_identity::MirFunction_name(f)
+}
+
+fn export_function_param_count(f: MirFunction) -> i32 {
+    function_param_view::MirFunction_param_count(f)
+}
+
+fn export_function_return_type(f: MirFunction) -> i32 {
+    function_return_view::MirFunction_return_type(f)
+}
+
+fn export_function_return_type_name(f: MirFunction) -> String {
+    function_return_view::MirFunction_return_type_name(f)
+}
+
+fn export_function_param_val_type(f: MirFunction, idx: i32) -> i32 {
+    function_param_view::MirFunction_param_val_type(f, idx)
+}
+
+fn export_function_param_at(f: MirFunction, idx: i32) -> MirLocal {
+    function_param_view::MirFunction_param_at(f, idx)
+}
+
+fn export_function_param_type_name(f: MirFunction, idx: i32) -> String {
+    function_param_view::MirFunction_param_type_name(f, idx)
+}

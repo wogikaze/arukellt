@@ -1,0 +1,28 @@
+// Arukellt Selfhost - analysis diagnostic data record.
+
+pub struct AnalysisDiagnostic {
+    phase: i32,
+    message: String,
+    start: i32,
+    end: i32,
+}
+
+fn AnalysisDiagnostic_new(phase: i32, msg: String, start: i32, end: i32) -> AnalysisDiagnostic {
+    AnalysisDiagnostic { phase: phase, message: msg, start: start, end: end }
+}
+
+fn analysis_diagnostic_phase(diag: AnalysisDiagnostic) -> i32 {
+    diag.phase
+}
+
+fn analysis_diagnostic_message(diag: AnalysisDiagnostic) -> String {
+    clone(diag.message)
+}
+
+fn analysis_diagnostic_start(diag: AnalysisDiagnostic) -> i32 {
+    diag.start
+}
+
+fn analysis_diagnostic_end(diag: AnalysisDiagnostic) -> i32 {
+    diag.end
+}

@@ -1,0 +1,11 @@
+// Arukellt Selfhost - MIR block successor query API.
+
+use mir::types_block
+
+fn MirBlock_succ0(block: MirBlock) -> i32 {
+    block.succ0
+}
+
+fn MirBlock_succ1(block: MirBlock) -> i32 {
+    block.succ1
+}

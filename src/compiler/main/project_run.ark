@@ -1,0 +1,178 @@
+// Arukellt Selfhost - main namespace: project_run
+
+use std::host::fs
+use std::host::process
+use std::host::stdio
+use driver::file
+use driver::config_record
+use main::args_record
+use driver::result_record
+use main::output
+
+// Arukellt Selfhost - CLI run command implementation
+
+fn build_run_driver_config(opts: CliOptions) -> DriverConfig {
+    let config = config_record::DriverConfig_default()
+    config_record::config_set_target(config, args_record::cli_target(opts))
+    config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
+    config_record::config_set_emit_mode(config, String_from("wasm"))
+    config
+}
+
+fn print_run_compile_errors(input_file: String, result: CompileResult) {
+    let err_count = result_record::compile_result_error_count(result)
+    let mut i = 0
+    while i < err_count {
+        let msg = result_record::compile_result_error_message_at(result, i)
+        stdio::eprintln(output::format_error(clone(input_file), clone(msg)))
+        i = i + 1
+    }
+}
+
+fn exit_run_compile_error(input_file: String, result: CompileResult) {
+    print_run_compile_errors(input_file, result)
+    process::exit(1)
+}
+
+fn run_output_path(opts: CliOptions, input_file: String) -> String {
+    if args_record::cli_has_output_file(opts) {
+        return args_record::cli_output_file(opts)
+    }
+    let base = clone(input_file)
+    let base_len = len(base)
+    if base_len > 4 {
+        let ext = substring(base, base_len - 4, base_len)
+        if eq(ext, ".ark") {
+            return concat(substring(base, 0, base_len - 4), String_from(".wasm"))
+        }
+    }
+    concat(clone(base), String_from(".wasm"))
+}
+
+fn write_run_output(input_file: String, out_path: String, bytes: Vec<i32>) {
+    let write_result = fs::write_bytes(clone(out_path), bytes)
+    match write_result {
+        Result::Ok(_) => {
+            stdio::eprintln(concat(String_from("compiled "), concat(clone(input_file), concat(String_from(" -> "), clone(out_path)))))
+            stdio::eprintln(String_from("run: execute with `wasmtime <output.wasm>`"))
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error writing output: "), e))
+            process::exit(1)
+        },
+    }
+}
+
+pub fn cmd_run(opts: CliOptions) {
+	let input_file = args_record::cli_input_file(opts)
+	let config = build_run_driver_config(opts)
+	let result = file::compile_file(clone(input_file), config)
+	if !result_record::compile_result_success(result) {
+		exit_run_compile_error(clone(input_file), result)
+		return
+	}
+	let out_path = run_output_path(opts, clone(input_file))
+	write_run_output(input_file, out_path, result_record::compile_result_output_bytes(result))
+}
+
+// Arukellt Selfhost - CLI test command implementation
+
+fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
+    let config = config_record::DriverConfig_default()
+    config_record::config_set_target(config, args_record::cli_target(opts))
+    config_record::config_set_check_only(config, true)
+    config
+}
+
+fn exit_missing_test_input() {
+    stdio::eprintln(String_from("test: specify .ark file(s) to test"))
+    stdio::eprintln(String_from("  usage: arukellt-s1 test <file.ark>"))
+    process::exit(2)
+}
+
+fn exit_test_failure() {
+    process::exit(1)
+}
+
+fn print_test_start(input_file: String) {
+    stdio::eprintln(concat(String_from("testing "), input_file))
+}
+
+fn print_test_pass(input_file: String) {
+    stdio::println(concat(String_from("  PASS  "), input_file))
+}
+
+fn print_test_fail(input_file: String, result: CompileResult) {
+    stdio::println(concat(String_from("  FAIL  "), clone(input_file)))
+    let err_count = result_record::compile_result_error_count(result)
+    let mut i = 0
+    while i < err_count {
+        let msg = result_record::compile_result_error_message_at(result, i)
+        stdio::eprintln(concat(String_from("    "), clone(msg)))
+        i = i + 1
+    }
+}
+
+pub fn cmd_test(opts: CliOptions) {
+	if args_record::cli_has_input_file(opts) {
+		let input_file = args_record::cli_input_file(opts)
+		print_test_start(clone(input_file))
+		let config = build_test_driver_config(opts)
+		let result = file::compile_file(clone(input_file), config)
+		if result_record::compile_result_success(result) {
+			print_test_pass(input_file)
+		} else {
+			print_test_fail(input_file, result)
+			exit_test_failure()
+		}
+	} else {
+		exit_missing_test_input()
+	}
+}
+
+// Arukellt Selfhost - minimal TOML value extraction for CLI project metadata
+
+// ── TOML Value Extraction ────────────────────────────────────────────────────
+fn find_toml_value(content: String, key: String) -> String {
+    let content_len = len(content)
+    let key_len = len(key)
+    let mut line_start = 0
+    let mut i = 0
+    while i < content_len {
+        if char_at(content, i) == 10 || i == content_len - 1 {
+            let line_end = if char_at(content, i) == 10 {
+                i
+            } else {
+                i + 1
+            }
+            let line = substring(content, line_start, line_end)
+            let line_len = len(line)
+            if line_len > key_len + 3 {
+                let prefix = substring(line, 0, key_len)
+                if eq(prefix, clone(key)) {
+                    let mut j = key_len
+                    while j < line_len && char_at(line, j) == 32 {
+                        j = j + 1
+                    }
+                    if j < line_len && char_at(line, j) == 61 {
+                        j = j + 1
+                        while j < line_len && char_at(line, j) == 32 {
+                            j = j + 1
+                        }
+                        if j < line_len && char_at(line, j) == 34 {
+                            j = j + 1
+                            let val_start = j
+                            while j < line_len && char_at(line, j) != 34 {
+                                j = j + 1
+                            }
+                            return substring(line, val_start, j)
+                        }
+                    }
+                }
+            }
+            line_start = i + 1
+        }
+        i = i + 1
+    }
+    String_new()
+}

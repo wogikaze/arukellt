@@ -1,0 +1,58 @@
+use parser::ast_kind_fields
+use parser::core_ast_text_fields
+use parser::core_ast_type_ann
+// Arukellt Parser self-checks for issue 504.
+
+use lexer::scan
+use parser::core_api_token
+use parser::decl
+use parser::kinds
+use parser::state_record
+
+fn issue504_parser_self_check() -> String {
+    let src = String_from("impl Foo for MyStruct { fn value(x: MyStruct) -> i32 { 0 } } fn f<T: Foo>(x: T) { }")
+    let tokens = scan::tokenize(src)
+    let p = core_api_token::Parser_new(tokens)
+    let decls = decl::parse_module(p)
+    let error_count = state_record::parser_error_count(p)
+    if error_count != 0 {
+        return concat(String_from("issue504 parser fail: parse errors="), to_string(error_count))
+    }
+    if len(decls) != 2 {
+        return concat(String_from("issue504 parser fail: decl count="), to_string(len(decls)))
+    }
+    let impl_decl = get_unchecked(decls, 0)
+    if ast_kind_fields::AstNode_kind(impl_decl) != kinds::NK_IMPL_DECL() {
+        return String_from("issue504 parser fail: expected impl decl")
+    }
+    if core_ast_type_ann::AstNode_type_ann_count(impl_decl) != 2 {
+        return concat(String_from("issue504 parser fail: impl head count="), to_string(core_ast_type_ann::AstNode_type_ann_count(impl_decl)))
+    }
+    let impl_trait = core_ast_type_ann::AstNode_type_ann_at(impl_decl, 0)
+    let impl_target = core_ast_type_ann::AstNode_type_ann_at(impl_decl, 1)
+    if !eq(core_ast_text_fields::AstNode_text(impl_trait), String_from("Foo")) {
+        return String_from("issue504 parser fail: impl trait")
+    }
+    if !eq(core_ast_text_fields::AstNode_text(impl_target), String_from("MyStruct")) {
+        return String_from("issue504 parser fail: impl target")
+    }
+    let fn_decl = get_unchecked(decls, 1)
+    if ast_kind_fields::AstNode_kind(fn_decl) != kinds::NK_FN_DECL() {
+        return String_from("issue504 parser fail: expected fn decl")
+    }
+    if core_ast_type_ann::AstNode_type_ann_count(fn_decl) == 0 {
+        return String_from("issue504 parser fail: missing type params")
+    }
+    let type_param = core_ast_type_ann::AstNode_type_ann_at(fn_decl, 0)
+    if !eq(core_ast_text_fields::AstNode_text(type_param), String_from("T")) {
+        return String_from("issue504 parser fail: type param name")
+    }
+    if core_ast_type_ann::AstNode_type_ann_count(type_param) != 1 {
+        return String_from("issue504 parser fail: missing type param bound")
+    }
+    let bound = core_ast_type_ann::AstNode_type_ann_at(type_param, 0)
+    if !eq(core_ast_text_fields::AstNode_text(bound), String_from("Foo")) {
+        return String_from("issue504 parser fail: wrong bound")
+    }
+    String_from("issue504 parser ok: impl Foo for MyStruct / fn f<T: Foo>(x: T)")
+}

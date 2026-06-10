@@ -1,0 +1,17 @@
+use lexer::tokens
+use parser::core_ast_text_fields
+use parser::kinds
+
+// Arukellt Parser - struct declaration header syntax.
+
+use parser::core_api_expect
+use parser::core_ast_factory
+use parser::token_state
+
+fn parse_struct_header(p: Parser) -> AstNode {
+    let t = core_api_expect::expect_token(p, tokens::TK_STRUCT())
+    let node = core_ast_factory::AstNode_new(kinds::NK_STRUCT_DECL(), core_api_expect::tok_span(t))
+    let name = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name))
+    node
+}

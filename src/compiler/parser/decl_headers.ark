@@ -1,0 +1,24 @@
+use lexer::tokens
+// Arukellt Parser - declaration header helpers
+
+use parser::core_api_cursor
+use parser::decl_headers_impl
+use parser::decl_headers_trait
+
+fn parse_pub_prefix(p: Parser) -> bool {
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) != tokens::TK_PUB() {
+        return false
+    }
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    true
+}
+
+fn parse_trait_header(p: Parser) -> AstNode {
+    decl_headers_trait::parse_trait_header(p)
+}
+
+fn parse_impl_header(p: Parser) -> AstNode {
+    decl_headers_impl::parse_impl_header(p)
+}

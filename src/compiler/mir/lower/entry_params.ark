@@ -1,0 +1,30 @@
+// Arukellt Selfhost - MIR lowering entry parameter binding helpers.
+
+use mir::lower::entry_view_fn
+use mir::lower::entry_view_method
+use mir::lower::params_fn
+use mir::lower::params_method
+
+fn mir_bind_top_level_params(ctx: LowerCtx, entry_view: MirLowerEntryView, fn_info_index: i32, param_count: i32) {
+    if fn_info_index < 0 {
+        return
+    }
+    let mut p = 0
+    while p < param_count {
+        let param = entry_view_fn::mir_entry_fn_param_at(entry_view, fn_info_index, p)
+        params_fn::mir_bind_fn_param(ctx, param)
+        p = p + 1
+    }
+}
+
+fn mir_bind_method_params(ctx: LowerCtx, entry_view: MirLowerEntryView, method_info_index: i32, struct_name: String, method_param_count: i32) {
+    if method_info_index < 0 {
+        return
+    }
+    let mut mp = 0
+    while mp < method_param_count {
+        let param = entry_view_method::mir_entry_method_param_at(entry_view, method_info_index, mp)
+        params_method::mir_bind_method_param(ctx, clone(struct_name), param)
+        mp = mp + 1
+    }
+}

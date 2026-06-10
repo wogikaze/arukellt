@@ -1,0 +1,50 @@
+use mir::lower::ctx_struct_lookup
+use mir::lower::ctx_struct_layout
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering field access emission
+
+use mir::inst_struct_get
+use mir::value_types
+
+fn mir_emit_field_access(ctx: LowerCtx, field_name: String, base_idx: i32) -> i32 {
+    let base_type = ctx_api_local_types::ctx_get_local_type(ctx, base_idx)
+    let mut field_idx = 0
+    let mut is_f64_field = false
+    if len(base_type) > 0 {
+        field_idx = ctx_struct_lookup::ctx_field_index(ctx, clone(base_type), clone(field_name))
+        is_f64_field = ctx_struct_layout::ctx_struct_field_is_f64(ctx, clone(base_type), field_idx)
+    } else {
+        field_idx = ctx_struct_lookup::ctx_field_index_any(ctx, clone(field_name))
+    }
+    let mut dest_vt = value_types::VT_I32()
+    if is_f64_field {
+        dest_vt = value_types::VT_F64()
+    }
+    if len(base_type) > 0 {
+        let ft_vt = ctx_struct_lookup::ctx_get_field_type(ctx, clone(base_type), clone(field_name))
+        if eq(clone(ft_vt), "i64") {
+            dest_vt = value_types::VT_I64()
+        }
+    }
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
+    let mut field_off = field_idx * 4
+    let mut field_vt = value_types::VT_VOID()
+    if len(base_type) > 0 {
+        field_off = ctx_struct_layout::ctx_struct_field_offset(ctx, clone(base_type), field_idx)
+        if is_f64_field {
+            field_vt = value_types::VT_F64()
+        }
+        if dest_vt == value_types::VT_I64() {
+            field_vt = value_types::VT_I64()
+        }
+        let ft = ctx_struct_lookup::ctx_get_field_type(ctx, clone(base_type), clone(field_name))
+        if len(ft) > 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, ft)
+        }
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field(base_idx, clone(field_name), field_off, field_vt, dest))
+    dest
+}

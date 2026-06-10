@@ -1,0 +1,16 @@
+// Arukellt Typechecker - reusable scoped env for generic call inference.
+
+use typechecker::contract_env_record
+
+fn reset_infer_env(env: TypeEnv) {
+    env.vars = Vec_new_TypeVar()
+    env.next_id = 0
+    env.errors = Vec_new_String()
+    env.error_count = 0
+}
+
+fn borrow_generic_infer_env() -> TypeEnv {
+    let env = contract_env_record::TypeEnv_new()
+    reset_infer_env(env)
+    env
+}

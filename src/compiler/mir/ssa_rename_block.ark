@@ -1,0 +1,32 @@
+use mir::ssa_state_slots
+// Arukellt Selfhost - MIR SSA block renaming.
+
+use mir::block_dominance_access
+use mir::block_identity
+use mir::function_block_queries
+use mir::ssa_rename_block_insts
+use mir::ssa_rename_block_phis
+use mir::ssa_state_types
+
+fn mir_ssa_rename_block(f: MirFunction, state: ssa_state_types::MirSsaRenameState, block_id: i32) {
+    if block_id < 0 || block_id >= function_block_queries::MirFunction_block_count(f) {
+        return
+    }
+    let block = function_block_queries::MirFunction_block_at(f, block_id)
+    let idom = block_dominance_access::MirBlock_idom(block)
+    if idom >= 0 {
+        ssa_state_slots::mir_ssa_load_block_entry(state, idom)
+    }
+    ssa_rename_block_phis::rename_block_phis(f, state, block)
+    ssa_rename_block_insts::rename_block_insts(f, state, block)
+    ssa_state_slots::mir_ssa_record_block_exit(state, block_identity::MirBlock_id(block))
+}
+
+fn mir_ssa_rename_blocks(f: MirFunction, state: ssa_state_types::MirSsaRenameState) {
+    let bc = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < bc {
+        mir_ssa_rename_block(f, state, bi)
+        bi = bi + 1
+    }
+}

@@ -1,0 +1,60 @@
+// Arukellt LSP - shared symbol request resolution.
+
+use analysis::symbols
+use analysis::symbol_types
+use lsp::feature_request
+use lsp::positions
+
+struct LspSymbolRequest {
+    id: i32,
+    uri: String,
+    found: bool,
+    info: SymbolInfo,
+    start: LspPosition,
+    end: LspPosition,
+}
+
+fn LspSymbolRequest_new(id: i32, uri: String, found: bool, info: SymbolInfo, start: LspPosition, end: LspPosition) -> LspSymbolRequest {
+    LspSymbolRequest { id: id, uri: uri, found: found, info: info, start: start, end: end }
+}
+
+pub fn symbol_request_id(sym: LspSymbolRequest) -> i32 {
+    sym.id
+}
+
+pub fn symbol_request_uri(sym: LspSymbolRequest) -> String {
+    clone(sym.uri)
+}
+
+pub fn symbol_request_found(sym: LspSymbolRequest) -> bool {
+    sym.found
+}
+
+pub fn symbol_request_info(sym: LspSymbolRequest) -> SymbolInfo {
+    sym.info
+}
+
+pub fn symbol_request_start(sym: LspSymbolRequest) -> LspPosition {
+    sym.start
+}
+
+pub fn symbol_request_end(sym: LspSymbolRequest) -> LspPosition {
+    sym.end
+}
+
+fn resolve_symbol_request(state: LspState, body: String) -> LspSymbolRequest {
+    let req = feature_request::read_text_position_request(state, body)
+    if !feature_request::text_position_request_has_text(req) {
+        return LspSymbolRequest_new(feature_request::text_position_request_id(req), feature_request::text_position_request_uri(req), false, symbol_types::SymbolInfo_none(), positions::LspPosition_new(0, 0), positions::LspPosition_new(0, 0))
+    }
+    let req_text = feature_request::text_position_request_text(req)
+    let info = symbols::symbol_at(clone(req_text), feature_request::text_position_request_offset(req))
+    if !symbol_types::symbol_info_found(info) {
+        return LspSymbolRequest_new(feature_request::text_position_request_id(req), feature_request::text_position_request_uri(req), false, info, positions::LspPosition_new(0, 0), positions::LspPosition_new(0, 0))
+    }
+    let decl_start = symbol_types::symbol_info_decl_start(info)
+    let symbol_name = symbol_types::symbol_info_name(info)
+    let start = positions::offset_to_position(clone(req_text), decl_start)
+    let end = positions::offset_to_position(clone(req_text), decl_start + len(symbol_name) + 3)
+    LspSymbolRequest_new(feature_request::text_position_request_id(req), feature_request::text_position_request_uri(req), true, info, start, end)
+}

@@ -1,0 +1,45 @@
+// Arukellt MIR lowering body - aggregate expression facade.
+
+use mir::lower::aggregate
+use mir::lower::ast_node
+use mir::lower::body_aggregate_comprehension
+use mir::lower::body_aggregate_place
+use mir::lower::body_struct_lit
+use mir::lower::body_tuple_lit
+
+fn lower_assign_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    body_aggregate_place::lower_assign_expr(ctx, node)
+}
+
+fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    body_struct_lit::lower_struct_lit_expr(ctx, node)
+}
+
+fn lower_tuple_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    body_tuple_lit::lower_tuple_expr(ctx, node)
+}
+
+fn lower_field_access_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    body_aggregate_place::lower_field_access_expr(ctx, node)
+}
+
+fn lower_array_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    let dest = aggregate::mir_emit_array_new(ctx, child_count)
+    let mut e = 0
+    while e < child_count {
+        let elem = ast_node::node_child_at(node, e)
+        let val_idx = lower_expr(ctx, elem)
+        aggregate::mir_emit_array_set(ctx, dest, val_idx, e)
+        e = e + 1
+    }
+    aggregate::mir_emit_local_get_ref(ctx, dest)
+}
+
+fn lower_index_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    body_aggregate_place::lower_index_expr(ctx, node)
+}
+
+fn lower_comprehension_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    body_aggregate_comprehension::lower_comprehension_expr(ctx, node)
+}

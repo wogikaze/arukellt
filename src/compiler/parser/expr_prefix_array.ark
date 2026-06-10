@@ -1,0 +1,29 @@
+use lexer::tokens
+use parser::kinds
+// Arukellt Parser - array literal and comprehension prefix facade.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::core_ast_factory
+use parser::expr_prefix_array_comprehension
+use parser::expr_prefix_array_repeat
+use parser::expr_prefix_array_tail
+
+pub fn parse_array_prefix(p: Parser, t: Token) -> AstNode {
+    p.pos = p.pos + 1
+    if core_api_cursor::at(p, tokens::TK_RBRACKET()) {
+        let node = core_ast_factory::AstNode_new(kinds::NK_ARRAY_LIT(), core_api_expect::tok_span(t))
+        core_api_expect::expect_token(p, tokens::TK_RBRACKET())
+        return node
+    }
+    core_api_cursor::skip_newlines(p)
+    let first_elem = parse_expr(p)
+    if core_api_cursor::peek_kind(p) == tokens::TK_SEMI() {
+        return expr_prefix_array_repeat::parse_array_repeat_tail(p, t, first_elem)
+    }
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) == tokens::TK_FOR() {
+        return expr_prefix_array_comprehension::parse_array_comprehension(p, t, first_elem)
+    }
+    expr_prefix_array_tail::parse_array_lit_tail(p, t, first_elem)
+}

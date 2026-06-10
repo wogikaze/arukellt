@@ -1,0 +1,21 @@
+// Arukellt Parser - function signature syntax facade
+
+use parser::fn_annotations
+use parser::fn_sig_clause
+use parser::fn_sig_decl
+
+fn parse_fn_decl_header(p: Parser) -> AstNode {
+    fn_sig_decl::parse_fn_decl_header(p)
+}
+
+fn parse_fn_clause_header(p: Parser) -> AstNode {
+    fn_sig_clause::parse_fn_clause_header(p)
+}
+
+fn make_fn_guard_annotation(guard: AstNode) -> AstNode {
+    fn_annotations::make_fn_guard_annotation(guard)
+}
+
+fn mark_expr_body(node: AstNode, body: AstNode) {
+    fn_annotations::mark_expr_body(node, body)
+}

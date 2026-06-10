@@ -1,0 +1,49 @@
+// Arukellt HIR - module data contract.
+
+use hir::item_function_core_record
+use hir::item_trait_record
+
+struct HirModule {
+    functions: Vec<HirFunction>,
+    structs: Vec<HirStructDef>,
+    enums: Vec<HirEnumDef>,
+    traits: Vec<HirTraitDecl>,
+    impls: Vec<HirImplBlock>,
+    imports: Vec<String>,
+}
+
+fn HirModule_new() -> HirModule {
+    HirModule { functions: Vec_new_HirFunction(), structs: Vec_new_HirStructDef(), enums: Vec_new_HirEnumDef(), traits: Vec_new_HirTraitDecl(), impls: Vec_new_HirImplBlock(), imports: Vec_new_String() }
+}
+
+fn HirModule_push_function(module: HirModule, func: HirFunction) {
+    push(module.functions, func)
+}
+
+fn HirModule_function_count(module: HirModule) -> i32 {
+    len(module.functions)
+}
+
+fn HirModule_function_at(module: HirModule, index: i32) -> HirFunction {
+    get_unchecked(module.functions, index)
+}
+
+fn HirModule_push_struct(module: HirModule, defn: HirStructDef) {
+    push(module.structs, defn)
+}
+
+fn HirModule_push_enum(module: HirModule, defn: HirEnumDef) {
+    push(module.enums, defn)
+}
+
+fn HirModule_push_trait(module: HirModule, decl: HirTraitDecl) {
+    push(module.traits, decl)
+}
+
+fn HirModule_push_impl(module: HirModule, block: HirImplBlock) {
+    push(module.impls, block)
+}
+
+fn HirModule_push_import(module: HirModule, import_path: String) {
+    push(module.imports, import_path)
+}

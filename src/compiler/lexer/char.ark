@@ -1,0 +1,32 @@
+use lexer::tokens
+// Arukellt Lexer - character literal tokens.
+
+use lexer::char_escape
+use lexer::char_token
+
+fn lex_char_literal(lex: Lexer) -> Token {
+    let char_start = lex.pos
+    lex.pos = lex.pos + 1
+    if lex.pos < lex.src_len && char_at(lex.src, lex.pos) == 92 {
+        lex.pos = lex.pos + 1
+        if lex.pos < lex.src_len {
+            let esc = char_at(lex.src, lex.pos)
+            lex.pos = lex.pos + 1
+            let cv = char_escape::escaped_char_value(esc)
+            if lex.pos < lex.src_len && char_at(lex.src, lex.pos) == 39 {
+                lex.pos = lex.pos + 1
+                return char_token::Token_char_value(lex, char_start, cv)
+            }
+        }
+        return Token_new(tokens::TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
+    }
+    if lex.pos < lex.src_len {
+        let cv = char_at(lex.src, lex.pos)
+        lex.pos = lex.pos + 1
+        if lex.pos < lex.src_len && char_at(lex.src, lex.pos) == 39 {
+            lex.pos = lex.pos + 1
+            return char_token::Token_char_value(lex, char_start, cv)
+        }
+    }
+    Token_new(tokens::TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
+}

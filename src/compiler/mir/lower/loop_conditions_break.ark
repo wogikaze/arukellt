@@ -1,0 +1,25 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::opcodes
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR loop break condition helpers.
+
+use mir::inst_branch
+use mir::inst_misc_control
+use mir::inst_local_get
+use mir::inst_op
+use mir::value_types
+
+fn mir_emit_eqz_break_if(ctx: LowerCtx, cond_idx: i32) {
+    let eqz_dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_misc_control::MirInst_eqz(eqz_dest, cond_idx))
+    ctx_emit(ctx, inst_branch::MirInst_br_if(1))
+}
+
+fn mir_emit_gteq_break_if(ctx: LowerCtx, left_local: i32, right_local: i32) {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(left_local))
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(right_local))
+    let cmp_dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_GTEQ(), cmp_dest, left_local, right_local))
+    ctx_emit(ctx, inst_branch::MirInst_br_if(1))
+}

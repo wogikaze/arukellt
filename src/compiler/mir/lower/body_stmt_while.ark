@@ -1,0 +1,32 @@
+use mir::lower::ast_node
+use mir::lower::loop_scope
+use mir::lower::loop_conditions
+// Arukellt MIR lowering body - while and loop statements.
+
+
+fn lower_while_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count >= 2 {
+        let loop_scope = loop_scope::mir_begin_loop_scope(ctx)
+        let cond = ast_node::node_child_at(node, 0)
+        let cond_idx = lower_expr(ctx, cond)
+        loop_conditions::mir_emit_eqz_break_if(ctx, cond_idx)
+        let body = ast_node::node_child_at(node, 1)
+        let _body_result = lower_expr(ctx, body)
+        loop_scope::mir_emit_loop_back(ctx)
+        loop_scope::mir_end_loop_scope(ctx, loop_scope)
+    }
+    0 - 1
+}
+
+fn lower_loop_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count >= 1 {
+        let loop_scope = loop_scope::mir_begin_value_loop_scope(ctx)
+        let body = ast_node::node_child_at(node, 0)
+        let _body_result = lower_expr(ctx, body)
+        loop_scope::mir_emit_loop_back(ctx)
+        return loop_scope::mir_end_value_loop_scope(ctx, loop_scope)
+    }
+    0 - 1
+}

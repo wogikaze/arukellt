@@ -1,0 +1,35 @@
+// Arukellt Selfhost - shared sequential definition fixture for MIR dump smoke tests.
+
+use mir::block_alloc
+use mir::function_emit_inst
+use mir::function_factory
+use mir::function_local_alloc
+use mir::function_return_mutation
+use mir::inst_const_i32
+use mir::inst_return
+use mir::module_factory
+use mir::value_types
+
+pub struct MirDumpSeqFixture {
+    module: MirModule,
+    function: MirFunction,
+    local_t: i32,
+    block: i32,
+}
+
+fn mir_dump_seq_fixture_new(name: String) -> MirDumpSeqFixture {
+    let m = module_factory::MirModule_new()
+    let f = function_factory::MirFunction_new(name)
+    let t = function_local_alloc::alloc_local(f, String_from("t"), value_types::VT_I32())
+    function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
+    let bb0 = block_alloc::alloc_block(f)
+    function_inst::emit_inst(f, bb0, inst_const_i32::MirInst_const_i32(1, t))
+    function_inst::emit_inst(f, bb0, inst_const_i32::MirInst_const_i32(2, t))
+    function_inst::emit_inst(f, bb0, inst_return::MirInst_return_value(t))
+    MirDumpSeqFixture { module: m, function: f, local_t: t, block: bb0 }
+}
+
+fn MirDumpSeqFixture_module(fx: MirDumpSeqFixture) -> MirModule { fx.module }
+fn MirDumpSeqFixture_function(fx: MirDumpSeqFixture) -> MirFunction { fx.function }
+fn MirDumpSeqFixture_local_t(fx: MirDumpSeqFixture) -> i32 { fx.local_t }
+fn MirDumpSeqFixture_block(fx: MirDumpSeqFixture) -> i32 { fx.block }

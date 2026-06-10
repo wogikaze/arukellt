@@ -1,0 +1,7 @@
+// Arukellt Resolver - resolver error collection.
+
+use resolver::ctx_record
+
+fn resolve_error(ctx: ResolveCtx, msg: String) {
+    ctx_record::resolve_ctx_push_error(ctx, msg)
+}

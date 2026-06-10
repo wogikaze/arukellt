@@ -1,0 +1,42 @@
+// Arukellt Selfhost - MIR entry body source adapter.
+
+use mir::lower::entry_body_core_source
+use mir::lower::entry_fallback_body
+use mir::lower::entry_body_input
+use mir::lower::entry_view
+use mir::lower::fallback_source
+
+struct MirLowerEntryBodySource {
+    entry_view: MirLowerEntryView,
+    fallback_source: MirLowerFallbackSource,
+}
+
+fn mir_entry_body_source_new(entry_view: MirLowerEntryView, fallback_source: MirLowerFallbackSource) -> MirLowerEntryBodySource {
+    MirLowerEntryBodySource { entry_view: entry_view, fallback_source: fallback_source }
+}
+
+fn mir_entry_body_source_view_from_core(view: CoreHirMirView) -> MirLowerEntryView {
+    entry_view::mir_entry_view_from_core(view)
+}
+
+fn mir_entry_body_source_view(source: MirLowerEntryBodySource) -> MirLowerEntryView {
+    source.entry_view
+}
+
+fn mir_entry_body_source_fn_input(source: MirLowerEntryBodySource, decl_index: i32, fn_info_index: i32, body_idx: i32) -> MirLowerEntryBodyInput {
+    let entry_view = mir_entry_body_source_view(source)
+    let core_body = entry_body_core_source::mir_entry_body_core_fn(entry_view, fn_info_index)
+    let fallback_source = source.fallback_source
+    let fallback = fallback_source::mir_fallback_source_fn_body(fallback_source, decl_index, body_idx)
+    let fallback_has_body = entry_fallback_body::mir_entry_fallback_body_has_body(clone(fallback))
+    entry_body_input::mir_entry_body_input_new(fallback, fallback_has_body, core_body)
+}
+
+fn mir_entry_body_source_method_input(source: MirLowerEntryBodySource, impl_decl_index: i32, method_index: i32, method_info_index: i32, body_idx: i32) -> MirLowerEntryBodyInput {
+    let entry_view = mir_entry_body_source_view(source)
+    let core_body = entry_body_core_source::mir_entry_body_core_method(entry_view, method_info_index)
+    let fallback_source = source.fallback_source
+    let fallback = fallback_source::mir_fallback_source_method_body(fallback_source, impl_decl_index, method_index, body_idx)
+    let fallback_has_body = entry_fallback_body::mir_entry_fallback_body_has_body(clone(fallback))
+    entry_body_input::mir_entry_body_input_new(fallback, fallback_has_body, core_body)
+}

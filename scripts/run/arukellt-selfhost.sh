@@ -33,6 +33,7 @@ resolve_selfhost_wasm() {
   for cand in \
     "$REPO_ROOT/.build/selfhost/arukellt-s2.wasm" \
     "$REPO_ROOT/.bootstrap-build/arukellt-s2.wasm" \
+    "$REPO_ROOT/.build/selfhost/arukellt-pinned-bootstrap.wasm" \
     "$REPO_ROOT/bootstrap/arukellt-selfhost.wasm"; do
     if [[ -f "$cand" ]]; then echo "$cand"; return 0; fi
   done
@@ -59,7 +60,9 @@ fi
 if ! wasm="$(resolve_selfhost_wasm)"; then
   echo "arukellt-selfhost: error — no selfhost wasm available." >&2
   echo "  Tried: \$ARUKELLT_SELFHOST_WASM, .build/selfhost/arukellt-s2.wasm," >&2
-  echo "         .bootstrap-build/arukellt-s2.wasm, bootstrap/arukellt-selfhost.wasm" >&2
+  echo "         .bootstrap-build/arukellt-s2.wasm," >&2
+  echo "         .build/selfhost/arukellt-pinned-bootstrap.wasm," >&2
+  echo "         bootstrap/arukellt-selfhost.wasm" >&2
   echo "  Build one with: python3 scripts/manager.py selfhost fixpoint --build" >&2
   exit 127
 fi

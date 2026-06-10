@@ -1,0 +1,19 @@
+// Arukellt Selfhost - CoreHIR call and closure lowering dispatch.
+
+use mir::lower::core_call_direct
+use mir::lower::core_call_method
+use mir::lower::core_closure
+use mir::lower::core_expr_shape_calls
+
+fn lower_core_call_expr(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    if core_expr_shape_calls::mir_core_expr_is_call(expr) {
+        return core_call_direct::lower_core_call(ctx, exprs, expr)
+    }
+    if core_expr_shape_calls::mir_core_expr_is_method_call(expr) {
+        return core_call_method::lower_core_method_call(ctx, exprs, expr)
+    }
+    if core_expr_shape_calls::mir_core_expr_is_closure(expr) {
+        return core_closure::lower_core_closure(ctx, exprs, expr)
+    }
+    0 - 2
+}

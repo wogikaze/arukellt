@@ -1,0 +1,34 @@
+use typechecker::kinds
+// Arukellt Typechecker - return type compatibility helpers
+
+use typechecker::contract_type_access
+use typechecker::names
+use typechecker::unify
+
+fn check_return_type_compat(env: TypeEnv, fn_name: String, ret_type: TypeInfo, val_ty: TypeInfo) {
+    let resolved_ret = unify::resolve_type(env, ret_type)
+    let resolved_val = unify::resolve_type(env, val_ty)
+    let ret_tag = contract_type_access::TypeInfo_tag(resolved_ret)
+    let val_tag = contract_type_access::TypeInfo_tag(resolved_val)
+    if ret_tag == commands::TY_UNKNOWN() || val_tag == commands::TY_UNKNOWN() {
+        return
+    }
+    if ret_tag != val_tag {
+        let ret_name = names::type_display_name(resolved_ret)
+        let val_name = names::type_display_name(resolved_val)
+        unify::type_error(env, concat(String_from("return type mismatch: '"),
+            concat(clone(fn_name),
+            concat(String_from("' declared to return "),
+            concat(ret_name,
+            concat(String_from(" but body returns "), val_name))))))
+        return
+    }
+    if (ret_tag == commands::TY_STRUCT() || ret_tag == commands::TY_ENUM())
+        && !eq(contract_type_access::TypeInfo_name(resolved_ret), contract_type_access::TypeInfo_name(resolved_val)) {
+        unify::type_error(env, concat(String_from("return type mismatch: '"),
+            concat(clone(fn_name),
+            concat(String_from("' declared to return "),
+            concat(contract_type_access::TypeInfo_name(resolved_ret),
+            concat(String_from(" but body returns "), contract_type_access::TypeInfo_name(resolved_val))))))))
+    }
+}

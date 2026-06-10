@@ -1,0 +1,62 @@
+use mir::inst_accessors_shape
+use mir::value_types
+use wasm::opcodes
+// Arukellt Selfhost - logical, bitwise, and shift instruction handlers.
+
+use wasm::writer_core
+
+fn emit_and(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
+        writer_core::emit_byte(w, opcodes::OP_I64_AND())
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_I32_AND())
+    }
+}
+
+fn emit_or(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
+        writer_core::emit_byte(w, opcodes::OP_I64_OR())
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_I32_OR())
+    }
+}
+
+fn emit_bit_and(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
+        writer_core::emit_byte(w, opcodes::OP_I64_AND())
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_I32_AND())
+    }
+}
+
+fn emit_bit_or(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
+        writer_core::emit_byte(w, opcodes::OP_I64_OR())
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_I32_OR())
+    }
+}
+
+fn emit_bit_xor(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
+        writer_core::emit_byte(w, opcodes::OP_I64_XOR())
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_I32_XOR())
+    }
+}
+
+fn emit_shl(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
+        writer_core::emit_byte(w, opcodes::OP_I64_SHL())
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_I32_SHL())
+    }
+}
+
+fn emit_shr(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
+        writer_core::emit_byte(w, opcodes::OP_I64_SHR_S())
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_I32_SHR_S())
+    }
+}

@@ -1,0 +1,23 @@
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR body builder for for-loop expressions.
+
+use corehir::body_for_iter
+use corehir::body_for_range
+use corehir::body_for_values
+use corehir::body_for_predicates
+use corehir::expr_node_access
+use corehir::expr_node_predicates
+
+fn corehir_build_for_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    if expr_node_access::expr_child_count(node) < 2 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let range = expr_node_access::expr_child_at(node, 0)
+    if body_for_predicates::corehir_for_is_values_call(range) {
+        return body_for_values::corehir_build_for_values_expr(table, node)
+    }
+    if expr_node_predicates::expr_is_ident(range) {
+        return body_for_iter::corehir_build_for_iter_expr(table, node)
+    }
+    body_for_range::corehir_build_for_range_expr(table, node)
+}

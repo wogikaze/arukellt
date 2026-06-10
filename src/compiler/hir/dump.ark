@@ -1,0 +1,13 @@
+// Arukellt HIR - dump helpers
+
+use hir::dump_node
+use hir::dump_names
+
+// ── HIR Dump ─────────────────────────────────────────────────────────────────
+fn dump_hir_node(node: HirNode, depth: i32) {
+    dump_node::dump_hir_node(node, depth)
+}
+
+fn hir_tag_name(tag: i32) -> String {
+    dump_names::hir_tag_name(tag)
+}

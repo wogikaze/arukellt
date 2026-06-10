@@ -1,0 +1,12 @@
+// Arukellt Typechecker - context constructors.
+
+use typechecker::contract_env_mono_record
+use typechecker::contract_env_record
+
+fn TypeEnv_new() -> TypeEnv {
+    contract_env_record::TypeEnv_new()
+}
+
+fn TypeEnv_mono_instances(env: TypeEnv) -> Vec<MonoInstance> {
+    contract_env_mono_record::type_env_mono_instances(env)
+}

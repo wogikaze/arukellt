@@ -1,0 +1,29 @@
+// Arukellt Selfhost - resolver standalone self-checks
+
+use std::host::stdio
+use lexer::scan
+use parser::core_api_token
+use parser::decl
+use resolver::context
+use resolver::program
+
+fn parse_decls(src: String) -> Vec<AstNode> {
+    let tokens = scan::tokenize(src)
+    let p = core_api_token::Parser_new(tokens)
+    let decls = decl::parse_module(p)
+    if len(p.errors) != 0 {
+        stdio::println(concat(String_from("Resolver parse errors: "), to_string(len(p.errors))))
+    }
+    decls
+}
+
+fn main() {
+    let decls = parse_decls(String_from("fn main() { let x = 1 }"))
+    let ctx = program::resolve_program(decls, Vec_new_ModuleDecls())
+    let error_count = context::ResolveCtx_reported_error_count(ctx)
+    if error_count != 0 {
+        stdio::println(concat(String_from("Resolver errors: "), to_string(error_count)))
+        return
+    }
+    stdio::println(String_from("Resolver OK."))
+}

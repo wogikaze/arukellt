@@ -1,0 +1,15 @@
+// Arukellt Selfhost - CoreHIR raw program declaration views.
+
+use corehir::raw_record
+
+fn program_decl_infos(program: CoreHirRawProgram) -> Vec<CoreHirDeclInfo> {
+    raw_record::raw_program_decl_infos(program)
+}
+
+fn program_fn_infos(program: CoreHirRawProgram) -> Vec<CoreHirFnInfo> {
+    raw_record::raw_program_fn_infos(program)
+}
+
+fn program_method_infos(program: CoreHirRawProgram) -> Vec<CoreHirMethodInfo> {
+    raw_record::raw_program_method_infos(program)
+}

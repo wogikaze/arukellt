@@ -1,0 +1,69 @@
+// Arukellt Selfhost - CoreHIR declaration layout shape for MIR registration.
+
+use corehir::decl_node_identity
+use corehir::decl_member_collections
+use corehir::decl_type_annotations
+use corehir::type_ann_node
+
+fn decl_layout_name(decl: AstNode) -> String {
+    decl_node_identity::decl_name(decl)
+}
+
+fn decl_layout_field_count(decl: AstNode) -> i32 {
+    decl_member_collections::decl_field_count(decl)
+}
+
+fn decl_layout_field_at(decl: AstNode, index: i32) -> AstNode {
+    decl_member_collections::decl_field_at(decl, index)
+}
+
+fn decl_layout_variant_count(decl: AstNode) -> i32 {
+    decl_member_collections::decl_variant_count(decl)
+}
+
+fn decl_layout_variant_at(decl: AstNode, index: i32) -> AstNode {
+    decl_member_collections::decl_variant_at(decl, index)
+}
+
+fn decl_layout_member_name(member: AstNode) -> String {
+    decl_node_identity::member_name(member)
+}
+
+fn decl_layout_member_type_ann_count(member: AstNode) -> i32 {
+    decl_type_annotations::member_type_ann_count(member)
+}
+
+fn decl_layout_member_type_ann_at(member: AstNode, index: i32) -> AstNode {
+    decl_type_annotations::member_type_ann_at(member, index)
+}
+
+fn decl_layout_field_type_name(field: AstNode) -> String {
+    if decl_layout_member_type_ann_count(field) == 0 {
+        return String_from("")
+    }
+    let fty = decl_layout_member_type_ann_at(field, 0)
+    if type_ann_node::type_ann_is_generic(fty) {
+        if type_ann_node::type_ann_is_name(fty, String_from("Vec")) {
+            if type_ann_node::type_ann_child_count(fty) >= 2 {
+                let elem_ty = type_ann_node::type_ann_child_at(fty, 1)
+                return concat(String_from("vec:"), type_ann_node::type_ann_name(elem_ty))
+            }
+        }
+    } else {
+        if type_ann_node::type_ann_is_named(fty) {
+            let ty_text = type_ann_node::type_ann_name(fty)
+            if eq(clone(ty_text), "u8") {
+                return String_from("i32")
+            }
+            return ty_text
+        }
+    }
+    String_from("")
+}
+
+fn decl_layout_payload_field_type_name(pfield: AstNode) -> String {
+    if eq(type_ann_node::type_ann_name(pfield), "f64") {
+        return String_from("f64")
+    }
+    String_from("")
+}

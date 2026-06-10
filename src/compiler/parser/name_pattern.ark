@@ -1,0 +1,19 @@
+// Arukellt Parser - pattern AST node display names
+
+use parser::kinds
+
+fn pattern_node_kind_name(kind: i32) -> String {
+    if kind == kinds::NK_PAT_IDENT() {
+        return String_from("PatIdent")
+    }
+    if kind == kinds::NK_PAT_WILDCARD() {
+        return String_from("PatWild")
+    }
+    if kind == kinds::NK_PAT_LITERAL() {
+        return String_from("PatLit")
+    }
+    if kind == kinds::NK_PAT_VARIANT() {
+        return String_from("PatVariant")
+    }
+    String_new()
+}

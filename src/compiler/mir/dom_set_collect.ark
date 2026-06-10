@@ -1,0 +1,25 @@
+// Arukellt Selfhost - MIR block-id set collection helpers.
+
+use mir::function_block_queries
+
+fn mir_copy_block_ids(ids: Vec<i32>) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let count = len(ids)
+    let mut i = 0
+    while i < count {
+        push(out, get_unchecked(ids, i))
+        i = i + 1
+    }
+    out
+}
+
+fn mir_collect_all_block_ids(f: MirFunction) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let count = function_block_queries::MirFunction_block_count(f)
+    let mut i = 0
+    while i < count {
+        push(out, i)
+        i = i + 1
+    }
+    out
+}

@@ -1,0 +1,199 @@
+// Arukellt Selfhost - editor symbol lookup and hover rendering facade
+
+use analysis::symbol_types
+use compiler::session_parse
+use parser::ast
+use parser::kinds
+
+fn AT_NK_IDENT() -> i32 {
+    kinds::NK_IDENT()
+}
+
+fn AT_NK_LET() -> i32 {
+    kinds::NK_LET()
+}
+
+fn AT_NK_FN_DECL() -> i32 {
+    kinds::NK_FN_DECL()
+}
+
+fn AT_NK_STRUCT_DECL() -> i32 {
+    kinds::NK_STRUCT_DECL()
+}
+
+fn AT_NK_ENUM_DECL() -> i32 {
+    kinds::NK_ENUM_DECL()
+}
+
+fn node_kind(node: AstNode) -> i32 {
+    ast::ast_node_kind(node)
+}
+
+fn node_kind_is(node: AstNode, kind: i32) -> bool {
+    node_kind(node) == kind
+}
+
+fn node_text(node: AstNode) -> String {
+    ast::ast_node_text(node)
+}
+
+fn node_span_start(node: AstNode) -> i32 {
+    ast::ast_node_span_start(node)
+}
+
+fn node_span_end(node: AstNode) -> i32 {
+    ast::ast_node_span_end(node)
+}
+
+fn node_child_count(node: AstNode) -> i32 {
+    ast::ast_node_child_count(node)
+}
+
+fn node_child_at(node: AstNode, index: i32) -> AstNode {
+    ast::ast_node_child_at(node, index)
+}
+
+fn node_type_ann_count(node: AstNode) -> i32 {
+    ast::ast_node_type_ann_count(node)
+}
+
+fn node_type_ann_at(node: AstNode, index: i32) -> AstNode {
+    ast::ast_node_type_ann_at(node, index)
+}
+
+fn node_is_ident(node: AstNode) -> bool {
+    node_kind_is(node, AT_NK_IDENT())
+}
+
+fn node_is_let(node: AstNode) -> bool {
+    node_kind_is(node, AT_NK_LET())
+}
+
+fn node_is_fn_decl(node: AstNode) -> bool {
+    node_kind_is(node, AT_NK_FN_DECL())
+}
+
+fn node_is_struct_decl(node: AstNode) -> bool {
+    node_kind_is(node, AT_NK_STRUCT_DECL())
+}
+
+fn node_is_enum_decl(node: AstNode) -> bool {
+    node_kind_is(node, AT_NK_ENUM_DECL())
+}
+
+fn node_is_decl(node: AstNode) -> bool {
+    node_is_fn_decl(node) || node_is_struct_decl(node) || node_is_enum_decl(node) || node_is_let(node)
+}
+
+fn find_ident_at_in(node: AstNode, offset: i32) -> String {
+    if node_is_ident(node) {
+        if node_span_start(node) <= offset && offset < node_span_end(node) {
+            return node_text(node)
+        }
+    }
+    let cn = node_child_count(node)
+    let mut i = 0
+    while i < cn {
+        let c = node_child_at(node, i)
+        let r = find_ident_at_in(c, offset)
+        if len(r) > 0 {
+            return r
+        }
+        i = i + 1
+    }
+    let tn = node_type_ann_count(node)
+    let mut j = 0
+    while j < tn {
+        let c = node_type_ann_at(node, j)
+        let r = find_ident_at_in(c, offset)
+        if len(r) > 0 {
+            return r
+        }
+        j = j + 1
+    }
+    String_new()
+}
+
+fn find_ident_in_decls(decls: Vec<AstNode>, offset: i32) -> String {
+    let n = len(decls)
+    let mut i = 0
+    while i < n {
+        let d = get_unchecked(decls, i)
+        let r = find_ident_at_in(d, offset)
+        if len(r) > 0 {
+            return r
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn find_decl_by_name(decls: Vec<AstNode>, name: String) -> symbol_types::SymbolInfo {
+    let n = len(decls)
+    let mut i = 0
+    while i < n {
+        let d = get_unchecked(decls, i)
+        let k = node_kind(d)
+        if node_is_decl(d) && eq(node_text(d), clone(name)) {
+            return symbol_types::SymbolInfo_found(name, k, node_span_start(d), node_span_end(d), render_signature(d))
+        }
+        i = i + 1
+    }
+    symbol_types::SymbolInfo_none()
+}
+
+fn render_signature(decl: AstNode) -> String {
+    if node_is_fn_decl(decl) {
+        let mut sig = String_from("fn ")
+        sig = concat(sig, node_text(decl))
+        sig = concat(sig, String_from("("))
+        let cn = node_child_count(decl)
+        let last = if cn > 0 {
+            cn - 1
+        } else {
+            0
+        }
+        let mut i = 0
+        let mut first = true
+        while i < last {
+            let p = node_child_at(decl, i)
+            if !first {
+                sig = concat(sig, String_from(", "))
+            }
+            first = false
+            sig = concat(sig, node_text(p))
+            i = i + 1
+        }
+        sig = concat(sig, String_from(")"))
+        return sig
+    }
+    if node_is_struct_decl(decl) {
+        return concat(String_from("struct "), node_text(decl))
+    }
+    if node_is_enum_decl(decl) {
+        return concat(String_from("enum "), node_text(decl))
+    }
+    if node_is_let(decl) {
+        return concat(String_from("let "), node_text(decl))
+    }
+    node_text(decl)
+}
+
+pub fn symbol_at(text: String, offset: i32) -> symbol_types::SymbolInfo {
+    let decls = session_parse::session_parse_decls(clone(text))
+    let name = find_ident_in_decls(decls, offset)
+    if len(name) == 0 {
+        return symbol_types::SymbolInfo_none()
+    }
+    find_decl_by_name(decls, name)
+}
+
+pub fn render_hover_markdown(info: symbol_types::SymbolInfo) -> String {
+    if !symbol_types::symbol_info_found(info) {
+        return String_new()
+    }
+    let mut out = String_from("```ark\n")
+    out = concat(out, symbol_types::symbol_info_signature(info))
+    out = concat(out, String_from("\n```"))
+    out
+}

@@ -1,0 +1,33 @@
+// Arukellt Selfhost - MIR lowering return type facade
+
+use mir::lower::return_index_name
+use mir::lower::return_typeinfo
+use mir::lower::return_vt
+
+fn mir_return_vt_from_type_info(ty: TypeInfo) -> i32 {
+    return_typeinfo::mir_return_vt_from_type_info(ty)
+}
+
+fn mir_return_vt_from_typed_fn(tf: TypedFn) -> i32 {
+    return_typeinfo::mir_return_vt_from_typed_fn(tf)
+}
+
+fn mir_return_tag_from_typed_fn(tf: TypedFn) -> i32 {
+    return_typeinfo::mir_return_tag_from_typed_fn(tf)
+}
+
+fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
+    return_typeinfo::mir_return_type_name_from_type_info(ty)
+}
+
+fn mir_return_type_name_from_typed_fn(tf: TypedFn) -> String {
+    return_typeinfo::mir_return_type_name_from_typed_fn(tf)
+}
+
+fn mir_decl_return_vt(fn_node: AstNode) -> i32 {
+    return_vt::mir_decl_return_vt(fn_node)
+}
+
+fn mir_decl_return_index_type_name(fn_node: AstNode) -> String {
+    return_index_name::mir_decl_return_index_type_name(fn_node)
+}

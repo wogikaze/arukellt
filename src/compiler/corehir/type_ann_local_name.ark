@@ -1,0 +1,51 @@
+// Arukellt Selfhost - CoreHIR local annotation type names.
+
+use corehir::type_ann_node
+
+fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> String {
+    let ann_name = type_ann_node::type_ann_name(ann)
+    if type_ann_node::type_ann_is_generic(ann) {
+        if eq(clone(ann_name), String_from("Vec")) {
+            if type_ann_node::type_ann_child_count(ann) >= 2 {
+                let elem_ty = type_ann_node::type_ann_child_at(ann, 1)
+                return concat(String_from("vec:"), type_ann_node::type_ann_name(elem_ty))
+            }
+            return String_from("vec")
+        }
+        if eq(clone(ann_name), String_from("Result")) {
+            if type_ann_node::type_ann_child_count(ann) >= 2 {
+                let ok_ty = type_ann_node::type_ann_child_at(ann, 1)
+                if type_ann_node::type_ann_is_name(ok_ty, String_from("f64")) {
+                    return String_from("Result_f64")
+                }
+                if type_ann_node::type_ann_is_name(ok_ty, String_from("i64")) {
+                    return String_from("Result_i64")
+                }
+            }
+            return String_new()
+        }
+        if eq(clone(ann_name), String_from("Option")) {
+            if type_ann_node::type_ann_child_count(ann) >= 2 {
+                let some_ty = type_ann_node::type_ann_child_at(ann, 1)
+                if type_ann_node::type_ann_is_name(some_ty, String_from("f64")) {
+                    return String_from("Option_f64")
+                }
+                if type_ann_node::type_ann_is_name(some_ty, String_from("i64")) {
+                    return String_from("Option_i64")
+                }
+            }
+            return String_new()
+        }
+        return String_new()
+    }
+    if eq(clone(ann_name), String_from("Vec")) {
+        return String_from("vec")
+    }
+    if eq(clone(ann_name), String_from("char")) || eq(clone(ann_name), String_from("u8")) || eq(clone(ann_name), String_from("u16")) || eq(clone(ann_name), String_from("u32")) || eq(clone(ann_name), String_from("u64")) || eq(clone(ann_name), String_from("i16")) || eq(clone(ann_name), String_from("i32")) || eq(clone(ann_name), String_from("i64")) || eq(clone(ann_name), String_from("bool")) || eq(clone(ann_name), String_from("f64")) {
+        return ann_name
+    }
+    if known_struct_fields > 0 {
+        return ann_name
+    }
+    String_new()
+}

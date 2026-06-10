@@ -1,0 +1,28 @@
+// Arukellt Typechecker - type parameter bounds contract.
+
+use typechecker::contract_types_record
+
+struct TypeParamBounds {
+    name: String,
+    bounds: Vec<TypeInfo>,
+}
+
+fn TypeParamBounds_new(name: String) -> TypeParamBounds {
+    TypeParamBounds { name: name, bounds: Vec_new_TypeInfo() }
+}
+
+fn TypeParamBounds_name(info: TypeParamBounds) -> String {
+    clone(info.name)
+}
+
+fn TypeParamBounds_push_bound(info: TypeParamBounds, bound: TypeInfo) {
+    push(info.bounds, bound)
+}
+
+fn TypeParamBounds_bound_count(info: TypeParamBounds) -> i32 {
+    len(info.bounds)
+}
+
+fn TypeParamBounds_bound_at(info: TypeParamBounds, index: i32) -> TypeInfo {
+    get_unchecked(info.bounds, index)
+}

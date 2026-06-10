@@ -1,0 +1,40 @@
+// Arukellt Selfhost - driver namespace: pipeline_backend
+
+use driver::pipeline_frontend
+use driver::backend_resolve
+use driver::backend_typecheck
+use driver::debug
+use driver::emit
+use driver::lower
+use driver::module_decls
+use driver::modules
+use std::host::clock
+
+// Arukellt Selfhost - compilation pipeline orchestration.
+
+fn compile_source(source: String, config: DriverConfig) -> CompileResult {
+    let frontend = pipeline_frontend::run_frontend(source, config)
+    if pipeline_frontend::frontend_result_should_return(frontend) {
+        return pipeline_frontend::frontend_result_result(frontend)
+    }
+    run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), pipeline_frontend::frontend_result_t0(frontend), pipeline_frontend::frontend_result_t_lex(frontend), pipeline_frontend::frontend_result_t_parse(frontend))
+}
+
+// Arukellt Selfhost - driver load, resolve, typecheck, lower, and emit stages.
+
+fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64) -> CompileResult {
+    let resolved = backend_resolve::backend_resolve(source, config, decls)
+    if backend_resolve::resolve_result_should_return(resolved) {
+        return backend_resolve::resolve_result_result(resolved)
+    }
+    let all_decls = module_decls::combine_loaded_and_main_decls(backend_resolve::resolve_result_loaded_modules(resolved), decls)
+    let checked = backend_typecheck::backend_typecheck(config, all_decls, backend_resolve::resolve_result_ctx(resolved))
+    if backend_typecheck::typecheck_result_should_return(checked) {
+        return backend_typecheck::typecheck_result_result(checked)
+    }
+    modules::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
+    let mir_module = lower::lower_checked_program(all_decls, backend_typecheck::typecheck_result_check_result(checked), config)
+    debug::dump_mir_if_enabled(config, mir_module)
+    let t_lower = clock::monotonic_now()
+    emit::emit_output(mir_module, all_decls, config, t0, t_lex, t_parse, backend_resolve::resolve_result_t_resolve(resolved), backend_typecheck::typecheck_result_t_typecheck(checked), t_lower)
+}

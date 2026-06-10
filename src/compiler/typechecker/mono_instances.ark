@@ -1,0 +1,40 @@
+// Arukellt Typechecker - monomorphization instance registry.
+
+use typechecker::contract_mono
+use typechecker::contract_env_mono_record
+use typechecker::mono_key
+
+fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
+    let mut mangled = clone(fn_name)
+    let count = len(resolved_types)
+    let mut i = 0
+    while i < count {
+        let ty = get_unchecked(resolved_types, i)
+        mangled = concat(mangled, concat(String_from("__"), mono_key::mono_type_key(ty)))
+        i = i + 1
+    }
+    let mi_count = contract_env_mono_record::type_env_mono_instance_count(env)
+    let mut j = 0
+    while j < mi_count {
+        let mi = contract_env_mono_record::type_env_mono_instance_at(env, j)
+        if eq(contract_mono::MonoInstance_mangled_name(mi), clone(mangled)) {
+            return mangled
+        }
+        j = j + 1
+    }
+    contract_env_mono_record::type_env_push_mono_instance(env, contract_mono::MonoInstance_new(fn_name, clone(mangled), resolved_types))
+    mangled
+}
+
+fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> bool {
+    let count = len(mono_instances)
+    let mut i = 0
+    while i < count {
+        let mi = get_unchecked(mono_instances, i)
+        if eq(contract_mono::MonoInstance_fn_name(mi), clone(fn_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}

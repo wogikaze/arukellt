@@ -1,0 +1,42 @@
+// Arukellt Selfhost - MIR dominance smoke checks
+
+use std::host::process
+use std::host::stdio
+use mir::dominance
+use mir::dominance_info
+use mir::dump_core
+use mir::dump_expect
+use mir::dump_smoke_dominance_fixture
+
+fn run_dominance_smoke() {
+    let fx = dump_smoke_dominance_fixture::mir_dump_dominance_fixture_new()
+    let m = dump_smoke_dominance_fixture::MirDumpDominanceFixture_module(fx)
+    let f = dump_smoke_dominance_fixture::MirDumpDominanceFixture_function(fx)
+    let entry = dump_smoke_dominance_fixture::MirDumpDominanceFixture_entry(fx)
+    let then_bb = dump_smoke_dominance_fixture::MirDumpDominanceFixture_then_bb(fx)
+    let else_bb = dump_smoke_dominance_fixture::MirDumpDominanceFixture_else_bb(fx)
+    let join_bb = dump_smoke_dominance_fixture::MirDumpDominanceFixture_join_bb(fx)
+    dominance::mir_compute_dominance_for_function(f)
+    dump_expect::mir_expect_preds(f, entry, 0, 0, 0)
+    dump_expect::mir_expect_preds(f, then_bb, 1, entry, 0)
+    dump_expect::mir_expect_preds(f, else_bb, 1, entry, 0)
+    dump_expect::mir_expect_preds(f, join_bb, 2, then_bb, else_bb)
+    dump_expect::mir_expect_idom(f, entry, 0 - 1)
+    dump_expect::mir_expect_idom(f, then_bb, entry)
+    dump_expect::mir_expect_idom(f, else_bb, entry)
+    dump_expect::mir_expect_idom(f, join_bb, entry)
+    dump_expect::mir_expect_frontier(f, entry, 0, 0, 0)
+    dump_expect::mir_expect_frontier(f, then_bb, 1, join_bb, 0)
+    dump_expect::mir_expect_frontier(f, else_bb, 1, join_bb, 0)
+    dump_expect::mir_expect_frontier(f, join_bb, 0, 0, 0)
+    let dom_info = dominance::mir_collect_dom_info_for_function(f)
+    if dominance_info::MirDomInfo_idom_count(dom_info) != 4 {
+        stdio::eprintln(String_from("dominance snapshot check failed: expected 4 idom entries"))
+        process::exit(1)
+    }
+    dump_smoke_dominance_fixture::mir_dump_dominance_fixture_print_string_interns(m)
+    dump_core::dump_mir(m)
+    stdio::println(String_from("MIR predecessor self-check OK."))
+    stdio::println(String_from("MIR dominance self-check OK."))
+    stdio::println(String_from("MIR module OK."))
+}

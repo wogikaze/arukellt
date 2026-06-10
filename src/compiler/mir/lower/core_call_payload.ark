@@ -1,0 +1,38 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_variants
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR payload variant call lowering.
+
+use mir::inst_local_set
+use mir::lower::core_expr_shape_accessors
+use mir::lower::variants
+use mir::value_types
+
+fn lower_core_payload_variant_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    let var_tag = ctx_api_variants::ctx_variant_tag(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
+    if var_tag < 0 || child_count <= 1 {
+        return 0 - 2
+    }
+    let mut payload_locals = Vec_new_i32()
+    let mut payload_vts = Vec_new_i32()
+    let mut total_bytes = 4
+    let mut pa = 1
+    while pa < child_count {
+        let p_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, pa))
+        let p_vt = ctx_api_local_types::ctx_local_vt(ctx, p_idx)
+        let save_local = ctx_api_local_alloc::ctx_fresh_local(ctx, p_vt)
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, p_idx))
+        push(payload_locals, save_local)
+        push(payload_vts, p_vt)
+        if p_vt == value_types::VT_F64() || p_vt == value_types::VT_I64() {
+            total_bytes = total_bytes + 8
+        } else {
+            total_bytes = total_bytes + 4
+        }
+        pa = pa + 1
+    }
+    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes)
+}

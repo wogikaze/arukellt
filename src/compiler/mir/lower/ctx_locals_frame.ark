@@ -1,0 +1,54 @@
+// Arukellt MIR lowering context - function/local frame switching.
+
+use mir::block_alloc
+use mir::lower::ctx_current_storage
+use mir::lower::ctx_local_index_storage
+use mir::lower::ctx_local_type_storage
+
+struct LowerCtxLocalFrame {
+    func: MirFunction,
+    cur_block: i32,
+    local_names: Vec<String>,
+    local_indices: Vec<i32>,
+    local_types: Vec<String>,
+    local_type_indices: Vec<i32>,
+    local_type_start: i32,
+}
+
+fn LowerCtxLocalFrame_capture(ctx: LowerCtx) -> LowerCtxLocalFrame {
+    LowerCtxLocalFrame {
+        func: ctx_current_storage::ctx_current_func_value(ctx),
+        cur_block: ctx_current_storage::ctx_current_block_value(ctx),
+        local_names: ctx_local_index_storage::ctx_local_index_names(ctx),
+        local_indices: ctx_local_index_storage::ctx_local_index_values(ctx),
+        local_types: ctx_local_type_storage::ctx_local_type_values(ctx),
+        local_type_indices: ctx_local_type_storage::ctx_local_type_indices(ctx),
+        local_type_start: ctx_local_type_storage::ctx_local_type_start(ctx),
+    }
+}
+
+fn ctx_restore_local_frame(ctx: LowerCtx, frame: LowerCtxLocalFrame) {
+    ctx_current_storage::ctx_set_current_func_value(ctx, frame.func)
+    ctx_current_storage::ctx_set_current_block_value(ctx, frame.cur_block)
+    ctx_local_index_storage::ctx_local_index_restore(ctx, frame.local_names, frame.local_indices)
+    ctx_local_type_storage::ctx_local_type_restore(ctx, frame.local_types, frame.local_type_indices, frame.local_type_start)
+}
+
+fn ctx_begin_function_frame(ctx: LowerCtx, func: MirFunction) -> i32 {
+    ctx_current_storage::ctx_set_current_func_value(ctx, func)
+    ctx_local_index_storage::ctx_local_index_reset_for_function(ctx)
+    ctx_local_type_storage::ctx_local_type_reset_for_function(ctx)
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    let entry = block_alloc::alloc_block(f)
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+    ctx_current_storage::ctx_set_current_block_value(ctx, entry)
+    entry
+}
+
+fn ctx_current_function(ctx: LowerCtx) -> MirFunction {
+    ctx_current_storage::ctx_current_func_value(ctx)
+}
+
+fn ctx_set_current_function(ctx: LowerCtx, func: MirFunction) {
+    ctx_current_storage::ctx_set_current_func_value(ctx, func)
+}

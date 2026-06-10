@@ -1,0 +1,29 @@
+// Arukellt Selfhost - import path extraction from parsed module declarations.
+
+use driver::debug
+fn push_import_decl_paths(paths: Vec<String>, decl: AstNode) {
+    push(paths, debug::node_text(decl))
+    let num_children = debug::node_child_count(decl)
+    let mut ci = 0
+    while ci < num_children {
+        let child = debug::node_child_at(decl, ci)
+        if debug::node_is_use_decl(child) {
+            push(paths, debug::node_text(child))
+        }
+        ci = ci + 1
+    }
+}
+
+pub fn collect_import_paths(decls: Vec<AstNode>) -> Vec<String> {
+    let paths = Vec_new_String()
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let d = get_unchecked(decls, i)
+        if debug::node_is_use_decl(d) {
+            push_import_decl_paths(paths, d)
+        }
+        i = i + 1
+    }
+    paths
+}

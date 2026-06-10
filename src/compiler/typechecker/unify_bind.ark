@@ -1,0 +1,55 @@
+use typechecker::kinds
+// Arukellt Typechecker - type variable binding and occurs checks
+
+use typechecker::contract_type_access
+use typechecker::contract_typevar
+use typechecker::contract_env_vars_record
+use typechecker::unify_env
+use typechecker::unify_resolve
+
+fn occurs_in_type(env: TypeEnv, var_name: String, ty: TypeInfo) -> bool {
+    occurs_in_type_depth(env, var_name, ty, 0)
+}
+
+fn occurs_in_type_depth(env: TypeEnv, var_name: String, ty: TypeInfo, depth: i32) -> bool {
+    if depth > 64 {
+        return false
+    }
+    if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() {
+        if eq(contract_type_access::TypeInfo_name(ty), clone(var_name)) {
+            return true
+        }
+        let resolved = unify_resolve::resolve_type(env, ty)
+        if contract_type_access::TypeInfo_tag(resolved) == commands::TY_TYPE_VAR() && !eq(contract_type_access::TypeInfo_name(resolved), contract_type_access::TypeInfo_name(ty)) {
+            return occurs_in_type_depth(env, var_name, resolved, depth + 1)
+        }
+        return false
+    }
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
+    let mut i = 0
+    while i < arg_count {
+        let arg = contract_type_access::TypeInfo_type_arg_at(ty, i)
+        if occurs_in_type_depth(env, var_name, arg, depth + 1) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn bind_var(env: TypeEnv, var_name: String, ty: TypeInfo) {
+    if occurs_in_type(env, clone(var_name), ty) {
+        unify_env::type_error(env, concat(String_from("occurs check failed: "), concat(clone(var_name), String_from(" appears in its own type"))))
+        return
+    }
+    let count = contract_env_vars_record::type_env_var_count(env)
+    let mut i = 0
+    while i < count {
+        let tv = contract_env_vars_record::type_env_var_at(env, i)
+        if eq(contract_typevar::TypeVar_bound_name(tv), clone(var_name)) || eq(contract_typevar::TypeVar_name(tv), clone(var_name)) {
+            contract_typevar::TypeVar_bind(tv, ty)
+            return
+        }
+        i = i + 1
+    }
+}

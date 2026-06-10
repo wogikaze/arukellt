@@ -1,0 +1,62 @@
+// Arukellt Selfhost - frontend declaration layouts to CoreHIR facts.
+
+use corehir::decl_layout_shape
+use corehir::decl_node
+use corehir::kinds
+use corehir::layout_decl
+use corehir::layout_field
+use corehir::layout_variant
+
+fn build_struct_layout(decl: AstNode) -> CoreHirLayoutDecl {
+    let fields = Vec_new_CoreHirLayoutField()
+    let variants = Vec_new_CoreHirLayoutVariant()
+    let field_count = decl_layout_shape::decl_layout_field_count(decl)
+    let mut i = 0
+    while i < field_count {
+        let field = decl_layout_shape::decl_layout_field_at(decl, i)
+        push(fields, layout_field::CoreHirLayoutField_new(decl_layout_shape::decl_layout_member_name(field), decl_layout_shape::decl_layout_field_type_name(field)))
+        i = i + 1
+    }
+    layout_decl::CoreHirLayoutDecl_new(commands::COREHIR_DECL_STRUCT(), decl_layout_shape::decl_layout_name(decl), fields, variants)
+}
+
+fn build_variant_layout(variant: AstNode) -> CoreHirLayoutVariant {
+    let payload_types = Vec_new_String()
+    let payload_count = decl_layout_shape::decl_layout_member_type_ann_count(variant)
+    let mut i = 0
+    while i < payload_count {
+        let payload = decl_layout_shape::decl_layout_member_type_ann_at(variant, i)
+        push(payload_types, decl_layout_shape::decl_layout_payload_field_type_name(payload))
+        i = i + 1
+    }
+    layout_variant::CoreHirLayoutVariant_new(decl_layout_shape::decl_layout_member_name(variant), payload_types)
+}
+
+fn build_enum_layout(decl: AstNode) -> CoreHirLayoutDecl {
+    let fields = Vec_new_CoreHirLayoutField()
+    let variants = Vec_new_CoreHirLayoutVariant()
+    let variant_count = decl_layout_shape::decl_layout_variant_count(decl)
+    let mut i = 0
+    while i < variant_count {
+        push(variants, build_variant_layout(decl_layout_shape::decl_layout_variant_at(decl, i)))
+        i = i + 1
+    }
+    layout_decl::CoreHirLayoutDecl_new(commands::COREHIR_DECL_ENUM(), decl_layout_shape::decl_layout_name(decl), fields, variants)
+}
+
+fn build_layout_decls(decls: Vec<AstNode>) -> Vec<CoreHirLayoutDecl> {
+    let layouts = Vec_new_CoreHirLayoutDecl()
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let decl = get_unchecked(decls, i)
+        if decl_node::decl_is_struct(decl) {
+            push(layouts, build_struct_layout(decl))
+        }
+        if decl_node::decl_is_enum(decl) {
+            push(layouts, build_enum_layout(decl))
+        }
+        i = i + 1
+    }
+    layouts
+}

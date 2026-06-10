@@ -1,0 +1,30 @@
+// Arukellt Typechecker - unification facade
+
+use typechecker::unify_bind
+use typechecker::unify_core
+use typechecker::unify_env
+use typechecker::unify_resolve
+
+fn fresh_var(env: TypeEnv) -> TypeInfo {
+    unify_env::fresh_var(env)
+}
+
+fn type_error(env: TypeEnv, msg: String) {
+    unify_env::type_error(env, msg)
+}
+
+fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
+    unify_core::unify(env, a, b)
+}
+
+fn bind_var(env: TypeEnv, var_name: String, ty: TypeInfo) {
+    unify_bind::bind_var(env, var_name, ty)
+}
+
+fn resolve_type(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
+    unify_resolve::resolve_type(env, ty)
+}
+
+fn resolve_type_deep(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
+    unify_resolve::resolve_type_deep(env, ty)
+}

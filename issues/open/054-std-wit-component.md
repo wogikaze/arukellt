@@ -72,7 +72,8 @@ priority decisions.
 The #044 blocker changed shape: it is no longer waiting on #312 generic
 monomorphization, but it still lacks the trait-bound `Hash`/`Eq` dispatch
 needed for accepted generic collection surfaces. Keep this issue blocked via
-# 044 until that stdlib collection prerequisite is real.
+
+# 044 until that stdlib collection prerequisite is real
 
 ## 受け入れ条件
 

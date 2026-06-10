@@ -1,0 +1,14 @@
+// Arukellt Selfhost - MIR struct allocation instruction constructors.
+
+use mir::inst_factory
+use mir::opcodes
+use mir::types
+use mir::value_types
+
+fn MirInst_struct_new(dest: i32, byte_size: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_STRUCT_NEW(), dest, 0 - 1, 0 - 1, byte_size, 0.0, String_new(), value_types::VT_VOID())
+}
+
+fn MirInst_struct_new_named(dest: i32, struct_name: String, byte_size: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_STRUCT_NEW(), dest, 0 - 1, 0 - 1, byte_size, 0.0, struct_name, value_types::VT_VOID())
+}

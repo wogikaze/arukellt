@@ -1,0 +1,25 @@
+// Arukellt Selfhost - MIR module function collection API.
+
+use mir::function_core_record
+use mir::module_record
+use mir::types
+
+fn MirModule_functions(m: MirModule) -> Vec<MirFunction> {
+    m.functions
+}
+
+fn MirModule_function_count(m: MirModule) -> i32 {
+    len(m.functions)
+}
+
+fn MirModule_function_at(m: MirModule, idx: i32) -> MirFunction {
+    get_unchecked(m.functions, idx)
+}
+
+fn MirModule_set_functions(m: MirModule, functions: Vec<MirFunction>) {
+    m.functions = functions
+}
+
+fn MirModule_push_function(m: MirModule, f: MirFunction) {
+    push(m.functions, f)
+}

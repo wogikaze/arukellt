@@ -1,0 +1,35 @@
+use lexer::tokens
+use parser::core_ast_span_fields
+use parser::kinds
+use parser::core_ast_span
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - closure expression syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::stmt
+use parser::token_state
+
+fn parse_closure_expr(p: Parser, start: Token) -> AstNode {
+    let node = AstNode_new(kinds::NK_CLOSURE(), tok_span(start))
+    let mut first = true
+    skip_newlines(p)
+    while !at(p, tokens::TK_PIPE()) && !at_eof(p) {
+        if !first {
+            expect_token(p, tokens::TK_COMMA())
+            skip_newlines(p)
+        }
+        first = false
+        let param_tok = expect_token(p, tokens::TK_IDENT())
+        let param = AstNode_leaf(kinds::NK_IDENT(), token_state::Token_text(param_tok), tok_span(param_tok))
+        core_ast_children::AstNode_push_child(node, param)
+        skip_newlines(p)
+    }
+    expect_token(p, tokens::TK_PIPE())
+    skip_newlines(p)
+    let body = stmt::parse_expr_or_block(p)
+    core_ast_span_fields::AstNode_set_span(node, Span_new(token_state::Token_start(start), core_ast_span_fields::AstNode_span_end(body)))
+    core_ast_children::AstNode_push_child(node, body)
+    node
+}

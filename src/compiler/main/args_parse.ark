@@ -1,0 +1,81 @@
+// Arukellt Selfhost - main namespace: args_parse
+
+use main::args_record
+use main::commands
+use main::kinds
+// Arukellt Selfhost - CLI argument parser.
+
+fn parse_args(argv: Vec<String>) -> CliOptions {
+    let opts = args_record::CliOptions_default()
+    let argc = len(argv)
+    if argc <= 1 {
+        args_record::cli_set_show_help(opts, true)
+        return opts
+    }
+    parse_initial_command(argv, opts)
+    if args_record::cli_show_help(opts) || args_record::cli_show_version(opts) {
+        return opts
+    }
+    args_record::parse_option_args(argv, argc, opts, 2)
+    opts
+}
+
+// Arukellt Selfhost - CLI initial command parsing.
+
+fn parse_initial_command(argv: Vec<String>, opts: CliOptions) {
+    let cmd_str = get_unchecked(argv, 1)
+    let cmd_is_check = arg_is_check_command(clone(cmd_str))
+    let cmd_is_compile = arg_is_compile_command(clone(cmd_str))
+    if arg_is_help(clone(cmd_str)) {
+        args_record::cli_set_show_help(opts, true)
+        return
+    }
+    if arg_is_version(clone(cmd_str)) {
+        args_record::cli_set_show_version(opts, true)
+        return
+    }
+    args_record::cli_set_command(opts, commands::parse_command(clone(cmd_str)))
+    if cmd_is_check {
+        args_record::cli_set_command(opts, kinds::CMD_CHECK())
+    }
+    if cmd_is_compile {
+        args_record::cli_set_command(opts, kinds::CMD_COMPILE())
+    }
+    if args_record::cli_command(opts) == kinds::CMD_HELP() {
+        args_record::cli_set_show_help(opts, true)
+        return
+    }
+    if args_record::cli_command(opts) == kinds::CMD_VERSION() {
+        args_record::cli_set_show_version(opts, true)
+        return
+    }
+    if args_record::cli_command(opts) == kinds::CMD_UNKNOWN() {
+        args_record::cli_set_command(opts, kinds::CMD_COMPILE())
+        args_record::cli_set_input_file(opts, clone(cmd_str))
+    }
+}
+
+// Arukellt Selfhost - CLI flag and command spelling helpers.
+
+fn arg_is_check_command(arg: String) -> bool {
+    len(clone(arg)) == 5 && char_at(clone(arg), 0) == 99 && char_at(clone(arg), 1) == 104 && char_at(clone(arg), 2) == 101 && char_at(clone(arg), 3) == 99 && char_at(clone(arg), 4) == 107
+}
+
+fn arg_is_compile_command(arg: String) -> bool {
+    len(clone(arg)) == 7 && char_at(clone(arg), 0) == 99 && char_at(clone(arg), 1) == 111 && char_at(clone(arg), 2) == 109 && char_at(clone(arg), 3) == 112 && char_at(clone(arg), 4) == 105 && char_at(clone(arg), 5) == 108 && char_at(clone(arg), 6) == 101
+}
+
+fn arg_is_help(arg: String) -> bool {
+    if len(clone(arg)) == 6 && char_at(clone(arg), 0) == 45 && char_at(clone(arg), 1) == 45 && char_at(clone(arg), 2) == 104 && char_at(clone(arg), 3) == 101 && char_at(clone(arg), 4) == 108 && char_at(clone(arg), 5) == 112 {
+        return true
+    }
+    len(clone(arg)) == 2 && char_at(clone(arg), 0) == 45 && char_at(clone(arg), 1) == 104
+}
+
+fn arg_is_version(arg: String) -> bool {
+    if len(clone(arg)) == 9 && char_at(clone(arg), 0) == 45 && char_at(clone(arg), 1) == 45 && char_at(clone(arg), 2) == 118 && char_at(clone(arg), 3) == 101 && char_at(clone(arg), 4) == 114 && char_at(clone(arg), 5) == 115 && char_at(clone(arg), 6) == 105 && char_at(clone(arg), 7) == 111 && char_at(clone(arg), 8) == 110 {
+        return true
+    }
+    len(clone(arg)) == 2 && char_at(clone(arg), 0) == 45 && char_at(clone(arg), 1) == 86
+}
+

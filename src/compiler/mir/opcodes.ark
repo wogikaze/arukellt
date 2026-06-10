@@ -1,0 +1,75 @@
+// Arukellt MIR - opcode constants and predicates.
+
+// Constant opcodes.
+fn MIR_CONST_I32() -> i32 { 1 }
+fn MIR_CONST_I64() -> i32 { 2 }
+fn MIR_CONST_F64() -> i32 { 3 }
+fn MIR_CONST_BOOL() -> i32 { 4 }
+fn MIR_CONST_STRING() -> i32 { 5 }
+
+// Local storage opcodes.
+fn MIR_LOCAL_GET() -> i32 { 10 }
+fn MIR_LOCAL_SET() -> i32 { 11 }
+
+// Arithmetic binary opcodes.
+fn MIR_ADD() -> i32 { 20 }
+fn MIR_SUB() -> i32 { 21 }
+fn MIR_MUL() -> i32 { 22 }
+fn MIR_DIV() -> i32 { 23 }
+fn MIR_MOD() -> i32 { 24 }
+
+// Comparison opcodes.
+fn MIR_EQ() -> i32 { 25 }
+fn MIR_NEQ() -> i32 { 26 }
+fn MIR_LT() -> i32 { 27 }
+fn MIR_LTEQ() -> i32 { 28 }
+fn MIR_GT() -> i32 { 29 }
+fn MIR_GTEQ() -> i32 { 30 }
+
+// Boolean, unary, bitwise, and shift opcodes.
+fn MIR_AND() -> i32 { 31 }
+fn MIR_OR() -> i32 { 32 }
+fn MIR_NEG() -> i32 { 33 }
+fn MIR_NOT() -> i32 { 34 }
+fn MIR_BIT_AND() -> i32 { 35 }
+fn MIR_BIT_OR() -> i32 { 36 }
+fn MIR_BIT_XOR() -> i32 { 37 }
+fn MIR_SHL() -> i32 { 38 }
+fn MIR_SHR() -> i32 { 39 }
+
+// Call and conversion opcodes.
+fn MIR_CALL() -> i32 { 40 }
+fn MIR_CALL_INDIRECT() -> i32 { 41 }
+fn MIR_RETURN() -> i32 { 42 }
+fn MIR_EXTEND_I32_TO_I64() -> i32 { 45 }
+fn MIR_TRUNC_I64_TO_I32() -> i32 { 46 }
+
+// Branch and structured control opcodes.
+fn MIR_BR() -> i32 { 50 }
+fn MIR_BR_IF() -> i32 { 51 }
+fn MIR_BR_TABLE() -> i32 { 52 }
+fn MIR_BLOCK() -> i32 { 53 }
+fn MIR_LOOP() -> i32 { 54 }
+fn MIR_IF() -> i32 { 55 }
+fn MIR_ELSE() -> i32 { 56 }
+fn MIR_END() -> i32 { 57 }
+fn MIR_EQZ() -> i32 { 58 }
+
+// Aggregate opcodes.
+fn MIR_STRUCT_NEW() -> i32 { 60 }
+fn MIR_STRUCT_GET() -> i32 { 61 }
+fn MIR_STRUCT_SET() -> i32 { 62 }
+fn MIR_ARRAY_NEW() -> i32 { 63 }
+fn MIR_ARRAY_GET() -> i32 { 64 }
+fn MIR_ARRAY_SET() -> i32 { 65 }
+fn MIR_ARRAY_LEN() -> i32 { 66 }
+
+// Stack/control utility and SSA opcodes.
+fn MIR_DROP() -> i32 { 70 }
+fn MIR_NOP() -> i32 { 71 }
+fn MIR_UNREACHABLE() -> i32 { 72 }
+fn MIR_PHI() -> i32 { 73 }
+
+fn is_arith_opcode(op: i32) -> bool {
+    op >= MIR_ADD() && op <= MIR_SHR()
+}

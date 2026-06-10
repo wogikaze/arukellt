@@ -1,0 +1,45 @@
+use mir::function_locals_view
+use mir::function_local_mutation
+use mir::local_access
+use mir::local_mutation
+// Arukellt MIR lowering context - local type metadata.
+
+use mir::lower::ctx_current_storage
+use mir::lower::ctx_local_type_storage
+use mir::value_types
+
+fn ctx_set_local_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
+    ctx_local_type_storage::ctx_local_type_push(ctx, local_idx, type_name)
+}
+
+fn ctx_get_local_type(ctx: LowerCtx, local_idx: i32) -> String {
+    let count = ctx_local_type_storage::ctx_local_type_count(ctx)
+    let mut i = count - 1
+    while i >= ctx_local_type_storage::ctx_local_type_start(ctx) {
+        let idx = ctx_local_type_storage::ctx_local_type_index_at(ctx, i)
+        if idx == local_idx {
+            return ctx_local_type_storage::ctx_local_type_name_at(ctx, i)
+        }
+        i = i - 1
+    }
+    String_new()
+}
+
+fn ctx_local_vt(ctx: LowerCtx, idx: i32) -> i32 {
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    if idx >= 0 && idx < function_locals_view::MirFunction_local_count(func) {
+        let loc = function_locals_view::MirFunction_local_at(func, idx)
+        return local_access::MirLocal_val_type(loc)
+    }
+    value_types::VT_I32()
+}
+
+fn ctx_set_local_vt(ctx: LowerCtx, idx: i32, vt: i32) {
+    if idx >= 0 && idx < function_locals_view::MirFunction_local_count(ctx_current_storage::ctx_current_func_value(ctx)) {
+        let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+        let loc = function_locals_view::MirFunction_local_at(f, idx)
+        local_mutation::MirLocal_set_val_type(loc, vt)
+        function_local_mutation::MirFunction_set_local(f, idx, loc)
+        ctx_current_storage::ctx_set_current_func_value(ctx, f)
+    }
+}

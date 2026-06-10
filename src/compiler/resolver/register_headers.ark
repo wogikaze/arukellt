@@ -1,0 +1,51 @@
+// Arukellt Resolver - local declaration header registration
+
+use resolver::scope_define
+use resolver::ast_decl_predicates
+use resolver::ast_access
+use resolver::kinds
+use resolver::register_use
+
+fn register_decl_headers(ctx: ResolveCtx, decls: Vec<AstNode>) {
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let d = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_fn_decl(d) {
+            scope_define::define_with_vis(ctx, ast_access::node_text(d), commands::SYM_FN(), ast_access::node_is_pub(d))
+        } else {
+            if ast_decl_predicates::node_is_struct_decl(d) {
+                scope_define::define_with_vis(ctx, ast_access::node_text(d), commands::SYM_STRUCT(), ast_access::node_is_pub(d))
+            } else {
+                if ast_decl_predicates::node_is_enum_decl(d) {
+                    scope_define::define_with_vis(ctx, ast_access::node_text(d), commands::SYM_ENUM(), ast_access::node_is_pub(d))
+                } else {
+                    register_non_type_decl_header(ctx, d)
+                }
+            }
+        }
+        i = i + 1
+    }
+}
+
+fn register_non_type_decl_header(ctx: ResolveCtx, d: AstNode) {
+    if ast_decl_predicates::node_is_impl_decl(d) {
+        register_impl_method_headers(ctx, d)
+    } else {
+        if ast_decl_predicates::node_is_use(d) {
+            register_use::register_use_decl(ctx, d)
+        }
+    }
+}
+
+fn register_impl_method_headers(ctx: ResolveCtx, d: AstNode) {
+    let struct_name = ast_access::node_text(d)
+    let mcount = ast_access::node_child_count(d)
+    let mut mi = 0
+    while mi < mcount {
+        let method = ast_access::node_child_at(d, mi)
+        let mangled = concat(clone(struct_name), concat(String_from("::"), ast_access::node_text(method)))
+        scope_define::define_with_vis(ctx, mangled, commands::SYM_FN(), ast_access::node_is_pub(d))
+        mi = mi + 1
+    }
+}

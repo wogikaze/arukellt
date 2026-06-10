@@ -1,0 +1,39 @@
+use lexer::tokens
+use parser::core_ast_text_fields
+use parser::kinds
+use parser::core_ast_span
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - array comprehension prefix expression.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::token_state
+
+pub fn parse_array_comprehension(p: Parser, t: Token, first_elem: AstNode) -> AstNode {
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    let binding = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    core_api_expect::expect_token(p, tokens::TK_IN())
+    core_api_cursor::skip_newlines(p)
+    let iter_expr = parse_expr(p)
+    core_api_cursor::skip_newlines(p)
+    let mut filter_expr: AstNode = core_ast_factory::AstNode_new(0, core_ast_span::Span_empty())
+    let mut has_filter = false
+    if core_api_cursor::peek_kind(p) == tokens::TK_IF() {
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        filter_expr = parse_expr(p)
+        has_filter = true
+        core_api_cursor::skip_newlines(p)
+    }
+    core_api_expect::expect_token(p, tokens::TK_RBRACKET())
+    let node = core_ast_factory::AstNode_new(kinds::NK_COMPREHENSION(), core_api_expect::tok_span(t))
+    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(binding))
+    core_ast_children::AstNode_push_child(node, first_elem)
+    core_ast_children::AstNode_push_child(node, iter_expr)
+    if has_filter {
+        core_ast_children::AstNode_push_child(node, filter_expr)
+    }
+    node
+}

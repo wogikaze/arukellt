@@ -1,0 +1,22 @@
+// Arukellt Selfhost - CoreHIR if expression lowering.
+
+use mir::lower::core_expr_shape_accessors
+use mir::lower::if
+
+fn lower_core_if(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    if child_count < 2 {
+        return 0 - 1
+    }
+    let cond_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    let result = if::mir_begin_if_expr(ctx)
+    let then_result = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
+    if::mir_store_if_branch_result(ctx, result, then_result)
+    let mut else_result = 0 - 1
+    if child_count >= 3 {
+        if::mir_emit_if_else(ctx)
+        else_result = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 2))
+        if::mir_store_if_branch_result(ctx, result, else_result)
+    }
+    if::mir_end_if_expr(ctx, result, then_result, else_result)
+}

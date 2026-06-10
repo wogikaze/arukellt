@@ -1,0 +1,59 @@
+// Arukellt Selfhost - CoreHIR parameter local type labels.
+
+use corehir::decl_ann_children
+use corehir::decl_ann_name
+use corehir::param_shape_node
+
+fn param_named_local_type_name(ann: AstNode) -> String {
+    if decl_ann_name::decl_ann_is_named(ann) {
+        let name = decl_ann_name::decl_ann_name(ann)
+        if !eq(clone(name), "i32") && !eq(clone(name), "f64") && !eq(clone(name), "i64") && !eq(clone(name), "bool") && !eq(clone(name), "String") && !eq(clone(name), "u8") && !eq(clone(name), "char") && len(name) > 1 {
+            return name
+        }
+    }
+    String_new()
+}
+
+fn fn_param_local_type_name(node: AstNode) -> String {
+    if !param_shape_node::param_has_type_ann(node) {
+        return String_new()
+    }
+    let ann = param_shape_node::param_type_ann(node)
+    if decl_ann_name::decl_ann_is_generic(ann) {
+        if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
+            let elem = decl_ann_children::decl_ann_child_at(ann, 1)
+            return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+        }
+        if decl_ann_name::decl_ann_is_name(ann, String_from("Option")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
+            let elem2 = decl_ann_children::decl_ann_child_at(ann, 1)
+            if decl_ann_name::decl_ann_is_name(elem2, String_from("i64")) {
+                return String_from("Option_i64")
+            }
+            if decl_ann_name::decl_ann_is_name(elem2, String_from("f64")) {
+                return String_from("Option_f64")
+            }
+            if decl_ann_name::decl_ann_is_name(elem2, String_from("i32")) {
+                return String_from("Option_i32")
+            }
+        }
+    } else {
+        return param_named_local_type_name(ann)
+    }
+    String_new()
+}
+
+fn method_param_local_type_name(node: AstNode) -> String {
+    if !param_shape_node::param_has_type_ann(node) {
+        return String_new()
+    }
+    let ann = param_shape_node::param_type_ann(node)
+    if decl_ann_name::decl_ann_is_generic(ann) {
+        if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
+            let elem = decl_ann_children::decl_ann_child_at(ann, 1)
+            return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+        }
+    } else {
+        return param_named_local_type_name(ann)
+    }
+    String_new()
+}

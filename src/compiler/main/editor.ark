@@ -1,0 +1,58 @@
+// Arukellt Selfhost - main namespace: editor
+
+use std::host::fs
+use main::args_record
+use std::host::process
+use std::host::stdio
+use analysis
+use dap
+use lsp
+
+// Arukellt Selfhost - CLI IDE analyze command implementation
+
+pub fn cmd_ide_analyze(opts: CliOptions) {
+	let input_file = args_record::cli_input_file(opts)
+	let read_result = fs::read_to_string(clone(input_file))
+	match read_result {
+		Result::Ok(text) => {
+			let snap = analysis::analyze(clone(input_file), text)
+			stdio::print(analysis::snapshot_summary(snap))
+		},
+		Result::Err(e) => {
+			stdio::eprintln(concat(String_from("error reading input: "), e))
+			process::exit(1)
+		},
+	}
+}
+
+// Arukellt Selfhost - CLI DAP command implementation
+
+pub fn cmd_dap(opts: CliOptions) {
+	let input_file = args_record::cli_input_file(opts)
+	let read_result = fs::read_to_string(clone(input_file))
+	match read_result {
+		Result::Ok(text) => {
+			stdio::print(dap::run_dap_session(text))
+		},
+		Result::Err(e) => {
+			stdio::eprintln(concat(String_from("error reading input: "), e))
+			process::exit(1)
+		},
+	}
+}
+
+// Arukellt Selfhost - CLI LSP command implementation
+
+pub fn cmd_lsp(opts: CliOptions) {
+	let input_file = args_record::cli_input_file(opts)
+	let read_result = fs::read_to_string(clone(input_file))
+	match read_result {
+		Result::Ok(text) => {
+			stdio::print(lsp::run_session(text))
+		},
+		Result::Err(e) => {
+			stdio::eprintln(concat(String_from("error reading input: "), e))
+			process::exit(1)
+		},
+	}
+}

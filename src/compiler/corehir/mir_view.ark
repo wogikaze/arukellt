@@ -1,0 +1,60 @@
+// Arukellt Selfhost - CoreHIR view consumed by MIR lowering.
+
+use corehir::mir_decl_source
+use corehir::mir_body_source
+use corehir::mir_layout_source
+use corehir::mir_signature_source
+use corehir::mir_type_source
+use corehir::raw
+use corehir::raw_layouts
+
+struct CoreHirMirView {
+    decl_infos: Vec<CoreHirDeclInfo>,
+    fn_infos: Vec<CoreHirFnInfo>,
+    method_infos: Vec<CoreHirMethodInfo>,
+    layout_decls: Vec<CoreHirLayoutDecl>,
+    typed_fns: Vec<TypedFn>,
+    mono_instances: Vec<MonoInstance>,
+    body_source: CoreHirMirBodySource,
+}
+
+fn mir_view_from_program(program: CoreHirRawProgram) -> CoreHirMirView {
+    CoreHirMirView {
+        decl_infos: raw::program_decl_infos(program),
+        fn_infos: raw::program_fn_infos(program),
+        method_infos: raw::program_method_infos(program),
+        layout_decls: raw_layouts::program_layout_decls(program),
+        typed_fns: raw::program_typed_fns(program),
+        mono_instances: raw::program_mono_instances(program),
+        body_source: body_source::mir_body_source_from_table(raw::program_body_table(program)),
+    }
+}
+
+fn view_body_source(view: CoreHirMirView) -> CoreHirMirBodySource {
+    view.body_source
+}
+
+fn view_signature_source(view: CoreHirMirView) -> CoreHirMirSignatureSource {
+    signature_source::mir_signature_source_from_parts(
+        view.fn_infos,
+        view.method_infos
+    )
+}
+
+fn view_type_source(view: CoreHirMirView) -> CoreHirMirTypeSource {
+    type_source::mir_type_source_from_parts(
+        view.typed_fns,
+        view.mono_instances
+    )
+}
+
+fn view_decl_source(view: CoreHirMirView) -> CoreHirMirDeclSource {
+    decl_source::mir_decl_source_from_parts(
+        view.decl_infos,
+        view.fn_infos
+    )
+}
+
+fn view_layout_source(view: CoreHirMirView) -> CoreHirMirLayoutSource {
+    layout_source::mir_layout_source_from_parts(view.layout_decls)
+}

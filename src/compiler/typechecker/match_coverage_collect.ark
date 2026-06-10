@@ -1,0 +1,21 @@
+// Arukellt Typechecker - match pattern coverage collection.
+
+use typechecker::ast_pattern_predicates
+use typechecker::match_coverage_literal
+use typechecker::match_coverage_mark_record
+use typechecker::match_coverage_variant
+
+fn record_match_pattern(coverage: MatchCoverage, pat: AstNode) {
+    if ast_pattern_predicates::node_is_pat_wildcard(pat) {
+        match_coverage_mark_record::match_coverage_mark_wildcard(coverage)
+    }
+    if ast_pattern_predicates::node_is_pat_ident(pat) {
+        match_coverage_mark_record::match_coverage_mark_wildcard(coverage)
+    }
+    if ast_pattern_predicates::node_is_pat_literal(pat) {
+        match_coverage_literal::record_literal_pattern(coverage, pat)
+    }
+    if ast_pattern_predicates::node_is_pat_variant(pat) {
+        match_coverage_variant::record_variant_pattern(coverage, pat)
+    }
+}

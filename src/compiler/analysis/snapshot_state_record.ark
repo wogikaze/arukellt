@@ -1,0 +1,61 @@
+// Arukellt Selfhost - analysis snapshot state record.
+
+use analysis::diagnostic_record
+
+pub struct AnalysisSnapshot {
+    uri: String,
+    decl_count: i32,
+    symbol_count: i32,
+    typed_fn_count: i32,
+    diagnostic_count: i32,
+    diagnostics: Vec<AnalysisDiagnostic>,
+}
+
+fn AnalysisSnapshot_new(uri: String) -> AnalysisSnapshot {
+    AnalysisSnapshot { uri: uri, decl_count: 0, symbol_count: 0, typed_fn_count: 0, diagnostic_count: 0, diagnostics: Vec_new_AnalysisDiagnostic() }
+}
+
+fn snapshot_push(snap: AnalysisSnapshot, diag: AnalysisDiagnostic) {
+    push(snap.diagnostics, diag)
+    snap.diagnostic_count = snap.diagnostic_count + 1
+}
+
+fn snapshot_uri(snap: AnalysisSnapshot) -> String {
+    clone(snap.uri)
+}
+
+fn snapshot_set_decl_count(snap: AnalysisSnapshot, count: i32) {
+    snap.decl_count = count
+}
+
+fn snapshot_decl_count(snap: AnalysisSnapshot) -> i32 {
+    snap.decl_count
+}
+
+fn snapshot_set_symbol_count(snap: AnalysisSnapshot, count: i32) {
+    snap.symbol_count = count
+}
+
+fn snapshot_symbol_count(snap: AnalysisSnapshot) -> i32 {
+    snap.symbol_count
+}
+
+fn snapshot_set_typed_fn_count(snap: AnalysisSnapshot, count: i32) {
+    snap.typed_fn_count = count
+}
+
+fn snapshot_typed_fn_count(snap: AnalysisSnapshot) -> i32 {
+    snap.typed_fn_count
+}
+
+fn snapshot_reported_diagnostic_count(snap: AnalysisSnapshot) -> i32 {
+    snap.diagnostic_count
+}
+
+fn snapshot_diagnostic_count(snap: AnalysisSnapshot) -> i32 {
+    len(snap.diagnostics)
+}
+
+fn snapshot_diagnostic_at(snap: AnalysisSnapshot, index: i32) -> AnalysisDiagnostic {
+    get_unchecked(snap.diagnostics, index)
+}

@@ -1,0 +1,12 @@
+// Arukellt Typechecker - call and method-call inference
+
+use typechecker::call_fn
+use typechecker::call_method
+
+fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    call_fn::infer_call_expr(env, scope, fn_sigs, enum_defs, node)
+}
+
+fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    call_method::infer_method_call_expr(env, scope, fn_sigs, enum_defs, node)
+}

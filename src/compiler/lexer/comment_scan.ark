@@ -1,0 +1,18 @@
+// Arukellt Lexer - comment scanning.
+
+use lexer::char_skip
+
+fn skip_comment_if_present(lex: Lexer, c: i32) -> bool {
+    if c == 47 && lex.pos + 1 < lex.src_len {
+        let c2 = peek_at(lex, 1)
+        if c2 == 47 {
+            char_skip::skip_line_comment_impl(lex)
+            return true
+        }
+        if c2 == 42 {
+            char_skip::skip_block_comment_impl(lex)
+            return true
+        }
+    }
+    false
+}

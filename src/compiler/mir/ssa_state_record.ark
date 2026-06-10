@@ -1,0 +1,23 @@
+// Arukellt Selfhost - MIR SSA rename state data record.
+
+use mir::ssa_state_vec
+
+pub struct MirSsaRenameState {
+    original_local_count: i32,
+    versions: Vec<i32>,
+    current: Vec<i32>,
+    exit_values: Vec<i32>,
+}
+
+fn MirSsaRenameState_new(original_local_count: i32, block_count: i32) -> MirSsaRenameState {
+    MirSsaRenameState {
+        original_local_count: original_local_count,
+        versions: ssa_state_vec::mir_i32_vec_filled(original_local_count, 0 - 1),
+        current: ssa_state_vec::mir_i32_vec_filled(original_local_count, 0 - 1),
+        exit_values: ssa_state_vec::mir_i32_vec_filled(original_local_count * block_count, 0 - 1),
+    }
+}
+
+fn mir_ssa_state_original_local_count(state: MirSsaRenameState) -> i32 {
+    state.original_local_count
+}

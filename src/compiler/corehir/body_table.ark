@@ -1,0 +1,57 @@
+// Arukellt Selfhost - CoreHIR body table storage and primitive accessors.
+
+struct CoreHirBodyTable {
+    exprs: Vec<CoreHirExpr>,
+    fn_body_roots: Vec<i32>,
+    method_body_roots: Vec<i32>,
+}
+
+fn CoreHirBodyTable_new() -> CoreHirBodyTable {
+    CoreHirBodyTable { exprs: Vec_new_CoreHirExpr(), fn_body_roots: Vec_new_i32(), method_body_roots: Vec_new_i32() }
+}
+
+fn corehir_body_table_push_expr(table: CoreHirBodyTable, expr: CoreHirExpr) -> i32 {
+    let idx = len(table.exprs)
+    push(table.exprs, expr)
+    idx
+}
+
+fn corehir_body_table_expr_at(table: CoreHirBodyTable, index: i32) -> CoreHirExpr {
+    get_unchecked(table.exprs, index)
+}
+
+fn corehir_body_table_push_fn_body_root(table: CoreHirBodyTable, root: i32) {
+    push(table.fn_body_roots, root)
+}
+
+fn corehir_body_table_push_method_body_root(table: CoreHirBodyTable, root: i32) {
+    push(table.method_body_roots, root)
+}
+
+fn corehir_body_table_fn_body_root_count(table: CoreHirBodyTable) -> i32 {
+    len(table.fn_body_roots)
+}
+
+fn corehir_body_table_fn_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
+    get_unchecked(table.fn_body_roots, index)
+}
+
+fn corehir_body_table_method_body_root_count(table: CoreHirBodyTable) -> i32 {
+    len(table.method_body_roots)
+}
+
+fn corehir_body_table_method_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
+    get_unchecked(table.method_body_roots, index)
+}
+
+fn corehir_body_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
+    table.exprs
+}
+
+fn corehir_body_table_fn_body_roots(table: CoreHirBodyTable) -> Vec<i32> {
+    table.fn_body_roots
+}
+
+fn corehir_body_table_method_body_roots(table: CoreHirBodyTable) -> Vec<i32> {
+    table.method_body_roots
+}

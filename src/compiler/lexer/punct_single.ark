@@ -1,0 +1,54 @@
+use lexer::tokens
+// Arukellt Lexer - single-character punctuation and operators
+
+use lexer::cursor
+
+fn lex_single_punct_or_error(lex: Lexer, start: i32, c: i32) -> Token {
+    let end = cursor::lexer_position(lex)
+    if c == 43 {
+        return Token_new(tokens::TK_PLUS(), String_from("+"), start, end)
+    }
+    if c == 42 {
+        return Token_new(tokens::TK_STAR(), String_from("*"), start, end)
+    }
+    if c == 47 {
+        return Token_new(tokens::TK_SLASH(), String_from("/"), start, end)
+    }
+    if c == 37 {
+        return Token_new(tokens::TK_PERCENT(), String_from("%"), start, end)
+    }
+    if c == 94 {
+        return Token_new(tokens::TK_CARET(), String_from("^"), start, end)
+    }
+    if c == 126 {
+        return Token_new(tokens::TK_TILDE(), String_from("~"), start, end)
+    }
+    if c == 40 {
+        return Token_new(tokens::TK_LPAREN(), String_from("("), start, end)
+    }
+    if c == 41 {
+        return Token_new(tokens::TK_RPAREN(), String_from(")"), start, end)
+    }
+    if c == 123 {
+        return Token_new(tokens::TK_LBRACE(), String_from("{"), start, end)
+    }
+    if c == 125 {
+        return Token_new(tokens::TK_RBRACE(), String_from("}"), start, end)
+    }
+    if c == 91 {
+        return Token_new(tokens::TK_LBRACKET(), String_from("["), start, end)
+    }
+    if c == 93 {
+        return Token_new(tokens::TK_RBRACKET(), String_from("]"), start, end)
+    }
+    if c == 44 {
+        return Token_new(tokens::TK_COMMA(), String_from(","), start, end)
+    }
+    if c == 59 {
+        return Token_new(tokens::TK_SEMI(), String_from(";"), start, end)
+    }
+    if c == 63 {
+        return Token_new(tokens::TK_QUESTION(), String_from("?"), start, end)
+    }
+    Token_new(tokens::TK_ERROR(), cursor::lexer_slice(lex, start, end), start, end)
+}

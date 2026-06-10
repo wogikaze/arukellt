@@ -1,0 +1,225 @@
+// Arukellt Selfhost - component export contract special signatures
+
+use component::contract_special_collection
+use component::contract_special_record_shape
+use component::contract_special_support
+use component::contract_helpers
+use component::contract_allows_numeric_tuple_query
+use component::contract_allows_string_query
+use component::contract_numeric
+use component::contract_string_fn
+use component::contract_tuple_functions
+
+fn component_string_collection_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	let string_error = component_string_signature_error(f, allows)
+	if len(string_error) > 0 {
+		return string_error
+	}
+	let collection_error = contract_special_collection::component_collection_signature_error(f, allows)
+	if len(collection_error) > 0 {
+		return collection_error
+	}
+	String_new()
+}
+
+fn component_string_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	let basic_error = component_string_basic_signature_error(f, allows)
+	if len(basic_error) > 0 {
+		return basic_error
+	}
+	let scalar_error = component_string_scalar_signature_error(f, allows)
+	if len(scalar_error) > 0 {
+		return scalar_error
+	}
+	let numeric_error = component_string_numeric_signature_error(f, allows)
+	if len(numeric_error) > 0 {
+		return numeric_error
+	}
+	String_new()
+}
+
+fn component_string_basic_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	let func = contract_helpers::component_func_from_decl(f)
+	if contract_allows_string_query::ComponentContractAllows_allow_string_greet(allows) && !contract_string_fn::component_fn_is_string_unary(func) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_string_query::ComponentContractAllows_allow_string_result(allows) && !contract_string_fn::component_fn_is_i32_to_string(func) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_string_query::ComponentContractAllows_allow_string_param(allows) && !contract_string_fn::component_fn_is_string_to_i32(func) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_string_query::ComponentContractAllows_allow_string_narrow(allows) && !contract_string_fn::component_fn_is_string_to_narrow_i32(func) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_string_scalar_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	let func = contract_helpers::component_func_from_decl(f)
+	if contract_allows_string_query::ComponentContractAllows_allow_string_bool(allows) && !contract_string_fn::component_fn_is_string_to_bool(func) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_string_query::ComponentContractAllows_allow_string_char(allows) && !contract_string_fn::component_fn_is_string_to_char(func) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_string_numeric_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	let func = contract_helpers::component_func_from_decl(f)
+	if contract_allows_string_query::ComponentContractAllows_allow_string_f64(allows) && !contract_string_fn::component_fn_is_string_to_f64(func) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_string_query::ComponentContractAllows_allow_string_i64(allows) && !contract_string_fn::component_fn_is_string_to_i64(func) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_string_query::ComponentContractAllows_allow_string_u64(allows) && !contract_string_fn::component_fn_is_string_to_u64(func) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_string_query::ComponentContractAllows_allow_string_f32(allows) && !contract_string_fn::component_fn_is_string_to_f32(func) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_numeric_tuple_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	let numeric_error = component_numeric_signature_error(f, allows)
+	if len(numeric_error) > 0 {
+		return numeric_error
+	}
+	let tuple_error = component_tuple_signature_error(f, allows)
+	if len(tuple_error) > 0 {
+		return tuple_error
+	}
+	String_new()
+}
+
+fn component_numeric_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	let unary_error = component_numeric_unary_signature_error(f, allows)
+	if len(unary_error) > 0 {
+		return unary_error
+	}
+	let binary_error = component_numeric_binary_signature_error(f, allows)
+	if len(binary_error) > 0 {
+		return binary_error
+	}
+	let convert_error = component_numeric_convert_signature_error(f, allows)
+	if len(convert_error) > 0 {
+		return convert_error
+	}
+	String_new()
+}
+
+fn component_numeric_unary_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_square(allows) && !contract_numeric::component_fn_is_f32_unary(contract_helpers::component_func_from_decl(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_numeric_binary_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_binary(allows) && !contract_numeric::component_fn_is_f32_binary(contract_helpers::component_func_from_decl(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_numeric_convert_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_to_i32(allows) && !contract_numeric::component_fn_is_f32_to_i32(contract_helpers::component_func_from_decl(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_numeric_tuple_query::ComponentContractAllows_allow_i32_to_f32(allows) && !contract_numeric::component_fn_is_i32_to_f32(contract_helpers::component_func_from_decl(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_tuple_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	let i32_i32_error = component_tuple_i32_i32_signature_error(f, allows)
+	if len(i32_i32_error) > 0 {
+		return i32_i32_error
+	}
+	let i64_i64_error = component_tuple_i64_i64_signature_error(f, allows)
+	if len(i64_i64_error) > 0 {
+		return i64_i64_error
+	}
+	let i32_i32_param_error = component_tuple_i32_i32_param_signature_error(f, allows)
+	if len(i32_i32_param_error) > 0 {
+		return i32_i32_param_error
+	}
+	let mixed_error = component_tuple_mixed_signature_error(f, allows)
+	if len(mixed_error) > 0 {
+		return mixed_error
+	}
+	let bool_bool_error = component_tuple_bool_bool_signature_error(f, allows)
+	if len(bool_bool_error) > 0 {
+		return bool_bool_error
+	}
+	let i32_i32_roundtrip_error = component_tuple_i32_i32_roundtrip_signature_error(f, allows)
+	if len(i32_i32_roundtrip_error) > 0 {
+		return i32_i32_roundtrip_error
+	}
+	String_new()
+}
+
+fn component_tuple_i32_i32_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_swap(allows) && !contract_tuple_functions::component_fn_is_i32_i32_to_tuple_i32_i32(contract_helpers::component_func_from_decl(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_tuple_i64_i64_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_i64_swap(allows) && !contract_tuple_functions::component_fn_is_i64_i64_to_tuple_i64_i64(contract_helpers::component_func_from_decl(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_tuple_i32_i32_param_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_param(allows) && !contract_tuple_functions::component_fn_is_tuple_i32_i32_to_i32(contract_helpers::component_func_from_decl(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_tuple_mixed_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_mixed_param(allows) && !contract_tuple_functions::component_fn_is_tuple_i32_bool_to_i32(contract_helpers::component_func_from_decl(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_tuple_bool_bool_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_bool_param(allows) && !contract_tuple_functions::component_fn_is_tuple_bool_bool_to_i32(contract_helpers::component_func_from_decl(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_tuple_i32_i32_roundtrip_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_roundtrip(allows) && !contract_tuple_functions::component_fn_is_tuple_i32_i32_to_tuple_i32_i32(contract_helpers::component_func_from_decl(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_specialized_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	let string_collection_error = component_string_collection_signature_error(f, allows)
+	if len(string_collection_error) > 0 {
+		return string_collection_error
+	}
+	let numeric_tuple_error = component_numeric_tuple_signature_error(f, allows)
+	if len(numeric_tuple_error) > 0 {
+		return numeric_tuple_error
+	}
+	let record_shape_error = contract_special_record_shape::component_record_shape_signature_error(f, allows)
+	if len(record_shape_error) > 0 {
+		return record_shape_error
+	}
+	if !contract_special_support::component_special_signature_supported(f) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}

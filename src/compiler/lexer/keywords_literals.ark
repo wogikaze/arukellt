@@ -1,0 +1,13 @@
+use lexer::tokens
+// Arukellt Lexer - literal keyword lookup.
+
+
+pub fn keyword_kind_literal(word: String) -> i32 {
+    if eq(word, "true") {
+        return tokens::TK_BOOL()
+    }
+    if eq(word, "false") {
+        return tokens::TK_BOOL()
+    }
+    0 - 1
+}

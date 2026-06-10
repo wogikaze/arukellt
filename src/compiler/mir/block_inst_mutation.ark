@@ -1,0 +1,7 @@
+// Arukellt Selfhost - MIR block instruction mutation API.
+
+use mir::types
+
+fn MirBlock_push_inst(block: MirBlock, inst: MirInst) {
+    push(block.instructions, inst)
+}

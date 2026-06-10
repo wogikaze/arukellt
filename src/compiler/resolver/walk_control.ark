@@ -1,0 +1,24 @@
+// Arukellt Resolver - control node dispatch.
+
+use resolver::control
+use resolver::ast_control_predicates
+
+fn resolve_control_node(ctx: ResolveCtx, node: AstNode) -> bool {
+    if ast_control_predicates::node_is_block(node) {
+        control::resolve_block(ctx, node)
+        return true
+    }
+    if ast_control_predicates::node_is_for(node) {
+        control::resolve_for(ctx, node)
+        return true
+    }
+    if ast_control_predicates::node_is_comprehension(node) {
+        control::resolve_comprehension(ctx, node)
+        return true
+    }
+    if ast_control_predicates::node_is_match_expr(node) {
+        control::resolve_match(ctx, node)
+        return true
+    }
+    false
+}

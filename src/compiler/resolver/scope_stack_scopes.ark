@@ -1,0 +1,36 @@
+// Arukellt Resolver - scope stack scope/context accessors.
+
+use resolver::ctx_record
+use resolver::scope_record
+
+fn Scope_new(parent: i32) -> Scope {
+    scope_record::Scope_new(parent)
+}
+
+fn ResolveCtx_scope_count(ctx: ResolveCtx) -> i32 {
+    ctx_record::resolve_ctx_scope_count(ctx)
+}
+
+fn ResolveCtx_scope_at(ctx: ResolveCtx, index: i32) -> Scope {
+    ctx_record::resolve_ctx_scope_at(ctx, index)
+}
+
+fn Scope_symbol_count(scope: Scope) -> i32 {
+    scope_record::scope_symbol_count(scope)
+}
+
+fn Scope_symbol_at(scope: Scope, index: i32) -> Symbol {
+    scope_record::scope_symbol_at(scope, index)
+}
+
+fn Scope_push_symbol(scope: Scope, sym: Symbol) {
+    scope_record::scope_push_symbol(scope, sym)
+}
+
+fn ResolveCtx_current_depth(ctx: ResolveCtx) -> i32 {
+    ctx_record::resolve_ctx_current_depth(ctx)
+}
+
+fn ResolveCtx_take_next_decl_index(ctx: ResolveCtx) -> i32 {
+    ctx_record::resolve_ctx_take_next_decl_index(ctx)
+}

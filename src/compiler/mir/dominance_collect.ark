@@ -1,0 +1,24 @@
+// Arukellt Selfhost - MIR dominance info collection.
+
+use mir::dominance_info
+use mir::block_dominance_access
+use mir::function_block_queries
+use mir::types
+
+fn mir_collect_dom_info_for_function(f: MirFunction) -> MirDomInfo {
+    let info = dominance_info::MirDomInfo_new()
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut i = 0
+    while i < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, i)
+        let frontier_count = block_dominance_access::MirBlock_dom_frontier_count(block)
+        dominance_info::MirDomInfo_push_block(info, block_dominance_access::MirBlock_idom(block), frontier_count)
+        let mut j = 0
+        while j < frontier_count {
+            dominance_info::MirDomInfo_push_frontier_block(info, block_dominance_access::MirBlock_dom_frontier_at(block, j))
+            j = j + 1
+        }
+        i = i + 1
+    }
+    info
+}

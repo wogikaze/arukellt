@@ -1,0 +1,65 @@
+// Arukellt Selfhost - MIR call rewrite rules for Vec intrinsics.
+
+use mir::lower::call_rewrite_vec_access
+use mir::lower::call_rewrite_vec_push
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+
+struct MirVecCallRewrite {
+    callee_name: String,
+    push_i64_needs_extend: bool,
+}
+
+fn mir_vec_call_rewrite_new(callee_name: String, push_i64_needs_extend: bool) -> MirVecCallRewrite {
+    MirVecCallRewrite { callee_name: callee_name, push_i64_needs_extend: push_i64_needs_extend }
+}
+
+fn mir_vec_call_rewrite_callee_name(rewrite: MirVecCallRewrite) -> String {
+    clone(rewrite.callee_name)
+}
+
+fn mir_vec_call_rewrite_push_i64_needs_extend(rewrite: MirVecCallRewrite) -> bool {
+    rewrite.push_i64_needs_extend
+}
+
+fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool) -> MirVecCallRewrite {
+    let mut rewritten = callee_name
+    let mut push_i64_needs_extend = false
+    if eq(clone(rewritten), "len") {
+        rewritten = mir_rewrite_vec_len(ctx, rewritten, first_arg_idx)
+    }
+    if eq(clone(rewritten), "push") {
+        let push_rewrite = call_rewrite_vec_push::mir_rewrite_vec_push(ctx, rewritten, first_arg_idx, second_arg_idx, stage_call_args)
+        rewritten = call_rewrite_vec_push::mir_vec_push_rewrite_callee_name(push_rewrite)
+        push_i64_needs_extend = call_rewrite_vec_push::mir_vec_push_rewrite_push_i64_needs_extend(push_rewrite)
+    }
+    if eq(clone(rewritten), "get_unchecked") {
+        rewritten = call_rewrite_vec_access::mir_rewrite_vec_get_unchecked(ctx, rewritten, first_arg_idx)
+    }
+    if eq(clone(rewritten), "get") {
+        rewritten = call_rewrite_vec_access::mir_rewrite_vec_get(ctx, rewritten, first_arg_idx)
+    }
+    rewritten = mir_rewrite_vec_basic(rewritten)
+    mir_vec_call_rewrite_new(rewritten, push_i64_needs_extend)
+}
+
+fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
+    if first_arg_idx >= 0 {
+        let arg_type_len = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        if starts_with(clone(arg_type_len), "vec:") {
+            return String_from("vec_len")
+        }
+    }
+    callee_name
+}
+
+fn mir_rewrite_vec_basic(callee_name: String) -> String {
+    let mut rewritten = callee_name
+    if eq(clone(rewritten), "pop") {
+        rewritten = String_from("vec_pop")
+    }
+    if eq(clone(rewritten), "set") {
+        rewritten = String_from("vec_set")
+    }
+    rewritten
+}

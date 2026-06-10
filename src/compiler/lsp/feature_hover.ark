@@ -1,0 +1,16 @@
+// Arukellt LSP - hover request handling.
+
+use analysis::symbols
+use lsp::feature_symbol
+use lsp::framing
+use lsp::responses
+
+pub fn handle_hover(state: LspState, body: String) {
+    let sym = feature_symbol::resolve_symbol_request(state, body)
+    if !feature_symbol::symbol_request_found(sym) {
+        framing::append_framed(state, responses::build_null_response(feature_symbol::symbol_request_id(sym)))
+        return
+    }
+    let md = symbols::render_hover_markdown(feature_symbol::symbol_request_info(sym))
+    framing::append_framed(state, responses::build_hover_response(feature_symbol::symbol_request_id(sym), md, feature_symbol::symbol_request_start(sym), feature_symbol::symbol_request_end(sym)))
+}

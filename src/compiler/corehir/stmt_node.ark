@@ -1,0 +1,48 @@
+// Arukellt Selfhost - CoreHIR statement node predicates.
+
+use corehir::frontend_ast_node
+use corehir::frontend_stmt_kind
+
+fn stmt_span_start(node: AstNode) -> i32 {
+    frontend_ast_node::corehir_node_span_start(node)
+}
+
+fn stmt_child_count(node: AstNode) -> i32 {
+    frontend_ast_node::corehir_node_child_count(node)
+}
+
+fn stmt_child_at(node: AstNode, idx: i32) -> AstNode {
+    frontend_ast_node::corehir_node_child_at(node, idx)
+}
+
+fn stmt_is_while(node: AstNode) -> bool {
+    frontend_stmt_kind::corehir_kind_is_stmt_while(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn stmt_is_loop(node: AstNode) -> bool {
+    frontend_stmt_kind::corehir_kind_is_stmt_loop(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn stmt_is_for(node: AstNode) -> bool {
+    frontend_stmt_kind::corehir_kind_is_stmt_for(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn stmt_is_break(node: AstNode) -> bool {
+    frontend_stmt_kind::corehir_kind_is_stmt_break(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn stmt_is_continue(node: AstNode) -> bool {
+    frontend_stmt_kind::corehir_kind_is_stmt_continue(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn stmt_is_return(node: AstNode) -> bool {
+    frontend_stmt_kind::corehir_kind_is_stmt_return(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn stmt_is_let(node: AstNode) -> bool {
+    frontend_stmt_kind::corehir_kind_is_stmt_let(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn stmt_is_expr_stmt(node: AstNode) -> bool {
+    frontend_stmt_kind::corehir_kind_is_stmt_expr_stmt(frontend_ast_node::corehir_node_kind(node))
+}

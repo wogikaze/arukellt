@@ -1,0 +1,40 @@
+// Arukellt Selfhost - vec intrinsic handler facade
+
+use wasm::intrinsic_vec_access
+use wasm::intrinsic_vec_core
+use wasm::intrinsic_vec_empty
+use wasm::intrinsic_vec_pop
+use wasm::intrinsic_vec_push
+use wasm::intrinsic_vec_set
+
+fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_vec_core::emit_Vec_new_i64(w, inst, ctx)
+}
+
+fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_vec_core::emit_vec_len(w, inst, ctx)
+}
+
+fn emit_push(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool) -> bool {
+    intrinsic_vec_push::emit_push(w, inst, ctx, is_void_push)
+}
+
+fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_vec_access::emit_get_unchecked(w, inst, ctx)
+}
+
+fn emit_vec_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_vec_access::emit_vec_get(w, inst, ctx)
+}
+
+fn emit_vec_pop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_vec_pop::emit_vec_pop(w, inst, ctx)
+}
+
+fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_vec_set::emit_vec_set(w, inst, ctx)
+}
+
+fn emit_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_vec_empty::emit_is_empty(w, inst, ctx)
+}

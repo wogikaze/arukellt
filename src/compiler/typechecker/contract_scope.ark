@@ -1,0 +1,40 @@
+// Arukellt Typechecker - local scope contract.
+
+use typechecker::contract_types_record
+
+struct VarBinding {
+    name: String,
+    ty: TypeInfo,
+}
+
+struct LocalScope {
+    bindings: Vec<VarBinding>,
+}
+
+fn LocalScope_new_contract() -> LocalScope {
+    LocalScope { bindings: Vec_new_VarBinding() }
+}
+
+fn VarBinding_new(name: String, ty: TypeInfo) -> VarBinding {
+    VarBinding { name: name, ty: ty }
+}
+
+fn VarBinding_name(binding: VarBinding) -> String {
+    clone(binding.name)
+}
+
+fn VarBinding_type(binding: VarBinding) -> TypeInfo {
+    binding.ty
+}
+
+fn LocalScope_binding_count(scope: LocalScope) -> i32 {
+    len(scope.bindings)
+}
+
+fn LocalScope_binding_at(scope: LocalScope, index: i32) -> VarBinding {
+    get_unchecked(scope.bindings, index)
+}
+
+fn LocalScope_push_binding(scope: LocalScope, binding: VarBinding) {
+    push(scope.bindings, binding)
+}

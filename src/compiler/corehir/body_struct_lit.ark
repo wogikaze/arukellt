@@ -1,0 +1,51 @@
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR body builder for struct literals.
+
+use corehir::expr_builder_structs
+use corehir::expr_predicates
+use corehir::expr_node_access
+use corehir::expr_node_predicates
+
+fn corehir_build_struct_lit_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let children = Vec_new_i32()
+    let child_count = expr_node_access::expr_child_count(node)
+    let mut i = 0
+    let mut unsupported = false
+    while i < child_count {
+        let field = expr_node_access::expr_child_at(node, i)
+        if expr_node_predicates::expr_is_range(field) {
+            if expr_node_access::expr_child_count(field) < 1 {
+                unsupported = true
+            } else {
+                let base_index = corehir_build_expr(table, expr_node_access::expr_child_at(field, 0))
+                let base_children = Vec_new_i32()
+                push(base_children, base_index)
+                let base_expr = corehir_body_expr_at(table, base_index)
+                if expr_predicates::expr_is_unsupported(base_expr) {
+                    unsupported = true
+                }
+                let base_field_index = corehir_push_expr(table, expr_builder_structs::corehir_expr_struct_base(expr_node_access::expr_text(node), expr_node_access::expr_span_start(field), base_children))
+                push(children, base_field_index)
+            }
+        } else {
+            if !expr_node_predicates::expr_is_ident(field) || expr_node_access::expr_child_count(field) < 1 {
+                unsupported = true
+            } else {
+                let value_index = corehir_build_expr(table, expr_node_access::expr_child_at(field, 0))
+                let field_children = Vec_new_i32()
+                push(field_children, value_index)
+                let value_expr = corehir_body_expr_at(table, value_index)
+                if expr_predicates::expr_is_unsupported(value_expr) {
+                    unsupported = true
+                }
+                let field_index = corehir_push_expr(table, expr_builder_structs::corehir_expr_struct_field(expr_node_access::expr_text(field), value_expr, expr_node_access::expr_span_start(field), field_children))
+                push(children, field_index)
+            }
+        }
+        i = i + 1
+    }
+    if unsupported {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_structs::corehir_expr_struct_lit(expr_node_access::expr_text(node), expr_node_access::expr_span_start(node), children))
+}

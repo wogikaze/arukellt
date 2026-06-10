@@ -1,0 +1,19 @@
+use parser::kinds
+// Arukellt Parser - operator expression AST node display names
+
+
+fn expr_operator_node_kind_name(kind: i32) -> String {
+    if kind == kinds::NK_BINARY() {
+        return String_from("Binary")
+    }
+    if kind == kinds::NK_UNARY() {
+        return String_from("Unary")
+    }
+    if kind == kinds::NK_ASSIGN() {
+        return String_from("Assign")
+    }
+    if kind == kinds::NK_RANGE() {
+        return String_from("Range")
+    }
+    String_new()
+}

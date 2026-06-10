@@ -1,0 +1,32 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR print argument string conversion emission.
+
+use mir::inst_call
+use mir::lower::core_expr_shape_atoms
+use mir::value_types
+
+fn mir_core_convert_print_arg_to_string(ctx: LowerCtx, arg: CoreHirExpr, arg_idx: i32) -> i32 {
+    let wrap_lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
+    let mut wrap_callee = String_from("to_string")
+    if eq(clone(wrap_lt), "char") || core_expr_shape_atoms::mir_core_expr_is_char(arg) {
+        wrap_callee = String_from("char_to_string")
+    } else {
+        if eq(clone(wrap_lt), "bool") || core_expr_shape_atoms::mir_core_expr_is_bool(arg) {
+            wrap_callee = String_from("bool_to_string")
+        } else {
+            if eq(clone(wrap_lt), "f64") || core_expr_shape_atoms::mir_core_expr_is_float(arg) {
+                wrap_callee = String_from("f64_to_string")
+            } else {
+                if eq(clone(wrap_lt), "i64") || eq(clone(wrap_lt), "u64") || ctx_api_local_types::ctx_local_vt(ctx, arg_idx) == value_types::VT_I64() {
+                    wrap_callee = String_from("i64_to_string")
+                }
+            }
+        }
+    }
+    let wrap_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(wrap_callee, 1, wrap_dest))
+    wrap_dest
+}

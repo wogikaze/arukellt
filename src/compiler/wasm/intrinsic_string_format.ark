@@ -1,0 +1,36 @@
+// Arukellt Selfhost - string formatting intrinsic handler facade
+
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsic_string_format_char
+use wasm::intrinsic_string_format_f64
+use wasm::intrinsic_string_format_i32
+use wasm::intrinsic_string_format_i64
+
+fn emit_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_format_i32::emit_to_string(w, inst, ctx)
+}
+
+fn emit_i64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_format_i64::emit_i64_to_string(w, inst, ctx)
+}
+
+fn emit_f64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_format_f64::emit_f64_to_string(w, inst, ctx)
+}
+
+fn emit_f32_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i32_const::emit_i32_const(w, 12)
+    return true
+}
+
+fn emit_char_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_format_char::emit_char_to_string(w, inst, ctx)
+}
+
+fn emit_push_char(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_format_char::emit_push_char(w, inst, ctx)
+}
+
+fn emit_String_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_format_char::emit_String_new(w, inst, ctx)
+}

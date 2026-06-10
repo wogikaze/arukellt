@@ -1,0 +1,11 @@
+// Arukellt Selfhost - CoreHIR expression type accessors.
+
+use corehir::expr_raw
+
+fn expr_val_type(expr: CoreHirExpr) -> i32 {
+    expr_raw::corehir_expr_val_type(expr)
+}
+
+fn expr_type_name(expr: CoreHirExpr) -> String {
+    expr_raw::corehir_expr_type_name(expr)
+}

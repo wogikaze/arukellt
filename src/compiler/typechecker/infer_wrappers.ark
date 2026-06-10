@@ -1,0 +1,28 @@
+use typechecker::kinds
+// Arukellt Typechecker - wrapper expression inference.
+
+use typechecker::ast_stmt_predicates
+use typechecker::ast_expr_predicates
+use typechecker::ast_access
+
+fn infer_wrapper_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    if ast_expr_predicates::node_is_unary(node) {
+        if ast_access::node_child_count(node) > 0 {
+            let operand = ast_access::node_child_at(node, 0)
+            return infer_expr(env, scope, fn_sigs, enum_defs, operand)
+        }
+    }
+    if ast_expr_predicates::node_is_if_expr(node) {
+        if ast_access::node_child_count(node) >= 2 {
+            let then_node = ast_access::node_child_at(node, 1)
+            return infer_expr(env, scope, fn_sigs, enum_defs, then_node)
+        }
+    }
+    if ast_stmt_predicates::node_is_expr_stmt(node) {
+        if ast_access::node_child_count(node) > 0 {
+            return infer_expr(env, scope, fn_sigs, enum_defs, ast_access::node_child_at(node, 0))
+        }
+        return TypeInfo_simple(commands::TY_UNIT())
+    }
+    TypeInfo_simple(commands::TY_UNKNOWN())
+}

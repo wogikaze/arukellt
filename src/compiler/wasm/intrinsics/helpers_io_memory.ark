@@ -1,0 +1,26 @@
+use wasm::opcodes
+// Arukellt Selfhost - Wasm intrinsic I/O memory primitive recipes.
+
+use wasm::writer_core
+
+fn emit_i32_sub(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+}
+
+fn emit_i32_store_default(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_i32_load_default(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_i32_store8_default(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE8())
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, 0)
+}

@@ -45,3 +45,4 @@
 | [ADR-028-corehir-lowering-resolution.md](ADR-028-corehir-lowering-resolution.md) | ADR-028: CoreHIR lowering circular blocker — re-route via #529 selfhost retirement | Archive | ステータス: DECIDED (2026-04-22) — Rust 側 lower_hir_to_mir は実装せず、Rust legacy |
 | [ADR-030-incremental-parse.md](ADR-030-incremental-parse.md) | test | Archive | See the document for details. |
 | [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md) | ADR-031: Import Syntax and WIT Package Identifier Unification | Archive | Status: DECIDED — Two-layer separation confirmed; use reserved for Layer S, import reserved for Layer C |
+| [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 Compiler Wasm and Browser Runner Model | Archive | Status: DECIDED — ship the selfhost compiler Wasm to the browser and run compiled T2 Wasm in a sandboxed host |

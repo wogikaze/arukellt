@@ -1,0 +1,9 @@
+// Arukellt Selfhost - MIR lowering variant context API.
+
+use mir::lower::ctx_variants
+
+fn ctx_variant_tag(ctx: LowerCtx, name: String) -> i32 { ctx_variants::ctx_variant_tag(ctx, name) }
+fn ctx_is_payload_variant(ctx: LowerCtx, name: String) -> bool { ctx_variants::ctx_is_payload_variant(ctx, name) }
+fn ctx_register_builtin_variants(ctx: LowerCtx) { ctx_variants::ctx_register_builtin_variants(ctx) }
+fn ctx_register_variant_tag(ctx: LowerCtx, name: String, tag: i32) { ctx_variants::ctx_register_variant_tag(ctx, name, tag) }
+fn ctx_register_payload_variant(ctx: LowerCtx, name: String) { ctx_variants::ctx_register_payload_variant(ctx, name) }

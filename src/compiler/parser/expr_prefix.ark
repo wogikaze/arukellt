@@ -1,0 +1,17 @@
+// Arukellt Parser - aggregate prefix expression facade.
+
+use parser::expr_prefix_array
+use parser::expr_prefix_struct
+use parser::expr_prefix_tuple
+
+pub fn parse_ident_or_struct_lit(p: Parser, t: Token) -> AstNode {
+    expr_prefix_struct::parse_ident_or_struct_lit(p, t)
+}
+
+pub fn parse_tuple_or_group(p: Parser, t: Token) -> AstNode {
+    expr_prefix_tuple::parse_tuple_or_group(p, t)
+}
+
+pub fn parse_array_prefix(p: Parser, t: Token) -> AstNode {
+    expr_prefix_array::parse_array_prefix(p, t)
+}

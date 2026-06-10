@@ -1,0 +1,31 @@
+// Arukellt Selfhost - CoreHIR expression body dispatch.
+
+use corehir::body_dispatch_access
+use corehir::body_dispatch_aggregate
+use corehir::body_dispatch_call
+use corehir::body_dispatch_control
+use corehir::body_dispatch_ops
+
+fn corehir_dispatch_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let ops_result = body_dispatch_ops::corehir_dispatch_ops_expr(table, node)
+    if ops_result >= 0 {
+        return ops_result
+    }
+    let control_result = body_dispatch_control::corehir_dispatch_control_expr(table, node)
+    if control_result >= 0 {
+        return control_result
+    }
+    let access_result = body_dispatch_access::corehir_dispatch_access_expr(table, node)
+    if access_result >= 0 {
+        return access_result
+    }
+    let aggregate_result = body_dispatch_aggregate::corehir_dispatch_aggregate_expr(table, node)
+    if aggregate_result >= 0 {
+        return aggregate_result
+    }
+    let call_result = body_dispatch_call::corehir_dispatch_call_expr(table, node)
+    if call_result >= 0 {
+        return call_result
+    }
+    0 - 2
+}

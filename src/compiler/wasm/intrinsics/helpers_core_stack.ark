@@ -1,0 +1,12 @@
+// Arukellt Selfhost - Wasm intrinsic stack/control trap helper recipes.
+
+use wasm::opcodes
+use wasm::writer_core
+
+fn emit_drop(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_DROP())
+}
+
+fn emit_unreachable(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+}

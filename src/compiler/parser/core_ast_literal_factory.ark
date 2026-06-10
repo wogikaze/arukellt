@@ -1,0 +1,12 @@
+// Arukellt Parser - numeric literal AST construction API.
+
+use parser::ast_node_record
+use parser::kinds
+
+fn make_int_lit(val: i32, span: Span) -> AstNode {
+    ast_node_record::AstNode_int(kinds::NK_INT_LIT(), val, span)
+}
+
+fn make_float_lit(val: f64, span: Span) -> AstNode {
+    ast_node_record::AstNode_float(kinds::NK_FLOAT_LIT(), val, span)
+}

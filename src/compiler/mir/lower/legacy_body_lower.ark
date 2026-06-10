@@ -1,0 +1,8 @@
+// Arukellt Selfhost - MIR legacy body lowering adapter.
+
+use mir::lower::body
+use mir::lower::legacy_body
+
+fn mir_lower_legacy_body_value(ctx: LowerCtx, body: MirLowerLegacyBody) -> i32 {
+    body::lower_expr(ctx, legacy_body::mir_legacy_body_node(body))
+}

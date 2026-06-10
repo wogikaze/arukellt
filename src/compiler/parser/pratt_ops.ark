@@ -1,0 +1,12 @@
+// Arukellt Parser - Pratt token to AST operator mapping.
+
+use parser::pratt_binops
+use parser::pratt_unops
+
+pub fn token_to_binop(kind: i32) -> i32 {
+    pratt_binops::token_to_binop(kind)
+}
+
+pub fn token_to_unop(kind: i32) -> i32 {
+    pratt_unops::token_to_unop(kind)
+}

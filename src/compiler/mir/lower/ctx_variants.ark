@@ -1,0 +1,42 @@
+// Arukellt MIR lowering context - variant helpers
+
+use mir::lower::ctx_variant_storage
+use mir::lower::ctx_variants_builtin
+
+fn ctx_variant_tag(ctx: LowerCtx, name: String) -> i32 {
+    let count = ctx_variant_storage::ctx_variant_count(ctx)
+    let mut i = 0
+    while i < count {
+        let vn = ctx_variant_storage::ctx_variant_name_at(ctx, i)
+        if eq(clone(vn), clone(name)) {
+            return ctx_variant_storage::ctx_variant_tag_at(ctx, i)
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn ctx_is_payload_variant(ctx: LowerCtx, name: String) -> bool {
+    let count = ctx_variant_storage::ctx_payload_variant_count(ctx)
+    let mut i = 0
+    while i < count {
+        if eq(ctx_variant_storage::ctx_payload_variant_name_at(ctx, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn ctx_register_builtin_variants(ctx: LowerCtx) {
+    ctx_variants_builtin::ctx_register_builtin_variant_tags(ctx)
+    ctx_variants_builtin::ctx_register_builtin_payload_variants(ctx)
+}
+
+fn ctx_register_variant_tag(ctx: LowerCtx, name: String, tag: i32) {
+    ctx_variant_storage::ctx_variant_push_tag(ctx, name, tag)
+}
+
+fn ctx_register_payload_variant(ctx: LowerCtx, name: String) {
+    ctx_variant_storage::ctx_payload_variant_push(ctx, name)
+}

@@ -1,0 +1,30 @@
+use mir::lower::closure_capture_args
+use mir::lower::closure_registry
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR closure call lowering.
+
+use mir::inst_call
+use mir::lower::core_expr_shape_accessors
+use mir::value_types
+
+fn lower_core_closure_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    let clo_ix = closure_registry::ctx_closure_lookup(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
+    if clo_ix < 0 {
+        return 0 - 2
+    }
+    let synth = closure_registry::ctx_closure_synth_at(ctx, clo_ix)
+    let packed = closure_registry::ctx_closure_caps_at(ctx, clo_ix)
+    let extra = closure_registry::ctx_closure_extra_at(ctx, clo_ix)
+    let mut ca = 1
+    while ca < child_count {
+        let _ai = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, ca))
+        ca = ca + 1
+    }
+    closure_capture_args::closure_emit_captured_args(ctx, packed)
+    let c_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(synth, child_count - 1 + extra, c_dest))
+    c_dest
+}

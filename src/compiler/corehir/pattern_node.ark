@@ -1,0 +1,48 @@
+// Arukellt Selfhost - CoreHIR pattern node predicates.
+
+use corehir::frontend_ast_node
+use corehir::frontend_pattern_kind
+
+fn pattern_text(node: AstNode) -> String {
+    frontend_ast_node::corehir_node_text(node)
+}
+
+fn pattern_span_start(node: AstNode) -> i32 {
+    frontend_ast_node::corehir_node_span_start(node)
+}
+
+fn pattern_int_val(node: AstNode) -> i32 {
+    frontend_ast_node::corehir_node_int_val(node)
+}
+
+fn pattern_child_count(node: AstNode) -> i32 {
+    frontend_ast_node::corehir_node_child_count(node)
+}
+
+fn pattern_child_at(node: AstNode, idx: i32) -> AstNode {
+    frontend_ast_node::corehir_node_child_at(node, idx)
+}
+
+fn pattern_is_ident(node: AstNode) -> bool {
+    frontend_pattern_kind::corehir_kind_is_pattern_ident(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn pattern_is_wildcard(node: AstNode) -> bool {
+    frontend_pattern_kind::corehir_kind_is_pattern_wildcard(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn pattern_is_literal(node: AstNode) -> bool {
+    frontend_pattern_kind::corehir_kind_is_pattern_literal(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn pattern_is_variant(node: AstNode) -> bool {
+    frontend_pattern_kind::corehir_kind_is_pattern_variant(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn pattern_is_or(node: AstNode) -> bool {
+    frontend_pattern_kind::corehir_kind_is_pattern_or(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn pattern_is_composite(node: AstNode) -> bool {
+    pattern_is_variant(node) || pattern_is_or(node)
+}

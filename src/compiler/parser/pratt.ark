@@ -1,0 +1,37 @@
+// Arukellt Parser - Pratt precedence and operator mapping facade.
+
+use parser::pratt_bp
+use parser::pratt_ops
+use parser::pratt_stop
+
+pub fn is_expr_stop_token(kind: i32) -> bool {
+    pratt_stop::is_expr_stop_token(kind)
+}
+
+pub fn should_parse_assignment(min_bp: i32) -> bool {
+    pratt_bp::should_parse_assignment(min_bp)
+}
+
+pub fn should_parse_range(min_bp: i32) -> bool {
+    pratt_bp::should_parse_range(min_bp)
+}
+
+pub fn prefix_bp(kind: i32) -> i32 {
+    pratt_bp::prefix_bp(kind)
+}
+
+pub fn infix_bp_left(kind: i32) -> i32 {
+    pratt_bp::infix_bp_left(kind)
+}
+
+pub fn infix_bp_right(kind: i32) -> i32 {
+    pratt_bp::infix_bp_right(kind)
+}
+
+pub fn token_to_binop(kind: i32) -> i32 {
+    pratt_ops::token_to_binop(kind)
+}
+
+pub fn token_to_unop(kind: i32) -> i32 {
+    pratt_ops::token_to_unop(kind)
+}

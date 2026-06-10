@@ -1,0 +1,25 @@
+use parser::core_ast_text_fields
+use parser::core_ast_span_fields
+use lexer::tokens
+use parser::core_ast_factory
+use parser::core_ast_children
+use parser::core_ast_type_ann
+// Arukellt Parser - function return annotation syntax
+
+use parser::core_api_cursor
+use parser::kinds
+use parser::types
+
+fn parse_fn_return_annotation_into_node(p: Parser, node: AstNode) {
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) != tokens::TK_ARROW() {
+        return
+    }
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    let ret = types::parse_type(p)
+    let ret_node = core_ast_factory::AstNode_new(kinds::NK_TYPE_NAMED(), core_ast_span_fields::AstNode_span(ret))
+    core_ast_text_fields::AstNode_set_text(ret_node, String_from("__return"))
+    core_ast_children::AstNode_push_child(ret_node, ret)
+    core_ast_type_ann::AstNode_push_type_ann(node, ret_node)
+}

@@ -1,0 +1,136 @@
+// Arukellt Selfhost - Wasm call namespace: call_seq
+
+use wasm::inst_store
+use wasm::intrinsic_seq_slice
+use wasm::intrinsic_seq
+use wasm::intrinsic_seq_unique
+use wasm::intrinsic_sort
+
+// Arukellt Selfhost - Wasm sequence/sort call dispatch
+
+fn try_emit_seq_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if try_emit_sort_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_seq_reduce_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_seq_collection_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm sequence collection call dispatch
+
+fn try_emit_seq_collection_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if try_emit_seq_unique_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_seq_window_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - sequence unique call dispatch.
+
+fn try_emit_seq_unique_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "seq::unique") {
+        let _result_on_stack = intrinsic_seq_unique::emit_seq_unique(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    false
+}
+
+// Arukellt Selfhost - sequence take/skip call dispatch.
+
+fn try_emit_seq_window_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "seq::take_i32") {
+        let _result_on_stack = intrinsic_seq_slice::emit_seq_take_i32(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "seq::skip_i32") {
+        let _result_on_stack = intrinsic_seq_slice::emit_seq_skip_i32(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    false
+}
+
+// Arukellt Selfhost - Wasm sequence reduce/search call dispatch
+
+fn try_emit_seq_reduce_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if try_emit_seq_aggregate_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_seq_search_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - sequence aggregate call dispatch.
+
+fn try_emit_seq_aggregate_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "sum_i32") || eq(clone(callee), "seq::sum_i32") {
+        let _result_on_stack = intrinsic_seq::emit_sum_i32(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "product_i32") {
+        let _result_on_stack = intrinsic_seq::emit_product_i32(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "seq::min_i32") {
+        let _result_on_stack = intrinsic_seq::emit_seq_min_i32(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "seq::max_i32") {
+        let _result_on_stack = intrinsic_seq::emit_seq_max_i32(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    false
+}
+
+// Arukellt Selfhost - sequence search/count call dispatch.
+
+fn try_emit_seq_search_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "seq::count_eq") {
+        let _result_on_stack = intrinsic_seq::emit_seq_count_eq(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "seq::binary_search") {
+        let _result_on_stack = intrinsic_seq::emit_seq_binary_search(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    false
+}
+
+// Arukellt Selfhost - Wasm sort call dispatch
+
+fn try_emit_sort_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if eq(clone(callee), "sort_i32") {
+            let _result_on_stack = intrinsic_sort::emit_sort_i32(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        if eq(clone(callee), "sort_i64") {
+            let _result_on_stack = intrinsic_sort::emit_sort_i64(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        if eq(clone(callee), "sort_f64") {
+            let _result_on_stack = intrinsic_sort::emit_sort_f64(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        false
+}

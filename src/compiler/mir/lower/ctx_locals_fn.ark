@@ -1,0 +1,51 @@
+use mir::function_return_view
+use mir::function_return_mutation
+use mir::function_param_mutation
+// Arukellt MIR lowering context - current function signature mutation.
+
+use mir::lower::ctx_current_storage
+use mir::value_types
+
+fn ctx_push_func_param(ctx: LowerCtx, ml: MirLocal) {
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    function_param_mutation::MirFunction_push_param(f, ml)
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+}
+
+fn ctx_set_current_return_type(ctx: LowerCtx, vt: i32) {
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    function_return_mutation::MirFunction_set_return_type(f, vt)
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+}
+
+fn ctx_set_current_return_type_name(ctx: LowerCtx, type_name: String) {
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    function_return_mutation::MirFunction_set_return_type_name(f, type_name)
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+}
+
+fn ctx_current_return_type(ctx: LowerCtx) -> i32 {
+    function_return_view::MirFunction_return_type(ctx_current_storage::ctx_current_func_value(ctx))
+}
+
+fn ctx_apply_fn_return_type_for_rt_tag(ctx: LowerCtx, rt_tag: i32) {
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    if rt_tag == 3 {
+        function_return_mutation::MirFunction_set_return_type(f, value_types::VT_F64())
+    } else {
+        if rt_tag == 2 {
+            function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I64())
+        } else {
+            if rt_tag >= 1 && rt_tag <= 6 {
+                function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
+            }
+        }
+    }
+    if rt_tag >= 10 && rt_tag <= 12 {
+        function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
+    }
+    if rt_tag >= 20 && rt_tag <= 23 {
+        function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
+    }
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+}

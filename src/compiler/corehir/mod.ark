@@ -1,0 +1,32 @@
+// Arukellt Selfhost - CoreHIR public boundary.
+
+use corehir::frontend_checked
+use corehir::mir_view
+
+pub fn build_checked_program(decls: Vec<AstNode>, check_result: TypeCheckResult) -> CoreHirRawProgram {
+    frontend_checked::build_checked_program(decls, check_result)
+}
+
+pub fn mir_view_from_program(program: CoreHirRawProgram) -> CoreHirMirView {
+    mir_view::mir_view_from_program(program)
+}
+
+pub fn view_body_source(view: CoreHirMirView) -> CoreHirMirBodySource {
+    mir_view::view_body_source(view)
+}
+
+pub fn view_signature_source(view: CoreHirMirView) -> CoreHirMirSignatureSource {
+    mir_view::view_signature_source(view)
+}
+
+pub fn view_type_source(view: CoreHirMirView) -> CoreHirMirTypeSource {
+    mir_view::view_type_source(view)
+}
+
+pub fn view_decl_source(view: CoreHirMirView) -> CoreHirMirDeclSource {
+    mir_view::view_decl_source(view)
+}
+
+pub fn view_layout_source(view: CoreHirMirView) -> CoreHirMirLayoutSource {
+    mir_view::view_layout_source(view)
+}

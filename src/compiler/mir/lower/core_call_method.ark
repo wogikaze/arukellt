@@ -1,0 +1,28 @@
+// Arukellt Selfhost - MIR lowering for CoreHIR method call expressions.
+
+use mir::lower::core_expr_shape_accessors
+use mir::lower::method
+
+fn lower_core_method_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    if child_count < 1 {
+        return 0 - 1
+    }
+    let receiver_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    let callee_name = method::mir_initial_method_callee(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), receiver_idx)
+    let first_method_arg_idx = lower_core_method_first_arg(ctx, exprs, expr, child_count)
+    method::mir_emit_method_call(ctx, method::mir_resolve_method_callee(ctx, callee_name, first_method_arg_idx, core_expr_shape_accessors::mir_core_expr_span_start(expr)), child_count)
+}
+
+fn lower_core_method_first_arg(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {
+    let mut a = 1
+    let mut first_method_arg_idx = 0 - 1
+    while a < child_count {
+        let method_arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+        if a == 1 {
+            first_method_arg_idx = method_arg_idx
+        }
+        a = a + 1
+    }
+    first_method_arg_idx
+}

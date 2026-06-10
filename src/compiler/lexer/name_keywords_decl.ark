@@ -1,0 +1,28 @@
+use lexer::tokens
+// Arukellt Lexer - declaration keyword display names.
+
+
+fn token_decl_keyword_name(kind: i32) -> String {
+    if kind == tokens::TK_FN() {
+        return String_from("FN")
+    }
+    if kind == tokens::TK_STRUCT() {
+        return String_from("STRUCT")
+    }
+    if kind == tokens::TK_ENUM() {
+        return String_from("ENUM")
+    }
+    if kind == tokens::TK_LET() {
+        return String_from("LET")
+    }
+    if kind == tokens::TK_MUT() {
+        return String_from("MUT")
+    }
+    if kind == tokens::TK_PUB() {
+        return String_from("PUB")
+    }
+    if kind == tokens::TK_WHERE() {
+        return String_from("WHERE")
+    }
+    String_new()
+}

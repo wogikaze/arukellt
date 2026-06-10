@@ -1,0 +1,18 @@
+// Arukellt Parser - parse diagnostic construction.
+
+use diagnostics::codes
+use diagnostics::record
+use parser::cursor
+use parser::token_state
+
+fn parser_push_expected_token_error(p: Parser, expected: i32, actual: i32, tok: Token) {
+    let message = concat(String_from("expected token kind "), concat(to_string(expected), concat(String_from(", got "), to_string(actual))))
+    let diag = record::Diagnostic_new_parse(codes::DIAG_PARSE_EXPECTED_TOKEN(), message, token_state::Token_start(tok), token_state::Token_end(tok))
+    push(p.errors, diag)
+}
+
+fn parser_push_unexpected_error(p: Parser, msg: String) {
+    let t = cursor::cur(p)
+    let diag = record::Diagnostic_new_parse(codes::DIAG_PARSE_UNEXPECTED(), msg, token_state::Token_start(t), token_state::Token_end(t))
+    push(p.errors, diag)
+}

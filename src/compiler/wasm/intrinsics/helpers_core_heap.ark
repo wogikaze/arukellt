@@ -1,0 +1,51 @@
+// Arukellt Selfhost - Wasm intrinsic heap pointer helper recipes.
+
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+
+fn emit_heap_get(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+}
+
+// Reads global 0 (already updated) and grows memory when the heap pointer
+// passed the current memory size. Stack-neutral: safe right after global.set.
+fn emit_heap_ensure_grown(w: WasmWriter) {
+    emit_heap_get(w)
+    writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 16)
+    writer_core::emit_byte(w, opcodes::OP_I32_SHL())
+    writer_core::emit_byte(w, opcodes::OP_I32_GT_U())
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    emit_heap_grow_pages(w)
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_heap_grow_pages(w: WasmWriter) {
+    emit_heap_get(w)
+    writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 16)
+    writer_core::emit_byte(w, opcodes::OP_I32_SHL())
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 65535)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 16)
+    writer_core::emit_byte(w, opcodes::OP_I32_SHR_U())
+    writer_core::emit_byte(w, opcodes::OP_MEMORY_GROW())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_DROP())
+}
+
+fn emit_heap_set(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
+    writer_leb::emit_leb128_u(w, 0)
+    emit_heap_ensure_grown(w)
+}

@@ -1,0 +1,30 @@
+// Arukellt Selfhost - CoreHIR expression node predicates.
+
+use corehir::frontend_ast_node
+use corehir::frontend_expr_kind
+use corehir::expr_kind_predicates
+
+fn expr_is_int_lit(node: AstNode) -> bool { expr_kind_predicates::expr_kind_is_int_lit(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_float_lit(node: AstNode) -> bool { expr_kind_predicates::expr_kind_is_float_lit(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_string_lit(node: AstNode) -> bool { expr_kind_predicates::expr_kind_is_string_lit(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_bool_lit(node: AstNode) -> bool { expr_kind_predicates::expr_kind_is_bool_lit(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_char_lit(node: AstNode) -> bool { expr_kind_predicates::expr_kind_is_char_lit(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_ident(node: AstNode) -> bool { expr_kind_predicates::expr_kind_is_ident(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_path(node: AstNode) -> bool { expr_kind_predicates::expr_kind_is_path(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_binary(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_binary(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_unary(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_unary(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_call(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_call(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_method_call(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_method_call(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_try(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_try(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_field_access(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_field_access(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_index(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_index(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_array_lit(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_array_lit(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_tuple(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_tuple(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_struct_lit(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_struct_lit(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_comprehension(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_comprehension(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_if(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_if(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_match(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_match(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_assign(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_assign(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_closure(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_closure(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_block(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_block(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_range(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_range(frontend_ast_node::corehir_node_kind(node)) }

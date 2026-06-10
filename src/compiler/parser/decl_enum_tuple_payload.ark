@@ -1,0 +1,22 @@
+use lexer::tokens
+use parser::core_ast_type_ann
+// Arukellt Parser - enum tuple payload syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::types
+
+fn parse_enum_tuple_payload(p: Parser, variant: AstNode) {
+    p.pos = p.pos + 1
+    let mut first = true
+    while !core_api_cursor::at(p, tokens::TK_RPAREN()) && !core_api_cursor::at_eof(p) {
+        if !first {
+            core_api_expect::expect_token(p, tokens::TK_COMMA())
+        }
+        first = false
+        core_api_cursor::skip_newlines(p)
+        let vty = types::parse_type(p)
+        core_ast_type_ann::AstNode_push_type_ann(variant, vty)
+    }
+    core_api_expect::expect_token(p, tokens::TK_RPAREN())
+}

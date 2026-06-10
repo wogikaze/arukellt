@@ -1,0 +1,24 @@
+// Arukellt Selfhost - MIR SSA trivial block smoke check
+
+use std::host::stdio
+use mir::dominance
+use mir::dump_core
+use mir::dump_expect
+use mir::dump_smoke_trivial_fixture
+use mir::module_functions
+use mir::ssa
+
+fn run_ssa_trivial_block_rename_smoke() {
+    let fx = dump_smoke_trivial_fixture::mir_dump_trivial_fixture_new(String_from("ssa_trivial_block_sample"))
+    let m = dump_smoke_trivial_fixture::MirDumpTrivialFixture_module(fx)
+    let f = dump_smoke_trivial_fixture::MirDumpTrivialFixture_function(fx)
+    let p = dump_smoke_trivial_fixture::MirDumpTrivialFixture_param_p(fx)
+    let t = dump_smoke_trivial_fixture::MirDumpTrivialFixture_local_t(fx)
+    dominance::mir_compute_dominance_for_function(f)
+    ssa::mir_ssa_rename_function(f)
+    dump_expect::mir_expect_local_ssa(f, p, String_from("p"), 0)
+    dump_expect::mir_expect_local_ssa(f, t, String_from("t"), 1)
+    module_functions::MirModule_push_function(m, f)
+    dump_core::dump_mir(m)
+    stdio::println(String_from("MIR SSA trivial-block rename self-check OK."))
+}

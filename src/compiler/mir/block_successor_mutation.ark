@@ -1,0 +1,16 @@
+// Arukellt Selfhost - MIR block successor mutation API.
+
+use mir::types_block
+
+fn MirBlock_set_succ0(block: MirBlock, succ0: i32) {
+    block.succ0 = succ0
+}
+
+fn MirBlock_set_succ1(block: MirBlock, succ1: i32) {
+    block.succ1 = succ1
+}
+
+fn MirBlock_set_successors(block: MirBlock, succ0: i32, succ1: i32) {
+    block.succ0 = succ0
+    block.succ1 = succ1
+}

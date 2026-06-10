@@ -1,0 +1,20 @@
+// Arukellt Selfhost - MIR lowering for direct CoreHIR call arguments.
+
+use mir::lower::core_call_args
+
+fn mir_lower_core_direct_print_arg(ctx: LowerCtx, arg_expr: CoreHirExpr, arg_idx: i32, is_println: bool, arg_position: i32) -> i32 {
+    let mut actual_arg_idx = arg_idx
+    if is_println && arg_position == 1 && actual_arg_idx >= 0 {
+        if core_call_args::mir_core_print_arg_needs_string_conversion(ctx, arg_expr, actual_arg_idx) {
+            actual_arg_idx = core_call_args::mir_core_convert_print_arg_to_string(ctx, arg_expr, actual_arg_idx)
+        }
+    }
+    actual_arg_idx
+}
+
+fn mir_lower_core_direct_stage_arg(ctx: LowerCtx, staged_arg_locals: Vec<i32>, arg_idx: i32, stage_call_args: bool) -> i32 {
+    if stage_call_args && arg_idx >= 0 {
+        return core_call_args::mir_core_stage_call_arg(ctx, staged_arg_locals, arg_idx)
+    }
+    arg_idx
+}

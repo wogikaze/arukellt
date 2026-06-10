@@ -1,0 +1,72 @@
+// Arukellt Selfhost - Component string export shape predicates
+
+use component::export_function_view
+use component::naming
+use mir::value_types
+
+fn comp_function_is_string_to_i32_export(f: MirFunction) -> bool {
+	comp_function_is_string_to_named_i32_export(f, String_from("i32"))
+}
+
+fn comp_function_is_string_to_named_i32_export(f: MirFunction, return_name: String) -> bool {
+	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+		return false
+	}
+	if export_function_view::export_function_param_count(f) != 1 {
+		return false
+	}
+	if !eq(export_function_view::export_function_return_type_name(f), return_name) {
+		return false
+	}
+	eq(export_function_view::export_function_param_type_name(f, 0), String_from("String"))
+}
+
+fn comp_function_is_string_to_bool_export(f: MirFunction) -> bool {
+	comp_function_is_string_to_named_i32_export(f, String_from("bool"))
+}
+
+fn comp_function_is_string_to_char_export(f: MirFunction) -> bool {
+	comp_function_is_string_to_named_i32_export(f, String_from("char"))
+}
+
+fn comp_function_is_string_to_f64_export(f: MirFunction) -> bool {
+	comp_function_is_string_to_named_i32_export(f, String_from("f64"))
+}
+
+fn comp_function_is_string_to_i64_export(f: MirFunction) -> bool {
+	comp_function_is_string_to_named_i32_export(f, String_from("i64"))
+}
+
+fn comp_function_is_string_to_u64_export(f: MirFunction) -> bool {
+	comp_function_is_string_to_named_i32_export(f, String_from("u64"))
+}
+
+fn comp_function_is_string_to_f32_export(f: MirFunction) -> bool {
+	comp_function_is_string_to_named_i32_export(f, String_from("f32"))
+}
+
+fn comp_function_is_string_unary_export(f: MirFunction) -> bool {
+	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+		return false
+	}
+	if export_function_view::export_function_param_count(f) != 1 {
+		return false
+	}
+	if !eq(export_function_view::export_function_return_type_name(f), String_from("String")) {
+		return false
+	}
+	eq(export_function_view::export_function_param_type_name(f, 0), String_from("String"))
+}
+
+fn comp_function_is_i32_to_string_export(f: MirFunction) -> bool {
+	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+		return false
+	}
+	if export_function_view::export_function_param_count(f) != 1 {
+		return false
+	}
+	if !eq(export_function_view::export_function_return_type_name(f), String_from("String")) {
+		return false
+	}
+	export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32()
+}

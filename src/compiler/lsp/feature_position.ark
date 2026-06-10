@@ -1,0 +1,20 @@
+// Arukellt LSP - request position field extraction.
+
+use lsp::json_parse_core
+
+fn extract_position_field(body: String, key: String) -> i32 {
+    let p = json_parse_core::find_key_pos(clone(body), String_from("position"), 0)
+    if p < 0 {
+        return 0
+    }
+    let q = json_parse_core::find_key_pos(clone(body), key, p)
+    if q < 0 {
+        return 0
+    }
+    let r = json_parse_core::json_skip_ws(clone(body), q)
+    let n = len(body)
+    if r >= n || char_at(body, r) != 58 {
+        return 0
+    }
+    json_parse_core::json_parse_int_at(clone(body), r + 1)
+}

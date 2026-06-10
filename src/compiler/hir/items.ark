@@ -1,0 +1,62 @@
+// Arukellt HIR - item and module data contracts.
+
+use hir::item_functions
+use hir::item_module
+use hir::item_trait_record
+use hir::item_type_param_record
+
+fn HirModule_new() -> HirModule {
+    item_module::HirModule_new()
+}
+
+fn HirFunction_new(name: String, return_type: HirType, body: HirNode, is_pub: bool) -> HirFunction {
+    item_functions::HirFunction_new(name, return_type, body, is_pub)
+}
+
+fn HirFunction_push_type_param(func: HirFunction, type_param: HirTypeParam) {
+    item_functions::HirFunction_push_type_param(func, type_param)
+}
+
+fn HirFunction_type_param_at(func: HirFunction, index: i32) -> HirTypeParam {
+    item_functions::HirFunction_type_param_at(func, index)
+}
+
+fn HirTraitBound_new(trait_ty: HirType) -> HirTraitBound {
+    item_type_param_record::HirTraitBound_new(trait_ty)
+}
+
+fn HirTraitBound_trait_type(bound: HirTraitBound) -> HirType {
+    item_type_param_record::hir_trait_bound_trait_type(bound)
+}
+
+fn HirTypeParam_new(name: String) -> HirTypeParam {
+    item_type_param_record::HirTypeParam_new(name)
+}
+
+fn HirTypeParam_name(param: HirTypeParam) -> String {
+    item_type_param_record::hir_type_param_name(param)
+}
+
+fn HirTypeParam_push_bound(param: HirTypeParam, bound: HirTraitBound) {
+    item_type_param_record::hir_type_param_push_bound(param, bound)
+}
+
+fn HirTypeParam_bound_count(param: HirTypeParam) -> i32 {
+    item_type_param_record::hir_type_param_bound_count(param)
+}
+
+fn HirTypeParam_bound_at(param: HirTypeParam, index: i32) -> HirTraitBound {
+    item_type_param_record::hir_type_param_bound_at(param, index)
+}
+
+fn HirImplBlock_new(trait_ty: HirType, self_ty: HirType) -> HirImplBlock {
+    item_trait_record::HirImplBlock_new(trait_ty, self_ty)
+}
+
+fn HirImplBlock_trait_type(block: HirImplBlock) -> HirType {
+    item_trait_record::hir_impl_block_trait_type(block)
+}
+
+fn HirImplBlock_self_type(block: HirImplBlock) -> HirType {
+    item_trait_record::hir_impl_block_self_type(block)
+}

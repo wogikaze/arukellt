@@ -1,0 +1,22 @@
+// Arukellt Resolver - scoped control-flow walkers.
+
+use resolver::control_block
+use resolver::control_comprehension
+use resolver::control_for
+use resolver::control_match
+
+fn resolve_block(ctx: ResolveCtx, node: AstNode) {
+    control_block::resolve_block(ctx, node)
+}
+
+fn resolve_for(ctx: ResolveCtx, node: AstNode) {
+    control_for::resolve_for(ctx, node)
+}
+
+fn resolve_comprehension(ctx: ResolveCtx, node: AstNode) {
+    control_comprehension::resolve_comprehension(ctx, node)
+}
+
+fn resolve_match(ctx: ResolveCtx, node: AstNode) {
+    control_match::resolve_match(ctx, node)
+}

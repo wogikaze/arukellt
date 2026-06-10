@@ -1,0 +1,32 @@
+// Arukellt Typechecker - inference environment mono instance helpers.
+
+use typechecker::contract_env_record
+use typechecker::contract_mono
+
+fn type_env_mono_instances(env: TypeEnv) -> Vec<MonoInstance> {
+    env.mono_instances
+}
+
+fn type_env_mono_instance_count(env: TypeEnv) -> i32 {
+    len(env.mono_instances)
+}
+
+fn type_env_mono_instance_at(env: TypeEnv, index: i32) -> MonoInstance {
+    get_unchecked(env.mono_instances, index)
+}
+
+fn type_env_push_mono_instance(env: TypeEnv, instance: MonoInstance) {
+    push(env.mono_instances, instance)
+}
+
+fn type_env_mono_call_site_count(env: TypeEnv) -> i32 {
+    len(env.mono_call_sites)
+}
+
+fn type_env_mono_call_site_at(env: TypeEnv, index: i32) -> MonoCallSite {
+    get_unchecked(env.mono_call_sites, index)
+}
+
+fn type_env_push_mono_call_site(env: TypeEnv, site: MonoCallSite) {
+    push(env.mono_call_sites, site)
+}

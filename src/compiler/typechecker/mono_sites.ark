@@ -1,0 +1,25 @@
+// Arukellt Typechecker - monomorphization call-site registry.
+
+use typechecker::contract_mono
+use typechecker::contract_env_mono_record
+use typechecker::contract_type_constructors
+
+fn simple_type(tag: i32) -> TypeInfo {
+    contract_type_constructors::TypeInfo_simple(tag)
+}
+
+fn record_mono_call_site(env: TypeEnv, span_start: i32, fn_name: String, mangled_name: String) {
+    let count = contract_env_mono_record::type_env_mono_call_site_count(env)
+    let mut i = 0
+    while i < count {
+        let site = contract_env_mono_record::type_env_mono_call_site_at(env, i)
+        if contract_mono::MonoCallSite_span_start(site) == span_start && eq(contract_mono::MonoCallSite_fn_name(site), clone(fn_name)) {
+            return
+        }
+        i = i + 1
+    }
+    contract_env_mono_record::type_env_push_mono_call_site(env, contract_mono::MonoCallSite_new(span_start, clone(fn_name), clone(mangled_name)))
+    let marker_args = Vec_new_TypeInfo()
+    push(marker_args, simple_type(0 - span_start - 1000))
+    contract_env_mono_record::type_env_push_mono_instance(env, contract_mono::MonoInstance_new(clone(fn_name), mangled_name, marker_args))
+}

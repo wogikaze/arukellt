@@ -1,0 +1,51 @@
+// Arukellt Typechecker - public module typecheck pipeline.
+
+use typechecker::body
+use typechecker::ast_decl_predicates
+use typechecker::ast_access
+use typechecker::contract_result_state
+use typechecker::context
+use typechecker::module
+use typechecker::module_env_merge
+use typechecker::resolver_errors
+
+fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeCheckResult {
+    let result = contract_result_state::TypeCheckResult_new()
+    let env = context::TypeEnv_new()
+    contract_result_state::typecheck_result_set_errors(result, resolver_errors::typecheck_resolve_errors(resolve_ctx))
+    let decl_count = len(decls)
+    module::register_trait_impl_decls(env, decls)
+    let fn_sigs = module::collect_fn_sigs(decls)
+    let enum_defs = module::collect_enum_defs(decls)
+    let mut i = 0
+    while i < decl_count {
+        let node = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_fn_decl(node) {
+            module::append_typed_fn(result, node)
+            let fn_env = module_env_merge::type_env_for_fn_check(env)
+            body::check_fn_body(fn_env, fn_sigs, enum_defs, node)
+            module_env_merge::merge_type_env(env, fn_env)
+        }
+        if ast_decl_predicates::node_is_impl_decl(node) {
+            check_impl_methods(env, fn_sigs, enum_defs, node)
+        }
+        i = i + 1
+    }
+    module::append_env_errors(result, env)
+    contract_result_state::typecheck_result_set_mono_instances(result, context::TypeEnv_mono_instances(env))
+    result
+}
+
+fn check_impl_methods(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+    let impl_child_count = ast_access::node_child_count(node)
+    let mut ic = 0
+    while ic < impl_child_count {
+        let meth = ast_access::node_child_at(node, ic)
+        if ast_decl_predicates::node_is_fn_decl(meth) {
+            let meth_env = module_env_merge::type_env_for_fn_check(env)
+            body::check_fn_body(meth_env, fn_sigs, enum_defs, meth)
+            module_env_merge::merge_type_env(env, meth_env)
+        }
+        ic = ic + 1
+    }
+}

@@ -1,0 +1,31 @@
+// Arukellt Parser - expression AST node display names
+
+use parser::name_expr_access
+use parser::name_expr_aggregate
+use parser::name_expr_control
+use parser::name_expr_literal
+use parser::name_expr_operator
+
+fn expr_node_kind_name(kind: i32) -> String {
+    let lit_name = name_expr_literal::expr_literal_node_kind_name(kind)
+    if len(lit_name) > 0 {
+        return lit_name
+    }
+    let op_name = name_expr_operator::expr_operator_node_kind_name(kind)
+    if len(op_name) > 0 {
+        return op_name
+    }
+    let access_name = name_expr_access::expr_access_node_kind_name(kind)
+    if len(access_name) > 0 {
+        return access_name
+    }
+    let aggregate_name = name_expr_aggregate::expr_aggregate_node_kind_name(kind)
+    if len(aggregate_name) > 0 {
+        return aggregate_name
+    }
+    let control_name = name_expr_control::expr_control_node_kind_name(kind)
+    if len(control_name) > 0 {
+        return control_name
+    }
+    String_new()
+}

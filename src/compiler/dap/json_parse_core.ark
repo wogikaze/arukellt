@@ -1,0 +1,73 @@
+// Arukellt Selfhost - DAP JSON low-level parsing helpers
+use dap::json_parse_int
+use dap::json_parse_key
+use dap::json_parse_string_escape
+use dap::json_parse_ws
+
+pub struct DapStrResult {
+	value: String,
+	next: i32,
+	ok: bool,
+}
+
+fn DapStrResult_new(value: String, next: i32, ok: bool) -> DapStrResult {
+	DapStrResult { value: value, next: next, ok: ok }
+}
+
+pub fn dap_skip_ws(s: String, pos: i32) -> i32 {
+	json_parse_ws::dap_skip_ws(s, pos)
+}
+
+pub fn dap_find_key(json: String, key: String, from: i32) -> i32 {
+	json_parse_key::dap_find_key(json, key, from)
+}
+
+pub fn dap_parse_string_at(s: String, pos: i32) -> DapStrResult {
+	let n = len(s)
+	if pos >= n || char_at(s, pos) != 34 {
+		return DapStrResult_new(String_new(), pos, false)
+	}
+	let mut p = pos + 1
+	let mut out = String_new()
+	let mut span_start = p
+	while p < n {
+		let c = char_at(s, p)
+		if c == 34 {
+			if span_start < p {
+				out = concat(out, substring(clone(s), span_start, p))
+			}
+			return DapStrResult_new(out, p + 1, true)
+		}
+		if c == 92 {
+			if span_start < p {
+				out = concat(out, substring(clone(s), span_start, p))
+			}
+			p = p + 1
+			if p >= n {
+				return DapStrResult_new(out, p, false)
+			}
+			out = concat(out, json_parse_string_escape::dap_decode_string_escape(clone(s), p))
+			p = p + 1
+			span_start = p
+		} else {
+			p = p + 1
+		}
+	}
+	DapStrResult_new(out, p, false)
+}
+
+pub fn dap_str_result_ok(result: DapStrResult) -> bool {
+	result.ok
+}
+
+pub fn dap_str_result_value(result: DapStrResult) -> String {
+	result.value
+}
+
+pub fn dap_str_result_next(result: DapStrResult) -> i32 {
+	result.next
+}
+
+pub fn dap_parse_int_at(s: String, pos: i32) -> i32 {
+	json_parse_int::dap_parse_int_at(s, pos)
+}

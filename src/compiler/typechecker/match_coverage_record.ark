@@ -1,0 +1,25 @@
+// Arukellt Typechecker - match pattern coverage data record.
+
+struct MatchCoverage {
+    has_wildcard: bool,
+    has_bool_true: bool,
+    has_bool_false: bool,
+    has_option_some: bool,
+    has_option_none: bool,
+    has_result_ok: bool,
+    has_result_err: bool,
+    covered_variants: Vec<String>,
+}
+
+fn MatchCoverage_new() -> MatchCoverage {
+    MatchCoverage {
+        has_wildcard: false,
+        has_bool_true: false,
+        has_bool_false: false,
+        has_option_some: false,
+        has_option_none: false,
+        has_result_ok: false,
+        has_result_err: false,
+        covered_variants: Vec_new_String(),
+    }
+}

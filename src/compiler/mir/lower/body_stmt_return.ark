@@ -1,0 +1,16 @@
+use mir::lower::ast_node
+// Arukellt MIR lowering body - return statement lowering.
+
+use mir::lower::control
+
+fn lower_return_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count >= 1 {
+        let expr = ast_node::node_child_at(node, 0)
+        let val_idx = lower_expr(ctx, expr)
+        control::mir_emit_return_value(ctx, val_idx)
+    } else {
+        control::mir_emit_return_void(ctx)
+    }
+    0 - 1
+}

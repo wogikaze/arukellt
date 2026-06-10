@@ -1,0 +1,36 @@
+// Arukellt Selfhost - CoreHIR MIR signature projection for methods.
+
+use corehir::method_info
+use corehir::mir_signature_source_record
+
+fn mir_signature_method_info_index(source: CoreHirMirSignatureSource, impl_decl_index: i32, method_index: i32) -> i32 {
+    method_info::method_info_index_for_method(signature_source_record::mir_signature_source_method_infos(source), impl_decl_index, method_index)
+}
+
+fn mir_signature_method_count_for_impl(source: CoreHirMirSignatureSource, impl_decl_index: i32) -> i32 {
+    method_info::method_info_count_for_impl(signature_source_record::mir_signature_source_method_infos(source), impl_decl_index)
+}
+
+fn mir_signature_method_mangled_name_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: String) -> String {
+    method_info::method_info_mangled_name_at(signature_source_record::mir_signature_source_method_infos(source), info_index, fallback)
+}
+
+fn mir_signature_method_body_index_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: i32) -> i32 {
+    method_info::method_info_body_index_at(signature_source_record::mir_signature_source_method_infos(source), info_index, fallback)
+}
+
+fn mir_signature_method_param_count_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: i32) -> i32 {
+    method_info::method_info_param_count_at(signature_source_record::mir_signature_source_method_infos(source), info_index, fallback)
+}
+
+fn mir_signature_method_param_at(source: CoreHirMirSignatureSource, info_index: i32, param_index: i32) -> CoreHirParam {
+    method_info::method_info_param_at(signature_source_record::mir_signature_source_method_infos(source), info_index, param_index)
+}
+
+fn mir_signature_method_return_vt_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: i32) -> i32 {
+    method_info::method_info_return_vt_at(signature_source_record::mir_signature_source_method_infos(source), info_index, fallback)
+}
+
+fn mir_signature_method_return_type_name_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: String) -> String {
+    method_info::method_info_return_type_name_at(signature_source_record::mir_signature_source_method_infos(source), info_index, fallback)
+}

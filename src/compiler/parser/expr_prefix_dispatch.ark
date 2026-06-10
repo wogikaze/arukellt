@@ -1,0 +1,38 @@
+use parser::kinds
+use parser::core_ast_factory
+// Arukellt Parser - prefix expression dispatch.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::expr_prefix_atoms
+use parser::expr_prefix_closures
+use parser::expr_prefix_controls
+use parser::expr_prefix_literals
+use parser::expr_prefix_unary
+use parser::pratt
+use parser::token_state
+
+pub fn parse_prefix(p: Parser) -> AstNode {
+    core_api_cursor::skip_newlines(p)
+    let t: Token = core_api_cursor::cur(p)
+    let kind = token_state::Token_kind(t)
+    let ubp = pratt::prefix_bp(kind)
+    if ubp > 0 {
+        return expr_prefix_unary::parse_unary_prefix(p, t, ubp)
+    }
+    if expr_prefix_closures::is_closure_prefix(kind) {
+        return expr_prefix_closures::parse_closure_prefix(p, t)
+    }
+    if expr_prefix_literals::is_literal_prefix(kind) {
+        return expr_prefix_literals::parse_literal_prefix(p, t)
+    }
+    if expr_prefix_atoms::is_atom_prefix(kind) {
+        return expr_prefix_atoms::parse_atom_prefix(p, t)
+    }
+    if expr_prefix_controls::is_control_prefix(kind) {
+        return expr_prefix_controls::parse_control_prefix(p)
+    }
+    core_api_expect::error(p, concat(String_from("unexpected token in expression: "), to_string(kind)))
+    p.pos = p.pos + 1
+    core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), String_from("_error"), core_api_expect::tok_span(t))
+}

@@ -1,0 +1,17 @@
+use parser::core_ast_span_fields
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - struct literal base spread field.
+
+use parser::core_api_cursor
+
+pub fn parse_struct_lit_base_spread(p: Parser, node: AstNode) {
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    let base_expr = parse_expr(p)
+    let base_node = core_ast_factory::AstNode_new(kinds::NK_RANGE(), core_ast_span_fields::AstNode_span(base_expr))
+    core_ast_children::AstNode_push_child(base_node, base_expr)
+    core_ast_children::AstNode_push_child(node, base_node)
+    core_api_cursor::skip_newlines(p)
+}

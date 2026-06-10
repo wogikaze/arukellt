@@ -1,0 +1,26 @@
+// Arukellt Selfhost - MIR dominance info DTO.
+
+struct MirDomInfo {
+    idom: Vec<i32>,
+    frontier_offsets: Vec<i32>,
+    frontier_lengths: Vec<i32>,
+    frontier_blocks: Vec<i32>,
+}
+
+fn MirDomInfo_new() -> MirDomInfo {
+    MirDomInfo { idom: Vec_new_i32(), frontier_offsets: Vec_new_i32(), frontier_lengths: Vec_new_i32(), frontier_blocks: Vec_new_i32() }
+}
+
+fn MirDomInfo_idom_count(info: MirDomInfo) -> i32 {
+    len(info.idom)
+}
+
+fn MirDomInfo_push_block(info: MirDomInfo, idom: i32, frontier_count: i32) {
+    push(info.idom, idom)
+    push(info.frontier_offsets, len(info.frontier_blocks))
+    push(info.frontier_lengths, frontier_count)
+}
+
+fn MirDomInfo_push_frontier_block(info: MirDomInfo, block: i32) {
+    push(info.frontier_blocks, block)
+}

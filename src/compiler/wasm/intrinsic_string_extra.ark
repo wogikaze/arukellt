@@ -1,0 +1,26 @@
+// Arukellt Selfhost - extended string intrinsic handler facade
+
+use wasm::intrinsic_string_affix
+use wasm::intrinsic_string_contains
+use wasm::intrinsic_string_reverse
+use wasm::intrinsic_string_trim_full
+
+fn emit_contains_String(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_contains::emit_contains_String(w, inst, ctx)
+}
+
+fn emit_reverse_String(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_reverse::emit_reverse_String(w, inst, ctx)
+}
+
+fn emit_starts_with(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_affix::emit_starts_with(w, inst, ctx)
+}
+
+fn emit_ends_with(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_affix::emit_ends_with(w, inst, ctx)
+}
+
+fn emit_trim(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_trim_full::emit_trim(w, inst, ctx)
+}

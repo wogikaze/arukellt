@@ -42,23 +42,13 @@ def main() -> int:
         print("error: wasmtime not found in PATH", file=sys.stderr)
         return 1
 
-    s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
-    if not s2.is_file():
-        s2.parent.mkdir(parents=True, exist_ok=True)
-        s2_rel = str(s2.relative_to(root))
-        src_rel = "src/compiler/main.ark"
-        r = subprocess.run(
-            [wasmtime, "run", "--dir", str(root), str(pinned), "--",
-             "compile", src_rel, "--target", "wasm32-wasi-p2", "-o", s2_rel],
-            cwd=str(root),
-            capture_output=True,
-            text=True,
-        )
-        if r.returncode != 0:
-            print("warning: failed to build s2 wasm from pinned", file=sys.stderr)
-            print(r.stderr[:1000], file=sys.stderr)
-            print("SKIP: pinned Stage 0 wasm does not support local module `use` (pre-existing)", file=sys.stderr)
-            return 0
+    sys.path.insert(0, str(root))
+    from scripts.selfhost.checks import resolve_ide_gate_compiler_wasm
+
+    compiler = resolve_ide_gate_compiler_wasm(root)
+    if compiler is None:
+        print("error: no selfhost compiler wasm available for analysis gate", file=sys.stderr)
+        return 1
 
     fixtures = sorted(fixtures_dir.glob("analysis_*.ark"))
     if len(fixtures) < 2:
@@ -76,7 +66,7 @@ def main() -> int:
             continue
         rel = str(fixture.relative_to(root))
         r = subprocess.run(
-            [wasmtime, "run", "--dir", str(root), str(s2), "--",
+            [wasmtime, "run", "--dir", str(root), str(compiler), "--",
              "ide-analyze", rel],
             cwd=str(root),
             capture_output=True,

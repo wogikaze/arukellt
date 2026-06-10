@@ -1,0 +1,26 @@
+// Arukellt Selfhost - parse diagnostic result builder.
+
+use compiler::phases
+use compiler::session_parse_tokens
+use diagnostics::mod
+use diagnostics::record
+use driver::result_record
+
+pub fn parse_errors_result(source: String, source_dir: String, errors: Vec<Diagnostic>) -> CompileResult {
+    let parse_error_count = len(errors)
+    let mut result = result_record::CompileResult_err(phases::PHASE_PARSE(), concat(to_string(parse_error_count), String_from(" parse error(s)")))
+    let mut k = 0
+    while k < parse_error_count {
+        let pe = get_unchecked(errors, k)
+        let pe_start = session_parse_tokens::session_parse_error_start(pe)
+        let pe_end = session_parse_tokens::session_parse_error_end(pe)
+        let pe_msg = session_parse_tokens::session_parse_error_message(pe)
+        result_record::compile_result_push_error_message(result, pe_msg)
+        let span = mod::span_from_offsets(clone(source), clone(source_dir), pe_start, pe_end)
+        let d = mod::Diagnostic_new(session_parse_tokens::session_parse_error_code(pe), session_parse_tokens::session_parse_error_severity(pe), span, pe_msg)
+        result_record::compile_result_push_diagnostic(result, d)
+        k = k + 1
+    }
+    result_record::compile_result_set_error_count(result, parse_error_count)
+    result
+}

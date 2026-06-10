@@ -1,0 +1,24 @@
+use mir::function_locals_view
+use mir::local_access
+use mir::local_mutation
+// Arukellt Selfhost - MIR SSA local assignment helpers.
+
+
+fn mir_assign_local_ssa(f: MirFunction, local_id: i32, ssa_name: String, ssa_version: i32) {
+    if local_id < 0 || local_id >= function_locals_view::MirFunction_local_count(f) {
+        return
+    }
+    let local = function_locals_view::MirFunction_local_at(f, local_id)
+    local_mutation::MirLocal_set_ssa(local, ssa_name, ssa_version)
+}
+
+fn mir_assign_simple_join_phi_ssa(f: MirFunction, dest_local: i32, pred0_local: i32, pred1_local: i32) {
+    if dest_local < 0 || dest_local >= function_locals_view::MirFunction_local_count(f) {
+        return
+    }
+    let dest = function_locals_view::MirFunction_local_at(f, dest_local)
+    let ssa_name = local_access::MirLocal_name(dest)
+    mir_assign_local_ssa(f, pred0_local, clone(ssa_name), 1)
+    mir_assign_local_ssa(f, pred1_local, clone(ssa_name), 2)
+    mir_assign_local_ssa(f, dest_local, ssa_name, 3)
+}

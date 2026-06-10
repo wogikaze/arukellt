@@ -1,0 +1,20 @@
+// Arukellt HIR - function parameter item records.
+
+use hir::type_contracts_record
+
+struct HirParam {
+    name: String,
+    ty: HirType,
+}
+
+fn HirParam_new(name: String, ty: HirType) -> HirParam {
+    HirParam { name: name, ty: ty }
+}
+
+fn hir_param_name(param: HirParam) -> String {
+    clone(param.name)
+}
+
+fn hir_param_type(param: HirParam) -> HirType {
+    param.ty
+}

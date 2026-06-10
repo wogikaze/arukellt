@@ -1,0 +1,19 @@
+// Arukellt Selfhost - Wasm emitter context vector local view.
+
+use wasm::ctx_record
+
+fn SelfEmitCtx_vec_local_count(ctx: SelfEmitCtx) -> i32 {
+    len(ctx.vec_locals)
+}
+
+fn SelfEmitCtx_vec_local_at(ctx: SelfEmitCtx, idx: i32) -> i32 {
+    get_unchecked(ctx.vec_locals, idx)
+}
+
+fn SelfEmitCtx_push_vec_local(ctx: SelfEmitCtx, local_idx: i32) {
+    push(ctx.vec_locals, local_idx)
+}
+
+fn SelfEmitCtx_reset_vec_locals(ctx: SelfEmitCtx) {
+    ctx.vec_locals = Vec_new_i32()
+}

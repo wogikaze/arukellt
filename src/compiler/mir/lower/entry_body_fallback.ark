@@ -1,0 +1,9 @@
+// Arukellt Selfhost - MIR entry body legacy fallback lowering.
+
+use mir::lower::entry_fallback_body
+use mir::lower::legacy_body_lower
+
+fn mir_lower_entry_body_fallback_value(ctx: LowerCtx, fallback: MirLowerEntryFallbackBody) -> i32 {
+    let legacy_body = entry_fallback_body::mir_entry_fallback_body_legacy(fallback)
+    legacy_body_lower::mir_lower_legacy_body_value(ctx, legacy_body)
+}

@@ -1,0 +1,27 @@
+// Arukellt Parser - expression postfix suffixes
+
+use parser::expr_suffix_call
+use parser::expr_suffix_dot
+use parser::expr_suffix_index
+use parser::expr_suffix_path
+use parser::expr_suffix_try
+
+pub fn parse_dot_suffix(p: Parser, lhs: AstNode) -> AstNode {
+    expr_suffix_dot::parse_dot_suffix(p, lhs)
+}
+
+pub fn parse_index_suffix(p: Parser, lhs: AstNode) -> AstNode {
+    expr_suffix_index::parse_index_suffix(p, lhs)
+}
+
+pub fn parse_try_suffix(p: Parser, lhs: AstNode) -> AstNode {
+    expr_suffix_try::parse_try_suffix(p, lhs)
+}
+
+pub fn parse_call_suffix(p: Parser, lhs: AstNode) -> AstNode {
+    expr_suffix_call::parse_call_suffix(p, lhs)
+}
+
+pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
+    expr_suffix_path::parse_path_suffix(p, lhs)
+}

@@ -1,0 +1,28 @@
+use parser::kinds
+// Arukellt Selfhost - parser AST expression kind adapter for CoreHIR frontend.
+
+
+fn corehir_kind_is_expr_int_lit(kind: i32) -> bool { kind == kinds::NK_INT_LIT() }
+fn corehir_kind_is_expr_float_lit(kind: i32) -> bool { kind == kinds::NK_FLOAT_LIT() }
+fn corehir_kind_is_expr_string_lit(kind: i32) -> bool { kind == kinds::NK_STRING_LIT() }
+fn corehir_kind_is_expr_bool_lit(kind: i32) -> bool { kind == kinds::NK_BOOL_LIT() }
+fn corehir_kind_is_expr_char_lit(kind: i32) -> bool { kind == kinds::NK_CHAR_LIT() }
+fn corehir_kind_is_expr_ident(kind: i32) -> bool { kind == kinds::NK_IDENT() }
+fn corehir_kind_is_expr_path(kind: i32) -> bool { kind == kinds::NK_PATH() }
+fn corehir_kind_is_expr_binary(kind: i32) -> bool { kind == kinds::NK_BINARY() }
+fn corehir_kind_is_expr_unary(kind: i32) -> bool { kind == kinds::NK_UNARY() }
+fn corehir_kind_is_expr_call(kind: i32) -> bool { kind == kinds::NK_CALL() }
+fn corehir_kind_is_expr_method_call(kind: i32) -> bool { kind == kinds::NK_METHOD_CALL() }
+fn corehir_kind_is_expr_try(kind: i32) -> bool { kind == kinds::NK_TRY() }
+fn corehir_kind_is_expr_field_access(kind: i32) -> bool { kind == kinds::NK_FIELD_ACCESS() }
+fn corehir_kind_is_expr_index(kind: i32) -> bool { kind == kinds::NK_INDEX() }
+fn corehir_kind_is_expr_array_lit(kind: i32) -> bool { kind == kinds::NK_ARRAY_LIT() }
+fn corehir_kind_is_expr_tuple(kind: i32) -> bool { kind == kinds::NK_TUPLE() }
+fn corehir_kind_is_expr_struct_lit(kind: i32) -> bool { kind == kinds::NK_STRUCT_LIT() }
+fn corehir_kind_is_expr_comprehension(kind: i32) -> bool { kind == kinds::NK_COMPREHENSION() }
+fn corehir_kind_is_expr_if(kind: i32) -> bool { kind == kinds::NK_IF_EXPR() }
+fn corehir_kind_is_expr_match(kind: i32) -> bool { kind == kinds::NK_MATCH_EXPR() }
+fn corehir_kind_is_expr_assign(kind: i32) -> bool { kind == kinds::NK_ASSIGN() }
+fn corehir_kind_is_expr_closure(kind: i32) -> bool { kind == kinds::NK_CLOSURE() }
+fn corehir_kind_is_expr_block(kind: i32) -> bool { kind == kinds::NK_BLOCK() }
+fn corehir_kind_is_expr_range(kind: i32) -> bool { kind == kinds::NK_RANGE() }

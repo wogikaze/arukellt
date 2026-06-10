@@ -1,0 +1,25 @@
+// Arukellt MIR lowering context - struct field lookup facade.
+
+use mir::lower::ctx_struct_lookup_index
+use mir::lower::ctx_struct_lookup_meta
+use mir::lower::ctx_struct_lookup_type
+
+fn ctx_field_index(ctx: LowerCtx, struct_name: String, field_name: String) -> i32 {
+    ctx_struct_lookup_index::ctx_field_index(ctx, struct_name, field_name)
+}
+
+fn ctx_field_index_any(ctx: LowerCtx, field_name: String) -> i32 {
+    ctx_struct_lookup_index::ctx_field_index_any(ctx, field_name)
+}
+
+fn ctx_struct_field_count(ctx: LowerCtx, struct_name: String) -> i32 {
+    ctx_struct_lookup_meta::ctx_struct_field_count(ctx, struct_name)
+}
+
+fn ctx_struct_field_name(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {
+    ctx_struct_lookup_meta::ctx_struct_field_name(ctx, struct_name, field_idx)
+}
+
+fn ctx_get_field_type(ctx: LowerCtx, struct_name: String, field_name: String) -> String {
+    ctx_struct_lookup_type::ctx_get_field_type(ctx, struct_name, field_name)
+}

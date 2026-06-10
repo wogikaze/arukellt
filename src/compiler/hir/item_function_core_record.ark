@@ -1,0 +1,59 @@
+// Arukellt HIR - function item records.
+
+use hir::item_param_record
+use hir::item_type_param_record
+use hir::node_record
+use hir::type_contracts_record
+
+struct HirFunction {
+    name: String,
+    params: Vec<HirParam>,
+    type_params: Vec<HirTypeParam>,
+    return_type: HirType,
+    body: HirNode,
+    is_pub: bool,
+}
+
+fn HirFunction_new(name: String, return_type: HirType, body: HirNode, is_pub: bool) -> HirFunction {
+    HirFunction { name: name, params: Vec_new_HirParam(), type_params: Vec_new_HirTypeParam(), return_type: return_type, body: body, is_pub: is_pub }
+}
+
+fn hir_function_name(func: HirFunction) -> String {
+    clone(func.name)
+}
+
+fn hir_function_push_param(func: HirFunction, param: HirParam) {
+    push(func.params, param)
+}
+
+fn hir_function_param_count(func: HirFunction) -> i32 {
+    len(func.params)
+}
+
+fn hir_function_param_at(func: HirFunction, index: i32) -> HirParam {
+    get_unchecked(func.params, index)
+}
+
+fn hir_function_push_type_param(func: HirFunction, type_param: HirTypeParam) {
+    push(func.type_params, type_param)
+}
+
+fn hir_function_type_param_count(func: HirFunction) -> i32 {
+    len(func.type_params)
+}
+
+fn hir_function_type_param_at(func: HirFunction, index: i32) -> HirTypeParam {
+    get_unchecked(func.type_params, index)
+}
+
+fn hir_function_return_type(func: HirFunction) -> HirType {
+    func.return_type
+}
+
+fn hir_function_body(func: HirFunction) -> HirNode {
+    func.body
+}
+
+fn hir_function_is_pub(func: HirFunction) -> bool {
+    func.is_pub
+}

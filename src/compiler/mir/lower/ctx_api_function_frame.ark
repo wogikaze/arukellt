@@ -1,0 +1,9 @@
+// Arukellt Selfhost - MIR lowering current function API.
+
+use mir::lower::ctx_locals_fn
+
+fn ctx_push_func_param(ctx: LowerCtx, ml: MirLocal) { ctx_locals_fn::ctx_push_func_param(ctx, ml) }
+fn ctx_set_current_return_type(ctx: LowerCtx, vt: i32) { ctx_locals_fn::ctx_set_current_return_type(ctx, vt) }
+fn ctx_set_current_return_type_name(ctx: LowerCtx, type_name: String) { ctx_locals_fn::ctx_set_current_return_type_name(ctx, type_name) }
+fn ctx_current_return_type(ctx: LowerCtx) -> i32 { ctx_locals_fn::ctx_current_return_type(ctx) }
+fn ctx_apply_fn_return_type_for_rt_tag(ctx: LowerCtx, rt_tag: i32) { ctx_locals_fn::ctx_apply_fn_return_type_for_rt_tag(ctx, rt_tag) }

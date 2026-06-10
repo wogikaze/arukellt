@@ -1,0 +1,25 @@
+// Arukellt Selfhost - MIR loop scope emission facade.
+
+use mir::lower::loop_scope_begin
+use mir::lower::loop_scope_end
+use mir::lower::loop_scope_types
+
+fn mir_begin_loop_scope(ctx: LowerCtx) -> MirLoopScope {
+    loop_scope_begin::mir_begin_loop_scope(ctx)
+}
+
+fn mir_begin_value_loop_scope(ctx: LowerCtx) -> MirLoopScope {
+    loop_scope_begin::mir_begin_value_loop_scope(ctx)
+}
+
+fn mir_emit_loop_back(ctx: LowerCtx) {
+    loop_scope_end::mir_emit_loop_back(ctx)
+}
+
+fn mir_end_loop_scope(ctx: LowerCtx, scope: MirLoopScope) {
+    loop_scope_end::mir_end_loop_scope(ctx, scope)
+}
+
+fn mir_end_value_loop_scope(ctx: LowerCtx, scope: MirLoopScope) -> i32 {
+    loop_scope_end::mir_end_value_loop_scope(ctx, scope)
+}

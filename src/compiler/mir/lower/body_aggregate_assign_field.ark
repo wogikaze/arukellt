@@ -1,0 +1,23 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_alloc
+use mir::lower_kinds
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - aggregate field assignment target.
+
+use mir::lower::assign
+
+fn lower_field_assign_target(ctx: LowerCtx, target: AstNode, val_idx: i32) {
+    let tc = ast_node::node_child_count(target)
+    if tc < 1 {
+        return
+    }
+    let struct_node = ast_node::node_child_at(target, 0)
+    let mut struct_idx = 0
+    if ast_node::node_kind_is(struct_node, lower_kinds::NK_IDENT()) {
+        struct_idx = ctx_lookup_local(ctx, ast_node::node_text(struct_node))
+    } else {
+        let raw_idx = lower_expr(ctx, struct_node)
+        struct_idx = assign::mir_save_field_base_from_stack(ctx)
+    }
+    assign::mir_emit_field_assign(ctx, ast_node::node_text(target), struct_idx, val_idx)
+}

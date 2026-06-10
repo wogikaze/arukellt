@@ -1,0 +1,29 @@
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_function_frame
+use mir::lower::ctx_api_local_frame
+use mir::lower::ctx_api_module
+use mir::lower::ctx_types
+use mir::function_factory
+// Arukellt Selfhost - top-level function MIR body emission.
+
+use mir::lower::entry_body_result
+use mir::lower::entry_params
+use mir::lower::entry_view
+use mir::lower::ctx_fn_return_type
+use mir::lower::trace
+
+fn mir_emit_top_level_fn_body(ctx: LowerCtx, body_input: MirLowerEntryBodyInput, rt_tag: i32, emit_fn_name: String, param_count: i32, typed_index: i32, mir_tr: i32, entry_view: MirLowerEntryView, fn_info_index: i32) {
+    let mf = function_factory::MirFunction_new(emit_fn_name)
+    let _entry_fn = ctx_api_local_frame::ctx_begin_function_frame(ctx, mf)
+    trace::mir_lower_trace_line(mir_tr, -2, typed_index, 0, 0, 0)
+    entry_params::mir_bind_top_level_params(ctx, entry_view, fn_info_index, param_count)
+    trace::mir_lower_trace_ctx(mir_tr, ctx, 1)
+    ctx_api_function_frame::ctx_apply_fn_return_type_for_rt_tag(ctx, rt_tag)
+    ctx_api_function_frame::ctx_set_current_return_type_name(ctx, ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(emit_fn_name)))
+    trace::mir_lower_trace_ctx(mir_tr, ctx, 2)
+    let _entry = ctx_api_emit::ctx_enter_new_block(ctx)
+    trace::mir_lower_trace_ctx(mir_tr, ctx, 3)
+    entry_body_result::mir_emit_entry_body_result(ctx, body_input)
+    trace::mir_lower_trace_ctx(mir_tr, ctx, 4)
+    ctx_api_module::ctx_push_current_function(ctx)
+}

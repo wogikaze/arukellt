@@ -1,0 +1,158 @@
+use component::constants_wit_values
+// Arukellt Selfhost - shape component wrapper facade
+
+use component::adapter_body
+use component::adapter_memory
+use component::adapters_single_export_sections
+use component::adapters_shape_roundtrip
+use component::component_base
+use component::sections
+use component::export_sections_entries
+use component::export_sections
+use component::type_section_entries
+use component::types_wit_compound
+use component::types_wit_func
+use component::writer_core
+
+fn emit_shape_component(core_wasm: Vec<i32>, export_name: String, kind: i32, result_type: i32, needs_memory: bool) -> Vec<i32> {
+	let out = component_base::comp_new_component_writer()
+	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, shape_adapter_core_module(clone(export_name), kind))
+
+	emit_shape_alias_section(out, clone(export_name), needs_memory)
+	emit_shape_type_sections(out)
+	emit_shape_func_type_section(out, result_type)
+	emit_shape_canon_section(out, needs_memory)
+	emit_shape_export_section(out, clone(export_name))
+
+	writer_core::comp_writer_bytes(out)
+}
+
+fn emit_shape_area_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_shape_component(core_wasm, export_name, SHAPE_ADAPTER_AREA(), constants_wit_values::WIT_VAL_FLOAT64(), false)
+}
+
+fn emit_shape_roundtrip_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_shape_component(core_wasm, export_name, SHAPE_ADAPTER_ROUNDTRIP(), 1, true)
+}
+
+fn SHAPE_ADAPTER_AREA() -> i32 { 1 }
+fn SHAPE_ADAPTER_ROUNDTRIP() -> i32 { 2 }
+
+fn shape_adapter_core_module(export_name: String, kind: i32) -> Vec<i32> {
+	if kind == SHAPE_ADAPTER_ROUNDTRIP() {
+		return adapters_shape_roundtrip::comp_shape_to_shape_adapter_core_module(export_name)
+	}
+	comp_shape_area_adapter_core_module(export_name)
+}
+
+fn comp_shape_area_adapter_core_module(export_name: String) -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+
+	let user_params = Vec_new_i32()
+	push(user_params, 0x7f)
+	let user_results = Vec_new_i32()
+	push(user_results, 0x7c)
+	let abi_params = Vec_new_i32()
+	push(abi_params, 0x7f)
+	push(abi_params, 0x7c)
+	let abi_results = Vec_new_i32()
+	push(abi_results, 0x7c)
+	adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
+
+	adapters_single_export_sections::comp_emit_user_memory_import_section(out, clone(export_name))
+	adapters_single_export_sections::comp_emit_single_adapter_func_section(out)
+	adapters_single_export_sections::comp_emit_func_export_section(out, clone(export_name))
+
+	let code_sec = adapters_single_export_sections::comp_new_single_adapter_code_section()
+	comp_emit_shape_area_wrapper_body(code_sec)
+	adapters_single_export_sections::comp_emit_single_adapter_code_section(out, code_sec)
+
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_emit_shape_area_wrapper_body(code_sec: writer_core::ComponentWriter) {
+	let body = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(body, 0)
+	adapter_memory::comp_emit_store_const_local(body, 65000, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65004)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x39)
+	writer_core::comp_emit_byte(body, 3)
+	writer_core::comp_emit_byte(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x10)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x0b)
+	adapter_body::comp_emit_func_body(code_sec, body)
+}
+
+fn emit_shape_alias_section(out: writer_core::ComponentWriter, export_name: String, needs_memory: bool) {
+	let alias_sec = writer_core::ComponentWriter_new()
+	if needs_memory {
+		writer_core::comp_emit_leb128_u(alias_sec, 2)
+		export_sections_entries::emit_core_memory_alias_entry(alias_sec, 2)
+	} else {
+		writer_core::comp_emit_leb128_u(alias_sec, 1)
+	}
+	export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
+	writer_core::comp_emit_section(out, 6, alias_sec)
+}
+
+fn emit_shape_type_sections(out: writer_core::ComponentWriter) {
+	let names = Vec_new_String()
+	push(names, String_from("circle"))
+	push(names, String_from("square"))
+	let payloads = Vec_new_i32()
+	push(payloads, constants_wit_values::WIT_VAL_FLOAT64())
+	push(payloads, constants_wit_values::WIT_VAL_FLOAT64())
+	type_section_entries::emit_single_type_section(out, types_wit_compound::comp_wit_variant_type(names, payloads))
+	type_section_entries::emit_single_type_export_section(out, String_from("shape"), 0)
+}
+
+fn emit_shape_func_type_section(out: writer_core::ComponentWriter, result_type: i32) {
+	let func_type_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(func_type_sec, 1)
+	let params = Vec_new_i32()
+	push(params, 1)
+	let results = Vec_new_i32()
+	push(results, result_type)
+	writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
+	writer_core::comp_emit_section(out, 7, func_type_sec)
+}
+
+fn emit_shape_canon_section(out: writer_core::ComponentWriter, needs_memory: bool) {
+	let canon_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(canon_sec, 1)
+	if needs_memory {
+		export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 0, 0, 2)
+	} else {
+		export_sections_entries::emit_canon_lift_no_options_entry(canon_sec, 0, 2)
+	}
+	writer_core::comp_emit_section(out, 8, canon_sec)
+}
+
+fn emit_shape_export_section(out: writer_core::ComponentWriter, export_name: String) {
+	let func_export_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(func_export_sec, 1)
+	export_sections::emit_generic_func_export_entry(func_export_sec, shape_export_name(export_name), 0, 2)
+	writer_core::comp_emit_section(out, 11, func_export_sec)
+}
+
+fn shape_export_name(name: String) -> String {
+	let mut out = String_from("")
+	let n = len(name)
+	let mut i = 0
+	while i < n {
+		let ch = char_at(name, i)
+		if ch == 95 {
+			out = concat(out, String_from("-"))
+		} else {
+			out = concat(out, substring(name, i, i + 1))
+		}
+		i = i + 1
+	}
+	out
+}

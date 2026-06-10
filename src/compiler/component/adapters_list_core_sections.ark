@@ -1,0 +1,74 @@
+// Arukellt Selfhost - shared sections for list adapter core modules
+
+use component::sections
+use component::writer_core
+
+fn comp_emit_list_adapter_type_section(out: writer_core::ComponentWriter) {
+	let type_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(type_sec, 3)
+	let realloc_params = Vec_new_i32()
+	push(realloc_params, 0x7f)
+	push(realloc_params, 0x7f)
+	push(realloc_params, 0x7f)
+	push(realloc_params, 0x7f)
+	let i32_result = Vec_new_i32()
+	push(i32_result, 0x7f)
+	sections::comp_emit_core_func_type(type_sec, realloc_params, i32_result)
+	let user_params = Vec_new_i32()
+	push(user_params, 0x7f)
+	sections::comp_emit_core_func_type(type_sec, user_params, i32_result)
+	let abi_params = Vec_new_i32()
+	push(abi_params, 0x7f)
+	push(abi_params, 0x7f)
+	sections::comp_emit_core_func_type(type_sec, abi_params, i32_result)
+	sections::comp_emit_wasm_section(out, 1, type_sec)
+}
+
+fn comp_emit_list_adapter_import_section(out: writer_core::ComponentWriter, export_name: String) {
+	let import_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(import_sec, 2)
+	writer_core::comp_emit_string(import_sec, String_from("user"))
+	writer_core::comp_emit_string(import_sec, String_from("memory"))
+	writer_core::comp_emit_byte(import_sec, 0x02)
+	writer_core::comp_emit_leb128_u(import_sec, 0)
+	writer_core::comp_emit_leb128_u(import_sec, 1)
+	writer_core::comp_emit_string(import_sec, String_from("user"))
+	writer_core::comp_emit_string(import_sec, clone(export_name))
+	writer_core::comp_emit_byte(import_sec, 0x00)
+	writer_core::comp_emit_leb128_u(import_sec, 1)
+	sections::comp_emit_wasm_section(out, 2, import_sec)
+}
+
+fn comp_emit_list_adapter_func_section(out: writer_core::ComponentWriter) {
+	let func_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(func_sec, 2)
+	writer_core::comp_emit_leb128_u(func_sec, 0)
+	writer_core::comp_emit_leb128_u(func_sec, 2)
+	sections::comp_emit_wasm_section(out, 3, func_sec)
+}
+
+fn comp_emit_list_adapter_global_section(out: writer_core::ComponentWriter) {
+	let global_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(global_sec, 1)
+	writer_core::comp_emit_byte(global_sec, 0x7f)
+	writer_core::comp_emit_byte(global_sec, 0x01)
+	writer_core::comp_emit_byte(global_sec, 0x41)
+	writer_core::comp_emit_leb128_u(global_sec, 70000)
+	writer_core::comp_emit_byte(global_sec, 0x0b)
+	sections::comp_emit_wasm_section(out, 6, global_sec)
+}
+
+fn comp_emit_list_adapter_export_section(out: writer_core::ComponentWriter, export_name: String) {
+	let export_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(export_sec, 3)
+	writer_core::comp_emit_string(export_sec, String_from("memory"))
+	writer_core::comp_emit_byte(export_sec, 0x02)
+	writer_core::comp_emit_leb128_u(export_sec, 0)
+	writer_core::comp_emit_string(export_sec, String_from("realloc"))
+	writer_core::comp_emit_byte(export_sec, 0x00)
+	writer_core::comp_emit_leb128_u(export_sec, 1)
+	writer_core::comp_emit_string(export_sec, clone(export_name))
+	writer_core::comp_emit_byte(export_sec, 0x00)
+	writer_core::comp_emit_leb128_u(export_sec, 2)
+	sections::comp_emit_wasm_section(out, 7, export_sec)
+}

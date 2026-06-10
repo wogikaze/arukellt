@@ -1,27 +1,11 @@
-// Arukellt Selfhost — CoreHIR facade.
+// Arukellt Selfhost - CoreHIR shared data contracts.
 //
-// CoreHIR is the compiler-owned boundary between typed frontend output and MIR.
-// The current representation preserves the checked AST and typecheck bundle,
-// while routing all MIR lowering through this module so the driver no longer
-// calls AST-to-MIR lowering directly.
-use mir_ir
-use mir_lower
-use parser
-use typechecker
+// CoreHIR is the compiler-owned boundary for typed facts shared by later
+// pipeline stages. Construction and query helpers live in focused
+// corehir_* modules so callers depend on the specific contract they need.
 
-struct CoreHirProgram {
-    decls: Vec<AstNode>,
-    check_result: TypeCheckResult,
-}
-
-pub fn build_program(decls: Vec<AstNode>, check_result: TypeCheckResult) -> CoreHirProgram {
-    CoreHirProgram { decls: decls, check_result: check_result }
-}
-
-pub fn lower_to_mir(program: CoreHirProgram) -> MirModule {
-    mir_lower::lower_to_mir(program.decls, program.check_result)
-}
-
-pub fn lower_to_mir_no_prune(program: CoreHirProgram) -> MirModule {
-    mir_lower::lower_to_mir_no_prune(program.decls, program.check_result)
-}
+use corehir::decl_info
+use corehir::fn_info
+use corehir::method_info
+use corehir::type_contracts
+use corehir::type_facts

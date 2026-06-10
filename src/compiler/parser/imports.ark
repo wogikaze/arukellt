@@ -1,0 +1,12 @@
+// Arukellt Parser - import/use declaration syntax
+
+use parser::imports_import
+use parser::imports_use
+
+fn parse_use_decl(p: Parser) -> AstNode {
+    imports_use::parse_use_decl(p)
+}
+
+fn parse_import_decl(p: Parser) -> AstNode {
+    imports_import::parse_import_decl(p)
+}

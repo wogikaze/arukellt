@@ -1,0 +1,22 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR method call emission.
+
+use mir::inst_call
+use mir::value_types
+
+fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32) -> i32 {
+    let call_ret_vt = ctx_fn_return_vt(ctx, clone(callee_name))
+    let dest = ctx_fresh_local(ctx, call_ret_vt)
+    let rtn = ctx_fn_return_type_name(ctx, clone(callee_name))
+    ctx_emit(ctx, inst_call::MirInst_call(callee_name, arg_count, dest))
+    if len(rtn) > 0 {
+        ctx_set_local_type(ctx, dest, rtn)
+    }
+    if call_ret_vt == value_types::VT_VOID() {
+        return 0 - 1
+    }
+    dest
+}

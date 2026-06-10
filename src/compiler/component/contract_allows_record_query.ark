@@ -1,0 +1,44 @@
+// Arukellt Selfhost - component record/color/shape allow queries.
+
+use component::contract_allows_record_record
+use component::contract_allows_root_record
+
+fn component_record_allows(allows: ComponentContractAllows) -> ComponentRecordAllows {
+    contract_allows_root_record::ComponentContractAllows_record(allows)
+}
+
+fn ComponentContractAllows_allow_record_point(allows: ComponentContractAllows) -> bool {
+    contract_allows_record_record::ComponentRecordAllows_allow_record_point(component_record_allows(allows))
+}
+
+fn ComponentContractAllows_allow_record_distance(allows: ComponentContractAllows) -> bool {
+    contract_allows_record_record::ComponentRecordAllows_allow_record_distance(component_record_allows(allows))
+}
+
+fn ComponentContractAllows_allow_record_roundtrip(allows: ComponentContractAllows) -> bool {
+    contract_allows_record_record::ComponentRecordAllows_allow_record_roundtrip(component_record_allows(allows))
+}
+
+fn ComponentContractAllows_allow_record_add(allows: ComponentContractAllows) -> bool {
+    contract_allows_record_record::ComponentRecordAllows_allow_record_add(component_record_allows(allows))
+}
+
+fn ComponentContractAllows_allow_color_enum(allows: ComponentContractAllows) -> bool {
+    contract_allows_record_record::ComponentRecordAllows_allow_color_enum(component_record_allows(allows))
+}
+
+fn ComponentContractAllows_allow_color_code(allows: ComponentContractAllows) -> bool {
+    contract_allows_record_record::ComponentRecordAllows_allow_color_code(component_record_allows(allows))
+}
+
+fn ComponentContractAllows_allow_color_roundtrip(allows: ComponentContractAllows) -> bool {
+    contract_allows_record_record::ComponentRecordAllows_allow_color_roundtrip(component_record_allows(allows))
+}
+
+fn ComponentContractAllows_allow_shape_area(allows: ComponentContractAllows) -> bool {
+    contract_allows_record_record::ComponentRecordAllows_allow_shape_area(component_record_allows(allows))
+}
+
+fn ComponentContractAllows_allow_shape_roundtrip(allows: ComponentContractAllows) -> bool {
+    contract_allows_record_record::ComponentRecordAllows_allow_shape_roundtrip(component_record_allows(allows))
+}

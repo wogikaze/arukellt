@@ -1,0 +1,20 @@
+use parser::core_ast_text_fields
+use parser::core_ast_span_fields
+use parser::core_ast_literal_fields
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - function body and guard annotations
+
+use parser::kinds
+
+fn make_fn_guard_annotation(guard: AstNode) -> AstNode {
+    let guard_node = core_ast_factory::AstNode_new(kinds::NK_TYPE_NAMED(), core_ast_span_fields::AstNode_span(guard))
+    core_ast_text_fields::AstNode_set_text(guard_node, String_from("__guard"))
+    core_ast_children::AstNode_push_child(guard_node, guard)
+    guard_node
+}
+
+fn mark_expr_body(node: AstNode, body: AstNode) {
+    core_ast_children::AstNode_push_child(node, body)
+    core_ast_literal_fields::AstNode_set_int_val(node, 1)
+}

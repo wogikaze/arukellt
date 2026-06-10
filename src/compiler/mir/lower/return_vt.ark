@@ -1,0 +1,34 @@
+// Arukellt Selfhost - parsed return annotation MIR value type.
+
+use mir::lower::return_shape_ann
+use mir::value_types
+
+fn mir_decl_return_vt(fn_node: AstNode) -> i32 {
+    let ta_count = return_shape_ann::mir_return_shape_ann_count(fn_node)
+    let mut i = 0
+    while i < ta_count {
+        let ann = return_shape_ann::mir_return_shape_ann_at(fn_node, i)
+        if return_shape_ann::mir_return_shape_is_return_ann(ann) {
+            if return_shape_ann::mir_return_shape_child_count(ann) == 0 {
+                return value_types::VT_VOID()
+            }
+            return mir_return_vt_from_node(return_shape_ann::mir_return_shape_child_at(ann, 0))
+        }
+        i = i + 1
+    }
+    value_types::VT_VOID()
+}
+
+fn mir_return_vt_from_node(ret_node: AstNode) -> i32 {
+    let ret_text = return_shape_ann::mir_return_shape_name(ret_node)
+    if eq(clone(ret_text), "f64") {
+        return value_types::VT_F64()
+    }
+    if eq(clone(ret_text), "i64") || eq(clone(ret_text), "u64") {
+        return value_types::VT_I64()
+    }
+    if eq(clone(ret_text), "void") || eq(clone(ret_text), "()") {
+        return value_types::VT_VOID()
+    }
+    value_types::VT_I32()
+}

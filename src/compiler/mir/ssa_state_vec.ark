@@ -1,0 +1,26 @@
+// Arukellt Selfhost - MIR SSA state vector helpers.
+
+fn mir_i32_vec_filled(count: i32, value: i32) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let mut i = 0
+    while i < count {
+        push(out, value)
+        i = i + 1
+    }
+    out
+}
+
+fn mir_i32_vec_replace_at(values: Vec<i32>, at: i32, value: i32) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let count = len(values)
+    let mut i = 0
+    while i < count {
+        if i == at {
+            push(out, value)
+        } else {
+            push(out, get_unchecked(values, i))
+        }
+        i = i + 1
+    }
+    out
+}

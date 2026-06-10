@@ -1,0 +1,28 @@
+use corehir::expr_builder_control_loop
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR builder for values(...) for-loops.
+
+use corehir::body_for_predicates
+use corehir::expr_predicates
+use corehir::expr_node_access
+
+fn corehir_build_for_values_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    if expr_node_access::expr_child_count(node) < 2 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let range = expr_node_access::expr_child_at(node, 0)
+    if !body_for_predicates::corehir_for_is_values_call(range) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let children = Vec_new_i32()
+    let vec_index = corehir_build_expr(table, expr_node_access::expr_child_at(range, 1))
+    let body_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 1))
+    push(children, vec_index)
+    push(children, body_index)
+    let vec_expr = corehir_body_expr_at(table, vec_index)
+    let body_expr = corehir_body_expr_at(table, body_index)
+    if expr_predicates::expr_is_unsupported(vec_expr) || expr_predicates::expr_is_unsupported(body_expr) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_control_loop::corehir_expr_for_values(expr_node_access::expr_text(node), expr_node_access::expr_span_start(node), children))
+}

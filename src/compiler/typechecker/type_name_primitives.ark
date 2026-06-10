@@ -1,0 +1,26 @@
+use typechecker::kinds
+// Arukellt Typechecker - primitive type name resolution.
+
+use typechecker::contract_type_constructors
+
+fn resolve_primitive_type_name(name: String) -> TypeInfo {
+    if eq(clone(name), "i32") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
+    }
+    if eq(clone(name), "i64") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_I64())
+    }
+    if eq(clone(name), "f64") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_F64())
+    }
+    if eq(clone(name), "bool") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_BOOL())
+    }
+    if eq(clone(name), "String") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_STRING())
+    }
+    if eq(clone(name), "char") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_CHAR())
+    }
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}

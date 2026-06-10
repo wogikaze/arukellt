@@ -1,0 +1,21 @@
+// Arukellt Selfhost - dominance CFG smoke fixture record.
+
+pub struct MirDumpDominanceFixture {
+    module: MirModule,
+    function: MirFunction,
+    entry: i32,
+    then_bb: i32,
+    else_bb: i32,
+    join_bb: i32,
+}
+
+fn MirDumpDominanceFixture_new(m: MirModule, f: MirFunction, entry: i32, then_bb: i32, else_bb: i32, join_bb: i32) -> MirDumpDominanceFixture {
+    MirDumpDominanceFixture { module: m, function: f, entry: entry, then_bb: then_bb, else_bb: else_bb, join_bb: join_bb }
+}
+
+fn MirDumpDominanceFixture_module(fx: MirDumpDominanceFixture) -> MirModule { fx.module }
+fn MirDumpDominanceFixture_function(fx: MirDumpDominanceFixture) -> MirFunction { fx.function }
+fn MirDumpDominanceFixture_entry(fx: MirDumpDominanceFixture) -> i32 { fx.entry }
+fn MirDumpDominanceFixture_then_bb(fx: MirDumpDominanceFixture) -> i32 { fx.then_bb }
+fn MirDumpDominanceFixture_else_bb(fx: MirDumpDominanceFixture) -> i32 { fx.else_bb }
+fn MirDumpDominanceFixture_join_bb(fx: MirDumpDominanceFixture) -> i32 { fx.join_bb }

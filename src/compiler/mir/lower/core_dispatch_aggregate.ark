@@ -1,0 +1,33 @@
+// Arukellt Selfhost - CoreHIR aggregate lowering dispatch.
+
+use mir::lower::core_access
+use mir::lower::core_assign
+use mir::lower::core_collections
+use mir::lower::core_expr_shape_aggregate
+use mir::lower::core_expr_shape_ops
+use mir::lower::core_struct_lit
+
+fn lower_core_aggregate_expr(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    if core_expr_shape_ops::mir_core_expr_is_assign(expr) {
+        return core_assign::lower_core_assign(ctx, exprs, expr)
+    }
+    if core_expr_shape_aggregate::mir_core_expr_is_field_access(expr) {
+        return core_access::lower_core_field_access(ctx, exprs, expr)
+    }
+    if core_expr_shape_aggregate::mir_core_expr_is_index(expr) {
+        return core_access::lower_core_index(ctx, exprs, expr)
+    }
+    if core_expr_shape_aggregate::mir_core_expr_is_array_lit(expr) {
+        return core_collections::lower_core_array_lit(ctx, exprs, expr)
+    }
+    if core_expr_shape_aggregate::mir_core_expr_is_tuple(expr) {
+        return core_collections::lower_core_tuple(ctx, exprs, expr)
+    }
+    if core_expr_shape_aggregate::mir_core_expr_is_struct_lit(expr) {
+        return core_struct_lit::lower_core_struct_lit(ctx, exprs, expr)
+    }
+    if core_expr_shape_aggregate::mir_core_expr_is_comprehension(expr) {
+        return core_collections::lower_core_comprehension(ctx, exprs, expr)
+    }
+    0 - 2
+}

@@ -1,0 +1,33 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering bool and pattern literals.
+
+use mir::inst_const_i32
+use mir::value_types
+
+fn lower_bool_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
+    let mut bval = 0
+    if eq(ast_node::node_text(node), "true") {
+        bval = 1
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(bval, dest))
+    dest
+}
+
+fn lower_pattern_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    let mut pval = ast_node::node_int_val(node)
+    if eq(ast_node::node_text(node), "true") {
+        pval = 1
+    }
+    if eq(ast_node::node_text(node), "false") {
+        pval = 0
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(pval, dest))
+    dest
+}

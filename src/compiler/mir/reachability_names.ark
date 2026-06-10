@@ -1,0 +1,53 @@
+use mir::function_identity
+// Arukellt Selfhost - MIR reachability name matching
+
+use mir::types
+
+fn mir_short_name(name: String) -> String {
+    let nlen = len(name)
+    let mut colon_pos = 0 - 1
+    let mut ci = nlen - 1
+    while ci >= 0 {
+        if char_at(name, ci) == 58 {
+            colon_pos = ci
+            ci = 0 - 1
+        }
+        ci = ci - 1
+    }
+    if colon_pos >= 0 {
+        return substring(name, colon_pos + 1, nlen)
+    }
+    clone(name)
+}
+
+fn mir_mark_reachable_name(functions: Vec<MirFunction>, reachable: Vec<i32>, name: String) -> bool {
+    let count = len(functions)
+    let mut i = 0
+    while i < count {
+        let f = get_unchecked(functions, i)
+        if eq(function_identity::MirFunction_name(f), clone(name)) {
+            if get_unchecked(reachable, i) == 0 {
+                set(reachable, i, 1)
+                return true
+            }
+            return false
+        }
+        i = i + 1
+    }
+    let short = mir_short_name(clone(name))
+    if !eq(clone(short), clone(name)) {
+        let mut j = 0
+        while j < count {
+            let f = get_unchecked(functions, j)
+            if eq(function_identity::MirFunction_name(f), clone(short)) {
+                if get_unchecked(reachable, j) == 0 {
+                    set(reachable, j, 1)
+                    return true
+                }
+                return false
+            }
+            j = j + 1
+        }
+    }
+    false
+}

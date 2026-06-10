@@ -1,0 +1,51 @@
+// Arukellt Selfhost - CoreHIR declaration info helpers.
+
+use corehir::kinds
+use corehir::fn_info
+
+struct CoreHirDeclInfo {
+    kind: i32,
+    name: String,
+    child_count: i32,
+    is_pub: bool,
+}
+
+fn CoreHirDeclInfo_new(kind: i32, name: String, child_count: i32, is_pub: bool) -> CoreHirDeclInfo {
+    CoreHirDeclInfo { kind: kind, name: name, child_count: child_count, is_pub: is_pub }
+}
+
+fn decl_info_kind_at(decl_infos: Vec<CoreHirDeclInfo>, idx: i32) -> i32 {
+    if idx < len(decl_infos) {
+        let info = get_unchecked(decl_infos, idx)
+        return info.kind
+    }
+    commands::COREHIR_DECL_UNKNOWN()
+}
+
+fn decl_info_name_at(decl_infos: Vec<CoreHirDeclInfo>, idx: i32) -> String {
+    if idx < len(decl_infos) {
+        let info = get_unchecked(decl_infos, idx)
+        return clone(info.name)
+    }
+    String_new()
+}
+
+fn entry_main_decl_index(decl_infos: Vec<CoreHirDeclInfo>, fn_infos: Vec<CoreHirFnInfo>) -> i32 {
+    let typed_entry = fn_info::fn_info_entry_main_decl_index(fn_infos)
+    if typed_entry >= 0 {
+        return typed_entry
+    }
+    let mut entry_main = 0 - 1
+    let decl_count = len(decl_infos)
+    let mut i = 0
+    while i < decl_count {
+        let info = get_unchecked(decl_infos, i)
+        if info.kind == commands::COREHIR_DECL_FN() {
+            if eq(clone(info.name), String_from("main")) {
+                entry_main = i
+            }
+        }
+        i = i + 1
+    }
+    entry_main
+}

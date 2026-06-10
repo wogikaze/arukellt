@@ -1,0 +1,17 @@
+// Arukellt LSP - method dispatch.
+
+use lsp::dispatch_documents
+use lsp::dispatch_features
+use lsp::dispatch_lifecycle
+use lsp::json_fields
+use lsp::state_record
+
+pub fn handle_message(state: LspState, body: String) {
+    let method = json_fields::extract_string_field(clone(body), String_from("method"))
+    if len(method) == 0 {
+        return
+    }
+    if dispatch_lifecycle::dispatch_lifecycle(state, clone(body), clone(method)) { return }
+    if dispatch_documents::dispatch_documents(state, clone(body), clone(method)) { return }
+    if dispatch_features::dispatch_features(state, clone(body), clone(method)) { return }
+}

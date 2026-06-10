@@ -1,0 +1,46 @@
+// Arukellt Selfhost - MIR SSA rename state type.
+
+use mir::ssa_state_record
+use mir::ssa_state_current_record
+use mir::ssa_state_exit_record
+use mir::ssa_state_version_record
+
+fn MirSsaRenameState_new(original_local_count: i32, block_count: i32) -> MirSsaRenameState {
+    ssa_state_record::MirSsaRenameState_new(original_local_count, block_count)
+}
+
+fn MirSsaRenameState_original_local_count(state: MirSsaRenameState) -> i32 {
+    ssa_state_record::mir_ssa_state_original_local_count(state)
+}
+
+fn MirSsaRenameState_exit_index(state: MirSsaRenameState, block_id: i32, local_id: i32) -> i32 {
+    ssa_state_exit_record::mir_ssa_state_exit_index(state, block_id, local_id)
+}
+
+fn MirSsaRenameState_set_current(state: MirSsaRenameState, local_id: i32, value_id: i32) {
+    ssa_state_current_record::mir_ssa_state_set_current(state, local_id, value_id)
+}
+
+fn MirSsaRenameState_set_version(state: MirSsaRenameState, local_id: i32, version: i32) {
+    ssa_state_version_record::mir_ssa_state_set_version(state, local_id, version)
+}
+
+fn MirSsaRenameState_version_for(state: MirSsaRenameState, local_id: i32) -> i32 {
+    ssa_state_version_record::mir_ssa_state_version_for(state, local_id)
+}
+
+fn MirSsaRenameState_current_for(state: MirSsaRenameState, local_id: i32) -> i32 {
+    ssa_state_current_record::mir_ssa_state_current_for(state, local_id)
+}
+
+fn MirSsaRenameState_pred_value_for(state: MirSsaRenameState, pred_block: i32, local_id: i32) -> i32 {
+    ssa_state_exit_record::mir_ssa_state_pred_value_for(state, pred_block, local_id)
+}
+
+fn MirSsaRenameState_load_block_entry(state: MirSsaRenameState, block_id: i32) {
+    ssa_state_exit_record::mir_ssa_state_load_block_entry(state, block_id)
+}
+
+fn MirSsaRenameState_record_block_exit(state: MirSsaRenameState, block_id: i32) {
+    ssa_state_exit_record::mir_ssa_state_record_block_exit(state, block_id)
+}

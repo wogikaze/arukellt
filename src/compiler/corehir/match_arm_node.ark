@@ -1,0 +1,15 @@
+// Arukellt Selfhost - CoreHIR match arm node accessors.
+
+use corehir::frontend_ast_node
+
+fn match_arm_span_start(node: AstNode) -> i32 {
+    frontend_ast_node::corehir_node_span_start(node)
+}
+
+fn match_arm_child_count(node: AstNode) -> i32 {
+    frontend_ast_node::corehir_node_child_count(node)
+}
+
+fn match_arm_child_at(node: AstNode, idx: i32) -> AstNode {
+    frontend_ast_node::corehir_node_child_at(node, idx)
+}

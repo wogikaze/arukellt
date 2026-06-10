@@ -1,0 +1,9 @@
+// Arukellt Lexer - source to diagnostic lex result entrypoint.
+
+use lexer::diagnostics
+use lexer::scan
+
+fn lex_program(source: String) -> LexResult {
+    let tokens = scan::tokenize(source)
+    diagnostics::build_lex_result(tokens)
+}

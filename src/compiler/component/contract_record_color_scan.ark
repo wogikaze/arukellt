@@ -1,0 +1,100 @@
+// Arukellt Selfhost - component Color enum declaration scan.
+
+use component::contract_helpers
+use component::contract_record_fn
+use component::contract_record_decl
+
+pub struct ComponentRecordColorScan {
+    has_color_shape: bool,
+    has_next: bool,
+    has_value: bool,
+    export_count: i32,
+}
+
+fn ComponentRecordColorScan_new(has_color_shape: bool, has_next: bool, has_value: bool, export_count: i32) -> ComponentRecordColorScan {
+    ComponentRecordColorScan {
+        has_color_shape: has_color_shape,
+        has_next: has_next,
+        has_value: has_value,
+        export_count: export_count,
+    }
+}
+
+fn ComponentRecordColorScan_empty() -> ComponentRecordColorScan {
+    ComponentRecordColorScan_new(false, false, false, 0)
+}
+
+fn ComponentRecordColorScan_has_color_shape(scan: ComponentRecordColorScan) -> bool {
+    scan.has_color_shape
+}
+
+fn ComponentRecordColorScan_has_next(scan: ComponentRecordColorScan) -> bool {
+    scan.has_next
+}
+
+fn ComponentRecordColorScan_has_value(scan: ComponentRecordColorScan) -> bool {
+    scan.has_value
+}
+
+fn ComponentRecordColorScan_export_count_is(scan: ComponentRecordColorScan, expected: i32) -> bool {
+    scan.export_count == expected
+}
+
+fn ComponentRecordColorScan_set_has_color_shape(scan: ComponentRecordColorScan, value: bool) {
+    scan.has_color_shape = value
+}
+
+fn ComponentRecordColorScan_set_has_next(scan: ComponentRecordColorScan, value: bool) {
+    scan.has_next = value
+}
+
+fn ComponentRecordColorScan_set_has_value(scan: ComponentRecordColorScan, value: bool) {
+    scan.has_value = value
+}
+
+fn ComponentRecordColorScan_increment_export_count(scan: ComponentRecordColorScan) {
+    scan.export_count = scan.export_count + 1
+}
+
+fn ComponentRecordColorScan_allows_enum(scan: ComponentRecordColorScan) -> bool {
+    ComponentRecordColorScan_has_color_shape(scan) && ComponentRecordColorScan_has_next(scan) && ComponentRecordColorScan_has_value(scan) && ComponentRecordColorScan_export_count_is(scan, 2)
+}
+
+fn ComponentRecordColorScan_allows_code(scan: ComponentRecordColorScan) -> bool {
+    ComponentRecordColorScan_has_color_shape(scan) && ComponentRecordColorScan_has_value(scan) && ComponentRecordColorScan_export_count_is(scan, 1)
+}
+
+fn ComponentRecordColorScan_allows_roundtrip(scan: ComponentRecordColorScan) -> bool {
+    ComponentRecordColorScan_has_color_shape(scan) && ComponentRecordColorScan_has_next(scan) && ComponentRecordColorScan_export_count_is(scan, 1)
+}
+
+fn component_record_color_scan_apply_decl(scan: ComponentRecordColorScan, d: AstNode) {
+    if contract_record_decl::component_decl_is_color_shape(d) {
+        ComponentRecordColorScan_set_has_color_shape(scan, true)
+    }
+    if contract_helpers::is_export_func_decl(d) {
+        component_record_color_scan_apply_export(scan, d)
+    }
+}
+
+fn component_record_color_scan_apply_export(scan: ComponentRecordColorScan, d: AstNode) {
+    ComponentRecordColorScan_increment_export_count(scan)
+    let f = contract_helpers::component_func_from_decl(d)
+    if contract_record_fn::component_fn_is_color_to_color(f) {
+        ComponentRecordColorScan_set_has_next(scan, true)
+    }
+    if contract_record_fn::component_fn_is_color_to_i32(f) {
+        ComponentRecordColorScan_set_has_value(scan, true)
+    }
+}
+
+fn component_record_color_scan(decls: Vec<AstNode>) -> ComponentRecordColorScan {
+    let scan = ComponentRecordColorScan_empty()
+    let mut i = 0
+    while i < len(decls) {
+        let d = get_unchecked(decls, i)
+        component_record_color_scan_apply_decl(scan, d)
+        i = i + 1
+    }
+    scan
+}

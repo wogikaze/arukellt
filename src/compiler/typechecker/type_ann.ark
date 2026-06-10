@@ -1,0 +1,22 @@
+// Arukellt Typechecker - non-generic type annotation resolution
+
+use typechecker::ast_type_predicates
+use typechecker::ast_access
+use typechecker::contract_type_mutation
+use typechecker::type_names
+
+fn resolve_type_ann_node(ann: AstNode) -> TypeInfo {
+    if ast_type_predicates::node_is_type_generic(ann) {
+        let base_ty = type_names::resolve_type_name(ast_access::node_text(ann))
+        let child_count = ast_access::node_child_count(ann)
+        let mut k = 1
+        while k < child_count {
+            let arg_child = ast_access::node_child_at(ann, k)
+            let arg_ty = resolve_type_ann_node(arg_child)
+            contract_type_mutation::TypeInfo_push_type_arg(base_ty, arg_ty)
+            k = k + 1
+        }
+        return base_ty
+    }
+    type_names::resolve_type_name(ast_access::node_text(ann))
+}

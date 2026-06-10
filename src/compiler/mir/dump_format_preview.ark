@@ -1,0 +1,55 @@
+use mir::block_phi_access
+use mir::function_locals_view
+use mir::local_access
+// Arukellt Selfhost - MIR dump phi elimination preview formatting
+
+use std::host::stdio
+use mir::dump_format_local
+use mir::dump_format_phi
+use mir::function_block_queries
+use mir::phi_access
+
+// Preview parallel-copy lowering that replaces a phi after minimal SSA renaming.
+// Each predecessor edge receives `merge_name <- ssa_operand`; the join block
+// then uses the single merge slot instead of a phi (real insertion is future work).
+fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
+    if join_block_id < 0 || join_block_id >= function_block_queries::MirFunction_block_count(f) {
+        return
+    }
+    let block = function_block_queries::MirFunction_block_at(f, join_block_id)
+    let pc = block_phi_access::MirBlock_phi_count(block)
+    let mut pi = 0
+    while pi < pc {
+        let phi = block_phi_access::MirBlock_phi_at(block, pi)
+        stdio::println(dump_format_phi::mir_format_phi(f, phi))
+        let phi_dest = phi_access::MirPhi_dest(phi)
+        if phi_dest < 0 || phi_dest >= function_locals_view::MirFunction_local_count(f) {
+            pi = pi + 1
+            continue
+        }
+        let dest_rec = function_locals_view::MirFunction_local_at(f, phi_dest)
+        let merge_name = local_access::MirLocal_name(dest_rec)
+        let ac = phi_access::MirPhi_arg_count(phi)
+        let mut ai = 0
+        while ai < ac {
+            let a = phi_access::MirPhi_arg_at(phi, ai)
+            let mut line = String_from("phi_elim_copy bb")
+            line = concat(line, to_string(phi_access::MirPhiArg_pred_block(a)))
+            line = concat(line, String_from("->bb"))
+            line = concat(line, to_string(join_block_id))
+            line = concat(line, String_from(": "))
+            line = concat(line, clone(merge_name))
+            line = concat(line, String_from(" <- "))
+            line = concat(line, dump_format_local::mir_format_local_ref(f, phi_access::MirPhiArg_local(a)))
+            stdio::println(line)
+            ai = ai + 1
+        }
+        let mut tail = String_from("phi_elim_join bb")
+        tail = concat(tail, to_string(join_block_id))
+        tail = concat(tail, String_from(": "))
+        tail = concat(tail, clone(merge_name))
+        tail = concat(tail, String_from(" (phi removed)"))
+        stdio::println(tail)
+        pi = pi + 1
+    }
+}

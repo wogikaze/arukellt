@@ -1,0 +1,31 @@
+// Arukellt Selfhost - MIR opcode display name facade.
+
+use mir::dump_op_names_aggregate
+use mir::dump_op_names_arith
+use mir::dump_op_names_call
+use mir::dump_op_names_control
+use mir::dump_op_names_values
+
+fn mir_op_name(op: i32) -> String {
+    let value_name = dump_op_names_values::mir_value_op_name(op)
+    if len(value_name) > 0 {
+        return value_name
+    }
+    let arith_name = dump_op_names_arith::mir_arith_op_name(op)
+    if len(arith_name) > 0 {
+        return arith_name
+    }
+    let call_name = dump_op_names_call::mir_call_op_name(op)
+    if len(call_name) > 0 {
+        return call_name
+    }
+    let control_name = dump_op_names_control::mir_control_op_name(op)
+    if len(control_name) > 0 {
+        return control_name
+    }
+    let aggregate_name = dump_op_names_aggregate::mir_aggregate_op_name(op)
+    if len(aggregate_name) > 0 {
+        return aggregate_name
+    }
+    String_from("?op")
+}

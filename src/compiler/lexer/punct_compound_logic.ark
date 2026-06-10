@@ -1,0 +1,20 @@
+use lexer::tokens
+// Arukellt Lexer - logical punctuation
+
+use lexer::cursor
+use lexer::punct_compound_peek
+
+fn lex_logical_punct(lex: Lexer, start: i32, c: i32) -> Token {
+    if c == 38 {
+        if punct_compound_peek::punct_peek(lex) == 38 {
+            cursor::advance_by(lex, 1)
+            return Token_new(tokens::TK_AMPAMP(), String_from("&&"), start, cursor::lexer_position(lex))
+        }
+        return Token_new(tokens::TK_AMP(), String_from("&"), start, cursor::lexer_position(lex))
+    }
+    if punct_compound_peek::punct_peek(lex) == 124 {
+        cursor::advance_by(lex, 1)
+        return Token_new(tokens::TK_PIPEPIPE(), String_from("||"), start, cursor::lexer_position(lex))
+    }
+    Token_new(tokens::TK_PIPE(), String_from("|"), start, cursor::lexer_position(lex))
+}

@@ -1,0 +1,19 @@
+// Arukellt Parser - top-level module parsing.
+
+use parser::core_api_cursor
+use parser::decl_dispatch
+
+fn parse_module_impl(p: Parser) -> Vec<AstNode> {
+    let mut decls: Vec<AstNode> = Vec_new_AstNode()
+    core_api_cursor::skip_newlines(p)
+    while !core_api_cursor::at_eof(p) {
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::at_eof(p) {
+            break
+        }
+        let d = decl_dispatch::parse_decl(p)
+        push(decls, d)
+        core_api_cursor::skip_newlines(p)
+    }
+    decls
+}

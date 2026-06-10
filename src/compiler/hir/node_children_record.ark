@@ -1,0 +1,15 @@
+// Arukellt HIR - node child list helpers.
+
+use hir::node_record
+
+fn hir_node_child_count(node: HirNode) -> i32 {
+    len(node.children)
+}
+
+fn hir_node_child_at(node: HirNode, index: i32) -> HirNode {
+    get_unchecked(node.children, index)
+}
+
+fn hir_node_push_child(node: HirNode, child: HirNode) {
+    push(node.children, child)
+}

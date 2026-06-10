@@ -1,0 +1,25 @@
+// Arukellt Lexer - diagnostic error code identifiers.
+
+fn LEX_E_UNTERMINATED_STRING() -> i32 {
+    1
+}
+
+fn LEX_E_UNTERMINATED_CHAR() -> i32 {
+    2
+}
+
+fn LEX_E_UNTERMINATED_FSTRING() -> i32 {
+    3
+}
+
+fn LEX_E_UNTERMINATED_ESCAPE() -> i32 {
+    4
+}
+
+fn LEX_E_INVALID_NUMBER() -> i32 {
+    5
+}
+
+fn LEX_E_UNKNOWN_CHAR() -> i32 {
+    6
+}

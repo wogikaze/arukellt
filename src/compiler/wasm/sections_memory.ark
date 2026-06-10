@@ -1,0 +1,41 @@
+use wasm::opcodes
+// Arukellt Selfhost - Wasm memory/global section builders.
+
+use wasm::constants
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_sections
+
+fn emit_memory_section(out: WasmWriter) {
+    let mem_sec = writer_core::WasmWriter_new()
+    emit_memory_entry(mem_sec, initial_memory_pages())
+    writer_sections::emit_section(out, opcodes::SEC_MEMORY(), mem_sec)
+}
+
+fn emit_global_section(out: WasmWriter, data_offset: i32) {
+    let global_sec = writer_core::WasmWriter_new()
+    emit_heap_global_entry(global_sec, data_offset)
+    writer_sections::emit_section(out, opcodes::SEC_GLOBAL(), global_sec)
+}
+
+fn emit_heap_global_entry(global_sec: WasmWriter, data_offset: i32) {
+    writer_leb::emit_leb128_u(global_sec, 1)
+    writer_core::emit_byte(global_sec, constants::WASM_I32())
+    writer_core::emit_byte(global_sec, 1)
+    writer_core::emit_byte(global_sec, opcodes::OP_I32_CONST())
+    let heap_start = heap_start_from_data_offset(data_offset)
+    writer_leb::emit_leb128_s(global_sec, heap_start)
+    writer_core::emit_byte(global_sec, opcodes::OP_END())
+}
+
+fn heap_start_from_data_offset(data_offset: i32) -> i32 {
+    (data_offset + 7) / 8 * 8
+}
+
+fn emit_memory_entry(mem_sec: WasmWriter, initial_pages: i32) {
+    writer_leb::emit_leb128_u(mem_sec, 1)
+    writer_core::emit_byte(mem_sec, 0)
+    writer_leb::emit_leb128_u(mem_sec, initial_pages)
+}
+
+fn initial_memory_pages() -> i32 { 8192 }

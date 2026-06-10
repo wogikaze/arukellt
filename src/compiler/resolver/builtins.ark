@@ -1,0 +1,20 @@
+// Arukellt Resolver - builtin symbol name table facade.
+
+use resolver::builtins_convert
+use resolver::builtins_core
+use resolver::builtins_hash
+use resolver::builtins_hof
+use resolver::builtins_modules
+
+fn resolver_builtin_symbol_names() -> Vec<String> {
+    let names = Vec_new_String()
+    builtins_core::push_core_builtin_symbol_names(names)
+    builtins_convert::push_convert_builtin_symbol_names(names)
+    builtins_hof::push_hof_builtin_symbol_names(names)
+    builtins_hash::push_hash_builtin_symbol_names(names)
+    names
+}
+
+fn resolver_builtin_module_names() -> Vec<String> {
+    builtins_modules::resolver_builtin_module_names()
+}

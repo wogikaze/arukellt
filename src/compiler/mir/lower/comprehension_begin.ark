@@ -1,0 +1,44 @@
+use mir::lower::ctx_api_nesting
+use mir::lower::ctx_api_loop_state
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR list comprehension setup.
+
+use mir::inst_structured_control
+use mir::lower::comprehension_begin_flow
+use mir::lower::comprehension_state
+use mir::value_types
+use mir::lower::comprehension_locals
+
+fn mir_begin_comprehension(ctx: LowerCtx, var_name: String, comp_vec_idx: i32) -> ComprehensionState {
+    let comp_vec_local = comprehension_locals::emit_comprehension_source_vec_local(ctx)
+    let comp_elem_type_name = mir_comprehension_elem_type(ctx, comp_vec_idx)
+    let comp_vec_type_str = concat(String_from("vec:"), clone(comp_elem_type_name))
+    ctx_set_local_type(ctx, comp_vec_local, clone(comp_vec_type_str))
+    let comp_result_local = comprehension_locals::emit_comprehension_result_local(ctx, clone(comp_elem_type_name), clone(comp_vec_type_str))
+    let comp_end_local = comprehension_locals::emit_comprehension_end_local(ctx, comp_vec_local)
+    let comp_idx_local = comprehension_locals::emit_comprehension_index_local(ctx)
+    let comp_iter_var = ctx_alloc_local(ctx, clone(var_name), value_types::VT_I32())
+    ctx_set_local_type(ctx, comp_iter_var, clone(comp_elem_type_name))
+    let comp_prev_break = ctx_api_loop_state::ctx_loop_break_depth(ctx)
+    let comp_prev_continue = ctx_api_loop_state::ctx_loop_continue_depth(ctx)
+    ctx_emit(ctx, inst_structured_control::MirInst_block())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    ctx_emit(ctx, inst_structured_control::MirInst_loop())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    ctx_api_loop_state::ctx_set_loop_break_depth_to_current(ctx)
+    ctx_api_loop_state::ctx_set_loop_continue_depth_to_current(ctx)
+    comprehension_begin_flow::emit_comprehension_loop_break_check(ctx, comp_idx_local, comp_end_local)
+    comprehension_begin_flow::emit_comprehension_load_iter(ctx, comp_vec_local, comp_idx_local, comp_iter_var)
+    comprehension_state::comprehension_state_new(comp_result_local, comp_idx_local, comp_end_local, comp_prev_break, comp_prev_continue)
+}
+
+fn mir_comprehension_elem_type(ctx: LowerCtx, comp_vec_idx: i32) -> String {
+    let comp_vec_type = ctx_get_local_type(ctx, comp_vec_idx)
+    if starts_with(clone(comp_vec_type), "vec:") {
+        return substring(comp_vec_type, 4, len(comp_vec_type))
+    }
+    String_from("i32")
+}

@@ -1,0 +1,42 @@
+use mir::lower_kinds
+use mir::lower::hof_call_plan
+use mir::lower::hof_call_classify
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR higher-order call lowering.
+
+use mir::inst_local_set
+use mir::lower::core_expr_shape_accessors
+use mir::lower::hof
+
+fn lower_core_hof_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    let hof_callee_text = core_expr_shape_accessors::mir_core_expr_text(expr)
+    let hof_plan = hof_call_classify::mir_classify_hof_call(clone(hof_callee_text))
+    if hof_call_plan::mir_hof_call_plan_is_none(hof_plan) || !hof_call_plan::mir_hof_call_plan_has_min_children(hof_plan, child_count) {
+        return 0 - 2
+    }
+    let hof_cb_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, hof_call_plan::mir_hof_call_plan_callback_index(hof_plan)))
+    let hof_fn_name = core_expr_shape_accessors::mir_core_expr_text(hof_cb_expr)
+    let hof_vec_local = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
+    if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_OPTION_I32()) {
+        return hof::mir_lower_map_option_i32(ctx, hof_fn_name, hof_vec_local)
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(hof_vec_local))
+    ctx_api_local_types::ctx_set_local_type(ctx, hof_vec_local, hof_call_plan::mir_hof_call_plan_vec_type_name(hof_plan))
+    let mut hof_init_idx = 0 - 1
+    if hof_call_plan::mir_hof_call_plan_is_fold(hof_plan) {
+        hof_init_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 2))
+    }
+    if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_I64()) {
+        return hof::mir_lower_hof_i64(ctx, hof_fn_name, hof_vec_local, hof_init_idx, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan), hof_call_plan::mir_hof_call_plan_is_fold(hof_plan))
+    }
+    if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_I32()) {
+        return hof::mir_lower_hof_i32(ctx, hof_callee_text, hof_fn_name, hof_vec_local, hof_init_idx, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan), hof_call_plan::mir_hof_call_plan_is_fold(hof_plan))
+    }
+    if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_F64()) {
+        return hof::mir_lower_hof_f64(ctx, hof_fn_name, hof_vec_local, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan))
+    }
+    0 - 2
+}

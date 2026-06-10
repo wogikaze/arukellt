@@ -1,0 +1,24 @@
+use resolver::kinds
+// Arukellt Resolver - expression AST predicates.
+
+use resolver::ast_access
+
+fn node_is_ident(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_IDENT())
+}
+
+fn node_is_field_access(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_FIELD_ACCESS())
+}
+
+fn node_is_path(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_PATH())
+}
+
+fn node_is_struct_lit(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_STRUCT_LIT())
+}
+
+fn node_is_method_call(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_METHOD_CALL())
+}

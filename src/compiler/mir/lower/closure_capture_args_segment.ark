@@ -1,0 +1,21 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - closure capture argument segment emission.
+
+use mir::inst_local_get
+
+fn emit_capture_arg_segment(ctx: LowerCtx, packed: String, start: i32, end: i32) {
+    if end <= start {
+        return
+    }
+    let name = substring(packed, start, end)
+    if len(name) == 0 {
+        return
+    }
+    let li = ctx_lookup_local(ctx, clone(name))
+    if li < 0 {
+        return
+    }
+    ctx_emit(ctx, inst_local_get::MirInst_local_get_to(li, li))
+}

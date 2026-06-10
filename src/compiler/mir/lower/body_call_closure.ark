@@ -1,0 +1,34 @@
+use mir::lower::ast_node
+use mir::lower::closure_capture_args
+use mir::lower::closure_registry
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower_kinds
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - closure calls
+
+use mir::inst_call
+use mir::value_types
+
+fn try_lower_closure_call(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
+    if !ast_node::node_kind_is(callee, lower_kinds::NK_IDENT()) {
+        return 0 - 1
+    }
+    let clo_ix = closure_registry::ctx_closure_lookup(ctx, ast_node::node_text(callee))
+    if clo_ix < 0 {
+        return 0 - 1
+    }
+    let synth = closure_registry::ctx_closure_synth_at(ctx, clo_ix)
+    let packed = closure_registry::ctx_closure_caps_at(ctx, clo_ix)
+    let extra = closure_registry::ctx_closure_extra_at(ctx, clo_ix)
+    let mut ca = 1
+    while ca < child_count {
+        let carg = ast_node::node_child_at(node, ca)
+        let _ai = lower_expr(ctx, carg)
+        ca = ca + 1
+    }
+    closure_capture_args::closure_emit_captured_args(ctx, packed)
+    let c_dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_call::MirInst_call(synth, child_count - 1 + extra, c_dest))
+    c_dest
+}

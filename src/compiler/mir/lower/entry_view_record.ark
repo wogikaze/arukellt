@@ -1,0 +1,23 @@
+// Arukellt Selfhost - MIR lowering entry view data contract.
+
+struct MirLowerEntryView {
+    signature_source: CoreHirMirSignatureSource,
+    type_source: CoreHirMirTypeSource,
+    body_source: CoreHirMirBodySource,
+}
+
+fn MirLowerEntryView_new(signature_source: CoreHirMirSignatureSource, type_source: CoreHirMirTypeSource, body_source: CoreHirMirBodySource) -> MirLowerEntryView {
+    MirLowerEntryView { signature_source: signature_source, type_source: type_source, body_source: body_source }
+}
+
+fn entry_view_signature_source(view: MirLowerEntryView) -> CoreHirMirSignatureSource {
+    view.signature_source
+}
+
+fn entry_view_type_source(view: MirLowerEntryView) -> CoreHirMirTypeSource {
+    view.type_source
+}
+
+fn entry_view_body_source(view: MirLowerEntryView) -> CoreHirMirBodySource {
+    view.body_source
+}

@@ -1,0 +1,39 @@
+use lexer::tokens
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+use parser::core_ast_type_ann
+// Arukellt Parser - enum record payload syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::token_state
+use parser::types
+
+fn parse_enum_record_payload(p: Parser, variant: AstNode) {
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::at(p, tokens::TK_RBRACE()) {
+            break
+        }
+        let field = parse_enum_record_field(p)
+        core_ast_children::AstNode_push_child(variant, field)
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::peek_kind(p) == tokens::TK_COMMA() {
+            p.pos = p.pos + 1
+        }
+        core_api_cursor::skip_newlines(p)
+    }
+    core_api_expect::expect_token(p, tokens::TK_RBRACE())
+}
+
+fn parse_enum_record_field(p: Parser) -> AstNode {
+    let fname = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    core_api_expect::expect_token(p, tokens::TK_COLON())
+    let fty = types::parse_type(p)
+    let field = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), token_state::Token_text(fname), core_api_expect::tok_span(fname))
+    core_ast_type_ann::AstNode_push_type_ann(field, fty)
+    field
+}

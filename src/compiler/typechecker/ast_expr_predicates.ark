@@ -1,0 +1,56 @@
+use typechecker::kinds
+// Arukellt Typechecker - expression node predicates.
+
+use typechecker::ast_access
+
+fn node_is_ident(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_IDENT())
+}
+
+fn node_is_int_lit(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_INT_LIT())
+}
+
+fn node_is_float_lit(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_FLOAT_LIT())
+}
+
+fn node_is_string_lit(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_STRING_LIT())
+}
+
+fn node_is_bool_lit(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_BOOL_LIT())
+}
+
+fn node_is_unary(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_UNARY())
+}
+
+fn node_is_binary(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_BINARY())
+}
+
+fn node_is_if_expr(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_IF_EXPR())
+}
+
+fn node_is_closure(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_CLOSURE())
+}
+
+fn node_is_comprehension(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_COMPREHENSION())
+}
+
+fn node_is_call(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_CALL())
+}
+
+fn node_is_method_call(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_METHOD_CALL())
+}
+
+fn node_is_match_expr(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_MATCH_EXPR())
+}

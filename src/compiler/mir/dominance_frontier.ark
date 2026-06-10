@@ -1,0 +1,41 @@
+use mir::block_pred_access
+// Arukellt Selfhost - MIR dominance frontier computation.
+
+use mir::dom_sets
+use mir::block_dominance_access
+use mir::block_dominance_mutation
+use mir::block_identity
+use mir::function_block_queries
+use mir::types
+
+fn mir_compute_dominance_frontiers(f: MirFunction, block_count: i32) {
+    let mut i = 0
+    while i < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, i)
+        block_dominance_mutation::MirBlock_reset_dom_frontier(block)
+        i = i + 1
+    }
+    i = 0
+    while i < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, i)
+        let pred_count = block_pred_access::MirBlock_pred_count(block)
+        if pred_count >= 2 {
+            mir_add_join_block_to_runner_frontiers(f, block)
+        }
+        i = i + 1
+    }
+}
+
+fn mir_add_join_block_to_runner_frontiers(f: MirFunction, block: MirBlock) {
+    let pred_count = block_pred_access::MirBlock_pred_count(block)
+    let mut pred_idx = 0
+    while pred_idx < pred_count {
+        let mut runner = block_pred_access::MirBlock_pred_at(block, pred_idx)
+        while runner >= 0 && runner != block_dominance_access::MirBlock_idom(block) {
+            let runner_block = function_block_queries::MirFunction_block_at(f, runner)
+            block_dominance_mutation::MirBlock_push_dom_frontier_unique(runner_block, block_identity::MirBlock_id(block))
+            runner = block_dominance_access::MirBlock_idom(runner_block)
+        }
+        pred_idx = pred_idx + 1
+    }
+}

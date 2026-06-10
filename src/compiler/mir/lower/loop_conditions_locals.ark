@@ -1,0 +1,31 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::opcodes
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR loop local update helpers.
+
+use mir::inst_const_i32
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::inst_op
+use mir::value_types
+
+fn mir_emit_increment_i32(ctx: LowerCtx, local_idx: i32) {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(local_idx))
+    let one_dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(1, one_dest))
+    let add_dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_ADD(), add_dest, local_idx, one_dest))
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(local_idx))
+}
+
+fn mir_save_stack_to_local(ctx: LowerCtx, local_idx: i32) {
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(local_idx))
+}
+
+fn mir_emit_zero_local(ctx: LowerCtx) -> i32 {
+    let idx_var = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, idx_var))
+    mir_save_stack_to_local(ctx, idx_var)
+    idx_var
+}

@@ -1,0 +1,11 @@
+// Arukellt Selfhost - CoreHIR declaration annotation child access.
+
+use corehir::type_ann_node
+
+fn decl_ann_child_count(ann: AstNode) -> i32 {
+    type_ann_node::type_ann_child_count(ann)
+}
+
+fn decl_ann_child_at(ann: AstNode, index: i32) -> AstNode {
+    type_ann_node::type_ann_child_at(ann, index)
+}

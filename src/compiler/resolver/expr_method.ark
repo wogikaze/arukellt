@@ -1,0 +1,17 @@
+// Arukellt Resolver - method call expression resolution.
+
+use resolver::ast_access
+
+fn resolve_method_call(ctx: ResolveCtx, node: AstNode) {
+    let child_count = ast_access::node_child_count(node)
+    if child_count > 0 {
+        let receiver = ast_access::node_child_at(node, 0)
+        resolve_node(ctx, receiver)
+    }
+    let mut i = 1
+    while i < child_count {
+        let arg = ast_access::node_child_at(node, i)
+        resolve_node(ctx, arg)
+        i = i + 1
+    }
+}

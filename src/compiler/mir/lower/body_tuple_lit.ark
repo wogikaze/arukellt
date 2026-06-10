@@ -1,0 +1,34 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - tuple literals.
+
+use mir::inst_local_set
+use mir::lower::aggregate
+use mir::value_types
+
+fn lower_tuple_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    let mut field_locals = Vec_new_i32()
+    let mut field_vts = Vec_new_i32()
+    let mut total_bytes = 0
+    let mut ti = 0
+    while ti < child_count {
+        let child = ast_node::node_child_at(node, ti)
+        let child_idx = lower_expr(ctx, child)
+        let child_vt = ctx_local_vt(ctx, child_idx)
+        let save_local = ctx_fresh_local(ctx, child_vt)
+        ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, child_idx))
+        push(field_locals, save_local)
+        push(field_vts, child_vt)
+        if child_vt == value_types::VT_F64() {
+            total_bytes = total_bytes + 8
+        } else {
+            total_bytes = total_bytes + 4
+        }
+        ti = ti + 1
+    }
+    aggregate::mir_emit_tuple_from_locals(ctx, field_locals, field_vts, total_bytes)
+}

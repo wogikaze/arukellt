@@ -1,0 +1,13 @@
+use corehir::expr_factory
+use corehir::kinds
+// Arukellt Selfhost - CoreHIR block/branch expression constructors.
+
+use corehir::value_types
+
+fn corehir_expr_block(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_BLOCK(), String_new(), 0, 0.0, value_types::VT_VOID(), String_new(), span_start, children)
+}
+
+fn corehir_expr_if(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_IF(), String_new(), 0, 0.0, value_types::VT_I32(), String_new(), span_start, children)
+}

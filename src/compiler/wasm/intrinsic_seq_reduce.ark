@@ -1,0 +1,115 @@
+use wasm::opcodes
+// Arukellt Selfhost - sequence sum/product intrinsic facade
+
+use wasm::ctx_scratch
+
+fn emit_sum_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_seq_i32_reduce(w, ctx, 0, opcodes::OP_I32_ADD())
+}
+
+fn emit_product_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_seq_i32_reduce(w, ctx, 1, opcodes::OP_I32_MUL())
+}
+
+fn emit_seq_i32_reduce(w: WasmWriter, ctx: SelfEmitCtx, initial_value: i32, combine_opcode: i32) -> bool {
+    let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+
+    emit_seq_i32_reduce_init(w, s0, s1, s2, s3, s4, initial_value)
+    emit_seq_i32_reduce_loop(w, s1, s2, s3, s4, combine_opcode)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s2)
+    return true
+}
+
+fn emit_seq_i32_reduce_init(w: WasmWriter, s_seq: i32, s_index: i32, s_acc: i32, s_data: i32, s_len: i32, initial_value: i32) {
+    emit_seq_i32_reduce_init_acc(w, s_seq, s_acc, initial_value)
+    emit_seq_i32_reduce_init_source(w, s_seq, s_data, s_len)
+    emit_seq_i32_reduce_init_index(w, s_index)
+}
+
+fn emit_seq_i32_reduce_init_acc(w: WasmWriter, s_seq: i32, s_acc: i32, initial_value: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_seq)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, initial_value)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_acc)
+}
+
+fn emit_seq_i32_reduce_init_source(w: WasmWriter, s_seq: i32, s_data: i32, s_len: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_seq)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_len)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_seq)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_data)
+}
+
+fn emit_seq_i32_reduce_init_index(w: WasmWriter, s_index: i32) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_index)
+}
+
+fn emit_seq_i32_reduce_loop(w: WasmWriter, s_index: i32, s_acc: i32, s_data: i32, s_len: i32, combine_opcode: i32) {
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_LOOP())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_index)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_len)
+    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+    writer_core::emit_byte(w, opcodes::OP_BR_IF())
+    writer_leb::emit_leb128_u(w, 1)
+
+    emit_seq_i32_reduce_accumulate(w, s_index, s_acc, s_data, combine_opcode)
+    emit_seq_i32_reduce_advance_index(w, s_index)
+    writer_core::emit_byte(w, opcodes::OP_BR())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_END())
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_seq_i32_reduce_accumulate(w: WasmWriter, s_index: i32, s_acc: i32, s_data: i32, combine_opcode: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_acc)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_data)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_index)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, combine_opcode)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_acc)
+}
+
+fn emit_seq_i32_reduce_advance_index(w: WasmWriter, s_index: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_index)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_index)
+}

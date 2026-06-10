@@ -1,0 +1,23 @@
+// Arukellt Selfhost - MIR lowering top-level function index prepass.
+
+use mir::lower::fn_index_mono
+use mir::lower::fn_index_source
+
+fn mir_index_top_level_fn(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, decl_index: i32, decl_name: String, fn_index: i32, source: MirLowerFnIndexSource, midx: MonoIndex) -> i32 {
+    let mut typed_index = fn_index
+    let fn_info_index = fn_index_source::mir_fn_index_source_fn_info_index_for_decl(source, decl_index)
+    if fn_info_index >= 0 {
+        typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, fn_info_index, typed_index)
+    }
+    let rvt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
+    let rtn = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
+    let entry_main_decl_index = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
+    let skip_shadow_main = eq(clone(decl_name), String_from("main")) && decl_index != entry_main_decl_index
+    if !skip_shadow_main {
+        push(fn_names, clone(decl_name))
+        push(fn_return_vts, rvt)
+        push(fn_return_type_names, clone(rtn))
+        fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, clone(decl_name), rvt, clone(rtn))
+    }
+    fn_index + 1
+}

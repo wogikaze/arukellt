@@ -1,0 +1,23 @@
+// Arukellt Resolver - pattern binding rules.
+
+use resolver::scope_define
+use resolver::ast_pattern_predicates
+use resolver::ast_access
+use resolver::kinds
+
+fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
+    if ast_pattern_predicates::node_is_pat_ident(pat) {
+        scope_define::define(ctx, ast_access::node_text(pat), commands::SYM_LOCAL())
+        return
+    }
+    if ast_pattern_predicates::node_is_pat_variant(pat) {
+        let child_count = ast_access::node_child_count(pat)
+        let mut i = 0
+        while i < child_count {
+            let sub = ast_access::node_child_at(pat, i)
+            collect_pattern_bindings(ctx, sub)
+            i = i + 1
+        }
+        return
+    }
+}

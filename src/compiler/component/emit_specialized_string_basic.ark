@@ -1,0 +1,100 @@
+use component::export_shapes_scan
+use component::constants_wit_values
+// Arukellt Selfhost - basic string specialized component dispatch
+
+use component::adapters_string
+use component::component_base
+use component::emit_string_sections
+use component::writer_core
+
+fn try_emit_basic_string_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+	let string_unary_name = export_shapes_scan::comp_single_string_unary_export_name(mir)
+	if len(string_unary_name) > 0 {
+		return emit_string_unary_component(core_wasm, string_unary_name)
+	}
+	let string_to_i32_name = export_shapes_scan::comp_single_string_to_i32_export_name(mir)
+	if len(string_to_i32_name) > 0 {
+		return emit_string_to_i32_component(core_wasm, string_to_i32_name, constants_wit_values::WIT_VAL_S32())
+	}
+	let string_to_u8_name = export_shapes_scan::comp_single_string_to_named_i32_export_name(mir, String_from("u8"))
+	if len(string_to_u8_name) > 0 {
+		return emit_string_to_u8_component(core_wasm, string_to_u8_name)
+	}
+	let string_to_u16_name = export_shapes_scan::comp_single_string_to_named_i32_export_name(mir, String_from("u16"))
+	if len(string_to_u16_name) > 0 {
+		return emit_string_to_u16_component(core_wasm, string_to_u16_name)
+	}
+	let string_to_u32_name = export_shapes_scan::comp_single_string_to_named_i32_export_name(mir, String_from("u32"))
+	if len(string_to_u32_name) > 0 {
+		return emit_string_to_u32_component(core_wasm, string_to_u32_name)
+	}
+	let string_to_i8_name = export_shapes_scan::comp_single_string_to_named_i32_export_name(mir, String_from("i8"))
+	if len(string_to_i8_name) > 0 {
+		return emit_string_to_i8_component(core_wasm, string_to_i8_name)
+	}
+	let string_to_i16_name = export_shapes_scan::comp_single_string_to_named_i32_export_name(mir, String_from("i16"))
+	if len(string_to_i16_name) > 0 {
+		return emit_string_to_i16_component(core_wasm, string_to_i16_name)
+	}
+	let string_to_bool_name = export_shapes_scan::comp_single_string_to_bool_export_name(mir)
+	if len(string_to_bool_name) > 0 {
+		return emit_string_to_bool_component(core_wasm, string_to_bool_name)
+	}
+	let string_to_char_name = export_shapes_scan::comp_single_string_to_char_export_name(mir)
+	if len(string_to_char_name) > 0 {
+		return emit_string_to_char_component(core_wasm, string_to_char_name)
+	}
+	Vec_new_i32()
+}
+
+fn emit_string_to_i32_component(core_wasm: Vec<i32>, export_name: String, result_wit_type: i32) -> Vec<i32> {
+	let out = component_base::comp_new_component_writer()
+	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_string::comp_string_to_i32_adapter_core_module(clone(export_name)))
+
+	string_sections::emit_string_abi_alias_section(out, clone(export_name))
+	string_sections::emit_string_abi_func_type_section(out, result_wit_type)
+	string_sections::emit_string_abi_canon_section(out)
+	string_sections::emit_string_abi_export_section(out, clone(export_name))
+
+	writer_core::comp_writer_bytes(out)
+}
+
+fn emit_string_to_u8_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, export_name, constants_wit_values::WIT_VAL_U8())
+}
+
+fn emit_string_to_u16_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, export_name, constants_wit_values::WIT_VAL_U16())
+}
+
+fn emit_string_to_u32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, export_name, constants_wit_values::WIT_VAL_U32())
+}
+
+fn emit_string_to_i8_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S8())
+}
+
+fn emit_string_to_i16_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S16())
+}
+
+fn emit_string_to_bool_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, export_name, constants_wit_values::WIT_VAL_BOOL())
+}
+
+fn emit_string_to_char_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_string_to_i32_component(core_wasm, export_name, constants_wit_values::WIT_VAL_CHAR())
+}
+
+fn emit_string_unary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	let out = component_base::comp_new_component_writer()
+	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_string::comp_string_unary_adapter_core_module(clone(export_name)))
+
+	string_sections::emit_string_abi_alias_section(out, clone(export_name))
+	string_sections::emit_string_abi_func_type_section(out, constants_wit_values::WIT_VAL_STRING())
+	string_sections::emit_string_abi_canon_section(out)
+	string_sections::emit_string_abi_export_section(out, clone(export_name))
+
+	writer_core::comp_writer_bytes(out)
+}

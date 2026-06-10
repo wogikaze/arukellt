@@ -1,0 +1,25 @@
+use typechecker::kinds
+// Arukellt Typechecker - built-in match exhaustiveness diagnostics
+
+use typechecker::contract_type_access
+use typechecker::match_coverage_read_record
+use typechecker::unify
+
+fn check_builtin_match_exhaustive(env: TypeEnv, resolved_scrutinee: TypeInfo, coverage: MatchCoverage) {
+    let scrutinee_tag = contract_type_access::TypeInfo_tag(resolved_scrutinee)
+    if scrutinee_tag == commands::TY_BOOL() {
+        if !match_coverage_read_record::MatchCoverage_has_bool_true(coverage) || !match_coverage_read_record::MatchCoverage_has_bool_false(coverage) {
+            unify::type_error(env, String_from("non-exhaustive match: bool requires `true` and `false` arms or a wildcard"))
+        }
+    }
+    if scrutinee_tag == commands::TY_OPTION() {
+        if !match_coverage_read_record::MatchCoverage_has_option_some(coverage) || !match_coverage_read_record::MatchCoverage_has_option_none(coverage) {
+            unify::type_error(env, String_from("non-exhaustive match: Option requires `Some` and `None` arms or a wildcard"))
+        }
+    }
+    if scrutinee_tag == commands::TY_RESULT() {
+        if !match_coverage_read_record::MatchCoverage_has_result_ok(coverage) || !match_coverage_read_record::MatchCoverage_has_result_err(coverage) {
+            unify::type_error(env, String_from("non-exhaustive match: Result requires `Ok` and `Err` arms or a wildcard"))
+        }
+    }
+}

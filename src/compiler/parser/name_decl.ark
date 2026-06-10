@@ -1,0 +1,28 @@
+// Arukellt Parser - declaration AST node display names
+
+use parser::kinds
+
+fn decl_node_kind_name(kind: i32) -> String {
+    if kind == kinds::NK_FN_DECL() {
+        return String_from("FnDecl")
+    }
+    if kind == kinds::NK_STRUCT_DECL() {
+        return String_from("StructDecl")
+    }
+    if kind == kinds::NK_ENUM_DECL() {
+        return String_from("EnumDecl")
+    }
+    if kind == kinds::NK_IMPORT() {
+        return String_from("Import")
+    }
+    if kind == kinds::NK_USE() {
+        return String_from("Use")
+    }
+    if kind == kinds::NK_TRAIT_DECL() {
+        return String_from("TraitDecl")
+    }
+    if kind == kinds::NK_IMPL_DECL() {
+        return String_from("ImplDecl")
+    }
+    String_new()
+}

@@ -1,0 +1,25 @@
+use lexer::tokens
+// Arukellt Lexer - diagnostic result assembly.
+
+use lexer::errors
+use lexer::token_state
+
+fn build_lex_result(tokens: Vec<Token>) -> LexResult {
+    let mut diagnostics: Vec<LexDiagnostic> = Vec_new_LexDiagnostic()
+    let count = len(tokens)
+    let mut i = 0
+    while i < count {
+        let tok = get_unchecked(tokens, i)
+        if token_state::Token_kind(tok) == tokens::TK_ERROR() {
+            let code = classify_lex_error(tok)
+            let msg = token_state::Token_text(tok)
+            push(diagnostics, LexDiagnostic_new(code, msg, token_state::Token_start(tok), token_state::Token_end(tok)))
+        }
+        i = i + 1
+    }
+    LexResult_new(tokens, diagnostics)
+}
+
+fn classify_lex_error(tok: Token) -> i32 {
+    errors::classify_lex_error_text(token_state::Token_text(tok))
+}

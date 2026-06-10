@@ -1,0 +1,36 @@
+use typechecker::kinds
+// Arukellt Typechecker - compound expression inference dispatch.
+
+use typechecker::ast_stmt_predicates
+use typechecker::ast_expr_predicates
+use typechecker::call
+use typechecker::infer_binary
+use typechecker::infer_block
+use typechecker::infer_closure
+use typechecker::infer_comprehension
+use typechecker::match
+
+fn infer_compound_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    if ast_expr_predicates::node_is_closure(node) {
+        return infer_closure::infer_closure_expr(env, scope, fn_sigs, enum_defs, node)
+    }
+    if ast_expr_predicates::node_is_binary(node) {
+        return infer_binary::infer_binary_expr(env, scope, fn_sigs, enum_defs, node)
+    }
+    if ast_stmt_predicates::node_is_block(node) {
+        return infer_block::infer_block_expr(env, scope, fn_sigs, enum_defs, node)
+    }
+    if ast_expr_predicates::node_is_comprehension(node) {
+        return infer_comprehension::infer_comprehension_expr(env, scope, fn_sigs, enum_defs, node)
+    }
+    if ast_expr_predicates::node_is_call(node) {
+        return call::infer_call_expr(env, scope, fn_sigs, enum_defs, node)
+    }
+    if ast_expr_predicates::node_is_method_call(node) {
+        return call::infer_method_call_expr(env, scope, fn_sigs, enum_defs, node)
+    }
+    if ast_expr_predicates::node_is_match_expr(node) {
+        return match::infer_match_expr(env, scope, fn_sigs, enum_defs, node)
+    }
+    TypeInfo_simple(commands::TY_UNKNOWN())
+}

@@ -1,0 +1,26 @@
+use typechecker::kinds
+// Arukellt Typechecker - function parameter scope binding.
+
+use typechecker::ast_access
+use typechecker::scope
+use typechecker::sigs
+use typechecker::types
+
+fn bind_fn_params(scope: LocalScope, fn_node: AstNode) {
+    let type_param_bounds = sigs::collect_type_param_bounds(ast_access::node_type_ann(fn_node))
+    let type_params = sigs::collect_type_param_names(type_param_bounds)
+    let child_count = ast_access::node_child_count(fn_node)
+    if child_count > 1 {
+        let mut p = 0
+        while p < child_count - 1 {
+            let param = ast_access::node_child_at(fn_node, p)
+            let mut param_ty = TypeInfo_simple(commands::TY_UNKNOWN())
+            if ast_access::node_type_ann_count(param) > 0 {
+                let type_node = ast_access::node_type_ann_at(param, 0)
+                param_ty = types::resolve_type_ann_node_generic(type_node, type_params)
+            }
+            scope::scope_define(scope, ast_access::node_text(param), param_ty)
+            p = p + 1
+        }
+    }
+}

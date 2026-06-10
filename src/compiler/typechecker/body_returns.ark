@@ -1,0 +1,42 @@
+// Arukellt Typechecker - function body return contract checks.
+
+use typechecker::ast_stmt_predicates
+use typechecker::ast_access
+use typechecker::contract_fn_sig
+use typechecker::infer
+use typechecker::returns
+
+fn check_fn_body_return_contract(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
+    let body_ty = infer::infer_expr(env, scope, fn_sigs, enum_defs, body)
+    returns::check_return_type_compat(env, contract_fn_sig::FnSig_name(sig), contract_fn_sig::FnSig_return_type(sig), body_ty)
+    check_return_stmts(env, scope, fn_sigs, enum_defs, sig, body)
+}
+
+fn check_return_stmts(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
+    if ast_stmt_predicates::node_is_return(body) {
+        if ast_access::node_child_count(body) > 0 {
+            let ret_val = ast_access::node_child_at(body, 0)
+            let ret_val_ty = infer::infer_expr(env, scope, fn_sigs, enum_defs, ret_val)
+            returns::check_return_type_compat(env, contract_fn_sig::FnSig_name(sig), contract_fn_sig::FnSig_return_type(sig), ret_val_ty)
+        }
+        return
+    }
+    if ast_stmt_predicates::node_is_block(body) {
+        check_child_return_stmts(env, scope, fn_sigs, enum_defs, sig, body)
+        return
+    }
+    if ast_stmt_predicates::node_is_loop_like(body) {
+        check_child_return_stmts(env, scope, fn_sigs, enum_defs, sig, body)
+        return
+    }
+}
+
+fn check_child_return_stmts(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
+    let count = ast_access::node_child_count(body)
+    let mut i = 0
+    while i < count {
+        let child = ast_access::node_child_at(body, i)
+        check_return_stmts(env, scope, fn_sigs, enum_defs, sig, child)
+        i = i + 1
+    }
+}

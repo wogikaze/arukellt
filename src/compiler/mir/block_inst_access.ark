@@ -1,0 +1,11 @@
+// Arukellt Selfhost - MIR block instruction query API.
+
+use mir::types
+
+fn MirBlock_inst_count(block: MirBlock) -> i32 {
+    len(block.instructions)
+}
+
+fn MirBlock_inst_at(block: MirBlock, idx: i32) -> MirInst {
+    get_unchecked(block.instructions, idx)
+}

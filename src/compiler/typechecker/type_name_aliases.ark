@@ -1,0 +1,26 @@
+use typechecker::kinds
+// Arukellt Typechecker - scalar alias type name resolution.
+
+use typechecker::contract_type_constructors
+
+fn resolve_alias_type_name(name: String) -> TypeInfo {
+    if eq(clone(name), "u8") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
+    }
+    if eq(clone(name), "u16") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
+    }
+    if eq(clone(name), "u32") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
+    }
+    if eq(clone(name), "u64") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_I64())
+    }
+    if eq(clone(name), "i8") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
+    }
+    if eq(clone(name), "i16") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
+    }
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}

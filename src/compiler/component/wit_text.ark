@@ -1,0 +1,120 @@
+// Arukellt Selfhost - WIT text generation facade
+
+use component::wit_decl
+use component::wit_names
+use component::wit_type_defs
+use component::wit_types
+use std::host::fs
+
+fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
+	let mut out = String_from("package arukellt:generated;\n\nworld arukellt {\n")
+	out = concat(out, wit_type_defs::emit_wit_type_defs(decls))
+	out = concat(out, emit_wit_func_exports(decls))
+	concat(out, String_from("}\n"))
+}
+
+fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
+	let mut out = String_from("")
+	let mut i = 0
+		while i < len(decls) {
+			let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
+			if wit_decl::wit_decl_is_func(decl) {
+				let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
+				let fname = wit_decl::wit_func_name(f)
+				if wit_decl::wit_func_is_export(f) {
+					out = concat(out, String_from("  export "))
+					out = concat(out, wit_names::wit_export_name(fname))
+					out = concat(out, String_from(": func("))
+					let mut pi = 0
+					while pi < wit_decl::wit_func_param_count(f) {
+						if pi > 0 {
+							out = concat(out, String_from(", "))
+						}
+						let pname = wit_decl::wit_func_param_name_at(f, pi)
+						if len(clone(pname)) > 0 {
+							out = concat(out, pname)
+						} else {
+							out = concat(out, concat(String_from("arg"), to_string(pi)))
+						}
+						out = concat(out, String_from(": "))
+						if wit_decl::wit_func_param_has_type_at(f, pi) {
+							out = concat(out, wit_types::wit_type_from_ast(wit_decl::wit_func_param_type_view_at(f, pi)))
+						} else {
+							out = concat(out, String_from("s32"))
+						}
+					pi = pi + 1
+				}
+				out = concat(out, String_from(")"))
+				let mut ret = String_new()
+				if wit_decl::wit_func_return_has_type(f) {
+					ret = wit_types::wit_type_from_ast(wit_decl::wit_func_return_type_view(f))
+				}
+				if len(ret) > 0 {
+					out = concat(out, String_from(" -> "))
+					out = concat(out, ret)
+				}
+				out = concat(out, String_from(";\n"))
+			}
+		}
+		i = i + 1
+	}
+	out
+}
+
+fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
+	let export_roots = Vec_new_String()
+	let mut i = 0
+	while i < len(decls) {
+		let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
+		if wit_decl::wit_decl_is_func(decl) {
+			let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
+			if wit_decl::wit_func_is_export(f) {
+				push(export_roots, wit_decl::wit_func_name(f))
+			}
+		}
+		i = i + 1
+	}
+	export_roots
+}
+
+fn string_to_bytes(text: String) -> Vec<i32> {
+	let mut bytes = Vec_new_i32()
+	let mut i = 0
+	while i < len(text) {
+		push(bytes, char_at(text, i))
+		i = i + 1
+	}
+	bytes
+}
+
+fn validate_wit_import_surface(paths: Vec<String>) -> String {
+	let mut i = 0
+	while i < len(paths) {
+		let path = get_unchecked(paths, i)
+		let read_result = fs::read_to_string(clone(path))
+		match read_result {
+			Result::Ok(text) => {
+				if contains(clone(text), String_from("flags")) {
+					return concat(String_from("E0090: unsupported WIT flags type in "), clone(path))
+				}
+				if contains(clone(text), String_from("resource ")) {
+					return concat(String_from("E0402: unsupported WIT resource type in "), clone(path))
+				}
+				if contains(clone(text), String_from("own<")) || contains(clone(text), String_from("borrow<")) {
+					return concat(String_from("E0402: unsupported WIT resource handle type in "), clone(path))
+				}
+				if contains(clone(text), String_from("stream<")) || contains(clone(text), String_from("future<")) {
+					return concat(String_from("E0402: unsupported WIT async resource type in "), clone(path))
+				}
+				if contains(clone(text), String_from("import ")) && contains(clone(text), String_from(": func(")) {
+					return concat(String_from("E0401: WIT function imports are not yet bound to resolver/MIR: "), clone(path))
+				}
+			},
+			Result::Err(e) => {
+				return concat(String_from("unable to read WIT file "), concat(clone(path), concat(String_from(": "), e)))
+			},
+		}
+		i = i + 1
+	}
+	String_new()
+}

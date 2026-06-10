@@ -1,0 +1,13 @@
+// Arukellt Resolver - core builtin symbol names.
+
+use resolver::builtins_core_collections
+use resolver::builtins_core_prelude
+use resolver::builtins_core_result_math
+use resolver::builtins_core_string_tail
+
+fn push_core_builtin_symbol_names(names: Vec<String>) {
+    builtins_core_prelude::push_core_prelude_builtin_symbol_names(names)
+    builtins_core_collections::push_core_collection_builtin_symbol_names(names)
+    builtins_core_result_math::push_core_result_math_builtin_symbol_names(names)
+    builtins_core_string_tail::push_core_string_tail_builtin_symbol_names(names)
+}

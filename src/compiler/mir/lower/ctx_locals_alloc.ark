@@ -1,0 +1,34 @@
+use mir::function_local_alloc
+// Arukellt MIR lowering context - local allocation and lookup.
+
+use mir::lower::ctx_current_storage
+use mir::lower::ctx_local_index_storage
+
+fn ctx_alloc_local(ctx: LowerCtx, name: String, vt: i32) -> i32 {
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    let idx = function_local_alloc::alloc_local(f, clone(name), vt)
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+    ctx_local_index_storage::ctx_local_index_push(ctx, name, idx)
+    idx
+}
+
+fn ctx_lookup_local(ctx: LowerCtx, name: String) -> i32 {
+    let count = ctx_local_index_storage::ctx_local_index_count(ctx)
+    let mut i = count - 1
+    while i >= 0 {
+        let n = ctx_local_index_storage::ctx_local_index_name_at(ctx, i)
+        if eq(clone(n), clone(name)) {
+            return ctx_local_index_storage::ctx_local_index_value_at(ctx, i)
+        }
+        i = i - 1
+    }
+    0 - 1
+}
+
+fn ctx_fresh_local(ctx: LowerCtx, vt: i32) -> i32 {
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    let idx = function_local_alloc::MirFunction_next_local(f)
+    function_local_alloc::alloc_local(f, concat(String_from("_t"), to_string(idx)), vt)
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+    idx
+}

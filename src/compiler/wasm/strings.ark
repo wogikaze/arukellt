@@ -1,0 +1,129 @@
+// Arukellt Selfhost - Wasm string constant layout planning.
+
+use wasm::constants
+use mir::module_strings
+
+struct EmitStringTablePlan {
+    string_offsets: Vec<i32>,
+    string_lengths: Vec<i32>,
+    string_values: Vec<String>,
+    data_offset: i32,
+    true_idx: i32,
+    false_idx: i32,
+}
+
+struct EmitStringBoolLiteralPlan {
+    data_offset: i32,
+    true_idx: i32,
+    false_idx: i32,
+}
+
+fn EmitStringTablePlan_offsets(plan: EmitStringTablePlan) -> Vec<i32> {
+    plan.string_offsets
+}
+
+fn EmitStringTablePlan_lengths(plan: EmitStringTablePlan) -> Vec<i32> {
+    plan.string_lengths
+}
+
+fn EmitStringTablePlan_values(plan: EmitStringTablePlan) -> Vec<String> {
+    plan.string_values
+}
+
+fn EmitStringTablePlan_data_offset(plan: EmitStringTablePlan) -> i32 {
+    plan.data_offset
+}
+
+fn EmitStringTablePlan_true_idx(plan: EmitStringTablePlan) -> i32 {
+    plan.true_idx
+}
+
+fn EmitStringTablePlan_false_idx(plan: EmitStringTablePlan) -> i32 {
+    plan.false_idx
+}
+
+fn prepare_string_table(mir: MirModule) -> EmitStringTablePlan {
+    let str_count = module_strings::MirModule_string_constant_count(mir)
+    let string_offsets = Vec_new_i32()
+    let string_lengths = Vec_new_i32()
+    let mut data_offset = emit_string_layout_existing_constants(mir, str_count, string_offsets, string_lengths)
+    let bool_plan = emit_string_layout_ensure_bool_literals(mir, str_count, string_offsets, string_lengths, data_offset)
+    data_offset = EmitStringBoolLiteralPlan_data_offset(bool_plan)
+    let true_idx = EmitStringBoolLiteralPlan_true_idx(bool_plan)
+    let false_idx = EmitStringBoolLiteralPlan_false_idx(bool_plan)
+    let string_values = module_strings::MirModule_string_constants(mir)
+    EmitStringTablePlan { string_offsets: string_offsets, string_lengths: string_lengths, string_values: string_values, data_offset: data_offset, true_idx: true_idx, false_idx: false_idx }
+}
+
+fn emit_string_layout_existing_constants(mir: MirModule, str_count: i32, string_offsets: Vec<i32>, string_lengths: Vec<i32>) -> i32 {
+    let mut data_offset = constants::DATA_START()
+    let mut si = 0
+    while si < str_count {
+        let s = module_strings::MirModule_string_constant_at(mir, si)
+        let slen = len(s)
+        push(string_offsets, data_offset + 4)
+        push(string_lengths, slen)
+        data_offset = data_offset + 4 + slen
+        si = si + 1
+    }
+    data_offset
+}
+
+fn EmitStringBoolLiteralPlan_new(data_offset: i32, true_idx: i32, false_idx: i32) -> EmitStringBoolLiteralPlan {
+    EmitStringBoolLiteralPlan { data_offset: data_offset, true_idx: true_idx, false_idx: false_idx }
+}
+
+fn EmitStringBoolLiteralPlan_data_offset(plan: EmitStringBoolLiteralPlan) -> i32 {
+    plan.data_offset
+}
+
+fn EmitStringBoolLiteralPlan_true_idx(plan: EmitStringBoolLiteralPlan) -> i32 {
+    plan.true_idx
+}
+
+fn EmitStringBoolLiteralPlan_false_idx(plan: EmitStringBoolLiteralPlan) -> i32 {
+    plan.false_idx
+}
+
+fn emit_string_layout_ensure_bool_literals(mir: MirModule, str_count: i32, string_offsets: Vec<i32>, string_lengths: Vec<i32>, initial_data_offset: i32) -> EmitStringBoolLiteralPlan {
+    let scan_plan = scan_string_layout_bool_literals(mir, str_count, initial_data_offset)
+    append_missing_string_layout_bool_literals(mir, string_offsets, string_lengths, scan_plan)
+}
+
+fn scan_string_layout_bool_literals(mir: MirModule, str_count: i32, data_offset: i32) -> EmitStringBoolLiteralPlan {
+    let mut true_idx = 0 - 1
+    let mut false_idx = 0 - 1
+    let mut bi = 0
+    while bi < str_count {
+        let bs = module_strings::MirModule_string_constant_at(mir, bi)
+        if eq(clone(bs), "true") {
+            true_idx = bi
+        }
+        if eq(clone(bs), "false") {
+            false_idx = bi
+        }
+        bi = bi + 1
+    }
+    EmitStringBoolLiteralPlan_new(data_offset, true_idx, false_idx)
+}
+
+fn append_missing_string_layout_bool_literals(mir: MirModule, string_offsets: Vec<i32>, string_lengths: Vec<i32>, plan: EmitStringBoolLiteralPlan) -> EmitStringBoolLiteralPlan {
+    let mut data_offset = EmitStringBoolLiteralPlan_data_offset(plan)
+    let mut true_idx = EmitStringBoolLiteralPlan_true_idx(plan)
+    let mut false_idx = EmitStringBoolLiteralPlan_false_idx(plan)
+    if true_idx < 0 {
+        true_idx = module_strings::MirModule_string_constant_count(mir)
+        module_strings::MirModule_push_string_constant(mir, String_from("true"))
+        push(string_offsets, data_offset + 4)
+        push(string_lengths, 4)
+        data_offset = data_offset + 4 + 4
+    }
+    if false_idx < 0 {
+        false_idx = module_strings::MirModule_string_constant_count(mir)
+        module_strings::MirModule_push_string_constant(mir, String_from("false"))
+        push(string_offsets, data_offset + 4)
+        push(string_lengths, 5)
+        data_offset = data_offset + 4 + 5
+    }
+    EmitStringBoolLiteralPlan_new(data_offset, true_idx, false_idx)
+}

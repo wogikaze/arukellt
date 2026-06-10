@@ -1,0 +1,57 @@
+use typechecker::kinds
+// Arukellt Typechecker - type variable resolution
+
+use typechecker::contract_type_constructors
+use typechecker::contract_type_access
+use typechecker::contract_type_mutation
+use typechecker::contract_typevar
+use typechecker::contract_env_vars_record
+
+fn resolve_type(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
+    resolve_type_depth(env, ty, 0)
+}
+
+fn resolve_type_depth(env: TypeEnv, ty: TypeInfo, depth: i32) -> TypeInfo {
+    if depth > 64 {
+        return ty
+    }
+    if contract_type_access::TypeInfo_tag(ty) != commands::TY_TYPE_VAR() {
+        return ty
+    }
+    let count = contract_env_vars_record::type_env_var_count(env)
+    let mut i = 0
+    while i < count {
+        let tv = contract_env_vars_record::type_env_var_at(env, i)
+        if eq(contract_typevar::TypeVar_name(tv), contract_type_access::TypeInfo_name(ty)) {
+            if contract_typevar::TypeVar_is_bound(tv) {
+                return resolve_type_depth(env, contract_typevar::TypeVar_bound(tv), depth + 1)
+            }
+            return ty
+        }
+        i = i + 1
+    }
+    ty
+}
+
+fn resolve_type_deep(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
+    resolve_type_deep_depth(env, ty, 0)
+}
+
+fn resolve_type_deep_depth(env: TypeEnv, ty: TypeInfo, depth: i32) -> TypeInfo {
+    if depth > 64 {
+        return ty
+    }
+    let head = resolve_type_depth(env, ty, depth)
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(head)
+    if arg_count == 0 {
+        return head
+    }
+    let res = contract_type_constructors::TypeInfo_empty_like(head)
+    let mut i = 0
+    while i < arg_count {
+        let arg = contract_type_access::TypeInfo_type_arg_at(head, i)
+        contract_type_mutation::TypeInfo_push_type_arg(res, resolve_type_deep_depth(env, arg, depth + 1))
+        i = i + 1
+    }
+    res
+}

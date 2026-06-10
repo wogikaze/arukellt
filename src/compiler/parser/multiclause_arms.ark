@@ -1,0 +1,15 @@
+use parser::core_ast_children
+// Arukellt Parser - multi-clause match arm construction.
+
+use parser::multiclause_arm_build
+
+
+fn append_clause_match_arms(match_node: AstNode, clauses: Vec<AstNode>, fn_span: Span) {
+    let mut ci = 0
+    while ci < len(clauses) {
+        let clause = get_unchecked(clauses, ci)
+        let arm = multiclause_arm_build::build_clause_match_arm(clause, fn_span)
+        core_ast_children::AstNode_push_child(match_node, arm)
+        ci = ci + 1
+    }
+}

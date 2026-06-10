@@ -1,0 +1,31 @@
+// Arukellt Selfhost - resolver public boundary.
+
+use resolver::modules
+use resolver::paths
+use resolver::program
+use resolver::register
+use resolver::scope_metrics
+
+pub fn use_module_short_name(path: String) -> String {
+    paths::use_module_short_name(path)
+}
+
+pub fn register_module_export(ctx: ResolveCtx, module_name: String, symbol_name: String, kind: i32, is_pub: bool) {
+    register::register_module_export(ctx, module_name, symbol_name, kind, is_pub)
+}
+
+pub fn ModuleDecls_new(name: String, decls: Vec<AstNode>) -> ModuleDecls {
+    modules::ModuleDecls_new(name, decls)
+}
+
+pub fn resolve_module(decls: Vec<AstNode>) -> ResolveCtx {
+    program::resolve_program(decls, Vec_new_ModuleDecls())
+}
+
+pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> ResolveCtx {
+    program::resolve_program(decls, modules)
+}
+
+pub fn count_user_symbols(ctx: ResolveCtx) -> i32 {
+    scope_metrics::count_user_symbols(ctx)
+}

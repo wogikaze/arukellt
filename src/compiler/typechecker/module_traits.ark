@@ -1,0 +1,13 @@
+// Arukellt Typechecker - trait implementation declaration registration.
+
+use typechecker::traits
+
+fn register_trait_impl_decls(env: TypeEnv, decls: Vec<AstNode>) {
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let node = get_unchecked(decls, i)
+        traits::maybe_register_impl_decl(env, node)
+        i = i + 1
+    }
+}

@@ -1,0 +1,12 @@
+use lexer::tokens
+// Arukellt Parser - where clause placeholder parsing.
+
+use parser::core_api_cursor
+
+fn parse_optional_where_clause_stub(p: Parser) {
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) != tokens::TK_WHERE() {
+        return
+    }
+    p.pos = p.pos + 1
+}

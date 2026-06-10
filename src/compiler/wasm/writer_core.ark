@@ -1,0 +1,38 @@
+// Arukellt Selfhost - core Wasm binary writer.
+
+pub struct WasmWriter {
+    bytes: Vec<i32>,
+}
+
+fn WasmWriter_new() -> WasmWriter {
+    WasmWriter { bytes: Vec_new_i32() }
+}
+
+fn emit_byte(w: WasmWriter, b: i32) {
+    push(w.bytes, b % 256)
+}
+
+fn emit_u32_le(w: WasmWriter, v: i32) {
+    emit_byte(w, v % 256)
+    emit_byte(w, v / 256 % 256)
+    emit_byte(w, v / 65536 % 256)
+    emit_byte(w, v / 16777216 % 256)
+}
+
+fn emit_bytes(w: WasmWriter, src: Vec<i32>) {
+    let count = len(src)
+    let mut i = 0
+    while i < count {
+        let b = get_unchecked(src, i)
+        emit_byte(w, b)
+        i = i + 1
+    }
+}
+
+fn writer_size(w: WasmWriter) -> i32 {
+    len(w.bytes)
+}
+
+fn writer_bytes(w: WasmWriter) -> Vec<i32> {
+    w.bytes
+}

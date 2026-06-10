@@ -1,0 +1,44 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR call rewrite rules for to_string.
+
+struct MirStringCallRewrite {
+    callee_name: String,
+    return_local: i32,
+}
+
+fn mir_string_call_rewrite_new(callee_name: String, return_local: i32) -> MirStringCallRewrite {
+    MirStringCallRewrite { callee_name: callee_name, return_local: return_local }
+}
+
+fn mir_string_call_rewrite_callee_name(rewrite: MirStringCallRewrite) -> String {
+    clone(rewrite.callee_name)
+}
+
+fn mir_string_call_rewrite_return_local(rewrite: MirStringCallRewrite) -> i32 {
+    rewrite.return_local
+}
+
+fn mir_rewrite_to_string(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> MirStringCallRewrite {
+    let mut rewritten = callee_name
+    let mut return_local = 0 - 1
+    if first_arg_idx >= 0 {
+        let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        if eq(clone(arg_type), "char") {
+            rewritten = String_from("char_to_string")
+        } else {
+            if eq(clone(arg_type), "f64") {
+                rewritten = String_from("f64_to_string")
+            } else {
+                if eq(clone(arg_type), "bool") {
+                    rewritten = String_from("bool_to_string")
+                } else {
+                    if eq(clone(arg_type), "string") || eq(clone(arg_type), "String") {
+                        return_local = first_arg_idx
+                    }
+                }
+            }
+        }
+    }
+    mir_string_call_rewrite_new(rewritten, return_local)
+}

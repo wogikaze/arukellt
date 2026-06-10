@@ -1,0 +1,14 @@
+// Arukellt LSP - definition request handling.
+
+use lsp::feature_symbol
+use lsp::framing
+use lsp::responses
+
+pub fn handle_definition(state: LspState, body: String) {
+    let sym = feature_symbol::resolve_symbol_request(state, body)
+    if !feature_symbol::symbol_request_found(sym) {
+        framing::append_framed(state, responses::build_null_response(feature_symbol::symbol_request_id(sym)))
+        return
+    }
+    framing::append_framed(state, responses::build_definition_response(feature_symbol::symbol_request_id(sym), feature_symbol::symbol_request_uri(sym), feature_symbol::symbol_request_start(sym), feature_symbol::symbol_request_end(sym)))
+}

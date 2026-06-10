@@ -1,0 +1,10 @@
+// Arukellt Selfhost - MIR call instruction constructor.
+
+use mir::inst_factory
+use mir::opcodes
+use mir::types
+use mir::value_types
+
+fn MirInst_call(callee: String, arg_count: i32, dest: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_CALL(), dest, 0 - 1, 0 - 1, arg_count, 0.0, callee, value_types::VT_VOID())
+}

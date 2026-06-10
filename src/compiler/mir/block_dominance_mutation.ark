@@ -1,0 +1,39 @@
+// Arukellt Selfhost - MIR block dominance mutation API.
+
+use mir::types_block
+
+fn MirBlock_set_idom(block: MirBlock, idom: i32) {
+    block.idom = idom
+}
+
+fn MirBlock_reset_idom(block: MirBlock) {
+    block.idom = 0 - 1
+}
+
+fn MirBlock_set_dom_set(block: MirBlock, dom_set: Vec<i32>) {
+    block.dom_set = dom_set
+}
+
+fn MirBlock_reset_dom_set(block: MirBlock) {
+    block.dom_set = Vec_new_i32()
+}
+
+fn MirBlock_push_dom_set(block: MirBlock, block_id: i32) {
+    push(block.dom_set, block_id)
+}
+
+fn MirBlock_reset_dom_frontier(block: MirBlock) {
+    block.dom_frontier = Vec_new_i32()
+}
+
+fn MirBlock_push_dom_frontier_unique(block: MirBlock, block_id: i32) {
+    let count = len(block.dom_frontier)
+    let mut i = 0
+    while i < count {
+        if get_unchecked(block.dom_frontier, i) == block_id {
+            return
+        }
+        i = i + 1
+    }
+    push(block.dom_frontier, block_id)
+}

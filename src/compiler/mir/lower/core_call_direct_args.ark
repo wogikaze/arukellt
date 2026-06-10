@@ -1,0 +1,30 @@
+// Arukellt Selfhost - MIR lowering for direct CoreHIR call argument loop.
+
+use mir::lower::call_emit
+use mir::lower::core_call_args
+use mir::lower::core_call_direct_arg
+use mir::lower::core_expr_shape_accessors
+
+fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {
+    let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+    let is_println = core_call_args::mir_core_is_printlike_callee(clone(callee_name))
+    let stage_call_args = eq(clone(callee_name), "push")
+    let staged_arg_locals = Vec_new_i32()
+    let mut first_arg_idx = 0 - 1
+    let mut second_arg_idx = 0 - 1
+    let mut a = 1
+    while a < child_count {
+        let arg_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+        let mut arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+        arg_idx = core_call_direct_arg::mir_lower_core_direct_print_arg(ctx, arg_expr, arg_idx, is_println, a)
+        arg_idx = core_call_direct_arg::mir_lower_core_direct_stage_arg(ctx, staged_arg_locals, arg_idx, stage_call_args)
+        if a == 1 {
+            first_arg_idx = arg_idx
+        }
+        if a == 2 {
+            second_arg_idx = arg_idx
+        }
+        a = a + 1
+    }
+    call_emit::mir_emit_direct_call(ctx, callee_name, child_count - 1, first_arg_idx, second_arg_idx, staged_arg_locals, stage_call_args, core_expr_shape_accessors::mir_core_expr_span_start(expr))
+}

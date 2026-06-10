@@ -1,0 +1,14 @@
+// Arukellt Selfhost - MIR conversion instruction constructors.
+
+use mir::inst_factory
+use mir::opcodes
+use mir::types
+use mir::value_types
+
+fn MirInst_extend_i32_to_i64(dest: i32, arg: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_EXTEND_I32_TO_I64(), dest, arg, 0 - 1, 0, 0.0, String_new(), value_types::VT_I64())
+}
+
+fn MirInst_extend_i32_to_i64_stack() -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_EXTEND_I32_TO_I64(), 0 - 1, 0 - 1, 0 - 1, 0, 0.0, String_new(), value_types::VT_I64())
+}

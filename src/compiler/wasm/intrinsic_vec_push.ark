@@ -1,0 +1,205 @@
+use wasm::opcodes
+// Arukellt Selfhost - vec push intrinsic facade
+
+use wasm::ctx_scratch
+
+// Handler for: vec_push, push
+fn emit_push(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool) -> bool {
+    let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_data = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_newdata = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_val)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_vec)
+    emit_vec_push_grow_if_full(w, s_vec, s_data, s_cap, s_newdata, 4)
+    emit_vec_push_store_i32(w, s_vec, s_val)
+    if is_void_push {
+        writer_core::emit_byte(w, opcodes::OP_DROP())
+    }
+    return true
+}
+
+fn emit_vec_push_grow_if_full(w: WasmWriter, vec_local: i32, data_local: i32, cap_local: i32, newdata_local: i32, elem_size: i32) {
+    emit_vec_push_growth_if_full(w, vec_local, cap_local)
+    emit_vec_push_growth_alloc(w, cap_local, newdata_local, elem_size)
+    emit_vec_push_growth_copy_existing(w, vec_local, data_local, newdata_local, elem_size)
+    emit_vec_push_growth_update_header(w, vec_local, cap_local, newdata_local)
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_vec_push_growth_if_full(w: WasmWriter, vec_local: i32, cap_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+    writer_leb::emit_leb128_u(w, cap_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_vec_push_growth_alloc(w: WasmWriter, cap_local: i32, newdata_local: i32, elem_size: i32) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, newdata_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, newdata_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, cap_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 2)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, elem_size)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
+    writer_leb::emit_leb128_u(w, 0)
+}
+
+fn emit_vec_push_growth_copy_existing(w: WasmWriter, vec_local: i32, data_local: i32, newdata_local: i32, elem_size: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, data_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, newdata_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, data_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, elem_size)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, 252)
+    writer_leb::emit_leb128_u(w, 10)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_vec_push_growth_update_header(w: WasmWriter, vec_local: i32, cap_local: i32, newdata_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, newdata_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, cap_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 2)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_vec_push_store_i32(w: WasmWriter, vec_local: i32, value_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, value_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    emit_vec_push_increment_len_and_leave_vec(w, vec_local)
+}
+
+fn emit_vec_push_store_i64(w: WasmWriter, vec_local: i32, value_local: i32) {
+    emit_vec_push_store_wide(w, vec_local, value_local, opcodes::OP_I64_STORE())
+}
+
+fn emit_vec_push_store_f64(w: WasmWriter, vec_local: i32, value_local: i32) {
+    emit_vec_push_store_wide(w, vec_local, value_local, opcodes::OP_F64_STORE())
+}
+
+fn emit_vec_push_store_wide(w: WasmWriter, vec_local: i32, value_local: i32, store_opcode: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, value_local)
+    writer_core::emit_byte(w, store_opcode)
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    emit_vec_push_increment_len_and_leave_vec(w, vec_local)
+}
+
+fn emit_vec_push_increment_len_and_leave_vec(w: WasmWriter, vec_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+}

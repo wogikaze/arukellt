@@ -1,0 +1,15 @@
+use wasm::opcodes
+// Arukellt Selfhost - vec emptiness intrinsic handler.
+
+
+// Handler for: is_empty
+fn emit_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+    return true
+}

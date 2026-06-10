@@ -1,0 +1,14 @@
+use lexer::tokens
+use parser::kinds
+// Arukellt Parser - Pratt comparison binary operator mapping.
+
+
+fn token_to_compare_binop(kind: i32) -> i32 {
+    if kind == tokens::TK_EQEQ() { return kinds::OP_EQ() }
+    if kind == tokens::TK_BANGEQ() { return kinds::OP_NEQ() }
+    if kind == tokens::TK_LT() { return kinds::OP_LT() }
+    if kind == tokens::TK_LTEQ() { return kinds::OP_LTEQ() }
+    if kind == tokens::TK_GT() { return kinds::OP_GT() }
+    if kind == tokens::TK_GTEQ() { return kinds::OP_GTEQ() }
+    0
+}

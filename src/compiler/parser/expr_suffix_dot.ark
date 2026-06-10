@@ -1,0 +1,30 @@
+use lexer::tokens
+use parser::core_ast_text_fields
+use parser::core_ast_span_fields
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - field and method call suffixes
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::expr_suffix_args
+use parser::token_state
+
+pub fn parse_dot_suffix(p: Parser, lhs: AstNode) -> AstNode {
+    p.pos = p.pos + 1
+    skip_newlines(p)
+    let field_tok = expect_token(p, tokens::TK_IDENT())
+    if peek_kind(p) == tokens::TK_LPAREN() {
+        p.pos = p.pos + 1
+        let node = AstNode_new(kinds::NK_METHOD_CALL(), core_ast_span_fields::AstNode_span(lhs))
+        core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(field_tok))
+        core_ast_children::AstNode_push_child(node, lhs)
+        expr_suffix_args::parse_call_args(p, node)
+        return node
+    }
+    let node = AstNode_new(kinds::NK_FIELD_ACCESS(), core_ast_span_fields::AstNode_span(lhs))
+    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(field_tok))
+    core_ast_children::AstNode_push_child(node, lhs)
+    node
+}

@@ -1,0 +1,28 @@
+// Arukellt Selfhost - MIR loop scope state.
+
+struct MirLoopScope {
+    prev_break: i32,
+    prev_continue: i32,
+    prev_break_local: i32,
+    break_result: i32,
+}
+
+fn mir_loop_scope_new(prev_break: i32, prev_continue: i32, prev_break_local: i32, break_result: i32) -> MirLoopScope {
+    MirLoopScope { prev_break: prev_break, prev_continue: prev_continue, prev_break_local: prev_break_local, break_result: break_result }
+}
+
+fn mir_loop_scope_prev_break(scope: MirLoopScope) -> i32 {
+    scope.prev_break
+}
+
+fn mir_loop_scope_prev_continue(scope: MirLoopScope) -> i32 {
+    scope.prev_continue
+}
+
+fn mir_loop_scope_prev_break_local(scope: MirLoopScope) -> i32 {
+    scope.prev_break_local
+}
+
+fn mir_loop_scope_break_result(scope: MirLoopScope) -> i32 {
+    scope.break_result
+}

@@ -1,0 +1,129 @@
+use wasm::constants
+use wasm::intrinsics::helpers_control_branch
+use wasm::intrinsics::helpers_control_loop
+use wasm::intrinsics::helpers_control_structured
+use wasm::intrinsics::helpers_core_calls
+use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_core_stack
+use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_const
+
+fn emit_fs_read_open_error(w: WasmWriter) {
+    emit_fs_read_open_error_message(w)
+    emit_fs_read_result_pair(w, 1)
+}
+
+fn emit_fs_read_open_error_message(w: WasmWriter) {
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 15)
+    helpers_memory_access::emit_i32_store_default(w)
+    let err_msg_fo = "file open error"
+    let mut ebi = 0
+    while ebi < 15 {
+        helpers_core_heap::emit_heap_get(w)
+        helpers_numeric_i32_const::emit_i32_const(w, 4 + ebi)
+        helpers_numeric_i32_arith::emit_i32_add(w)
+        helpers_numeric_i32_const::emit_i32_const(w, char_at(err_msg_fo, ebi))
+        helpers_memory_access::emit_i32_store8_default(w)
+        ebi = ebi + 1
+    }
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_STRPTR())
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 19)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+}
+
+fn emit_fs_read_loop(w: WasmWriter) {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_core_heap::emit_heap_get(w)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+    helpers_control_loop::emit_block_loop_header(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_IOV())
+    helpers_core_heap::emit_heap_get(w)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_IOV() + 4)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::FS_BUF_SIZE())
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_FD())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_IOV())
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_NREAD())
+    helpers_core_calls::emit_call(w, 4)
+    helpers_core_stack::emit_drop(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_NREAD())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_compare::emit_i32_eqz(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_NREAD())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+    helpers_control_branch::emit_br(w, 0)
+    helpers_control_structured::emit_end(w)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_fs_read_success(w: WasmWriter) {
+    emit_fs_read_success_len_header(w)
+    emit_fs_read_success_close_fd(w)
+    emit_fs_read_success_strptr(w)
+    emit_fs_read_result_pair(w, 0)
+}
+
+fn emit_fs_read_success_len_header(w: WasmWriter) {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_fs_read_success_close_fd(w: WasmWriter) {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_FD())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_core_calls::emit_call(w, 5)
+    helpers_core_stack::emit_drop(w)
+}
+
+fn emit_fs_read_success_strptr(w: WasmWriter) {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_STRPTR())
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_fs_read_result_pair(w: WasmWriter, tag: i32) {
+    helpers_core_heap::emit_heap_get(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, tag)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_STRPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 8)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+}

@@ -1,0 +1,44 @@
+// Arukellt Selfhost - component export contract feature gate data.
+
+use component::contract_allows_numeric
+use component::contract_allows_record_record
+use component::contract_allows_string_record
+use component::contract_allows_tuple
+
+pub struct ComponentContractAllows {
+    record_allows: ComponentRecordAllows,
+    string_allows: ComponentStringAllows,
+    collection_allows: ComponentCollectionAllows,
+    numeric_allows: ComponentNumericAllows,
+    tuple_allows: ComponentTupleAllows,
+}
+
+fn ComponentContractAllows_new(record_allows: ComponentRecordAllows, string_allows: ComponentStringAllows, collection_allows: ComponentCollectionAllows, numeric_allows: ComponentNumericAllows, tuple_allows: ComponentTupleAllows) -> ComponentContractAllows {
+    ComponentContractAllows {
+        record_allows: record_allows,
+        string_allows: string_allows,
+        collection_allows: collection_allows,
+        numeric_allows: numeric_allows,
+        tuple_allows: tuple_allows,
+    }
+}
+
+fn ComponentContractAllows_record(allows: ComponentContractAllows) -> ComponentRecordAllows {
+    allows.record_allows
+}
+
+fn ComponentContractAllows_string(allows: ComponentContractAllows) -> ComponentStringAllows {
+    allows.string_allows
+}
+
+fn ComponentContractAllows_collection(allows: ComponentContractAllows) -> ComponentCollectionAllows {
+    allows.collection_allows
+}
+
+fn ComponentContractAllows_numeric(allows: ComponentContractAllows) -> ComponentNumericAllows {
+    allows.numeric_allows
+}
+
+fn ComponentContractAllows_tuple(allows: ComponentContractAllows) -> ComponentTupleAllows {
+    allows.tuple_allows
+}

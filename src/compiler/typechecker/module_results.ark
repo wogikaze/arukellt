@@ -1,0 +1,27 @@
+use typechecker::kinds
+// Arukellt Typechecker - typed function result collection.
+
+use typechecker::ast_access
+use typechecker::contract_result_state
+use typechecker::types
+
+fn typed_fn_return_type(node: AstNode) -> TypeInfo {
+    let mut return_type = TypeInfo_simple(commands::TY_UNIT())
+    let ann_count = ast_access::node_type_ann_count(node)
+    let mut j = 0
+    while j < ann_count {
+        let ann = ast_access::node_type_ann_at(node, j)
+        if eq(ast_access::node_text(ann), "__return") {
+            if ast_access::node_child_count(ann) > 0 {
+                let ret_node = ast_access::node_child_at(ann, 0)
+                return_type = types::resolve_type_ann_node(ret_node)
+            }
+        }
+        j = j + 1
+    }
+    return_type
+}
+
+fn append_typed_fn(result: TypeCheckResult, node: AstNode) {
+    contract_result_state::typecheck_result_push_typed_fn(result, ast_access::node_text(node), typed_fn_return_type(node))
+}

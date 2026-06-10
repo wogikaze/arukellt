@@ -1,0 +1,8 @@
+// Arukellt Selfhost - MIR data contract.
+//
+// This module exposes MIR shape without depending on MIR builders, opcodes, or
+// lowering helpers.
+
+use mir::types_block
+use mir::types_function
+use mir::inst_record

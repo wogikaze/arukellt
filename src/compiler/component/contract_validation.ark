@@ -1,0 +1,87 @@
+// Arukellt Selfhost - component export surface validation.
+
+use component::contract_allows
+use component::contract_helpers
+use component::contract_special
+use component::contract_type_support_composite
+use component::contract_type_support_named
+use component::type_node
+
+fn component_type_supported_for_func(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    if contract_type_support_composite::component_composite_type_supported(ty, allows) {
+        return true
+    }
+    if type_node::type_node_is_named_kind(ty) {
+        return contract_type_support_named::component_named_type_supported(ty, allows)
+    }
+    false
+}
+
+fn component_param_type_supported_for_func_at(f: ComponentExportFunc, idx: i32, allows: ComponentContractAllows) -> bool {
+    if !contract_helpers::component_export_param_has_type_at(f, idx) {
+        return false
+    }
+    component_type_supported_for_func(contract_helpers::component_export_param_type_view_at(f, idx), allows)
+}
+
+fn component_return_type_supported_for_func(f: ComponentExportFunc, allows: ComponentContractAllows) -> bool {
+    if !contract_helpers::component_export_return_has_type(f) {
+        return true
+    }
+    component_type_supported_for_func(contract_helpers::component_export_return_type_view(f), allows)
+}
+
+fn validate_export_params(f: ComponentExportFunc, fname: String, allows: ComponentContractAllows) -> String {
+    let mut pi = 0
+    while pi < contract_helpers::component_export_param_count(f) {
+        if !contract_helpers::component_export_param_has_type_at(f, pi) {
+            return concat(String_from("E0401: component export requires explicit parameter type annotations: "), clone(fname))
+        }
+        if !component_param_type_supported_for_func_at(f, pi, allows) {
+            return concat(String_from("E0401: component export uses a type not yet supported by canonical ABI: "), clone(fname))
+        }
+        pi = pi + 1
+    }
+    String_new()
+}
+
+fn validate_export_returns(f: ComponentExportFunc, fname: String, allows: ComponentContractAllows) -> String {
+    if !component_return_type_supported_for_func(f, allows) {
+        return concat(String_from("E0401: component export uses a type not yet supported by canonical ABI: "), clone(fname))
+    }
+    String_new()
+}
+
+fn validate_export_function(f: AstNode, allows: ComponentContractAllows) -> String {
+    let func = contract_helpers::component_func_from_decl(f)
+    let fname = contract_helpers::component_export_func_name(func)
+    let sig_error = contract_special::component_specialized_signature_error(f, allows)
+    if len(sig_error) > 0 {
+        return sig_error
+    }
+    let param_error = validate_export_params(func, clone(fname), allows)
+    if len(param_error) > 0 {
+        return param_error
+    }
+    let return_error = validate_export_returns(func, clone(fname), allows)
+    if len(return_error) > 0 {
+        return return_error
+    }
+    String_new()
+}
+
+fn validate_export_surface(decls: Vec<AstNode>) -> String {
+    let allows = contract_allows::component_contract_allows(decls)
+    let mut i = 0
+    while i < len(decls) {
+        let f = get_unchecked(decls, i)
+        if contract_helpers::is_export_func_decl(f) {
+            let export_error = validate_export_function(f, allows)
+            if len(export_error) > 0 {
+                return export_error
+            }
+        }
+        i = i + 1
+    }
+    String_new()
+}

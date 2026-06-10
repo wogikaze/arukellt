@@ -1,0 +1,26 @@
+// Arukellt Selfhost - frontend parameter nodes to CoreHIR parameter facts.
+
+use corehir::param
+use corehir::param_shape_local
+use corehir::param_shape_node
+use corehir::param_shape_value
+use corehir::type_ann_param_name
+
+fn param_type_name(node: AstNode) -> String {
+    if param_shape_node::param_has_type_ann(clone(node)) {
+        return type_ann_param_name::type_ann_shape_param_type_name(param_shape_node::param_type_ann(node))
+    }
+    String_new()
+}
+
+fn fn_param_from_node(node: AstNode) -> CoreHirParam {
+    let name = param_shape_node::param_name(clone(node))
+    let bindable = param_shape_node::param_is_ident(clone(node))
+    param::CoreHirParam_new(name, param_shape_value::fn_param_value_type(clone(node)), param_type_name(clone(node)), param_shape_local::fn_param_local_type_name(node), bindable, false)
+}
+
+fn method_param_from_node(node: AstNode) -> CoreHirParam {
+    let name = param_shape_node::param_name(clone(node))
+    let bindable = param_shape_node::param_is_ident(clone(node))
+    param::CoreHirParam_new(clone(name), param_shape_value::method_param_value_type(clone(node)), param_type_name(clone(node)), param_shape_local::method_param_local_type_name(node), bindable, param_shape_node::param_is_self_name(name))
+}

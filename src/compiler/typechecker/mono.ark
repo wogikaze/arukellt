@@ -1,0 +1,21 @@
+// Arukellt Typechecker - monomorphization bookkeeping helpers
+
+use typechecker::mono_instances
+use typechecker::mono_key
+use typechecker::mono_sites
+
+fn mono_type_key(ty: TypeInfo) -> String {
+    mono_key::mono_type_key(ty)
+}
+
+fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
+    mono_instances::record_mono_instance(env, fn_name, resolved_types)
+}
+
+fn record_mono_call_site(env: TypeEnv, span_start: i32, fn_name: String, mangled_name: String) {
+    mono_sites::record_mono_call_site(env, span_start, fn_name, mangled_name)
+}
+
+fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> bool {
+    mono_instances::has_mono_instance_for(mono_instances, fn_name)
+}

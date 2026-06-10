@@ -1,0 +1,38 @@
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR body builder for unary and binary expressions.
+
+use corehir::expr_builder_ops
+use corehir::expr_predicates
+use corehir::expr_node_access
+
+fn corehir_build_binary_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let child_count = expr_node_access::expr_child_count(node)
+    if child_count < 2 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let children = Vec_new_i32()
+    let left_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
+    let right_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 1))
+    push(children, left_index)
+    push(children, right_index)
+    let left_expr = corehir_body_expr_at(table, left_index)
+    let right_expr = corehir_body_expr_at(table, right_index)
+    if expr_predicates::expr_is_unsupported(left_expr) || expr_predicates::expr_is_unsupported(right_expr) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_ops::corehir_expr_binary(expr_node_access::expr_op(node), left_expr, right_expr, expr_node_access::expr_span_start(node), children))
+}
+
+fn corehir_build_unary_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    if expr_node_access::expr_child_count(node) < 1 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let children = Vec_new_i32()
+    let operand_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
+    push(children, operand_index)
+    let operand_expr = corehir_body_expr_at(table, operand_index)
+    if expr_predicates::expr_is_unsupported(operand_expr) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_ops::corehir_expr_unary(expr_node_access::expr_op(node), operand_expr, expr_node_access::expr_span_start(node), children))
+}

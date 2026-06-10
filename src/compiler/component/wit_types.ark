@@ -1,0 +1,79 @@
+// Arukellt Selfhost - WIT type text lowering
+
+use component::type_node
+use component::wit_names
+
+fn wit_type_from_ast(ty: ComponentTypeNode) -> String {
+	if type_node::type_node_is_named_kind(ty) {
+		return wit_named_type(type_node::type_node_text(ty))
+	}
+	if type_node::type_node_is_generic_kind(ty) {
+		let name = type_node::type_node_text(ty)
+		if eq(clone(name), String_from("Vec")) && type_node::type_node_child_count(ty) > 1 {
+			return concat(String_from("list<"), concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), String_from(">")))
+		}
+		if eq(clone(name), String_from("Option")) && type_node::type_node_child_count(ty) > 1 {
+			return concat(String_from("option<"), concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), String_from(">")))
+		}
+		if eq(clone(name), String_from("Result")) && type_node::type_node_child_count(ty) > 2 {
+			return concat(String_from("result<"), concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), concat(String_from(", "), concat(wit_type_from_ast(type_node::type_node_child_at(ty, 2)), String_from(">")))))
+		}
+		return wit_names::wit_type_name(name)
+	}
+	if type_node::type_node_is_tuple_kind(ty) {
+		let mut out = String_from("tuple<")
+		let mut i = 0
+		while i < type_node::type_node_child_count(ty) {
+			if i > 0 {
+				out = concat(out, String_from(", "))
+			}
+			out = concat(out, wit_type_from_ast(type_node::type_node_child_at(ty, i)))
+			i = i + 1
+		}
+		return concat(out, String_from(">"))
+	}
+	String_from("s32")
+}
+
+fn wit_named_type(name: String) -> String {
+	if eq(clone(name), String_from("i32")) {
+		return String_from("s32")
+	}
+	if eq(clone(name), String_from("i64")) {
+		return String_from("s64")
+	}
+	if eq(clone(name), String_from("f32")) {
+		return String_from("f32")
+	}
+	if eq(clone(name), String_from("f64")) {
+		return String_from("f64")
+	}
+	if eq(clone(name), String_from("bool")) {
+		return String_from("bool")
+	}
+	if eq(clone(name), String_from("char")) {
+		return String_from("char")
+	}
+	if eq(clone(name), String_from("u8")) {
+		return String_from("u8")
+	}
+	if eq(clone(name), String_from("u16")) {
+		return String_from("u16")
+	}
+	if eq(clone(name), String_from("u32")) {
+		return String_from("u32")
+	}
+	if eq(clone(name), String_from("u64")) {
+		return String_from("u64")
+	}
+	if eq(clone(name), String_from("i8")) {
+		return String_from("s8")
+	}
+	if eq(clone(name), String_from("i16")) {
+		return String_from("s16")
+	}
+	if eq(clone(name), String_from("String")) || eq(clone(name), String_from("string")) {
+		return String_from("string")
+	}
+	wit_names::wit_type_name(name)
+}

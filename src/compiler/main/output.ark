@@ -1,0 +1,46 @@
+// Arukellt Selfhost - main namespace: output
+
+use diagnostics::record
+use main::output_json
+
+// Arukellt Selfhost - CLI output formatting
+
+pub fn phase_error_tag(phase: i32) -> String {
+    if phase == 1 {
+        return String_from("error[E0001|lex]: ")
+    }
+    if phase == 2 {
+        return String_from("error[E0001|parse]: ")
+    }
+    if phase == 3 {
+        return String_from("error[E0100|resolve]: ")
+    }
+    if phase == 4 {
+        return String_from("error[E0200|typecheck]: ")
+    }
+    if phase == 5 {
+        return String_from("error[E0400|lower]: ")
+    }
+    if phase == 6 {
+        return String_from("error[E0500|emit]: ")
+    }
+    String_from("error: ")
+}
+
+pub fn format_error(file: String, msg: String) -> String {
+    concat(clone(file), concat(String_from(": error: "), msg))
+}
+
+pub fn format_error_phased(file: String, phase: i32, msg: String) -> String {
+    concat(clone(file), concat(String_from(": "), concat(phase_error_tag(phase), msg)))
+}
+
+pub fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnostic>) -> String {
+    output_json::format_error_json(file, phase, diagnostics_vec)
+}
+
+pub fn format_success_json(file: String, phase: i32, size: i32) -> String {
+    output_json::format_success_json(file, phase, size)
+}
+
+// ── Main Entry ───────────────────────────────────────────────────────────────

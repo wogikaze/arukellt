@@ -1,0 +1,36 @@
+// Arukellt Selfhost - DAP session state helpers.
+
+use dap::framing
+use dap::state_record
+
+fn DapState_new() -> DapState {
+    state_record::DapState_new()
+}
+
+fn dap_append(state: DapState, body: String) {
+    state_record::dap_state_append_output(state, framing::dap_frame(body))
+}
+
+fn dap_next_seq(state: DapState) -> i32 {
+    state_record::dap_state_take_next_seq(state)
+}
+
+fn dap_mark_initialized(state: DapState) {
+    state_record::dap_state_mark_initialized(state)
+}
+
+fn dap_mark_launched(state: DapState) {
+    state_record::dap_state_mark_launched(state)
+}
+
+fn dap_mark_disconnected(state: DapState) {
+    state_record::dap_state_mark_disconnected(state)
+}
+
+fn dap_is_disconnected(state: DapState) -> bool {
+    state_record::dap_state_is_disconnected(state)
+}
+
+fn dap_output(state: DapState) -> String {
+    state_record::dap_state_output(state)
+}

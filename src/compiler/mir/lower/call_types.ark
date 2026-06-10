@@ -1,0 +1,20 @@
+// Arukellt Selfhost - MIR lowering call result type propagation facade.
+
+use mir::lower::call_type_fallback
+use mir::lower::call_type_hash
+use mir::lower::call_type_vec
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+
+fn mir_mark_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
+    call_type_vec::mark_vec_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
+    call_type_hash::mark_hash_call_result_type(ctx, clone(callee_name), dest)
+    mark_string_call_result_type(ctx, clone(callee_name), dest)
+    call_type_fallback::mark_fallback_call_result_type(ctx, callee_name, dest)
+}
+
+fn mark_string_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+    if eq(clone(callee_name), "String_from") || eq(clone(callee_name), "concat") || eq(clone(callee_name), "clone") || eq(clone(callee_name), "to_string") || eq(clone(callee_name), "char_to_string") || eq(clone(callee_name), "bool_to_string") || eq(clone(callee_name), "f64_to_string") || eq(clone(callee_name), "substring") || eq(clone(callee_name), "trim") || eq(clone(callee_name), "to_uppercase") || eq(clone(callee_name), "to_lowercase") || eq(clone(callee_name), "replace") || eq(clone(callee_name), "string::repeat") || eq(clone(callee_name), "__intrinsic_i32_to_string") || eq(clone(callee_name), "__intrinsic_f64_to_string") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("string"))
+    }
+}

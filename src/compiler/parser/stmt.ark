@@ -1,0 +1,46 @@
+// Arukellt Parser - statement and control-flow syntax facade
+
+use parser::stmt_block
+use parser::stmt_control
+use parser::stmt_dispatch
+use parser::stmt_let
+
+pub fn parse_expr_or_block(p: Parser) -> AstNode {
+    stmt_block::parse_expr_or_block(p)
+}
+
+pub fn parse_block(p: Parser) -> AstNode {
+    stmt_block::parse_block(p)
+}
+
+pub fn parse_stmt(p: Parser) -> AstNode {
+    stmt_dispatch::parse_stmt(p)
+}
+
+fn parse_let(p: Parser) -> AstNode {
+    stmt_let::parse_let(p)
+}
+
+fn parse_return(p: Parser) -> AstNode {
+    stmt_control::parse_return(p)
+}
+
+fn parse_break(p: Parser) -> AstNode {
+    stmt_control::parse_break(p)
+}
+
+fn parse_continue(p: Parser) -> AstNode {
+    stmt_control::parse_continue(p)
+}
+
+fn parse_while(p: Parser) -> AstNode {
+    stmt_control::parse_while(p)
+}
+
+fn parse_loop(p: Parser) -> AstNode {
+    stmt_control::parse_loop(p)
+}
+
+fn parse_for(p: Parser) -> AstNode {
+    stmt_control::parse_for(p)
+}

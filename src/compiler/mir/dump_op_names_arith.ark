@@ -1,0 +1,52 @@
+use mir::opcodes
+// Arukellt Selfhost - MIR arithmetic opcode display names.
+
+
+fn mir_arith_op_name(op: i32) -> String {
+    if op == opcodes::MIR_ADD() {
+        return String_from("add")
+    }
+    if op == opcodes::MIR_SUB() {
+        return String_from("sub")
+    }
+    if op == opcodes::MIR_MUL() {
+        return String_from("mul")
+    }
+    if op == opcodes::MIR_DIV() {
+        return String_from("div")
+    }
+    if op == opcodes::MIR_MOD() {
+        return String_from("mod")
+    }
+    if op == opcodes::MIR_EQ() {
+        return String_from("eq")
+    }
+    if op == opcodes::MIR_NEQ() {
+        return String_from("neq")
+    }
+    if op == opcodes::MIR_LT() {
+        return String_from("lt")
+    }
+    if op == opcodes::MIR_LTEQ() {
+        return String_from("le")
+    }
+    if op == opcodes::MIR_GT() {
+        return String_from("gt")
+    }
+    if op == opcodes::MIR_GTEQ() {
+        return String_from("ge")
+    }
+    if op == opcodes::MIR_AND() {
+        return String_from("and")
+    }
+    if op == opcodes::MIR_OR() {
+        return String_from("or")
+    }
+    if op == opcodes::MIR_NEG() {
+        return String_from("neg")
+    }
+    if op == opcodes::MIR_NOT() {
+        return String_from("not")
+    }
+    String_from("")
+}

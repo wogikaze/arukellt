@@ -1,0 +1,116 @@
+// Arukellt Selfhost - driver namespace: pipeline_frontend
+
+use compiler::phases
+use driver::result_record
+use std::host::clock
+use driver::config_record
+use compiler::session_frontend_query
+use compiler::session_lex_query
+use compiler::session_parse_tokens
+use driver::debug
+use driver::errors
+use component
+
+// Arukellt Selfhost - driver preflight, lex, and parse stages.
+
+fn run_frontend(source: String, config: DriverConfig) -> DriverFrontendResult {
+    let wit_error = validate_wit_imports(config)
+    if len(wit_error) > 0 {
+        return frontend_stop(result_record::CompileResult_err(phases::PHASE_RESOLVE(), wit_error), 0, 0, 0)
+    }
+    let t0 = clock::monotonic_now()
+    let parsed = run_lex_parse(clone(source), config, t0)
+    if frontend_result_should_return(parsed) {
+        return parsed
+    }
+    let component_error = validate_component_exports(config, frontend_result_decls(parsed))
+    if len(component_error) > 0 {
+        return frontend_stop(result_record::CompileResult_err(phases::PHASE_EMIT(), component_error), t0, frontend_result_t_lex(parsed), clock::monotonic_now())
+    }
+    frontend_continue(frontend_result_decls(parsed), t0, frontend_result_t_lex(parsed), frontend_result_t_parse(parsed))
+}
+
+// Arukellt Selfhost - frontend lex and parse stages.
+
+fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFrontendResult {
+    let parsed_source = session_frontend_query::session_parse_source(clone(source))
+    let lex_result = session_frontend_query::frontend_result_lex(parsed_source)
+    let parse_result = session_frontend_query::frontend_result_parse(parsed_source)
+    let tokens = session_lex_query::session_lex_tokens(lex_result)
+    debug::dump_tokens_if_enabled(config, tokens)
+    let lex_errors = session_lex_query::session_lex_diagnostic_count(lex_result)
+    if lex_errors > 0 {
+        return frontend_stop(result_record::CompileResult_err(phases::PHASE_LEX(), concat(to_string(lex_errors), String_from(" lexer error(s)"))), t0, 0, 0)
+    }
+    let t_lex = clock::monotonic_now()
+    let decls = session_parse_tokens::session_parse_decls_from_result(parse_result)
+    debug::dump_ast_if_enabled(config, decls)
+    let parse_error_count = session_parse_tokens::session_parse_error_count(parse_result)
+    if parse_error_count > 0 {
+        return frontend_stop(errors::parse_errors_result(clone(source), config_record::config_source_dir(config), session_parse_tokens::session_parse_errors_from_result(parse_result)), t0, t_lex, 0)
+    }
+    if config_record::config_parse_only(config) {
+        return frontend_stop(result_record::CompileResult_ok(phases::PHASE_PARSE()), t0, t_lex, clock::monotonic_now())
+    }
+    frontend_continue(decls, t0, t_lex, clock::monotonic_now())
+}
+
+// Arukellt Selfhost - frontend pipeline result contract.
+
+struct DriverFrontendResult {
+    should_return: bool,
+    result: CompileResult,
+    decls: Vec<AstNode>,
+    t0: i64,
+    t_lex: i64,
+    t_parse: i64,
+}
+
+fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64) -> DriverFrontendResult {
+    DriverFrontendResult { should_return: should_return, result: result, decls: decls, t0: t0, t_lex: t_lex, t_parse: t_parse }
+}
+
+fn frontend_stop(result: CompileResult, t0: i64, t_lex: i64, t_parse: i64) -> DriverFrontendResult {
+    DriverFrontendResult_new(true, result, Vec_new_AstNode(), t0, t_lex, t_parse)
+}
+
+fn frontend_continue(decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64) -> DriverFrontendResult {
+    DriverFrontendResult_new(false, result_record::CompileResult_ok(phases::PHASE_PARSE()), decls, t0, t_lex, t_parse)
+}
+
+fn frontend_result_should_return(result: DriverFrontendResult) -> bool {
+    result.should_return
+}
+
+fn frontend_result_result(result: DriverFrontendResult) -> CompileResult {
+    result.result
+}
+
+fn frontend_result_decls(result: DriverFrontendResult) -> Vec<AstNode> {
+    result.decls
+}
+
+fn frontend_result_t0(result: DriverFrontendResult) -> i64 {
+    result.t0
+}
+
+fn frontend_result_t_lex(result: DriverFrontendResult) -> i64 {
+    result.t_lex
+}
+
+fn frontend_result_t_parse(result: DriverFrontendResult) -> i64 {
+    result.t_parse
+}
+
+// Arukellt Selfhost - driver preflight validation.
+
+fn validate_wit_imports(config: DriverConfig) -> String {
+    component::validate_wit_import_surface(config_record::config_wit_paths(config))
+}
+
+fn validate_component_exports(config: DriverConfig, decls: Vec<AstNode>) -> String {
+    if eq(config_record::config_emit_mode(config), String_from("component")) {
+        return component::validate_export_surface(decls)
+    }
+    String_from("")
+}

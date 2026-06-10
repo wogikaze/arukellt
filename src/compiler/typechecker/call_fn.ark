@@ -1,0 +1,32 @@
+use typechecker::kinds
+// Arukellt Typechecker - function call inference.
+
+use typechecker::ast_expr_predicates
+use typechecker::ast_access
+use typechecker::call_args
+use typechecker::call_generic
+use typechecker::call_unknown
+use typechecker::contract_fn_sig
+use typechecker::sigs
+
+fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    let child_count = ast_access::node_child_count(node)
+    if child_count < 1 {
+        return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let callee = ast_access::node_child_at(node, 0)
+    if !ast_expr_predicates::node_is_ident(callee) {
+        call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
+        return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let callee_name = ast_access::node_text(callee)
+    let sig = sigs::lookup_fn_sig(fn_sigs, clone(callee_name))
+    if !contract_fn_sig::FnSig_has_name(sig) {
+        call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
+        return call_unknown::infer_unknown_ident_call(env, scope, callee)
+    }
+    if contract_fn_sig::FnSig_type_param_count(sig) == 0 {
+        return contract_fn_sig::FnSig_return_type(sig)
+    }
+    call_generic::infer_generic_call_expr(env, scope, fn_sigs, enum_defs, node, sig, callee_name)
+}

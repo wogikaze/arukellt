@@ -1,0 +1,46 @@
+use mir::inst_accessors_shape
+use mir::inst_accessors_operands
+use mir::inst_accessors_mutation
+use mir::ssa_state_slots
+use mir::opcodes
+// Arukellt Selfhost - MIR SSA instruction use/def policy.
+
+use mir::value_types
+use mir::ssa_state_types
+
+fn mir_ssa_rewrite_inst_uses(inst: MirInst, state: ssa_state_types::MirSsaRenameState) {
+    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    if arg0 >= 0 {
+        inst_accessors_mutation::MirInst_set_arg0(inst, ssa_state_slots::mir_ssa_current_for(state, arg0))
+    }
+    let arg1 = inst_accessors_operands::MirInst_arg1(inst)
+    if arg1 >= 0 {
+        inst_accessors_mutation::MirInst_set_arg1(inst, ssa_state_slots::mir_ssa_current_for(state, arg1))
+    }
+}
+
+fn mir_is_pure_ssa_def(inst: MirInst) -> bool {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    if op == opcodes::MIR_LOCAL_GET() || op == opcodes::MIR_LOCAL_SET() {
+        return false
+    }
+    if inst_accessors_operands::MirInst_dest(inst) < 0 {
+        return false
+    }
+    if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_VOID() {
+        return false
+    }
+    if op == opcodes::MIR_RETURN() {
+        return false
+    }
+    if op == opcodes::MIR_BR() || op == opcodes::MIR_BR_IF() || op == opcodes::MIR_BR_TABLE() {
+        return false
+    }
+    if op == opcodes::MIR_IF() || op == opcodes::MIR_ELSE() || op == opcodes::MIR_END() || op == opcodes::MIR_BLOCK() || op == opcodes::MIR_LOOP() {
+        return false
+    }
+    if op == opcodes::MIR_DROP() || op == opcodes::MIR_NOP() || op == opcodes::MIR_UNREACHABLE() {
+        return false
+    }
+    true
+}

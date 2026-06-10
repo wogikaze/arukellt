@@ -1,0 +1,111 @@
+// Arukellt Selfhost - component collection contract type predicates.
+
+use component::contract_helpers
+use component::type_node
+
+fn component_type_is_vec_i32(ty: ComponentTypeNode) -> bool {
+	type_node::type_node_is_generic_named_unary(ty, String_from("Vec"), String_from("i32"))
+}
+
+fn component_return_type_is_vec_i32(f: ComponentExportFunc) -> bool {
+	contract_helpers::component_export_return_has_type(f) && component_type_is_vec_i32(contract_helpers::component_export_return_type_view(f))
+}
+
+fn component_param_type_is_vec_i32(f: ComponentExportFunc, idx: i32) -> bool {
+	if !contract_helpers::component_export_param_has_type_at(f, idx) {
+		return false
+	}
+	component_type_is_vec_i32(contract_helpers::component_export_param_type_view_at(f, idx))
+}
+
+fn component_type_is_generic_named_unary(ty: ComponentTypeNode, generic_name: String, elem_name: String) -> bool {
+	type_node::type_node_is_generic_named_unary(ty, generic_name, elem_name)
+}
+
+fn component_type_is_generic_named_pair(ty: ComponentTypeNode, generic_name: String, left_name: String, right_name: String) -> bool {
+	type_node::type_node_is_generic_named_pair(ty, generic_name, left_name, right_name)
+}
+
+fn component_return_type_is_generic_named_unary(f: ComponentExportFunc, generic_name: String, elem_name: String) -> bool {
+	contract_helpers::component_export_return_has_type(f) && component_type_is_generic_named_unary(contract_helpers::component_export_return_type_view(f), generic_name, elem_name)
+}
+
+fn component_return_type_is_generic_named_pair(f: ComponentExportFunc, generic_name: String, left_name: String, right_name: String) -> bool {
+	contract_helpers::component_export_return_has_type(f) && component_type_is_generic_named_pair(contract_helpers::component_export_return_type_view(f), generic_name, left_name, right_name)
+}
+
+fn component_type_is_option_i32(ty: ComponentTypeNode) -> bool {
+	component_type_is_generic_named_unary(ty, String_from("Option"), String_from("i32"))
+}
+
+fn component_type_is_option_bool(ty: ComponentTypeNode) -> bool {
+	component_type_is_generic_named_unary(ty, String_from("Option"), String_from("bool"))
+}
+
+fn component_type_is_option_i64(ty: ComponentTypeNode) -> bool {
+	component_type_is_generic_named_unary(ty, String_from("Option"), String_from("i64"))
+}
+
+fn component_return_type_is_option_i32(f: ComponentExportFunc) -> bool {
+	component_return_type_is_generic_named_unary(f, String_from("Option"), String_from("i32"))
+}
+
+fn component_return_type_is_option_bool(f: ComponentExportFunc) -> bool {
+	component_return_type_is_generic_named_unary(f, String_from("Option"), String_from("bool"))
+}
+
+fn component_return_type_is_option_i64(f: ComponentExportFunc) -> bool {
+	component_return_type_is_generic_named_unary(f, String_from("Option"), String_from("i64"))
+}
+
+fn component_param_type_is_option_i32(f: ComponentExportFunc, idx: i32) -> bool {
+	if !contract_helpers::component_export_param_has_type_at(f, idx) {
+		return false
+	}
+	component_type_is_option_i32(contract_helpers::component_export_param_type_view_at(f, idx))
+}
+
+fn component_param_type_is_option_i64(f: ComponentExportFunc, idx: i32) -> bool {
+	if !contract_helpers::component_export_param_has_type_at(f, idx) {
+		return false
+	}
+	component_type_is_option_i64(contract_helpers::component_export_param_type_view_at(f, idx))
+}
+
+fn component_type_is_result_i32_string(ty: ComponentTypeNode) -> bool {
+	component_type_is_generic_named_pair(ty, String_from("Result"), String_from("i32"), String_from("String"))
+}
+
+fn component_type_is_result_i32_i32(ty: ComponentTypeNode) -> bool {
+	component_type_is_generic_named_pair(ty, String_from("Result"), String_from("i32"), String_from("i32"))
+}
+
+fn component_type_is_result_bool_bool(ty: ComponentTypeNode) -> bool {
+	component_type_is_generic_named_pair(ty, String_from("Result"), String_from("bool"), String_from("bool"))
+}
+
+fn component_return_type_is_result_i32_string(f: ComponentExportFunc) -> bool {
+	component_return_type_is_generic_named_pair(f, String_from("Result"), String_from("i32"), String_from("String"))
+}
+
+fn component_return_type_is_result_i32_i32(f: ComponentExportFunc) -> bool {
+	component_return_type_is_generic_named_pair(f, String_from("Result"), String_from("i32"), String_from("i32"))
+}
+
+fn component_return_type_is_result_bool_bool(f: ComponentExportFunc) -> bool {
+	component_return_type_is_generic_named_pair(f, String_from("Result"), String_from("bool"), String_from("bool"))
+}
+
+fn component_param_type_is_result_i32_string(f: ComponentExportFunc, idx: i32) -> bool {
+	if !contract_helpers::component_export_param_has_type_at(f, idx) {
+		return false
+	}
+	component_type_is_result_i32_string(contract_helpers::component_export_param_type_view_at(f, idx))
+}
+
+fn component_param_type_is_result_i32_i32(f: ComponentExportFunc, idx: i32) -> bool {
+	if !contract_helpers::component_export_param_has_type_at(f, idx) {
+		return false
+	}
+	component_type_is_result_i32_i32(contract_helpers::component_export_param_type_view_at(f, idx))
+}

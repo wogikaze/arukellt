@@ -1,0 +1,38 @@
+use lexer::tokens
+// Arukellt Lexer - string literals with escapes.
+
+use lexer::string_escape_chars
+
+fn lex_escaped_string(lex: Lexer, start: i32) -> Token {
+    let mut result = String_new()
+    let mut span_start = lex.pos
+    while lex.pos < lex.src_len {
+        let c = peek(lex)
+        if c == 34 {
+            if span_start < lex.pos {
+                result = concat(result, substring(lex.src, span_start, lex.pos))
+            }
+            lex.pos = lex.pos + 1
+            return Token_new(tokens::TK_STRING(), result, start, lex.pos)
+        }
+        if c == 10 {
+            return Token_new(tokens::TK_ERROR(), String_from("unterminated string"), start, lex.pos)
+        }
+        if c == 92 {
+            if span_start < lex.pos {
+                result = concat(result, substring(lex.src, span_start, lex.pos))
+            }
+            lex.pos = lex.pos + 1
+            if lex.pos >= lex.src_len {
+                return Token_new(tokens::TK_ERROR(), String_from("unterminated escape"), start, lex.pos)
+            }
+            let esc = peek(lex)
+            lex.pos = lex.pos + 1
+            result = concat(result, string_escape_chars::escaped_string_fragment(lex, esc))
+            span_start = lex.pos
+        } else {
+            lex.pos = lex.pos + 1
+        }
+    }
+    Token_new(tokens::TK_ERROR(), String_from("unterminated string"), start, lex.pos)
+}

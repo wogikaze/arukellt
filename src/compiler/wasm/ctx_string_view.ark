@@ -1,0 +1,19 @@
+// Arukellt Selfhost - Wasm emitter context string table view.
+
+use wasm::ctx_record
+
+fn SelfEmitCtx_string_offset_count(ctx: SelfEmitCtx) -> i32 {
+    len(ctx.string_offsets)
+}
+
+fn SelfEmitCtx_string_offset_at(ctx: SelfEmitCtx, idx: i32) -> i32 {
+    get_unchecked(ctx.string_offsets, idx)
+}
+
+fn SelfEmitCtx_true_string_offset(ctx: SelfEmitCtx) -> i32 {
+    SelfEmitCtx_string_offset_at(ctx, ctx.true_str_idx)
+}
+
+fn SelfEmitCtx_false_string_offset(ctx: SelfEmitCtx) -> i32 {
+    SelfEmitCtx_string_offset_at(ctx, ctx.false_str_idx)
+}

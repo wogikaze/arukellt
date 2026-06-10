@@ -1,0 +1,27 @@
+// Arukellt Selfhost - MIR entry top-level mono function body emission loop.
+
+use corehir::mir_type_source
+use mir::lower::entry_emit_top
+use mir::lower::entry_view_record
+use mir::lower::return_types
+use mir::mono
+
+fn mir_emit_top_level_fn_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBodyInput, decl_name: String, typed_index: i32, param_count: i32, entry_view: MirLowerEntryView, fn_info_index: i32, midx: MonoIndex, mir_tr: i32) {
+    let mono_emit_count_raw = mono::mono_index_count(midx, clone(decl_name))
+    let mono_emit_count = mono_emit_count_raw + 1
+    let mut mono_emit_i = 0
+    let rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
+    while mono_emit_i < mono_emit_count {
+        let mut emit_fn_name = clone(decl_name)
+        if mono_emit_i > 0 {
+            emit_fn_name = mono::mono_safe_name(mono::mono_index_mangled_at(midx, clone(decl_name), mono_emit_i - 1))
+        }
+        entry_top::mir_emit_top_level_fn_body(ctx, body_input, rt_tag, emit_fn_name, param_count, typed_index, mir_tr, entry_view, fn_info_index)
+        mono_emit_i = mono_emit_i + 1
+    }
+}
+
+fn mir_entry_typed_return_tag_at(view: MirLowerEntryView, typed_index: i32) -> i32 {
+    let tf = type_source::mir_type_source_typed_fn_at(entry_view_record::entry_view_type_source(view), typed_index)
+    return_types::mir_return_tag_from_typed_fn(tf)
+}

@@ -1,0 +1,36 @@
+// Arukellt Selfhost - MIR phi access API.
+
+use mir::phi_record
+use mir::types
+
+fn MirPhi_op(phi: MirPhi) -> i32 {
+    phi_record::mir_phi_op(phi)
+}
+
+fn MirPhi_dest(phi: MirPhi) -> i32 {
+    phi_record::mir_phi_dest(phi)
+}
+
+fn MirPhi_val_type(phi: MirPhi) -> i32 {
+    phi_record::mir_phi_val_type(phi)
+}
+
+fn MirPhi_arg_count(phi: MirPhi) -> i32 {
+    phi_record::mir_phi_arg_count(phi)
+}
+
+fn MirPhi_arg_at(phi: MirPhi, idx: i32) -> MirPhiArg {
+    phi_record::mir_phi_arg_at(phi, idx)
+}
+
+fn MirPhi_args(phi: MirPhi) -> Vec<MirPhiArg> {
+    phi_record::mir_phi_args(phi)
+}
+
+fn MirPhiArg_pred_block(arg: MirPhiArg) -> i32 {
+    phi_record::mir_phi_arg_pred_block(arg)
+}
+
+fn MirPhiArg_local(arg: MirPhiArg) -> i32 {
+    phi_record::mir_phi_arg_local(arg)
+}

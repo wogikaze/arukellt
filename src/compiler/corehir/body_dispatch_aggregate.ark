@@ -1,0 +1,21 @@
+// Arukellt Selfhost - CoreHIR aggregate expression dispatch.
+
+use corehir::body_collections
+use corehir::body_struct_lit
+use corehir::expr_node_predicates
+
+fn corehir_dispatch_aggregate_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    if expr_node_predicates::expr_is_array_lit(node) {
+        return body_collections::corehir_build_array_lit_expr(table, node)
+    }
+    if expr_node_predicates::expr_is_tuple(node) {
+        return body_collections::corehir_build_tuple_expr(table, node)
+    }
+    if expr_node_predicates::expr_is_struct_lit(node) {
+        return body_struct_lit::corehir_build_struct_lit_expr(table, node)
+    }
+    if expr_node_predicates::expr_is_comprehension(node) {
+        return body_collections::corehir_build_comprehension_expr(table, node)
+    }
+    0 - 2
+}

@@ -1,0 +1,43 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR struct literal base-field copy emission.
+
+use mir::inst_struct_get
+use mir::inst_struct_set
+use mir::inst_local_get
+use mir::value_types
+
+fn mir_copy_struct_base_fields(ctx: LowerCtx, struct_name: String, dest: i32, base_idx: i32) {
+    let total_fields = ctx_struct_field_count(ctx, clone(struct_name))
+    let mut fi = 0
+    while fi < total_fields {
+        let fname = ctx_struct_field_name(ctx, clone(struct_name), fi)
+        let is_f64_field = ctx_struct_field_is_f64(ctx, clone(struct_name), fi)
+        let mut field_vt = value_types::VT_I32()
+        if is_f64_field {
+            field_vt = value_types::VT_F64()
+        }
+        let tmp = ctx_fresh_local(ctx, field_vt)
+        emit_struct_base_field_get(ctx, clone(fname), base_idx, tmp, ctx_struct_field_offset(ctx, clone(struct_name), fi), is_f64_field)
+        emit_struct_base_field_set(ctx, clone(fname), dest, tmp, ctx_struct_field_offset(ctx, clone(struct_name), fi), is_f64_field)
+        fi = fi + 1
+    }
+}
+
+fn emit_struct_base_field_get(ctx: LowerCtx, fname: String, base_idx: i32, tmp: i32, offset: i32, is_f64_field: bool) {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get_to(base_idx, base_idx))
+    let mut field_vt = value_types::VT_VOID()
+    if is_f64_field {
+        field_vt = value_types::VT_F64()
+    }
+    ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field(base_idx, clone(fname), offset, field_vt, tmp))
+}
+
+fn emit_struct_base_field_set(ctx: LowerCtx, fname: String, dest: i32, tmp: i32, offset: i32, is_f64_field: bool) {
+    let mut field_vt = value_types::VT_VOID()
+    if is_f64_field {
+        field_vt = value_types::VT_F64()
+    }
+    ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named(dest, tmp, clone(fname), offset, field_vt))
+}

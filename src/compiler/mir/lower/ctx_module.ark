@@ -1,0 +1,26 @@
+// Arukellt MIR lowering context - module mutation facade.
+
+use mir::module_functions
+use mir::module_strings
+use mir::lower::ctx_current_storage
+use mir::reachability
+
+fn ctx_push_module_function(ctx: LowerCtx, func: MirFunction) {
+    module_functions::MirModule_push_function(ctx_current_storage::ctx_current_module_value(ctx), func)
+}
+
+fn ctx_push_current_function(ctx: LowerCtx) {
+    module_functions::MirModule_push_function(ctx_current_storage::ctx_current_module_value(ctx), ctx_current_storage::ctx_current_func_value(ctx))
+}
+
+fn ctx_intern_string(ctx: LowerCtx, s: String) -> i32 {
+    module_strings::intern_string(ctx_current_storage::ctx_current_module_value(ctx), s)
+}
+
+fn ctx_prune_unreachable(ctx: LowerCtx) -> i32 {
+    reachability::mir_prune_unreachable(ctx_current_storage::ctx_current_module_value(ctx))
+}
+
+fn ctx_current_module(ctx: LowerCtx) -> MirModule {
+    ctx_current_storage::ctx_current_module_value(ctx)
+}

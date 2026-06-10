@@ -1,0 +1,13 @@
+// Arukellt Selfhost - MIR call opcode display names.
+
+use mir::opcodes
+
+fn mir_call_op_name(op: i32) -> String {
+    if op == opcodes::MIR_CALL() {
+        return String_from("call")
+    }
+    if op == opcodes::MIR_RETURN() {
+        return String_from("return")
+    }
+    String_from("")
+}

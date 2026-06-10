@@ -1,0 +1,47 @@
+// Arukellt HIR - node value field helpers.
+
+use hir::node_record
+
+fn hir_node_tag(node: HirNode) -> i32 {
+    node.tag
+}
+
+fn hir_node_type(node: HirNode) -> HirType {
+    node.ty
+}
+
+fn hir_node_text(node: HirNode) -> String {
+    clone(node.text)
+}
+
+fn hir_node_set_text(node: HirNode, text: String) {
+    node.text = text
+}
+
+fn hir_node_text_len(node: HirNode) -> i32 {
+    len(node.text)
+}
+
+fn hir_node_int_val(node: HirNode) -> i32 {
+    node.int_val
+}
+
+fn hir_node_set_int_val(node: HirNode, value: i32) {
+    node.int_val = value
+}
+
+fn hir_node_float_val(node: HirNode) -> f64 {
+    node.float_val
+}
+
+fn hir_node_set_float_val(node: HirNode, value: f64) {
+    node.float_val = value
+}
+
+fn hir_node_op(node: HirNode) -> i32 {
+    node.op
+}
+
+fn hir_node_set_op(node: HirNode, op: i32) {
+    node.op = op
+}

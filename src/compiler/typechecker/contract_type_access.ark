@@ -1,0 +1,23 @@
+// Arukellt Typechecker - TypeInfo access helpers.
+
+use typechecker::contract_types_record
+
+fn TypeInfo_tag(ty: TypeInfo) -> i32 {
+    contract_types_record::type_info_tag(ty)
+}
+
+fn TypeInfo_name(ty: TypeInfo) -> String {
+    contract_types_record::type_info_name(ty)
+}
+
+fn TypeInfo_has_name(ty: TypeInfo) -> bool {
+    len(TypeInfo_name(ty)) > 0
+}
+
+fn TypeInfo_type_arg_count(ty: TypeInfo) -> i32 {
+    contract_types_record::type_info_type_arg_count(ty)
+}
+
+fn TypeInfo_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
+    contract_types_record::type_info_type_arg_at(ty, index)
+}

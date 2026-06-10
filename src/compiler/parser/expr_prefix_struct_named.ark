@@ -1,0 +1,21 @@
+use lexer::tokens
+use parser::core_ast_text_fields
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - struct literal named field.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::token_state
+
+pub fn parse_struct_lit_named_field(p: Parser, node: AstNode) {
+    let fname = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    core_api_expect::expect_token(p, tokens::TK_COLON())
+    core_api_cursor::skip_newlines(p)
+    let fval = parse_expr(p)
+    let field = core_ast_factory::AstNode_new(kinds::NK_IDENT(), core_api_expect::tok_span(fname))
+    core_ast_text_fields::AstNode_set_text(field, token_state::Token_text(fname))
+    core_ast_children::AstNode_push_child(field, fval)
+    core_ast_children::AstNode_push_child(node, field)
+}

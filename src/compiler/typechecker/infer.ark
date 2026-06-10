@@ -1,0 +1,24 @@
+use typechecker::kinds
+// Arukellt Typechecker - expression and statement inference facade
+
+use typechecker::contract_type_access
+use typechecker::infer_compound
+use typechecker::infer_leaf
+use typechecker::infer_wrappers
+use typechecker::stmt
+
+fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    let leaf_ty = infer_leaf::infer_leaf_expr(scope, node)
+    if contract_type_access::TypeInfo_tag(leaf_ty) != commands::TY_UNKNOWN() {
+        return leaf_ty
+    }
+    let wrapped_ty = infer_wrappers::infer_wrapper_expr(env, scope, fn_sigs, enum_defs, node)
+    if contract_type_access::TypeInfo_tag(wrapped_ty) != commands::TY_UNKNOWN() {
+        return wrapped_ty
+    }
+    infer_compound::infer_compound_expr(env, scope, fn_sigs, enum_defs, node)
+}
+
+fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+    stmt::check_stmt(env, scope, fn_sigs, enum_defs, node)
+}

@@ -1,0 +1,31 @@
+// Arukellt Selfhost - MIR function index builder from CoreHIR view.
+
+use mir::lower::decl_source
+use mir::lower::fn_index
+use mir::lower::fn_index_fns
+use mir::lower::fn_index_methods
+use mir::lower::fn_index_source
+
+fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex) -> MirLowerFnIndex {
+    let decl_source = decl_source::mir_decl_source_from_view(view)
+    let decl_count = decl_source::mir_decl_source_count(decl_source)
+    let source = fn_index_source::mir_fn_index_source_from_view(view)
+    let fn_names = Vec_new_String()
+    let fn_return_vts = Vec_new_i32()
+    let fn_return_type_names = Vec_new_String()
+    let mut fn_index = 0
+    let mut d = 0
+    while d < decl_count {
+        let decl_name = decl_source::mir_decl_source_name_at(decl_source, d)
+        if decl_source::mir_decl_source_is_fn_at(decl_source, d) {
+            fn_index = fn_index_fns::mir_index_top_level_fn(fn_names, fn_return_vts, fn_return_type_names, d, decl_name, fn_index, source, midx)
+        }
+        if decl_source::mir_decl_source_is_impl_at(decl_source, d) {
+            fn_index = fn_index_methods::mir_index_impl_methods(fn_names, fn_return_vts, fn_return_type_names, d, decl_name, fn_index, source, midx)
+        }
+        d = d + 1
+    }
+    let entry_main_decl_index = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
+    let typed_fn_count = fn_index_source::mir_fn_index_source_typed_fn_count(source)
+    fn_index::MirLowerFnIndex_new(fn_names, fn_return_vts, fn_return_type_names, entry_main_decl_index, typed_fn_count)
+}

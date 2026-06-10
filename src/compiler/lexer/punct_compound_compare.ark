@@ -1,0 +1,28 @@
+use lexer::tokens
+// Arukellt Lexer - comparison and shift punctuation
+
+use lexer::cursor
+use lexer::punct_compound_peek
+
+fn lex_compare_or_shift_punct(lex: Lexer, start: i32, c: i32) -> Token {
+    if c == 60 {
+        if punct_compound_peek::punct_peek(lex) == 61 {
+            cursor::advance_by(lex, 1)
+            return Token_new(tokens::TK_LTEQ(), String_from("<="), start, cursor::lexer_position(lex))
+        }
+        if punct_compound_peek::punct_peek(lex) == 60 {
+            cursor::advance_by(lex, 1)
+            return Token_new(tokens::TK_SHL(), String_from("<<"), start, cursor::lexer_position(lex))
+        }
+        return Token_new(tokens::TK_LT(), String_from("<"), start, cursor::lexer_position(lex))
+    }
+    if punct_compound_peek::punct_peek(lex) == 61 {
+        cursor::advance_by(lex, 1)
+        return Token_new(tokens::TK_GTEQ(), String_from(">="), start, cursor::lexer_position(lex))
+    }
+    if punct_compound_peek::punct_peek(lex) == 62 {
+        cursor::advance_by(lex, 1)
+        return Token_new(tokens::TK_SHR(), String_from(">>"), start, cursor::lexer_position(lex))
+    }
+    Token_new(tokens::TK_GT(), String_from(">"), start, cursor::lexer_position(lex))
+}

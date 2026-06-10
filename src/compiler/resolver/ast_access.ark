@@ -1,0 +1,35 @@
+// Arukellt Resolver - parser AST accessors for the resolver boundary.
+
+use parser::ast
+
+fn node_kind(node: AstNode) -> i32 {
+    ast::ast_node_kind(node)
+}
+
+fn node_kind_is(node: AstNode, kind: i32) -> bool {
+    node_kind(node) == kind
+}
+
+fn node_text(node: AstNode) -> String {
+    ast::ast_node_text(node)
+}
+
+fn node_child_count(node: AstNode) -> i32 {
+    ast::ast_node_child_count(node)
+}
+
+fn node_child_at(node: AstNode, index: i32) -> AstNode {
+    ast::ast_node_child_at(node, index)
+}
+
+fn node_type_ann_count(node: AstNode) -> i32 {
+    ast::ast_node_type_ann_count(node)
+}
+
+fn node_type_ann_at(node: AstNode, index: i32) -> AstNode {
+    ast::ast_node_type_ann_at(node, index)
+}
+
+fn node_is_pub(node: AstNode) -> bool {
+    ast::ast_node_is_pub(node)
+}

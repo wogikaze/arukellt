@@ -1,0 +1,24 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR match arm result local helpers.
+
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::value_types
+
+fn core_store_match_arm_result(ctx: LowerCtx, result: i32, arm_result: i32) {
+    if arm_result < 0 {
+        return
+    }
+    let arm_vt = ctx_api_local_types::ctx_local_vt(ctx, arm_result)
+    if arm_vt == value_types::VT_I64() || arm_vt == value_types::VT_F64() {
+        ctx_api_local_types::ctx_set_local_vt(ctx, result, arm_vt)
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(result))
+}
+
+fn core_emit_match_result_get(ctx: LowerCtx, result: i32) -> i32 {
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(result))
+    result
+}

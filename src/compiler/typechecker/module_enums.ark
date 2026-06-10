@@ -1,0 +1,31 @@
+// Arukellt Typechecker - enum definition collection.
+
+use typechecker::ast_decl_predicates
+use typechecker::ast_access
+use typechecker::contract_enum_info
+
+fn collect_enum_defs(decls: Vec<AstNode>) -> Vec<EnumInfo> {
+    let enum_defs = Vec_new_EnumInfo()
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let node = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_enum_decl(node) {
+            push(enum_defs, collect_enum_def(node))
+        }
+        i = i + 1
+    }
+    enum_defs
+}
+
+fn collect_enum_def(node: AstNode) -> EnumInfo {
+    let variant_names = Vec_new_String()
+    let vc = ast_access::node_child_count(node)
+    let mut vi = 0
+    while vi < vc {
+        let variant = ast_access::node_child_at(node, vi)
+        push(variant_names, ast_access::node_text(variant))
+        vi = vi + 1
+    }
+    contract_enum_info::EnumInfo_new(ast_access::node_text(node), variant_names)
+}

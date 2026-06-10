@@ -1,0 +1,7 @@
+// Arukellt Selfhost - typechecker public boundary.
+
+use typechecker::entry
+
+pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeCheckResult {
+    entry::typecheck_module(decls, resolve_ctx)
+}

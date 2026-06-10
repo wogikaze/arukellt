@@ -1,0 +1,34 @@
+// Arukellt Selfhost - stdlib module declaration registration.
+
+use driver::module_state_loading
+use driver::module_state_modules
+use driver::module_file_load_stdlib
+use driver::module_names
+use driver::module_parse
+use driver::module_state
+pub fn load_stdlib_module_decls(stdlib_path: String, state: LoadState) -> Vec<AstNode> {
+    if module_state_loading::LoadState_has_loaded(state, clone(stdlib_path)) {
+        return Vec_new_AstNode()
+    }
+    if module_state_loading::LoadState_has_loading(state, clone(stdlib_path)) {
+        return Vec_new_AstNode()
+    }
+    let short_name = module_names::module_short_name(clone(stdlib_path))
+    let source_res = module_file_load_stdlib::read_stdlib_module_source(clone(stdlib_path))
+    match source_res {
+        Result::Ok(src) => {
+            register_stdlib_source(clone(stdlib_path), clone(short_name), src, state)
+        },
+        Result::Err(_) => {
+            Vec_new_AstNode()
+        },
+    }
+}
+
+fn register_stdlib_source(stdlib_path: String, short_name: String, source: String, state: LoadState) -> Vec<AstNode> {
+    module_state_loading::LoadState_push_loading(state, clone(stdlib_path))
+    let mod_decls = module_parse::parse_module_source(source)
+    module_state_loading::LoadState_push_loaded(state, clone(stdlib_path))
+    module_state_modules::LoadState_add_module(state, clone(short_name), mod_decls)
+    mod_decls
+}

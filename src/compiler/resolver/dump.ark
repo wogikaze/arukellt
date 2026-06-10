@@ -1,0 +1,37 @@
+// Arukellt Resolver - scope dump output
+
+use std::host::stdio
+use resolver::scope_stack_scopes
+use resolver::scope_stack_symbols
+use resolver::context
+use resolver::names
+use resolver::types
+
+// ── Dump ─────────────────────────────────────────────────────────────────────
+fn dump_scope(ctx: ResolveCtx) {
+    let scope_count = scope_stack_scopes::ResolveCtx_scope_count(ctx)
+    let mut i = 0
+    while i < scope_count {
+        let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, i)
+        let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
+        stdio::eprintln(concat(String_from("scope["), concat(to_string(i), concat(String_from("] ("), concat(to_string(sym_count), String_from(" symbols)"))))))
+        let mut j = 0
+        while j < sym_count {
+            let sym = scope_stack_scopes::Scope_symbol_at(scope, j)
+            let kind_str = names::sym_kind_name(scope_stack_symbols::Symbol_kind(sym))
+            stdio::eprintln(concat(String_from("  "), concat(kind_str, concat(String_from(" "), scope_stack_symbols::Symbol_name(sym)))))
+            j = j + 1
+        }
+        i = i + 1
+    }
+    let error_count = context::ResolveCtx_reported_error_count(ctx)
+    if error_count > 0 {
+        let mut ei = 0
+        let message_count = context::ResolveCtx_error_message_count(ctx)
+        while ei < message_count {
+            stdio::eprintln(concat(String_from("error: "), context::ResolveCtx_error_at(ctx, ei)))
+            ei = ei + 1
+        }
+        stdio::eprintln(concat(to_string(error_count), String_from(" resolve error(s)")))
+    }
+}

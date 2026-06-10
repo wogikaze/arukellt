@@ -1,0 +1,61 @@
+// Arukellt Selfhost - backend module loading and resolve stage.
+
+use compiler::phases
+use compiler::session_resolve_query
+use driver::debug
+use driver::errors
+use driver::load
+use driver::module_state_errors
+use driver::module_state_modules
+use driver::result_record
+use std::host::clock
+
+struct DriverResolveResult {
+    should_return: bool,
+    result: CompileResult,
+    load_state: LoadState,
+    resolve_ctx: ResolveCtx,
+    t_resolve: i64,
+}
+
+fn DriverResolveResult_new(should_return: bool, result: CompileResult, load_state: LoadState, resolve_ctx: ResolveCtx, t_resolve: i64) -> DriverResolveResult {
+    DriverResolveResult { should_return: should_return, result: result, load_state: load_state, resolve_ctx: resolve_ctx, t_resolve: t_resolve }
+}
+
+fn resolve_result_should_return(result: DriverResolveResult) -> bool {
+    result.should_return
+}
+
+fn resolve_result_result(result: DriverResolveResult) -> CompileResult {
+    result.result
+}
+
+fn resolve_result_loaded_modules(result: DriverResolveResult) -> Vec<ModuleDecls> {
+    module_state_modules::LoadState_modules(result.load_state)
+}
+
+fn resolve_result_ctx(result: DriverResolveResult) -> ResolveCtx {
+    result.resolve_ctx
+}
+
+fn resolve_result_t_resolve(result: DriverResolveResult) -> i64 {
+    result.t_resolve
+}
+
+fn resolve_result_load_state(result: DriverResolveResult) -> LoadState {
+    result.load_state
+}
+
+fn backend_resolve(source: String, config: DriverConfig, decls: Vec<AstNode>) -> DriverResolveResult {
+    let load_state = load::load_modules_for_source(source, decls, config)
+    if module_state_errors::LoadState_error_count(load_state) > 0 {
+        return DriverResolveResult_new(true, errors::module_loading_errors_result(module_state_errors::LoadState_errors(load_state)), load_state, session_resolve_query::session_empty_resolve_ctx(), 0)
+    }
+    let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules(decls, module_state_modules::LoadState_modules(load_state))
+    debug::dump_resolved_hir_if_enabled(config, resolve_ctx)
+    let resolve_error_count = session_resolve_query::session_resolve_reported_error_count(resolve_ctx)
+    if resolve_error_count > 0 {
+        return DriverResolveResult_new(true, errors::resolve_errors_result(resolve_error_count, session_resolve_query::session_resolve_errors(resolve_ctx)), load_state, resolve_ctx, 0)
+    }
+    DriverResolveResult_new(false, result_record::CompileResult_ok(phases::PHASE_RESOLVE()), load_state, resolve_ctx, clock::monotonic_now())
+}

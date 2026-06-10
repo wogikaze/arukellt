@@ -1,0 +1,32 @@
+// Arukellt Parser - parser cursor facade.
+
+use parser::cursor_advance
+use parser::cursor_read
+
+fn cur(p: Parser) -> Token {
+    cursor_read::cur(p)
+}
+
+fn peek_kind(p: Parser) -> i32 {
+    cursor_read::peek_kind(p)
+}
+
+fn at(p: Parser, kind: i32) -> bool {
+    cursor_read::at(p, kind)
+}
+
+fn at_eof(p: Parser) -> bool {
+    cursor_read::at_eof(p)
+}
+
+fn bump(p: Parser) -> Token {
+    cursor_advance::bump(p)
+}
+
+fn skip_newlines(p: Parser) {
+    cursor_advance::skip_newlines(p)
+}
+
+fn skip_only_newlines(p: Parser) {
+    cursor_advance::skip_only_newlines(p)
+}

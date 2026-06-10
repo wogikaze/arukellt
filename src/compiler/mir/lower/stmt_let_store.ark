@@ -1,0 +1,42 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR let statement initializer store emission.
+
+use mir::inst_convert
+use mir::inst_local_set
+use mir::lower::expr_types
+use mir::value_types
+
+fn emit_let_initializer_store(ctx: LowerCtx, node: AstNode, vt: i32, local_idx: i32, val_idx: i32, pre_init_kind: i32, ta_count: i32) {
+    if val_idx < 0 {
+        return
+    }
+    sync_let_local_value_type(ctx, vt, local_idx, val_idx)
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(local_idx))
+    sync_let_local_type_name(ctx, local_idx, val_idx, pre_init_kind, ta_count)
+}
+
+fn sync_let_local_value_type(ctx: LowerCtx, vt: i32, local_idx: i32, val_idx: i32) {
+    if ctx_api_local_types::ctx_local_vt(ctx, val_idx) == value_types::VT_F64() && ctx_api_local_types::ctx_local_vt(ctx, local_idx) == value_types::VT_I32() {
+        ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_F64())
+    }
+    if vt == value_types::VT_I64() && ctx_api_local_types::ctx_local_vt(ctx, val_idx) == value_types::VT_I32() {
+        let ext_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
+        ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64(ext_dest, val_idx))
+    }
+}
+
+fn sync_let_local_type_name(ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_init_kind: i32, ta_count: i32) {
+    let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
+    if len(init_type) > 1 {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
+    }
+    if ta_count == 0 && len(ctx_api_local_types::ctx_get_local_type(ctx, local_idx)) == 0 {
+        let literal_type_name = expr_types::mir_literal_kind_type_name(pre_init_kind)
+        if len(literal_type_name) > 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, local_idx, literal_type_name)
+        }
+    }
+}

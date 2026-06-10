@@ -1,0 +1,18 @@
+// Arukellt Lexer - decimal integer and float literals
+
+use lexer::number_decimal_float
+use lexer::number_decimal_finish
+use lexer::number_decimal_int
+use lexer::number_suffix
+
+fn lex_decimal_number(lex: Lexer, start: i32) -> Token {
+    let val = number_decimal_int::scan_decimal_integer(lex)
+    let mut is_float = number_decimal_float::scan_decimal_float_parts(lex)
+    let suffix_len = number_suffix::try_eat_type_suffix(lex)
+    if suffix_len > 0 && !is_float {
+        if number_decimal_float::suffix_marks_float(lex, suffix_len) {
+            is_float = true
+        }
+    }
+    number_decimal_finish::finish_decimal_number(lex, start, val, is_float, suffix_len)
+}

@@ -1,0 +1,35 @@
+// Arukellt Selfhost - CoreHIR declaration member collection accessors.
+
+use corehir::decl_children
+
+fn decl_method_count(node: AstNode) -> i32 {
+    decl_children::decl_child_count(node)
+}
+
+fn decl_method_at(node: AstNode, idx: i32) -> AstNode {
+    decl_children::decl_child_at(node, idx)
+}
+
+fn decl_field_count(node: AstNode) -> i32 {
+    decl_children::decl_child_count(node)
+}
+
+fn decl_field_at(node: AstNode, idx: i32) -> AstNode {
+    decl_children::decl_child_at(node, idx)
+}
+
+fn decl_variant_count(node: AstNode) -> i32 {
+    decl_children::decl_child_count(node)
+}
+
+fn decl_variant_at(node: AstNode, idx: i32) -> AstNode {
+    decl_children::decl_child_at(node, idx)
+}
+
+fn method_body_index(node: AstNode) -> i32 {
+    decl_children::decl_body_index(node)
+}
+
+fn method_param_count(node: AstNode) -> i32 {
+    decl_children::decl_param_count(node)
+}

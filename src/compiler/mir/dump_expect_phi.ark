@@ -1,0 +1,19 @@
+// Arukellt Selfhost - MIR dump phi expectations
+
+use mir::dump_expect_phi_args
+use mir::dump_expect_phi_format
+use mir::dump_expect_phi_one
+use mir::types
+
+fn mir_expect_phi(f: MirFunction, block_id: i32, expected_dest: i32, expected_vt: i32, expected_count: i32, expected_pred0: i32, expected_local0: i32, expected_pred1: i32, expected_local1: i32) {
+    let phi = dump_expect_phi_one::mir_expect_single_phi(f, block_id, expected_dest, expected_vt)
+    dump_expect_phi_args::mir_expect_phi_args(f, block_id, phi, expected_count, expected_pred0, expected_local0, expected_pred1, expected_local1)
+}
+
+fn mir_expect_phi_args(f: MirFunction, block_id: i32, phi: MirPhi, expected_count: i32, expected_pred0: i32, expected_local0: i32, expected_pred1: i32, expected_local1: i32) {
+    dump_expect_phi_args::mir_expect_phi_args(f, block_id, phi, expected_count, expected_pred0, expected_local0, expected_pred1, expected_local1)
+}
+
+fn mir_expect_phi_format(f: MirFunction, block_id: i32, phi_index: i32, expected: String) {
+    dump_expect_phi_format::mir_expect_phi_format(f, block_id, phi_index, expected)
+}

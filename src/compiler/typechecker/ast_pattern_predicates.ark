@@ -1,0 +1,20 @@
+use typechecker::kinds
+// Arukellt Typechecker - pattern node predicates.
+
+use typechecker::ast_access
+
+fn node_is_pat_wildcard(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_PAT_WILDCARD())
+}
+
+fn node_is_pat_ident(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_PAT_IDENT())
+}
+
+fn node_is_pat_literal(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_PAT_LITERAL())
+}
+
+fn node_is_pat_variant(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_PAT_VARIANT())
+}

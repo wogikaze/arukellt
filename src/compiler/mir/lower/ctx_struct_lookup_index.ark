@@ -1,0 +1,47 @@
+// Arukellt MIR lowering context - struct field index lookup.
+
+use mir::lower::ctx_struct_storage
+
+fn ctx_field_index(ctx: LowerCtx, struct_name: String, field_name: String) -> i32 {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
+        let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
+        if eq(clone(sn), clone(struct_name)) {
+            let mut fi = 0
+            while fi < fc {
+                let fn_name = ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, offset + fi)
+                if eq(clone(fn_name), clone(field_name)) {
+                    return fi
+                }
+                fi = fi + 1
+            }
+            return 0
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    0
+}
+
+fn ctx_field_index_any(ctx: LowerCtx, field_name: String) -> i32 {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
+        let mut fi = 0
+        while fi < fc {
+            let fn_name = ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, offset + fi)
+            if eq(clone(fn_name), clone(field_name)) {
+                return fi
+            }
+            fi = fi + 1
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    0
+}

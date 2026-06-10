@@ -1,0 +1,15 @@
+// Arukellt Selfhost - MIR lowering entry body value selection.
+
+use mir::lower::entry_body_core_value
+use mir::lower::entry_body_fallback
+use mir::lower::entry_body_input
+
+fn mir_lower_entry_body_value(ctx: LowerCtx, input: MirLowerEntryBodyInput) -> i32 {
+    let core_body = entry_body_input::mir_entry_body_input_core(input)
+    let core_value = entry_body_core_value::mir_lower_entry_body_core_value(ctx, core_body)
+    if core_value != 0 - 2 {
+        return core_value
+    }
+    let fallback = entry_body_input::mir_entry_body_input_fallback(input)
+    entry_body_fallback::mir_lower_entry_body_fallback_value(ctx, fallback)
+}

@@ -1,0 +1,33 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - comprehension expressions.
+
+use mir::inst_structured_control
+use mir::lower::comprehension
+
+fn lower_comprehension_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let comp_child_count = ast_node::node_child_count(node)
+    if comp_child_count >= 2 {
+        let elem_expr = ast_node::node_child_at(node, 0)
+        let iter_expr = ast_node::node_child_at(node, 1)
+        let comp_vec_idx = lower_expr(ctx, iter_expr)
+        let comp_state = comprehension::mir_begin_comprehension(ctx, ast_node::node_text(node), comp_vec_idx)
+        if comp_child_count > 2 {
+            let filter_expr = ast_node::node_child_at(node, 2)
+            let _filter_idx = lower_expr(ctx, filter_expr)
+            ctx_emit(ctx, inst_structured_control::MirInst_if())
+            comprehension::mir_emit_comprehension_push_prefix(ctx, comp_state)
+            let _comp_elem_idx = lower_expr(ctx, elem_expr)
+            comprehension::mir_emit_comprehension_push_call(ctx)
+            ctx_emit(ctx, inst_structured_control::MirInst_end())
+        } else {
+            comprehension::mir_emit_comprehension_push_prefix(ctx, comp_state)
+            let _comp_elem_idx = lower_expr(ctx, elem_expr)
+            comprehension::mir_emit_comprehension_push_call(ctx)
+        }
+        comprehension::mir_emit_comprehension_increment_and_end(ctx, comp_state)
+        return comprehension::mir_emit_comprehension_result(ctx, comp_state)
+    }
+    0 - 1
+}

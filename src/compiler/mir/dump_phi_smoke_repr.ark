@@ -1,0 +1,37 @@
+// Arukellt Selfhost - MIR phi representation smoke check.
+
+use std::host::stdio
+use mir::dominance
+use mir::dump_core
+use mir::dump_expect
+use mir::dump_smoke_simple_phi_fixture
+use mir::module_functions
+use mir::ssa
+use mir::value_types
+
+fn run_phi_representation_smoke() {
+    let fx = dump_smoke_simple_phi_fixture::mir_dump_simple_phi_fixture_new(String_from("phi_repr_sample"), true)
+    let m = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_module(fx)
+    let f = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_function(fx)
+    let cond = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_cond(fx)
+    let then_val = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_then_val(fx)
+    let else_val = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_else_val(fx)
+    let join_val = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_join_val(fx)
+    let then_bb = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_then_bb(fx)
+    let else_bb = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_else_bb(fx)
+    let join_bb = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_join_bb(fx)
+    dominance::mir_compute_dominance_for_function(f)
+    ssa::mir_ssa_rename_function(f)
+    dump_expect::mir_expect_preds(f, join_bb, 2, then_bb, else_bb)
+    dump_expect::mir_expect_frontier(f, then_bb, 1, join_bb, 0)
+    dump_expect::mir_expect_frontier(f, else_bb, 1, join_bb, 0)
+    dump_expect::mir_expect_phi(f, join_bb, join_val, value_types::VT_I32(), 2, then_bb, then_val, else_bb, else_val)
+    dump_expect::mir_expect_local_ssa(f, cond, String_from("cond"), 1)
+    dump_expect::mir_expect_local_ssa(f, then_val, String_from("then_val"), 1)
+    dump_expect::mir_expect_local_ssa(f, else_val, String_from("else_val"), 1)
+    dump_expect::mir_expect_local_ssa(f, join_val, String_from("join_val"), 1)
+    dump_expect::mir_expect_phi_format(f, join_bb, 0, String_from("phi %join_val.1 = [bb1 -> %then_val.1, bb2 -> %else_val.1] : i32"))
+    module_functions::MirModule_push_function(m, f)
+    dump_core::dump_mir(m)
+    stdio::println(String_from("MIR phi representation self-check OK."))
+}

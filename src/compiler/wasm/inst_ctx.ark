@@ -1,0 +1,83 @@
+use mir::function_identity
+// Arukellt Selfhost - Wasm Binary Emitter: context helpers.
+
+use wasm::call_resolve
+use wasm::ctx_record
+use wasm::ctx_vec_locals
+use wasm::hash_aliases
+
+fn ctx_mark_vec_local(ctx: SelfEmitCtx, local_idx: i32) {
+    let count = ctx_vec_locals::SelfEmitCtx_vec_local_count(ctx)
+    let mut i = 0
+    while i < count {
+        if ctx_vec_locals::SelfEmitCtx_vec_local_at(ctx, i) == local_idx {
+            return
+        }
+        i = i + 1
+    }
+    ctx_vec_locals::SelfEmitCtx_push_vec_local(ctx, local_idx)
+}
+
+fn ctx_is_vec_local(ctx: SelfEmitCtx, local_idx: i32) -> bool {
+    let count = ctx_vec_locals::SelfEmitCtx_vec_local_count(ctx)
+    let mut i = 0
+    while i < count {
+        if ctx_vec_locals::SelfEmitCtx_vec_local_at(ctx, i) == local_idx {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn strip_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
+}
+
+fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
+    let functions = ctx_record::SelfEmitCtx_functions(ctx)
+    let exact_idx = resolve_fn_index_by_name(ctx, clone(name))
+    if exact_idx >= 0 {
+        return call_resolve::mir_resolve_self_delegate_collision(functions, exact_idx, clone(name))
+    }
+    let short_name = strip_module_prefix(clone(name))
+    if !eq(clone(short_name), clone(name)) {
+        let short_idx = resolve_fn_index_by_name(ctx, short_name)
+        if short_idx >= 0 {
+            return call_resolve::mir_resolve_self_delegate_collision(functions, short_idx, clone(name))
+        }
+    }
+    let alias = hash_aliases::hashmap_builtin_alias(clone(name))
+    if !eq(clone(alias), clone(name)) {
+        let alias_idx = resolve_fn_index_by_name(ctx, alias)
+        if alias_idx >= 0 {
+            return call_resolve::mir_resolve_self_delegate_collision(functions, alias_idx, clone(name))
+        }
+    }
+    0 - 1
+}
+
+fn hashmap_builtin_alias(name: String) -> String {
+    hash_aliases::hashmap_builtin_alias(name)
+}
+
+fn resolve_fn_index_by_name(ctx: SelfEmitCtx, name: String) -> i32 {
+    let count = ctx_record::SelfEmitCtx_function_count(ctx)
+    let mut i = 0
+    while i < count {
+        let f = ctx_record::SelfEmitCtx_function_at(ctx, i)
+        if eq(function_identity::MirFunction_name(f), clone(name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}

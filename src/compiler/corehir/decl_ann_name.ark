@@ -1,0 +1,23 @@
+// Arukellt Selfhost - CoreHIR declaration annotation name predicates.
+
+use corehir::type_ann_node
+
+fn decl_ann_name(ann: AstNode) -> String {
+    type_ann_node::type_ann_name(ann)
+}
+
+fn decl_ann_is_generic(ann: AstNode) -> bool {
+    type_ann_node::type_ann_is_generic(ann)
+}
+
+fn decl_ann_is_named(ann: AstNode) -> bool {
+    type_ann_node::type_ann_is_named(ann)
+}
+
+fn decl_ann_is_tuple(ann: AstNode) -> bool {
+    type_ann_node::type_ann_is_tuple(ann)
+}
+
+fn decl_ann_is_name(ann: AstNode, name: String) -> bool {
+    type_ann_node::type_ann_is_name(ann, name)
+}

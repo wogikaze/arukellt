@@ -1,0 +1,34 @@
+// Arukellt Selfhost - MIR dump phi formatting
+
+use mir::dump_format_local
+use mir::dump_format_types
+use mir::dump_op_names
+use mir::phi_access
+
+fn mir_format_phi_args(f: MirFunction, args: Vec<MirPhiArg>) -> String {
+    let count = len(args)
+    let mut out = String_from("[")
+    let mut i = 0
+    while i < count {
+        let arg = get_unchecked(args, i)
+        if i > 0 {
+            out = concat(out, String_from(", "))
+        }
+        out = concat(out, String_from("bb"))
+        out = concat(out, to_string(phi_access::MirPhiArg_pred_block(arg)))
+        out = concat(out, String_from(" -> "))
+        out = concat(out, dump_format_local::mir_format_local_ref(f, phi_access::MirPhiArg_local(arg)))
+        i = i + 1
+    }
+    concat(out, String_from("]"))
+}
+
+fn mir_format_phi(f: MirFunction, phi: MirPhi) -> String {
+    let mut out = dump_op_names::mir_op_name(phi_access::MirPhi_op(phi))
+    out = concat(out, String_from(" "))
+    out = concat(out, dump_format_local::mir_format_local_ref(f, phi_access::MirPhi_dest(phi)))
+    out = concat(out, String_from(" = "))
+    out = concat(out, mir_format_phi_args(f, phi_access::MirPhi_args(phi)))
+    out = concat(out, String_from(" : "))
+    concat(out, dump_format_types::mir_value_type_name(phi_access::MirPhi_val_type(phi)))
+}

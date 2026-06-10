@@ -1,0 +1,13 @@
+// Arukellt Selfhost - CoreHIR declaration kind adapter.
+
+use parser::kinds
+
+// Arukellt Selfhost - parser AST declaration kind adapter for CoreHIR frontend.
+
+fn corehir_kind_is_decl_fn(kind: i32) -> bool { kind == kinds::NK_FN_DECL() }
+fn corehir_kind_is_decl_struct(kind: i32) -> bool { kind == kinds::NK_STRUCT_DECL() }
+fn corehir_kind_is_decl_enum(kind: i32) -> bool { kind == kinds::NK_ENUM_DECL() }
+fn corehir_kind_is_decl_trait(kind: i32) -> bool { kind == kinds::NK_TRAIT_DECL() }
+fn corehir_kind_is_decl_impl(kind: i32) -> bool { kind == kinds::NK_IMPL_DECL() }
+fn corehir_kind_is_decl_use(kind: i32) -> bool { kind == kinds::NK_USE() }
+fn corehir_kind_is_decl_import(kind: i32) -> bool { kind == kinds::NK_IMPORT() }

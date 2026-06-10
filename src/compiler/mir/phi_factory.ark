@@ -1,0 +1,16 @@
+// Arukellt Selfhost - MIR phi construction API.
+
+use mir::phi_record
+use mir::types
+
+fn MirPhiArg_new(pred_block: i32, local: i32) -> MirPhiArg {
+    phi_record::MirPhiArg_new(pred_block, local)
+}
+
+fn MirPhi_new(dest: i32, val_type: i32) -> MirPhi {
+    phi_record::MirPhi_new(dest, val_type)
+}
+
+fn mir_phi_add_arg(phi: MirPhi, pred_block: i32, local: i32) {
+    phi_record::mir_phi_add_arg(phi, pred_block, local)
+}

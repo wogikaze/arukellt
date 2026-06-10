@@ -1,0 +1,24 @@
+use typechecker::kinds
+// Arukellt Typechecker - let statement checking.
+
+use typechecker::ast_access
+use typechecker::scope
+use typechecker::types
+use typechecker::unify
+
+fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+    let mut bind_ty = TypeInfo_simple(commands::TY_UNKNOWN())
+    if ast_access::node_child_count(node) > 0 {
+        let init = ast_access::node_child_at(node, 0)
+        bind_ty = infer_expr(env, scope, fn_sigs, enum_defs, init)
+    }
+    if ast_access::node_type_ann_count(node) > 0 {
+        let ann = ast_access::node_type_ann_at(node, 0)
+        let ann_ty = types::resolve_type_ann_node(ann)
+        bind_ty = unify::unify(env, bind_ty, ann_ty)
+    }
+    let bind_name = ast_access::node_text(node)
+    if !eq(clone(bind_name), "_") {
+        scope::scope_define(scope, bind_name, bind_ty)
+    }
+}

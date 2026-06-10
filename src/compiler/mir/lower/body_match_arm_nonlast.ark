@@ -1,0 +1,46 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+use mir::lower_kinds
+// Arukellt MIR lowering body - non-final match arm.
+
+use mir::inst_structured_control
+use mir::lower::body_match_compare_or
+use mir::lower::body_match_compare_single
+use mir::lower::match
+
+fn lower_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, pat: AstNode, body: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32) -> i32 {
+    let mut depth = if_depth
+    let is_catchall = match::mir_match_is_catchall(pat)
+    let has_guard = match::mir_match_arm_has_guard(arm_child_count)
+    if is_catchall {
+        depth = lower_catchall_match_arm_prefix(ctx, arm_node, pat, scrut_idx, has_guard, depth)
+    } else {
+        depth = lower_match_compare_prefix(ctx, arm_node, pat, payload_info, scrut_idx, has_guard, depth)
+    }
+    let arm_result = lower_expr(ctx, body)
+    match::mir_store_match_arm_result(ctx, result, arm_result)
+    ctx_emit(ctx, inst_structured_control::MirInst_else())
+    depth
+}
+
+fn lower_catchall_match_arm_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
+    let mut depth = if_depth
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) {
+        match::mir_emit_match_ident_bind(ctx, pat, scrut_idx)
+    }
+    if has_guard {
+        let guard = ast_node::node_child_at(arm_node, 1)
+        lower_expr(ctx, guard)
+        match::mir_emit_match_guard_begin(ctx)
+        depth = depth + 1
+    }
+    depth
+}
+
+fn lower_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_OR()) {
+        return body_match_compare_or::lower_or_match_compare_prefix(ctx, pat, payload_info, if_depth)
+    }
+    body_match_compare_single::lower_single_match_compare_prefix(ctx, arm_node, pat, payload_info, scrut_idx, has_guard, if_depth)
+}

@@ -1,0 +1,38 @@
+// Arukellt Selfhost - compiler resolve session query.
+
+use resolver::program
+use resolver::context
+use resolver::scope_metrics
+
+fn session_resolve_decls(decls: Vec<AstNode>) -> ResolveCtx {
+let empty_modules = Vec_new_ModuleDecls()
+program::resolve_program(decls, empty_modules)
+}
+
+fn session_resolve_decls_with_modules(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> ResolveCtx {
+program::resolve_program(decls, modules)
+}
+
+fn session_empty_resolve_ctx() -> ResolveCtx {
+context::ResolveCtx_new()
+}
+
+fn session_resolve_error_count(ctx: ResolveCtx) -> i32 {
+context::ResolveCtx_error_message_count(ctx)
+}
+
+fn session_resolve_reported_error_count(ctx: ResolveCtx) -> i32 {
+context::ResolveCtx_reported_error_count(ctx)
+}
+
+fn session_resolve_errors(ctx: ResolveCtx) -> Vec<String> {
+context::ResolveCtx_errors(ctx)
+}
+
+fn session_count_user_symbols(ctx: ResolveCtx) -> i32 {
+scope_metrics::count_user_symbols(ctx)
+}
+
+fn session_resolve_error_at(ctx: ResolveCtx, index: i32) -> String {
+context::ResolveCtx_error_at(ctx, index)
+}

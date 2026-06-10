@@ -1,0 +1,15 @@
+// Arukellt Selfhost - MIR instruction operand mutators.
+
+use mir::inst_record
+
+fn MirInst_set_arg0(inst: MirInst, arg0: i32) {
+    inst_record::mir_inst_set_arg0(inst, arg0)
+}
+
+fn MirInst_set_arg1(inst: MirInst, arg1: i32) {
+    inst_record::mir_inst_set_arg1(inst, arg1)
+}
+
+fn MirInst_set_dest(inst: MirInst, dest: i32) {
+    inst_record::mir_inst_set_dest(inst, dest)
+}

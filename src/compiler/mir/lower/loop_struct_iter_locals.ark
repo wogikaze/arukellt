@@ -1,0 +1,35 @@
+// Arukellt Selfhost - struct iterator loop local setup.
+
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_types
+use mir::lower::loop_conditions
+use mir::value_types
+
+fn mir_struct_iterator_iter_ptr(ctx: LowerCtx, struct_type: String) -> i32 {
+    let iter_ptr = ctx_fresh_local(ctx, value_types::VT_I32())
+    loop_conditions::mir_save_stack_to_local(ctx, iter_ptr)
+    ctx_set_local_type(ctx, iter_ptr, struct_type)
+    iter_ptr
+}
+
+fn mir_struct_iterator_iter_var(ctx: LowerCtx, iter_name: String, next_callee: String) -> i32 {
+    let iter_var = ctx_alloc_local(ctx, iter_name, value_types::VT_I32())
+    let payload_type = mir_struct_iterator_payload_type(ctx, next_callee)
+    if len(payload_type) > 0 {
+        ctx_set_local_type(ctx, iter_var, payload_type)
+    }
+    iter_var
+}
+
+fn mir_struct_iterator_payload_type(ctx: LowerCtx, next_callee: String) -> String {
+    let ret_type_name = ctx_fn_return_type_name(ctx, clone(next_callee))
+    if starts_with(clone(ret_type_name), "option:") {
+        return substring(ret_type_name, 7, len(ret_type_name))
+    }
+    String_from("")
+}
+
+fn mir_struct_iterator_temp_i32(ctx: LowerCtx) -> i32 {
+    ctx_fresh_local(ctx, value_types::VT_I32())
+}

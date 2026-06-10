@@ -1,0 +1,29 @@
+// Arukellt Selfhost - monomorphization index construction.
+
+use mir::mono_instance_shape
+use mir::mono_index_types
+use mir::type_contracts
+
+fn build_mono_index(instances: Vec<MonoInstance>) -> MonoIndex {
+    let count = len(instances)
+    let idx = mono_index_types::mono_index_new()
+    let mut i = 0
+    while i < count {
+        let mi = get_unchecked(instances, i)
+        if !mono_index_instance_is_marker(mi) {
+            let fn_name = mono_instance_shape::mir_mono_instance_fn_name(mi)
+            let found_at = mono_index_types::mono_index_find_name(idx, clone(fn_name))
+            if found_at >= 0 {
+                mono_index_types::mono_index_increment_name(idx, found_at, mono_instance_shape::mir_mono_instance_mangled_name(mi))
+            } else {
+                mono_index_types::mono_index_push_name(idx, fn_name, mono_instance_shape::mir_mono_instance_mangled_name(mi))
+            }
+        }
+        i = i + 1
+    }
+    idx
+}
+
+fn mono_index_instance_is_marker(mi: MonoInstance) -> bool {
+    mono_instance_shape::mir_mono_instance_is_marker(mi)
+}

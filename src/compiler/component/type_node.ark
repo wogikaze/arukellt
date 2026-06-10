@@ -1,0 +1,64 @@
+// Arukellt Selfhost - component contract type-node view.
+
+use component::ast_node
+
+struct ComponentTypeNode {
+    node: AstNode,
+}
+
+fn type_node_from_ast(node: AstNode) -> ComponentTypeNode {
+    ComponentTypeNode { node: node }
+}
+
+fn type_node_is_named_kind(ty: ComponentTypeNode) -> bool {
+    ast_node::node_is_type_named(ty.node)
+}
+
+fn type_node_is_generic_kind(ty: ComponentTypeNode) -> bool {
+    ast_node::node_is_type_generic(ty.node)
+}
+
+fn type_node_is_tuple_kind(ty: ComponentTypeNode) -> bool {
+    ast_node::node_is_type_tuple(ty.node)
+}
+
+fn type_node_text(ty: ComponentTypeNode) -> String {
+    ast_node::node_text(ty.node)
+}
+
+fn type_node_child_count(ty: ComponentTypeNode) -> i32 {
+    ast_node::node_child_count(ty.node)
+}
+
+fn type_node_child_at(ty: ComponentTypeNode, index: i32) -> ComponentTypeNode {
+    type_node_from_ast(ast_node::node_child_at(ty.node, index))
+}
+
+fn type_node_is_named(ty: ComponentTypeNode, name: String) -> bool {
+    type_node_is_named_kind(ty) && eq(type_node_text(ty), name)
+}
+
+fn type_node_is_tuple_pair(ty: ComponentTypeNode, left_name: String, right_name: String) -> bool {
+    if type_node_is_tuple_kind(ty) && type_node_child_count(ty) == 2 {
+        let left = type_node_child_at(ty, 0)
+        let right = type_node_child_at(ty, 1)
+        return type_node_is_named(left, left_name) && type_node_is_named(right, right_name)
+    }
+    false
+}
+
+fn type_node_is_generic_named_unary(ty: ComponentTypeNode, generic_name: String, elem_name: String) -> bool {
+    if type_node_is_generic_kind(ty) && eq(type_node_text(ty), generic_name) && type_node_child_count(ty) > 1 {
+        return type_node_is_named(type_node_child_at(ty, 1), elem_name)
+    }
+    false
+}
+
+fn type_node_is_generic_named_pair(ty: ComponentTypeNode, generic_name: String, left_name: String, right_name: String) -> bool {
+    if type_node_is_generic_kind(ty) && eq(type_node_text(ty), generic_name) && type_node_child_count(ty) > 2 {
+        let left = type_node_child_at(ty, 1)
+        let right = type_node_child_at(ty, 2)
+        return type_node_is_named(left, left_name) && type_node_is_named(right, right_name)
+    }
+    false
+}

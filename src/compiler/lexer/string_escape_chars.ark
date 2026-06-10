@@ -1,0 +1,20 @@
+// Arukellt Lexer - string escape decoding.
+
+fn escaped_string_fragment(lex: Lexer, esc: i32) -> String {
+    if esc == 110 {
+        return String_from("\n")
+    }
+    if esc == 116 {
+        return String_from("\t")
+    }
+    if esc == 114 {
+        return String_from("\r")
+    }
+    if esc == 92 {
+        return String_from("\\")
+    }
+    if esc == 34 {
+        return String_from("\"")
+    }
+    substring(lex.src, lex.pos - 1, lex.pos)
+}

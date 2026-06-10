@@ -1,0 +1,57 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - Option HOF branch lowering.
+
+use mir::inst_call
+use mir::inst_const_i32
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::inst_struct_get
+use mir::inst_struct_set
+use mir::inst_structured_control
+use mir::value_types
+
+fn emit_map_option_some_i32(ctx: LowerCtx, mopt_fn_name: String, mopt_opt_local: i32, mopt_new_local: i32) {
+    let mopt_payload_local = emit_map_option_payload_i32(ctx, mopt_opt_local)
+    let mopt_result_local = emit_map_option_callback_i32(ctx, mopt_fn_name, mopt_payload_local)
+    emit_map_option_some_result_i32(ctx, mopt_new_local, mopt_result_local)
+}
+
+fn emit_map_option_payload_i32(ctx: LowerCtx, mopt_opt_local: i32) -> i32 {
+    let mopt_payload_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(mopt_opt_local))
+    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(4, value_types::VT_VOID()))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(mopt_payload_local))
+    mopt_payload_local
+}
+
+fn emit_map_option_callback_i32(ctx: LowerCtx, mopt_fn_name: String, mopt_payload_local: i32) -> i32 {
+    let mopt_result_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(mopt_payload_local))
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(mopt_fn_name), 1, mopt_result_local))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(mopt_result_local))
+    mopt_result_local
+}
+
+fn emit_map_option_some_result_i32(ctx: LowerCtx, mopt_new_local: i32, mopt_result_local: i32) {
+    let mopt_tag_zero = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, mopt_tag_zero))
+    ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(mopt_new_local, mopt_tag_zero, 0, value_types::VT_VOID()))
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(mopt_result_local))
+    ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(mopt_new_local, mopt_result_local, 4, value_types::VT_VOID()))
+}
+
+fn emit_map_option_none_i32(ctx: LowerCtx, mopt_new_local: i32) {
+    let mopt_tag_one = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(1, mopt_tag_one))
+    ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(mopt_new_local, mopt_tag_one, 0, value_types::VT_VOID()))
+}
+
+fn emit_map_option_end(ctx: LowerCtx) {
+    ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_end())
+}
+
+fn emit_map_option_result(ctx: LowerCtx, mopt_new_local: i32) {
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(mopt_new_local))
+}

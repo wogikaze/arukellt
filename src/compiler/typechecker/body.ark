@@ -1,0 +1,26 @@
+use typechecker::kinds
+// Arukellt Typechecker - function body checking facade.
+
+use typechecker::ast_access
+use typechecker::body_params
+use typechecker::body_returns
+use typechecker::contract_fn_sig
+use typechecker::contract_type_access
+use typechecker::infer
+use typechecker::scope
+use typechecker::sigs
+
+fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode) {
+    let scope = scope::LocalScope_new()
+    body_params::bind_fn_params(scope, fn_node)
+    let child_count = ast_access::node_child_count(fn_node)
+    if child_count > 0 {
+        let body = ast_access::node_child_at(fn_node, child_count - 1)
+        infer::check_stmt(env, scope, fn_sigs, enum_defs, body)
+        let sig = sigs::lookup_fn_sig(fn_sigs, ast_access::node_text(fn_node))
+        let return_tag = contract_type_access::TypeInfo_tag(contract_fn_sig::FnSig_return_type(sig))
+        if return_tag != commands::TY_UNKNOWN() && return_tag != commands::TY_UNIT() {
+            body_returns::check_fn_body_return_contract(env, scope, fn_sigs, enum_defs, sig, body)
+        }
+    }
+}

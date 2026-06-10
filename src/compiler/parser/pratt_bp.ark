@@ -1,0 +1,24 @@
+// Arukellt Parser - Pratt binding power facade.
+
+use parser::pratt_bp_infix
+use parser::pratt_bp_prefix
+
+pub fn should_parse_assignment(min_bp: i32) -> bool {
+    min_bp <= 1
+}
+
+pub fn should_parse_range(min_bp: i32) -> bool {
+    min_bp <= 2
+}
+
+pub fn prefix_bp(kind: i32) -> i32 {
+    pratt_bp_prefix::prefix_bp(kind)
+}
+
+pub fn infix_bp_left(kind: i32) -> i32 {
+    pratt_bp_infix::infix_bp_left(kind)
+}
+
+pub fn infix_bp_right(kind: i32) -> i32 {
+    pratt_bp_infix::infix_bp_right(kind)
+}

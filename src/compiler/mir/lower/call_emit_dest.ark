@@ -1,0 +1,19 @@
+use mir::lower::ctx_fn_return_vt
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR direct call destination local selection.
+
+use mir::value_types
+
+fn mir_prepare_direct_call_dest(ctx: LowerCtx, callee_name: String) -> i32 {
+    // Direct calls take the callee's return value type as-is (f64 included);
+    // narrowing to i32/i64 only mistypes f64-returning call destinations.
+    let mut dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name))
+    if eq(clone(callee_name), "vec_get_unchecked_i64") {
+        dest_vt = value_types::VT_I64()
+    }
+    if eq(clone(callee_name), "vec_get_unchecked_f64") {
+        dest_vt = value_types::VT_F64()
+    }
+    ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
+}

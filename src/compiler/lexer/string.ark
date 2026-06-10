@@ -1,0 +1,15 @@
+// Arukellt Lexer - string literal lexing
+
+use lexer::string_escape
+use lexer::string_plain
+use lexer::string_scan
+
+fn lex_string(lex: Lexer) -> Token {
+    let start = lex.pos
+    lex.pos = lex.pos + 1
+    let content_start = lex.pos
+    if string_scan::string_literal_has_escape(lex) {
+        return string_escape::lex_escaped_string(lex, start)
+    }
+    string_plain::lex_plain_string(lex, start, content_start)
+}

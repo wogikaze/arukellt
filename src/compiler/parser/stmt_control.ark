@@ -1,0 +1,28 @@
+// Arukellt Parser - control-flow statement facade.
+
+use parser::stmt_loop
+use parser::stmt_transfer
+
+pub fn parse_return(p: Parser) -> AstNode {
+    stmt_transfer::parse_return(p)
+}
+
+pub fn parse_break(p: Parser) -> AstNode {
+    stmt_transfer::parse_break(p)
+}
+
+pub fn parse_continue(p: Parser) -> AstNode {
+    stmt_transfer::parse_continue(p)
+}
+
+pub fn parse_while(p: Parser) -> AstNode {
+    stmt_loop::parse_while(p)
+}
+
+pub fn parse_loop(p: Parser) -> AstNode {
+    stmt_loop::parse_loop(p)
+}
+
+pub fn parse_for(p: Parser) -> AstNode {
+    stmt_loop::parse_for(p)
+}

@@ -1,0 +1,23 @@
+// Arukellt Resolver - struct literal expression resolution.
+
+use resolver::scope_lookup
+use resolver::ast_access
+use resolver::scope_error
+
+fn resolve_struct_lit(ctx: ResolveCtx, node: AstNode) {
+    let struct_name = ast_access::node_text(node)
+    let idx = scope_lookup::lookup(ctx, clone(struct_name))
+    if idx < 0 {
+        scope_error::resolve_error(ctx, concat(String_from("undefined struct: "), struct_name))
+    }
+    let field_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < field_count {
+        let field = ast_access::node_child_at(node, i)
+        if ast_access::node_child_count(field) > 0 {
+            let val = ast_access::node_child_at(field, 0)
+            resolve_node(ctx, val)
+        }
+        i = i + 1
+    }
+}

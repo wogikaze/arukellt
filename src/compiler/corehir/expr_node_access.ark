@@ -1,0 +1,47 @@
+// Arukellt Selfhost - CoreHIR expression AST accessors.
+
+use corehir::frontend_ast_children
+use corehir::frontend_ast_identity
+use corehir::frontend_ast_literals
+use corehir::frontend_ast_span
+use corehir::frontend_ast_type_ann
+
+fn expr_text(node: AstNode) -> String {
+    frontend_ast_identity::corehir_node_text(node)
+}
+
+fn expr_span_start(node: AstNode) -> i32 {
+    frontend_ast_span::corehir_node_span_start(node)
+}
+
+fn expr_op(node: AstNode) -> i32 {
+    frontend_ast_literals::corehir_node_op(node)
+}
+
+fn expr_kind(node: AstNode) -> i32 {
+    frontend_ast_identity::corehir_node_kind(node)
+}
+
+fn expr_int_val(node: AstNode) -> i32 {
+    frontend_ast_literals::corehir_node_int_val(node)
+}
+
+fn expr_float_val(node: AstNode) -> f64 {
+    frontend_ast_literals::corehir_node_float_val(node)
+}
+
+fn expr_child_count(node: AstNode) -> i32 {
+    frontend_ast_children::corehir_node_child_count(node)
+}
+
+fn expr_child_at(node: AstNode, idx: i32) -> AstNode {
+    frontend_ast_children::corehir_node_child_at(node, idx)
+}
+
+fn expr_type_ann_count(node: AstNode) -> i32 {
+    frontend_ast_type_ann::corehir_node_type_ann_count(node)
+}
+
+fn expr_type_ann_at(node: AstNode, idx: i32) -> AstNode {
+    frontend_ast_type_ann::corehir_node_type_ann_at(node, idx)
+}

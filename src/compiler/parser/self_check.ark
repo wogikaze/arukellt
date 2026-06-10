@@ -1,0 +1,64 @@
+// Arukellt Parser standalone self-checks.
+
+use std::host::stdio
+
+use lexer::scan
+use parser::core_api_token
+use parser::decl
+use parser::dump
+use parser::self_check_issue499
+use parser::self_check_issue504
+use parser::state_record
+
+fn issue504_parser_self_check() -> String {
+    self_check_issue504::issue504_parser_self_check()
+}
+
+fn issue499_parser_self_check() -> String {
+    self_check_issue499::issue499_parser_self_check()
+}
+
+fn issue499_parser_pipepipe_self_check() -> String {
+    self_check_issue499::issue499_parser_pipepipe_self_check()
+}
+
+fn issue499_parser_lexer_integration_self_check() -> String {
+    self_check_issue499::issue499_parser_lexer_integration_self_check()
+}
+
+fn issue499_parser_block_body_lexer_integration_self_check() -> String {
+    self_check_issue499::issue499_parser_block_body_lexer_integration_self_check()
+}
+
+// ── Entry Point ──────────────────────────────────────────────────────────────
+fn main() {
+    let src = String_from("fn main() { 42 }")
+    let tokens = scan::tokenize(src)
+    let p = core_api_token::Parser_new(tokens)
+    let decls = decl::parse_module(p)
+    let n = len(decls)
+    stdio::println(concat(String_from("Parsed "), concat(to_string(n), String_from(" declaration(s)"))))
+    let mut i = 0
+    while i < n {
+        let d = get_unchecked(decls, i)
+        dump::print_ast(d, 0)
+        i = i + 1
+    }
+    let err_count = state_record::parser_error_count(p)
+    if err_count > 0 {
+        stdio::println(concat(String_from("Parse errors: "), to_string(err_count)))
+        let mut j = 0
+        while j < err_count {
+            let e = state_record::parser_error_at(p, j)
+            stdio::println(concat(String_from("  "), clone(e.message)))
+            j = j + 1
+        }
+    } else {
+        stdio::println(String_from("No parse errors."))
+    }
+    stdio::println(issue499_parser_self_check())
+    stdio::println(issue499_parser_pipepipe_self_check())
+    stdio::println(issue499_parser_lexer_integration_self_check())
+    stdio::println(issue499_parser_block_body_lexer_integration_self_check())
+    stdio::println(issue504_parser_self_check())
+}

@@ -1,0 +1,37 @@
+use mir::inst_accessors_shape
+use mir::opcodes
+// Arukellt Selfhost - MIR control instruction dispatch.
+
+use wasm::inst_control
+
+fn try_emit_control_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BR() {
+        inst_control::emit_br(w, inst, ctx)
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BR_IF() {
+        inst_control::emit_br_if(w, inst, ctx)
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BLOCK() {
+        inst_control::emit_block(w, inst, ctx)
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOOP() {
+        inst_control::emit_loop(w, inst, ctx)
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_IF() {
+        inst_control::emit_if(w, inst, ctx)
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_ELSE() {
+        inst_control::emit_else(w, inst, ctx)
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_END() {
+        inst_control::emit_end(w, inst, ctx)
+        return true
+    }
+    false
+}

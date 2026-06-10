@@ -1,0 +1,62 @@
+// Arukellt Selfhost - MIR return type helpers backed by TypeInfo
+
+use mir::typeinfo_shape
+use mir::type_contracts
+use mir::value_types
+
+fn mir_return_tag_from_type_info(ty: TypeInfo) -> i32 {
+    typeinfo_shape::mir_type_info_tag(ty)
+}
+
+fn mir_return_tag_from_typed_fn(tf: TypedFn) -> i32 {
+    mir_return_tag_from_type_info(typeinfo_shape::mir_typed_fn_return_type(tf))
+}
+
+fn mir_return_vt_from_type_info(ty: TypeInfo) -> i32 {
+    let tag = mir_return_tag_from_type_info(ty)
+    if tag == 3 {
+        return value_types::VT_F64()
+    }
+    if tag == 2 {
+        return value_types::VT_I64()
+    }
+    if tag == 7 || tag == 8 || tag == 0 {
+        return value_types::VT_VOID()
+    }
+    value_types::VT_I32()
+}
+
+fn mir_return_vt_from_typed_fn(tf: TypedFn) -> i32 {
+    mir_return_vt_from_type_info(typeinfo_shape::mir_typed_fn_return_type(tf))
+}
+
+fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
+    let tag = mir_return_tag_from_type_info(ty)
+    if tag == 10 {
+        if typeinfo_shape::mir_type_info_type_arg_count(ty) > 0 {
+            let vec_elem = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
+            let elem_tag = mir_return_tag_from_type_info(vec_elem)
+            if elem_tag == 5 {
+                return String_from("vec:String")
+            }
+            if elem_tag == 1 {
+                return String_from("vec:i32")
+            }
+            if elem_tag == 2 {
+                return String_from("vec:i64")
+            }
+            if elem_tag == 3 {
+                return String_from("vec:f64")
+            }
+            return String_from("vec:i32")
+        }
+    }
+    if tag == 21 || tag == 22 {
+        return typeinfo_shape::mir_type_info_name(ty)
+    }
+    String_from("")
+}
+
+fn mir_return_type_name_from_typed_fn(tf: TypedFn) -> String {
+    mir_return_type_name_from_type_info(typeinfo_shape::mir_typed_fn_return_type(tf))
+}

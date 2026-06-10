@@ -1,0 +1,27 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::opcodes
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - short-circuit binary expressions.
+
+use mir::inst_structured_control
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::inst_op
+use mir::value_types
+
+fn lower_short_circuit_binary(ctx: LowerCtx, lhs: AstNode, rhs: AstNode, mir_op: i32) -> i32 {
+    let l_idx = lower_expr(ctx, lhs)
+    let sc_result = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(sc_result))
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(sc_result))
+    if mir_op == opcodes::MIR_OR() {
+        ctx_emit(ctx, inst_op::MirInst_unary(opcodes::MIR_NOT(), sc_result, sc_result, value_types::VT_I32()))
+    }
+    ctx_emit(ctx, inst_structured_control::MirInst_if())
+    let r_idx = lower_expr(ctx, rhs)
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(sc_result))
+    ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(sc_result))
+    sc_result
+}

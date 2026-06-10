@@ -1,0 +1,19 @@
+// Arukellt Selfhost - MIR function data record.
+
+use mir::types_block
+use mir::value_types
+
+pub struct MirFunction {
+    name: String,
+    params: Vec<MirLocal>,
+    locals: Vec<MirLocal>,
+    blocks: Vec<MirBlock>,
+    return_type: i32,
+    return_type_name: String,
+    next_local: i32,
+    next_block: i32,
+}
+
+fn MirFunction_new(name: String) -> MirFunction {
+    MirFunction { name: name, params: Vec_new_MirLocal(), locals: Vec_new_MirLocal(), blocks: Vec_new_MirBlock(), return_type: value_types::VT_VOID(), return_type_name: String_new(), next_local: 0, next_block: 0 }
+}

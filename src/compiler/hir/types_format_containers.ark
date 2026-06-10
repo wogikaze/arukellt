@@ -1,0 +1,17 @@
+// Arukellt HIR - container type display names.
+
+fn vec_type_name(elem_name: String) -> String {
+    concat(String_from("Vec<"), concat(elem_name, String_from(">")))
+}
+
+fn vec_type_name_empty() -> String {
+    String_from("Vec")
+}
+
+fn option_type_name(elem_name: String) -> String {
+    concat(String_from("Option<"), concat(elem_name, String_from(">")))
+}
+
+fn option_type_name_empty() -> String {
+    String_from("Option")
+}

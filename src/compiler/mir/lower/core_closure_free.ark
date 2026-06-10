@@ -1,0 +1,57 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR closure free-variable collection.
+
+use mir::lower::core_closure_free_acc
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_atoms
+use mir::lower::core_expr_shape_calls
+
+fn core_closure_is_param_name(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, name: String) -> bool {
+    let c = core_expr_shape_accessors::mir_core_expr_child_count(clos)
+    if c <= 1 {
+        return false
+    }
+    let mut i = 0
+    while i < c - 1 {
+        let p = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(clos, i))
+        if core_expr_shape_atoms::mir_core_expr_is_ident(p) && eq(core_expr_shape_accessors::mir_core_expr_text(p), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn core_closure_collect_free(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, clos: CoreHirExpr, acc: Vec<String>) {
+    if core_expr_shape_calls::mir_core_expr_is_closure(expr) {
+        return
+    }
+    if core_expr_shape_atoms::mir_core_expr_is_ident(expr) {
+        let capture_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+        if core_closure_is_param_name(exprs, clos, clone(capture_name)) {
+            return
+        }
+        if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(capture_name)) < 0 {
+            return
+        }
+        core_closure_free_acc::core_closure_push_unique_cap(acc, capture_name)
+        return
+    }
+    let cc = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    let mut ci = 0
+    while ci < cc {
+        core_closure_collect_free(ctx, exprs, get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, ci)), clos, acc)
+        ci = ci + 1
+    }
+}
+
+fn core_closure_collect_caps(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: CoreHirExpr) -> Vec<String> {
+    let caps = Vec_new_String()
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(clos)
+    if child_count > 0 {
+        let cap_body = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(clos, child_count - 1))
+        core_closure_collect_free(ctx, exprs, cap_body, clos, caps)
+    }
+    caps
+}

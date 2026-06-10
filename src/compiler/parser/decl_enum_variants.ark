@@ -1,0 +1,22 @@
+use lexer::tokens
+use parser::kinds
+use parser::core_ast_factory
+// Arukellt Parser - enum variant payload syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::decl_enum_record_payload
+use parser::decl_enum_tuple_payload
+use parser::token_state
+
+fn parse_enum_variant(p: Parser) -> AstNode {
+    let vname = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    let variant = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), token_state::Token_text(vname), core_api_expect::tok_span(vname))
+    if core_api_cursor::peek_kind(p) == tokens::TK_LPAREN() {
+        decl_enum_tuple_payload::parse_enum_tuple_payload(p, variant)
+    }
+    if core_api_cursor::peek_kind(p) == tokens::TK_LBRACE() {
+        decl_enum_record_payload::parse_enum_record_payload(p, variant)
+    }
+    variant
+}

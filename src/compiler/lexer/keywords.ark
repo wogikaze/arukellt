@@ -1,0 +1,26 @@
+// Arukellt Lexer - keyword lookup
+
+use lexer::keywords_control
+use lexer::keywords_decl
+use lexer::keywords_literals
+use lexer::keywords_module
+
+fn keyword_kind(word: String) -> i32 {
+    let decl_kind = keywords_decl::keyword_kind_decl(clone(word))
+    if decl_kind >= 0 {
+        return decl_kind
+    }
+    let control_kind = keywords_control::keyword_kind_control(clone(word))
+    if control_kind >= 0 {
+        return control_kind
+    }
+    let module_kind = keywords_module::keyword_kind_module(clone(word))
+    if module_kind >= 0 {
+        return module_kind
+    }
+    let literal_kind = keywords_literals::keyword_kind_literal(clone(word))
+    if literal_kind >= 0 {
+        return literal_kind
+    }
+    0 - 1
+}

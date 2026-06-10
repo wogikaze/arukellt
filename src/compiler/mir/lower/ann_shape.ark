@@ -1,0 +1,41 @@
+// Arukellt Selfhost - MIR lowering annotation shape adapter.
+
+use corehir::type_ann_local_name
+use corehir::type_ann_node
+use corehir::type_ann_param_name
+
+fn mir_ann_name(ann: AstNode) -> String {
+    type_ann_node::type_ann_name(ann)
+}
+
+fn mir_ann_is_generic(ann: AstNode) -> bool {
+    type_ann_node::type_ann_is_generic(ann)
+}
+
+fn mir_ann_is_named(ann: AstNode) -> bool {
+    type_ann_node::type_ann_is_named(ann)
+}
+
+fn mir_ann_is_tuple(ann: AstNode) -> bool {
+    type_ann_node::type_ann_is_tuple(ann)
+}
+
+fn mir_ann_is_name(ann: AstNode, name: String) -> bool {
+    type_ann_node::type_ann_is_name(ann, name)
+}
+
+fn mir_ann_child_count(ann: AstNode) -> i32 {
+    type_ann_node::type_ann_child_count(ann)
+}
+
+fn mir_ann_child_at(ann: AstNode, index: i32) -> AstNode {
+    type_ann_node::type_ann_child_at(ann, index)
+}
+
+fn mir_param_type_name_from_ann_shape(ty: AstNode) -> String {
+    type_ann_param_name::type_ann_shape_param_type_name(ty)
+}
+
+fn mir_local_type_name_from_ann_shape(ann: AstNode, known_struct_fields: i32) -> String {
+    type_ann_local_name::type_ann_shape_local_type_name(ann, known_struct_fields)
+}

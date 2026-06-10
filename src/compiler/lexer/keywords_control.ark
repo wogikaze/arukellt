@@ -1,0 +1,37 @@
+use lexer::tokens
+// Arukellt Lexer - control-flow keyword lookup.
+
+
+pub fn keyword_kind_control(word: String) -> i32 {
+    if eq(word, "if") {
+        return tokens::TK_IF()
+    }
+    if eq(word, "else") {
+        return tokens::TK_ELSE()
+    }
+    if eq(word, "match") {
+        return tokens::TK_MATCH()
+    }
+    if eq(word, "while") {
+        return tokens::TK_WHILE()
+    }
+    if eq(word, "loop") {
+        return tokens::TK_LOOP()
+    }
+    if eq(word, "for") {
+        return tokens::TK_FOR()
+    }
+    if eq(word, "in") {
+        return tokens::TK_IN()
+    }
+    if eq(word, "break") {
+        return tokens::TK_BREAK()
+    }
+    if eq(word, "continue") {
+        return tokens::TK_CONTINUE()
+    }
+    if eq(word, "return") {
+        return tokens::TK_RETURN()
+    }
+    0 - 1
+}

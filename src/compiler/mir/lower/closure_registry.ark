@@ -1,0 +1,61 @@
+use mir::lower::ctx_fn_mono
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_module
+use mir::lower::ctx_types
+use mir::function_return_view
+use mir::function_identity
+// Arukellt Selfhost - closure binding registry.
+
+use mir::inst_const_i32
+use mir::lower::closure_storage
+use mir::value_types
+
+fn closure_clear_pending_bind(ctx: LowerCtx) {
+    closure_storage::closure_storage_clear_pending_bind(ctx)
+}
+
+fn closure_next_synth_name(ctx: LowerCtx) -> String {
+    closure_storage::closure_storage_next_synth_name(ctx)
+}
+
+fn closure_flush_pending_bind(ctx: LowerCtx, bind_name: String) {
+    if len(closure_storage::closure_storage_pending_synth(ctx)) == 0 {
+        return
+    }
+    closure_storage::closure_storage_push_bind(ctx, bind_name)
+    closure_clear_pending_bind(ctx)
+}
+
+fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, extra: i32) -> i32 {
+    ctx_api_module::ctx_push_module_function(ctx, mf)
+    ctx_fn_mono::ctx_register_fn_signature(ctx, function_identity::MirFunction_name(mf), function_return_view::MirFunction_return_type(mf), String_from(""))
+    closure_storage::closure_storage_set_pending_bind(ctx, function_identity::MirFunction_name(mf), packed, extra)
+    let dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, dest))
+    dest
+}
+
+fn ctx_closure_lookup(ctx: LowerCtx, name: String) -> i32 {
+    let count = closure_storage::closure_storage_bind_count(ctx)
+    let mut i = count - 1
+    while i >= 0 {
+        if eq(closure_storage::closure_storage_bind_name_at(ctx, i), clone(name)) {
+            return i
+        }
+        i = i - 1
+    }
+    0 - 1
+}
+
+fn ctx_closure_synth_at(ctx: LowerCtx, index: i32) -> String {
+    closure_storage::closure_storage_bind_synth_at(ctx, index)
+}
+
+fn ctx_closure_caps_at(ctx: LowerCtx, index: i32) -> String {
+    closure_storage::closure_storage_bind_caps_at(ctx, index)
+}
+
+fn ctx_closure_extra_at(ctx: LowerCtx, index: i32) -> i32 {
+    closure_storage::closure_storage_bind_extra_at(ctx, index)
+}

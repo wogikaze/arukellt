@@ -1,0 +1,20 @@
+// Arukellt Selfhost - driver error result builder facade.
+
+use driver::errors_parse
+use driver::errors_phase
+
+pub fn parse_errors_result(source: String, source_dir: String, errors: Vec<Diagnostic>) -> CompileResult {
+    errors_parse::parse_errors_result(source, source_dir, errors)
+}
+
+pub fn module_loading_errors_result(errors: Vec<String>) -> CompileResult {
+    errors_phase::module_loading_errors_result(errors)
+}
+
+pub fn resolve_errors_result(error_count: i32, errors: Vec<String>) -> CompileResult {
+    errors_phase::resolve_errors_result(error_count, errors)
+}
+
+pub fn type_errors_result(error_count: i32, errors: Vec<String>) -> CompileResult {
+    errors_phase::type_errors_result(error_count, errors)
+}

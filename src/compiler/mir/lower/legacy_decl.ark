@@ -1,0 +1,24 @@
+// Arukellt Selfhost - MIR legacy declaration adapter.
+
+use corehir::decl_entry_shape
+use mir::lower::legacy_body
+
+struct MirLowerLegacyDecl {
+    node: AstNode,
+}
+
+fn mir_legacy_decl_from_node(node: AstNode) -> MirLowerLegacyDecl {
+    MirLowerLegacyDecl { node: node }
+}
+
+fn mir_legacy_decl_body_at(decl: MirLowerLegacyDecl, body_idx: i32) -> MirLowerLegacyBody {
+    legacy_body::mir_legacy_body_from_node(decl_entry_shape::decl_entry_child_at(decl.node, body_idx))
+}
+
+fn mir_legacy_decl_self_body(decl: MirLowerLegacyDecl) -> MirLowerLegacyBody {
+    legacy_body::mir_legacy_body_from_node(decl.node)
+}
+
+fn mir_legacy_decl_method_at(decl: MirLowerLegacyDecl, method_index: i32) -> MirLowerLegacyDecl {
+    mir_legacy_decl_from_node(decl_entry_shape::decl_entry_impl_method_at(decl.node, method_index))
+}

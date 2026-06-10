@@ -1,0 +1,43 @@
+// Arukellt Typechecker - parser AST accessors for the typechecking boundary.
+
+use parser::ast
+
+fn node_kind(node: AstNode) -> i32 {
+    ast::ast_node_kind(node)
+}
+
+fn node_kind_is(node: AstNode, kind: i32) -> bool {
+    node_kind(node) == kind
+}
+
+fn node_text(node: AstNode) -> String {
+    ast::ast_node_text(node)
+}
+
+fn node_child_count(node: AstNode) -> i32 {
+    ast::ast_node_child_count(node)
+}
+
+fn node_child_at(node: AstNode, index: i32) -> AstNode {
+    ast::ast_node_child_at(node, index)
+}
+
+fn node_type_ann_count(node: AstNode) -> i32 {
+    ast::ast_node_type_ann_count(node)
+}
+
+fn node_type_ann_at(node: AstNode, index: i32) -> AstNode {
+    ast::ast_node_type_ann_at(node, index)
+}
+
+fn node_type_ann(node: AstNode) -> Vec<AstNode> {
+    ast::ast_node_type_ann(node)
+}
+
+fn node_span_start(node: AstNode) -> i32 {
+    ast::ast_node_span_start(node)
+}
+
+fn node_op(node: AstNode) -> i32 {
+    ast::ast_node_op(node)
+}

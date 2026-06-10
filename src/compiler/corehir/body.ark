@@ -1,0 +1,72 @@
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR body table builder for simple typed expression DTOs.
+
+use corehir::body_expr_dispatch
+use corehir::body_support
+use corehir::body_stmt_dispatch
+use corehir::body_table
+use corehir::expr_node_access
+
+fn CoreHirBodyTable_new() -> CoreHirBodyTable {
+    body_table::CoreHirBodyTable_new()
+}
+
+fn corehir_push_expr(table: CoreHirBodyTable, expr: CoreHirExpr) -> i32 {
+    body_table::corehir_body_table_push_expr(table, expr)
+}
+
+fn corehir_body_expr_at(table: CoreHirBodyTable, index: i32) -> CoreHirExpr {
+    body_table::corehir_body_table_expr_at(table, index)
+}
+
+fn corehir_push_fn_body_root(table: CoreHirBodyTable, root: i32) {
+    body_table::corehir_body_table_push_fn_body_root(table, root)
+}
+
+fn corehir_push_method_body_root(table: CoreHirBodyTable, root: i32) {
+    body_table::corehir_body_table_push_method_body_root(table, root)
+}
+
+fn corehir_fn_body_root_count(table: CoreHirBodyTable) -> i32 {
+    body_table::corehir_body_table_fn_body_root_count(table)
+}
+
+fn corehir_fn_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
+    body_table::corehir_body_table_fn_body_root_at(table, index)
+}
+
+fn corehir_method_body_root_count(table: CoreHirBodyTable) -> i32 {
+    body_table::corehir_body_table_method_body_root_count(table)
+}
+
+fn corehir_method_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
+    body_table::corehir_body_table_method_body_root_at(table, index)
+}
+
+fn corehir_build_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let expr_result = body_expr_dispatch::corehir_dispatch_expr(table, node)
+    if expr_result != 0 - 2 {
+        return expr_result
+    }
+    let stmt_result = body_stmt_dispatch::corehir_dispatch_stmt(table, node)
+    if stmt_result != 0 - 2 {
+        return stmt_result
+    }
+    corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+}
+
+fn body_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
+    body_table::corehir_body_table_exprs(table)
+}
+
+fn body_fn_roots(table: CoreHirBodyTable) -> Vec<i32> {
+    body_table::corehir_body_table_fn_body_roots(table)
+}
+
+fn body_method_roots(table: CoreHirBodyTable) -> Vec<i32> {
+    body_table::corehir_body_table_method_body_roots(table)
+}
+
+fn expr_tree_is_supported(exprs: Vec<CoreHirExpr>, root: i32) -> bool {
+    body_support::expr_tree_is_supported(exprs, root)
+}

@@ -1,0 +1,41 @@
+use parser::ast_kind_fields
+use parser::core_ast_text_fields
+use parser::core_ast_literal_fields
+use parser::kinds
+use parser::core_ast_children
+// Arukellt Parser AST dump helpers.
+use std::host::stdio
+
+use parser::core_types
+use parser::names
+
+fn node_kind_name(kind: i32) -> String {
+    names::node_kind_name(kind)
+}
+
+fn print_ast(node: AstNode, depth: i32) {
+    let mut indent = String_new()
+    let mut d = 0
+    while d < depth {
+        indent = concat(indent, String_from("  "))
+        d = d + 1
+    }
+    let node_kind = ast_kind_fields::AstNode_kind(node)
+    let kind_str = node_kind_name(node_kind)
+    let mut line = concat(indent, kind_str)
+    let node_text = core_ast_text_fields::AstNode_text(node)
+    if len(node_text) > 0 {
+        line = concat(line, concat(String_from("("), concat(node_text, String_from(")"))))
+    }
+    if node_kind == kinds::NK_INT_LIT() {
+        line = concat(line, concat(String_from("("), concat(to_string(core_ast_literal_fields::AstNode_int_val(node)), String_from(")"))))
+    }
+    stdio::println(line)
+    let mut i = 0
+    let child_count = core_ast_children::AstNode_child_count(node)
+    while i < child_count {
+        let child = core_ast_children::AstNode_child_at(node, i)
+        print_ast(child, depth + 1)
+        i = i + 1
+    }
+}

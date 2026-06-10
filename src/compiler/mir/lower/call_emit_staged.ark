@@ -1,0 +1,19 @@
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR staged direct call argument emission.
+
+use mir::inst_convert
+use mir::inst_local_get
+
+fn mir_emit_staged_call_args(ctx: LowerCtx, staged_arg_locals: Vec<i32>, push_i64_needs_extend: bool) {
+    let mut sai = 0
+    let sac = len(staged_arg_locals)
+    while sai < sac {
+        let staged_arg = get_unchecked(staged_arg_locals, sai)
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(staged_arg, staged_arg))
+        sai = sai + 1
+    }
+    if push_i64_needs_extend {
+        ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64_stack())
+    }
+}

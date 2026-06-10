@@ -1,0 +1,11 @@
+// Arukellt Parser - public AST span API.
+
+use parser::ast_span_record
+
+fn Span_new(start: i32, end: i32) -> Span {
+    ast_span_record::Span_new(start, end)
+}
+
+fn Span_empty() -> Span {
+    ast_span_record::Span_empty()
+}

@@ -1,0 +1,18 @@
+use mir::opcodes
+// Arukellt Selfhost - MIR misc control instruction constructors.
+
+use mir::inst_factory
+use mir::types
+use mir::value_types
+
+fn MirInst_drop() -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_DROP(), 0 - 1, 0 - 1, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+}
+
+fn MirInst_nop() -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_NOP(), 0 - 1, 0 - 1, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+}
+
+fn MirInst_eqz(dest: i32, arg: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_EQZ(), dest, arg, 0 - 1, 0, 0.0, String_new(), value_types::VT_I32())
+}

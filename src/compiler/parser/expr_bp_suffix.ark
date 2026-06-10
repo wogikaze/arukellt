@@ -1,0 +1,24 @@
+use lexer::tokens
+// Arukellt Parser - Pratt loop postfix suffix step.
+
+use parser::expr_infix_result
+use parser::expr_suffix
+
+pub fn parse_bp_suffix_step(p: Parser, lhs: AstNode, kind: i32) -> ParserInfixResult {
+    if kind == tokens::TK_DOT() {
+        return expr_infix_result::ParserInfixResult_yes(expr_suffix::parse_dot_suffix(p, lhs))
+    }
+    if kind == tokens::TK_LBRACKET() {
+        return expr_infix_result::ParserInfixResult_yes(expr_suffix::parse_index_suffix(p, lhs))
+    }
+    if kind == tokens::TK_QUESTION() {
+        return expr_infix_result::ParserInfixResult_yes(expr_suffix::parse_try_suffix(p, lhs))
+    }
+    if kind == tokens::TK_LPAREN() {
+        return expr_infix_result::ParserInfixResult_yes(expr_suffix::parse_call_suffix(p, lhs))
+    }
+    if kind == tokens::TK_COLONCOLON() {
+        return expr_infix_result::ParserInfixResult_yes(expr_suffix::parse_path_suffix(p, lhs))
+    }
+    expr_infix_result::ParserInfixResult_no(lhs)
+}

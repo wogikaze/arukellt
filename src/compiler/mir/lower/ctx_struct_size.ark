@@ -1,0 +1,33 @@
+// Arukellt MIR lowering context - struct byte-size helpers.
+
+use mir::lower::ctx_struct_storage
+
+fn ctx_struct_byte_size(ctx: LowerCtx, struct_name: String) -> i32 {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
+        let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
+        if eq(clone(sn), clone(struct_name)) {
+            let mut byte_off = 0
+            let mut fi = 0
+            while fi < fc {
+                let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, offset + fi)
+                byte_off = byte_off + ctx_struct_field_byte_size(ft)
+                fi = fi + 1
+            }
+            return byte_off
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    0
+}
+
+fn ctx_struct_field_byte_size(field_type: String) -> i32 {
+    if eq(clone(field_type), "f64") {
+        return 8
+    }
+    4
+}

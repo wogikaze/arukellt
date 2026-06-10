@@ -1,0 +1,244 @@
+// Arukellt Selfhost - main namespace: args_record
+
+use main::commands
+use main::kinds
+// Arukellt Selfhost - CLI option data record.
+
+struct CliOptions {
+    command: i32,
+    input_file: String,
+    output_file: String,
+    target: String,
+    wit_paths: Vec<String>,
+    opt_level: i32,
+    dump_phases: String,
+    emit_mode: String,
+    json_output: bool,
+    show_help: bool,
+    show_version: bool,
+    has_error: bool,
+    error_msg: String,
+    show_timing: bool,
+}
+
+fn CliOptions_new(command: i32, input_file: String, output_file: String, target: String, wit_paths: Vec<String>, opt_level: i32, dump_phases: String, emit_mode: String, json_output: bool, show_help: bool, show_version: bool, has_error: bool, error_msg: String, show_timing: bool) -> CliOptions {
+    CliOptions { command: command, input_file: input_file, output_file: output_file, target: target, wit_paths: wit_paths, opt_level: opt_level, dump_phases: dump_phases, emit_mode: emit_mode, json_output: json_output, show_help: show_help, show_version: show_version, has_error: has_error, error_msg: error_msg, show_timing: show_timing }
+}
+
+fn CliOptions_default() -> CliOptions {
+    CliOptions_new(kinds::CMD_UNKNOWN(), String_new(), String_new(), String_from("wasm32-wasi-p2"), Vec_new_String(), 0, String_new(), String_from("wasm"), false, false, false, false, String_new(), false)
+}
+
+fn cli_command(opts: CliOptions) -> i32 { opts.command }
+fn cli_show_help(opts: CliOptions) -> bool { opts.show_help }
+fn cli_show_version(opts: CliOptions) -> bool { opts.show_version }
+fn cli_has_error(opts: CliOptions) -> bool { opts.has_error }
+fn cli_error_msg(opts: CliOptions) -> String { clone(opts.error_msg) }
+fn cli_target(opts: CliOptions) -> String { clone(opts.target) }
+fn cli_wit_paths(opts: CliOptions) -> Vec<String> { clone(opts.wit_paths) }
+fn cli_wit_path_count(opts: CliOptions) -> i32 { len(opts.wit_paths) }
+fn cli_wit_path_at(opts: CliOptions, index: i32) -> String { clone(get_unchecked(opts.wit_paths, index)) }
+fn cli_opt_level(opts: CliOptions) -> i32 { opts.opt_level }
+fn cli_dump_phases(opts: CliOptions) -> String { clone(opts.dump_phases) }
+fn cli_emit_mode(opts: CliOptions) -> String { clone(opts.emit_mode) }
+fn cli_json_output(opts: CliOptions) -> bool { opts.json_output }
+fn cli_show_timing(opts: CliOptions) -> bool { opts.show_timing }
+fn cli_input_file(opts: CliOptions) -> String { clone(opts.input_file) }
+fn cli_input_file_len(opts: CliOptions) -> i32 { len(opts.input_file) }
+fn cli_output_file(opts: CliOptions) -> String { clone(opts.output_file) }
+fn cli_output_file_len(opts: CliOptions) -> i32 { len(opts.output_file) }
+fn cli_has_input_file(opts: CliOptions) -> bool { cli_input_file_len(opts) > 0 }
+fn cli_has_output_file(opts: CliOptions) -> bool { cli_output_file_len(opts) > 0 }
+
+// Arukellt Selfhost - CLI option setter record helpers.
+
+fn cli_set_command(opts: CliOptions, command: i32) {
+    opts.command = command
+}
+
+fn cli_set_input_file(opts: CliOptions, input_file: String) {
+    opts.input_file = input_file
+}
+
+fn cli_set_output_file(opts: CliOptions, output_file: String) {
+    opts.output_file = output_file
+}
+
+fn cli_set_target(opts: CliOptions, target: String) {
+    opts.target = target
+}
+
+fn cli_add_wit_path(opts: CliOptions, wit_path: String) {
+    push(opts.wit_paths, wit_path)
+}
+
+fn cli_set_opt_level(opts: CliOptions, opt_level: i32) {
+    opts.opt_level = opt_level
+}
+
+fn cli_set_dump_phases(opts: CliOptions, dump_phases: String) {
+    opts.dump_phases = dump_phases
+}
+
+fn cli_set_emit_mode(opts: CliOptions, emit_mode: String) {
+    opts.emit_mode = emit_mode
+}
+
+fn cli_set_json_output(opts: CliOptions, json_output: bool) {
+    opts.json_output = json_output
+}
+
+fn cli_set_show_help(opts: CliOptions, show_help: bool) {
+    opts.show_help = show_help
+}
+
+fn cli_set_show_version(opts: CliOptions, show_version: bool) {
+    opts.show_version = show_version
+}
+
+fn cli_set_error(opts: CliOptions, error_msg: String) {
+    opts.has_error = true
+    opts.error_msg = error_msg
+}
+
+fn cli_set_show_timing(opts: CliOptions, show_timing: bool) {
+    opts.show_timing = show_timing
+}
+
+// Arukellt Selfhost - CLI option parsing loop.
+
+fn parse_option_args(argv: Vec<String>, argc: i32, opts: CliOptions, start_index: i32) {
+    let mut i = start_index
+    while i < argc {
+        let arg = get_unchecked(argv, i)
+        if commands::cli_str_eq(clone(arg), String_from("--target")) {
+            i = parse_target_option(argv, argc, opts, i)
+        } else {
+            if commands::cli_str_eq(clone(arg), String_from("--opt-level")) {
+                i = parse_opt_level_option(argv, argc, opts, i)
+            } else {
+                if commands::cli_str_eq(clone(arg), String_from("--emit")) {
+                    i = parse_emit_option(argv, argc, opts, i)
+                } else {
+                    if commands::cli_str_eq(clone(arg), String_from("--wit")) {
+                        i = parse_wit_option(argv, argc, opts, i)
+                    } else {
+                        if commands::cli_str_eq(clone(arg), String_from("-o")) || commands::cli_str_eq(clone(arg), String_from("--output")) {
+                            i = parse_output_option(argv, argc, opts, arg, i)
+                        } else {
+                            if commands::cli_str_eq(clone(arg), String_from("--dump-phases")) {
+                                i = parse_dump_phases_option(argv, argc, opts, i)
+                            } else {
+                                if !parse_flag_option(opts, arg) {
+                                    parse_input_or_error(opts, arg)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+}
+
+fn parse_flag_option(opts: CliOptions, arg: String) -> bool {
+    if commands::cli_str_eq(clone(arg), String_from("--help")) {
+        cli_set_show_help(opts, true)
+        return true
+    }
+    if commands::cli_str_eq(clone(arg), String_from("--json")) {
+        cli_set_json_output(opts, true)
+        return true
+    }
+    if commands::cli_str_eq(clone(arg), String_from("--time")) {
+        cli_set_show_timing(opts, true)
+        return true
+    }
+    if commands::cli_str_eq(clone(arg), String_from("--version")) {
+        cli_set_show_version(opts, true)
+        return true
+    }
+    false
+}
+
+fn parse_input_or_error(opts: CliOptions, arg: String) {
+    if cli_input_file_len(opts) == 0 {
+        cli_set_input_file(opts, clone(arg))
+    } else {
+        cli_set_error(opts, concat(String_from("unexpected argument: "), clone(arg)))
+    }
+}
+
+fn parse_target_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        cli_set_target(opts, clone(get_unchecked(argv, next)))
+    }
+    next
+}
+
+fn parse_emit_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        cli_set_emit_mode(opts, clone(get_unchecked(argv, next)))
+    }
+    next
+}
+
+fn parse_dump_phases_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        cli_set_dump_phases(opts, clone(get_unchecked(argv, next)))
+    }
+    next
+}
+
+fn parse_opt_level_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        let val = get_unchecked(argv, next)
+        cli_set_opt_level(opts, parse_opt_level_value(clone(val), cli_opt_level(opts)))
+    }
+    next
+}
+
+fn parse_wit_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        cli_add_wit_path(opts, clone(get_unchecked(argv, next)))
+    } else {
+        cli_set_error(opts, String_from("--wit requires a path"))
+    }
+    next
+}
+
+fn parse_output_option(argv: Vec<String>, argc: i32, opts: CliOptions, arg: String, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        let out_arg = clone(get_unchecked(argv, next))
+        if commands::cli_str_eq(clone(arg), String_from("--output")) && commands::cli_str_eq(clone(out_arg), String_from("json")) {
+            cli_set_json_output(opts, true)
+        } else {
+            cli_set_output_file(opts, clone(out_arg))
+        }
+    }
+    next
+}
+
+fn parse_opt_level_value(value: String, current: i32) -> i32 {
+    if len(clone(value)) != 1 {
+        return current
+    }
+    let ch = char_at(clone(value), 0)
+    if ch == 48 {
+        return 0
+    }
+    if ch == 49 {
+        return 1
+    }
+    if ch == 50 {
+        return 2
+    }
+    current
+}

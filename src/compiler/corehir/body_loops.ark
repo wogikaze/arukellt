@@ -1,0 +1,48 @@
+use corehir::expr_builder_control_loop
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR body builder for loop expressions.
+
+use corehir::expr_predicates
+use corehir::expr_node_access
+
+fn corehir_build_loop_children(table: CoreHirBodyTable, node: AstNode, children: Vec<i32>) -> bool {
+    let child_count = expr_node_access::expr_child_count(node)
+    let mut i = 0
+    let mut unsupported = false
+    while i < child_count {
+        let child_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, i))
+        push(children, child_index)
+        let child_expr = corehir_body_expr_at(table, child_index)
+        if expr_predicates::expr_is_unsupported(child_expr) {
+            unsupported = true
+        }
+        i = i + 1
+    }
+    unsupported
+}
+
+fn corehir_build_while_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let child_count = expr_node_access::expr_child_count(node)
+    if child_count < 2 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let children = Vec_new_i32()
+    if corehir_build_loop_children(table, node, children) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_control_loop::corehir_expr_while(expr_node_access::expr_span_start(node), children))
+}
+
+fn corehir_build_loop_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    if expr_node_access::expr_child_count(node) < 1 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let children = Vec_new_i32()
+    let body_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
+    push(children, body_index)
+    let body_expr = corehir_body_expr_at(table, body_index)
+    if expr_predicates::expr_is_unsupported(body_expr) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_control_loop::corehir_expr_loop(expr_node_access::expr_span_start(node), children))
+}

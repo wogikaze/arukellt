@@ -1,0 +1,35 @@
+// Arukellt Typechecker - match coverage mutation helpers.
+
+use typechecker::match_coverage_record
+
+fn match_coverage_mark_wildcard(coverage: MatchCoverage) {
+    coverage.has_wildcard = true
+}
+
+fn match_coverage_mark_bool_true(coverage: MatchCoverage) {
+    coverage.has_bool_true = true
+}
+
+fn match_coverage_mark_bool_false(coverage: MatchCoverage) {
+    coverage.has_bool_false = true
+}
+
+fn match_coverage_mark_option_some(coverage: MatchCoverage) {
+    coverage.has_option_some = true
+}
+
+fn match_coverage_mark_option_none(coverage: MatchCoverage) {
+    coverage.has_option_none = true
+}
+
+fn match_coverage_mark_result_ok(coverage: MatchCoverage) {
+    coverage.has_result_ok = true
+}
+
+fn match_coverage_mark_result_err(coverage: MatchCoverage) {
+    coverage.has_result_err = true
+}
+
+fn match_coverage_push_variant(coverage: MatchCoverage, variant: String) {
+    push(coverage.covered_variants, variant)
+}

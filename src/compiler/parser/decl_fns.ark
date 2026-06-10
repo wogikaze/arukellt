@@ -1,0 +1,50 @@
+use lexer::tokens
+use parser::core_ast_children
+// Arukellt Parser - function-like declarations.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::decl_headers
+use parser::expr
+use parser::fn_sig
+use parser::stmt
+
+fn parse_fn_decl(p: Parser) -> AstNode {
+    let node = fn_sig::parse_fn_decl_header(p)
+    if core_api_cursor::peek_kind(p) == tokens::TK_EQ() {
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        let body = expr::parse_expr(p)
+        fn_sig::mark_expr_body(node, body)
+    } else {
+        let body = stmt::parse_block(p)
+        core_ast_children::AstNode_push_child(node, body)
+    }
+    node
+}
+
+fn parse_trait_decl(p: Parser) -> AstNode {
+    let node = decl_headers::parse_trait_header(p)
+    parse_fn_members_until_rbrace(p, node)
+    node
+}
+
+fn parse_impl_decl(p: Parser) -> AstNode {
+    let node = decl_headers::parse_impl_header(p)
+    parse_fn_members_until_rbrace(p, node)
+    node
+}
+
+fn parse_fn_members_until_rbrace(p: Parser, node: AstNode) {
+    core_api_cursor::skip_newlines(p)
+    while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::at(p, tokens::TK_RBRACE()) {
+            break
+        }
+        let member = parse_fn_decl(p)
+        core_ast_children::AstNode_push_child(node, member)
+        core_api_cursor::skip_newlines(p)
+    }
+    core_api_expect::expect_token(p, tokens::TK_RBRACE())
+}

@@ -1,0 +1,24 @@
+// Arukellt Selfhost - MIR entry CoreHIR body adapter.
+
+use corehir::body
+
+struct MirLowerEntryCoreBody {
+    exprs: Vec<CoreHirExpr>,
+    root: i32,
+}
+
+fn mir_entry_core_body_new(exprs: Vec<CoreHirExpr>, root: i32) -> MirLowerEntryCoreBody {
+    MirLowerEntryCoreBody { exprs: exprs, root: root }
+}
+
+fn mir_entry_core_body_exprs(body: MirLowerEntryCoreBody) -> Vec<CoreHirExpr> {
+    body.exprs
+}
+
+fn mir_entry_core_body_root(body: MirLowerEntryCoreBody) -> i32 {
+    body.root
+}
+
+fn mir_entry_core_body_is_supported(body: MirLowerEntryCoreBody) -> bool {
+    body::expr_tree_is_supported(mir_entry_core_body_exprs(body), mir_entry_core_body_root(body))
+}

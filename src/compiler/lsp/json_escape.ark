@@ -1,0 +1,48 @@
+// Arukellt Selfhost - LSP JSON string escaping helpers
+fn json_escape(s: String) -> String {
+let n = len(s)
+let mut out = String_new()
+let mut i = 0
+while i < n {
+let c = char_at(s, i)
+if c == 34 {
+out = concat(out, String_from("\\\""))
+} else {
+if c == 92 {
+out = concat(out, String_from("\\\\"))
+} else {
+if c == 10 {
+out = concat(out, String_from("\\n"))
+} else {
+if c == 13 {
+out = concat(out, String_from("\\r"))
+} else {
+if c == 9 {
+out = concat(out, String_from("\\t"))
+} else {
+if c < 32 {
+out = concat(out, String_from("\\u00"))
+out = concat(out, hex_byte(c))
+} else {
+out = concat(out, substring(clone(s), i, i + 1))
+}
+}
+}
+}
+}
+}
+i = i + 1
+}
+out
+}
+fn hex_nibble(n: i32) -> String {
+if n < 10 {
+return char_to_string(48 + n)
+}
+char_to_string(87 + n)
+}
+fn hex_byte(b: i32) -> String {
+let hi = (b / 16) & 15
+let lo = b & 15
+concat(hex_nibble(hi), hex_nibble(lo))
+}

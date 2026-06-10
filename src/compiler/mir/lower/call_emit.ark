@@ -1,0 +1,30 @@
+use mir::lower::ctx_fn_return_vt
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering direct call emission
+
+use mir::inst_call
+use mir::lower::call_emit_dest
+use mir::lower::call_emit_staged
+use mir::lower::call_rewrite
+use mir::lower::call_types
+use mir::value_types
+
+fn mir_emit_direct_call(ctx: LowerCtx, callee_text: String, arg_count: i32, first_arg_idx: i32, second_arg_idx: i32, staged_arg_locals: Vec<i32>, stage_call_args: bool, span_start: i32) -> i32 {
+    let call_rewrite = call_rewrite::mir_rewrite_call_target(ctx, clone(callee_text), first_arg_idx, second_arg_idx, stage_call_args, span_start)
+    let return_local = call_rewrite::MirCallRewrite_return_local(call_rewrite)
+    if return_local >= 0 {
+        return return_local
+    }
+    let callee_name = call_rewrite::MirCallRewrite_callee_name(call_rewrite)
+    let dest = call_dest::mir_prepare_direct_call_dest(ctx, clone(callee_name))
+    call_types::mir_mark_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
+    if stage_call_args {
+        call_staged::mir_emit_staged_call_args(ctx, staged_arg_locals, call_rewrite::MirCallRewrite_push_i64_needs_extend(call_rewrite))
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(callee_name), arg_count, dest))
+    if ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name)) == value_types::VT_VOID() {
+        return 0 - 1
+    }
+    dest
+}

@@ -1,0 +1,12 @@
+// Arukellt Selfhost - MIR lowering enum variant facade.
+
+use mir::lower::variant_payload
+use mir::lower::variant_simple
+
+fn lower_variant_value(ctx: LowerCtx, variant_name: String, tag: i32) -> i32 {
+    variant_simple::lower_variant_value(ctx, variant_name, tag)
+}
+
+fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, total_bytes: i32) -> i32 {
+    variant_payload::lower_payload_variant_from_locals(ctx, tag, payload_locals, payload_vts, total_bytes)
+}

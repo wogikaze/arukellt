@@ -1,0 +1,7 @@
+// Arukellt Selfhost - MIR lowering emission API.
+
+use mir::lower::ctx_locals_emit
+
+fn ctx_emit(ctx: LowerCtx, inst: MirInst) { ctx_locals_emit::ctx_emit(ctx, inst) }
+fn ctx_alloc_block(ctx: LowerCtx) -> i32 { ctx_locals_emit::ctx_alloc_block(ctx) }
+fn ctx_enter_new_block(ctx: LowerCtx) -> i32 { ctx_locals_emit::ctx_enter_new_block(ctx) }

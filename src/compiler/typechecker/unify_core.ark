@@ -1,0 +1,62 @@
+use typechecker::kinds
+// Arukellt Typechecker - type unification
+
+use typechecker::contract_type_access
+use typechecker::names
+use typechecker::unify_bind
+use typechecker::unify_env
+use typechecker::unify_resolve
+
+fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
+    let a_tag = contract_type_access::TypeInfo_tag(a)
+    let b_tag = contract_type_access::TypeInfo_tag(b)
+    if a_tag == commands::TY_UNKNOWN() {
+        return b
+    }
+    if b_tag == commands::TY_UNKNOWN() {
+        return a
+    }
+    if a_tag == commands::TY_TYPE_VAR() {
+        unify_bind::bind_var(env, contract_type_access::TypeInfo_name(a), b)
+        return b
+    }
+    if b_tag == commands::TY_TYPE_VAR() {
+        unify_bind::bind_var(env, contract_type_access::TypeInfo_name(b), a)
+        return a
+    }
+    if a_tag == b_tag {
+        if a_tag == commands::TY_STRUCT() || a_tag == commands::TY_ENUM() {
+            let a_name = contract_type_access::TypeInfo_name(a)
+            let b_name = contract_type_access::TypeInfo_name(b)
+            if !eq(clone(a_name), clone(b_name)) {
+                unify_env::type_error(env, concat(String_from("type mismatch: "), concat(a_name, concat(String_from(" vs "), b_name))))
+            }
+        }
+        let ad = unify_resolve::resolve_type_deep(env, a)
+        let bd = unify_resolve::resolve_type_deep(env, b)
+        let ac = contract_type_access::TypeInfo_type_arg_count(ad)
+        let bc = contract_type_access::TypeInfo_type_arg_count(bd)
+        if ac > 0 && bc > 0 {
+            if ac != bc {
+                unify_env::type_error(env, concat(String_from("generic arity mismatch: "), names::type_tag_name(contract_type_access::TypeInfo_tag(ad))))
+            } else {
+                let mut k = 0
+                while k < ac {
+                    let ta = contract_type_access::TypeInfo_type_arg_at(ad, k)
+                    let tb = contract_type_access::TypeInfo_type_arg_at(bd, k)
+                    unify(env, ta, tb)
+                    k = k + 1
+                }
+            }
+        }
+        return a
+    }
+    if a_tag == commands::TY_I32() && b_tag == commands::TY_I64() {
+        return b
+    }
+    if a_tag == commands::TY_I64() && b_tag == commands::TY_I32() {
+        return a
+    }
+    unify_env::type_error(env, concat(String_from("type mismatch: "), concat(names::type_tag_name(a_tag), concat(String_from(" vs "), names::type_tag_name(b_tag)))))
+    a
+}

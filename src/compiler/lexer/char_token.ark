@@ -1,0 +1,12 @@
+use lexer::tokens
+// Arukellt Lexer - character literal token construction.
+
+use lexer::cursor
+use lexer::token_state
+
+fn Token_char_value(lex: Lexer, char_start: i32, value: i32) -> Token {
+    let end = cursor::lexer_position(lex)
+    let t = Token_new(tokens::TK_CHAR(), cursor::lexer_slice(lex, char_start, end), char_start, end)
+    token_state::Token_set_int(t, value)
+    t
+}

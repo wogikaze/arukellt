@@ -1,0 +1,19 @@
+// Arukellt Selfhost - CoreHIR atomic and operator expression dispatch.
+
+use corehir::body_atoms
+use corehir::body_ops
+use corehir::expr_node_access
+use corehir::expr_node_predicates
+
+fn corehir_dispatch_ops_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    if body_atoms::corehir_atomic_node_kind(expr_node_access::expr_kind(node)) {
+        return corehir_push_expr(table, body_atoms::corehir_atomic_expr_from_node(node))
+    }
+    if expr_node_predicates::expr_is_binary(node) {
+        return body_ops::corehir_build_binary_expr(table, node)
+    }
+    if expr_node_predicates::expr_is_unary(node) {
+        return body_ops::corehir_build_unary_expr(table, node)
+    }
+    0 - 2
+}

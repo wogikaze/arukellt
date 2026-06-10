@@ -1,0 +1,17 @@
+// Arukellt Resolver - enum variant binding rules.
+
+use resolver::scope_define
+use resolver::ast_access
+use resolver::kinds
+
+fn resolve_enum(ctx: ResolveCtx, node: AstNode) {
+    let child_count = ast_access::node_child_count(node)
+    let enum_name = ast_access::node_text(node)
+    let mut i = 0
+    while i < child_count {
+        let variant = ast_access::node_child_at(node, i)
+        let full_name = concat(clone(enum_name), concat(String_from("::"), ast_access::node_text(variant)))
+        scope_define::define_with_vis(ctx, full_name, commands::SYM_VARIANT(), ast_access::node_is_pub(node))
+        i = i + 1
+    }
+}

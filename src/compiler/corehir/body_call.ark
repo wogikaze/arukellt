@@ -1,0 +1,17 @@
+// Arukellt Selfhost - CoreHIR body builder for call-like expressions.
+
+use corehir::body_call_direct
+use corehir::body_call_method
+use corehir::body_call_try
+
+fn corehir_build_call_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    body_call_direct::corehir_build_call_expr(table, node)
+}
+
+fn corehir_build_method_call_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    body_call_method::corehir_build_method_call_expr(table, node)
+}
+
+fn corehir_build_try_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    body_call_try::corehir_build_try_expr(table, node)
+}

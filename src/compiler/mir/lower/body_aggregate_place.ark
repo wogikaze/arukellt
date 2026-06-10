@@ -1,0 +1,45 @@
+use mir::lower::ast_node
+use mir::lower_kinds
+// Arukellt MIR lowering body - aggregate place expressions.
+
+use mir::lower::aggregate
+use mir::lower::assign
+use mir::lower::body_aggregate_assign_field
+
+fn lower_assign_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count >= 2 {
+        let target = ast_node::node_child_at(node, 0)
+        let value = ast_node::node_child_at(node, 1)
+        let val_idx = lower_expr(ctx, value)
+        if ast_node::node_kind_is(target, lower_kinds::NK_IDENT()) {
+            assign::mir_emit_ident_assign(ctx, ast_node::node_text(target), val_idx)
+        }
+        if ast_node::node_kind_is(target, lower_kinds::NK_FIELD_ACCESS()) {
+            body_aggregate_assign_field::lower_field_assign_target(ctx, target, val_idx)
+        }
+    }
+    0 - 1
+}
+
+fn lower_field_access_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count >= 1 {
+        let base = ast_node::node_child_at(node, 0)
+        let base_idx = lower_expr(ctx, base)
+        return aggregate::mir_emit_field_access(ctx, ast_node::node_text(node), base_idx)
+    }
+    0 - 1
+}
+
+fn lower_index_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count >= 2 {
+        let base = ast_node::node_child_at(node, 0)
+        let idx_expr = ast_node::node_child_at(node, 1)
+        let base_idx = lower_expr(ctx, base)
+        let index_idx = lower_expr(ctx, idx_expr)
+        return aggregate::mir_emit_array_index(ctx, base_idx, index_idx)
+    }
+    0 - 1
+}

@@ -1,0 +1,52 @@
+// Arukellt Selfhost - MIR dump block-level output.
+
+use std::host::stdio
+use mir::block_dominance_access
+use mir::block_inst_access
+use mir::block_phi_access
+use mir::block_pred_access
+use mir::block_successor_access
+use mir::dump_format_edges
+use mir::dump_format_local
+use mir::dump_format_phi
+use mir::dump_op_names
+use mir::function_block_queries
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+
+fn dump_mir_function_blocks(f: MirFunction) {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut b = 0
+    while b < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, b)
+        let phi_count = block_phi_access::MirBlock_phi_count(block)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut block_msg = concat(String_from("    bb"), to_string(b))
+        block_msg = concat(block_msg, String_from(": phis="))
+        block_msg = concat(block_msg, to_string(phi_count))
+        block_msg = concat(block_msg, String_from(" instructions="))
+        block_msg = concat(block_msg, to_string(inst_count))
+        block_msg = concat(block_msg, String_from(" succs="))
+        block_msg = concat(block_msg, dump_format_edges::mir_format_edges(block_successor_access::MirBlock_succ0(block), block_successor_access::MirBlock_succ1(block)))
+        block_msg = concat(block_msg, String_from(" preds="))
+        block_msg = concat(block_msg, dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block)))
+        block_msg = concat(block_msg, String_from(" idom="))
+        block_msg = concat(block_msg, dump_format_edges::mir_format_edge(block_dominance_access::MirBlock_idom(block)))
+        block_msg = concat(block_msg, String_from(" df="))
+        block_msg = concat(block_msg, dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))
+        stdio::eprintln(block_msg)
+        let mut p = 0
+        while p < phi_count {
+            let phi = block_phi_access::MirBlock_phi_at(block, p)
+            stdio::eprintln(concat(String_from("      "), dump_format_phi::mir_format_phi(f, phi)))
+            p = p + 1
+        }
+        let mut j = 0
+        while j < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, j)
+            stdio::eprintln(concat(String_from("      "), concat(dump_op_names::mir_op_name(inst_accessors_shape::MirInst_op(inst)), concat(String_from(" -> "), dump_format_local::mir_format_local_ref(f, inst_accessors_operands::MirInst_dest(inst))))))
+            j = j + 1
+        }
+        b = b + 1
+    }
+}

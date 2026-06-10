@@ -1,0 +1,43 @@
+use mir::lower::ctx_api_nesting
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering helpers for if expressions.
+
+use mir::inst_structured_control
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::value_types
+
+fn mir_begin_if_expr(ctx: LowerCtx) -> i32 {
+    let result = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_structured_control::MirInst_if())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    result
+}
+
+fn mir_store_if_branch_result(ctx: LowerCtx, result: i32, branch_result: i32) {
+    if branch_result < 0 {
+        return
+    }
+    let branch_vt = ctx_local_vt(ctx, branch_result)
+    if branch_vt == value_types::VT_I64() || branch_vt == value_types::VT_F64() {
+        ctx_set_local_vt(ctx, result, branch_vt)
+    }
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(result))
+}
+
+fn mir_emit_if_else(ctx: LowerCtx) {
+    ctx_emit(ctx, inst_structured_control::MirInst_else())
+}
+
+fn mir_end_if_expr(ctx: LowerCtx, result: i32, then_result: i32, else_result: i32) -> i32 {
+    ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+    if then_result >= 0 || else_result >= 0 {
+        ctx_emit(ctx, inst_local_get::MirInst_local_get_to(result, result))
+        return result
+    }
+    0 - 1
+}

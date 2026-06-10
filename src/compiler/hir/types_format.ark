@@ -1,0 +1,29 @@
+// Arukellt HIR - type display names.
+
+use hir::type_contracts
+use hir::kinds
+use hir::types_format_containers
+use hir::types_format_named
+use hir::types_format_primitives
+
+fn type_name(ty: HirType) -> String {
+    let primitive = types_format_primitives::primitive_type_name(ty)
+    if len(primitive) > 0 { return primitive }
+    if type_contracts::HirType_tag(ty) == commands::TY_VEC() {
+        let c = type_contracts::HirType_type_arg_count(ty)
+        if c > 0 {
+            let elem = type_contracts::HirType_type_arg_at(ty, 0)
+            return types_format_containers::vec_type_name(type_name(elem))
+        }
+        return types_format_containers::vec_type_name_empty()
+    }
+    if type_contracts::HirType_tag(ty) == commands::TY_OPTION() {
+        let c = type_contracts::HirType_type_arg_count(ty)
+        if c > 0 {
+            let elem = type_contracts::HirType_type_arg_at(ty, 0)
+            return types_format_containers::option_type_name(type_name(elem))
+        }
+        return types_format_containers::option_type_name_empty()
+    }
+    types_format_named::named_type_name(ty)
+}

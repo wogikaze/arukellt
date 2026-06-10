@@ -1,0 +1,19 @@
+// Arukellt Selfhost - CoreHIR expression kind predicates.
+
+use corehir::frontend_expr_kind
+
+fn expr_kind_is_int_lit(kind: i32) -> bool { frontend_expr_kind::corehir_kind_is_expr_int_lit(kind) }
+fn expr_kind_is_float_lit(kind: i32) -> bool { frontend_expr_kind::corehir_kind_is_expr_float_lit(kind) }
+fn expr_kind_is_string_lit(kind: i32) -> bool { frontend_expr_kind::corehir_kind_is_expr_string_lit(kind) }
+fn expr_kind_is_bool_lit(kind: i32) -> bool { frontend_expr_kind::corehir_kind_is_expr_bool_lit(kind) }
+fn expr_kind_is_char_lit(kind: i32) -> bool { frontend_expr_kind::corehir_kind_is_expr_char_lit(kind) }
+fn expr_kind_is_ident(kind: i32) -> bool { frontend_expr_kind::corehir_kind_is_expr_ident(kind) }
+fn expr_kind_is_path(kind: i32) -> bool { frontend_expr_kind::corehir_kind_is_expr_path(kind) }
+
+fn expr_kind_is_literal(kind: i32) -> bool {
+    expr_kind_is_int_lit(kind) || expr_kind_is_float_lit(kind) || expr_kind_is_string_lit(kind) || expr_kind_is_bool_lit(kind) || expr_kind_is_char_lit(kind)
+}
+
+fn expr_kind_is_name(kind: i32) -> bool {
+    expr_kind_is_ident(kind) || expr_kind_is_path(kind)
+}

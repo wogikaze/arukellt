@@ -1,0 +1,11 @@
+// Arukellt Selfhost - CoreHIR expression literal value accessors.
+
+use corehir::expr_raw
+
+fn expr_int_val(expr: CoreHirExpr) -> i32 {
+    expr_raw::corehir_expr_int_val(expr)
+}
+
+fn expr_float_val(expr: CoreHirExpr) -> f64 {
+    expr_raw::corehir_expr_float_val(expr)
+}

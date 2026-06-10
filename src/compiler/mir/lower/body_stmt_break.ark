@@ -1,0 +1,24 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_loop_query
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - break/continue statement lowering.
+
+use mir::lower::control
+
+fn lower_break_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+    if ctx_api_loop_query::ctx_loop_break_available(ctx) {
+        let break_children = ast_node::node_child_count(node)
+        if break_children > 0 && ctx_api_loop_query::ctx_loop_break_value_available(ctx) {
+            let break_val = ast_node::node_child_at(node, 0)
+            let bv_idx = lower_expr(ctx, break_val)
+            control::mir_store_break_value(ctx, bv_idx)
+        }
+        control::mir_emit_loop_break(ctx)
+    }
+    0 - 1
+}
+
+fn lower_continue_stmt(ctx: LowerCtx) -> i32 {
+    control::mir_emit_loop_continue(ctx)
+    0 - 1
+}

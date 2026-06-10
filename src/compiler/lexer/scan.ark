@@ -1,0 +1,57 @@
+use lexer::tokens
+// Arukellt Lexer - token stream driver.
+
+use lexer::char_class
+use lexer::char_skip
+use lexer::char
+use lexer::comment_scan
+use lexer::ident
+use lexer::number
+use lexer::punct
+use lexer::string
+use lexer::token_state
+
+fn next_token(lex: Lexer) -> Token {
+    char_skip::skip_whitespace_impl(lex)
+    if lex.pos >= lex.src_len {
+        return token_state::Token_new(tokens::TK_EOF(), String_from(""), lex.pos, lex.pos)
+    }
+    let start = lex.pos
+    let c = peek(lex)
+    if comment_scan::skip_comment_if_present(lex, c) {
+        return next_token(lex)
+    }
+    if c == 10 {
+        lex.pos = lex.pos + 1
+        return token_state::Token_new(tokens::TK_NEWLINE(), String_from("\n"), start, lex.pos)
+    }
+    if char_class::is_alpha(c) {
+        return ident::lex_ident(lex)
+    }
+    if char_class::is_digit(c) {
+        return number::lex_number(lex)
+    }
+    if c == 34 {
+        return string::lex_string(lex)
+    }
+    if c == 39 {
+        return char::lex_char_literal(lex)
+    }
+    punct::lex_punctuation_or_error(lex, start, c)
+}
+
+fn tokenize(source: String) -> Vec<Token> {
+    let mut lex = Lexer_new(source)
+    let mut tokens: Vec<Token> = Vec_new_Token()
+    let mut done = false
+    while !done {
+        let tok = next_token(lex)
+        if token_state::Token_kind(tok) == tokens::TK_EOF() {
+            push(tokens, tok)
+            done = true
+        } else {
+            push(tokens, tok)
+        }
+    }
+    tokens
+}

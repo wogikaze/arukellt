@@ -1,0 +1,7 @@
+// Arukellt Selfhost - top-level source file loading.
+
+use std::host::fs
+
+fn load_source_file(path: String) -> Result<String, String> {
+    fs::read_to_string(path)
+}

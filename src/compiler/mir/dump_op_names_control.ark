@@ -1,0 +1,34 @@
+use mir::opcodes
+// Arukellt Selfhost - MIR control opcode display names.
+
+
+fn mir_control_op_name(op: i32) -> String {
+    if op == opcodes::MIR_BR() {
+        return String_from("br")
+    }
+    if op == opcodes::MIR_BR_IF() {
+        return String_from("br_if")
+    }
+    if op == opcodes::MIR_BLOCK() {
+        return String_from("block")
+    }
+    if op == opcodes::MIR_LOOP() {
+        return String_from("loop")
+    }
+    if op == opcodes::MIR_IF() {
+        return String_from("if")
+    }
+    if op == opcodes::MIR_DROP() {
+        return String_from("drop")
+    }
+    if op == opcodes::MIR_NOP() {
+        return String_from("nop")
+    }
+    if op == opcodes::MIR_UNREACHABLE() {
+        return String_from("unreachable")
+    }
+    if op == opcodes::MIR_PHI() {
+        return String_from("phi")
+    }
+    String_from("")
+}

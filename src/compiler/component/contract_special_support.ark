@@ -1,0 +1,94 @@
+// Arukellt Selfhost - component named special signature support
+
+use component::contract_collection_fn
+use component::contract_helpers
+use component::contract_numeric
+use component::contract_record_shape
+use component::contract_string_fn
+use component::contract_tuple_functions
+
+fn component_record_special_signature_name(name: String) -> bool {
+    eq(clone(name), String_from("distance_sq")) || eq(clone(name), String_from("add_points")) || eq(clone(name), String_from("next_color")) || eq(clone(name), String_from("color_to_value")) || eq(clone(name), String_from("color_code")) || eq(clone(name), String_from("area"))
+}
+
+fn component_record_special_signature_supported(name: String, f: AstNode) -> bool {
+    if eq(clone(name), String_from("distance_sq")) {
+        return contract_record_shape::component_fn_is_point_to_i32(f)
+    }
+    if eq(clone(name), String_from("add_points")) {
+        return contract_record_shape::component_fn_is_point_point_to_point(f)
+    }
+    if eq(clone(name), String_from("next_color")) {
+        return contract_record_shape::component_fn_is_color_to_color(f)
+    }
+    if eq(clone(name), String_from("color_to_value")) {
+        return contract_record_shape::component_fn_is_color_to_i32(f)
+    }
+    if eq(clone(name), String_from("color_code")) {
+        return contract_record_shape::component_fn_is_color_to_i32(f)
+    }
+    if eq(clone(name), String_from("area")) {
+        return contract_record_shape::component_fn_is_shape_to_f64(f)
+    }
+    false
+}
+
+fn component_string_special_signature_name(name: String) -> bool {
+    eq(clone(name), String_from("greet"))
+}
+
+fn component_string_special_signature_supported(name: String, f: AstNode) -> bool {
+    let func = contract_helpers::component_func_from_decl(f)
+    if eq(clone(name), String_from("greet")) {
+        return contract_string_fn::component_fn_is_string_unary(func) || contract_string_fn::component_fn_is_string_to_i32(func) || contract_string_fn::component_fn_is_string_to_narrow_i32(func) || contract_string_fn::component_fn_is_string_to_bool(func) || contract_string_fn::component_fn_is_string_to_char(func) || contract_string_fn::component_fn_is_string_to_f32(func) || contract_string_fn::component_fn_is_string_to_f64(func) || contract_string_fn::component_fn_is_string_to_i64(func) || contract_string_fn::component_fn_is_string_to_u64(func)
+    }
+    false
+}
+
+fn component_collection_special_signature_name(name: String) -> bool {
+    eq(clone(name), String_from("first_or_zero")) || eq(clone(name), String_from("maybe_double")) || eq(clone(name), String_from("safe_div"))
+}
+
+fn component_collection_special_signature_supported(name: String, f: AstNode) -> bool {
+    if eq(clone(name), String_from("first_or_zero")) {
+        return contract_collection_fn::component_fn_is_vec_i32_to_i32(contract_helpers::component_func_from_decl(f))
+    }
+    if eq(clone(name), String_from("maybe_double")) {
+        return contract_collection_fn::component_fn_is_i32_to_option_i32(contract_helpers::component_func_from_decl(f))
+    }
+    if eq(clone(name), String_from("safe_div")) {
+        return contract_collection_fn::component_fn_is_i32_i32_to_result_i32_string(contract_helpers::component_func_from_decl(f))
+    }
+    false
+}
+
+fn component_numeric_tuple_special_signature_name(name: String) -> bool {
+    eq(clone(name), String_from("square32")) || eq(clone(name), String_from("swap"))
+}
+
+fn component_numeric_tuple_special_signature_supported(name: String, f: AstNode) -> bool {
+    if eq(clone(name), String_from("square32")) {
+        return contract_numeric::component_fn_is_f32_unary(contract_helpers::component_func_from_decl(f))
+    }
+    if eq(clone(name), String_from("swap")) {
+        return contract_tuple_functions::component_fn_is_i32_i32_to_tuple_i32_i32(contract_helpers::component_func_from_decl(f))
+    }
+    false
+}
+
+fn component_special_signature_supported(f: AstNode) -> bool {
+	let name = contract_helpers::component_func_name(f)
+	if component_record_special_signature_name(clone(name)) {
+		return component_record_special_signature_supported(clone(name), f)
+	}
+	if component_string_special_signature_name(clone(name)) {
+		return component_string_special_signature_supported(clone(name), f)
+	}
+	if component_collection_special_signature_name(clone(name)) {
+		return component_collection_special_signature_supported(clone(name), f)
+	}
+	if component_numeric_tuple_special_signature_name(clone(name)) {
+		return component_numeric_tuple_special_signature_supported(clone(name), f)
+	}
+	true
+}

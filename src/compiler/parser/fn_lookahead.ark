@@ -1,0 +1,12 @@
+// Arukellt Parser - function clause lookahead facade.
+
+use parser::fn_lookahead_clause
+use parser::fn_lookahead_named
+
+fn has_next_clause(p: Parser, name: String) -> bool {
+    fn_lookahead_named::has_next_clause(p, name)
+}
+
+fn peek_is_fn_clause(p: Parser) -> bool {
+    fn_lookahead_clause::peek_is_fn_clause(p)
+}

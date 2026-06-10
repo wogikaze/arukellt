@@ -1,0 +1,15 @@
+// Arukellt Selfhost - component export contract
+//
+// Owns component-mode export shape validation. Keep this module independent
+// from driver orchestration and component byte emission.
+
+use component::contract_helpers
+use component::contract_validation
+
+fn should_export_func(name: String) -> bool {
+    contract_helpers::should_export_func(name)
+}
+
+fn validate_export_surface(decls: Vec<AstNode>) -> String {
+    contract_validation::validate_export_surface(decls)
+}

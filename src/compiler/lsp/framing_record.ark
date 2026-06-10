@@ -1,0 +1,23 @@
+// Arukellt LSP - JSON-RPC frame result data record.
+
+pub struct FrameResult {
+    body: String,
+    next: i32,
+    ok: bool,
+}
+
+fn FrameResult_new(body: String, next: i32, ok: bool) -> FrameResult {
+    FrameResult { body: body, next: next, ok: ok }
+}
+
+fn frame_result_ok(result: FrameResult) -> bool {
+    result.ok
+}
+
+fn frame_result_body(result: FrameResult) -> String {
+    clone(result.body)
+}
+
+fn frame_result_next(result: FrameResult) -> i32 {
+    result.next
+}

@@ -1,0 +1,29 @@
+// Arukellt Resolver - scoped match arm walker.
+
+use resolver::scope_stack_lifecycle
+use resolver::ast_access
+use resolver::bindings
+
+fn resolve_match(ctx: ResolveCtx, node: AstNode) {
+    let child_count = ast_access::node_child_count(node)
+    if child_count > 0 {
+        let scrutinee = ast_access::node_child_at(node, 0)
+        resolve_node(ctx, scrutinee)
+    }
+    let mut arm_idx = 1
+    while arm_idx < child_count {
+        let arm = ast_access::node_child_at(node, arm_idx)
+        let arm_child_count = ast_access::node_child_count(arm)
+        scope_stack_lifecycle::push_scope(ctx)
+        if arm_child_count > 0 {
+            let pat = ast_access::node_child_at(arm, 0)
+            bindings::collect_pattern_bindings(ctx, pat)
+        }
+        if arm_child_count > 1 {
+            let body = ast_access::node_child_at(arm, 1)
+            resolve_node(ctx, body)
+        }
+        scope_stack_lifecycle::pop_scope(ctx)
+        arm_idx = arm_idx + 1
+    }
+}

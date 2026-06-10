@@ -1,0 +1,24 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering helpers for Vec-backed loops.
+
+use mir::inst_call
+use mir::inst_local_get
+use mir::lower::loop_conditions
+use mir::value_types
+
+fn mir_emit_vec_len_saved(ctx: LowerCtx, vec_local: i32) -> i32 {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(vec_local))
+    let end_local = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_call::MirInst_call(String_from("vec_len"), 1, end_local))
+    loop_conditions::mir_save_stack_to_local(ctx, end_local)
+    end_local
+}
+
+fn mir_emit_vec_get_unchecked_to_local(ctx: LowerCtx, vec_local: i32, idx_var: i32, iter_var: i32) {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(vec_local))
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(idx_var))
+    ctx_emit(ctx, inst_call::MirInst_call(String_from("vec_get_unchecked"), 2, iter_var))
+    loop_conditions::mir_save_stack_to_local(ctx, iter_var)
+}

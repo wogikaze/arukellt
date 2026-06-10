@@ -1,0 +1,32 @@
+// Arukellt Selfhost - monomorphization instance shape adapter.
+
+use mir::type_contracts
+use mir::typeinfo_shape
+
+fn mir_mono_instance_fn_name(instance: MonoInstance) -> String {
+    type_contracts::MonoInstance_fn_name(instance)
+}
+
+fn mir_mono_instance_mangled_name(instance: MonoInstance) -> String {
+    type_contracts::MonoInstance_mangled_name(instance)
+}
+
+fn mir_mono_instance_type_arg_count(instance: MonoInstance) -> i32 {
+    type_contracts::MonoInstance_type_arg_count(instance)
+}
+
+fn mir_mono_instance_type_arg_tag_at(instance: MonoInstance, index: i32) -> i32 {
+    let ty = type_contracts::MonoInstance_type_arg_at(instance, index)
+    typeinfo_shape::mir_type_info_tag(ty)
+}
+
+fn mir_mono_instance_is_marker(instance: MonoInstance) -> bool {
+    if mir_mono_instance_type_arg_count(instance) > 0 {
+        return mir_mono_instance_type_arg_tag_at(instance, 0) < 0
+    }
+    false
+}
+
+fn mir_mono_instance_marker_span_start(instance: MonoInstance) -> i32 {
+    0 - mir_mono_instance_type_arg_tag_at(instance, 0) - 1000
+}

@@ -1,0 +1,15 @@
+// Arukellt Selfhost - MIR SSA block entry/exit slot helpers.
+
+use mir::ssa_state_types
+
+fn mir_ssa_pred_value_for(state: ssa_state_types::MirSsaRenameState, pred_block: i32, local_id: i32) -> i32 {
+    ssa_state_types::MirSsaRenameState_pred_value_for(state, pred_block, local_id)
+}
+
+fn mir_ssa_load_block_entry(state: ssa_state_types::MirSsaRenameState, block_id: i32) {
+    ssa_state_types::MirSsaRenameState_load_block_entry(state, block_id)
+}
+
+fn mir_ssa_record_block_exit(state: ssa_state_types::MirSsaRenameState, block_id: i32) {
+    ssa_state_types::MirSsaRenameState_record_block_exit(state, block_id)
+}

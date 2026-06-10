@@ -1,0 +1,24 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_function_frame
+use mir::lower::ctx_types
+use mir::local_factory
+// Arukellt Selfhost - CoreHIR closure explicit parameter emission.
+
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_atoms
+use mir::value_types
+
+fn core_emit_closure_params(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: CoreHirExpr) {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(clos)
+    let mut pi = 0
+    while pi + 1 < child_count {
+        let p = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(clos, pi))
+        if core_expr_shape_atoms::mir_core_expr_is_ident(p) {
+            let param_name = core_expr_shape_accessors::mir_core_expr_text(p)
+            let pvt = value_types::VT_I32()
+            let _idx = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(param_name), pvt)
+            ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, String_new()))
+        }
+        pi = pi + 1
+    }
+}

@@ -1,0 +1,28 @@
+// Arukellt Selfhost - MIR lowering helpers for method calls.
+
+use mir::lower::ctx_api_local_types
+use mir::lower::method_emit
+use mir::lower::method_resolve
+
+fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i32) -> String {
+    let mut struct_name = String_from("")
+    if receiver_idx >= 0 {
+        struct_name = ctx_get_local_type(ctx, receiver_idx)
+    }
+    if len(struct_name) > 0 {
+        return concat(clone(struct_name), concat(String_from("::"), clone(method_name)))
+    }
+    method_name
+}
+
+fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String {
+    method_resolve::mir_method_mono_type_key(ctx, first_method_arg_idx)
+}
+
+fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_arg_idx: i32, span_start: i32) -> String {
+    method_resolve::mir_resolve_method_callee(ctx, callee_name, first_method_arg_idx, span_start)
+}
+
+fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32) -> i32 {
+    method_emit::mir_emit_method_call(ctx, callee_name, arg_count)
+}

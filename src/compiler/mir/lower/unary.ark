@@ -1,0 +1,23 @@
+use mir::opcodes
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+use mir::lower_kinds
+// Arukellt Selfhost - MIR lowering unary operator helpers
+
+use mir::inst_op
+
+fn lower_unary_from_operand(ctx: LowerCtx, op: i32, operand_idx: i32) -> i32 {
+    let uvt = ctx_local_vt(ctx, operand_idx)
+    let dest = ctx_fresh_local(ctx, uvt)
+    let mut mir_op = opcodes::MIR_NOP()
+    if op == lower_kinds::UOP_NEG() {
+        mir_op = opcodes::MIR_NEG()
+    }
+    if op == lower_kinds::UOP_NOT() {
+        mir_op = opcodes::MIR_NOT()
+    }
+    ctx_emit(ctx, inst_op::MirInst_unary(mir_op, dest, operand_idx, uvt))
+    dest
+}

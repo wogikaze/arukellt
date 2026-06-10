@@ -1,0 +1,48 @@
+// Arukellt MIR lowering context - function return value type lookup.
+
+use mir::lower::ctx_fn_index
+use mir::value_types
+
+fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
+    let found = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
+    if found >= 0 {
+        return ctx_fn_index::ctx_fn_index_return_vt_at(ctx, found)
+    }
+    let nlen = len(name)
+    let mut colon_pos = 0 - 1
+    let mut ci = nlen - 1
+    while ci >= 0 {
+        if char_at(name, ci) == 58 {
+            colon_pos = ci
+            ci = 0 - 1
+        }
+        ci = ci - 1
+    }
+    if colon_pos >= 0 {
+        let short = substring(name, colon_pos + 1, nlen)
+        let short_found = ctx_fn_index::ctx_fn_index_find(ctx, short)
+        if short_found >= 0 {
+            return ctx_fn_index::ctx_fn_index_return_vt_at(ctx, short_found)
+        }
+    }
+    let bare_name = ctx_bare_builtin_name(name)
+    if ctx_is_void_builtin(bare_name) {
+        return value_types::VT_VOID()
+    }
+    if eq(clone(bare_name), "i32_to_i64") || eq(clone(bare_name), "u32_to_u64") {
+        return value_types::VT_I64()
+    }
+    value_types::VT_I32()
+}
+
+fn ctx_bare_builtin_name(name: String) -> String {
+    let mut bare_name = clone(name)
+    if len(bare_name) > 12 && char_at(bare_name, 0) == 95 && char_at(bare_name, 1) == 95 {
+        bare_name = substring(bare_name, 12, len(bare_name))
+    }
+    bare_name
+}
+
+fn ctx_is_void_builtin(bare_name: String) -> bool {
+    eq(clone(bare_name), "stdio::println") || eq(clone(bare_name), "println") || eq(clone(bare_name), "stdio::print") || eq(clone(bare_name), "print") || eq(clone(bare_name), "stdio::eprintln") || eq(clone(bare_name), "eprintln") || eq(clone(bare_name), "stdio::eprint") || eq(clone(bare_name), "eprint") || eq(clone(bare_name), "process::exit") || eq(clone(bare_name), "host::process::exit") || eq(clone(bare_name), "push_char") || eq(clone(bare_name), "push") || eq(clone(bare_name), "push_byte") || eq(clone(bare_name), "push_i64") || eq(clone(bare_name), "push_f64") || eq(clone(bare_name), "sort_i32") || eq(clone(bare_name), "sort_i64") || eq(clone(bare_name), "sort_f64") || eq(clone(bare_name), "reverse_String") || eq(clone(bare_name), "assert") || eq(clone(bare_name), "assert_eq") || eq(clone(bare_name), "assert_ne") || eq(clone(bare_name), "assert_eq_str") || eq(clone(bare_name), "assert_eq_i64") || eq(clone(bare_name), "memory_copy") || eq(clone(bare_name), "memory_fill") || eq(clone(bare_name), "HashMap_i32_i32_insert") || eq(clone(bare_name), "HashMap_i32_String_insert") || eq(clone(bare_name), "HashMap_String_i32_insert") || eq(clone(bare_name), "HashMap_String_String_insert") || eq(clone(bare_name), "hashmap_set") || eq(clone(bare_name), "hashmap_str_set") || eq(clone(bare_name), "hashmap_str_val_set") || eq(clone(bare_name), "hashmap_str_str_set") || eq(clone(bare_name), "hashmap_clear") || eq(clone(bare_name), "hashset_insert") || eq(clone(bare_name), "hashset_remove") || eq(clone(bare_name), "hashset_str_insert") || eq(clone(bare_name), "hashset_str_remove")
+}

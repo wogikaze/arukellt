@@ -1,0 +1,37 @@
+use lexer::tokens
+// Arukellt Lexer - control keyword display names.
+
+
+fn token_control_keyword_name(kind: i32) -> String {
+    if kind == tokens::TK_IF() {
+        return String_from("IF")
+    }
+    if kind == tokens::TK_ELSE() {
+        return String_from("ELSE")
+    }
+    if kind == tokens::TK_MATCH() {
+        return String_from("MATCH")
+    }
+    if kind == tokens::TK_WHILE() {
+        return String_from("WHILE")
+    }
+    if kind == tokens::TK_LOOP() {
+        return String_from("LOOP")
+    }
+    if kind == tokens::TK_FOR() {
+        return String_from("FOR")
+    }
+    if kind == tokens::TK_IN() {
+        return String_from("IN")
+    }
+    if kind == tokens::TK_BREAK() {
+        return String_from("BREAK")
+    }
+    if kind == tokens::TK_CONTINUE() {
+        return String_from("CONTINUE")
+    }
+    if kind == tokens::TK_RETURN() {
+        return String_from("RETURN")
+    }
+    String_new()
+}

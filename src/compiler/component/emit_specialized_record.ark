@@ -1,0 +1,73 @@
+// Arukellt Selfhost - record and color specialized component dispatch
+
+use component::emit_color
+use component::emit_record_ops
+use component::export_shapes_color_scan
+use component::export_shapes_presence
+use component::export_shapes_record
+
+fn try_emit_record_or_color_component(core_wasm: Vec<i32>, mir: MirModule, export_names: Vec<String>) -> Vec<i32> {
+	if export_shapes_presence::comp_has_record_point_exports(export_names) {
+		return record_ops::emit_record_point_component(core_wasm, String_from("distance_sq"), String_from("add_points"))
+	}
+	let point_distance_name = export_shapes_record::comp_point_to_i32_pair_export_name(mir)
+	let point_add_name = export_shapes_record::comp_point_point_to_point_pair_export_name(mir)
+	if len(point_distance_name) > 0 && len(point_add_name) > 0 {
+		return record_ops::emit_record_point_component(core_wasm, point_distance_name, point_add_name)
+	}
+	if export_shapes_presence::comp_has_record_distance_exports(export_names) {
+		return record_ops::emit_record_distance_component(core_wasm, String_from("distance_sq"))
+	}
+	let point_to_i32_name = export_shapes_record::comp_single_point_to_i32_export_name(mir)
+	if len(point_to_i32_name) > 0 {
+		return record_ops::emit_record_distance_component(core_wasm, point_to_i32_name)
+	}
+	let point_to_point_name = export_shapes_record::comp_single_point_to_point_export_name(mir)
+	if len(point_to_point_name) > 0 {
+		return record_ops::emit_record_point_roundtrip_component(core_wasm, point_to_point_name)
+	}
+	let point_point_to_point_name = export_shapes_record::comp_single_point_point_to_point_export_name(mir)
+	if len(point_point_to_point_name) > 0 {
+		return record_ops::emit_record_point_add_component(core_wasm, point_point_to_point_name)
+	}
+	if export_shapes_presence::comp_has_color_code_exports(export_names) {
+		return color::emit_color_code_component(core_wasm, String_from("color_code"))
+	}
+	if export_shapes_presence::comp_has_color_enum_exports(export_names) {
+		return color::emit_color_enum_component(core_wasm, String_from("next_color"), String_from("color_to_value"))
+	}
+	let color_next_name = comp_color_to_color_export_name(mir)
+	let color_value_name = comp_color_to_i32_pair_export_name(mir)
+	if len(color_next_name) > 0 && len(color_value_name) > 0 {
+		return color::emit_color_enum_component(core_wasm, color_next_name, color_value_name)
+	}
+	let color_to_i32_name = comp_single_color_to_i32_export_name(mir)
+	if len(color_to_i32_name) > 0 {
+		return color::emit_color_code_component(core_wasm, color_to_i32_name)
+	}
+	let color_to_color_name = comp_single_color_to_color_export_name(mir)
+	if len(color_to_color_name) > 0 {
+		return color::emit_color_roundtrip_component(core_wasm, color_to_color_name)
+	}
+	Vec_new_i32()
+}
+
+fn comp_color_to_color_export_name(mir: MirModule) -> String {
+	let scan = export_shapes_color_scan::comp_color_export_scan(mir)
+	export_shapes_color_scan::comp_color_pair_color_to_color_name(scan)
+}
+
+fn comp_single_color_to_color_export_name(mir: MirModule) -> String {
+	let scan = export_shapes_color_scan::comp_color_export_scan(mir)
+	export_shapes_color_scan::comp_color_single_color_to_color_name(scan)
+}
+
+fn comp_color_to_i32_pair_export_name(mir: MirModule) -> String {
+	let scan = export_shapes_color_scan::comp_color_export_scan(mir)
+	export_shapes_color_scan::comp_color_pair_color_to_i32_name(scan)
+}
+
+fn comp_single_color_to_i32_export_name(mir: MirModule) -> String {
+	let scan = export_shapes_color_scan::comp_color_export_scan(mir)
+	export_shapes_color_scan::comp_color_single_color_to_i32_name(scan)
+}

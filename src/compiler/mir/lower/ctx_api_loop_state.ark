@@ -1,0 +1,12 @@
+// Arukellt Selfhost - MIR lowering loop state API.
+
+use mir::lower::ctx_control
+
+fn ctx_loop_break_depth(ctx: LowerCtx) -> i32 { ctx_control::ctx_loop_break_depth(ctx) }
+fn ctx_loop_continue_depth(ctx: LowerCtx) -> i32 { ctx_control::ctx_loop_continue_depth(ctx) }
+fn ctx_loop_break_local(ctx: LowerCtx) -> i32 { ctx_control::ctx_loop_break_local(ctx) }
+fn ctx_set_loop_break_depth(ctx: LowerCtx, depth: i32) { ctx_control::ctx_set_loop_break_depth(ctx, depth) }
+fn ctx_set_loop_continue_depth(ctx: LowerCtx, depth: i32) { ctx_control::ctx_set_loop_continue_depth(ctx, depth) }
+fn ctx_set_loop_break_local(ctx: LowerCtx, local_idx: i32) { ctx_control::ctx_set_loop_break_local(ctx, local_idx) }
+fn ctx_set_loop_break_depth_to_current(ctx: LowerCtx) { ctx_control::ctx_set_loop_break_depth_to_current(ctx) }
+fn ctx_set_loop_continue_depth_to_current(ctx: LowerCtx) { ctx_control::ctx_set_loop_continue_depth_to_current(ctx) }

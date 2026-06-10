@@ -1,0 +1,19 @@
+use lexer::tokens
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_type_ann
+// Arukellt Parser - use declaration alias.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::token_state
+
+fn parse_use_alias(p: Parser, node: AstNode) {
+    if core_api_cursor::peek_kind(p) == tokens::TK_AS() {
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        let alias_tok = core_api_expect::expect_token(p, tokens::TK_IDENT())
+        let alias_node = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), token_state::Token_text(alias_tok), core_api_expect::tok_span(alias_tok))
+        core_ast_type_ann::AstNode_push_type_ann(node, alias_node)
+    }
+}

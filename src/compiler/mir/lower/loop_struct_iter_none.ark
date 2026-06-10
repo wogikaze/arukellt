@@ -1,0 +1,22 @@
+use mir::lower::ctx_api_emit
+use mir::opcodes
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR struct iterator None-branch emission.
+
+use mir::inst_struct_get
+use mir::inst_const_i32
+use mir::inst_branch
+use mir::inst_local_get
+use mir::inst_op
+use mir::lower::loop_conditions
+use mir::value_types
+
+fn mir_emit_struct_iterator_none_break(ctx: LowerCtx, opt_local: i32, tag_local: i32, none_tag: i32, cmp_dest: i32) {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(opt_local))
+    ctx_emit(ctx, inst_struct_get::MirInst_struct_get_to(0, value_types::VT_I32(), tag_local))
+    loop_conditions::mir_save_stack_to_local(ctx, tag_local)
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(tag_local))
+    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(1, none_tag))
+    ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), cmp_dest, tag_local, none_tag))
+    ctx_emit(ctx, inst_branch::MirInst_br_if(1))
+}

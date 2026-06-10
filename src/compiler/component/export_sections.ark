@@ -1,0 +1,58 @@
+// Arukellt Selfhost - generic component export sections
+
+use component::constants_sections_linkage
+use component::export_sections_entries
+use component::export_plan
+use component::naming
+use component::writer_core
+
+fn emit_generic_func_export_entry(export_sec: writer_core::ComponentWriter, export_name: String, func_idx: i32, export_type_idx: i32) {
+	writer_core::comp_emit_byte(export_sec, 0x00)
+	writer_core::comp_emit_string(export_sec, export_name)
+	writer_core::comp_emit_byte(export_sec, constants_sections_linkage::COMP_EXI_SORT_FUNC())
+	writer_core::comp_emit_leb128_u(export_sec, func_idx)
+	writer_core::comp_emit_byte(export_sec, 0x01)
+	writer_core::comp_emit_byte(export_sec, constants_sections_linkage::COMP_EXI_SORT_FUNC())
+	writer_core::comp_emit_leb128_u(export_sec, export_type_idx)
+}
+
+fn emit_generic_alias_section(out: writer_core::ComponentWriter, plan: export_plan::ComponentExportPlan) {
+	let alias_sec = writer_core::ComponentWriter_new()
+	let export_count = export_plan::export_plan_count(plan)
+	writer_core::comp_emit_leb128_u(alias_sec, export_count)
+	let mut ai = 0
+	while ai < export_count {
+		let core_name = export_plan::export_plan_name_at(plan, ai)
+		export_sections_entries::emit_generic_alias_entry(alias_sec, core_name)
+		ai = ai + 1
+	}
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), alias_sec)
+}
+
+fn emit_generic_canon_section(out: writer_core::ComponentWriter, plan: export_plan::ComponentExportPlan, export_type_indices: Vec<i32>) {
+	let canon_sec = writer_core::ComponentWriter_new()
+	let export_count = export_plan::export_plan_count(plan)
+	writer_core::comp_emit_leb128_u(canon_sec, export_count)
+	let mut ci = 0
+	while ci < export_count {
+		let type_idx_canon = get_unchecked(export_type_indices, ci)
+		export_sections_entries::emit_generic_canon_lift_entry(canon_sec, ci, type_idx_canon)
+		ci = ci + 1
+	}
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CANON(), canon_sec)
+}
+
+fn emit_generic_export_section(out: writer_core::ComponentWriter, plan: export_plan::ComponentExportPlan, export_type_indices: Vec<i32>) {
+	let export_sec = writer_core::ComponentWriter_new()
+	let export_count = export_plan::export_plan_count(plan)
+	writer_core::comp_emit_leb128_u(export_sec, export_count)
+	let mut ei = 0
+	while ei < export_count {
+		let name = export_plan::export_plan_name_at(plan, ei)
+		let export_type_idx = get_unchecked(export_type_indices, ei)
+		emit_generic_func_export_entry(export_sec, naming::comp_export_name(name), ei, export_type_idx)
+		ei = ei + 1
+	}
+
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), export_sec)
+}

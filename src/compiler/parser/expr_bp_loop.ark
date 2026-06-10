@@ -1,0 +1,49 @@
+use lexer::tokens
+// Arukellt Parser - Pratt expression loop.
+
+use parser::core_api_cursor
+use parser::expr_bp_suffix
+use parser::expr_infix
+use parser::expr_infix_result
+use parser::expr_prefix_dispatch
+use parser::pratt
+
+fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
+    core_api_cursor::skip_newlines(p)
+    let mut lhs = expr_prefix_dispatch::parse_prefix(p)
+    while true {
+        core_api_cursor::skip_only_newlines(p)
+        let k = core_api_cursor::peek_kind(p)
+        if pratt::is_expr_stop_token(k) {
+            break
+        }
+        if k == tokens::TK_EQ() {
+            let assignment = expr_infix::parse_assignment_infix(p, lhs, min_bp)
+            if expr_infix_result::ParserInfixResult_matched(assignment) {
+                lhs = expr_infix_result::ParserInfixResult_node(assignment)
+                continue
+            }
+            break
+        }
+        if k == tokens::TK_DOTDOT() {
+            let range = expr_infix::parse_range_infix(p, lhs, min_bp)
+            if expr_infix_result::ParserInfixResult_matched(range) {
+                lhs = expr_infix_result::ParserInfixResult_node(range)
+                continue
+            }
+            break
+        }
+        let suffix = expr_bp_suffix::parse_bp_suffix_step(p, lhs, k)
+        if expr_infix_result::ParserInfixResult_matched(suffix) {
+            lhs = expr_infix_result::ParserInfixResult_node(suffix)
+            continue
+        }
+        let binary = expr_infix::parse_binary_infix(p, lhs, k, min_bp)
+        if expr_infix_result::ParserInfixResult_matched(binary) {
+            lhs = expr_infix_result::ParserInfixResult_node(binary)
+            continue
+        }
+        break
+    }
+    lhs
+}

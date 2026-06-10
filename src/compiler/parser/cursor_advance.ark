@@ -1,0 +1,24 @@
+use lexer::tokens
+// Arukellt Parser - parser cursor advance operations.
+
+use parser::core_types
+use parser::cursor_read
+use parser::state_record
+
+fn bump(p: Parser) -> Token {
+    let t = cursor_read::cur(p)
+    state_record::parser_advance(p)
+    t
+}
+
+fn skip_newlines(p: Parser) {
+    while cursor_read::peek_kind(p) == tokens::TK_NEWLINE() || cursor_read::peek_kind(p) == tokens::TK_SEMI() {
+        state_record::parser_advance(p)
+    }
+}
+
+fn skip_only_newlines(p: Parser) {
+    while cursor_read::peek_kind(p) == tokens::TK_NEWLINE() {
+        state_record::parser_advance(p)
+    }
+}

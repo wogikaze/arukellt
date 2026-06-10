@@ -1,0 +1,36 @@
+use mir::lower::ast_node
+// Arukellt MIR lowering body - direct function calls
+
+use mir::lower::call_args
+use mir::lower::call_emit
+
+fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
+    let callee_name = ast_node::node_text(callee)
+    let is_println = call_args::mir_is_printlike_callee(clone(callee_name))
+    let stage_call_args = eq(clone(callee_name), "push")
+    let staged_arg_locals = Vec_new_i32()
+    let mut first_arg_idx = 0 - 1
+    let mut second_arg_idx = 0 - 1
+    let mut a = 1
+    while a < child_count {
+        let arg = ast_node::node_child_at(node, a)
+        let mut arg_idx = lower_expr(ctx, arg)
+        if is_println && a == 1 && arg_idx >= 0 {
+            let needs_convert = call_args::mir_print_arg_needs_string_conversion(ctx, arg, arg_idx)
+            if needs_convert {
+                arg_idx = call_args::mir_convert_print_arg_to_string(ctx, arg, arg_idx)
+            }
+        }
+        if stage_call_args && arg_idx >= 0 {
+            arg_idx = call_args::mir_stage_call_arg(ctx, staged_arg_locals, arg_idx)
+        }
+        if a == 1 {
+            first_arg_idx = arg_idx
+        }
+        if a == 2 {
+            second_arg_idx = arg_idx
+        }
+        a = a + 1
+    }
+    call_emit::mir_emit_direct_call(ctx, callee_name, child_count - 1, first_arg_idx, second_arg_idx, staged_arg_locals, stage_call_args, ast_node::node_span_start(node))
+}

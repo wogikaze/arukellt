@@ -1,0 +1,17 @@
+// Arukellt Selfhost - CoreHIR call-like expression dispatch.
+
+use corehir::body_call
+use corehir::expr_node_predicates
+
+fn corehir_dispatch_call_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    if expr_node_predicates::expr_is_call(node) {
+        return body_call::corehir_build_call_expr(table, node)
+    }
+    if expr_node_predicates::expr_is_method_call(node) {
+        return body_call::corehir_build_method_call_expr(table, node)
+    }
+    if expr_node_predicates::expr_is_try(node) {
+        return body_call::corehir_build_try_expr(table, node)
+    }
+    0 - 2
+}

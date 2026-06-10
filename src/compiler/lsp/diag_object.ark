@@ -1,0 +1,41 @@
+use analysis::diagnostic_record
+// Arukellt Selfhost - LSP diagnostic JSON object builder.
+
+use analysis
+use lsp::diag_json
+use lsp::diag_position
+
+fn phase_code(phase: i32) -> String {
+	if phase == analysis::PHASE_LEX() {
+		return String_from("ark.lex")
+	}
+	if phase == analysis::PHASE_PARSE() {
+		return String_from("ark.parse")
+	}
+	if phase == analysis::PHASE_RESOLVE() {
+		return String_from("ark.resolve")
+	}
+	if phase == analysis::PHASE_TYPECHECK() {
+		return String_from("ark.typecheck")
+	}
+	String_from("ark.unknown")
+}
+
+fn build_diagnostic_object(text: String, diag: AnalysisDiagnostic) -> String {
+	let s = diag_position::offset_to_diag_position(clone(text), diagnostic_record::analysis_diagnostic_start(diag))
+	let e = diag_position::offset_to_diag_position(clone(text), diagnostic_record::analysis_diagnostic_end(diag))
+	let mut out = String_from("{\"range\":{\"start\":{\"line\":")
+	out = concat(out, to_string(diag_position::lsp_diag_position_line(s)))
+	out = concat(out, String_from(",\"character\":"))
+	out = concat(out, to_string(diag_position::lsp_diag_position_character(s)))
+	out = concat(out, String_from("},\"end\":{\"line\":"))
+	out = concat(out, to_string(diag_position::lsp_diag_position_line(e)))
+	out = concat(out, String_from(",\"character\":"))
+	out = concat(out, to_string(diag_position::lsp_diag_position_character(e)))
+	out = concat(out, String_from("}},\"severity\":1,\"source\":\"arukellt\",\"code\":"))
+	out = concat(out, diag_json::quote_string(phase_code(diagnostic_record::analysis_diagnostic_phase(diag))))
+	out = concat(out, String_from(",\"message\":"))
+	out = concat(out, diag_json::quote_string(diagnostic_record::analysis_diagnostic_message(diag)))
+	out = concat(out, String_from("}"))
+	out
+}

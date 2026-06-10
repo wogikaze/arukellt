@@ -1,0 +1,15 @@
+// Arukellt Selfhost - CLI command identifiers.
+
+fn CMD_UNKNOWN() -> i32 { 0 }
+fn CMD_PARSE() -> i32 { 1 }
+fn CMD_COMPILE() -> i32 { 2 }
+fn CMD_CHECK() -> i32 { 3 }
+fn CMD_HELP() -> i32 { 4 }
+fn CMD_VERSION() -> i32 { 5 }
+fn CMD_RUN() -> i32 { 6 }
+fn CMD_BUILD() -> i32 { 7 }
+fn CMD_TEST() -> i32 { 8 }
+fn CMD_NOT_YET() -> i32 { 10 }
+fn CMD_IDE_ANALYZE() -> i32 { 11 }
+fn CMD_LSP() -> i32 { 12 }
+fn CMD_DAP() -> i32 { 13 }

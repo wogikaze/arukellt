@@ -1,0 +1,39 @@
+use lexer::tokens
+use parser::core_ast_factory
+use parser::core_ast_children
+use parser::core_ast_type_ann
+// Arukellt Parser - tuple type and parenthesized function type syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::kinds
+use parser::types
+
+fn parse_tuple_or_fn_type(p: Parser, t: Token) -> AstNode {
+    p.pos = p.pos + 1
+    let node = core_ast_factory::AstNode_new(kinds::NK_TYPE_TUPLE(), core_api_expect::tok_span(t))
+    let mut first = true
+    while !core_api_cursor::at(p, tokens::TK_RPAREN()) && !core_api_cursor::at_eof(p) {
+        if !first {
+            core_api_expect::expect_token(p, tokens::TK_COMMA())
+        }
+        first = false
+        core_api_cursor::skip_newlines(p)
+        let elem = types::parse_type(p)
+        core_ast_children::AstNode_push_child(node, elem)
+    }
+    core_api_expect::expect_token(p, tokens::TK_RPAREN())
+    if core_api_cursor::peek_kind(p) == tokens::TK_ARROW() {
+        return parse_tuple_fn_return_type(p, t, node)
+    }
+    node
+}
+
+fn parse_tuple_fn_return_type(p: Parser, t: Token, node: AstNode) -> AstNode {
+    p.pos = p.pos + 1
+    let fn_type = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
+    core_ast_children::AstNode_set_children(fn_type, core_ast_children::AstNode_children(node))
+    let ret = types::parse_type(p)
+    core_ast_type_ann::AstNode_push_type_ann(fn_type, ret)
+    fn_type
+}

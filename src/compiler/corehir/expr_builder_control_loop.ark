@@ -1,0 +1,25 @@
+use corehir::expr_factory
+use corehir::kinds
+// Arukellt Selfhost - CoreHIR loop expression constructors.
+
+use corehir::value_types
+
+fn corehir_expr_while(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_WHILE(), String_new(), 0, 0.0, value_types::VT_VOID(), String_from("void"), span_start, children)
+}
+
+fn corehir_expr_loop(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_LOOP(), String_new(), 0, 0.0, value_types::VT_I32(), String_new(), span_start, children)
+}
+
+fn corehir_expr_for_range(text: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_FOR_RANGE(), text, 0, 0.0, value_types::VT_VOID(), String_from("void"), span_start, children)
+}
+
+fn corehir_expr_for_values(text: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_FOR_VALUES(), text, 0, 0.0, value_types::VT_VOID(), String_from("void"), span_start, children)
+}
+
+fn corehir_expr_for_iter(text: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_FOR_ITER(), text, 0, 0.0, value_types::VT_VOID(), String_from("void"), span_start, children)
+}

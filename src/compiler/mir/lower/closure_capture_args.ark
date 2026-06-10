@@ -1,0 +1,28 @@
+// Arukellt Selfhost - closure capture argument emission.
+
+use mir::lower::closure_capture_args_pack
+use mir::lower::closure_capture_args_segment
+
+fn closure_pack_caps(caps: Vec<String>) -> String {
+    closure_capture_args_pack::closure_pack_caps(caps)
+}
+
+fn closure_emit_captured_args(ctx: LowerCtx, packed: String) {
+    let mut start = 0
+    let mut i = 0
+    let L = len(packed)
+    while i <= L {
+        let at_end = i == L
+        let mut is_comma = false
+        if !at_end {
+            if char_at(packed, i) == 44 {
+                is_comma = true
+            }
+        }
+        if at_end || is_comma {
+            closure_capture_args_segment::emit_capture_arg_segment(ctx, packed, start, i)
+            start = i + 1
+        }
+        i = i + 1
+    }
+}

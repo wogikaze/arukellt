@@ -1,0 +1,23 @@
+// Arukellt Selfhost - MIR reachability roots.
+
+use mir::reachability_names
+use mir::types
+
+fn mir_mark_roots(functions: Vec<MirFunction>, reachable: Vec<i32>, extra_roots: Vec<String>) -> i32 {
+    let mut root_count = 0
+    if reachability_names::mir_mark_reachable_name(functions, reachable, String_from("main")) {
+        root_count = root_count + 1
+    }
+    if reachability_names::mir_mark_reachable_name(functions, reachable, String_from("_start")) {
+        root_count = root_count + 1
+    }
+    let extra_count = len(extra_roots)
+    let mut ei = 0
+    while ei < extra_count {
+        if reachability_names::mir_mark_reachable_name(functions, reachable, clone(get_unchecked(extra_roots, ei))) {
+            root_count = root_count + 1
+        }
+        ei = ei + 1
+    }
+    root_count
+}

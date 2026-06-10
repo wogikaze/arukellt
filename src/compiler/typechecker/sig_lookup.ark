@@ -1,0 +1,22 @@
+use typechecker::kinds
+// Arukellt Typechecker - function signature lookup.
+
+use typechecker::contract_fn_sig
+use typechecker::contract_type_constructors
+
+fn simple_type(tag: i32) -> TypeInfo {
+    contract_type_constructors::TypeInfo_simple(tag)
+}
+
+fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
+    let count = len(fn_sigs)
+    let mut i = 0
+    while i < count {
+        let sig = get_unchecked(fn_sigs, i)
+        if eq(contract_fn_sig::FnSig_name(sig), clone(name)) {
+            return sig
+        }
+        i = i + 1
+    }
+    contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
+}

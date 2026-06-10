@@ -1,0 +1,159 @@
+use mir::inst_accessors_shape
+use mir::inst_accessors_operands
+use mir::opcodes
+// Arukellt Selfhost - local result store action policy.
+
+use wasm::constants
+
+fn store_result_action(inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> i32 {
+    if should_skip_store_precondition(inst) {
+        return constants::STORE_ACTION_SKIP()
+    }
+    if should_tee_store_early(inst, next_op, next_arg1) {
+        return constants::STORE_ACTION_TEE()
+    }
+    if should_skip_store_after_early_tee(inst, next_op, next_arg0, next_arg1, next2_op) {
+        return constants::STORE_ACTION_SKIP()
+    }
+    if should_tee_store_late(inst, next_op, next2_op) {
+        return constants::STORE_ACTION_TEE()
+    }
+    return constants::STORE_ACTION_SET()
+}
+
+fn should_skip_store_precondition(inst: MirInst) -> bool {
+    if inst_accessors_operands::MirInst_dest(inst) < 0 {
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() && inst_accessors_operands::MirInst_dest(inst) == inst_accessors_operands::MirInst_arg0(inst) {
+        return true
+    }
+    false
+}
+
+fn should_tee_store_early(inst: MirInst, next_op: i32, next_arg1: i32) -> bool {
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() && next_op == opcodes::MIR_LOCAL_SET() {
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
+        return true
+    }
+    false
+}
+
+fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if next_op == opcodes::MIR_RETURN() {
+        if next_arg0 < 0 {
+            return true
+        }
+    }
+    if opcodes::is_arith_opcode(next_op) {
+        return true
+    }
+    if is_direct_consumer_op(next_op) {
+        return true
+    }
+    if next_op == opcodes::MIR_LOCAL_GET() {
+        if is_load_followed_by_consumer(next2_op) {
+            return true
+        }
+    }
+    if is_arith_consumer_op(next_op) {
+        return true
+    }
+    if next_op == opcodes::MIR_LOCAL_SET() {
+        if next2_op == opcodes::MIR_LOCAL_SET() {
+            return false
+        }
+        if next_arg1 < 0 {
+            return true
+        }
+        if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() && inst_accessors_operands::MirInst_arg0(inst) == next_arg1 {
+            if next2_op != opcodes::MIR_LOCAL_SET() {
+                return true
+            }
+        }
+    }
+    if next_op == opcodes::MIR_DROP() {
+        return true
+    }
+    if next_op == opcodes::MIR_IF() {
+        return true
+    }
+    if next_op == opcodes::MIR_BR_IF() {
+        return true
+    }
+    false
+}
+
+fn should_tee_store_late(inst: MirInst, next_op: i32, next2_op: i32) -> bool {
+    if next_op == opcodes::MIR_LOCAL_SET() {
+        if next2_op == opcodes::MIR_LOCAL_SET() {
+            return true
+        }
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() {
+        return true
+    }
+    false
+}
+
+fn is_direct_consumer_op(op: i32) -> bool {
+    if op == opcodes::MIR_NEG() {
+        return true
+    }
+    if op == opcodes::MIR_NOT() {
+        return true
+    }
+    if op == opcodes::MIR_EXTEND_I32_TO_I64() {
+        return true
+    }
+    if op == opcodes::MIR_TRUNC_I64_TO_I32() {
+        return true
+    }
+    if op == opcodes::MIR_EQZ() {
+        return true
+    }
+    if op == opcodes::MIR_CALL() {
+        return true
+    }
+    if op == opcodes::MIR_STRUCT_GET() {
+        return true
+    }
+    return false
+}
+
+fn is_arith_consumer_op(op: i32) -> bool {
+    if op == opcodes::MIR_CONST_I32() {
+        return true
+    }
+    if op == opcodes::MIR_CONST_I64() {
+        return true
+    }
+    if op == opcodes::MIR_CONST_F64() {
+        return true
+    }
+    if op == opcodes::MIR_CONST_STRING() {
+        return true
+    }
+    return false
+}
+
+fn is_load_followed_by_consumer(op: i32) -> bool {
+    if op == opcodes::MIR_LOCAL_GET() {
+        return true
+    }
+    if is_arith_consumer_op(op) {
+        return true
+    }
+    if op == opcodes::MIR_CALL() {
+        return true
+    }
+    if opcodes::is_arith_opcode(op) {
+        return true
+    }
+    if is_direct_consumer_op(op) {
+        return true
+    }
+    return false
+}

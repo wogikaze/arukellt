@@ -1,0 +1,20 @@
+// Arukellt Lexer - diagnostic error facade.
+
+use lexer::error_classify
+use lexer::error_codes
+
+fn LEX_E_UNTERMINATED_STRING() -> i32 { error_codes::LEX_E_UNTERMINATED_STRING() }
+
+fn LEX_E_UNTERMINATED_CHAR() -> i32 { error_codes::LEX_E_UNTERMINATED_CHAR() }
+
+fn LEX_E_UNTERMINATED_FSTRING() -> i32 { error_codes::LEX_E_UNTERMINATED_FSTRING() }
+
+fn LEX_E_UNTERMINATED_ESCAPE() -> i32 { error_codes::LEX_E_UNTERMINATED_ESCAPE() }
+
+fn LEX_E_INVALID_NUMBER() -> i32 { error_codes::LEX_E_INVALID_NUMBER() }
+
+fn LEX_E_UNKNOWN_CHAR() -> i32 { error_codes::LEX_E_UNKNOWN_CHAR() }
+
+fn classify_lex_error_text(text: String) -> i32 {
+    error_classify::classify_lex_error_text(text)
+}

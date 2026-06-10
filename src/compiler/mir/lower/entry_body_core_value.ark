@@ -1,0 +1,11 @@
+// Arukellt Selfhost - MIR entry body CoreHIR value lowering.
+
+use mir::lower::core_body
+use mir::lower::entry_core_body
+
+fn mir_lower_entry_body_core_value(ctx: LowerCtx, body: MirLowerEntryCoreBody) -> i32 {
+    if !entry_core_body::mir_entry_core_body_is_supported(body) {
+        return 0 - 2
+    }
+    core_body::lower_core_expr(ctx, entry_core_body::mir_entry_core_body_exprs(body), entry_core_body::mir_entry_core_body_root(body))
+}

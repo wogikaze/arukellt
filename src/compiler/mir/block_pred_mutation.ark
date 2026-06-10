@@ -1,0 +1,19 @@
+// Arukellt Selfhost - MIR block predecessor mutation API.
+
+use mir::types_block
+
+fn MirBlock_reset_preds(block: MirBlock) {
+    block.preds = Vec_new_i32()
+}
+
+fn MirBlock_push_pred_unique(block: MirBlock, pred_id: i32) {
+    let count = len(block.preds)
+    let mut i = 0
+    while i < count {
+        if get_unchecked(block.preds, i) == pred_id {
+            return
+        }
+        i = i + 1
+    }
+    push(block.preds, pred_id)
+}

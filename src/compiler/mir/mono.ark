@@ -1,0 +1,32 @@
+// Arukellt Selfhost - monomorphization lookup helpers for MIR lowering
+
+use mir::mono_index_build
+use mir::mono_index_lookup
+use mir::mono_index_types
+use mir::mono_names
+use mir::mono_scan
+use mir::type_contracts
+
+fn mono_safe_name(name: String) -> String {
+    mono_names::mono_safe_name(name)
+}
+
+fn mono_instance_count_for(instances: Vec<MonoInstance>, fn_name: String) -> i32 {
+    mono_scan::mono_instance_count_for(instances, fn_name)
+}
+
+fn mono_instance_mangled_at(instances: Vec<MonoInstance>, fn_name: String, ordinal: i32) -> String {
+    mono_scan::mono_instance_mangled_at(instances, fn_name, ordinal)
+}
+
+fn build_mono_index(instances: Vec<MonoInstance>) -> MonoIndex {
+    mono_index_build::build_mono_index(instances)
+}
+
+fn mono_index_count(idx: MonoIndex, fn_name: String) -> i32 {
+    mono_index_lookup::mono_index_count(idx, fn_name)
+}
+
+fn mono_index_mangled_at(idx: MonoIndex, fn_name: String, ordinal: i32) -> String {
+    mono_index_lookup::mono_index_mangled_at(idx, fn_name, ordinal)
+}

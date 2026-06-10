@@ -1,0 +1,90 @@
+// Arukellt Selfhost - CoreHIR method info helpers.
+
+struct CoreHirMethodInfo {
+    impl_decl_index: i32,
+    method_index: i32,
+    owner_name: String,
+    name: String,
+    mangled_name: String,
+    param_count: i32,
+    params: Vec<CoreHirParam>,
+    body_index: i32,
+    return_vt: i32,
+    return_type_name: String,
+}
+
+fn CoreHirMethodInfo_new(impl_decl_index: i32, method_index: i32, owner_name: String, name: String, mangled_name: String, param_count: i32, params: Vec<CoreHirParam>, body_index: i32, return_vt: i32, return_type_name: String) -> CoreHirMethodInfo {
+    CoreHirMethodInfo { impl_decl_index: impl_decl_index, method_index: method_index, owner_name: owner_name, name: name, mangled_name: mangled_name, param_count: param_count, params: params, body_index: body_index, return_vt: return_vt, return_type_name: return_type_name }
+}
+
+fn method_info_index_for_method(method_infos: Vec<CoreHirMethodInfo>, impl_decl_index: i32, method_index: i32) -> i32 {
+    let count = len(method_infos)
+    let mut i = 0
+    while i < count {
+        let info = get_unchecked(method_infos, i)
+        if info.impl_decl_index == impl_decl_index && info.method_index == method_index {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn method_info_mangled_name_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: String) -> String {
+    if info_index >= 0 && info_index < len(method_infos) {
+        let info = get_unchecked(method_infos, info_index)
+        return clone(info.mangled_name)
+    }
+    fallback
+}
+
+fn method_info_body_index_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: i32) -> i32 {
+    if info_index >= 0 && info_index < len(method_infos) {
+        let info = get_unchecked(method_infos, info_index)
+        return info.body_index
+    }
+    fallback
+}
+
+fn method_info_param_count_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: i32) -> i32 {
+    if info_index >= 0 && info_index < len(method_infos) {
+        let info = get_unchecked(method_infos, info_index)
+        return info.param_count
+    }
+    fallback
+}
+
+fn method_info_param_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, param_index: i32) -> CoreHirParam {
+    let info = get_unchecked(method_infos, info_index)
+    get_unchecked(info.params, param_index)
+}
+
+fn method_info_count_for_impl(method_infos: Vec<CoreHirMethodInfo>, impl_decl_index: i32) -> i32 {
+    let count = len(method_infos)
+    let mut total = 0
+    let mut i = 0
+    while i < count {
+        let info = get_unchecked(method_infos, i)
+        if info.impl_decl_index == impl_decl_index {
+            total = total + 1
+        }
+        i = i + 1
+    }
+    total
+}
+
+fn method_info_return_vt_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: i32) -> i32 {
+    if info_index >= 0 && info_index < len(method_infos) {
+        let info = get_unchecked(method_infos, info_index)
+        return info.return_vt
+    }
+    fallback
+}
+
+fn method_info_return_type_name_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: String) -> String {
+    if info_index >= 0 && info_index < len(method_infos) {
+        let info = get_unchecked(method_infos, info_index)
+        return clone(info.return_type_name)
+    }
+    fallback
+}

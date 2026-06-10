@@ -1,0 +1,12 @@
+// Arukellt Selfhost - MIR function block query API.
+
+use mir::function_core_record
+use mir::types
+
+fn MirFunction_block_count(f: MirFunction) -> i32 {
+    len(f.blocks)
+}
+
+fn MirFunction_block_at(f: MirFunction, idx: i32) -> MirBlock {
+    get_unchecked(f.blocks, idx)
+}

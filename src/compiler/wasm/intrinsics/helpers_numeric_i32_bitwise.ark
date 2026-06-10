@@ -1,0 +1,7 @@
+// Arukellt Selfhost - Wasm i32 bitwise helper recipes.
+
+use wasm::opcodes
+use wasm::writer_core
+
+fn emit_i32_and(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_AND()) }
+fn emit_i32_or(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_OR()) }

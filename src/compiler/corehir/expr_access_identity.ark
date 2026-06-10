@@ -1,0 +1,15 @@
+// Arukellt Selfhost - CoreHIR expression identity accessors.
+
+use corehir::expr_raw
+
+fn expr_kind(expr: CoreHirExpr) -> i32 {
+    expr_raw::corehir_expr_kind(expr)
+}
+
+fn expr_text(expr: CoreHirExpr) -> String {
+    expr_raw::corehir_expr_text(expr)
+}
+
+fn expr_span_start(expr: CoreHirExpr) -> i32 {
+    expr_raw::corehir_expr_span_start(expr)
+}

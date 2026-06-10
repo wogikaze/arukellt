@@ -1,0 +1,116 @@
+use parser::core_ast_children
+use parser::core_ast_factory
+use parser::core_ast_text_fields
+use parser::core_ast_type_ann
+// Arukellt Parser - type syntax parsing facade
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::kinds
+use parser::token_state
+use parser::type_token_expect
+use parser::type_token_predicates
+
+fn parse_type(p: Parser) -> AstNode {
+    core_api_cursor::skip_newlines(p)
+    let t = core_api_cursor::cur(p)
+    let kind = token_state::Token_kind(t)
+    if type_token_predicates::is_named_start(kind) {
+        let named = parse_named_type(p, t)
+        if type_token_predicates::is_generic_start(core_api_cursor::peek_kind(p)) {
+            return parse_generic_type_args(p, t, named)
+        }
+        return named
+    }
+    if type_token_predicates::is_tuple_start(kind) {
+        return parse_tuple_or_fn_type(p, t)
+    }
+    if type_token_predicates::is_fn_start(kind) {
+        return parse_fn_type(p, t)
+    }
+    core_api_expect::error(p, concat(String_from("expected type, got "), to_string(kind)))
+    core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), String_from("_error"), core_api_expect::tok_span(t))
+}
+
+fn parse_named_type(p: Parser, t: Token) -> AstNode {
+    p.pos = p.pos + 1
+    let mut type_name = token_state::Token_text(t)
+    while type_token_predicates::is_path_sep(core_api_cursor::peek_kind(p)) {
+        p.pos = p.pos + 1
+        let seg = type_token_expect::expect_ident(p)
+        type_name = concat(type_name, concat(String_from("::"), token_state::Token_text(seg)))
+    }
+    core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), clone(type_name), core_api_expect::tok_span(t))
+}
+
+fn parse_generic_type_args(p: Parser, t: Token, base: AstNode) -> AstNode {
+    p.pos = p.pos + 1
+    let node = core_ast_factory::AstNode_new(kinds::NK_TYPE_GENERIC(), core_api_expect::tok_span(t))
+    // Type resolution reads the base name from the generic node's text.
+    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(t))
+    core_ast_children::AstNode_push_child(node, base)
+    let mut first = true
+    while !type_token_predicates::is_generic_end(core_api_cursor::peek_kind(p)) && !core_api_cursor::at_eof(p) {
+        if !first {
+            type_token_expect::expect_comma(p)
+        }
+        first = false
+        core_api_cursor::skip_newlines(p)
+        let arg = parse_type(p)
+        core_ast_children::AstNode_push_child(node, arg)
+    }
+    core_api_expect::consume_closing_gt(p)
+    node
+}
+
+fn parse_tuple_or_fn_type(p: Parser, t: Token) -> AstNode {
+    p.pos = p.pos + 1
+    let node = core_ast_factory::AstNode_new(kinds::NK_TYPE_TUPLE(), core_api_expect::tok_span(t))
+    let mut first = true
+    while !type_token_predicates::is_tuple_end(core_api_cursor::peek_kind(p)) && !core_api_cursor::at_eof(p) {
+        if !first {
+            type_token_expect::expect_comma(p)
+        }
+        first = false
+        core_api_cursor::skip_newlines(p)
+        let elem = parse_type(p)
+        core_ast_children::AstNode_push_child(node, elem)
+    }
+    type_token_expect::expect_rparen(p)
+    if type_token_predicates::is_arrow(core_api_cursor::peek_kind(p)) {
+        return parse_tuple_fn_return_type(p, t, node)
+    }
+    node
+}
+
+fn parse_tuple_fn_return_type(p: Parser, t: Token, node: AstNode) -> AstNode {
+    p.pos = p.pos + 1
+    let fn_type = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
+    core_ast_children::AstNode_set_children(fn_type, core_ast_children::AstNode_children(node))
+    let ret = parse_type(p)
+    core_ast_type_ann::AstNode_push_type_ann(fn_type, ret)
+    fn_type
+}
+
+fn parse_fn_type(p: Parser, t: Token) -> AstNode {
+    p.pos = p.pos + 1
+    let fn_node = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
+    type_token_expect::expect_lparen(p)
+    let mut first = true
+    while !type_token_predicates::is_tuple_end(core_api_cursor::peek_kind(p)) && !core_api_cursor::at_eof(p) {
+        if !first {
+            type_token_expect::expect_comma(p)
+        }
+        first = false
+        core_api_cursor::skip_newlines(p)
+        let arg = parse_type(p)
+        core_ast_children::AstNode_push_child(fn_node, arg)
+    }
+    type_token_expect::expect_rparen(p)
+    if type_token_predicates::is_arrow(core_api_cursor::peek_kind(p)) {
+        p.pos = p.pos + 1
+        let ret = parse_type(p)
+        core_ast_type_ann::AstNode_push_type_ann(fn_node, ret)
+    }
+    fn_node
+}

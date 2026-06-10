@@ -1,0 +1,19 @@
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - where-backed multi-clause desugaring.
+
+use parser::multiclause_where_bindings
+use parser::multiclause_where_match
+use parser::multiclause_where_param
+
+fn desugar_multiclause_with_where(result: AstNode, first: AstNode, clauses: Vec<AstNode>, where_bindings: Vec<AstNode>, fn_span: Span) -> AstNode {
+    let param_name = multiclause_where_param::where_multiclause_param_name(first)
+    let param = AstNode_leaf(kinds::NK_IDENT(), clone(param_name), fn_span)
+    core_ast_children::AstNode_push_child(result, param)
+    let block_node = AstNode_new(kinds::NK_BLOCK(), fn_span)
+    multiclause_where_bindings::append_where_bindings(block_node, where_bindings)
+    multiclause_where_match::append_where_match_stmt(block_node, clauses, param_name, fn_span)
+    core_ast_children::AstNode_push_child(result, block_node)
+    result
+}

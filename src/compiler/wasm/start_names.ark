@@ -1,0 +1,5 @@
+// Arukellt Selfhost - Wasm start function name predicates.
+
+fn is_wasm_start_function_name(name: String) -> bool {
+    eq(clone(name), "main") || eq(name, "_start")
+}

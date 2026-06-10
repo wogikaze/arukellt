@@ -1,0 +1,24 @@
+// Arukellt Selfhost - MIR loop condition and local update helpers.
+
+use mir::lower::loop_conditions_break
+use mir::lower::loop_conditions_locals
+
+fn mir_emit_eqz_break_if(ctx: LowerCtx, cond_idx: i32) {
+    loop_conditions_break::mir_emit_eqz_break_if(ctx, cond_idx)
+}
+
+fn mir_emit_gteq_break_if(ctx: LowerCtx, left_local: i32, right_local: i32) {
+    loop_conditions_break::mir_emit_gteq_break_if(ctx, left_local, right_local)
+}
+
+fn mir_emit_increment_i32(ctx: LowerCtx, local_idx: i32) {
+    loop_conditions_locals::mir_emit_increment_i32(ctx, local_idx)
+}
+
+fn mir_save_stack_to_local(ctx: LowerCtx, local_idx: i32) {
+    loop_conditions_locals::mir_save_stack_to_local(ctx, local_idx)
+}
+
+fn mir_emit_zero_local(ctx: LowerCtx) -> i32 {
+    loop_conditions_locals::mir_emit_zero_local(ctx)
+}

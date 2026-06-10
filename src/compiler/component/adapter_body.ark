@@ -1,0 +1,43 @@
+// Arukellt Selfhost - Component adapter function body helpers
+
+use component::writer_core
+
+fn comp_emit_func_body(code_sec: writer_core::ComponentWriter, body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_leb128_u(code_sec, writer_core::comp_writer_size(body))
+	writer_core::comp_emit_bytes(code_sec, writer_core::comp_writer_bytes(body))
+}
+
+fn comp_emit_single_param_output_user_call(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x7f)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x10)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x21)
+	writer_core::comp_emit_leb128_u(body, 1)
+}
+
+fn comp_emit_i32_i32_pair_input_call(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65004)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x10)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x0b)
+}

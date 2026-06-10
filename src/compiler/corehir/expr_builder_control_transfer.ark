@@ -1,0 +1,17 @@
+use corehir::expr_factory
+use corehir::kinds
+// Arukellt Selfhost - CoreHIR control-transfer expression constructors.
+
+use corehir::value_types
+
+fn corehir_expr_break(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_BREAK(), String_new(), 0, 0.0, value_types::VT_VOID(), String_from("void"), span_start, children)
+}
+
+fn corehir_expr_continue(span_start: i32) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_CONTINUE(), String_new(), 0, 0.0, value_types::VT_VOID(), String_from("void"), span_start, Vec_new_i32())
+}
+
+fn corehir_expr_return(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_RETURN(), String_new(), 0, 0.0, value_types::VT_VOID(), String_from("void"), span_start, children)
+}

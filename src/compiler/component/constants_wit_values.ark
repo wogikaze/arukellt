@@ -1,0 +1,29 @@
+// Arukellt Selfhost - WIT value and type tag encodings.
+
+fn WIT_VAL_BOOL() -> i32 { 0x7f }
+fn WIT_VAL_CHAR() -> i32 { 0x74 }
+fn WIT_VAL_STRING() -> i32 { 0x73 }
+
+fn WIT_VAL_S8() -> i32 { 0x7e }
+fn WIT_VAL_S16() -> i32 { 0x7c }
+fn WIT_VAL_S32() -> i32 { 0x7a }
+fn WIT_VAL_S64() -> i32 { 0x78 }
+
+fn WIT_VAL_U8() -> i32 { 0x7d }
+fn WIT_VAL_U16() -> i32 { 0x7b }
+fn WIT_VAL_U32() -> i32 { 0x79 }
+fn WIT_VAL_U64() -> i32 { 0x77 }
+
+fn WIT_VAL_FLOAT32() -> i32 { 0x76 }
+fn WIT_VAL_FLOAT64() -> i32 { 0x75 }
+
+fn WIT_TAG_LIST() -> i32 { 0x70 }
+fn WIT_TAG_OPTION() -> i32 { 0x6b }
+fn WIT_TAG_RESULT() -> i32 { 0x6a }
+fn WIT_TAG_RECORD() -> i32 { 0x72 }
+fn WIT_TAG_VARIANT() -> i32 { 0x71 }
+fn WIT_TAG_FLAGS() -> i32 { 0x6e }
+fn WIT_TAG_TUPLE() -> i32 { 0x6f }
+fn WIT_TAG_ENUM() -> i32 { 0x6d }
+fn WIT_TAG_OWN() -> i32 { 0x69 }
+fn WIT_TAG_BORROW() -> i32 { 0x68 }

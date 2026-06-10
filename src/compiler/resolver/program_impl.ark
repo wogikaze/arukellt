@@ -1,0 +1,32 @@
+// Arukellt Resolver - impl method resolution.
+
+use resolver::scope_stack_lifecycle
+use resolver::ast_expr_predicates
+use resolver::ast_access
+use resolver::scope_define
+use resolver::kinds
+use resolver::walk
+
+fn resolve_impl(ctx: ResolveCtx, node: AstNode) {
+    let mcount = ast_access::node_child_count(node)
+    let mut mi = 0
+    while mi < mcount {
+        let method = ast_access::node_child_at(node, mi)
+        scope_stack_lifecycle::push_scope(ctx)
+        let m_child_count = ast_access::node_child_count(method)
+        let mut pi = 0
+        while pi < m_child_count - 1 {
+            let param = ast_access::node_child_at(method, pi)
+            if ast_expr_predicates::node_is_ident(param) {
+                scope_define::define(ctx, ast_access::node_text(param), commands::SYM_PARAM())
+            }
+            pi = pi + 1
+        }
+        if m_child_count > 0 {
+            let m_body = ast_access::node_child_at(method, m_child_count - 1)
+            walk::resolve_node(ctx, m_body)
+        }
+        scope_stack_lifecycle::pop_scope(ctx)
+        mi = mi + 1
+    }
+}

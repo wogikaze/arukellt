@@ -1,0 +1,42 @@
+// Arukellt Parser - token stream to parse result entrypoint.
+
+use diagnostics::record
+use parser::core_api_token
+use parser::core_types
+use parser::decl
+use parser::state_record
+
+pub struct ParseResult {
+    decls: Vec<AstNode>,
+    errors: Vec<Diagnostic>,
+}
+
+fn ParseResult_new(decls: Vec<AstNode>, errors: Vec<Diagnostic>) -> ParseResult {
+    ParseResult { decls: decls, errors: errors }
+}
+
+fn parse_program_impl(tokens: Vec<Token>) -> ParseResult {
+    let p = core_api_token::Parser_new(tokens)
+    let decls = decl::parse_module(p)
+    ParseResult_new(decls, state_record::parser_errors(p))
+}
+
+fn ParseResult_decls(result: ParseResult) -> Vec<AstNode> {
+    result.decls
+}
+
+fn ParseResult_decl_count(result: ParseResult) -> i32 {
+    len(result.decls)
+}
+
+fn ParseResult_error_count(result: ParseResult) -> i32 {
+    len(result.errors)
+}
+
+fn ParseResult_error_at(result: ParseResult, index: i32) -> Diagnostic {
+    get_unchecked(result.errors, index)
+}
+
+fn ParseResult_errors(result: ParseResult) -> Vec<Diagnostic> {
+    result.errors
+}

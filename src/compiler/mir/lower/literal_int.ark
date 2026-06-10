@@ -1,0 +1,39 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering integer literals.
+
+use mir::decimal
+use mir::inst_const_i32
+use mir::inst_const_i64
+use mir::lower::literal_int_suffix
+use mir::value_types
+
+fn lower_int_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+    let raw_text = ast_node::node_text(node)
+    if mir_int_literal_needs_i64(node) {
+        let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
+        ctx_api_emit::ctx_emit(ctx, inst_const_i64::MirInst_const_i64_text(raw_text, dest))
+        return dest
+    }
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(ast_node::node_int_val(node), dest))
+    dest
+}
+
+fn mir_int_literal_needs_i64(node: AstNode) -> bool {
+    let raw_text = ast_node::node_text(node)
+    let raw_len = len(raw_text)
+    let is_hex_or_bin = raw_len >= 2 && char_at(raw_text, 0) == 48 && char_at(raw_text, 1) == 120 || char_at(raw_text, 1) == 88 || char_at(raw_text, 1) == 98 || char_at(raw_text, 1) == 66
+    let has_small_suffix = literal_int_suffix::mir_int_literal_has_small_suffix(raw_text, raw_len)
+    if literal_int_suffix::mir_int_literal_has_64_suffix(ast_node::node_text(node), raw_len) {
+        return true
+    }
+    if !is_hex_or_bin && !has_small_suffix {
+        let as_i64 = decimal::parse_decimal_as_i64(ast_node::node_text(node))
+        let as_i32_ext: i64 = ast_node::node_int_val(node)
+        return as_i64 != as_i32_ext
+    }
+    false
+}

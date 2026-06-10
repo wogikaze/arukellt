@@ -1,0 +1,47 @@
+// Arukellt Selfhost - CoreHIR return annotation index type names.
+
+use corehir::decl_ann_children
+use corehir::decl_ann_name
+use corehir::return_ann_shape
+
+fn return_index_type_name(node: AstNode) -> String {
+    let child_count = return_ann_shape::return_ann_child_count(node)
+    if child_count <= 0 {
+        return String_from("")
+    }
+    let ret = return_ann_shape::return_ann_child(node)
+    let name = decl_ann_name::decl_ann_name(ret)
+    if eq(clone(name), String_from("f64")) {
+        return String_from("f64")
+    }
+    if eq(clone(name), String_from("i64")) || eq(clone(name), String_from("u64")) {
+        return clone(name)
+    }
+    if eq(clone(name), String_from("void")) || eq(clone(name), String_from("()")) {
+        return String_from("")
+    }
+    if eq(clone(name), String_from("i32")) || eq(clone(name), String_from("u32")) || eq(clone(name), String_from("u8")) || eq(clone(name), String_from("u16")) || eq(clone(name), String_from("i16")) || eq(clone(name), String_from("i8")) {
+        return String_from("i32")
+    }
+    if eq(clone(name), String_from("bool")) {
+        return String_from("bool")
+    }
+    if eq(clone(name), String_from("String")) || eq(clone(name), String_from("str")) {
+        return String_from("String")
+    }
+    if decl_ann_name::decl_ann_is_generic(ret) {
+        if eq(clone(name), String_from("Vec")) && decl_ann_children::decl_ann_child_count(ret) >= 2 {
+            let elem = decl_ann_children::decl_ann_child_at(ret, 1)
+            return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+        }
+        if eq(clone(name), String_from("Option")) && decl_ann_children::decl_ann_child_count(ret) >= 2 {
+            let elem_opt = decl_ann_children::decl_ann_child_at(ret, 1)
+            return concat(String_from("option:"), decl_ann_name::decl_ann_name(elem_opt))
+        }
+        return clone(name)
+    }
+    if len(name) > 1 {
+        return name
+    }
+    String_from("")
+}

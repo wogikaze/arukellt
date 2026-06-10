@@ -1,0 +1,18 @@
+use corehir::expr_builder_control_block
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR branch expression builder.
+
+use corehir::body_control_children
+use corehir::expr_node_access
+
+fn corehir_build_if_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let child_count = expr_node_access::expr_child_count(node)
+    if child_count < 2 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let children = Vec_new_i32()
+    if body_control_children::corehir_build_node_children(table, node, children) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_control_block::corehir_expr_if(expr_node_access::expr_span_start(node), children))
+}

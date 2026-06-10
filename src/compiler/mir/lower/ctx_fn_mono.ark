@@ -1,0 +1,56 @@
+// Arukellt MIR lowering context - monomorphized call lookup.
+
+use mir::lower::ctx_fn_exists
+use mir::lower::ctx_fn_index
+use mir::lower::ctx_mono_rewrites
+
+fn ctx_replace_fn_index(ctx: LowerCtx, fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>) {
+    ctx_fn_index::ctx_fn_index_replace(ctx, fn_names, fn_return_vts, fn_return_type_names)
+}
+
+fn ctx_register_fn_signature(ctx: LowerCtx, name: String, return_vt: i32, return_type_name: String) {
+    ctx_fn_index::ctx_fn_index_push(ctx, name, return_vt, return_type_name)
+}
+
+fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32) -> String {
+    let count = ctx_mono_rewrites::ctx_mono_span_rewrite_count(ctx)
+    let mut i = 0
+    while i < count {
+        if ctx_mono_rewrites::ctx_mono_span_rewrite_start_at(ctx, i) == span_start {
+            return ctx_mono_rewrites::ctx_mono_rewrite_target_at(ctx, i)
+        }
+        i = i + 1
+    }
+    String_from("")
+}
+
+fn ctx_register_mono_span_rewrite(ctx: LowerCtx, span_start: i32, target: String) {
+    if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) {
+        return
+    }
+    ctx_mono_rewrites::ctx_mono_push_span_rewrite(ctx, span_start, target)
+}
+
+fn ctx_register_mono_name_rewrite(ctx: LowerCtx, source: String, target: String) {
+    if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) {
+        return
+    }
+    ctx_mono_rewrites::ctx_mono_push_name_rewrite(ctx, source, target)
+}
+
+fn ctx_mono_source_rewrite_count(ctx: LowerCtx) -> i32 {
+    ctx_mono_rewrites::ctx_mono_name_rewrite_count(ctx)
+}
+
+fn ctx_resolve_unused_mono_by_name(ctx: LowerCtx, source: String) -> String {
+    let count = ctx_mono_rewrites::ctx_mono_name_rewrite_count(ctx)
+    let mut i = 0
+    while i < count {
+        if ctx_mono_rewrites::ctx_mono_name_rewrite_used_at(ctx, i) == 0 && eq(ctx_mono_rewrites::ctx_mono_name_rewrite_source_at(ctx, i), clone(source)) {
+            ctx_mono_rewrites::ctx_mono_mark_name_rewrite_used(ctx, i)
+            return ctx_mono_rewrites::ctx_mono_rewrite_target_at(ctx, i)
+        }
+        i = i + 1
+    }
+    String_from("")
+}

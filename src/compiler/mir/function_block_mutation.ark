@@ -1,0 +1,16 @@
+// Arukellt Selfhost - MIR function block mutation API.
+
+use mir::function_core_record
+use mir::types
+
+fn MirFunction_next_block(f: MirFunction) -> i32 {
+    f.next_block
+}
+
+fn MirFunction_increment_next_block(f: MirFunction) {
+    f.next_block = f.next_block + 1
+}
+
+fn MirFunction_push_block(f: MirFunction, block: MirBlock) {
+    push(f.blocks, block)
+}

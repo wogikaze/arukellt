@@ -1,0 +1,31 @@
+use lexer::tokens
+// Arukellt Parser - struct literal lookahead for identifier prefixes.
+
+use parser::core_api_cursor
+use parser::token_state
+
+pub fn next_prefix_is_struct_lit(p: Parser) -> bool {
+    if core_api_cursor::peek_kind(p) != tokens::TK_LBRACE() {
+        return false
+    }
+    let save = p.pos
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    let maybe_field = core_api_cursor::cur(p)
+    let mut is_struct_lit = false
+    let maybe_kind = token_state::Token_kind(maybe_field)
+    if maybe_kind == tokens::TK_IDENT() {
+        let save2 = p.pos
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::peek_kind(p) == tokens::TK_COLON() {
+            is_struct_lit = true
+        }
+        p.pos = save2
+    }
+    if maybe_kind == tokens::TK_RBRACE() {
+        is_struct_lit = true
+    }
+    p.pos = save
+    is_struct_lit
+}

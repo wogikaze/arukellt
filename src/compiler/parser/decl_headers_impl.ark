@@ -1,0 +1,28 @@
+// Arukellt Parser - impl declaration header.
+
+use lexer::tokens
+use parser::core_ast_text_fields
+use parser::core_ast_factory
+use parser::core_ast_type_ann
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::kinds
+use parser::types
+
+fn parse_impl_header(p: Parser) -> AstNode {
+    let t = core_api_expect::expect_token(p, tokens::TK_IMPL())
+    let node = core_ast_factory::AstNode_new(kinds::NK_IMPL_DECL(), core_api_expect::tok_span(t))
+    let impl_head = types::parse_type(p)
+    core_ast_text_fields::AstNode_set_text(node, core_ast_text_fields::AstNode_text(impl_head))
+    core_ast_type_ann::AstNode_push_type_ann(node, impl_head)
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) == tokens::TK_FOR() {
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        let target_ty = types::parse_type(p)
+        core_ast_type_ann::AstNode_push_type_ann(node, target_ty)
+    }
+    core_api_cursor::skip_newlines(p)
+    core_api_expect::expect_token(p, tokens::TK_LBRACE())
+    node
+}

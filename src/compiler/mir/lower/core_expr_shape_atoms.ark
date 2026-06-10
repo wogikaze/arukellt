@@ -1,0 +1,32 @@
+use corehir::kinds
+// Arukellt Selfhost - MIR lowering CoreHIR atom shape predicates.
+
+use corehir::expr_predicates
+
+fn mir_core_expr_is_ident(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_IDENT())
+}
+
+fn mir_core_expr_is_path(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_PATH())
+}
+
+fn mir_core_expr_is_int(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_INT())
+}
+
+fn mir_core_expr_is_float(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_FLOAT())
+}
+
+fn mir_core_expr_is_string(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_STRING())
+}
+
+fn mir_core_expr_is_bool(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_BOOL())
+}
+
+fn mir_core_expr_is_char(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_CHAR())
+}

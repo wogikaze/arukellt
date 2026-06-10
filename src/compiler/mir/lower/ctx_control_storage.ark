@@ -1,0 +1,39 @@
+// Arukellt MIR lowering context - control-flow scope storage.
+
+fn ctx_control_nesting_depth(ctx: LowerCtx) -> i32 {
+    ctx.nesting_depth
+}
+
+fn ctx_control_inc_nesting_depth(ctx: LowerCtx) -> i32 {
+    ctx.nesting_depth = ctx.nesting_depth + 1
+    ctx.nesting_depth
+}
+
+fn ctx_control_dec_nesting_depth(ctx: LowerCtx) -> i32 {
+    ctx.nesting_depth = ctx.nesting_depth - 1
+    ctx.nesting_depth
+}
+
+fn ctx_control_loop_break_depth(ctx: LowerCtx) -> i32 {
+    ctx.loop_break_depth
+}
+
+fn ctx_control_loop_continue_depth(ctx: LowerCtx) -> i32 {
+    ctx.loop_continue_depth
+}
+
+fn ctx_control_loop_break_local(ctx: LowerCtx) -> i32 {
+    ctx.loop_break_local
+}
+
+fn ctx_control_set_loop_break_depth(ctx: LowerCtx, depth: i32) {
+    ctx.loop_break_depth = depth
+}
+
+fn ctx_control_set_loop_continue_depth(ctx: LowerCtx, depth: i32) {
+    ctx.loop_continue_depth = depth
+}
+
+fn ctx_control_set_loop_break_local(ctx: LowerCtx, local_idx: i32) {
+    ctx.loop_break_local = local_idx
+}

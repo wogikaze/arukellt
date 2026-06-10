@@ -1,0 +1,25 @@
+use mir::lower::ast_node
+// Arukellt MIR lowering body - if expressions.
+
+use mir::lower::if
+
+fn lower_if_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count >= 2 {
+        let cond = ast_node::node_child_at(node, 0)
+        let cond_idx = lower_expr(ctx, cond)
+        let result = if::mir_begin_if_expr(ctx)
+        let then_body = ast_node::node_child_at(node, 1)
+        let then_result = lower_expr(ctx, then_body)
+        if::mir_store_if_branch_result(ctx, result, then_result)
+        let mut else_result = 0 - 1
+        if child_count >= 3 {
+            if::mir_emit_if_else(ctx)
+            let else_body = ast_node::node_child_at(node, 2)
+            else_result = lower_expr(ctx, else_body)
+            if::mir_store_if_branch_result(ctx, result, else_result)
+        }
+        return if::mir_end_if_expr(ctx, result, then_result, else_result)
+    }
+    0 - 1
+}

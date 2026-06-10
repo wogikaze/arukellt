@@ -1,0 +1,54 @@
+use parser::ast_kind_fields
+use parser::core_ast_text_fields
+use parser::core_ast_op_fields
+use parser::kinds
+use parser::core_ast_children
+// Arukellt Parser self-checks for issue 499 block body closures.
+
+use parser::self_check_issue499_parse
+
+fn issue499_parser_block_body_lexer_integration_self_check() -> String {
+    let src = String_from("fn main() { let f = |x| { x + 1 } }")
+    let parse = self_check_issue499_parse::parse_issue499_source(src)
+    let decls = self_check_issue499_parse::issue499_parse_decls(parse)
+    let error_count = self_check_issue499_parse::issue499_parse_error_count(parse)
+    if error_count != 0 {
+        return concat(String_from("issue499 block body fail: parse errors="), to_string(error_count))
+    }
+    if len(decls) != 1 {
+        return concat(String_from("issue499 block body fail: decl count="), to_string(len(decls)))
+    }
+    let fn_decl = get_unchecked(decls, 0)
+    if ast_kind_fields::AstNode_kind(fn_decl) != kinds::NK_FN_DECL() {
+        return String_from("issue499 block body fail: expected fn decl")
+    }
+    let body = core_ast_children::AstNode_child_at(fn_decl, 0)
+    if ast_kind_fields::AstNode_kind(body) != kinds::NK_BLOCK() || core_ast_children::AstNode_child_count(body) != 1 {
+        return String_from("issue499 block body fail: fn body")
+    }
+    let let_stmt = core_ast_children::AstNode_child_at(body, 0)
+    if ast_kind_fields::AstNode_kind(let_stmt) != kinds::NK_LET() || core_ast_children::AstNode_child_count(let_stmt) != 1 {
+        return String_from("issue499 block body fail: let stmt")
+    }
+    let closure = core_ast_children::AstNode_child_at(let_stmt, 0)
+    if ast_kind_fields::AstNode_kind(closure) != kinds::NK_CLOSURE() || core_ast_children::AstNode_child_count(closure) != 2 {
+        return String_from("issue499 block body fail: closure shape")
+    }
+    let param0 = core_ast_children::AstNode_child_at(closure, 0)
+    let closure_body = core_ast_children::AstNode_child_at(closure, 1)
+    if !eq(core_ast_text_fields::AstNode_text(param0), String_from("x")) {
+        return String_from("issue499 block body fail: param")
+    }
+    if ast_kind_fields::AstNode_kind(closure_body) != kinds::NK_BLOCK() || core_ast_children::AstNode_child_count(closure_body) != 1 {
+        return String_from("issue499 block body fail: closure block")
+    }
+    let inner_stmt = core_ast_children::AstNode_child_at(closure_body, 0)
+    if ast_kind_fields::AstNode_kind(inner_stmt) != kinds::NK_EXPR_STMT() || core_ast_children::AstNode_child_count(inner_stmt) != 1 {
+        return String_from("issue499 block body fail: inner stmt")
+    }
+    let add_expr = core_ast_children::AstNode_child_at(inner_stmt, 0)
+    if ast_kind_fields::AstNode_kind(add_expr) != kinds::NK_BINARY() || core_ast_op_fields::AstNode_op(add_expr) != kinds::OP_ADD() {
+        return String_from("issue499 block body fail: inner expr")
+    }
+    String_from("issue499 parser ok: lexer integration block body |x| { x + 1 }")
+}

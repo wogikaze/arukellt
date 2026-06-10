@@ -1,0 +1,42 @@
+// Arukellt Selfhost - main namespace: usage
+
+use std::host::stdio
+
+// Arukellt Selfhost - CLI usage and version output
+
+// ── Usage / Version ──────────────────────────────────────────────────────────
+fn print_usage() {
+    stdio::println(String_from("The Arukellt compiler"))
+    stdio::println(String_from(""))
+    stdio::println(String_from("Usage: arukellt <COMMAND>"))
+    stdio::println(String_from(""))
+    stdio::println(String_from("Commands:"))
+    stdio::println(String_from("  compile        Compile an .ark file to Wasm"))
+    stdio::println(String_from("  init           Initialize a new Arukellt project in the specified directory"))
+    stdio::println(String_from("  build          Build the project in the current directory (requires ark.toml)"))
+    stdio::println(String_from("  fmt            Format .ark source files"))
+    stdio::println(String_from("  run            Compile and run an .ark file"))
+    stdio::println(String_from("  check          Type-check an .ark file without compiling"))
+    stdio::println(String_from("  test           Discover and run tests"))
+    stdio::println(String_from("  targets        List available compile targets"))
+    stdio::println(String_from("  script         Manage and run project scripts"))
+    stdio::println(String_from("  component      Build and inspect WebAssembly components"))
+    stdio::println(String_from("  lsp            Start the LSP server (stdio transport)"))
+    stdio::println(String_from("  debug-adapter  Start the DAP debug adapter (stdio transport)"))
+    stdio::println(String_from("  lint           Run lint rules on .ark source files"))
+    stdio::println(String_from("  analyze        Analyze a compiled Wasm binary"))
+    stdio::println(String_from("  doc            Look up standard library documentation for a symbol or module"))
+    stdio::println(String_from("  compose        Link multiple Wasm components into a single composed component"))
+    stdio::println(String_from("  help           Print this message or the help of the given subcommand(s)"))
+    stdio::println(String_from(""))
+    stdio::println(String_from("Options:"))
+    stdio::println(String_from("  -h, --help     Print help"))
+    stdio::println(String_from("  -V, --version  Print version"))
+    stdio::println(String_from("  --json         Emit machine-readable JSON diagnostics"))
+    stdio::println(String_from("  --output json  Alias for --json on diagnostic/check output"))
+    stdio::println(String_from("  --wit <path>   Add a WIT import file for component compilation"))
+}
+
+fn print_version() {
+    stdio::println(String_from("arukellt 0.1.0"))
+}

@@ -1,0 +1,15 @@
+// Arukellt Parser - let statement type annotation.
+
+use lexer::tokens
+use parser::core_ast_type_ann
+use parser::core_api_cursor
+use parser::types
+
+pub fn parse_let_type_ann(p: Parser, node: AstNode) {
+    if core_api_cursor::peek_kind(p) == tokens::TK_COLON() {
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        let ty = types::parse_type(p)
+        core_ast_type_ann::AstNode_push_type_ann(node, ty)
+    }
+}

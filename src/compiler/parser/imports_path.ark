@@ -1,0 +1,15 @@
+use lexer::tokens
+// Arukellt Parser - use declaration path segments.
+
+use parser::core_api_expect
+use parser::token_state
+
+fn parse_first_use_segment(p: Parser) -> String {
+    let first_seg = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    token_state::Token_text(first_seg)
+}
+
+fn parse_next_use_segment(p: Parser, path: String) -> String {
+    let seg = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    concat(path, concat(String_from("::"), token_state::Token_text(seg)))
+}

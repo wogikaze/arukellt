@@ -1,0 +1,17 @@
+// Arukellt Selfhost - CoreHIR for-loop MIR lowering.
+
+use mir::lower::core_for_iter
+use mir::lower::core_for_range
+use mir::lower::core_for_values
+
+fn lower_core_for_range(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    core_for_range::lower_core_for_range(ctx, exprs, expr)
+}
+
+fn lower_core_for_values(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    core_for_values::lower_core_for_values(ctx, exprs, expr)
+}
+
+fn lower_core_for_iter(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    core_for_iter::lower_core_for_iter(ctx, exprs, expr)
+}

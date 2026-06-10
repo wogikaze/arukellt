@@ -1,0 +1,30 @@
+// Arukellt Selfhost - CoreHIR body builder for control-flow expressions.
+
+use corehir::body_control_block
+use corehir::body_control_branch
+use corehir::body_control_children
+use corehir::body_control_transfer
+
+fn corehir_build_children(table: CoreHirBodyTable, nodes: Vec<AstNode>, children: Vec<i32>) -> bool {
+    body_control_children::corehir_build_children(table, nodes, children)
+}
+
+fn corehir_build_if_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    body_control_branch::corehir_build_if_expr(table, node)
+}
+
+fn corehir_build_break_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    body_control_transfer::corehir_build_break_expr(table, node)
+}
+
+fn corehir_build_continue_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    body_control_transfer::corehir_build_continue_expr(table, node)
+}
+
+fn corehir_build_return_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    body_control_transfer::corehir_build_return_expr(table, node)
+}
+
+fn corehir_build_block_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    body_control_block::corehir_build_block_expr(table, node)
+}

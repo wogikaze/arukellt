@@ -1,0 +1,96 @@
+// Arukellt Selfhost - component list declaration scan.
+
+use component::contract_collection_fn
+use component::contract_helpers
+
+pub struct ComponentCollectionListScan {
+	has_list_unary: bool,
+	has_list_result: bool,
+	has_list_roundtrip: bool,
+	export_count: i32,
+}
+
+fn ComponentCollectionListScan_new(has_list_unary: bool, has_list_result: bool, has_list_roundtrip: bool, export_count: i32) -> ComponentCollectionListScan {
+	ComponentCollectionListScan {
+		has_list_unary: has_list_unary,
+		has_list_result: has_list_result,
+		has_list_roundtrip: has_list_roundtrip,
+		export_count: export_count,
+	}
+}
+
+fn ComponentCollectionListScan_empty() -> ComponentCollectionListScan {
+	ComponentCollectionListScan_new(false, false, false, 0)
+}
+
+fn ComponentCollectionListScan_single_export(scan: ComponentCollectionListScan) -> bool {
+	scan.export_count == 1
+}
+
+fn ComponentCollectionListScan_has_list_unary(scan: ComponentCollectionListScan) -> bool {
+	scan.has_list_unary
+}
+
+fn ComponentCollectionListScan_has_list_result(scan: ComponentCollectionListScan) -> bool {
+	scan.has_list_result
+}
+
+fn ComponentCollectionListScan_has_list_roundtrip(scan: ComponentCollectionListScan) -> bool {
+	scan.has_list_roundtrip
+}
+
+fn ComponentCollectionListScan_increment_export_count(scan: ComponentCollectionListScan) {
+	scan.export_count = scan.export_count + 1
+}
+
+fn ComponentCollectionListScan_set_has_list_unary(scan: ComponentCollectionListScan, value: bool) {
+	scan.has_list_unary = value
+}
+
+fn ComponentCollectionListScan_set_has_list_result(scan: ComponentCollectionListScan, value: bool) {
+	scan.has_list_result = value
+}
+
+fn ComponentCollectionListScan_set_has_list_roundtrip(scan: ComponentCollectionListScan, value: bool) {
+	scan.has_list_roundtrip = value
+}
+
+fn component_collection_list_scan_apply_fn(d: AstNode, scan: ComponentCollectionListScan) -> ComponentCollectionListScan {
+	let f = contract_helpers::component_func_from_decl(d)
+	if contract_collection_fn::component_fn_is_vec_i32_to_i32(f) {
+		ComponentCollectionListScan_set_has_list_unary(scan, true)
+	}
+	if contract_collection_fn::component_fn_is_i32_to_vec_i32(f) {
+		ComponentCollectionListScan_set_has_list_result(scan, true)
+	}
+	if contract_collection_fn::component_fn_is_vec_i32_to_vec_i32(f) {
+		ComponentCollectionListScan_set_has_list_roundtrip(scan, true)
+	}
+	scan
+}
+
+fn ComponentCollectionListScan_allows_list_unary(scan: ComponentCollectionListScan) -> bool {
+	ComponentCollectionListScan_has_list_unary(scan) && ComponentCollectionListScan_single_export(scan)
+}
+
+fn ComponentCollectionListScan_allows_list_result(scan: ComponentCollectionListScan) -> bool {
+	ComponentCollectionListScan_has_list_result(scan) && ComponentCollectionListScan_single_export(scan)
+}
+
+fn ComponentCollectionListScan_allows_list_roundtrip(scan: ComponentCollectionListScan) -> bool {
+	ComponentCollectionListScan_has_list_roundtrip(scan) && ComponentCollectionListScan_single_export(scan)
+}
+
+fn component_collection_list_scan(decls: Vec<AstNode>) -> ComponentCollectionListScan {
+	let scan = ComponentCollectionListScan_empty()
+	let mut i = 0
+	while i < len(decls) {
+		let d = get_unchecked(decls, i)
+		if contract_helpers::is_export_func_decl(d) {
+			ComponentCollectionListScan_increment_export_count(scan)
+			component_collection_list_scan_apply_fn(d, scan)
+		}
+		i = i + 1
+	}
+	scan
+}

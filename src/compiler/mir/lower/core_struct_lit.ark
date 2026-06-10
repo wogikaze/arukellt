@@ -1,0 +1,34 @@
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR struct literal lowering.
+
+use mir::inst_local_set
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_aggregate
+use mir::lower::struct_lit
+
+fn lower_core_struct_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    let struct_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+    let dest = struct_lit::mir_emit_struct_new(ctx, clone(struct_name))
+    let mut i = 0
+    while i < child_count {
+        let field_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, i))
+        if core_expr_shape_aggregate::mir_core_expr_is_struct_base(field_expr) && core_expr_shape_accessors::mir_core_expr_child_count(field_expr) >= 1 {
+            let base_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(field_expr, 0))
+            ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(base_idx))
+            struct_lit::mir_copy_struct_base_fields(ctx, clone(struct_name), dest, base_idx)
+        }
+        i = i + 1
+    }
+    i = 0
+    while i < child_count {
+        let field_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, i))
+        if core_expr_shape_aggregate::mir_core_expr_is_struct_field(field_expr) && core_expr_shape_accessors::mir_core_expr_child_count(field_expr) >= 1 {
+            let val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(field_expr, 0))
+            struct_lit::mir_emit_struct_field_set(ctx, clone(struct_name), dest, core_expr_shape_accessors::mir_core_expr_text(field_expr), val_idx)
+        }
+        i = i + 1
+    }
+    struct_lit::mir_emit_struct_get_local(ctx, dest)
+}

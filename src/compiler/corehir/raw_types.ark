@@ -1,0 +1,12 @@
+// Arukellt Selfhost - CoreHIR raw program type-fact views.
+
+use corehir::raw_record
+use corehir::type_facts
+
+fn program_typed_fns(program: CoreHirRawProgram) -> Vec<TypedFn> {
+    type_facts::CoreHirTypeFacts_typed_fns(raw_record::raw_program_type_facts(program))
+}
+
+fn program_mono_instances(program: CoreHirRawProgram) -> Vec<MonoInstance> {
+    type_facts::CoreHirTypeFacts_mono_instances(raw_record::raw_program_type_facts(program))
+}

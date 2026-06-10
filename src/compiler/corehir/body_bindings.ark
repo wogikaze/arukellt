@@ -1,0 +1,43 @@
+use corehir::expr_factory
+use corehir::expr_access_types
+// Arukellt Selfhost - CoreHIR body builder for binding expressions.
+
+use corehir::expr_builder_ops
+use corehir::expr_predicates
+use corehir::expr_node_access
+use corehir::type_ann_local_name
+use corehir::type_ann_node
+use corehir::types
+
+fn corehir_type_name_from_ann(node: AstNode) -> String {
+    if expr_node_access::expr_type_ann_count(node) >= 1 {
+        let ann = expr_node_access::expr_type_ann_at(node, 0)
+        // Prefer the shaped local name (vec:T, Result_f64, ...) so downstream
+        // lowering (push rewrite, match payload typing) sees the same names
+        // the AST path produces; fall back to the raw annotation name.
+        let shaped = type_ann_local_name::type_ann_shape_local_type_name(ann, 0)
+        if len(shaped) > 0 {
+            return shaped
+        }
+        return type_ann_node::type_ann_name(ann)
+    }
+    String_new()
+}
+
+fn corehir_build_let_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let children = Vec_new_i32()
+    let type_name = corehir_type_name_from_ann(node)
+    let mut vt = types::corehir_vt_from_type_name(clone(type_name))
+    if expr_node_access::expr_child_count(node) >= 1 {
+        let child_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
+        push(children, child_index)
+        let child_expr = corehir_body_expr_at(table, child_index)
+        if expr_predicates::expr_is_unsupported(child_expr) {
+            return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+        }
+        if len(type_name) == 0 {
+            vt = expr_access_types::expr_val_type(child_expr)
+        }
+    }
+    corehir_push_expr(table, expr_builder_ops::corehir_expr_let(expr_node_access::expr_text(node), vt, type_name, expr_node_access::expr_span_start(node), children))
+}

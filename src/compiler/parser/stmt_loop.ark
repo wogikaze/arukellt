@@ -1,0 +1,47 @@
+use lexer::tokens
+use parser::core_ast_text_fields
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - while, loop, and for statements.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::kinds
+use parser::token_state
+
+pub fn parse_while(p: Parser) -> AstNode {
+    let t = expect_token(p, tokens::TK_WHILE())
+    let node = AstNode_new(kinds::NK_WHILE(), tok_span(t))
+    skip_newlines(p)
+    let cond = parse_expr(p)
+    core_ast_children::AstNode_push_child(node, cond)
+    skip_newlines(p)
+    let body = parse_block(p)
+    core_ast_children::AstNode_push_child(node, body)
+    node
+}
+
+pub fn parse_loop(p: Parser) -> AstNode {
+    let t = expect_token(p, tokens::TK_LOOP())
+    let node = AstNode_new(kinds::NK_LOOP(), tok_span(t))
+    skip_newlines(p)
+    let body = parse_block(p)
+    core_ast_children::AstNode_push_child(node, body)
+    node
+}
+
+pub fn parse_for(p: Parser) -> AstNode {
+    let t = expect_token(p, tokens::TK_FOR())
+    let node = AstNode_new(kinds::NK_FOR(), tok_span(t))
+    skip_newlines(p)
+    let binding = expect_token(p, tokens::TK_IDENT())
+    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(binding))
+    expect_token(p, tokens::TK_IN())
+    skip_newlines(p)
+    let iter = parse_expr(p)
+    core_ast_children::AstNode_push_child(node, iter)
+    skip_newlines(p)
+    let body = parse_block(p)
+    core_ast_children::AstNode_push_child(node, body)
+    node
+}

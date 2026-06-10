@@ -1,0 +1,15 @@
+// Arukellt Parser - public AST type annotation API.
+
+use parser::ast_node_record
+
+fn AstNode_push_type_ann(node: AstNode, ann: AstNode) {
+    push(node.type_ann, ann)
+}
+
+fn AstNode_type_ann_count(node: AstNode) -> i32 {
+    len(node.type_ann)
+}
+
+fn AstNode_type_ann_at(node: AstNode, index: i32) -> AstNode {
+    get_unchecked(node.type_ann, index)
+}

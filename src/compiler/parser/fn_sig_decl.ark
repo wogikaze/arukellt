@@ -1,0 +1,27 @@
+// Arukellt Parser - function declaration signature header.
+
+use lexer::tokens
+use parser::core_ast_text_fields
+use parser::core_ast_factory
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::fn_params_regular
+use parser::fn_return
+use parser::kinds
+use parser::token_state
+use parser::type_params
+use parser::type_where
+
+fn parse_fn_decl_header(p: Parser) -> AstNode {
+    let t = core_api_expect::expect_token(p, tokens::TK_FN())
+    let node = core_ast_factory::AstNode_new(kinds::NK_FN_DECL(), core_api_expect::tok_span(t))
+    let name = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name))
+    type_params::parse_generic_params_into_node(p, node)
+    fn_params_regular::parse_regular_fn_params(p, node)
+    core_api_cursor::skip_newlines(p)
+    type_where::parse_optional_where_clause_stub(p)
+    fn_return::parse_fn_return_annotation_into_node(p, node)
+    core_api_cursor::skip_newlines(p)
+    node
+}

@@ -1,0 +1,25 @@
+// Arukellt MIR lowering context - builtin variant registration.
+
+use mir::lower::ctx_variant_storage
+
+fn ctx_register_builtin_variant_tags(ctx: LowerCtx) {
+    ctx_variant_storage::ctx_variant_push_tag(ctx, String_from("Some"), 0)
+    ctx_variant_storage::ctx_variant_push_tag(ctx, String_from("None"), 1)
+    ctx_variant_storage::ctx_variant_push_tag(ctx, String_from("Option::Some"), 0)
+    ctx_variant_storage::ctx_variant_push_tag(ctx, String_from("Option::None"), 1)
+    ctx_variant_storage::ctx_variant_push_tag(ctx, String_from("Ok"), 0)
+    ctx_variant_storage::ctx_variant_push_tag(ctx, String_from("Err"), 1)
+    ctx_variant_storage::ctx_variant_push_tag(ctx, String_from("Result::Ok"), 0)
+    ctx_variant_storage::ctx_variant_push_tag(ctx, String_from("Result::Err"), 1)
+}
+
+fn ctx_register_builtin_payload_variants(ctx: LowerCtx) {
+    ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Some"))
+    ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("None"))
+    ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Ok"))
+    ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Err"))
+    ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Option::Some"))
+    ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Option::None"))
+    ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Result::Ok"))
+    ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Result::Err"))
+}

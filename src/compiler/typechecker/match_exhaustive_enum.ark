@@ -1,0 +1,37 @@
+// Arukellt Typechecker - enum match exhaustiveness diagnostics
+
+use typechecker::contract_enum_info
+use typechecker::contract_type_access
+use typechecker::match_exhaustive_covered
+use typechecker::unify
+
+fn check_enum_match_exhaustive(env: TypeEnv, resolved_scrutinee: TypeInfo, enum_defs: Vec<EnumInfo>, coverage: MatchCoverage) {
+    let enum_name = contract_type_access::TypeInfo_name(resolved_scrutinee)
+    let mut found_enum = false
+    let mut enum_idx = 0
+    let enum_def_count = len(enum_defs)
+    while enum_idx < enum_def_count {
+        let edef = get_unchecked(enum_defs, enum_idx)
+        if eq(contract_enum_info::EnumInfo_name(edef), clone(enum_name)) {
+            found_enum = true
+            check_enum_variants_covered(env, enum_name, edef, coverage)
+        }
+        enum_idx = enum_idx + 1
+    }
+    if !found_enum {
+        unify::type_error(env, concat(String_from("non-exhaustive match: unknown enum '"), clone(enum_name)))
+    }
+}
+
+fn check_enum_variants_covered(env: TypeEnv, enum_name: String, edef: EnumInfo, coverage: MatchCoverage) {
+    let variant_count = contract_enum_info::EnumInfo_variant_count(edef)
+    let mut v = 0
+    while v < variant_count {
+        let vname = contract_enum_info::EnumInfo_variant_at(edef, v)
+        if !match_exhaustive_covered::is_variant_covered(coverage, vname) {
+            unify::type_error(env, concat(String_from("non-exhaustive match: missing "),
+                concat(clone(enum_name), concat(String_from("::"), clone(vname)))))
+        }
+        v = v + 1
+    }
+}

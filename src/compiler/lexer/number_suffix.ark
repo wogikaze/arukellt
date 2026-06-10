@@ -1,0 +1,43 @@
+// Arukellt Lexer - numeric literal type suffixes
+
+use lexer::char_class
+
+fn try_eat_type_suffix(lex: Lexer) -> i32 {
+    if lex.pos + 3 <= lex.src_len {
+        let c0 = char_at(lex.src, lex.pos)
+        let c1 = char_at(lex.src, lex.pos + 1)
+        let c2 = char_at(lex.src, lex.pos + 2)
+        let mut end_ok = true
+        if lex.pos + 3 < lex.src_len {
+            let cn = char_at(lex.src, lex.pos + 3)
+            if char_class::is_alnum(cn) || cn == 95 {
+                end_ok = false
+            }
+        }
+        if end_ok {
+            let is_3 = c0 == 105 || c0 == 117 || c0 == 102 && c1 == 51 && c2 == 50 || c1 == 54 && c2 == 52 || c1 == 49 && c2 == 54
+            if is_3 {
+                lex.pos = lex.pos + 3
+                return 3
+            }
+        }
+    }
+    if lex.pos + 2 <= lex.src_len {
+        let c0 = char_at(lex.src, lex.pos)
+        let c1 = char_at(lex.src, lex.pos + 1)
+        let mut end_ok = true
+        if lex.pos + 2 < lex.src_len {
+            let cn = char_at(lex.src, lex.pos + 2)
+            if char_class::is_alnum(cn) || cn == 95 {
+                end_ok = false
+            }
+        }
+        if end_ok {
+            if c0 == 105 || c0 == 117 && c1 == 56 {
+                lex.pos = lex.pos + 2
+                return 2
+            }
+        }
+    }
+    0
+}

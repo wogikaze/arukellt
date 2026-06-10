@@ -1,0 +1,12 @@
+// Arukellt Selfhost - driver module loading state.
+
+struct LoadState {
+    loaded_names: Vec<String>,
+    loading_stack: Vec<String>,
+    modules: Vec<ModuleDecls>,
+    errors: Vec<String>,
+}
+
+pub fn LoadState_new() -> LoadState {
+    LoadState { loaded_names: Vec_new_String(), loading_stack: Vec_new_String(), modules: Vec_new_ModuleDecls(), errors: Vec_new_String() }
+}

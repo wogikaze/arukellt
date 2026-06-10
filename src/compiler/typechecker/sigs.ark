@@ -1,0 +1,21 @@
+// Arukellt Typechecker - function signature construction
+
+use typechecker::sig_bounds
+use typechecker::sig_decl
+use typechecker::sig_lookup
+
+fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
+    sig_lookup::lookup_fn_sig(fn_sigs, name)
+}
+
+fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
+    sig_decl::fn_sig_from_fn_decl(node)
+}
+
+fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
+    sig_bounds::collect_type_param_bounds(type_ann)
+}
+
+fn collect_type_param_names(bound_infos: Vec<TypeParamBounds>) -> Vec<String> {
+    sig_bounds::collect_type_param_names(bound_infos)
+}

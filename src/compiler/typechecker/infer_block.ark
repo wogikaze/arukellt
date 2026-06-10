@@ -1,0 +1,18 @@
+use typechecker::kinds
+// Arukellt Typechecker - block expression inference.
+
+use typechecker::ast_access
+
+fn infer_block_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    let count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < count {
+        let child = ast_access::node_child_at(node, i)
+        if i == count - 1 {
+            return infer_expr(env, scope, fn_sigs, enum_defs, child)
+        }
+        check_stmt(env, scope, fn_sigs, enum_defs, child)
+        i = i + 1
+    }
+    TypeInfo_simple(commands::TY_UNIT())
+}

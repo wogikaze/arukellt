@@ -1,0 +1,29 @@
+// Arukellt Resolver - AST walk and scoped binding rules
+
+use resolver::walk_bindings
+use resolver::ast_access
+use resolver::walk_control
+use resolver::walk_exprs
+
+fn resolve_node(ctx: ResolveCtx, node: AstNode) {
+    if walk_exprs::resolve_expr_node(ctx, node) {
+        return
+    }
+    if walk_bindings::resolve_binding_node(ctx, node) {
+        return
+    }
+    if walk_control::resolve_control_node(ctx, node) {
+        return
+    }
+    resolve_children(ctx, node)
+}
+
+fn resolve_children(ctx: ResolveCtx, node: AstNode) {
+    let child_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < child_count {
+        let child = ast_access::node_child_at(node, i)
+        resolve_node(ctx, child)
+        i = i + 1
+    }
+}

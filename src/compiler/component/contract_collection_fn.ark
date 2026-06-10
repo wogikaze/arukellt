@@ -1,0 +1,84 @@
+use component::contract_collection_types
+// Arukellt Selfhost - component collection function contract predicates.
+
+use component::contract_helpers
+
+fn component_fn_is_vec_i32_to_i32(f: ComponentExportFunc) -> bool {
+    if contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_return_type_name(f), String_from("i32")) {
+        return contract_collection_types::component_param_type_is_vec_i32(f, 0)
+    }
+    false
+}
+
+fn component_fn_is_i32_to_vec_i32(f: ComponentExportFunc) -> bool {
+    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i32")) && contract_collection_types::component_return_type_is_vec_i32(f)
+}
+
+fn component_fn_is_vec_i32_to_vec_i32(f: ComponentExportFunc) -> bool {
+    if contract_helpers::component_export_param_count_is(f, 1) && contract_collection_types::component_return_type_is_vec_i32(f) {
+        return contract_collection_types::component_param_type_is_vec_i32(f, 0)
+    }
+    false
+}
+
+fn component_fn_is_i32_to_option_i32(f: ComponentExportFunc) -> bool {
+    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i32")) && contract_collection_types::component_return_type_is_option_i32(f)
+}
+
+fn component_fn_is_bool_to_option_bool(f: ComponentExportFunc) -> bool {
+    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("bool")) && contract_collection_types::component_return_type_is_option_bool(f)
+}
+
+fn component_fn_is_bool_to_option_i64(f: ComponentExportFunc) -> bool {
+    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("bool")) && contract_collection_types::component_return_type_is_option_i64(f)
+}
+
+fn component_fn_is_option_i32_to_i32(f: ComponentExportFunc) -> bool {
+    if contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_return_type_name(f), String_from("i32")) {
+        return contract_collection_types::component_param_type_is_option_i32(f, 0)
+    }
+    false
+}
+
+fn component_fn_is_option_i64_to_i64(f: ComponentExportFunc) -> bool {
+    if contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_return_type_name(f), String_from("i64")) {
+        return contract_collection_types::component_param_type_is_option_i64(f, 0)
+    }
+    false
+}
+
+fn component_fn_is_option_i32_to_option_i32(f: ComponentExportFunc) -> bool {
+    if contract_helpers::component_export_param_count_is(f, 1) && contract_collection_types::component_return_type_is_option_i32(f) {
+        return contract_collection_types::component_param_type_is_option_i32(f, 0)
+    }
+    false
+}
+
+fn component_fn_is_i32_i32_to_result_i32_string(f: ComponentExportFunc) -> bool {
+    contract_helpers::component_export_param_count_is(f, 2) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i32")) && eq(contract_helpers::component_export_param_type_name_at(f, 1), String_from("i32")) && contract_collection_types::component_return_type_is_result_i32_string(f)
+}
+
+fn component_fn_is_bool_to_result_bool_bool(f: ComponentExportFunc) -> bool {
+    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("bool")) && contract_collection_types::component_return_type_is_result_bool_bool(f)
+}
+
+fn component_fn_is_result_i32_i32_to_i32(f: ComponentExportFunc) -> bool {
+    if contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_return_type_name(f), String_from("i32")) {
+        return contract_collection_types::component_param_type_is_result_i32_i32(f, 0)
+    }
+    false
+}
+
+fn component_fn_is_result_i32_string_to_i32(f: ComponentExportFunc) -> bool {
+    if contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_return_type_name(f), String_from("i32")) {
+        return contract_collection_types::component_param_type_is_result_i32_string(f, 0)
+    }
+    false
+}
+
+fn component_fn_is_result_i32_i32_to_result_i32_i32(f: ComponentExportFunc) -> bool {
+    if contract_helpers::component_export_param_count_is(f, 1) {
+        return contract_collection_types::component_param_type_is_result_i32_i32(f, 0) && contract_collection_types::component_return_type_is_result_i32_i32(f)
+    }
+    false
+}

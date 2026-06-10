@@ -1,0 +1,68 @@
+// Arukellt Parser - AST scalar field accessors.
+
+use parser::ast_node_record
+use parser::ast_span_record
+
+fn ast_node_kind(node: AstNode) -> i32 {
+    node.kind
+}
+
+fn ast_node_set_kind(node: AstNode, kind: i32) {
+    node.kind = kind
+}
+
+fn ast_node_text(node: AstNode) -> String {
+    clone(node.text)
+}
+
+fn ast_node_set_text(node: AstNode, text: String) {
+    node.text = text
+}
+
+fn ast_node_is_pub(node: AstNode) -> bool {
+    node.is_pub
+}
+
+fn ast_node_set_is_pub(node: AstNode, is_pub: bool) {
+    node.is_pub = is_pub
+}
+
+fn ast_node_set_is_mut(node: AstNode, is_mut: bool) {
+    node.is_mut = is_mut
+}
+
+fn ast_node_span(node: AstNode) -> Span {
+    node.span
+}
+
+fn ast_node_span_start(node: AstNode) -> i32 {
+    ast_span_record::span_start(node.span)
+}
+
+fn ast_node_set_span(node: AstNode, span: Span) {
+    node.span = span
+}
+
+fn ast_node_span_end(node: AstNode) -> i32 {
+    ast_span_record::span_end(node.span)
+}
+
+fn ast_node_op(node: AstNode) -> i32 {
+    node.op
+}
+
+fn ast_node_set_op(node: AstNode, op: i32) {
+    node.op = op
+}
+
+fn ast_node_int_val(node: AstNode) -> i32 {
+    node.int_val
+}
+
+fn ast_node_set_int_val(node: AstNode, value: i32) {
+    node.int_val = value
+}
+
+fn ast_node_float_val(node: AstNode) -> f64 {
+    node.float_val
+}

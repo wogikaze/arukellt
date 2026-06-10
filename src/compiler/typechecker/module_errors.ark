@@ -1,0 +1,13 @@
+// Arukellt Typechecker - environment error result appenders.
+
+use typechecker::contract_result_state
+use typechecker::contract_env_record
+
+fn append_env_errors(result: TypeCheckResult, env: TypeEnv) {
+    let err_count = env.error_count
+    let mut e = 0
+    while e < err_count {
+        contract_result_state::typecheck_result_push_error(result, clone(get_unchecked(env.errors, e)))
+        e = e + 1
+    }
+}

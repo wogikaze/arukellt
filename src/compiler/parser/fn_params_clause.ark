@@ -1,0 +1,28 @@
+use parser::ast_kind_fields
+use lexer::tokens
+use parser::kinds
+use parser::core_ast_children
+// Arukellt Parser - multi-clause function parameter patterns
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::patterns
+
+fn parse_clause_fn_params(p: Parser, node: AstNode) {
+    core_api_expect::expect_token(p, tokens::TK_LPAREN())
+    let mut first = true
+    while !core_api_cursor::at(p, tokens::TK_RPAREN()) && !core_api_cursor::at_eof(p) {
+        if !first {
+            core_api_expect::expect_token(p, tokens::TK_COMMA())
+        }
+        first = false
+        core_api_cursor::skip_newlines(p)
+        let pat = patterns::parse_pattern(p)
+        if ast_kind_fields::AstNode_kind(pat) == kinds::NK_PAT_IDENT() {
+            ast_kind_fields::AstNode_set_kind(pat, kinds::NK_IDENT())
+        }
+        core_ast_children::AstNode_push_child(node, pat)
+        core_api_cursor::skip_newlines(p)
+    }
+    core_api_expect::expect_token(p, tokens::TK_RPAREN())
+}

@@ -1,0 +1,23 @@
+use mir::lower::ctx_struct_storage
+use mir::lower::ctx_api_variants
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering enum payload layout registration.
+
+use corehir::layout_decl_payload
+use corehir::layout_variant
+
+fn mir_enum_has_payload(decl: CoreHirLayoutDecl) -> bool {
+    layout_decl_payload::layout_decl_has_payload(decl)
+}
+
+fn mir_register_payload_variant_layout(ctx: LowerCtx, full_name: String, variant: CoreHirLayoutVariant) {
+    ctx_api_variants::ctx_register_payload_variant(ctx, clone(full_name))
+    let payload_count = layout_variant::layout_variant_payload_type_count(variant)
+    ctx_struct_storage::ctx_struct_push_layout(ctx, clone(full_name), payload_count + 1)
+    ctx_struct_storage::ctx_struct_push_field(ctx, String_from("_tag"), String_from(""))
+    let mut pfi = 0
+    while pfi < payload_count {
+        ctx_struct_storage::ctx_struct_push_field(ctx, concat(String_from("_"), to_string(pfi)), layout_variant::layout_variant_payload_type_name_at(variant, pfi))
+        pfi = pfi + 1
+    }
+}

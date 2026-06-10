@@ -1,0 +1,56 @@
+// Arukellt Typechecker - function signature contract.
+
+use typechecker::contract_type_param_bounds
+use typechecker::contract_types_record
+
+struct FnSig {
+    name: String,
+    param_types: Vec<TypeInfo>,
+    return_type: TypeInfo,
+    type_params: Vec<String>,
+    type_param_bounds: Vec<TypeParamBounds>,
+}
+
+fn FnSig_new(name: String, param_types: Vec<TypeInfo>, return_type: TypeInfo, type_params: Vec<String>, type_param_bounds: Vec<TypeParamBounds>) -> FnSig {
+    FnSig { name: name, param_types: param_types, return_type: return_type, type_params: type_params, type_param_bounds: type_param_bounds }
+}
+
+fn FnSig_empty(return_type: TypeInfo) -> FnSig {
+    FnSig_new(String_new(), Vec_new_TypeInfo(), return_type, Vec_new_String(), Vec_new_TypeParamBounds())
+}
+
+fn FnSig_name(sig: FnSig) -> String {
+    clone(sig.name)
+}
+
+fn FnSig_has_name(sig: FnSig) -> bool {
+    len(FnSig_name(sig)) > 0
+}
+
+fn FnSig_param_count(sig: FnSig) -> i32 {
+    len(sig.param_types)
+}
+
+fn FnSig_param_at(sig: FnSig, index: i32) -> TypeInfo {
+    get_unchecked(sig.param_types, index)
+}
+
+fn FnSig_return_type(sig: FnSig) -> TypeInfo {
+    sig.return_type
+}
+
+fn FnSig_type_param_count(sig: FnSig) -> i32 {
+    len(sig.type_params)
+}
+
+fn FnSig_type_param_at(sig: FnSig, index: i32) -> String {
+    clone(get_unchecked(sig.type_params, index))
+}
+
+fn FnSig_type_param_bound_count(sig: FnSig) -> i32 {
+    len(sig.type_param_bounds)
+}
+
+fn FnSig_type_param_bound_at(sig: FnSig, index: i32) -> TypeParamBounds {
+    get_unchecked(sig.type_param_bounds, index)
+}

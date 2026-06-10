@@ -1,0 +1,31 @@
+// Arukellt Selfhost - CoreHIR parameter value type selection.
+
+use corehir::decl_ann_name
+use corehir::param_shape_node
+use corehir::value_types
+
+fn fn_param_value_type(node: AstNode) -> i32 {
+    if param_shape_node::param_has_type_ann(node) {
+        let ann = param_shape_node::param_type_ann(node)
+        if decl_ann_name::decl_ann_is_name(ann, String_from("f64")) {
+            return value_types::VT_F64()
+        }
+        if decl_ann_name::decl_ann_is_name(ann, String_from("i64")) || decl_ann_name::decl_ann_is_name(ann, String_from("u64")) {
+            return value_types::VT_I64()
+        }
+    }
+    value_types::VT_I32()
+}
+
+fn method_param_value_type(node: AstNode) -> i32 {
+    if param_shape_node::param_has_type_ann(node) {
+        let ann = param_shape_node::param_type_ann(node)
+        if decl_ann_name::decl_ann_is_name(ann, String_from("f64")) {
+            return value_types::VT_F64()
+        }
+        if decl_ann_name::decl_ann_is_name(ann, String_from("i64")) {
+            return value_types::VT_I64()
+        }
+    }
+    value_types::VT_I32()
+}

@@ -1,0 +1,26 @@
+use wasm::opcodes
+// Arukellt Selfhost - Wasm f64 numeric helper recipes.
+
+use wasm::writer_core
+
+fn emit_f64_const_words(w: WasmWriter, lo: i32, hi: i32) {
+    writer_core::emit_byte(w, opcodes::OP_F64_CONST())
+    writer_core::emit_u32_le(w, lo)
+    writer_core::emit_u32_le(w, hi)
+}
+
+fn emit_f64_lt(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_LT()) }
+fn emit_f64_neg(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_NEG()) }
+fn emit_f64_sub(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_SUB()) }
+fn emit_f64_mul(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_MUL()) }
+fn emit_f64_convert_i32_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_CONVERT_I32_S()) }
+
+fn emit_f64_to_f32_bridge(w: WasmWriter) {
+    writer_core::emit_byte(w, 0xb6)
+    writer_core::emit_byte(w, 0xbc)
+}
+
+fn emit_f32_to_f64_bridge(w: WasmWriter) {
+    writer_core::emit_byte(w, 0xbe)
+    writer_core::emit_byte(w, 0xbb)
+}

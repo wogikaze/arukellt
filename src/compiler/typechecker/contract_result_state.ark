@@ -1,0 +1,69 @@
+// Arukellt Typechecker - typecheck result state contract.
+
+use typechecker::contract_mono
+use typechecker::contract_typed_fn
+use typechecker::contract_types_record
+
+struct TypeCheckResult {
+    error_count: i32,
+    errors: Vec<String>,
+    typed_fns: Vec<TypedFn>,
+    mono_instances: Vec<MonoInstance>,
+}
+
+fn TypeCheckResult_new() -> TypeCheckResult {
+    TypeCheckResult { error_count: 0, errors: Vec_new_String(), typed_fns: Vec_new_TypedFn(), mono_instances: Vec_new_MonoInstance() }
+}
+
+fn typecheck_result_set_errors(result: TypeCheckResult, errors: Vec<String>) {
+    result.errors = errors
+}
+
+fn typecheck_result_push_error(result: TypeCheckResult, error: String) {
+    push(result.errors, error)
+    result.error_count = result.error_count + 1
+}
+
+fn typecheck_result_set_mono_instances(result: TypeCheckResult, instances: Vec<MonoInstance>) {
+    result.mono_instances = instances
+}
+
+fn typecheck_result_push_typed_fn(result: TypeCheckResult, name: String, return_type: TypeInfo) {
+    push(result.typed_fns, contract_typed_fn::TypedFn_new(name, return_type))
+}
+
+fn typecheck_result_error_count(result: TypeCheckResult) -> i32 {
+    result.error_count
+}
+
+fn typecheck_result_message_count(result: TypeCheckResult) -> i32 {
+    len(result.errors)
+}
+
+fn typecheck_result_error_at(result: TypeCheckResult, index: i32) -> String {
+    clone(get_unchecked(result.errors, index))
+}
+
+fn typecheck_result_errors(result: TypeCheckResult) -> Vec<String> {
+    result.errors
+}
+
+fn typecheck_result_typed_fn_count(result: TypeCheckResult) -> i32 {
+    len(result.typed_fns)
+}
+
+fn typecheck_result_typed_fns(result: TypeCheckResult) -> Vec<TypedFn> {
+    result.typed_fns
+}
+
+fn typecheck_result_mono_instance_count(result: TypeCheckResult) -> i32 {
+    len(result.mono_instances)
+}
+
+fn typecheck_result_mono_instance_at(result: TypeCheckResult, index: i32) -> MonoInstance {
+    get_unchecked(result.mono_instances, index)
+}
+
+fn typecheck_result_mono_instances(result: TypeCheckResult) -> Vec<MonoInstance> {
+    result.mono_instances
+}

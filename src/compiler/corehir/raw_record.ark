@@ -1,0 +1,38 @@
+// Arukellt Selfhost - CoreHIR raw program data contract.
+
+struct CoreHirRawProgram {
+    decl_infos: Vec<CoreHirDeclInfo>,
+    fn_infos: Vec<CoreHirFnInfo>,
+    method_infos: Vec<CoreHirMethodInfo>,
+    layout_decls: Vec<CoreHirLayoutDecl>,
+    type_facts: CoreHirTypeFacts,
+    body_table: CoreHirBodyTable,
+}
+
+fn CoreHirRawProgram_new(decl_infos: Vec<CoreHirDeclInfo>, fn_infos: Vec<CoreHirFnInfo>, method_infos: Vec<CoreHirMethodInfo>, layout_decls: Vec<CoreHirLayoutDecl>, type_facts: CoreHirTypeFacts, body_table: CoreHirBodyTable) -> CoreHirRawProgram {
+    CoreHirRawProgram { decl_infos: decl_infos, fn_infos: fn_infos, method_infos: method_infos, layout_decls: layout_decls, type_facts: type_facts, body_table: body_table }
+}
+
+fn raw_program_decl_infos(program: CoreHirRawProgram) -> Vec<CoreHirDeclInfo> {
+    program.decl_infos
+}
+
+fn raw_program_fn_infos(program: CoreHirRawProgram) -> Vec<CoreHirFnInfo> {
+    program.fn_infos
+}
+
+fn raw_program_method_infos(program: CoreHirRawProgram) -> Vec<CoreHirMethodInfo> {
+    program.method_infos
+}
+
+fn raw_program_layout_decls(program: CoreHirRawProgram) -> Vec<CoreHirLayoutDecl> {
+    program.layout_decls
+}
+
+fn raw_program_type_facts(program: CoreHirRawProgram) -> CoreHirTypeFacts {
+    program.type_facts
+}
+
+fn raw_program_body_table(program: CoreHirRawProgram) -> CoreHirBodyTable {
+    program.body_table
+}

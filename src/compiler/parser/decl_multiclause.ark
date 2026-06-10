@@ -1,0 +1,34 @@
+use parser::core_ast_text_fields
+// Arukellt Parser - multi-clause function declarations.
+
+use parser::core_api_expect
+use parser::decl_multiclause_clause
+use parser::decl_multiclause_where
+use parser::fn_clause
+use parser::fn_lookahead
+use parser::multiclause
+
+fn parse_multiclause_fn_decl(p: Parser, is_pub: bool) -> AstNode {
+    let first_clause = decl_multiclause_clause::parse_fn_clause(p)
+    let param_count = fn_clause::clause_param_count(first_clause)
+    let mut clauses = Vec_new_AstNode()
+    push(clauses, first_clause)
+    while fn_lookahead::has_next_clause(p, core_ast_text_fields::AstNode_text(first_clause)) {
+        let next_clause = decl_multiclause_clause::parse_fn_clause(p)
+        let nc_param_count = fn_clause::clause_param_count(next_clause)
+        if nc_param_count != param_count {
+            core_api_expect::error(p, concat(String_from("clause has "), concat(to_string(nc_param_count), concat(String_from(" parameters but previous clauses have "), concat(to_string(param_count), String_from(""))))))
+            let stub = fn_clause::make_clause_error_stub(next_clause, is_pub)
+            clauses = Vec_new_AstNode()
+            push(clauses, stub)
+            break
+        }
+        push(clauses, next_clause)
+    }
+    if param_count > 1 {
+        core_api_expect::error(p, String_from("multi-clause functions with multiple parameters are not yet supported"))
+        return fn_clause::make_clause_error_stub(first_clause, is_pub)
+    }
+    let where_bindings = decl_multiclause_where::parse_optional_where_block(p)
+    multiclause::desugar_multiclause(clauses, is_pub, where_bindings)
+}

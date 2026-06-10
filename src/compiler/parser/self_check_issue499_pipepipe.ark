@@ -1,0 +1,57 @@
+use parser::ast_kind_fields
+use parser::core_ast_literal_fields
+use parser::kinds
+use parser::core_ast_children
+// Arukellt Parser self-checks for issue 499 empty closure parsing.
+
+use lexer::scan
+use parser::core_api_token
+use parser::decl
+use parser::state_record
+
+fn issue499_parser_pipepipe_self_check() -> String {
+    let src = String_from("fn main() { let z = || 42 }")
+    let tokens = scan::tokenize(src)
+    let p = core_api_token::Parser_new(tokens)
+    let decls = decl::parse_module(p)
+    let error_count = state_record::parser_error_count(p)
+    if error_count != 0 {
+        return concat(String_from("issue499 pipepipe fail: parse errors="), to_string(error_count))
+    }
+    if len(decls) != 1 {
+        return concat(String_from("issue499 pipepipe fail: decl count="), to_string(len(decls)))
+    }
+    let fn_decl = get_unchecked(decls, 0)
+    if ast_kind_fields::AstNode_kind(fn_decl) != kinds::NK_FN_DECL() {
+        return String_from("issue499 pipepipe fail: expected fn decl")
+    }
+    if core_ast_children::AstNode_child_count(fn_decl) != 1 {
+        return concat(String_from("issue499 pipepipe fail: fn child count="), to_string(core_ast_children::AstNode_child_count(fn_decl)))
+    }
+    let body = core_ast_children::AstNode_child_at(fn_decl, 0)
+    if ast_kind_fields::AstNode_kind(body) != kinds::NK_BLOCK() {
+        return String_from("issue499 pipepipe fail: expected block body")
+    }
+    if core_ast_children::AstNode_child_count(body) != 1 {
+        return concat(String_from("issue499 pipepipe fail: stmt count="), to_string(core_ast_children::AstNode_child_count(body)))
+    }
+    let let_stmt = core_ast_children::AstNode_child_at(body, 0)
+    if ast_kind_fields::AstNode_kind(let_stmt) != kinds::NK_LET() {
+        return String_from("issue499 pipepipe fail: expected let stmt")
+    }
+    if core_ast_children::AstNode_child_count(let_stmt) != 1 {
+        return concat(String_from("issue499 pipepipe fail: let child count="), to_string(core_ast_children::AstNode_child_count(let_stmt)))
+    }
+    let closure = core_ast_children::AstNode_child_at(let_stmt, 0)
+    if ast_kind_fields::AstNode_kind(closure) != kinds::NK_CLOSURE() {
+        return String_from("issue499 pipepipe fail: expected closure expr")
+    }
+    if core_ast_children::AstNode_child_count(closure) != 1 {
+        return concat(String_from("issue499 pipepipe fail: closure child count="), to_string(core_ast_children::AstNode_child_count(closure)))
+    }
+    let closure_body = core_ast_children::AstNode_child_at(closure, 0)
+    if ast_kind_fields::AstNode_kind(closure_body) != kinds::NK_INT_LIT() || core_ast_literal_fields::AstNode_int_val(closure_body) != 42 {
+        return String_from("issue499 pipepipe fail: closure body")
+    }
+    String_from("issue499 parser ok: let z = || 42")
+}

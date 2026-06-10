@@ -1,0 +1,17 @@
+// Arukellt Selfhost - MIR phi smoke check facade.
+
+use mir::dump_phi_smoke_insertion
+use mir::dump_phi_smoke_nested
+use mir::dump_phi_smoke_repr
+
+fn run_phi_representation_smoke() {
+    dump_phi_smoke_repr::run_phi_representation_smoke()
+}
+
+fn run_phi_insertion_smoke() {
+    dump_phi_smoke_insertion::run_phi_insertion_smoke()
+}
+
+fn run_phi_insertion_nested_join_smoke() {
+    dump_phi_smoke_nested::run_phi_insertion_nested_join_smoke()
+}

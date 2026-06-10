@@ -1,0 +1,110 @@
+// Arukellt Selfhost - result/string input adapter function body emission
+
+use component::adapter_body
+use component::writer_core
+
+fn comp_emit_result_i32_string_input_wrapper_body(code_sec: writer_core::ComponentWriter) {
+	let body = writer_core::ComponentWriter_new()
+	comp_emit_result_string_input_layout(body)
+	comp_emit_result_string_input_variant_payload(body)
+	comp_emit_result_string_input_return_call(body)
+	adapter_body::comp_emit_func_body(code_sec, body)
+}
+
+fn comp_emit_result_string_input_layout(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x7f)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+}
+
+fn comp_emit_result_string_input_variant_payload(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x04)
+	writer_core::comp_emit_byte(body, 0x40)
+	comp_emit_result_string_input_string_variant_payload(body)
+	writer_core::comp_emit_byte(body, 0x05)
+	comp_emit_result_string_input_i32_variant_payload(body)
+	writer_core::comp_emit_byte(body, 0x0b)
+}
+
+fn comp_emit_result_string_input_string_variant_payload(body: writer_core::ComponentWriter) {
+	comp_emit_result_string_input_string_variant_copy(body)
+	comp_emit_result_string_input_string_variant_payload_ptr(body)
+}
+
+fn comp_emit_result_string_input_string_variant_copy(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 4)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 4)
+	writer_core::comp_emit_byte(body, 0x6a)
+	writer_core::comp_emit_byte(body, 0x10)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x21)
+	writer_core::comp_emit_leb128_u(body, 3)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 3)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 3)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 4)
+	writer_core::comp_emit_byte(body, 0x6a)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_byte(body, 0xfc)
+	writer_core::comp_emit_leb128_u(body, 10)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_leb128_u(body, 0)
+}
+
+fn comp_emit_result_string_input_string_variant_payload_ptr(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65004)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 3)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 4)
+	writer_core::comp_emit_byte(body, 0x6a)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+}
+
+fn comp_emit_result_string_input_i32_variant_payload(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65004)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+}
+
+fn comp_emit_result_string_input_return_call(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x10)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x0b)
+}

@@ -1,0 +1,50 @@
+// Arukellt Selfhost - LSP completion response builders
+
+use lsp::json_escape
+
+fn quote_string(s: String) -> String {
+	concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
+}
+
+fn completion_item(label: String, kind: i32, detail: String) -> String {
+	let mut out = String_from("{\"label\":")
+	out = concat(out, quote_string(label))
+	out = concat(out, String_from(",\"kind\":"))
+	out = concat(out, to_string(kind))
+	out = concat(out, String_from(",\"detail\":"))
+	out = concat(out, quote_string(detail))
+	out = concat(out, String_from("}"))
+	out
+}
+
+fn append_completion_item(items: String, item: String) -> String {
+	if len(items) == 0 {
+		return item
+	}
+	concat(concat(items, String_from(",")), item)
+}
+
+pub fn build_completion_response(id: i32) -> String {
+	let mut items = String_new()
+	items = append_completion_item(items, completion_item(String_from("fn"), 14, String_from("keyword")))
+	items = append_completion_item(items, completion_item(String_from("let"), 14, String_from("keyword")))
+	items = append_completion_item(items, completion_item(String_from("mut"), 14, String_from("keyword")))
+	items = append_completion_item(items, completion_item(String_from("if"), 14, String_from("keyword")))
+	items = append_completion_item(items, completion_item(String_from("else"), 14, String_from("keyword")))
+	items = append_completion_item(items, completion_item(String_from("match"), 14, String_from("keyword")))
+	items = append_completion_item(items, completion_item(String_from("use"), 14, String_from("keyword")))
+	items = append_completion_item(items, completion_item(String_from("pub"), 14, String_from("keyword")))
+	items = append_completion_item(items, completion_item(String_from("return"), 14, String_from("keyword")))
+	items = append_completion_item(items, completion_item(String_from("std::host::stdio"), 9, String_from("module")))
+	items = append_completion_item(items, completion_item(String_from("std::host::fs"), 9, String_from("module")))
+	items = append_completion_item(items, completion_item(String_from("std::path"), 9, String_from("module")))
+	items = append_completion_item(items, completion_item(String_from("println"), 3, String_from("function")))
+	items = append_completion_item(items, completion_item(String_from("i32_to_string"), 3, String_from("function")))
+	items = append_completion_item(items, completion_item(String_from("String_from"), 3, String_from("function")))
+	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+	body = concat(body, to_string(id))
+	body = concat(body, String_from(",\"result\":{\"isIncomplete\":false,\"items\":["))
+	body = concat(body, items)
+	body = concat(body, String_from("]}}"))
+	body
+}

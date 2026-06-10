@@ -1,0 +1,12 @@
+// Arukellt LSP - JSON-RPC output framing.
+
+use lsp::state_record
+
+fn frame(body: String) -> String {
+    let header = concat(String_from("Content-Length: "), concat(to_string(len(clone(body))), String_from("\r\n\r\n")))
+    concat(header, body)
+}
+
+fn append_framed(state: LspState, body: String) {
+    state_record::lsp_state_append_output(state, frame(body))
+}

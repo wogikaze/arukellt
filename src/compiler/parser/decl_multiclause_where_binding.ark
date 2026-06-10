@@ -1,0 +1,22 @@
+use lexer::tokens
+use parser::core_ast_text_fields
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - multi-clause where binding syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::expr
+use parser::kinds
+use parser::token_state
+
+fn parse_where_binding(p: Parser) -> AstNode {
+    let name_tok = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    core_api_expect::expect_token(p, tokens::TK_EQ())
+    core_api_cursor::skip_newlines(p)
+    let init = expr::parse_expr(p)
+    let binding = core_ast_factory::AstNode_new(kinds::NK_LET(), core_api_expect::tok_span(name_tok))
+    core_ast_text_fields::AstNode_set_text(binding, token_state::Token_text(name_tok))
+    core_ast_children::AstNode_push_child(binding, init)
+    binding
+}

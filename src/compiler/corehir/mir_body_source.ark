@@ -1,0 +1,35 @@
+// Arukellt Selfhost - CoreHIR body source over MIR-facing program views.
+
+use corehir::body
+
+struct CoreHirMirBodySource {
+    exprs: Vec<CoreHirExpr>,
+    fn_body_roots: Vec<i32>,
+    method_body_roots: Vec<i32>,
+}
+
+fn mir_body_source_from_table(table: CoreHirBodyTable) -> CoreHirMirBodySource {
+    CoreHirMirBodySource {
+        exprs: body::body_exprs(table),
+        fn_body_roots: body::body_fn_roots(table),
+        method_body_roots: body::body_method_roots(table),
+    }
+}
+
+fn mir_body_source_exprs(source: CoreHirMirBodySource) -> Vec<CoreHirExpr> {
+    source.exprs
+}
+
+fn mir_body_source_fn_body_root(source: CoreHirMirBodySource, info_index: i32) -> i32 {
+    if info_index >= 0 && info_index < len(source.fn_body_roots) {
+        return get_unchecked(source.fn_body_roots, info_index)
+    }
+    0 - 1
+}
+
+fn mir_body_source_method_body_root(source: CoreHirMirBodySource, info_index: i32) -> i32 {
+    if info_index >= 0 && info_index < len(source.method_body_roots) {
+        return get_unchecked(source.method_body_roots, info_index)
+    }
+    0 - 1
+}

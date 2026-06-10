@@ -1,0 +1,131 @@
+use wasm::call_resolve
+use wasm::opcodes
+use mir::function_identity
+// Arukellt Selfhost - Wasm export section builder.
+
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_sections
+use wasm::writer_string
+use wasm::function_indices
+use wasm::start_names
+use mir::module_functions
+
+struct ExportSectionPlan {
+    export_count: i32,
+    main_idx: i32,
+}
+
+fn ExportSectionPlan_new(export_count: i32, main_idx: i32) -> ExportSectionPlan {
+    ExportSectionPlan { export_count: export_count, main_idx: main_idx }
+}
+
+fn ExportSectionPlan_export_count(plan: ExportSectionPlan) -> i32 {
+    plan.export_count
+}
+
+fn ExportSectionPlan_main_idx(plan: ExportSectionPlan) -> i32 {
+    plan.main_idx
+}
+
+fn emit_export_section(out: WasmWriter, mir: MirModule, fn_count: i32, needs_wrapper: i32) {
+    let export_sec = writer_core::WasmWriter_new()
+    let plan = build_export_section_plan(mir, fn_count)
+    let export_count = ExportSectionPlan_export_count(plan)
+    let main_idx = ExportSectionPlan_main_idx(plan)
+    writer_leb::emit_leb128_u(export_sec, export_count)
+    emit_memory_export_entry(export_sec)
+    emit_start_export_entry(export_sec, main_idx, fn_count, needs_wrapper)
+    emit_function_export_entries(export_sec, mir, fn_count)
+    writer_sections::emit_section(out, opcodes::SEC_EXPORT(), export_sec)
+}
+
+fn export_name_seen_count(names: Vec<String>, name: String) -> i32 {
+    let mut total = 0
+    let mut i = 0
+    while i < len(names) {
+        if eq(clone(get_unchecked(names, i)), clone(name)) {
+            total = total + 1
+        }
+        i = i + 1
+    }
+    total
+}
+
+fn build_export_section_plan(mir: MirModule, fn_count: i32) -> ExportSectionPlan {
+    let mut export_count = 1
+    let mut main_idx = 0 - 1
+    let mut seen_names = Vec_new_String()
+    let mut mi = 0
+    while mi < fn_count {
+        let f = module_functions::MirModule_function_at(mir, mi)
+        let fname = function_identity::MirFunction_name(f)
+        if start_names::is_wasm_start_function_name(clone(fname)) {
+            main_idx = mi
+        } else {
+            if !is_internal_export_name(clone(fname)) {
+                let seen = export_name_seen_count(seen_names, clone(fname))
+                push(seen_names, clone(fname))
+                export_count = export_count + 1
+            }
+        }
+        mi = mi + 1
+    }
+    if main_idx >= 0 {
+        export_count = export_count + 1
+    }
+    ExportSectionPlan_new(export_count, main_idx)
+}
+
+fn emit_memory_export_entry(export_sec: WasmWriter) {
+    writer_string::emit_string(export_sec, String_from("memory"))
+    writer_core::emit_byte(export_sec, 2)
+    writer_leb::emit_leb128_u(export_sec, 0)
+}
+
+fn emit_start_export_entry(export_sec: WasmWriter, main_idx: i32, fn_count: i32, needs_wrapper: i32) {
+    if main_idx >= 0 {
+        writer_string::emit_string(export_sec, String_from("_start"))
+        writer_core::emit_byte(export_sec, 0)
+        if needs_wrapper == 1 {
+            writer_leb::emit_leb128_u(export_sec, wasm_wrapper_export_index(fn_count))
+        } else {
+            writer_leb::emit_leb128_u(export_sec, wasm_function_export_index(main_idx))
+        }
+    }
+}
+
+fn emit_function_export_entries(export_sec: WasmWriter, mir: MirModule, fn_count: i32) {
+    let functions = module_functions::MirModule_functions(mir)
+    let mut seen_short_names = Vec_new_String()
+    let mut exi = 0
+    while exi < fn_count {
+        let ef = module_functions::MirModule_function_at(mir, exi)
+        let ef_name = function_identity::MirFunction_name(ef)
+        if start_names::is_wasm_start_function_name(clone(ef_name)) {
+        } else {
+            if !is_internal_export_name(clone(ef_name)) {
+                let seen = export_name_seen_count(seen_short_names, clone(ef_name))
+                let export_name = call_resolve::mir_collision_export_name(functions, exi, clone(ef_name), seen)
+                push(seen_short_names, clone(ef_name))
+                writer_string::emit_string(export_sec, export_name)
+                writer_core::emit_byte(export_sec, 0)
+                writer_leb::emit_leb128_u(export_sec, wasm_function_export_index(exi))
+            }
+        }
+        exi = exi + 1
+    }
+}
+
+fn is_internal_export_name(name: String) -> bool {
+    let name_len = len(name)
+    name_len > 2 && char_at(name, 0) == 95 && char_at(name, 1) == 95
+}
+
+fn wasm_function_export_index(function_idx: i32) -> i32 {
+    function_indices::defined_function_index(function_idx)
+}
+
+fn wasm_wrapper_export_index(fn_count: i32) -> i32 {
+    function_indices::wrapper_function_index(fn_count)
+}

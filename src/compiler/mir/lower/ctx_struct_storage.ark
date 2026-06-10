@@ -1,0 +1,31 @@
+// Arukellt MIR lowering context - struct layout storage.
+
+fn ctx_struct_layout_count(ctx: LowerCtx) -> i32 {
+    len(ctx.struct_names)
+}
+
+fn ctx_struct_layout_name_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.struct_names, index))
+}
+
+fn ctx_struct_layout_field_count_at(ctx: LowerCtx, index: i32) -> i32 {
+    get_unchecked(ctx.struct_field_counts, index)
+}
+
+fn ctx_struct_field_name_at_offset(ctx: LowerCtx, offset: i32) -> String {
+    clone(get_unchecked(ctx.struct_all_fields, offset))
+}
+
+fn ctx_struct_field_type_at_offset(ctx: LowerCtx, offset: i32) -> String {
+    clone(get_unchecked(ctx.struct_field_types, offset))
+}
+
+fn ctx_struct_push_layout(ctx: LowerCtx, struct_name: String, field_count: i32) {
+    push(ctx.struct_names, struct_name)
+    push(ctx.struct_field_counts, field_count)
+}
+
+fn ctx_struct_push_field(ctx: LowerCtx, field_name: String, field_type: String) {
+    push(ctx.struct_all_fields, field_name)
+    push(ctx.struct_field_types, field_type)
+}

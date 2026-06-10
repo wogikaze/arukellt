@@ -1,0 +1,26 @@
+// Arukellt Selfhost - CoreHIR layout variant helpers.
+
+struct CoreHirLayoutVariant {
+    name: String,
+    payload_type_names: Vec<String>,
+}
+
+fn CoreHirLayoutVariant_new(name: String, payload_type_names: Vec<String>) -> CoreHirLayoutVariant {
+    CoreHirLayoutVariant { name: name, payload_type_names: payload_type_names }
+}
+
+fn layout_variant_name(variant: CoreHirLayoutVariant) -> String {
+    clone(variant.name)
+}
+
+fn layout_variant_payload_type_count(variant: CoreHirLayoutVariant) -> i32 {
+    len(variant.payload_type_names)
+}
+
+fn layout_variant_payload_type_name_at(variant: CoreHirLayoutVariant, index: i32) -> String {
+    get_unchecked(variant.payload_type_names, index)
+}
+
+fn layout_variant_has_payload(variant: CoreHirLayoutVariant) -> bool {
+    layout_variant_payload_type_count(variant) > 0
+}

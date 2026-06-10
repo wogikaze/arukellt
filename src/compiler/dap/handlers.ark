@@ -1,0 +1,33 @@
+// Arukellt Selfhost - DAP request dispatch.
+
+use dap::json_fields
+use dap::responses
+use dap::state
+
+fn dap_handle(state: DapState, body: String) {
+    let command = json_fields::dap_get_str(clone(body), String_from("command"))
+    let msg_type = json_fields::dap_get_str(clone(body), String_from("type"))
+    if len(msg_type) == 0 || !eq(clone(msg_type), String_from("request")) {
+        return
+    }
+    if len(command) == 0 {
+        return
+    }
+    let request_seq = json_fields::dap_get_int(clone(body), String_from("seq"))
+    if eq(clone(command), String_from("initialize")) {
+        state::dap_mark_initialized(state)
+        state::dap_append(state, responses::dap_init_resp(state::dap_next_seq(state), request_seq))
+        state::dap_append(state, responses::dap_init_evt(state::dap_next_seq(state)))
+        return
+    }
+    if eq(clone(command), String_from("launch")) {
+        state::dap_mark_launched(state)
+        state::dap_append(state, responses::dap_launch_resp(state::dap_next_seq(state), request_seq))
+        return
+    }
+    if eq(clone(command), String_from("disconnect")) {
+        state::dap_mark_disconnected(state)
+        state::dap_append(state, responses::dap_disconnect_resp(state::dap_next_seq(state), request_seq))
+        return
+    }
+}

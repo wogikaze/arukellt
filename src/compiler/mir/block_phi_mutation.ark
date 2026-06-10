@@ -1,0 +1,8 @@
+// Arukellt Selfhost - MIR block phi mutation API.
+
+use mir::phi_record
+use mir::types_block
+
+fn MirBlock_push_phi(block: MirBlock, phi: MirPhi) {
+    push(block.phis, phi)
+}

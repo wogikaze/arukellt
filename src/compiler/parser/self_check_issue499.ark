@@ -1,0 +1,22 @@
+// Arukellt Parser self-check facade for issue 499.
+
+use parser::self_check_issue499_block
+use parser::self_check_issue499_closure
+use parser::self_check_issue499_lexer
+use parser::self_check_issue499_pipepipe
+
+fn issue499_parser_self_check() -> String {
+    self_check_issue499_closure::issue499_parser_self_check()
+}
+
+fn issue499_parser_pipepipe_self_check() -> String {
+    self_check_issue499_pipepipe::issue499_parser_pipepipe_self_check()
+}
+
+fn issue499_parser_lexer_integration_self_check() -> String {
+    self_check_issue499_lexer::issue499_parser_lexer_integration_self_check()
+}
+
+fn issue499_parser_block_body_lexer_integration_self_check() -> String {
+    self_check_issue499_block::issue499_parser_block_body_lexer_integration_self_check()
+}

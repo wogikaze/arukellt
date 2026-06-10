@@ -1,0 +1,38 @@
+use mir::function_identity
+use mir::function_locals_view
+// Arukellt Selfhost - MIR dump core output
+
+use std::host::stdio
+use mir::dominance
+use mir::dump_core_blocks
+use mir::function_block_queries
+use mir::module_functions
+use mir::module_strings
+use mir::module_metadata
+use mir::types
+use mir::ssa_rename_entry
+
+
+// ── MIR Dump ─────────────────────────────────────────────────────────────────
+fn dump_mir(m: MirModule) {
+    dominance::mir_compute_dominance(m)
+    ssa_rename_entry::mir_ssa_rename_module(m)
+    let fn_count = module_functions::MirModule_function_count(m)
+    stdio::eprintln(concat(String_from("MIR module: "), concat(to_string(fn_count), String_from(" function(s)"))))
+    let pruned_count = module_metadata::MirModule_mono_pruned_count(m)
+    if pruned_count > 0 {
+        stdio::eprintln(concat(String_from("MIR mono pruned: "), concat(to_string(pruned_count), String_from(" function(s)"))))
+    }
+    let mut i = 0
+    while i < fn_count {
+        let f = module_functions::MirModule_function_at(m, i)
+        let block_count = function_block_queries::MirFunction_block_count(f)
+        let local_count = function_locals_view::MirFunction_local_count(f)
+        stdio::eprintln(concat(String_from("  fn "), concat(function_identity::MirFunction_name(f), concat(String_from(" ("), concat(to_string(local_count), concat(String_from(" locals, "), concat(to_string(block_count), String_from(" blocks)"))))))))
+        dump_core_blocks::dump_mir_function_blocks(f)
+        i = i + 1
+    }
+    let str_count = module_strings::MirModule_string_constant_count(m)
+    if str_count > 0 {
+        stdio::eprintln(concat(String_from("  strings: "), to_string(str_count)))
+    }

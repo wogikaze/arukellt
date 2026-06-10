@@ -1,0 +1,29 @@
+use corehir::expr_factory
+use corehir::kinds
+// Arukellt Selfhost - CoreHIR call, match, and closure expression constructors.
+
+use corehir::value_types
+
+fn corehir_expr_call(callee_name: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_CALL(), callee_name, 0, 0.0, value_types::VT_I32(), String_new(), span_start, children)
+}
+
+fn corehir_expr_method_call(method_name: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_METHOD_CALL(), method_name, 0, 0.0, value_types::VT_I32(), String_new(), span_start, children)
+}
+
+fn corehir_expr_try(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_TRY(), String_new(), 0, 0.0, value_types::VT_I32(), String_new(), span_start, children)
+}
+
+fn corehir_expr_match(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_MATCH(), String_new(), 0, 0.0, value_types::VT_I32(), String_new(), span_start, children)
+}
+
+fn corehir_expr_match_arm(val_type: i32, type_name: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_MATCH_ARM(), String_new(), 0, 0.0, val_type, type_name, span_start, children)
+}
+
+fn corehir_expr_closure(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_CLOSURE(), String_new(), 0, 0.0, value_types::VT_I32(), String_new(), span_start, children)
+}

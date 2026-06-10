@@ -1,0 +1,19 @@
+// Arukellt Selfhost - Wasm module emission entrypoint.
+
+use wasm::writer_core
+use wasm::wasm_sections
+
+fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
+    let out = writer_core::WasmWriter_new()
+    emit_wasm_module_header(out)
+    wasm_sections::emit_wasm_module_sections(out, mir, target, opt_level)
+    writer_core::writer_bytes(out)
+}
+
+fn emit_wasm_module_header(out: WasmWriter) {
+    writer_core::emit_byte(out, 0)
+    writer_core::emit_byte(out, 97)
+    writer_core::emit_byte(out, 115)
+    writer_core::emit_byte(out, 109)
+    writer_core::emit_u32_le(out, 1)
+}

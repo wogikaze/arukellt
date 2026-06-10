@@ -1449,6 +1449,50 @@ def check_manifest_example_integrity() -> int:
     return 0
 
 
+def check_docsify_routing_config() -> int:
+    """Validate docsify routing settings that keep browser links stable.
+
+    The docs site is served from ``docs/index.html`` with hash routing. Sidebar
+    entries must be hash routes so they stay rooted at the docs home regardless
+    of the current page. Body links use a small docsify hook to correct
+    page-relative Markdown links after rendering.
+    """
+    index_path = ROOT / "docs" / "index.html"
+    sidebar_path = ROOT / "docs" / "_sidebar.md"
+
+    if not index_path.exists() or not sidebar_path.exists():
+        return 0
+
+    index_text = index_path.read_text(encoding="utf-8")
+    if "relativePath: true" in index_text:
+        errors.append(
+            "docs/index.html must not enable docsify relativePath globally; "
+            "it makes generated sidebar links page-relative and causes 404s"
+        )
+        return 1
+    if "docsifyArtifactLinks" not in index_text:
+        errors.append(
+            "docs/index.html is missing docsifyArtifactLinks hook; "
+            "relative body links and .ark/.expected/.wasm artifacts can break in hash routing"
+        )
+        return 1
+
+    sidebar_text = sidebar_path.read_text(encoding="utf-8")
+    bad_sidebar_links: list[str] = []
+    for line in sidebar_text.splitlines():
+        match = re.search(r"\]\(([^)#][^)]+)\)", line)
+        if match:
+            bad_sidebar_links.append(match.group(1))
+    if bad_sidebar_links:
+        errors.append(
+            "docs/_sidebar.md must use hash routes or anchors, not page-relative links: "
+            + ", ".join(bad_sidebar_links[:8])
+        )
+        return 1
+
+    return 0
+
+
 def main() -> int:
     failed = 0
     failed += check_maturity_matrix_freshness()
@@ -1470,6 +1514,7 @@ def main() -> int:
     failed += check_name_index_completeness()
     failed += check_manifest_availability_consistency()
     failed += check_manifest_example_integrity()
+    failed += check_docsify_routing_config()
 
     if errors:
         print("docs consistency check FAILED:", file=sys.stderr)

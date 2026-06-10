@@ -1,0 +1,22 @@
+// Arukellt Typechecker - inference environment type variable helpers.
+
+use typechecker::contract_env_record
+use typechecker::contract_typevar_record
+
+fn type_env_take_next_var_id(env: TypeEnv) -> i32 {
+    let id = env.next_id
+    env.next_id = env.next_id + 1
+    id
+}
+
+fn type_env_push_var(env: TypeEnv, tv: TypeVar) {
+    push(env.vars, tv)
+}
+
+fn type_env_var_count(env: TypeEnv) -> i32 {
+    len(env.vars)
+}
+
+fn type_env_var_at(env: TypeEnv, index: i32) -> TypeVar {
+    get_unchecked(env.vars, index)
+}

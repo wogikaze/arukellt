@@ -1,0 +1,24 @@
+use lexer::tokens
+use parser::core_ast_text_fields
+use parser::core_ast_span
+use parser::core_ast_factory
+// Arukellt Parser - named and generic type syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::kinds
+use parser::token_state
+
+fn parse_named_or_generic_type(p: Parser, t: Token) -> AstNode {
+    p.pos = p.pos + 1
+    let mut type_name = token_state::Token_text(t)
+    let mut end_span = token_state::Token_end(t)
+    while core_api_cursor::peek_kind(p) == tokens::TK_COLONCOLON() {
+        p.pos = p.pos + 1
+        let seg = core_api_expect::expect_token(p, tokens::TK_IDENT())
+        type_name = concat(type_name, concat(String_from("::"), token_state::Token_text(seg)))
+        end_span = token_state::Token_end(seg)
+    }
+    let base_span = core_ast_span::Span_new(token_state::Token_start(t), end_span)
+    core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), clone(type_name), base_span)
+}

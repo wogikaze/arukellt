@@ -1,0 +1,30 @@
+// Arukellt Selfhost - MIR block-id set helpers.
+
+use mir::dom_set_collect
+use mir::dom_set_intersect
+use mir::dom_set_mutate
+use mir::dom_set_query
+
+fn mir_push_unique_i32(ids: Vec<i32>, block_id: i32) {
+    dom_set_mutate::mir_push_unique_i32(ids, block_id)
+}
+
+fn mir_copy_block_ids(ids: Vec<i32>) -> Vec<i32> {
+    dom_set_collect::mir_copy_block_ids(ids)
+}
+
+fn mir_collect_all_block_ids(f: MirFunction) -> Vec<i32> {
+    dom_set_collect::mir_collect_all_block_ids(f)
+}
+
+fn mir_block_ids_contains(ids: Vec<i32>, block_id: i32) -> bool {
+    dom_set_query::mir_block_ids_contains(ids, block_id)
+}
+
+fn mir_same_block_id_set(a: Vec<i32>, b: Vec<i32>) -> bool {
+    dom_set_query::mir_same_block_id_set(a, b)
+}
+
+fn mir_intersect_block_id_sets(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
+    dom_set_intersect::mir_intersect_block_id_sets(a, b)
+}

@@ -1,0 +1,9 @@
+// Arukellt Selfhost - MIR lowering local frame API.
+
+use mir::lower::ctx_locals_frame
+
+fn LowerCtxLocalFrame_capture(ctx: LowerCtx) -> LowerCtxLocalFrame { ctx_locals_frame::LowerCtxLocalFrame_capture(ctx) }
+fn ctx_restore_local_frame(ctx: LowerCtx, frame: LowerCtxLocalFrame) { ctx_locals_frame::ctx_restore_local_frame(ctx, frame) }
+fn ctx_begin_function_frame(ctx: LowerCtx, func: MirFunction) -> i32 { ctx_locals_frame::ctx_begin_function_frame(ctx, func) }
+fn ctx_current_function(ctx: LowerCtx) -> MirFunction { ctx_locals_frame::ctx_current_function(ctx) }
+fn ctx_set_current_function(ctx: LowerCtx, func: MirFunction) { ctx_locals_frame::ctx_set_current_function(ctx, func) }

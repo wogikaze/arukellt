@@ -1,0 +1,14 @@
+// Arukellt Selfhost - CoreHIR statement kind adapter.
+
+use parser::kinds
+
+// Arukellt Selfhost - parser AST statement kind adapter for CoreHIR frontend.
+
+fn corehir_kind_is_stmt_while(kind: i32) -> bool { kind == kinds::NK_WHILE() }
+fn corehir_kind_is_stmt_loop(kind: i32) -> bool { kind == kinds::NK_LOOP() }
+fn corehir_kind_is_stmt_for(kind: i32) -> bool { kind == kinds::NK_FOR() }
+fn corehir_kind_is_stmt_break(kind: i32) -> bool { kind == kinds::NK_BREAK() }
+fn corehir_kind_is_stmt_continue(kind: i32) -> bool { kind == kinds::NK_CONTINUE() }
+fn corehir_kind_is_stmt_return(kind: i32) -> bool { kind == kinds::NK_RETURN() }
+fn corehir_kind_is_stmt_let(kind: i32) -> bool { kind == kinds::NK_LET() }
+fn corehir_kind_is_stmt_expr_stmt(kind: i32) -> bool { kind == kinds::NK_EXPR_STMT() }

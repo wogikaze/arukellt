@@ -1,0 +1,7 @@
+// Arukellt Selfhost - MIR block identity accessors.
+
+use mir::types_block
+
+fn MirBlock_id(block: MirBlock) -> i32 {
+    block.id
+}

@@ -1,0 +1,28 @@
+// Arukellt Selfhost - LSP text position helpers
+
+use diagnostics::source_map_offsets
+
+pub struct LspPosition {
+    line: i32,
+    character: i32,
+}
+
+pub fn LspPosition_new(line: i32, character: i32) -> LspPosition {
+    LspPosition { line: line, character: character }
+}
+
+pub fn lsp_position_line(pos: LspPosition) -> i32 {
+    pos.line
+}
+
+pub fn lsp_position_character(pos: LspPosition) -> i32 {
+    pos.character
+}
+
+pub fn position_to_offset(text: String, line: i32, character: i32) -> i32 {
+    source_map_offsets::zero_based_position_to_offset(text, line, character)
+}
+
+pub fn offset_to_position(text: String, offset: i32) -> LspPosition {
+    LspPosition_new(source_map_offsets::offset_to_zero_based_line(clone(text), offset), source_map_offsets::offset_to_zero_based_column(text, offset))
+}

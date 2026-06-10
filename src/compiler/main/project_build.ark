@@ -1,0 +1,166 @@
+// Arukellt Selfhost - main namespace: project_build
+
+use std::host::fs
+use std::host::process
+use std::host::stdio
+use driver::file
+use driver::config_record
+use driver::result_record
+use main::args_record
+use main::output
+use main::project_run
+// Arukellt Selfhost - CLI build command implementation
+
+fn build_project_driver_config(opts: CliOptions) -> DriverConfig {
+	let config = config_record::DriverConfig_default()
+	config_record::config_set_target(config, args_record::cli_target(opts))
+	config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
+	config_record::config_set_emit_mode(config, args_record::cli_emit_mode(opts))
+	config
+}
+
+fn print_project_compile_errors(entry: String, result: CompileResult) {
+	let err_count = result_record::compile_result_error_count(result)
+	let mut i = 0
+	while i < err_count {
+		let msg = result_record::compile_result_error_message_at(result, i)
+		stdio::eprintln(output::format_error(clone(entry), clone(msg)))
+		i = i + 1
+	}
+}
+
+fn exit_missing_build_entry() {
+	stdio::eprintln(String_from("error: no 'path' (under [bin]) or 'entry' field found in ark.toml"))
+	process::exit(1)
+}
+
+fn exit_build_manifest_read_error(manifest_path: String, error: String) {
+	stdio::eprintln(concat(String_from("error: cannot read "), concat(clone(manifest_path), concat(String_from(": "), error))))
+	process::exit(1)
+}
+
+fn exit_project_compile_error(entry: String, result: CompileResult) {
+	print_project_compile_errors(entry, result)
+	process::exit(1)
+}
+
+fn print_build_start(info: ProjectBuildManifest, manifest_path: String, entry: String) {
+	if manifest_has_pkg_name(info) {
+		stdio::eprintln(concat(String_from("building "), concat(manifest_pkg_name(info), concat(String_from(" v"), concat(manifest_pkg_version(info), concat(String_from(" ("), concat(clone(entry), String_from(")"))))))))
+	} else {
+		stdio::eprintln(concat(String_from("building "), concat(clone(manifest_path), concat(String_from(" (entry: "), concat(clone(entry), String_from(")"))))))
+	}
+}
+
+fn build_output_path(opts: CliOptions, info: ProjectBuildManifest) -> String {
+	if args_record::cli_has_output_file(opts) {
+		return args_record::cli_output_file(opts)
+	}
+	if manifest_has_pkg_name(info) {
+		return concat(manifest_pkg_name(info), String_from(".wasm"))
+	}
+	String_from("output.wasm")
+}
+
+fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
+	let byte_count = len(bytes)
+	let write_result = fs::write_bytes(clone(out_path), bytes)
+	match write_result {
+		Result::Ok(_) => {
+			stdio::eprintln(concat(String_from("built "), concat(clone(entry), concat(String_from(" -> "), concat(clone(out_path), concat(String_from(" ("), concat(to_string(byte_count), String_from(" bytes)"))))))))
+		},
+		Result::Err(e) => {
+			stdio::eprintln(concat(String_from("error writing output: "), e))
+			process::exit(1)
+		},
+	}
+}
+
+pub fn cmd_build(opts: CliOptions) {
+	let manifest_path = build_manifest_path(opts)
+	let manifest_result = fs::read_to_string(clone(manifest_path))
+	match manifest_result {
+		Result::Ok(content) => {
+			let info = parse_project_manifest(content)
+			let entry = build_entry_path(info)
+			if len(entry) == 0 {
+				exit_missing_build_entry()
+				return
+			}
+			print_build_start(info, manifest_path, entry)
+			let config = build_project_driver_config(opts)
+			let result = file::compile_file(clone(entry), config)
+			if result_record::compile_result_success(result) {
+				let out_path = build_output_path(opts, info)
+				write_build_output(entry, out_path, result_record::compile_result_output_bytes(result))
+			} else {
+				exit_project_compile_error(entry, result)
+			}
+		},
+		Result::Err(e) => {
+			exit_build_manifest_read_error(manifest_path, e)
+		},
+	}
+}
+
+// Arukellt Selfhost - build command manifest parsing.
+
+struct ProjectBuildManifest {
+    pkg_name: String,
+    pkg_version: String,
+    bin_path: String,
+    entry_path: String,
+}
+
+fn ProjectBuildManifest_new(pkg_name: String, pkg_version: String, bin_path: String, entry_path: String) -> ProjectBuildManifest {
+    ProjectBuildManifest { pkg_name: pkg_name, pkg_version: pkg_version, bin_path: bin_path, entry_path: entry_path }
+}
+
+fn manifest_bin_path(info: ProjectBuildManifest) -> String {
+    clone(info.bin_path)
+}
+
+fn manifest_bin_path_len(info: ProjectBuildManifest) -> i32 {
+    len(info.bin_path)
+}
+
+fn manifest_entry_path(info: ProjectBuildManifest) -> String {
+    clone(info.entry_path)
+}
+
+fn manifest_entry_path_len(info: ProjectBuildManifest) -> i32 {
+    len(info.entry_path)
+}
+
+fn build_manifest_path(opts: CliOptions) -> String {
+	if args_record::cli_has_input_file(opts) {
+		return args_record::cli_input_file(opts)
+	}
+	String_from("ark.toml")
+}
+
+fn parse_project_manifest(content: String) -> ProjectBuildManifest {
+	ProjectBuildManifest_new(project_run::find_toml_value(clone(content), String_from("name")), project_run::find_toml_value(clone(content), String_from("version")), project_run::find_toml_value(clone(content), String_from("path")), project_run::find_toml_value(clone(content), String_from("entry")))
+}
+
+fn manifest_pkg_name(info: ProjectBuildManifest) -> String {
+	clone(info.pkg_name)
+}
+
+fn manifest_pkg_version(info: ProjectBuildManifest) -> String {
+	clone(info.pkg_version)
+}
+
+fn manifest_has_pkg_name(info: ProjectBuildManifest) -> bool {
+	len(info.pkg_name) > 0
+}
+
+fn build_entry_path(info: ProjectBuildManifest) -> String {
+	if manifest_bin_path_len(info) > 0 {
+		return manifest_bin_path(info)
+	}
+	if manifest_entry_path_len(info) > 0 {
+		return manifest_entry_path(info)
+	}
+	String_new()
+}

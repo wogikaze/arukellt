@@ -1,0 +1,16 @@
+use lexer::tokens
+// Arukellt Parser - Pratt prefix binding powers.
+
+
+pub fn prefix_bp(kind: i32) -> i32 {
+    if kind == tokens::TK_MINUS() {
+        return 23
+    }
+    if kind == tokens::TK_BANG() {
+        return 23
+    }
+    if kind == tokens::TK_TILDE() {
+        return 23
+    }
+    0
+}

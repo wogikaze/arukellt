@@ -1,0 +1,82 @@
+// Arukellt Selfhost - shared simple diamond CFG fixture for MIR dump smoke tests.
+
+use mir::block_alloc
+use mir::block_successor_mutation
+use mir::function_block_queries
+use mir::function_emit_inst
+use mir::function_emit_phi
+use mir::function_factory
+use mir::function_local_alloc
+use mir::function_return_mutation
+use mir::inst_const_i32
+use mir::inst_return
+use mir::module_factory
+use mir::phi_factory
+use mir::value_types
+
+pub struct MirDumpSimplePhiFixture {
+    module: MirModule,
+    function: MirFunction,
+    cond: i32,
+    then_val: i32,
+    else_val: i32,
+    join_val: i32,
+    entry: i32,
+    then_bb: i32,
+    else_bb: i32,
+    join_bb: i32,
+}
+
+fn mir_dump_simple_phi_fixture_new(name: String, with_phi: bool) -> MirDumpSimplePhiFixture {
+    let m = module_factory::MirModule_new()
+    let f = function_factory::MirFunction_new(name)
+    let cond = function_local_alloc::alloc_local(f, String_from("cond"), value_types::VT_I32())
+    let then_val = function_local_alloc::alloc_local(f, String_from("then_val"), value_types::VT_I32())
+    let else_val = function_local_alloc::alloc_local(f, String_from("else_val"), value_types::VT_I32())
+    let join_val = function_local_alloc::alloc_local(f, String_from("join_val"), value_types::VT_I32())
+    function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
+    let entry = block_alloc::alloc_block(f)
+    let then_bb = block_alloc::alloc_block(f)
+    let else_bb = block_alloc::alloc_block(f)
+    let join_bb = block_alloc::alloc_block(f)
+    function_inst::emit_inst(f, entry, inst_const_i32::MirInst_const_i32(1, cond))
+    let entry_block = function_block_queries::MirFunction_block_at(f, entry)
+    block_successor_mutation::MirBlock_set_succ0(entry_block, then_bb)
+    block_successor_mutation::MirBlock_set_succ1(entry_block, else_bb)
+    function_inst::emit_inst(f, then_bb, inst_const_i32::MirInst_const_i32(10, then_val))
+    let then_block = function_block_queries::MirFunction_block_at(f, then_bb)
+    block_successor_mutation::MirBlock_set_succ0(then_block, join_bb)
+    function_inst::emit_inst(f, else_bb, inst_const_i32::MirInst_const_i32(20, else_val))
+    let else_block = function_block_queries::MirFunction_block_at(f, else_bb)
+    block_successor_mutation::MirBlock_set_succ0(else_block, join_bb)
+    if with_phi {
+        let phi = phi_factory::MirPhi_new(join_val, value_types::VT_I32())
+        phi_factory::mir_phi_add_arg(phi, then_bb, then_val)
+        phi_factory::mir_phi_add_arg(phi, else_bb, else_val)
+        function_phi::emit_phi(f, join_bb, phi)
+    }
+    function_inst::emit_inst(f, join_bb, inst_return::MirInst_return_value(join_val))
+    MirDumpSimplePhiFixture {
+        module: m,
+        function: f,
+        cond: cond,
+        then_val: then_val,
+        else_val: else_val,
+        join_val: join_val,
+        entry: entry,
+        then_bb: then_bb,
+        else_bb: else_bb,
+        join_bb: join_bb,
+    }
+}
+
+fn MirDumpSimplePhiFixture_module(fx: MirDumpSimplePhiFixture) -> MirModule { fx.module }
+fn MirDumpSimplePhiFixture_function(fx: MirDumpSimplePhiFixture) -> MirFunction { fx.function }
+fn MirDumpSimplePhiFixture_cond(fx: MirDumpSimplePhiFixture) -> i32 { fx.cond }
+fn MirDumpSimplePhiFixture_then_val(fx: MirDumpSimplePhiFixture) -> i32 { fx.then_val }
+fn MirDumpSimplePhiFixture_else_val(fx: MirDumpSimplePhiFixture) -> i32 { fx.else_val }
+fn MirDumpSimplePhiFixture_join_val(fx: MirDumpSimplePhiFixture) -> i32 { fx.join_val }
+fn MirDumpSimplePhiFixture_entry(fx: MirDumpSimplePhiFixture) -> i32 { fx.entry }
+fn MirDumpSimplePhiFixture_then_bb(fx: MirDumpSimplePhiFixture) -> i32 { fx.then_bb }
+fn MirDumpSimplePhiFixture_else_bb(fx: MirDumpSimplePhiFixture) -> i32 { fx.else_bb }
+fn MirDumpSimplePhiFixture_join_bb(fx: MirDumpSimplePhiFixture) -> i32 { fx.join_bb }

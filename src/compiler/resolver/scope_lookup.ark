@@ -1,0 +1,46 @@
+// Arukellt Resolver - symbol lookup operations.
+
+use resolver::scope_stack_scopes
+use resolver::scope_stack_symbols
+
+fn lookup(ctx: ResolveCtx, name: String) -> i32 {
+    let sym = find_symbol(ctx, name)
+    if scope_stack_symbols::Symbol_decl_index(sym) >= 0 {
+        return scope_stack_symbols::Symbol_decl_index(sym)
+    }
+    return 0 - 1
+}
+
+fn lookup_kind(ctx: ResolveCtx, name: String) -> i32 {
+    let sym = find_symbol(ctx, name)
+    if scope_stack_symbols::Symbol_decl_index(sym) >= 0 {
+        return scope_stack_symbols::Symbol_kind(sym)
+    }
+    return 0 - 1
+}
+
+fn lookup_is_pub(ctx: ResolveCtx, name: String) -> bool {
+    let sym = find_symbol(ctx, name)
+    if scope_stack_symbols::Symbol_decl_index(sym) >= 0 {
+        return scope_stack_symbols::Symbol_is_pub(sym)
+    }
+    return false
+}
+
+fn find_symbol(ctx: ResolveCtx, name: String) -> Symbol {
+    let mut depth = scope_stack_scopes::ResolveCtx_current_depth(ctx)
+    while depth >= 0 {
+        let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, depth)
+        let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
+        let mut i = sym_count - 1
+        while i >= 0 {
+            let sym = scope_stack_scopes::Scope_symbol_at(scope, i)
+            if eq(scope_stack_symbols::Symbol_name(sym), clone(name)) {
+                return sym
+            }
+            i = i - 1
+        }
+        depth = depth - 1
+    }
+    scope_stack_symbols::Symbol_new(String_new(), 0 - 1, 0 - 1, 0 - 1, false)
+}

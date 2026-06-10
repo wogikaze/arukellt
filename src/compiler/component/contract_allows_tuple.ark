@@ -1,0 +1,39 @@
+// Arukellt Selfhost - component tuple contract allow derivation
+
+use component::contract_allows_tuple_record
+use component::contract_tuple_scan
+
+fn ComponentTupleAllows_allow_tuple_swap(allows: ComponentTupleAllows) -> bool {
+    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_swap(allows)
+}
+
+fn ComponentTupleAllows_allow_tuple_i64_swap(allows: ComponentTupleAllows) -> bool {
+    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_i64_swap(allows)
+}
+
+fn ComponentTupleAllows_allow_tuple_param(allows: ComponentTupleAllows) -> bool {
+    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_param(allows)
+}
+
+fn ComponentTupleAllows_allow_tuple_mixed_param(allows: ComponentTupleAllows) -> bool {
+    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_mixed_param(allows)
+}
+
+fn ComponentTupleAllows_allow_tuple_bool_param(allows: ComponentTupleAllows) -> bool {
+    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_bool_param(allows)
+}
+
+fn ComponentTupleAllows_allow_tuple_roundtrip(allows: ComponentTupleAllows) -> bool {
+    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_roundtrip(allows)
+}
+
+fn component_tuple_allows(tuple_scan: ComponentTupleScan) -> ComponentTupleAllows {
+    contract_allows_tuple_record::ComponentTupleAllows_new(
+        contract_tuple_scan::ComponentTupleScan_allows_i32_i32_to_tuple_i32_i32(tuple_scan),
+        contract_tuple_scan::ComponentTupleScan_allows_i64_i64_to_tuple_i64_i64(tuple_scan),
+        contract_tuple_scan::ComponentTupleScan_allows_tuple_i32_i32_to_i32(tuple_scan),
+        contract_tuple_scan::ComponentTupleScan_allows_tuple_i32_bool_to_i32(tuple_scan),
+        contract_tuple_scan::ComponentTupleScan_allows_tuple_bool_bool_to_i32(tuple_scan),
+        contract_tuple_scan::ComponentTupleScan_allows_tuple_i32_i32_to_tuple_i32_i32(tuple_scan),
+    )
+}

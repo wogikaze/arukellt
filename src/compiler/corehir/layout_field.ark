@@ -1,0 +1,18 @@
+// Arukellt Selfhost - CoreHIR layout field helpers.
+
+struct CoreHirLayoutField {
+    name: String,
+    type_name: String,
+}
+
+fn CoreHirLayoutField_new(name: String, type_name: String) -> CoreHirLayoutField {
+    CoreHirLayoutField { name: name, type_name: type_name }
+}
+
+fn layout_field_name(field: CoreHirLayoutField) -> String {
+    clone(field.name)
+}
+
+fn layout_field_type_name(field: CoreHirLayoutField) -> String {
+    clone(field.type_name)
+}

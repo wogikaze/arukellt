@@ -1,0 +1,14 @@
+use mir::lower::ctx_api_local_frame
+use mir::lower::ctx_types
+use mir::function_factory
+// Arukellt MIR lowering body - closure context switch helpers.
+
+
+fn mir_begin_closure_function_context(ctx: LowerCtx, synth: String) {
+    let mf = function_factory::MirFunction_new(clone(synth))
+    let _entry = ctx_api_local_frame::ctx_begin_function_frame(ctx, mf)
+}
+
+fn mir_restore_closure_parent_context(ctx: LowerCtx, frame: LowerCtxLocalFrame) {
+    ctx_api_local_frame::ctx_restore_local_frame(ctx, frame)
+}

@@ -1,0 +1,7 @@
+// Arukellt Selfhost - MIR lowering nesting depth API.
+
+use mir::lower::ctx_control
+
+fn ctx_current_nesting_depth(ctx: LowerCtx) -> i32 { ctx_control::ctx_current_nesting_depth(ctx) }
+fn ctx_push_nesting(ctx: LowerCtx) -> i32 { ctx_control::ctx_push_nesting(ctx) }
+fn ctx_pop_nesting(ctx: LowerCtx) -> i32 { ctx_control::ctx_pop_nesting(ctx) }

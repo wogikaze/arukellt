@@ -1,0 +1,42 @@
+// Arukellt Selfhost - MIR function local record helpers.
+
+use mir::function_core_record
+use mir::local_record
+
+fn mir_function_local_count(f: MirFunction) -> i32 {
+    len(f.locals)
+}
+
+fn mir_function_local_at(f: MirFunction, idx: i32) -> MirLocal {
+    get_unchecked(f.locals, idx)
+}
+
+fn mir_function_next_local(f: MirFunction) -> i32 {
+    f.next_local
+}
+
+fn mir_function_push_local(f: MirFunction, local: MirLocal) {
+    push(f.locals, local)
+}
+
+fn mir_function_alloc_local(f: MirFunction, name: String, vt: i32) -> i32 {
+    let idx = f.next_local
+    f.next_local = f.next_local + 1
+    push(f.locals, local_record::MirLocal_new(name, vt, String_new()))
+    idx
+}
+
+fn mir_function_set_local(f: MirFunction, local_id: i32, local: MirLocal) {
+    let out = Vec_new_MirLocal()
+    let n = len(f.locals)
+    let mut i = 0
+    while i < n {
+        if i == local_id {
+            push(out, local)
+        } else {
+            push(out, get_unchecked(f.locals, i))
+        }
+        i = i + 1
+    }
+    f.locals = out
+}

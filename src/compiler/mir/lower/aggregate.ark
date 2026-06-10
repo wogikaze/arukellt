@@ -1,0 +1,29 @@
+// Arukellt Selfhost - MIR lowering aggregate helper facade
+
+use mir::lower::aggregate_array
+use mir::lower::aggregate_field
+use mir::lower::aggregate_tuple
+
+fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: Vec<i32>, total_bytes: i32) -> i32 {
+    aggregate_tuple::mir_emit_tuple_from_locals(ctx, field_locals, field_vts, total_bytes)
+}
+
+fn mir_emit_field_access(ctx: LowerCtx, field_name: String, base_idx: i32) -> i32 {
+    aggregate_field::mir_emit_field_access(ctx, field_name, base_idx)
+}
+
+fn mir_emit_array_new(ctx: LowerCtx, child_count: i32) -> i32 {
+    aggregate_array::mir_emit_array_new(ctx, child_count)
+}
+
+fn mir_emit_array_set(ctx: LowerCtx, dest: i32, val_idx: i32, elem_index: i32) {
+    aggregate_array::mir_emit_array_set(ctx, dest, val_idx, elem_index)
+}
+
+fn mir_emit_local_get_ref(ctx: LowerCtx, local_idx: i32) -> i32 {
+    aggregate_array::mir_emit_local_get_ref(ctx, local_idx)
+}
+
+fn mir_emit_array_index(ctx: LowerCtx, base_idx: i32, index_idx: i32) -> i32 {
+    aggregate_array::mir_emit_array_index(ctx, base_idx, index_idx)
+}

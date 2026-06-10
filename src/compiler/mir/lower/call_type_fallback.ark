@@ -1,0 +1,43 @@
+use mir::lower::ctx_struct_lookup
+use mir::lower::ctx_fn_return_type
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR call result type fallback propagation.
+
+fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+    if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
+        mark_struct_constructor_result_type(ctx, callee_name, dest)
+    }
+    if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
+        let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(callee_name))
+        if len(rtn) > 1 {
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, rtn)
+        }
+    }
+}
+
+fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+    let cn_stripped = mir_strip_module_prefix(clone(callee_name))
+    let cn_len = len(cn_stripped)
+    if cn_len > 4 {
+        let cn_suffix = substring(cn_stripped, cn_len - 4, cn_len)
+        if eq(clone(cn_suffix), "_new") {
+            let struct_cand = substring(cn_stripped, 0, cn_len - 4)
+            if ctx_struct_lookup::ctx_struct_field_count(ctx, clone(struct_cand)) > 0 {
+                ctx_api_local_types::ctx_set_local_type(ctx, dest, struct_cand)
+            }
+        }
+    }
+}
+
+fn mir_strip_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
+}

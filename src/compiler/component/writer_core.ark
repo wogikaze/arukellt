@@ -1,0 +1,66 @@
+// Arukellt Selfhost - Component byte-buffer core writer.
+
+pub struct ComponentWriter {
+    bytes: Vec<i32>,
+}
+
+fn ComponentWriter_new() -> ComponentWriter {
+    ComponentWriter { bytes: Vec_new_i32() }
+}
+
+fn comp_emit_byte(w: ComponentWriter, b: i32) {
+    push(w.bytes, b % 256)
+}
+
+fn comp_emit_bytes(w: ComponentWriter, src: Vec<i32>) {
+    let count = len(src)
+    let mut i = 0
+    while i < count {
+        let b = get_unchecked(src, i)
+        comp_emit_byte(w, b)
+        i = i + 1
+    }
+}
+
+fn comp_writer_size(w: ComponentWriter) -> i32 {
+    len(w.bytes)
+}
+
+fn comp_writer_bytes(w: ComponentWriter) -> Vec<i32> {
+    w.bytes
+}
+
+fn comp_emit_leb128_u(w: ComponentWriter, v: i32) {
+    let mut val = v
+    if val < 0 {
+        val = 0
+    }
+    let mut done = false
+    while !done {
+        let mut b = val % 128
+        val = val / 128
+        if val != 0 {
+            b = b + 128
+        }
+        comp_emit_byte(w, b)
+        if val == 0 {
+            done = true
+        }
+    }
+}
+
+fn comp_emit_string(w: ComponentWriter, s: String) {
+    let slen = len(s)
+    comp_emit_leb128_u(w, slen)
+    let mut i = 0
+    while i < slen {
+        comp_emit_byte(w, char_at(s, i))
+        i = i + 1
+    }
+}
+
+fn comp_emit_section(out: ComponentWriter, section_id: i32, contents: ComponentWriter) {
+    comp_emit_byte(out, section_id)
+    comp_emit_leb128_u(out, comp_writer_size(contents))
+    comp_emit_bytes(out, comp_writer_bytes(contents))
+}

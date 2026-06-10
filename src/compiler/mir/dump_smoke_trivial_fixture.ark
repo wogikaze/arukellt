@@ -1,0 +1,38 @@
+// Arukellt Selfhost - shared trivial block fixture for MIR dump smoke tests.
+
+use mir::block_alloc
+use mir::function_emit_inst
+use mir::function_factory
+use mir::function_local_alloc
+use mir::function_param_mutation
+use mir::function_return_mutation
+use mir::inst_const_i32
+use mir::inst_return
+use mir::local_factory
+use mir::module_factory
+use mir::value_types
+
+pub struct MirDumpTrivialFixture {
+    module: MirModule,
+    function: MirFunction,
+    param_p: i32,
+    local_t: i32,
+}
+
+fn mir_dump_trivial_fixture_new(name: String) -> MirDumpTrivialFixture {
+    let m = module_factory::MirModule_new()
+    let f = function_factory::MirFunction_new(name)
+    let p = function_local_alloc::alloc_local(f, String_from("p"), value_types::VT_I32())
+    let t = function_local_alloc::alloc_local(f, String_from("t"), value_types::VT_I32())
+    function_param_mutation::MirFunction_push_param(f, local_factory::MirLocal_new(String_from("p"), value_types::VT_I32(), String_from("i32")))
+    function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
+    let bb0 = block_alloc::alloc_block(f)
+    function_inst::emit_inst(f, bb0, inst_const_i32::MirInst_const_i32(42, t))
+    function_inst::emit_inst(f, bb0, inst_return::MirInst_return_value(t))
+    MirDumpTrivialFixture { module: m, function: f, param_p: p, local_t: t }
+}
+
+fn MirDumpTrivialFixture_module(fx: MirDumpTrivialFixture) -> MirModule { fx.module }
+fn MirDumpTrivialFixture_function(fx: MirDumpTrivialFixture) -> MirFunction { fx.function }
+fn MirDumpTrivialFixture_param_p(fx: MirDumpTrivialFixture) -> i32 { fx.param_p }
+fn MirDumpTrivialFixture_local_t(fx: MirDumpTrivialFixture) -> i32 { fx.local_t }

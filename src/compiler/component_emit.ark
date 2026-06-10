@@ -1,0 +1,7 @@
+// Arukellt Selfhost - component emission compatibility facade.
+
+use component
+
+pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String) -> Vec<i32> {
+    component::emit_component(core_wasm, mir, target, wasi_version)
+}

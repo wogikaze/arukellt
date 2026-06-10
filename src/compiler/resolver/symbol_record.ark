@@ -1,0 +1,46 @@
+// Arukellt Resolver - symbol DTO record.
+
+struct Symbol {
+    name: String,
+    kind: i32,
+    scope_depth: i32,
+    decl_index: i32,
+    is_mut: bool,
+    is_pub: bool,
+}
+
+fn Symbol_new(name: String, kind: i32, scope_depth: i32, decl_index: i32, is_pub: bool) -> Symbol {
+    Symbol { name: clone(name), kind: kind, scope_depth: scope_depth, decl_index: decl_index, is_mut: false, is_pub: is_pub }
+}
+
+fn symbol_name(sym: Symbol) -> String {
+    clone(sym.name)
+}
+
+fn symbol_kind(sym: Symbol) -> i32 {
+    sym.kind
+}
+
+fn symbol_scope_depth(sym: Symbol) -> i32 {
+    sym.scope_depth
+}
+
+fn symbol_decl_index(sym: Symbol) -> i32 {
+    sym.decl_index
+}
+
+fn symbol_is_pub(sym: Symbol) -> bool {
+    sym.is_pub
+}
+
+fn symbol_set_kind(sym: Symbol, kind: i32) {
+    sym.kind = kind
+}
+
+fn symbol_set_decl_index(sym: Symbol, decl_index: i32) {
+    sym.decl_index = decl_index
+}
+
+fn symbol_set_is_pub(sym: Symbol, is_pub: bool) {
+    sym.is_pub = is_pub
+}

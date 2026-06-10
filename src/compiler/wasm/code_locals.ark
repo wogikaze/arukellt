@@ -1,0 +1,80 @@
+// Arukellt Selfhost - Wasm function local and scratch declarations.
+
+use wasm::constants
+use mir::function_locals_view
+use mir::local_access
+use mir::value_types
+use wasm::writer_core
+use wasm::writer_leb
+
+fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_count: i32) {
+    let body_local_count = local_count - param_count
+    writer_leb::emit_leb128_u(body, body_local_count + scratch_local_count())
+    let mut li = param_count
+    while li < local_count {
+        let loc = function_locals_view::MirFunction_local_at(f, li)
+        writer_leb::emit_leb128_u(body, 1)
+        writer_core::emit_byte(body, val_type_to_wasm(local_access::MirLocal_val_type(loc)))
+        li = li + 1
+    }
+    emit_scratch_local_decls(body)
+}
+
+fn val_type_to_wasm(vt: i32) -> i32 {
+    if vt == value_types::VT_I32() {
+        return constants::WASM_I32()
+    }
+    if vt == value_types::VT_I64() {
+        return constants::WASM_I64()
+    }
+    if vt == value_types::VT_F64() {
+        return constants::WASM_F64()
+    }
+    if vt == value_types::VT_REF() {
+        return constants::WASM_I32()
+    }
+    constants::WASM_I32()
+}
+
+fn scratch_i32_local_count() -> i32 { 12 }
+
+fn scratch_f64_local_count() -> i32 { 2 }
+
+fn scratch_i64_local_count() -> i32 { 1 }
+
+fn scratch_local_count() -> i32 {
+    scratch_i32_local_count() + scratch_f64_local_count() + scratch_i64_local_count()
+}
+
+fn emit_scratch_local_decls(body: WasmWriter) {
+    emit_i32_scratch_local_decls(body, scratch_i32_local_count())
+    emit_f64_scratch_local_decls(body, scratch_f64_local_count())
+    emit_i64_scratch_local_decls(body, scratch_i64_local_count())
+}
+
+fn emit_i32_scratch_local_decls(body: WasmWriter, count: i32) {
+    let mut i = 0
+    while i < count {
+        writer_leb::emit_leb128_u(body, 1)
+        writer_core::emit_byte(body, constants::WASM_I32())
+        i = i + 1
+    }
+}
+
+fn emit_f64_scratch_local_decls(body: WasmWriter, count: i32) {
+    let mut i = 0
+    while i < count {
+        writer_leb::emit_leb128_u(body, 1)
+        writer_core::emit_byte(body, constants::WASM_F64())
+        i = i + 1
+    }
+}
+
+fn emit_i64_scratch_local_decls(body: WasmWriter, count: i32) {
+    let mut i = 0
+    while i < count {
+        writer_leb::emit_leb128_u(body, 1)
+        writer_core::emit_byte(body, constants::WASM_I64())
+        i = i + 1
+    }
+}

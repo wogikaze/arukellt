@@ -1,0 +1,92 @@
+// Arukellt MIR lowering - AST node kind constants.
+
+// Atom node kinds.
+fn NK_INT_LIT() -> i32 { 1 }
+fn NK_FLOAT_LIT() -> i32 { 2 }
+fn NK_STRING_LIT() -> i32 { 3 }
+fn NK_BOOL_LIT() -> i32 { 4 }
+fn NK_IDENT() -> i32 { 5 }
+fn NK_PATH() -> i32 { 16 }
+fn NK_CHAR_LIT() -> i32 { 23 }
+
+// Operation node kinds.
+fn NK_BINARY() -> i32 { 6 }
+fn NK_UNARY() -> i32 { 7 }
+fn NK_ASSIGN() -> i32 { 18 }
+fn NK_RANGE() -> i32 { 19 }
+
+// Call node kinds.
+fn NK_CALL() -> i32 { 8 }
+fn NK_CLOSURE() -> i32 { 15 }
+fn NK_METHOD_CALL() -> i32 { 21 }
+fn NK_TRY() -> i32 { 25 }
+
+// Aggregate node kinds.
+fn NK_FIELD_ACCESS() -> i32 { 9 }
+fn NK_INDEX() -> i32 { 10 }
+fn NK_STRUCT_LIT() -> i32 { 11 }
+fn NK_ARRAY_LIT() -> i32 { 12 }
+fn NK_TUPLE() -> i32 { 17 }
+fn NK_COMPREHENSION() -> i32 { 38 }
+
+// Control expression node kinds.
+fn NK_IF_EXPR() -> i32 { 13 }
+fn NK_MATCH_EXPR() -> i32 { 14 }
+fn NK_BLOCK() -> i32 { 20 }
+fn NK_MATCH_ARM() -> i32 { 26 }
+
+// Statement and control-transfer node kinds.
+fn NK_LET() -> i32 { 30 }
+fn NK_RETURN() -> i32 { 31 }
+fn NK_BREAK() -> i32 { 32 }
+fn NK_CONTINUE() -> i32 { 33 }
+fn NK_WHILE() -> i32 { 34 }
+fn NK_LOOP() -> i32 { 35 }
+fn NK_FOR() -> i32 { 36 }
+fn NK_EXPR_STMT() -> i32 { 37 }
+
+// Pattern node kinds.
+fn NK_PAT_IDENT() -> i32 { 70 }
+fn NK_PAT_WILDCARD() -> i32 { 71 }
+fn NK_PAT_LITERAL() -> i32 { 72 }
+fn NK_PAT_VARIANT() -> i32 { 73 }
+fn NK_PAT_OR() -> i32 { 76 }
+
+// Binary operator tags.
+fn OP_ADD() -> i32 { 1 }
+fn OP_SUB() -> i32 { 2 }
+fn OP_MUL() -> i32 { 3 }
+fn OP_DIV() -> i32 { 4 }
+fn OP_MOD() -> i32 { 5 }
+fn OP_EQ() -> i32 { 6 }
+fn OP_NEQ() -> i32 { 7 }
+fn OP_LT() -> i32 { 8 }
+fn OP_LTEQ() -> i32 { 9 }
+fn OP_GT() -> i32 { 10 }
+fn OP_GTEQ() -> i32 { 11 }
+fn OP_AND() -> i32 { 12 }
+fn OP_OR() -> i32 { 13 }
+fn OP_BIT_AND() -> i32 { 14 }
+fn OP_BIT_OR() -> i32 { 15 }
+fn OP_BIT_XOR() -> i32 { 16 }
+fn OP_SHL() -> i32 { 17 }
+fn OP_SHR() -> i32 { 18 }
+
+// Unary operator tags.
+fn UOP_NEG() -> i32 { 1 }
+fn UOP_NOT() -> i32 { 2 }
+
+// Lowering type tags.
+fn TY_I32() -> i32 { 1 }
+fn TY_I64() -> i32 { 2 }
+fn TY_F64() -> i32 { 3 }
+fn TY_BOOL() -> i32 { 4 }
+fn TY_STRING() -> i32 { 5 }
+fn TY_UNIT() -> i32 { 7 }
+
+// Higher-order function call kind tags.
+fn MIR_HOF_KIND_NONE() -> i32 { 0 }
+fn MIR_HOF_KIND_I64() -> i32 { 1 }
+fn MIR_HOF_KIND_I32() -> i32 { 2 }
+fn MIR_HOF_KIND_F64() -> i32 { 3 }
+fn MIR_HOF_KIND_OPTION_I32() -> i32 { 4 }

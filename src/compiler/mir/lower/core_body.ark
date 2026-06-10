@@ -1,0 +1,40 @@
+// Arukellt Selfhost - MIR lowering for supported CoreHIR expression DTOs.
+
+use mir::lower::core_bindings
+use mir::lower::core_dispatch_aggregate
+use mir::lower::core_dispatch_call
+use mir::lower::core_dispatch_control
+use mir::lower::core_dispatch_ops
+use mir::lower::core_expr_shape_ops
+use mir::lower::core_values
+
+fn lower_core_expr(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr_index: i32) -> i32 {
+    if expr_index < 0 || expr_index >= len(exprs) {
+        return 0 - 1
+    }
+    let expr = get_unchecked(exprs, expr_index)
+    let atomic = core_values::lower_core_atomic(ctx, expr)
+    if atomic != 0 - 2 {
+        return atomic
+    }
+    if core_expr_shape_ops::mir_core_expr_is_let(expr) {
+        return core_bindings::lower_core_let(ctx, exprs, expr)
+    }
+    let aggregate = core_dispatch_aggregate::lower_core_aggregate_expr(ctx, exprs, expr)
+    if aggregate != 0 - 2 {
+        return aggregate
+    }
+    let call = core_dispatch_call::lower_core_call_expr(ctx, exprs, expr)
+    if call != 0 - 2 {
+        return call
+    }
+    let ops = core_dispatch_ops::lower_core_op_expr(ctx, exprs, expr)
+    if ops != 0 - 2 {
+        return ops
+    }
+    let control = core_dispatch_control::lower_core_control_expr(ctx, exprs, expr)
+    if control != 0 - 2 {
+        return control
+    }
+    0 - 2
+}

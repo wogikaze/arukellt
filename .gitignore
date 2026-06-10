@@ -9,6 +9,9 @@ __pycache__/
 # instant-grep index
 .ig/
 
+# playwright 2e2 test
+.playwright-mcp
+
 # io/fs test artifacts
 _test_io.txt
 test_output.txt
@@ -78,3 +81,4 @@ docs/playground/dist/benchmarks/results/
 # Powers(力)
 superpowers/
 .worktrees
+tmp/

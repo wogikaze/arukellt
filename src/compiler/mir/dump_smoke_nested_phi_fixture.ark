@@ -1,0 +1,95 @@
+// Arukellt Selfhost - shared nested join CFG fixture for MIR dump smoke tests.
+
+use mir::block_alloc
+use mir::block_successor_mutation
+use mir::function_block_queries
+use mir::function_emit_inst
+use mir::function_factory
+use mir::function_local_alloc
+use mir::function_return_mutation
+use mir::inst_const_i32
+use mir::inst_return
+use mir::module_factory
+use mir::value_types
+
+pub struct MirDumpNestedPhiFixture {
+    module: MirModule,
+    function: MirFunction,
+    inner_then_val: i32,
+    inner_else_val: i32,
+    inner_join_val: i32,
+    outer_else_val: i32,
+    outer_join_val: i32,
+    inner_then_bb: i32,
+    inner_else_bb: i32,
+    inner_join_bb: i32,
+    outer_else_bb: i32,
+    outer_join_bb: i32,
+}
+
+fn mir_dump_nested_phi_fixture_new(name: String) -> MirDumpNestedPhiFixture {
+    let m = module_factory::MirModule_new()
+    let f = function_factory::MirFunction_new(name)
+    let cond_outer = function_local_alloc::alloc_local(f, String_from("cond_outer"), value_types::VT_I32())
+    let cond_inner = function_local_alloc::alloc_local(f, String_from("cond_inner"), value_types::VT_I32())
+    let inner_then_val = function_local_alloc::alloc_local(f, String_from("inner_then_val"), value_types::VT_I32())
+    let inner_else_val = function_local_alloc::alloc_local(f, String_from("inner_else_val"), value_types::VT_I32())
+    let inner_join_val = function_local_alloc::alloc_local(f, String_from("inner_join_val"), value_types::VT_I32())
+    let outer_else_val = function_local_alloc::alloc_local(f, String_from("outer_else_val"), value_types::VT_I32())
+    let outer_join_val = function_local_alloc::alloc_local(f, String_from("outer_join_val"), value_types::VT_I32())
+    function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
+    let entry = block_alloc::alloc_block(f)
+    let outer_then_bb = block_alloc::alloc_block(f)
+    let inner_then_bb = block_alloc::alloc_block(f)
+    let inner_else_bb = block_alloc::alloc_block(f)
+    let inner_join_bb = block_alloc::alloc_block(f)
+    let outer_else_bb = block_alloc::alloc_block(f)
+    let outer_join_bb = block_alloc::alloc_block(f)
+    function_inst::emit_inst(f, entry, inst_const_i32::MirInst_const_i32(1, cond_outer))
+    let entry_block = function_block_queries::MirFunction_block_at(f, entry)
+    block_successor_mutation::MirBlock_set_succ0(entry_block, outer_then_bb)
+    block_successor_mutation::MirBlock_set_succ1(entry_block, outer_else_bb)
+    function_inst::emit_inst(f, outer_then_bb, inst_const_i32::MirInst_const_i32(1, cond_inner))
+    let outer_then_block = function_block_queries::MirFunction_block_at(f, outer_then_bb)
+    block_successor_mutation::MirBlock_set_succ0(outer_then_block, inner_then_bb)
+    block_successor_mutation::MirBlock_set_succ1(outer_then_block, inner_else_bb)
+    function_inst::emit_inst(f, inner_then_bb, inst_const_i32::MirInst_const_i32(10, inner_then_val))
+    let inner_then_block = function_block_queries::MirFunction_block_at(f, inner_then_bb)
+    block_successor_mutation::MirBlock_set_succ0(inner_then_block, inner_join_bb)
+    function_inst::emit_inst(f, inner_else_bb, inst_const_i32::MirInst_const_i32(20, inner_else_val))
+    let inner_else_block = function_block_queries::MirFunction_block_at(f, inner_else_bb)
+    block_successor_mutation::MirBlock_set_succ0(inner_else_block, inner_join_bb)
+    let inner_join_block = function_block_queries::MirFunction_block_at(f, inner_join_bb)
+    block_successor_mutation::MirBlock_set_succ0(inner_join_block, outer_join_bb)
+    function_inst::emit_inst(f, outer_else_bb, inst_const_i32::MirInst_const_i32(30, outer_else_val))
+    let outer_else_block = function_block_queries::MirFunction_block_at(f, outer_else_bb)
+    block_successor_mutation::MirBlock_set_succ0(outer_else_block, outer_join_bb)
+    function_inst::emit_inst(f, outer_join_bb, inst_return::MirInst_return_value(outer_join_val))
+    MirDumpNestedPhiFixture {
+        module: m,
+        function: f,
+        inner_then_val: inner_then_val,
+        inner_else_val: inner_else_val,
+        inner_join_val: inner_join_val,
+        outer_else_val: outer_else_val,
+        outer_join_val: outer_join_val,
+        inner_then_bb: inner_then_bb,
+        inner_else_bb: inner_else_bb,
+        inner_join_bb: inner_join_bb,
+        outer_else_bb: outer_else_bb,
+        outer_join_bb: outer_join_bb,
+    }
+}
+
+fn MirDumpNestedPhiFixture_module(fx: MirDumpNestedPhiFixture) -> MirModule { fx.module }
+fn MirDumpNestedPhiFixture_function(fx: MirDumpNestedPhiFixture) -> MirFunction { fx.function }
+fn MirDumpNestedPhiFixture_inner_then_val(fx: MirDumpNestedPhiFixture) -> i32 { fx.inner_then_val }
+fn MirDumpNestedPhiFixture_inner_else_val(fx: MirDumpNestedPhiFixture) -> i32 { fx.inner_else_val }
+fn MirDumpNestedPhiFixture_inner_join_val(fx: MirDumpNestedPhiFixture) -> i32 { fx.inner_join_val }
+fn MirDumpNestedPhiFixture_outer_else_val(fx: MirDumpNestedPhiFixture) -> i32 { fx.outer_else_val }
+fn MirDumpNestedPhiFixture_outer_join_val(fx: MirDumpNestedPhiFixture) -> i32 { fx.outer_join_val }
+fn MirDumpNestedPhiFixture_inner_then_bb(fx: MirDumpNestedPhiFixture) -> i32 { fx.inner_then_bb }
+fn MirDumpNestedPhiFixture_inner_else_bb(fx: MirDumpNestedPhiFixture) -> i32 { fx.inner_else_bb }
+fn MirDumpNestedPhiFixture_inner_join_bb(fx: MirDumpNestedPhiFixture) -> i32 { fx.inner_join_bb }
+fn MirDumpNestedPhiFixture_outer_else_bb(fx: MirDumpNestedPhiFixture) -> i32 { fx.outer_else_bb }
+fn MirDumpNestedPhiFixture_outer_join_bb(fx: MirDumpNestedPhiFixture) -> i32 { fx.outer_join_bb }

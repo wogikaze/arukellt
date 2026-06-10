@@ -1,0 +1,51 @@
+// Arukellt HIR - type representation contract and constructors.
+
+use hir::type_contracts_record
+
+fn HirType_simple(tag: i32) -> HirType {
+    type_contracts_record::HirType_simple(tag)
+}
+
+fn HirType_named(tag: i32, name: String) -> HirType {
+    type_contracts_record::HirType_named(tag, name)
+}
+
+fn HirType_tag(ty: HirType) -> i32 {
+    type_contracts_record::hir_type_tag(ty)
+}
+
+fn HirType_name(ty: HirType) -> String {
+    type_contracts_record::hir_type_name(ty)
+}
+
+fn HirType_type_arg_count(ty: HirType) -> i32 {
+    type_contracts_record::hir_type_type_arg_count(ty)
+}
+
+fn HirType_type_arg_at(ty: HirType, index: i32) -> HirType {
+    type_contracts_record::hir_type_type_arg_at(ty, index)
+}
+
+fn HirType_push_type_arg(ty: HirType, arg: HirType) {
+    type_contracts_record::hir_type_push_type_arg(ty, arg)
+}
+
+fn HirType_param_count(ty: HirType) -> i32 {
+    type_contracts_record::hir_type_param_count(ty)
+}
+
+fn HirType_param_at(ty: HirType, index: i32) -> HirType {
+    type_contracts_record::hir_type_param_at(ty, index)
+}
+
+fn HirType_push_param(ty: HirType, param: HirType) {
+    type_contracts_record::hir_type_push_param(ty, param)
+}
+
+fn HirType_return_type_tag(ty: HirType) -> i32 {
+    type_contracts_record::hir_type_return_type_tag(ty)
+}
+
+fn HirType_set_return_type_tag(ty: HirType, tag: i32) {
+    type_contracts_record::hir_type_set_return_type_tag(ty, tag)
+}

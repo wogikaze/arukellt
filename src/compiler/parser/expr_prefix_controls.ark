@@ -1,0 +1,50 @@
+use lexer::tokens
+// Arukellt Parser - control and statement prefix expression parsing.
+
+use parser::core_api_cursor
+use parser::expr_control
+use parser::stmt
+use parser::stmt_control
+use parser::token_state
+
+pub fn is_control_prefix(kind: i32) -> bool {
+    kind == tokens::TK_IF()
+        || kind == tokens::TK_MATCH()
+        || kind == tokens::TK_LOOP()
+        || kind == tokens::TK_WHILE()
+        || kind == tokens::TK_FOR()
+        || kind == tokens::TK_LBRACE()
+        || kind == tokens::TK_RETURN()
+        || kind == tokens::TK_BREAK()
+        || kind == tokens::TK_CONTINUE()
+}
+
+pub fn parse_control_prefix(p: Parser) -> AstNode {
+    let t = core_api_cursor::cur(p)
+    let kind = token_state::Token_kind(t)
+    if kind == tokens::TK_IF() {
+        return expr_control::parse_if_expr(p)
+    }
+    if kind == tokens::TK_MATCH() {
+        return expr_control::parse_match_expr(p)
+    }
+    if kind == tokens::TK_LOOP() {
+        return stmt_control::parse_loop(p)
+    }
+    if kind == tokens::TK_WHILE() {
+        return stmt_control::parse_while(p)
+    }
+    if kind == tokens::TK_FOR() {
+        return stmt_control::parse_for(p)
+    }
+    if kind == tokens::TK_LBRACE() {
+        return stmt::parse_block(p)
+    }
+    if kind == tokens::TK_RETURN() {
+        return stmt_control::parse_return(p)
+    }
+    if kind == tokens::TK_BREAK() {
+        return stmt_control::parse_break(p)
+    }
+    stmt_control::parse_continue(p)
+}

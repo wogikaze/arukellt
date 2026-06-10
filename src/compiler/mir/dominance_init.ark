@@ -1,0 +1,24 @@
+// Arukellt Selfhost - MIR dominance set initialization.
+
+use mir::dom_sets
+use mir::block_dominance_mutation
+use mir::block_identity
+use mir::function_block_queries
+use mir::types
+
+fn mir_initialize_dominance_sets(f: MirFunction, block_count: i32) {
+    let all_block_ids = dom_sets::mir_collect_all_block_ids(f)
+    let mut i = 0
+    while i < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, i)
+        block_dominance_mutation::MirBlock_reset_idom(block)
+        block_dominance_mutation::MirBlock_reset_dom_frontier(block)
+        if i == 0 {
+            block_dominance_mutation::MirBlock_reset_dom_set(block)
+            block_dominance_mutation::MirBlock_push_dom_set(block, block_identity::MirBlock_id(block))
+        } else {
+            block_dominance_mutation::MirBlock_set_dom_set(block, dom_sets::mir_copy_block_ids(all_block_ids))
+        }
+        i = i + 1
+    }
+}

@@ -1,0 +1,55 @@
+use mir::lower::ast_node
+use mir::lower::binary_opcode
+use mir::lower::binary_type_select
+use mir::lower::binary_type_refine
+use mir::lower::binary_cast
+use mir::lower::binary_emit
+use mir::opcodes
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - unary and binary expressions
+
+use mir::lower::body_binary_overload
+use mir::lower::body_short_circuit
+use mir::lower::expr_types
+use mir::lower::unary
+
+fn lower_binary_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count < 2 {
+        return 0 - 1
+    }
+    let lhs = ast_node::node_child_at(node, 0)
+    let rhs = ast_node::node_child_at(node, 1)
+    let mir_op = binary_opcode::binop_to_mir(ast_node::node_op(node))
+    if mir_op == opcodes::MIR_AND() || mir_op == opcodes::MIR_OR() {
+        return body_short_circuit::lower_short_circuit_binary(ctx, lhs, rhs, mir_op)
+    }
+    let l_peek_vt = expr_types::peek_expr_vt(ctx, lhs)
+    let r_peek_vt = expr_types::peek_expr_vt(ctx, rhs)
+    let mut binop_vt = binary_type_select::mir_initial_binop_vt(l_peek_vt, r_peek_vt)
+    let l_idx = lower_expr(ctx, lhs)
+    let overloaded = body_binary_overload::try_lower_overloaded_binary(ctx, rhs, mir_op, l_idx)
+    if overloaded != 0 - 2 {
+        return overloaded
+    }
+    binop_vt = binary_type_refine::mir_refine_binop_vt_from_left(ctx, binop_vt, l_idx, r_peek_vt)
+    let actual_l = binary_cast::mir_extend_i32_to_i64_if_needed(ctx, binop_vt, l_idx)
+    let r_idx = lower_expr(ctx, rhs)
+    binop_vt = binary_type_refine::mir_refine_binop_vt_from_local(ctx, binop_vt, r_idx)
+    let actual_r = binary_cast::mir_extend_i32_to_i64_if_needed(ctx, binop_vt, r_idx)
+    binary_emit::mir_emit_binary_result(ctx, mir_op, binop_vt, actual_l, actual_r)
+}
+
+fn lower_short_circuit_binary(ctx: LowerCtx, lhs: AstNode, rhs: AstNode, mir_op: i32) -> i32 {
+    body_short_circuit::lower_short_circuit_binary(ctx, lhs, rhs, mir_op)
+}
+
+fn lower_unary_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count >= 1 {
+        let operand = ast_node::node_child_at(node, 0)
+        let o_idx = lower_expr(ctx, operand)
+        return unary::lower_unary_from_operand(ctx, ast_node::node_op(node), o_idx)
+    }
+    0 - 1
+}

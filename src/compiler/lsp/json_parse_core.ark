@@ -1,0 +1,21 @@
+// Arukellt Selfhost - LSP JSON low-level parsing facade
+
+use lsp::json_parse_int
+use lsp::json_parse_string
+use lsp::json_parse_utils
+
+fn json_skip_ws(s: String, pos: i32) -> i32 {
+    json_parse_utils::json_skip_ws(s, pos)
+}
+
+fn find_key_pos(json: String, key: String, from: i32) -> i32 {
+    json_parse_utils::find_key_pos(json, key, from)
+}
+
+fn json_parse_string_at(s: String, pos: i32) -> json_parse_string::JsonStrResult {
+    json_parse_string::json_parse_string_at(s, pos)
+}
+
+fn json_parse_int_at(s: String, pos: i32) -> i32 {
+    json_parse_int::json_parse_int_at(s, pos)
+}

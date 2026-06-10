@@ -1,0 +1,30 @@
+// Arukellt Selfhost - MIR reachability pruning entry
+
+use mir::reachability_prune
+use mir::reachability_roots
+use mir::reachability_walk
+use mir::module_functions
+use mir::types
+
+fn mir_prune_unreachable_with_roots(m: MirModule, extra_roots: Vec<String>) -> i32 {
+    let fn_count = module_functions::MirModule_function_count(m)
+    if fn_count == 0 {
+        return 0
+    }
+    let functions = module_functions::MirModule_functions(m)
+    let reachable = Vec_new_i32()
+    let mut i = 0
+    while i < fn_count {
+        push(reachable, 0)
+        i = i + 1
+    }
+    let root_count = reachability_roots::mir_mark_roots(functions, reachable, extra_roots)
+    if root_count == 0 {
+        return 0
+    }
+    let mut changed = true
+    while changed {
+        changed = reachability_walk::mir_mark_reachable_calls(functions, reachable)
+    }
+    reachability_prune::mir_prune_unmarked_functions(m, reachable)
+}

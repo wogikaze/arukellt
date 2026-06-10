@@ -1,0 +1,57 @@
+use mir::block_phi_access
+use mir::block_pred_access
+use mir::function_emit_phi
+// Arukellt Selfhost - MIR SSA simple join phi insertion.
+
+use mir::block_dominance_access
+use mir::function_block_queries
+use mir::function_local_queries
+use mir::block_id_set
+use mir::phi_factory
+use mir::ssa_assign
+use mir::ssa_value
+use mir::value_types
+
+fn mir_try_insert_simple_join_phi(f: MirFunction, join_block_id: i32, dest_local: i32) -> bool {
+    if join_block_id < 0 || join_block_id >= function_block_queries::MirFunction_block_count(f) {
+        return false
+    }
+    let join_block = function_block_queries::MirFunction_block_at(f, join_block_id)
+    if block_phi_access::MirBlock_phi_count(join_block) > 0 {
+        return false
+    }
+    if block_pred_access::MirBlock_pred_count(join_block) != 2 {
+        return false
+    }
+    let pred0_id = block_pred_access::MirBlock_pred_at(join_block, 0)
+    let pred1_id = block_pred_access::MirBlock_pred_at(join_block, 1)
+    let pred0 = function_block_queries::MirFunction_block_at(f, pred0_id)
+    let pred1 = function_block_queries::MirFunction_block_at(f, pred1_id)
+    if !block_id_set::mir_block_ids_contains(block_dominance_access::MirBlock_dom_frontier(pred0), join_block_id) {
+        return false
+    }
+    if !block_id_set::mir_block_ids_contains(block_dominance_access::MirBlock_dom_frontier(pred1), join_block_id) {
+        return false
+    }
+    let pred0_local = ssa_value::mir_find_last_value_local(pred0)
+    let pred1_local = ssa_value::mir_find_last_value_local(pred1)
+    if pred0_local < 0 || pred1_local < 0 {
+        return false
+    }
+    let dest_vt = function_local_queries::mir_local_vt_for_function(f, dest_local)
+    if dest_vt == value_types::VT_VOID() {
+        return false
+    }
+    if function_local_queries::mir_local_vt_for_function(f, pred0_local) != dest_vt {
+        return false
+    }
+    if function_local_queries::mir_local_vt_for_function(f, pred1_local) != dest_vt {
+        return false
+    }
+    ssa_assign::mir_assign_simple_join_phi_ssa(f, dest_local, pred0_local, pred1_local)
+    let phi = phi_factory::MirPhi_new(dest_local, dest_vt)
+    phi_factory::mir_phi_add_arg(phi, pred0_id, pred0_local)
+    phi_factory::mir_phi_add_arg(phi, pred1_id, pred1_local)
+    function_phi::emit_phi(f, join_block_id, phi)
+    true
+}

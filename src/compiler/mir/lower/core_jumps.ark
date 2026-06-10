@@ -1,0 +1,32 @@
+use mir::lower::ctx_api_loop_query
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR jump and return lowering.
+
+use mir::lower::core_expr_shape_accessors
+use mir::lower::control
+
+fn lower_core_break(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    if ctx_api_loop_query::ctx_loop_break_available(ctx) {
+        if core_expr_shape_accessors::mir_core_expr_child_count(expr) > 0 && ctx_api_loop_query::ctx_loop_break_value_available(ctx) {
+            let break_val = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+            control::mir_store_break_value(ctx, break_val)
+        }
+        control::mir_emit_loop_break(ctx)
+    }
+    0 - 1
+}
+
+fn lower_core_continue(ctx: LowerCtx) -> i32 {
+    control::mir_emit_loop_continue(ctx)
+    0 - 1
+}
+
+fn lower_core_return(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    if core_expr_shape_accessors::mir_core_expr_child_count(expr) >= 1 {
+        let val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+        control::mir_emit_return_value(ctx, val_idx)
+    } else {
+        control::mir_emit_return_void(ctx)
+    }
+    0 - 1
+}

@@ -1,0 +1,26 @@
+// Arukellt HIR - named and fallback type display names.
+
+use hir::type_contracts
+use hir::kinds
+
+fn named_type_name(ty: HirType) -> String {
+    if type_contracts::HirType_tag(ty) == commands::TY_RESULT() {
+        return String_from("Result")
+    }
+    if type_contracts::HirType_tag(ty) == commands::TY_FN() {
+        return String_from("fn")
+    }
+    if type_contracts::HirType_tag(ty) == commands::TY_STRUCT() {
+        return type_contracts::HirType_name(ty)
+    }
+    if type_contracts::HirType_tag(ty) == commands::TY_ENUM() {
+        return type_contracts::HirType_name(ty)
+    }
+    if type_contracts::HirType_tag(ty) == commands::TY_TYPE_VAR() {
+        return concat(String_from("?"), type_contracts::HirType_name(ty))
+    }
+    if type_contracts::HirType_tag(ty) == commands::TY_TRAIT() {
+        return type_contracts::HirType_name(ty)
+    }
+    String_from("unknown")
+}

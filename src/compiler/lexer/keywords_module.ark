@@ -1,0 +1,22 @@
+use lexer::tokens
+// Arukellt Lexer - module and bound keyword lookup.
+
+
+pub fn keyword_kind_module(word: String) -> i32 {
+    if eq(word, "pub") {
+        return tokens::TK_PUB()
+    }
+    if eq(word, "import") {
+        return tokens::TK_IMPORT()
+    }
+    if eq(word, "as") {
+        return tokens::TK_AS()
+    }
+    if eq(word, "use") {
+        return tokens::TK_USE()
+    }
+    if eq(word, "where") {
+        return tokens::TK_WHERE()
+    }
+    0 - 1
+}

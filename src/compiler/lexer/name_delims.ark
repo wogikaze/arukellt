@@ -1,0 +1,37 @@
+use lexer::tokens
+// Arukellt Lexer - delimiter token display names.
+
+
+pub fn token_delim_name(kind: i32) -> String {
+    if kind == tokens::TK_ARROW() {
+        return String_from("ARROW")
+    }
+    if kind == tokens::TK_FATARROW() {
+        return String_from("FATARROW")
+    }
+    if kind == tokens::TK_COLON() {
+        return String_from("COLON")
+    }
+    if kind == tokens::TK_COLONCOLON() {
+        return String_from("COLONCOLON")
+    }
+    if kind == tokens::TK_LPAREN() {
+        return String_from("LPAREN")
+    }
+    if kind == tokens::TK_RPAREN() {
+        return String_from("RPAREN")
+    }
+    if kind == tokens::TK_LBRACE() {
+        return String_from("LBRACE")
+    }
+    if kind == tokens::TK_RBRACE() {
+        return String_from("RBRACE")
+    }
+    if kind == tokens::TK_COMMA() {
+        return String_from("COMMA")
+    }
+    if kind == tokens::TK_DOT() {
+        return String_from("DOT")
+    }
+    String_new()
+}

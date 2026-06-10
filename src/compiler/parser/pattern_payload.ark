@@ -1,0 +1,19 @@
+use lexer::tokens
+use parser::core_ast_children
+// Arukellt Parser - parenthesized pattern payloads
+
+
+fn parse_pattern_payload(p: Parser, node: AstNode) {
+    p.pos = p.pos + 1
+    let mut first = true
+    while !at(p, tokens::TK_RPAREN()) && !at_eof(p) {
+        if !first {
+            expect_token(p, tokens::TK_COMMA())
+        }
+        first = false
+        skip_newlines(p)
+        let field_pat = parse_pattern(p)
+        core_ast_children::AstNode_push_child(node, field_pat)
+    }
+    expect_token(p, tokens::TK_RPAREN())
+}

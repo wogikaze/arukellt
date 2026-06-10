@@ -1,0 +1,19 @@
+use mir::lower::ctx_fn_mono
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering entry trace helpers.
+
+use std::host::stdio
+
+fn mir_lower_entry_trace_enabled() -> i32 {
+    let mut mir_tr = MIR_LOWER_TRACE_FORCE()
+    if mir_tr == 0 {
+        mir_tr = MIR_LOWER_TRACE()
+    }
+    mir_tr
+}
+
+fn mir_log_mono_rewrites_if_needed(mir_tr: i32, ctx: LowerCtx) {
+    if mir_tr != 0 {
+        stdio::eprintln(concat(String_from("mir-lower mono rewrites: "), to_string(ctx_fn_mono::ctx_mono_source_rewrite_count(ctx))))
+    }
+}

@@ -1,0 +1,12 @@
+// Arukellt Parser - struct declaration syntax
+
+use parser::decl_struct_body
+use parser::decl_struct_header
+use parser::type_params
+
+fn parse_struct_decl(p: Parser) -> AstNode {
+    let node = decl_struct_header::parse_struct_header(p)
+    type_params::parse_generic_params_into_node(p, node)
+    decl_struct_body::parse_struct_body(p, node)
+    node
+}

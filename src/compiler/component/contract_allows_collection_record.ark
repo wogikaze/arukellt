@@ -1,0 +1,93 @@
+// Arukellt Selfhost - component collection contract allow data.
+
+pub struct ComponentCollectionAllows {
+    allow_list_first: bool,
+    allow_list_result: bool,
+    allow_list_roundtrip: bool,
+    allow_option_maybe: bool,
+    allow_option_param: bool,
+    allow_option_roundtrip: bool,
+    allow_option_bool: bool,
+    allow_option_i64: bool,
+    allow_option_i64_param: bool,
+    allow_result_safe_div: bool,
+    allow_result_param: bool,
+    allow_result_string_param: bool,
+    allow_result_roundtrip: bool,
+    allow_result_bool: bool,
+}
+
+fn ComponentCollectionAllows_new(allow_list_first: bool, allow_list_result: bool, allow_list_roundtrip: bool, allow_option_maybe: bool, allow_option_param: bool, allow_option_roundtrip: bool, allow_option_bool: bool, allow_option_i64: bool, allow_option_i64_param: bool, allow_result_safe_div: bool, allow_result_param: bool, allow_result_string_param: bool, allow_result_roundtrip: bool, allow_result_bool: bool) -> ComponentCollectionAllows {
+    ComponentCollectionAllows {
+        allow_list_first: allow_list_first,
+        allow_list_result: allow_list_result,
+        allow_list_roundtrip: allow_list_roundtrip,
+        allow_option_maybe: allow_option_maybe,
+        allow_option_param: allow_option_param,
+        allow_option_roundtrip: allow_option_roundtrip,
+        allow_option_bool: allow_option_bool,
+        allow_option_i64: allow_option_i64,
+        allow_option_i64_param: allow_option_i64_param,
+        allow_result_safe_div: allow_result_safe_div,
+        allow_result_param: allow_result_param,
+        allow_result_string_param: allow_result_string_param,
+        allow_result_roundtrip: allow_result_roundtrip,
+        allow_result_bool: allow_result_bool,
+    }
+}
+
+fn ComponentCollectionAllows_allow_list_first(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_list_first
+}
+
+fn ComponentCollectionAllows_allow_list_result(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_list_result
+}
+
+fn ComponentCollectionAllows_allow_list_roundtrip(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_list_roundtrip
+}
+
+fn ComponentCollectionAllows_allow_option_maybe(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_option_maybe
+}
+
+fn ComponentCollectionAllows_allow_option_param(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_option_param
+}
+
+fn ComponentCollectionAllows_allow_option_roundtrip(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_option_roundtrip
+}
+
+fn ComponentCollectionAllows_allow_option_bool(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_option_bool
+}
+
+fn ComponentCollectionAllows_allow_option_i64(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_option_i64
+}
+
+fn ComponentCollectionAllows_allow_option_i64_param(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_option_i64_param
+}
+
+fn ComponentCollectionAllows_allow_result_safe_div(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_result_safe_div
+}
+
+fn ComponentCollectionAllows_allow_result_param(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_result_param
+}
+
+fn ComponentCollectionAllows_allow_result_string_param(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_result_string_param
+}
+
+fn ComponentCollectionAllows_allow_result_roundtrip(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_result_roundtrip
+}
+
+fn ComponentCollectionAllows_allow_result_bool(allows: ComponentCollectionAllows) -> bool {
+    allows.allow_result_bool
+}

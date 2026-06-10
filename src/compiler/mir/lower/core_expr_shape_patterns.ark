@@ -1,0 +1,24 @@
+use corehir::kinds
+// Arukellt Selfhost - MIR lowering CoreHIR pattern shape predicates.
+
+use corehir::expr_predicates
+
+fn mir_core_expr_is_pat_literal(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_PAT_LITERAL())
+}
+
+fn mir_core_expr_is_pat_variant(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_PAT_VARIANT())
+}
+
+fn mir_core_expr_is_pat_ident(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_PAT_IDENT())
+}
+
+fn mir_core_expr_is_pat_wildcard(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_PAT_WILDCARD())
+}
+
+fn mir_core_expr_is_pat_or(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_PAT_OR())
+}

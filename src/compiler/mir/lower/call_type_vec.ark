@@ -1,0 +1,30 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR call result type propagation for vec-producing calls.
+
+
+fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
+    if starts_with(clone(callee_name), "Vec_new_") {
+        let elem_ty = substring(callee_name, 8, len(callee_name))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, concat(String_from("vec:"), elem_ty))
+    }
+    if eq(clone(callee_name), "text::chars") || eq(clone(callee_name), "chars") || eq(clone(callee_name), "split") || eq(clone(callee_name), "text::split") || eq(clone(callee_name), "string::split") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:string"))
+    }
+    if eq(clone(callee_name), "env::args") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:String"))
+    }
+    if eq(clone(callee_name), "vec_get_unchecked") {
+        mark_vec_get_unchecked_result_type(ctx, dest, first_arg_idx)
+    }
+}
+
+fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
+    if first_arg_idx >= 0 {
+        let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        if starts_with(clone(vec_type), "vec:") {
+            let elem_ty = substring(vec_type, 4, len(vec_type))
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, elem_ty)
+        }
+    }
+}

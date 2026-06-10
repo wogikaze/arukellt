@@ -1,0 +1,19 @@
+use parser::kinds
+// Arukellt Parser - aggregate expression AST node display names
+
+
+fn expr_aggregate_node_kind_name(kind: i32) -> String {
+    if kind == kinds::NK_STRUCT_LIT() {
+        return String_from("StructLit")
+    }
+    if kind == kinds::NK_ARRAY_LIT() {
+        return String_from("ArrayLit")
+    }
+    if kind == kinds::NK_TUPLE() {
+        return String_from("Tuple")
+    }
+    if kind == kinds::NK_COMPREHENSION() {
+        return String_from("Comprehension")
+    }
+    String_new()
+}

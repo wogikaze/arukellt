@@ -1,0 +1,39 @@
+// Arukellt Typechecker - match coverage read helpers.
+
+use typechecker::match_coverage_record
+
+fn MatchCoverage_has_wildcard(coverage: MatchCoverage) -> bool {
+    coverage.has_wildcard
+}
+
+fn MatchCoverage_has_bool_true(coverage: MatchCoverage) -> bool {
+    coverage.has_bool_true
+}
+
+fn MatchCoverage_has_bool_false(coverage: MatchCoverage) -> bool {
+    coverage.has_bool_false
+}
+
+fn MatchCoverage_has_option_some(coverage: MatchCoverage) -> bool {
+    coverage.has_option_some
+}
+
+fn MatchCoverage_has_option_none(coverage: MatchCoverage) -> bool {
+    coverage.has_option_none
+}
+
+fn MatchCoverage_has_result_ok(coverage: MatchCoverage) -> bool {
+    coverage.has_result_ok
+}
+
+fn MatchCoverage_has_result_err(coverage: MatchCoverage) -> bool {
+    coverage.has_result_err
+}
+
+fn MatchCoverage_variant_count(coverage: MatchCoverage) -> i32 {
+    len(coverage.covered_variants)
+}
+
+fn MatchCoverage_variant_at(coverage: MatchCoverage, index: i32) -> String {
+    clone(get_unchecked(coverage.covered_variants, index))
+}

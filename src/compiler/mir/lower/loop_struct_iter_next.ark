@@ -1,0 +1,13 @@
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR struct iterator next call emission.
+
+use mir::inst_call
+use mir::inst_local_get
+use mir::lower::loop_conditions
+
+fn mir_emit_struct_iterator_next(ctx: LowerCtx, iter_ptr: i32, next_callee: String, opt_local: i32) {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(iter_ptr))
+    ctx_emit(ctx, inst_call::MirInst_call(clone(next_callee), 1, opt_local))
+    loop_conditions::mir_save_stack_to_local(ctx, opt_local)
+}

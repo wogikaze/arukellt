@@ -1,0 +1,41 @@
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR body builder for pattern DTOs.
+
+use corehir::expr_builder_patterns
+use corehir::expr_predicates
+use corehir::pattern_node
+
+fn corehir_build_pattern_expr(table: CoreHirBodyTable, pat: AstNode) -> i32 {
+    if pattern_node::pattern_is_ident(pat) {
+        return corehir_push_expr(table, expr_builder_patterns::corehir_expr_pat_ident(pattern_node::pattern_text(pat), pattern_node::pattern_span_start(pat)))
+    }
+    if pattern_node::pattern_is_wildcard(pat) {
+        return corehir_push_expr(table, expr_builder_patterns::corehir_expr_pat_wildcard(pattern_node::pattern_text(pat), pattern_node::pattern_span_start(pat)))
+    }
+    if pattern_node::pattern_is_literal(pat) {
+        return corehir_push_expr(table, expr_builder_patterns::corehir_expr_pat_literal(pattern_node::pattern_text(pat), pattern_node::pattern_int_val(pat), pattern_node::pattern_span_start(pat)))
+    }
+    if pattern_node::pattern_is_composite(pat) {
+        let children = Vec_new_i32()
+        let child_count = pattern_node::pattern_child_count(pat)
+        let mut i = 0
+        let mut unsupported = false
+        while i < child_count {
+            let child_index = corehir_build_pattern_expr(table, pattern_node::pattern_child_at(pat, i))
+            push(children, child_index)
+            let child_expr = corehir_body_expr_at(table, child_index)
+            if expr_predicates::expr_is_unsupported(child_expr) {
+                unsupported = true
+            }
+            i = i + 1
+        }
+        if unsupported {
+            return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(pattern_node::pattern_span_start(pat)))
+        }
+        if pattern_node::pattern_is_variant(pat) {
+            return corehir_push_expr(table, expr_builder_patterns::corehir_expr_pat_variant(pattern_node::pattern_text(pat), pattern_node::pattern_span_start(pat), children))
+        }
+        return corehir_push_expr(table, expr_builder_patterns::corehir_expr_pat_or(pattern_node::pattern_span_start(pat), children))
+    }
+    corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(pattern_node::pattern_span_start(pat)))
+}

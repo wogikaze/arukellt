@@ -1,0 +1,48 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR method callee monomorphization resolution.
+
+use mir::mono
+use mir::value_types
+
+fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String {
+    if first_method_arg_idx < 0 {
+        return String_from("")
+    }
+    let mut method_mono_type_key = ctx_get_local_type(ctx, first_method_arg_idx)
+    if len(method_mono_type_key) == 0 {
+        let method_arg_vt = ctx_local_vt(ctx, first_method_arg_idx)
+        if method_arg_vt == value_types::VT_I64() {
+            method_mono_type_key = String_from("i64")
+        } else {
+            if method_arg_vt == value_types::VT_F64() {
+                method_mono_type_key = String_from("f64")
+            } else {
+                method_mono_type_key = String_from("i32")
+            }
+        }
+    }
+    if eq(clone(method_mono_type_key), String_from("string")) {
+        method_mono_type_key = String_from("String")
+    }
+    method_mono_type_key
+}
+
+fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_arg_idx: i32, span_start: i32) -> String {
+    let method_mono_type_key = mir_method_mono_type_key(ctx, first_method_arg_idx)
+    if len(method_mono_type_key) > 0 {
+        let method_mono_candidate = mono::mono_safe_name(concat(clone(callee_name), concat(String_from("__"), method_mono_type_key)))
+        if ctx_has_fn_name(ctx, clone(method_mono_candidate)) {
+            return method_mono_candidate
+        }
+    }
+    let mono_target = ctx_mono_lookup_call(ctx, span_start)
+    if len(mono_target) > 0 {
+        return mono_target
+    }
+    let named_mono_target = ctx_resolve_unused_mono_by_name(ctx, callee_name)
+    if len(named_mono_target) > 0 {
+        return named_mono_target
+    }
+    callee_name
+}

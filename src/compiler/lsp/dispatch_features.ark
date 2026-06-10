@@ -1,0 +1,20 @@
+// Arukellt LSP - language feature method dispatch.
+
+use lsp::features
+use lsp::state_record
+
+fn dispatch_features(state: LspState, body: String, method: String) -> bool {
+    if eq(clone(method), "textDocument/hover") {
+        features::handle_hover(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/definition") {
+        features::handle_definition(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/completion") {
+        features::handle_completion(state, clone(body))
+        return true
+    }
+    false
+}

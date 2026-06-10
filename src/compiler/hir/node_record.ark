@@ -1,0 +1,19 @@
+// Arukellt HIR - node data record.
+
+use hir::type_contracts_record
+
+struct HirNode {
+    tag: i32,
+    ty: HirType,
+    text: String,
+    int_val: i32,
+    float_val: f64,
+    op: i32,
+    children: Vec<HirNode>,
+    is_mut: bool,
+    scope_id: i32,
+}
+
+fn HirNode_new(tag: i32, ty: HirType) -> HirNode {
+    HirNode { tag: tag, ty: ty, text: String_new(), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_HirNode(), is_mut: false, scope_id: 0 }
+}

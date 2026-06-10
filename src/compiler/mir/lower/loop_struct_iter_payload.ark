@@ -1,0 +1,14 @@
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR struct iterator payload extraction.
+
+use mir::inst_struct_get
+use mir::inst_local_get
+use mir::lower::loop_conditions
+use mir::value_types
+
+fn mir_emit_struct_iterator_payload(ctx: LowerCtx, opt_local: i32, iter_var: i32) {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(opt_local))
+    ctx_emit(ctx, inst_struct_get::MirInst_struct_get_to(4, value_types::VT_I32(), iter_var))
+    loop_conditions::mir_save_stack_to_local(ctx, iter_var)
+}

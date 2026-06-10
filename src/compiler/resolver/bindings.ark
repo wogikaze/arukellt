@@ -1,0 +1,22 @@
+// Arukellt Resolver - declarations and local binding rules.
+
+use resolver::bindings_enum
+use resolver::bindings_fn
+use resolver::bindings_let
+use resolver::bindings_pattern
+
+fn resolve_fn(ctx: ResolveCtx, node: AstNode) {
+    bindings_fn::resolve_fn(ctx, node)
+}
+
+fn resolve_enum(ctx: ResolveCtx, node: AstNode) {
+    bindings_enum::resolve_enum(ctx, node)
+}
+
+fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
+    bindings_pattern::collect_pattern_bindings(ctx, pat)
+}
+
+fn resolve_let(ctx: ResolveCtx, node: AstNode) {
+    bindings_let::resolve_let(ctx, node)
+}

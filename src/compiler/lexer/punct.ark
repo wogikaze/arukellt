@@ -1,0 +1,13 @@
+// Arukellt Lexer - punctuation token facade
+
+use lexer::cursor
+use lexer::punct_compound
+use lexer::punct_single
+
+fn lex_punctuation_or_error(lex: Lexer, start: i32, c: i32) -> Token {
+    cursor::advance_by(lex, 1)
+    if punct_compound::is_compound_punct_start(c) {
+        return punct_compound::lex_compound_punct(lex, start, c)
+    }
+    punct_single::lex_single_punct_or_error(lex, start, c)
+}

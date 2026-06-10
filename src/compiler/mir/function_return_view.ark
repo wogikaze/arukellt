@@ -1,0 +1,12 @@
+// Arukellt Selfhost - MIR function return query API.
+
+use mir::function_core_record
+use mir::types_function
+
+fn MirFunction_return_type(f: MirFunction) -> i32 {
+    f.return_type
+}
+
+fn MirFunction_return_type_name(f: MirFunction) -> String {
+    clone(f.return_type_name)
+}

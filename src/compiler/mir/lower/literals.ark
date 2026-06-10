@@ -1,0 +1,25 @@
+// Arukellt Selfhost - MIR lowering literal facade.
+
+use mir::lower::literal_bool_pattern
+use mir::lower::literal_float_char
+use mir::lower::literal_int
+
+fn lower_int_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+    literal_int::lower_int_literal(ctx, node)
+}
+
+fn lower_char_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+    literal_float_char::lower_char_literal(ctx, node)
+}
+
+fn lower_float_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+    literal_float_char::lower_float_literal(ctx, node)
+}
+
+fn lower_bool_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+    literal_bool_pattern::lower_bool_literal(ctx, node)
+}
+
+fn lower_pattern_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+    literal_bool_pattern::lower_pattern_literal(ctx, node)
+}

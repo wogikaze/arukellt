@@ -1,0 +1,25 @@
+// Arukellt Selfhost - MIR value opcode display names.
+
+use mir::opcodes
+
+fn mir_value_op_name(op: i32) -> String {
+    if op == opcodes::MIR_CONST_I32() {
+        return String_from("const.i32")
+    }
+    if op == opcodes::MIR_CONST_I64() {
+        return String_from("const.i64")
+    }
+    if op == opcodes::MIR_CONST_F64() {
+        return String_from("const.f64")
+    }
+    if op == opcodes::MIR_CONST_STRING() {
+        return String_from("const.string")
+    }
+    if op == opcodes::MIR_LOCAL_GET() {
+        return String_from("local.get")
+    }
+    if op == opcodes::MIR_LOCAL_SET() {
+        return String_from("local.set")
+    }
+    String_from("")
+}

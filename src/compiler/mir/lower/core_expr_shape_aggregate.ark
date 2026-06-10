@@ -1,0 +1,36 @@
+use corehir::kinds
+// Arukellt Selfhost - MIR lowering CoreHIR aggregate shape predicates.
+
+use corehir::expr_predicates
+
+fn mir_core_expr_is_field_access(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_FIELD_ACCESS())
+}
+
+fn mir_core_expr_is_index(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_INDEX())
+}
+
+fn mir_core_expr_is_array_lit(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_ARRAY_LIT())
+}
+
+fn mir_core_expr_is_tuple(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_TUPLE())
+}
+
+fn mir_core_expr_is_struct_lit(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_STRUCT_LIT())
+}
+
+fn mir_core_expr_is_struct_base(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_STRUCT_BASE())
+}
+
+fn mir_core_expr_is_struct_field(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_STRUCT_FIELD())
+}
+
+fn mir_core_expr_is_comprehension(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_COMPREHENSION())
+}

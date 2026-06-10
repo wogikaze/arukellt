@@ -1,0 +1,52 @@
+// Arukellt Resolver - symbol definition policy.
+
+use resolver::kinds
+use resolver::scope_error
+use resolver::scope_stack_scopes
+use resolver::scope_stack_symbols
+
+fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
+    let idx = scope_stack_scopes::ResolveCtx_take_next_decl_index(ctx)
+    let current_depth = scope_stack_scopes::ResolveCtx_current_depth(ctx)
+    let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, current_depth)
+    let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
+    let mut i = 0
+    while i < sym_count {
+        let existing = scope_stack_scopes::Scope_symbol_at(scope, i)
+        if eq(scope_stack_symbols::Symbol_name(existing), clone(name)) && scope_stack_symbols::Symbol_scope_depth(existing) == current_depth {
+            if can_replace_existing_symbol(kind, scope_stack_symbols::Symbol_kind(existing)) {
+                scope_stack_symbols::Symbol_set_kind(existing, kind)
+                scope_stack_symbols::Symbol_set_decl_index(existing, idx)
+                scope_stack_symbols::Symbol_set_is_pub(existing, is_pub)
+                return
+            }
+            scope_error::resolve_error(ctx, concat(String_from("duplicate definition: "), clone(name)))
+            return
+        }
+        i = i + 1
+    }
+    let sym = scope_stack_symbols::Symbol_new(name, kind, current_depth, idx, is_pub)
+    scope_stack_scopes::Scope_push_symbol(scope, sym)
+}
+
+fn can_replace_existing_symbol(kind: i32, existing_kind: i32) -> bool {
+    if kind == commands::SYM_LOCAL() || kind == commands::SYM_PARAM() {
+        return true
+    }
+    if (kind == commands::SYM_FN() || kind == commands::SYM_STRUCT() || kind == commands::SYM_ENUM()) && existing_kind == commands::SYM_MODULE() {
+        return true
+    }
+    return false
+}
+
+fn define(ctx: ResolveCtx, name: String, kind: i32) {
+    define_impl(ctx, name, kind, false)
+}
+
+fn define_pub(ctx: ResolveCtx, name: String, kind: i32) {
+    define_impl(ctx, name, kind, true)
+}
+
+fn define_with_vis(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
+    define_impl(ctx, name, kind, is_pub)
+}

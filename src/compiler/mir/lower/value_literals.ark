@@ -1,0 +1,25 @@
+use mir::lower::ast_node
+use mir::lower_kinds
+// Arukellt Selfhost - MIR lowering atomic literal values.
+
+use mir::lower::literals
+
+fn lower_atomic_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+    let kind = ast_node::node_kind(node)
+    if kind == lower_kinds::NK_INT_LIT() {
+        return literals::lower_int_literal(ctx, node)
+    }
+    if kind == lower_kinds::NK_CHAR_LIT() {
+        return literals::lower_char_literal(ctx, node)
+    }
+    if kind == lower_kinds::NK_FLOAT_LIT() {
+        return literals::lower_float_literal(ctx, node)
+    }
+    if kind == lower_kinds::NK_BOOL_LIT() {
+        return literals::lower_bool_literal(ctx, node)
+    }
+    if kind == lower_kinds::NK_PAT_LITERAL() {
+        return literals::lower_pattern_literal(ctx, node)
+    }
+    0 - 2
+}

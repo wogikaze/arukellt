@@ -1,0 +1,15 @@
+// Arukellt Selfhost - Wasm emitter context scratch local view.
+
+use wasm::ctx_record
+
+fn SelfEmitCtx_scratch_base(ctx: SelfEmitCtx) -> i32 {
+    ctx.scratch_base
+}
+
+fn SelfEmitCtx_scratch_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
+    ctx.scratch_base + offset
+}
+
+fn SelfEmitCtx_set_scratch_base(ctx: SelfEmitCtx, scratch_base: i32) {
+    ctx.scratch_base = scratch_base
+}

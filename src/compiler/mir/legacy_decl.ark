@@ -1,0 +1,7 @@
+// Arukellt Selfhost - MIR lower legacy-declaration facade.
+
+use mir::lower::legacy_decl
+
+fn mir_legacy_decl_from_node(node: AstNode) -> MirLowerLegacyDecl {
+    legacy_decl::mir_legacy_decl_from_node(node)
+}

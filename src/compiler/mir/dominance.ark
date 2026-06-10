@@ -1,0 +1,30 @@
+// Arukellt Selfhost - MIR CFG dominance analysis
+
+use mir::types
+use mir::dominance_collect
+use mir::dominance_function
+use mir::dominance_info
+use mir::dom_pred
+use mir::module_functions
+
+fn mir_compute_predecessors(m: MirModule) {
+    dom_pred::mir_compute_predecessors(m)
+}
+
+fn mir_compute_dominance_for_function(f: MirFunction) {
+    dominance_function::mir_compute_dominance_for_function(f)
+}
+
+fn mir_collect_dom_info_for_function(f: MirFunction) -> MirDomInfo {
+    dominance_collect::mir_collect_dom_info_for_function(f)
+}
+
+fn mir_compute_dominance(m: MirModule) {
+    let fn_count = module_functions::MirModule_function_count(m)
+    let mut i = 0
+    while i < fn_count {
+        let f = module_functions::MirModule_function_at(m, i)
+        mir_compute_dominance_for_function(f)
+        i = i + 1
+    }
+}

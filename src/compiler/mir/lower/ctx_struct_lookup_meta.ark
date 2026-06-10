@@ -1,0 +1,32 @@
+// Arukellt MIR lowering context - struct field metadata lookup.
+
+use mir::lower::ctx_struct_storage
+
+fn ctx_struct_field_count(ctx: LowerCtx, struct_name: String) -> i32 {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut si = 0
+    while si < sc {
+        let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
+        if eq(clone(sn), clone(struct_name)) {
+            return ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
+        }
+        si = si + 1
+    }
+    0
+}
+
+fn ctx_struct_field_name(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
+        let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
+        if eq(clone(sn), clone(struct_name)) {
+            return ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, offset + field_idx)
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    String_from("")
+}

@@ -1,0 +1,28 @@
+use mir::function_emit_inst
+// Arukellt MIR lowering context - instruction and block emission.
+
+use mir::block_alloc
+use mir::block_factory
+use mir::function_block_mutation
+use mir::lower::ctx_current_storage
+
+fn ctx_emit(ctx: LowerCtx, inst: MirInst) {
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    function_inst::emit_inst(f, ctx_current_storage::ctx_current_block_value(ctx), inst)
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+}
+
+fn ctx_alloc_block(ctx: LowerCtx) -> i32 {
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    let idx = function_block_mutation::MirFunction_next_block(f)
+    function_block_mutation::MirFunction_increment_next_block(f)
+    function_block_mutation::MirFunction_push_block(f, block_factory::MirBlock_new(idx))
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+    idx
+}
+
+fn ctx_enter_new_block(ctx: LowerCtx) -> i32 {
+    let idx = ctx_alloc_block(ctx)
+    ctx_current_storage::ctx_set_current_block_value(ctx, idx)
+    idx
+}

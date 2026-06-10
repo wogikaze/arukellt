@@ -1,0 +1,28 @@
+// Arukellt Selfhost - typechecker standalone self-checks
+
+use std::host::stdio
+use lexer::scan
+use parser::core_api_token
+use parser::decl
+use resolver::program
+use typechecker::contract_result_state
+use typechecker::entry
+
+fn main() {
+    let src = String_from("fn main() { let x: i32 = 1 }")
+    let tokens = scan::tokenize(src)
+    let p = core_api_token::Parser_new(tokens)
+    let decls = decl::parse_module(p)
+    if len(p.errors) != 0 {
+        stdio::println(concat(String_from("TypeChecker parse errors: "), to_string(len(p.errors))))
+        return
+    }
+    let resolve_ctx = program::resolve_program(decls, Vec_new_ModuleDecls())
+    let result = entry::typecheck_module(decls, resolve_ctx)
+    let error_count = contract_result_state::typecheck_result_error_count(result)
+    if error_count != 0 {
+        stdio::println(concat(String_from("TypeChecker errors: "), to_string(error_count)))
+        return
+    }
+    stdio::println(String_from("TypeChecker OK."))
+}

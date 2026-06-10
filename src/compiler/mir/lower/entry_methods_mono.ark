@@ -1,0 +1,19 @@
+// Arukellt Selfhost - MIR entry impl method mono body emission loop.
+
+use mir::lower::entry_emit_method
+use mir::lower::entry_view
+use mir::mono
+
+fn mir_emit_method_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBodyInput, struct_name: String, mangled: String, method_param_count: i32, entry_view: MirLowerEntryView, method_info_index: i32, midx: MonoIndex) {
+    let method_mono_emit_count_raw = mono::mono_index_count(midx, clone(mangled))
+    let method_mono_emit_count = method_mono_emit_count_raw + 1
+    let mut method_mono_emit_i = 0
+    while method_mono_emit_i < method_mono_emit_count {
+        let mut emit_method_name = clone(mangled)
+        if method_mono_emit_i > 0 {
+            emit_method_name = mono::mono_safe_name(mono::mono_index_mangled_at(midx, clone(mangled), method_mono_emit_i - 1))
+        }
+        entry_method::mir_emit_method_body(ctx, body_input, clone(struct_name), clone(mangled), emit_method_name, method_param_count, entry_view, method_info_index)
+        method_mono_emit_i = method_mono_emit_i + 1
+    }
+}

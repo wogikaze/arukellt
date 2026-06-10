@@ -1,0 +1,30 @@
+// Arukellt Selfhost - sequence intrinsic handler facade
+
+use wasm::intrinsic_seq_binary_search
+use wasm::intrinsic_seq_count
+use wasm::intrinsic_seq_extremum
+use wasm::intrinsic_seq_reduce
+
+fn emit_sum_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_seq_reduce::emit_sum_i32(w, inst, ctx)
+}
+
+fn emit_product_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_seq_reduce::emit_product_i32(w, inst, ctx)
+}
+
+fn emit_seq_min_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_seq_extremum::emit_seq_extremum_i32(w, inst, ctx, false)
+}
+
+fn emit_seq_max_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_seq_extremum::emit_seq_extremum_i32(w, inst, ctx, true)
+}
+
+fn emit_seq_count_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_seq_count::emit_seq_count_eq(w, inst, ctx)
+}
+
+fn emit_seq_binary_search(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_seq_binary_search::emit_seq_binary_search(w, inst, ctx)
+}

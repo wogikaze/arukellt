@@ -1,0 +1,17 @@
+use lexer::tokens
+use parser::kinds
+// Arukellt Parser - Pratt unary operator mapping.
+
+
+pub fn token_to_unop(kind: i32) -> i32 {
+    if kind == tokens::TK_MINUS() {
+        return kinds::UOP_NEG()
+    }
+    if kind == tokens::TK_BANG() {
+        return kinds::UOP_NOT()
+    }
+    if kind == tokens::TK_TILDE() {
+        return kinds::UOP_BITNOT()
+    }
+    0
+}

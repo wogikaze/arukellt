@@ -1,0 +1,31 @@
+// Arukellt Selfhost - stdlib module path helpers.
+
+pub fn is_stdlib_path(path: String) -> bool {
+    let n = len(path)
+    if n < 5 {
+        return false
+    }
+    eq(substring(path, 0, 5), String_from("std::"))
+}
+
+pub fn stdlib_path_to_file(path: String) -> String {
+    let n = len(path)
+    let mut result = String_from("")
+    let mut i = 0
+    let mut seg_start = 0
+    while i < n {
+        if char_at(path, i) == 58 && i + 1 < n && char_at(path, i + 1) == 58 {
+            result = concat(clone(result), concat(substring(clone(path), seg_start, i), String_from("/")))
+            i = i + 2
+            seg_start = i
+        } else {
+            i = i + 1
+        }
+    }
+    concat(clone(result), concat(substring(clone(path), seg_start, n), String_from(".ark")))
+}
+
+pub fn stdlib_mod_fallback_path(primary: String) -> String {
+    let n = len(primary)
+    concat(substring(clone(primary), 0, n - 4), String_from("/mod.ark"))
+}

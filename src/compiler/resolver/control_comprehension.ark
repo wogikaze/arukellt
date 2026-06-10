@@ -1,0 +1,25 @@
+// Arukellt Resolver - scoped comprehension walker.
+
+use resolver::scope_stack_lifecycle
+use resolver::ast_access
+use resolver::scope_define
+use resolver::kinds
+
+fn resolve_comprehension(ctx: ResolveCtx, node: AstNode) {
+    scope_stack_lifecycle::push_scope(ctx)
+    let child_count = ast_access::node_child_count(node)
+    if child_count > 1 {
+        let iter = ast_access::node_child_at(node, 1)
+        resolve_node(ctx, iter)
+    }
+    scope_define::define(ctx, ast_access::node_text(node), commands::SYM_LOCAL())
+    if child_count > 0 {
+        let elem_expr = ast_access::node_child_at(node, 0)
+        resolve_node(ctx, elem_expr)
+    }
+    if child_count > 2 {
+        let filter_expr = ast_access::node_child_at(node, 2)
+        resolve_node(ctx, filter_expr)
+    }
+    scope_stack_lifecycle::pop_scope(ctx)
+}

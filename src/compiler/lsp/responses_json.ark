@@ -1,0 +1,7 @@
+// Arukellt Selfhost - LSP response JSON helpers.
+
+use lsp::json_escape
+
+fn quote_string(s: String) -> String {
+	concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
+}

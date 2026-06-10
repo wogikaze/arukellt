@@ -1,0 +1,37 @@
+use wasm::opcodes
+use wasm::constants
+// Arukellt Selfhost - Wasm import section builder.
+
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_sections
+use wasm::writer_string
+
+fn emit_import_section(out: WasmWriter, wasi_type_map: Vec<i32>) {
+    let import_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(import_sec, constants::NUM_WASI_IMPORTS())
+    emit_wasi_import_entries(import_sec, wasi_type_map)
+    writer_sections::emit_section(out, opcodes::SEC_IMPORT(), import_sec)
+}
+
+fn wasi_snapshot_module_name() -> String {
+    String_from("wasi_snapshot_preview1")
+}
+
+fn emit_wasi_import_entries(import_sec: WasmWriter, wasi_type_map: Vec<i32>) {
+    let wasi_module = wasi_snapshot_module_name()
+    emit_wasi_func_import(import_sec, clone(wasi_module), String_from("fd_write"), get_unchecked(wasi_type_map, 0))
+    emit_wasi_func_import(import_sec, clone(wasi_module), String_from("args_sizes_get"), get_unchecked(wasi_type_map, 1))
+    emit_wasi_func_import(import_sec, clone(wasi_module), String_from("args_get"), get_unchecked(wasi_type_map, 1))
+    emit_wasi_func_import(import_sec, clone(wasi_module), String_from("path_open"), get_unchecked(wasi_type_map, 2))
+    emit_wasi_func_import(import_sec, clone(wasi_module), String_from("fd_read"), get_unchecked(wasi_type_map, 0))
+    emit_wasi_func_import(import_sec, clone(wasi_module), String_from("fd_close"), get_unchecked(wasi_type_map, 3))
+    emit_wasi_func_import(import_sec, clone(wasi_module), String_from("proc_exit"), get_unchecked(wasi_type_map, 4))
+}
+
+fn emit_wasi_func_import(import_sec: WasmWriter, wasi_module: String, import_name: String, type_idx: i32) {
+    writer_string::emit_string(import_sec, wasi_module)
+    writer_string::emit_string(import_sec, import_name)
+    writer_core::emit_byte(import_sec, 0)
+    writer_leb::emit_leb128_u(import_sec, type_idx)
+}

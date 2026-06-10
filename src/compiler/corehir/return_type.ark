@@ -1,0 +1,12 @@
+// Arukellt Selfhost - CoreHIR return annotation facts.
+
+use corehir::return_type_name
+use corehir::return_type_value
+
+fn return_value_type_tag(node: AstNode) -> i32 {
+    return_type_value::return_value_type_tag(node)
+}
+
+fn return_index_type_name(node: AstNode) -> String {
+    return_type_name::return_index_type_name(node)
+}

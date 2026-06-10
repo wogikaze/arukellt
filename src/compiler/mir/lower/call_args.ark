@@ -1,0 +1,33 @@
+// Arukellt Selfhost - MIR lowering call argument helpers
+
+use mir::lower::call_arg_print_convert
+use mir::lower::call_arg_print_needs
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+use mir::inst_local_set
+
+fn mir_is_printlike_callee(name: String) -> bool {
+    eq(clone(name), "stdio::println") || eq(clone(name), "println") || eq(clone(name), "stdio::print") || eq(clone(name), "print") || eq(clone(name), "stdio::eprintln") || eq(clone(name), "eprintln") || eq(clone(name), "__intrinsic_println")
+}
+
+fn mir_print_arg_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> bool {
+    call_arg_print_needs::mir_print_arg_needs_string_conversion(ctx, arg, arg_idx)
+}
+
+fn mir_convert_print_arg_to_string(ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> i32 {
+    call_arg_print_convert::mir_convert_print_arg_to_string(ctx, arg, arg_idx)
+}
+
+fn mir_stage_call_arg(ctx: LowerCtx, staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
+    let staged_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
+    let staged_local = ctx_api_local_alloc::ctx_fresh_local(ctx, staged_vt)
+    let staged_type = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
+    if len(staged_type) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, staged_local, staged_type)
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(staged_local))
+    push(staged_arg_locals, staged_local)
+    staged_local
+}

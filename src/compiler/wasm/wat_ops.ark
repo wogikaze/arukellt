@@ -1,0 +1,154 @@
+use mir::inst_accessors_shape
+use mir::inst_accessors_operands
+use mir::inst_accessors_literals
+use mir::opcodes
+// Arukellt Selfhost - MIR instruction to WAT text mapping.
+
+fn mir_op_to_wat(inst: MirInst) -> String {
+    let value_op = mir_value_op_to_wat(inst)
+    if len(value_op) > 0 {
+        return value_op
+    }
+    let arith_op = mir_arith_op_to_wat(inst)
+    if len(arith_op) > 0 {
+        return arith_op
+    }
+    let call_op = mir_call_op_to_wat(inst)
+    if len(call_op) > 0 {
+        return call_op
+    }
+    let control_op = mir_control_op_to_wat(inst)
+    if len(control_op) > 0 {
+        return control_op
+    }
+    let aggregate_op = mir_aggregate_op_to_wat(inst)
+    if len(aggregate_op) > 0 {
+        return aggregate_op
+    }
+    concat(String_from(";; unknown op "), to_string(inst_accessors_shape::MirInst_op(inst)))
+}
+
+fn mir_value_op_to_wat(inst: MirInst) -> String {
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CONST_I32() {
+        return concat(String_from("i32.const "), to_string(inst_accessors_literals::MirInst_int_val(inst)))
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CONST_I64() {
+        return concat(String_from("i64.const "), to_string(inst_accessors_literals::MirInst_int_val(inst)))
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() {
+        return concat(String_from("local.get "), to_string(inst_accessors_operands::MirInst_arg0(inst)))
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() {
+        return concat(String_from("local.set "), to_string(inst_accessors_operands::MirInst_dest(inst)))
+    }
+    String_from("")
+}
+
+fn mir_arith_op_to_wat(inst: MirInst) -> String {
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_ADD() {
+        return String_from("i32.add")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_SUB() {
+        return String_from("i32.sub")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_MUL() {
+        return String_from("i32.mul")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_DIV() {
+        return String_from("i32.div_s")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_MOD() {
+        return String_from("i32.rem_s")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_EQ() {
+        return String_from("i32.eq")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_NEQ() {
+        return String_from("i32.ne")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LT() {
+        return String_from("i32.lt_s")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LTEQ() {
+        return String_from("i32.le_s")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GT() {
+        return String_from("i32.gt_s")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GTEQ() {
+        return String_from("i32.ge_s")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_AND() {
+        return String_from("i32.and")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_OR() {
+        return String_from("i32.or")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_NEG() {
+        return String_from("i32.neg ;; via sub")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_NOT() {
+        return String_from("i32.eqz")
+    }
+    String_from("")
+}
+
+fn mir_call_op_to_wat(inst: MirInst) -> String {
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
+        return concat(String_from("call "), to_string(inst_accessors_operands::MirInst_arg0(inst)))
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_RETURN() {
+        return String_from("return")
+    }
+    String_from("")
+}
+
+fn mir_control_op_to_wat(inst: MirInst) -> String {
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BR() {
+        return concat(String_from("br "), to_string(inst_accessors_literals::MirInst_int_val(inst)))
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BR_IF() {
+        return concat(String_from("br_if "), to_string(inst_accessors_literals::MirInst_int_val(inst)))
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BLOCK() {
+        return String_from("block")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOOP() {
+        return String_from("loop")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_IF() {
+        return String_from("if")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_DROP() {
+        return String_from("drop")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_NOP() {
+        return String_from("nop")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_UNREACHABLE() {
+        return String_from("unreachable")
+    }
+    String_from("")
+}
+
+fn mir_aggregate_op_to_wat(inst: MirInst) -> String {
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
+        return String_from(";; struct.new")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_GET() {
+        return String_from(";; struct.get")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_SET() {
+        return String_from(";; struct.set")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_ARRAY_NEW() {
+        return String_from(";; array.new")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_ARRAY_GET() {
+        return String_from(";; array.get")
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_ARRAY_SET() {
+        return String_from(";; array.set")
+    }
+    String_from("")
+}

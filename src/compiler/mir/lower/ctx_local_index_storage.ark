@@ -1,0 +1,36 @@
+// Arukellt MIR lowering context - local name/index storage.
+
+fn ctx_local_index_push(ctx: LowerCtx, name: String, index: i32) {
+    push(ctx.local_names, name)
+    push(ctx.local_indices, index)
+}
+
+fn ctx_local_index_count(ctx: LowerCtx) -> i32 {
+    len(ctx.local_names)
+}
+
+fn ctx_local_index_name_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.local_names, index))
+}
+
+fn ctx_local_index_value_at(ctx: LowerCtx, index: i32) -> i32 {
+    get_unchecked(ctx.local_indices, index)
+}
+
+fn ctx_local_index_names(ctx: LowerCtx) -> Vec<String> {
+    ctx.local_names
+}
+
+fn ctx_local_index_values(ctx: LowerCtx) -> Vec<i32> {
+    ctx.local_indices
+}
+
+fn ctx_local_index_reset_for_function(ctx: LowerCtx) {
+    ctx.local_names = Vec_new_String()
+    ctx.local_indices = Vec_new_i32()
+}
+
+fn ctx_local_index_restore(ctx: LowerCtx, local_names: Vec<String>, local_indices: Vec<i32>) {
+    ctx.local_names = local_names
+    ctx.local_indices = local_indices
+}

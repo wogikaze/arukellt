@@ -1,0 +1,16 @@
+// Arukellt Selfhost - CoreHIR layout declaration payload query.
+
+use corehir::layout_decl_variants
+use corehir::layout_variant
+
+fn layout_decl_has_payload(decl: CoreHirLayoutDecl) -> bool {
+    let count = layout_decl_variants::layout_decl_variant_count(decl)
+    let mut i = 0
+    while i < count {
+        if layout_variant::layout_variant_has_payload(layout_decl_variants::layout_decl_variant_at(decl, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}

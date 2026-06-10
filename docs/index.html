@@ -21,6 +21,13 @@
       routerMode: 'hash',
       loadSidebar: true,
       subMaxLevel: 2,
+      noCompileLinks: [
+        '.*\\.ark$',
+        '.*\\.expected$',
+        '.*\\.wasm$',
+        '.*\\.toml$',
+        '.*\\.wit$',
+      ],
       search: {
         placeholder: '検索...',
         noData: '見つかりません',
@@ -29,6 +36,68 @@
       alias: {
         '/.*/_sidebar.md': `${siteRoot}_sidebar.md`,
       },
+      plugins: [
+        function docsifyArtifactLinks(hook, vm) {
+          hook.doneEach(function rewriteArtifactLinks() {
+            const routePath = vm.route && vm.route.path ? vm.route.path : '/'
+            const routeDir = routePath.endsWith('/')
+              ? routePath
+              : routePath.replace(/\/[^/]*$/, '/')
+            const baseUrl = new URL(
+              `${siteRoot}${routeDir.replace(/^\//, '')}`,
+              window.location.origin,
+            )
+            const artifactPattern = /\.(ark|expected|wasm|toml|wit)([#?].*)?$/i
+            const rootRoutes = new Set([
+              'README',
+              'current-state',
+              'quickstart',
+              'contributing',
+              'compiler',
+              'language',
+              'platform',
+              'process',
+              'stdlib',
+              'examples',
+              'playground',
+              'migration',
+              'sample',
+              'adr',
+              'design',
+              'spec',
+              'data',
+            ])
+
+            document.querySelectorAll('.markdown-section a[href]').forEach(function rewriteLink(anchor) {
+              const href = anchor.getAttribute('href') || ''
+              if (/^[a-z][a-z0-9+.-]*:/i.test(href)) return
+
+              if (artifactPattern.test(href)) {
+                if (href.startsWith('#') || href.startsWith('/') || href.startsWith('../')) return
+
+                const resolved = new URL(href, baseUrl)
+                anchor.setAttribute('href', `${resolved.pathname}${resolved.search}${resolved.hash}`)
+                return
+              }
+
+              if (!href.startsWith('#/')) return
+
+              const hashTarget = href.slice(2)
+              const suffixStart = hashTarget.search(/[?#]/)
+              const routeTarget = suffixStart >= 0 ? hashTarget.slice(0, suffixStart) : hashTarget
+              const suffix = suffixStart >= 0 ? hashTarget.slice(suffixStart) : ''
+              const firstSegment = routeTarget.split('/')[0]
+              if (!routeTarget || rootRoutes.has(firstSegment) || routeDir === '/') return
+
+              const resolved = new URL(routeTarget, baseUrl)
+              const siteRelativePath = resolved.pathname.startsWith(siteRoot)
+                ? resolved.pathname.slice(siteRoot.length)
+                : resolved.pathname.replace(/^\//, '')
+              anchor.setAttribute('href', `#/${siteRelativePath.replace(/\.md$/, '')}${suffix}`)
+            })
+          })
+        },
+      ],
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/docsify"></script>

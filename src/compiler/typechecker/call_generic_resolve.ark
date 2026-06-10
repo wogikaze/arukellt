@@ -1,0 +1,15 @@
+// Arukellt Typechecker - generic call resolved type argument collection.
+
+use typechecker::unify
+
+fn resolve_type_args(infer_env: TypeEnv, var_types: Vec<TypeInfo>) -> Vec<TypeInfo> {
+    let resolved_type_args = Vec_new_TypeInfo()
+    let mut rv = 0
+    while rv < len(var_types) {
+        let tv_raw = get_unchecked(var_types, rv)
+        let resolved_tv = unify::resolve_type_deep(infer_env, tv_raw)
+        push(resolved_type_args, resolved_tv)
+        rv = rv + 1
+    }
+    resolved_type_args
+}

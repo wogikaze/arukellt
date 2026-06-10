@@ -1,0 +1,17 @@
+// Arukellt Selfhost - MIR arithmetic/logical instruction constructors.
+
+use mir::inst_factory
+use mir::types
+use mir::value_types
+
+fn MirInst_binop(op: i32, dest: i32, a: i32, b: i32) -> MirInst {
+    inst_factory::MirInst_full(op, dest, a, b, 0, 0.0, String_new(), value_types::VT_I32())
+}
+
+fn MirInst_binop_typed(op: i32, dest: i32, a: i32, b: i32, vt: i32) -> MirInst {
+    inst_factory::MirInst_full(op, dest, a, b, 0, 0.0, String_new(), vt)
+}
+
+fn MirInst_unary(op: i32, dest: i32, arg: i32, vt: i32) -> MirInst {
+    inst_factory::MirInst_full(op, dest, arg, 0 - 1, 0, 0.0, String_new(), vt)
+}

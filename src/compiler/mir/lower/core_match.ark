@@ -1,0 +1,44 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering for CoreHIR match expressions.
+
+use mir::inst_local_set
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_match_arm_branch
+use mir::lower::core_match_arm_last
+use mir::lower::core_match_control
+use mir::lower::core_match_payload
+use mir::lower::core_match_result
+use mir::value_types
+
+fn lower_core_match(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    if child_count < 2 {
+        return 0 - 1
+    }
+    let scrut_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(scrut_idx))
+    let result = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    let payload_info = core_match_payload::core_prepare_match_payload(ctx, exprs, expr, scrut_idx)
+    let mut arm = 1
+    let mut if_depth = 0
+    while arm < child_count {
+        let arm_node = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, arm))
+        let arm_child_count = core_expr_shape_accessors::mir_core_expr_child_count(arm_node)
+        let is_last = arm == child_count - 1
+        let pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(arm_node, 0))
+        let body = core_expr_shape_accessors::mir_core_expr_child(arm_node, arm_child_count - 1)
+        if_depth = lower_core_match_arm(ctx, exprs, arm_node, pat, body, scrut_idx, result, payload_info, if_depth, is_last)
+        arm = arm + 1
+    }
+    core_match_control::core_emit_match_end_nested_ifs(ctx, if_depth)
+    core_match_result::core_emit_match_result_get(ctx, result)
+}
+
+fn lower_core_match_arm(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, arm_node: CoreHirExpr, pat: CoreHirExpr, body: i32, scrut_idx: i32, result: i32, payload_info: CoreMatchPayloadInfo, if_depth: i32, is_last: bool) -> i32 {
+    if is_last {
+        return core_match_arm_last::lower_core_match_last_arm(ctx, exprs, arm_node, pat, body, scrut_idx, result, payload_info, if_depth)
+    }
+    core_match_arm_branch::lower_core_match_branch_arm(ctx, exprs, arm_node, pat, body, scrut_idx, result, payload_info, if_depth)
+}

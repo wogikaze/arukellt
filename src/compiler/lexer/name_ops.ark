@@ -1,0 +1,34 @@
+use lexer::tokens
+// Arukellt Lexer - operator token display names.
+
+
+pub fn token_op_name(kind: i32) -> String {
+    if kind == tokens::TK_PLUS() {
+        return String_from("PLUS")
+    }
+    if kind == tokens::TK_MINUS() {
+        return String_from("MINUS")
+    }
+    if kind == tokens::TK_STAR() {
+        return String_from("STAR")
+    }
+    if kind == tokens::TK_SLASH() {
+        return String_from("SLASH")
+    }
+    if kind == tokens::TK_EQ() {
+        return String_from("EQ")
+    }
+    if kind == tokens::TK_EQEQ() {
+        return String_from("EQEQ")
+    }
+    if kind == tokens::TK_BANGEQ() {
+        return String_from("BANGEQ")
+    }
+    if kind == tokens::TK_LT() {
+        return String_from("LT")
+    }
+    if kind == tokens::TK_GT() {
+        return String_from("GT")
+    }
+    String_new()
+}

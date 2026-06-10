@@ -1,0 +1,13 @@
+// Arukellt Selfhost - CoreHIR call argument name classification.
+
+fn mir_core_is_printlike_callee(name: String) -> bool {
+    eq(clone(name), "stdio::println") || eq(clone(name), "println") || eq(clone(name), "stdio::print") || eq(clone(name), "print") || eq(clone(name), "stdio::eprintln") || eq(clone(name), "eprintln") || eq(clone(name), "__intrinsic_println")
+}
+
+fn mir_core_call_bool_result_name(name: String) -> bool {
+    eq(clone(name), "contains_i32") || eq(clone(name), "contains_string") || eq(clone(name), "contains_String") || eq(clone(name), "contains") || eq(clone(name), "is_empty") || eq(clone(name), "is_some") || eq(clone(name), "is_none") || eq(clone(name), "starts_with") || eq(clone(name), "ends_with")
+}
+
+fn mir_core_call_i32_result_name(name: String) -> bool {
+    eq(clone(name), "len") || eq(clone(name), "parse_i32") || eq(clone(name), "abs") || eq(clone(name), "min") || eq(clone(name), "max") || eq(clone(name), "sum_i32") || eq(clone(name), "product_i32") || eq(clone(name), "index_of") || eq(clone(name), "clamp_i32")
+}

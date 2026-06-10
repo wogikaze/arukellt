@@ -1,0 +1,77 @@
+// Arukellt Selfhost - diagnostic source offset/position mapping.
+
+use diagnostics::record
+
+pub fn offset_to_line(source: String, offset: i32) -> i32 {
+    let n = len(source)
+    let mut line: i32 = 1
+    let mut i: i32 = 0
+    while i < offset && i < n {
+        let c = char_at(source, i)
+        if c == 10 {
+            line = line + 1
+        }
+        i = i + 1
+    }
+    line
+}
+
+pub fn offset_to_column(source: String, offset: i32) -> i32 {
+    let n = len(source)
+    let mut col: i32 = 1
+    let mut i: i32 = 0
+    while i < offset && i < n {
+        let c = char_at(source, i)
+        if c == 10 {
+            col = 1
+        } else {
+            col = col + 1
+        }
+        i = i + 1
+    }
+    col
+}
+
+pub fn offset_to_zero_based_line(source: String, offset: i32) -> i32 {
+    offset_to_line(source, offset) - 1
+}
+
+pub fn offset_to_zero_based_column(source: String, offset: i32) -> i32 {
+    offset_to_column(source, offset) - 1
+}
+
+pub fn zero_based_position_to_offset(source: String, line: i32, column: i32) -> i32 {
+    let n = len(source)
+    let mut p = 0
+    let mut cur_line = 0
+    while cur_line < line && p < n {
+        let c = char_at(source, p)
+        p = p + 1
+        if c == 10 {
+            cur_line = cur_line + 1
+        }
+    }
+    let mut col = 0
+    while col < column && p < n {
+        let c = char_at(source, p)
+        if c == 10 {
+            return p
+        }
+        p = p + 1
+        col = col + 1
+    }
+    p
+}
+
+fn span_from_offsets(source: String, file: String, start: i32, end: i32) -> DiagnosticSpan {
+    record::DiagnosticSpan_new_full(file, offset_to_line(clone(source), start), offset_to_column(source, start), start, end)
+}
+
+fn location_text(source: String, file: String, offset: i32) -> String {
+    let mut out = file
+    out = concat(out, String_from(":"))
+    out = concat(out, to_string(offset_to_line(clone(source), offset)))
+    out = concat(out, String_from(":"))
+    out = concat(out, to_string(offset_to_column(source, offset)))
+    out
+}

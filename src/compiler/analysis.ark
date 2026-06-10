@@ -1,375 +1,53 @@
-use diagnostics
-use lexer
-use parser
-use resolver
-use typechecker
+// Arukellt Selfhost - analysis facade.
+
+use analysis::diagnostic_record
+use analysis::snapshot_state_record
+use compiler::session_analyze_pipeline
+use compiler::phase_tags
+use compiler::phases
+
 pub fn PHASE_LEX() -> i32 {
-1
+phases::PHASE_LEX()
 }
+
 pub fn PHASE_PARSE() -> i32 {
-2
+phases::PHASE_PARSE()
 }
+
 pub fn PHASE_RESOLVE() -> i32 {
-3
+phases::PHASE_RESOLVE()
 }
+
 pub fn PHASE_TYPECHECK() -> i32 {
-4
+phases::PHASE_TYPECHECK()
 }
-fn phase_tag(phase: i32) -> String {
-if phase == PHASE_LEX() {
-return String_from("lex")
-}
-if phase == PHASE_PARSE() {
-return String_from("parse")
-}
-if phase == PHASE_RESOLVE() {
-return String_from("resolve")
-}
-if phase == PHASE_TYPECHECK() {
-return String_from("typecheck")
-}
-String_from("unknown")
-}
-pub struct AnalysisDiagnostic {
-phase: i32,
-message: String,
-start: i32,
-end: i32,
-}
-fn AnalysisDiagnostic_new(phase: i32, msg: String, start: i32, end: i32) -> AnalysisDiagnostic {
-AnalysisDiagnostic { phase: phase, message: msg, start: start, end: end }
-}
-fn analysis_lex_diag_code_string(code: i32) -> String {
-if code == 1 {
-return String_from("LEX0001")
-}
-if code == 2 {
-return String_from("LEX0002")
-}
-if code == 3 {
-return String_from("LEX0003")
-}
-if code == 4 {
-return String_from("LEX0004")
-}
-if code == 5 {
-return String_from("LEX0005")
-}
-if code == 6 {
-return String_from("LEX0006")
-}
-String_from("LEX0000")
-}
-fn analysis_lex_diag_code_message(code: i32) -> String {
-if code == 1 {
-return String_from("unterminated string")
-}
-if code == 2 {
-return String_from("unterminated char literal")
-}
-if code == 3 {
-return String_from("unterminated f-string")
-}
-if code == 4 {
-return String_from("unterminated escape")
-}
-if code == 5 {
-return String_from("invalid number")
-}
-if code == 6 {
-return String_from("unknown character")
-}
-String_from("lexical error")
-}
-fn analysis_offset_to_line(text: String, offset: i32) -> i32 {
-let mut line = 1
-let mut i = 0
-let n = len(text)
-while i < offset && i < n {
-if char_at(clone(text), i) == 10 {
-line = line + 1
-}
-i = i + 1
-}
-line
-}
-fn analysis_offset_to_column(text: String, offset: i32) -> i32 {
-let mut col = 1
-let mut i = 0
-let n = len(text)
-while i < offset && i < n {
-if char_at(clone(text), i) == 10 {
-col = 1
-} else {
-col = col + 1
-}
-i = i + 1
-}
-col
-}
-pub struct AnalysisSnapshot {
-uri: String,
-decl_count: i32,
-symbol_count: i32,
-typed_fn_count: i32,
-diagnostic_count: i32,
-diagnostics: Vec<AnalysisDiagnostic>,
-}
-fn AnalysisSnapshot_new(uri: String) -> AnalysisSnapshot {
-AnalysisSnapshot { uri: uri, decl_count: 0, symbol_count: 0, typed_fn_count: 0, diagnostic_count: 0, diagnostics: Vec_new_AnalysisDiagnostic() }
-}
-fn snapshot_push(snap: AnalysisSnapshot, diag: AnalysisDiagnostic) {
-push(snap.diagnostics, diag)
-snap.diagnostic_count = snap.diagnostic_count + 1
-}
-fn count_user_symbols(ctx: ResolveCtx) -> i32 {
-if len(ctx.scopes) == 0 {
-return 0
-}
-let scope = get_unchecked(ctx.scopes, 0)
-let total = len(scope.symbols)
-let mut user = 0
-let mut i = 0
-while i < total {
-let sym = get_unchecked(scope.symbols, i)
-if sym.kind != 8 && sym.kind != 9 {
-user = user + 1
-}
-i = i + 1
-}
-user
-}
+
 pub fn analyze(uri: String, text: String) -> AnalysisSnapshot {
-let snap = AnalysisSnapshot_new(uri)
-let lex_result = lexer::lex_program(clone(text))
-let lex_legacy_count = len(lex_result.diagnostics)
-let mut li = 0
-while li < lex_legacy_count {
-let ld = get_unchecked(lex_result.diagnostics, li)
-let dline = analysis_offset_to_line(clone(text), ld.start)
-let dcol = analysis_offset_to_column(clone(text), ld.start)
-let dfile = clone(snap.uri)
-let dmsg = clone(ld.message)
-let dcode = analysis_lex_diag_code_string(ld.code)
-let dspan = DiagnosticSpan { file: dfile, line: dline, column: dcol }
-let d = Diagnostic { code: dcode, severity: SEV_ERROR(), span: dspan, message: dmsg }
-let mut rmsg = String_from("[")
-rmsg = concat(rmsg, clone(d.code))
-rmsg = concat(rmsg, String_from(" "))
-rmsg = concat(rmsg, severity_name(d.severity))
-rmsg = concat(rmsg, String_from(" "))
-rmsg = concat(rmsg, clone(d.span.file))
-rmsg = concat(rmsg, String_from(":"))
-rmsg = concat(rmsg, to_string(d.span.line))
-rmsg = concat(rmsg, String_from(":"))
-rmsg = concat(rmsg, to_string(d.span.column))
-rmsg = concat(rmsg, String_from("] "))
-rmsg = concat(rmsg, analysis_lex_diag_code_message(ld.code))
-snapshot_push(snap, AnalysisDiagnostic_new(PHASE_LEX(), rmsg, ld.start, ld.end))
-li = li + 1
+session_analyze_pipeline::run_session_analyze(uri, text)
 }
-let parse_result = parser::parse_program(lex_result.tokens)
-snap.decl_count = len(parse_result.decls)
-let parse_err_count = len(parse_result.errors)
-let mut pi = 0
-while pi < parse_err_count {
-let pe = get_unchecked(parse_result.errors, pi)
-snapshot_push(snap, AnalysisDiagnostic_new(PHASE_PARSE(), clone(pe.message), pe.span.start, pe.span.end))
-pi = pi + 1
-}
-let empty_modules = Vec_new_ModuleDecls()
-let resolve_ctx = resolver::resolve_program(parse_result.decls, empty_modules)
-snap.symbol_count = count_user_symbols(resolve_ctx)
-let res_err_count = len(resolve_ctx.errors)
-let mut ri = 0
-while ri < res_err_count {
-let re = get_unchecked(resolve_ctx.errors, ri)
-snapshot_push(snap, AnalysisDiagnostic_new(PHASE_RESOLVE(), clone(re), 0, 0))
-ri = ri + 1
-}
-let check_result = typechecker::typecheck_module(parse_result.decls, resolve_ctx)
-snap.typed_fn_count = len(check_result.typed_fns)
-let tc_err_total = len(check_result.errors)
-let mut ti = res_err_count
-while ti < tc_err_total {
-let te = get_unchecked(check_result.errors, ti)
-snapshot_push(snap, AnalysisDiagnostic_new(PHASE_TYPECHECK(), clone(te), 0, 0))
-ti = ti + 1
-}
-snap
-}
+
 pub fn snapshot_summary(snap: AnalysisSnapshot) -> String {
 let mut out = String_from("analysis ")
-out = concat(out, clone(snap.uri))
+out = concat(out, snapshot_state_record::snapshot_uri(snap))
 out = concat(out, String_from("\n"))
 out = concat(out, String_from("decls="))
-out = concat(out, to_string(snap.decl_count))
+out = concat(out, to_string(snapshot_state_record::snapshot_decl_count(snap)))
 out = concat(out, String_from(" symbols="))
-out = concat(out, to_string(snap.symbol_count))
+out = concat(out, to_string(snapshot_state_record::snapshot_symbol_count(snap)))
 out = concat(out, String_from(" typed="))
-out = concat(out, to_string(snap.typed_fn_count))
+out = concat(out, to_string(snapshot_state_record::snapshot_typed_fn_count(snap)))
 out = concat(out, String_from(" diagnostics="))
-out = concat(out, to_string(snap.diagnostic_count))
+out = concat(out, to_string(snapshot_state_record::snapshot_reported_diagnostic_count(snap)))
 out = concat(out, String_from("\n"))
-let dn = len(snap.diagnostics)
+let dn = snapshot_state_record::snapshot_diagnostic_count(snap)
 let mut i = 0
 while i < dn {
-let d = get_unchecked(snap.diagnostics, i)
-out = concat(out, phase_tag(d.phase))
+let d = snapshot_state_record::snapshot_diagnostic_at(snap, i)
+out = concat(out, phase_tags::phase_tag(diagnostic_record::analysis_diagnostic_phase(d)))
 out = concat(out, String_from(": "))
-out = concat(out, clone(d.message))
+out = concat(out, diagnostic_record::analysis_diagnostic_message(d))
 out = concat(out, String_from("\n"))
 i = i + 1
 }
-out
-}
-fn AT_NK_IDENT() -> i32 {
-5
-}
-fn AT_NK_LET() -> i32 {
-30
-}
-fn AT_NK_FN_DECL() -> i32 {
-50
-}
-fn AT_NK_STRUCT_DECL() -> i32 {
-51
-}
-fn AT_NK_ENUM_DECL() -> i32 {
-52
-}
-pub struct SymbolInfo {
-found: bool,
-name: String,
-kind: i32,
-decl_start: i32,
-decl_end: i32,
-signature: String,
-}
-fn SymbolInfo_none() -> SymbolInfo {
-SymbolInfo { found: false, name: String_new(), kind: 0, decl_start: 0, decl_end: 0, signature: String_new() }
-}
-fn render_signature(decl: AstNode) -> String {
-if decl.kind == AT_NK_FN_DECL() {
-let mut sig = String_from("fn ")
-sig = concat(sig, clone(decl.text))
-sig = concat(sig, String_from("("))
-let cn = len(decl.children)
-let last = if cn > 0 {
-cn - 1
-} else {
-0
-}
-let mut i = 0
-let mut first = true
-while i < last {
-let p = get_unchecked(decl.children, i)
-if !first {
-sig = concat(sig, String_from(", "))
-}
-first = false
-sig = concat(sig, clone(p.text))
-i = i + 1
-}
-sig = concat(sig, String_from(")"))
-return sig
-}
-if decl.kind == AT_NK_STRUCT_DECL() {
-return concat(String_from("struct "), clone(decl.text))
-}
-if decl.kind == AT_NK_ENUM_DECL() {
-return concat(String_from("enum "), clone(decl.text))
-}
-if decl.kind == AT_NK_LET() {
-return concat(String_from("let "), clone(decl.text))
-}
-clone(decl.text)
-}
-fn find_ident_at_in(node: AstNode, offset: i32) -> String {
-if node.kind == AT_NK_IDENT() {
-if node.span.start <= offset && offset < node.span.end {
-return clone(node.text)
-}
-}
-let cn = len(node.children)
-let mut i = 0
-while i < cn {
-let c = get_unchecked(node.children, i)
-let r = find_ident_at_in(c, offset)
-if len(r) > 0 {
-return r
-}
-i = i + 1
-}
-let tn = len(node.type_ann)
-let mut j = 0
-while j < tn {
-let c = get_unchecked(node.type_ann, j)
-let r = find_ident_at_in(c, offset)
-if len(r) > 0 {
-return r
-}
-j = j + 1
-}
-String_new()
-}
-fn find_ident_in_decls(decls: Vec<AstNode>, offset: i32) -> String {
-let n = len(decls)
-let mut i = 0
-while i < n {
-let d = get_unchecked(decls, i)
-let r = find_ident_at_in(d, offset)
-if len(r) > 0 {
-return r
-}
-i = i + 1
-}
-String_new()
-}
-fn find_decl_by_name(decls: Vec<AstNode>, name: String) -> SymbolInfo {
-let n = len(decls)
-let mut i = 0
-while i < n {
-let d = get_unchecked(decls, i)
-let k = d.kind
-let is_decl = k == AT_NK_FN_DECL() || k == AT_NK_STRUCT_DECL() || k == AT_NK_ENUM_DECL() || k == AT_NK_LET()
-if is_decl && eq(clone(d.text), clone(name)) {
-return SymbolInfo { found: true, name: name, kind: k, decl_start: d.span.start, decl_end: d.span.end, signature: render_signature(d) }
-}
-i = i + 1
-}
-SymbolInfo_none()
-}
-pub fn symbol_at(text: String, offset: i32) -> SymbolInfo {
-let lex_result = lexer::lex_program(clone(text))
-let parse_result = parser::parse_program(lex_result.tokens)
-let name = find_ident_in_decls(parse_result.decls, offset)
-if len(name) == 0 {
-return SymbolInfo_none()
-}
-find_decl_by_name(parse_result.decls, name)
-}
-pub fn render_hover_markdown(info: SymbolInfo) -> String {
-if !info.found {
-return String_new()
-}
-let mut out = String_from("```ark\n")
-out = concat(out, clone(info.signature))
-out = concat(out, String_from("\n```"))
-out
-}
-fn render_lex_diagnostic(d: Diagnostic) -> String {
-let mut out = String_from("[")
-out = concat(out, clone(d.code))
-out = concat(out, String_from(" "))
-out = concat(out, severity_name(d.severity))
-out = concat(out, String_from(" "))
-out = concat(out, clone(d.span.file))
-out = concat(out, String_from(":"))
-out = concat(out, to_string(d.span.line))
-out = concat(out, String_from(":"))
-out = concat(out, to_string(d.span.column))
-out = concat(out, String_from("] "))
-out = concat(out, clone(d.message))
 out
 }

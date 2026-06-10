@@ -1,0 +1,15 @@
+// Arukellt Selfhost - CoreHIR frontend AST literal and operator accessors.
+
+use parser::ast_node_record
+
+fn corehir_node_op(node: AstNode) -> i32 {
+    node.op
+}
+
+fn corehir_node_int_val(node: AstNode) -> i32 {
+    node.int_val
+}
+
+fn corehir_node_float_val(node: AstNode) -> f64 {
+    node.float_val
+}

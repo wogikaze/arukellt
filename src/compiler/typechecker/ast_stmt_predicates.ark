@@ -1,0 +1,24 @@
+use typechecker::kinds
+// Arukellt Typechecker - statement/control node predicates.
+
+use typechecker::ast_access
+
+fn node_is_let(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_LET())
+}
+
+fn node_is_expr_stmt(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_EXPR_STMT())
+}
+
+fn node_is_return(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_RETURN())
+}
+
+fn node_is_loop_like(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_WHILE()) || ast_access::node_kind_is(node, kinds::NK_FOR())
+}
+
+fn node_is_block(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_BLOCK())
+}

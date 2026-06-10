@@ -1,0 +1,70 @@
+// Arukellt Selfhost - compile result data contract.
+
+use diagnostics::record
+
+struct CompileResult {
+    success: bool,
+    phase_reached: i32,
+    error_count: i32,
+    error_messages: Vec<String>,
+    diagnostics: Vec<Diagnostic>,
+    output_bytes: Vec<i32>,
+}
+
+fn CompileResult_new(success: bool, phase_reached: i32, error_count: i32, error_messages: Vec<String>, diagnostics: Vec<Diagnostic>, output_bytes: Vec<i32>) -> CompileResult {
+    CompileResult { success: success, phase_reached: phase_reached, error_count: error_count, error_messages: error_messages, diagnostics: diagnostics, output_bytes: output_bytes }
+}
+
+fn CompileResult_ok(phase: i32) -> CompileResult {
+    CompileResult_new(true, phase, 0, Vec_new_String(), Vec_new_Diagnostic(), Vec_new_i32())
+}
+
+fn CompileResult_err(phase: i32, msg: String) -> CompileResult {
+    let mut msgs: Vec<String> = Vec_new_String()
+    push(msgs, msg)
+    CompileResult_new(false, phase, 1, msgs, Vec_new_Diagnostic(), Vec_new_i32())
+}
+
+fn compile_result_set_output_bytes(result: CompileResult, output_bytes: Vec<i32>) {
+    result.output_bytes = output_bytes
+}
+
+fn compile_result_set_error_count(result: CompileResult, error_count: i32) {
+    result.error_count = error_count
+}
+
+fn compile_result_push_error_message(result: CompileResult, message: String) {
+    push(result.error_messages, message)
+}
+
+fn compile_result_push_diagnostic(result: CompileResult, diagnostic: Diagnostic) {
+    push(result.diagnostics, diagnostic)
+}
+
+fn compile_result_success(result: CompileResult) -> bool {
+    result.success
+}
+
+fn compile_result_output_bytes(result: CompileResult) -> Vec<i32> {
+    result.output_bytes
+}
+
+fn compile_result_output_byte_count(result: CompileResult) -> i32 {
+    len(result.output_bytes)
+}
+
+fn compile_result_error_count(result: CompileResult) -> i32 {
+    result.error_count
+}
+
+fn compile_result_error_message_at(result: CompileResult, index: i32) -> String {
+    clone(get_unchecked(result.error_messages, index))
+}
+
+fn compile_result_phase_reached(result: CompileResult) -> i32 {
+    result.phase_reached
+}
+
+fn compile_result_diagnostics(result: CompileResult) -> Vec<Diagnostic> {
+    result.diagnostics
+}

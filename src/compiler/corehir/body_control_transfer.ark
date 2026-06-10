@@ -1,0 +1,38 @@
+use corehir::expr_builder_control_transfer
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR transfer expression builders.
+
+use corehir::expr_predicates
+use corehir::expr_node_access
+
+fn corehir_build_optional_child(table: CoreHirBodyTable, node: AstNode, children: Vec<i32>) -> bool {
+    if expr_node_access::expr_child_count(node) >= 1 {
+        let child_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
+        push(children, child_index)
+        let child_expr = corehir_body_expr_at(table, child_index)
+        if expr_predicates::expr_is_unsupported(child_expr) {
+            return false
+        }
+    }
+    true
+}
+
+fn corehir_build_break_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let children = Vec_new_i32()
+    if !corehir_build_optional_child(table, node, children) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_control_transfer::corehir_expr_break(expr_node_access::expr_span_start(node), children))
+}
+
+fn corehir_build_continue_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    corehir_push_expr(table, expr_builder_control_transfer::corehir_expr_continue(expr_node_access::expr_span_start(node)))
+}
+
+fn corehir_build_return_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let children = Vec_new_i32()
+    if !corehir_build_optional_child(table, node, children) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_control_transfer::corehir_expr_return(expr_node_access::expr_span_start(node), children))
+}

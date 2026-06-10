@@ -1,0 +1,21 @@
+// Arukellt Typechecker - type annotation resolution facade
+
+use typechecker::type_ann
+use typechecker::type_generic
+use typechecker::type_names
+
+fn resolve_type_name(name: String) -> TypeInfo {
+    type_names::resolve_type_name(name)
+}
+
+fn resolve_type_ann_node(ann: AstNode) -> TypeInfo {
+    type_ann::resolve_type_ann_node(ann)
+}
+
+fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> TypeInfo {
+    type_generic::resolve_type_ann_node_generic(ann, type_params)
+}
+
+fn resolve_type_name_generic(name: String, type_params: Vec<String>) -> TypeInfo {
+    type_generic::resolve_type_name_generic(name, type_params)
+}

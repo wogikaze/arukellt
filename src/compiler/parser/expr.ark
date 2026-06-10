@@ -1,0 +1,11 @@
+// Arukellt Parser - Pratt expression parsing.
+
+use parser::expr_bp_loop
+
+fn parse_expr(p: Parser) -> AstNode {
+    parse_expr_bp(p, 0)
+}
+
+fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
+    expr_bp_loop::parse_expr_bp(p, min_bp)
+}

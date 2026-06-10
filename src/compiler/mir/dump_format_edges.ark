@@ -1,0 +1,26 @@
+// Arukellt Selfhost - MIR dump block edge formatting
+
+fn mir_format_block_ids(ids: Vec<i32>) -> String {
+    let count = len(ids)
+    let mut out = String_from("[")
+    let mut i = 0
+    while i < count {
+        if i > 0 {
+            out = concat(out, String_from(","))
+        }
+        out = concat(out, to_string(get_unchecked(ids, i)))
+        i = i + 1
+    }
+    concat(out, String_from("]"))
+}
+
+fn mir_format_edge(edge: i32) -> String {
+    if edge < 0 {
+        return String_from("-")
+    }
+    to_string(edge)
+}
+
+fn mir_format_edges(succ0: i32, succ1: i32) -> String {
+    concat(String_from("["), concat(mir_format_edge(succ0), concat(String_from(","), concat(mir_format_edge(succ1), String_from("]")))))
+}

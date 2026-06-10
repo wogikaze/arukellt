@@ -1,0 +1,36 @@
+use lexer::tokens
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - return, break, and continue statements.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::kinds
+
+pub fn parse_return(p: Parser) -> AstNode {
+    let t = expect_token(p, tokens::TK_RETURN())
+    let node = AstNode_new(kinds::NK_RETURN(), tok_span(t))
+    skip_newlines(p)
+    let k = peek_kind(p)
+    if k != tokens::TK_NEWLINE() && k != tokens::TK_RBRACE() && k != tokens::TK_EOF() && k != tokens::TK_SEMI() {
+        let val = parse_expr(p)
+        core_ast_children::AstNode_push_child(node, val)
+    }
+    node
+}
+
+pub fn parse_break(p: Parser) -> AstNode {
+    let t = expect_token(p, tokens::TK_BREAK())
+    let node = AstNode_new(kinds::NK_BREAK(), tok_span(t))
+    let next = peek_kind(p)
+    if next != tokens::TK_NEWLINE() && next != tokens::TK_RBRACE() && next != tokens::TK_SEMI() && next != tokens::TK_EOF() {
+        let val = parse_expr(p)
+        core_ast_children::AstNode_push_child(node, val)
+    }
+    node
+}
+
+pub fn parse_continue(p: Parser) -> AstNode {
+    let t = expect_token(p, tokens::TK_CONTINUE())
+    AstNode_new(kinds::NK_CONTINUE(), tok_span(t))
+}

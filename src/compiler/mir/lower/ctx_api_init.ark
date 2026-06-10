@@ -1,0 +1,8 @@
+// Arukellt Selfhost - MIR lowering context initialization API.
+
+use mir::lower::ctx_init
+use mir::lower::ctx_types
+
+fn LowerCtx_new(m: MirModule) -> ctx_types::LowerCtx {
+    ctx_init::LowerCtx_new(m)
+}

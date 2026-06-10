@@ -1,0 +1,35 @@
+// Arukellt Selfhost - MIR binary type names and primitive operator policy.
+
+use mir::value_types
+
+fn mir_is_primitive_operator_type(type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return true
+    }
+    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("f64")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("option:")) {
+        return true
+    }
+    false
+}
+
+fn mir_binop_dest_type_name(dest_vt: i32, is_cmp: bool) -> String {
+    if is_cmp {
+        return String_from("bool")
+    }
+    if dest_vt == value_types::VT_F64() {
+        return String_from("f64")
+    }
+    if dest_vt == value_types::VT_I64() {
+        return String_from("i64")
+    }
+    String_from("i32")
+}

@@ -1,0 +1,16 @@
+// Arukellt LSP - document sync method dispatch.
+
+use lsp::documents
+use lsp::state_record
+
+fn dispatch_documents(state: LspState, body: String, method: String) -> bool {
+    if eq(clone(method), "textDocument/didOpen") {
+        documents::handle_did_open(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/didChange") {
+        documents::handle_did_change(state, clone(body))
+        return true
+    }
+    false
+}

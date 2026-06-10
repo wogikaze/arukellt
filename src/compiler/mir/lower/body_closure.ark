@@ -1,0 +1,45 @@
+use mir::lower::ast_node
+use mir::lower::closure_free
+use mir::lower::closure_capture_args
+use mir::lower::closure_registry
+use mir::lower::ctx_api_local_frame
+use mir::lower::ctx_types
+use mir::function_return_mutation
+// Arukellt MIR lowering body - closure expression emission facade.
+
+use mir::lower::body_closure_capture
+use mir::lower::body_closure_context
+use mir::lower::body_closure_params
+use mir::lower::body_closure_return
+use mir::value_types
+
+fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<String>) -> MirFunction {
+    let saved_frame = ctx_api_local_frame::LowerCtxLocalFrame_capture(ctx)
+    let cap_vts = body_closure_capture::mir_closure_capture_vts(ctx, caps)
+    body_closure_context::mir_begin_closure_function_context(ctx, synth)
+    let child_count = ast_node::node_child_count(clos)
+    let body = ast_node::node_child_at(clos, child_count - 1)
+    body_closure_params::mir_emit_closure_params(ctx, clos, child_count)
+    body_closure_capture::mir_emit_closure_captures(ctx, caps, cap_vts)
+    let mut fret = ctx_api_local_frame::ctx_current_function(ctx)
+    function_return_mutation::MirFunction_set_return_type(fret, value_types::VT_I32())
+    ctx_api_local_frame::ctx_set_current_function(ctx, fret)
+    body_closure_return::mir_emit_closure_return(ctx, body)
+    let out_fn = ctx_api_local_frame::ctx_current_function(ctx)
+    body_closure_context::mir_restore_closure_parent_context(ctx, saved_frame)
+    out_fn
+}
+
+fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let caps = Vec_new_String()
+    let cap_child_count = ast_node::node_child_count(node)
+    if cap_child_count > 0 {
+        let cap_body = ast_node::node_child_at(node, cap_child_count - 1)
+        closure_free::closure_collect_free(ctx, cap_body, node, caps)
+    }
+    let packed = closure_capture_args::closure_pack_caps(caps)
+    let extra = len(caps)
+    let synth = closure_registry::closure_next_synth_name(ctx)
+    let mf = mir_emit_closure_fn(ctx, synth, node, caps)
+    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra)
+}

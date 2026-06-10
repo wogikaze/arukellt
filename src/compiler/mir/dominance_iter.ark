@@ -1,0 +1,47 @@
+use mir::block_pred_access
+// Arukellt Selfhost - MIR dominance fixed-point iteration.
+
+use mir::dom_sets
+use mir::block_dominance_access
+use mir::block_dominance_mutation
+use mir::block_identity
+use mir::function_block_queries
+use mir::types
+
+fn mir_iterate_dominance_sets(f: MirFunction, block_count: i32) {
+    let mut changed = true
+    while changed {
+        changed = false
+        let mut b = 1
+        while b < block_count {
+            let block = function_block_queries::MirFunction_block_at(f, b)
+            let new_set = mir_compute_block_dom_set(f, block)
+            if !dom_sets::mir_same_block_id_set(block_dominance_access::MirBlock_dom_set(block), new_set) {
+                block_dominance_mutation::MirBlock_set_dom_set(block, new_set)
+                changed = true
+            }
+            b = b + 1
+        }
+    }
+}
+
+fn mir_compute_block_dom_set(f: MirFunction, block: MirBlock) -> Vec<i32> {
+    let pred_count = block_pred_access::MirBlock_pred_count(block)
+    let mut new_set = Vec_new_i32()
+    if pred_count == 0 {
+        push(new_set, block_identity::MirBlock_id(block))
+    } else {
+        let first_pred = block_pred_access::MirBlock_pred_at(block, 0)
+        let first_pred_block = function_block_queries::MirFunction_block_at(f, first_pred)
+        new_set = dom_sets::mir_copy_block_ids(block_dominance_access::MirBlock_dom_set(first_pred_block))
+        let mut pred_idx = 1
+        while pred_idx < pred_count {
+            let pred_id = block_pred_access::MirBlock_pred_at(block, pred_idx)
+            let pred_block = function_block_queries::MirFunction_block_at(f, pred_id)
+            new_set = dom_sets::mir_intersect_block_id_sets(new_set, block_dominance_access::MirBlock_dom_set(pred_block))
+            pred_idx = pred_idx + 1
+        }
+    }
+    dom_sets::mir_push_unique_i32(new_set, block_identity::MirBlock_id(block))
+    new_set
+}

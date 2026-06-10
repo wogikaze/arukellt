@@ -1,0 +1,36 @@
+use typechecker::kinds
+// Arukellt Typechecker - comprehension expression inference.
+
+use typechecker::ast_access
+use typechecker::contract_type_access
+use typechecker::contract_type_mutation
+use typechecker::scope
+use typechecker::unify
+
+fn infer_comprehension_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    let comp_scope = scope::scope_child(scope)
+    let mut elem_ty_of_iter = TypeInfo_simple(commands::TY_I32())
+    let child_count = ast_access::node_child_count(node)
+    if child_count > 1 {
+        let iter_ty = infer_expr(env, scope, fn_sigs, enum_defs, ast_access::node_child_at(node, 1))
+        if contract_type_access::TypeInfo_tag(iter_ty) == commands::TY_VEC() && contract_type_access::TypeInfo_type_arg_count(iter_ty) > 0 {
+            elem_ty_of_iter = contract_type_access::TypeInfo_type_arg_at(iter_ty, 0)
+        } else {
+            unify::type_error(env, String_from("non-iterable source: expected Vec<T> in comprehension"))
+        }
+    }
+    scope::scope_define(comp_scope, ast_access::node_text(node), elem_ty_of_iter)
+    if child_count > 0 {
+        let elem_ty = infer_expr(env, comp_scope, fn_sigs, enum_defs, ast_access::node_child_at(node, 0))
+        if child_count > 2 {
+            let filter_ty = infer_expr(env, comp_scope, fn_sigs, enum_defs, ast_access::node_child_at(node, 2))
+            if contract_type_access::TypeInfo_tag(filter_ty) != commands::TY_BOOL() {
+                unify::type_error(env, String_from("filter expression must be bool"))
+            }
+        }
+        let mut vec_ty = TypeInfo_simple(commands::TY_VEC())
+        contract_type_mutation::TypeInfo_push_type_arg(vec_ty, elem_ty)
+        return vec_ty
+    }
+    TypeInfo_simple(commands::TY_VEC())
+}

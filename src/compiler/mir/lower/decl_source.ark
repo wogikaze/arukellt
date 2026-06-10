@@ -1,0 +1,32 @@
+// Arukellt Selfhost - MIR lowering declaration source over CoreHIR declarations.
+
+use corehir::mir_decl_source
+use corehir::mod
+
+struct MirLowerDeclSource {
+    source: CoreHirMirDeclSource,
+}
+
+fn mir_decl_source_from_view(view: CoreHirMirView) -> MirLowerDeclSource {
+    MirLowerDeclSource { source: mod::view_decl_source(view) }
+}
+
+fn mir_decl_source_count(source: MirLowerDeclSource) -> i32 {
+    decl_source::mir_decl_source_count(source.source)
+}
+
+fn mir_decl_source_kind_at(source: MirLowerDeclSource, index: i32) -> i32 {
+    decl_source::mir_decl_source_kind_at(source.source, index)
+}
+
+fn mir_decl_source_name_at(source: MirLowerDeclSource, index: i32) -> String {
+    decl_source::mir_decl_source_name_at(source.source, index)
+}
+
+fn mir_decl_source_is_fn_at(source: MirLowerDeclSource, index: i32) -> bool {
+    decl_source::mir_decl_source_is_fn_at(source.source, index)
+}
+
+fn mir_decl_source_is_impl_at(source: MirLowerDeclSource, index: i32) -> bool {
+    decl_source::mir_decl_source_is_impl_at(source.source, index)
+}

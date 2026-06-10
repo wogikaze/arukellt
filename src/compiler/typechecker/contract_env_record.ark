@@ -1,0 +1,19 @@
+// Arukellt Typechecker - inference environment data contract.
+
+use typechecker::contract_mono
+use typechecker::contract_trait_impl_record
+use typechecker::contract_typevar_record
+
+struct TypeEnv {
+    vars: Vec<TypeVar>,
+    next_id: i32,
+    errors: Vec<String>,
+    error_count: i32,
+    mono_instances: Vec<MonoInstance>,
+    mono_call_sites: Vec<MonoCallSite>,
+    trait_impls: Vec<TraitImplInfo>,
+}
+
+fn TypeEnv_new() -> TypeEnv {
+    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite(), trait_impls: Vec_new_TraitImplInfo() }
+}

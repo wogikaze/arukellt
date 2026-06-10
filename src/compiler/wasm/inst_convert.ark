@@ -1,0 +1,60 @@
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::value_types
+use wasm::ctx_scratch
+use wasm::opcodes
+// Arukellt Selfhost - conversion/control-like instruction emitters.
+
+use wasm::writer_core
+use wasm::writer_leb
+
+fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst_accessors_operands::MirInst_arg0(inst) >= 0 {
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+    }
+    writer_core::emit_byte(w, opcodes::OP_RETURN())
+}
+
+fn emit_drop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_DROP())
+}
+
+fn emit_nop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_NOP())
+}
+
+fn emit_unreachable(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+}
+
+fn emit_extend_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_S())
+}
+
+fn emit_wrap_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
+}
+
+fn emit_eqz(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+}
+
+fn emit_eqz_dup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+}
+
+fn emit_neg(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_F64() {
+        writer_core::emit_byte(w, opcodes::OP_F64_NEG())
+    } else {
+        let scratch = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, scratch)
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_leb::emit_leb128_s(w, 0)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, scratch)
+        writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    }
+}

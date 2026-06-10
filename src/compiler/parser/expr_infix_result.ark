@@ -1,0 +1,22 @@
+// Arukellt Parser - Pratt infix parse result contract.
+
+struct ParserInfixResult {
+    matched: bool,
+    node: AstNode,
+}
+
+pub fn ParserInfixResult_no(lhs: AstNode) -> ParserInfixResult {
+    ParserInfixResult { matched: false, node: lhs }
+}
+
+pub fn ParserInfixResult_yes(node: AstNode) -> ParserInfixResult {
+    ParserInfixResult { matched: true, node: node }
+}
+
+pub fn ParserInfixResult_matched(result: ParserInfixResult) -> bool {
+    result.matched
+}
+
+pub fn ParserInfixResult_node(result: ParserInfixResult) -> AstNode {
+    result.node
+}

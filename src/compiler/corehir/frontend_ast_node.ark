@@ -1,0 +1,51 @@
+// Arukellt Selfhost - parser AST node adapter for CoreHIR frontend.
+
+use corehir::frontend_ast_children
+use corehir::frontend_ast_identity
+use corehir::frontend_ast_literals
+use corehir::frontend_ast_span
+use corehir::frontend_ast_type_ann
+
+fn corehir_node_kind(node: AstNode) -> i32 {
+    frontend_ast_identity::corehir_node_kind(node)
+}
+
+fn corehir_node_text(node: AstNode) -> String {
+    frontend_ast_identity::corehir_node_text(node)
+}
+
+fn corehir_node_is_pub(node: AstNode) -> bool {
+    frontend_ast_identity::corehir_node_is_pub(node)
+}
+
+fn corehir_node_span_start(node: AstNode) -> i32 {
+    frontend_ast_span::corehir_node_span_start(node)
+}
+
+fn corehir_node_op(node: AstNode) -> i32 {
+    frontend_ast_literals::corehir_node_op(node)
+}
+
+fn corehir_node_int_val(node: AstNode) -> i32 {
+    frontend_ast_literals::corehir_node_int_val(node)
+}
+
+fn corehir_node_float_val(node: AstNode) -> f64 {
+    frontend_ast_literals::corehir_node_float_val(node)
+}
+
+fn corehir_node_child_count(node: AstNode) -> i32 {
+    frontend_ast_children::corehir_node_child_count(node)
+}
+
+fn corehir_node_child_at(node: AstNode, idx: i32) -> AstNode {
+    frontend_ast_children::corehir_node_child_at(node, idx)
+}
+
+fn corehir_node_type_ann_count(node: AstNode) -> i32 {
+    frontend_ast_type_ann::corehir_node_type_ann_count(node)
+}
+
+fn corehir_node_type_ann_at(node: AstNode, idx: i32) -> AstNode {
+    frontend_ast_type_ann::corehir_node_type_ann_at(node, idx)
+}

@@ -1,0 +1,12 @@
+// Arukellt Selfhost - MIR block phi query API.
+
+use mir::phi_record
+use mir::types_block
+
+fn MirBlock_phi_count(block: MirBlock) -> i32 {
+    len(block.phis)
+}
+
+fn MirBlock_phi_at(block: MirBlock, idx: i32) -> MirPhi {
+    get_unchecked(block.phis, idx)
+}

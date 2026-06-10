@@ -1,0 +1,19 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR call result type propagation for hash collections.
+
+
+fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+    if eq(clone(callee_name), "hashmap_keys") || eq(clone(callee_name), "hash::hashmap_keys") || eq(clone(callee_name), "hashmap_values") || eq(clone(callee_name), "hash::hashmap_values") || eq(clone(callee_name), "hashset_to_vec") || eq(clone(callee_name), "hash::hashset_to_vec") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:i32"))
+    }
+    if eq(clone(callee_name), "hashmap_get_option") || eq(clone(callee_name), "hash::hashmap_get_option") || eq(clone(callee_name), "HashMap_i32_i32_get") || eq(clone(callee_name), "hashmap_remove") || eq(clone(callee_name), "hash::hashmap_remove") || eq(clone(callee_name), "HashMap_i32_i32_remove") || eq(clone(callee_name), "hashmap_str_get") || eq(clone(callee_name), "hash::hashmap_str_get") || eq(clone(callee_name), "HashMap_String_i32_get") || eq(clone(callee_name), "hashmap_str_remove") || eq(clone(callee_name), "hash::hashmap_str_remove") || eq(clone(callee_name), "HashMap_String_i32_remove") || eq(clone(callee_name), "hashmap_str_val_get") || eq(clone(callee_name), "HashMap_i32_String_get") || eq(clone(callee_name), "hashmap_str_str_get") || eq(clone(callee_name), "HashMap_String_String_get") || eq(clone(callee_name), "hashmap_str_str_remove") || eq(clone(callee_name), "HashMap_String_String_remove") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i32"))
+    }
+    if eq(clone(callee_name), "hashmap_size") || eq(clone(callee_name), "hash::hashmap_size") || eq(clone(callee_name), "HashMap_i32_i32_len") || eq(clone(callee_name), "hashset_size") || eq(clone(callee_name), "hash::hashset_size") || eq(clone(callee_name), "HashMap_i32_i32_size") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
+    }
+    if eq(clone(callee_name), "hashmap_contains") || eq(clone(callee_name), "hash::hashmap_contains") || eq(clone(callee_name), "HashMap_i32_i32_contains_key") || eq(clone(callee_name), "hashmap_is_empty") || eq(clone(callee_name), "hash::hashmap_is_empty") || eq(clone(callee_name), "hashset_contains") || eq(clone(callee_name), "hash::hashset_contains") || eq(clone(callee_name), "hashmap_str_contains") || eq(clone(callee_name), "HashMap_String_i32_contains_key") || eq(clone(callee_name), "hashmap_str_str_contains") || eq(clone(callee_name), "HashMap_String_String_contains_key") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
+    }
+}

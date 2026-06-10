@@ -1,0 +1,34 @@
+// Arukellt Selfhost - MIR module string table API.
+
+use mir::module_record
+use mir::types
+
+fn MirModule_string_constants(m: MirModule) -> Vec<String> {
+    m.string_constants
+}
+
+fn MirModule_string_constant_count(m: MirModule) -> i32 {
+    len(m.string_constants)
+}
+
+fn MirModule_string_constant_at(m: MirModule, idx: i32) -> String {
+    get_unchecked(m.string_constants, idx)
+}
+
+fn MirModule_push_string_constant(m: MirModule, s: String) {
+    push(m.string_constants, s)
+}
+
+fn intern_string(m: MirModule, s: String) -> i32 {
+    let count = len(m.string_constants)
+    let mut i = 0
+    while i < count {
+        let existing = get_unchecked(m.string_constants, i)
+        if eq(clone(existing), clone(s)) {
+            return i
+        }
+        i = i + 1
+    }
+    push(m.string_constants, s)
+    count
+}

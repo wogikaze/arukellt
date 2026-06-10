@@ -1,0 +1,8 @@
+// Arukellt Selfhost - MIR function identity query API.
+
+use mir::function_core_record
+use mir::types_function
+
+fn MirFunction_name(f: MirFunction) -> String {
+    clone(f.name)
+}

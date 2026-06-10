@@ -1,0 +1,70 @@
+// Arukellt Selfhost - generic component export plan
+
+use component::export_function_view
+use component::naming
+use mir::module_functions
+
+pub struct ComponentExportPlan {
+	export_count: i32,
+	export_names: Vec<String>,
+	export_indices: Vec<i32>,
+}
+
+fn ComponentExportPlan_new(export_count: i32, export_names: Vec<String>, export_indices: Vec<i32>) -> ComponentExportPlan {
+	ComponentExportPlan {
+		export_count: export_count,
+		export_names: export_names,
+		export_indices: export_indices,
+	}
+}
+
+fn component_export_plan_should_include(name: String) -> bool {
+	if component_export_plan_is_internal_name(clone(name)) {
+		return false
+	}
+	naming::comp_should_export_func(name)
+}
+
+fn component_export_plan_is_internal_name(name: String) -> bool {
+	let nlen = len(name)
+	nlen > 2 && char_at(name, 0) == 95 && char_at(name, 1) == 95
+}
+
+fn component_export_plan_push(export_names: Vec<String>, export_indices: Vec<i32>, name: String, index: i32) {
+	push(export_names, name)
+	push(export_indices, index)
+}
+
+fn collect_component_exports(mir: MirModule) -> ComponentExportPlan {
+	let fn_count = module_functions::MirModule_function_count(mir)
+	let mut export_count = 0
+	let mut export_names: Vec<String> = Vec_new_String()
+	let mut export_indices: Vec<i32> = Vec_new_i32()
+	let mut mi = 0
+	while mi < fn_count {
+		let f = module_functions::MirModule_function_at(mir, mi)
+		let name = export_function_view::export_function_name(f)
+		if component_export_plan_should_include(clone(name)) {
+			component_export_plan_push(export_names, export_indices, name, mi)
+			export_count = export_count + 1
+		}
+		mi = mi + 1
+	}
+	ComponentExportPlan_new(export_count, export_names, export_indices)
+}
+
+fn export_plan_count(plan: ComponentExportPlan) -> i32 {
+	plan.export_count
+}
+
+fn export_plan_names(plan: ComponentExportPlan) -> Vec<String> {
+	plan.export_names
+}
+
+fn export_plan_name_at(plan: ComponentExportPlan, index: i32) -> String {
+	get_unchecked(plan.export_names, index)
+}
+
+fn export_plan_index_at(plan: ComponentExportPlan, index: i32) -> i32 {
+	get_unchecked(plan.export_indices, index)
+}

@@ -1,0 +1,37 @@
+use component::contract_record_point_scan
+// Arukellt Selfhost - component Point record export contract
+
+use component::contract_helpers
+use component::contract_record_fn
+
+fn component_has_record_point_decls(decls: Vec<AstNode>) -> bool {
+    let scan = contract_record_point_scan::component_record_point_scan(decls)
+    contract_record_point_scan::ComponentRecordPointScan_allows_point(scan)
+}
+
+fn component_has_record_distance_decls(decls: Vec<AstNode>) -> bool {
+    let scan = contract_record_point_scan::component_record_point_scan(decls)
+    contract_record_point_scan::ComponentRecordPointScan_allows_distance(scan)
+}
+
+fn component_has_record_roundtrip_decls(decls: Vec<AstNode>) -> bool {
+    let scan = contract_record_point_scan::component_record_point_scan(decls)
+    contract_record_point_scan::ComponentRecordPointScan_allows_roundtrip(scan)
+}
+
+fn component_has_record_add_decls(decls: Vec<AstNode>) -> bool {
+    let scan = contract_record_point_scan::component_record_point_scan(decls)
+    contract_record_point_scan::ComponentRecordPointScan_allows_add(scan)
+}
+
+fn component_fn_is_point_to_i32(f: AstNode) -> bool {
+    contract_record_fn::component_fn_is_point_to_i32(contract_helpers::component_func_from_decl(f))
+}
+
+fn component_fn_is_point_point_to_point(f: AstNode) -> bool {
+    contract_record_fn::component_fn_is_point_point_to_point(contract_helpers::component_func_from_decl(f))
+}
+
+fn component_fn_is_point_to_point(f: AstNode) -> bool {
+    contract_record_fn::component_fn_is_point_to_point(contract_helpers::component_func_from_decl(f))
+}

@@ -1,0 +1,10 @@
+// Arukellt Lexer - compound punctuation lookahead
+
+use lexer::cursor
+
+fn punct_peek(lex: Lexer) -> i32 {
+    if cursor::lexer_at_end(lex) {
+        return 0 - 1
+    }
+    cursor::peek(lex)
+}

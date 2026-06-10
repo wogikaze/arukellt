@@ -1,0 +1,48 @@
+use lexer::tokens
+// Arukellt Lexer standalone self-check.
+use std::host::stdio
+
+use lexer::names
+use lexer::scan
+use lexer::token_state
+
+fn print_token_fields(kind: i32, text: String, int_val: i32, float_val: f64) {
+    let kind_str = names::token_kind_name(kind)
+    if kind == tokens::TK_IDENT() || kind == tokens::TK_STRING() || kind == tokens::TK_ERROR() {
+        stdio::println(concat(concat(concat(kind_str, String_from("(")), text), String_from(")")))
+        return
+    }
+    if kind == tokens::TK_INT() {
+        stdio::println(concat(concat(concat(kind_str, String_from("(")), i32_to_string(int_val)), String_from(")")))
+        return
+    }
+    if kind == tokens::TK_FLOAT() {
+        stdio::println(concat(concat(concat(kind_str, String_from("(")), f64_to_string(float_val)), String_from(")")))
+        return
+    }
+    if kind == tokens::TK_BOOL() {
+        stdio::println(concat(concat(concat(kind_str, String_from("(")), text), String_from(")")))
+        return
+    }
+    if kind == tokens::TK_NEWLINE() {
+        return
+    }
+    stdio::println(kind_str)
+}
+
+fn main() {
+    let source = String_from("fn main() {\n    let x: i32 = 42\n    stdio::println(i32_to_string(x))\n}\n")
+    let tokens = scan::tokenize(source)
+    let mut i = 0
+    let mut done = false
+    while !done {
+        let tok = get_unchecked(tokens, i)
+        let kind = token_state::Token_kind(tok)
+        print_token_fields(kind, token_state::Token_text(tok), token_state::Token_int_val(tok), token_state::Token_float_val(tok))
+        if kind == tokens::TK_EOF() {
+            done = true
+        }
+        i = i + 1
+    }
+    stdio::println(String_from("Done."))
+}

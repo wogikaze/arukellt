@@ -1,0 +1,16 @@
+// Arukellt Selfhost - CoreHIR layout declaration helpers.
+
+use corehir::kinds
+use corehir::layout_decl_record
+
+fn CoreHirLayoutDecl_new(kind: i32, name: String, fields: Vec<CoreHirLayoutField>, variants: Vec<CoreHirLayoutVariant>) -> CoreHirLayoutDecl {
+    layout_decl_record::CoreHirLayoutDecl_new(kind, name, fields, variants)
+}
+
+fn layout_decl_is_struct(decl: CoreHirLayoutDecl) -> bool {
+    layout_decl_record::layout_decl_kind(decl) == commands::COREHIR_DECL_STRUCT()
+}
+
+fn layout_decl_is_enum(decl: CoreHirLayoutDecl) -> bool {
+    layout_decl_record::layout_decl_kind(decl) == commands::COREHIR_DECL_ENUM()
+}

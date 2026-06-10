@@ -1,0 +1,56 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering for i64 higher-order sequence helpers.
+
+use mir::inst_convert
+use mir::inst_local_set
+use mir::value_types
+use mir::lower::hof_loop
+use mir::lower::hof_loop_steps
+use mir::lower::hof_results
+
+fn mir_lower_hof_i64(ctx: LowerCtx, hof_fn_name: String, hof_vec_local: i32, hof_init_idx: i32, is_map_i64_i64: bool, is_filter_i64: bool, is_fold_i64_i64: bool) -> i32 {
+    let hof_acc_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
+    emit_i64_fold_acc_init(ctx, hof_init_idx, hof_acc_local, is_fold_i64_i64)
+    let hof_n_local = hof_loop::emit_hof_len_local(ctx, hof_vec_local)
+    let hof_idx_local = hof_loop::emit_hof_zero_index(ctx)
+    let hof_result_local = emit_i64_result_vec(ctx, is_fold_i64_i64)
+    hof_loop::emit_hof_loop_open(ctx)
+    hof_loop::emit_hof_loop_bounds(ctx, hof_idx_local, hof_n_local)
+    let hof_elem_local = hof_loop::emit_hof_loop_elem(ctx, hof_vec_local, hof_idx_local, value_types::VT_I64(), String_from("vec_get_unchecked_i64"))
+    if is_map_i64_i64 {
+        hof_loop_steps::emit_hof_map_step(ctx, hof_fn_name, hof_result_local, hof_elem_local, value_types::VT_I64(), String_from("push_i64"))
+    }
+    if is_filter_i64 {
+        hof_loop_steps::emit_hof_filter_step(ctx, hof_fn_name, hof_result_local, hof_elem_local, String_from("push_i64"))
+    }
+    if is_fold_i64_i64 {
+        hof_loop_steps::emit_hof_fold_step(ctx, hof_fn_name, hof_acc_local, hof_elem_local, value_types::VT_I64())
+    }
+    hof_loop_steps::emit_hof_index_advance(ctx, hof_idx_local)
+    hof_loop::emit_hof_loop_close(ctx)
+    emit_i64_hof_result(ctx, hof_acc_local, hof_result_local, is_fold_i64_i64)
+}
+
+fn emit_i64_hof_result(ctx: LowerCtx, hof_acc_local: i32, hof_result_local: i32, is_fold_i64_i64: bool) -> i32 {
+    hof_results::emit_hof_result_select(ctx, hof_acc_local, hof_result_local, is_fold_i64_i64)
+}
+
+fn emit_i64_fold_acc_init(ctx: LowerCtx, hof_init_idx: i32, hof_acc_local: i32, is_fold_i64_i64: bool) {
+    if is_fold_i64_i64 {
+        if ctx_api_local_types::ctx_local_vt(ctx, hof_init_idx) == value_types::VT_I32() {
+            ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64(hof_acc_local, hof_init_idx))
+        }
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(hof_acc_local))
+    }
+}
+
+fn emit_i64_result_vec(ctx: LowerCtx, is_fold_i64_i64: bool) -> i32 {
+    let hof_result_local = hof_results::hof_result_local(ctx)
+    if !is_fold_i64_i64 {
+        hof_results::emit_hof_result_vec_init(ctx, hof_result_local, String_from("Vec_new_i64"), String_from("vec:i64"))
+    }
+    hof_result_local
+}

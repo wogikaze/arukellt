@@ -1,0 +1,109 @@
+// Arukellt Lexer - token kind constants.
+// kind_delim_group
+pub fn TK_LPAREN() -> i32 { 70 }
+pub fn TK_RPAREN() -> i32 { 71 }
+pub fn TK_LBRACE() -> i32 { 72 }
+pub fn TK_RBRACE() -> i32 { 73 }
+pub fn TK_LBRACKET() -> i32 { 74 }
+pub fn TK_RBRACKET() -> i32 { 75 }
+
+// kind_delim_marker
+pub fn TK_ARROW() -> i32 { 80 }
+pub fn TK_FATARROW() -> i32 { 81 }
+pub fn TK_QUESTION() -> i32 { 82 }
+pub fn TK_COLON() -> i32 { 83 }
+pub fn TK_COLONCOLON() -> i32 { 84 }
+
+// kind_delim_pattern
+pub fn TK_UNDERSCORE() -> i32 { 85 }
+
+// kind_delim_separator
+pub fn TK_COMMA() -> i32 { 76 }
+pub fn TK_SEMI() -> i32 { 77 }
+pub fn TK_DOT() -> i32 { 78 }
+pub fn TK_DOTDOT() -> i32 { 79 }
+
+// kind_identity
+pub fn TK_IDENT() -> i32 { 1 }
+
+// kind_keyword_binding
+pub fn TK_LET() -> i32 { 13 }
+
+// kind_keyword_control_expr
+pub fn TK_IF() -> i32 { 15 }
+pub fn TK_ELSE() -> i32 { 16 }
+pub fn TK_MATCH() -> i32 { 17 }
+
+// kind_keyword_decl
+pub fn TK_FN() -> i32 { 10 }
+pub fn TK_STRUCT() -> i32 { 11 }
+pub fn TK_ENUM() -> i32 { 12 }
+pub fn TK_TRAIT() -> i32 { 28 }
+pub fn TK_IMPL() -> i32 { 29 }
+
+// kind_keyword_loop
+pub fn TK_WHILE() -> i32 { 18 }
+pub fn TK_LOOP() -> i32 { 19 }
+pub fn TK_FOR() -> i32 { 20 }
+pub fn TK_IN() -> i32 { 21 }
+
+// kind_keyword_modifier
+pub fn TK_MUT() -> i32 { 14 }
+pub fn TK_PUB() -> i32 { 25 }
+
+// kind_keyword_module
+pub fn TK_IMPORT() -> i32 { 26 }
+pub fn TK_AS() -> i32 { 27 }
+pub fn TK_USE() -> i32 { 30 }
+pub fn TK_WHERE() -> i32 { 31 }
+
+// kind_keyword_transfer
+pub fn TK_BREAK() -> i32 { 22 }
+pub fn TK_CONTINUE() -> i32 { 23 }
+pub fn TK_RETURN() -> i32 { 24 }
+
+// kind_literal
+pub fn TK_INT() -> i32 { 2 }
+pub fn TK_FLOAT() -> i32 { 3 }
+pub fn TK_STRING() -> i32 { 4 }
+pub fn TK_BOOL() -> i32 { 5 }
+pub fn TK_FSTRING() -> i32 { 8 }
+pub fn TK_CHAR() -> i32 { 86 }
+
+// kind_ops_arith
+pub fn TK_PLUS() -> i32 { 40 }
+pub fn TK_MINUS() -> i32 { 41 }
+pub fn TK_STAR() -> i32 { 42 }
+pub fn TK_SLASH() -> i32 { 43 }
+pub fn TK_PERCENT() -> i32 { 44 }
+
+// kind_ops_compare
+pub fn TK_EQ() -> i32 { 45 }
+pub fn TK_EQEQ() -> i32 { 46 }
+pub fn TK_BANGEQ() -> i32 { 47 }
+pub fn TK_LT() -> i32 { 48 }
+pub fn TK_LTEQ() -> i32 { 49 }
+pub fn TK_GT() -> i32 { 50 }
+pub fn TK_GTEQ() -> i32 { 51 }
+
+// kind_ops_logic_bitwise
+pub fn TK_AMP() -> i32 { 55 }
+pub fn TK_PIPE() -> i32 { 56 }
+pub fn TK_CARET() -> i32 { 57 }
+
+// kind_ops_logic_bool
+pub fn TK_AMPAMP() -> i32 { 52 }
+pub fn TK_PIPEPIPE() -> i32 { 53 }
+
+// kind_ops_logic_prefix
+pub fn TK_BANG() -> i32 { 54 }
+pub fn TK_TILDE() -> i32 { 58 }
+
+// kind_ops_logic_shift
+pub fn TK_SHL() -> i32 { 59 }
+pub fn TK_SHR() -> i32 { 60 }
+
+// kind_stream
+pub fn TK_EOF() -> i32 { 0 }
+pub fn TK_NEWLINE() -> i32 { 6 }
+pub fn TK_ERROR() -> i32 { 7 }

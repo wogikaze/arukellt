@@ -1,0 +1,125 @@
+// Arukellt Selfhost - compiler analysis session pipeline.
+
+use analysis::diagnostic_record
+use analysis::snapshot_state_record
+use compiler::phases
+use compiler::session_lex_query
+use compiler::session_parse_tokens
+use compiler::session_resolve_query
+use compiler::session_typecheck_query
+use diagnostics::mod
+
+fn lex_diag_code_string(code: i32) -> String {
+	if code == 1 {
+		return String_from("LEX0001")
+	}
+	if code == 2 {
+		return String_from("LEX0002")
+	}
+	if code == 3 {
+		return String_from("LEX0003")
+	}
+	if code == 4 {
+		return String_from("LEX0004")
+	}
+	if code == 5 {
+		return String_from("LEX0005")
+	}
+	if code == 6 {
+		return String_from("LEX0006")
+	}
+	String_from("LEX0000")
+}
+
+fn lex_diag_code_message(code: i32) -> String {
+	if code == 1 {
+		return String_from("unterminated string")
+	}
+	if code == 2 {
+		return String_from("unterminated char literal")
+	}
+	if code == 3 {
+		return String_from("unterminated f-string")
+	}
+	if code == 4 {
+		return String_from("unterminated escape")
+	}
+	if code == 5 {
+		return String_from("invalid number")
+	}
+	if code == 6 {
+		return String_from("unknown character")
+	}
+	String_from("lexical error")
+}
+
+fn session_record_lex_diagnostics(snap: AnalysisSnapshot, text: String, lex_result: LexResult) {
+let lex_legacy_count = session_lex_query::session_lex_diagnostic_count(lex_result)
+let mut li = 0
+while li < lex_legacy_count {
+let ld = session_lex_query::session_lex_diagnostic_at(lex_result, li)
+let lstart = session_lex_query::session_lex_diagnostic_start(ld)
+let lend = session_lex_query::session_lex_diagnostic_end(ld)
+let lcode = session_lex_query::session_lex_diagnostic_code(ld)
+let dfile = snapshot_state_record::snapshot_uri(snap)
+let dcode = lex_diag_code_string(lcode)
+let mut rmsg = String_from("[")
+rmsg = concat(rmsg, clone(dcode))
+rmsg = concat(rmsg, String_from(" "))
+rmsg = concat(rmsg, mod::severity_name(mod::SEV_ERROR()))
+rmsg = concat(rmsg, String_from(" "))
+rmsg = concat(rmsg, mod::location_text(clone(text), dfile, lstart))
+rmsg = concat(rmsg, String_from("] "))
+rmsg = concat(rmsg, lex_diag_code_message(lcode))
+snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LEX(), rmsg, lstart, lend))
+li = li + 1
+}
+}
+
+fn session_record_parse_diagnostics(snap: AnalysisSnapshot, parse_result: ParseResult) {
+let parse_err_count = session_parse_tokens::session_parse_error_count(parse_result)
+let mut pi = 0
+while pi < parse_err_count {
+let pe = session_parse_tokens::session_parse_error_at(parse_result, pi)
+snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_PARSE(), session_parse_tokens::session_parse_error_message(pe), session_parse_tokens::session_parse_error_start(pe), session_parse_tokens::session_parse_error_end(pe)))
+pi = pi + 1
+}
+}
+
+fn session_record_resolve_diagnostics(snap: AnalysisSnapshot, resolve_ctx: ResolveCtx) {
+let res_err_count = session_resolve_query::session_resolve_error_count(resolve_ctx)
+let mut ri = 0
+while ri < res_err_count {
+let re = session_resolve_query::session_resolve_error_at(resolve_ctx, ri)
+snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_RESOLVE(), clone(re), 0, 0))
+ri = ri + 1
+}
+}
+
+fn session_record_typecheck_diagnostics(snap: AnalysisSnapshot, check_result: TypeCheckResult, first_error: i32) {
+let tc_err_total = session_typecheck_query::session_typecheck_error_count(check_result)
+let mut ti = first_error
+while ti < tc_err_total {
+let te = session_typecheck_query::session_typecheck_error_at(check_result, ti)
+snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_TYPECHECK(), clone(te), 0, 0))
+ti = ti + 1
+}
+}
+
+fn run_session_analyze(uri: String, text: String) -> AnalysisSnapshot {
+let snap = snapshot_state_record::AnalysisSnapshot_new(uri)
+let lex_result = session_lex_query::session_lex(clone(text))
+session_record_lex_diagnostics(snap, text, lex_result)
+let parse_result = session_parse_tokens::session_parse_tokens(session_lex_query::session_lex_tokens(lex_result))
+snapshot_state_record::snapshot_set_decl_count(snap, session_parse_tokens::session_parse_decl_count(parse_result))
+session_record_parse_diagnostics(snap, parse_result)
+let decls = session_parse_tokens::session_parse_decls_from_result(parse_result)
+let resolve_ctx = session_resolve_query::session_resolve_decls(decls)
+snapshot_state_record::snapshot_set_symbol_count(snap, session_resolve_query::session_count_user_symbols(resolve_ctx))
+let res_err_count = session_resolve_query::session_resolve_error_count(resolve_ctx)
+session_record_resolve_diagnostics(snap, resolve_ctx)
+let check_result = session_typecheck_query::session_typecheck_decls(decls, resolve_ctx)
+snapshot_state_record::snapshot_set_typed_fn_count(snap, session_typecheck_query::session_typecheck_typed_fn_count(check_result))
+session_record_typecheck_diagnostics(snap, check_result, res_err_count)
+snap
+}

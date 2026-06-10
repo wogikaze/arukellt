@@ -1,0 +1,21 @@
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - synthetic multi-clause match scrutinee construction.
+
+
+fn build_multiclause_scrutinee(param_names: Vec<String>, param_count: i32, fn_span: Span) -> AstNode {
+    if param_count == 1 {
+        let syn_name = get_unchecked(param_names, 0)
+        return AstNode_leaf(kinds::NK_IDENT(), clone(syn_name), fn_span)
+    }
+    let scrutinee = AstNode_new(kinds::NK_TUPLE(), fn_span)
+    let mut pi = 0
+    while pi < param_count {
+        let syn_name = get_unchecked(param_names, pi)
+        let arg_ref = AstNode_leaf(kinds::NK_IDENT(), clone(syn_name), fn_span)
+        core_ast_children::AstNode_push_child(scrutinee, arg_ref)
+        pi = pi + 1
+    }
+    scrutinee
+}

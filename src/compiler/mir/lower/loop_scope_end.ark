@@ -1,0 +1,32 @@
+use mir::lower::ctx_api_nesting
+use mir::lower::ctx_api_loop_state
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR loop scope back-edge and end emission.
+
+use mir::inst_branch
+use mir::inst_structured_control
+use mir::inst_local_get
+use mir::lower::loop_scope_types
+
+
+fn mir_emit_loop_back(ctx: LowerCtx) {
+    ctx_emit(ctx, inst_branch::MirInst_br(0))
+}
+
+fn mir_end_loop_scope(ctx: LowerCtx, scope: MirLoopScope) {
+    ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+    ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+    ctx_api_loop_state::ctx_set_loop_break_depth(ctx, loop_scope_types::mir_loop_scope_prev_break(scope))
+    ctx_api_loop_state::ctx_set_loop_continue_depth(ctx, loop_scope_types::mir_loop_scope_prev_continue(scope))
+}
+
+fn mir_end_value_loop_scope(ctx: LowerCtx, scope: MirLoopScope) -> i32 {
+    mir_end_loop_scope(ctx, scope)
+    let break_result = loop_scope_types::mir_loop_scope_break_result(scope)
+    ctx_api_loop_state::ctx_set_loop_break_local(ctx, loop_scope_types::mir_loop_scope_prev_break_local(scope))
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(break_result))
+    break_result
+}

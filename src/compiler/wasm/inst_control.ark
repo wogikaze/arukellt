@@ -1,0 +1,41 @@
+// Arukellt Selfhost - Wasm Binary Emitter control instruction facade.
+//
+// Extracted from emitter.ark for module-level organization.
+
+use mir::inst_accessors_literals
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+
+fn emit_br(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_BR())
+    writer_leb::emit_leb128_u(w, inst_accessors_literals::MirInst_int_val(inst))
+}
+
+fn emit_br_if(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_BR_IF())
+    writer_leb::emit_leb128_u(w, inst_accessors_literals::MirInst_int_val(inst))
+}
+
+fn emit_block(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_loop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_LOOP())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_if(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_else(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_ELSE())
+}
+
+fn emit_end(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_END())
+}

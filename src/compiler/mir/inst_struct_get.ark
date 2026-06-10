@@ -1,0 +1,17 @@
+// Arukellt Selfhost - MIR struct get instruction constructors.
+
+use mir::inst_factory
+use mir::opcodes
+use mir::types
+
+fn MirInst_struct_get(offset: i32, vt: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_STRUCT_GET(), 0 - 1, 0 - 1, 0 - 1, offset, 0.0, String_new(), vt)
+}
+
+fn MirInst_struct_get_to(offset: i32, vt: i32, dest: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_STRUCT_GET(), dest, 0 - 1, 0 - 1, offset, 0.0, String_new(), vt)
+}
+
+fn MirInst_struct_get_field(base: i32, field_name: String, offset: i32, vt: i32, dest: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_STRUCT_GET(), dest, base, 0 - 1, offset, 0.0, field_name, vt)
+}

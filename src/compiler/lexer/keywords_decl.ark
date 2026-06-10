@@ -1,0 +1,28 @@
+use lexer::tokens
+// Arukellt Lexer - declaration keyword lookup.
+
+
+pub fn keyword_kind_decl(word: String) -> i32 {
+    if eq(word, "fn") {
+        return tokens::TK_FN()
+    }
+    if eq(word, "struct") {
+        return tokens::TK_STRUCT()
+    }
+    if eq(word, "enum") {
+        return tokens::TK_ENUM()
+    }
+    if eq(word, "let") {
+        return tokens::TK_LET()
+    }
+    if eq(word, "mut") {
+        return tokens::TK_MUT()
+    }
+    if eq(word, "trait") {
+        return tokens::TK_TRAIT()
+    }
+    if eq(word, "impl") {
+        return tokens::TK_IMPL()
+    }
+    0 - 1
+}

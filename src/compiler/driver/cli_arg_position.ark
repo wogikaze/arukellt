@@ -1,0 +1,15 @@
+// Arukellt Selfhost - legacy driver CLI positional argument helpers.
+
+fn legacy_arg_start(args: Vec<String>, argc: i32) -> i32 {
+    if argc > 0 {
+        let first = get_unchecked(args, 0)
+        if eq(clone(first), String_from("--")) {
+            return 1
+        }
+    }
+    0
+}
+
+fn has_min_compile_args(argc: i32, arg_start: i32) -> bool {
+    argc - arg_start >= 4
+}

@@ -1,0 +1,37 @@
+// Arukellt Selfhost - CoreHIR declaration source over MIR-facing program views.
+
+use corehir::decl_info
+use corehir::kinds
+
+struct CoreHirMirDeclSource {
+    decl_infos: Vec<CoreHirDeclInfo>,
+    fn_infos: Vec<CoreHirFnInfo>,
+}
+
+fn mir_decl_source_from_parts(decl_infos: Vec<CoreHirDeclInfo>, fn_infos: Vec<CoreHirFnInfo>) -> CoreHirMirDeclSource {
+    CoreHirMirDeclSource { decl_infos: decl_infos, fn_infos: fn_infos }
+}
+
+fn mir_decl_source_count(source: CoreHirMirDeclSource) -> i32 {
+    len(source.decl_infos)
+}
+
+fn mir_decl_source_kind_at(source: CoreHirMirDeclSource, index: i32) -> i32 {
+    decl_info::decl_info_kind_at(source.decl_infos, index)
+}
+
+fn mir_decl_source_name_at(source: CoreHirMirDeclSource, index: i32) -> String {
+    decl_info::decl_info_name_at(source.decl_infos, index)
+}
+
+fn mir_decl_source_entry_main_decl_index(source: CoreHirMirDeclSource) -> i32 {
+    decl_info::entry_main_decl_index(source.decl_infos, source.fn_infos)
+}
+
+fn mir_decl_source_is_fn_at(source: CoreHirMirDeclSource, index: i32) -> bool {
+    mir_decl_source_kind_at(source, index) == commands::COREHIR_DECL_FN()
+}
+
+fn mir_decl_source_is_impl_at(source: CoreHirMirDeclSource, index: i32) -> bool {
+    mir_decl_source_kind_at(source, index) == commands::COREHIR_DECL_IMPL()
+}

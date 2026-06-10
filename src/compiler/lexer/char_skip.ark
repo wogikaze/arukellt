@@ -1,0 +1,35 @@
+// Arukellt Lexer - whitespace and comment skipping.
+
+use lexer::char_class
+
+fn skip_whitespace_impl(lex: Lexer) {
+    while lex.pos < lex.src_len && char_class::is_whitespace_not_newline(char_at(lex.src, lex.pos)) {
+        lex.pos = lex.pos + 1
+    }
+}
+
+fn skip_line_comment_impl(lex: Lexer) {
+    while lex.pos < lex.src_len && char_at(lex.src, lex.pos) != 10 {
+        lex.pos = lex.pos + 1
+    }
+}
+
+fn skip_block_comment_impl(lex: Lexer) {
+    lex.pos = lex.pos + 2
+    let mut depth = 1
+    while lex.pos < lex.src_len - 1 && depth > 0 {
+        let c = char_at(lex.src, lex.pos)
+        let c2 = char_at(lex.src, lex.pos + 1)
+        if c == 47 && c2 == 42 {
+            depth = depth + 1
+            lex.pos = lex.pos + 2
+        } else {
+            if c == 42 && c2 == 47 {
+                depth = depth - 1
+                lex.pos = lex.pos + 2
+            } else {
+                lex.pos = lex.pos + 1
+            }
+        }
+    }
+}

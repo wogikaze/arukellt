@@ -1,0 +1,30 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_variants
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering simple enum variant values.
+
+use mir::inst_struct_new
+use mir::inst_struct_set
+use mir::inst_const_i32
+use mir::inst_local_get
+use mir::value_types
+
+fn lower_variant_value(ctx: LowerCtx, variant_name: String, tag: i32) -> i32 {
+    if ctx_api_variants::ctx_is_payload_variant(ctx, clone(variant_name)) {
+        return lower_empty_payload_variant(ctx, tag)
+    }
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, dest))
+    dest
+}
+
+fn lower_empty_payload_variant(ctx: LowerCtx, tag: i32) -> i32 {
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(dest, 4))
+    let tag_tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_tmp))
+    ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(dest, tag_tmp, 0, value_types::VT_VOID()))
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(dest))
+    dest
+}

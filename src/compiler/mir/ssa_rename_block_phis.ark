@@ -1,0 +1,31 @@
+use mir::ssa_state_slots
+use mir::ssa_state_values
+use mir::block_phi_access
+use mir::function_locals_view
+use mir::local_access
+// Arukellt Selfhost - MIR SSA phi renaming.
+
+use mir::phi_access
+use mir::phi_mutation
+use mir::ssa_state_types
+
+fn rename_block_phis(f: MirFunction, state: ssa_state_types::MirSsaRenameState, block: MirBlock) {
+    let pc = block_phi_access::MirBlock_phi_count(block)
+    let mut pi = 0
+    while pi < pc {
+        let phi = block_phi_access::MirBlock_phi_at(block, pi)
+        let original_dest = phi_access::MirPhi_dest(phi)
+        if original_dest >= 0 && original_dest < ssa_state_types::MirSsaRenameState_original_local_count(state) {
+            let ac = phi_access::MirPhi_arg_count(phi)
+            let mut ai = 0
+            while ai < ac {
+                let a = phi_access::MirPhi_arg_at(phi, ai)
+                phi_mutation::MirPhiArg_set_local(a, ssa_state_slots::mir_ssa_pred_value_for(state, phi_access::MirPhiArg_pred_block(a), phi_access::MirPhiArg_local(a)))
+                ai = ai + 1
+            }
+            let dest_local = function_locals_view::MirFunction_local_at(f, original_dest)
+            phi_mutation::MirPhi_set_dest(phi, ssa_state_values::mir_ssa_define_value(f, state, original_dest, local_access::MirLocal_name(dest_local)))
+        }
+        pi = pi + 1
+    }
+}

@@ -1,0 +1,207 @@
+// Arukellt Selfhost - Wasm call namespace: call_vec
+
+use wasm::inst_store
+use wasm::intrinsic_vec
+use wasm::intrinsic_vec_remove
+use wasm::intrinsic_vec_reverse
+use wasm::intrinsic_vec_contains
+use wasm::intrinsic_vec_numeric
+
+// Arukellt Selfhost - Wasm vector call dispatch
+
+fn try_emit_vec_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if try_emit_vec_core_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_vec_numeric_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_vec_collection_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm vector core call dispatch
+
+fn try_emit_vec_core_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if try_emit_vec_base_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_vec_push_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_vec_access_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_vec_core_mutation_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm vector access call dispatch
+
+fn try_emit_vec_access_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if eq(clone(callee), "vec_get_unchecked") || eq(clone(callee), "get_unchecked") {
+            let _result_on_stack = intrinsic_vec::emit_get_unchecked(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        if eq(clone(callee), "vec_get") {
+            let _result_on_stack = intrinsic_vec::emit_vec_get(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm vector base call dispatch
+
+fn try_emit_vec_base_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if eq(clone(callee), "Vec_new_i64") || eq(clone(callee), "Vec_new_f64") {
+            let _result_on_stack = intrinsic_vec::emit_Vec_new_i64(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        if eq(clone(callee), "vec_len") {
+            let _result_on_stack = intrinsic_vec::emit_vec_len(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm vector mutation call dispatch
+
+fn try_emit_vec_core_mutation_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if eq(clone(callee), "vec_pop") {
+            let _result_on_stack = intrinsic_vec::emit_vec_pop(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        if eq(clone(callee), "vec_set") {
+            let _result_on_stack = intrinsic_vec::emit_vec_set(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        if eq(clone(callee), "is_empty") {
+            let _result_on_stack = intrinsic_vec::emit_is_empty(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm vector push call dispatch
+
+fn try_emit_vec_push_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if eq(clone(callee), "vec_push") {
+            let _result_on_stack = intrinsic_vec::emit_push(w, inst, ctx, false)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        if eq(clone(callee), "push") {
+            let _result_on_stack = intrinsic_vec::emit_push(w, inst, ctx, true)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm numeric vector call dispatch
+
+fn try_emit_vec_numeric_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if try_emit_vec_numeric_push_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_vec_numeric_access_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm numeric vector access call dispatch
+
+fn try_emit_vec_numeric_access_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if eq(clone(callee), "vec_get_unchecked_i64") {
+            let _result_on_stack = intrinsic_vec_numeric::emit_vec_get_unchecked_i64(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        if eq(clone(callee), "vec_get_unchecked_f64") {
+            let _result_on_stack = intrinsic_vec_numeric::emit_vec_get_unchecked_f64(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm numeric vector push call dispatch
+
+fn try_emit_vec_numeric_push_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if eq(clone(callee), "vec_push_i64") {
+            let _result_on_stack = intrinsic_vec_numeric::emit_push_i64(w, inst, ctx, false)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        if eq(clone(callee), "push_i64") {
+            let _result_on_stack = intrinsic_vec_numeric::emit_push_i64(w, inst, ctx, true)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        if eq(clone(callee), "push_f64") {
+            let _result_on_stack = intrinsic_vec_numeric::emit_push_f64(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm vector collection call dispatch
+
+fn try_emit_vec_collection_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if try_emit_vec_search_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_vec_order_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_vec_mutate_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm vector mutation call dispatch
+
+fn try_emit_vec_mutate_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if eq(clone(callee), "remove_i32") {
+            let _result_on_stack = intrinsic_vec_remove::emit_remove_i32(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm vector ordering call dispatch
+
+fn try_emit_vec_order_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if eq(clone(callee), "reverse_i32") {
+            let _result_on_stack = intrinsic_vec_reverse::emit_reverse_i32(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - Wasm vector search call dispatch
+
+fn try_emit_vec_search_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if eq(clone(callee), "contains_i32") || eq(clone(callee), "seq::seq_contains") {
+            let _result_on_stack = intrinsic_vec_contains::emit_contains_i32(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
+        false
+}

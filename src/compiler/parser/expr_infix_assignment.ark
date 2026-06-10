@@ -1,0 +1,21 @@
+use parser::core_ast_span_fields
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - assignment infix expression helper.
+
+use parser::expr_infix_result
+use parser::pratt
+
+fn parse_assignment_infix(p: Parser, lhs: AstNode, min_bp: i32) -> ParserInfixResult {
+    if pratt::should_parse_assignment(min_bp) {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let rhs = parse_expr_bp(p, 1)
+        let node = AstNode_new(kinds::NK_ASSIGN(), core_ast_span_fields::AstNode_span(lhs))
+        core_ast_children::AstNode_push_child(node, lhs)
+        core_ast_children::AstNode_push_child(node, rhs)
+        return expr_infix_result::ParserInfixResult_yes(node)
+    }
+    expr_infix_result::ParserInfixResult_no(lhs)
+}

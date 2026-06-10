@@ -1,0 +1,25 @@
+use lexer::tokens
+// Arukellt Parser - same-name function clause lookahead.
+
+use parser::core_api_cursor
+use parser::token_state
+
+fn has_next_clause(p: Parser, name: String) -> bool {
+    let saved = p.pos
+    core_api_cursor::skip_newlines(p)
+    let mut result = false
+    if core_api_cursor::peek_kind(p) == tokens::TK_FN() {
+        let fn_pos = p.pos
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::at(p, tokens::TK_IDENT()) {
+            let nt = core_api_cursor::cur(p)
+            if eq(token_state::Token_text(nt), clone(name)) {
+                result = true
+            }
+        }
+        p.pos = fn_pos
+    }
+    p.pos = saved
+    result
+}

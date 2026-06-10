@@ -1,0 +1,25 @@
+use mir::lower::ast_node
+// Arukellt MIR lowering body - method call expressions
+
+use mir::lower::method
+
+fn lower_method_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count >= 1 {
+        let receiver = ast_node::node_child_at(node, 0)
+        let receiver_idx = lower_expr(ctx, receiver)
+        let callee_name = method::mir_initial_method_callee(ctx, ast_node::node_text(node), receiver_idx)
+        let mut a = 1
+        let mut first_method_arg_idx = 0 - 1
+        while a < child_count {
+            let arg = ast_node::node_child_at(node, a)
+            let method_arg_idx = lower_expr(ctx, arg)
+            if a == 1 {
+                first_method_arg_idx = method_arg_idx
+            }
+            a = a + 1
+        }
+        return method::mir_emit_method_call(ctx, method::mir_resolve_method_callee(ctx, callee_name, first_method_arg_idx, ast_node::node_span_start(node)), child_count)
+    }
+    0 - 1
+}

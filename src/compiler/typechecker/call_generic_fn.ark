@@ -1,0 +1,26 @@
+// Arukellt Typechecker - generic function call inference.
+
+use typechecker::ast_access
+use typechecker::call_generic_common
+use typechecker::call_generic_fn_args
+use typechecker::contract_fn_sig
+use typechecker::infer_env_scope
+use typechecker::instantiate
+use typechecker::mono
+use typechecker::traits
+use typechecker::unify
+
+fn infer_generic_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, fn_name: String) -> TypeInfo {
+    let infer_env = infer_env_scope::borrow_generic_infer_env()
+    let var_names = Vec_new_String()
+    let var_types = Vec_new_TypeInfo()
+    call_generic_common::append_generic_type_vars(infer_env, sig, var_names, var_types)
+    call_generic_fn_args::constrain_generic_fn_args(env, scope, fn_sigs, enum_defs, node, sig, infer_env, var_names, var_types)
+    let inst_ret = instantiate::instantiate_type(contract_fn_sig::FnSig_return_type(sig), var_names, var_types)
+    let ret_ty = unify::resolve_type(infer_env, inst_ret)
+    let resolved_type_args = call_generic_common::resolve_type_args(infer_env, var_types)
+    traits::enforce_fn_sig_bounds(env, infer_env, sig, var_types)
+    let mangled_name = mono::record_mono_instance(env, clone(fn_name), resolved_type_args)
+    mono::record_mono_call_site(env, ast_access::node_span_start(node), fn_name, mangled_name)
+    ret_ty
+}

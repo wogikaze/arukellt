@@ -1,0 +1,16 @@
+// Arukellt Selfhost - MIR entry body projection.
+
+use corehir::mir_body_source
+use mir::lower::entry_view_record
+
+fn mir_entry_exprs(view: MirLowerEntryView) -> Vec<CoreHirExpr> {
+    body_source::mir_body_source_exprs(entry_view_record::entry_view_body_source(view))
+}
+
+fn mir_entry_fn_body_root(view: MirLowerEntryView, info_index: i32) -> i32 {
+    body_source::mir_body_source_fn_body_root(entry_view_record::entry_view_body_source(view), info_index)
+}
+
+fn mir_entry_method_body_root(view: MirLowerEntryView, info_index: i32) -> i32 {
+    body_source::mir_body_source_method_body_root(entry_view_record::entry_view_body_source(view), info_index)
+}

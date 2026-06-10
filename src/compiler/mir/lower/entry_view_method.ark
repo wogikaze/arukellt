@@ -1,0 +1,28 @@
+// Arukellt Selfhost - MIR entry method signature projection.
+
+use corehir::mir_signature_method
+use mir::lower::entry_view_record
+
+fn mir_entry_method_info_index(view: MirLowerEntryView, impl_decl_index: i32, method_index: i32) -> i32 {
+    signature_method::mir_signature_method_info_index(entry_view_record::entry_view_signature_source(view), impl_decl_index, method_index)
+}
+
+fn mir_entry_method_count_for_impl(view: MirLowerEntryView, impl_decl_index: i32) -> i32 {
+    signature_method::mir_signature_method_count_for_impl(entry_view_record::entry_view_signature_source(view), impl_decl_index)
+}
+
+fn mir_entry_method_mangled_name_at(view: MirLowerEntryView, info_index: i32, fallback: String) -> String {
+    signature_method::mir_signature_method_mangled_name_at(entry_view_record::entry_view_signature_source(view), info_index, fallback)
+}
+
+fn mir_entry_method_body_index_at(view: MirLowerEntryView, info_index: i32, fallback: i32) -> i32 {
+    signature_method::mir_signature_method_body_index_at(entry_view_record::entry_view_signature_source(view), info_index, fallback)
+}
+
+fn mir_entry_method_param_count_at(view: MirLowerEntryView, info_index: i32, fallback: i32) -> i32 {
+    signature_method::mir_signature_method_param_count_at(entry_view_record::entry_view_signature_source(view), info_index, fallback)
+}
+
+fn mir_entry_method_param_at(view: MirLowerEntryView, info_index: i32, param_index: i32) -> CoreHirParam {
+    signature_method::mir_signature_method_param_at(entry_view_record::entry_view_signature_source(view), info_index, param_index)
+}

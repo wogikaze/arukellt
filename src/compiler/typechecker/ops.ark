@@ -1,0 +1,35 @@
+use typechecker::kinds
+// Arukellt Typechecker - operator classification helpers
+
+
+fn is_comparison_op(op: i32) -> bool {
+    if op == kinds::OP_EQ() {
+        return true
+    }
+    if op == kinds::OP_NEQ() {
+        return true
+    }
+    if op == kinds::OP_LT() {
+        return true
+    }
+    if op == kinds::OP_LTEQ() {
+        return true
+    }
+    if op == kinds::OP_GT() {
+        return true
+    }
+    if op == kinds::OP_GTEQ() {
+        return true
+    }
+    false
+}
+
+fn is_logical_op(op: i32) -> bool {
+    if op == kinds::OP_AND() {
+        return true
+    }
+    if op == kinds::OP_OR() {
+        return true
+    }
+    false
+}

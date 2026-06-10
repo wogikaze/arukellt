@@ -1,0 +1,29 @@
+use mir::block_phi_access
+// Arukellt Selfhost - MIR dump phi formatting expectations.
+
+use std::host::process
+use std::host::stdio
+use mir::dump_format_phi
+use mir::function_block_queries
+
+fn mir_expect_phi_format(f: MirFunction, block_id: i32, phi_index: i32, expected: String) {
+    if block_id < 0 || block_id >= function_block_queries::MirFunction_block_count(f) {
+        stdio::eprintln(String_from("phi format check failed: block out of range"))
+        process::exit(1)
+    }
+    let block = function_block_queries::MirFunction_block_at(f, block_id)
+    if phi_index < 0 || phi_index >= block_phi_access::MirBlock_phi_count(block) {
+        stdio::eprintln(String_from("phi format check failed: phi out of range"))
+        process::exit(1)
+    }
+    let phi = block_phi_access::MirBlock_phi_at(block, phi_index)
+    let actual = dump_format_phi::mir_format_phi(f, phi)
+    if !eq(clone(actual), clone(expected)) {
+        let mut msg = String_from("phi format check failed: expected ")
+        msg = concat(msg, expected)
+        msg = concat(msg, String_from(" actual "))
+        msg = concat(msg, actual)
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}

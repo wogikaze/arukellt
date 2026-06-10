@@ -1,0 +1,29 @@
+// Arukellt Parser - use declaration syntax.
+
+use parser::core_ast_text_fields
+use lexer::tokens
+use parser::core_ast_factory
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::imports_alias
+use parser::imports_group
+use parser::imports_path
+use parser::kinds
+
+fn parse_use_decl(p: Parser) -> AstNode {
+    let t = core_api_expect::expect_token(p, tokens::TK_USE())
+    let node = core_ast_factory::AstNode_new(kinds::NK_USE(), core_api_expect::tok_span(t))
+    core_api_cursor::skip_newlines(p)
+    let mut path = imports_path::parse_first_use_segment(p)
+    while core_api_cursor::peek_kind(p) == tokens::TK_COLONCOLON() {
+        p.pos = p.pos + 1
+        if core_api_cursor::peek_kind(p) == tokens::TK_LBRACE() {
+            imports_group::parse_use_group(p, node, clone(path))
+            return node
+        }
+        path = imports_path::parse_next_use_segment(p, path)
+    }
+    core_ast_text_fields::AstNode_set_text(node, path)
+    imports_alias::parse_use_alias(p, node)
+    node
+}

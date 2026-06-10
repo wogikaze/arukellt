@@ -1,0 +1,27 @@
+use mir::inst_accessors_operands
+use mir::inst_accessors_mutation
+use mir::ssa_state_values
+use mir::block_inst_access
+use mir::function_locals_view
+use mir::local_access
+// Arukellt Selfhost - MIR SSA instruction renaming.
+
+use mir::ssa_rename_inst
+use mir::ssa_state_types
+
+fn rename_block_insts(f: MirFunction, state: ssa_state_types::MirSsaRenameState, block: MirBlock) {
+    let ic = block_inst_access::MirBlock_inst_count(block)
+    let mut ii = 0
+    while ii < ic {
+        let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        ssa_rename_inst::mir_ssa_rewrite_inst_uses(inst, state)
+        if ssa_rename_inst::mir_is_pure_ssa_def(inst) {
+            let original_dest = inst_accessors_operands::MirInst_dest(inst)
+            if original_dest >= 0 && original_dest < ssa_state_types::MirSsaRenameState_original_local_count(state) {
+                let dest_local = function_locals_view::MirFunction_local_at(f, original_dest)
+                inst_accessors_mutation::MirInst_set_dest(inst, ssa_state_values::mir_ssa_define_value(f, state, original_dest, local_access::MirLocal_name(dest_local)))
+            }
+        }
+        ii = ii + 1
+    }
+}

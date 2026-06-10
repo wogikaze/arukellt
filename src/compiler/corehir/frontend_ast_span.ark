@@ -1,0 +1,7 @@
+// Arukellt Selfhost - CoreHIR frontend AST span accessors.
+
+use parser::ast_node_record
+
+fn corehir_node_span_start(node: AstNode) -> i32 {
+    node.span.start
+}

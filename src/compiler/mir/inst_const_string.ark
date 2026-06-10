@@ -1,0 +1,14 @@
+// Arukellt Selfhost - MIR string constant instruction constructors.
+
+use mir::inst_factory
+use mir::opcodes
+use mir::types
+use mir::value_types
+
+fn MirInst_const_string(val: String, dest: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_CONST_STRING(), dest, 0 - 1, 0 - 1, 0, 0.0, val, value_types::VT_REF())
+}
+
+fn MirInst_const_string_indexed(val: String, dest: i32, string_index: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_CONST_STRING(), dest, string_index, 0 - 1, 0, 0.0, val, value_types::VT_REF())
+}

@@ -1,0 +1,9 @@
+// Arukellt Selfhost - Wasm emission context construction.
+
+use wasm::strings
+use wasm::ctx_record
+
+fn emit_wasm_context_new(functions: Vec<MirFunction>, strings: EmitStringTablePlan) -> SelfEmitCtx {
+    let string_values = strings::EmitStringTablePlan_values(strings)
+    ctx_record::SelfEmitCtx_new(functions, strings::EmitStringTablePlan_offsets(strings), strings::EmitStringTablePlan_lengths(strings), string_values, strings::EmitStringTablePlan_true_idx(strings), strings::EmitStringTablePlan_false_idx(strings))
+}

@@ -1,0 +1,22 @@
+// Arukellt Selfhost - MIR entry input adapter.
+
+use mir::lower::input
+
+struct MirLowerEntryInput {
+    view: CoreHirMirView,
+    body_source: MirLowerEntryBodySource,
+}
+
+fn mir_entry_input_from_lower_input(input: MirLowerInput) -> MirLowerEntryInput {
+    let view = input::mir_lower_input_view(input)
+    let body_source = input::mir_lower_input_body_source(input)
+    MirLowerEntryInput { view: view, body_source: body_source }
+}
+
+fn mir_entry_input_view(input: MirLowerEntryInput) -> CoreHirMirView {
+    input.view
+}
+
+fn mir_entry_input_body_source(input: MirLowerEntryInput) -> MirLowerEntryBodySource {
+    input.body_source
+}

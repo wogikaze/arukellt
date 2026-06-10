@@ -1,0 +1,19 @@
+use parser::kinds
+// Arukellt Parser - control expression AST node display names
+
+
+fn expr_control_node_kind_name(kind: i32) -> String {
+    if kind == kinds::NK_IF_EXPR() {
+        return String_from("If")
+    }
+    if kind == kinds::NK_MATCH_EXPR() {
+        return String_from("Match")
+    }
+    if kind == kinds::NK_CLOSURE() {
+        return String_from("Closure")
+    }
+    if kind == kinds::NK_BLOCK() {
+        return String_from("Block")
+    }
+    String_new()
+}

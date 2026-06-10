@@ -1,0 +1,17 @@
+// Arukellt Lexer - keyword token display names.
+
+use lexer::name_keywords_control
+use lexer::name_keywords_decl
+use lexer::name_keywords_module
+
+pub fn token_keyword_name(kind: i32) -> String {
+    let decl_name = name_keywords_decl::token_decl_keyword_name(kind)
+    if len(decl_name) > 0 {
+        return decl_name
+    }
+    let control_name = name_keywords_control::token_control_keyword_name(kind)
+    if len(control_name) > 0 {
+        return control_name
+    }
+    name_keywords_module::token_module_keyword_name(kind)
+}

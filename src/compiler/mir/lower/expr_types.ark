@@ -1,0 +1,38 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower_kinds
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering expression type peek helpers
+
+use mir::value_types
+fn mir_literal_kind_type_name(kind: i32) -> String {
+    if kind == lower_kinds::NK_INT_LIT() {
+        return String_from("i32")
+    }
+    if kind == lower_kinds::NK_FLOAT_LIT() {
+        return String_from("f64")
+    }
+    if kind == lower_kinds::NK_BOOL_LIT() {
+        return String_from("bool")
+    }
+    if kind == lower_kinds::NK_CHAR_LIT() {
+        return String_from("char")
+    }
+    String_new()
+}
+
+// Quickly peek at the expected VT of an expression without lowering it.
+// Only handles the common cases; returns VT_I32 for everything else.
+fn peek_expr_vt(ctx: LowerCtx, node: AstNode) -> i32 {
+    if ast_node::node_kind_is(node, lower_kinds::NK_IDENT()) {
+        let idx = ctx_api_local_alloc::ctx_lookup_local(ctx, ast_node::node_text(node))
+        if idx >= 0 {
+            return ctx_api_local_types::ctx_local_vt(ctx, idx)
+        }
+    }
+    if ast_node::node_kind_is(node, lower_kinds::NK_FLOAT_LIT()) {
+        return value_types::VT_F64()
+    }
+    value_types::VT_I32()
+}

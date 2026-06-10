@@ -1,0 +1,20 @@
+use typechecker::kinds
+// Arukellt Typechecker - unknown or builtin call fallback inference.
+
+use typechecker::ast_access
+use typechecker::builtins
+use typechecker::contract_type_access
+use typechecker::scope
+
+fn infer_unknown_ident_call(env: TypeEnv, scope: LocalScope, callee: AstNode) -> TypeInfo {
+    let callee_name = ast_access::node_text(callee)
+    let builtin_ret = builtins::builtin_call_return_type(clone(callee_name))
+    if contract_type_access::TypeInfo_tag(builtin_ret) != commands::TY_UNKNOWN() {
+        return builtin_ret
+    }
+    let loc_ty = scope::scope_lookup(scope, callee_name)
+    if contract_type_access::TypeInfo_tag(loc_ty) == commands::TY_FN() {
+        return TypeInfo_simple(commands::TY_I32())
+    }
+    TypeInfo_simple(commands::TY_UNKNOWN())
+}

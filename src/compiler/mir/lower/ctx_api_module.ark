@@ -1,0 +1,9 @@
+// Arukellt Selfhost - MIR lowering module context API.
+
+use mir::lower::ctx_module
+
+fn ctx_push_module_function(ctx: LowerCtx, func: MirFunction) { ctx_module::ctx_push_module_function(ctx, func) }
+fn ctx_push_current_function(ctx: LowerCtx) { ctx_module::ctx_push_current_function(ctx) }
+fn ctx_intern_string(ctx: LowerCtx, s: String) -> i32 { ctx_module::ctx_intern_string(ctx, s) }
+fn ctx_prune_unreachable(ctx: LowerCtx) -> i32 { ctx_module::ctx_prune_unreachable(ctx) }
+fn ctx_current_module(ctx: LowerCtx) -> MirModule { ctx_module::ctx_current_module(ctx) }

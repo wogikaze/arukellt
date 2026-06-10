@@ -1,0 +1,44 @@
+// Arukellt Selfhost - MIR dump smoke entrypoint.
+
+use mir::dump_dominance_smoke
+use mir::dump_phi_smoke
+use mir::dump_ssa_smoke
+
+fn run_phi_representation_smoke() {
+    dump_phi_smoke::run_phi_representation_smoke()
+}
+
+fn run_phi_insertion_smoke() {
+    dump_phi_smoke::run_phi_insertion_smoke()
+}
+
+fn run_phi_insertion_nested_join_smoke() {
+    dump_phi_smoke::run_phi_insertion_nested_join_smoke()
+}
+
+fn run_ssa_rename_smoke() {
+    dump_ssa_smoke::run_ssa_rename_smoke()
+}
+
+fn run_phi_elimination_smoke() {
+    dump_ssa_smoke::run_phi_elimination_smoke()
+}
+
+fn run_ssa_trivial_block_rename_smoke() {
+    dump_ssa_smoke::run_ssa_trivial_block_rename_smoke()
+}
+
+fn run_ssa_sequential_def_rename_smoke() {
+    dump_ssa_smoke::run_ssa_sequential_def_rename_smoke()
+}
+
+fn main() {
+    dump_dominance_smoke::run_dominance_smoke()
+    run_phi_representation_smoke()
+    run_phi_insertion_smoke()
+    run_phi_insertion_nested_join_smoke()
+    run_ssa_rename_smoke()
+    run_phi_elimination_smoke()
+    run_ssa_trivial_block_rename_smoke()
+    run_ssa_sequential_def_rename_smoke()
+}

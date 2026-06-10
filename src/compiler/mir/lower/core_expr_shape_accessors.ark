@@ -1,0 +1,38 @@
+use corehir::expr_access_children
+use corehir::expr_access_identity
+use corehir::expr_access_literals
+use corehir::expr_access_types
+// Arukellt Selfhost - MIR lowering CoreHIR expression field accessors.
+
+
+fn mir_core_expr_child(expr: CoreHirExpr, index: i32) -> i32 {
+    expr_access_children::expr_child(expr, index)
+}
+
+fn mir_core_expr_child_count(expr: CoreHirExpr) -> i32 {
+    expr_access_children::expr_child_count(expr)
+}
+
+fn mir_core_expr_text(expr: CoreHirExpr) -> String {
+    expr_access_identity::expr_text(expr)
+}
+
+fn mir_core_expr_int_val(expr: CoreHirExpr) -> i32 {
+    expr_access_literals::expr_int_val(expr)
+}
+
+fn mir_core_expr_float_val(expr: CoreHirExpr) -> f64 {
+    expr_access_literals::expr_float_val(expr)
+}
+
+fn mir_core_expr_type_name(expr: CoreHirExpr) -> String {
+    expr_access_types::expr_type_name(expr)
+}
+
+fn mir_core_expr_val_type(expr: CoreHirExpr) -> i32 {
+    expr_access_types::expr_val_type(expr)
+}
+
+fn mir_core_expr_span_start(expr: CoreHirExpr) -> i32 {
+    expr_access_identity::expr_span_start(expr)
+}

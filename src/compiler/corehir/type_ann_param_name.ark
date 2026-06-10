@@ -1,0 +1,23 @@
+// Arukellt Selfhost - CoreHIR parameter annotation type names.
+
+use corehir::type_ann_node
+
+fn type_ann_shape_param_type_name(ty: AstNode) -> String {
+    if type_ann_node::type_ann_is_generic(ty) {
+        if type_ann_node::type_ann_is_name(ty, String_from("Option")) && type_ann_node::type_ann_child_count(ty) >= 2 {
+            let elem = type_ann_node::type_ann_child_at(ty, 1)
+            return concat(String_from("Option:"), type_ann_node::type_ann_name(elem))
+        }
+        if type_ann_node::type_ann_is_name(ty, String_from("Result")) && type_ann_node::type_ann_child_count(ty) >= 3 {
+            let ok_ty = type_ann_node::type_ann_child_at(ty, 1)
+            let err_ty = type_ann_node::type_ann_child_at(ty, 2)
+            return concat(String_from("Result:"), concat(type_ann_node::type_ann_name(ok_ty), concat(String_from(":"), type_ann_node::type_ann_name(err_ty))))
+        }
+    }
+    if type_ann_node::type_ann_is_tuple(ty) && type_ann_node::type_ann_child_count(ty) == 2 {
+        let a = type_ann_node::type_ann_child_at(ty, 0)
+        let b = type_ann_node::type_ann_child_at(ty, 1)
+        return concat(String_from("Tuple:"), concat(type_ann_node::type_ann_name(a), concat(String_from(":"), type_ann_node::type_ann_name(b))))
+    }
+    type_ann_node::type_ann_name(ty)
+}

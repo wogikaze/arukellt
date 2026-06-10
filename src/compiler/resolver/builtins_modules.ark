@@ -1,0 +1,19 @@
+// Arukellt Resolver - builtin module names.
+
+fn resolver_builtin_module_names() -> Vec<String> {
+    let names = Vec_new_String()
+    push(names, String_from("stdio"))
+    push(names, String_from("fs"))
+    push(names, String_from("process"))
+    push(names, String_from("env"))
+    push(names, String_from("text"))
+    push(names, String_from("math"))
+    push(names, String_from("core"))
+    push(names, String_from("host"))
+    push(names, String_from("clock"))
+    push(names, String_from("random"))
+    push(names, String_from("convert"))
+    push(names, String_from("string"))
+    push(names, String_from("collections"))
+    names
+}

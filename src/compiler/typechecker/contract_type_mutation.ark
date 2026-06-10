@@ -1,0 +1,11 @@
+// Arukellt Typechecker - TypeInfo mutation helpers.
+
+use typechecker::contract_types_record
+
+fn TypeInfo_set_name(ty: TypeInfo, name: String) {
+    contract_types_record::type_info_set_name(ty, name)
+}
+
+fn TypeInfo_push_type_arg(ty: TypeInfo, arg: TypeInfo) {
+    contract_types_record::type_info_push_type_arg(ty, arg)
+}

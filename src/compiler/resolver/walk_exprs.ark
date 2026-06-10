@@ -1,0 +1,32 @@
+// Arukellt Resolver - expression node dispatch.
+
+use resolver::exprs
+use resolver::ast_expr_predicates
+use resolver::ast_access
+
+fn resolve_expr_node(ctx: ResolveCtx, node: AstNode) -> bool {
+    if ast_expr_predicates::node_is_ident(node) {
+        exprs::resolve_ident(ctx, node)
+        return true
+    }
+    if ast_expr_predicates::node_is_field_access(node) {
+        if ast_access::node_child_count(node) > 0 {
+            let receiver = ast_access::node_child_at(node, 0)
+            resolve_node(ctx, receiver)
+        }
+        return true
+    }
+    if ast_expr_predicates::node_is_path(node) {
+        exprs::resolve_path(ctx, node)
+        return true
+    }
+    if ast_expr_predicates::node_is_struct_lit(node) {
+        exprs::resolve_struct_lit(ctx, node)
+        return true
+    }
+    if ast_expr_predicates::node_is_method_call(node) {
+        exprs::resolve_method_call(ctx, node)
+        return true
+    }
+    false
+}

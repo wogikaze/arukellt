@@ -1,0 +1,28 @@
+// Arukellt MIR lowering context - function struct return type lookup.
+
+use mir::lower::ctx_fn_index
+
+fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
+    let found = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
+    if found >= 0 {
+        return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, found)
+    }
+    let nlen = len(name)
+    let mut colon_pos = 0 - 1
+    let mut ci = nlen - 1
+    while ci >= 0 {
+        if char_at(name, ci) == 58 {
+            colon_pos = ci
+            ci = 0 - 1
+        }
+        ci = ci - 1
+    }
+    if colon_pos >= 0 {
+        let short = substring(name, colon_pos + 1, nlen)
+        let short_found = ctx_fn_index::ctx_fn_index_find(ctx, short)
+        if short_found >= 0 {
+            return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, short_found)
+        }
+    }
+    String_from("")
+}

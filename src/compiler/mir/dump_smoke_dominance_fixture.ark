@@ -1,0 +1,20 @@
+// Arukellt Selfhost - shared dominance CFG fixture for MIR dump smoke tests.
+
+use mir::dump_smoke_dominance_fixture_build
+use mir::dump_smoke_dominance_fixture_record
+use mir::dump_smoke_dominance_string_interns
+
+fn mir_dump_dominance_fixture_new() -> MirDumpDominanceFixture {
+    dump_smoke_dominance_fixture_build::mir_dump_dominance_fixture_new()
+}
+
+fn mir_dump_dominance_fixture_print_string_interns(m: MirModule) {
+    dump_smoke_dominance_string_interns::mir_dump_dominance_fixture_print_string_interns(m)
+}
+
+fn MirDumpDominanceFixture_module(fx: MirDumpDominanceFixture) -> MirModule { dump_smoke_dominance_fixture_record::MirDumpDominanceFixture_module(fx) }
+fn MirDumpDominanceFixture_function(fx: MirDumpDominanceFixture) -> MirFunction { dump_smoke_dominance_fixture_record::MirDumpDominanceFixture_function(fx) }
+fn MirDumpDominanceFixture_entry(fx: MirDumpDominanceFixture) -> i32 { dump_smoke_dominance_fixture_record::MirDumpDominanceFixture_entry(fx) }
+fn MirDumpDominanceFixture_then_bb(fx: MirDumpDominanceFixture) -> i32 { dump_smoke_dominance_fixture_record::MirDumpDominanceFixture_then_bb(fx) }
+fn MirDumpDominanceFixture_else_bb(fx: MirDumpDominanceFixture) -> i32 { dump_smoke_dominance_fixture_record::MirDumpDominanceFixture_else_bb(fx) }
+fn MirDumpDominanceFixture_join_bb(fx: MirDumpDominanceFixture) -> i32 { dump_smoke_dominance_fixture_record::MirDumpDominanceFixture_join_bb(fx) }

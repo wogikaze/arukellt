@@ -1,0 +1,52 @@
+// Arukellt LSP - shared text document position request context.
+
+use lsp::feature_position
+use lsp::json_fields
+use lsp::positions
+use lsp::state_docs
+use lsp::state_record
+
+struct LspTextPositionRequest {
+    id: i32,
+    uri: String,
+    text: String,
+    offset: i32,
+    has_text: bool,
+}
+
+fn LspTextPositionRequest_new(id: i32, uri: String, text: String, offset: i32, has_text: bool) -> LspTextPositionRequest {
+    LspTextPositionRequest { id: id, uri: uri, text: text, offset: offset, has_text: has_text }
+}
+
+pub fn text_position_request_id(req: LspTextPositionRequest) -> i32 {
+    req.id
+}
+
+pub fn text_position_request_uri(req: LspTextPositionRequest) -> String {
+    clone(req.uri)
+}
+
+pub fn text_position_request_text(req: LspTextPositionRequest) -> String {
+    clone(req.text)
+}
+
+pub fn text_position_request_offset(req: LspTextPositionRequest) -> i32 {
+    req.offset
+}
+
+pub fn text_position_request_has_text(req: LspTextPositionRequest) -> bool {
+    req.has_text
+}
+
+fn read_text_position_request(state: LspState, body: String) -> LspTextPositionRequest {
+    let id = json_fields::extract_int_field(clone(body), String_from("id"))
+    let uri = json_fields::extract_string_field(clone(body), String_from("uri"))
+    let line = feature_position::extract_position_field(clone(body), String_from("line"))
+    let character = feature_position::extract_position_field(clone(body), String_from("character"))
+    let text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), clone(uri))
+    if len(text) == 0 {
+        return LspTextPositionRequest_new(id, uri, text, 0, false)
+    }
+    let offset = positions::position_to_offset(clone(text), line, character)
+    LspTextPositionRequest_new(id, uri, text, offset, true)
+}

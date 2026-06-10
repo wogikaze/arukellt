@@ -1,0 +1,28 @@
+// Arukellt Selfhost - component emission entrypoint.
+
+use component::component_base
+use component::export_plan
+use component::export_sections
+use component::export_types
+use component::emit_specialized
+use component::writer_core
+
+fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String) -> Vec<i32> {
+    let out = component_base::comp_new_component_writer()
+
+    let plan = export_plan::collect_component_exports(mir)
+
+    let specialized = emit_specialized::emit_specialized_component(core_wasm, mir, export_plan::export_plan_names(plan))
+    if len(specialized) > 0 {
+        return specialized
+    }
+
+    component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
+
+    export_sections::emit_generic_alias_section(out, plan)
+    let export_type_indices = export_types::emit_generic_export_types(out, plan, mir)
+    export_sections::emit_generic_canon_section(out, plan, export_type_indices)
+    export_sections::emit_generic_export_section(out, plan, export_type_indices)
+
+    writer_core::comp_writer_bytes(out)
+}

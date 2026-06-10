@@ -1,0 +1,33 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - enum payload variant calls
+
+use mir::inst_local_set
+use mir::value_types
+use mir::lower::variants
+
+fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, var_tag: i32) -> i32 {
+    let mut payload_locals = Vec_new_i32()
+    let mut payload_vts = Vec_new_i32()
+    let mut total_bytes = 4
+    let mut pa = 1
+    while pa < child_count {
+        let parg = ast_node::node_child_at(node, pa)
+        let p_idx = lower_expr(ctx, parg)
+        let p_vt = ctx_local_vt(ctx, p_idx)
+        let save_local = ctx_fresh_local(ctx, p_vt)
+        ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, p_idx))
+        push(payload_locals, save_local)
+        push(payload_vts, p_vt)
+        if p_vt == value_types::VT_F64() || p_vt == value_types::VT_I64() {
+            total_bytes = total_bytes + 8
+        } else {
+            total_bytes = total_bytes + 4
+        }
+        pa = pa + 1
+    }
+    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes)
+}

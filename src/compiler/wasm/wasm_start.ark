@@ -1,0 +1,34 @@
+use mir::function_return_view
+use mir::function_identity
+// Arukellt Selfhost - Wasm start function selection.
+
+use mir::module_functions
+use wasm::start_names
+
+fn wasm_module_needs_start_wrapper(mir: MirModule, fn_count: i32) -> i32 {
+    let mut needs_wrapper = 0
+    let mut main_check_idx = 0
+    while main_check_idx < fn_count {
+        let mf = module_functions::MirModule_function_at(mir, main_check_idx)
+        if start_names::is_wasm_start_function_name(function_identity::MirFunction_name(mf)) {
+            if function_return_view::MirFunction_return_type(mf) != 0 {
+                needs_wrapper = 1
+            }
+        }
+        main_check_idx = main_check_idx + 1
+    }
+    needs_wrapper
+}
+
+fn wasm_module_start_function_index(mir: MirModule, fn_count: i32) -> i32 {
+    let mut main_idx = 0 - 1
+    let mut mi = 0
+    while mi < fn_count {
+        let f = module_functions::MirModule_function_at(mir, mi)
+        if start_names::is_wasm_start_function_name(function_identity::MirFunction_name(f)) {
+            main_idx = mi
+        }
+        mi = mi + 1
+    }
+    main_idx
+}

@@ -1,0 +1,24 @@
+use typechecker::kinds
+// Arukellt Typechecker - closure expression inference.
+
+use typechecker::ast_access
+use typechecker::scope
+use typechecker::unify
+
+fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    let closure_scope = scope::scope_child(scope)
+    let child_count = ast_access::node_child_count(node)
+    if child_count == 0 {
+        return TypeInfo_simple(commands::TY_FN())
+    }
+    let mut i = 0
+    while i + 1 < child_count {
+        let param = ast_access::node_child_at(node, i)
+        scope::scope_define(closure_scope, ast_access::node_text(param), unify::fresh_var(env))
+        i = i + 1
+    }
+    let body = ast_access::node_child_at(node, child_count - 1)
+    let body_ty = infer_expr(env, closure_scope, fn_sigs, enum_defs, body)
+    unify::resolve_type(env, body_ty)
+    TypeInfo_simple(commands::TY_FN())
+}

@@ -1,0 +1,15 @@
+// Arukellt Typechecker - literal match coverage collection
+
+use typechecker::ast_access
+use typechecker::match_coverage_mark_record
+use typechecker::match_coverage_record
+
+fn record_literal_pattern(coverage: MatchCoverage, pat: AstNode) {
+    let pat_name = ast_access::node_text(pat)
+    if eq(clone(pat_name), String_from("true")) {
+        match_coverage_mark_record::match_coverage_mark_bool_true(coverage)
+    }
+    if eq(clone(pat_name), String_from("false")) {
+        match_coverage_mark_record::match_coverage_mark_bool_false(coverage)
+    }
+}

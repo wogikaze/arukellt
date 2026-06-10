@@ -1,0 +1,90 @@
+// Arukellt Selfhost - component result declaration scan.
+
+use component::contract_collection_fn
+use component::contract_helpers
+
+pub struct ComponentCollectionResultScan {
+	has_bool_to_result_bool_bool: bool,
+	has_i32_i32_to_result_i32_string: bool,
+	has_result_i32_i32_to_i32: bool,
+	has_result_i32_string_to_i32: bool,
+	has_result_i32_i32_to_result_i32_i32: bool,
+	export_count: i32,
+}
+
+fn ComponentCollectionResultScan_new(has_bool_to_result_bool_bool: bool, has_i32_i32_to_result_i32_string: bool, has_result_i32_i32_to_i32: bool, has_result_i32_string_to_i32: bool, has_result_i32_i32_to_result_i32_i32: bool, export_count: i32) -> ComponentCollectionResultScan {
+	ComponentCollectionResultScan {
+		has_bool_to_result_bool_bool: has_bool_to_result_bool_bool,
+		has_i32_i32_to_result_i32_string: has_i32_i32_to_result_i32_string,
+		has_result_i32_i32_to_i32: has_result_i32_i32_to_i32,
+		has_result_i32_string_to_i32: has_result_i32_string_to_i32,
+		has_result_i32_i32_to_result_i32_i32: has_result_i32_i32_to_result_i32_i32,
+		export_count: export_count,
+	}
+}
+
+fn ComponentCollectionResultScan_empty() -> ComponentCollectionResultScan {
+	ComponentCollectionResultScan_new(false, false, false, false, false, 0)
+}
+
+fn ComponentCollectionResultScan_single_export(scan: ComponentCollectionResultScan) -> bool {
+	scan.export_count == 1
+}
+
+fn ComponentCollectionResultScan_increment_export_count(scan: ComponentCollectionResultScan) {
+	scan.export_count = scan.export_count + 1
+}
+
+fn component_collection_result_scan_apply_fn(d: AstNode, scan: ComponentCollectionResultScan) -> ComponentCollectionResultScan {
+	let f = contract_helpers::component_func_from_decl(d)
+	if contract_collection_fn::component_fn_is_bool_to_result_bool_bool(f) {
+		scan.has_bool_to_result_bool_bool = true
+	}
+	if contract_collection_fn::component_fn_is_i32_i32_to_result_i32_string(f) {
+		scan.has_i32_i32_to_result_i32_string = true
+	}
+	if contract_collection_fn::component_fn_is_result_i32_i32_to_i32(f) {
+		scan.has_result_i32_i32_to_i32 = true
+	}
+	if contract_collection_fn::component_fn_is_result_i32_string_to_i32(f) {
+		scan.has_result_i32_string_to_i32 = true
+	}
+	if contract_collection_fn::component_fn_is_result_i32_i32_to_result_i32_i32(f) {
+		scan.has_result_i32_i32_to_result_i32_i32 = true
+	}
+	scan
+}
+
+fn ComponentCollectionResultScan_allows_bool_to_result_bool_bool(scan: ComponentCollectionResultScan) -> bool {
+	scan.has_bool_to_result_bool_bool && ComponentCollectionResultScan_single_export(scan)
+}
+
+fn ComponentCollectionResultScan_allows_i32_i32_to_result_i32_string(scan: ComponentCollectionResultScan) -> bool {
+	scan.has_i32_i32_to_result_i32_string && ComponentCollectionResultScan_single_export(scan)
+}
+
+fn ComponentCollectionResultScan_allows_result_i32_i32_to_i32(scan: ComponentCollectionResultScan) -> bool {
+	scan.has_result_i32_i32_to_i32 && ComponentCollectionResultScan_single_export(scan)
+}
+
+fn ComponentCollectionResultScan_allows_result_i32_string_to_i32(scan: ComponentCollectionResultScan) -> bool {
+	scan.has_result_i32_string_to_i32 && ComponentCollectionResultScan_single_export(scan)
+}
+
+fn ComponentCollectionResultScan_allows_result_i32_i32_to_result_i32_i32(scan: ComponentCollectionResultScan) -> bool {
+	scan.has_result_i32_i32_to_result_i32_i32 && ComponentCollectionResultScan_single_export(scan)
+}
+
+fn component_collection_result_scan(decls: Vec<AstNode>) -> ComponentCollectionResultScan {
+	let scan = ComponentCollectionResultScan_empty()
+	let mut i = 0
+	while i < len(decls) {
+		let d = get_unchecked(decls, i)
+		if contract_helpers::is_export_func_decl(d) {
+			ComponentCollectionResultScan_increment_export_count(scan)
+			component_collection_result_scan_apply_fn(d, scan)
+		}
+		i = i + 1
+	}
+	scan
+}

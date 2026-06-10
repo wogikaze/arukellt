@@ -1,0 +1,88 @@
+// Arukellt Selfhost - component Shape variant declaration scan.
+
+use component::contract_helpers
+use component::contract_record_fn
+use component::contract_record_decl
+
+pub struct ComponentRecordVariantScan {
+    has_shape: bool,
+    has_shape_to_f64: bool,
+    has_shape_to_shape: bool,
+    export_count: i32,
+}
+
+fn ComponentRecordVariantScan_new(has_shape: bool, has_shape_to_f64: bool, has_shape_to_shape: bool, export_count: i32) -> ComponentRecordVariantScan {
+    ComponentRecordVariantScan {
+        has_shape: has_shape,
+        has_shape_to_f64: has_shape_to_f64,
+        has_shape_to_shape: has_shape_to_shape,
+        export_count: export_count,
+    }
+}
+
+fn ComponentRecordVariantScan_empty() -> ComponentRecordVariantScan {
+    ComponentRecordVariantScan_new(false, false, false, 0)
+}
+
+fn ComponentRecordVariantScan_has_shape(scan: ComponentRecordVariantScan) -> bool {
+    scan.has_shape
+}
+
+fn ComponentRecordVariantScan_has_shape_to_f64(scan: ComponentRecordVariantScan) -> bool {
+    scan.has_shape_to_f64
+}
+
+fn ComponentRecordVariantScan_has_shape_to_shape(scan: ComponentRecordVariantScan) -> bool {
+    scan.has_shape_to_shape
+}
+
+fn ComponentRecordVariantScan_export_count_is(scan: ComponentRecordVariantScan, expected: i32) -> bool {
+    scan.export_count == expected
+}
+
+fn ComponentRecordVariantScan_set_has_shape(scan: ComponentRecordVariantScan, value: bool) {
+    scan.has_shape = value
+}
+
+fn ComponentRecordVariantScan_set_has_shape_to_f64(scan: ComponentRecordVariantScan, value: bool) {
+    scan.has_shape_to_f64 = value
+}
+
+fn ComponentRecordVariantScan_set_has_shape_to_shape(scan: ComponentRecordVariantScan, value: bool) {
+    scan.has_shape_to_shape = value
+}
+
+fn ComponentRecordVariantScan_increment_export_count(scan: ComponentRecordVariantScan) {
+    scan.export_count = scan.export_count + 1
+}
+
+fn ComponentRecordVariantScan_allows_area(scan: ComponentRecordVariantScan) -> bool {
+    ComponentRecordVariantScan_has_shape(scan) && ComponentRecordVariantScan_has_shape_to_f64(scan) && ComponentRecordVariantScan_export_count_is(scan, 1)
+}
+
+fn ComponentRecordVariantScan_allows_roundtrip(scan: ComponentRecordVariantScan) -> bool {
+    ComponentRecordVariantScan_has_shape(scan) && ComponentRecordVariantScan_has_shape_to_shape(scan) && ComponentRecordVariantScan_export_count_is(scan, 1)
+}
+
+fn component_record_variant_scan(decls: Vec<AstNode>) -> ComponentRecordVariantScan {
+    let scan = ComponentRecordVariantScan_empty()
+    let mut i = 0
+    while i < len(decls) {
+        let d = get_unchecked(decls, i)
+        if contract_record_decl::component_decl_is_shape_variant(d) {
+            ComponentRecordVariantScan_set_has_shape(scan, true)
+        }
+        if contract_helpers::is_export_func_decl(d) {
+            ComponentRecordVariantScan_increment_export_count(scan)
+            let f = contract_helpers::component_func_from_decl(d)
+            if contract_record_fn::component_fn_is_shape_to_f64(f) {
+                ComponentRecordVariantScan_set_has_shape_to_f64(scan, true)
+            }
+            if contract_record_fn::component_fn_is_shape_to_shape(f) {
+                ComponentRecordVariantScan_set_has_shape_to_shape(scan, true)
+            }
+        }
+        i = i + 1
+    }
+    scan
+}

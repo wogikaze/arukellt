@@ -1,0 +1,159 @@
+// Arukellt Selfhost - WIT declaration view over frontend declarations.
+
+use component::ast_node
+use component::naming
+use component::type_node
+
+struct ComponentWitDecl {
+    node: AstNode,
+}
+
+struct ComponentWitMember {
+    node: AstNode,
+}
+
+struct ComponentWitFunc {
+    node: AstNode,
+}
+
+fn ComponentWitDecl_new(node: AstNode) -> ComponentWitDecl {
+    ComponentWitDecl { node: node }
+}
+
+fn ComponentWitMember_new(node: AstNode) -> ComponentWitMember {
+    ComponentWitMember { node: node }
+}
+
+fn ComponentWitFunc_new(node: AstNode) -> ComponentWitFunc {
+    ComponentWitFunc { node: node }
+}
+
+fn wit_decl_from_node(node: AstNode) -> ComponentWitDecl {
+    ComponentWitDecl_new(node)
+}
+
+fn wit_func_from_node(node: AstNode) -> ComponentWitFunc {
+    ComponentWitFunc_new(node)
+}
+
+fn wit_decl_is_func(decl: ComponentWitDecl) -> bool {
+    ast_node::node_is_fn_decl(decl.node)
+}
+
+fn wit_decl_is_record(decl: ComponentWitDecl) -> bool {
+    ast_node::node_is_struct_decl(decl.node)
+}
+
+fn wit_decl_is_enum(decl: ComponentWitDecl) -> bool {
+    ast_node::node_is_enum_decl(decl.node)
+}
+
+fn wit_decl_name(decl: ComponentWitDecl) -> String {
+    ast_node::node_text(decl.node)
+}
+
+fn wit_decl_member_count(decl: ComponentWitDecl) -> i32 {
+    ast_node::node_child_count(decl.node)
+}
+
+fn wit_decl_member_at(decl: ComponentWitDecl, index: i32) -> ComponentWitMember {
+    ComponentWitMember_new(ast_node::node_child_at(decl.node, index))
+}
+
+fn wit_decl_member_name(member: ComponentWitMember) -> String {
+    ast_node::node_text(member.node)
+}
+
+fn wit_decl_member_has_type(member: ComponentWitMember) -> bool {
+    ast_node::node_type_ann_count(member.node) > 0
+}
+
+fn wit_decl_member_type_count(member: ComponentWitMember) -> i32 {
+    ast_node::node_type_ann_count(member.node)
+}
+
+fn wit_decl_member_type(member: ComponentWitMember) -> AstNode {
+    ast_node::node_type_ann_at(member.node, 0)
+}
+
+fn wit_decl_member_type_view(member: ComponentWitMember) -> ComponentTypeNode {
+    type_node::type_node_from_ast(wit_decl_member_type(member))
+}
+
+fn wit_decl_member_child_count(member: ComponentWitMember) -> i32 {
+    ast_node::node_child_count(member.node)
+}
+
+fn wit_decl_enum_has_payloads(decl: ComponentWitDecl) -> bool {
+    let mut vi = 0
+    while vi < wit_decl_member_count(decl) {
+        let variant = wit_decl_member_at(decl, vi)
+        if wit_decl_member_has_type(variant) || wit_decl_member_child_count(variant) > 0 {
+            return true
+        }
+        vi = vi + 1
+    }
+    false
+}
+
+fn wit_func_name(func: ComponentWitFunc) -> String {
+    ast_node::node_text(func.node)
+}
+
+fn wit_func_is_export(func: ComponentWitFunc) -> bool {
+    ast_node::node_is_pub(func.node) && naming::comp_should_export_func(wit_func_name(func))
+}
+
+fn wit_func_param_count(func: ComponentWitFunc) -> i32 {
+    ast_node::node_child_count(func.node) - 1
+}
+
+fn wit_func_param_name_at(func: ComponentWitFunc, index: i32) -> String {
+    if index < 0 || index >= wit_func_param_count(func) {
+        return String_new()
+    }
+    ast_node::node_text(ast_node::node_child_at(func.node, index))
+}
+
+fn wit_func_param_has_type_at(func: ComponentWitFunc, index: i32) -> bool {
+    if index < 0 || index >= wit_func_param_count(func) {
+        return false
+    }
+    ast_node::node_type_ann_count(ast_node::node_child_at(func.node, index)) > 0
+}
+
+fn wit_func_param_type_at(func: ComponentWitFunc, index: i32) -> AstNode {
+    ast_node::node_type_ann_at(ast_node::node_child_at(func.node, index), 0)
+}
+
+fn wit_func_param_type_view_at(func: ComponentWitFunc, index: i32) -> ComponentTypeNode {
+    type_node::type_node_from_ast(wit_func_param_type_at(func, index))
+}
+
+fn wit_func_return_has_type(func: ComponentWitFunc) -> bool {
+    let mut i = 0
+    while i < ast_node::node_type_ann_count(func.node) {
+        let ann = ast_node::node_type_ann_at(func.node, i)
+        if ast_node::node_is_return_ann(ann) && ast_node::node_child_count(ann) > 0 {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn wit_func_return_type(func: ComponentWitFunc) -> AstNode {
+    let mut i = 0
+    while i < ast_node::node_type_ann_count(func.node) {
+        let ann = ast_node::node_type_ann_at(func.node, i)
+        if ast_node::node_is_return_ann(ann) && ast_node::node_child_count(ann) > 0 {
+            return ast_node::node_child_at(ann, 0)
+        }
+        i = i + 1
+    }
+    ast_node::node_child_at(func.node, 0)
+}
+
+fn wit_func_return_type_view(func: ComponentWitFunc) -> ComponentTypeNode {
+    type_node::type_node_from_ast(wit_func_return_type(func))
+}

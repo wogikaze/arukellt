@@ -1,0 +1,36 @@
+// Arukellt Selfhost - MIR lowering helpers for struct literals.
+
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+use mir::inst_local_get
+use mir::inst_struct_new
+use mir::inst_struct_set
+use mir::lower::struct_lit_copy
+use mir::value_types
+
+fn mir_emit_struct_new(ctx: LowerCtx, struct_name: String) -> i32 {
+    let dest = ctx_fresh_local(ctx, value_types::VT_REF())
+    ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(dest, clone(struct_name), ctx_struct_byte_size(ctx, clone(struct_name))))
+    ctx_set_local_type(ctx, dest, clone(struct_name))
+    dest
+}
+
+fn mir_copy_struct_base_fields(ctx: LowerCtx, struct_name: String, dest: i32, base_idx: i32) {
+    struct_lit_copy::mir_copy_struct_base_fields(ctx, struct_name, dest, base_idx)
+}
+
+fn mir_emit_struct_field_set(ctx: LowerCtx, struct_name: String, dest: i32, field_name: String, val_idx: i32) {
+    let fi_idx = ctx_field_index(ctx, clone(struct_name), clone(field_name))
+    let mut field_vt = value_types::VT_VOID()
+    if ctx_struct_field_is_f64(ctx, clone(struct_name), fi_idx) {
+        field_vt = value_types::VT_F64()
+    }
+    ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named(dest, val_idx, clone(field_name), ctx_struct_field_offset(ctx, clone(struct_name), fi_idx), field_vt))
+}
+
+fn mir_emit_struct_get_local(ctx: LowerCtx, dest: i32) -> i32 {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get_to(dest, dest))
+    dest
+}

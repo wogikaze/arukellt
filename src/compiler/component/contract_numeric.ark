@@ -1,0 +1,40 @@
+// Arukellt Selfhost - component numeric export contract facade
+
+use component::contract_numeric_scan
+use component::contract_helpers
+
+fn component_fn_is_f32_unary(f: ComponentExportFunc) -> bool {
+    contract_numeric_scan::component_fn_is_f32_unary(f)
+}
+
+fn component_fn_is_f32_binary(f: ComponentExportFunc) -> bool {
+    contract_numeric_scan::component_fn_is_f32_binary(f)
+}
+
+fn component_fn_is_f32_to_i32(f: ComponentExportFunc) -> bool {
+    contract_numeric_scan::component_fn_is_f32_to_i32(f)
+}
+
+fn component_fn_is_i32_to_f32(f: ComponentExportFunc) -> bool {
+    contract_numeric_scan::component_fn_is_i32_to_f32(f)
+}
+
+fn component_has_f32_unary_decls(decls: Vec<AstNode>) -> bool {
+    let scan = contract_numeric_scan::component_numeric_scan(decls)
+    contract_numeric_scan::ComponentNumericScan_allows_f32_unary(scan)
+}
+
+fn component_has_f32_binary_decls(decls: Vec<AstNode>) -> bool {
+    let scan = contract_numeric_scan::component_numeric_scan(decls)
+    contract_numeric_scan::ComponentNumericScan_allows_f32_binary(scan)
+}
+
+fn component_has_f32_to_i32_decls(decls: Vec<AstNode>) -> bool {
+    let scan = contract_numeric_scan::component_numeric_scan(decls)
+    contract_numeric_scan::ComponentNumericScan_allows_f32_to_i32(scan)
+}
+
+fn component_has_i32_to_f32_decls(decls: Vec<AstNode>) -> bool {
+    let scan = contract_numeric_scan::component_numeric_scan(decls)
+    contract_numeric_scan::ComponentNumericScan_allows_i32_to_f32(scan)
+}

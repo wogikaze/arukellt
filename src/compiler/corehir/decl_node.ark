@@ -1,0 +1,46 @@
+// Arukellt Selfhost - CoreHIR declaration node predicates.
+
+use corehir::frontend_ast_node
+use corehir::frontend_decl_kind
+use corehir::kinds
+
+fn decl_kind_to_corehir(kind: i32) -> i32 {
+    if frontend_decl_kind::corehir_kind_is_decl_fn(kind) {
+        return commands::COREHIR_DECL_FN()
+    }
+    if frontend_decl_kind::corehir_kind_is_decl_struct(kind) {
+        return commands::COREHIR_DECL_STRUCT()
+    }
+    if frontend_decl_kind::corehir_kind_is_decl_enum(kind) {
+        return commands::COREHIR_DECL_ENUM()
+    }
+    if frontend_decl_kind::corehir_kind_is_decl_trait(kind) {
+        return commands::COREHIR_DECL_TRAIT()
+    }
+    if frontend_decl_kind::corehir_kind_is_decl_impl(kind) {
+        return commands::COREHIR_DECL_IMPL()
+    }
+    if frontend_decl_kind::corehir_kind_is_decl_use(kind) {
+        return commands::COREHIR_DECL_USE()
+    }
+    if frontend_decl_kind::corehir_kind_is_decl_import(kind) {
+        return commands::COREHIR_DECL_IMPORT()
+    }
+    commands::COREHIR_DECL_UNKNOWN()
+}
+
+fn decl_is_fn(node: AstNode) -> bool {
+    decl_kind_to_corehir(frontend_ast_node::corehir_node_kind(node)) == commands::COREHIR_DECL_FN()
+}
+
+fn decl_is_impl(node: AstNode) -> bool {
+    decl_kind_to_corehir(frontend_ast_node::corehir_node_kind(node)) == commands::COREHIR_DECL_IMPL()
+}
+
+fn decl_is_struct(node: AstNode) -> bool {
+    decl_kind_to_corehir(frontend_ast_node::corehir_node_kind(node)) == commands::COREHIR_DECL_STRUCT()
+}
+
+fn decl_is_enum(node: AstNode) -> bool {
+    decl_kind_to_corehir(frontend_ast_node::corehir_node_kind(node)) == commands::COREHIR_DECL_ENUM()
+}

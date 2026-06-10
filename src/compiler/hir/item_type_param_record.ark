@@ -1,0 +1,40 @@
+// Arukellt HIR - trait bound and type parameter records.
+
+use hir::type_contracts_record
+
+struct HirTraitBound {
+    trait_ty: HirType,
+}
+
+struct HirTypeParam {
+    name: String,
+    bounds: Vec<HirTraitBound>,
+}
+
+fn HirTraitBound_new(trait_ty: HirType) -> HirTraitBound {
+    HirTraitBound { trait_ty: trait_ty }
+}
+
+fn hir_trait_bound_trait_type(bound: HirTraitBound) -> HirType {
+    bound.trait_ty
+}
+
+fn HirTypeParam_new(name: String) -> HirTypeParam {
+    HirTypeParam { name: name, bounds: Vec_new_HirTraitBound() }
+}
+
+fn hir_type_param_name(param: HirTypeParam) -> String {
+    clone(param.name)
+}
+
+fn hir_type_param_push_bound(param: HirTypeParam, bound: HirTraitBound) {
+    push(param.bounds, bound)
+}
+
+fn hir_type_param_bound_count(param: HirTypeParam) -> i32 {
+    len(param.bounds)
+}
+
+fn hir_type_param_bound_at(param: HirTypeParam, index: i32) -> HirTraitBound {
+    get_unchecked(param.bounds, index)
+}

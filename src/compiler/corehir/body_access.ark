@@ -1,0 +1,37 @@
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR body builder for aggregate access expressions.
+
+use corehir::expr_builder_collections
+use corehir::expr_predicates
+use corehir::expr_node_access
+
+fn corehir_build_field_access_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    if expr_node_access::expr_child_count(node) < 1 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let children = Vec_new_i32()
+    let base_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
+    push(children, base_index)
+    let base_expr = corehir_body_expr_at(table, base_index)
+    if expr_predicates::expr_is_unsupported(base_expr) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_collections::corehir_expr_field_access(expr_node_access::expr_text(node), expr_node_access::expr_span_start(node), children))
+}
+
+fn corehir_build_index_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    if expr_node_access::expr_child_count(node) < 2 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let children = Vec_new_i32()
+    let base_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
+    let index_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 1))
+    push(children, base_index)
+    push(children, index_index)
+    let base_expr = corehir_body_expr_at(table, base_index)
+    let index_expr = corehir_body_expr_at(table, index_index)
+    if expr_predicates::expr_is_unsupported(base_expr) || expr_predicates::expr_is_unsupported(index_expr) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_collections::corehir_expr_index(expr_node_access::expr_span_start(node), children))
+}

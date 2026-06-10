@@ -1,0 +1,138 @@
+// Arukellt Selfhost - main namespace: commands
+
+use main::kinds
+
+// Arukellt Selfhost - CLI command name parsing
+
+fn parse_command(name: String) -> i32 {
+    let ascii_cmd = parse_ascii_core_command(name)
+    if ascii_cmd != kinds::CMD_UNKNOWN() {
+        return ascii_cmd
+    }
+    parse_named_command(name)
+}
+
+// Arukellt Selfhost - CLI command ASCII fast path.
+
+fn parse_ascii_core_command(name: String) -> i32 {
+    let name_len = len(clone(name))
+    if name_len == 5 && char_at(clone(name), 0) == 99 && char_at(clone(name), 1) == 104 && char_at(clone(name), 2) == 101 && char_at(clone(name), 3) == 99 && char_at(clone(name), 4) == 107 {
+        return kinds::CMD_CHECK()
+    }
+    if name_len == 7 && char_at(clone(name), 0) == 99 && char_at(clone(name), 1) == 111 && char_at(clone(name), 2) == 109 && char_at(clone(name), 3) == 112 && char_at(clone(name), 4) == 105 && char_at(clone(name), 5) == 108 && char_at(clone(name), 6) == 101 {
+        return kinds::CMD_COMPILE()
+    }
+    if name_len == 5 && char_at(clone(name), 0) == 112 && char_at(clone(name), 1) == 97 && char_at(clone(name), 2) == 114 && char_at(clone(name), 3) == 115 && char_at(clone(name), 4) == 101 {
+        return kinds::CMD_PARSE()
+    }
+    if name_len == 4 && char_at(clone(name), 0) == 104 && char_at(clone(name), 1) == 101 && char_at(clone(name), 2) == 108 && char_at(clone(name), 3) == 112 {
+        return kinds::CMD_HELP()
+    }
+    if name_len == 7 && char_at(clone(name), 0) == 118 && char_at(clone(name), 1) == 101 && char_at(clone(name), 2) == 114 && char_at(clone(name), 3) == 115 && char_at(clone(name), 4) == 105 && char_at(clone(name), 5) == 111 && char_at(clone(name), 6) == 110 {
+        return kinds::CMD_VERSION()
+    }
+    kinds::CMD_UNKNOWN()
+}
+
+// Arukellt Selfhost - CLI command string fallback parsing.
+
+fn parse_named_command(name: String) -> i32 {
+    let implemented = parse_implemented_command(clone(name))
+    if implemented != kinds::CMD_UNKNOWN() {
+        return implemented
+    }
+    let service = parse_service_command(clone(name))
+    if service != kinds::CMD_UNKNOWN() {
+        return service
+    }
+    parse_reserved_command(name)
+}
+
+fn parse_implemented_command(name: String) -> i32 {
+    if cli_str_eq(clone(name), String_from("parse")) {
+        return kinds::CMD_PARSE()
+    }
+    if cli_str_eq(clone(name), String_from("compile")) {
+        return kinds::CMD_COMPILE()
+    }
+    if cli_str_eq(clone(name), String_from("check")) {
+        return kinds::CMD_CHECK()
+    }
+    if cli_str_eq(clone(name), String_from("run")) {
+        return kinds::CMD_RUN()
+    }
+    if cli_str_eq(clone(name), String_from("build")) {
+        return kinds::CMD_BUILD()
+    }
+    if cli_str_eq(clone(name), String_from("test")) {
+        return kinds::CMD_TEST()
+    }
+    if cli_str_eq(clone(name), String_from("help")) {
+        return kinds::CMD_HELP()
+    }
+    if cli_str_eq(clone(name), String_from("version")) {
+        return kinds::CMD_VERSION()
+    }
+    kinds::CMD_UNKNOWN()
+}
+
+fn parse_service_command(name: String) -> i32 {
+    if cli_str_eq(clone(name), String_from("lsp")) {
+        return kinds::CMD_LSP()
+    }
+    if cli_str_eq(clone(name), String_from("debug-adapter")) {
+        return kinds::CMD_DAP()
+    }
+    if cli_str_eq(clone(name), String_from("ide-analyze")) {
+        return kinds::CMD_IDE_ANALYZE()
+    }
+    kinds::CMD_UNKNOWN()
+}
+
+fn parse_reserved_command(name: String) -> i32 {
+    if cli_str_eq(clone(name), String_from("init")) {
+        return kinds::CMD_NOT_YET()
+    }
+    if cli_str_eq(clone(name), String_from("fmt")) {
+        return kinds::CMD_NOT_YET()
+    }
+    if cli_str_eq(clone(name), String_from("targets")) {
+        return kinds::CMD_NOT_YET()
+    }
+    if cli_str_eq(clone(name), String_from("script")) {
+        return kinds::CMD_NOT_YET()
+    }
+    if cli_str_eq(clone(name), String_from("component")) {
+        return kinds::CMD_NOT_YET()
+    }
+    if cli_str_eq(clone(name), String_from("lint")) {
+        return kinds::CMD_NOT_YET()
+    }
+    if cli_str_eq(clone(name), String_from("analyze")) {
+        return kinds::CMD_NOT_YET()
+    }
+    if cli_str_eq(clone(name), String_from("doc")) {
+        return kinds::CMD_NOT_YET()
+    }
+    if cli_str_eq(clone(name), String_from("compose")) {
+        return kinds::CMD_NOT_YET()
+    }
+    kinds::CMD_UNKNOWN()
+}
+
+// Arukellt Selfhost - CLI command string helpers
+
+fn cli_str_eq(a: String, b: String) -> bool {
+    let n = len(clone(a))
+    if n != len(clone(b)) {
+        return false
+    }
+    let mut i = 0
+    while i < n {
+        if char_at(clone(a), i) != char_at(clone(b), i) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}

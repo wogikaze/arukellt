@@ -1,0 +1,51 @@
+// Arukellt Typechecker - merge per-function inference state into module env.
+
+use typechecker::contract_env_mono_record
+use typechecker::contract_env_record
+
+fn merge_mono_instances(dst: TypeEnv, src: TypeEnv) {
+    let src_instances = contract_env_mono_record::type_env_mono_instances(src)
+    let count = len(src_instances)
+    let mut i = 0
+    while i < count {
+        let incoming = get_unchecked(src_instances, i)
+        let dst_instances = contract_env_mono_record::type_env_mono_instances(dst)
+        let dst_count = len(dst_instances)
+        let mut found = false
+        let mut j = 0
+        while j < dst_count {
+            let existing = get_unchecked(dst_instances, j)
+            if eq(clone(existing.mangled_name), clone(incoming.mangled_name)) {
+                found = true
+            }
+            j = j + 1
+        }
+        if !found {
+            push(dst.mono_instances, incoming)
+        }
+        i = i + 1
+    }
+}
+
+fn merge_type_env(dst: TypeEnv, src: TypeEnv) {
+    let err_count = src.error_count
+    let mut e = 0
+    while e < err_count {
+        push(dst.errors, clone(get_unchecked(src.errors, e)))
+        dst.error_count = dst.error_count + 1
+        e = e + 1
+    }
+    merge_mono_instances(dst, src)
+    let site_count = len(src.mono_call_sites)
+    let mut s = 0
+    while s < site_count {
+        push(dst.mono_call_sites, get_unchecked(src.mono_call_sites, s))
+        s = s + 1
+    }
+}
+
+fn type_env_for_fn_check(parent: TypeEnv) -> TypeEnv {
+    let child = contract_env_record::TypeEnv_new()
+    child.trait_impls = parent.trait_impls
+    child
+}

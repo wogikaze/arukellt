@@ -1,0 +1,66 @@
+// Arukellt CoreHIR - expression kind identifiers.
+
+// Declaration kinds.
+fn COREHIR_DECL_UNKNOWN() -> i32 { 0 }
+fn COREHIR_DECL_FN() -> i32 { 1 }
+fn COREHIR_DECL_STRUCT() -> i32 { 2 }
+fn COREHIR_DECL_ENUM() -> i32 { 3 }
+fn COREHIR_DECL_TRAIT() -> i32 { 4 }
+fn COREHIR_DECL_IMPL() -> i32 { 5 }
+fn COREHIR_DECL_USE() -> i32 { 6 }
+fn COREHIR_DECL_IMPORT() -> i32 { 7 }
+
+// Atom expression kinds.
+fn COREHIR_EXPR_UNSUPPORTED() -> i32 { 0 }
+fn COREHIR_EXPR_IDENT() -> i32 { 5 }
+fn COREHIR_EXPR_INT() -> i32 { 6 }
+fn COREHIR_EXPR_FLOAT() -> i32 { 7 }
+fn COREHIR_EXPR_STRING() -> i32 { 8 }
+fn COREHIR_EXPR_BOOL() -> i32 { 9 }
+fn COREHIR_EXPR_CHAR() -> i32 { 10 }
+fn COREHIR_EXPR_PATH() -> i32 { 28 }
+
+// Operation expression kinds.
+fn COREHIR_EXPR_LET() -> i32 { 2 }
+fn COREHIR_EXPR_BINARY() -> i32 { 11 }
+fn COREHIR_EXPR_UNARY() -> i32 { 12 }
+fn COREHIR_EXPR_ASSIGN() -> i32 { 14 }
+
+// Block, branch, loop, and transfer expression kinds.
+fn COREHIR_EXPR_BLOCK() -> i32 { 1 }
+fn COREHIR_EXPR_IF() -> i32 { 13 }
+fn COREHIR_EXPR_WHILE() -> i32 { 20 }
+fn COREHIR_EXPR_LOOP() -> i32 { 21 }
+fn COREHIR_EXPR_BREAK() -> i32 { 22 }
+fn COREHIR_EXPR_CONTINUE() -> i32 { 23 }
+fn COREHIR_EXPR_FOR_RANGE() -> i32 { 25 }
+fn COREHIR_EXPR_FOR_VALUES() -> i32 { 31 }
+fn COREHIR_EXPR_FOR_ITER() -> i32 { 32 }
+fn COREHIR_EXPR_RETURN() -> i32 { 3 }
+
+// Call and match expression kinds.
+fn COREHIR_EXPR_CALL() -> i32 { 4 }
+fn COREHIR_EXPR_METHOD_CALL() -> i32 { 19 }
+fn COREHIR_EXPR_TRY() -> i32 { 24 }
+fn COREHIR_EXPR_MATCH() -> i32 { 33 }
+fn COREHIR_EXPR_MATCH_ARM() -> i32 { 34 }
+fn COREHIR_EXPR_CLOSURE() -> i32 { 40 }
+
+// Collection expression kinds.
+fn COREHIR_EXPR_FIELD_ACCESS() -> i32 { 15 }
+fn COREHIR_EXPR_INDEX() -> i32 { 16 }
+fn COREHIR_EXPR_ARRAY_LIT() -> i32 { 17 }
+fn COREHIR_EXPR_TUPLE() -> i32 { 18 }
+fn COREHIR_EXPR_COMPREHENSION() -> i32 { 29 }
+
+// Struct expression kinds.
+fn COREHIR_EXPR_STRUCT_LIT() -> i32 { 26 }
+fn COREHIR_EXPR_STRUCT_FIELD() -> i32 { 27 }
+fn COREHIR_EXPR_STRUCT_BASE() -> i32 { 30 }
+
+// Pattern expression kinds.
+fn COREHIR_EXPR_PAT_IDENT() -> i32 { 35 }
+fn COREHIR_EXPR_PAT_WILDCARD() -> i32 { 36 }
+fn COREHIR_EXPR_PAT_LITERAL() -> i32 { 37 }
+fn COREHIR_EXPR_PAT_VARIANT() -> i32 { 38 }
+fn COREHIR_EXPR_PAT_OR() -> i32 { 39 }

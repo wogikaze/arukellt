@@ -1,0 +1,30 @@
+// Arukellt HIR - recursive node dump.
+
+use std::host::stdio
+use hir::dump_names
+use hir::node_children_record
+use hir::node_value_record
+use hir::types_format
+
+fn dump_hir_node(node: HirNode, depth: i32) {
+    let mut indent = String_new()
+    let mut d = 0
+    while d < depth {
+        indent = concat(indent, String_from("  "))
+        d = d + 1
+    }
+    let tag_str = dump_names::hir_tag_name(node_value_record::hir_node_tag(node))
+    let ty_str = types_format::type_name(node_value_record::hir_node_type(node))
+    let mut line = concat(indent, concat(tag_str, concat(String_from(" : "), ty_str)))
+    if node_value_record::hir_node_text_len(node) > 0 {
+        line = concat(line, concat(String_from(" '"), concat(node_value_record::hir_node_text(node), String_from("'"))))
+    }
+    stdio::eprintln(line)
+    let child_count = node_children_record::hir_node_child_count(node)
+    let mut i = 0
+    while i < child_count {
+        let child = node_children_record::hir_node_child_at(node, i)
+        dump_hir_node(child, depth + 1)
+        i = i + 1
+    }
+}

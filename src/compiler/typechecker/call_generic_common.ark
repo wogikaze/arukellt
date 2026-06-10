@@ -1,0 +1,12 @@
+// Arukellt Typechecker - generic call inference shared facade.
+
+use typechecker::call_generic_resolve
+use typechecker::call_generic_vars
+
+fn append_generic_type_vars(infer_env: TypeEnv, sig: FnSig, var_names: Vec<String>, var_types: Vec<TypeInfo>) {
+    call_generic_vars::append_generic_type_vars(infer_env, sig, var_names, var_types)
+}
+
+fn resolve_type_args(infer_env: TypeEnv, var_types: Vec<TypeInfo>) -> Vec<TypeInfo> {
+    call_generic_resolve::resolve_type_args(infer_env, var_types)
+}

@@ -1,0 +1,13 @@
+// Arukellt Selfhost - checked frontend result to CoreHIR adapter.
+
+use corehir::frontend
+use corehir::type_facts
+use typechecker::contract_result_state
+
+fn build_checked_program(decls: Vec<AstNode>, check_result: TypeCheckResult) -> CoreHirRawProgram {
+    let facts = type_facts::CoreHirTypeFacts_new(
+        contract_result_state::typecheck_result_typed_fns(check_result),
+        contract_result_state::typecheck_result_mono_instances(check_result)
+    )
+    frontend::build_program_from_facts(decls, facts)
+}

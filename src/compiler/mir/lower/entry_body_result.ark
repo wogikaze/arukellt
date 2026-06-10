@@ -1,0 +1,29 @@
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_function_frame
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering entry body result emission.
+
+use mir::lower::entry_body_input
+use mir::inst_return
+use mir::inst_misc_control
+use mir::lower::entry_body_value
+use mir::lower::entry_core_body
+use mir::value_types
+
+fn mir_emit_entry_body_result(ctx: LowerCtx, input: MirLowerEntryBodyInput) {
+    if !mir_entry_body_input_can_emit_body(input) {
+        return
+    }
+    let result = entry_body_value::mir_lower_entry_body_value(ctx, input)
+    if result >= 0 && ctx_api_function_frame::ctx_current_return_type(ctx) == value_types::VT_VOID() {
+        ctx_emit(ctx, inst_misc_control::MirInst_drop())
+    }
+    ctx_emit(ctx, inst_return::MirInst_return_void())
+}
+
+fn mir_entry_body_input_can_emit_body(input: MirLowerEntryBodyInput) -> bool {
+    if entry_body_input::mir_entry_body_input_has_fallback(clone(input)) {
+        return true
+    }
+    entry_core_body::mir_entry_core_body_is_supported(entry_body_input::mir_entry_body_input_core(input))
+}

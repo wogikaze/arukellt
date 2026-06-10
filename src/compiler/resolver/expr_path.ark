@@ -1,0 +1,27 @@
+// Arukellt Resolver - path expression resolution.
+
+use resolver::scope_lookup
+use resolver::ast_access
+use resolver::scope_error
+use resolver::kinds
+use resolver::paths
+
+fn resolve_path(ctx: ResolveCtx, node: AstNode) {
+    let path = ast_access::node_text(node)
+    let module_part = paths::path_module_part(clone(path))
+    let symbol_part = paths::path_symbol_part(clone(path))
+    let mod_idx = scope_lookup::lookup(ctx, clone(module_part))
+    if mod_idx < 0 {
+        scope_error::resolve_error(ctx, concat(String_from("undefined module: "), clone(module_part)))
+        return
+    }
+    let sym_idx = scope_lookup::lookup(ctx, clone(path))
+    if sym_idx >= 0 {
+        let mod_kind = scope_lookup::lookup_kind(ctx, clone(module_part))
+        if mod_kind != commands::SYM_ENUM() {
+            if !scope_lookup::lookup_is_pub(ctx, clone(path)) {
+                scope_error::resolve_error(ctx, concat(String_from("visibility error: `"), concat(clone(symbol_part), concat(String_from("` is private and cannot be accessed from module `"), concat(clone(module_part), String_from("`"))))))
+            }
+        }
+    }
+}

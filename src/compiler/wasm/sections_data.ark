@@ -1,0 +1,56 @@
+use wasm::opcodes
+// Arukellt Selfhost - Wasm data section builder.
+
+use wasm::constants
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_sections
+
+fn emit_data_section(out: WasmWriter, strings: Vec<String>) {
+    let final_str_count = len(strings)
+    if final_str_count > 0 {
+        let data_sec = writer_core::WasmWriter_new()
+        writer_leb::emit_leb128_u(data_sec, 1)
+        emit_active_data_offset_expr(data_sec)
+        let total_data = total_string_data_size(strings)
+        writer_leb::emit_leb128_u(data_sec, total_data)
+        emit_string_data_payload(data_sec, strings)
+        writer_sections::emit_section(out, opcodes::SEC_DATA(), data_sec)
+    }
+}
+
+fn emit_active_data_offset_expr(data_sec: WasmWriter) {
+    writer_core::emit_byte(data_sec, 0)
+    writer_core::emit_byte(data_sec, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(data_sec, constants::DATA_START())
+    writer_core::emit_byte(data_sec, opcodes::OP_END())
+}
+
+fn total_string_data_size(strings: Vec<String>) -> i32 {
+    let mut total_data = 0
+    let mut ds = 0
+    while ds < len(strings) {
+        let s = get_unchecked(strings, ds)
+        total_data = total_data + 4 + len(s)
+        ds = ds + 1
+    }
+    total_data
+}
+
+fn emit_string_data_payload(data_sec: WasmWriter, strings: Vec<String>) {
+    let mut ds2 = 0
+    while ds2 < len(strings) {
+        let s = get_unchecked(strings, ds2)
+        let slen = len(s)
+        writer_core::emit_byte(data_sec, slen % 256)
+        writer_core::emit_byte(data_sec, slen / 256 % 256)
+        writer_core::emit_byte(data_sec, slen / 65536 % 256)
+        writer_core::emit_byte(data_sec, slen / 16777216 % 256)
+        let mut ci2 = 0
+        while ci2 < slen {
+            writer_core::emit_byte(data_sec, char_at(s, ci2))
+            ci2 = ci2 + 1
+        }
+        ds2 = ds2 + 1
+    }
+}

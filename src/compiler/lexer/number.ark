@@ -1,0 +1,12 @@
+// Arukellt Lexer - numeric literal facade
+
+use lexer::number_decimal
+use lexer::number_prefixed
+
+fn lex_number(lex: Lexer) -> Token {
+    let start = lex.pos
+    if number_prefixed::is_prefixed_number_start(lex) {
+        return number_prefixed::lex_prefixed_number(lex, start)
+    }
+    number_decimal::lex_decimal_number(lex, start)
+}

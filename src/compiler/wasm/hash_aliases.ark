@@ -1,0 +1,109 @@
+// Arukellt Selfhost - emitter aliases for monomorphic hash collection builtins.
+
+fn hashmap_builtin_alias(name: String) -> String {
+    let i32_i32 = hashmap_i32_i32_builtin_alias(clone(name))
+    if !eq(clone(i32_i32), clone(name)) {
+        return i32_i32
+    }
+    let string_i32 = hashmap_string_i32_builtin_alias(clone(name))
+    if !eq(clone(string_i32), clone(name)) {
+        return string_i32
+    }
+    let i32_string = hashmap_i32_string_builtin_alias(clone(name))
+    if !eq(clone(i32_string), clone(name)) {
+        return i32_string
+    }
+    let string_string = hashmap_string_string_builtin_alias(clone(name))
+    if !eq(clone(string_string), clone(name)) {
+        return string_string
+    }
+    clone(name)
+}
+
+fn hashmap_i32_i32_builtin_alias(name: String) -> String {
+    if eq(clone(name), String_from("HashMap_i32_i32_new")) {
+        return String_from("hashmap_new")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_insert")) {
+        return String_from("hashmap_set")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_get")) {
+        return String_from("hashmap_get_option")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_contains_key")) {
+        return String_from("hashmap_contains")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_remove")) {
+        return String_from("hashmap_remove")
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_len")) {
+        return String_from("hashmap_size")
+    }
+    clone(name)
+}
+
+fn hashmap_i32_string_builtin_alias(name: String) -> String {
+    if eq(clone(name), String_from("HashMap_new_i32_String")) {
+        return String_from("hashmap_new")
+    }
+    if eq(clone(name), String_from("HashMap_i32_String_insert")) {
+        return String_from("hashmap_str_val_set")
+    }
+    if eq(clone(name), String_from("HashMap_i32_String_get")) {
+        return String_from("hashmap_str_val_get")
+    }
+    if eq(clone(name), String_from("HashMap_i32_String_contains_key")) {
+        return String_from("hashmap_contains")
+    }
+    if eq(clone(name), String_from("HashMap_i32_String_remove")) {
+        return String_from("hashmap_remove")
+    }
+    if eq(clone(name), String_from("HashMap_i32_String_len")) {
+        return String_from("hashmap_size")
+    }
+    clone(name)
+}
+
+fn hashmap_string_i32_builtin_alias(name: String) -> String {
+    if eq(clone(name), String_from("HashMap_new_String_i32")) {
+        return String_from("hashmap_new")
+    }
+    if eq(clone(name), String_from("HashMap_String_i32_insert")) {
+        return String_from("hashmap_str_set")
+    }
+    if eq(clone(name), String_from("HashMap_String_i32_get")) {
+        return String_from("hashmap_str_get")
+    }
+    if eq(clone(name), String_from("HashMap_String_i32_contains_key")) {
+        return String_from("hashmap_str_contains")
+    }
+    if eq(clone(name), String_from("HashMap_String_i32_remove")) {
+        return String_from("hashmap_str_remove")
+    }
+    if eq(clone(name), String_from("HashMap_String_i32_len")) {
+        return String_from("hashmap_str_len")
+    }
+    clone(name)
+}
+
+fn hashmap_string_string_builtin_alias(name: String) -> String {
+    if eq(clone(name), String_from("HashMap_new_String_String")) {
+        return String_from("hashmap_new")
+    }
+    if eq(clone(name), String_from("HashMap_String_String_insert")) {
+        return String_from("hashmap_str_str_set")
+    }
+    if eq(clone(name), String_from("HashMap_String_String_get")) {
+        return String_from("hashmap_str_str_get")
+    }
+    if eq(clone(name), String_from("HashMap_String_String_contains_key")) {
+        return String_from("hashmap_str_str_contains")
+    }
+    if eq(clone(name), String_from("HashMap_String_String_remove")) {
+        return String_from("hashmap_str_str_remove")
+    }
+    if eq(clone(name), String_from("HashMap_String_String_len")) {
+        return String_from("hashmap_str_str_len")
+    }
+    clone(name)
+}

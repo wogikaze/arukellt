@@ -1,0 +1,13 @@
+// Arukellt Selfhost - MIR instruction base factory.
+
+use mir::inst_record
+use mir::types
+use mir::value_types
+
+fn MirInst_full(op: i32, dest: i32, arg0: i32, arg1: i32, int_val: i32, float_val: f64, str_val: String, val_type: i32) -> MirInst {
+    inst_record::MirInst_new_full(op, dest, arg0, arg1, int_val, float_val, str_val, val_type)
+}
+
+fn MirInst_new(op: i32) -> MirInst {
+    MirInst_full(op, 0 - 1, 0 - 1, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+}

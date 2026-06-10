@@ -1,0 +1,60 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_alloc
+use mir::lower_kinds
+use mir::lower::ctx_types
+// Arukellt Selfhost - AST closure free-variable collection.
+
+
+fn closure_is_param_name(clos: AstNode, name: String) -> bool {
+    let c = ast_node::node_child_count(clos)
+    if c <= 1 {
+        return false
+    }
+    let mut i = 0
+    while i < c - 1 {
+        let p = ast_node::node_child_at(clos, i)
+        if ast_node::node_kind_is(p, lower_kinds::NK_IDENT()) && eq(ast_node::node_text(p), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn closure_collect_free(ctx: LowerCtx, expr: AstNode, clos: AstNode, acc: Vec<String>) {
+    if ast_node::node_kind_is(expr, lower_kinds::NK_CLOSURE()) {
+        return
+    }
+    if ast_node::node_kind_is(expr, lower_kinds::NK_IDENT()) {
+        collect_free_ident(ctx, expr, clos, acc)
+        return
+    }
+    let cc = ast_node::node_child_count(expr)
+    let mut ci = 0
+    while ci < cc {
+        closure_collect_free(ctx, ast_node::node_child_at(expr, ci), clos, acc)
+        ci = ci + 1
+    }
+}
+
+fn collect_free_ident(ctx: LowerCtx, expr: AstNode, clos: AstNode, acc: Vec<String>) {
+    let capture_name = ast_node::node_text(expr)
+    if closure_is_param_name(clos, clone(capture_name)) {
+        return
+    }
+    if ctx_lookup_local(ctx, clone(capture_name)) < 0 {
+        return
+    }
+    let n = clone(capture_name)
+    let mut j = len(acc) - 1
+    let mut dup = false
+    while j >= 0 && !dup {
+        if eq(clone(get_unchecked(acc, j)), clone(n)) {
+            dup = true
+        }
+        j = j - 1
+    }
+    if !dup {
+        push(acc, n)
+    }
+}

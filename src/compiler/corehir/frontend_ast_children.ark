@@ -1,0 +1,11 @@
+// Arukellt Selfhost - CoreHIR frontend AST child accessors.
+
+use parser::ast_node_record
+
+fn corehir_node_child_count(node: AstNode) -> i32 {
+    len(node.children)
+}
+
+fn corehir_node_child_at(node: AstNode, idx: i32) -> AstNode {
+    get_unchecked(node.children, idx)
+}

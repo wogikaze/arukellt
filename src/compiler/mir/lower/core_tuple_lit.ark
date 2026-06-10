@@ -1,0 +1,33 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR tuple literal lowering.
+
+use mir::inst_local_set
+use mir::lower::aggregate
+use mir::lower::core_expr_shape_accessors
+use mir::value_types
+
+fn lower_core_tuple(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    let mut field_locals = Vec_new_i32()
+    let mut field_vts = Vec_new_i32()
+    let mut total_bytes = 0
+    let mut i = 0
+    while i < child_count {
+        let child_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, i))
+        let child_vt = ctx_api_local_types::ctx_local_vt(ctx, child_idx)
+        let save_local = ctx_api_local_alloc::ctx_fresh_local(ctx, child_vt)
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, child_idx))
+        push(field_locals, save_local)
+        push(field_vts, child_vt)
+        if child_vt == value_types::VT_F64() {
+            total_bytes = total_bytes + 8
+        } else {
+            total_bytes = total_bytes + 4
+        }
+        i = i + 1
+    }
+    aggregate::mir_emit_tuple_from_locals(ctx, field_locals, field_vts, total_bytes)
+}

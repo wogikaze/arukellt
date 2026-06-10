@@ -1,0 +1,33 @@
+// Arukellt Selfhost - MIR list comprehension state contract.
+
+struct ComprehensionState {
+    result_local: i32,
+    idx_local: i32,
+    end_local: i32,
+    prev_break: i32,
+    prev_continue: i32,
+}
+
+fn comprehension_state_new(result_local: i32, idx_local: i32, end_local: i32, prev_break: i32, prev_continue: i32) -> ComprehensionState {
+    ComprehensionState { result_local: result_local, idx_local: idx_local, end_local: end_local, prev_break: prev_break, prev_continue: prev_continue }
+}
+
+fn comprehension_state_result_local(state: ComprehensionState) -> i32 {
+    state.result_local
+}
+
+fn comprehension_state_idx_local(state: ComprehensionState) -> i32 {
+    state.idx_local
+}
+
+fn comprehension_state_end_local(state: ComprehensionState) -> i32 {
+    state.end_local
+}
+
+fn comprehension_state_prev_break(state: ComprehensionState) -> i32 {
+    state.prev_break
+}
+
+fn comprehension_state_prev_continue(state: ComprehensionState) -> i32 {
+    state.prev_continue
+}

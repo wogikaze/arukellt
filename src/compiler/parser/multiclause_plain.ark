@@ -1,0 +1,23 @@
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - synthetic-argument multi-clause desugaring.
+
+use parser::multiclause_arms
+use parser::multiclause_params
+use parser::multiclause_scrutinee
+
+fn desugar_multiclause_plain(result: AstNode, clauses: Vec<AstNode>, param_count: i32, fn_span: Span) -> AstNode {
+    let param_names = multiclause_params::build_synthetic_param_names(param_count)
+    multiclause_params::append_synthetic_params(result, param_names, fn_span)
+    let scrutinee = multiclause_scrutinee::build_multiclause_scrutinee(param_names, param_count, fn_span)
+    let match_node = AstNode_new(kinds::NK_MATCH_EXPR(), fn_span)
+    core_ast_children::AstNode_push_child(match_node, scrutinee)
+    multiclause_arms::append_clause_match_arms(match_node, clauses, fn_span)
+    let block_node = AstNode_new(kinds::NK_BLOCK(), fn_span)
+    let expr_stmt = AstNode_new(kinds::NK_EXPR_STMT(), fn_span)
+    core_ast_children::AstNode_push_child(expr_stmt, match_node)
+    core_ast_children::AstNode_push_child(block_node, expr_stmt)
+    core_ast_children::AstNode_push_child(result, block_node)
+    result
+}

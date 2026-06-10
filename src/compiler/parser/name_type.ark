@@ -1,0 +1,19 @@
+// Arukellt Parser - type AST node display names
+
+use parser::kinds
+
+fn type_node_kind_name(kind: i32) -> String {
+    if kind == kinds::NK_TYPE_NAMED() {
+        return String_from("TypeNamed")
+    }
+    if kind == kinds::NK_TYPE_GENERIC() {
+        return String_from("TypeGeneric")
+    }
+    if kind == kinds::NK_TYPE_FN() {
+        return String_from("TypeFn")
+    }
+    if kind == kinds::NK_TYPE_TUPLE() {
+        return String_from("TypeTuple")
+    }
+    String_new()
+}

@@ -1,0 +1,85 @@
+// Arukellt Selfhost - numeric Vec intrinsic handler facade
+
+use wasm::ctx_scratch
+use wasm::opcodes
+use wasm::intrinsic_vec_push
+
+fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i64: bool) -> bool {
+    let s_val_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 14)
+    let s_vec_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_data_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_cap_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_newdata_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_val_i64)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_vec_i64)
+    intrinsic_vec_push::emit_vec_push_grow_if_full(w, s_vec_i64, s_data_i64, s_cap_i64, s_newdata_i64, 8)
+    intrinsic_vec_push::emit_vec_push_store_i64(w, s_vec_i64, s_val_i64)
+    if is_void_push_i64 {
+        writer_core::emit_byte(w, opcodes::OP_DROP())
+    }
+    return true
+}
+
+fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_val_f64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
+    let s_vec_f64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_data_f64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_cap_f64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_newdata_f64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_val_f64)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_vec_f64)
+    intrinsic_vec_push::emit_vec_push_grow_if_full(w, s_vec_f64, s_data_f64, s_cap_f64, s_newdata_f64, 8)
+    intrinsic_vec_push::emit_vec_push_store_f64(w, s_vec_f64, s_val_f64)
+    writer_core::emit_byte(w, opcodes::OP_DROP())
+    return true
+}
+
+fn emit_vec_get_unchecked_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_idx_i64 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let s_vec_i64c = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    emit_vec_numeric_access_setup(w, s_idx_i64, s_vec_i64c)
+    emit_vec_numeric_access_addr8(w, s_vec_i64c, s_idx_i64)
+    writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    return true
+}
+
+fn emit_vec_get_unchecked_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_idx_f64 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let s_vec_f64c = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    emit_vec_numeric_access_setup(w, s_idx_f64, s_vec_f64c)
+    emit_vec_numeric_access_addr8(w, s_vec_f64c, s_idx_f64)
+    writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    return true
+}
+
+fn emit_vec_numeric_access_setup(w: WasmWriter, idx_local: i32, vec_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, idx_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, vec_local)
+}
+
+fn emit_vec_numeric_access_addr8(w: WasmWriter, vec_local: i32, idx_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, idx_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+}

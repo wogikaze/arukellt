@@ -1,0 +1,11 @@
+// Arukellt Parser - public AST construction API.
+
+use parser::ast_node_record
+
+fn AstNode_new(kind: i32, span: Span) -> AstNode {
+    ast_node_record::AstNode_new(kind, span)
+}
+
+fn AstNode_leaf(kind: i32, text: String, span: Span) -> AstNode {
+    ast_node_record::AstNode_leaf(kind, text, span)
+}

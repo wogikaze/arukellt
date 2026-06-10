@@ -1,0 +1,31 @@
+use parser::ast_kind_fields
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - multi-clause arm pattern construction.
+
+
+fn clause_param_to_arm_pattern(param: AstNode) -> AstNode {
+    if ast_kind_fields::AstNode_kind(param) == kinds::NK_IDENT() {
+        ast_kind_fields::AstNode_set_kind(param, kinds::NK_PAT_IDENT())
+    }
+    param
+}
+
+fn append_clause_arm_pattern(arm: AstNode, clause: AstNode, clause_param_count: i32, fn_span: Span) {
+    if clause_param_count == 1 {
+        let pat = core_ast_children::AstNode_child_at(clause, 0)
+        let arm_pat = clause_param_to_arm_pattern(pat)
+        core_ast_children::AstNode_push_child(arm, arm_pat)
+        return
+    }
+    let tuple_pat = AstNode_new(kinds::NK_PAT_TUPLE(), fn_span)
+    let mut ppi = 0
+    while ppi < clause_param_count {
+        let pat = core_ast_children::AstNode_child_at(clause, ppi)
+        let arm_pat = clause_param_to_arm_pattern(pat)
+        core_ast_children::AstNode_push_child(tuple_pat, arm_pat)
+        ppi = ppi + 1
+    }
+    core_ast_children::AstNode_push_child(arm, tuple_pat)
+}

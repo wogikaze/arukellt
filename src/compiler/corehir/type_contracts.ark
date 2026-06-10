@@ -1,0 +1,61 @@
+// Arukellt Selfhost - CoreHIR typecheck DTO contracts.
+
+struct MonoInstance {
+    fn_name: String,
+    mangled_name: String,
+    type_args: Vec<TypeInfo>,
+}
+
+struct TypeCheckResult {
+    error_count: i32,
+    errors: Vec<String>,
+    typed_fns: Vec<TypedFn>,
+    mono_instances: Vec<MonoInstance>,
+}
+
+struct TypedFn {
+    name: String,
+    return_type: TypeInfo,
+}
+
+struct TypeInfo {
+    tag: i32,
+    name: String,
+    type_args: Vec<TypeInfo>,
+}
+
+fn TypeInfo_tag(ty: TypeInfo) -> i32 {
+    ty.tag
+}
+
+fn TypeInfo_name(ty: TypeInfo) -> String {
+    clone(ty.name)
+}
+
+fn TypeInfo_type_arg_count(ty: TypeInfo) -> i32 {
+    len(ty.type_args)
+}
+
+fn TypeInfo_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
+    get_unchecked(ty.type_args, index)
+}
+
+fn TypedFn_return_type(fn_info: TypedFn) -> TypeInfo {
+    fn_info.return_type
+}
+
+fn MonoInstance_fn_name(instance: MonoInstance) -> String {
+    clone(instance.fn_name)
+}
+
+fn MonoInstance_mangled_name(instance: MonoInstance) -> String {
+    clone(instance.mangled_name)
+}
+
+fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {
+    len(instance.type_args)
+}
+
+fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {
+    get_unchecked(instance.type_args, index)
+}

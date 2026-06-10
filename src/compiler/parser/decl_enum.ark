@@ -1,0 +1,12 @@
+// Arukellt Parser - enum declaration syntax
+
+use parser::decl_enum_body
+use parser::decl_enum_header
+use parser::type_params
+
+fn parse_enum_decl(p: Parser) -> AstNode {
+    let node = decl_enum_header::parse_enum_header(p)
+    type_params::parse_generic_params_into_node(p, node)
+    decl_enum_body::parse_enum_body(p, node)
+    node
+}

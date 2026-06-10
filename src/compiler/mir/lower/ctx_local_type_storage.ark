@@ -1,0 +1,42 @@
+// Arukellt MIR lowering context - local type metadata storage.
+
+fn ctx_local_type_push(ctx: LowerCtx, local_idx: i32, type_name: String) {
+    push(ctx.local_types, clone(type_name))
+    push(ctx.local_type_indices, local_idx)
+}
+
+fn ctx_local_type_count(ctx: LowerCtx) -> i32 {
+    len(ctx.local_type_indices)
+}
+
+fn ctx_local_type_start(ctx: LowerCtx) -> i32 {
+    ctx.local_type_start
+}
+
+fn ctx_local_type_index_at(ctx: LowerCtx, index: i32) -> i32 {
+    get_unchecked(ctx.local_type_indices, index)
+}
+
+fn ctx_local_type_name_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.local_types, index))
+}
+
+fn ctx_local_type_reset_for_function(ctx: LowerCtx) {
+    ctx.local_types = Vec_new_String()
+    ctx.local_type_indices = Vec_new_i32()
+    ctx.local_type_start = len(ctx.local_types)
+}
+
+fn ctx_local_type_values(ctx: LowerCtx) -> Vec<String> {
+    ctx.local_types
+}
+
+fn ctx_local_type_indices(ctx: LowerCtx) -> Vec<i32> {
+    ctx.local_type_indices
+}
+
+fn ctx_local_type_restore(ctx: LowerCtx, local_types: Vec<String>, local_type_indices: Vec<i32>, local_type_start: i32) {
+    ctx.local_types = local_types
+    ctx.local_type_indices = local_type_indices
+    ctx.local_type_start = local_type_start
+}

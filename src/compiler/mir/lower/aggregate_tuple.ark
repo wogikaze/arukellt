@@ -1,0 +1,37 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering tuple aggregate emission
+
+use mir::inst_struct_new
+use mir::inst_struct_set
+use mir::inst_local_get
+use mir::value_types
+
+fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: Vec<i32>, total_bytes: i32) -> i32 {
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_REF())
+    ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(dest, total_bytes))
+    let mut byte_off = 0
+    let mut ti = 0
+    let child_count = len(field_locals)
+    while ti < child_count {
+        let field_local = get_unchecked(field_locals, ti)
+        let field_vt = get_unchecked(field_vts, ti)
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(field_local))
+        let set_off = byte_off
+        let mut set_vt = value_types::VT_VOID()
+        if field_vt == value_types::VT_F64() {
+            set_vt = value_types::VT_F64()
+            byte_off = byte_off + 8
+        } else {
+            if field_vt == value_types::VT_I64() {
+                set_vt = value_types::VT_I64()
+            }
+            byte_off = byte_off + 4
+        }
+        ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(dest, field_local, set_off, set_vt))
+        ti = ti + 1
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(dest, dest))
+    dest
+}

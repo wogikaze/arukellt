@@ -1,0 +1,17 @@
+// Arukellt Selfhost - typechecker display names
+
+use typechecker::name_compare
+use typechecker::name_display
+use typechecker::name_tags
+
+fn type_tag_name(tag: i32) -> String {
+    name_tags::type_tag_name(tag)
+}
+
+fn type_display_name(ty: TypeInfo) -> String {
+    name_display::type_display_name(ty)
+}
+
+fn same_named_type(a: TypeInfo, b: TypeInfo) -> bool {
+    name_compare::same_named_type(a, b)
+}

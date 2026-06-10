@@ -1,0 +1,32 @@
+use mir::inst_accessors_shape
+use mir::inst_accessors_operands
+use mir::block_inst_access
+use mir::block_phi_access
+// Arukellt Selfhost - MIR SSA value discovery.
+
+use mir::phi_access
+use mir::value_types
+
+fn mir_find_last_value_local(block: MirBlock) -> i32 {
+    let count = block_inst_access::MirBlock_inst_count(block)
+    let mut i = count - 1
+    while i >= 0 {
+        let inst = block_inst_access::MirBlock_inst_at(block, i)
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        if dest >= 0 && inst_accessors_shape::MirInst_val_type(inst) != value_types::VT_VOID() {
+            return dest
+        }
+        i = i - 1
+    }
+    let phi_count = block_phi_access::MirBlock_phi_count(block)
+    let mut p = phi_count - 1
+    while p >= 0 {
+        let phi = block_phi_access::MirBlock_phi_at(block, p)
+        let dest = phi_access::MirPhi_dest(phi)
+        if dest >= 0 {
+            return dest
+        }
+        p = p - 1
+    }
+    0 - 1
+}

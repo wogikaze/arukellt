@@ -1,0 +1,51 @@
+use lexer::tokens
+use parser::core_ast_span_fields
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - match arm pattern, guard, and body syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::patterns
+use parser::stmt
+
+fn parse_match_arm(p: Parser) -> AstNode {
+    let pat = patterns::parse_pattern(p)
+    skip_newlines(p)
+    let final_pat = parse_match_arm_or_pattern(p, pat)
+    let arm = AstNode_new(kinds::NK_MATCH_ARM(), core_ast_span_fields::AstNode_span(final_pat))
+    core_ast_children::AstNode_push_child(arm, final_pat)
+    parse_match_arm_guard(p, arm)
+    expect_token(p, tokens::TK_FATARROW())
+    skip_newlines(p)
+    let body = stmt::parse_expr_or_block(p)
+    core_ast_children::AstNode_push_child(arm, body)
+    arm
+}
+
+fn parse_match_arm_or_pattern(p: Parser, pat: AstNode) -> AstNode {
+    if peek_kind(p) != tokens::TK_PIPE() {
+        return pat
+    }
+    let or_node = AstNode_new(kinds::NK_PAT_OR(), core_ast_span_fields::AstNode_span(pat))
+    core_ast_children::AstNode_push_child(or_node, pat)
+    while peek_kind(p) == tokens::TK_PIPE() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let alt_pat = patterns::parse_pattern(p)
+        core_ast_children::AstNode_push_child(or_node, alt_pat)
+        skip_newlines(p)
+    }
+    or_node
+}
+
+fn parse_match_arm_guard(p: Parser, arm: AstNode) {
+    if peek_kind(p) == tokens::TK_IF() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let guard = parse_expr(p)
+        core_ast_children::AstNode_push_child(arm, guard)
+        skip_newlines(p)
+    }
+}

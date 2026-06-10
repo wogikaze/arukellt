@@ -1,0 +1,18 @@
+// Arukellt Typechecker - non-generic method call receiver and argument constraints.
+
+use typechecker::ast_access
+use typechecker::contract_fn_sig
+use typechecker::unify
+
+fn constrain_method_args(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, recv_ty: TypeInfo, explicit_args: i32) {
+    let p0 = contract_fn_sig::FnSig_param_at(sig, 0)
+    unify::unify(env, p0, recv_ty)
+    let mut a = 0
+    while a < explicit_args {
+        let arg_node = ast_access::node_child_at(node, a + 1)
+        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        let pty = contract_fn_sig::FnSig_param_at(sig, a + 1)
+        unify::unify(env, pty, arg_ty)
+        a = a + 1
+    }
+}

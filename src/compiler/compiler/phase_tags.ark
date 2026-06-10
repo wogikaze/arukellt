@@ -1,0 +1,35 @@
+// Arukellt Selfhost - shared compiler phase display tags.
+
+use compiler::phases
+
+pub fn lex_phase_tag() -> String {
+String_from("lex")
+}
+
+pub fn parse_phase_tag() -> String {
+String_from("parse")
+}
+
+pub fn resolve_phase_tag() -> String {
+String_from("resolve")
+}
+
+pub fn typecheck_phase_tag() -> String {
+String_from("typecheck")
+}
+
+pub fn phase_tag(phase: i32) -> String {
+if phase == phases::PHASE_LEX() {
+return lex_phase_tag()
+}
+if phase == phases::PHASE_PARSE() {
+return parse_phase_tag()
+}
+if phase == phases::PHASE_RESOLVE() {
+return resolve_phase_tag()
+}
+if phase == phases::PHASE_TYPECHECK() {
+return typecheck_phase_tag()
+}
+String_from("unknown")
+}

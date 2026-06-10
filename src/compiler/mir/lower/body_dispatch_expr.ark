@@ -1,0 +1,94 @@
+// Arukellt Selfhost - MIR non-statement expression dispatch.
+
+use mir::lower_kinds
+use mir::lower::body_aggregate
+use mir::lower::body_binary
+use mir::lower::body_call
+use mir::lower::body_closure
+use mir::lower::body_control
+use mir::lower::body_match
+use mir::lower::body_method
+
+fn lower_non_statement_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+    let ops_result = lower_ops_expr(ctx, node, kind)
+    if ops_result >= 0 {
+        return ops_result
+    }
+    let call_result = lower_call_like_expr(ctx, node, kind)
+    if call_result >= 0 {
+        return call_result
+    }
+    let control_result = lower_control_expr(ctx, node, kind)
+    if control_result >= 0 {
+        return control_result
+    }
+    let aggregate_result = lower_aggregate_expr(ctx, node, kind)
+    if aggregate_result >= 0 {
+        return aggregate_result
+    }
+    0 - 2
+}
+
+fn lower_ops_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+    if kind == lower_kinds::NK_BINARY() {
+        return body_binary::lower_binary_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_UNARY() {
+        return body_binary::lower_unary_expr(ctx, node)
+    }
+    0 - 2
+}
+
+fn lower_call_like_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+    if kind == lower_kinds::NK_CALL() {
+        return body_call::lower_call_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_METHOD_CALL() {
+        return body_method::lower_method_call_expr(ctx, node)
+    }
+    0 - 2
+}
+
+fn lower_control_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+    if kind == lower_kinds::NK_IF_EXPR() {
+        return body_control::lower_if_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_MATCH_EXPR() {
+        return body_match::lower_match_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_BLOCK() {
+        return body_control::lower_block_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_TRY() {
+        return body_control::lower_try_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_CLOSURE() {
+        return body_closure::lower_closure_expr(ctx, node)
+    }
+    0 - 2
+}
+
+fn lower_aggregate_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+    if kind == lower_kinds::NK_ASSIGN() {
+        return body_aggregate::lower_assign_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_STRUCT_LIT() {
+        return body_aggregate::lower_struct_lit_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_TUPLE() {
+        return body_aggregate::lower_tuple_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_FIELD_ACCESS() {
+        return body_aggregate::lower_field_access_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_ARRAY_LIT() {
+        return body_aggregate::lower_array_lit_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_INDEX() {
+        return body_aggregate::lower_index_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_COMPREHENSION() {
+        return body_aggregate::lower_comprehension_expr(ctx, node)
+    }
+    0 - 2
+}

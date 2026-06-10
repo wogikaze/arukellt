@@ -1,0 +1,82 @@
+// Arukellt Selfhost - diagnostic data record.
+
+use diagnostics::severity
+
+struct DiagnosticSpan {
+    file: String,
+    line: i32,
+    column: i32,
+    start: i32,
+    end: i32,
+}
+
+struct Diagnostic {
+    code: String,
+    severity: i32,
+    span: DiagnosticSpan,
+    message: String,
+}
+
+fn DiagnosticSpan_new(file: String, line: i32, column: i32) -> DiagnosticSpan {
+    DiagnosticSpan { file: file, line: line, column: column, start: 0, end: 0 }
+}
+
+fn DiagnosticSpan_new_full(file: String, line: i32, column: i32, start: i32, end: i32) -> DiagnosticSpan {
+    DiagnosticSpan { file: file, line: line, column: column, start: start, end: end }
+}
+
+fn DiagnosticSpan_from_raw(start: i32, end: i32) -> DiagnosticSpan {
+    DiagnosticSpan { file: String_new(), line: 0, column: 0, start: start, end: end }
+}
+
+fn Diagnostic_new(code: String, severity: i32, span: DiagnosticSpan, message: String) -> Diagnostic {
+    Diagnostic { code: code, severity: severity, span: span, message: message }
+}
+
+fn Diagnostic_new_parse(code: String, message: String, start: i32, end: i32) -> Diagnostic {
+    Diagnostic_new(code, severity::SEV_ERROR(), DiagnosticSpan_from_raw(start, end), message)
+}
+
+fn diagnostic_message(diag: Diagnostic) -> String {
+    clone(diag.message)
+}
+
+fn diagnostic_code(diag: Diagnostic) -> String {
+    clone(diag.code)
+}
+
+fn diagnostic_severity(diag: Diagnostic) -> i32 {
+    diag.severity
+}
+
+fn diagnostic_start(diag: Diagnostic) -> i32 {
+    diagnostic_span_start(diag.span)
+}
+
+fn diagnostic_end(diag: Diagnostic) -> i32 {
+    diagnostic_span_end(diag.span)
+}
+
+fn diagnostic_span(diag: Diagnostic) -> DiagnosticSpan {
+    diag.span
+}
+
+fn diagnostic_span_file(span: DiagnosticSpan) -> String {
+    clone(span.file)
+}
+
+fn diagnostic_span_line(span: DiagnosticSpan) -> i32 {
+    span.line
+}
+
+fn diagnostic_span_column(span: DiagnosticSpan) -> i32 {
+    span.column
+}
+
+fn diagnostic_span_start(span: DiagnosticSpan) -> i32 {
+    span.start
+}
+
+fn diagnostic_span_end(span: DiagnosticSpan) -> i32 {
+    span.end
+}

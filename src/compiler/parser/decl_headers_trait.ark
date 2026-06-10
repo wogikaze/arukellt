@@ -1,0 +1,24 @@
+// Arukellt Parser - trait declaration header.
+
+use lexer::tokens
+use parser::core_ast_factory
+use parser::core_ast_text_fields
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::kinds
+use parser::token_state
+use parser::type_params
+use parser::type_where
+
+fn parse_trait_header(p: Parser) -> AstNode {
+    let t = core_api_expect::expect_token(p, tokens::TK_TRAIT())
+    let node = core_ast_factory::AstNode_new(kinds::NK_TRAIT_DECL(), core_api_expect::tok_span(t))
+    let name = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name))
+    type_params::parse_generic_params_into_node(p, node)
+    core_api_cursor::skip_newlines(p)
+    type_where::parse_optional_where_clause_stub(p)
+    core_api_cursor::skip_newlines(p)
+    core_api_expect::expect_token(p, tokens::TK_LBRACE())
+    node
+}

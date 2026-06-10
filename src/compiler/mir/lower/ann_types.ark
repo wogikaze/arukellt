@@ -1,0 +1,22 @@
+// Arukellt Selfhost - MIR lowering annotation type helpers
+
+use mir::lower::ann_shape
+use mir::value_types
+
+fn mir_param_type_name_from_ann(ty: AstNode) -> String {
+    ann_shape::mir_param_type_name_from_ann_shape(ty)
+}
+
+fn mir_local_vt_from_type_name(type_name: String) -> i32 {
+    if eq(clone(type_name), String_from("f64")) {
+        return value_types::VT_F64()
+    }
+    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("u64")) {
+        return value_types::VT_I64()
+    }
+    value_types::VT_I32()
+}
+
+fn mir_local_type_name_from_ann(ann: AstNode, known_struct_fields: i32) -> String {
+    ann_shape::mir_local_type_name_from_ann_shape(ann, known_struct_fields)
+}

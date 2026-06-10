@@ -1,0 +1,101 @@
+use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i64_compare
+// Arukellt Selfhost - assert intrinsic handlers.
+
+use wasm::ctx_scratch
+use wasm::intrinsics::helpers_control_structured
+use wasm::intrinsics::helpers_control_branch
+use wasm::intrinsics::helpers_control_loop
+use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_core_stack
+
+fn emit_assert(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i32_compare::emit_i32_eqz(w)
+    emit_unreachable_if_true(w)
+    return true
+}
+
+fn emit_assert_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i32_compare::emit_i32_ne(w)
+    emit_unreachable_if_true(w)
+    return true
+}
+
+fn emit_assert_eq_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i64_compare::emit_i64_ne(w)
+    emit_unreachable_if_true(w)
+    return true
+}
+
+fn emit_assert_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i32_compare::emit_i32_eq(w)
+    emit_unreachable_if_true(w)
+    return true
+}
+
+fn emit_assert_eq_str(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    helpers_core_locals::emit_local_set(w, s1)
+    helpers_core_locals::emit_local_set(w, s0)
+    emit_assert_string_length_check(w, s0, s1, s2)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s3)
+    emit_assert_string_byte_loop(w, s0, s1, s2, s3)
+    return true
+}
+
+fn emit_unreachable_if_true(w: WasmWriter) {
+    helpers_control_structured::emit_if_empty(w)
+    helpers_core_stack::emit_unreachable(w)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_assert_string_length_check(w: WasmWriter, s0: i32, s1: i32, s2: i32) {
+    helpers_core_locals::emit_local_get(w, s0)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_core_locals::emit_local_set(w, s2)
+    helpers_core_locals::emit_local_get(w, s2)
+    helpers_core_locals::emit_local_get(w, s1)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_compare::emit_i32_ne(w)
+    helpers_control_structured::emit_if_empty(w)
+    helpers_core_stack::emit_unreachable(w)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_assert_string_byte_loop(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32) {
+    helpers_control_loop::emit_block_loop_header(w)
+    helpers_core_locals::emit_local_get(w, s3)
+    helpers_core_locals::emit_local_get(w, s2)
+    helpers_numeric_i32_compare::emit_i32_ge_s(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_locals::emit_local_get(w, s0)
+    helpers_core_locals::emit_local_get(w, s3)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory_access::emit_i32_load8_u_default(w)
+    helpers_core_locals::emit_local_get(w, s1)
+    helpers_core_locals::emit_local_get(w, s3)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory_access::emit_i32_load8_u_default(w)
+    helpers_numeric_i32_compare::emit_i32_ne(w)
+    helpers_control_structured::emit_if_empty(w)
+    helpers_core_stack::emit_unreachable(w)
+    helpers_control_structured::emit_end(w)
+    helpers_core_locals::emit_local_get(w, s3)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s3)
+    helpers_control_branch::emit_br(w, 0)
+    helpers_control_structured::emit_end(w)
+    helpers_control_structured::emit_end(w)
+}

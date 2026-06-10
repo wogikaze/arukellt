@@ -1,0 +1,10 @@
+// Arukellt LSP - completion request handling.
+
+use lsp::completion
+use lsp::framing
+use lsp::json_fields
+
+pub fn handle_completion(state: LspState, body: String) {
+    let id = json_fields::extract_int_field(clone(body), String_from("id"))
+    framing::append_framed(state, completion::build_completion_response(id))
+}

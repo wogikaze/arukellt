@@ -1,0 +1,22 @@
+// Arukellt Selfhost - MIR SSA smoke check facade
+
+use mir::dump_ssa_smoke_elim
+use mir::dump_ssa_smoke_rename
+use mir::dump_ssa_smoke_seq
+use mir::dump_ssa_smoke_trivial
+
+fn run_ssa_rename_smoke() {
+    dump_ssa_smoke_rename::run_ssa_rename_smoke()
+}
+
+fn run_phi_elimination_smoke() {
+    dump_ssa_smoke_elim::run_phi_elimination_smoke()
+}
+
+fn run_ssa_trivial_block_rename_smoke() {
+    dump_ssa_smoke_trivial::run_ssa_trivial_block_rename_smoke()
+}
+
+fn run_ssa_sequential_def_rename_smoke() {
+    dump_ssa_smoke_seq::run_ssa_sequential_def_rename_smoke()
+}

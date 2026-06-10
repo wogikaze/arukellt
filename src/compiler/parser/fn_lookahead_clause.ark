@@ -1,0 +1,38 @@
+use lexer::tokens
+// Arukellt Parser - function clause shape lookahead.
+
+use parser::core_api_cursor
+use parser::token_state
+
+fn peek_is_fn_clause(p: Parser) -> bool {
+    let saved = p.pos
+    let mut is_clause = false
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) == tokens::TK_FN() {
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::at(p, tokens::TK_IDENT()) {
+            p.pos = p.pos + 1
+            core_api_cursor::skip_newlines(p)
+            if core_api_cursor::at(p, tokens::TK_LPAREN()) {
+                p.pos = p.pos + 1
+                core_api_cursor::skip_newlines(p)
+                let first_tok = core_api_cursor::cur(p)
+                let first_kind = token_state::Token_kind(first_tok)
+                if first_kind == tokens::TK_INT() || first_kind == tokens::TK_STRING() || first_kind == tokens::TK_BOOL() || first_kind == tokens::TK_UNDERSCORE() || first_kind == tokens::TK_CHAR() {
+                    is_clause = true
+                } else if first_kind == tokens::TK_IDENT() {
+                    let id_pos = p.pos
+                    p.pos = p.pos + 1
+                    core_api_cursor::skip_newlines(p)
+                    if core_api_cursor::peek_kind(p) != tokens::TK_COLON() {
+                        is_clause = true
+                    }
+                    p.pos = id_pos
+                }
+            }
+        }
+    }
+    p.pos = saved
+    is_clause
+}

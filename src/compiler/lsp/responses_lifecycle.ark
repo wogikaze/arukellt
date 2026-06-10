@@ -1,0 +1,22 @@
+// Arukellt Selfhost - LSP lifecycle response builders.
+
+fn build_initialize_response(id: i32) -> String {
+	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+	body = concat(body, to_string(id))
+	body = concat(body, String_from(",\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"hoverProvider\":true,\"definitionProvider\":true,\"completionProvider\":{\"resolveProvider\":false,\"triggerCharacters\":[\".\",\":\"]},\"diagnosticProvider\":{\"interFileDependencies\":false,\"workspaceDiagnostics\":false}},\"serverInfo\":{\"name\":\"arukellt-lsp\",\"version\":\"0.1.0\"}}}"))
+	body
+}
+
+fn build_shutdown_response(id: i32) -> String {
+	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+	body = concat(body, to_string(id))
+	body = concat(body, String_from(",\"result\":null}"))
+	body
+}
+
+fn build_null_response(id: i32) -> String {
+	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+	body = concat(body, to_string(id))
+	body = concat(body, String_from(",\"result\":null}"))
+	body
+}

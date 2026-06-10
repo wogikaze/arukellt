@@ -1,0 +1,13 @@
+// Arukellt Selfhost - MIR block id set helpers.
+
+fn mir_block_ids_contains(ids: Vec<i32>, block_id: i32) -> bool {
+    let count = len(ids)
+    let mut i = 0
+    while i < count {
+        if get_unchecked(ids, i) == block_id {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}

@@ -1,0 +1,40 @@
+// Arukellt Typechecker - statement checking.
+
+use typechecker::ast_stmt_predicates
+use typechecker::ast_access
+use typechecker::stmt_expr
+use typechecker::stmt_let
+
+fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+    if ast_stmt_predicates::node_is_let(node) {
+        stmt_let::check_let_stmt(env, scope, fn_sigs, enum_defs, node)
+        return
+    }
+    if ast_stmt_predicates::node_is_expr_stmt(node) {
+        stmt_expr::check_expr_stmt(env, scope, fn_sigs, enum_defs, node)
+        return
+    }
+    if ast_stmt_predicates::node_is_return(node) {
+        stmt_expr::check_return_stmt(env, scope, fn_sigs, enum_defs, node)
+        return
+    }
+    if ast_stmt_predicates::node_is_loop_like(node) {
+        check_child_statements(env, scope, fn_sigs, enum_defs, node)
+        return
+    }
+    if ast_stmt_predicates::node_is_block(node) {
+        check_child_statements(env, scope, fn_sigs, enum_defs, node)
+        return
+    }
+    infer_expr(env, scope, fn_sigs, enum_defs, node)
+}
+
+fn check_child_statements(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+    let count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < count {
+        let child = ast_access::node_child_at(node, i)
+        check_stmt(env, scope, fn_sigs, enum_defs, child)
+        i = i + 1
+    }
+}

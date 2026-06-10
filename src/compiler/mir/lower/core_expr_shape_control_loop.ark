@@ -1,0 +1,24 @@
+use corehir::kinds
+// Arukellt Selfhost - MIR lowering CoreHIR loop shape predicates.
+
+use corehir::expr_predicates
+
+fn mir_core_expr_is_while(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_WHILE())
+}
+
+fn mir_core_expr_is_loop(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_LOOP())
+}
+
+fn mir_core_expr_is_for_range(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_FOR_RANGE())
+}
+
+fn mir_core_expr_is_for_values(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_FOR_VALUES())
+}
+
+fn mir_core_expr_is_for_iter(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_FOR_ITER())
+}

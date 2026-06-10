@@ -1,0 +1,53 @@
+use lexer::tokens
+// Arukellt Lexer - compound punctuation and operator facade
+
+use lexer::cursor
+use lexer::punct_compound_compare
+use lexer::punct_compound_delim
+use lexer::punct_compound_equal
+use lexer::punct_compound_logic
+
+fn is_compound_punct_start(c: i32) -> bool {
+    if c == 61 {
+        return true
+    }
+    if c == 33 {
+        return true
+    }
+    if c == 60 {
+        return true
+    }
+    if c == 62 {
+        return true
+    }
+    if c == 38 {
+        return true
+    }
+    if c == 124 {
+        return true
+    }
+    if c == 45 {
+        return true
+    }
+    if c == 58 {
+        return true
+    }
+    c == 46
+}
+
+fn lex_compound_punct(lex: Lexer, start: i32, c: i32) -> Token {
+    if c == 61 || c == 33 {
+        return punct_compound_equal::lex_equal_or_bang_punct(lex, start, c)
+    }
+    if c == 60 || c == 62 {
+        return punct_compound_compare::lex_compare_or_shift_punct(lex, start, c)
+    }
+    if c == 38 || c == 124 {
+        return punct_compound_logic::lex_logical_punct(lex, start, c)
+    }
+    if c == 45 || c == 58 || c == 46 {
+        return punct_compound_delim::lex_delim_compound_punct(lex, start, c)
+    }
+    let end = cursor::lexer_position(lex)
+    Token_new(tokens::TK_ERROR(), cursor::lexer_slice(lex, start, end), start, end)
+}

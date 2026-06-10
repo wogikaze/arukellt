@@ -1,0 +1,15 @@
+use lexer::tokens
+use parser::kinds
+// Arukellt Parser - Pratt logical and bitwise binary operator mapping.
+
+
+fn token_to_logic_binop(kind: i32) -> i32 {
+    if kind == tokens::TK_AMPAMP() { return kinds::OP_AND() }
+    if kind == tokens::TK_PIPEPIPE() { return kinds::OP_OR() }
+    if kind == tokens::TK_AMP() { return kinds::OP_BIT_AND() }
+    if kind == tokens::TK_PIPE() { return kinds::OP_BIT_OR() }
+    if kind == tokens::TK_CARET() { return kinds::OP_BIT_XOR() }
+    if kind == tokens::TK_SHL() { return kinds::OP_SHL() }
+    if kind == tokens::TK_SHR() { return kinds::OP_SHR() }
+    0
+}

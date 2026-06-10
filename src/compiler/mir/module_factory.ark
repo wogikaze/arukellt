@@ -1,0 +1,8 @@
+// Arukellt Selfhost - MIR module construction.
+
+use mir::module_record
+use mir::types
+
+fn MirModule_new() -> MirModule {
+    module_record::MirModule_new()
+}

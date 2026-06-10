@@ -1,0 +1,20 @@
+// Arukellt Selfhost - Wasm intrinsic local helper recipes.
+
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+
+fn emit_local_get(w: WasmWriter, local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, local)
+}
+
+fn emit_local_set(w: WasmWriter, local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, local)
+}
+
+fn emit_local_tee(w: WasmWriter, local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+    writer_leb::emit_leb128_u(w, local)
+}

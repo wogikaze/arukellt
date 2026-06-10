@@ -1,0 +1,15 @@
+use parser::core_ast_text_fields
+use parser::core_ast_flag_fields
+use parser::core_ast_factory
+// Arukellt Parser - multi-clause function shell construction.
+
+use parser::kinds
+use parser::multiclause_base_annotations
+
+fn build_multiclause_fn_base(first: AstNode, is_pub: bool, fn_span: Span) -> AstNode {
+    let result = AstNode_new(kinds::NK_FN_DECL(), fn_span)
+    core_ast_text_fields::AstNode_set_text(result, core_ast_text_fields::AstNode_text(first))
+    core_ast_flag_fields::AstNode_set_is_pub(result, is_pub)
+    multiclause_base_annotations::copy_non_guard_annotations(first, result)
+    result
+}

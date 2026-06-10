@@ -1,0 +1,27 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - list comprehension setup flow emission.
+
+use mir::inst_branch
+use mir::inst_call
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::inst_op
+use mir::opcodes
+use mir::value_types
+
+fn emit_comprehension_loop_break_check(ctx: LowerCtx, comp_idx_local: i32, comp_end_local: i32) {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_idx_local))
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_end_local))
+    let comp_cmp_dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_GTEQ(), comp_cmp_dest, comp_idx_local, comp_end_local))
+    ctx_emit(ctx, inst_branch::MirInst_br_if(1))
+}
+
+fn emit_comprehension_load_iter(ctx: LowerCtx, comp_vec_local: i32, comp_idx_local: i32, comp_iter_var: i32) {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_vec_local))
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_idx_local))
+    ctx_emit(ctx, inst_call::MirInst_call(String_from("vec_get_unchecked"), 2, comp_iter_var))
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(comp_iter_var))
+}

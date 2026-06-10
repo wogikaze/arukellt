@@ -1,0 +1,23 @@
+use corehir::expr_access_children
+// Arukellt Selfhost - CoreHIR body support validation.
+
+use corehir::expr_predicates
+
+fn expr_tree_is_supported(exprs: Vec<CoreHirExpr>, root: i32) -> bool {
+    if root < 0 || root >= len(exprs) {
+        return false
+    }
+    let expr = get_unchecked(exprs, root)
+    if expr_predicates::expr_is_unsupported(expr) {
+        return false
+    }
+    let child_count = expr_access_children::expr_child_count(expr)
+    let mut i = 0
+    while i < child_count {
+        if !expr_tree_is_supported(exprs, expr_access_children::expr_child(expr, i)) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}

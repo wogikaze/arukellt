@@ -1,0 +1,51 @@
+// Arukellt Lexer - diagnostic and lex result constructors.
+
+use lexer::token_record
+
+pub struct LexDiagnostic {
+    code: i32,
+    message: String,
+    start: i32,
+    end: i32,
+}
+
+pub struct LexResult {
+    tokens: Vec<Token>,
+    diagnostics: Vec<LexDiagnostic>,
+}
+
+fn LexDiagnostic_new(code: i32, message: String, start: i32, end: i32) -> LexDiagnostic {
+    LexDiagnostic { code: code, message: message, start: start, end: end }
+}
+
+fn LexResult_new(tokens: Vec<Token>, diagnostics: Vec<LexDiagnostic>) -> LexResult {
+    LexResult { tokens: tokens, diagnostics: diagnostics }
+}
+
+fn LexResult_tokens(result: LexResult) -> Vec<Token> {
+    result.tokens
+}
+
+fn LexResult_diagnostic_count(result: LexResult) -> i32 {
+    len(result.diagnostics)
+}
+
+fn LexResult_diagnostic_at(result: LexResult, index: i32) -> LexDiagnostic {
+    get_unchecked(result.diagnostics, index)
+}
+
+fn LexDiagnostic_code(diag: LexDiagnostic) -> i32 {
+    diag.code
+}
+
+fn LexDiagnostic_message(diag: LexDiagnostic) -> String {
+    clone(diag.message)
+}
+
+fn LexDiagnostic_start(diag: LexDiagnostic) -> i32 {
+    diag.start
+}
+
+fn LexDiagnostic_end(diag: LexDiagnostic) -> i32 {
+    diag.end
+}

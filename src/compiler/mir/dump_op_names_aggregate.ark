@@ -1,0 +1,28 @@
+// Arukellt Selfhost - MIR aggregate opcode display names.
+
+use mir::opcodes
+
+fn mir_aggregate_op_name(op: i32) -> String {
+    if op == opcodes::MIR_STRUCT_NEW() {
+        return String_from("struct.new")
+    }
+    if op == opcodes::MIR_STRUCT_GET() {
+        return String_from("struct.get")
+    }
+    if op == opcodes::MIR_STRUCT_SET() {
+        return String_from("struct.set")
+    }
+    if op == opcodes::MIR_ARRAY_NEW() {
+        return String_from("array.new")
+    }
+    if op == opcodes::MIR_ARRAY_GET() {
+        return String_from("array.get")
+    }
+    if op == opcodes::MIR_ARRAY_SET() {
+        return String_from("array.set")
+    }
+    if op == opcodes::MIR_ARRAY_LEN() {
+        return String_from("array.len")
+    }
+    String_from("")
+}

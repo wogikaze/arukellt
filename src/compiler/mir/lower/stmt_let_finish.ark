@@ -1,0 +1,32 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_struct_lookup
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR let statement local allocation and initializer store.
+
+use mir::lower::ann_types
+use mir::lower::stmt_let_closure
+use mir::lower::stmt_let_store
+
+fn mir_finish_let_stmt(ctx: LowerCtx, node: AstNode, vt: i32, pre_val_idx: i32, pre_init_kind: i32) {
+    let ta_count = ast_node::node_type_ann_count(node)
+    let child_count = ast_node::node_child_count(node)
+    let local_idx = ctx_api_local_alloc::ctx_alloc_local(ctx, ast_node::node_text(node), vt)
+    apply_let_annotation_type(ctx, node, local_idx, ta_count)
+    if child_count >= 1 {
+        stmt_let_store::emit_let_initializer_store(ctx, node, vt, local_idx, pre_val_idx, pre_init_kind, ta_count)
+        stmt_let_closure::flush_let_closure_binding(ctx, node, pre_init_kind)
+    }
+}
+
+fn apply_let_annotation_type(ctx: LowerCtx, node: AstNode, local_idx: i32, ta_count: i32) {
+    if ta_count >= 1 {
+        let ta = ast_node::node_type_ann_at(node, 0)
+        let ta_name = ast_node::node_text(ta)
+        let local_type_name = ann_types::mir_local_type_name_from_ann(ta, ctx_struct_lookup::ctx_struct_field_count(ctx, clone(ta_name)))
+        if len(local_type_name) > 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, local_idx, local_type_name)
+        }
+    }
+}

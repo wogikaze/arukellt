@@ -1,0 +1,33 @@
+use mir::lower::ast_node
+use mir::lower_kinds
+// Arukellt Selfhost - MIR match payload binding emission
+
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::lower::match_payload_field_type
+use mir::lower::match_payload_fields
+use mir::lower::match_payload_prepare
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+use mir::value_types
+
+fn mir_emit_match_ident_bind(ctx: LowerCtx, pat: AstNode, scrut_idx: i32) {
+    let bind_local = ctx_alloc_local(ctx, ast_node::node_text(pat), value_types::VT_I32())
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
+}
+
+fn mir_emit_payload_variant_binds_if_needed(ctx: LowerCtx, info: MirMatchPayloadInfo, pat: AstNode, scrut_idx: i32) {
+    if match_payload_prepare::mir_match_payload_info_is_payload_match(info) && ast_node::node_kind_is(pat, lower_kinds::NK_PAT_VARIANT()) && ast_node::node_child_count(pat) > 0 {
+        match_payload_fields::mir_emit_payload_variant_binds(ctx, pat, scrut_idx, match_payload_prepare::mir_match_payload_info_scrut_ok_is_f64(info), match_payload_prepare::mir_match_payload_info_scrut_ok_is_i64(info), match_payload_prepare::mir_match_payload_info_scrut_ok_is_i32(info))
+    }
+}
+
+fn mir_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool) -> i32 {
+    match_payload_field_type::mir_payload_field_vt(ctx, variant_name, field_idx, scrut_ok_is_f64, scrut_ok_is_i64)
+}
+
+fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool) {
+    match_payload_fields::mir_emit_payload_variant_binds(ctx, pat, scrut_idx, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_i32)
+}

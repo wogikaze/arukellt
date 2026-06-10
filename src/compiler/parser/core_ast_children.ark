@@ -1,0 +1,23 @@
+// Arukellt Parser - public AST child API.
+
+use parser::ast_node_record
+
+fn AstNode_push_child(node: AstNode, child: AstNode) {
+    push(node.children, child)
+}
+
+fn AstNode_child_count(node: AstNode) -> i32 {
+    len(node.children)
+}
+
+fn AstNode_child_at(node: AstNode, index: i32) -> AstNode {
+    get_unchecked(node.children, index)
+}
+
+fn AstNode_children(node: AstNode) -> Vec<AstNode> {
+    node.children
+}
+
+fn AstNode_set_children(node: AstNode, children: Vec<AstNode>) {
+    node.children = children
+}

@@ -1,0 +1,15 @@
+// Arukellt Lexer - decimal integer literal scanning.
+
+use lexer::char_class
+
+fn scan_decimal_integer(lex: Lexer) -> i32 {
+    let mut val: i32 = 0
+    while lex.pos < lex.src_len && char_class::is_digit(peek(lex)) || peek(lex) == 95 {
+        let d = peek(lex)
+        if d != 95 {
+            val = val * 10 + d - 48
+        }
+        lex.pos = lex.pos + 1
+    }
+    val
+}

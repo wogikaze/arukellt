@@ -1,0 +1,58 @@
+use mir::inst_accessors_shape
+// Arukellt Selfhost - const/local-get MIR instruction dispatch.
+
+use wasm::inst_const
+use wasm::inst_dispatch_result
+use wasm::inst_locals
+use mir::opcodes
+
+fn try_emit_const_or_get_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if try_emit_const_literal_inst(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_local_get_inst(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
+}
+
+fn emit_const_literal_result(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    inst_dispatch_result::emit_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op)
+}
+
+fn try_emit_const_literal_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    if op == opcodes::MIR_CONST_I32() {
+        inst_const::emit_const_i32(w, inst, ctx)
+        emit_const_literal_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_CONST_I64() {
+        inst_const::emit_const_i64(w, inst, ctx)
+        emit_const_literal_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_CONST_F64() {
+        inst_const::emit_const_f64(w, inst, ctx)
+        emit_const_literal_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_CONST_STRING() {
+        inst_const::emit_const_string(w, inst, ctx)
+        emit_const_literal_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    false
+}
+
+fn try_emit_local_get_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_LOCAL_GET() {
+        return false
+    }
+    if next_op == opcodes::MIR_STRUCT_SET() {
+        return true
+    }
+    inst_locals::emit_local_get(w, inst, ctx)
+    inst_dispatch_result::emit_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op)
+    true
+}

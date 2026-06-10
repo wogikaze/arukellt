@@ -1,0 +1,16 @@
+use lexer::tokens
+// Arukellt Lexer - module keyword display names.
+
+
+fn token_module_keyword_name(kind: i32) -> String {
+    if kind == tokens::TK_IMPORT() {
+        return String_from("IMPORT")
+    }
+    if kind == tokens::TK_AS() {
+        return String_from("AS")
+    }
+    if kind == tokens::TK_USE() {
+        return String_from("USE")
+    }
+    String_new()
+}

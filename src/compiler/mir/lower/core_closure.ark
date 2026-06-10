@@ -1,0 +1,15 @@
+use mir::lower::closure_capture_args
+use mir::lower::closure_registry
+// Arukellt Selfhost - MIR lowering for CoreHIR closure expressions.
+
+use mir::lower::core_closure_emit
+use mir::lower::core_closure_free
+
+fn lower_core_closure(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    let caps = core_closure_free::core_closure_collect_caps(ctx, exprs, expr)
+    let packed = closure_capture_args::closure_pack_caps(caps)
+    let extra = len(caps)
+    let synth = closure_registry::closure_next_synth_name(ctx)
+    let mf = core_closure_emit::core_emit_closure_fn(ctx, exprs, synth, expr, caps)
+    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra)
+}

@@ -1,0 +1,22 @@
+// Arukellt Resolver - imported module declaration DTO helpers.
+
+pub struct ModuleDecls {
+    name: String,
+    decls: Vec<AstNode>,
+}
+
+fn ModuleDecls_new(name: String, decls: Vec<AstNode>) -> ModuleDecls {
+    ModuleDecls { name: name, decls: decls }
+}
+
+fn module_name(module: ModuleDecls) -> String {
+    clone(module.name)
+}
+
+fn module_decl_count(module: ModuleDecls) -> i32 {
+    len(module.decls)
+}
+
+fn module_decl_at(module: ModuleDecls, index: i32) -> AstNode {
+    get_unchecked(module.decls, index)
+}

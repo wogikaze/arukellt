@@ -1,0 +1,42 @@
+// Arukellt Selfhost - component export contract feature gates
+
+use component::contract_allows_root_record
+use component::contract_allows_record_record
+use component::contract_allows_scan_groups
+use component::contract_record_color_scan
+use component::contract_record_point_scan
+use component::contract_record_variant_scan
+
+fn component_record_allows(record_point: ComponentRecordPointScan, record_color: ComponentRecordColorScan, record_variant: ComponentRecordVariantScan) -> ComponentRecordAllows {
+    contract_allows_record_record::ComponentRecordAllows_new(
+        contract_record_point_scan::ComponentRecordPointScan_allows_point(record_point),
+        contract_record_point_scan::ComponentRecordPointScan_allows_distance(record_point),
+        contract_record_point_scan::ComponentRecordPointScan_allows_roundtrip(record_point),
+        contract_record_point_scan::ComponentRecordPointScan_allows_add(record_point),
+        contract_record_color_scan::ComponentRecordColorScan_allows_enum(record_color),
+        contract_record_color_scan::ComponentRecordColorScan_allows_code(record_color),
+        contract_record_color_scan::ComponentRecordColorScan_allows_roundtrip(record_color),
+        contract_record_variant_scan::ComponentRecordVariantScan_allows_area(record_variant),
+        contract_record_variant_scan::ComponentRecordVariantScan_allows_roundtrip(record_variant),
+    )
+}
+
+fn component_record_allows_from_decls(decls: Vec<AstNode>) -> ComponentContractAllowsRecord {
+    let record_point = contract_record_point_scan::component_record_point_scan(decls)
+    let record_color = contract_record_color_scan::component_record_color_scan(decls)
+    let record_variant = contract_record_variant_scan::component_record_variant_scan(decls)
+    component_record_allows(record_point, record_color, record_variant)
+}
+
+fn component_contract_allows_from_groups(record_allows: ComponentRecordAllows, string_allows: ComponentStringAllows, collection_allows: ComponentCollectionAllows, numeric_allows: ComponentNumericAllows, tuple_allows: ComponentTupleAllows) -> ComponentContractAllows {
+    contract_allows_root_record::ComponentContractAllows_new(record_allows, string_allows, collection_allows, numeric_allows, tuple_allows)
+}
+
+fn component_contract_allows(decls: Vec<AstNode>) -> ComponentContractAllows {
+    let record_allows = component_record_allows_from_decls(decls)
+    let string_allows = contract_allows_scan_groups::component_string_allows_from_decls(decls)
+    let collection_allows = contract_allows_scan_groups::component_collection_allows_from_decls(decls)
+    let numeric_allows = contract_allows_scan_groups::component_numeric_allows_from_decls(decls)
+    let tuple_allows = contract_allows_scan_groups::component_tuple_allows_from_decls(decls)
+    component_contract_allows_from_groups(record_allows, string_allows, collection_allows, numeric_allows, tuple_allows)
+}

@@ -1,0 +1,29 @@
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR comprehension builder.
+
+use corehir::expr_builder_collections
+use corehir::expr_predicates
+use corehir::expr_node_access
+
+fn corehir_build_comprehension_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let child_count = expr_node_access::expr_child_count(node)
+    if child_count < 2 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let children = Vec_new_i32()
+    let mut i = 0
+    let mut unsupported = false
+    while i < child_count {
+        let child_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, i))
+        push(children, child_index)
+        let child_expr = corehir_body_expr_at(table, child_index)
+        if expr_predicates::expr_is_unsupported(child_expr) {
+            unsupported = true
+        }
+        i = i + 1
+    }
+    if unsupported {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_collections::corehir_expr_comprehension(expr_node_access::expr_text(node), expr_node_access::expr_span_start(node), children))
+}

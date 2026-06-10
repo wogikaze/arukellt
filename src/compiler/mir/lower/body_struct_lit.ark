@@ -1,0 +1,44 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_emit
+use mir::lower_kinds
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - struct literals.
+
+use mir::inst_local_set
+use mir::lower::struct_lit
+
+fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    let struct_name = ast_node::node_text(node)
+    let dest = struct_lit::mir_emit_struct_new(ctx, clone(struct_name))
+    let mut base_idx = 0 - 1
+    let mut has_base = false
+    let mut f = 0
+    while f < child_count {
+        let field = ast_node::node_child_at(node, f)
+        if ast_node::node_kind_is(field, lower_kinds::NK_RANGE()) {
+            let base_expr = ast_node::node_child_at(field, 0)
+            base_idx = lower_expr(ctx, base_expr)
+            ctx_emit(ctx, inst_local_set::MirInst_local_set(base_idx))
+            has_base = true
+        }
+        f = f + 1
+    }
+    if has_base {
+        struct_lit::mir_copy_struct_base_fields(ctx, clone(struct_name), dest, base_idx)
+    }
+    f = 0
+    while f < child_count {
+        let field = ast_node::node_child_at(node, f)
+        if !ast_node::node_kind_is(field, lower_kinds::NK_RANGE()) {
+            let fc = ast_node::node_child_count(field)
+            if fc >= 1 {
+                let init = ast_node::node_child_at(field, 0)
+                let val_idx = lower_expr(ctx, init)
+                struct_lit::mir_emit_struct_field_set(ctx, clone(struct_name), dest, ast_node::node_text(field), val_idx)
+            }
+        }
+        f = f + 1
+    }
+    struct_lit::mir_emit_struct_get_local(ctx, dest)
+}

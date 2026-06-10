@@ -1,0 +1,25 @@
+use mir::lower::ctx_api_variants
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR layout registration from CoreHIR view.
+
+use corehir::mir_layout_source
+use corehir::mod
+use mir::lower::registry_enums
+use mir::lower::registry_structs
+
+fn mir_register_view_layouts(ctx: LowerCtx, view: CoreHirMirView) {
+    ctx_api_variants::ctx_register_builtin_variants(ctx)
+    let source = mod::view_layout_source(view)
+    let decl_count = layout_source::mir_layout_source_count(source)
+    let mut sd = 0
+    while sd < decl_count {
+        let decl = layout_source::mir_layout_source_decl_at(source, sd)
+        if layout_source::mir_layout_source_is_struct_at(source, sd) {
+            registry_structs::mir_register_struct_layout(ctx, decl)
+        }
+        if layout_source::mir_layout_source_is_enum_at(source, sd) {
+            registry_enums::mir_register_enum_layout(ctx, decl)
+        }
+        sd = sd + 1
+    }
+}

@@ -1,0 +1,8 @@
+// Arukellt Selfhost - MIR function construction API.
+
+use mir::function_core_record
+use mir::types_function
+
+fn MirFunction_new(name: String) -> MirFunction {
+    function_core_record::MirFunction_new(name)
+}

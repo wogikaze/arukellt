@@ -1,0 +1,38 @@
+// Arukellt Selfhost - CoreHIR callable parameter helpers.
+
+struct CoreHirParam {
+    name: String,
+    value_type: i32,
+    type_name: String,
+    local_type_name: String,
+    bindable: bool,
+    is_self: bool,
+}
+
+fn CoreHirParam_new(name: String, value_type: i32, type_name: String, local_type_name: String, bindable: bool, is_self: bool) -> CoreHirParam {
+    CoreHirParam { name: name, value_type: value_type, type_name: type_name, local_type_name: local_type_name, bindable: bindable, is_self: is_self }
+}
+
+fn param_name(param: CoreHirParam) -> String {
+    clone(param.name)
+}
+
+fn param_value_type(param: CoreHirParam) -> i32 {
+    param.value_type
+}
+
+fn param_type_name(param: CoreHirParam) -> String {
+    clone(param.type_name)
+}
+
+fn param_local_type_name(param: CoreHirParam) -> String {
+    clone(param.local_type_name)
+}
+
+fn param_is_bindable(param: CoreHirParam) -> bool {
+    param.bindable
+}
+
+fn param_is_self(param: CoreHirParam) -> bool {
+    param.is_self
+}

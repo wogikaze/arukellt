@@ -1,0 +1,22 @@
+// Arukellt Selfhost - string collection intrinsic handler facade
+
+use wasm::intrinsic_string_chars
+use wasm::intrinsic_string_join
+use wasm::intrinsic_string_slice
+use wasm::intrinsic_string_split
+
+fn emit_slice(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_slice::emit_slice(w, inst, ctx)
+}
+
+fn emit_join(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_join::emit_join(w, inst, ctx)
+}
+
+fn emit_text_chars(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_chars::emit_text_chars(w, inst, ctx)
+}
+
+fn emit_split(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_split::emit_split(w, inst, ctx)
+}

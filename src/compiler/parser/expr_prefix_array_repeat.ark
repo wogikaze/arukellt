@@ -1,0 +1,20 @@
+use lexer::tokens
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - array repeat literal tail.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+
+pub fn parse_array_repeat_tail(p: Parser, t: Token, first_elem: AstNode) -> AstNode {
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    let count = parse_expr(p)
+    core_api_cursor::skip_newlines(p)
+    core_api_expect::expect_token(p, tokens::TK_RBRACKET())
+    let node = core_ast_factory::AstNode_new(kinds::NK_ARRAY_REPEAT(), core_api_expect::tok_span(t))
+    core_ast_children::AstNode_push_child(node, first_elem)
+    core_ast_children::AstNode_push_child(node, count)
+    node
+}

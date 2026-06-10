@@ -1,0 +1,31 @@
+// Arukellt Selfhost - MIR lowering for direct CoreHIR call expressions.
+
+use mir::lower::core_call_direct_args
+use mir::lower::core_call_closure
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_call_hof
+use mir::lower::core_call_payload
+
+fn lower_core_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    if child_count < 1 {
+        return 0 - 1
+    }
+    let payload_result = core_call_payload::lower_core_payload_variant_call(ctx, exprs, expr)
+    if payload_result != 0 - 2 {
+        return payload_result
+    }
+    let closure_result = core_call_closure::lower_core_closure_call(ctx, exprs, expr)
+    if closure_result != 0 - 2 {
+        return closure_result
+    }
+    let hof_result = core_call_hof::lower_core_hof_call(ctx, exprs, expr)
+    if hof_result != 0 - 2 {
+        return hof_result
+    }
+    lower_core_direct_call_args(ctx, exprs, expr, child_count)
+}
+
+fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {
+    core_call_direct_args::lower_core_direct_call_args(ctx, exprs, expr, child_count)
+}

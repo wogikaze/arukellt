@@ -1,0 +1,31 @@
+use mir::lower_kinds
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR statement-like expression dispatch.
+
+use mir::inst_misc_control
+use mir::lower::body_control
+use mir::lower::body_stmt
+
+fn lower_statement_like_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+    if kind == lower_kinds::NK_LOOP() {
+        return body_stmt::lower_stmt(ctx, node)
+    }
+    if kind == lower_kinds::NK_WHILE() {
+        return body_stmt::lower_stmt(ctx, node)
+    }
+    if kind == lower_kinds::NK_FOR() {
+        return body_stmt::lower_stmt(ctx, node)
+    }
+    if kind == lower_kinds::NK_RETURN() {
+        return body_control::lower_return_expr(ctx, node)
+    }
+    if kind == lower_kinds::NK_BREAK() {
+        return body_control::lower_break_expr(ctx)
+    }
+    if kind == lower_kinds::NK_CONTINUE() {
+        return body_control::lower_continue_expr(ctx)
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_misc_control::MirInst_nop())
+    0 - 1
+}

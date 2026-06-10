@@ -1,0 +1,24 @@
+// Arukellt Selfhost - MIR unreachable function pruning.
+
+use mir::module_functions
+use mir::module_metadata
+use mir::types
+
+fn mir_prune_unmarked_functions(m: MirModule, reachable: Vec<i32>) -> i32 {
+    let fn_count = module_functions::MirModule_function_count(m)
+    let kept = Vec_new_MirFunction()
+    let mut pruned = 0
+    let mut i = 0
+    while i < fn_count {
+        let f = module_functions::MirModule_function_at(m, i)
+        if get_unchecked(reachable, i) != 0 {
+            push(kept, f)
+        } else {
+            pruned = pruned + 1
+        }
+        i = i + 1
+    }
+    module_functions::MirModule_set_functions(m, kept)
+    module_metadata::MirModule_set_mono_pruned_count(m, pruned)
+    pruned
+}

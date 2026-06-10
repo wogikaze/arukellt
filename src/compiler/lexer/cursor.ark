@@ -1,0 +1,55 @@
+// Arukellt Lexer - cursor state and character access.
+
+pub struct Lexer {
+    src: String,
+    pos: i32,
+    src_len: i32,
+}
+
+fn Lexer_new(source: String) -> Lexer {
+    let n = len(source)
+    Lexer { src: source, pos: 0, src_len: n }
+}
+
+fn peek(lex: Lexer) -> i32 {
+    if lexer_at_end(lex) {
+        -1
+    } else {
+        char_at(lex.src, lex.pos)
+    }
+}
+
+fn peek_at(lex: Lexer, offset: i32) -> i32 {
+    let p = lex.pos + offset
+    if p >= lex.src_len {
+        -1
+    } else {
+        char_at(lex.src, p)
+    }
+}
+
+fn advance(lex: Lexer) -> i32 {
+    let c = char_at(lex.src, lex.pos)
+    lex.pos = lex.pos + 1
+    c
+}
+
+fn advance_by(lex: Lexer, count: i32) {
+    lex.pos = lex.pos + count
+}
+
+fn lexer_position(lex: Lexer) -> i32 {
+    lex.pos
+}
+
+fn lexer_source_len(lex: Lexer) -> i32 {
+    lex.src_len
+}
+
+fn lexer_at_end(lex: Lexer) -> bool {
+    lex.pos >= lex.src_len
+}
+
+fn lexer_slice(lex: Lexer, start: i32, end: i32) -> String {
+    substring(lex.src, start, end)
+}

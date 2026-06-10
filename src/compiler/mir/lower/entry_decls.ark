@@ -1,0 +1,26 @@
+// Arukellt Selfhost - MIR lowering entry declaration emission.
+
+use mir::lower::entry_body_source
+use mir::lower::decl_source
+use mir::lower::entry_fns
+use mir::lower::entry_methods
+use mir::lower::fn_index
+use mir::mono
+
+fn mir_emit_view_decls(ctx: LowerCtx, view: CoreHirMirView, body_source: MirLowerEntryBodySource, fn_index_info: MirLowerFnIndex, midx: MonoIndex, mir_tr: i32) {
+    let decl_source = decl_source::mir_decl_source_from_view(view)
+    let decl_count = decl_source::mir_decl_source_count(decl_source)
+    let entry_main_decl_index = fn_index::mir_fn_index_entry_main_decl_index(fn_index_info)
+    let mut i = 0
+    let mut fn_idx = 0
+    while i < decl_count {
+        let decl_name = decl_source::mir_decl_source_name_at(decl_source, i)
+        if decl_source::mir_decl_source_is_fn_at(decl_source, i) {
+            fn_idx = entry_fns::mir_emit_top_level_fn_decl(ctx, body_source, i, decl_name, fn_idx, entry_main_decl_index, midx, mir_tr)
+        }
+        if decl_source::mir_decl_source_is_impl_at(decl_source, i) {
+            entry_methods::mir_emit_impl_methods(ctx, body_source, i, decl_name, midx)
+        }
+        i = i + 1
+    }
+}

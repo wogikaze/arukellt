@@ -1,0 +1,58 @@
+// Arukellt HIR - node kind and type tag constants.
+
+// Literal expression kinds.
+pub fn HIR_INT_LIT() -> i32 { 1 }
+pub fn HIR_FLOAT_LIT() -> i32 { 2 }
+pub fn HIR_STRING_LIT() -> i32 { 3 }
+pub fn HIR_BOOL_LIT() -> i32 { 4 }
+pub fn HIR_IDENT() -> i32 { 5 }
+
+// Operator expression kinds.
+pub fn HIR_BINARY() -> i32 { 6 }
+pub fn HIR_UNARY() -> i32 { 7 }
+pub fn HIR_ASSIGN() -> i32 { 15 }
+
+// Call and access expression kinds.
+pub fn HIR_CALL() -> i32 { 8 }
+pub fn HIR_FIELD() -> i32 { 9 }
+pub fn HIR_INDEX() -> i32 { 10 }
+pub fn HIR_METHOD() -> i32 { 16 }
+
+// Aggregate expression kinds.
+pub fn HIR_STRUCT_LIT() -> i32 { 11 }
+
+// Control expression kinds.
+pub fn HIR_IF() -> i32 { 12 }
+pub fn HIR_MATCH() -> i32 { 13 }
+pub fn HIR_BLOCK() -> i32 { 14 }
+
+// Statement node kinds.
+pub fn HIR_LET() -> i32 { 30 }
+pub fn HIR_RETURN() -> i32 { 31 }
+pub fn HIR_WHILE() -> i32 { 32 }
+pub fn HIR_LOOP() -> i32 { 33 }
+pub fn HIR_FOR() -> i32 { 34 }
+pub fn HIR_EXPR_STMT() -> i32 { 35 }
+pub fn HIR_BREAK() -> i32 { 36 }
+pub fn HIR_CONTINUE() -> i32 { 37 }
+
+// Type tags.
+fn TY_UNKNOWN() -> i32 { 0 }
+fn TY_I32() -> i32 { 1 }
+fn TY_I64() -> i32 { 2 }
+fn TY_F64() -> i32 { 3 }
+fn TY_BOOL() -> i32 { 4 }
+fn TY_STRING() -> i32 { 5 }
+fn TY_CHAR() -> i32 { 6 }
+fn TY_UNIT() -> i32 { 7 }
+fn TY_NEVER() -> i32 { 8 }
+fn TY_VEC() -> i32 { 10 }
+fn TY_OPTION() -> i32 { 11 }
+fn TY_RESULT() -> i32 { 12 }
+fn TY_HASHMAP() -> i32 { 13 }
+fn TY_FN() -> i32 { 20 }
+fn TY_STRUCT() -> i32 { 21 }
+fn TY_ENUM() -> i32 { 22 }
+fn TY_TUPLE() -> i32 { 23 }
+fn TY_TYPE_VAR() -> i32 { 30 }
+fn TY_TRAIT() -> i32 { 31 }

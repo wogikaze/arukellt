@@ -1,0 +1,23 @@
+// Arukellt Selfhost - DAP session loop.
+
+use dap::framing
+use dap::handlers
+use dap::state
+
+fn run_dap_session(input: String) -> String {
+    let state = state::DapState_new()
+    let n = len(input)
+    let mut pos = 0
+    while pos < n {
+        let f = framing::dap_parse_frame(clone(input), pos)
+        if !framing::dap_frame_result_ok(f) {
+            break
+        }
+        handlers::dap_handle(state, framing::dap_frame_result_body(f))
+        pos = framing::dap_frame_result_next(f)
+        if state::dap_is_disconnected(state) {
+            break
+        }
+    }
+    state::dap_output(state)
+}

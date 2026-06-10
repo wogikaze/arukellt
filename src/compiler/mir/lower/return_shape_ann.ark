@@ -1,0 +1,35 @@
+// Arukellt Selfhost - MIR return annotation AST adapter.
+
+use corehir::decl_annotation_shape
+
+fn mir_return_shape_ann_count(fn_node: AstNode) -> i32 {
+    decl_annotation_shape::decl_ann_count(fn_node)
+}
+
+fn mir_return_shape_ann_at(fn_node: AstNode, index: i32) -> AstNode {
+    decl_annotation_shape::decl_ann_at(fn_node, index)
+}
+
+fn mir_return_shape_is_return_ann(ann: AstNode) -> bool {
+    decl_annotation_shape::decl_ann_is_name(ann, String_from("__return"))
+}
+
+fn mir_return_shape_child_count(ann: AstNode) -> i32 {
+    decl_annotation_shape::decl_ann_child_count(ann)
+}
+
+fn mir_return_shape_child_at(ann: AstNode, index: i32) -> AstNode {
+    decl_annotation_shape::decl_ann_child_at(ann, index)
+}
+
+fn mir_return_shape_name(node: AstNode) -> String {
+    decl_annotation_shape::decl_ann_name(node)
+}
+
+fn mir_return_shape_is_generic(node: AstNode) -> bool {
+    decl_annotation_shape::decl_ann_is_generic(node)
+}
+
+fn mir_return_shape_is_name(node: AstNode, name: String) -> bool {
+    decl_annotation_shape::decl_ann_is_name(node, name)
+}

@@ -1,0 +1,80 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower_kinds
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR match payload preparation
+
+use mir::inst_struct_get
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::value_types
+
+struct MirMatchPayloadInfo {
+    is_payload_match: bool,
+    scrut_ok_is_f64: bool,
+    scrut_ok_is_i64: bool,
+    scrut_ok_is_i32: bool,
+    compare_idx: i32,
+}
+
+fn mir_match_payload_info_new(is_payload_match: bool, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool, compare_idx: i32) -> MirMatchPayloadInfo {
+    MirMatchPayloadInfo { is_payload_match: is_payload_match, scrut_ok_is_f64: scrut_ok_is_f64, scrut_ok_is_i64: scrut_ok_is_i64, scrut_ok_is_i32: scrut_ok_is_i32, compare_idx: compare_idx }
+}
+
+fn mir_match_payload_info_is_payload_match(info: MirMatchPayloadInfo) -> bool {
+    info.is_payload_match
+}
+
+fn mir_match_payload_info_scrut_ok_is_f64(info: MirMatchPayloadInfo) -> bool {
+    info.scrut_ok_is_f64
+}
+
+fn mir_match_payload_info_scrut_ok_is_i64(info: MirMatchPayloadInfo) -> bool {
+    info.scrut_ok_is_i64
+}
+
+fn mir_match_payload_info_scrut_ok_is_i32(info: MirMatchPayloadInfo) -> bool {
+    info.scrut_ok_is_i32
+}
+
+fn mir_match_payload_info_compare_idx(info: MirMatchPayloadInfo) -> i32 {
+    info.compare_idx
+}
+
+fn mir_prepare_match_payload(ctx: LowerCtx, node: AstNode, child_count: i32, scrut_idx: i32) -> MirMatchPayloadInfo {
+    let is_payload_match = mir_match_has_payload_pattern(node, child_count)
+    let scrut_type = ctx_get_local_type(ctx, scrut_idx)
+    let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") || eq(clone(scrut_type), "Option_f64")
+    let scrut_ok_is_i64 = eq(clone(scrut_type), "Result_i64") || eq(clone(scrut_type), "Option_i64")
+    let scrut_ok_is_i32 = eq(clone(scrut_type), "Option_i32") || eq(clone(scrut_type), "Result_i32")
+    let mut compare_idx = scrut_idx
+    if is_payload_match {
+        compare_idx = mir_emit_payload_tag_local(ctx, scrut_idx)
+    }
+    mir_match_payload_info_new(is_payload_match, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_i32, compare_idx)
+}
+
+fn mir_match_has_payload_pattern(node: AstNode, child_count: i32) -> bool {
+    let mut arm_scan = 1
+    while arm_scan < child_count {
+        let scan_arm = ast_node::node_child_at(node, arm_scan)
+        if ast_node::node_child_count(scan_arm) > 0 {
+            let scan_pat = ast_node::node_child_at(scan_arm, 0)
+            if ast_node::node_kind_is(scan_pat, lower_kinds::NK_PAT_VARIANT()) && ast_node::node_child_count(scan_pat) > 0 {
+                return true
+            }
+        }
+        arm_scan = arm_scan + 1
+    }
+    false
+}
+
+fn mir_emit_payload_tag_local(ctx: LowerCtx, scrut_idx: i32) -> i32 {
+    let tag_local = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
+    ctx_emit(ctx, inst_struct_get::MirInst_struct_get(0, value_types::VT_VOID()))
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(tag_local))
+    tag_local
+}

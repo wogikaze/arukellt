@@ -1,0 +1,28 @@
+// Arukellt Selfhost - CoreHIR MIR signature projection for functions.
+
+use corehir::fn_info
+use corehir::mir_signature_source_record
+
+fn mir_signature_fn_info_index_for_decl(source: CoreHirMirSignatureSource, decl_index: i32) -> i32 {
+    fn_info::fn_info_index_for_decl(signature_source_record::mir_signature_source_fn_infos(source), decl_index)
+}
+
+fn mir_signature_fn_typed_index_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: i32) -> i32 {
+    fn_info::fn_info_typed_index_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, fallback)
+}
+
+fn mir_signature_fn_body_index_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: i32) -> i32 {
+    fn_info::fn_info_body_index_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, fallback)
+}
+
+fn mir_signature_fn_param_count_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: i32) -> i32 {
+    fn_info::fn_info_param_count_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, fallback)
+}
+
+fn mir_signature_fn_param_at(source: CoreHirMirSignatureSource, info_index: i32, param_index: i32) -> CoreHirParam {
+    fn_info::fn_info_param_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, param_index)
+}
+
+fn mir_signature_fn_is_entry_main_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: bool) -> bool {
+    fn_info::fn_info_is_entry_main_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, fallback)
+}

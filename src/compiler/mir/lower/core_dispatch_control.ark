@@ -1,0 +1,51 @@
+use corehir::expr_predicates
+use corehir::kinds
+use mir::lower::core_expr_shape_control_transfer
+use mir::lower::core_expr_shape_control_loop
+// Arukellt Selfhost - CoreHIR control-flow lowering dispatch.
+
+use mir::lower::core_control
+use mir::lower::core_expr_shape_calls
+use mir::lower::core_for
+use mir::lower::core_loops
+use mir::lower::core_match
+
+fn lower_core_control_expr(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    if expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_BLOCK()) {
+        return core_control::lower_core_block(ctx, exprs, expr)
+    }
+    if core_expr_shape_control_transfer::mir_core_expr_is_return(expr) {
+        return core_control::lower_core_return(ctx, exprs, expr)
+    }
+    if core_expr_shape_calls::mir_core_expr_is_try(expr) {
+        return core_control::lower_core_try(ctx, exprs, expr)
+    }
+    if expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_IF()) {
+        return core_control::lower_core_if(ctx, exprs, expr)
+    }
+    if core_expr_shape_calls::mir_core_expr_is_match(expr) {
+        return core_match::lower_core_match(ctx, exprs, expr)
+    }
+    if core_expr_shape_control_loop::mir_core_expr_is_while(expr) {
+        return core_loops::lower_core_while(ctx, exprs, expr)
+    }
+    if core_expr_shape_control_loop::mir_core_expr_is_loop(expr) {
+        return core_loops::lower_core_loop(ctx, exprs, expr)
+    }
+    if core_expr_shape_control_loop::mir_core_expr_is_for_range(expr) {
+        return core_for::lower_core_for_range(ctx, exprs, expr)
+    }
+    if core_expr_shape_control_loop::mir_core_expr_is_for_values(expr) {
+        return core_for::lower_core_for_values(ctx, exprs, expr)
+    }
+    if core_expr_shape_control_loop::mir_core_expr_is_for_iter(expr) {
+        return core_for::lower_core_for_iter(ctx, exprs, expr)
+    }
+    if core_expr_shape_control_transfer::mir_core_expr_is_break(expr) {
+        return core_control::lower_core_break(ctx, exprs, expr)
+    }
+    if core_expr_shape_control_transfer::mir_core_expr_is_continue(expr) {
+        return core_control::lower_core_continue(ctx)
+    }
+    0 - 2
+}

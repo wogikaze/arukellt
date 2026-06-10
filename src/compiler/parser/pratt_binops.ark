@@ -1,0 +1,15 @@
+// Arukellt Parser - Pratt binary operator mapping.
+
+use parser::pratt_binops_arith
+use parser::pratt_binops_compare
+use parser::pratt_binops_logic
+
+pub fn token_to_binop(kind: i32) -> i32 {
+    let arith = pratt_binops_arith::token_to_arith_binop(kind)
+    if arith != 0 { return arith }
+    let cmp = pratt_binops_compare::token_to_compare_binop(kind)
+    if cmp != 0 { return cmp }
+    let logic = pratt_binops_logic::token_to_logic_binop(kind)
+    if logic != 0 { return logic }
+    0
+}

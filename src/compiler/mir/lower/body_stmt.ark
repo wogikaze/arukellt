@@ -1,0 +1,49 @@
+use mir::lower::ast_node
+use mir::lower_kinds
+// Arukellt MIR lowering body - statement dispatch.
+
+use mir::lower::body_stmt_break
+use mir::lower::body_stmt_for
+use mir::lower::body_stmt_let
+use mir::lower::body_stmt_return
+use mir::lower::body_stmt_while
+
+// Lower a statement node. Returns local index if it produces a value.
+fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+    let kind = ast_node::node_kind(node)
+    if kind == lower_kinds::NK_LET() {
+        return body_stmt_let::lower_let_stmt(ctx, node)
+    }
+    if kind == lower_kinds::NK_RETURN() {
+        return body_stmt_return::lower_return_stmt(ctx, node)
+    }
+    if kind == lower_kinds::NK_WHILE() {
+        return body_stmt_while::lower_while_stmt(ctx, node)
+    }
+    if kind == lower_kinds::NK_LOOP() {
+        return body_stmt_while::lower_loop_stmt(ctx, node)
+    }
+    if kind == lower_kinds::NK_BREAK() {
+        return body_stmt_break::lower_break_stmt(ctx, node)
+    }
+    if kind == lower_kinds::NK_CONTINUE() {
+        return body_stmt_break::lower_continue_stmt(ctx)
+    }
+    if kind == lower_kinds::NK_FOR() {
+        return body_stmt_for::lower_for_stmt(ctx, node)
+    }
+    if kind == lower_kinds::NK_EXPR_STMT() {
+        return lower_expr_stmt(ctx, node)
+    }
+    lower_expr(ctx, node)
+}
+
+fn lower_expr_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count >= 1 {
+        let expr = ast_node::node_child_at(node, 0)
+        let result = lower_expr(ctx, expr)
+        return result
+    }
+    0 - 1
+}

@@ -1,0 +1,22 @@
+// Arukellt Selfhost - MIR SSA current value state helpers.
+
+use mir::ssa_state_record
+use mir::ssa_state_vec
+
+fn mir_ssa_state_set_current(state: MirSsaRenameState, local_id: i32, value_id: i32) {
+    if local_id < 0 || local_id >= state.original_local_count {
+        return
+    }
+    state.current = ssa_state_vec::mir_i32_vec_replace_at(state.current, local_id, value_id)
+}
+
+fn mir_ssa_state_current_for(state: MirSsaRenameState, local_id: i32) -> i32 {
+    if local_id < 0 || local_id >= state.original_local_count {
+        return local_id
+    }
+    let value_id = get_unchecked(state.current, local_id)
+    if value_id >= 0 {
+        return value_id
+    }
+    local_id
+}

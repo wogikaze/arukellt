@@ -1,0 +1,35 @@
+// Arukellt LSP - document notifications and diagnostics publication.
+
+use analysis
+use lsp::diagnostics
+use lsp::framing
+use lsp::json_fields
+use lsp::json_parse_core
+use lsp::state_docs
+use lsp::state_record
+
+pub fn handle_did_open(state: LspState, body: String) {
+    let uri = json_fields::extract_string_field(clone(body), String_from("uri"))
+    let text = json_fields::extract_string_field(clone(body), String_from("text"))
+    let version = json_fields::extract_int_field(clone(body), String_from("version"))
+    state_docs::lsp_doc_store_set(state_record::lsp_state_doc_store(state), clone(uri), clone(text), version)
+    publish_for(state, clone(uri), clone(text))
+}
+
+pub fn handle_did_change(state: LspState, body: String) {
+    let uri = json_fields::extract_string_field(clone(body), String_from("uri"))
+    let version = json_fields::extract_int_field(clone(body), String_from("version"))
+    let cc = json_parse_core::find_key_pos(clone(body), String_from("contentChanges"), 0)
+    let text = if cc < 0 {
+        json_fields::extract_string_field(clone(body), String_from("text"))
+    } else {
+        json_fields::extract_string_field_after(clone(body), String_from("text"), cc)
+    }
+    state_docs::lsp_doc_store_set(state_record::lsp_state_doc_store(state), clone(uri), clone(text), version)
+    publish_for(state, clone(uri), clone(text))
+}
+
+fn publish_for(state: LspState, uri: String, text: String) {
+    let snap = analysis::analyze(clone(uri), clone(text))
+    framing::append_framed(state, diagnostics::build_publish_diagnostics(clone(uri), clone(text), snap))
+}

@@ -1,0 +1,29 @@
+// Arukellt LSP - lifecycle method dispatch.
+
+use lsp::framing
+use lsp::json_fields
+use lsp::responses
+use lsp::state_record
+
+fn dispatch_lifecycle(state: LspState, body: String, method: String) -> bool {
+    if eq(clone(method), "initialize") {
+        let id = json_fields::extract_int_field(clone(body), String_from("id"))
+        state_record::lsp_state_mark_initialized(state)
+        framing::append_framed(state, responses::build_initialize_response(id))
+        return true
+    }
+    if eq(clone(method), "initialized") {
+        return true
+    }
+    if eq(clone(method), "shutdown") {
+        let id = json_fields::extract_int_field(clone(body), String_from("id"))
+        state_record::lsp_state_mark_shutdown(state)
+        framing::append_framed(state, responses::build_shutdown_response(id))
+        return true
+    }
+    if eq(clone(method), "exit") {
+        state_record::lsp_state_mark_exited(state)
+        return true
+    }
+    false
+}

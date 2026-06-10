@@ -1,0 +1,63 @@
+// Arukellt HIR - trait and impl records.
+
+use hir::item_function_core_record
+use hir::item_type_param_record
+use hir::type_contracts_record
+
+struct HirTraitDecl {
+    name: String,
+    methods: Vec<HirFunction>,
+    type_params: Vec<HirTypeParam>,
+    is_pub: bool,
+}
+
+struct HirImplBlock {
+    trait_ty: HirType,
+    self_ty: HirType,
+    methods: Vec<HirFunction>,
+    is_pub: bool,
+}
+
+fn HirTraitDecl_new(name: String, is_pub: bool) -> HirTraitDecl {
+    HirTraitDecl { name: name, methods: Vec_new_HirFunction(), type_params: Vec_new_HirTypeParam(), is_pub: is_pub }
+}
+
+fn hir_trait_name(decl: HirTraitDecl) -> String {
+    clone(decl.name)
+}
+
+fn hir_trait_push_method(decl: HirTraitDecl, method: HirFunction) {
+    push(decl.methods, method)
+}
+
+fn hir_trait_method_count(decl: HirTraitDecl) -> i32 {
+    len(decl.methods)
+}
+
+fn hir_trait_method_at(decl: HirTraitDecl, index: i32) -> HirFunction {
+    get_unchecked(decl.methods, index)
+}
+
+fn HirImplBlock_new(trait_ty: HirType, self_ty: HirType) -> HirImplBlock {
+    HirImplBlock { trait_ty: trait_ty, self_ty: self_ty, methods: Vec_new_HirFunction(), is_pub: false }
+}
+
+fn hir_impl_block_trait_type(block: HirImplBlock) -> HirType {
+    block.trait_ty
+}
+
+fn hir_impl_block_self_type(block: HirImplBlock) -> HirType {
+    block.self_ty
+}
+
+fn hir_impl_block_push_method(block: HirImplBlock, method: HirFunction) {
+    push(block.methods, method)
+}
+
+fn hir_impl_block_method_count(block: HirImplBlock) -> i32 {
+    len(block.methods)
+}
+
+fn hir_impl_block_method_at(block: HirImplBlock, index: i32) -> HirFunction {
+    get_unchecked(block.methods, index)
+}

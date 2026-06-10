@@ -1,0 +1,20 @@
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR try expression builder.
+
+use corehir::expr_builder_calls
+use corehir::expr_predicates
+use corehir::expr_node_access
+
+fn corehir_build_try_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    if expr_node_access::expr_child_count(node) < 1 {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    let children = Vec_new_i32()
+    let inner_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
+    push(children, inner_index)
+    let inner_expr = corehir_body_expr_at(table, inner_index)
+    if expr_predicates::expr_is_unsupported(inner_expr) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_calls::corehir_expr_try(expr_node_access::expr_span_start(node), children))
+}

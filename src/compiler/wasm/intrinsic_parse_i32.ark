@@ -1,0 +1,80 @@
+use wasm::opcodes
+use wasm::constants
+// Arukellt Selfhost - i32 parse intrinsic handler.
+
+use wasm::ctx_scratch
+use wasm::intrinsic_parse_digit_loop_common
+use wasm::intrinsic_parse_int
+use wasm::intrinsic_parse_result
+
+fn emit_parse_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+let s_tmp = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+intrinsic_parse_int::emit_parse_i32_init(w, s_tmp)
+intrinsic_parse_int::emit_parse_int_prefix_validation(w)
+emit_parse_i32_digit_loop(w)
+writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+writer_leb::emit_leb128_s(w, constants::SCRATCH_P_ERR())
+writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+writer_core::emit_byte(w, 2)
+writer_core::emit_byte(w, 0)
+writer_core::emit_byte(w, 4)
+writer_core::emit_byte(w, 127)
+intrinsic_parse_result::emit_invalid_integer_error_result(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1), ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2), ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3))
+writer_core::emit_byte(w, 5)
+writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+writer_leb::emit_leb128_s(w, constants::SCRATCH_P_NEG())
+writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+writer_core::emit_byte(w, 2)
+writer_core::emit_byte(w, 0)
+writer_core::emit_byte(w, 4)
+writer_core::emit_byte(w, 64)
+writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+writer_leb::emit_leb128_s(w, constants::SCRATCH_P_RES())
+writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+writer_leb::emit_leb128_s(w, 0)
+writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+writer_leb::emit_leb128_s(w, constants::SCRATCH_P_RES())
+writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+writer_core::emit_byte(w, 2)
+writer_core::emit_byte(w, 0)
+writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+writer_core::emit_byte(w, 2)
+writer_core::emit_byte(w, 0)
+writer_core::emit_byte(w, 11)
+intrinsic_parse_result::emit_i32_ok_result(w, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3), constants::SCRATCH_P_RES())
+writer_core::emit_byte(w, 11)
+return true
+}
+
+fn emit_parse_i32_digit_loop(w: WasmWriter) {
+    intrinsic_parse_digit_loop_common::emit_parse_digit_loop_header(w)
+    intrinsic_parse_digit_loop_common::emit_parse_digit_load_and_validate(w)
+    emit_parse_i32_digit_accumulate(w)
+    intrinsic_parse_digit_loop_common::emit_parse_digit_advance_and_continue(w)
+}
+
+fn emit_parse_i32_digit_accumulate(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_P_RES())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_P_RES())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 10)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_P_BYTE())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 48)
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+}

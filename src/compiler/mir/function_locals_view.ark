@@ -1,0 +1,11 @@
+// Arukellt Selfhost - MIR function local collection query API.
+
+use mir::function_locals_record
+
+fn MirFunction_local_count(f: MirFunction) -> i32 {
+    function_locals_record::mir_function_local_count(f)
+}
+
+fn MirFunction_local_at(f: MirFunction, idx: i32) -> MirLocal {
+    function_locals_record::mir_function_local_at(f, idx)
+}

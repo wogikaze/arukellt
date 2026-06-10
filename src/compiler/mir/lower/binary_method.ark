@@ -1,0 +1,37 @@
+use mir::opcodes
+// Arukellt Selfhost - MIR operator method name mapping.
+
+
+fn mir_operator_method_name(mir_op: i32) -> String {
+    if mir_op == opcodes::MIR_ADD() {
+        return String_from("add")
+    }
+    if mir_op == opcodes::MIR_SUB() {
+        return String_from("sub")
+    }
+    if mir_op == opcodes::MIR_MUL() {
+        return String_from("mul")
+    }
+    if mir_op == opcodes::MIR_DIV() {
+        return String_from("div")
+    }
+    if mir_op == opcodes::MIR_EQ() {
+        return String_from("eq")
+    }
+    if mir_op == opcodes::MIR_NEQ() {
+        return String_from("ne")
+    }
+    if mir_op == opcodes::MIR_LT() {
+        return String_from("lt")
+    }
+    if mir_op == opcodes::MIR_GT() {
+        return String_from("gt")
+    }
+    if mir_op == opcodes::MIR_LTEQ() {
+        return String_from("le")
+    }
+    if mir_op == opcodes::MIR_GTEQ() {
+        return String_from("ge")
+    }
+    String_new()
+}

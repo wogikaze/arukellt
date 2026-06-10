@@ -1,0 +1,9 @@
+// Arukellt Selfhost - MIR function parameter mutation API.
+
+use mir::function_core_record
+use mir::local_record
+use mir::types_function
+
+fn MirFunction_push_param(f: MirFunction, local: MirLocal) {
+    push(f.params, local)
+}

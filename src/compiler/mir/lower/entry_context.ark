@@ -1,0 +1,17 @@
+use mir::lower::ctx_fn_mono
+use mir::lower::ctx_api_init
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering entry context preparation.
+
+use mir::lower::entry_trace
+use mir::lower::fn_index
+use mir::lower::mono_calls
+use mir::lower::mono_view
+
+fn mir_prepare_lower_ctx(m: MirModule, fn_index_info: MirLowerFnIndex, mono_view: MirLowerMonoView, mir_tr: i32) -> LowerCtx {
+    let mut ctx = LowerCtx_new(m)
+    ctx_fn_mono::ctx_replace_fn_index(ctx, fn_index::mir_fn_index_names(fn_index_info), fn_index::mir_fn_index_return_vts(fn_index_info), fn_index::mir_fn_index_return_type_names(fn_index_info))
+    mono_calls::mir_register_mono_rewrites(ctx, mono_view::mir_lower_mono_view_instances(mono_view))
+    entry_trace::mir_log_mono_rewrites_if_needed(mir_tr, ctx)
+    ctx
+}

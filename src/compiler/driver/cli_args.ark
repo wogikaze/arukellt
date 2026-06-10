@@ -1,0 +1,45 @@
+// Arukellt Selfhost - legacy standalone driver CLI argument parsing.
+
+use driver::cli_arg_options
+use driver::cli_arg_position
+
+struct LegacyCompileArgs {
+    input_path: String,
+    output_path: String,
+    has_output: bool,
+    config: DriverConfig,
+}
+
+fn LegacyCompileArgs_new(input_path: String, output_path: String, has_output: bool, config: DriverConfig) -> LegacyCompileArgs {
+    LegacyCompileArgs { input_path: input_path, output_path: output_path, has_output: has_output, config: config }
+}
+
+fn legacy_arg_start(args: Vec<String>, argc: i32) -> i32 {
+    cli_arg_position::legacy_arg_start(args, argc)
+}
+
+fn has_min_compile_args(argc: i32, arg_start: i32) -> bool {
+    cli_arg_position::has_min_compile_args(argc, arg_start)
+}
+
+fn parse_legacy_compile_args(args: Vec<String>, argc: i32, arg_start: i32, config: DriverConfig) -> LegacyCompileArgs {
+    let input_path = get_unchecked(args, arg_start + 1)
+    let options = cli_arg_options::parse_legacy_compile_options(args, argc, arg_start + 2, config)
+    LegacyCompileArgs_new(input_path, cli_arg_options::legacy_compile_options_output_path(options), cli_arg_options::legacy_compile_options_has_output(options), cli_arg_options::legacy_compile_options_config(options))
+}
+
+fn legacy_compile_args_input_path(parsed: LegacyCompileArgs) -> String {
+    clone(parsed.input_path)
+}
+
+fn legacy_compile_args_output_path(parsed: LegacyCompileArgs) -> String {
+    clone(parsed.output_path)
+}
+
+fn legacy_compile_args_has_output(parsed: LegacyCompileArgs) -> bool {
+    parsed.has_output
+}
+
+fn legacy_compile_args_config(parsed: LegacyCompileArgs) -> DriverConfig {
+    parsed.config
+}

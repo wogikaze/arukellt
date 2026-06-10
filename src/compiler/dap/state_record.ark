@@ -1,0 +1,43 @@
+// Arukellt Selfhost - DAP session state data record.
+
+struct DapState {
+    initialized: bool,
+    launched: bool,
+    disconnected: bool,
+    seq: i32,
+    output: String,
+}
+
+fn DapState_new() -> DapState {
+    DapState { initialized: false, launched: false, disconnected: false, seq: 1, output: String_new() }
+}
+
+fn dap_state_mark_initialized(state: DapState) {
+    state.initialized = true
+}
+
+fn dap_state_mark_launched(state: DapState) {
+    state.launched = true
+}
+
+fn dap_state_mark_disconnected(state: DapState) {
+    state.disconnected = true
+}
+
+fn dap_state_is_disconnected(state: DapState) -> bool {
+    state.disconnected
+}
+
+fn dap_state_append_output(state: DapState, chunk: String) {
+    state.output = concat(clone(state.output), chunk)
+}
+
+fn dap_state_output(state: DapState) -> String {
+    state.output
+}
+
+fn dap_state_take_next_seq(state: DapState) -> i32 {
+    let s = clone(state.seq)
+    state.seq = state.seq + 1
+    s
+}

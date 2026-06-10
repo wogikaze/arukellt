@@ -1,0 +1,45 @@
+// Arukellt Resolver - context initialization and builtin registration.
+
+use resolver::builtins
+use resolver::scope_stack_scopes
+use resolver::scope_define
+use resolver::kinds
+use resolver::ctx_record
+
+fn ResolveCtx_new() -> ResolveCtx {
+    let mut ctx = ctx_record::ResolveCtx_new_empty()
+    ctx_record::resolve_ctx_push_scope_value(ctx, scope_stack_scopes::Scope_new(0 - 1))
+    register_builtins(ctx)
+    ctx
+}
+
+fn ResolveCtx_errors(ctx: ResolveCtx) -> Vec<String> {
+    ctx_record::resolve_ctx_errors(ctx)
+}
+
+fn ResolveCtx_error_message_count(ctx: ResolveCtx) -> i32 {
+    ctx_record::resolve_ctx_error_message_count(ctx)
+}
+
+fn ResolveCtx_reported_error_count(ctx: ResolveCtx) -> i32 {
+    ctx_record::resolve_ctx_reported_error_count(ctx)
+}
+
+fn ResolveCtx_error_at(ctx: ResolveCtx, index: i32) -> String {
+    ctx_record::resolve_ctx_error_at(ctx, index)
+}
+
+fn register_builtins(ctx: ResolveCtx) {
+    let builtin_names = builtins::resolver_builtin_symbol_names()
+    let mut i = 0
+    while i < len(builtin_names) {
+        scope_define::define(ctx, clone(get_unchecked(builtin_names, i)), commands::SYM_BUILTIN())
+        i = i + 1
+    }
+    let module_names = builtins::resolver_builtin_module_names()
+    let mut m = 0
+    while m < len(module_names) {
+        scope_define::define(ctx, clone(get_unchecked(module_names, m)), commands::SYM_MODULE())
+        m = m + 1
+    }
+}

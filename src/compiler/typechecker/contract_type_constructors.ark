@@ -1,0 +1,16 @@
+// Arukellt Typechecker - TypeInfo construction helpers.
+
+use typechecker::contract_type_access
+use typechecker::contract_types_record
+
+fn TypeInfo_simple(tag: i32) -> TypeInfo {
+    contract_types_record::TypeInfo_new(tag, String_new(), Vec_new_TypeInfo())
+}
+
+fn TypeInfo_named(tag: i32, name: String) -> TypeInfo {
+    contract_types_record::TypeInfo_new(tag, name, Vec_new_TypeInfo())
+}
+
+fn TypeInfo_empty_like(ty: TypeInfo) -> TypeInfo {
+    contract_types_record::TypeInfo_new(contract_type_access::TypeInfo_tag(ty), contract_type_access::TypeInfo_name(ty), Vec_new_TypeInfo())
+}

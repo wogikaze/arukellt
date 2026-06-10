@@ -1,0 +1,27 @@
+use mir::lower::loop_scope
+use mir::lower::loop_conditions
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR range for-loop MIR lowering.
+
+use mir::lower::core_expr_shape_accessors
+use mir::value_types
+
+fn lower_core_for_range(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 3 {
+        return 0 - 1
+    }
+    let _start_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    let iter_var = ctx_api_local_alloc::ctx_alloc_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), value_types::VT_I32())
+    loop_conditions::mir_save_stack_to_local(ctx, iter_var)
+    let _end_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
+    let end_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    loop_conditions::mir_save_stack_to_local(ctx, end_local)
+    let loop_scope = loop_scope::mir_begin_loop_scope(ctx)
+    loop_conditions::mir_emit_gteq_break_if(ctx, iter_var, end_local)
+    let _body_result = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 2))
+    loop_conditions::mir_emit_increment_i32(ctx, iter_var)
+    loop_scope::mir_emit_loop_back(ctx)
+    loop_scope::mir_end_loop_scope(ctx, loop_scope)
+    0 - 1
+}

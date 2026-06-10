@@ -1,0 +1,16 @@
+// Arukellt Selfhost - dominance smoke fixture instruction emission.
+
+use mir::function_emit_inst
+use mir::inst_factory
+use mir::inst_op
+use mir::inst_return
+use mir::opcodes
+
+fn mir_dump_dominance_emit_local_get(f: MirFunction, block: i32) {
+    function_inst::emit_inst(f, block, inst_factory::MirInst_new(opcodes::MIR_LOCAL_GET()))
+}
+
+fn mir_dump_dominance_emit_join_return(f: MirFunction, block: i32, tmp: i32, pa: i32, pb: i32) {
+    function_inst::emit_inst(f, block, inst_op::MirInst_binop(opcodes::MIR_ADD(), tmp, pa, pb))
+    function_inst::emit_inst(f, block, inst_return::MirInst_return_void())
+}

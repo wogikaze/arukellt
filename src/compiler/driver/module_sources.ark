@@ -1,0 +1,12 @@
+// Arukellt Selfhost - driver module source lookup facades.
+
+use driver::module_file_load_local
+use driver::module_file_load_stdlib
+
+fn load_local_module_source(module_name: String, base_dir: String) -> Result<DriverLoadedSource, String> {
+    module_file_load_local::read_local_module_source(module_name, base_dir)
+}
+
+fn load_stdlib_module_source(stdlib_path: String) -> Result<String, String> {
+    module_file_load_stdlib::read_stdlib_module_source(stdlib_path)
+}

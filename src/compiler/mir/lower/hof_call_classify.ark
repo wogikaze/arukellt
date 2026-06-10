@@ -1,0 +1,64 @@
+// Arukellt Selfhost - HOF call classifier orchestration.
+
+use mir::lower_kinds
+use mir::lower::hof_call_plan
+
+fn mir_classify_hof_call(callee: String) -> MirHofCallPlan {
+    let i64_plan = mir_classify_hof_i64_call(clone(callee))
+    if !hof_call_plan::mir_hof_call_plan_is_none(i64_plan) {
+        return i64_plan
+    }
+    let i32_plan = mir_classify_hof_i32_call(clone(callee))
+    if !hof_call_plan::mir_hof_call_plan_is_none(i32_plan) {
+        return i32_plan
+    }
+    let f64_plan = mir_classify_hof_f64_call(clone(callee))
+    if !hof_call_plan::mir_hof_call_plan_is_none(f64_plan) {
+        return f64_plan
+    }
+    let option_plan = mir_classify_hof_option_call(clone(callee))
+    if !hof_call_plan::mir_hof_call_plan_is_none(option_plan) {
+        return option_plan
+    }
+    hof_call_plan::mir_hof_call_plan_none()
+}
+
+fn mir_classify_hof_i64_call(callee: String) -> MirHofCallPlan {
+    let is_map_i64_i64 = eq(clone(callee), "map_i64_i64")
+    let is_filter_i64 = eq(clone(callee), "filter_i64")
+    let is_fold_i64_i64 = eq(clone(callee), "fold_i64_i64")
+    if is_map_i64_i64 || is_filter_i64 || is_fold_i64_i64 {
+        let min_children = if is_fold_i64_i64 { 4 } else { 3 }
+        let callback_index = if is_fold_i64_i64 { 3 } else { 2 }
+        return hof_call_plan::mir_hof_call_plan_new(lower_kinds::MIR_HOF_KIND_I64(), min_children, callback_index, String_from("vec:i64"), is_map_i64_i64, is_filter_i64, is_fold_i64_i64)
+    }
+    hof_call_plan::mir_hof_call_plan_none()
+}
+
+fn mir_classify_hof_i32_call(callee: String) -> MirHofCallPlan {
+    let is_map_i32_i32 = eq(clone(callee), "map_i32_i32") || eq(clone(callee), "map_String_String") || eq(clone(callee), "seq::map_i32_i32")
+    let is_filter_i32 = eq(clone(callee), "filter_i32") || eq(clone(callee), "filter_String") || eq(clone(callee), "seq::filter_i32")
+    let is_fold_i32_i32 = eq(clone(callee), "fold_i32_i32") || eq(clone(callee), "seq::fold_i32_i32")
+    if is_map_i32_i32 || is_filter_i32 || is_fold_i32_i32 {
+        let min_children_i32 = if is_fold_i32_i32 { 4 } else { 3 }
+        let callback_index_i32 = if is_fold_i32_i32 { 3 } else { 2 }
+        return hof_call_plan::mir_hof_call_plan_new(lower_kinds::MIR_HOF_KIND_I32(), min_children_i32, callback_index_i32, String_from("vec:i32"), is_map_i32_i32, is_filter_i32, is_fold_i32_i32)
+    }
+    hof_call_plan::mir_hof_call_plan_none()
+}
+
+fn mir_classify_hof_f64_call(callee: String) -> MirHofCallPlan {
+    let is_map_f64_f64 = eq(clone(callee), "map_f64_f64")
+    let is_filter_f64 = eq(clone(callee), "filter_f64")
+    if is_map_f64_f64 || is_filter_f64 {
+        return hof_call_plan::mir_hof_call_plan_new(lower_kinds::MIR_HOF_KIND_F64(), 3, 2, String_from("vec:f64"), is_map_f64_f64, is_filter_f64, false)
+    }
+    hof_call_plan::mir_hof_call_plan_none()
+}
+
+fn mir_classify_hof_option_call(callee: String) -> MirHofCallPlan {
+    if eq(clone(callee), "map_option_i32_i32") {
+        return hof_call_plan::mir_hof_call_plan_new(lower_kinds::MIR_HOF_KIND_OPTION_I32(), 3, 2, String_new(), true, false, false)
+    }
+    hof_call_plan::mir_hof_call_plan_none()
+}

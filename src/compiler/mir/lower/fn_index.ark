@@ -1,0 +1,33 @@
+// Arukellt Selfhost - MIR lowering function index prepass
+
+struct MirLowerFnIndex {
+    fn_names: Vec<String>,
+    fn_return_vts: Vec<i32>,
+    fn_return_type_names: Vec<String>,
+    entry_main_decl_index: i32,
+    typed_fn_count: i32,
+}
+
+fn MirLowerFnIndex_new(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, entry_main_decl_index: i32, typed_fn_count: i32) -> MirLowerFnIndex {
+    MirLowerFnIndex { fn_names: fn_names, fn_return_vts: fn_return_vts, fn_return_type_names: fn_return_type_names, entry_main_decl_index: entry_main_decl_index, typed_fn_count: typed_fn_count }
+}
+
+fn mir_fn_index_names(info: MirLowerFnIndex) -> Vec<String> {
+    info.fn_names
+}
+
+fn mir_fn_index_return_vts(info: MirLowerFnIndex) -> Vec<i32> {
+    info.fn_return_vts
+}
+
+fn mir_fn_index_return_type_names(info: MirLowerFnIndex) -> Vec<String> {
+    info.fn_return_type_names
+}
+
+fn mir_fn_index_entry_main_decl_index(info: MirLowerFnIndex) -> i32 {
+    info.entry_main_decl_index
+}
+
+fn mir_fn_index_typed_fn_count(info: MirLowerFnIndex) -> i32 {
+    info.typed_fn_count
+}

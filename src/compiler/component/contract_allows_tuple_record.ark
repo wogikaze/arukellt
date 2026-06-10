@@ -1,0 +1,45 @@
+// Arukellt Selfhost - component tuple contract allow data.
+
+pub struct ComponentTupleAllows {
+    allow_tuple_swap: bool,
+    allow_tuple_i64_swap: bool,
+    allow_tuple_param: bool,
+    allow_tuple_mixed_param: bool,
+    allow_tuple_bool_param: bool,
+    allow_tuple_roundtrip: bool,
+}
+
+fn ComponentTupleAllows_new(allow_tuple_swap: bool, allow_tuple_i64_swap: bool, allow_tuple_param: bool, allow_tuple_mixed_param: bool, allow_tuple_bool_param: bool, allow_tuple_roundtrip: bool) -> ComponentTupleAllows {
+    ComponentTupleAllows {
+        allow_tuple_swap: allow_tuple_swap,
+        allow_tuple_i64_swap: allow_tuple_i64_swap,
+        allow_tuple_param: allow_tuple_param,
+        allow_tuple_mixed_param: allow_tuple_mixed_param,
+        allow_tuple_bool_param: allow_tuple_bool_param,
+        allow_tuple_roundtrip: allow_tuple_roundtrip,
+    }
+}
+
+fn ComponentTupleAllows_allow_tuple_swap(allows: ComponentTupleAllows) -> bool {
+    allows.allow_tuple_swap
+}
+
+fn ComponentTupleAllows_allow_tuple_i64_swap(allows: ComponentTupleAllows) -> bool {
+    allows.allow_tuple_i64_swap
+}
+
+fn ComponentTupleAllows_allow_tuple_param(allows: ComponentTupleAllows) -> bool {
+    allows.allow_tuple_param
+}
+
+fn ComponentTupleAllows_allow_tuple_mixed_param(allows: ComponentTupleAllows) -> bool {
+    allows.allow_tuple_mixed_param
+}
+
+fn ComponentTupleAllows_allow_tuple_bool_param(allows: ComponentTupleAllows) -> bool {
+    allows.allow_tuple_bool_param
+}
+
+fn ComponentTupleAllows_allow_tuple_roundtrip(allows: ComponentTupleAllows) -> bool {
+    allows.allow_tuple_roundtrip
+}

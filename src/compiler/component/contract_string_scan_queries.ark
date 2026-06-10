@@ -1,0 +1,87 @@
+// Arukellt Selfhost - component string scan queries.
+
+use component::contract_string_scan
+
+fn ComponentStringScan_has_string_unary(scan: ComponentStringScan) -> bool {
+	contract_string_scan::ComponentStringScan_has_string_unary(scan)
+}
+
+fn ComponentStringScan_has_i32_to_string(scan: ComponentStringScan) -> bool {
+	contract_string_scan::ComponentStringScan_has_i32_to_string(scan)
+}
+
+fn ComponentStringScan_has_string_to_i32(scan: ComponentStringScan) -> bool {
+	contract_string_scan::ComponentStringScan_has_string_to_i32(scan)
+}
+
+fn ComponentStringScan_has_string_to_narrow_i32(scan: ComponentStringScan) -> bool {
+	contract_string_scan::ComponentStringScan_has_string_to_narrow_i32(scan)
+}
+
+fn ComponentStringScan_has_string_to_bool(scan: ComponentStringScan) -> bool {
+	contract_string_scan::ComponentStringScan_has_string_to_bool(scan)
+}
+
+fn ComponentStringScan_has_string_to_char(scan: ComponentStringScan) -> bool {
+	contract_string_scan::ComponentStringScan_has_string_to_char(scan)
+}
+
+fn ComponentStringScan_has_string_to_f64(scan: ComponentStringScan) -> bool {
+	contract_string_scan::ComponentStringScan_has_string_to_f64(scan)
+}
+
+fn ComponentStringScan_has_string_to_i64(scan: ComponentStringScan) -> bool {
+	contract_string_scan::ComponentStringScan_has_string_to_i64(scan)
+}
+
+fn ComponentStringScan_has_string_to_u64(scan: ComponentStringScan) -> bool {
+	contract_string_scan::ComponentStringScan_has_string_to_u64(scan)
+}
+
+fn ComponentStringScan_has_string_to_f32(scan: ComponentStringScan) -> bool {
+	contract_string_scan::ComponentStringScan_has_string_to_f32(scan)
+}
+
+fn ComponentStringScan_single_export(scan: ComponentStringScan) -> bool {
+	contract_string_scan::ComponentStringScan_single_export(scan)
+}
+
+fn ComponentStringScan_allows_string_unary(scan: ComponentStringScan) -> bool {
+	ComponentStringScan_has_string_unary(scan) && ComponentStringScan_single_export(scan)
+}
+
+fn ComponentStringScan_allows_i32_to_string(scan: ComponentStringScan) -> bool {
+	ComponentStringScan_has_i32_to_string(scan) && ComponentStringScan_single_export(scan)
+}
+
+fn ComponentStringScan_allows_string_to_i32(scan: ComponentStringScan) -> bool {
+	ComponentStringScan_has_string_to_i32(scan) && ComponentStringScan_single_export(scan)
+}
+
+fn ComponentStringScan_allows_string_to_narrow_i32(scan: ComponentStringScan) -> bool {
+	ComponentStringScan_has_string_to_narrow_i32(scan) && ComponentStringScan_single_export(scan)
+}
+
+fn ComponentStringScan_allows_string_to_bool(scan: ComponentStringScan) -> bool {
+	ComponentStringScan_has_string_to_bool(scan) && ComponentStringScan_single_export(scan)
+}
+
+fn ComponentStringScan_allows_string_to_char(scan: ComponentStringScan) -> bool {
+	ComponentStringScan_has_string_to_char(scan) && ComponentStringScan_single_export(scan)
+}
+
+fn ComponentStringScan_allows_string_to_f64(scan: ComponentStringScan) -> bool {
+	ComponentStringScan_has_string_to_f64(scan) && ComponentStringScan_single_export(scan)
+}
+
+fn ComponentStringScan_allows_string_to_i64(scan: ComponentStringScan) -> bool {
+	ComponentStringScan_has_string_to_i64(scan) && ComponentStringScan_single_export(scan)
+}
+
+fn ComponentStringScan_allows_string_to_u64(scan: ComponentStringScan) -> bool {
+	ComponentStringScan_has_string_to_u64(scan) && ComponentStringScan_single_export(scan)
+}
+
+fn ComponentStringScan_allows_string_to_f32(scan: ComponentStringScan) -> bool {
+	ComponentStringScan_has_string_to_f32(scan) && ComponentStringScan_single_export(scan)
+}

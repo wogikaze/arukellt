@@ -13,11 +13,11 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 862 369 bytes (≈ 842 KiB) |
-| sha256 | `f62ecf3b863338916998c65c58c9fd2c8ad42d37e7fe0cfc125eb989341e0f8a` |
-| Built from commit | `7911a527` plus the current #312/#121/#034 selfhost worktree changes, including the #121 Result<i32,String>, Result<bool,bool>, tuple<i32,bool>, tuple<bool,bool> parameter, tuple<i64,i64> result, f32 binary/f32-param-i32/f32-result-i32 adapters, option<bool>/option<i64> result/parameter adapters, i64 payload variant lowering, and record-add alias adapter fixes |
+| Size | 874 305 bytes (≈ 854 KiB) |
+| sha256 | `68c515d983b3149dedb2fd8ae7af9291152aa8c565187129f45b19e8ad09857d` |
+| Built from commit | `0808d516` plus the modular full-compile worktree changes (CoreHIR i64 widening in `core_bindings.ark`/`assign.ark`, shaped type-annotation names in `corehir/body_bindings.ark`, binop operand type peek via `binary_type_select.ark`, conditional `local.tee` peephole in `wasm/inst_dispatch_local.ark`, collision-aware export naming via `call_resolve.ark`/`sections_exports.ark`, lexer `LexDiagnostic` rename, IDE commands wired via `main/dispatch_ide.ark` with `analysis`/`lsp`/`dap` included in the bootstrap overlay) |
 | Build target | `wasm32-wasi-p1` |
-| Producer | Selfhost compiler stage 2 (`s2.wasm`), confirmed by Stage-3 fixpoint |
+| Producer | Modular selfhost compiler stage 3 (`s3.wasm`), confirmed by Stage-3 fixpoint (`sha256(s2) == sha256(s3)`); first pinned artifact compiled from the modular `src/compiler/**` tree (flat bootstrap overlay + heap-grow runtime patch), including the LSP/DAP/analysis IDE surface |
 
 ## Reproducibility recipe
 

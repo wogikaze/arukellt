@@ -1,0 +1,7 @@
+// Arukellt Selfhost - CoreHIR raw program layout views.
+
+use corehir::raw_record
+
+fn program_layout_decls(program: CoreHirRawProgram) -> Vec<CoreHirLayoutDecl> {
+    raw_record::raw_program_layout_decls(program)
+}

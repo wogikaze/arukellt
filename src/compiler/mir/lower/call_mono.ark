@@ -1,0 +1,41 @@
+use mir::lower::ctx_fn_mono
+use mir::lower::ctx_fn_exists
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering monomorphized call target resolution
+
+use mir::mono
+
+fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx: i32, span_start: i32) -> String {
+    let mut resolved = clone(rewritten)
+    let mut mono_resolved_by_type = false
+    if first_arg_idx >= 0 {
+        let mono_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        let mut mono_type_key = clone(mono_arg_type)
+        if starts_with(clone(mono_arg_type), String_from("vec:")) {
+            mono_type_key = substring(mono_arg_type, 4, len(mono_arg_type))
+        }
+        if len(mono_type_key) > 0 {
+            let mono_candidate = mono::mono_safe_name(concat(clone(resolved), concat(String_from("__"), mono_type_key)))
+            if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
+                resolved = mono_candidate
+                mono_resolved_by_type = true
+            } else {
+                if eq(clone(mono_type_key), String_from("string")) {
+                    let mono_candidate_string = mono::mono_safe_name(concat(clone(resolved), String_from("__String")))
+                    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate_string)) {
+                        resolved = mono_candidate_string
+                        mono_resolved_by_type = true
+                    }
+                }
+            }
+        }
+    }
+    if !mono_resolved_by_type {
+        let mono_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start)
+        if len(mono_target) > 0 {
+            resolved = mono_target
+        }
+    }
+    resolved
+}

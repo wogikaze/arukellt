@@ -1,0 +1,60 @@
+use mir::lower_kinds
+// Arukellt Selfhost - HOF call plan data contract.
+
+struct MirHofCallPlan {
+    kind: i32,
+    min_children: i32,
+    callback_index: i32,
+    vec_type_name: String,
+    is_map: bool,
+    is_filter: bool,
+    is_fold: bool,
+}
+
+fn mir_hof_call_plan_new(kind: i32, min_children: i32, callback_index: i32, vec_type_name: String, is_map: bool, is_filter: bool, is_fold: bool) -> MirHofCallPlan {
+    MirHofCallPlan { kind: kind, min_children: min_children, callback_index: callback_index, vec_type_name: vec_type_name, is_map: is_map, is_filter: is_filter, is_fold: is_fold }
+}
+
+fn mir_hof_call_plan_none() -> MirHofCallPlan {
+    mir_hof_call_plan_new(lower_kinds::MIR_HOF_KIND_NONE(), 0, 0, String_new(), false, false, false)
+}
+
+fn mir_hof_call_plan_kind(plan: MirHofCallPlan) -> i32 {
+    plan.kind
+}
+
+fn mir_hof_call_plan_min_children(plan: MirHofCallPlan) -> i32 {
+    plan.min_children
+}
+
+fn mir_hof_call_plan_callback_index(plan: MirHofCallPlan) -> i32 {
+    plan.callback_index
+}
+
+fn mir_hof_call_plan_vec_type_name(plan: MirHofCallPlan) -> String {
+    clone(plan.vec_type_name)
+}
+
+fn mir_hof_call_plan_is_map(plan: MirHofCallPlan) -> bool {
+    plan.is_map
+}
+
+fn mir_hof_call_plan_is_filter(plan: MirHofCallPlan) -> bool {
+    plan.is_filter
+}
+
+fn mir_hof_call_plan_is_fold(plan: MirHofCallPlan) -> bool {
+    plan.is_fold
+}
+
+fn mir_hof_call_plan_is_kind(plan: MirHofCallPlan, kind: i32) -> bool {
+    mir_hof_call_plan_kind(plan) == kind
+}
+
+fn mir_hof_call_plan_is_none(plan: MirHofCallPlan) -> bool {
+    mir_hof_call_plan_is_kind(plan, lower_kinds::MIR_HOF_KIND_NONE())
+}
+
+fn mir_hof_call_plan_has_min_children(plan: MirHofCallPlan, child_count: i32) -> bool {
+    child_count >= mir_hof_call_plan_min_children(plan)
+}

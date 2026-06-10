@@ -1,0 +1,27 @@
+use parser::core_ast_span_fields
+use parser::core_ast_op_fields
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - binary infix expression helper.
+
+use parser::expr_infix_result
+use parser::pratt
+
+fn parse_binary_infix(p: Parser, lhs: AstNode, k: i32, min_bp: i32) -> ParserInfixResult {
+    let lbp = pratt::infix_bp_left(k)
+    if lbp == 0 {
+        return expr_infix_result::ParserInfixResult_no(lhs)
+    }
+    if lbp < min_bp {
+        return expr_infix_result::ParserInfixResult_no(lhs)
+    }
+    let op_tok = bump(p)
+    let rbp = pratt::infix_bp_right(k)
+    let rhs = parse_expr_bp(p, rbp)
+    let node = AstNode_new(kinds::NK_BINARY(), core_ast_span_fields::AstNode_span(lhs))
+    core_ast_op_fields::AstNode_set_op(node, pratt::token_to_binop(k))
+    core_ast_children::AstNode_push_child(node, lhs)
+    core_ast_children::AstNode_push_child(node, rhs)
+    expr_infix_result::ParserInfixResult_yes(node)
+}

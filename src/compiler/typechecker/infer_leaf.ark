@@ -1,0 +1,25 @@
+use typechecker::kinds
+// Arukellt Typechecker - literal and identifier expression inference.
+
+use typechecker::ast_expr_predicates
+use typechecker::ast_access
+use typechecker::scope
+
+fn infer_leaf_expr(scope: LocalScope, node: AstNode) -> TypeInfo {
+    if ast_expr_predicates::node_is_int_lit(node) {
+        return TypeInfo_simple(commands::TY_I32())
+    }
+    if ast_expr_predicates::node_is_float_lit(node) {
+        return TypeInfo_simple(commands::TY_F64())
+    }
+    if ast_expr_predicates::node_is_string_lit(node) {
+        return TypeInfo_simple(commands::TY_STRING())
+    }
+    if ast_expr_predicates::node_is_bool_lit(node) {
+        return TypeInfo_simple(commands::TY_BOOL())
+    }
+    if ast_expr_predicates::node_is_ident(node) {
+        return scope::scope_lookup(scope, ast_access::node_text(node))
+    }
+    TypeInfo_simple(commands::TY_UNKNOWN())
+}

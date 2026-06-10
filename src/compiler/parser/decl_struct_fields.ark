@@ -1,0 +1,29 @@
+use lexer::tokens
+use parser::core_ast_children
+// Arukellt Parser - struct declaration field list syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::decl_struct_field
+
+fn parse_struct_fields(p: Parser, node: AstNode) {
+    let mut first = true
+    while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::at(p, tokens::TK_RBRACE()) {
+            break
+        }
+        if !first {
+            core_api_expect::expect_token(p, tokens::TK_COMMA())
+            core_api_cursor::skip_newlines(p)
+            if core_api_cursor::at(p, tokens::TK_RBRACE()) {
+                break
+            }
+        }
+        first = false
+        core_api_cursor::skip_newlines(p)
+        let field = decl_struct_field::parse_struct_field(p)
+        core_ast_children::AstNode_push_child(node, field)
+        core_api_cursor::skip_newlines(p)
+    }
+}

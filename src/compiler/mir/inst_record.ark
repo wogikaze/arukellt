@@ -1,0 +1,60 @@
+// Arukellt Selfhost - MIR instruction data record.
+
+pub struct MirInst {
+    op: i32,
+    dest: i32,
+    arg0: i32,
+    arg1: i32,
+    int_val: i32,
+    float_val: f64,
+    str_val: String,
+    val_type: i32,
+}
+
+fn MirInst_new_full(op: i32, dest: i32, arg0: i32, arg1: i32, int_val: i32, float_val: f64, str_val: String, val_type: i32) -> MirInst {
+    MirInst { op: op, dest: dest, arg0: arg0, arg1: arg1, int_val: int_val, float_val: float_val, str_val: str_val, val_type: val_type }
+}
+
+fn mir_inst_val_type(inst: MirInst) -> i32 {
+    inst.val_type
+}
+
+fn mir_inst_op(inst: MirInst) -> i32 {
+    inst.op
+}
+
+fn mir_inst_dest(inst: MirInst) -> i32 {
+    inst.dest
+}
+
+fn mir_inst_arg0(inst: MirInst) -> i32 {
+    inst.arg0
+}
+
+fn mir_inst_arg1(inst: MirInst) -> i32 {
+    inst.arg1
+}
+
+fn mir_inst_int_val(inst: MirInst) -> i32 {
+    inst.int_val
+}
+
+fn mir_inst_float_val(inst: MirInst) -> f64 {
+    inst.float_val
+}
+
+fn mir_inst_str_val(inst: MirInst) -> String {
+    clone(inst.str_val)
+}
+
+fn mir_inst_set_arg0(inst: MirInst, arg0: i32) {
+    inst.arg0 = arg0
+}
+
+fn mir_inst_set_arg1(inst: MirInst, arg1: i32) {
+    inst.arg1 = arg1
+}
+
+fn mir_inst_set_dest(inst: MirInst, dest: i32) {
+    inst.dest = dest
+}

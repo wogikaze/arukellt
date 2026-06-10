@@ -1,0 +1,28 @@
+// Arukellt Resolver - lexical scope DTO record.
+
+use resolver::symbol_record
+
+struct Scope {
+    symbols: Vec<Symbol>,
+    parent_depth: i32,
+}
+
+fn Scope_new(parent: i32) -> Scope {
+    Scope { symbols: Vec_new_Symbol(), parent_depth: parent }
+}
+
+fn scope_symbol_count(scope: Scope) -> i32 {
+    len(scope.symbols)
+}
+
+fn scope_symbol_at(scope: Scope, index: i32) -> Symbol {
+    get_unchecked(scope.symbols, index)
+}
+
+fn scope_push_symbol(scope: Scope, sym: Symbol) {
+    push(scope.symbols, sym)
+}
+
+fn scope_clear_symbols(scope: Scope) {
+    scope.symbols = Vec_new_Symbol()
+}

@@ -1,0 +1,41 @@
+// Arukellt Selfhost - Component export shape kind ids
+
+fn LIST_I32_TO_I32() -> i32 { 1 }
+fn I32_TO_LIST_I32() -> i32 { 2 }
+fn LIST_I32_TO_LIST_I32() -> i32 { 3 }
+
+fn F32_UNARY() -> i32 { 1 }
+fn F32_BINARY() -> i32 { 2 }
+fn F32_TO_I32() -> i32 { 3 }
+fn I32_TO_F32() -> i32 { 4 }
+
+fn I32_TO_OPTION_I32() -> i32 { 1 }
+fn BOOL_TO_OPTION_BOOL() -> i32 { 2 }
+fn BOOL_TO_OPTION_I64() -> i32 { 3 }
+fn OPTION_I32_TO_I32() -> i32 { 4 }
+fn OPTION_I64_TO_I64() -> i32 { 5 }
+fn OPTION_I32_TO_OPTION_I32() -> i32 { 6 }
+
+fn RESULT_I32_I32_TO_I32() -> i32 { 1 }
+fn RESULT_I32_STRING_TO_I32() -> i32 { 2 }
+fn RESULT_I32_I32_TO_RESULT_I32_I32() -> i32 { 3 }
+fn BOOL_TO_RESULT_BOOL_BOOL() -> i32 { 4 }
+fn I32_I32_TO_RESULT_I32_STRING() -> i32 { 5 }
+
+fn STRING_UNARY() -> i32 { 1 }
+fn STRING_TO_I32() -> i32 { 2 }
+fn STRING_TO_NAMED_I32() -> i32 { 3 }
+fn STRING_TO_BOOL() -> i32 { 4 }
+fn STRING_TO_CHAR() -> i32 { 5 }
+fn STRING_TO_F64() -> i32 { 6 }
+fn STRING_TO_I64() -> i32 { 7 }
+fn STRING_TO_U64() -> i32 { 8 }
+fn STRING_TO_F32() -> i32 { 9 }
+fn I32_TO_STRING() -> i32 { 10 }
+
+fn I32_I32_TO_TUPLE_I32_I32() -> i32 { 1 }
+fn I64_I64_TO_TUPLE_I64_I64() -> i32 { 2 }
+fn TUPLE_I32_I32_TO_I32() -> i32 { 3 }
+fn TUPLE_I32_I32_TO_TUPLE_I32_I32() -> i32 { 4 }
+fn TUPLE_I32_BOOL_TO_I32() -> i32 { 5 }
+fn TUPLE_BOOL_BOOL_TO_I32() -> i32 { 6 }

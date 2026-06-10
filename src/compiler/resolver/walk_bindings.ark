@@ -1,0 +1,12 @@
+// Arukellt Resolver - binding node dispatch.
+
+use resolver::bindings
+use resolver::ast_control_predicates
+
+fn resolve_binding_node(ctx: ResolveCtx, node: AstNode) -> bool {
+    if ast_control_predicates::node_is_let(node) {
+        bindings::resolve_let(ctx, node)
+        return true
+    }
+    false
+}

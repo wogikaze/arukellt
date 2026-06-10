@@ -1,0 +1,63 @@
+// Arukellt Selfhost - main namespace: dispatch
+
+use main::args_record
+use std::host::process
+use std::host::stdio
+use main::commands
+use main::dispatch_ide
+use main::kinds
+use main::usage
+use main::compile
+use main::project_build
+use main::project_run
+// Arukellt Selfhost - CLI command dispatch
+
+pub fn dispatch(opts: CliOptions) {
+    let command = args_record::cli_command(opts)
+    if !dispatch_preflight(opts, command) {
+        return
+    }
+    dispatch_route(opts, command)
+}
+
+// Arukellt Selfhost - CLI dispatch preflight checks.
+
+fn dispatch_preflight(opts: CliOptions, command: i32) -> bool {
+    if command == kinds::CMD_NOT_YET() {
+        stdio::eprintln(String_from("error: command not yet implemented in selfhost compiler"))
+        process::exit(1)
+        return false
+    }
+    if !args_record::cli_has_input_file(opts) && !dispatch_command_allows_missing_input(command) {
+        stdio::eprintln(String_from("error: no input file specified"))
+        usage::print_usage()
+        process::exit(2)
+        return false
+    }
+    true
+}
+
+fn dispatch_command_allows_missing_input(command: i32) -> bool {
+    command == kinds::CMD_BUILD() || command == kinds::CMD_TEST()
+}
+
+// Arukellt Selfhost - CLI command route selection.
+
+fn dispatch_route(opts: CliOptions, command: i32) {
+    if command == kinds::CMD_BUILD() {
+        project_build::cmd_build(opts)
+        return
+    }
+    if command == kinds::CMD_TEST() {
+        project_run::cmd_test(opts)
+        return
+    }
+    if command == kinds::CMD_RUN() {
+        project_run::cmd_run(opts)
+        return
+    }
+    if dispatch_ide::dispatch_ide_command(opts, command) {
+        return
+    }
+    compile::cmd_compile(opts)
+}

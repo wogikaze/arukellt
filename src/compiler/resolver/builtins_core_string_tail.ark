@@ -1,0 +1,28 @@
+// Arukellt Resolver - extended string and constructor builtin names.
+
+fn push_core_string_tail_builtin_symbol_names(names: Vec<String>) {
+    push(names, String_from("ends_with"))
+    push(names, String_from("trim"))
+    push(names, String_from("repeat"))
+    push(names, String_from("to_uppercase"))
+    push(names, String_from("to_lowercase"))
+    push(names, String_from("index_of"))
+    push(names, String_from("replace"))
+    push(names, String_from("clamp_i32"))
+    push(names, String_from("to_lower"))
+    push(names, String_from("to_upper"))
+    push(names, String_from("sort_i32"))
+    push(names, String_from("lines"))
+    push(names, String_from("byte_len"))
+    push(names, String_from("byte_at"))
+    push(names, String_from("trim_start"))
+    push(names, String_from("trim_end"))
+    push(names, String_from("pad_left"))
+    push(names, String_from("pad_right"))
+    push(names, String_from("format_i32"))
+    push(names, String_from("format_bool"))
+    push(names, String_from("Some"))
+    push(names, String_from("None"))
+    push(names, String_from("Ok"))
+    push(names, String_from("Err"))
+}

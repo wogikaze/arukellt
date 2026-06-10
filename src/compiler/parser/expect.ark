@@ -1,0 +1,43 @@
+use lexer::tokens
+// Arukellt Parser - expectation and parse diagnostic helpers.
+
+use parser::diagnostics
+use parser::ast_span_record
+use parser::cursor
+use parser::state_record
+use parser::token_state
+
+fn consume_closing_gt(p: Parser) {
+    cursor::skip_newlines(p)
+    let t = cursor::cur(p)
+    if token_state::Token_kind(t) == tokens::TK_GT() {
+        state_record::parser_advance(p)
+        return
+    }
+    if token_state::Token_kind(t) == tokens::TK_SHR() {
+        let gt_tok = token_state::Token_new(tokens::TK_GT(), String_from(">"), token_state::Token_start(t), token_state::Token_end(t))
+        state_record::parser_set_current_token(p, gt_tok)
+        return
+    }
+    diagnostics::parser_push_unexpected_error(p, String_from("expected >"))
+}
+
+fn expect_token(p: Parser, kind: i32) -> Token {
+    cursor::skip_newlines(p)
+    let t = cursor::cur(p)
+    let actual = token_state::Token_kind(t)
+    if actual == kind {
+        state_record::parser_advance(p)
+        return t
+    }
+    diagnostics::parser_push_expected_token_error(p, kind, actual, t)
+    t
+}
+
+fn tok_span(t: Token) -> Span {
+    ast_span_record::Span_new(token_state::Token_start(t), token_state::Token_end(t))
+}
+
+fn error(p: Parser, msg: String) {
+    diagnostics::parser_push_unexpected_error(p, msg)
+}

@@ -1,0 +1,43 @@
+use mir::lower::ast_node
+use mir::lower_kinds
+use mir::lower::hof_call_plan
+use mir::lower::hof_call_classify
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - higher-order function calls
+
+use mir::inst_local_set
+use mir::lower::hof
+
+fn try_lower_hof_call(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
+    let hof_callee_text = ast_node::node_text(callee)
+    let hof_plan = hof_call_classify::mir_classify_hof_call(clone(hof_callee_text))
+    if hof_call_plan::mir_hof_call_plan_is_none(hof_plan) || !hof_call_plan::mir_hof_call_plan_has_min_children(hof_plan, child_count) {
+        return 0 - 1
+    }
+    let hof_cb_node = ast_node::node_child_at(node, hof_call_plan::mir_hof_call_plan_callback_index(hof_plan))
+    let hof_fn_name = ast_node::node_text(hof_cb_node)
+    let hof_vec_child = ast_node::node_child_at(node, 1)
+    let hof_vec_local = lower_expr(ctx, hof_vec_child)
+    if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_OPTION_I32()) {
+        return hof::mir_lower_map_option_i32(ctx, hof_fn_name, hof_vec_local)
+    }
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(hof_vec_local))
+    ctx_set_local_type(ctx, hof_vec_local, hof_call_plan::mir_hof_call_plan_vec_type_name(hof_plan))
+    let mut hof_init_idx = 0 - 1
+    if hof_call_plan::mir_hof_call_plan_is_fold(hof_plan) {
+        let hof_init_child = ast_node::node_child_at(node, 2)
+        hof_init_idx = lower_expr(ctx, hof_init_child)
+    }
+    if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_I64()) {
+        return hof::mir_lower_hof_i64(ctx, hof_fn_name, hof_vec_local, hof_init_idx, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan), hof_call_plan::mir_hof_call_plan_is_fold(hof_plan))
+    }
+    if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_I32()) {
+        return hof::mir_lower_hof_i32(ctx, hof_callee_text, hof_fn_name, hof_vec_local, hof_init_idx, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan), hof_call_plan::mir_hof_call_plan_is_fold(hof_plan))
+    }
+    if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_F64()) {
+        return hof::mir_lower_hof_f64(ctx, hof_fn_name, hof_vec_local, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan))
+    }
+    0 - 1
+}

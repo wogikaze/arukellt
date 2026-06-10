@@ -1,0 +1,35 @@
+// Arukellt Typechecker - type representation data contract.
+
+struct TypeInfo {
+    tag: i32,
+    name: String,
+    type_args: Vec<TypeInfo>,
+}
+
+fn TypeInfo_new(tag: i32, name: String, type_args: Vec<TypeInfo>) -> TypeInfo {
+    TypeInfo { tag: tag, name: name, type_args: type_args }
+}
+
+fn type_info_tag(ty: TypeInfo) -> i32 {
+    ty.tag
+}
+
+fn type_info_name(ty: TypeInfo) -> String {
+    clone(ty.name)
+}
+
+fn type_info_set_name(ty: TypeInfo, name: String) {
+    ty.name = name
+}
+
+fn type_info_type_arg_count(ty: TypeInfo) -> i32 {
+    len(ty.type_args)
+}
+
+fn type_info_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
+    get_unchecked(ty.type_args, index)
+}
+
+fn type_info_push_type_arg(ty: TypeInfo, arg: TypeInfo) {
+    push(ty.type_args, arg)
+}

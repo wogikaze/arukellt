@@ -1,0 +1,39 @@
+use mir::lower::ctx_api_emit
+use mir::opcodes
+use mir::lower::ctx_types
+// Arukellt Selfhost - Option HOF setup lowering.
+
+use mir::inst_struct_get
+use mir::inst_struct_new
+use mir::inst_structured_control
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::inst_op
+use mir::value_types
+
+fn emit_map_option_setup(ctx: LowerCtx, mopt_opt_local: i32, mopt_tag_local: i32, mopt_new_local: i32) {
+    emit_map_option_bind_input(ctx, mopt_opt_local)
+    emit_map_option_extract_tag(ctx, mopt_opt_local, mopt_tag_local)
+    emit_map_option_alloc_result(ctx, mopt_new_local)
+    emit_map_option_open_some_branch(ctx, mopt_tag_local)
+}
+
+fn emit_map_option_bind_input(ctx: LowerCtx, mopt_opt_local: i32) {
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(mopt_opt_local))
+}
+
+fn emit_map_option_extract_tag(ctx: LowerCtx, mopt_opt_local: i32, mopt_tag_local: i32) {
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(mopt_opt_local))
+    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(0, value_types::VT_VOID()))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(mopt_tag_local))
+}
+
+fn emit_map_option_alloc_result(ctx: LowerCtx, mopt_new_local: i32) {
+    ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(mopt_new_local, 8))
+}
+
+fn emit_map_option_open_some_branch(ctx: LowerCtx, mopt_tag_local: i32) {
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(mopt_tag_local))
+    ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_unary(opcodes::MIR_NOT(), mopt_tag_local, mopt_tag_local, value_types::VT_I32()))
+    ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_if())
+}

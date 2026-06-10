@@ -1,0 +1,32 @@
+// Arukellt HIR - type equality helpers.
+
+use hir::type_contracts
+use hir::kinds
+
+fn types_equal(a: HirType, b: HirType) -> bool {
+    let atag = type_contracts::HirType_tag(a)
+    let btag = type_contracts::HirType_tag(b)
+    if atag != btag {
+        return false
+    }
+    if atag == commands::TY_STRUCT() || atag == commands::TY_ENUM() {
+        if !eq(type_contracts::HirType_name(a), type_contracts::HirType_name(b)) {
+            return false
+        }
+    }
+    let ac = type_contracts::HirType_type_arg_count(a)
+    let bc = type_contracts::HirType_type_arg_count(b)
+    if ac != bc {
+        return false
+    }
+    let mut i = 0
+    while i < ac {
+        let ta = type_contracts::HirType_type_arg_at(a, i)
+        let tb = type_contracts::HirType_type_arg_at(b, i)
+        if !types_equal(ta, tb) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}

@@ -1,0 +1,30 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_variants
+use mir::lower::ctx_types
+// Arukellt MIR lowering body - call expression facade
+
+use mir::lower::body_call_closure
+use mir::lower::body_call_direct
+use mir::lower::body_call_hof
+use mir::lower::body_call_variant
+
+fn lower_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count < 1 {
+        return 0 - 1
+    }
+    let callee = ast_node::node_child_at(node, 0)
+    let var_tag = ctx_variant_tag(ctx, ast_node::node_text(callee))
+    if var_tag >= 0 && child_count > 1 {
+        return body_call_variant::lower_payload_variant_call(ctx, node, child_count, var_tag)
+    }
+    let closure_result = body_call_closure::try_lower_closure_call(ctx, node, callee, child_count)
+    if closure_result >= 0 {
+        return closure_result
+    }
+    let hof_result = body_call_hof::try_lower_hof_call(ctx, node, callee, child_count)
+    if hof_result >= 0 {
+        return hof_result
+    }
+    body_call_direct::lower_direct_call_expr(ctx, node, callee, child_count)
+}

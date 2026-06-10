@@ -1,0 +1,16 @@
+// Arukellt Typechecker - generic call type variable allocation.
+
+use typechecker::contract_fn_sig
+use typechecker::unify
+
+fn append_generic_type_vars(infer_env: TypeEnv, sig: FnSig, var_names: Vec<String>, var_types: Vec<TypeInfo>) {
+    let tp_count = contract_fn_sig::FnSig_type_param_count(sig)
+    let mut k = 0
+    while k < tp_count {
+        let tp_name = contract_fn_sig::FnSig_type_param_at(sig, k)
+        let tv = unify::fresh_var(infer_env)
+        push(var_names, tp_name)
+        push(var_types, tv)
+        k = k + 1
+    }
+}

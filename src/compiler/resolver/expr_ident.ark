@@ -1,0 +1,25 @@
+// Arukellt Resolver - identifier expression resolution.
+
+use resolver::scope_lookup
+use resolver::ast_access
+use resolver::scope_error
+
+fn resolve_ident(ctx: ResolveCtx, node: AstNode) {
+    let name = ast_access::node_text(node)
+    let idx = scope_lookup::lookup(ctx, clone(name))
+    if idx < 0 {
+        if !resolver_ident_is_builtin(clone(name)) {
+            scope_error::resolve_error(ctx, concat(String_from("undefined name: "), name))
+        }
+    }
+}
+
+fn resolver_ident_is_builtin(name: String) -> bool {
+    let name_len = len(name)
+    if name_len >= 8 {
+        if eq(substring(name, 0, 8), String_from("Vec_new_")) {
+            return true
+        }
+    }
+    false
+}

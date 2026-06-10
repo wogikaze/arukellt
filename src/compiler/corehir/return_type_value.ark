@@ -1,0 +1,24 @@
+// Arukellt Selfhost - CoreHIR return annotation value type mapping.
+
+use corehir::decl_ann_name
+use corehir::return_ann_shape
+use corehir::value_types
+
+fn return_value_type_tag(node: AstNode) -> i32 {
+    let child_count = return_ann_shape::return_ann_child_count(node)
+    if child_count <= 0 {
+        return value_types::VT_VOID()
+    }
+    let ret = return_ann_shape::return_ann_child(node)
+    let name = decl_ann_name::decl_ann_name(ret)
+    if eq(clone(name), String_from("f64")) {
+        return value_types::VT_F64()
+    }
+    if eq(clone(name), String_from("i64")) || eq(clone(name), String_from("u64")) {
+        return value_types::VT_I64()
+    }
+    if eq(clone(name), String_from("void")) || eq(clone(name), String_from("()")) {
+        return value_types::VT_VOID()
+    }
+    value_types::VT_I32()
+}

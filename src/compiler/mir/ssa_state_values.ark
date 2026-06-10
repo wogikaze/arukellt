@@ -1,0 +1,32 @@
+use mir::function_locals_view
+use mir::function_local_mutation
+use mir::local_factory
+// Arukellt Selfhost - MIR SSA value slot definition helpers.
+
+use mir::ssa_phi
+use mir::ssa_state_slots
+use mir::ssa_state_types
+
+fn mir_ssa_append_value_slot(f: MirFunction, original_local: i32, ssa_name: String, ssa_version: i32) -> i32 {
+    let source = function_locals_view::MirFunction_local_at(f, original_local)
+    let idx = function_locals_view::MirFunction_local_count(f)
+    function_local_mutation::MirFunction_push_local(f, local_factory::MirLocal_copy_with_ssa(source, ssa_name, ssa_version))
+    idx
+}
+
+fn mir_ssa_define_value(f: MirFunction, state: ssa_state_types::MirSsaRenameState, original_local: i32, ssa_name: String) -> i32 {
+    if original_local < 0 || original_local >= ssa_state_types::MirSsaRenameState_original_local_count(state) {
+        return original_local
+    }
+    let old_version = ssa_state_types::MirSsaRenameState_version_for(state, original_local)
+    let new_version = old_version + 1
+    let mut value_id = original_local
+    if old_version >= 0 {
+        value_id = mir_ssa_append_value_slot(f, original_local, clone(ssa_name), new_version)
+    } else {
+        ssa_phi::mir_assign_local_ssa(f, original_local, clone(ssa_name), new_version)
+    }
+    ssa_state_slots::mir_ssa_set_version(state, original_local, new_version)
+    ssa_state_slots::mir_ssa_set_current(state, original_local, value_id)
+    value_id
+}

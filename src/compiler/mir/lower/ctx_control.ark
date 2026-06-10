@@ -1,0 +1,67 @@
+// Arukellt MIR lowering context - control-flow scope state facade.
+
+use mir::lower::ctx_control_storage
+
+fn ctx_current_nesting_depth(ctx: LowerCtx) -> i32 {
+    ctx_control_storage::ctx_control_nesting_depth(ctx)
+}
+
+fn ctx_push_nesting(ctx: LowerCtx) -> i32 {
+    ctx_control_storage::ctx_control_inc_nesting_depth(ctx)
+}
+
+fn ctx_pop_nesting(ctx: LowerCtx) -> i32 {
+    ctx_control_storage::ctx_control_dec_nesting_depth(ctx)
+}
+
+fn ctx_loop_break_depth(ctx: LowerCtx) -> i32 {
+    ctx_control_storage::ctx_control_loop_break_depth(ctx)
+}
+
+fn ctx_loop_continue_depth(ctx: LowerCtx) -> i32 {
+    ctx_control_storage::ctx_control_loop_continue_depth(ctx)
+}
+
+fn ctx_loop_break_local(ctx: LowerCtx) -> i32 {
+    ctx_control_storage::ctx_control_loop_break_local(ctx)
+}
+
+fn ctx_set_loop_break_depth(ctx: LowerCtx, depth: i32) {
+    ctx_control_storage::ctx_control_set_loop_break_depth(ctx, depth)
+}
+
+fn ctx_set_loop_continue_depth(ctx: LowerCtx, depth: i32) {
+    ctx_control_storage::ctx_control_set_loop_continue_depth(ctx, depth)
+}
+
+fn ctx_set_loop_break_local(ctx: LowerCtx, local_idx: i32) {
+    ctx_control_storage::ctx_control_set_loop_break_local(ctx, local_idx)
+}
+
+fn ctx_set_loop_break_depth_to_current(ctx: LowerCtx) {
+    ctx_control_storage::ctx_control_set_loop_break_depth(ctx, ctx_control_storage::ctx_control_nesting_depth(ctx))
+}
+
+fn ctx_set_loop_continue_depth_to_current(ctx: LowerCtx) {
+    ctx_control_storage::ctx_control_set_loop_continue_depth(ctx, ctx_control_storage::ctx_control_nesting_depth(ctx))
+}
+
+fn ctx_loop_break_available(ctx: LowerCtx) -> bool {
+    ctx_control_storage::ctx_control_loop_break_depth(ctx) >= 0
+}
+
+fn ctx_loop_continue_available(ctx: LowerCtx) -> bool {
+    ctx_control_storage::ctx_control_loop_continue_depth(ctx) >= 0
+}
+
+fn ctx_loop_break_value_available(ctx: LowerCtx) -> bool {
+    ctx_control_storage::ctx_control_loop_break_local(ctx) >= 0
+}
+
+fn ctx_loop_break_branch_depth(ctx: LowerCtx) -> i32 {
+    ctx_control_storage::ctx_control_nesting_depth(ctx) - ctx_control_storage::ctx_control_loop_break_depth(ctx)
+}
+
+fn ctx_loop_continue_branch_depth(ctx: LowerCtx) -> i32 {
+    ctx_control_storage::ctx_control_nesting_depth(ctx) - ctx_control_storage::ctx_control_loop_continue_depth(ctx)
+}

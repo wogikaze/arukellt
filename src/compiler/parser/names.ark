@@ -1,0 +1,31 @@
+// Arukellt Parser - AST node display names facade
+
+use parser::name_decl
+use parser::name_expr
+use parser::name_pattern
+use parser::name_stmt
+use parser::name_type
+
+fn node_kind_name(kind: i32) -> String {
+    let expr_name = name_expr::expr_node_kind_name(kind)
+    if len(expr_name) > 0 {
+        return expr_name
+    }
+    let stmt_name = name_stmt::stmt_node_kind_name(kind)
+    if len(stmt_name) > 0 {
+        return stmt_name
+    }
+    let decl_name = name_decl::decl_node_kind_name(kind)
+    if len(decl_name) > 0 {
+        return decl_name
+    }
+    let pattern_name = name_pattern::pattern_node_kind_name(kind)
+    if len(pattern_name) > 0 {
+        return pattern_name
+    }
+    let type_name = name_type::type_node_kind_name(kind)
+    if len(type_name) > 0 {
+        return type_name
+    }
+    String_from("Unknown")
+}

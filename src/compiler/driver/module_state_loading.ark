@@ -1,0 +1,35 @@
+// Arukellt Selfhost - driver module loading stack state.
+
+fn vec_has(v: Vec<String>, name: String) -> bool {
+    let count = len(v)
+    let mut i = 0
+    while i < count {
+        if eq(clone(get_unchecked(v, i)), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn LoadState_has_loaded(state: LoadState, name: String) -> bool {
+    vec_has(state.loaded_names, name)
+}
+
+fn LoadState_has_loading(state: LoadState, name: String) -> bool {
+    vec_has(state.loading_stack, name)
+}
+
+fn LoadState_push_loading(state: LoadState, name: String) {
+    push(state.loading_stack, name)
+}
+
+fn LoadState_pop_loading(state: LoadState) {
+    if len(state.loading_stack) > 0 {
+        pop(state.loading_stack)
+    }
+}
+
+fn LoadState_push_loaded(state: LoadState, name: String) {
+    push(state.loaded_names, name)
+}

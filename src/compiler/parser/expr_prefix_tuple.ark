@@ -1,0 +1,37 @@
+use lexer::tokens
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - tuple and grouped prefix expressions.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+
+pub fn parse_tuple_or_group(p: Parser, t: Token) -> AstNode {
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::at(p, tokens::TK_RPAREN()) {
+        p.pos = p.pos + 1
+        return core_ast_factory::AstNode_new(kinds::NK_TUPLE(), core_api_expect::tok_span(t))
+    }
+    let first_expr = parse_expr(p)
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::at(p, tokens::TK_COMMA()) {
+        let node = core_ast_factory::AstNode_new(kinds::NK_TUPLE(), core_api_expect::tok_span(t))
+        core_ast_children::AstNode_push_child(node, first_expr)
+        while core_api_cursor::at(p, tokens::TK_COMMA()) {
+            p.pos = p.pos + 1
+            core_api_cursor::skip_newlines(p)
+            if core_api_cursor::at(p, tokens::TK_RPAREN()) {
+                break
+            }
+            let elem = parse_expr(p)
+            core_ast_children::AstNode_push_child(node, elem)
+            core_api_cursor::skip_newlines(p)
+        }
+        core_api_expect::expect_token(p, tokens::TK_RPAREN())
+        return node
+    }
+    core_api_expect::expect_token(p, tokens::TK_RPAREN())
+    first_expr
+}

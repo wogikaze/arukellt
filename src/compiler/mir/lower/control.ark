@@ -1,0 +1,35 @@
+use mir::lower::ctx_api_loop_state
+use mir::lower::ctx_api_loop_query
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering control-flow transfer helpers
+
+use mir::inst_return
+use mir::inst_branch
+use mir::inst_local_set
+
+fn mir_emit_return_value(ctx: LowerCtx, val_idx: i32) {
+    ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_value(val_idx))
+}
+
+fn mir_emit_return_void(ctx: LowerCtx) {
+    ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
+}
+
+fn mir_emit_loop_break(ctx: LowerCtx) {
+    if ctx_api_loop_query::ctx_loop_break_available(ctx) {
+        ctx_api_emit::ctx_emit(ctx, inst_branch::MirInst_br(ctx_api_loop_query::ctx_loop_break_branch_depth(ctx)))
+    }
+}
+
+fn mir_emit_loop_continue(ctx: LowerCtx) {
+    if ctx_api_loop_query::ctx_loop_continue_available(ctx) {
+        ctx_api_emit::ctx_emit(ctx, inst_branch::MirInst_br(ctx_api_loop_query::ctx_loop_continue_branch_depth(ctx)))
+    }
+}
+
+fn mir_store_break_value(ctx: LowerCtx, value_idx: i32) {
+    if ctx_api_loop_query::ctx_loop_break_value_available(ctx) {
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(ctx_api_loop_state::ctx_loop_break_local(ctx)))
+    }
+}

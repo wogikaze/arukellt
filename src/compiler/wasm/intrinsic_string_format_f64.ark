@@ -1,0 +1,201 @@
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_convert
+use wasm::intrinsics::helpers_numeric_f64
+use wasm::intrinsics::helpers_memory_access
+use wasm::constants
+// Arukellt Selfhost - f64 string format intrinsic handler.
+
+use wasm::ctx_scratch
+use wasm::intrinsics::helpers_control_branch
+use wasm::intrinsics::helpers_control_loop
+use wasm::intrinsics::helpers_control_structured
+use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_core_locals
+
+// Handler for: f64_to_string, text::format_f64, convert::f64_to_string, __intrinsic_f64_to_string
+fn emit_f64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_wpos = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s_neg = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_int = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_alloc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_fdig = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s_fpos = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    let f_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
+    let f_frac = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 13)
+    let buf_start = constants::SCRATCH_I32BUF()
+    let int_end = buf_start + 20
+    helpers_core_locals::emit_local_set(w, f_val)
+    emit_f64_prepare_value(w, s_neg, s_int, f_val, f_frac)
+    helpers_numeric_i32_const::emit_i32_const(w, int_end)
+    helpers_core_locals::emit_local_set(w, s_wpos)
+    emit_f64_write_integer(w, s_wpos, s_int, s_neg, int_end)
+    emit_f64_write_fraction(w, s_fdig, s_fpos, s_int, f_frac, int_end)
+    emit_f64_alloc_string(w, s_wpos, s_len, s_alloc, s_fpos)
+    return true
+}
+
+fn emit_f64_prepare_value(w: WasmWriter, s_neg: i32, s_int: i32, f_val: i32, f_frac: i32) {
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_neg)
+    helpers_core_locals::emit_local_get(w, f_val)
+    helpers_numeric_f64::emit_f64_const_words(w, 0, 0)
+    helpers_numeric_f64::emit_f64_lt(w)
+    helpers_control_structured::emit_if_empty(w)
+    helpers_core_locals::emit_local_get(w, f_val)
+    helpers_numeric_f64::emit_f64_neg(w)
+    helpers_core_locals::emit_local_set(w, f_val)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_core_locals::emit_local_set(w, s_neg)
+    helpers_control_structured::emit_end(w)
+    helpers_core_locals::emit_local_get(w, f_val)
+    helpers_numeric_i32_convert::emit_i32_trunc_f64_s(w)
+    helpers_core_locals::emit_local_set(w, s_int)
+    helpers_core_locals::emit_local_get(w, f_val)
+    helpers_core_locals::emit_local_get(w, s_int)
+    helpers_numeric_f64::emit_f64_convert_i32_s(w)
+    helpers_numeric_f64::emit_f64_sub(w)
+    helpers_core_locals::emit_local_set(w, f_frac)
+}
+
+fn emit_f64_alloc_string(w: WasmWriter, s_wpos: i32, s_len: i32, s_alloc: i32, s_fpos: i32) {
+    helpers_core_locals::emit_local_get(w, s_fpos)
+    helpers_core_locals::emit_local_get(w, s_wpos)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_core_locals::emit_local_set(w, s_len)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_core_locals::emit_local_tee(w, s_alloc)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+    helpers_core_locals::emit_local_get(w, s_alloc)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core_locals::emit_local_get(w, s_alloc)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_get(w, s_wpos)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_memory_access::emit_memory_copy(w)
+    helpers_core_locals::emit_local_get(w, s_alloc)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+}
+
+fn emit_f64_write_integer(w: WasmWriter, s_wpos: i32, s_int: i32, s_neg: i32, int_end: i32) {
+    helpers_core_locals::emit_local_get(w, s_int)
+    helpers_numeric_i32_compare::emit_i32_eqz(w)
+    helpers_control_structured::emit_if_empty(w)
+    helpers_core_locals::emit_local_get(w, s_wpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_core_locals::emit_local_tee(w, s_wpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 48)
+    helpers_memory_access::emit_i32_store8_default(w)
+    helpers_control_structured::emit_else(w)
+    helpers_control_loop::emit_block_loop_header(w)
+    helpers_core_locals::emit_local_get(w, s_int)
+    helpers_numeric_i32_compare::emit_i32_eqz(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_locals::emit_local_get(w, s_wpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_core_locals::emit_local_tee(w, s_wpos)
+    helpers_core_locals::emit_local_get(w, s_int)
+    helpers_numeric_i32_const::emit_i32_const(w, 10)
+    helpers_numeric_i32_arith::emit_i32_rem_u(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 48)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory_access::emit_i32_store8_default(w)
+    helpers_core_locals::emit_local_get(w, s_int)
+    helpers_numeric_i32_const::emit_i32_const(w, 10)
+    helpers_numeric_i32_arith::emit_i32_div_u(w)
+    helpers_core_locals::emit_local_set(w, s_int)
+    helpers_control_branch::emit_br(w, 0)
+    helpers_control_structured::emit_end(w)
+    helpers_control_structured::emit_end(w)
+    helpers_control_structured::emit_end(w)
+    helpers_core_locals::emit_local_get(w, s_neg)
+    helpers_control_structured::emit_if_empty(w)
+    helpers_core_locals::emit_local_get(w, s_wpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_core_locals::emit_local_tee(w, s_wpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 45)
+    helpers_memory_access::emit_i32_store8_default(w)
+    helpers_control_structured::emit_end(w)
+    helpers_numeric_i32_const::emit_i32_const(w, int_end)
+    helpers_numeric_i32_const::emit_i32_const(w, 46)
+    helpers_memory_access::emit_i32_store8_default(w)
+}
+
+fn emit_f64_write_fraction(w: WasmWriter, s_fdig: i32, s_fpos: i32, s_int: i32, f_frac: i32, int_end: i32) {
+    helpers_numeric_i32_const::emit_i32_const(w, int_end + 1)
+    helpers_core_locals::emit_local_set(w, s_fpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_fdig)
+    emit_f64_fraction_digits(w, s_fdig, s_fpos, s_int, f_frac)
+    emit_f64_trim_fraction_zeros(w, s_fpos, int_end)
+}
+
+fn emit_f64_fraction_digits(w: WasmWriter, s_fdig: i32, s_fpos: i32, s_int: i32, f_frac: i32) {
+    helpers_control_loop::emit_block_loop_header(w)
+    helpers_core_locals::emit_local_get(w, s_fdig)
+    helpers_numeric_i32_const::emit_i32_const(w, 15)
+    helpers_numeric_i32_compare::emit_i32_ge_s(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_locals::emit_local_get(w, f_frac)
+    helpers_numeric_f64::emit_f64_const_words(w, 0, 1076101120)
+    helpers_numeric_f64::emit_f64_mul(w)
+    helpers_core_locals::emit_local_set(w, f_frac)
+    helpers_core_locals::emit_local_get(w, f_frac)
+    helpers_numeric_i32_convert::emit_i32_trunc_f64_s(w)
+    helpers_core_locals::emit_local_set(w, s_int)
+    helpers_core_locals::emit_local_get(w, f_frac)
+    helpers_core_locals::emit_local_get(w, s_int)
+    helpers_numeric_f64::emit_f64_convert_i32_s(w)
+    helpers_numeric_f64::emit_f64_sub(w)
+    helpers_core_locals::emit_local_set(w, f_frac)
+    helpers_core_locals::emit_local_get(w, s_fpos)
+    helpers_core_locals::emit_local_get(w, s_int)
+    helpers_numeric_i32_const::emit_i32_const(w, 48)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory_access::emit_i32_store8_default(w)
+    helpers_core_locals::emit_local_get(w, s_fpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_fpos)
+    helpers_core_locals::emit_local_get(w, s_fdig)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_fdig)
+    helpers_control_branch::emit_br(w, 0)
+    helpers_control_structured::emit_end(w)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_f64_trim_fraction_zeros(w: WasmWriter, s_fpos: i32, int_end: i32) {
+    helpers_control_loop::emit_block_loop_header(w)
+    helpers_core_locals::emit_local_get(w, s_fpos)
+    helpers_numeric_i32_const::emit_i32_const(w, int_end + 2)
+    helpers_numeric_i32_compare::emit_i32_le_s(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_locals::emit_local_get(w, s_fpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_memory_access::emit_i32_load8_u_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 48)
+    helpers_numeric_i32_compare::emit_i32_ne(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_locals::emit_local_get(w, s_fpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_core_locals::emit_local_set(w, s_fpos)
+    helpers_control_branch::emit_br(w, 0)
+    helpers_control_structured::emit_end(w)
+    helpers_control_structured::emit_end(w)
+}

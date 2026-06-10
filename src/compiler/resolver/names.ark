@@ -1,0 +1,34 @@
+// Arukellt Resolver - symbol display names
+
+use resolver::kinds
+
+fn sym_kind_name(kind: i32) -> String {
+    if kind == commands::SYM_LOCAL() {
+        return String_from("local")
+    }
+    if kind == commands::SYM_PARAM() {
+        return String_from("param")
+    }
+    if kind == commands::SYM_FN() {
+        return String_from("fn")
+    }
+    if kind == commands::SYM_STRUCT() {
+        return String_from("struct")
+    }
+    if kind == commands::SYM_ENUM() {
+        return String_from("enum")
+    }
+    if kind == commands::SYM_VARIANT() {
+        return String_from("variant")
+    }
+    if kind == commands::SYM_IMPORT() {
+        return String_from("import")
+    }
+    if kind == commands::SYM_BUILTIN() {
+        return String_from("builtin")
+    }
+    if kind == commands::SYM_MODULE() {
+        return String_from("module")
+    }
+    String_from("unknown")
+}

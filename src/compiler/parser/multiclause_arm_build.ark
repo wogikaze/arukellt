@@ -1,0 +1,18 @@
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - multi-clause match arm assembly.
+
+use parser::multiclause_arm_guard
+use parser::multiclause_arm_pattern
+
+fn build_clause_match_arm(clause: AstNode, fn_span: Span) -> AstNode {
+    let clause_child_count = core_ast_children::AstNode_child_count(clause)
+    let clause_param_count = clause_child_count - 1
+    let body = core_ast_children::AstNode_child_at(clause, clause_child_count - 1)
+    let arm = AstNode_new(kinds::NK_MATCH_ARM(), fn_span)
+    multiclause_arm_pattern::append_clause_arm_pattern(arm, clause, clause_param_count, fn_span)
+    multiclause_arm_guard::append_clause_guard(arm, clause, fn_span)
+    core_ast_children::AstNode_push_child(arm, body)
+    arm
+}

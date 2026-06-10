@@ -1,0 +1,35 @@
+use lexer::tokens
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - match expression syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::expr_control_match_arm
+
+fn parse_match_expr(p: Parser) -> AstNode {
+    let t = expect_token(p, tokens::TK_MATCH())
+    let node = AstNode_new(kinds::NK_MATCH_EXPR(), tok_span(t))
+    skip_newlines(p)
+    let scrutinee = parse_expr(p)
+    core_ast_children::AstNode_push_child(node, scrutinee)
+    skip_newlines(p)
+    expect_token(p, tokens::TK_LBRACE())
+    skip_newlines(p)
+    while !at(p, tokens::TK_RBRACE()) && !at_eof(p) {
+        skip_newlines(p)
+        if at(p, tokens::TK_RBRACE()) {
+            break
+        }
+        let arm = expr_control_match_arm::parse_match_arm(p)
+        core_ast_children::AstNode_push_child(node, arm)
+        skip_newlines(p)
+        if peek_kind(p) == tokens::TK_COMMA() {
+            p.pos = p.pos + 1
+        }
+        skip_newlines(p)
+    }
+    expect_token(p, tokens::TK_RBRACE())
+    node
+}

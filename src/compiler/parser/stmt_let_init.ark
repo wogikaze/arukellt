@@ -1,0 +1,14 @@
+// Arukellt Parser - let statement initializer.
+
+use lexer::tokens
+use parser::core_ast_children
+use parser::core_api_cursor
+
+fn parse_let_initializer(p: Parser, node: AstNode) {
+    if peek_kind(p) == tokens::TK_EQ() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let init = parse_expr(p)
+        core_ast_children::AstNode_push_child(node, init)
+    }
+}

@@ -1,0 +1,26 @@
+use typechecker::kinds
+// Arukellt Typechecker - builtin call type facts
+
+use typechecker::contract_type_constructors
+use typechecker::contract_type_mutation
+use typechecker::types
+
+fn simple_type(tag: i32) -> TypeInfo {
+    contract_type_constructors::TypeInfo_simple(tag)
+}
+
+fn builtin_call_return_type(name: String) -> TypeInfo {
+    if eq(clone(name), "String_from") || eq(clone(name), "i32_to_string") || eq(clone(name), "i64_to_string") || eq(clone(name), "f64_to_string") || eq(clone(name), "bool_to_string") || eq(clone(name), "char_to_string") || eq(clone(name), "to_string") {
+        return simple_type(commands::TY_STRING())
+    }
+    if eq(clone(name), "len") {
+        return simple_type(commands::TY_I32())
+    }
+    if starts_with(clone(name), "Vec_new_") {
+        let elem_name = substring(name, 8, len(name))
+        let mut vec_ty = simple_type(commands::TY_VEC())
+        contract_type_mutation::TypeInfo_push_type_arg(vec_ty, types::resolve_type_name(elem_name))
+        return vec_ty
+    }
+    simple_type(commands::TY_UNKNOWN())
+}

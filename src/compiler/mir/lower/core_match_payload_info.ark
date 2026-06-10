@@ -1,0 +1,80 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR match payload analysis.
+
+use mir::inst_struct_get
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_patterns
+use mir::value_types
+
+struct CoreMatchPayloadInfo {
+    is_payload_match: bool,
+    scrut_ok_is_f64: bool,
+    scrut_ok_is_i64: bool,
+    scrut_ok_is_i32: bool,
+    compare_idx: i32,
+}
+
+fn core_match_payload_info_new(is_payload_match: bool, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool, compare_idx: i32) -> CoreMatchPayloadInfo {
+    CoreMatchPayloadInfo { is_payload_match: is_payload_match, scrut_ok_is_f64: scrut_ok_is_f64, scrut_ok_is_i64: scrut_ok_is_i64, scrut_ok_is_i32: scrut_ok_is_i32, compare_idx: compare_idx }
+}
+
+fn core_match_payload_info_is_payload_match(info: CoreMatchPayloadInfo) -> bool {
+    info.is_payload_match
+}
+
+fn core_match_payload_info_scrut_ok_is_f64(info: CoreMatchPayloadInfo) -> bool {
+    info.scrut_ok_is_f64
+}
+
+fn core_match_payload_info_scrut_ok_is_i64(info: CoreMatchPayloadInfo) -> bool {
+    info.scrut_ok_is_i64
+}
+
+fn core_match_payload_info_scrut_ok_is_i32(info: CoreMatchPayloadInfo) -> bool {
+    info.scrut_ok_is_i32
+}
+
+fn core_match_payload_info_compare_idx(info: CoreMatchPayloadInfo) -> i32 {
+    info.compare_idx
+}
+
+fn core_prepare_match_payload(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, scrut_idx: i32) -> CoreMatchPayloadInfo {
+    let is_payload_match = core_match_has_payload_pattern(exprs, expr)
+    let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, scrut_idx)
+    let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") || eq(clone(scrut_type), "Option_f64")
+    let scrut_ok_is_i64 = eq(clone(scrut_type), "Result_i64") || eq(clone(scrut_type), "Option_i64")
+    let scrut_ok_is_i32 = eq(clone(scrut_type), "Option_i32") || eq(clone(scrut_type), "Result_i32")
+    let mut compare_idx = scrut_idx
+    if is_payload_match {
+        compare_idx = core_emit_payload_tag_local(ctx, scrut_idx)
+    }
+    core_match_payload_info_new(is_payload_match, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_i32, compare_idx)
+}
+
+fn core_emit_payload_tag_local(ctx: LowerCtx, scrut_idx: i32) -> i32 {
+    let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
+    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(0, value_types::VT_VOID()))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(tag_local))
+    tag_local
+}
+
+fn core_match_has_payload_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {
+    let mut arm_scan = 1
+    while arm_scan < core_expr_shape_accessors::mir_core_expr_child_count(expr) {
+        let scan_arm = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, arm_scan))
+        if core_expr_shape_accessors::mir_core_expr_child_count(scan_arm) > 0 {
+            let scan_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(scan_arm, 0))
+            if core_expr_shape_patterns::mir_core_expr_is_pat_variant(scan_pat) && core_expr_shape_accessors::mir_core_expr_child_count(scan_pat) > 0 {
+                return true
+            }
+        }
+        arm_scan = arm_scan + 1
+    }
+    false
+}

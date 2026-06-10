@@ -1,0 +1,12 @@
+// Arukellt Selfhost - Wasm public boundary.
+
+use wasm::wasm
+use wasm::wat
+
+pub fn emit_wasm(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
+    wasm::emit_wasm_module(mir, target, opt_level)
+}
+
+pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {
+    wat::emit_wat_module(mir, target, opt_level)
+}

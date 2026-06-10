@@ -1,0 +1,179 @@
+// Arukellt Selfhost - component export contract helpers
+
+use component::ast_node
+use component::type_node
+
+struct ComponentExportFunc {
+    node: AstNode,
+}
+
+fn component_func_from_decl(node: AstNode) -> ComponentExportFunc {
+    ComponentExportFunc { node: node }
+}
+
+fn should_export_func(name: String) -> bool {
+    if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
+        return false
+    }
+    if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
+        return false
+    }
+    if contains(clone(name), String_from("::")) {
+        return false
+    }
+    true
+}
+
+fn component_error(fn_name: String) -> String {
+    concat(String_from("E0401: component export uses a special adapter signature not supported by canonical ABI: "), fn_name)
+}
+
+fn component_func_name(f: AstNode) -> String {
+    ast_node::node_text(f)
+}
+
+fn component_export_func_name(f: ComponentExportFunc) -> String {
+    ast_node::node_text(f.node)
+}
+
+fn component_error_for_fn(f: AstNode) -> String {
+    component_error(component_func_name(f))
+}
+
+fn component_error_for_export_func(f: ComponentExportFunc) -> String {
+    component_error(component_export_func_name(f))
+}
+
+fn component_decl_is_func(d: AstNode) -> bool {
+    ast_node::node_is_fn_decl(d)
+}
+
+fn component_decl_is_pub(d: AstNode) -> bool {
+    ast_node::node_is_pub(d)
+}
+
+fn is_export_func_decl(decl: AstNode) -> bool {
+    component_decl_is_func(decl) && component_decl_is_pub(decl) && should_export_func(component_func_name(decl))
+}
+
+fn export_decl_name(decl: AstNode) -> String {
+    component_func_name(decl)
+}
+
+fn component_param_type_name_at(f: AstNode, idx: i32) -> String {
+    if idx < 0 || idx >= ast_node::node_child_count(f) - 1 {
+        return String_new()
+    }
+    let p = ast_node::node_child_at(f, idx)
+    if ast_node::node_type_ann_count(p) == 0 {
+        return String_new()
+    }
+    let ty = ast_node::node_type_ann_at(p, 0)
+    ast_node::node_text(ty)
+}
+
+fn component_export_param_type_name_at(f: ComponentExportFunc, idx: i32) -> String {
+    component_param_type_name_at(f.node, idx)
+}
+
+fn component_return_type_name(f: AstNode) -> String {
+    let mut i = 0
+    while i < ast_node::node_type_ann_count(f) {
+        let ann = ast_node::node_type_ann_at(f, i)
+        if ast_node::node_is_return_ann(ann) {
+            if ast_node::node_child_count(ann) > 0 {
+                let ret = ast_node::node_child_at(ann, 0)
+                return ast_node::node_text(ret)
+            }
+            return String_from("()")
+        }
+        i = i + 1
+    }
+    String_from("()")
+}
+
+fn component_export_return_type_name(f: ComponentExportFunc) -> String {
+    component_return_type_name(f.node)
+}
+
+fn component_param_count(f: AstNode) -> i32 {
+    ast_node::node_child_count(f) - 1
+}
+
+fn component_export_param_count(f: ComponentExportFunc) -> i32 {
+    component_param_count(f.node)
+}
+
+fn component_param_count_is(f: AstNode, expected: i32) -> bool {
+    component_param_count(f) == expected
+}
+
+fn component_export_param_count_is(f: ComponentExportFunc, expected: i32) -> bool {
+    component_export_param_count(f) == expected
+}
+
+fn component_param_name_at(f: AstNode, idx: i32) -> String {
+    if idx < 0 || idx >= component_param_count(f) {
+        return String_new()
+    }
+    ast_node::node_text(ast_node::node_child_at(f, idx))
+}
+
+fn component_param_has_type_at(f: AstNode, idx: i32) -> bool {
+    if idx < 0 || idx >= component_param_count(f) {
+        return false
+    }
+    ast_node::node_type_ann_count(ast_node::node_child_at(f, idx)) > 0
+}
+
+fn component_export_param_has_type_at(f: ComponentExportFunc, idx: i32) -> bool {
+    component_param_has_type_at(f.node, idx)
+}
+
+fn component_param_type_at(f: AstNode, idx: i32) -> AstNode {
+    ast_node::node_type_ann_at(ast_node::node_child_at(f, idx), 0)
+}
+
+fn component_param_type_view_at(f: AstNode, idx: i32) -> ComponentTypeNode {
+    type_node::type_node_from_ast(component_param_type_at(f, idx))
+}
+
+fn component_export_param_type_view_at(f: ComponentExportFunc, idx: i32) -> ComponentTypeNode {
+    component_param_type_view_at(f.node, idx)
+}
+
+fn component_return_has_type(f: AstNode) -> bool {
+    let mut i = 0
+    while i < ast_node::node_type_ann_count(f) {
+        let ann = ast_node::node_type_ann_at(f, i)
+        if ast_node::node_is_return_ann(ann) && ast_node::node_child_count(ann) > 0 {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn component_export_return_has_type(f: ComponentExportFunc) -> bool {
+    component_return_has_type(f.node)
+}
+
+fn component_return_type_at(f: AstNode) -> AstNode {
+    let mut i = 0
+    while i < ast_node::node_type_ann_count(f) {
+        let ann = ast_node::node_type_ann_at(f, i)
+        if ast_node::node_is_return_ann(ann) && ast_node::node_child_count(ann) > 0 {
+            return ast_node::node_child_at(ann, 0)
+        }
+        i = i + 1
+    }
+    ast_node::node_child_at(f, 0)
+}
+
+fn component_return_type_view(f: AstNode) -> ComponentTypeNode {
+    type_node::type_node_from_ast(component_return_type_at(f))
+}
+
+fn component_export_return_type_view(f: ComponentExportFunc) -> ComponentTypeNode {
+    component_return_type_view(f.node)
+}

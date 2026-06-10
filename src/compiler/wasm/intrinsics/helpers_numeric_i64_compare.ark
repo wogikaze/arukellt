@@ -1,0 +1,8 @@
+// Arukellt Selfhost - Wasm i64 compare helper recipes.
+
+use wasm::opcodes
+use wasm::writer_core
+
+fn emit_i64_ne(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I64_NE()) }
+fn emit_i64_eqz(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I64_EQZ()) }
+fn emit_i64_lt_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I64_LT_S()) }

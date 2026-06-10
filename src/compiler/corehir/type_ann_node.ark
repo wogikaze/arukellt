@@ -1,0 +1,33 @@
+// Arukellt Selfhost - CoreHIR type annotation node predicates.
+
+use corehir::frontend_ast_children
+use corehir::frontend_ast_identity
+use corehir::frontend_type_kind
+
+fn type_ann_name(node: AstNode) -> String {
+    frontend_ast_identity::corehir_node_text(node)
+}
+
+fn type_ann_child_count(node: AstNode) -> i32 {
+    frontend_ast_children::corehir_node_child_count(node)
+}
+
+fn type_ann_child_at(node: AstNode, idx: i32) -> AstNode {
+    frontend_ast_children::corehir_node_child_at(node, idx)
+}
+
+fn type_ann_is_named(node: AstNode) -> bool {
+    frontend_type_kind::corehir_kind_is_type_named(frontend_ast_identity::corehir_node_kind(node))
+}
+
+fn type_ann_is_generic(node: AstNode) -> bool {
+    frontend_type_kind::corehir_kind_is_type_generic(frontend_ast_identity::corehir_node_kind(node))
+}
+
+fn type_ann_is_tuple(node: AstNode) -> bool {
+    frontend_type_kind::corehir_kind_is_type_tuple(frontend_ast_identity::corehir_node_kind(node))
+}
+
+fn type_ann_is_name(node: AstNode, expected: String) -> bool {
+    eq(type_ann_name(node), expected)
+}

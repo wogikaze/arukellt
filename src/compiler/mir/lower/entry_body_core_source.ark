@@ -1,0 +1,16 @@
+// Arukellt Selfhost - MIR entry CoreHIR body source adapter.
+
+use mir::lower::entry_core_body
+use mir::lower::entry_view_body
+
+fn mir_entry_body_core_fn(entry_view: MirLowerEntryView, fn_info_index: i32) -> MirLowerEntryCoreBody {
+    let core_body_root = entry_view_body::mir_entry_fn_body_root(entry_view, fn_info_index)
+    let core_exprs = entry_view_body::mir_entry_exprs(entry_view)
+    entry_core_body::mir_entry_core_body_new(core_exprs, core_body_root)
+}
+
+fn mir_entry_body_core_method(entry_view: MirLowerEntryView, method_info_index: i32) -> MirLowerEntryCoreBody {
+    let core_body_root = entry_view_body::mir_entry_method_body_root(entry_view, method_info_index)
+    let core_exprs = entry_view_body::mir_entry_exprs(entry_view)
+    entry_core_body::mir_entry_core_body_new(core_exprs, core_body_root)
+}

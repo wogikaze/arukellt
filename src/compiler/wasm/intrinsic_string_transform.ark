@@ -1,0 +1,16 @@
+// Arukellt Selfhost - extended string transform intrinsic facade.
+
+use wasm::intrinsic_string_case
+use wasm::intrinsic_string_repeat
+
+fn emit_repeat(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_repeat::emit_repeat(w, inst, ctx)
+}
+
+fn emit_to_upper(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_case::emit_to_upper(w, inst, ctx)
+}
+
+fn emit_to_lower(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    intrinsic_string_case::emit_to_lower(w, inst, ctx)
+}

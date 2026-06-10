@@ -1,0 +1,60 @@
+// Arukellt Selfhost - component record, color, and shape special signature checks
+
+use component::contract_allows_record_query
+use component::contract_record_shape
+use component::contract_helpers
+
+fn component_record_shape_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	let point_error = component_record_point_signature_error(f, allows)
+	if len(point_error) > 0 {
+		return point_error
+	}
+	let color_error = component_record_color_signature_error(f, allows)
+	if len(color_error) > 0 {
+		return color_error
+	}
+	let shape_error = component_record_shape_kind_signature_error(f, allows)
+	if len(shape_error) > 0 {
+		return shape_error
+	}
+	String_new()
+}
+
+fn component_record_point_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_record_query::ComponentContractAllows_allow_record_distance(allows) && !contract_record_shape::component_fn_is_point_to_i32(f) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_record_query::ComponentContractAllows_allow_record_point(allows) && !(contract_record_shape::component_fn_is_point_to_i32(f) || contract_record_shape::component_fn_is_point_point_to_point(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_record_query::ComponentContractAllows_allow_record_roundtrip(allows) && !contract_record_shape::component_fn_is_point_to_point(f) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_record_query::ComponentContractAllows_allow_record_add(allows) && !contract_record_shape::component_fn_is_point_point_to_point(f) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_record_color_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_record_query::ComponentContractAllows_allow_color_code(allows) && !contract_record_shape::component_fn_is_color_to_i32(f) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_record_query::ComponentContractAllows_allow_color_enum(allows) && !(contract_record_shape::component_fn_is_color_to_color(f) || contract_record_shape::component_fn_is_color_to_i32(f)) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_record_query::ComponentContractAllows_allow_color_roundtrip(allows) && !contract_record_shape::component_fn_is_color_to_color(f) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}
+
+fn component_record_shape_kind_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_record_query::ComponentContractAllows_allow_shape_area(allows) && !contract_record_shape::component_fn_is_shape_to_f64(f) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	if contract_allows_record_query::ComponentContractAllows_allow_shape_roundtrip(allows) && !contract_record_shape::component_fn_is_shape_to_shape(f) {
+		return contract_helpers::component_error_for_fn(f)
+	}
+	String_new()
+}

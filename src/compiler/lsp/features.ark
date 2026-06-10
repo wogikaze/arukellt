@@ -1,0 +1,17 @@
+// Arukellt LSP - hover, definition, and completion requests.
+
+use lsp::feature_completion
+use lsp::feature_definition
+use lsp::feature_hover
+
+pub fn handle_hover(state: LspState, body: String) {
+    feature_hover::handle_hover(state, body)
+}
+
+pub fn handle_definition(state: LspState, body: String) {
+    feature_definition::handle_definition(state, body)
+}
+
+pub fn handle_completion(state: LspState, body: String) {
+    feature_completion::handle_completion(state, body)
+}

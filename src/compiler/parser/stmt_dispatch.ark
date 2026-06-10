@@ -1,0 +1,38 @@
+use lexer::tokens
+use parser::core_ast_span_fields
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - statement keyword dispatch.
+
+use parser::core_api_cursor
+use parser::kinds
+
+pub fn parse_stmt(p: Parser) -> AstNode {
+    skip_newlines(p)
+    let k = peek_kind(p)
+    if k == tokens::TK_LET() {
+        return parse_let(p)
+    }
+    if k == tokens::TK_RETURN() {
+        return parse_return(p)
+    }
+    if k == tokens::TK_BREAK() {
+        return parse_break(p)
+    }
+    if k == tokens::TK_CONTINUE() {
+        return parse_continue(p)
+    }
+    if k == tokens::TK_WHILE() {
+        return parse_while(p)
+    }
+    if k == tokens::TK_LOOP() {
+        return parse_loop(p)
+    }
+    if k == tokens::TK_FOR() {
+        return parse_for(p)
+    }
+    let expr = parse_expr(p)
+    let node = AstNode_new(kinds::NK_EXPR_STMT(), core_ast_span_fields::AstNode_span(expr))
+    core_ast_children::AstNode_push_child(node, expr)
+    node
+}

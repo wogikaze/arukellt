@@ -1,0 +1,56 @@
+// Arukellt Selfhost - numeric cast intrinsic facade.
+
+use mir::inst_accessors_literals
+use wasm::intrinsics::helpers_numeric_f64
+use wasm::intrinsics::helpers_numeric_i32_bitwise
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_numeric_i32_convert
+use wasm::intrinsics::helpers_numeric_i64_convert
+
+// Handler for: i32_to_i64
+fn emit_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i64_convert::emit_i64_extend_i32_s(w)
+    return true
+}
+
+// Handler for: i64_to_i32
+fn emit_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i32_convert::emit_i32_wrap_i64(w)
+    return true
+}
+
+// Handler for: i8_to_i32, u8_to_i32, i16_to_i32, u16_to_i32
+fn emit_i8_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    return true
+}
+
+// Handler for: i32_to_u8, i32_to_i8
+fn emit_i32_to_u8(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i32_const::emit_i32_const(w, 255)
+    helpers_numeric_i32_bitwise::emit_i32_and(w)
+    return true
+}
+
+// Handler for: u32_to_u64
+fn emit_u32_to_u64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
+    return true
+}
+
+// Handler for: i32_to_u32
+fn emit_i32_to_u32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    return true
+}
+
+// Handler for: f32_to_f64, f64_to_f32
+fn emit_f32_to_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if eq(clone(inst_accessors_literals::MirInst_str_val(inst)), "f64_to_f32") || eq(clone(inst_accessors_literals::MirInst_str_val(inst)), "__intrinsic_f64_to_f32") {
+        helpers_numeric_f64::emit_f64_to_f32_bridge(w)
+        return true
+    }
+    if eq(clone(inst_accessors_literals::MirInst_str_val(inst)), "f32_to_f64") || eq(clone(inst_accessors_literals::MirInst_str_val(inst)), "__intrinsic_f32_to_f64") {
+        helpers_numeric_f64::emit_f32_to_f64_bridge(w)
+        return true
+    }
+    return true
+}

@@ -1,0 +1,46 @@
+// Arukellt Selfhost - frontend method metadata to CoreHIR facts.
+
+use corehir::decl_node_identity
+use corehir::decl_member_collections
+use corehir::decl_node
+use corehir::method_info
+use corehir::param_shape
+use corehir::return_type
+
+fn build_method_params(method: AstNode, param_count: i32) -> Vec<CoreHirParam> {
+    let params = Vec_new_CoreHirParam()
+    let mut i = 0
+    while i < param_count {
+        push(params, param_shape::method_param_from_node(decl_member_collections::decl_method_at(method, i)))
+        i = i + 1
+    }
+    params
+}
+
+fn build_method_infos(decls: Vec<AstNode>) -> Vec<CoreHirMethodInfo> {
+    let infos = Vec_new_CoreHirMethodInfo()
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let decl = get_unchecked(decls, i)
+        if decl_node::decl_is_impl(decl) {
+            let owner_name = decl_node_identity::decl_name(decl)
+            let method_count = decl_member_collections::decl_method_count(decl)
+            let mut mi = 0
+            while mi < method_count {
+                let method = decl_member_collections::decl_method_at(decl, mi)
+                let body_index = decl_member_collections::method_body_index(method)
+                let param_count = decl_member_collections::method_param_count(method)
+                let params = build_method_params(method, param_count)
+                let method_name = decl_node_identity::method_name(method)
+                let mangled = concat(clone(owner_name), concat(String_from("::"), clone(method_name)))
+                let return_vt = return_type::return_value_type_tag(method)
+                let return_type_name = return_type::return_index_type_name(method)
+                push(infos, method_info::CoreHirMethodInfo_new(i, mi, clone(owner_name), method_name, mangled, param_count, params, body_index, return_vt, return_type_name))
+                mi = mi + 1
+            }
+        }
+        i = i + 1
+    }
+    infos
+}

@@ -1,0 +1,34 @@
+use mir::lower::ctx_api_nesting
+use mir::lower::ctx_api_loop_state
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR loop scope begin emission.
+
+use mir::inst_structured_control
+use mir::lower::loop_scope_types
+use mir::value_types
+
+fn mir_begin_loop_scope(ctx: LowerCtx) -> MirLoopScope {
+    let scope = loop_scope_types::mir_loop_scope_new(ctx_api_loop_state::ctx_loop_break_depth(ctx), ctx_api_loop_state::ctx_loop_continue_depth(ctx), ctx_api_loop_state::ctx_loop_break_local(ctx), 0 - 1)
+    ctx_emit(ctx, inst_structured_control::MirInst_block())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    ctx_api_loop_state::ctx_set_loop_break_depth_to_current(ctx)
+    ctx_emit(ctx, inst_structured_control::MirInst_loop())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    ctx_api_loop_state::ctx_set_loop_continue_depth_to_current(ctx)
+    scope
+}
+
+fn mir_begin_value_loop_scope(ctx: LowerCtx) -> MirLoopScope {
+    let break_result = ctx_fresh_local(ctx, value_types::VT_I32())
+    let scope = loop_scope_types::mir_loop_scope_new(ctx_api_loop_state::ctx_loop_break_depth(ctx), ctx_api_loop_state::ctx_loop_continue_depth(ctx), ctx_api_loop_state::ctx_loop_break_local(ctx), break_result)
+    ctx_api_loop_state::ctx_set_loop_break_local(ctx, break_result)
+    ctx_emit(ctx, inst_structured_control::MirInst_block())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    ctx_api_loop_state::ctx_set_loop_break_depth_to_current(ctx)
+    ctx_emit(ctx, inst_structured_control::MirInst_loop())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    ctx_api_loop_state::ctx_set_loop_continue_depth_to_current(ctx)
+    scope
+}

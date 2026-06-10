@@ -1,0 +1,47 @@
+// Arukellt Typechecker - monomorphization bookkeeping contract.
+
+use typechecker::contract_types_record
+
+struct MonoInstance {
+    fn_name: String,
+    mangled_name: String,
+    type_args: Vec<TypeInfo>,
+}
+
+struct MonoCallSite {
+    span_start: i32,
+    fn_name: String,
+    mangled_name: String,
+}
+
+fn MonoInstance_new(fn_name: String, mangled_name: String, type_args: Vec<TypeInfo>) -> MonoInstance {
+    MonoInstance { fn_name: fn_name, mangled_name: mangled_name, type_args: type_args }
+}
+
+fn MonoInstance_fn_name(instance: MonoInstance) -> String {
+    clone(instance.fn_name)
+}
+
+fn MonoInstance_mangled_name(instance: MonoInstance) -> String {
+    clone(instance.mangled_name)
+}
+
+fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {
+    len(instance.type_args)
+}
+
+fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {
+    get_unchecked(instance.type_args, index)
+}
+
+fn MonoCallSite_new(span_start: i32, fn_name: String, mangled_name: String) -> MonoCallSite {
+    MonoCallSite { span_start: span_start, fn_name: fn_name, mangled_name: mangled_name }
+}
+
+fn MonoCallSite_span_start(site: MonoCallSite) -> i32 {
+    site.span_start
+}
+
+fn MonoCallSite_fn_name(site: MonoCallSite) -> String {
+    clone(site.fn_name)
+}

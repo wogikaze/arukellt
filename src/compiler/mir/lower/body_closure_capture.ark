@@ -1,0 +1,37 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_function_frame
+use mir::lower::ctx_types
+use mir::local_factory
+// Arukellt MIR lowering body - closure capture parameter emission.
+
+use mir::value_types
+
+fn mir_closure_capture_vts(ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
+    let cap_n = len(caps)
+    let cap_vts = Vec_new_i32()
+    let mut cvi = 0
+    while cvi < cap_n {
+        let cname = clone(get_unchecked(caps, cvi))
+        let cli = ctx_lookup_local(ctx, clone(cname))
+        let mut pvt = value_types::VT_I32()
+        if cli >= 0 {
+            pvt = ctx_local_vt(ctx, cli)
+        }
+        push(cap_vts, pvt)
+        cvi = cvi + 1
+    }
+    cap_vts
+}
+
+fn mir_emit_closure_captures(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>) {
+    let cap_n = len(caps)
+    let mut ci = 0
+    while ci < cap_n {
+        let cname = clone(get_unchecked(caps, ci))
+        let pvt = get_unchecked(cap_vts, ci)
+        let _idx2 = ctx_alloc_local(ctx, clone(cname), pvt)
+        ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(cname), pvt, String_new()))
+        ci = ci + 1
+    }
+}

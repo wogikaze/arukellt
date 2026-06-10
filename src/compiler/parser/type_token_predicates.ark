@@ -1,0 +1,35 @@
+use lexer::tokens
+
+// Arukellt Parser - type parser token predicates.
+
+fn is_named_start(kind: i32) -> bool {
+    kind == tokens::TK_IDENT()
+}
+
+fn is_tuple_start(kind: i32) -> bool {
+    kind == tokens::TK_LPAREN()
+}
+
+fn is_tuple_end(kind: i32) -> bool {
+    kind == tokens::TK_RPAREN()
+}
+
+fn is_fn_start(kind: i32) -> bool {
+    kind == tokens::TK_FN()
+}
+
+fn is_path_sep(kind: i32) -> bool {
+    kind == tokens::TK_COLONCOLON()
+}
+
+fn is_generic_start(kind: i32) -> bool {
+    kind == tokens::TK_LT()
+}
+
+fn is_generic_end(kind: i32) -> bool {
+    kind == tokens::TK_GT() || kind == tokens::TK_SHR()
+}
+
+fn is_arrow(kind: i32) -> bool {
+    kind == tokens::TK_ARROW()
+}

@@ -1,0 +1,8 @@
+// Arukellt Parser - public expectation and error facade.
+
+use parser::expect
+
+fn consume_closing_gt(p: Parser) { expect::consume_closing_gt(p) }
+fn expect_token(p: Parser, kind: i32) -> Token { expect::expect_token(p, kind) }
+fn tok_span(t: Token) -> Span { expect::tok_span(t) }
+fn error(p: Parser, msg: String) { expect::error(p, msg) }

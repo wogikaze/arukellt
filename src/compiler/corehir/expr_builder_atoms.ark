@@ -1,0 +1,37 @@
+use corehir::expr_factory
+use corehir::kinds
+// Arukellt Selfhost - CoreHIR atom expression constructors.
+
+use corehir::value_types
+
+fn corehir_expr_ident(text: String, span_start: i32) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_IDENT(), text, 0, 0.0, value_types::VT_I32(), String_new(), span_start, Vec_new_i32())
+}
+
+fn corehir_expr_path(text: String, span_start: i32) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_PATH(), text, 0, 0.0, value_types::VT_I32(), String_new(), span_start, Vec_new_i32())
+}
+
+fn corehir_expr_int(text: String, int_val: i32, span_start: i32) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_INT(), text, int_val, 0.0, value_types::VT_I32(), String_new(), span_start, Vec_new_i32())
+}
+
+fn corehir_expr_int_typed(text: String, int_val: i32, val_type: i32, type_name: String, span_start: i32) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_INT(), text, int_val, 0.0, val_type, type_name, span_start, Vec_new_i32())
+}
+
+fn corehir_expr_float(text: String, float_val: f64, span_start: i32) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_FLOAT(), text, 0, float_val, value_types::VT_F64(), String_from("f64"), span_start, Vec_new_i32())
+}
+
+fn corehir_expr_string(text: String, span_start: i32) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_STRING(), text, 0, 0.0, value_types::VT_REF(), String_new(), span_start, Vec_new_i32())
+}
+
+fn corehir_expr_bool(text: String, int_val: i32, span_start: i32) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_BOOL(), text, int_val, 0.0, value_types::VT_I32(), String_from("bool"), span_start, Vec_new_i32())
+}
+
+fn corehir_expr_char(text: String, int_val: i32, span_start: i32) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_CHAR(), text, int_val, 0.0, value_types::VT_I32(), String_from("char"), span_start, Vec_new_i32())
+}

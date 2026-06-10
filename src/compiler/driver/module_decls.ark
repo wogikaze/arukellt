@@ -1,0 +1,26 @@
+// Arukellt Selfhost - driver module declaration aggregation
+
+use driver::module_state_modules
+use driver::module_state
+pub fn combine_loaded_and_main_decls(modules: Vec<ModuleDecls>, main_decls: Vec<AstNode>) -> Vec<AstNode> {
+    let all_decls = Vec_new_AstNode()
+    let combined_mc = len(modules)
+    let mut combined_mi = 0
+    while combined_mi < combined_mc {
+        let combined_md = get_unchecked(modules, combined_mi)
+        let combined_dc = module_state_modules::ModuleDecls_decl_count(combined_md)
+        let mut combined_dk = 0
+        while combined_dk < combined_dc {
+            push(all_decls, module_state_modules::ModuleDecls_decl_at(combined_md, combined_dk))
+            combined_dk = combined_dk + 1
+        }
+        combined_mi = combined_mi + 1
+    }
+    let main_dc = len(main_decls)
+    let mut main_dk = 0
+    while main_dk < main_dc {
+        push(all_decls, get_unchecked(main_decls, main_dk))
+        main_dk = main_dk + 1
+    }
+    all_decls
+}

@@ -1,0 +1,39 @@
+// Arukellt Selfhost - monomorphization instance scanning
+
+use mir::mono_instance_shape
+use mir::type_contracts
+
+fn mono_instance_is_marker(mi: MonoInstance) -> bool {
+    mono_instance_shape::mir_mono_instance_is_marker(mi)
+}
+
+fn mono_instance_count_for(instances: Vec<MonoInstance>, fn_name: String) -> i32 {
+    let count = len(instances)
+    let mut found = 0
+    let mut i = 0
+    while i < count {
+        let mi = get_unchecked(instances, i)
+        if !mono_instance_is_marker(mi) && eq(mono_instance_shape::mir_mono_instance_fn_name(mi), clone(fn_name)) {
+            found = found + 1
+        }
+        i = i + 1
+    }
+    found
+}
+
+fn mono_instance_mangled_at(instances: Vec<MonoInstance>, fn_name: String, ordinal: i32) -> String {
+    let count = len(instances)
+    let mut seen = 0
+    let mut i = 0
+    while i < count {
+        let mi = get_unchecked(instances, i)
+        if !mono_instance_is_marker(mi) && eq(mono_instance_shape::mir_mono_instance_fn_name(mi), clone(fn_name)) {
+            if seen == ordinal {
+                return mono_instance_shape::mir_mono_instance_mangled_name(mi)
+            }
+            seen = seen + 1
+        }
+        i = i + 1
+    }
+    String_from("")
+}

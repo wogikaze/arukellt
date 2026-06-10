@@ -1,0 +1,59 @@
+// Arukellt Parser - AST data contract.
+//
+// Keep this module free of parser cursor/token helper logic so downstream
+// contracts can depend on AST shape without importing the parser engine.
+
+use parser::ast_node_record
+use parser::ast_fields_record
+
+fn ast_node_kind(node: AstNode) -> i32 {
+    ast_fields_record::ast_node_kind(node)
+}
+
+fn ast_node_text(node: AstNode) -> String {
+    ast_fields_record::ast_node_text(node)
+}
+
+fn ast_node_is_pub(node: AstNode) -> bool {
+    ast_fields_record::ast_node_is_pub(node)
+}
+
+fn ast_node_span_start(node: AstNode) -> i32 {
+    ast_fields_record::ast_node_span_start(node)
+}
+
+fn ast_node_span_end(node: AstNode) -> i32 {
+    ast_fields_record::ast_node_span_end(node)
+}
+
+fn ast_node_op(node: AstNode) -> i32 {
+    ast_fields_record::ast_node_op(node)
+}
+
+fn ast_node_int_val(node: AstNode) -> i32 {
+    ast_fields_record::ast_node_int_val(node)
+}
+
+fn ast_node_float_val(node: AstNode) -> f64 {
+    ast_fields_record::ast_node_float_val(node)
+}
+
+fn ast_node_child_count(node: AstNode) -> i32 {
+    len(node.children)
+}
+
+fn ast_node_child_at(node: AstNode, index: i32) -> AstNode {
+    get_unchecked(node.children, index)
+}
+
+fn ast_node_type_ann_count(node: AstNode) -> i32 {
+    len(node.type_ann)
+}
+
+fn ast_node_type_ann_at(node: AstNode, index: i32) -> AstNode {
+    get_unchecked(node.type_ann, index)
+}
+
+fn ast_node_type_ann(node: AstNode) -> Vec<AstNode> {
+    node.type_ann
+}

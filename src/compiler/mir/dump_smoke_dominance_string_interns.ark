@@ -1,0 +1,13 @@
+// Arukellt Selfhost - dominance fixture string-intern smoke output.
+
+use std::host::stdio
+use mir::module_strings
+
+fn mir_dump_dominance_fixture_print_string_interns(m: MirModule) {
+    let s0 = module_strings::intern_string(m, String_from("hello"))
+    let s1 = module_strings::intern_string(m, String_from("world"))
+    let s2 = module_strings::intern_string(m, String_from("hello"))
+    stdio::println(concat(String_from("intern 'hello': "), to_string(s0)))
+    stdio::println(concat(String_from("intern 'world': "), to_string(s1)))
+    stdio::println(concat(String_from("intern 'hello' again: "), to_string(s2)))
+}

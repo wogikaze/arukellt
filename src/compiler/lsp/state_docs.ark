@@ -1,0 +1,52 @@
+// Arukellt LSP - open text document store.
+
+pub struct LspDoc {
+    uri: String,
+    text: String,
+    version: i32,
+}
+
+pub struct LspDocStore {
+    docs: Vec<LspDoc>,
+}
+
+fn LspDoc_new(uri: String, text: String, version: i32) -> LspDoc {
+    LspDoc { uri: uri, text: text, version: version }
+}
+
+fn LspDocStore_new() -> LspDocStore {
+    LspDocStore { docs: Vec_new_LspDoc() }
+}
+
+fn lsp_doc_index_of(store: LspDocStore, uri: String) -> i32 {
+    let n = len(store.docs)
+    let mut i = 0
+    while i < n {
+        let d = get_unchecked(store.docs, i)
+        if eq(clone(d.uri), clone(uri)) {
+            return i
+        }
+        i = i + 1
+    }
+    -1
+}
+
+fn lsp_doc_store_set(store: LspDocStore, uri: String, text: String, version: i32) {
+    let idx = lsp_doc_index_of(store, clone(uri))
+    if idx < 0 {
+        push(store.docs, LspDoc_new(uri, text, version))
+        return
+    }
+    let d = get_unchecked(store.docs, idx)
+    d.text = text
+    d.version = version
+}
+
+fn lsp_doc_store_lookup_text(store: LspDocStore, uri: String) -> String {
+    let idx = lsp_doc_index_of(store, clone(uri))
+    if idx < 0 {
+        return String_new()
+    }
+    let d = get_unchecked(store.docs, idx)
+    clone(d.text)
+}

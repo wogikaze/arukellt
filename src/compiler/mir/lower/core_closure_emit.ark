@@ -1,0 +1,26 @@
+use mir::lower::ctx_api_local_frame
+use mir::lower::ctx_types
+use mir::function_return_mutation
+use mir::function_factory
+// Arukellt Selfhost - CoreHIR closure synthetic function emission facade.
+
+use mir::lower::core_closure_emit_capture
+use mir::lower::core_closure_emit_params
+use mir::lower::core_closure_emit_return
+use mir::value_types
+
+fn core_emit_closure_fn(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, synth: String, clos: CoreHirExpr, caps: Vec<String>) -> MirFunction {
+    let saved_frame = ctx_api_local_frame::LowerCtxLocalFrame_capture(ctx)
+    let cap_vts = core_closure_capture::core_closure_capture_vts(ctx, caps)
+    let mf = function_factory::MirFunction_new(clone(synth))
+    let _entry = ctx_api_local_frame::ctx_begin_function_frame(ctx, mf)
+    core_closure_params::core_emit_closure_params(ctx, exprs, clos)
+    core_closure_capture::core_emit_closure_captures(ctx, caps, cap_vts)
+    let mut fret = ctx_api_local_frame::ctx_current_function(ctx)
+    function_return_mutation::MirFunction_set_return_type(fret, value_types::VT_I32())
+    ctx_api_local_frame::ctx_set_current_function(ctx, fret)
+    core_closure_return::core_emit_closure_return(ctx, exprs, clos)
+    let out_fn = ctx_api_local_frame::ctx_current_function(ctx)
+    ctx_api_local_frame::ctx_restore_local_frame(ctx, saved_frame)
+    out_fn
+}

@@ -1,0 +1,13 @@
+// Arukellt Selfhost - CoreHIR atomic node kind checks.
+
+use corehir::expr_kind_predicates
+
+fn corehir_atomic_node_kind(kind: i32) -> bool {
+    if expr_kind_predicates::expr_kind_is_literal(kind) {
+        return true
+    }
+    if expr_kind_predicates::expr_kind_is_name(kind) {
+        return true
+    }
+    false
+}

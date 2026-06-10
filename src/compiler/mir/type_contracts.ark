@@ -1,0 +1,39 @@
+// Arukellt Selfhost - MIR lowering typecheck DTO compatibility facade.
+
+use corehir::type_contracts
+
+fn TypeInfo_tag(ty: TypeInfo) -> i32 {
+    type_contracts::TypeInfo_tag(ty)
+}
+
+fn TypeInfo_name(ty: TypeInfo) -> String {
+    type_contracts::TypeInfo_name(ty)
+}
+
+fn TypeInfo_type_arg_count(ty: TypeInfo) -> i32 {
+    type_contracts::TypeInfo_type_arg_count(ty)
+}
+
+fn TypeInfo_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
+    type_contracts::TypeInfo_type_arg_at(ty, index)
+}
+
+fn TypedFn_return_type(fn_info: TypedFn) -> TypeInfo {
+    type_contracts::TypedFn_return_type(fn_info)
+}
+
+fn MonoInstance_fn_name(instance: MonoInstance) -> String {
+    type_contracts::MonoInstance_fn_name(instance)
+}
+
+fn MonoInstance_mangled_name(instance: MonoInstance) -> String {
+    type_contracts::MonoInstance_mangled_name(instance)
+}
+
+fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {
+    type_contracts::MonoInstance_type_arg_count(instance)
+}
+
+fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {
+    type_contracts::MonoInstance_type_arg_at(instance, index)
+}

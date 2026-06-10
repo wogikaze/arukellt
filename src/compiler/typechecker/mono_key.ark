@@ -1,0 +1,34 @@
+use typechecker::kinds
+// Arukellt Typechecker - monomorphization type keys.
+
+use typechecker::contract_type_access
+use typechecker::names
+
+fn mono_type_key(ty: TypeInfo) -> String {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag == commands::TY_TYPE_VAR() {
+        return concat(String_from("?"), contract_type_access::TypeInfo_name(ty))
+    }
+    let mut base = String_from("")
+    if tag == commands::TY_STRUCT() || tag == commands::TY_ENUM() {
+        base = contract_type_access::TypeInfo_name(ty)
+    } else {
+        base = names::type_tag_name(tag)
+    }
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
+    if arg_count == 0 {
+        return base
+    }
+    let mut result = concat(base, String_from("<"))
+    let mut i = 0
+    while i < arg_count {
+        let arg = contract_type_access::TypeInfo_type_arg_at(ty, i)
+        if i > 0 {
+            result = concat(result, String_from(","))
+        }
+        result = concat(result, mono_type_key(arg))
+        i = i + 1
+    }
+    result = concat(result, String_from(">"))
+    result
+}

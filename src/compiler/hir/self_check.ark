@@ -1,0 +1,35 @@
+use hir::kinds
+// Arukellt HIR - self-checks
+
+use hir::items
+use hir::node_record
+use hir::type_contracts
+use hir::types_format
+
+pub fn issue504_hir_self_check() -> String {
+    let foo_trait = type_contracts::HirType_named(commands::TY_TRAIT(), String_from("Foo"))
+    let self_ty = type_contracts::HirType_named(commands::TY_STRUCT(), String_from("MyStruct"))
+    let type_param = items::HirTypeParam_new(String_from("T"))
+    items::HirTypeParam_push_bound(type_param, items::HirTraitBound_new(foo_trait))
+    let func = items::HirFunction_new(String_from("f"), type_contracts::HirType_simple(commands::TY_UNIT()), node_record::HirNode_new(commands::HIR_BLOCK(), type_contracts::HirType_simple(commands::TY_UNIT())), false)
+    items::HirFunction_push_type_param(func, type_param)
+    let impl_block = items::HirImplBlock_new(type_contracts::HirType_named(commands::TY_TRAIT(), String_from("Foo")), self_ty)
+    let fn_param = items::HirFunction_type_param_at(func, 0)
+    if items::HirTypeParam_bound_count(fn_param) != 1 {
+        return String_from("issue504 hir fail: missing type param bound")
+    }
+    let bound = items::HirTypeParam_bound_at(fn_param, 0)
+    if !eq(items::HirTypeParam_name(fn_param), String_from("T")) {
+        return String_from("issue504 hir fail: wrong type param")
+    }
+    if !eq(types_format::type_name(items::HirTraitBound_trait_type(bound)), String_from("Foo")) {
+        return String_from("issue504 hir fail: wrong bound")
+    }
+    if !eq(types_format::type_name(items::HirImplBlock_trait_type(impl_block)), String_from("Foo")) {
+        return String_from("issue504 hir fail: wrong impl trait")
+    }
+    if !eq(types_format::type_name(items::HirImplBlock_self_type(impl_block)), String_from("MyStruct")) {
+        return String_from("issue504 hir fail: wrong impl target")
+    }
+    String_from("issue504 hir ok: T bound Foo / impl Foo for MyStruct")
+}

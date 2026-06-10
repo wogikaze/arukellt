@@ -1,0 +1,31 @@
+use mir::inst_accessors_operands
+use mir::block_inst_access
+// Arukellt Selfhost - MIR SSA sequential definition smoke check
+
+use std::host::stdio
+use mir::dominance
+use mir::dump_core
+use mir::dump_expect
+use mir::function_block_queries
+use mir::dump_smoke_seq_fixture
+use mir::module_functions
+use mir::ssa
+
+fn run_ssa_sequential_def_rename_smoke() {
+    let fx = dump_smoke_seq_fixture::mir_dump_seq_fixture_new(String_from("ssa_sequential_def_sample"))
+    let m = dump_smoke_seq_fixture::MirDumpSeqFixture_module(fx)
+    let f = dump_smoke_seq_fixture::MirDumpSeqFixture_function(fx)
+    let t = dump_smoke_seq_fixture::MirDumpSeqFixture_local_t(fx)
+    let bb0 = dump_smoke_seq_fixture::MirDumpSeqFixture_block(fx)
+    dominance::mir_compute_dominance_for_function(f)
+    ssa::mir_ssa_rename_function(f)
+    dump_expect::mir_expect_local_ssa(f, t, String_from("t"), 1)
+    let block = function_block_queries::MirFunction_block_at(f, bb0)
+    let second_def = block_inst_access::MirBlock_inst_at(block, 1)
+    let ret = block_inst_access::MirBlock_inst_at(block, 2)
+    dump_expect::mir_expect_local_ref_eq(f, inst_accessors_operands::MirInst_dest(second_def), String_from("%t.2"), String_from("sequential second def"))
+    dump_expect::mir_expect_local_ref_eq(f, inst_accessors_operands::MirInst_arg0(ret), String_from("%t.2"), String_from("sequential return use"))
+    module_functions::MirModule_push_function(m, f)
+    dump_core::dump_mir(m)
+    stdio::println(String_from("MIR SSA sequential-def rename self-check OK."))
+}

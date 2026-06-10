@@ -1,0 +1,27 @@
+// Arukellt Selfhost - CoreHIR layout source over MIR-facing program views.
+
+use corehir::layout_decl
+
+struct CoreHirMirLayoutSource {
+    layout_decls: Vec<CoreHirLayoutDecl>,
+}
+
+fn mir_layout_source_from_parts(layout_decls: Vec<CoreHirLayoutDecl>) -> CoreHirMirLayoutSource {
+    CoreHirMirLayoutSource { layout_decls: layout_decls }
+}
+
+fn mir_layout_source_count(source: CoreHirMirLayoutSource) -> i32 {
+    len(source.layout_decls)
+}
+
+fn mir_layout_source_decl_at(source: CoreHirMirLayoutSource, index: i32) -> CoreHirLayoutDecl {
+    get_unchecked(source.layout_decls, index)
+}
+
+fn mir_layout_source_is_struct_at(source: CoreHirMirLayoutSource, index: i32) -> bool {
+    layout_decl::layout_decl_is_struct(mir_layout_source_decl_at(source, index))
+}
+
+fn mir_layout_source_is_enum_at(source: CoreHirMirLayoutSource, index: i32) -> bool {
+    layout_decl::layout_decl_is_enum(mir_layout_source_decl_at(source, index))
+}

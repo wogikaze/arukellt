@@ -1,0 +1,36 @@
+// Arukellt Selfhost - DAP response and event body builders.
+
+fn dap_init_resp(seq: i32, request_seq: i32) -> String {
+    let mut body = String_from("{\"seq\":")
+    body = concat(body, to_string(seq))
+    body = concat(body, String_from(",\"type\":\"response\",\"request_seq\":"))
+    body = concat(body, to_string(request_seq))
+    body = concat(body, String_from(",\"success\":true,\"command\":\"initialize\""))
+    body = concat(body, String_from(",\"body\":{\"supportsConfigurationDoneRequest\":true}}"))
+    body
+}
+
+fn dap_launch_resp(seq: i32, request_seq: i32) -> String {
+    let mut body = String_from("{\"seq\":")
+    body = concat(body, to_string(seq))
+    body = concat(body, String_from(",\"type\":\"response\",\"request_seq\":"))
+    body = concat(body, to_string(request_seq))
+    body = concat(body, String_from(",\"success\":true,\"command\":\"launch\",\"body\":{}}"))
+    body
+}
+
+fn dap_disconnect_resp(seq: i32, request_seq: i32) -> String {
+    let mut body = String_from("{\"seq\":")
+    body = concat(body, to_string(seq))
+    body = concat(body, String_from(",\"type\":\"response\",\"request_seq\":"))
+    body = concat(body, to_string(request_seq))
+    body = concat(body, String_from(",\"success\":true,\"command\":\"disconnect\",\"body\":{}}"))
+    body
+}
+
+fn dap_init_evt(seq: i32) -> String {
+    let mut body = String_from("{\"seq\":")
+    body = concat(body, to_string(seq))
+    body = concat(body, String_from(",\"type\":\"event\",\"event\":\"initialized\"}"))
+    body
+}

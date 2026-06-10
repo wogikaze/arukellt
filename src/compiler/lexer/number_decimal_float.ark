@@ -1,0 +1,32 @@
+// Arukellt Lexer - decimal float markers and suffixes.
+
+use lexer::char_class
+
+fn scan_decimal_float_parts(lex: Lexer) -> bool {
+    let mut is_float = false
+    if lex.pos < lex.src_len && peek(lex) == 46 {
+        if lex.pos + 1 < lex.src_len && char_class::is_digit(peek_at(lex, 1)) {
+            is_float = true
+            lex.pos = lex.pos + 1
+            while lex.pos < lex.src_len && char_class::is_digit(peek(lex)) || peek(lex) == 95 {
+                lex.pos = lex.pos + 1
+            }
+        }
+    }
+    if lex.pos < lex.src_len && peek(lex) == 101 || peek(lex) == 69 {
+        is_float = true
+        lex.pos = lex.pos + 1
+        if lex.pos < lex.src_len && peek(lex) == 43 || peek(lex) == 45 {
+            lex.pos = lex.pos + 1
+        }
+        while lex.pos < lex.src_len && char_class::is_digit(peek(lex)) {
+            lex.pos = lex.pos + 1
+        }
+    }
+    is_float
+}
+
+fn suffix_marks_float(lex: Lexer, suffix_len: i32) -> bool {
+    let suf = substring(lex.src, lex.pos - suffix_len, lex.pos)
+    eq(suf, "f64") || eq(suf, "f32")
+}

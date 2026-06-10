@@ -1,0 +1,38 @@
+use mir::lower::binary_opcode
+use mir::lower::binary_type_select
+use mir::lower::binary_type_refine
+use mir::lower::binary_cast
+use mir::lower::binary_emit
+use mir::opcodes
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR binary expression MIR lowering.
+
+use mir::lower::core_binary_overload
+use mir::lower::core_binary_short_circuit
+use mir::lower::core_expr_shape_accessors
+
+fn lower_core_binary(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
+        return 0 - 1
+    }
+    let mir_op = binary_opcode::binop_to_mir(core_expr_shape_accessors::mir_core_expr_int_val(expr))
+    if mir_op == opcodes::MIR_AND() || mir_op == opcodes::MIR_OR() {
+        return core_binary_short_circuit::lower_core_short_circuit_binary(ctx, exprs, expr, mir_op)
+    }
+    let left_expr_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
+    let right_expr_index = core_expr_shape_accessors::mir_core_expr_child(expr, 1)
+    let left_expr = get_unchecked(exprs, left_expr_index)
+    let right_expr = get_unchecked(exprs, right_expr_index)
+    let mut binop_vt = binary_type_select::mir_initial_binop_vt(binary_type_select::mir_peek_core_expr_vt(ctx, left_expr), binary_type_select::mir_peek_core_expr_vt(ctx, right_expr))
+    let l_idx = lower_core_expr(ctx, exprs, left_expr_index)
+    let overloaded = core_binary_overload::try_lower_overloaded_binary(ctx, exprs, expr, mir_op, l_idx)
+    if overloaded >= 0 {
+        return overloaded
+    }
+    binop_vt = binary_type_refine::mir_refine_binop_vt_from_left(ctx, binop_vt, l_idx, binary_type_select::mir_peek_core_expr_vt(ctx, right_expr))
+    let actual_l = binary_cast::mir_extend_i32_to_i64_if_needed(ctx, binop_vt, l_idx)
+    let r_idx = lower_core_expr(ctx, exprs, right_expr_index)
+    binop_vt = binary_type_refine::mir_refine_binop_vt_from_local(ctx, binop_vt, r_idx)
+    let actual_r = binary_cast::mir_extend_i32_to_i64_if_needed(ctx, binop_vt, r_idx)
+    binary_emit::mir_emit_binary_result(ctx, mir_op, binop_vt, actual_l, actual_r)
+}

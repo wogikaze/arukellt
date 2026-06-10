@@ -1,0 +1,35 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_nesting
+use mir::lower::ctx_api_emit
+use mir::lower_kinds
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR match arm and guard helpers.
+
+use mir::inst_structured_control
+
+fn mir_match_is_catchall(pat: AstNode) -> bool {
+    ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) || ast_node::node_kind_is(pat, lower_kinds::NK_PAT_WILDCARD())
+}
+
+fn mir_match_arm_has_guard(arm_child_count: i32) -> bool {
+    arm_child_count == 3
+}
+
+fn mir_emit_match_end_nested_ifs(ctx: LowerCtx, if_depth: i32) {
+    let mut depth = if_depth
+    while depth > 0 {
+        ctx_emit(ctx, inst_structured_control::MirInst_end())
+        ctx_api_nesting::ctx_pop_nesting(ctx)
+        depth = depth - 1
+    }
+}
+
+fn mir_emit_match_guard_begin(ctx: LowerCtx) {
+    ctx_emit(ctx, inst_structured_control::MirInst_if())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+}
+
+fn mir_emit_match_guard_end(ctx: LowerCtx) {
+    ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+}

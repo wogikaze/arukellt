@@ -1,0 +1,32 @@
+use typechecker::kinds
+// Arukellt Typechecker - generic type instantiation helpers
+
+use typechecker::contract_type_constructors
+use typechecker::contract_type_access
+use typechecker::contract_type_mutation
+
+fn instantiate_type(ty: TypeInfo, names: Vec<String>, types: Vec<TypeInfo>) -> TypeInfo {
+    if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() {
+        let count = len(names)
+        let mut i = 0
+        while i < count {
+            let n = get_unchecked(names, i)
+            if eq(clone(n), contract_type_access::TypeInfo_name(ty)) {
+                return get_unchecked(types, i)
+            }
+            i = i + 1
+        }
+    }
+    if contract_type_access::TypeInfo_type_arg_count(ty) == 0 {
+        return ty
+    }
+    let inst = contract_type_constructors::TypeInfo_empty_like(ty)
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
+    let mut a = 0
+    while a < arg_count {
+        let arg = contract_type_access::TypeInfo_type_arg_at(ty, a)
+        contract_type_mutation::TypeInfo_push_type_arg(inst, instantiate_type(arg, names, types))
+        a = a + 1
+    }
+    inst
+}

@@ -1,0 +1,16 @@
+// Arukellt Lexer - string literal scan helpers.
+
+fn string_literal_has_escape(lex: Lexer) -> bool {
+    let mut scan = lex.pos
+    while scan < lex.src_len {
+        let sc = char_at(lex.src, scan)
+        if sc == 34 || sc == 10 {
+            break
+        }
+        if sc == 92 {
+            return true
+        }
+        scan = scan + 1
+    }
+    false
+}

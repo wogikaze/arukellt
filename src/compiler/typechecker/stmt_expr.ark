@@ -1,0 +1,17 @@
+// Arukellt Typechecker - expression-like statement checking.
+
+use typechecker::ast_access
+
+fn check_expr_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+    if ast_access::node_child_count(node) > 0 {
+        let child = ast_access::node_child_at(node, 0)
+        infer_expr(env, scope, fn_sigs, enum_defs, child)
+    }
+}
+
+fn check_return_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+    if ast_access::node_child_count(node) > 0 {
+        let child = ast_access::node_child_at(node, 0)
+        infer_expr(env, scope, fn_sigs, enum_defs, child)
+    }
+}

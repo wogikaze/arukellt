@@ -1,0 +1,13 @@
+// Arukellt Selfhost - MIR block-id set mutation helpers.
+
+fn mir_push_unique_i32(ids: Vec<i32>, block_id: i32) {
+    let pred_count = len(ids)
+    let mut i = 0
+    while i < pred_count {
+        if get_unchecked(ids, i) == block_id {
+            return
+        }
+        i = i + 1
+    }
+    push(ids, block_id)
+}

@@ -1,0 +1,50 @@
+use mir::function_identity
+use mir::function_param_view
+use mir::function_return_view
+use mir::local_access
+// Arukellt Selfhost - WAT function formatting.
+
+use wasm::wat_function_body
+use wasm::wat_types
+
+fn emit_wat_function(f: MirFunction) -> String {
+    let mut out = concat(String_from("  (func $"), function_identity::MirFunction_name(f))
+    out = emit_wat_signature(out, f)
+    out = concat(out, String_from("
+"))
+    out = concat(out, wat_function_body::emit_wat_locals(f))
+    out = concat(out, wat_function_body::emit_wat_instructions(f))
+    out = concat(out, String_from("  )
+"))
+    emit_wat_start_export(out, f)
+}
+
+fn emit_wat_signature(out: String, f: MirFunction) -> String {
+    let mut result = emit_wat_params(out, f)
+    let return_type = function_return_view::MirFunction_return_type(f)
+    if return_type != 0 {
+        result = concat(result, concat(String_from(" (result "), concat(wat_types::val_type_name(return_type), String_from(")"))))
+    }
+    result
+}
+
+fn emit_wat_params(out: String, f: MirFunction) -> String {
+    let mut result = out
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut pi = 0
+    while pi < param_count {
+        let param = function_param_view::MirFunction_param_at(f, pi)
+        result = concat(result, concat(String_from(" (param "), concat(wat_types::val_type_name(local_access::MirLocal_val_type(param)), String_from(")"))))
+        pi = pi + 1
+    }
+    result
+}
+
+fn emit_wat_start_export(out: String, f: MirFunction) -> String {
+    let fname = function_identity::MirFunction_name(f)
+    if eq(clone(fname), "main") || eq(clone(fname), "_start") {
+        return concat(out, concat(String_from("  (export \"_start\" (func $"), concat(clone(fname), String_from("))
+"))))
+    }
+    out
+}

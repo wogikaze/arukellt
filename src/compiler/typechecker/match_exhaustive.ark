@@ -1,0 +1,17 @@
+use typechecker::kinds
+// Arukellt Typechecker - match exhaustiveness diagnostics
+
+use typechecker::contract_type_access
+use typechecker::match_coverage_read_record
+use typechecker::match_exhaustive_builtin
+use typechecker::match_exhaustive_enum
+
+fn check_match_exhaustive(env: TypeEnv, resolved_scrutinee: TypeInfo, enum_defs: Vec<EnumInfo>, coverage: MatchCoverage) {
+    if match_coverage_read_record::MatchCoverage_has_wildcard(coverage) {
+        return
+    }
+    match_exhaustive_builtin::check_builtin_match_exhaustive(env, resolved_scrutinee, coverage)
+    if contract_type_access::TypeInfo_tag(resolved_scrutinee) == commands::TY_ENUM() || (contract_type_access::TypeInfo_has_name(resolved_scrutinee) && len(enum_defs) > 0) {
+        match_exhaustive_enum::check_enum_match_exhaustive(env, resolved_scrutinee, enum_defs, coverage)
+    }
+}

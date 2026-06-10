@@ -1,0 +1,117 @@
+// Arukellt Selfhost - numeric component adapter facade
+
+use component::adapter_body
+use component::sections
+use component::writer_core
+
+fn comp_f32_unary_adapter_core_module(export_name: String) -> Vec<i32> {
+	comp_numeric_adapter_core_module(export_name, 1, 0x7d, 0x7d, 1, 0x7d, true, true)
+}
+
+fn comp_f32_binary_adapter_core_module(export_name: String) -> Vec<i32> {
+	comp_numeric_adapter_core_module(export_name, 2, 0x7d, 0x7d, 2, 0x7d, true, true)
+}
+
+fn comp_f32_to_i32_adapter_core_module(export_name: String) -> Vec<i32> {
+	comp_numeric_adapter_core_module(export_name, 1, 0x7d, 0x7f, 1, 0x7f, true, false)
+}
+
+fn comp_i32_to_f32_adapter_core_module(export_name: String) -> Vec<i32> {
+	comp_numeric_adapter_core_module(export_name, 1, 0x7f, 0x7f, 1, 0x7d, false, true)
+}
+
+fn comp_numeric_adapter_core_module(export_name: String, user_param_count: i32, abi_param0_type: i32, abi_param1_type: i32, abi_param_count: i32, abi_result_type: i32, convert_params_to_f32: bool, convert_result_to_i32: bool) -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+	comp_emit_numeric_adapter_sections(out, export_name, user_param_count, abi_param0_type, abi_param1_type, abi_param_count, abi_result_type, convert_params_to_f32, convert_result_to_i32)
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_emit_numeric_adapter_sections(out: writer_core::ComponentWriter, export_name: String, user_param_count: i32, abi_param0_type: i32, abi_param1_type: i32, abi_param_count: i32, abi_result_type: i32, convert_params_to_f32: bool, convert_result_to_i32: bool) {
+	comp_emit_numeric_type_section(out, user_param_count, abi_param0_type, abi_param1_type, abi_param_count, abi_result_type)
+	comp_emit_numeric_import_section(out, clone(export_name))
+	comp_emit_numeric_func_section(out)
+	comp_emit_numeric_export_section(out, clone(export_name))
+	comp_emit_numeric_code_section(out, user_param_count, convert_params_to_f32, convert_result_to_i32)
+}
+
+fn comp_emit_numeric_type_section(out: writer_core::ComponentWriter, user_param_count: i32, abi_param0_type: i32, abi_param1_type: i32, abi_param_count: i32, abi_result_type: i32) {
+	let type_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(type_sec, 2)
+	let user_params = Vec_new_i32()
+	let mut i = 0
+	while i < user_param_count {
+		push(user_params, 0x7f)
+		i = i + 1
+	}
+	let user_results = Vec_new_i32()
+	push(user_results, 0x7f)
+	sections::comp_emit_core_func_type(type_sec, user_params, user_results)
+	let abi_params = Vec_new_i32()
+	if abi_param_count > 0 {
+		push(abi_params, abi_param0_type)
+	}
+	if abi_param_count > 1 {
+		push(abi_params, abi_param1_type)
+	}
+	let abi_results = Vec_new_i32()
+	push(abi_results, abi_result_type)
+	sections::comp_emit_core_func_type(type_sec, abi_params, abi_results)
+	sections::comp_emit_wasm_section(out, 1, type_sec)
+}
+
+fn comp_emit_numeric_import_section(out: writer_core::ComponentWriter, export_name: String) {
+	let import_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(import_sec, 1)
+	writer_core::comp_emit_string(import_sec, String_from("user"))
+	writer_core::comp_emit_string(import_sec, clone(export_name))
+	writer_core::comp_emit_byte(import_sec, 0x00)
+	writer_core::comp_emit_leb128_u(import_sec, 0)
+	sections::comp_emit_wasm_section(out, 2, import_sec)
+}
+
+fn comp_emit_numeric_func_section(out: writer_core::ComponentWriter) {
+	let func_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(func_sec, 1)
+	writer_core::comp_emit_leb128_u(func_sec, 1)
+	sections::comp_emit_wasm_section(out, 3, func_sec)
+}
+
+fn comp_emit_numeric_export_section(out: writer_core::ComponentWriter, export_name: String) {
+	let export_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(export_sec, 1)
+	writer_core::comp_emit_string(export_sec, clone(export_name))
+	writer_core::comp_emit_byte(export_sec, 0x00)
+	writer_core::comp_emit_leb128_u(export_sec, 1)
+	sections::comp_emit_wasm_section(out, 7, export_sec)
+}
+
+fn comp_emit_numeric_code_section(out: writer_core::ComponentWriter, user_param_count: i32, convert_params_to_f32: bool, convert_result_to_i32: bool) {
+	let code_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(code_sec, 1)
+	comp_emit_numeric_wrapper_body(code_sec, user_param_count, convert_params_to_f32, convert_result_to_i32)
+	sections::comp_emit_wasm_section(out, 10, code_sec)
+}
+
+fn comp_emit_numeric_wrapper_body(code_sec: writer_core::ComponentWriter, user_param_count: i32, convert_params_to_f32: bool, convert_result_to_i32: bool) {
+	let body = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 0)
+	if convert_params_to_f32 {
+		writer_core::comp_emit_byte(body, 0xbc)
+	}
+	if user_param_count > 1 {
+		writer_core::comp_emit_byte(body, 0x20)
+		writer_core::comp_emit_leb128_u(body, 1)
+		if convert_params_to_f32 {
+			writer_core::comp_emit_byte(body, 0xbc)
+		}
+	}
+	writer_core::comp_emit_byte(body, 0x10)
+	writer_core::comp_emit_leb128_u(body, 0)
+	if convert_result_to_i32 {
+		writer_core::comp_emit_byte(body, 0xbe)
+	}
+	writer_core::comp_emit_byte(body, 0x0b)
+	adapter_body::comp_emit_func_body(code_sec, body)
+}

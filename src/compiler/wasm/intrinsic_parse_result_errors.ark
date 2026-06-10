@@ -1,0 +1,167 @@
+// Arukellt Selfhost - parse intrinsic Result::Err construction facade.
+
+use wasm::opcodes
+use wasm::constants
+
+fn emit_invalid_float_error_result(w: WasmWriter) {
+    let err_str = "parse error: invalid float"
+    let err_len = 26
+    emit_invalid_float_error_string(w, err_str, err_len)
+    emit_invalid_float_error_record(w)
+}
+
+fn emit_invalid_integer_error_result(w: WasmWriter, ctx: SelfEmitCtx, base_local: i32, str_ptr_local: i32, enum_local: i32) {
+    emit_invalid_integer_error_string(w, base_local, str_ptr_local)
+    emit_invalid_integer_error_record(w, enum_local, str_ptr_local)
+}
+
+fn emit_invalid_float_error_string(w: WasmWriter, err_str: String, err_len: i32) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, err_len)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    let mut ei = 0
+    while ei < err_len {
+        writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+        writer_leb::emit_leb128_u(w, 0)
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_leb::emit_leb128_s(w, 4 + ei)
+        writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_leb::emit_leb128_s(w, char_at(err_str, ei))
+        writer_core::emit_byte(w, opcodes::OP_I32_STORE8())
+        writer_core::emit_byte(w, 0)
+        writer_core::emit_byte(w, 0)
+        ei = ei + 1
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_P_BYTE())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4 + err_len)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
+    writer_leb::emit_leb128_u(w, 0)
+}
+
+fn emit_invalid_float_error_record(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_P_BYTE())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 12)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
+    writer_leb::emit_leb128_u(w, 0)
+}
+
+fn emit_invalid_integer_error_string(w: WasmWriter, base_local: i32, str_ptr_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, base_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, base_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 28)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    let err_msg = "parse error: invalid integer"
+    let err_len = len(err_msg)
+    let mut ei = 0
+    while ei < err_len {
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, base_local)
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_leb::emit_leb128_s(w, 4 + ei)
+        writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+        let ch = char_at(err_msg, ei)
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_leb::emit_leb128_s(w, ch)
+        writer_core::emit_byte(w, 58)
+        writer_core::emit_byte(w, 0)
+        writer_core::emit_byte(w, 0)
+        ei = ei + 1
+    }
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, base_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, str_ptr_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, base_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 32)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
+    writer_leb::emit_leb128_u(w, 0)
+}
+
+fn emit_invalid_integer_error_record(w: WasmWriter, enum_local: i32, str_ptr_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, enum_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, enum_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, enum_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, str_ptr_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, enum_local)
+}

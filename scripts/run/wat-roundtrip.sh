@@ -36,12 +36,12 @@ NC=$'\033[0m'
 # Resolve arukellt binary
 ARUKELLT="${ARUKELLT_BIN:-}"
 if [ -z "$ARUKELLT" ]; then
-    if [ -x "target/debug/arukellt" ]; then
-        ARUKELLT="target/debug/arukellt"
+    if [ -x "scripts/run/arukellt-selfhost.sh" ]; then
+        ARUKELLT="scripts/run/arukellt-selfhost.sh"
     elif [ -x "target/release/arukellt" ]; then
         ARUKELLT="target/release/arukellt"
-    elif [ -x "scripts/run/arukellt-selfhost.sh" ]; then
-        ARUKELLT="scripts/run/arukellt-selfhost.sh"
+    elif [ -x "target/debug/arukellt" ]; then
+        ARUKELLT="target/debug/arukellt"
     fi
 fi
 
@@ -85,7 +85,8 @@ if [ ! -f "$MANIFEST" ]; then
     exit 0
 fi
 
-WORK_DIR=$(mktemp -d)
+mkdir -p ".build"
+WORK_DIR=$(mktemp -d ".build/wat-roundtrip.XXXXXX")
 trap 'rm -rf "$WORK_DIR"' EXIT
 
 PASS=0

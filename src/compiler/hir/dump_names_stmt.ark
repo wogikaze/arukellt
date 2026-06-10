@@ -1,0 +1,11 @@
+// Arukellt HIR - statement dump tag names.
+
+use hir::kinds
+
+fn hir_stmt_tag_name(tag: i32) -> String {
+    if tag == commands::HIR_LET() { return String_from("Let") }
+    if tag == commands::HIR_RETURN() { return String_from("Return") }
+    if tag == commands::HIR_WHILE() { return String_from("While") }
+    if tag == commands::HIR_EXPR_STMT() { return String_from("ExprStmt") }
+    String_new()
+}

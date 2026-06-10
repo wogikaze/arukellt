@@ -1,0 +1,54 @@
+// Arukellt Selfhost - Wasm emitter constants.
+
+// Wasm value type tags.
+fn WASM_I32() -> i32 { 127 }
+fn WASM_I64() -> i32 { 126 }
+fn WASM_F32() -> i32 { 125 }
+fn WASM_F64() -> i32 { 124 }
+fn WASM_FUNCREF() -> i32 { 112 }
+fn WASM_EXTERNREF() -> i32 { 111 }
+
+// Emitter scratch layout constants.
+fn FS_BUF_SIZE() -> i32 { 4096 }
+fn NUM_WASI_IMPORTS() -> i32 { 7 }
+fn NUM_WASI_TYPES() -> i32 { 5 }
+fn DATA_START() -> i32 { 128 }
+
+// Scratch offsets for basic I/O buffers.
+fn SCRATCH_IOV() -> i32 { 0 }
+fn SCRATCH_NWRITTEN() -> i32 { 8 }
+fn SCRATCH_I32BUF() -> i32 { 16 }
+fn SCRATCH_NEWLINE() -> i32 { 36 }
+fn SCRATCH_CHARBUF() -> i32 { 40 }
+
+// Scratch offsets for integer parsing.
+fn SCRATCH_P_STR() -> i32 { 48 }
+fn SCRATCH_P_LEN() -> i32 { 52 }
+fn SCRATCH_P_I() -> i32 { 56 }
+fn SCRATCH_P_NEG() -> i32 { 60 }
+fn SCRATCH_P_RES() -> i32 { 64 }
+fn SCRATCH_P_ERR() -> i32 { 68 }
+fn SCRATCH_P_BYTE() -> i32 { 72 }
+
+// Scratch offsets for WASI args.
+fn SCRATCH_ARGC() -> i32 { 76 }
+fn SCRATCH_ARGV_SIZE() -> i32 { 80 }
+
+// Scratch offsets for WASI filesystem calls.
+fn SCRATCH_FS_FD() -> i32 { 84 }
+fn SCRATCH_FS_PATHPTR() -> i32 { 88 }
+fn SCRATCH_FS_PATHLEN() -> i32 { 92 }
+fn SCRATCH_FS_NREAD() -> i32 { 96 }
+fn SCRATCH_FS_BUFSTART() -> i32 { 100 }
+fn SCRATCH_FS_STRPTR() -> i32 { 104 }
+
+// Scratch offsets for f64 parsing.
+fn SCRATCH_PF_RESULT() -> i32 { 112 }
+fn SCRATCH_PF_DIVISOR() -> i32 { 120 }
+fn SCRATCH_PF_SAWDOT() -> i32 { 48 }
+fn SCRATCH_PF_DECCOUNT() -> i32 { 52 }
+
+// Local result store actions.
+fn STORE_ACTION_SKIP() -> i32 { 0 }
+fn STORE_ACTION_TEE() -> i32 { 1 }
+fn STORE_ACTION_SET() -> i32 { 2 }

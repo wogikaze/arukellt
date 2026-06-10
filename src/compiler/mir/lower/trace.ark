@@ -1,0 +1,53 @@
+use mir::lower::ctx_api_local_frame
+use mir::function_return_view
+use mir::function_param_view
+use mir::function_locals_view
+// Arukellt Selfhost - MIR Lowering Trace Helpers
+
+use std::host::env
+use std::host::stdio
+use mir::function_block_queries
+use mir::lower::ctx_types
+
+// When MIR_LOWER_TRACE=1 in the environment, lower_to_mir prints five integers per phase:
+// phase, len(params), len(locals), len(blocks), return_type tag.
+fn MIR_LOWER_TRACE() -> i32 {
+    match env::var(String_from("MIR_LOWER_TRACE")) {
+        Option::Some(s) => {
+            if eq(s, String_from("1")) {
+                return 1
+            }
+            0
+        },
+        None => 0,
+    }
+}
+
+// Set to 1 in source to force mir_lower trace without env (e.g. if env::var is unavailable).
+fn MIR_LOWER_TRACE_FORCE() -> i32 {
+    0
+}
+
+fn mir_lower_trace_line(on: i32, phase: i32, np: i32, nl: i32, nb: i32, rt: i32) {
+    if on == 0 {
+        return
+    }
+    let mut s = to_string(phase)
+    s = concat(s, String_from(" "))
+    s = concat(s, to_string(np))
+    s = concat(s, String_from(" "))
+    s = concat(s, to_string(nl))
+    s = concat(s, String_from(" "))
+    s = concat(s, to_string(nb))
+    s = concat(s, String_from(" "))
+    s = concat(s, to_string(rt))
+    stdio::eprintln(s)
+}
+
+fn mir_lower_trace_ctx(on: i32, ctx: LowerCtx, phase: i32) {
+    if on == 0 {
+        return
+    }
+    let f = ctx_api_local_frame::ctx_current_function(ctx)
+    mir_lower_trace_line(on, phase, function_param_view::MirFunction_param_count(f), function_locals_view::MirFunction_local_count(f), function_block_queries::MirFunction_block_count(f), function_return_view::MirFunction_return_type(f))
+}

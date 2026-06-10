@@ -1,0 +1,22 @@
+// Arukellt Typechecker - enum signature contract.
+
+struct EnumInfo {
+    name: String,
+    variant_names: Vec<String>,
+}
+
+fn EnumInfo_new(name: String, variant_names: Vec<String>) -> EnumInfo {
+    EnumInfo { name: name, variant_names: variant_names }
+}
+
+fn EnumInfo_name(info: EnumInfo) -> String {
+    clone(info.name)
+}
+
+fn EnumInfo_variant_count(info: EnumInfo) -> i32 {
+    len(info.variant_names)
+}
+
+fn EnumInfo_variant_at(info: EnumInfo, index: i32) -> String {
+    clone(get_unchecked(info.variant_names, index))
+}

@@ -1,0 +1,55 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering for i32 higher-order sequence helpers.
+
+use mir::inst_local_set
+use mir::value_types
+use mir::lower::hof_loop
+use mir::lower::hof_loop_steps
+use mir::lower::hof_results
+
+fn mir_lower_hof_i32(ctx: LowerCtx, hof_callee_text: String, hof32_fn_name: String, hof32_vec_local: i32, hof32_init_idx: i32, is_map_i32_i32: bool, is_filter_i32: bool, is_fold_i32_i32: bool) -> i32 {
+    let hof32_acc_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    emit_i32_fold_acc_init(ctx, hof32_acc_local, is_fold_i32_i32)
+    let hof32_n_local = hof_loop::emit_hof_len_local(ctx, hof32_vec_local)
+    let hof32_idx_local = hof_loop::emit_hof_zero_index(ctx)
+    let hof32_result_local = emit_i32_result_vec(ctx, hof_callee_text, is_fold_i32_i32)
+    hof_loop::emit_hof_loop_open(ctx)
+    hof_loop::emit_hof_loop_bounds(ctx, hof32_idx_local, hof32_n_local)
+    let hof32_elem_local = hof_loop::emit_hof_loop_elem(ctx, hof32_vec_local, hof32_idx_local, value_types::VT_I32(), String_from("get_unchecked"))
+    if is_map_i32_i32 {
+        hof_loop_steps::emit_hof_map_step(ctx, hof32_fn_name, hof32_result_local, hof32_elem_local, value_types::VT_I32(), String_from("push"))
+    }
+    if is_filter_i32 {
+        hof_loop_steps::emit_hof_filter_step(ctx, hof32_fn_name, hof32_result_local, hof32_elem_local, String_from("push"))
+    }
+    if is_fold_i32_i32 {
+        hof_loop_steps::emit_hof_fold_step(ctx, hof32_fn_name, hof32_acc_local, hof32_elem_local, value_types::VT_I32())
+    }
+    hof_loop_steps::emit_hof_index_advance(ctx, hof32_idx_local)
+    hof_loop::emit_hof_loop_close(ctx)
+    emit_i32_hof_result(ctx, hof32_acc_local, hof32_result_local, is_fold_i32_i32)
+}
+
+fn emit_i32_hof_result(ctx: LowerCtx, hof32_acc_local: i32, hof32_result_local: i32, is_fold_i32_i32: bool) -> i32 {
+    hof_results::emit_hof_result_select(ctx, hof32_acc_local, hof32_result_local, is_fold_i32_i32)
+}
+
+fn emit_i32_fold_acc_init(ctx: LowerCtx, hof32_acc_local: i32, is_fold_i32_i32: bool) {
+    if is_fold_i32_i32 {
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(hof32_acc_local))
+    }
+}
+
+fn emit_i32_result_vec(ctx: LowerCtx, hof_callee_text: String, is_fold_i32_i32: bool) -> i32 {
+    let hof32_result_local = hof_results::hof_result_local(ctx)
+    if !is_fold_i32_i32 {
+        hof_results::emit_hof_result_vec_init(ctx, hof32_result_local, String_from("Vec_new_i32"), String_from("vec:i32"))
+        if eq(clone(hof_callee_text), "map_String_String") || eq(clone(hof_callee_text), "filter_String") {
+            ctx_api_local_types::ctx_set_local_type(ctx, hof32_result_local, String_from("vec:String"))
+        }
+    }
+    hof32_result_local
+}

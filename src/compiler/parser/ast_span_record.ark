@@ -1,0 +1,22 @@
+// Arukellt Parser - AST span record.
+
+pub struct Span {
+    start: i32,
+    end: i32,
+}
+
+fn Span_new(start: i32, end: i32) -> Span {
+    Span { start: start, end: end }
+}
+
+fn Span_empty() -> Span {
+    Span { start: 0, end: 0 }
+}
+
+fn span_start(span: Span) -> i32 {
+    span.start
+}
+
+fn span_end(span: Span) -> i32 {
+    span.end
+}

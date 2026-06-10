@@ -1,0 +1,61 @@
+use mir::inst_accessors_shape
+use wasm::opcodes
+// Arukellt Selfhost - Wasm Binary Emitter: comparison instruction handlers.
+
+use wasm::writer_core
+use mir::value_types
+
+fn emit_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let val_type = inst_accessors_shape::MirInst_val_type(inst)
+    if val_type == value_types::VT_F64() {
+        writer_core::emit_byte(w, opcodes::OP_F64_EQ())
+    } else {
+        if val_type == value_types::VT_I64() {
+            writer_core::emit_byte(w, opcodes::OP_I64_EQ())
+        } else {
+            writer_core::emit_byte(w, opcodes::OP_I32_EQ())
+        }
+    }
+}
+
+fn emit_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let val_type = inst_accessors_shape::MirInst_val_type(inst)
+    if val_type == value_types::VT_F64() {
+        writer_core::emit_byte(w, opcodes::OP_F64_NE())
+    } else {
+        if val_type == value_types::VT_I64() {
+            writer_core::emit_byte(w, opcodes::OP_I64_NE())
+        } else {
+            writer_core::emit_byte(w, opcodes::OP_I32_NE())
+        }
+    }
+}
+
+fn emit_lt(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    emit_order_compare_by_type(w, inst, opcodes::OP_F64_LT(), opcodes::OP_I64_LT_S(), opcodes::OP_I32_LT_S())
+}
+
+fn emit_le(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    emit_order_compare_by_type(w, inst, opcodes::OP_F64_LE(), opcodes::OP_I64_LE_S(), opcodes::OP_I32_LE_S())
+}
+
+fn emit_gt(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    emit_order_compare_by_type(w, inst, opcodes::OP_F64_GT(), opcodes::OP_I64_GT_S(), opcodes::OP_I32_GT_S())
+}
+
+fn emit_ge(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    emit_order_compare_by_type(w, inst, opcodes::OP_F64_GE(), opcodes::OP_I64_GE_S(), opcodes::OP_I32_GE_S())
+}
+
+fn emit_order_compare_by_type(w: WasmWriter, inst: MirInst, f64_op: i32, i64_op: i32, i32_op: i32) {
+    let val_type = inst_accessors_shape::MirInst_val_type(inst)
+    if val_type == value_types::VT_F64() {
+        writer_core::emit_byte(w, f64_op)
+    } else {
+        if val_type == value_types::VT_I64() {
+            writer_core::emit_byte(w, i64_op)
+        } else {
+            writer_core::emit_byte(w, i32_op)
+        }
+    }
+}

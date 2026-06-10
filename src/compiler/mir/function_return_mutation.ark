@@ -1,0 +1,12 @@
+// Arukellt Selfhost - MIR function return mutation API.
+
+use mir::function_core_record
+use mir::types_function
+
+fn MirFunction_set_return_type(f: MirFunction, return_type: i32) {
+    f.return_type = return_type
+}
+
+fn MirFunction_set_return_type_name(f: MirFunction, return_type_name: String) {
+    f.return_type_name = return_type_name
+}

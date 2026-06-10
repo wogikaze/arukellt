@@ -1,0 +1,40 @@
+// Arukellt Selfhost - dominance CFG smoke fixture construction.
+
+use mir::block_alloc
+use mir::block_successor_mutation
+use mir::function_block_queries
+use mir::function_factory
+use mir::function_local_alloc
+use mir::function_return_mutation
+use mir::module_factory
+use mir::module_functions
+use mir::value_types
+use mir::dump_smoke_dominance_emit
+use mir::dump_smoke_dominance_fixture_record
+
+fn mir_dump_dominance_fixture_new() -> MirDumpDominanceFixture {
+    let m = module_factory::MirModule_new()
+    let f = function_factory::MirFunction_new(String_from("cfg_pred_sample"))
+    let pa = function_local_alloc::alloc_local(f, String_from("a"), value_types::VT_I32())
+    let pb = function_local_alloc::alloc_local(f, String_from("b"), value_types::VT_I32())
+    let tmp = function_local_alloc::alloc_local(f, String_from("_t0"), value_types::VT_I32())
+    function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
+    let entry = block_alloc::alloc_block(f)
+    let then_bb = block_alloc::alloc_block(f)
+    let else_bb = block_alloc::alloc_block(f)
+    let join_bb = block_alloc::alloc_block(f)
+    dump_smoke_dominance_emit::mir_dump_dominance_emit_local_get(f, entry)
+    dump_smoke_dominance_emit::mir_dump_dominance_emit_local_get(f, entry)
+    let entry_block = function_block_queries::MirFunction_block_at(f, entry)
+    block_successor_mutation::MirBlock_set_succ0(entry_block, then_bb)
+    block_successor_mutation::MirBlock_set_succ1(entry_block, else_bb)
+    dump_smoke_dominance_emit::mir_dump_dominance_emit_local_get(f, then_bb)
+    let then_block = function_block_queries::MirFunction_block_at(f, then_bb)
+    block_successor_mutation::MirBlock_set_succ0(then_block, join_bb)
+    dump_smoke_dominance_emit::mir_dump_dominance_emit_local_get(f, else_bb)
+    let else_block = function_block_queries::MirFunction_block_at(f, else_bb)
+    block_successor_mutation::MirBlock_set_succ0(else_block, join_bb)
+    dump_smoke_dominance_emit::mir_dump_dominance_emit_join_return(f, join_bb, tmp, pa, pb)
+    module_functions::MirModule_push_function(m, f)
+    dump_smoke_dominance_fixture_record::MirDumpDominanceFixture_new(m, f, entry, then_bb, else_bb, join_bb)
+}

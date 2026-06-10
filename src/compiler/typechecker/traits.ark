@@ -1,0 +1,24 @@
+// Arukellt Typechecker - trait implementation and bound checking helpers
+
+use typechecker::trait_bounds
+use typechecker::trait_registry
+
+fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
+    trait_registry::register_trait_impl(env, trait_name, self_ty)
+}
+
+fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bool {
+    trait_bounds::type_satisfies_trait_bound(env, ty, bound)
+}
+
+fn enforce_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) {
+    trait_bounds::enforce_trait_bound(env, ty, bound)
+}
+
+fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
+    trait_registry::maybe_register_impl_decl(env, node)
+}
+
+fn enforce_fn_sig_bounds(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types: Vec<TypeInfo>) {
+    trait_bounds::enforce_fn_sig_bounds(env, infer_env, sig, var_types)
+}

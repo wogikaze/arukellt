@@ -1,0 +1,48 @@
+// Arukellt Typechecker - trait implementation registry.
+
+use typechecker::ast_decl_predicates
+use typechecker::contract_trait_impl
+use typechecker::contract_env_record
+use typechecker::ast_access
+use typechecker::names
+use typechecker::types
+
+fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
+    let count = len(env.trait_impls)
+    let mut i = 0
+    while i < count {
+        let existing = get_unchecked(env.trait_impls, i)
+        if eq(contract_trait_impl::TraitImplInfo_trait_name(existing), clone(trait_name)) && names::same_named_type(contract_trait_impl::TraitImplInfo_self_ty(existing), self_ty) {
+            return
+        }
+        i = i + 1
+    }
+    push(env.trait_impls, contract_trait_impl::TraitImplInfo_new(trait_name, self_ty))
+}
+
+fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
+    if !ast_decl_predicates::node_is_impl_decl(node) {
+        return
+    }
+    let trait_name = ast_access::node_text(node)
+    if eq(clone(trait_name), String_from("")) {
+        return
+    }
+    if ast_access::node_type_ann_count(node) < 2 {
+        return
+    }
+    let child_count = ast_access::node_child_count(node)
+    if child_count < 1 {
+        return
+    }
+    let mut i = 0
+    while i < child_count {
+        let child = ast_access::node_child_at(node, i)
+        if !ast_decl_predicates::node_is_fn_decl(child) {
+            return
+        }
+        i = i + 1
+    }
+    let self_ty_node = ast_access::node_type_ann_at(node, 1)
+    register_trait_impl(env, trait_name, types::resolve_type_ann_node(self_ty_node))
+}

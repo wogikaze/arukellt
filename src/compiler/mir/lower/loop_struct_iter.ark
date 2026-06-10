@@ -1,0 +1,59 @@
+use mir::lower::ctx_api_nesting
+use mir::lower::ctx_api_loop_state
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering helpers for struct iterator loops.
+
+use mir::inst_structured_control
+use mir::lower::loop_scope
+use mir::lower::loop_struct_iter_locals
+use mir::lower::loop_struct_iter_next
+use mir::lower::loop_struct_iter_none
+use mir::lower::loop_struct_iter_payload
+
+struct MirStructIteratorLoop {
+    prev_break: i32,
+    prev_continue: i32,
+}
+
+fn mir_struct_iterator_loop_new(prev_break: i32, prev_continue: i32) -> MirStructIteratorLoop {
+    MirStructIteratorLoop { prev_break: prev_break, prev_continue: prev_continue }
+}
+
+fn mir_struct_iterator_loop_prev_break(scope: MirStructIteratorLoop) -> i32 {
+    scope.prev_break
+}
+
+fn mir_struct_iterator_loop_prev_continue(scope: MirStructIteratorLoop) -> i32 {
+    scope.prev_continue
+}
+
+fn mir_begin_struct_iterator_loop(ctx: LowerCtx, iter_name: String, struct_type: String, next_callee: String) -> MirStructIteratorLoop {
+    let iter_ptr = loop_struct_iter_locals::mir_struct_iterator_iter_ptr(ctx, struct_type)
+    let iter_var = loop_struct_iter_locals::mir_struct_iterator_iter_var(ctx, iter_name, next_callee)
+    let opt_local = loop_struct_iter_locals::mir_struct_iterator_temp_i32(ctx)
+    let tag_local = loop_struct_iter_locals::mir_struct_iterator_temp_i32(ctx)
+    let none_tag = loop_struct_iter_locals::mir_struct_iterator_temp_i32(ctx)
+    let cmp_dest = loop_struct_iter_locals::mir_struct_iterator_temp_i32(ctx)
+    let scope = mir_struct_iterator_loop_new(ctx_api_loop_state::ctx_loop_break_depth(ctx), ctx_api_loop_state::ctx_loop_continue_depth(ctx))
+    ctx_emit(ctx, inst_structured_control::MirInst_block())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    ctx_api_loop_state::ctx_set_loop_break_depth_to_current(ctx)
+    ctx_emit(ctx, inst_structured_control::MirInst_loop())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    ctx_api_loop_state::ctx_set_loop_continue_depth_to_current(ctx)
+    loop_struct_iter_next::mir_emit_struct_iterator_next(ctx, iter_ptr, next_callee, opt_local)
+    loop_struct_iter_none::mir_emit_struct_iterator_none_break(ctx, opt_local, tag_local, none_tag, cmp_dest)
+    loop_struct_iter_payload::mir_emit_struct_iterator_payload(ctx, opt_local, iter_var)
+    scope
+}
+
+fn mir_end_struct_iterator_loop(ctx: LowerCtx, scope: MirStructIteratorLoop) {
+    loop_scope::mir_emit_loop_back(ctx)
+    ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+    ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+    ctx_api_loop_state::ctx_set_loop_break_depth(ctx, mir_struct_iterator_loop_prev_break(scope))
+    ctx_api_loop_state::ctx_set_loop_continue_depth(ctx, mir_struct_iterator_loop_prev_continue(scope))
+}

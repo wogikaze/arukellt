@@ -1,0 +1,58 @@
+// Arukellt Selfhost - frontend function metadata to CoreHIR facts.
+
+use corehir::decl_node_identity
+use corehir::decl_children
+use corehir::decl_member_collections
+use corehir::decl_node
+use corehir::fn_info
+use corehir::param_shape
+
+fn find_entry_main_decl_index(decls: Vec<AstNode>) -> i32 {
+    let mut entry_main_decl_index = 0 - 1
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let decl = get_unchecked(decls, i)
+        if decl_node::decl_is_fn(decl) {
+            if eq(decl_node_identity::decl_name(decl), String_from("main")) {
+                entry_main_decl_index = i
+            }
+        }
+        i = i + 1
+    }
+    entry_main_decl_index
+}
+
+fn build_fn_params(decl: AstNode, param_count: i32) -> Vec<CoreHirParam> {
+    let params = Vec_new_CoreHirParam()
+    let mut i = 0
+    while i < param_count {
+        push(params, param_shape::fn_param_from_node(decl_children::decl_child_at(decl, i)))
+        i = i + 1
+    }
+    params
+}
+
+fn build_fn_infos(decls: Vec<AstNode>) -> Vec<CoreHirFnInfo> {
+    let infos = Vec_new_CoreHirFnInfo()
+    let entry_main_decl_index = find_entry_main_decl_index(decls)
+    let decl_count = len(decls)
+    let mut typed_fn_index = 0
+    let mut i = 0
+    while i < decl_count {
+        let decl = get_unchecked(decls, i)
+        if decl_node::decl_is_fn(decl) {
+            let body_index = decl_children::decl_body_index(decl)
+            let param_count = decl_children::decl_param_count(decl)
+            let params = build_fn_params(decl, param_count)
+            let info = fn_info::CoreHirFnInfo_new(i, typed_fn_index, decl_node_identity::decl_name(decl), param_count, params, body_index, i == entry_main_decl_index)
+            push(infos, info)
+            typed_fn_index = typed_fn_index + 1
+        }
+        if decl_node::decl_is_impl(decl) {
+            typed_fn_index = typed_fn_index + decl_member_collections::decl_method_count(decl)
+        }
+        i = i + 1
+    }
+    infos
+}

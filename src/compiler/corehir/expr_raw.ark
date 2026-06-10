@@ -1,0 +1,52 @@
+// Arukellt Selfhost - CoreHIR expression raw record.
+
+struct CoreHirExpr {
+    kind: i32,
+    text: String,
+    int_val: i32,
+    float_val: f64,
+    val_type: i32,
+    type_name: String,
+    span_start: i32,
+    children: Vec<i32>,
+}
+
+fn corehir_expr_new(kind: i32, text: String, int_val: i32, float_val: f64, val_type: i32, type_name: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    CoreHirExpr { kind: kind, text: text, int_val: int_val, float_val: float_val, val_type: val_type, type_name: type_name, span_start: span_start, children: children }
+}
+
+fn corehir_expr_child(expr: CoreHirExpr, index: i32) -> i32 {
+    get_unchecked(expr.children, index)
+}
+
+fn corehir_expr_child_count(expr: CoreHirExpr) -> i32 {
+    len(expr.children)
+}
+
+fn corehir_expr_kind(expr: CoreHirExpr) -> i32 {
+    expr.kind
+}
+
+fn corehir_expr_text(expr: CoreHirExpr) -> String {
+    clone(expr.text)
+}
+
+fn corehir_expr_int_val(expr: CoreHirExpr) -> i32 {
+    expr.int_val
+}
+
+fn corehir_expr_float_val(expr: CoreHirExpr) -> f64 {
+    expr.float_val
+}
+
+fn corehir_expr_val_type(expr: CoreHirExpr) -> i32 {
+    expr.val_type
+}
+
+fn corehir_expr_type_name(expr: CoreHirExpr) -> String {
+    clone(expr.type_name)
+}
+
+fn corehir_expr_span_start(expr: CoreHirExpr) -> i32 {
+    expr.span_start
+}

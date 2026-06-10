@@ -1,0 +1,90 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+use mir::lower::loop_conditions
+use mir::lower::loop_scope
+use mir::lower::loop_struct_iter
+use mir::lower::loop_vec
+use mir::lower_kinds
+// Arukellt MIR lowering body - for statement dispatch.
+
+use mir::value_types
+
+fn lower_for_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+    let child_count = ast_node::node_child_count(node)
+    if child_count >= 2 {
+        let range = ast_node::node_child_at(node, 0)
+        let body = ast_node::node_child_at(node, 1)
+        let range_child_count = ast_node::node_child_count(range)
+        if mir_for_range_is_values_call(range, range_child_count) {
+            lower_values_for_stmt(ctx, node, range, body)
+        } else {
+            if range_child_count >= 2 {
+                lower_i32_range_for_stmt(ctx, node, range, body)
+            } else {
+                lower_struct_iterator_for_stmt(ctx, node, range, body)
+            }
+        }
+    }
+    0 - 1
+}
+
+fn mir_for_range_is_values_call(range: AstNode, range_child_count: i32) -> bool {
+    if !ast_node::node_kind_is(range, lower_kinds::NK_CALL()) || range_child_count < 2 {
+        return false
+    }
+    let range_callee = ast_node::node_child_at(range, 0)
+    eq(ast_node::node_text(range_callee), "values")
+}
+
+fn lower_struct_iterator_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, body: AstNode) {
+    if ast_node::node_kind_is(range, lower_kinds::NK_IDENT()) {
+        let range_local_si = ctx_lookup_local(ctx, ast_node::node_text(range))
+        if range_local_si >= 0 {
+            let si_struct_type = ctx_get_local_type(ctx, range_local_si)
+            let si_next_callee = concat(clone(si_struct_type), String_from("::next"))
+            let si_next_vt = ctx_fn_return_vt(ctx, clone(si_next_callee))
+            if si_next_vt != 0 {
+                let si_iter_idx = lower_expr(ctx, range)
+                let si_scope = loop_struct_iter::mir_begin_struct_iterator_loop(ctx, ast_node::node_text(node), si_struct_type, si_next_callee)
+                let _si_body = lower_expr(ctx, body)
+                loop_struct_iter::mir_end_struct_iterator_loop(ctx, si_scope)
+            }
+        }
+    }
+}
+
+fn lower_i32_range_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, body: AstNode) {
+    let start_node = ast_node::node_child_at(range, 0)
+    let end_node = ast_node::node_child_at(range, 1)
+    let start_idx = lower_expr(ctx, start_node)
+    let iter_var = ctx_alloc_local(ctx, ast_node::node_text(node), value_types::VT_I32())
+    loop_conditions::mir_save_stack_to_local(ctx, iter_var)
+    let end_idx = lower_expr(ctx, end_node)
+    let end_local = ctx_fresh_local(ctx, value_types::VT_I32())
+    loop_conditions::mir_save_stack_to_local(ctx, end_local)
+    let loop_scope = loop_scope::mir_begin_loop_scope(ctx)
+    loop_conditions::mir_emit_gteq_break_if(ctx, iter_var, end_local)
+    let _body_result = lower_expr(ctx, body)
+    loop_conditions::mir_emit_increment_i32(ctx, iter_var)
+    loop_scope::mir_emit_loop_back(ctx)
+    loop_scope::mir_end_loop_scope(ctx, loop_scope)
+}
+
+fn lower_values_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, body: AstNode) {
+    let vec_arg = ast_node::node_child_at(range, 1)
+    let vec_idx = lower_expr(ctx, vec_arg)
+    let vec_local = ctx_fresh_local(ctx, value_types::VT_I32())
+    loop_conditions::mir_save_stack_to_local(ctx, vec_local)
+    let end_local = loop_vec::mir_emit_vec_len_saved(ctx, vec_local)
+    let idx_var = loop_conditions::mir_emit_zero_local(ctx)
+    let iter_var = ctx_alloc_local(ctx, ast_node::node_text(node), value_types::VT_I32())
+    let loop_scope = loop_scope::mir_begin_loop_scope(ctx)
+    loop_conditions::mir_emit_gteq_break_if(ctx, idx_var, end_local)
+    loop_vec::mir_emit_vec_get_unchecked_to_local(ctx, vec_local, idx_var, iter_var)
+    let _body_result = lower_expr(ctx, body)
+    loop_conditions::mir_emit_increment_i32(ctx, idx_var)
+    loop_scope::mir_emit_loop_back(ctx)
+    loop_scope::mir_end_loop_scope(ctx, loop_scope)
+}

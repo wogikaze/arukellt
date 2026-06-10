@@ -1,0 +1,115 @@
+// Arukellt Selfhost - component composite type support
+
+use component::contract_allows_collection_query
+use component::contract_allows_numeric_tuple_query
+use component::contract_collection_types
+use component::contract_tuple_types
+use component::type_node
+
+fn component_list_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    (contract_allows_collection_query::ComponentContractAllows_allow_list_first(allows) || contract_allows_collection_query::ComponentContractAllows_allow_list_result(allows) || contract_allows_collection_query::ComponentContractAllows_allow_list_roundtrip(allows)) && contract_collection_types::component_type_is_vec_i32(ty)
+}
+
+fn component_option_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    if component_option_i32_type_supported(ty, allows) {
+        return true
+    }
+    if component_option_bool_type_supported(ty, allows) {
+        return true
+    }
+    if component_option_i64_type_supported(ty, allows) {
+        return true
+    }
+    false
+}
+
+fn component_option_i32_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    (contract_allows_collection_query::ComponentContractAllows_allow_option_maybe(allows) || contract_allows_collection_query::ComponentContractAllows_allow_option_param(allows) || contract_allows_collection_query::ComponentContractAllows_allow_option_roundtrip(allows)) && contract_collection_types::component_type_is_option_i32(ty)
+}
+
+fn component_option_bool_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    contract_allows_collection_query::ComponentContractAllows_allow_option_bool(allows) && contract_collection_types::component_type_is_option_bool(ty)
+}
+
+fn component_option_i64_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    (contract_allows_collection_query::ComponentContractAllows_allow_option_i64(allows) || contract_allows_collection_query::ComponentContractAllows_allow_option_i64_param(allows)) && contract_collection_types::component_type_is_option_i64(ty)
+}
+
+fn component_result_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    if component_result_i32_string_type_supported(ty, allows) {
+        return true
+    }
+    if component_result_i32_i32_type_supported(ty, allows) {
+        return true
+    }
+    if component_result_bool_bool_type_supported(ty, allows) {
+        return true
+    }
+    false
+}
+
+fn component_result_i32_string_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    if contract_allows_collection_query::ComponentContractAllows_allow_result_safe_div(allows) && contract_collection_types::component_type_is_result_i32_string(ty) {
+        return true
+    }
+    if contract_allows_collection_query::ComponentContractAllows_allow_result_string_param(allows) && contract_collection_types::component_type_is_result_i32_string(ty) {
+        return true
+    }
+    false
+}
+
+fn component_result_i32_i32_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    (contract_allows_collection_query::ComponentContractAllows_allow_result_param(allows) || contract_allows_collection_query::ComponentContractAllows_allow_result_roundtrip(allows)) && contract_collection_types::component_type_is_result_i32_i32(ty)
+}
+
+fn component_result_bool_bool_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    contract_allows_collection_query::ComponentContractAllows_allow_result_bool(allows) && contract_collection_types::component_type_is_result_bool_bool(ty)
+}
+
+fn component_tuple_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    if component_tuple_i32_i32_type_supported(ty, allows) {
+        return true
+    }
+    if component_tuple_i64_i64_type_supported(ty, allows) {
+        return true
+    }
+    if component_tuple_i32_bool_type_supported(ty, allows) {
+        return true
+    }
+    if component_tuple_bool_bool_type_supported(ty, allows) {
+        return true
+    }
+    false
+}
+
+fn component_tuple_i32_i32_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    (contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_swap(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_param(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_roundtrip(allows)) && contract_tuple_types::component_type_is_tuple_i32_i32(ty)
+}
+
+fn component_tuple_i64_i64_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_i64_swap(allows) && contract_tuple_types::component_type_is_tuple_i64_i64(ty)
+}
+
+fn component_tuple_i32_bool_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_mixed_param(allows) && contract_tuple_types::component_type_is_tuple_i32_bool(ty)
+}
+
+fn component_tuple_bool_bool_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_bool_param(allows) && contract_tuple_types::component_type_is_tuple_bool_bool(ty)
+}
+
+fn component_composite_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
+    if component_list_type_supported(ty, allows) {
+        return true
+    }
+    if component_option_type_supported(ty, allows) {
+        return true
+    }
+    if component_result_type_supported(ty, allows) {
+        return true
+    }
+    if component_tuple_type_supported(ty, allows) {
+        return true
+    }
+    false
+}

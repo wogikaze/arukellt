@@ -1,0 +1,16 @@
+use parser::core_ast_text_fields
+use parser::core_ast_type_ann
+// Arukellt Parser - multi-clause function annotation filtering.
+
+
+fn copy_non_guard_annotations(first: AstNode, result: AstNode) {
+    let ann_count = core_ast_type_ann::AstNode_type_ann_count(first)
+    let mut ai = 0
+    while ai < ann_count {
+        let ann = core_ast_type_ann::AstNode_type_ann_at(first, ai)
+        if !eq(core_ast_text_fields::AstNode_text(ann), String_from("__guard")) {
+            core_ast_type_ann::AstNode_push_type_ann(result, ann)
+        }
+        ai = ai + 1
+    }
+}

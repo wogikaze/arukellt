@@ -1,0 +1,43 @@
+use mir::opcodes
+use mir::lower_kinds
+// Arukellt Selfhost - parser binary operator to MIR opcode mapping.
+
+fn binop_to_mir(op: i32) -> i32 {
+    let arith = binop_to_arith_mir(op)
+    if arith != 0 { return arith }
+    let cmp = binop_to_compare_mir(op)
+    if cmp != 0 { return cmp }
+    let logic = binop_to_logic_mir(op)
+    if logic != 0 { return logic }
+    opcodes::MIR_NOP()
+}
+
+fn binop_to_arith_mir(op: i32) -> i32 {
+    if op == lower_kinds::OP_ADD() { return opcodes::MIR_ADD() }
+    if op == lower_kinds::OP_SUB() { return opcodes::MIR_SUB() }
+    if op == lower_kinds::OP_MUL() { return opcodes::MIR_MUL() }
+    if op == lower_kinds::OP_DIV() { return opcodes::MIR_DIV() }
+    if op == lower_kinds::OP_MOD() { return opcodes::MIR_MOD() }
+    0
+}
+
+fn binop_to_compare_mir(op: i32) -> i32 {
+    if op == lower_kinds::OP_EQ() { return opcodes::MIR_EQ() }
+    if op == lower_kinds::OP_NEQ() { return opcodes::MIR_NEQ() }
+    if op == lower_kinds::OP_LT() { return opcodes::MIR_LT() }
+    if op == lower_kinds::OP_LTEQ() { return opcodes::MIR_LTEQ() }
+    if op == lower_kinds::OP_GT() { return opcodes::MIR_GT() }
+    if op == lower_kinds::OP_GTEQ() { return opcodes::MIR_GTEQ() }
+    0
+}
+
+fn binop_to_logic_mir(op: i32) -> i32 {
+    if op == lower_kinds::OP_AND() { return opcodes::MIR_AND() }
+    if op == lower_kinds::OP_OR() { return opcodes::MIR_OR() }
+    if op == lower_kinds::OP_BIT_AND() { return opcodes::MIR_BIT_AND() }
+    if op == lower_kinds::OP_BIT_OR() { return opcodes::MIR_BIT_OR() }
+    if op == lower_kinds::OP_BIT_XOR() { return opcodes::MIR_BIT_XOR() }
+    if op == lower_kinds::OP_SHL() { return opcodes::MIR_SHL() }
+    if op == lower_kinds::OP_SHR() { return opcodes::MIR_SHR() }
+    0
+}

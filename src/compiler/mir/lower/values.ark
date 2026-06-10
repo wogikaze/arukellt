@@ -1,0 +1,60 @@
+// Arukellt Selfhost - MIR Lowering for atomic expression values
+
+use mir::lower::ast_node
+use mir::inst_const_string
+use mir::inst_local_get
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_module
+use mir::lower::ctx_types
+use mir::lower_kinds
+use mir::lower::value_literals
+use mir::lower::value_patterns
+use mir::lower::value_variants
+use mir::value_types
+
+fn lower_atomic_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let literal = value_literals::lower_atomic_literal(ctx, node)
+    if literal != 0 - 2 {
+        return literal
+    }
+    let pattern = value_patterns::lower_atomic_pattern(ctx, node)
+    if pattern != 0 - 2 {
+        return pattern
+    }
+    let path_variant = value_variants::lower_atomic_path_variant(ctx, node)
+    if path_variant != 0 - 2 {
+        return path_variant
+    }
+    let string_value = lower_atomic_string(ctx, node)
+    if string_value != 0 - 2 {
+        return string_value
+    }
+    let ident = lower_atomic_ident(ctx, node)
+    if ident != 0 - 2 {
+        return ident
+    }
+    0 - 2
+}
+
+fn lower_atomic_string(ctx: LowerCtx, node: AstNode) -> i32 {
+    if ast_node::node_kind_is(node, lower_kinds::NK_STRING_LIT()) {
+        let str_idx = ctx_api_module::ctx_intern_string(ctx, ast_node::node_text(node))
+        let dest = ctx_fresh_local(ctx, value_types::VT_REF())
+        ctx_emit(ctx, inst_const_string::MirInst_const_string_indexed(ast_node::node_text(node), dest, str_idx))
+        return dest
+    }
+    0 - 2
+}
+
+fn lower_atomic_ident(ctx: LowerCtx, node: AstNode) -> i32 {
+    if ast_node::node_kind_is(node, lower_kinds::NK_IDENT()) {
+        let idx = ctx_lookup_local(ctx, ast_node::node_text(node))
+        if idx >= 0 {
+            ctx_emit(ctx, inst_local_get::MirInst_local_get_to(idx, idx))
+            return idx
+        }
+        return value_variants::lower_atomic_ident_variant(ctx, node)
+    }
+    0 - 2
+}

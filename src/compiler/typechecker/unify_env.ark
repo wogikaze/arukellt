@@ -1,0 +1,22 @@
+use typechecker::kinds
+// Arukellt Typechecker - inference environment helpers
+
+use typechecker::contract_type_constructors
+use typechecker::contract_type_mutation
+use typechecker::contract_typevar
+use typechecker::contract_env_record
+use typechecker::contract_env_vars_record
+
+fn fresh_var(env: TypeEnv) -> TypeInfo {
+    let id = contract_env_vars_record::type_env_take_next_var_id(env)
+    let tv = contract_typevar::TypeVar_new(id, contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN()))
+    contract_env_vars_record::type_env_push_var(env, tv)
+    let t = contract_type_constructors::TypeInfo_simple(commands::TY_TYPE_VAR())
+    contract_type_mutation::TypeInfo_set_name(t, concat(String_from("t"), to_string(id)))
+    t
+}
+
+fn type_error(env: TypeEnv, msg: String) {
+    env.error_count = env.error_count + 1
+    push(env.errors, msg)
+}

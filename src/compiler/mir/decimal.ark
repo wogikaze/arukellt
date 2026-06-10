@@ -1,0 +1,29 @@
+// Arukellt MIR - numeric text helpers.
+
+fn parse_decimal_as_i64(text: String) -> i64 {
+    let n = len(text)
+    let mut result: i64 = 0
+    let mut i = 0
+    let mut neg = false
+    if i < n && char_at(text, i) == 45 {
+        neg = true
+        i = i + 1
+    }
+    let mut stop = false
+    while i < n && !stop {
+        let d = char_at(text, i)
+        if d >= 48 && d <= 57 {
+            result = result * 10 + i32_to_i64(d - 48)
+        } else {
+            if d == 95 {
+            } else {
+                stop = true
+            }
+        }
+        i = i + 1
+    }
+    if neg {
+        result = 0 - result
+    }
+    result
+}

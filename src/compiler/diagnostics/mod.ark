@@ -1,0 +1,30 @@
+// Arukellt Selfhost - diagnostics public boundary.
+
+use diagnostics::json
+use diagnostics::record
+use diagnostics::severity
+use diagnostics::source_map_offsets
+
+pub fn Diagnostic_new(code: String, severity: i32, span: DiagnosticSpan, message: String) -> Diagnostic {
+    record::Diagnostic_new(code, severity, span, message)
+}
+
+pub fn diagnostic_to_json(diag: Diagnostic) -> String {
+    json::diagnostic_to_json(diag)
+}
+
+pub fn SEV_ERROR() -> i32 {
+    severity::SEV_ERROR()
+}
+
+pub fn severity_name(sev: i32) -> String {
+    severity::severity_name(sev)
+}
+
+pub fn span_from_offsets(source: String, file: String, start: i32, end: i32) -> DiagnosticSpan {
+    source_map_offsets::span_from_offsets(source, file, start, end)
+}
+
+pub fn location_text(source: String, file: String, offset: i32) -> String {
+    source_map_offsets::location_text(source, file, offset)
+}

@@ -1,0 +1,15 @@
+use parser::core_ast_span_fields
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - function call suffixes
+
+use parser::expr_suffix_args
+
+pub fn parse_call_suffix(p: Parser, lhs: AstNode) -> AstNode {
+    p.pos = p.pos + 1
+    let node = AstNode_new(kinds::NK_CALL(), core_ast_span_fields::AstNode_span(lhs))
+    core_ast_children::AstNode_push_child(node, lhs)
+    expr_suffix_args::parse_call_args(p, node)
+    node
+}

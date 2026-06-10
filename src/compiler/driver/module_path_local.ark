@@ -1,0 +1,49 @@
+// Arukellt Selfhost - local module path helpers.
+
+pub fn path_parent_dir(path: String) -> String {
+    let n = len(path)
+    let mut last_slash = 0 - 1
+    let mut i = n - 1
+    while i >= 0 {
+        if eq(substring(path, i, i + 1), String_from("/")) {
+            last_slash = i
+            i = 0 - 1
+        } else {
+            i = i - 1
+        }
+    }
+    if last_slash < 0 {
+        String_from(".")
+    } else {
+        if last_slash == 0 {
+            String_from("/")
+        } else {
+            substring(path, 0, last_slash)
+        }
+    }
+}
+
+pub fn module_path_to_file_stem(path: String) -> String {
+    let n = len(path)
+    let mut result = String_from("")
+    let mut i = 0
+    let mut seg_start = 0
+    while i < n {
+        if char_at(path, i) == 58 && i + 1 < n && char_at(path, i + 1) == 58 {
+            result = concat(clone(result), concat(substring(clone(path), seg_start, i), String_from("/")))
+            i = i + 2
+            seg_start = i
+        } else {
+            i = i + 1
+        }
+    }
+    concat(clone(result), substring(clone(path), seg_start, n))
+}
+
+pub fn module_stem_to_mod_path(base_dir: String, stem: String) -> String {
+    concat(clone(base_dir), concat(String_from("/"), concat(clone(stem), String_from("/mod.ark"))))
+}
+
+pub fn module_stem_to_file_path(base_dir: String, stem: String) -> String {
+    concat(clone(base_dir), concat(String_from("/"), concat(clone(stem), String_from(".ark"))))
+}

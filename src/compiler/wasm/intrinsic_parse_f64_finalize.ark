@@ -1,0 +1,143 @@
+use wasm::opcodes
+use wasm::constants
+// Arukellt Selfhost - f64 parse finalization facade.
+
+use wasm::intrinsic_parse_result
+
+fn emit_parse_f64_finalize(w: WasmWriter) {
+    emit_parse_f64_invalid_branch_begin(w)
+    intrinsic_parse_result::emit_invalid_float_error_result(w)
+    emit_parse_f64_invalid_branch_else(w)
+    emit_parse_f64_decimal_divisor(w)
+    emit_parse_f64_apply_decimal_part(w)
+    emit_parse_f64_apply_sign(w)
+    intrinsic_parse_result::emit_f64_ok_result(w, constants::SCRATCH_PF_RESULT())
+    emit_parse_f64_invalid_branch_end(w)
+}
+
+fn emit_parse_f64_invalid_branch_begin(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_P_ERR())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 127)
+}
+
+fn emit_parse_f64_invalid_branch_else(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_ELSE())
+}
+
+fn emit_parse_f64_decimal_divisor(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_DIVISOR())
+    writer_core::emit_byte(w, opcodes::OP_F64_CONST())
+    writer_numbers::emit_f64(w, 1.0)
+    writer_core::emit_byte(w, opcodes::OP_F64_STORE())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_LOOP())
+    writer_core::emit_byte(w, 64)
+    emit_parse_f64_decimal_divisor_loop_body(w)
+    writer_core::emit_byte(w, opcodes::OP_END())
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_parse_f64_decimal_divisor_loop_body(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_DECCOUNT())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+    writer_core::emit_byte(w, opcodes::OP_BR_IF())
+    writer_leb::emit_leb128_u(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_DIVISOR())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_DIVISOR())
+    writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_F64_CONST())
+    writer_numbers::emit_f64(w, 10.0)
+    writer_core::emit_byte(w, opcodes::OP_F64_MUL())
+    writer_core::emit_byte(w, opcodes::OP_F64_STORE())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    emit_parse_f64_decrement_decimal_count(w)
+    writer_core::emit_byte(w, opcodes::OP_BR())
+    writer_leb::emit_leb128_u(w, 0)
+}
+
+fn emit_parse_f64_decrement_decimal_count(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_DECCOUNT())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_DECCOUNT())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_parse_f64_apply_decimal_part(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_SAWDOT())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_RESULT())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_RESULT())
+    writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_DIVISOR())
+    writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_F64_DIV())
+    writer_core::emit_byte(w, opcodes::OP_F64_STORE())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_parse_f64_apply_sign(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_P_NEG())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_RESULT())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, constants::SCRATCH_PF_RESULT())
+    writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_F64_NEG())
+    writer_core::emit_byte(w, opcodes::OP_F64_STORE())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_parse_f64_invalid_branch_end(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_END())
+}

@@ -1,0 +1,33 @@
+// Arukellt Selfhost - MIR lowering fallback source.
+
+use mir::lower::entry_fallback_body
+use mir::lower::legacy_decl
+
+struct MirLowerFallbackSource {
+    decls: Vec<MirLowerLegacyDecl>,
+}
+
+fn mir_fallback_source_from_decls(decls: Vec<MirLowerLegacyDecl>) -> MirLowerFallbackSource {
+    MirLowerFallbackSource { decls: decls }
+}
+
+fn mir_fallback_source_decl_at(source: MirLowerFallbackSource, index: i32) -> MirLowerLegacyDecl {
+    get_unchecked(source.decls, index)
+}
+
+fn mir_fallback_source_fn_body(source: MirLowerFallbackSource, decl_index: i32, body_idx: i32) -> MirLowerEntryFallbackBody {
+    let decl = mir_fallback_source_decl_at(source, decl_index)
+    if body_idx >= 0 {
+        return entry_fallback_body::mir_entry_fallback_body_new(legacy_decl::mir_legacy_decl_body_at(decl, body_idx), true)
+    }
+    entry_fallback_body::mir_entry_fallback_body_new(legacy_decl::mir_legacy_decl_self_body(decl), false)
+}
+
+fn mir_fallback_source_method_body(source: MirLowerFallbackSource, impl_decl_index: i32, method_index: i32, body_idx: i32) -> MirLowerEntryFallbackBody {
+    let decl = mir_fallback_source_decl_at(source, impl_decl_index)
+    let method = legacy_decl::mir_legacy_decl_method_at(decl, method_index)
+    if body_idx >= 0 {
+        return entry_fallback_body::mir_entry_fallback_body_new(legacy_decl::mir_legacy_decl_body_at(method, body_idx), true)
+    }
+    entry_fallback_body::mir_entry_fallback_body_new(legacy_decl::mir_legacy_decl_self_body(method), false)
+}

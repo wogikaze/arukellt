@@ -1,0 +1,49 @@
+// Arukellt Selfhost - record adapter function body emission
+
+use component::adapter_body
+use component::adapter_memory
+use component::writer_core
+
+fn comp_emit_point_point_to_point_wrapper_body(code_sec: writer_core::ComponentWriter) {
+	let body = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(body, 0)
+	adapter_memory::comp_emit_store_const_local(body, 65000, 0)
+	adapter_memory::comp_emit_store_const_local(body, 65004, 1)
+	adapter_memory::comp_emit_store_const_local(body, 65008, 2)
+	adapter_memory::comp_emit_store_const_local(body, 65012, 3)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65008)
+	writer_core::comp_emit_byte(body, 0x10)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x0b)
+	adapter_body::comp_emit_func_body(code_sec, body)
+}
+
+fn comp_emit_point_pair_wrapper_bodies(code_sec: writer_core::ComponentWriter) {
+	let dist_body = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(dist_body, 0)
+	adapter_memory::comp_emit_store_const_local(dist_body, 65000, 0)
+	adapter_memory::comp_emit_store_const_local(dist_body, 65004, 1)
+	writer_core::comp_emit_byte(dist_body, 0x41)
+	writer_core::comp_emit_leb128_u(dist_body, 65000)
+	writer_core::comp_emit_byte(dist_body, 0x10)
+	writer_core::comp_emit_leb128_u(dist_body, 0)
+	writer_core::comp_emit_byte(dist_body, 0x0b)
+	adapter_body::comp_emit_func_body(code_sec, dist_body)
+	let add_body = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(add_body, 0)
+	adapter_memory::comp_emit_store_const_local(add_body, 65000, 0)
+	adapter_memory::comp_emit_store_const_local(add_body, 65004, 1)
+	adapter_memory::comp_emit_store_const_local(add_body, 65008, 2)
+	adapter_memory::comp_emit_store_const_local(add_body, 65012, 3)
+	writer_core::comp_emit_byte(add_body, 0x41)
+	writer_core::comp_emit_leb128_u(add_body, 65000)
+	writer_core::comp_emit_byte(add_body, 0x41)
+	writer_core::comp_emit_leb128_u(add_body, 65008)
+	writer_core::comp_emit_byte(add_body, 0x10)
+	writer_core::comp_emit_leb128_u(add_body, 1)
+	writer_core::comp_emit_byte(add_body, 0x0b)
+	adapter_body::comp_emit_func_body(code_sec, add_body)
+}

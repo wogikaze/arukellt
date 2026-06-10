@@ -1,0 +1,21 @@
+// Arukellt Selfhost - CoreHIR value type tags.
+
+fn VT_I32() -> i32 {
+    1
+}
+
+fn VT_I64() -> i32 {
+    2
+}
+
+fn VT_F64() -> i32 {
+    3
+}
+
+fn VT_REF() -> i32 {
+    4
+}
+
+fn VT_VOID() -> i32 {
+    0
+}

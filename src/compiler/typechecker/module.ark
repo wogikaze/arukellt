@@ -1,0 +1,27 @@
+// Arukellt Typechecker - module-level declaration collection facade
+
+use typechecker::module_enums
+use typechecker::module_errors
+use typechecker::module_fns
+use typechecker::module_results
+use typechecker::module_traits
+
+fn register_trait_impl_decls(env: TypeEnv, decls: Vec<AstNode>) {
+    module_traits::register_trait_impl_decls(env, decls)
+}
+
+fn collect_fn_sigs(decls: Vec<AstNode>) -> Vec<FnSig> {
+    module_fns::collect_fn_sigs(decls)
+}
+
+fn collect_enum_defs(decls: Vec<AstNode>) -> Vec<EnumInfo> {
+    module_enums::collect_enum_defs(decls)
+}
+
+fn append_typed_fn(result: TypeCheckResult, node: AstNode) {
+    module_results::append_typed_fn(result, node)
+}
+
+fn append_env_errors(result: TypeCheckResult, env: TypeEnv) {
+    module_errors::append_env_errors(result, env)
+}

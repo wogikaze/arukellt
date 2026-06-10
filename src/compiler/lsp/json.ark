@@ -1,0 +1,33 @@
+// Arukellt Selfhost - LSP JSON helper facade
+
+use lsp::json_escape
+use lsp::json_fields
+use lsp::json_parse_core
+
+fn json_escape(s: String) -> String {
+    json_escape::json_escape(s)
+}
+
+fn json_skip_ws(s: String, pos: i32) -> i32 {
+    json_parse_core::json_skip_ws(s, pos)
+}
+
+fn find_key_pos(json: String, key: String, from: i32) -> i32 {
+    json_parse_core::find_key_pos(json, key, from)
+}
+
+fn json_parse_int_at(s: String, pos: i32) -> i32 {
+    json_parse_core::json_parse_int_at(s, pos)
+}
+
+fn extract_string_field(json: String, key: String) -> String {
+    json_fields::extract_string_field(json, key)
+}
+
+fn extract_string_field_after(json: String, key: String, from: i32) -> String {
+    json_fields::extract_string_field_after(json, key, from)
+}
+
+fn extract_int_field(json: String, key: String) -> i32 {
+    json_fields::extract_int_field(json, key)
+}

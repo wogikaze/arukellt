@@ -1,0 +1,25 @@
+// Arukellt Parser - statement AST node display names
+
+use parser::kinds
+
+fn stmt_node_kind_name(kind: i32) -> String {
+    if kind == kinds::NK_LET() {
+        return String_from("Let")
+    }
+    if kind == kinds::NK_RETURN() {
+        return String_from("Return")
+    }
+    if kind == kinds::NK_WHILE() {
+        return String_from("While")
+    }
+    if kind == kinds::NK_LOOP() {
+        return String_from("Loop")
+    }
+    if kind == kinds::NK_FOR() {
+        return String_from("For")
+    }
+    if kind == kinds::NK_EXPR_STMT() {
+        return String_from("ExprStmt")
+    }
+    String_new()
+}

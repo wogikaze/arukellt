@@ -1,0 +1,44 @@
+use lexer::tokens
+// Arukellt Lexer - token constructors.
+
+use lexer::token_record
+
+fn Token_new(kind: i32, text: String, start: i32, end: i32) -> Token {
+    token_record::make_token(kind, text, start, end)
+}
+
+fn Token_int(val: i32, text: String, start: i32, end: i32) -> Token {
+    token_record::Token_with_int(tokens::TK_INT(), val, text, start, end)
+}
+
+fn Token_float(val: f64, text: String, start: i32, end: i32) -> Token {
+    token_record::Token_with_float(tokens::TK_FLOAT(), val, text, start, end)
+}
+
+fn Token_kind(tok: Token) -> i32 {
+    token_record::token_kind(tok)
+}
+
+fn Token_text(tok: Token) -> String {
+    token_record::token_text(tok)
+}
+
+fn Token_start(tok: Token) -> i32 {
+    token_record::token_start(tok)
+}
+
+fn Token_end(tok: Token) -> i32 {
+    token_record::token_end(tok)
+}
+
+fn Token_int_val(tok: Token) -> i32 {
+    token_record::token_int_val(tok)
+}
+
+fn Token_float_val(tok: Token) -> f64 {
+    token_record::token_float_val(tok)
+}
+
+fn Token_set_int(tok: Token, value: i32) {
+    token_record::token_set_int(tok, value)
+}

@@ -1,0 +1,128 @@
+// Arukellt Selfhost - component numeric declaration scan.
+
+use component::contract_helpers
+
+pub struct ComponentNumericScan {
+    has_f32_unary: bool,
+    has_f32_binary: bool,
+    has_f32_to_i32: bool,
+    has_i32_to_f32: bool,
+    export_count: i32,
+}
+
+fn ComponentNumericScan_new(has_f32_unary: bool, has_f32_binary: bool, has_f32_to_i32: bool, has_i32_to_f32: bool, export_count: i32) -> ComponentNumericScan {
+    ComponentNumericScan {
+        has_f32_unary: has_f32_unary,
+        has_f32_binary: has_f32_binary,
+        has_f32_to_i32: has_f32_to_i32,
+        has_i32_to_f32: has_i32_to_f32,
+        export_count: export_count,
+    }
+}
+
+fn ComponentNumericScan_empty() -> ComponentNumericScan {
+    ComponentNumericScan_new(false, false, false, false, 0)
+}
+
+fn ComponentNumericScan_single_export(scan: ComponentNumericScan) -> bool {
+    scan.export_count == 1
+}
+
+fn ComponentNumericScan_has_f32_unary(scan: ComponentNumericScan) -> bool {
+    scan.has_f32_unary
+}
+
+fn ComponentNumericScan_has_f32_binary(scan: ComponentNumericScan) -> bool {
+    scan.has_f32_binary
+}
+
+fn ComponentNumericScan_has_f32_to_i32(scan: ComponentNumericScan) -> bool {
+    scan.has_f32_to_i32
+}
+
+fn ComponentNumericScan_has_i32_to_f32(scan: ComponentNumericScan) -> bool {
+    scan.has_i32_to_f32
+}
+
+fn ComponentNumericScan_increment_export_count(scan: ComponentNumericScan) {
+    scan.export_count = scan.export_count + 1
+}
+
+fn ComponentNumericScan_set_has_f32_unary(scan: ComponentNumericScan, value: bool) {
+    scan.has_f32_unary = value
+}
+
+fn ComponentNumericScan_set_has_f32_binary(scan: ComponentNumericScan, value: bool) {
+    scan.has_f32_binary = value
+}
+
+fn ComponentNumericScan_set_has_f32_to_i32(scan: ComponentNumericScan, value: bool) {
+    scan.has_f32_to_i32 = value
+}
+
+fn ComponentNumericScan_set_has_i32_to_f32(scan: ComponentNumericScan, value: bool) {
+    scan.has_i32_to_f32 = value
+}
+
+fn component_fn_is_f32_unary(f: ComponentExportFunc) -> bool {
+    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("f32")) && eq(contract_helpers::component_export_return_type_name(f), String_from("f32"))
+}
+
+fn component_fn_is_f32_binary(f: ComponentExportFunc) -> bool {
+    contract_helpers::component_export_param_count_is(f, 2) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("f32")) && eq(contract_helpers::component_export_param_type_name_at(f, 1), String_from("f32")) && eq(contract_helpers::component_export_return_type_name(f), String_from("f32"))
+}
+
+fn component_fn_is_f32_to_i32(f: ComponentExportFunc) -> bool {
+    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("f32")) && eq(contract_helpers::component_export_return_type_name(f), String_from("i32"))
+}
+
+fn component_fn_is_i32_to_f32(f: ComponentExportFunc) -> bool {
+    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i32")) && eq(contract_helpers::component_export_return_type_name(f), String_from("f32"))
+}
+
+fn component_numeric_scan_apply_fn(d: AstNode, scan: ComponentNumericScan) -> ComponentNumericScan {
+    let f = contract_helpers::component_func_from_decl(d)
+    if component_fn_is_f32_unary(f) {
+        ComponentNumericScan_set_has_f32_unary(scan, true)
+    }
+    if component_fn_is_f32_binary(f) {
+        ComponentNumericScan_set_has_f32_binary(scan, true)
+    }
+    if component_fn_is_f32_to_i32(f) {
+        ComponentNumericScan_set_has_f32_to_i32(scan, true)
+    }
+    if component_fn_is_i32_to_f32(f) {
+        ComponentNumericScan_set_has_i32_to_f32(scan, true)
+    }
+    scan
+}
+
+fn ComponentNumericScan_allows_f32_unary(scan: ComponentNumericScan) -> bool {
+    ComponentNumericScan_has_f32_unary(scan) && ComponentNumericScan_single_export(scan)
+}
+
+fn ComponentNumericScan_allows_f32_binary(scan: ComponentNumericScan) -> bool {
+    ComponentNumericScan_has_f32_binary(scan) && ComponentNumericScan_single_export(scan)
+}
+
+fn ComponentNumericScan_allows_f32_to_i32(scan: ComponentNumericScan) -> bool {
+    ComponentNumericScan_has_f32_to_i32(scan) && ComponentNumericScan_single_export(scan)
+}
+
+fn ComponentNumericScan_allows_i32_to_f32(scan: ComponentNumericScan) -> bool {
+    ComponentNumericScan_has_i32_to_f32(scan) && ComponentNumericScan_single_export(scan)
+}
+
+fn component_numeric_scan(decls: Vec<AstNode>) -> ComponentNumericScan {
+    let scan = ComponentNumericScan_empty()
+    let mut i = 0
+    while i < len(decls) {
+        let d = get_unchecked(decls, i)
+        if contract_helpers::is_export_func_decl(d) {
+            ComponentNumericScan_increment_export_count(scan)
+            component_numeric_scan_apply_fn(d, scan)
+        }
+        i = i + 1
+    }
+    scan
+}

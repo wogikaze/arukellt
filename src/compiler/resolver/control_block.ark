@@ -1,0 +1,9 @@
+// Arukellt Resolver - scoped block walker.
+
+use resolver::scope_stack_lifecycle
+
+fn resolve_block(ctx: ResolveCtx, node: AstNode) {
+    scope_stack_lifecycle::push_scope(ctx)
+    resolve_children(ctx, node)
+    scope_stack_lifecycle::pop_scope(ctx)
+}

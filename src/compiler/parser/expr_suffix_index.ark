@@ -1,0 +1,17 @@
+use parser::core_ast_span_fields
+use lexer::tokens
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - index suffixes
+
+
+pub fn parse_index_suffix(p: Parser, lhs: AstNode) -> AstNode {
+    p.pos = p.pos + 1
+    let idx = parse_expr(p)
+    expect_token(p, tokens::TK_RBRACKET())
+    let node = AstNode_new(kinds::NK_INDEX(), core_ast_span_fields::AstNode_span(lhs))
+    core_ast_children::AstNode_push_child(node, lhs)
+    core_ast_children::AstNode_push_child(node, idx)
+    node
+}

@@ -1,0 +1,24 @@
+use typechecker::kinds
+// Arukellt Typechecker - binary expression inference.
+
+use typechecker::ast_access
+use typechecker::ops
+use typechecker::unify
+
+fn infer_binary_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    if ast_access::node_child_count(node) >= 2 {
+        let lhs_node = ast_access::node_child_at(node, 0)
+        let rhs_node = ast_access::node_child_at(node, 1)
+        let lhs_ty = infer_expr(env, scope, fn_sigs, enum_defs, lhs_node)
+        let rhs_ty = infer_expr(env, scope, fn_sigs, enum_defs, rhs_node)
+        let op = ast_access::node_op(node)
+        if ops::is_comparison_op(op) {
+            return TypeInfo_simple(commands::TY_BOOL())
+        }
+        if ops::is_logical_op(op) {
+            return TypeInfo_simple(commands::TY_BOOL())
+        }
+        return unify::unify(env, lhs_ty, rhs_ty)
+    }
+    TypeInfo_simple(commands::TY_UNKNOWN())
+}

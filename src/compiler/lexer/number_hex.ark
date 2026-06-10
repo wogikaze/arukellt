@@ -1,0 +1,19 @@
+// Arukellt Lexer - hexadecimal integer literals.
+
+use lexer::char_class
+use lexer::number_suffix
+
+fn lex_hex_number(lex: Lexer, start: i32) -> Token {
+    lex.pos = lex.pos + 2
+    let mut val: i32 = 0
+    while lex.pos < lex.src_len && char_class::is_hex_digit(peek(lex)) || peek(lex) == 95 {
+        let d = peek(lex)
+        if d != 95 {
+            val = val * 16 + char_class::digit_value(d)
+        }
+        lex.pos = lex.pos + 1
+    }
+    number_suffix::try_eat_type_suffix(lex)
+    let text = substring(lex.src, start, lex.pos)
+    Token_int(val, text, start, lex.pos)
+}

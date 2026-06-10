@@ -1,0 +1,24 @@
+// Arukellt Selfhost - MIR list comprehension index increment.
+
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::opcodes
+use mir::lower::ctx_types
+use mir::inst_const_i32
+use mir::inst_branch
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::inst_op
+use mir::lower::comprehension_state
+use mir::value_types
+
+fn mir_emit_comprehension_increment(ctx: LowerCtx, state: ComprehensionState) {
+    let idx_local = comprehension_state::comprehension_state_idx_local(state)
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(idx_local))
+    let comp_one_dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(1, comp_one_dest))
+    let comp_add_dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_ADD(), comp_add_dest, idx_local, comp_one_dest))
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(idx_local))
+    ctx_emit(ctx, inst_branch::MirInst_br(0))
+}

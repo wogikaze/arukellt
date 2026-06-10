@@ -1,0 +1,39 @@
+// Arukellt Resolver - scope stack symbol accessors.
+
+use resolver::symbol_record
+
+fn Symbol_name(sym: Symbol) -> String {
+    symbol_record::symbol_name(sym)
+}
+
+fn Symbol_kind(sym: Symbol) -> i32 {
+    symbol_record::symbol_kind(sym)
+}
+
+fn Symbol_scope_depth(sym: Symbol) -> i32 {
+    symbol_record::symbol_scope_depth(sym)
+}
+
+fn Symbol_decl_index(sym: Symbol) -> i32 {
+    symbol_record::symbol_decl_index(sym)
+}
+
+fn Symbol_is_pub(sym: Symbol) -> bool {
+    symbol_record::symbol_is_pub(sym)
+}
+
+fn Symbol_set_kind(sym: Symbol, kind: i32) {
+    symbol_record::symbol_set_kind(sym, kind)
+}
+
+fn Symbol_set_decl_index(sym: Symbol, decl_index: i32) {
+    symbol_record::symbol_set_decl_index(sym, decl_index)
+}
+
+fn Symbol_set_is_pub(sym: Symbol, is_pub: bool) {
+    symbol_record::symbol_set_is_pub(sym, is_pub)
+}
+
+fn Symbol_new(name: String, kind: i32, scope_depth: i32, decl_index: i32, is_pub: bool) -> Symbol {
+    symbol_record::Symbol_new(name, kind, scope_depth, decl_index, is_pub)
+}

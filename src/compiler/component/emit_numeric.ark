@@ -1,0 +1,92 @@
+use component::constants_wit_values
+// Arukellt Selfhost - numeric component wrapper facade
+
+use component::adapters_numeric
+use component::component_base
+use component::constants_sections_linkage
+use component::export_sections_entries
+use component::export_sections
+use component::naming
+use component::types_wit_func
+use component::writer_core
+
+fn emit_numeric_component(core_wasm: Vec<i32>, export_name: String, adapter_kind: i32, param0_type: i32, param1_type: i32, param_count: i32, result_type: i32) -> Vec<i32> {
+    let out = component_base::comp_new_component_writer()
+    component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, numeric_adapter_core_module(clone(export_name), adapter_kind))
+
+    emit_numeric_alias_section(out, clone(export_name))
+    emit_numeric_type_section(out, param0_type, param1_type, param_count, result_type)
+    emit_numeric_canon_section(out)
+    emit_numeric_export_section(out, clone(export_name))
+
+    writer_core::comp_writer_bytes(out)
+}
+
+fn emit_f32_unary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+    emit_numeric_component(core_wasm, export_name, NUM_ADAPTER_F32_UNARY(), constants_wit_values::WIT_VAL_FLOAT32(), 0, 1, constants_wit_values::WIT_VAL_FLOAT32())
+}
+
+fn emit_f32_binary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+    emit_numeric_component(core_wasm, export_name, NUM_ADAPTER_F32_BINARY(), constants_wit_values::WIT_VAL_FLOAT32(), constants_wit_values::WIT_VAL_FLOAT32(), 2, constants_wit_values::WIT_VAL_FLOAT32())
+}
+
+fn emit_f32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+    emit_numeric_component(core_wasm, export_name, NUM_ADAPTER_F32_TO_I32(), constants_wit_values::WIT_VAL_FLOAT32(), 0, 1, constants_wit_values::WIT_VAL_S32())
+}
+
+fn emit_i32_to_f32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+    emit_numeric_component(core_wasm, export_name, NUM_ADAPTER_I32_TO_F32(), constants_wit_values::WIT_VAL_S32(), 0, 1, constants_wit_values::WIT_VAL_FLOAT32())
+}
+
+fn NUM_ADAPTER_F32_UNARY() -> i32 { 1 }
+fn NUM_ADAPTER_F32_BINARY() -> i32 { 2 }
+fn NUM_ADAPTER_F32_TO_I32() -> i32 { 3 }
+fn NUM_ADAPTER_I32_TO_F32() -> i32 { 4 }
+
+fn numeric_adapter_core_module(export_name: String, adapter_kind: i32) -> Vec<i32> {
+	if adapter_kind == NUM_ADAPTER_F32_BINARY() {
+		return adapters_numeric::comp_f32_binary_adapter_core_module(export_name)
+	}
+	if adapter_kind == NUM_ADAPTER_F32_TO_I32() {
+		return adapters_numeric::comp_f32_to_i32_adapter_core_module(export_name)
+	}
+	if adapter_kind == NUM_ADAPTER_I32_TO_F32() {
+		return adapters_numeric::comp_i32_to_f32_adapter_core_module(export_name)
+	}
+	adapters_numeric::comp_f32_unary_adapter_core_module(export_name)
+}
+
+fn emit_numeric_alias_section(out: writer_core::ComponentWriter, export_name: String) {
+	let alias_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(alias_sec, 1)
+	export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), alias_sec)
+}
+
+fn emit_numeric_type_section(out: writer_core::ComponentWriter, param0_type: i32, param1_type: i32, param_count: i32, result_type: i32) {
+	let type_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(type_sec, 1)
+	let params = Vec_new_i32()
+	push(params, param0_type)
+	if param_count > 1 {
+		push(params, param1_type)
+	}
+	let results = Vec_new_i32()
+	push(results, result_type)
+	writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), type_sec)
+}
+
+fn emit_numeric_canon_section(out: writer_core::ComponentWriter) {
+	let canon_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(canon_sec, 1)
+	export_sections_entries::emit_canon_lift_no_options_entry(canon_sec, 0, 0)
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CANON(), canon_sec)
+}
+
+fn emit_numeric_export_section(out: writer_core::ComponentWriter, export_name: String) {
+	let func_export_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(func_export_sec, 1)
+	export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 0)
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), func_export_sec)
+}

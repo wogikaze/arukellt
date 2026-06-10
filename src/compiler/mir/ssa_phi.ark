@@ -1,0 +1,21 @@
+// Arukellt Selfhost - MIR SSA phi utilities.
+
+use mir::ssa_assign
+use mir::ssa_join_phi
+use mir::ssa_value
+
+fn mir_assign_local_ssa(f: MirFunction, local_id: i32, ssa_name: String, ssa_version: i32) {
+    ssa_assign::mir_assign_local_ssa(f, local_id, ssa_name, ssa_version)
+}
+
+fn mir_assign_simple_join_phi_ssa(f: MirFunction, dest_local: i32, pred0_local: i32, pred1_local: i32) {
+    ssa_assign::mir_assign_simple_join_phi_ssa(f, dest_local, pred0_local, pred1_local)
+}
+
+fn mir_find_last_value_local(block: MirBlock) -> i32 {
+    ssa_value::mir_find_last_value_local(block)
+}
+
+fn mir_try_insert_simple_join_phi(f: MirFunction, join_block_id: i32, dest_local: i32) -> bool {
+    ssa_join_phi::mir_try_insert_simple_join_phi(f, join_block_id, dest_local)
+}

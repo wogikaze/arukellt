@@ -1,0 +1,24 @@
+// Arukellt Selfhost - MIR lowering monomorphization view over CoreHIR facts.
+
+use corehir::mir_type_source
+use corehir::mod
+use mir::mono
+
+struct MirLowerMonoView {
+    instances: Vec<MonoInstance>,
+    index: MonoIndex,
+}
+
+fn mir_lower_mono_view_from_core(view: CoreHirMirView) -> MirLowerMonoView {
+    let type_source = mod::view_type_source(view)
+    let instances = type_source::mir_type_source_mono_instances(type_source)
+    MirLowerMonoView { instances: instances, index: mono::build_mono_index(instances) }
+}
+
+fn mir_lower_mono_view_instances(view: MirLowerMonoView) -> Vec<MonoInstance> {
+    view.instances
+}
+
+fn mir_lower_mono_view_index(view: MirLowerMonoView) -> MonoIndex {
+    view.index
+}

@@ -1,0 +1,37 @@
+// Arukellt Lexer - character classification.
+
+fn is_alpha(c: i32) -> bool {
+    c >= 65 && c <= 90 || c >= 97 && c <= 122 || c == 95
+}
+
+fn is_digit(c: i32) -> bool {
+    c >= 48 && c <= 57
+}
+
+fn is_hex_digit(c: i32) -> bool {
+    is_digit(c) || c >= 65 && c <= 70 || c >= 97 && c <= 102
+}
+
+fn is_alnum(c: i32) -> bool {
+    is_alpha(c) || is_digit(c)
+}
+
+fn is_whitespace_not_newline(c: i32) -> bool {
+    c == 32 || c == 9 || c == 13
+}
+
+fn digit_value(c: i32) -> i32 {
+    if c >= 48 && c <= 57 {
+        c - 48
+    } else {
+        if c >= 65 && c <= 70 {
+            c - 55
+        } else {
+            if c >= 97 && c <= 102 {
+                c - 87
+            } else {
+                -1
+            }
+        }
+    }
+}

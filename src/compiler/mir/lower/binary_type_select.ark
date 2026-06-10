@@ -1,0 +1,43 @@
+// Arukellt Selfhost - MIR binary value-type selection.
+
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_atoms
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+use mir::value_types
+
+// CoreHIR idents carry VT_I32 statically; resolve their real value type from
+// the allocated local so the left operand widens before the right is lowered.
+fn mir_peek_core_expr_vt(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
+    if core_expr_shape_atoms::mir_core_expr_is_ident(expr) {
+        let idx = ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
+        if idx >= 0 {
+            return ctx_api_local_types::ctx_local_vt(ctx, idx)
+        }
+    }
+    if core_expr_shape_atoms::mir_core_expr_is_float(expr) {
+        return value_types::VT_F64()
+    }
+    core_expr_shape_accessors::mir_core_expr_val_type(expr)
+}
+
+fn mir_initial_binop_vt(lhs_vt: i32, rhs_vt: i32) -> i32 {
+    if lhs_vt == value_types::VT_F64() || rhs_vt == value_types::VT_F64() {
+        return value_types::VT_F64()
+    }
+    if lhs_vt == value_types::VT_I64() || rhs_vt == value_types::VT_I64() {
+        return value_types::VT_I64()
+    }
+    value_types::VT_I32()
+}
+
+fn mir_call_return_dest_vt(return_vt: i32) -> i32 {
+    if return_vt == value_types::VT_I64() {
+        return value_types::VT_I64()
+    }
+    if return_vt == value_types::VT_F64() {
+        return value_types::VT_F64()
+    }
+    value_types::VT_I32()
+}

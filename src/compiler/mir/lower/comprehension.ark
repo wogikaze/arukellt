@@ -1,0 +1,25 @@
+// Arukellt Selfhost - MIR lowering helpers for list comprehensions.
+
+use mir::lower::comprehension_begin
+use mir::lower::comprehension_emit
+use mir::lower::comprehension_state
+
+fn mir_begin_comprehension(ctx: LowerCtx, var_name: String, comp_vec_idx: i32) -> ComprehensionState {
+    comprehension_begin::mir_begin_comprehension(ctx, var_name, comp_vec_idx)
+}
+
+fn mir_emit_comprehension_push_prefix(ctx: LowerCtx, state: ComprehensionState) {
+    comprehension_emit::mir_emit_comprehension_push_prefix(ctx, state)
+}
+
+fn mir_emit_comprehension_push_call(ctx: LowerCtx) {
+    comprehension_emit::mir_emit_comprehension_push_call(ctx)
+}
+
+fn mir_emit_comprehension_increment_and_end(ctx: LowerCtx, state: ComprehensionState) {
+    comprehension_emit::mir_emit_comprehension_increment_and_end(ctx, state)
+}
+
+fn mir_emit_comprehension_result(ctx: LowerCtx, state: ComprehensionState) -> i32 {
+    comprehension_emit::mir_emit_comprehension_result(ctx, state)
+}

@@ -1,0 +1,48 @@
+// Arukellt Selfhost - driver namespace: lower
+
+use driver::config_record
+use mir
+use component
+use corehir::mod
+
+// Arukellt Selfhost - driver CoreHIR to MIR lowering phase.
+
+fn lower_checked_program(all_decls: Vec<AstNode>, check_result: TypeCheckResult, config: DriverConfig) -> MirModule {
+    let emit_mode = config_record::config_emit_mode(config)
+    let component_mode = eq(clone(emit_mode), "component") || eq(clone(emit_mode), "wit")
+    if component_mode {
+        return lower_component_checked_program(all_decls, check_result)
+    }
+    mir::lower_to_mir_no_prune(lower_input_from_checked(all_decls, check_result))
+}
+
+// Arukellt Selfhost - component/WIT MIR lowering policy.
+
+fn lower_component_checked_program(all_decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
+    let input = lower_input_from_checked(all_decls, check_result)
+    let mir_module = mir::lower_to_mir_no_prune(input)
+    let export_roots = component::collect_export_roots(all_decls)
+    let _t3_pruned = mir::mir_prune_unreachable_for_t3(mir_module, export_roots)
+    mir_module
+}
+
+// Arukellt Selfhost - driver adapter for MIR lowering fallback source.
+
+fn lower_fallback_source_from_decls(all_decls: Vec<AstNode>) -> MirLowerFallbackSource {
+    let legacy_decls = Vec_new_MirLowerLegacyDecl()
+    let mut i = 0
+    while i < len(all_decls) {
+        push(legacy_decls, mir::mir_legacy_decl_from_node(get_unchecked(all_decls, i)))
+        i = i + 1
+    }
+    mir::mir_fallback_source_from_decls(legacy_decls)
+}
+
+// Arukellt Selfhost - driver adapter for MIR lowering input.
+
+fn lower_input_from_checked(all_decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirLowerInput {
+    let core_program = mod::build_checked_program(all_decls, check_result)
+    let view = mod::mir_view_from_program(core_program)
+    let fallback_source = lower_fallback_source_from_decls(all_decls)
+    mir::mir_lower_input_new(view, fallback_source)
+}

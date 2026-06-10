@@ -1,0 +1,28 @@
+use mir::lower::loop_scope
+use mir::lower::loop_conditions
+// Arukellt Selfhost - MIR lowering for CoreHIR loop expressions.
+
+use mir::lower::core_expr_shape_accessors
+
+fn lower_core_while(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
+        return 0 - 1
+    }
+    let loop_scope = loop_scope::mir_begin_loop_scope(ctx)
+    let cond_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    loop_conditions::mir_emit_eqz_break_if(ctx, cond_idx)
+    let _body_result = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
+    loop_scope::mir_emit_loop_back(ctx)
+    loop_scope::mir_end_loop_scope(ctx, loop_scope)
+    0 - 1
+}
+
+fn lower_core_loop(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 1 {
+        return 0 - 1
+    }
+    let loop_scope = loop_scope::mir_begin_value_loop_scope(ctx)
+    let _body_result = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    loop_scope::mir_emit_loop_back(ctx)
+    loop_scope::mir_end_value_loop_scope(ctx, loop_scope)
+}

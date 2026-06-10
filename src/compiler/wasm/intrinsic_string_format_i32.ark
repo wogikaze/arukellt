@@ -1,0 +1,127 @@
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_memory_access
+use wasm::constants
+// Arukellt Selfhost - i32 string format intrinsic handler.
+
+use wasm::ctx_scratch
+use wasm::intrinsics::helpers_control_branch
+use wasm::intrinsics::helpers_control_loop
+use wasm::intrinsics::helpers_control_structured
+use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_core_locals
+
+fn emit_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_wpos = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let s_neg = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_alloc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    helpers_core_locals::emit_local_set(w, s_val)
+    let buf_end = constants::SCRATCH_I32BUF() + 20
+    helpers_numeric_i32_const::emit_i32_const(w, buf_end)
+    helpers_core_locals::emit_local_set(w, s_wpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_neg)
+    emit_i32_digits(w, s_val, s_wpos, s_neg)
+    emit_i32_string_alloc(w, buf_end, s_wpos, s_len, s_alloc)
+    return true
+}
+
+fn emit_i32_digits(w: WasmWriter, s_val: i32, s_wpos: i32, s_neg: i32) {
+    emit_i32_normalize_sign(w, s_val, s_neg)
+    helpers_core_locals::emit_local_get(w, s_val)
+    helpers_numeric_i32_compare::emit_i32_eqz(w)
+    helpers_control_structured::emit_if_empty(w)
+    emit_i32_zero_digit(w, s_wpos)
+    helpers_control_structured::emit_else(w)
+    emit_i32_digit_loop(w, s_val, s_wpos)
+    helpers_control_structured::emit_end(w)
+    emit_i32_minus_if_needed(w, s_wpos, s_neg)
+}
+
+fn emit_i32_normalize_sign(w: WasmWriter, s_val: i32, s_neg: i32) {
+    helpers_core_locals::emit_local_get(w, s_val)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_numeric_i32_compare::emit_i32_lt_s(w)
+    helpers_control_structured::emit_if_empty(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_get(w, s_val)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_core_locals::emit_local_set(w, s_val)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_core_locals::emit_local_set(w, s_neg)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_i32_zero_digit(w: WasmWriter, s_wpos: i32) {
+    helpers_core_locals::emit_local_get(w, s_wpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_core_locals::emit_local_tee(w, s_wpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 48)
+    helpers_memory_access::emit_i32_store8_default(w)
+}
+
+fn emit_i32_digit_loop(w: WasmWriter, s_val: i32, s_wpos: i32) {
+    helpers_control_loop::emit_block_loop_header(w)
+    helpers_core_locals::emit_local_get(w, s_val)
+    helpers_numeric_i32_compare::emit_i32_eqz(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_locals::emit_local_get(w, s_wpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_core_locals::emit_local_tee(w, s_wpos)
+    helpers_core_locals::emit_local_get(w, s_val)
+    helpers_numeric_i32_const::emit_i32_const(w, 10)
+    helpers_numeric_i32_arith::emit_i32_rem_u(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 48)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory_access::emit_i32_store8_default(w)
+    helpers_core_locals::emit_local_get(w, s_val)
+    helpers_numeric_i32_const::emit_i32_const(w, 10)
+    helpers_numeric_i32_arith::emit_i32_div_u(w)
+    helpers_core_locals::emit_local_set(w, s_val)
+    helpers_control_branch::emit_br(w, 0)
+    helpers_control_structured::emit_end(w)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_i32_minus_if_needed(w: WasmWriter, s_wpos: i32, s_neg: i32) {
+    helpers_core_locals::emit_local_get(w, s_neg)
+    helpers_control_structured::emit_if_empty(w)
+    helpers_core_locals::emit_local_get(w, s_wpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_core_locals::emit_local_tee(w, s_wpos)
+    helpers_numeric_i32_const::emit_i32_const(w, 45)
+    helpers_memory_access::emit_i32_store8_default(w)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_i32_string_alloc(w: WasmWriter, buf_end: i32, s_wpos: i32, s_len: i32, s_alloc: i32) {
+    helpers_numeric_i32_const::emit_i32_const(w, buf_end)
+    helpers_core_locals::emit_local_get(w, s_wpos)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_core_locals::emit_local_set(w, s_len)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_core_locals::emit_local_tee(w, s_alloc)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+    helpers_core_locals::emit_local_get(w, s_alloc)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core_locals::emit_local_get(w, s_alloc)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_get(w, s_wpos)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_memory_access::emit_memory_copy(w)
+    helpers_core_locals::emit_local_get(w, s_alloc)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+}

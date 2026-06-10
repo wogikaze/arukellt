@@ -1,0 +1,66 @@
+// Arukellt Resolver - resolver context DTO record.
+
+use resolver::scope_record
+
+struct ResolveCtx {
+    scopes: Vec<Scope>,
+    current_depth: i32,
+    error_count: i32,
+    errors: Vec<String>,
+    next_decl_index: i32,
+}
+
+fn ResolveCtx_new_empty() -> ResolveCtx {
+    ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), next_decl_index: 0 }
+}
+
+fn resolve_ctx_scope_count(ctx: ResolveCtx) -> i32 {
+    len(ctx.scopes)
+}
+
+fn resolve_ctx_scope_at(ctx: ResolveCtx, index: i32) -> Scope {
+    get_unchecked(ctx.scopes, index)
+}
+
+fn resolve_ctx_push_scope_value(ctx: ResolveCtx, scope: Scope) {
+    push(ctx.scopes, scope)
+}
+
+fn resolve_ctx_current_depth(ctx: ResolveCtx) -> i32 {
+    ctx.current_depth
+}
+
+fn resolve_ctx_take_next_decl_index(ctx: ResolveCtx) -> i32 {
+    let idx = ctx.next_decl_index
+    ctx.next_decl_index = ctx.next_decl_index + 1
+    idx
+}
+
+fn resolve_ctx_push_depth(ctx: ResolveCtx) {
+    ctx.current_depth = ctx.current_depth + 1
+}
+
+fn resolve_ctx_pop_depth(ctx: ResolveCtx) {
+    ctx.current_depth = ctx.current_depth - 1
+}
+
+fn resolve_ctx_push_error(ctx: ResolveCtx, msg: String) {
+    ctx.error_count = ctx.error_count + 1
+    push(ctx.errors, msg)
+}
+
+fn resolve_ctx_errors(ctx: ResolveCtx) -> Vec<String> {
+    ctx.errors
+}
+
+fn resolve_ctx_error_message_count(ctx: ResolveCtx) -> i32 {
+    len(ctx.errors)
+}
+
+fn resolve_ctx_reported_error_count(ctx: ResolveCtx) -> i32 {
+    ctx.error_count
+}
+
+fn resolve_ctx_error_at(ctx: ResolveCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.errors, index))
+}

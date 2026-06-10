@@ -1,0 +1,21 @@
+// Arukellt Selfhost - MIR per-function dominance analysis facade.
+
+use mir::dom_pred
+use mir::dominance_frontier
+use mir::dominance_idom
+use mir::dominance_init
+use mir::dominance_iter
+use mir::function_block_queries
+use mir::types
+
+fn mir_compute_dominance_for_function(f: MirFunction) {
+    dom_pred::mir_compute_predecessors_for_function(f)
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    if block_count == 0 {
+        return
+    }
+    dominance_init::mir_initialize_dominance_sets(f, block_count)
+    dominance_iter::mir_iterate_dominance_sets(f, block_count)
+    dominance_idom::mir_compute_immediate_dominators(f, block_count)
+    dominance_frontier::mir_compute_dominance_frontiers(f, block_count)
+}

@@ -1,0 +1,25 @@
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - synthetic multi-clause parameter construction.
+
+
+fn build_synthetic_param_names(param_count: i32) -> Vec<String> {
+    let param_names = Vec_new_String()
+    let mut pi = 0
+    while pi < param_count {
+        push(param_names, concat(String_from("__arg"), to_string(pi)))
+        pi = pi + 1
+    }
+    param_names
+}
+
+fn append_synthetic_params(result: AstNode, param_names: Vec<String>, fn_span: Span) {
+    let mut pi = 0
+    while pi < len(param_names) {
+        let syn_name = get_unchecked(param_names, pi)
+        let param = AstNode_leaf(kinds::NK_IDENT(), clone(syn_name), fn_span)
+        core_ast_children::AstNode_push_child(result, param)
+        pi = pi + 1
+    }
+}

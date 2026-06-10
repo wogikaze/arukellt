@@ -1,0 +1,49 @@
+// Arukellt Selfhost - MIR lowering match helper facade.
+
+use mir::lower::match_arms
+use mir::lower::match_payload
+use mir::lower::match_result
+
+fn mir_prepare_match_payload(ctx: LowerCtx, node: AstNode, child_count: i32, scrut_idx: i32) -> MirMatchPayloadInfo {
+    match_payload::mir_prepare_match_payload(ctx, node, child_count, scrut_idx)
+}
+
+fn mir_match_payload_compare_idx(info: MirMatchPayloadInfo) -> i32 {
+    match_payload::mir_match_payload_compare_idx(info)
+}
+
+fn mir_emit_match_ident_bind(ctx: LowerCtx, pat: AstNode, scrut_idx: i32) {
+    match_payload::mir_emit_match_ident_bind(ctx, pat, scrut_idx)
+}
+
+fn mir_emit_payload_variant_binds_if_needed(ctx: LowerCtx, info: MirMatchPayloadInfo, pat: AstNode, scrut_idx: i32) {
+    match_payload::mir_emit_payload_variant_binds_if_needed(ctx, info, pat, scrut_idx)
+}
+
+fn mir_match_is_catchall(pat: AstNode) -> bool {
+    match_arms::mir_match_is_catchall(pat)
+}
+
+fn mir_match_arm_has_guard(arm_child_count: i32) -> bool {
+    match_arms::mir_match_arm_has_guard(arm_child_count)
+}
+
+fn mir_emit_match_guard_begin(ctx: LowerCtx) {
+    match_arms::mir_emit_match_guard_begin(ctx)
+}
+
+fn mir_emit_match_guard_end(ctx: LowerCtx) {
+    match_arms::mir_emit_match_guard_end(ctx)
+}
+
+fn mir_emit_match_end_nested_ifs(ctx: LowerCtx, if_depth: i32) {
+    match_arms::mir_emit_match_end_nested_ifs(ctx, if_depth)
+}
+
+fn mir_store_match_arm_result(ctx: LowerCtx, result: i32, arm_result: i32) {
+    match_result::mir_store_match_arm_result(ctx, result, arm_result)
+}
+
+fn mir_emit_match_result_get(ctx: LowerCtx, result: i32) -> i32 {
+    match_result::mir_emit_match_result_get(ctx, result)
+}

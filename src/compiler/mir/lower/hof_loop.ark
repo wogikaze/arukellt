@@ -1,0 +1,62 @@
+use mir::lower::ctx_api_nesting
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::opcodes
+use mir::lower::ctx_types
+// Arukellt Selfhost - shared HOF loop scaffolding.
+
+use mir::inst_branch
+use mir::inst_call
+use mir::inst_const_i32
+use mir::inst_structured_control
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::inst_op
+use mir::value_types
+
+fn emit_hof_len_local(ctx: LowerCtx, vec_local: i32) -> i32 {
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(vec_local))
+    let n_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(String_from("vec_len"), 1, n_local))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(n_local))
+    n_local
+}
+
+fn emit_hof_zero_index(ctx: LowerCtx) -> i32 {
+    let idx_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, idx_local))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(idx_local))
+    idx_local
+}
+
+fn emit_hof_loop_open(ctx: LowerCtx) {
+    ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_block())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_loop())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+}
+
+fn emit_hof_loop_bounds(ctx: LowerCtx, idx_local: i32, n_local: i32) {
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(idx_local))
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(n_local))
+    let cmp_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_GTEQ(), cmp_dest, idx_local, n_local))
+    ctx_api_emit::ctx_emit(ctx, inst_branch::MirInst_br_if(1))
+}
+
+fn emit_hof_loop_elem(ctx: LowerCtx, vec_local: i32, idx_local: i32, value_type: i32, callee_name: String) -> i32 {
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(vec_local))
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(idx_local))
+    let elem_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_type)
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(callee_name, 2, elem_local))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(elem_local))
+    elem_local
+}
+
+fn emit_hof_loop_close(ctx: LowerCtx) {
+    ctx_api_emit::ctx_emit(ctx, inst_branch::MirInst_br(0))
+    ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+    ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+}

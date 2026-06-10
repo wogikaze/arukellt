@@ -1,0 +1,37 @@
+// Arukellt Selfhost - driver module declaration state.
+
+struct ModuleDecls {
+    name: String,
+    decls: Vec<AstNode>,
+}
+
+fn ModuleDecls_new(name: String, decls: Vec<AstNode>) -> ModuleDecls {
+    ModuleDecls { name: name, decls: decls }
+}
+
+fn LoadState_modules(state: LoadState) -> Vec<ModuleDecls> {
+    state.modules
+}
+
+fn LoadState_add_module(state: LoadState, name: String, decls: Vec<AstNode>) {
+    push(state.modules, ModuleDecls_new(name, decls))
+}
+
+fn ModuleDecls_decl_count(module: ModuleDecls) -> i32 {
+    len(module.decls)
+}
+
+fn ModuleDecls_decl_at(module: ModuleDecls, index: i32) -> AstNode {
+    get_unchecked(module.decls, index)
+}
+
+fn LoadState_release_module_asts(state: LoadState) {
+    let module_count = len(state.modules)
+    let mut mi = 0
+    while mi < module_count {
+        let module = get_unchecked(state.modules, mi)
+        module.decls = Vec_new_AstNode()
+        mi = mi + 1
+    }
+    state.modules = Vec_new_ModuleDecls()
+}

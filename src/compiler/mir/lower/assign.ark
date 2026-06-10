@@ -1,0 +1,46 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering helpers for assignment targets.
+
+use mir::inst_convert
+use mir::inst_struct_set
+use mir::inst_local_set
+use mir::value_types
+
+fn mir_emit_ident_assign(ctx: LowerCtx, name: String, val_idx: i32) {
+    let local_idx = ctx_lookup_local(ctx, clone(name))
+    if local_idx >= 0 && val_idx >= 0 {
+        // Widen i32 values assigned into i64 locals before the local.set.
+        if ctx_local_vt(ctx, local_idx) == value_types::VT_I64() && ctx_local_vt(ctx, val_idx) == value_types::VT_I32() {
+            let ext_dest = ctx_fresh_local(ctx, value_types::VT_I64())
+            ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64(ext_dest, val_idx))
+        }
+        ctx_emit(ctx, inst_local_set::MirInst_local_set(local_idx))
+    }
+}
+
+fn mir_save_field_base_from_stack(ctx: LowerCtx) -> i32 {
+    let temp = ctx_fresh_local(ctx, value_types::VT_REF())
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(temp))
+    temp
+}
+
+fn mir_emit_field_assign(ctx: LowerCtx, field_name: String, struct_idx: i32, val_idx: i32) {
+    let base_type = ctx_get_local_type(ctx, struct_idx)
+    let mut fi_assign = 0
+    let mut field_off = 0
+    let mut field_vt = value_types::VT_VOID()
+    if len(base_type) > 0 {
+        fi_assign = ctx_field_index(ctx, clone(base_type), clone(field_name))
+        field_off = ctx_struct_field_offset(ctx, clone(base_type), fi_assign)
+        if ctx_struct_field_is_f64(ctx, clone(base_type), fi_assign) {
+            field_vt = value_types::VT_F64()
+        }
+    } else {
+        fi_assign = ctx_field_index_any(ctx, clone(field_name))
+        field_off = fi_assign * 4
+    }
+    ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named(struct_idx, val_idx, clone(field_name), field_off, field_vt))
+}

@@ -1,0 +1,36 @@
+// Arukellt Selfhost - raw frontend declaration adapter for CoreHIR facts.
+
+use corehir
+use corehir::body
+use corehir::raw_bodies
+use corehir::raw_decls
+use corehir::raw_record
+use corehir::raw_types
+
+fn build_program_from_facts(decl_infos: Vec<CoreHirDeclInfo>, fn_infos: Vec<CoreHirFnInfo>, method_infos: Vec<CoreHirMethodInfo>, layout_decls: Vec<CoreHirLayoutDecl>, type_facts: CoreHirTypeFacts, body_table: CoreHirBodyTable) -> CoreHirRawProgram {
+    raw_record::CoreHirRawProgram_new(decl_infos, fn_infos, method_infos, layout_decls, type_facts, body_table)
+}
+
+fn program_decl_infos(program: CoreHirRawProgram) -> Vec<CoreHirDeclInfo> {
+    raw_decls::program_decl_infos(program)
+}
+
+fn program_fn_infos(program: CoreHirRawProgram) -> Vec<CoreHirFnInfo> {
+    raw_decls::program_fn_infos(program)
+}
+
+fn program_method_infos(program: CoreHirRawProgram) -> Vec<CoreHirMethodInfo> {
+    raw_decls::program_method_infos(program)
+}
+
+fn program_typed_fns(program: CoreHirRawProgram) -> Vec<TypedFn> {
+    raw_types::program_typed_fns(program)
+}
+
+fn program_mono_instances(program: CoreHirRawProgram) -> Vec<MonoInstance> {
+    raw_types::program_mono_instances(program)
+}
+
+fn program_body_table(program: CoreHirRawProgram) -> CoreHirBodyTable {
+    raw_bodies::program_body_table(program)
+}

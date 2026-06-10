@@ -1,0 +1,12 @@
+// Arukellt Parser - if/match control expression facade.
+
+use parser::expr_control_if
+use parser::expr_control_match
+
+fn parse_if_expr(p: Parser) -> AstNode {
+    expr_control_if::parse_if_expr(p)
+}
+
+fn parse_match_expr(p: Parser) -> AstNode {
+    expr_control_match::parse_match_expr(p)
+}

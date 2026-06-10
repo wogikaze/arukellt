@@ -186,6 +186,7 @@ Unknown symbols produce a "Did you mean?" list of fuzzy candidates. Module paths
 
 ## Recent Milestones
 
+- **Modular full-compile fixpoint reached (2026-06)** — the pinned bootstrap wasm is now built from the modular `src/compiler/**` tree and reproduces itself byte-for-byte (`sha256(pinned) == sha256(s2) == sha256(s3)`). Collision-aware export naming, CoreHIR i64 widening, shaped generic type annotations, binop operand type peeking, and a conditional `local.tee` peephole landed in the modular pipeline; the legacy monolithic emitter patches in `scripts/selfhost/checks.py` were removed. The bootstrap overlay now includes the `analysis`/`lsp`/`dap` namespaces, so the selfhost wasm serves the IDE gates (`ide-analyze`, `lsp`, `debug-adapter`); the LSP additionally advertises completion support, and the lexer diagnostic position bug from the monolithic era is fixed (goldens updated).
 - **Selfhost Phase 1 fixpoint achieved** — `sha256(s2) == sha256(s3)` passes (`attainment: reached`). The selfhost compiler (`src/compiler/main.ark`) reproducibly compiles itself. Multi-file module loading, qualified call resolution, and cross-module type handling are all working. See [Self-Hosting Bootstrap Status](#self-hosting-bootstrap-status).
 - **`arukellt doc` subcommand added (issue 456)** — stdlib manifest lookup via `arukellt doc <symbol>`. Supports `--json`, `--target`, and fuzzy-match "did you mean?" for unknown symbols.
 - **HTTP T1 linker path confirmed (issue 446)** — `std::host::http` (`http::get`, `http::request`) is now available on both T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) via `register_http_host_fns`. The compile-time E0500 gate was removed from `T3_ONLY_MODULES`; a T3 GC-native match-arm type-inference fix (`detect_specialized_result` propagation for qualified callee paths) enables correct T3 Wasm emission. Error-case fixtures `get_err_dns.ark` and `request_err_refused.ark` pass on both targets.
@@ -311,9 +312,9 @@ The selfhost compiler records generic call specializations in the typechecker (`
 
 | Stage | Description | Status |
 |-------|-------------|--------|
-| **Stage 0** | Pinned-reference selfhost wasm (`bootstrap/arukellt-selfhost.wasm`, ADR-029) | ✅ **Committed** — 842 KiB, sha256 `f62ecf…f8a` |
-| **Stage 2** | Pinned wasm compiles current `src/compiler/main.ark` → `s2.wasm` | ✅ **Verified** |
-| **Stage 3** | `sha256(s2) == sha256(s3)` fixpoint (selfhost reproduces itself) | ✅ **Reached** — `attainment: reached` |
+| **Stage 0** | Pinned-reference selfhost wasm (`bootstrap/arukellt-selfhost.wasm`, ADR-029) | ✅ **Committed** — 854 KiB, sha256 `68c515…57d`, built from the modular `src/compiler/**` tree |
+| **Stage 2** | Pinned wasm compiles current `src/compiler/main.ark` → `s2.wasm` | ✅ **Verified** — modular trees use an isolated bootstrap workspace (flat overlay); `sha256(s2) == sha256(pinned)` |
+| **Stage 3** | `sha256(s2) == sha256(s3)` fixpoint (selfhost reproduces itself) | ✅ **Reached** — pinned, s2, and s3 are byte-identical |
 | **Fixture parity** | Selfhost compiler passes pinned-vs-current behavioural parity | ✅ **Reached** — 321 PASS, 0 FAIL, 41 SKIP (ADR-029) |
 | **CLI parity** | Selfhost `--version` / `--help` match committed snapshot goldens | ✅ **Reached** — 6 PASS, 0 FAIL (ADR-029) |
 | **Diagnostic parity** | Selfhost `check` output matches committed `.selfhost.diag` / `.diag` goldens | ✅ **Reached** — 12 PASS, 22 SKIP, 0 FAIL (ADR-029) |
@@ -334,11 +335,30 @@ same source.
 
 ```
 pinned: bootstrap/arukellt-selfhost.wasm
-  sha256 = f62ecf3b863338916998c65c58c9fd2c8ad42d37e7fe0cfc125eb989341e0f8a
-  size   = 862 369 bytes
-s2/s3 (current):
-  sha256 = f62ecf3b863338916998c65c58c9fd2c8ad42d37e7fe0cfc125eb989341e0f8a
+  sha256 = 68c515d983b3149dedb2fd8ae7af9291152aa8c565187129f45b19e8ad09857d
+  size   = 874 305 bytes
+s2 (pinned compiles modular overlay; postprocessed):
+  sha256 = 68c515d983b3149dedb2fd8ae7af9291152aa8c565187129f45b19e8ad09857d
+s3 (s2 self-compile; postprocessed):
+  sha256 = 68c515d983b3149dedb2fd8ae7af9291152aa8c565187129f45b19e8ad09857d
 ```
+
+The fixpoint is byte-stable: pinned == s2 == s3. The pinned wasm is the first
+artifact produced from the **modular** `src/compiler/**` tree (CoreHIR-based
+pipeline) and reproduces itself via the flat bootstrap overlay. It includes the
+IDE surface (`ide-analyze`, `lsp`, `debug-adapter`) — the bootstrap overlay now
+flattens the `analysis`, `lsp`, and `dap` namespaces instead of stubbing them.
+The legacy monolithic-emitter source patches in `scripts/selfhost/checks.py`
+were removed; only `component_emitter.ark` is still pulled from the `7911a527`
+monolithic snapshot.
+
+Bootstrap overlay generation in `scripts/selfhost/checks.py` is still required
+for stage-0→s2 when `src/compiler/**/mod.ark` trees are present (a direct
+modular compile of the full tree exceeds the default linear-memory budget).
+Pinned bypasses in runtime gates, IDE checks, CLI wrapper, and `DIAG_PARITY_SKIP`
+overlay exceptions were removed in the modular full-compile Phase 3 pass.
+
+Peak heap / phase timings: `python3 scripts/selfhost/measure_compile_heap.py [--overlay]`.
 
 CI checks (`python3 scripts/manager.py selfhost <gate>`) — all four are
 selfhost-native per ADR-029:

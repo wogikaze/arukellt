@@ -1,0 +1,8 @@
+// Arukellt Selfhost - MIR block construction.
+
+use mir::block_record
+use mir::types_block
+
+fn MirBlock_new(id: i32) -> MirBlock {
+    block_record::MirBlock_new(id)
+}

@@ -1,0 +1,16 @@
+use mir::lower::ast_node
+use mir::lower::closure_registry
+use mir::lower_kinds
+// Arukellt Selfhost - MIR let statement closure binding flush.
+
+
+fn flush_let_closure_binding(ctx: LowerCtx, node: AstNode, pre_init_kind: i32) {
+    if pre_init_kind == lower_kinds::NK_CLOSURE() {
+        let bind_name = ast_node::node_text(node)
+        if !eq(clone(bind_name), String_from("_")) {
+            closure_registry::closure_flush_pending_bind(ctx, bind_name)
+        } else {
+            closure_registry::closure_clear_pending_bind(ctx)
+        }
+    }
+}

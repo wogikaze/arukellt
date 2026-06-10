@@ -1,0 +1,48 @@
+// Arukellt Selfhost - MIR immediate dominator computation.
+
+use mir::dom_sets
+use mir::block_dominance_access
+use mir::block_dominance_mutation
+use mir::block_identity
+use mir::function_block_queries
+use mir::types
+
+fn mir_compute_immediate_dominators(f: MirFunction, block_count: i32) {
+    let mut i = 0
+    while i < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, i)
+        block_dominance_mutation::MirBlock_reset_idom(block)
+        if i != 0 {
+            block_dominance_mutation::MirBlock_set_idom(block, mir_find_immediate_dominator(f, block))
+        }
+        i = i + 1
+    }
+}
+
+fn mir_find_immediate_dominator(f: MirFunction, block: MirBlock) -> i32 {
+    let strict_count = block_dominance_access::MirBlock_dom_set_count(block)
+    let mut result = 0 - 1
+    let mut dom_idx = 0
+    while dom_idx < strict_count {
+        let candidate = block_dominance_access::MirBlock_dom_set_at(block, dom_idx)
+        if candidate != block_identity::MirBlock_id(block) {
+            let candidate_block = function_block_queries::MirFunction_block_at(f, candidate)
+            let mut is_idom = true
+            let mut other_idx = 0
+            while other_idx < strict_count {
+                let other = block_dominance_access::MirBlock_dom_set_at(block, other_idx)
+                if other != block_identity::MirBlock_id(block) && other != candidate {
+                    if !dom_sets::mir_block_ids_contains(block_dominance_access::MirBlock_dom_set(candidate_block), other) {
+                        is_idom = false
+                    }
+                }
+                other_idx = other_idx + 1
+            }
+            if is_idom {
+                result = candidate
+            }
+        }
+        dom_idx = dom_idx + 1
+    }
+    result
+}

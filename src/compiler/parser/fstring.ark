@@ -1,0 +1,8 @@
+// Arukellt Parser - f-string desugaring
+
+use parser::fstring_concat
+use parser::fstring_segments
+
+fn desugar_fstring(content: String, span: Span) -> AstNode {
+    fstring_concat::fstring_concat_segments(fstring_segments::fstring_collect_segments(content, span), span)
+}

@@ -1,0 +1,29 @@
+// Arukellt Selfhost - CoreHIR value type helpers.
+
+use corehir::value_types
+
+fn corehir_vt_from_type_name(type_name: String) -> i32 {
+    if eq(clone(type_name), String_from("f64")) {
+        return value_types::VT_F64()
+    }
+    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("u64")) {
+        return value_types::VT_I64()
+    }
+    if eq(clone(type_name), String_from("void")) {
+        return value_types::VT_VOID()
+    }
+    value_types::VT_I32()
+}
+
+fn corehir_literal_type_name(kind_name: String) -> String {
+    if eq(clone(kind_name), String_from("bool")) {
+        return String_from("bool")
+    }
+    if eq(clone(kind_name), String_from("char")) {
+        return String_from("char")
+    }
+    if eq(clone(kind_name), String_from("f64")) {
+        return String_from("f64")
+    }
+    String_new()
+}

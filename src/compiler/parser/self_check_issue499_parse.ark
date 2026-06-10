@@ -1,0 +1,26 @@
+// Arukellt Parser self-check shared parse fixture for issue 499.
+
+use lexer::scan
+use parser::core_api_token
+use parser::decl
+use parser::state_record
+
+pub struct ParserIssue499ParseResult {
+    decls: Vec<AstNode>,
+    error_count: i32,
+}
+
+fn parse_issue499_source(src: String) -> ParserIssue499ParseResult {
+    let tokens = scan::tokenize(src)
+    let p = core_api_token::Parser_new(tokens)
+    let decls = decl::parse_module(p)
+    ParserIssue499ParseResult { decls: decls, error_count: state_record::parser_error_count(p) }
+}
+
+fn issue499_parse_decls(result: ParserIssue499ParseResult) -> Vec<AstNode> {
+    result.decls
+}
+
+fn issue499_parse_error_count(result: ParserIssue499ParseResult) -> i32 {
+    result.error_count
+}

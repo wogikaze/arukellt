@@ -1,0 +1,56 @@
+// Arukellt Selfhost - parsed return annotation function index type name.
+
+use mir::lower::return_shape_ann
+
+fn mir_decl_return_index_type_name(fn_node: AstNode) -> String {
+    let ta_count = return_shape_ann::mir_return_shape_ann_count(fn_node)
+    let mut i = 0
+    while i < ta_count {
+        let ann = return_shape_ann::mir_return_shape_ann_at(fn_node, i)
+        if return_shape_ann::mir_return_shape_is_return_ann(ann) {
+            if return_shape_ann::mir_return_shape_child_count(ann) == 0 {
+                return String_from("")
+            }
+            return mir_return_index_type_name_from_node(return_shape_ann::mir_return_shape_child_at(ann, 0))
+        }
+        i = i + 1
+    }
+    String_from("")
+}
+
+fn mir_return_index_type_name_from_node(ret_node: AstNode) -> String {
+    let ret_text = return_shape_ann::mir_return_shape_name(ret_node)
+    if eq(clone(ret_text), "f64") {
+        return String_from("f64")
+    }
+    if eq(clone(ret_text), "i64") || eq(clone(ret_text), "u64") {
+        return clone(ret_text)
+    }
+    if eq(clone(ret_text), "void") || eq(clone(ret_text), "()") {
+        return String_from("")
+    }
+    if eq(clone(ret_text), "i32") || eq(clone(ret_text), "u32") || eq(clone(ret_text), "u8") || eq(clone(ret_text), "u16") || eq(clone(ret_text), "i16") || eq(clone(ret_text), "i8") {
+        return String_from("i32")
+    }
+    if eq(clone(ret_text), "bool") {
+        return String_from("bool")
+    }
+    if eq(clone(ret_text), "String") || eq(clone(ret_text), "str") {
+        return String_from("String")
+    }
+    if return_shape_ann::mir_return_shape_is_generic(ret_node) {
+        if eq(clone(ret_text), "Vec") && return_shape_ann::mir_return_shape_child_count(ret_node) >= 2 {
+            let elem_n = return_shape_ann::mir_return_shape_child_at(ret_node, 1)
+            return concat(String_from("vec:"), return_shape_ann::mir_return_shape_name(elem_n))
+        }
+        if eq(clone(ret_text), "Option") && return_shape_ann::mir_return_shape_child_count(ret_node) >= 2 {
+            let elem_n_opt = return_shape_ann::mir_return_shape_child_at(ret_node, 1)
+            return concat(String_from("option:"), return_shape_ann::mir_return_shape_name(elem_n_opt))
+        }
+        return clone(ret_text)
+    }
+    if len(ret_text) > 1 {
+        return ret_text
+    }
+    String_from("")
+}

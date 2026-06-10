@@ -1,0 +1,13 @@
+// Arukellt Selfhost - MIR legacy body adapter.
+
+struct MirLowerLegacyBody {
+    node: AstNode,
+}
+
+fn mir_legacy_body_from_node(node: AstNode) -> MirLowerLegacyBody {
+    MirLowerLegacyBody { node: node }
+}
+
+fn mir_legacy_body_node(body: MirLowerLegacyBody) -> AstNode {
+    body.node
+}

@@ -1,0 +1,28 @@
+use lexer::tokens
+use parser::core_ast_children
+
+// Arukellt Parser - enum declaration body syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::decl_enum_variants
+
+fn parse_enum_body(p: Parser, node: AstNode) {
+    core_api_cursor::skip_newlines(p)
+    core_api_expect::expect_token(p, tokens::TK_LBRACE())
+    core_api_cursor::skip_newlines(p)
+    while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::at(p, tokens::TK_RBRACE()) {
+            break
+        }
+        let variant = decl_enum_variants::parse_enum_variant(p)
+        core_ast_children::AstNode_push_child(node, variant)
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::peek_kind(p) == tokens::TK_COMMA() {
+            p.pos = p.pos + 1
+        }
+        core_api_cursor::skip_newlines(p)
+    }
+    core_api_expect::expect_token(p, tokens::TK_RBRACE())
+}

@@ -1,0 +1,62 @@
+// Arukellt Selfhost - Wasm Binary Emitter constant instruction facade.
+//
+// Extracted from emitter.ark for module-level organization and indentation control.
+// Handles MIR_CONST_I32/I64/F64/STRING opcode emission.
+
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use wasm::ctx_string_view
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_numbers
+
+fn emit_const_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
+}
+
+fn emit_const_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_I64_CONST())
+    if len(inst_accessors_literals::MirInst_str_val(inst)) > 0 {
+        let val64 = writer_numbers::parse_decimal_as_i64_emitter(clone(inst_accessors_literals::MirInst_str_val(inst)))
+        writer_leb::emit_leb128_s_i64(w, val64)
+    } else {
+        writer_leb::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
+    }
+}
+
+fn emit_const_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_F64_CONST())
+    let lo: i32 = f64_bits_lo(inst_accessors_literals::MirInst_float_val(inst))
+    let hi: i32 = f64_bits_hi(inst_accessors_literals::MirInst_float_val(inst))
+    writer_core::emit_u32_le(w, lo)
+    writer_core::emit_u32_le(w, hi)
+}
+
+fn emit_const_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let str_count = ctx_string_view::SelfEmitCtx_string_offset_count(ctx)
+    let mut found = false
+    let mut si = 0
+    while si < str_count && !found {
+        si = si + 1
+    }
+    let target_str = clone(inst_accessors_literals::MirInst_str_val(inst))
+    let mut str_idx = 0 - 1
+    let mut si2 = 0
+    let sc2 = ctx_string_view::SelfEmitCtx_string_offset_count(ctx)
+    while si2 < sc2 {
+        si2 = si2 + 1
+    }
+    if inst_accessors_operands::MirInst_arg0(inst) >= 0 {
+        str_idx = inst_accessors_operands::MirInst_arg0(inst)
+    }
+    if str_idx >= 0 && str_idx < ctx_string_view::SelfEmitCtx_string_offset_count(ctx) {
+        let offset = ctx_string_view::SelfEmitCtx_string_offset_at(ctx, str_idx)
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_leb::emit_leb128_s(w, offset)
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_leb::emit_leb128_s(w, 0)
+    }
+}

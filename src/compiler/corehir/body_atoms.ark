@@ -1,0 +1,28 @@
+use corehir::expr_factory
+// Arukellt Selfhost - CoreHIR body builder for atomic expressions.
+
+use corehir::body_atom_int
+use corehir::body_atom_kind
+use corehir::body_atom_literals
+use corehir::body_atom_names
+use corehir::expr_node_access
+use corehir::expr_kind_predicates
+
+fn corehir_int_lit_is_simple_i32(text: String) -> bool {
+    body_atom_int::corehir_int_lit_is_simple_i32(text)
+}
+
+fn corehir_atomic_node_kind(kind: i32) -> bool {
+    body_atom_kind::corehir_atomic_node_kind(kind)
+}
+
+fn corehir_atomic_expr_from_node(node: AstNode) -> CoreHirExpr {
+    let kind = expr_node_access::expr_kind(node)
+    if expr_kind_predicates::expr_kind_is_literal(kind) {
+        return body_atom_literals::corehir_literal_expr_from_node(node)
+    }
+    if expr_kind_predicates::expr_kind_is_name(kind) {
+        return body_atom_names::corehir_name_expr_from_node(node)
+    }
+    expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node))
+}

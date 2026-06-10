@@ -1,0 +1,27 @@
+// Arukellt Resolver - higher-order sequence builtin symbol names.
+
+fn push_hof_builtin_symbol_names(names: Vec<String>) {
+    push(names, String_from("map_i32_i32"))
+    push(names, String_from("map_i64_i64"))
+    push(names, String_from("map_f64_f64"))
+    push(names, String_from("map_String_String"))
+    push(names, String_from("filter_i32"))
+    push(names, String_from("filter_i64"))
+    push(names, String_from("filter_f64"))
+    push(names, String_from("filter_String"))
+    push(names, String_from("any_i32"))
+    push(names, String_from("any_i64"))
+    push(names, String_from("any_f64"))
+    push(names, String_from("any_String"))
+    push(names, String_from("find_i32"))
+    push(names, String_from("find_i64"))
+    push(names, String_from("find_f64"))
+    push(names, String_from("find_String"))
+    push(names, String_from("fold_i32_i32"))
+    push(names, String_from("fold_i64_i64"))
+    push(names, String_from("fold_f64_f64"))
+    push(names, String_from("map_option_i32_i32"))
+    push(names, String_from("sort_i64"))
+    push(names, String_from("sort_f64"))
+    push(names, String_from("sort_String"))
+}

@@ -1,0 +1,21 @@
+// Arukellt Selfhost - package root discovery for qualified imports.
+
+use std::host::fs
+use driver::module_path_local
+
+pub fn find_package_root(base_dir: String) -> String {
+    let manifest = concat(clone(base_dir), String_from("/ark.toml"))
+    let found = fs::exists(clone(manifest))
+    match found {
+        Result::Ok(true) => clone(base_dir),
+        Result::Ok(false) => {
+            let parent = module_path_local::path_parent_dir(clone(base_dir))
+            if eq(clone(parent), clone(base_dir)) {
+                clone(base_dir)
+            } else {
+                find_package_root(parent)
+            }
+        },
+        Result::Err(_) => clone(base_dir),
+    }
+}

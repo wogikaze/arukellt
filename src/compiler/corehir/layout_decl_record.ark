@@ -1,0 +1,36 @@
+// Arukellt Selfhost - CoreHIR layout declaration data contract.
+
+struct CoreHirLayoutDecl {
+    kind: i32,
+    name: String,
+    fields: Vec<CoreHirLayoutField>,
+    variants: Vec<CoreHirLayoutVariant>,
+}
+
+fn CoreHirLayoutDecl_new(kind: i32, name: String, fields: Vec<CoreHirLayoutField>, variants: Vec<CoreHirLayoutVariant>) -> CoreHirLayoutDecl {
+    CoreHirLayoutDecl { kind: kind, name: name, fields: fields, variants: variants }
+}
+
+fn layout_decl_kind(decl: CoreHirLayoutDecl) -> i32 {
+    decl.kind
+}
+
+fn layout_decl_name(decl: CoreHirLayoutDecl) -> String {
+    clone(decl.name)
+}
+
+fn layout_decl_field_count(decl: CoreHirLayoutDecl) -> i32 {
+    len(decl.fields)
+}
+
+fn layout_decl_field_at(decl: CoreHirLayoutDecl, index: i32) -> CoreHirLayoutField {
+    get_unchecked(decl.fields, index)
+}
+
+fn layout_decl_variant_count(decl: CoreHirLayoutDecl) -> i32 {
+    len(decl.variants)
+}
+
+fn layout_decl_variant_at(decl: CoreHirLayoutDecl, index: i32) -> CoreHirLayoutVariant {
+    get_unchecked(decl.variants, index)
+}

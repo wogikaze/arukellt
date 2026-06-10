@@ -1,0 +1,23 @@
+// Arukellt Selfhost - CoreHIR declaration/member identity accessors.
+
+use corehir::frontend_ast_node
+
+fn decl_name(node: AstNode) -> String {
+    frontend_ast_node::corehir_node_text(node)
+}
+
+fn decl_kind(node: AstNode) -> i32 {
+    frontend_ast_node::corehir_node_kind(node)
+}
+
+fn decl_is_pub(node: AstNode) -> bool {
+    frontend_ast_node::corehir_node_is_pub(node)
+}
+
+fn member_name(node: AstNode) -> String {
+    frontend_ast_node::corehir_node_text(node)
+}
+
+fn method_name(node: AstNode) -> String {
+    frontend_ast_node::corehir_node_text(node)
+}

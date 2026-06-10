@@ -1,0 +1,18 @@
+// Arukellt Selfhost - MIR array instruction constructors.
+
+use mir::inst_factory
+use mir::opcodes
+use mir::types
+use mir::value_types
+
+fn MirInst_array_new(dest: i32, elem_count: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_ARRAY_NEW(), dest, 0 - 1, 0 - 1, elem_count, 0.0, String_new(), value_types::VT_VOID())
+}
+
+fn MirInst_array_set(base: i32, value: i32, elem_index: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_ARRAY_SET(), 0 - 1, base, value, elem_index, 0.0, String_new(), value_types::VT_VOID())
+}
+
+fn MirInst_array_get(base: i32, index: i32, dest: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_ARRAY_GET(), dest, base, index, 0, 0.0, String_new(), value_types::VT_VOID())
+}

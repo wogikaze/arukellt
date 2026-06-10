@@ -1,0 +1,169 @@
+// Arukellt Selfhost - Wasm call namespace: call_text_core
+
+use wasm::intrinsic_string_access
+use wasm::inst_store
+use wasm::intrinsic_string_contains_bytes
+use wasm::intrinsic_string_trim
+use wasm::intrinsic_string_basic
+use wasm::intrinsic_math
+use wasm::intrinsic_string_pad
+
+// Arukellt Selfhost - Wasm core text/string call dispatch
+
+fn try_emit_text_core_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if try_emit_text_basic_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_text_access_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_text_pad_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - text access/trim call dispatch.
+
+fn try_emit_text_access_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if try_emit_text_access_trim_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_text_access_search_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_text_access_measure_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_text_access_chars_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - text character access call dispatch.
+
+fn try_emit_text_access_chars_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "char_at") {
+        let _result_on_stack = intrinsic_string_access::emit_char_at(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    false
+}
+
+// Arukellt Selfhost - text access measurement call dispatch.
+
+fn try_emit_text_access_measure_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "text::is_empty") {
+        let _result_on_stack = intrinsic_string_access::emit_text_is_empty(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    if eq(clone(callee), "text::len_bytes") {
+        let _result_on_stack = intrinsic_string_access::emit_text_len_bytes(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    false
+}
+
+// Arukellt Selfhost - text contains access call dispatch.
+
+fn try_emit_text_access_search_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "text::contains") || eq(clone(callee), "contains") {
+        let _result_on_stack = intrinsic_string_contains_bytes::emit_contains(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    false
+}
+
+// Arukellt Selfhost - text trim access call dispatch.
+
+fn try_emit_text_access_trim_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "trim_start") || eq(clone(callee), "text::trim_start") {
+        let _result_on_stack = intrinsic_string_trim::emit_trim_start(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    if eq(clone(callee), "trim_end") || eq(clone(callee), "text::trim_end") {
+        let _result_on_stack = intrinsic_string_trim::emit_trim_end(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    false
+}
+
+// Arukellt Selfhost - basic text call dispatch.
+
+fn try_emit_text_basic_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if try_emit_text_construct_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_text_measure_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if try_emit_text_compare_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        false
+}
+
+// Arukellt Selfhost - text comparison/combination call dispatch.
+
+fn is_eq_callee_name(callee: String) -> bool {
+    if len(callee) != 2 {
+        return false
+    }
+    char_at(clone(callee), 0) == 101 && char_at(clone(callee), 1) == 113
+}
+
+fn try_emit_text_compare_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if is_eq_callee_name(clone(callee)) {
+        let _result_on_stack = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    if eq(clone(callee), "concat") || eq(clone(callee), "text::concat") {
+        let _result_on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    false
+}
+
+// Arukellt Selfhost - text construction call dispatch.
+
+fn try_emit_text_construct_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "String_from") || eq(clone(callee), "clone") {
+        let _result_on_stack = intrinsic_string_basic::emit_clone(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    if eq(clone(callee), "bool_to_string") || eq(clone(callee), "text::format_bool") || eq(clone(callee), "convert::bool_to_string") {
+        let _result_on_stack = intrinsic_string_basic::emit_bool_to_string(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    false
+}
+
+// Arukellt Selfhost - text measurement call dispatch.
+
+fn try_emit_text_measure_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "len") {
+        let _result_on_stack = intrinsic_string_basic::emit_len(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    false
+}
+
+// Arukellt Selfhost - text padding call dispatch.
+
+fn try_emit_text_pad_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+        if eq(clone(callee), "pad_left") || eq(clone(callee), "text::pad_left") {
+            let _result_on_stack = intrinsic_string_pad::emit_pad_left(w, inst, ctx)
+            return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        }
+        if eq(clone(callee), "pad_right") || eq(clone(callee), "text::pad_right") {
+            let _result_on_stack = intrinsic_string_pad::emit_pad_right(w, inst, ctx)
+            return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        }
+        false
+}
+
+fn finish_text_call(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) -> bool {
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, result_on_stack)
+    true
+}

@@ -1,0 +1,7 @@
+// Arukellt Selfhost - driver module source parsing
+
+use compiler::session_parse
+
+pub fn parse_module_source(source: String) -> Vec<AstNode> {
+    session_parse::session_parse_decls(source)
+}

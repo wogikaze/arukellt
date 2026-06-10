@@ -1,0 +1,44 @@
+// Arukellt Selfhost - local module source file lookup.
+
+use std::host::fs
+use driver::module_paths
+
+struct DriverLoadedSource {
+    path: String,
+    source: String,
+}
+
+fn DriverLoadedSource_new(path: String, source: String) -> DriverLoadedSource {
+    DriverLoadedSource { path: path, source: source }
+}
+
+pub fn DriverLoadedSource_path(loaded: DriverLoadedSource) -> String {
+    clone(loaded.path)
+}
+
+pub fn DriverLoadedSource_source(loaded: DriverLoadedSource) -> String {
+    loaded.source
+}
+
+pub fn read_local_module_source(module_name: String, base_dir: String) -> Result<DriverLoadedSource, String> {
+    let stem = module_paths::module_path_to_file_stem(clone(module_name))
+    let primary_path = module_paths::module_stem_to_file_path(clone(base_dir), clone(stem))
+    let primary_result = fs::read_to_string(clone(primary_path))
+    match primary_result {
+        Result::Ok(source) => {
+            return Result::Ok(DriverLoadedSource_new(primary_path, source))
+        },
+        Result::Err(_) => {
+            let mod_path = module_paths::module_stem_to_mod_path(clone(base_dir), clone(stem))
+            let mod_result = fs::read_to_string(clone(mod_path))
+            match mod_result {
+                Result::Ok(source) => {
+                    Result::Ok(DriverLoadedSource_new(mod_path, source))
+                },
+                Result::Err(e) => {
+                    Result::Err(e)
+                },
+            }
+        },
+    }
+}

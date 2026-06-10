@@ -1,0 +1,12 @@
+// Arukellt Selfhost - CoreHIR for-loop shape predicates.
+
+use corehir::expr_node_access
+use corehir::expr_node_predicates
+
+fn corehir_for_is_values_call(range: AstNode) -> bool {
+    if !expr_node_predicates::expr_is_call(range) || expr_node_access::expr_child_count(range) < 2 {
+        return false
+    }
+    let callee = expr_node_access::expr_child_at(range, 0)
+    eq(expr_node_access::expr_text(callee), "values")
+}

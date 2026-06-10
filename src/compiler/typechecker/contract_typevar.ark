@@ -1,0 +1,28 @@
+// Arukellt Typechecker - type variable contract API.
+
+use typechecker::contract_typevar_record
+use typechecker::contract_type_access
+
+fn TypeVar_new(id: i32, bound: TypeInfo) -> TypeVar {
+    contract_typevar_record::TypeVar_new(id, bound)
+}
+
+fn TypeVar_name(tv: TypeVar) -> String {
+    concat(String_from("t"), to_string(contract_typevar_record::type_var_id(tv)))
+}
+
+fn TypeVar_bound_name(tv: TypeVar) -> String {
+    contract_type_access::TypeInfo_name(contract_typevar_record::type_var_bound(tv))
+}
+
+fn TypeVar_is_bound(tv: TypeVar) -> bool {
+    contract_typevar_record::type_var_is_bound(tv)
+}
+
+fn TypeVar_bound(tv: TypeVar) -> TypeInfo {
+    contract_typevar_record::type_var_bound(tv)
+}
+
+fn TypeVar_bind(tv: TypeVar, ty: TypeInfo) {
+    contract_typevar_record::type_var_bind(tv, ty)
+}

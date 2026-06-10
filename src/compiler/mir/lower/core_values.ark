@@ -1,0 +1,16 @@
+// Arukellt Selfhost - MIR lowering for atomic CoreHIR expression values.
+
+use mir::lower::core_literals
+use mir::lower::core_names
+
+fn lower_core_atomic(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
+    let name_value = core_names::lower_core_name_value(ctx, expr)
+    if name_value != 0 - 2 {
+        return name_value
+    }
+    let literal_value = core_literals::lower_core_literal_value(ctx, expr)
+    if literal_value != 0 - 2 {
+        return literal_value
+    }
+    0 - 2
+}

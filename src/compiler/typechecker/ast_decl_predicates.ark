@@ -1,0 +1,16 @@
+use typechecker::kinds
+// Arukellt Typechecker - declaration node predicates.
+
+use typechecker::ast_access
+
+fn node_is_fn_decl(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_FN_DECL())
+}
+
+fn node_is_impl_decl(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_IMPL_DECL())
+}
+
+fn node_is_enum_decl(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_ENUM_DECL())
+}

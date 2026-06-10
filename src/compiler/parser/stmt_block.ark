@@ -1,0 +1,33 @@
+use lexer::tokens
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - block and expression-or-block parsing.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+
+pub fn parse_expr_or_block(p: Parser) -> AstNode {
+    skip_newlines(p)
+    if peek_kind(p) == tokens::TK_LBRACE() {
+        return parse_block(p)
+    }
+    parse_expr(p)
+}
+
+pub fn parse_block(p: Parser) -> AstNode {
+    let t = expect_token(p, tokens::TK_LBRACE())
+    let node = AstNode_new(kinds::NK_BLOCK(), tok_span(t))
+    skip_newlines(p)
+    while !at(p, tokens::TK_RBRACE()) && !at_eof(p) {
+        skip_newlines(p)
+        if at(p, tokens::TK_RBRACE()) {
+            break
+        }
+        let stmt = parse_stmt(p)
+        core_ast_children::AstNode_push_child(node, stmt)
+        skip_newlines(p)
+    }
+    expect_token(p, tokens::TK_RBRACE())
+    node
+}

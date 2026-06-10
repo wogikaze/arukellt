@@ -1,0 +1,20 @@
+// Arukellt Typechecker - generic function call argument constraints.
+
+use typechecker::ast_access
+use typechecker::contract_fn_sig
+use typechecker::instantiate
+use typechecker::unify
+
+fn constrain_generic_fn_args(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, infer_env: TypeEnv, var_names: Vec<String>, var_types: Vec<TypeInfo>) {
+    let arg_count = ast_access::node_child_count(node) - 1
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    let mut a = 0
+    while a < arg_count && a < param_count {
+        let arg_node = ast_access::node_child_at(node, a + 1)
+        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        let param_ty = contract_fn_sig::FnSig_param_at(sig, a)
+        let inst_param = instantiate::instantiate_type(param_ty, var_names, var_types)
+        unify::unify(infer_env, inst_param, arg_ty)
+        a = a + 1
+    }
+}

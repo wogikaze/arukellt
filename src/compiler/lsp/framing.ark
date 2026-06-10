@@ -1,0 +1,30 @@
+// Arukellt LSP - JSON-RPC frame parsing and output framing.
+
+use lsp::state_record
+use lsp::framing_output
+use lsp::framing_parse
+use lsp::framing_record
+
+fn frame(body: String) -> String {
+    framing_output::frame(body)
+}
+
+pub fn append_framed(state: LspState, body: String) {
+    framing_output::append_framed(state, body)
+}
+
+pub fn parse_frame(input: String, pos: i32) -> FrameResult {
+    framing_parse::parse_frame(input, pos)
+}
+
+fn frame_result_ok(result: FrameResult) -> bool {
+    framing_record::frame_result_ok(result)
+}
+
+fn frame_result_body(result: FrameResult) -> String {
+    framing_record::frame_result_body(result)
+}
+
+fn frame_result_next(result: FrameResult) -> i32 {
+    framing_record::frame_result_next(result)
+}

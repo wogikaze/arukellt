@@ -1,0 +1,11 @@
+// Arukellt Selfhost - CoreHIR layout declaration field projection.
+
+use corehir::layout_decl_record
+
+fn layout_decl_field_count(decl: CoreHirLayoutDecl) -> i32 {
+    layout_decl_record::layout_decl_field_count(decl)
+}
+
+fn layout_decl_field_at(decl: CoreHirLayoutDecl, index: i32) -> CoreHirLayoutField {
+    layout_decl_record::layout_decl_field_at(decl, index)
+}

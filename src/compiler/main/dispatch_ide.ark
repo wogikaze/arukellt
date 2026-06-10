@@ -1,0 +1,34 @@
+// Arukellt Selfhost - IDE command dispatch (LSP/DAP/analyze only).
+
+use main::args_record
+use main::editor
+use main::kinds
+
+pub fn dispatch_ide_command(opts: CliOptions, command: i32) -> bool {
+    if command == kinds::CMD_IDE_ANALYZE() {
+        editor::cmd_ide_analyze(opts)
+        return true
+    }
+    if command == kinds::CMD_LSP() {
+        editor::cmd_lsp(opts)
+        return true
+    }
+    if command == kinds::CMD_DAP() {
+        editor::cmd_dap(opts)
+        return true
+    }
+    false
+}
+
+pub fn dispatch_requires_ide_modules(command: i32) -> bool {
+    if command == kinds::CMD_IDE_ANALYZE() {
+        return true
+    }
+    if command == kinds::CMD_LSP() {
+        return true
+    }
+    if command == kinds::CMD_DAP() {
+        return true
+    }
+    false
+}

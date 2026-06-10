@@ -1,0 +1,40 @@
+use typechecker::kinds
+// Arukellt Typechecker - match expression inference
+
+use typechecker::ast_access
+use typechecker::match_coverage_collect
+use typechecker::match_coverage_record
+use typechecker::match_exhaustive
+use typechecker::unify
+
+fn infer_match_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    let child_count = ast_access::node_child_count(node)
+    let arm_count = child_count - 1
+    if arm_count < 1 {
+        return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let scrutinee_node = ast_access::node_child_at(node, 0)
+    let scrutinee_ty = infer_expr(env, scope, fn_sigs, enum_defs, scrutinee_node)
+    let mut result_ty = TypeInfo_simple(commands::TY_UNKNOWN())
+    let coverage = match_coverage_record::MatchCoverage_new()
+    let mut idx = 0
+    while idx < arm_count {
+        let arm = ast_access::node_child_at(node, idx + 1)
+        let arm_child_count = ast_access::node_child_count(arm)
+        if arm_child_count < 2 {
+            idx = idx + 1
+            continue
+        }
+        let pat = ast_access::node_child_at(arm, 0)
+        match_coverage_collect::record_match_pattern(coverage, pat)
+        let body = ast_access::node_child_at(arm, arm_child_count - 1)
+        let arm_ty = infer_expr(env, scope, fn_sigs, enum_defs, body)
+        if idx == 0 {
+            result_ty = arm_ty
+        }
+        idx = idx + 1
+    }
+    let resolved_scrutinee = unify::resolve_type(env, scrutinee_ty)
+    match_exhaustive::check_match_exhaustive(env, resolved_scrutinee, enum_defs, coverage)
+    result_ty
+}

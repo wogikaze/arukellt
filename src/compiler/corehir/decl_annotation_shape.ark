@@ -1,0 +1,41 @@
+// Arukellt Selfhost - CoreHIR declaration annotation shape contract.
+
+use corehir::decl_ann_children
+use corehir::decl_ann_member
+use corehir::decl_ann_name
+
+fn decl_ann_count(node: AstNode) -> i32 {
+    decl_ann_member::decl_ann_count(node)
+}
+
+fn decl_ann_at(node: AstNode, index: i32) -> AstNode {
+    decl_ann_member::decl_ann_at(node, index)
+}
+
+fn decl_ann_name(ann: AstNode) -> String {
+    decl_ann_name::decl_ann_name(ann)
+}
+
+fn decl_ann_is_generic(ann: AstNode) -> bool {
+    decl_ann_name::decl_ann_is_generic(ann)
+}
+
+fn decl_ann_is_named(ann: AstNode) -> bool {
+    decl_ann_name::decl_ann_is_named(ann)
+}
+
+fn decl_ann_is_tuple(ann: AstNode) -> bool {
+    decl_ann_name::decl_ann_is_tuple(ann)
+}
+
+fn decl_ann_is_name(ann: AstNode, name: String) -> bool {
+    decl_ann_name::decl_ann_is_name(ann, name)
+}
+
+fn decl_ann_child_count(ann: AstNode) -> i32 {
+    decl_ann_children::decl_ann_child_count(ann)
+}
+
+fn decl_ann_child_at(ann: AstNode, index: i32) -> AstNode {
+    decl_ann_children::decl_ann_child_at(ann, index)
+}

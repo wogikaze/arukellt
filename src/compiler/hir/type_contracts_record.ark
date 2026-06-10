@@ -1,0 +1,59 @@
+// Arukellt HIR - type representation data record.
+
+use hir::kinds
+
+struct HirType {
+    tag: i32,
+    name: String,
+    type_args: Vec<HirType>,
+    param_types: Vec<HirType>,
+    return_type_tag: i32,
+}
+
+fn HirType_simple(tag: i32) -> HirType {
+    HirType { tag: tag, name: String_new(), type_args: Vec_new_HirType(), param_types: Vec_new_HirType(), return_type_tag: commands::TY_UNKNOWN() }
+}
+
+fn HirType_named(tag: i32, name: String) -> HirType {
+    HirType { tag: tag, name: name, type_args: Vec_new_HirType(), param_types: Vec_new_HirType(), return_type_tag: commands::TY_UNKNOWN() }
+}
+
+fn hir_type_tag(ty: HirType) -> i32 {
+    ty.tag
+}
+
+fn hir_type_name(ty: HirType) -> String {
+    clone(ty.name)
+}
+
+fn hir_type_type_arg_count(ty: HirType) -> i32 {
+    len(ty.type_args)
+}
+
+fn hir_type_type_arg_at(ty: HirType, index: i32) -> HirType {
+    get_unchecked(ty.type_args, index)
+}
+
+fn hir_type_push_type_arg(ty: HirType, arg: HirType) {
+    push(ty.type_args, arg)
+}
+
+fn hir_type_param_count(ty: HirType) -> i32 {
+    len(ty.param_types)
+}
+
+fn hir_type_param_at(ty: HirType, index: i32) -> HirType {
+    get_unchecked(ty.param_types, index)
+}
+
+fn hir_type_push_param(ty: HirType, param: HirType) {
+    push(ty.param_types, param)
+}
+
+fn hir_type_return_type_tag(ty: HirType) -> i32 {
+    ty.return_type_tag
+}
+
+fn hir_type_set_return_type_tag(ty: HirType, tag: i32) {
+    ty.return_type_tag = tag
+}

@@ -1,0 +1,53 @@
+// Arukellt Selfhost - CoreHIR body root collection.
+
+use corehir::body
+use corehir::decl_children
+use corehir::decl_member_collections
+use corehir::decl_node
+
+fn build_body_table(decls: Vec<AstNode>) -> CoreHirBodyTable {
+    let table = body::CoreHirBodyTable_new()
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let decl = get_unchecked(decls, i)
+        if decl_node::decl_is_fn(decl) {
+            let body_idx = decl_children::decl_body_index(decl)
+            let mut root = 0 - 1
+            if body_idx >= 0 {
+                root = corehir_build_expr(table, decl_children::decl_child_at(decl, body_idx))
+            }
+            corehir_push_fn_body_root(table, root)
+        }
+        if decl_node::decl_is_impl(decl) {
+            let method_count = decl_member_collections::decl_method_count(decl)
+            let mut mi = 0
+            while mi < method_count {
+                let method = decl_member_collections::decl_method_at(decl, mi)
+                let body_idx = decl_member_collections::method_body_index(method)
+                let mut root = 0 - 1
+                if body_idx >= 0 {
+                    root = corehir_build_expr(table, decl_children::decl_child_at(method, body_idx))
+                }
+                corehir_push_method_body_root(table, root)
+                mi = mi + 1
+            }
+        }
+        i = i + 1
+    }
+    table
+}
+
+fn fn_body_root(table: CoreHirBodyTable, fn_info_index: i32) -> i32 {
+    if fn_info_index >= 0 && fn_info_index < corehir_fn_body_root_count(table) {
+        return corehir_fn_body_root_at(table, fn_info_index)
+    }
+    0 - 1
+}
+
+fn method_body_root(table: CoreHirBodyTable, method_info_index: i32) -> i32 {
+    if method_info_index >= 0 && method_info_index < corehir_method_body_root_count(table) {
+        return corehir_method_body_root_at(table, method_info_index)
+    }
+    0 - 1
+}

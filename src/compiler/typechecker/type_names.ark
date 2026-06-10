@@ -1,0 +1,32 @@
+use typechecker::kinds
+// Arukellt Typechecker - concrete type name resolution
+
+use typechecker::contract_type_constructors
+use typechecker::contract_type_access
+use typechecker::type_name_aliases
+use typechecker::type_name_containers
+use typechecker::type_name_primitives
+
+fn type_info_simple(tag: i32) -> TypeInfo {
+    contract_type_constructors::TypeInfo_simple(tag)
+}
+
+fn type_info_named(tag: i32, name: String) -> TypeInfo {
+    contract_type_constructors::TypeInfo_named(tag, name)
+}
+
+fn resolve_type_name(name: String) -> TypeInfo {
+    let primitive = type_name_primitives::resolve_primitive_type_name(clone(name))
+    if contract_type_access::TypeInfo_tag(primitive) != commands::TY_UNKNOWN() {
+        return primitive
+    }
+    let container = type_name_containers::resolve_container_type_name(clone(name))
+    if contract_type_access::TypeInfo_tag(container) != commands::TY_UNKNOWN() {
+        return container
+    }
+    let alias = type_name_aliases::resolve_alias_type_name(clone(name))
+    if contract_type_access::TypeInfo_tag(alias) != commands::TY_UNKNOWN() {
+        return alias
+    }
+    type_info_named(commands::TY_STRUCT(), name)
+}

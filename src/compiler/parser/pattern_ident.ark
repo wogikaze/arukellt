@@ -1,0 +1,29 @@
+use lexer::tokens
+use parser::core_ast_text_fields
+use parser::core_ast_factory
+// Arukellt Parser - identifier and enum variant patterns
+
+use parser::kinds
+use parser::pattern_payload
+use parser::token_state
+
+fn parse_ident_pattern(p: Parser, t: Token) -> AstNode {
+    p.pos = p.pos + 1
+    if peek_kind(p) == tokens::TK_COLONCOLON() {
+        p.pos = p.pos + 1
+        let variant_tok = expect_token(p, tokens::TK_IDENT())
+        let node = AstNode_new(kinds::NK_PAT_VARIANT(), tok_span(t))
+        core_ast_text_fields::AstNode_set_text(node, concat(token_state::Token_text(t), concat(String_from("::"), token_state::Token_text(variant_tok))))
+        if peek_kind(p) == tokens::TK_LPAREN() {
+            pattern_payload::parse_pattern_payload(p, node)
+        }
+        return node
+    }
+    if peek_kind(p) == tokens::TK_LPAREN() {
+        let node = AstNode_new(kinds::NK_PAT_VARIANT(), tok_span(t))
+        core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(t))
+        pattern_payload::parse_pattern_payload(p, node)
+        return node
+    }
+    AstNode_leaf(kinds::NK_PAT_IDENT(), token_state::Token_text(t), tok_span(t))
+}

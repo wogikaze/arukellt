@@ -1,0 +1,24 @@
+use resolver::kinds
+// Arukellt Resolver - control-flow AST predicates.
+
+use resolver::ast_access
+
+fn node_is_let(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_LET())
+}
+
+fn node_is_block(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_BLOCK())
+}
+
+fn node_is_for(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_FOR())
+}
+
+fn node_is_comprehension(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_COMPREHENSION())
+}
+
+fn node_is_match_expr(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_MATCH_EXPR())
+}

@@ -1,0 +1,92 @@
+// Arukellt Typechecker - AST node, operator, and type tag constants.
+
+// Declaration node kinds.
+fn NK_FN_DECL() -> i32 { 50 }
+fn NK_ENUM_DECL() -> i32 { 52 }
+fn NK_IMPL_DECL() -> i32 { 56 }
+
+// Literal expression node kinds.
+fn NK_INT_LIT() -> i32 { 1 }
+fn NK_FLOAT_LIT() -> i32 { 2 }
+fn NK_STRING_LIT() -> i32 { 3 }
+fn NK_BOOL_LIT() -> i32 { 4 }
+fn NK_IDENT() -> i32 { 5 }
+
+// Operator expression node kinds.
+fn NK_BINARY() -> i32 { 6 }
+fn NK_UNARY() -> i32 { 7 }
+fn NK_ASSIGN() -> i32 { 18 }
+
+// Call expression node kinds.
+fn NK_CALL() -> i32 { 8 }
+fn NK_METHOD_CALL() -> i32 { 21 }
+
+// Control expression node kinds.
+fn NK_IF_EXPR() -> i32 { 13 }
+fn NK_MATCH_EXPR() -> i32 { 14 }
+fn NK_CLOSURE() -> i32 { 15 }
+fn NK_COMPREHENSION() -> i32 { 38 }
+
+// Pattern node kinds.
+fn NK_MATCH_ARM() -> i32 { 26 }
+fn NK_PAT_IDENT() -> i32 { 70 }
+fn NK_PAT_WILDCARD() -> i32 { 71 }
+fn NK_PAT_LITERAL() -> i32 { 72 }
+fn NK_PAT_VARIANT() -> i32 { 73 }
+
+// Statement node kinds.
+fn NK_BLOCK() -> i32 { 20 }
+fn NK_LET() -> i32 { 30 }
+fn NK_RETURN() -> i32 { 31 }
+fn NK_WHILE() -> i32 { 34 }
+fn NK_FOR() -> i32 { 36 }
+fn NK_EXPR_STMT() -> i32 { 37 }
+
+// Type annotation node kinds.
+fn NK_TYPE_GENERIC() -> i32 { 91 }
+
+// Comparison operator kinds.
+fn OP_EQ() -> i32 { 6 }
+fn OP_NEQ() -> i32 { 7 }
+fn OP_LT() -> i32 { 8 }
+fn OP_LTEQ() -> i32 { 9 }
+fn OP_GT() -> i32 { 10 }
+fn OP_GTEQ() -> i32 { 11 }
+
+// Logical operator kinds.
+fn OP_AND() -> i32 { 12 }
+fn OP_OR() -> i32 { 13 }
+
+// Unknown type tag.
+fn TY_UNKNOWN() -> i32 { 0 }
+
+// Numeric primitive type tags.
+fn TY_I32() -> i32 { 1 }
+fn TY_I64() -> i32 { 2 }
+fn TY_F64() -> i32 { 3 }
+
+// Bool primitive type tag.
+fn TY_BOOL() -> i32 { 4 }
+
+// Text primitive type tags.
+fn TY_STRING() -> i32 { 5 }
+fn TY_CHAR() -> i32 { 6 }
+
+// Control type tags.
+fn TY_UNIT() -> i32 { 7 }
+fn TY_NEVER() -> i32 { 8 }
+
+// Collection type tags.
+fn TY_VEC() -> i32 { 10 }
+fn TY_OPTION() -> i32 { 11 }
+fn TY_RESULT() -> i32 { 12 }
+fn TY_HASHMAP() -> i32 { 13 }
+fn TY_TUPLE() -> i32 { 23 }
+
+// Nominal and callable type tags.
+fn TY_FN() -> i32 { 20 }
+fn TY_STRUCT() -> i32 { 21 }
+fn TY_ENUM() -> i32 { 22 }
+
+// Inference type tags.
+fn TY_TYPE_VAR() -> i32 { 30 }

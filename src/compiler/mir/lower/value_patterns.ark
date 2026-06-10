@@ -1,0 +1,30 @@
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower_kinds
+use mir::lower::ctx_api_variants
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering atomic pattern values.
+
+use mir::inst_const_i32
+use mir::value_types
+
+fn lower_atomic_pattern(ctx: LowerCtx, node: AstNode) -> i32 {
+    let kind = ast_node::node_kind(node)
+    if kind == lower_kinds::NK_PAT_WILDCARD() {
+        return 0 - 1
+    }
+    if kind == lower_kinds::NK_PAT_IDENT() {
+        return 0 - 1
+    }
+    if kind == lower_kinds::NK_PAT_VARIANT() {
+        let tag = ctx_variant_tag(ctx, ast_node::node_text(node))
+        if tag >= 0 {
+            let dest = ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, dest))
+            return dest
+        }
+        return 0 - 1
+    }
+    0 - 2
+}

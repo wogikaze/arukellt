@@ -1,0 +1,26 @@
+use mir::opcodes
+// Arukellt Selfhost - MIR structured control instruction constructors.
+
+use mir::inst_factory
+use mir::types
+use mir::value_types
+
+fn MirInst_block() -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_BLOCK(), 0 - 1, 0 - 1, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+}
+
+fn MirInst_loop() -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_LOOP(), 0 - 1, 0 - 1, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+}
+
+fn MirInst_if() -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_IF(), 0 - 1, 0 - 1, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+}
+
+fn MirInst_else() -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_ELSE(), 0 - 1, 0 - 1, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+}
+
+fn MirInst_end() -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_END(), 0 - 1, 0 - 1, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+}

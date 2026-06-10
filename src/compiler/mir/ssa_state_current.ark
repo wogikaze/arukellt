@@ -1,0 +1,15 @@
+// Arukellt Selfhost - MIR SSA current/version slot helpers.
+
+use mir::ssa_state_types
+
+fn mir_ssa_set_current(state: ssa_state_types::MirSsaRenameState, local_id: i32, value_id: i32) {
+    ssa_state_types::MirSsaRenameState_set_current(state, local_id, value_id)
+}
+
+fn mir_ssa_set_version(state: ssa_state_types::MirSsaRenameState, local_id: i32, version: i32) {
+    ssa_state_types::MirSsaRenameState_set_version(state, local_id, version)
+}
+
+fn mir_ssa_current_for(state: ssa_state_types::MirSsaRenameState, local_id: i32) -> i32 {
+    ssa_state_types::MirSsaRenameState_current_for(state, local_id)
+}

@@ -1,0 +1,23 @@
+// Arukellt MIR - value type tag compatibility facade.
+
+use corehir::value_types
+
+fn VT_I32() -> i32 {
+    value_types::VT_I32()
+}
+
+fn VT_I64() -> i32 {
+    value_types::VT_I64()
+}
+
+fn VT_F64() -> i32 {
+    value_types::VT_F64()
+}
+
+fn VT_REF() -> i32 {
+    value_types::VT_REF()
+}
+
+fn VT_VOID() -> i32 {
+    value_types::VT_VOID()
+}

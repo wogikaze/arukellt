@@ -1,0 +1,195 @@
+use mir::function_identity
+// Arukellt Selfhost - Wasm duplicate function name call resolution.
+
+use mir::function_block_queries
+use mir::block_inst_access
+use mir::inst_accessors_shape
+use mir::inst_accessors_literals
+use mir::opcodes
+
+fn mir_function_inst_count(f: MirFunction) -> i32 {
+    let mut total = 0
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        total = total + block_inst_access::MirBlock_inst_count(block)
+        bi = bi + 1
+    }
+    total
+}
+
+fn mir_short_name(name: String) -> String {
+    let nlen = len(name)
+    let mut colon_pos = 0 - 1
+    let mut ci = nlen - 1
+    while ci >= 0 {
+        if char_at(name, ci) == 58 {
+            colon_pos = ci
+            ci = 0 - 1
+        }
+        ci = ci - 1
+    }
+    if colon_pos >= 0 {
+        return substring(name, colon_pos + 1, nlen)
+    }
+    clone(name)
+}
+
+fn mir_module_stem_from_qualified(name: String) -> String {
+    let nlen = len(name)
+    let mut last_colon = 0 - 1
+    let mut ci = nlen - 1
+    while ci >= 0 {
+        if char_at(name, ci) == 58 {
+            last_colon = ci
+            ci = 0 - 1
+        }
+        ci = ci - 1
+    }
+    if last_colon < 0 {
+        return String_new()
+    }
+    substring(name, 0, last_colon)
+}
+
+fn mir_count_functions_named(functions: Vec<MirFunction>, short_name: String) -> i32 {
+    let count = len(functions)
+    let mut total = 0
+    let mut i = 0
+    while i < count {
+        let f = get_unchecked(functions, i)
+        if eq(function_identity::MirFunction_name(f), clone(short_name)) {
+            total = total + 1
+        }
+        i = i + 1
+    }
+    total
+}
+
+fn mir_function_sole_call_target(f: MirFunction) -> String {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut call_count = 0
+    let mut sole_callee = String_new()
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let ii_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < ii_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
+                call_count = call_count + 1
+                sole_callee = inst_accessors_literals::MirInst_str_val(inst)
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    if call_count == 1 {
+        return sole_callee
+    }
+    String_new()
+}
+
+fn mir_function_is_single_call_forwarder(f: MirFunction) -> bool {
+    len(mir_function_sole_call_target(f)) > 0
+}
+
+fn mir_function_forwards_to(f: MirFunction, target: String) -> bool {
+    let sole = mir_function_sole_call_target(f)
+    if len(sole) == 0 {
+        return false
+    }
+    eq(clone(sole), clone(target))
+}
+
+fn mir_pick_largest_non_forwarder_index(functions: Vec<MirFunction>, short_name: String, skip_target: String) -> i32 {
+    let count = len(functions)
+    let mut best_idx = 0 - 1
+    let mut best_size = 0 - 1
+    let mut i = 0
+    while i < count {
+        let f = get_unchecked(functions, i)
+        if eq(function_identity::MirFunction_name(f), clone(short_name)) {
+            if len(skip_target) > 0 && mir_function_forwards_to(f, clone(skip_target)) {
+            } else {
+                if !mir_function_is_single_call_forwarder(f) {
+                    let size = mir_function_inst_count(f)
+                    if size > best_size {
+                        best_size = size
+                        best_idx = i
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    best_idx
+}
+
+fn mir_resolve_duplicate_call_target(functions: Vec<MirFunction>, callee_name: String) -> i32 {
+    let short_name = mir_short_name(clone(callee_name))
+    if mir_count_functions_named(functions, clone(short_name)) <= 1 {
+        let mut i = 0
+        while i < len(functions) {
+            let f = get_unchecked(functions, i)
+            if eq(function_identity::MirFunction_name(f), clone(short_name)) {
+                return i
+            }
+            i = i + 1
+        }
+        return 0 - 1
+    }
+    let module_stem = mir_module_stem_from_qualified(clone(callee_name))
+    if len(module_stem) > 0 {
+        let impl_idx = mir_pick_largest_non_forwarder_index(functions, clone(short_name), clone(callee_name))
+        if impl_idx >= 0 {
+            return impl_idx
+        }
+    }
+    let mut i = 0
+    while i < len(functions) {
+        let f = get_unchecked(functions, i)
+        if eq(function_identity::MirFunction_name(f), clone(short_name)) {
+            if mir_function_is_single_call_forwarder(f) {
+                let sole = mir_function_sole_call_target(f)
+                let resolved = mir_resolve_duplicate_call_target(functions, sole)
+                if resolved >= 0 {
+                    return resolved
+                }
+            } else {
+                return i
+            }
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn mir_resolve_self_delegate_collision(functions: Vec<MirFunction>, candidate_idx: i32, name: String) -> i32 {
+    let short_name = mir_short_name(clone(name))
+    if mir_count_functions_named(functions, clone(short_name)) <= 1 {
+        return candidate_idx
+    }
+    let resolved = mir_resolve_duplicate_call_target(functions, clone(name))
+    if resolved >= 0 {
+        return resolved
+    }
+    candidate_idx
+}
+
+fn mir_collision_export_name(functions: Vec<MirFunction>, fn_idx: i32, short_name: String, seen_count: i32) -> String {
+    if seen_count <= 0 {
+        return clone(short_name)
+    }
+    let f = get_unchecked(functions, fn_idx)
+    if mir_function_is_single_call_forwarder(f) {
+        let sole = mir_function_sole_call_target(f)
+        let stem = mir_module_stem_from_qualified(clone(sole))
+        if len(stem) > 0 {
+            return concat(stem, concat(String_from("__"), clone(short_name)))
+        }
+    }
+    concat(concat(clone(short_name), String_from("__")), to_string(seen_count))
+}

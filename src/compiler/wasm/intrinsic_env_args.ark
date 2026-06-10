@@ -1,0 +1,137 @@
+use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::constants
+// Arukellt Selfhost - env argv intrinsic facade.
+
+use wasm::ctx_scratch
+use wasm::intrinsic_env_arg_list_populate
+use wasm::intrinsics::helpers_core_calls
+use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_core_stack
+
+fn emit_env_arg_count(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_ARGC())
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_ARGV_SIZE())
+    helpers_core_calls::emit_call(w, 1)
+    helpers_core_stack::emit_drop(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_ARGC())
+    helpers_memory_access::emit_i32_load(w, 0)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    return true
+}
+
+fn emit_env_args(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_env_args_prepare_vec(w, ctx)
+    intrinsic_env_arg_list_populate::emit_env_args_populate(w, ctx)
+    helpers_core_locals::emit_local_get(w, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1))
+    return true
+}
+
+fn emit_env_has_flag(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_core_stack::emit_drop(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    return true
+}
+
+fn emit_env_arg_at(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_core_stack::emit_drop(w)
+    helpers_core_heap::emit_heap_get(w)
+    let s_none = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    helpers_core_locals::emit_local_tee(w, s_none)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_memory_access::emit_i32_store(w, 0)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+    helpers_core_locals::emit_local_get(w, s_none)
+    return true
+}
+
+fn emit_env_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_env_missing_var_option(w)
+    return true
+}
+
+fn emit_env_get_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_env_missing_var_option(w)
+    return true
+}
+
+fn emit_env_var_or_default(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_env_var_default_fallback(w, ctx_scratch::SelfEmitCtx_scratch_base(ctx))
+    return true
+}
+
+fn emit_env_args_prepare_vec(w: WasmWriter, ctx: SelfEmitCtx) {
+    emit_env_args_load_argc(w, ctx)
+    emit_env_args_alloc_vec_header(w, ctx)
+    emit_env_args_alloc_data_slots(w, ctx)
+}
+
+fn emit_env_args_load_argc(w: WasmWriter, ctx: SelfEmitCtx) {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_ARGC())
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_ARGV_SIZE())
+    helpers_core_calls::emit_call(w, 1)
+    helpers_core_stack::emit_drop(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_ARGC())
+    helpers_memory_access::emit_i32_load(w, 0)
+    let s_argc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    helpers_core_locals::emit_local_set(w, s_argc)
+}
+
+fn emit_env_args_alloc_vec_header(w: WasmWriter, ctx: SelfEmitCtx) {
+    helpers_core_heap::emit_heap_get(w)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    helpers_core_locals::emit_local_set(w, s_vec)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 12)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+    helpers_core_locals::emit_local_get(w, s_vec)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_memory_access::emit_i32_store(w, 0)
+    helpers_core_locals::emit_local_get(w, s_vec)
+    helpers_numeric_i32_const::emit_i32_const(w, 8)
+    helpers_memory_access::emit_i32_store(w, 4)
+}
+
+fn emit_env_args_alloc_data_slots(w: WasmWriter, ctx: SelfEmitCtx) {
+    helpers_core_heap::emit_heap_get(w)
+    let s_data = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    helpers_core_locals::emit_local_set(w, s_data)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 32)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    helpers_core_locals::emit_local_get(w, s_vec)
+    helpers_core_locals::emit_local_get(w, s_data)
+    helpers_memory_access::emit_i32_store(w, 8)
+}
+
+fn emit_env_var_default_fallback(w: WasmWriter, default_local: i32) {
+    helpers_core_locals::emit_local_set(w, default_local)
+    helpers_core_stack::emit_drop(w)
+    helpers_core_locals::emit_local_get(w, default_local)
+}
+
+fn emit_env_missing_var_option(w: WasmWriter) {
+    helpers_core_stack::emit_drop(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 8)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+}

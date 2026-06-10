@@ -1,0 +1,25 @@
+// Arukellt Selfhost - CoreHIR parameter AST node accessors.
+
+use corehir::decl_ann_member
+use corehir::frontend_ast_identity
+use corehir::frontend_expr_kind
+
+fn param_is_ident(node: AstNode) -> bool {
+    frontend_expr_kind::corehir_kind_is_expr_ident(frontend_ast_identity::corehir_node_kind(node))
+}
+
+fn param_has_type_ann(node: AstNode) -> bool {
+    decl_ann_member::decl_ann_count(node) >= 1
+}
+
+fn param_type_ann(node: AstNode) -> AstNode {
+    decl_ann_member::decl_ann_at(node, 0)
+}
+
+fn param_name(node: AstNode) -> String {
+    frontend_ast_identity::corehir_node_text(node)
+}
+
+fn param_is_self_name(name: String) -> bool {
+    eq(clone(name), "self") || eq(clone(name), "&self") || eq(clone(name), "&mut self")
+}

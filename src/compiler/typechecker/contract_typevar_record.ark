@@ -1,0 +1,30 @@
+// Arukellt Typechecker - type variable record.
+
+use typechecker::contract_types_record
+
+struct TypeVar {
+    id: i32,
+    bound: TypeInfo,
+    is_bound: bool,
+}
+
+fn TypeVar_new(id: i32, bound: TypeInfo) -> TypeVar {
+    TypeVar { id: id, bound: bound, is_bound: false }
+}
+
+fn type_var_id(tv: TypeVar) -> i32 {
+    tv.id
+}
+
+fn type_var_is_bound(tv: TypeVar) -> bool {
+    tv.is_bound
+}
+
+fn type_var_bound(tv: TypeVar) -> TypeInfo {
+    tv.bound
+}
+
+fn type_var_bind(tv: TypeVar, ty: TypeInfo) {
+    tv.bound = ty
+    tv.is_bound = true
+}

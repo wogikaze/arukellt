@@ -1,0 +1,27 @@
+// Arukellt Selfhost - MIR lowering impl method index prepass.
+
+use mir::lower::fn_index_mono
+use mir::lower::fn_index_source
+use mir::value_types
+
+fn mir_index_impl_methods(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, impl_decl_index: i32, struct_name: String, fn_index: i32, source: MirLowerFnIndexSource, midx: MonoIndex) -> i32 {
+    let mut next_fn_index = fn_index
+    let method_count = fn_index_source::mir_fn_index_source_method_count_for_impl(source, impl_decl_index)
+    let mut mi = 0
+    while mi < method_count {
+        let method_info_index = fn_index_source::mir_fn_index_source_method_info_index(source, impl_decl_index, mi)
+        let mut mangled = clone(struct_name)
+        if method_info_index >= 0 {
+            mangled = fn_index_source::mir_fn_index_source_method_mangled_name_at(source, method_info_index, mangled)
+        }
+        push(fn_names, mangled)
+        let mrvt = fn_index_source::mir_fn_index_source_method_return_vt_at(source, method_info_index, value_types::VT_I32())
+        let mrtn = fn_index_source::mir_fn_index_source_method_return_type_name_at(source, method_info_index, String_from(""))
+        push(fn_return_vts, mrvt)
+        push(fn_return_type_names, mrtn)
+        fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, clone(mangled), mrvt, clone(mrtn))
+        next_fn_index = next_fn_index + 1
+        mi = mi + 1
+    }
+    next_fn_index
+}

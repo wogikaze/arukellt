@@ -1,0 +1,63 @@
+// Arukellt HIR - function item data contracts.
+
+use hir::item_function_core_record
+use hir::item_param_record
+use hir::item_type_param_record
+use hir::node_record
+use hir::type_contracts_record
+
+fn HirParam_new(name: String, ty: HirType) -> HirParam {
+    item_param_record::HirParam_new(name, ty)
+}
+
+fn HirParam_name(param: HirParam) -> String {
+    item_param_record::hir_param_name(param)
+}
+
+fn HirParam_type(param: HirParam) -> HirType {
+    item_param_record::hir_param_type(param)
+}
+
+fn HirFunction_new(name: String, return_type: HirType, body: HirNode, is_pub: bool) -> HirFunction {
+    item_function_core_record::HirFunction_new(name, return_type, body, is_pub)
+}
+
+fn HirFunction_name(func: HirFunction) -> String {
+    item_function_core_record::hir_function_name(func)
+}
+
+fn HirFunction_push_param(func: HirFunction, param: HirParam) {
+    item_function_core_record::hir_function_push_param(func, param)
+}
+
+fn HirFunction_param_count(func: HirFunction) -> i32 {
+    item_function_core_record::hir_function_param_count(func)
+}
+
+fn HirFunction_param_at(func: HirFunction, index: i32) -> HirParam {
+    item_function_core_record::hir_function_param_at(func, index)
+}
+
+fn HirFunction_push_type_param(func: HirFunction, type_param: HirTypeParam) {
+    item_function_core_record::hir_function_push_type_param(func, type_param)
+}
+
+fn HirFunction_type_param_count(func: HirFunction) -> i32 {
+    item_function_core_record::hir_function_type_param_count(func)
+}
+
+fn HirFunction_type_param_at(func: HirFunction, index: i32) -> HirTypeParam {
+    item_function_core_record::hir_function_type_param_at(func, index)
+}
+
+fn HirFunction_return_type(func: HirFunction) -> HirType {
+    item_function_core_record::hir_function_return_type(func)
+}
+
+fn HirFunction_body(func: HirFunction) -> HirNode {
+    item_function_core_record::hir_function_body(func)
+}
+
+fn HirFunction_is_pub(func: HirFunction) -> bool {
+    item_function_core_record::hir_function_is_pub(func)
+}

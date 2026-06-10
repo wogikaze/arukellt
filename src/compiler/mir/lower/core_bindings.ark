@@ -1,0 +1,62 @@
+use mir::lower::closure_registry
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR lowering for CoreHIR local bindings.
+
+use mir::inst_convert
+use mir::inst_local_set
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_calls
+use mir::value_types
+
+fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    let binding_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+    let type_name = core_expr_shape_accessors::mir_core_expr_type_name(expr)
+    let mut val_idx = 0 - 1
+    if child_count >= 1 {
+        val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    }
+    let mut vt = core_expr_shape_accessors::mir_core_expr_val_type(expr)
+    if child_count >= 1 && len(type_name) == 0 && val_idx >= 0 {
+        vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
+    }
+    if vt == 0 {
+        vt = value_types::VT_I32()
+    }
+    let local_idx = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(binding_name), vt)
+    if len(type_name) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, clone(type_name))
+    }
+    if child_count >= 1 && val_idx >= 0 {
+        if ctx_api_local_types::ctx_local_vt(ctx, val_idx) == value_types::VT_F64() && ctx_api_local_types::ctx_local_vt(ctx, local_idx) == value_types::VT_I32() {
+            ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_F64())
+        }
+        // Widen i32 initializers into i64-annotated bindings; the extend rides
+        // the value already on the stack right before the local.set.
+        if ctx_api_local_types::ctx_local_vt(ctx, local_idx) == value_types::VT_I64() && ctx_api_local_types::ctx_local_vt(ctx, val_idx) == value_types::VT_I32() {
+            let ext_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
+            ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64(ext_dest, val_idx))
+        }
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(local_idx))
+        // An explicit annotation wins over the initializer's inferred type name;
+        // e.g. `let r: Result<f64, _> = ...` must keep the payload-typed name.
+        let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
+        if len(init_type) > 1 && len(type_name) == 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
+        }
+    }
+    if child_count >= 1 {
+        let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+        if core_expr_shape_calls::mir_core_expr_is_closure(init_expr) {
+            if !eq(clone(binding_name), String_from("_")) {
+                closure_registry::closure_flush_pending_bind(ctx, clone(binding_name))
+            } else {
+                closure_registry::closure_clear_pending_bind(ctx)
+            }
+        }
+    }
+    0 - 1
+}

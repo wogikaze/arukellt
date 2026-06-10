@@ -1,0 +1,35 @@
+// Arukellt Selfhost - MIR list comprehension body/result emission.
+
+use mir::lower::ctx_api_nesting
+use mir::lower::ctx_api_loop_state
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+use mir::inst_call
+use mir::inst_local_get
+use mir::inst_structured_control
+use mir::lower::comprehension_emit_increment
+use mir::lower::comprehension_state
+
+fn mir_emit_comprehension_push_prefix(ctx: LowerCtx, state: ComprehensionState) {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(comprehension_state::comprehension_state_result_local(state)))
+}
+
+fn mir_emit_comprehension_push_call(ctx: LowerCtx) {
+    ctx_emit(ctx, inst_call::MirInst_call(String_from("push"), 2, 0 - 1))
+}
+
+fn mir_emit_comprehension_increment_and_end(ctx: LowerCtx, state: ComprehensionState) {
+    comprehension_increment::mir_emit_comprehension_increment(ctx, state)
+    ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+    ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+    ctx_api_loop_state::ctx_set_loop_break_depth(ctx, comprehension_state::comprehension_state_prev_break(state))
+    ctx_api_loop_state::ctx_set_loop_continue_depth(ctx, comprehension_state::comprehension_state_prev_continue(state))
+}
+
+fn mir_emit_comprehension_result(ctx: LowerCtx, state: ComprehensionState) -> i32 {
+    let result_local = comprehension_state::comprehension_state_result_local(state)
+    ctx_emit(ctx, inst_local_get::MirInst_local_get_to(result_local, result_local))
+    result_local
+}

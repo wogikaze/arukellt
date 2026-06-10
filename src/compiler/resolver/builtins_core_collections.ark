@@ -1,0 +1,24 @@
+// Arukellt Resolver - core collection builtin symbol names.
+
+fn push_core_collection_builtin_symbol_names(names: Vec<String>) {
+    push(names, String_from("args"))
+    push(names, String_from("exit"))
+    push(names, String_from("values"))
+    push(names, String_from("pop"))
+    push(names, String_from("set"))
+    push(names, String_from("is_empty"))
+    push(names, String_from("unwrap"))
+    push(names, String_from("unwrap_or"))
+    push(names, String_from("slice"))
+    push(names, String_from("split"))
+    push(names, String_from("join"))
+    push(names, String_from("reverse_i32"))
+    push(names, String_from("remove_i32"))
+    push(names, String_from("contains"))
+    push(names, String_from("contains_i32"))
+    push(names, String_from("contains_string"))
+    push(names, String_from("contains_String"))
+    push(names, String_from("reverse_String"))
+    push(names, String_from("sum_i32"))
+    push(names, String_from("product_i32"))
+}

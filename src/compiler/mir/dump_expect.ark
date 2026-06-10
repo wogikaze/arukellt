@@ -1,0 +1,34 @@
+// Arukellt Selfhost - MIR dump smoke expectation facade
+
+use mir::dump_expect_dominance
+use mir::dump_expect_local
+use mir::dump_expect_phi
+use mir::types
+
+fn mir_expect_preds(f: MirFunction, block_id: i32, expected_count: i32, expected0: i32, expected1: i32) {
+    dump_expect_dominance::mir_expect_preds(f, block_id, expected_count, expected0, expected1)
+}
+
+fn mir_expect_idom(f: MirFunction, block_id: i32, expected_idom: i32) {
+    dump_expect_dominance::mir_expect_idom(f, block_id, expected_idom)
+}
+
+fn mir_expect_frontier(f: MirFunction, block_id: i32, expected_count: i32, expected0: i32, expected1: i32) {
+    dump_expect_dominance::mir_expect_frontier(f, block_id, expected_count, expected0, expected1)
+}
+
+fn mir_expect_phi(f: MirFunction, block_id: i32, expected_dest: i32, expected_vt: i32, expected_count: i32, expected_pred0: i32, expected_local0: i32, expected_pred1: i32, expected_local1: i32) {
+    dump_expect_phi::mir_expect_phi(f, block_id, expected_dest, expected_vt, expected_count, expected_pred0, expected_local0, expected_pred1, expected_local1)
+}
+
+fn mir_expect_local_ssa(f: MirFunction, local_id: i32, expected_name: String, expected_version: i32) {
+    dump_expect_local::mir_expect_local_ssa(f, local_id, expected_name, expected_version)
+}
+
+fn mir_expect_local_ref_eq(f: MirFunction, local_id: i32, expected: String, label: String) {
+    dump_expect_local::mir_expect_local_ref_eq(f, local_id, expected, label)
+}
+
+fn mir_expect_phi_format(f: MirFunction, block_id: i32, phi_index: i32, expected: String) {
+    dump_expect_phi::mir_expect_phi_format(f, block_id, phi_index, expected)
+}

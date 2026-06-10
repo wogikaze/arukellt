@@ -1,0 +1,17 @@
+// Arukellt Selfhost - CoreHIR collection expression lowering.
+
+use mir::lower::core_array_lit
+use mir::lower::core_comprehension_lit
+use mir::lower::core_tuple_lit
+
+fn lower_core_array_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    core_array_lit::lower_core_array_lit(ctx, exprs, expr)
+}
+
+fn lower_core_tuple(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    core_tuple_lit::lower_core_tuple(ctx, exprs, expr)
+}
+
+fn lower_core_comprehension(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    core_comprehension_lit::lower_core_comprehension(ctx, exprs, expr)
+}

@@ -1,0 +1,24 @@
+use corehir::kinds
+// Arukellt Selfhost - MIR lowering CoreHIR call and match shape predicates.
+
+use corehir::expr_predicates
+
+fn mir_core_expr_is_call(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_CALL())
+}
+
+fn mir_core_expr_is_method_call(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_METHOD_CALL())
+}
+
+fn mir_core_expr_is_closure(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_CLOSURE())
+}
+
+fn mir_core_expr_is_try(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_TRY())
+}
+
+fn mir_core_expr_is_match(expr: CoreHirExpr) -> bool {
+    expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_MATCH())
+}

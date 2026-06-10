@@ -1,0 +1,17 @@
+// Arukellt Selfhost - MIR lowering function index mono variants.
+
+use mir::mono
+
+fn mir_index_mono_variants(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, midx: MonoIndex, base_name: String, return_vt: i32, return_type_name: String) {
+    let mono_count = mono::mono_index_count(midx, clone(base_name))
+    if mono_count > 0 {
+        let mut mono_i = 0
+        while mono_i < mono_count {
+            let mono_name = mono::mono_index_mangled_at(midx, clone(base_name), mono_i)
+            push(fn_names, mono::mono_safe_name(mono_name))
+            push(fn_return_vts, return_vt)
+            push(fn_return_type_names, clone(return_type_name))
+            mono_i = mono_i + 1
+        }
+    }
+}

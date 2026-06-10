@@ -1,0 +1,47 @@
+// Arukellt Selfhost - MIR lowering let statement facade.
+
+use mir::lower::ann_types
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+use mir::lower::stmt_let_finish
+use mir::lower_kinds
+use mir::value_types
+
+fn mir_initial_let_vt(node: AstNode) -> i32 {
+    let mut vt = value_types::VT_I32()
+    let ta_count = ast_node::node_type_ann_count(node)
+    if ta_count >= 1 {
+        let ta_pre = ast_node::node_type_ann_at(node, 0)
+        vt = ann_types::mir_local_vt_from_type_name(ast_node::node_text(ta_pre))
+    }
+    if vt == value_types::VT_I32() && ta_count == 0 && ast_node::node_child_count(node) >= 1 {
+        let init_peek = ast_node::node_child_at(node, 0)
+        if ast_node::node_kind_is(init_peek, lower_kinds::NK_FLOAT_LIT()) {
+            vt = value_types::VT_F64()
+        }
+        if ast_node::node_kind_is(init_peek, lower_kinds::NK_BINARY()) && ast_node::node_child_count(init_peek) >= 2 {
+            let lhs_peek = ast_node::node_child_at(init_peek, 0)
+            let rhs_peek = ast_node::node_child_at(init_peek, 1)
+            if ast_node::node_kind_is(lhs_peek, lower_kinds::NK_FLOAT_LIT()) || ast_node::node_kind_is(rhs_peek, lower_kinds::NK_FLOAT_LIT()) {
+                vt = value_types::VT_F64()
+            }
+        }
+    }
+    vt
+}
+
+fn mir_adjust_let_vt_from_init(ctx: LowerCtx, vt: i32, node: AstNode, pre_val_idx: i32) -> i32 {
+    let ta_count = ast_node::node_type_ann_count(node)
+    if vt == value_types::VT_I32() && ta_count == 0 && pre_val_idx >= 0 {
+        let inferred_vt = ctx_api_local_types::ctx_local_vt(ctx, pre_val_idx)
+        if inferred_vt == value_types::VT_F64() || inferred_vt == value_types::VT_I64() {
+            return inferred_vt
+        }
+    }
+    vt
+}
+
+fn mir_finish_let_stmt(ctx: LowerCtx, node: AstNode, vt: i32, pre_val_idx: i32, pre_init_kind: i32) {
+    stmt_let_finish::mir_finish_let_stmt(ctx, node, vt, pre_val_idx, pre_init_kind)
+}

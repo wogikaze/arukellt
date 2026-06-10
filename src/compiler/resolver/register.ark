@@ -1,0 +1,22 @@
+// Arukellt Resolver - module and declaration registration facade
+
+use resolver::register_exports
+use resolver::register_headers
+use resolver::register_imported
+use resolver::register_use
+
+fn register_module_export(ctx: ResolveCtx, module_name: String, symbol_name: String, kind: i32, is_pub: bool) {
+    register_exports::register_module_export(ctx, module_name, symbol_name, kind, is_pub)
+}
+
+fn register_imported_modules(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
+    register_imported::register_imported_modules(ctx, modules)
+}
+
+fn register_use_decl(ctx: ResolveCtx, d: AstNode) {
+    register_use::register_use_decl(ctx, d)
+}
+
+fn register_decl_headers(ctx: ResolveCtx, decls: Vec<AstNode>) {
+    register_headers::register_decl_headers(ctx, decls)
+}

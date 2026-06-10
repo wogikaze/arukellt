@@ -1,0 +1,177 @@
+use wasm::opcodes
+// Arukellt Selfhost - sort intrinsic handlers.
+
+use wasm::ctx_scratch
+
+fn emit_sort_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_sort_insertion(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5), 4, opcodes::OP_I32_LOAD(), opcodes::OP_I32_STORE(), 2, opcodes::OP_I32_LE_S())
+}
+
+fn emit_sort_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_sort_insertion(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 14), 8, opcodes::OP_I64_LOAD(), opcodes::OP_I64_STORE(), 3, opcodes::OP_I64_LE_S())
+}
+
+fn emit_sort_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_sort_insertion(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12), 8, opcodes::OP_F64_LOAD(), opcodes::OP_F64_STORE(), 3, opcodes::OP_F64_LE())
+}
+
+fn emit_sort_insertion(w: WasmWriter, ctx: SelfEmitCtx, value_local: i32, elem_size: i32, load_opcode: i32, store_opcode: i32, mem_align: i32, le_opcode: i32) -> bool {
+    let vec_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let outer_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let inner_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let data_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let len_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+
+    emit_sort_insertion_setup(w, vec_local, data_local, len_local, outer_local)
+    emit_sort_insertion_loop_guard(w, outer_local, len_local)
+    emit_sort_insertion_prepare_value(w, data_local, outer_local, inner_local, value_local, elem_size, load_opcode, mem_align)
+    emit_sort_shift_loop(w, data_local, inner_local, value_local, elem_size, load_opcode, store_opcode, mem_align, le_opcode)
+    emit_sort_store_at_next(w, data_local, inner_local, value_local, elem_size, store_opcode, mem_align)
+    emit_sort_insertion_advance_and_end(w, outer_local)
+    return false
+}
+
+fn emit_sort_insertion_setup(w: WasmWriter, vec_local: i32, data_local: i32, len_local: i32, outer_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, len_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, data_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, outer_local)
+}
+
+fn emit_sort_insertion_loop_guard(w: WasmWriter, outer_local: i32, len_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_LOOP())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, outer_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, len_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+    writer_core::emit_byte(w, opcodes::OP_BR_IF())
+    writer_leb::emit_leb128_u(w, 1)
+}
+
+fn emit_sort_insertion_prepare_value(w: WasmWriter, data_local: i32, outer_local: i32, inner_local: i32, value_local: i32, elem_size: i32, load_opcode: i32, mem_align: i32) {
+    emit_sort_load_at(w, data_local, outer_local, elem_size, load_opcode, mem_align)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, value_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, outer_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, inner_local)
+}
+
+fn emit_sort_shift_loop(w: WasmWriter, data_local: i32, inner_local: i32, value_local: i32, elem_size: i32, load_opcode: i32, store_opcode: i32, mem_align: i32, le_opcode: i32) {
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_LOOP())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, inner_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
+    writer_core::emit_byte(w, opcodes::OP_BR_IF())
+    writer_leb::emit_leb128_u(w, 1)
+    emit_sort_load_at(w, data_local, inner_local, elem_size, load_opcode, mem_align)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, value_local)
+    writer_core::emit_byte(w, le_opcode)
+    writer_core::emit_byte(w, opcodes::OP_BR_IF())
+    writer_leb::emit_leb128_u(w, 1)
+    emit_sort_copy_current_to_next(w, data_local, inner_local, elem_size, load_opcode, store_opcode, mem_align)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, inner_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, inner_local)
+    writer_core::emit_byte(w, opcodes::OP_BR())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_END())
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_sort_store_at_next(w: WasmWriter, data_local: i32, index_local: i32, value_local: i32, elem_size: i32, store_opcode: i32, mem_align: i32) {
+    emit_sort_address_at_next(w, data_local, index_local, elem_size)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, value_local)
+    writer_core::emit_byte(w, store_opcode)
+    writer_core::emit_byte(w, mem_align)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_sort_copy_current_to_next(w: WasmWriter, data_local: i32, index_local: i32, elem_size: i32, load_opcode: i32, store_opcode: i32, mem_align: i32) {
+    emit_sort_address_at_next(w, data_local, index_local, elem_size)
+    emit_sort_load_at(w, data_local, index_local, elem_size, load_opcode, mem_align)
+    writer_core::emit_byte(w, store_opcode)
+    writer_core::emit_byte(w, mem_align)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_sort_load_at(w: WasmWriter, data_local: i32, index_local: i32, elem_size: i32, load_opcode: i32, mem_align: i32) {
+    emit_sort_address_at(w, data_local, index_local, elem_size)
+    writer_core::emit_byte(w, load_opcode)
+    writer_core::emit_byte(w, mem_align)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_sort_address_at_next(w: WasmWriter, data_local: i32, index_local: i32, elem_size: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, data_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, index_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, elem_size)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+}
+
+fn emit_sort_address_at(w: WasmWriter, data_local: i32, index_local: i32, elem_size: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, data_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, index_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, elem_size)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+}
+
+fn emit_sort_insertion_advance_and_end(w: WasmWriter, outer_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, outer_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, outer_local)
+    writer_core::emit_byte(w, opcodes::OP_BR())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_END())
+    writer_core::emit_byte(w, opcodes::OP_END())
+}

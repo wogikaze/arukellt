@@ -1,0 +1,33 @@
+use lexer::tokens
+use parser::kinds
+use parser::core_ast_factory
+use parser::core_ast_children
+// Arukellt Parser - if expression syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::stmt
+
+fn parse_if_expr(p: Parser) -> AstNode {
+    let t = expect_token(p, tokens::TK_IF())
+    let node = AstNode_new(kinds::NK_IF_EXPR(), tok_span(t))
+    skip_newlines(p)
+    let cond = parse_expr(p)
+    core_ast_children::AstNode_push_child(node, cond)
+    skip_newlines(p)
+    let then_block = stmt::parse_block(p)
+    core_ast_children::AstNode_push_child(node, then_block)
+    skip_newlines(p)
+    if peek_kind(p) == tokens::TK_ELSE() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        if peek_kind(p) == tokens::TK_IF() {
+            let elif = parse_if_expr(p)
+            core_ast_children::AstNode_push_child(node, elif)
+        } else {
+            let else_block = stmt::parse_block(p)
+            core_ast_children::AstNode_push_child(node, else_block)
+        }
+    }
+    node
+}

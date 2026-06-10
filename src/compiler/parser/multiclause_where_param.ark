@@ -1,0 +1,14 @@
+use parser::ast_kind_fields
+use parser::core_ast_text_fields
+use parser::kinds
+use parser::core_ast_children
+// Arukellt Parser - where-backed multi-clause parameter selection.
+
+
+fn where_multiclause_param_name(first: AstNode) -> String {
+    let first_param = core_ast_children::AstNode_child_at(first, 0)
+    if ast_kind_fields::AstNode_kind(first_param) == kinds::NK_IDENT() {
+        return core_ast_text_fields::AstNode_text(first_param)
+    }
+    String_from("__arg0")
+}

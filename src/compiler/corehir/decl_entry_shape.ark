@@ -1,0 +1,37 @@
+// Arukellt Selfhost - CoreHIR callable declaration shape for MIR entry/indexing.
+
+use corehir::decl_node_identity
+use corehir::decl_children
+use corehir::decl_member_collections
+
+fn decl_entry_body_index(decl: AstNode) -> i32 {
+    decl_children::decl_body_index(decl)
+}
+
+fn decl_entry_param_count(decl: AstNode) -> i32 {
+    decl_children::decl_param_count(decl)
+}
+
+fn decl_entry_child_at(decl: AstNode, index: i32) -> AstNode {
+    decl_children::decl_child_at(decl, index)
+}
+
+fn decl_entry_impl_method_count(decl: AstNode) -> i32 {
+    decl_member_collections::decl_method_count(decl)
+}
+
+fn decl_entry_impl_method_at(decl: AstNode, index: i32) -> AstNode {
+    decl_member_collections::decl_method_at(decl, index)
+}
+
+fn decl_entry_method_name(method: AstNode) -> String {
+    decl_node_identity::method_name(method)
+}
+
+fn decl_entry_method_body_index(method: AstNode) -> i32 {
+    decl_member_collections::method_body_index(method)
+}
+
+fn decl_entry_method_param_count(method: AstNode) -> i32 {
+    decl_member_collections::method_param_count(method)
+}

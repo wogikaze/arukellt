@@ -1,0 +1,23 @@
+// Arukellt Selfhost - MIR function parameter query API.
+
+use mir::function_core_record
+use mir::local_record
+use mir::types_function
+
+fn MirFunction_param_count(f: MirFunction) -> i32 {
+    len(f.params)
+}
+
+fn MirFunction_param_at(f: MirFunction, idx: i32) -> MirLocal {
+    get_unchecked(f.params, idx)
+}
+
+fn MirFunction_param_val_type(f: MirFunction, idx: i32) -> i32 {
+    let p = MirFunction_param_at(f, idx)
+    local_record::mir_local_val_type(p)
+}
+
+fn MirFunction_param_type_name(f: MirFunction, idx: i32) -> String {
+    let p = MirFunction_param_at(f, idx)
+    local_record::mir_local_type_name(p)
+}

@@ -1,0 +1,41 @@
+// Arukellt MIR lowering context - function signature index storage.
+
+fn ctx_fn_index_count(ctx: LowerCtx) -> i32 {
+    len(ctx.fn_names)
+}
+
+fn ctx_fn_index_name_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.fn_names, index))
+}
+
+fn ctx_fn_index_return_vt_at(ctx: LowerCtx, index: i32) -> i32 {
+    get_unchecked(ctx.fn_return_vts, index)
+}
+
+fn ctx_fn_index_return_type_name_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.fn_return_type_names, index))
+}
+
+fn ctx_fn_index_find(ctx: LowerCtx, name: String) -> i32 {
+    let count = ctx_fn_index_count(ctx)
+    let mut i = 0
+    while i < count {
+        if eq(ctx_fn_index_name_at(ctx, i), clone(name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn ctx_fn_index_replace(ctx: LowerCtx, fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>) {
+    ctx.fn_names = fn_names
+    ctx.fn_return_vts = fn_return_vts
+    ctx.fn_return_type_names = fn_return_type_names
+}
+
+fn ctx_fn_index_push(ctx: LowerCtx, name: String, return_vt: i32, return_type_name: String) {
+    push(ctx.fn_names, name)
+    push(ctx.fn_return_vts, return_vt)
+    push(ctx.fn_return_type_names, return_type_name)
+}

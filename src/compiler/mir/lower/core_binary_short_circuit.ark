@@ -1,0 +1,30 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::opcodes
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR short-circuit binary MIR lowering.
+
+use mir::inst_structured_control
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::inst_op
+use mir::lower::core_expr_shape_accessors
+use mir::value_types
+
+fn lower_core_short_circuit_binary(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, mir_op: i32) -> i32 {
+    let lhs_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
+    let rhs_index = core_expr_shape_accessors::mir_core_expr_child(expr, 1)
+    let l_idx = lower_core_expr(ctx, exprs, lhs_index)
+    let sc_result = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(sc_result))
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(sc_result))
+    if mir_op == opcodes::MIR_OR() {
+        ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_unary(opcodes::MIR_NOT(), sc_result, sc_result, value_types::VT_I32()))
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_if())
+    let r_idx = lower_core_expr(ctx, exprs, rhs_index)
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(sc_result))
+    ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(sc_result))
+    sc_result
+}

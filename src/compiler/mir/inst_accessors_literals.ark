@@ -1,0 +1,15 @@
+// Arukellt Selfhost - MIR instruction literal accessors.
+
+use mir::inst_record
+
+fn MirInst_int_val(inst: MirInst) -> i32 {
+    inst_record::mir_inst_int_val(inst)
+}
+
+fn MirInst_float_val(inst: MirInst) -> f64 {
+    inst_record::mir_inst_float_val(inst)
+}
+
+fn MirInst_str_val(inst: MirInst) -> String {
+    inst_record::mir_inst_str_val(inst)
+}

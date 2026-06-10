@@ -1,0 +1,52 @@
+// Arukellt Resolver - use declaration registration
+
+use resolver::scope_lookup
+use resolver::ast_decl_predicates
+use resolver::ast_access
+use resolver::scope_define
+use resolver::kinds
+use resolver::paths
+
+fn register_use_decl(ctx: ResolveCtx, d: AstNode) {
+    let use_path = ast_access::node_text(d)
+    let existing_use = scope_lookup::lookup(ctx, clone(use_path))
+    if existing_use < 0 {
+        scope_define::define(ctx, use_path, commands::SYM_IMPORT())
+    }
+    register_use_module_alias(ctx, d)
+    register_use_children(ctx, d)
+}
+
+fn register_use_module_alias(ctx: ResolveCtx, d: AstNode) {
+    let short_name = if ast_access::node_type_ann_count(d) > 0 {
+        let alias_node = ast_access::node_type_ann_at(d, 0)
+        ast_access::node_text(alias_node)
+    } else {
+        paths::use_module_short_name(ast_access::node_text(d))
+    }
+    let existing_mod = scope_lookup::lookup(ctx, clone(short_name))
+    if existing_mod < 0 {
+        scope_define::define(ctx, clone(short_name), commands::SYM_MODULE())
+    }
+}
+
+fn register_use_children(ctx: ResolveCtx, d: AstNode) {
+    let num_children = ast_access::node_child_count(d)
+    let mut ci = 0
+    while ci < num_children {
+        let child = ast_access::node_child_at(d, ci)
+        if ast_decl_predicates::node_is_use(child) {
+            let child_path = ast_access::node_text(child)
+            let existing_child = scope_lookup::lookup(ctx, clone(child_path))
+            if existing_child < 0 {
+                scope_define::define(ctx, clone(child_path), commands::SYM_IMPORT())
+            }
+            let child_short = paths::use_module_short_name(child_path)
+            let existing_child_mod = scope_lookup::lookup(ctx, clone(child_short))
+            if existing_child_mod < 0 {
+                scope_define::define(ctx, clone(child_short), commands::SYM_MODULE())
+            }
+        }
+        ci = ci + 1
+    }
+}

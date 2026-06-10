@@ -1,0 +1,10 @@
+use lexer::tokens
+// Arukellt Parser - Pratt expression stop tokens.
+
+
+pub fn is_expr_stop_token(kind: i32) -> bool {
+    if kind == tokens::TK_EOF() || kind == tokens::TK_NEWLINE() || kind == tokens::TK_RBRACE() || kind == tokens::TK_RPAREN() || kind == tokens::TK_RBRACKET() || kind == tokens::TK_COMMA() || kind == tokens::TK_SEMI() || kind == tokens::TK_FATARROW() || kind == tokens::TK_LBRACE() || kind == tokens::TK_COLON() {
+        return true
+    }
+    false
+}

@@ -1,0 +1,15 @@
+use lexer::tokens
+
+// Arukellt Parser - struct declaration body syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::decl_struct_fields
+
+fn parse_struct_body(p: Parser, node: AstNode) {
+    core_api_cursor::skip_newlines(p)
+    core_api_expect::expect_token(p, tokens::TK_LBRACE())
+    core_api_cursor::skip_newlines(p)
+    decl_struct_fields::parse_struct_fields(p, node)
+    core_api_expect::expect_token(p, tokens::TK_RBRACE())
+}

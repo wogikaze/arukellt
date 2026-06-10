@@ -1,0 +1,46 @@
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_variants
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR match pattern MIR helpers.
+
+use mir::inst_const_i32
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_patterns
+use mir::value_types
+
+fn lower_core_pattern_value(ctx: LowerCtx, pat: CoreHirExpr) -> i32 {
+    if core_expr_shape_patterns::mir_core_expr_is_pat_literal(pat) {
+        let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+        let mut pval = core_expr_shape_accessors::mir_core_expr_int_val(pat)
+        if eq(core_expr_shape_accessors::mir_core_expr_text(pat), "true") {
+            pval = 1
+        }
+        if eq(core_expr_shape_accessors::mir_core_expr_text(pat), "false") {
+            pval = 0
+        }
+        ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(pval, dest))
+        return dest
+    }
+    if core_expr_shape_patterns::mir_core_expr_is_pat_variant(pat) {
+        let tag = ctx_api_variants::ctx_variant_tag(ctx, core_expr_shape_accessors::mir_core_expr_text(pat))
+        if tag >= 0 {
+            let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, dest))
+            return dest
+        }
+    }
+    0 - 1
+}
+
+fn core_emit_match_ident_bind(ctx: LowerCtx, pat: CoreHirExpr, scrut_idx: i32) {
+    let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, core_expr_shape_accessors::mir_core_expr_text(pat), value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
+}
+
+fn core_match_is_catchall(pat: CoreHirExpr) -> bool {
+    core_expr_shape_patterns::mir_core_expr_is_pat_ident(pat) || core_expr_shape_patterns::mir_core_expr_is_pat_wildcard(pat)
+}

@@ -1,0 +1,9 @@
+// Arukellt Selfhost - CoreHIR type annotation kind adapter.
+
+use parser::kinds
+
+// Arukellt Selfhost - parser AST type annotation kind adapter for CoreHIR frontend.
+
+fn corehir_kind_is_type_named(kind: i32) -> bool { kind == kinds::NK_TYPE_NAMED() }
+fn corehir_kind_is_type_generic(kind: i32) -> bool { kind == kinds::NK_TYPE_GENERIC() }
+fn corehir_kind_is_type_tuple(kind: i32) -> bool { kind == kinds::NK_TYPE_TUPLE() }

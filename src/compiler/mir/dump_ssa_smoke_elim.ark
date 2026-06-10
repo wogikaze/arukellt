@@ -1,0 +1,42 @@
+// Arukellt Selfhost - MIR SSA phi elimination smoke check
+
+use std::host::process
+use std::host::stdio
+use mir::dominance
+use mir::dump_core
+use mir::dump_expect
+use mir::dump_format_phi
+use mir::dump_format_preview
+use mir::block_phi_access
+use mir::dump_smoke_simple_phi_fixture
+use mir::function_block_queries
+use mir::module_functions
+use mir::ssa
+
+fn run_phi_elimination_smoke() {
+    let fx = dump_smoke_simple_phi_fixture::mir_dump_simple_phi_fixture_new(String_from("phi_elim_sample"), true)
+    let m = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_module(fx)
+    let f = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_function(fx)
+    let cond = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_cond(fx)
+    let then_val = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_then_val(fx)
+    let else_val = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_else_val(fx)
+    let join_val = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_join_val(fx)
+    let join_bb = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_join_bb(fx)
+    dominance::mir_compute_dominance_for_function(f)
+    ssa::mir_ssa_rename_function(f)
+    dump_expect::mir_expect_local_ssa(f, cond, String_from("cond"), 1)
+    dump_expect::mir_expect_local_ssa(f, then_val, String_from("then_val"), 1)
+    dump_expect::mir_expect_local_ssa(f, else_val, String_from("else_val"), 1)
+    dump_expect::mir_expect_local_ssa(f, join_val, String_from("join_val"), 1)
+    let join_block = function_block_queries::MirFunction_block_at(f, join_bb)
+    let phi0 = block_phi_access::MirBlock_phi_at(join_block, 0)
+    let phi_fmt = dump_format_phi::mir_format_phi(f, phi0)
+    if !eq(phi_fmt, String_from("phi %join_val.1 = [bb1 -> %then_val.1, bb2 -> %else_val.1] : i32")) {
+        stdio::eprintln(concat(String_from("phi elim smoke: unexpected phi line: "), phi_fmt))
+        process::exit(1)
+    }
+    dump_format_preview::mir_stdio_print_phi_elimination_preview(f, join_bb)
+    module_functions::MirModule_push_function(m, f)
+    dump_core::dump_mir(m)
+    stdio::println(String_from("MIR SSA phi elimination preview self-check OK."))
+}

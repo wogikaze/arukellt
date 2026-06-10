@@ -1,0 +1,205 @@
+// Arukellt Selfhost - option projection adapter facade
+
+use component::adapter_body
+use component::adapters_single_export_sections
+use component::sections
+use component::writer_core
+
+fn comp_option_i32_to_i32_adapter_core_module(export_name: String) -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+
+	let user_params = Vec_new_i32()
+	push(user_params, 0x7f)
+	let user_results = Vec_new_i32()
+	push(user_results, 0x7f)
+	let abi_params = Vec_new_i32()
+	push(abi_params, 0x7f)
+	push(abi_params, 0x7f)
+	let abi_results = Vec_new_i32()
+	push(abi_results, 0x7f)
+	adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
+
+	adapters_single_export_sections::comp_emit_user_memory_import_section(out, clone(export_name))
+	adapters_single_export_sections::comp_emit_single_adapter_func_section(out)
+	adapters_single_export_sections::comp_emit_memory_and_func_export_section(out, clone(export_name))
+
+	let code_sec = adapters_single_export_sections::comp_new_single_adapter_code_section()
+	comp_emit_option_i32_to_i32_wrapper_body(code_sec)
+	adapters_single_export_sections::comp_emit_single_adapter_code_section(out, code_sec)
+
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_option_i64_to_i64_adapter_core_module(export_name: String) -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+
+	let user_params = Vec_new_i32()
+	push(user_params, 0x7f)
+	let user_results = Vec_new_i32()
+	push(user_results, 0x7e)
+	let abi_params = Vec_new_i32()
+	push(abi_params, 0x7f)
+	push(abi_params, 0x7e)
+	let abi_results = Vec_new_i32()
+	push(abi_results, 0x7e)
+	adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
+
+	adapters_single_export_sections::comp_emit_user_memory_import_section(out, clone(export_name))
+	adapters_single_export_sections::comp_emit_single_adapter_func_section(out)
+	adapters_single_export_sections::comp_emit_memory_and_func_export_section(out, clone(export_name))
+
+	let code_sec = adapters_single_export_sections::comp_new_single_adapter_code_section()
+	comp_emit_option_i64_to_i64_wrapper_body(code_sec)
+	adapters_single_export_sections::comp_emit_single_adapter_code_section(out, code_sec)
+
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_option_i32_to_option_i32_adapter_core_module(export_name: String) -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+
+	let user_params = Vec_new_i32()
+	push(user_params, 0x7f)
+	let user_results = Vec_new_i32()
+	push(user_results, 0x7f)
+	let abi_params = Vec_new_i32()
+	push(abi_params, 0x7f)
+	push(abi_params, 0x7f)
+	let abi_results = Vec_new_i32()
+	push(abi_results, 0x7f)
+	adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
+
+	adapters_single_export_sections::comp_emit_user_memory_import_section(out, clone(export_name))
+	adapters_single_export_sections::comp_emit_single_adapter_func_section(out)
+	adapters_single_export_sections::comp_emit_memory_and_func_export_section(out, clone(export_name))
+
+	let code_sec = adapters_single_export_sections::comp_new_single_adapter_code_section()
+	comp_emit_option_i32_to_option_i32_wrapper_body(code_sec)
+	adapters_single_export_sections::comp_emit_single_adapter_code_section(out, code_sec)
+
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_emit_option_i32_to_i32_wrapper_body(code_sec: writer_core::ComponentWriter) {
+	let body = writer_core::ComponentWriter_new()
+	comp_emit_option_projection_i32_layout(body)
+	comp_emit_option_projection_user_call(body)
+	adapter_body::comp_emit_func_body(code_sec, body)
+}
+
+fn comp_emit_option_i64_to_i64_wrapper_body(code_sec: writer_core::ComponentWriter) {
+	let body = writer_core::ComponentWriter_new()
+	comp_emit_option_projection_i64_layout(body)
+	comp_emit_option_projection_user_call(body)
+	adapter_body::comp_emit_func_body(code_sec, body)
+}
+
+fn comp_emit_option_projection_i32_layout(body: writer_core::ComponentWriter) {
+	comp_emit_option_projection_tag(body)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65004)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+}
+
+fn comp_emit_option_projection_i64_layout(body: writer_core::ComponentWriter) {
+	comp_emit_option_projection_tag(body)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65004)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x37)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+}
+
+fn comp_emit_option_projection_user_call(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x10)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x0b)
+}
+
+fn comp_emit_option_projection_tag(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x45)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+}
+
+fn comp_emit_option_i32_to_option_i32_wrapper_body(code_sec: writer_core::ComponentWriter) {
+	let body = writer_core::ComponentWriter_new()
+	comp_emit_option_roundtrip_input_layout(body)
+	comp_emit_option_roundtrip_user_call(body)
+	comp_emit_option_roundtrip_output_layout(body)
+	adapter_body::comp_emit_func_body(code_sec, body)
+}
+
+fn comp_emit_option_roundtrip_input_layout(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x7f)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x45)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65004)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+}
+
+fn comp_emit_option_roundtrip_user_call(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x10)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x21)
+	writer_core::comp_emit_leb128_u(body, 2)
+}
+
+fn comp_emit_option_roundtrip_output_layout(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65008)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_byte(body, 0x28)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x45)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65012)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 4)
+	writer_core::comp_emit_byte(body, 0x6a)
+	writer_core::comp_emit_byte(body, 0x28)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65008)
+	writer_core::comp_emit_byte(body, 0x0b)
+}

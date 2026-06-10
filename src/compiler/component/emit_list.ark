@@ -1,0 +1,206 @@
+use component::constants_wit_values
+// Arukellt Selfhost - list component wrapper facade
+
+use component::adapter_body
+use component::adapter_memory
+use component::adapters_list_core_sections
+use component::adapters_list_roundtrip
+use component::adapters_single_export_sections
+use component::component_base
+use component::sections
+use component::export_sections_entries
+use component::naming
+use component::types_wit_collection
+use component::types_wit_func
+use component::writer_core
+
+fn emit_list_component(core_wasm: Vec<i32>, export_name: String, kind: i32, param_type: i32, result_type: i32, needs_realloc: bool) -> Vec<i32> {
+	let out = component_base::comp_new_component_writer()
+	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, list_adapter_core_module(clone(export_name), kind))
+
+	emit_list_alias_section(out, clone(export_name), needs_realloc)
+	emit_list_type_section(out, param_type, result_type)
+	emit_list_canon_section(out, needs_realloc)
+	emit_list_export_section(out, clone(export_name))
+
+	writer_core::comp_writer_bytes(out)
+}
+
+fn emit_list_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_list_component(core_wasm, export_name, LIST_ADAPTER_LIST_TO_I32(), 0, constants_wit_values::WIT_VAL_S32(), true)
+}
+
+fn emit_i32_to_list_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_list_component(core_wasm, export_name, LIST_ADAPTER_I32_TO_LIST(), constants_wit_values::WIT_VAL_S32(), 0, false)
+}
+
+fn emit_list_i32_to_list_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+	emit_list_component(core_wasm, export_name, LIST_ADAPTER_ROUNDTRIP(), 0, 0, true)
+}
+
+fn LIST_ADAPTER_LIST_TO_I32() -> i32 { 1 }
+fn LIST_ADAPTER_I32_TO_LIST() -> i32 { 2 }
+fn LIST_ADAPTER_ROUNDTRIP() -> i32 { 3 }
+
+fn COMP_SEC_ALIAS() -> i32 { 6 }
+fn COMP_SEC_TYPE() -> i32 { 7 }
+fn COMP_SEC_CANON() -> i32 { 8 }
+
+fn list_adapter_core_module(export_name: String, kind: i32) -> Vec<i32> {
+	if kind == LIST_ADAPTER_I32_TO_LIST() {
+		return comp_i32_to_list_i32_adapter_core_module(export_name)
+	}
+	if kind == LIST_ADAPTER_ROUNDTRIP() {
+		return adapters_list_roundtrip::comp_list_i32_to_list_i32_adapter_core_module(export_name)
+	}
+	comp_list_i32_to_i32_adapter_core_module(export_name)
+}
+
+fn comp_i32_to_list_i32_adapter_core_module(export_name: String) -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+
+	let user_params = Vec_new_i32()
+	push(user_params, 0x7f)
+	let user_results = Vec_new_i32()
+	push(user_results, 0x7f)
+	let abi_params = Vec_new_i32()
+	push(abi_params, 0x7f)
+	let abi_results = Vec_new_i32()
+	push(abi_results, 0x7f)
+	adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
+
+	adapters_single_export_sections::comp_emit_user_memory_import_section(out, clone(export_name))
+	adapters_single_export_sections::comp_emit_single_adapter_func_section(out)
+	adapters_single_export_sections::comp_emit_memory_and_func_export_section(out, clone(export_name))
+
+	let code_sec = adapters_single_export_sections::comp_new_single_adapter_code_section()
+	comp_emit_i32_to_list_i32_wrapper_body(code_sec)
+	adapters_single_export_sections::comp_emit_single_adapter_code_section(out, code_sec)
+
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_emit_i32_to_list_i32_wrapper_body(code_sec: writer_core::ComponentWriter) {
+	let body = writer_core::ComponentWriter_new()
+	adapter_body::comp_emit_single_param_output_user_call(body)
+	comp_emit_list_output_layout(body)
+	adapter_body::comp_emit_func_body(code_sec, body)
+}
+
+fn comp_emit_list_output_layout(body: writer_core::ComponentWriter) {
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 8)
+	writer_core::comp_emit_byte(body, 0x6a)
+	writer_core::comp_emit_byte(body, 0x28)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65004)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_byte(body, 0x28)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x36)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_leb128_u(body, 0)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 65000)
+	writer_core::comp_emit_byte(body, 0x0b)
+}
+
+fn comp_list_i32_to_i32_adapter_core_module(export_name: String) -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+	comp_emit_list_input_adapter_sections(out, export_name)
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_emit_list_input_adapter_sections(out: writer_core::ComponentWriter, export_name: String) {
+	adapters_list_core_sections::comp_emit_list_adapter_type_section(out)
+	adapters_list_core_sections::comp_emit_list_adapter_import_section(out, clone(export_name))
+	adapters_list_core_sections::comp_emit_list_adapter_func_section(out)
+	adapters_list_core_sections::comp_emit_list_adapter_global_section(out)
+	adapters_list_core_sections::comp_emit_list_adapter_export_section(out, clone(export_name))
+	comp_emit_list_input_code_section(out)
+}
+
+fn comp_emit_list_input_code_section(out: writer_core::ComponentWriter) {
+	let code_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(code_sec, 2)
+	adapter_memory::comp_emit_realloc_body(code_sec)
+	comp_emit_list_i32_to_i32_wrapper_body(code_sec)
+	sections::comp_emit_wasm_section(out, 10, code_sec)
+}
+
+fn comp_emit_list_i32_to_i32_wrapper_body(code_sec: writer_core::ComponentWriter) {
+	let first_body = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(first_body, 0)
+	adapter_memory::comp_emit_store_const_local(first_body, 65000, 1)
+	adapter_memory::comp_emit_store_const_local(first_body, 65004, 1)
+	adapter_memory::comp_emit_store_const_local(first_body, 65008, 0)
+	writer_core::comp_emit_byte(first_body, 0x41)
+	writer_core::comp_emit_leb128_u(first_body, 65000)
+	writer_core::comp_emit_byte(first_body, 0x10)
+	writer_core::comp_emit_leb128_u(first_body, 0)
+	writer_core::comp_emit_byte(first_body, 0x0b)
+	writer_core::comp_emit_leb128_u(code_sec, writer_core::comp_writer_size(first_body))
+	writer_core::comp_emit_bytes(code_sec, writer_core::comp_writer_bytes(first_body))
+}
+
+fn emit_list_alias_section(out: writer_core::ComponentWriter, export_name: String, needs_realloc: bool) {
+	let alias_sec = writer_core::ComponentWriter_new()
+	if needs_realloc {
+		writer_core::comp_emit_leb128_u(alias_sec, 3)
+	} else {
+		writer_core::comp_emit_leb128_u(alias_sec, 2)
+	}
+	export_sections_entries::emit_core_memory_alias_entry(alias_sec, 2)
+	export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
+	if needs_realloc {
+		export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, String_from("realloc"))
+	}
+	writer_core::comp_emit_section(out, COMP_SEC_ALIAS(), alias_sec)
+}
+
+fn emit_list_type_section(out: writer_core::ComponentWriter, param_type: i32, result_type: i32) {
+	let type_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(type_sec, 2)
+	writer_core::comp_emit_bytes(type_sec, types_wit_collection::comp_wit_list_type(constants_wit_values::WIT_VAL_S32()))
+	let params = Vec_new_i32()
+	push(params, param_type)
+	let results = Vec_new_i32()
+	push(results, result_type)
+	writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
+	writer_core::comp_emit_section(out, COMP_SEC_TYPE(), type_sec)
+}
+
+fn emit_list_canon_section(out: writer_core::ComponentWriter, needs_realloc: bool) {
+	let canon_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(canon_sec, 1)
+	if needs_realloc {
+		export_sections_entries::emit_canon_lift_memory_realloc_entry(canon_sec, 0, 0, 1, 1)
+	} else {
+		export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 0, 0, 1)
+	}
+	writer_core::comp_emit_section(out, COMP_SEC_CANON(), canon_sec)
+}
+
+fn emit_list_export_section(out: writer_core::ComponentWriter, export_name: String) {
+	let func_export_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(func_export_sec, 1)
+	writer_core::comp_emit_byte(func_export_sec, 0x00)
+	writer_core::comp_emit_string(func_export_sec, naming::comp_export_name(export_name))
+	writer_core::comp_emit_byte(func_export_sec, 0x01)
+	writer_core::comp_emit_leb128_u(func_export_sec, 0)
+	writer_core::comp_emit_byte(func_export_sec, 0x01)
+	writer_core::comp_emit_byte(func_export_sec, 0x01)
+	writer_core::comp_emit_leb128_u(func_export_sec, 1)
+	writer_core::comp_emit_section(out, 11, func_export_sec)
+}

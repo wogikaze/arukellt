@@ -1,0 +1,21 @@
+// Arukellt Selfhost - compile-file entrypoint.
+
+use driver::module_paths
+use driver::config_record
+use driver::pipeline_backend
+use driver::result_record
+use driver::source_file
+
+fn compile_file(path: String, config: DriverConfig) -> CompileResult {
+    let cloned_path = clone(path)
+    config_record::config_set_source_dir(config, module_paths::parent_dir(clone(cloned_path)))
+    let source_result = source_file::load_source_file(cloned_path)
+    match source_result {
+        Result::Ok(source) => {
+            pipeline_backend::compile_source(source, config)
+        },
+        Result::Err(e) => {
+            result_record::CompileResult_err(0, concat(String_from("failed to read file: "), e))
+        },
+    }
+}

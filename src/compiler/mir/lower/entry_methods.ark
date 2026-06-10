@@ -1,0 +1,25 @@
+// Arukellt Selfhost - MIR entry impl method emission loop.
+
+use mir::lower::entry_body_source
+use mir::lower::entry_methods_mono
+use mir::lower::entry_view_method
+
+fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, impl_decl_index: i32, struct_name: String, midx: MonoIndex) {
+    let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
+    let method_count = entry_view_method::mir_entry_method_count_for_impl(entry_view, impl_decl_index)
+    let mut mi = 0
+    while mi < method_count {
+        let method_info_index = entry_view_method::mir_entry_method_info_index(entry_view, impl_decl_index, mi)
+        let mut mangled = clone(struct_name)
+        let mut m_body_idx = 0 - 1
+        let mut method_param_count = 0
+        if method_info_index >= 0 {
+            mangled = entry_view_method::mir_entry_method_mangled_name_at(entry_view, method_info_index, mangled)
+            m_body_idx = entry_view_method::mir_entry_method_body_index_at(entry_view, method_info_index, m_body_idx)
+            method_param_count = entry_view_method::mir_entry_method_param_count_at(entry_view, method_info_index, method_param_count)
+        }
+        let body_input = entry_body_source::mir_entry_body_source_method_input(body_source, impl_decl_index, mi, method_info_index, m_body_idx)
+        entry_methods_mono::mir_emit_method_mono_bodies(ctx, body_input, struct_name, mangled, method_param_count, entry_view, method_info_index, midx)
+        mi = mi + 1
+    }
+}

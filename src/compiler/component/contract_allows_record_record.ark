@@ -1,0 +1,63 @@
+// Arukellt Selfhost - component record and variant contract allow data.
+
+pub struct ComponentRecordAllows {
+    allow_record_point: bool,
+    allow_record_distance: bool,
+    allow_record_roundtrip: bool,
+    allow_record_add: bool,
+    allow_color_enum: bool,
+    allow_color_code: bool,
+    allow_color_roundtrip: bool,
+    allow_shape_area: bool,
+    allow_shape_roundtrip: bool,
+}
+
+fn ComponentRecordAllows_new(allow_record_point: bool, allow_record_distance: bool, allow_record_roundtrip: bool, allow_record_add: bool, allow_color_enum: bool, allow_color_code: bool, allow_color_roundtrip: bool, allow_shape_area: bool, allow_shape_roundtrip: bool) -> ComponentRecordAllows {
+    ComponentRecordAllows {
+        allow_record_point: allow_record_point,
+        allow_record_distance: allow_record_distance,
+        allow_record_roundtrip: allow_record_roundtrip,
+        allow_record_add: allow_record_add,
+        allow_color_enum: allow_color_enum,
+        allow_color_code: allow_color_code,
+        allow_color_roundtrip: allow_color_roundtrip,
+        allow_shape_area: allow_shape_area,
+        allow_shape_roundtrip: allow_shape_roundtrip,
+    }
+}
+
+fn ComponentRecordAllows_allow_record_point(allows: ComponentRecordAllows) -> bool {
+    allows.allow_record_point
+}
+
+fn ComponentRecordAllows_allow_record_distance(allows: ComponentRecordAllows) -> bool {
+    allows.allow_record_distance
+}
+
+fn ComponentRecordAllows_allow_record_roundtrip(allows: ComponentRecordAllows) -> bool {
+    allows.allow_record_roundtrip
+}
+
+fn ComponentRecordAllows_allow_record_add(allows: ComponentRecordAllows) -> bool {
+    allows.allow_record_add
+}
+
+fn ComponentRecordAllows_allow_color_enum(allows: ComponentRecordAllows) -> bool {
+    allows.allow_color_enum
+}
+
+fn ComponentRecordAllows_allow_color_code(allows: ComponentRecordAllows) -> bool {
+    allows.allow_color_code
+}
+
+fn ComponentRecordAllows_allow_color_roundtrip(allows: ComponentRecordAllows) -> bool {
+    allows.allow_color_roundtrip
+}
+
+fn ComponentRecordAllows_allow_shape_area(allows: ComponentRecordAllows) -> bool {
+    allows.allow_shape_area
+}
+
+fn ComponentRecordAllows_allow_shape_roundtrip(allows: ComponentRecordAllows) -> bool {
+    allows.allow_shape_roundtrip
+}

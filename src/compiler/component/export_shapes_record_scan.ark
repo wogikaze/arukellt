@@ -1,0 +1,171 @@
+// Arukellt Selfhost - Component record export shape scan.
+
+use component::export_function_view
+use component::naming
+use mir::module_functions
+
+pub struct ComponentRecordExportScan {
+	point_to_i32_name: String,
+	point_point_to_point_name: String,
+	point_to_point_name: String,
+	export_count: i32,
+}
+
+fn ComponentRecordExportScan_new(point_to_i32_name: String, point_point_to_point_name: String, point_to_point_name: String, export_count: i32) -> ComponentRecordExportScan {
+	ComponentRecordExportScan {
+		point_to_i32_name: point_to_i32_name,
+		point_point_to_point_name: point_point_to_point_name,
+		point_to_point_name: point_to_point_name,
+		export_count: export_count,
+	}
+}
+
+fn ComponentRecordExportScan_empty() -> ComponentRecordExportScan {
+	ComponentRecordExportScan_new(String_new(), String_new(), String_new(), 0)
+}
+
+fn comp_record_export_count_is(scan: ComponentRecordExportScan, expected: i32) -> bool {
+	scan.export_count == expected
+}
+
+fn comp_record_has_point_to_i32(scan: ComponentRecordExportScan) -> bool {
+	len(scan.point_to_i32_name) > 0
+}
+
+fn comp_record_has_point_point_to_point(scan: ComponentRecordExportScan) -> bool {
+	len(scan.point_point_to_point_name) > 0
+}
+
+fn comp_record_has_point_to_point(scan: ComponentRecordExportScan) -> bool {
+	len(scan.point_to_point_name) > 0
+}
+
+fn comp_record_point_to_i32_name(scan: ComponentRecordExportScan) -> String {
+	scan.point_to_i32_name
+}
+
+fn comp_record_point_point_to_point_name(scan: ComponentRecordExportScan) -> String {
+	scan.point_point_to_point_name
+}
+
+fn comp_record_point_to_point_name(scan: ComponentRecordExportScan) -> String {
+	scan.point_to_point_name
+}
+
+fn comp_record_increment_export_count(scan: ComponentRecordExportScan) {
+	scan.export_count = scan.export_count + 1
+}
+
+fn comp_record_set_point_to_i32_name(scan: ComponentRecordExportScan, name: String) {
+	scan.point_to_i32_name = name
+}
+
+fn comp_record_set_point_point_to_point_name(scan: ComponentRecordExportScan, name: String) {
+	scan.point_point_to_point_name = name
+}
+
+fn comp_record_set_point_to_point_name(scan: ComponentRecordExportScan, name: String) {
+	scan.point_to_point_name = name
+}
+
+fn comp_function_is_point_to_i32_export(f: MirFunction) -> bool {
+	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+		return false
+	}
+	if export_function_view::export_function_param_count(f) != 1 {
+		return false
+	}
+	if !eq(export_function_view::export_function_return_type_name(f), String_from("i32")) {
+		return false
+	}
+	eq(export_function_view::export_function_param_type_name(f, 0), String_from("Point"))
+}
+
+fn comp_function_is_point_point_to_point_export(f: MirFunction) -> bool {
+	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+		return false
+	}
+	if export_function_view::export_function_param_count(f) != 2 {
+		return false
+	}
+	if !eq(export_function_view::export_function_return_type_name(f), String_from("Point")) {
+		return false
+	}
+	eq(export_function_view::export_function_param_type_name(f, 0), String_from("Point")) && eq(export_function_view::export_function_param_type_name(f, 1), String_from("Point"))
+}
+
+fn comp_function_is_point_to_point_export(f: MirFunction) -> bool {
+	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+		return false
+	}
+	if export_function_view::export_function_param_count(f) != 1 {
+		return false
+	}
+	if !eq(export_function_view::export_function_return_type_name(f), String_from("Point")) {
+		return false
+	}
+	eq(export_function_view::export_function_param_type_name(f, 0), String_from("Point"))
+}
+
+fn comp_record_single_point_to_i32_name(scan: ComponentRecordExportScan) -> String {
+	if comp_record_export_count_is(scan, 1) && comp_record_has_point_to_i32(scan) {
+		return comp_record_point_to_i32_name(scan)
+	}
+	String_new()
+}
+
+fn comp_record_pair_point_to_i32_name(scan: ComponentRecordExportScan) -> String {
+	if comp_record_export_count_is(scan, 2) && comp_record_has_point_to_i32(scan) && comp_record_has_point_point_to_point(scan) {
+		return comp_record_point_to_i32_name(scan)
+	}
+	String_new()
+}
+
+fn comp_record_pair_point_point_to_point_name(scan: ComponentRecordExportScan) -> String {
+	if comp_record_export_count_is(scan, 2) && comp_record_has_point_point_to_point(scan) && comp_record_has_point_to_i32(scan) {
+		return comp_record_point_point_to_point_name(scan)
+	}
+	String_new()
+}
+
+fn comp_record_single_point_point_to_point_name(scan: ComponentRecordExportScan) -> String {
+	if comp_record_export_count_is(scan, 1) && comp_record_has_point_point_to_point(scan) {
+		return comp_record_point_point_to_point_name(scan)
+	}
+	String_new()
+}
+
+fn comp_record_single_point_to_point_name(scan: ComponentRecordExportScan) -> String {
+	if comp_record_export_count_is(scan, 1) && comp_record_has_point_to_point(scan) {
+		return comp_record_point_to_point_name(scan)
+	}
+	String_new()
+}
+
+fn comp_record_export_scan_apply(scan: ComponentRecordExportScan, f: MirFunction, export_name: String) {
+	comp_record_increment_export_count(scan)
+	if comp_function_is_point_to_i32_export(f) {
+		comp_record_set_point_to_i32_name(scan, clone(export_name))
+	}
+	if comp_function_is_point_point_to_point_export(f) {
+		comp_record_set_point_point_to_point_name(scan, clone(export_name))
+	}
+	if comp_function_is_point_to_point_export(f) {
+		comp_record_set_point_to_point_name(scan, export_name)
+	}
+}
+
+fn comp_record_export_scan(mir: MirModule) -> ComponentRecordExportScan {
+	let scan = ComponentRecordExportScan_empty()
+	let n = module_functions::MirModule_function_count(mir)
+	let mut i = 0
+	while i < n {
+		let f = module_functions::MirModule_function_at(mir, i)
+		let export_name = export_function_view::export_function_name(f)
+		if naming::comp_should_export_func(clone(export_name)) {
+			comp_record_export_scan_apply(scan, f, export_name)
+		}
+		i = i + 1
+	}
+	scan
+}

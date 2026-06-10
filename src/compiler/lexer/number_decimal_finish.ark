@@ -1,0 +1,27 @@
+use lexer::tokens
+// Arukellt Lexer - decimal number token construction.
+
+
+fn finish_decimal_number(lex: Lexer, start: i32, val: i32, is_float: bool, suffix_len: i32) -> Token {
+    let text = substring(lex.src, start, lex.pos)
+    if is_float {
+        let num_text = substring(lex.src, start, lex.pos - suffix_len)
+        let f_result: Result<f64, String> = parse_f64(clone(num_text))
+        let mut fv: f64 = 0.0
+        let mut parse_ok = true
+        match f_result {
+            Result::Ok(v) => {
+                fv = v
+            },
+            Result::Err(_e) => {
+                parse_ok = false
+            },
+        }
+        if parse_ok {
+            return Token_float(fv, text, start, lex.pos)
+        }
+        Token_new(tokens::TK_ERROR(), text, start, lex.pos)
+    } else {
+        Token_int(val, text, start, lex.pos)
+    }
+}

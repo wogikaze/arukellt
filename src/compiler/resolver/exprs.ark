@@ -1,0 +1,22 @@
+// Arukellt Resolver - expression name/path resolution.
+
+use resolver::expr_ident
+use resolver::expr_method
+use resolver::expr_path
+use resolver::expr_struct
+
+fn resolve_ident(ctx: ResolveCtx, node: AstNode) {
+    expr_ident::resolve_ident(ctx, node)
+}
+
+fn resolve_path(ctx: ResolveCtx, node: AstNode) {
+    expr_path::resolve_path(ctx, node)
+}
+
+fn resolve_struct_lit(ctx: ResolveCtx, node: AstNode) {
+    expr_struct::resolve_struct_lit(ctx, node)
+}
+
+fn resolve_method_call(ctx: ResolveCtx, node: AstNode) {
+    expr_method::resolve_method_call(ctx, node)
+}

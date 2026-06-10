@@ -1,0 +1,18 @@
+// Arukellt Selfhost - MIR SSA version state helpers.
+
+use mir::ssa_state_record
+use mir::ssa_state_vec
+
+fn mir_ssa_state_set_version(state: MirSsaRenameState, local_id: i32, version: i32) {
+    if local_id < 0 || local_id >= state.original_local_count {
+        return
+    }
+    state.versions = ssa_state_vec::mir_i32_vec_replace_at(state.versions, local_id, version)
+}
+
+fn mir_ssa_state_version_for(state: MirSsaRenameState, local_id: i32) -> i32 {
+    if local_id < 0 || local_id >= state.original_local_count {
+        return 0 - 1
+    }
+    get_unchecked(state.versions, local_id)
+}

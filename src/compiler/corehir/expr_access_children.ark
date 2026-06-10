@@ -1,0 +1,11 @@
+// Arukellt Selfhost - CoreHIR expression child accessors.
+
+use corehir::expr_raw
+
+fn expr_child(expr: CoreHirExpr, index: i32) -> i32 {
+    expr_raw::corehir_expr_child(expr, index)
+}
+
+fn expr_child_count(expr: CoreHirExpr) -> i32 {
+    expr_raw::corehir_expr_child_count(expr)
+}

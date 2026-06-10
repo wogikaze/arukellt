@@ -1,0 +1,56 @@
+use mir::block_successor_access
+use mir::block_pred_mutation
+// Arukellt Selfhost - MIR predecessor edge construction.
+
+use mir::dom_sets
+use mir::block_identity
+use mir::function_block_queries
+use mir::module_functions
+
+fn mir_add_block_pred(block: MirBlock, pred_id: i32) {
+    block_pred_mutation::MirBlock_push_pred_unique(block, pred_id)
+}
+
+fn mir_add_pred_edge(f: MirFunction, pred_id: i32, succ_id: i32) {
+    if succ_id < 0 {
+        return
+    }
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    if succ_id >= block_count {
+        return
+    }
+    let succ = function_block_queries::MirFunction_block_at(f, succ_id)
+    mir_add_block_pred(succ, pred_id)
+}
+
+fn mir_compute_predecessors_for_function(f: MirFunction) {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut i = 0
+    while i < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, i)
+        block_pred_mutation::MirBlock_reset_preds(block)
+        i = i + 1
+    }
+    i = 0
+    while i < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, i)
+        let pred_id = block_identity::MirBlock_id(block)
+        let succ0 = block_successor_access::MirBlock_succ0(block)
+        let succ1 = block_successor_access::MirBlock_succ1(block)
+        mir_add_pred_edge(f, pred_id, succ0)
+        if succ1 != succ0 {
+            mir_add_pred_edge(f, pred_id, succ1)
+        }
+        i = i + 1
+    }
+}
+
+fn mir_compute_predecessors(m: MirModule) {
+    let fn_count = module_functions::MirModule_function_count(m)
+    let mut i = 0
+    while i < fn_count {
+        let f = module_functions::MirModule_function_at(m, i)
+        mir_compute_predecessors_for_function(f)
+        i = i + 1
+    }
+}

@@ -1,0 +1,19 @@
+// Arukellt Selfhost - MIR lowering AST node adapter.
+
+use parser::ast
+
+fn node_kind(node: AstNode) -> i32 { ast::ast_node_kind(node) }
+fn node_kind_is(node: AstNode, kind: i32) -> bool { node_kind(node) == kind }
+
+fn node_child_count(node: AstNode) -> i32 { ast::ast_node_child_count(node) }
+fn node_child_at(node: AstNode, idx: i32) -> AstNode { ast::ast_node_child_at(node, idx) }
+
+fn node_text(node: AstNode) -> String { ast::ast_node_text(node) }
+fn node_span_start(node: AstNode) -> i32 { ast::ast_node_span_start(node) }
+fn node_op(node: AstNode) -> i32 { ast::ast_node_op(node) }
+
+fn node_int_val(node: AstNode) -> i32 { ast::ast_node_int_val(node) }
+fn node_float_val(node: AstNode) -> f64 { ast::ast_node_float_val(node) }
+
+fn node_type_ann_count(node: AstNode) -> i32 { ast::ast_node_type_ann_count(node) }
+fn node_type_ann_at(node: AstNode, idx: i32) -> AstNode { ast::ast_node_type_ann_at(node, idx) }

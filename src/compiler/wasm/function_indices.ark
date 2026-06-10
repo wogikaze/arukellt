@@ -1,0 +1,11 @@
+use wasm::constants
+// Arukellt Selfhost - Wasm function index translation.
+
+
+fn defined_function_index(function_idx: i32) -> i32 {
+    function_idx + constants::NUM_WASI_IMPORTS()
+}
+
+fn wrapper_function_index(fn_count: i32) -> i32 {
+    fn_count + constants::NUM_WASI_IMPORTS()
+}

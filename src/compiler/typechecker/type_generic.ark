@@ -1,0 +1,36 @@
+use typechecker::kinds
+// Arukellt Typechecker - generic type annotation resolution
+
+use typechecker::ast_type_predicates
+use typechecker::ast_access
+use typechecker::contract_type_mutation
+use typechecker::type_names
+
+fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> TypeInfo {
+    if ast_type_predicates::node_is_type_generic(ann) {
+        let base_ty = type_names::resolve_type_name(ast_access::node_text(ann))
+        let child_count = ast_access::node_child_count(ann)
+        let mut k = 1
+        while k < child_count {
+            let arg_child = ast_access::node_child_at(ann, k)
+            let arg_ty = resolve_type_ann_node_generic(arg_child, type_params)
+            contract_type_mutation::TypeInfo_push_type_arg(base_ty, arg_ty)
+            k = k + 1
+        }
+        return base_ty
+    }
+    resolve_type_name_generic(ast_access::node_text(ann), type_params)
+}
+
+fn resolve_type_name_generic(name: String, type_params: Vec<String>) -> TypeInfo {
+    let tp_count = len(type_params)
+    let mut k = 0
+    while k < tp_count {
+        let tp = get_unchecked(type_params, k)
+        if eq(clone(tp), clone(name)) {
+            return type_names::type_info_named(commands::TY_TYPE_VAR(), name)
+        }
+        k = k + 1
+    }
+    type_names::resolve_type_name(name)
+}

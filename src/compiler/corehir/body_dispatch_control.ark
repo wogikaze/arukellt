@@ -1,0 +1,26 @@
+// Arukellt Selfhost - CoreHIR control expression dispatch.
+
+use corehir::body_assign
+use corehir::body_closure
+use corehir::body_control
+use corehir::body_match
+use corehir::expr_node_predicates
+
+fn corehir_dispatch_control_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    if expr_node_predicates::expr_is_if(node) {
+        return body_control::corehir_build_if_expr(table, node)
+    }
+    if expr_node_predicates::expr_is_match(node) {
+        return body_match::corehir_build_match_expr(table, node)
+    }
+    if expr_node_predicates::expr_is_assign(node) {
+        return body_assign::corehir_build_assign_expr(table, node)
+    }
+    if expr_node_predicates::expr_is_closure(node) {
+        return body_closure::corehir_build_closure_expr(table, node)
+    }
+    if expr_node_predicates::expr_is_block(node) {
+        return body_control::corehir_build_block_expr(table, node)
+    }
+    0 - 2
+}

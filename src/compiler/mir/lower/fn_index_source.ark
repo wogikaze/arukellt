@@ -1,0 +1,78 @@
+// Arukellt Selfhost - MIR function index source over CoreHIR view.
+
+use corehir::mir_decl_source
+use corehir::mir_signature_fn
+use corehir::mir_signature_method
+use corehir::mir_type_source
+use corehir::mod
+use mir::lower::return_types
+use mir::value_types
+
+struct MirLowerFnIndexSource {
+    signature_source: CoreHirMirSignatureSource,
+    type_source: CoreHirMirTypeSource,
+    entry_main_decl_index: i32,
+}
+
+fn mir_fn_index_source_from_view(view: CoreHirMirView) -> MirLowerFnIndexSource {
+    let decl_source = mod::view_decl_source(view)
+    MirLowerFnIndexSource {
+        signature_source: mod::view_signature_source(view),
+        type_source: mod::view_type_source(view),
+        entry_main_decl_index: decl_source::mir_decl_source_entry_main_decl_index(decl_source),
+    }
+}
+
+fn mir_fn_index_source_typed_fn_count(source: MirLowerFnIndexSource) -> i32 {
+    type_source::mir_type_source_typed_fn_count(source.type_source)
+}
+
+fn mir_fn_index_source_entry_main_decl_index(source: MirLowerFnIndexSource) -> i32 {
+    source.entry_main_decl_index
+}
+
+fn mir_fn_index_source_fn_info_index_for_decl(source: MirLowerFnIndexSource, decl_index: i32) -> i32 {
+    signature_fn::mir_signature_fn_info_index_for_decl(source.signature_source, decl_index)
+}
+
+fn mir_fn_index_source_fn_typed_index_at(source: MirLowerFnIndexSource, info_index: i32, fallback: i32) -> i32 {
+    signature_fn::mir_signature_fn_typed_index_at(source.signature_source, info_index, fallback)
+}
+
+fn mir_fn_index_source_typed_return_vt(source: MirLowerFnIndexSource, typed_index: i32) -> i32 {
+    let type_source = source.type_source
+    if typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
+        let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
+        return return_types::mir_return_vt_from_typed_fn(tf)
+    }
+    value_types::VT_I32()
+}
+
+fn mir_fn_index_source_typed_return_type_name(source: MirLowerFnIndexSource, typed_index: i32) -> String {
+    let type_source = source.type_source
+    if typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
+        let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
+        return return_types::mir_return_type_name_from_typed_fn(tf)
+    }
+    String_from("")
+}
+
+fn mir_fn_index_source_method_info_index(source: MirLowerFnIndexSource, impl_decl_index: i32, method_index: i32) -> i32 {
+    signature_method::mir_signature_method_info_index(source.signature_source, impl_decl_index, method_index)
+}
+
+fn mir_fn_index_source_method_count_for_impl(source: MirLowerFnIndexSource, impl_decl_index: i32) -> i32 {
+    signature_method::mir_signature_method_count_for_impl(source.signature_source, impl_decl_index)
+}
+
+fn mir_fn_index_source_method_mangled_name_at(source: MirLowerFnIndexSource, info_index: i32, fallback: String) -> String {
+    signature_method::mir_signature_method_mangled_name_at(source.signature_source, info_index, fallback)
+}
+
+fn mir_fn_index_source_method_return_vt_at(source: MirLowerFnIndexSource, info_index: i32, fallback: i32) -> i32 {
+    signature_method::mir_signature_method_return_vt_at(source.signature_source, info_index, fallback)
+}
+
+fn mir_fn_index_source_method_return_type_name_at(source: MirLowerFnIndexSource, info_index: i32, fallback: String) -> String {
+    signature_method::mir_signature_method_return_type_name_at(source.signature_source, info_index, fallback)
+}

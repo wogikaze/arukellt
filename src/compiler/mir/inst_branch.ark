@@ -1,0 +1,14 @@
+use mir::opcodes
+// Arukellt Selfhost - MIR branch instruction constructors.
+
+use mir::inst_factory
+use mir::types
+use mir::value_types
+
+fn MirInst_br(depth: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_BR(), 0 - 1, 0 - 1, 0 - 1, depth, 0.0, String_new(), value_types::VT_VOID())
+}
+
+fn MirInst_br_if(depth: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_BR_IF(), 0 - 1, 0 - 1, 0 - 1, depth, 0.0, String_new(), value_types::VT_VOID())
+}

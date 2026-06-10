@@ -1,0 +1,67 @@
+use mir::opcodes
+// Arukellt Selfhost - MIR phi data record.
+
+
+pub struct MirPhiArg {
+    pred_block: i32,
+    local: i32,
+}
+
+pub struct MirPhi {
+    op: i32,
+    dest: i32,
+    val_type: i32,
+    args: Vec<MirPhiArg>,
+}
+
+fn MirPhiArg_new(pred_block: i32, local: i32) -> MirPhiArg {
+    MirPhiArg { pred_block: pred_block, local: local }
+}
+
+fn MirPhi_new(dest: i32, val_type: i32) -> MirPhi {
+    MirPhi { op: opcodes::MIR_PHI(), dest: dest, val_type: val_type, args: Vec_new_MirPhiArg() }
+}
+
+fn mir_phi_add_arg(phi: MirPhi, pred_block: i32, local: i32) {
+    push(phi.args, MirPhiArg_new(pred_block, local))
+}
+
+fn mir_phi_op(phi: MirPhi) -> i32 {
+    phi.op
+}
+
+fn mir_phi_dest(phi: MirPhi) -> i32 {
+    phi.dest
+}
+
+fn mir_phi_set_dest(phi: MirPhi, dest: i32) {
+    phi.dest = dest
+}
+
+fn mir_phi_val_type(phi: MirPhi) -> i32 {
+    phi.val_type
+}
+
+fn mir_phi_arg_count(phi: MirPhi) -> i32 {
+    len(phi.args)
+}
+
+fn mir_phi_arg_at(phi: MirPhi, idx: i32) -> MirPhiArg {
+    get_unchecked(phi.args, idx)
+}
+
+fn mir_phi_args(phi: MirPhi) -> Vec<MirPhiArg> {
+    phi.args
+}
+
+fn mir_phi_arg_pred_block(arg: MirPhiArg) -> i32 {
+    arg.pred_block
+}
+
+fn mir_phi_arg_local(arg: MirPhiArg) -> i32 {
+    arg.local
+}
+
+fn mir_phi_arg_set_local(arg: MirPhiArg, local: i32) {
+    arg.local = local
+}

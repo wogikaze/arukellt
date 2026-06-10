@@ -1,0 +1,12 @@
+// Arukellt Parser - Pratt infix binding powers.
+
+use parser::pratt_bp_infix_left
+use parser::pratt_bp_infix_right
+
+pub fn infix_bp_left(kind: i32) -> i32 {
+    pratt_bp_infix_left::infix_bp_left(kind)
+}
+
+pub fn infix_bp_right(kind: i32) -> i32 {
+    pratt_bp_infix_right::infix_bp_right(kind)
+}

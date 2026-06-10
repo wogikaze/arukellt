@@ -1,0 +1,20 @@
+use hir::kinds
+// Arukellt HIR - expression dump tag names.
+
+
+fn hir_expr_tag_name(tag: i32) -> String {
+    if tag == commands::HIR_INT_LIT() { return String_from("IntLit") }
+    if tag == commands::HIR_FLOAT_LIT() { return String_from("FloatLit") }
+    if tag == commands::HIR_STRING_LIT() { return String_from("StringLit") }
+    if tag == commands::HIR_BOOL_LIT() { return String_from("BoolLit") }
+    if tag == commands::HIR_IDENT() { return String_from("Ident") }
+    if tag == commands::HIR_BINARY() { return String_from("Binary") }
+    if tag == commands::HIR_UNARY() { return String_from("Unary") }
+    if tag == commands::HIR_CALL() { return String_from("Call") }
+    if tag == commands::HIR_FIELD() { return String_from("Field") }
+    if tag == commands::HIR_STRUCT_LIT() { return String_from("StructLit") }
+    if tag == commands::HIR_IF() { return String_from("If") }
+    if tag == commands::HIR_MATCH() { return String_from("Match") }
+    if tag == commands::HIR_BLOCK() { return String_from("Block") }
+    String_new()
+}

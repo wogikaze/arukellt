@@ -1,0 +1,16 @@
+use lexer::tokens
+// Arukellt Parser - multi-clause where binding lookahead.
+
+use parser::core_api_cursor
+
+fn next_token_starts_where_binding(p: Parser) -> bool {
+    if core_api_cursor::peek_kind(p) != tokens::TK_IDENT() {
+        return false
+    }
+    let saved = p.pos
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    let is_binding = core_api_cursor::peek_kind(p) == tokens::TK_EQ()
+    p.pos = saved
+    is_binding
+}

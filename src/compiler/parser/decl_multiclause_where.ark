@@ -1,0 +1,22 @@
+use lexer::tokens
+// Arukellt Parser - multi-clause function where bindings.
+
+use parser::core_api_cursor
+use parser::decl_multiclause_where_binding
+use parser::decl_multiclause_where_probe
+
+fn parse_optional_where_block(p: Parser) -> Vec<AstNode> {
+    core_api_cursor::skip_newlines(p)
+    let mut bindings = Vec_new_AstNode()
+    if core_api_cursor::peek_kind(p) != tokens::TK_WHERE() {
+        return bindings
+    }
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    while decl_multiclause_where_probe::next_token_starts_where_binding(p) {
+        let binding = decl_multiclause_where_binding::parse_where_binding(p)
+        push(bindings, binding)
+        core_api_cursor::skip_newlines(p)
+    }
+    bindings
+}

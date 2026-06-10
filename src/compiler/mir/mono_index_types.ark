@@ -1,0 +1,51 @@
+// Arukellt Selfhost - monomorphization index data contract.
+
+pub struct MonoIndex {
+    names: Vec<String>,
+    counts: Vec<i32>,
+    mangled_names: Vec<String>,
+}
+
+fn mono_index_new() -> MonoIndex {
+    MonoIndex { names: Vec_new_String(), counts: Vec_new_i32(), mangled_names: Vec_new_String() }
+}
+
+fn mono_index_name_count(idx: MonoIndex) -> i32 {
+    len(idx.names)
+}
+
+fn mono_index_name_at(idx: MonoIndex, index: i32) -> String {
+    clone(get_unchecked(idx.names, index))
+}
+
+fn mono_index_count_at(idx: MonoIndex, index: i32) -> i32 {
+    get_unchecked(idx.counts, index)
+}
+
+fn mono_index_mangled_at_offset(idx: MonoIndex, offset: i32) -> String {
+    clone(get_unchecked(idx.mangled_names, offset))
+}
+
+fn mono_index_push_name(idx: MonoIndex, fn_name: String, mangled_name: String) {
+    push(idx.names, fn_name)
+    push(idx.counts, 1)
+    push(idx.mangled_names, mangled_name)
+}
+
+fn mono_index_increment_name(idx: MonoIndex, index: i32, mangled_name: String) {
+    let cur = mono_index_count_at(idx, index)
+    set(idx.counts, index, cur + 1)
+    push(idx.mangled_names, mangled_name)
+}
+
+fn mono_index_find_name(idx: MonoIndex, fn_name: String) -> i32 {
+    let mut found_at = 0 - 1
+    let mut si = 0
+    while si < mono_index_name_count(idx) {
+        if eq(mono_index_name_at(idx, si), clone(fn_name)) {
+            found_at = si
+        }
+        si = si + 1
+    }
+    found_at
+}

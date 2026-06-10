@@ -1,0 +1,34 @@
+// Arukellt Typechecker - function signature collection.
+
+use typechecker::ast_decl_predicates
+use typechecker::ast_access
+use typechecker::sigs
+
+fn collect_fn_sigs(decls: Vec<AstNode>) -> Vec<FnSig> {
+    let fn_sigs = Vec_new_FnSig()
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let node = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_fn_decl(node) {
+            push(fn_sigs, sigs::fn_sig_from_fn_decl(node))
+        }
+        if ast_decl_predicates::node_is_impl_decl(node) {
+            collect_impl_method_sigs(fn_sigs, node)
+        }
+        i = i + 1
+    }
+    fn_sigs
+}
+
+fn collect_impl_method_sigs(fn_sigs: Vec<FnSig>, node: AstNode) {
+    let impl_child_count = ast_access::node_child_count(node)
+    let mut ic = 0
+    while ic < impl_child_count {
+        let meth = ast_access::node_child_at(node, ic)
+        if ast_decl_predicates::node_is_fn_decl(meth) {
+            push(fn_sigs, sigs::fn_sig_from_fn_decl(meth))
+        }
+        ic = ic + 1
+    }
+}

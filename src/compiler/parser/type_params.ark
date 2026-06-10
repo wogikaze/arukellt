@@ -1,0 +1,43 @@
+use lexer::tokens
+use parser::core_ast_factory
+use parser::core_ast_type_ann
+// Arukellt Parser - generic type parameter parsing.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::kinds
+use parser::token_state
+use parser::types
+
+fn parse_type_param(p: Parser) -> AstNode {
+    core_api_cursor::skip_newlines(p)
+    let gp = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    let param = core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), token_state::Token_text(gp), core_api_expect::tok_span(gp))
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) == tokens::TK_COLON() {
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        let bound = types::parse_type(p)
+        core_ast_type_ann::AstNode_push_type_ann(param, bound)
+    }
+    param
+}
+
+fn parse_generic_params_into_node(p: Parser, node: AstNode) {
+    if core_api_cursor::peek_kind(p) != tokens::TK_LT() {
+        return
+    }
+    p.pos = p.pos + 1
+    let mut first = true
+    while !core_api_cursor::at(p, tokens::TK_GT()) && !core_api_cursor::at(p, tokens::TK_SHR()) && !core_api_cursor::at_eof(p) {
+        if !first {
+            core_api_expect::expect_token(p, tokens::TK_COMMA())
+        }
+        first = false
+        core_api_cursor::skip_newlines(p)
+        let param = parse_type_param(p)
+        core_ast_type_ann::AstNode_push_type_ann(node, param)
+        core_api_cursor::skip_newlines(p)
+    }
+    core_api_expect::consume_closing_gt(p)
+}

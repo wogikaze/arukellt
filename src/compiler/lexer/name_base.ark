@@ -1,0 +1,34 @@
+use lexer::tokens
+// Arukellt Lexer - base token display names.
+
+
+pub fn token_base_name(kind: i32) -> String {
+    if kind == tokens::TK_EOF() {
+        return String_from("EOF")
+    }
+    if kind == tokens::TK_IDENT() {
+        return String_from("IDENT")
+    }
+    if kind == tokens::TK_INT() {
+        return String_from("INT")
+    }
+    if kind == tokens::TK_FLOAT() {
+        return String_from("FLOAT")
+    }
+    if kind == tokens::TK_STRING() {
+        return String_from("STRING")
+    }
+    if kind == tokens::TK_BOOL() {
+        return String_from("BOOL")
+    }
+    if kind == tokens::TK_NEWLINE() {
+        return String_from("NEWLINE")
+    }
+    if kind == tokens::TK_ERROR() {
+        return String_from("ERROR")
+    }
+    if kind == tokens::TK_CHAR() {
+        return String_from("CHAR")
+    }
+    String_new()
+}

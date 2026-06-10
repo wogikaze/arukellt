@@ -1,0 +1,43 @@
+// Arukellt LSP - session lifecycle state data record.
+
+use lsp::state_docs
+
+pub struct LspState {
+    doc_store: LspDocStore,
+    initialized: bool,
+    shutdown: bool,
+    exited: bool,
+    output: String,
+}
+
+fn LspState_new() -> LspState {
+    LspState { doc_store: state_docs::LspDocStore_new(), initialized: false, shutdown: false, exited: false, output: String_new() }
+}
+
+fn lsp_state_doc_store(state: LspState) -> LspDocStore {
+    state.doc_store
+}
+
+fn lsp_state_mark_initialized(state: LspState) {
+    state.initialized = true
+}
+
+fn lsp_state_mark_shutdown(state: LspState) {
+    state.shutdown = true
+}
+
+fn lsp_state_mark_exited(state: LspState) {
+    state.exited = true
+}
+
+fn lsp_state_has_exited(state: LspState) -> bool {
+    state.exited
+}
+
+fn lsp_state_append_output(state: LspState, chunk: String) {
+    state.output = concat(clone(state.output), chunk)
+}
+
+fn lsp_state_output(state: LspState) -> String {
+    state.output
+}

@@ -1,0 +1,115 @@
+// Arukellt Selfhost - driver namespace: emit
+
+use compiler::phases
+use driver::config_record
+use driver::result_record
+use std::host::stdio
+use component
+use wasm
+use std::host::clock
+use driver::debug
+
+// Arukellt Driver - final output mode dispatch
+
+fn emit_output(mir_module: MirModule, all_decls: Vec<AstNode>, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+    normalize_wasi_version(config)
+    let emit_mode = config_record::config_emit_mode(config)
+    let component_error = component_target_error(config, clone(emit_mode))
+    if len(component_error) > 0 {
+        return result_record::CompileResult_err(phases::PHASE_EMIT(), component_error)
+    }
+    if eq(clone(emit_mode), "wit") {
+        return emit_wit_output(all_decls, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    }
+    if eq(clone(emit_mode), "wat") {
+        return emit_wat_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    }
+    if eq(clone(emit_mode), "wasm") {
+        return emit_wasm_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    }
+    if eq(clone(emit_mode), "component") {
+        return emit_component_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    }
+    result_record::CompileResult_err(phases::PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
+}
+
+// Arukellt Driver - component output emission.
+
+fn emit_component_output(mir_module: MirModule, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+    let core_wasm = wasm::emit_wasm(mir_module, config_record::config_target(config), config_record::config_opt_level(config))
+    if config_record::config_dump_wasm(config) {
+        stdio::eprintln(concat(String_from("core wasm size: "), concat(to_string(len(core_wasm)), String_from(" bytes"))))
+    }
+    let comp_bytes = component::emit_component(core_wasm, mir_module, config_record::config_target(config), config_record::config_wasi_version(config))
+    let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
+    result_record::compile_result_set_output_bytes(result, comp_bytes)
+    debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    result
+}
+
+// Arukellt Driver - emit target normalization and validation.
+
+fn normalize_wasi_version(config: DriverConfig) {
+    let tgt = config_record::config_target(config)
+    if contains(clone(tgt), String_from("-p2")) {
+        config_record::config_set_wasi_version(config, String_from("p2"))
+    } else {
+        config_record::config_set_wasi_version(config, String_from("p1"))
+    }
+}
+
+fn component_target_error(config: DriverConfig, emit_mode: String) -> String {
+    if eq(clone(emit_mode), "component") && !contains(config_record::config_target(config), String_from("-p2")) {
+        return String_from("component model requires --target wasm32-wasi-p2")
+    }
+    String_new()
+}
+
+// Arukellt Driver - emit-phase timing helper.
+
+fn emit_timing_if_enabled(config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) {
+    if config_record::config_show_timing(config) {
+        debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, clock::monotonic_now())
+    }
+}
+
+// Arukellt Driver - core Wasm output emission.
+
+fn emit_wasm_output(mir_module: MirModule, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+    let wasm_bytes = wasm::emit_wasm(mir_module, config_record::config_target(config), config_record::config_opt_level(config))
+    if config_record::config_dump_wasm(config) {
+        stdio::eprintln(String_from("=== WASM ==="))
+        stdio::eprintln(concat(String_from("output size: "), concat(to_string(len(wasm_bytes)), String_from(" bytes"))))
+    }
+    let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
+    result_record::compile_result_set_output_bytes(result, wasm_bytes)
+    debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    result
+}
+
+// Arukellt Driver - WAT output emission.
+
+fn emit_wat_output(mir_module: MirModule, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+    let wat_text = wasm::emit_wat(mir_module, config_record::config_target(config), config_record::config_opt_level(config))
+    let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
+    let wat_len = len(wat_text)
+    let mut wat_bytes: Vec<i32> = Vec_new_i32()
+    let mut wi = 0
+    while wi < wat_len {
+        push(wat_bytes, char_at(wat_text, wi))
+        wi = wi + 1
+    }
+    result_record::compile_result_set_output_bytes(result, wat_bytes)
+    debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    result
+}
+
+// Arukellt Driver - WIT output emission.
+
+fn emit_wit_output(all_decls: Vec<AstNode>, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+    let wit_output = component::emit_wit_text_from_decls(all_decls)
+    let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
+    result_record::compile_result_set_output_bytes(result, component::string_to_bytes(wit_output))
+    debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    result
+}

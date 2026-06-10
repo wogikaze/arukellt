@@ -1,0 +1,49 @@
+// Arukellt Selfhost - backend typecheck stage.
+
+use compiler::phases
+use compiler::session_typecheck_query
+use driver::config_record
+use driver::debug
+use driver::errors
+use driver::result_record
+use std::host::clock
+
+struct DriverTypecheckResult {
+    should_return: bool,
+    result: CompileResult,
+    check_result: TypeCheckResult,
+    t_typecheck: i64,
+}
+
+fn DriverTypecheckResult_new(should_return: bool, result: CompileResult, check_result: TypeCheckResult, t_typecheck: i64) -> DriverTypecheckResult {
+    DriverTypecheckResult { should_return: should_return, result: result, check_result: check_result, t_typecheck: t_typecheck }
+}
+
+fn typecheck_result_should_return(result: DriverTypecheckResult) -> bool {
+    result.should_return
+}
+
+fn typecheck_result_result(result: DriverTypecheckResult) -> CompileResult {
+    result.result
+}
+
+fn typecheck_result_check_result(result: DriverTypecheckResult) -> TypeCheckResult {
+    result.check_result
+}
+
+fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i64 {
+    result.t_typecheck
+}
+
+fn backend_typecheck(config: DriverConfig, all_decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> DriverTypecheckResult {
+    let check_result = session_typecheck_query::session_typecheck_decls(all_decls, resolve_ctx)
+    debug::dump_typed_hir_if_enabled(config, check_result)
+    let error_count = session_typecheck_query::session_typecheck_error_count(check_result)
+    if error_count > 0 {
+        return DriverTypecheckResult_new(true, errors::type_errors_result(error_count, session_typecheck_query::session_typecheck_errors(check_result)), check_result, 0)
+    }
+    if config_record::config_check_only(config) {
+        return DriverTypecheckResult_new(true, result_record::CompileResult_ok(phases::PHASE_TYPECHECK()), session_typecheck_query::session_empty_typecheck_result(), 0)
+    }
+    DriverTypecheckResult_new(false, result_record::CompileResult_ok(phases::PHASE_TYPECHECK()), check_result, clock::monotonic_now())
+}

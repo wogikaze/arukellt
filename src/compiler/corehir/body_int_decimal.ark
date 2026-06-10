@@ -1,0 +1,42 @@
+// Arukellt Selfhost - CoreHIR integer literal decimal and base classification.
+
+fn corehir_int_lit_is_base_prefixed(text: String, n: i32) -> bool {
+    if n >= 2 && char_at(text, 0) == 48 {
+        let marker = char_at(text, 1)
+        return marker == 120 || marker == 88 || marker == 98 || marker == 66
+    }
+    false
+}
+
+fn corehir_int_lit_is_decimal_i32_with_separators(text: String, n: i32) -> bool {
+    let mut digits = 0
+    let mut i = 0
+    while i < n {
+        let c = char_at(text, i)
+        if c >= 48 && c <= 57 {
+            digits = digits + 1
+        } else {
+            if c != 95 {
+                return false
+            }
+        }
+        i = i + 1
+    }
+    digits > 0 && digits <= 9
+}
+
+fn corehir_int_lit_is_simple_i32(text: String) -> bool {
+    let n = len(text)
+    if n > 9 {
+        return false
+    }
+    let mut i = 0
+    while i < n {
+        let c = char_at(text, i)
+        if c == 95 || c == 120 || c == 88 || c == 98 || c == 66 || c == 105 || c == 117 {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}

@@ -1,0 +1,19 @@
+use mir::lower::ast_node
+// Arukellt MIR lowering body - let statement lowering.
+
+use mir::lower::stmt_let
+
+fn lower_let_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+    let mut vt = stmt_let::mir_initial_let_vt(node)
+    let child_count = ast_node::node_child_count(node)
+    let mut pre_val_idx = 0 - 1
+    let mut pre_init_kind = 0 - 1
+    if child_count >= 1 {
+        let pre_init = ast_node::node_child_at(node, 0)
+        pre_init_kind = ast_node::node_kind(pre_init)
+        pre_val_idx = lower_expr(ctx, pre_init)
+        vt = stmt_let::mir_adjust_let_vt_from_init(ctx, vt, node, pre_val_idx)
+    }
+    stmt_let::mir_finish_let_stmt(ctx, node, vt, pre_val_idx, pre_init_kind)
+    0 - 1
+}

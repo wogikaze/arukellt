@@ -1,0 +1,43 @@
+use typechecker::kinds
+// Arukellt Typechecker - local scope bindings
+
+use typechecker::contract_scope
+use typechecker::contract_type_constructors
+
+fn unknown_type() -> TypeInfo {
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+fn LocalScope_new() -> LocalScope {
+    contract_scope::LocalScope_new_contract()
+}
+
+fn scope_child(parent: LocalScope) -> LocalScope {
+    let child = LocalScope_new()
+    let count = contract_scope::LocalScope_binding_count(parent)
+    let mut i = 0
+    while i < count {
+        let binding = contract_scope::LocalScope_binding_at(parent, i)
+        contract_scope::LocalScope_push_binding(child, contract_scope::VarBinding_new(contract_scope::VarBinding_name(binding), contract_scope::VarBinding_type(binding)))
+        i = i + 1
+    }
+    child
+}
+
+fn scope_define(scope: LocalScope, name: String, ty: TypeInfo) {
+    contract_scope::LocalScope_push_binding(scope, contract_scope::VarBinding_new(name, ty))
+}
+
+fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {
+    let count = contract_scope::LocalScope_binding_count(scope)
+    let mut found = unknown_type()
+    let mut i = 0
+    while i < count {
+        let b = contract_scope::LocalScope_binding_at(scope, i)
+        if eq(contract_scope::VarBinding_name(b), clone(name)) {
+            found = contract_scope::VarBinding_type(b)
+        }
+        i = i + 1
+    }
+    found
+}

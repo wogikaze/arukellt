@@ -1,0 +1,35 @@
+use corehir::param
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_function_frame
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+use mir::local_factory
+// Arukellt Selfhost - MIR lowering method parameter binding.
+
+use mir::types
+use mir::value_types
+
+fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam) {
+    if !param::param_is_bindable(param) {
+        return
+    }
+    let p_name = param::param_name(param)
+    if param::param_is_self(param) {
+        mir_bind_method_self_param(ctx, struct_name)
+        return
+    }
+    let pvt = param::param_value_type(param)
+    let p_type_name = param::param_type_name(param)
+    let param_local = ctx_alloc_local(ctx, clone(p_name), pvt)
+    ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(p_name), pvt, p_type_name))
+    let local_type_name = param::param_local_type_name(param)
+    if len(local_type_name) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, param_local, local_type_name)
+    }
+}
+
+fn mir_bind_method_self_param(ctx: LowerCtx, struct_name: String) {
+    let self_local = ctx_alloc_local(ctx, String_from("self"), value_types::VT_I32())
+    ctx_push_func_param(ctx, local_factory::MirLocal_new(String_from("self"), value_types::VT_I32(), clone(struct_name)))
+    ctx_set_local_type(ctx, self_local, clone(struct_name))
+}

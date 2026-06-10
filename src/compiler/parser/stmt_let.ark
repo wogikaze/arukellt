@@ -1,0 +1,27 @@
+use lexer::tokens
+use parser::core_ast_text_fields
+use parser::core_ast_flag_fields
+use parser::core_ast_factory
+// Arukellt Parser - let statement syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::kinds
+use parser::stmt_let_init
+use parser::stmt_let_type
+use parser::token_state
+
+pub fn parse_let(p: Parser) -> AstNode {
+    let t = core_api_expect::expect_token(p, tokens::TK_LET())
+    let node = core_ast_factory::AstNode_new(kinds::NK_LET(), core_api_expect::tok_span(t))
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) == tokens::TK_MUT() {
+        p.pos = p.pos + 1
+        core_ast_flag_fields::AstNode_set_is_mut(node, true)
+    }
+    let name = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name))
+    stmt_let_type::parse_let_type_ann(p, node)
+    stmt_let_init::parse_let_initializer(p, node)
+    node
+}

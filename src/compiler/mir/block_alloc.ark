@@ -1,0 +1,12 @@
+// Arukellt Selfhost - MIR function block allocation.
+
+use mir::block_factory
+use mir::function_block_mutation
+use mir::types
+
+fn alloc_block(f: MirFunction) -> i32 {
+    let idx = function_block_mutation::MirFunction_next_block(f)
+    function_block_mutation::MirFunction_increment_next_block(f)
+    function_block_mutation::MirFunction_push_block(f, block_factory::MirBlock_new(idx))
+    idx
+}

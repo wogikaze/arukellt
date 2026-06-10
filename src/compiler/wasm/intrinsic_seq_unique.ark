@@ -1,0 +1,130 @@
+use mir::inst_accessors_operands
+// Arukellt Selfhost - sequence unique intrinsic facade
+
+use wasm::ctx_scratch
+use wasm::inst_ctx
+use wasm::intrinsic_seq_unique_loop
+use wasm::opcodes
+
+fn emit_seq_unique(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s5 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s6 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    let s7 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
+    let s8 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 8)
+    let s9 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
+    emit_seq_unique_init(w, s0, s1, s2, s3, s4, s7, s8)
+    intrinsic_seq_unique_loop::emit_seq_unique_loop(w, s2, s3, s4, s5, s6, s7, s8, s9)
+    emit_seq_unique_finalize(w, s1, s7)
+    inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
+    return true
+}
+
+fn emit_seq_unique_init(w: WasmWriter, src_local: i32, vec_local: i32, outer_index_local: i32, src_len_local: i32, src_data_local: i32, result_len_local: i32, result_data_local: i32) {
+    emit_seq_unique_init_source(w, src_local, src_len_local, src_data_local)
+    emit_seq_unique_init_alloc(w, vec_local, src_len_local, result_data_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, result_len_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, outer_index_local)
+}
+
+fn emit_seq_unique_init_source(w: WasmWriter, src_local: i32, src_len_local: i32, src_data_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, src_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, src_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, src_len_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, src_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, src_data_local)
+}
+
+fn emit_seq_unique_init_alloc(w: WasmWriter, vec_local: i32, src_len_local: i32, result_data_local: i32) {
+    emit_seq_unique_init_alloc_header(w, vec_local, src_len_local)
+    emit_seq_unique_init_alloc_data(w, vec_local, src_len_local, result_data_local)
+}
+
+fn emit_seq_unique_init_alloc_header(w: WasmWriter, vec_local: i32, src_len_local: i32) {
+    writer_core::emit_byte(w, 35)
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, src_len_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 12)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, 36)
+    writer_leb::emit_leb128_u(w, 0)
+}
+
+fn emit_seq_unique_init_alloc_data(w: WasmWriter, vec_local: i32, src_len_local: i32, result_data_local: i32) {
+    writer_core::emit_byte(w, 35)
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+    writer_leb::emit_leb128_u(w, result_data_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, result_data_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, result_data_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, src_len_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, 36)
+    writer_leb::emit_leb128_u(w, 0)
+}
+
+fn emit_seq_unique_finalize(w: WasmWriter, vec_local: i32, result_len_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, result_len_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+}

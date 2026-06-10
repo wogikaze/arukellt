@@ -1,0 +1,17 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+// Arukellt Selfhost - MIR binary operand widening helpers.
+
+use mir::inst_convert
+use mir::value_types
+
+fn mir_extend_i32_to_i64_if_needed(ctx: LowerCtx, binop_vt: i32, local_idx: i32) -> i32 {
+    if binop_vt == value_types::VT_I64() && ctx_local_vt(ctx, local_idx) == value_types::VT_I32() {
+        let ext = ctx_fresh_local(ctx, value_types::VT_I64())
+        ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64(ext, local_idx))
+        return ext
+    }
+    local_idx
+}
