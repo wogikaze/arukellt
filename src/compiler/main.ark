@@ -88,6 +88,10 @@ fn CMD_FMT() -> i32 {
     19
 }
 
+fn CMD_COMPONENT() -> i32 {
+    20
+}
+
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
 struct CliOptions {
     command: i32,
@@ -163,7 +167,7 @@ fn parse_command(name: String) -> i32 {
         return CMD_NOT_YET()
     }
     if cli_str_eq(clone(name), String_from("component")) {
-        return CMD_NOT_YET()
+        return CMD_COMPONENT()
     }
     if cli_str_eq(clone(name), String_from("lsp")) {
         return CMD_LSP()
@@ -664,7 +668,13 @@ fn main() {
                         if command == CMD_DEBUG_ADAPTER() {
                             cmd_debug_adapter(opts)
                         } else {
-                            cmd_compile(opts)
+                            if command == CMD_COMPONENT() {
+                                opts.emit_mode = String_from("component")
+                                opts.target = String_from("wasm32-wasi-p2")
+                                cmd_compile(opts)
+                            } else {
+                                cmd_compile(opts)
+                            }
                         }
                     }
                 }
