@@ -190,8 +190,6 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
     }
     let cmd_str = get_unchecked(argv, 1)
     let cmd_len = len(clone(cmd_str))
-    let cmd_is_check = cmd_len == 5 && char_at(clone(cmd_str), 0) == 99 && char_at(clone(cmd_str), 1) == 104 && char_at(clone(cmd_str), 2) == 101 && char_at(clone(cmd_str), 3) == 99 && char_at(clone(cmd_str), 4) == 107
-    let cmd_is_compile = cmd_len == 7 && char_at(clone(cmd_str), 0) == 99 && char_at(clone(cmd_str), 1) == 111 && char_at(clone(cmd_str), 2) == 109 && char_at(clone(cmd_str), 3) == 112 && char_at(clone(cmd_str), 4) == 105 && char_at(clone(cmd_str), 5) == 108 && char_at(clone(cmd_str), 6) == 101
     if cmd_len == 6 && char_at(clone(cmd_str), 0) == 45 && char_at(clone(cmd_str), 1) == 45 && char_at(clone(cmd_str), 2) == 104 && char_at(clone(cmd_str), 3) == 101 && char_at(clone(cmd_str), 4) == 108 && char_at(clone(cmd_str), 5) == 112 {
         opts.show_help = true
         return opts
@@ -209,12 +207,6 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
         return opts
     }
     opts.command = parse_command(clone(cmd_str))
-    if cmd_is_check {
-        opts.command = CMD_CHECK()
-    }
-    if cmd_is_compile {
-        opts.command = CMD_COMPILE()
-    }
     if opts.command == CMD_HELP() {
         opts.show_help = true
         return opts
