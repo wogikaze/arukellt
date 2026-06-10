@@ -622,6 +622,15 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
             lines.append(f"  FAIL: {cmd} (no-args: expected non-zero, got {rc_s})")
             fail_count += 1
 
+    # Case 7: targets — must exit zero and mention wasm32-wasi-p2
+    rc_t, out_t = run_self("targets")
+    if rc_t == 0 and "wasm32-wasi-p2" in out_t:
+        lines.append(f"  pass: targets (exit 0, mentions wasm32-wasi-p2)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: targets (exit={rc_t}, output={out_t.strip()!r})")
+        fail_count += 1
+
     lines.append("")
     lines.append(f"{YELLOW}cli-parity: PASS={pass_count} FAIL={fail_count}{NC}")
     if fail_count > 0:
