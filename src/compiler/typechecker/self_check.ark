@@ -17,8 +17,8 @@ fn main() {
         stdio::println(concat(String_from("TypeChecker parse errors: "), to_string(len(p.errors))))
         return
     }
-    let resolve_ctx = program::resolve_program(decls, Vec_new_ModuleDecls())
-    let result = entry::typecheck_module(decls, resolve_ctx)
+    let resolve_ctx = program::resolve_program(decls, Vec_new_ModuleDecls(), Vec_new_String())
+    let result = entry::typecheck_module(decls, resolve_ctx, Vec_new_String())
     let error_count = contract_result_state::typecheck_result_error_count(result)
     if error_count != 0 {
         stdio::println(concat(String_from("TypeChecker errors: "), to_string(error_count)))

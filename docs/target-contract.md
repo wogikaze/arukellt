@@ -146,7 +146,7 @@ including project-local paths, `~/.local/share/arukellt/`, or `ARK_WASI_ADAPTER`
 
 **WASI Preview 2 native** component output (no Preview 1 adapter; core Wasm
 imports Component-Model `wasi:cli/*` directly — [issue
-074](../issues/done/074-wasi-p2-native-component.md)) is **deferred to v5+**
+074](../issues/open/074-wasi-p2-native-component.md)) is **deferred to v5+**
 pending WASI P2 runtime maturity.  The Preview 1 adapter and `wasm-tools` are
 not bundled with the Arukellt binary.  Therefore:
 

@@ -36,7 +36,7 @@ fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i64 {
 }
 
 fn backend_typecheck(config: DriverConfig, all_decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> DriverTypecheckResult {
-    let check_result = session_typecheck_query::session_typecheck_decls(all_decls, resolve_ctx)
+    let check_result = session_typecheck_query::session_typecheck_decls(all_decls, resolve_ctx, config_record::config_wit_paths(config))
     debug::dump_typed_hir_if_enabled(config, check_result)
     let error_count = session_typecheck_query::session_typecheck_error_count(check_result)
     if error_count > 0 {

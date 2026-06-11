@@ -8,6 +8,8 @@ use mir::lower::body_call_direct
 use mir::lower::body_call_hof
 use mir::lower::body_call_variant
 
+use mir::lower::body_call_wit
+
 fn lower_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count < 1 {
@@ -17,6 +19,10 @@ fn lower_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let var_tag = ctx_variant_tag(ctx, ast_node::node_text(callee))
     if var_tag >= 0 && child_count > 1 {
         return body_call_variant::lower_payload_variant_call(ctx, node, child_count, var_tag)
+    }
+    let wit_result = body_call_wit::try_lower_wit_call(ctx, node, callee, child_count)
+    if wit_result != 0 - 2 {
+        return wit_result
     }
     let closure_result = body_call_closure::try_lower_closure_call(ctx, node, callee, child_count)
     if closure_result >= 0 {

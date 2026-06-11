@@ -7,6 +7,10 @@ fn node_is_ident(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_IDENT())
 }
 
+fn node_is_path(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_PATH())
+}
+
 fn node_is_int_lit(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_INT_LIT())
 }

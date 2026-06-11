@@ -1,6 +1,23 @@
+---
+Status: open
+Updated: 2026-06-12
+---
+
+## Reopened by audit — 2026-06-12
+
+**Reopen reason:** Issue frontmatter says Status: open but file remains under issues/done/. Close note admits wasm-tools validate was skipped and P2 emission incomplete.
+
+**Violated acceptance:** Acceptance #3 (`wasm-tools validate` on P2 component output); directory/status mismatch
+
+**Evidence files:**
+- `issues/done/510-t3-p2-import-table-switch.md (**Status**: open (relocated to issues/open/))`
+- `issues/done/510-t3-p2-import-table-switch.md close note (validate skipped)`
+
+**Follow-up split issue:** none (scope unchanged)
+
 # T3 emitter: WASI P2 import-table switch (full P2-native component)
 
-**Status**: done
+**Status**: open
 **Created**: 2026-04-15
 **Updated**: 2026-04-22
 **ID**: 510

@@ -7,15 +7,16 @@ use typechecker::contract_result_state
 use typechecker::context
 use typechecker::module
 use typechecker::module_env_merge
+use typechecker::module_wit
 use typechecker::resolver_errors
 
-fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeCheckResult {
+fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec<String>) -> TypeCheckResult {
     let result = contract_result_state::TypeCheckResult_new()
     let env = context::TypeEnv_new()
     contract_result_state::typecheck_result_set_errors(result, resolver_errors::typecheck_resolve_errors(resolve_ctx))
     let decl_count = len(decls)
     module::register_trait_impl_decls(env, decls)
-    let fn_sigs = module::collect_fn_sigs(decls)
+    let fn_sigs = module_wit::merge_fn_sigs(module::collect_fn_sigs(decls), module_wit::collect_wit_fn_sigs(wit_paths, decls))
     let enum_defs = module::collect_enum_defs(decls)
     let mut i = 0
     while i < decl_count {

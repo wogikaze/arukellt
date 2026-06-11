@@ -5,10 +5,12 @@ use resolver::ast_decl_predicates
 use resolver::context
 use resolver::program_impl
 use resolver::register
+use resolver::register_wit
 
-fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> ResolveCtx {
+fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>) -> ResolveCtx {
     let ctx = context::ResolveCtx_new()
     register::register_imported_modules(ctx, modules)
+    register_wit::register_wit_imports(ctx, wit_paths, decls)
     let count = len(decls)
     register::register_decl_headers(ctx, decls)
     let mut j = 0

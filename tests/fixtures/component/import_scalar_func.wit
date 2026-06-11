@@ -1,5 +1,5 @@
-package test:host;
+package test:host@0.1.0;
 
-world app {
-    import host-add: func(a: s32, b: s32) -> s32;
+interface math {
+    add: func(a: s32, b: s32) -> s32;
 }

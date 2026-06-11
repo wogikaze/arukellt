@@ -19,19 +19,19 @@ struct EmitNeighborInfo {
     arg1: i32,
 }
 
-fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx) -> WasmWriter {
+fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> WasmWriter {
     let body = writer_core::WasmWriter_new()
     let local_count = function_locals_view::MirFunction_local_count(f)
     let param_count = function_param_view::MirFunction_param_count(f)
     code_locals::emit_local_decls(body, f, local_count, param_count)
     ctx_scratch::SelfEmitCtx_set_scratch_base(ctx, local_count)
     ctx_vec_locals::SelfEmitCtx_reset_vec_locals(ctx)
-    emit_function_instructions(body, f, ctx)
+    emit_function_instructions(body, f, ctx, bindings)
     writer_core::emit_byte(body, opcodes::OP_END())
     body
 }
 
-fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) {
+fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
     while bi < block_count {
@@ -43,7 +43,7 @@ fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx
             let prev = emit_prev_inst_info(f, block, bi, ii)
             let next = emit_next_inst_info(f, block, block_count, bi, ii, inst_count)
             let next2_op = emit_next2_op(f, block, block_count, bi, ii, inst_count)
-            inst_dispatch::emit_mir_inst_ctx(body, inst, ctx, EmitNeighborInfo_op(prev), EmitNeighborInfo_arg0(prev), EmitNeighborInfo_op(next), EmitNeighborInfo_arg0(next), EmitNeighborInfo_arg1(next), next2_op)
+            inst_dispatch::emit_mir_inst_ctx(body, inst, ctx, EmitNeighborInfo_op(prev), EmitNeighborInfo_arg0(prev), EmitNeighborInfo_op(next), EmitNeighborInfo_arg0(next), EmitNeighborInfo_arg1(next), next2_op, bindings)
             ii = ii + 1
         }
         bi = bi + 1

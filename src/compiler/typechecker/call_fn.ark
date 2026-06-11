@@ -15,7 +15,7 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         return TypeInfo_simple(commands::TY_UNKNOWN())
     }
     let callee = ast_access::node_child_at(node, 0)
-    if !ast_expr_predicates::node_is_ident(callee) {
+    if !ast_expr_predicates::node_is_ident(callee) && !ast_expr_predicates::node_is_path(callee) {
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
         return TypeInfo_simple(commands::TY_UNKNOWN())
     }

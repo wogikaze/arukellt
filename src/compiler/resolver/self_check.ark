@@ -19,7 +19,7 @@ fn parse_decls(src: String) -> Vec<AstNode> {
 
 fn main() {
     let decls = parse_decls(String_from("fn main() { let x = 1 }"))
-    let ctx = program::resolve_program(decls, Vec_new_ModuleDecls())
+    let ctx = program::resolve_program(decls, Vec_new_ModuleDecls(), Vec_new_String())
     let error_count = context::ResolveCtx_reported_error_count(ctx)
     if error_count != 0 {
         stdio::println(concat(String_from("Resolver errors: "), to_string(error_count)))

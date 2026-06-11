@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-06-10
+Updated: 2026-06-12
 ID: 41
 Track: stdlib
 Depends on: 039, 040
@@ -13,6 +13,20 @@ Reason: "This issue has `Status: open` in its frontmatter but was filed under `i
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 BLOCKED: "The selfhost emitter (`src/compiler/emitter.ark`) lacks intrinsic dispatch handlers for `__intrinsic_clock_now`, `__intrinsic_clock_now_ms`, and `__intrinsic_random_i32`. The old Rust `ark-wasm` emitter handled these (commit 3f4bc5be) but was removed by #529. Additionally, the selfhost typechecker has a regression on i64 division inference affecting `std/time/mod.ark`. The deterministic `std::random` seeded surface (xorshift32 in `std/random/mod.ark`) is unblocked and working (not blocked by this issue)."
 ---
+
+## Reopened by audit — 2026-06-12
+
+**Reopen reason:** Only seeded std::random sub-surface is complete. std::time duration helpers fail typecheck; host clock/random intrinsics have no selfhost emitter handlers.
+
+**Violated acceptance:** std::time acceptance (now_unix_ms, monotonic_now_ns, sleep_ms); fixture `stdlib_time/monotonic.ark` does not compile
+
+**Evidence files:**
+- `issues/done/051-std-time-random.md (Status note: partially blocked)`
+- `tests/fixtures/stdlib_time/monotonic.ark (E0200 i64 vs i32)`
+- `src/compiler/ (no __intrinsic_clock_now handler)`
+- `std/manifest.toml (__intrinsic_clock_now registered, emitter missing)`
+
+**Follow-up split issue:** none (scope unchanged)
 
 # std: ":time + std::random: 時刻・期間・乱数"
 

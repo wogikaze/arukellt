@@ -106,9 +106,6 @@ fn validate_wit_import_surface(paths: Vec<String>) -> String {
 				if contains(clone(text), String_from("stream<")) || contains(clone(text), String_from("future<")) {
 					return concat(String_from("E0402: unsupported WIT async resource type in "), clone(path))
 				}
-				if contains(clone(text), String_from("import ")) && contains(clone(text), String_from(": func(")) {
-					return concat(String_from("E0401: WIT function imports are not yet bound to resolver/MIR: "), clone(path))
-				}
 			},
 			Result::Err(e) => {
 				return concat(String_from("unable to read WIT file "), concat(clone(path), concat(String_from(": "), e)))

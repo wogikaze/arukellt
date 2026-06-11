@@ -1,6 +1,8 @@
 ---
+Status: open
 Created: 2026-04-14
-Updated: 2026-04-14
+Updated: 2026-06-12
+ID: 500
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
 Source: audit — issues/open/472-playground-type-checker-product-claim.md
 Track: main
@@ -8,7 +10,20 @@ Orchestration class: implementation-ready
 Depends on: none
 ---
 
-- [x] `crates/ark-playground-wasm/src/lib.rs` exports `pub fn typecheck(source: &str) -> String` backed by a real `ark-typecheck` call
+## Reopened by audit — 2026-06-12
+
+**Reopen reason:** Acceptance cites deleted `crates/ark-playground-wasm` typecheck export. Playground uses TypeScript parse shim, not ark-typecheck.
+
+**Violated acceptance:** All acceptance items (typecheck export, playground wiring, native tests)
+
+**Evidence files:**
+- `issues/done/500-playground-wasm-typecheck-export.md`
+- `playground/src/engine.ts`
+- `glob: crates/ark-playground-wasm/ (absent)`
+
+**Follow-up split issue:** none (scope unchanged)
+
+- [ ] `crates/ark-playground-wasm/src/lib.rs` exports `pub fn typecheck(source: &str) -> String` backed by a real `ark-typecheck` call
 - Native test exercising `ark_playground_wasm: ":typecheck()` passes"
 
 ## Reopened by audit
@@ -36,9 +51,9 @@ playground frontend, which is the prerequisite for closing #472.
 
 ## Acceptance
 
-- [x] `crates/ark-playground-wasm/src/lib.rs` exports `pub fn typecheck(source: &str) -> String` backed by a real `ark-typecheck` call
-- [x] `playground/src/` calls the typecheck export and surfaces the result
-- [x] At least one native-target test exercises the typecheck WASM export
+- [ ] `crates/ark-playground-wasm/src/lib.rs` exports `pub fn typecheck(source: &str) -> String` backed by a real `ark-typecheck` call
+- [ ] `playground/src/` calls the typecheck export and surfaces the result
+- [ ] At least one native-target test exercises the typecheck WASM export
 - [x] `python scripts/manager.py verify quick` passes
 
 ## Required verification

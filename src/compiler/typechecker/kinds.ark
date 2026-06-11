@@ -20,6 +20,7 @@ fn NK_ASSIGN() -> i32 { 18 }
 
 // Call expression node kinds.
 fn NK_CALL() -> i32 { 8 }
+fn NK_PATH() -> i32 { 16 }
 fn NK_METHOD_CALL() -> i32 { 21 }
 
 // Control expression node kinds.

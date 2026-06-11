@@ -11,15 +11,17 @@ use mir::function_param_view
 use mir::local_access
 use wasm::sections_type_plan
 use wasm::emit_target
+use mir::module_wit_imports
 
 struct TypeCanonPlan {
     canon_types: Vec<String>,
     type_map: Vec<i32>,
 }
 
-fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String) -> TypeSectionPlan {
+fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> TypeSectionPlan {
     let num_host_types = emit_target::host_type_count(clone(target))
-    let type_sigs = build_type_sigs(functions, fn_count, needs_wrapper, clone(target))
+    let wit_import_count = module_wit_imports::wit_import_count(bindings)
+    let type_sigs = build_type_sigs(functions, fn_count, needs_wrapper, clone(target), bindings)
     let canon_plan = canonicalize_type_sigs(type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
@@ -27,7 +29,7 @@ fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32
     writer_leb::emit_leb128_u(type_sec, len(canon_types))
     emit_canon_type_entries(type_sec, canon_types)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
-    sections_type_plan::build_type_section_plan(type_map, num_host_types, fn_count, needs_wrapper)
+    sections_type_plan::build_type_section_plan(type_map, num_host_types, wit_import_count, fn_count, needs_wrapper)
 }
 
 fn TypeCanonPlan_new(canon_types: Vec<String>, type_map: Vec<i32>) -> TypeCanonPlan {
@@ -42,16 +44,25 @@ fn TypeCanonPlan_type_map(plan: TypeCanonPlan) -> Vec<i32> {
     plan.type_map
 }
 
-fn build_type_sigs(functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String) -> Vec<String> {
+fn build_type_sigs(functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> Vec<String> {
     let type_sigs = Vec_new_String()
     if emit_target::is_freestanding_target(clone(target)) {
         append_t2_type_sigs(type_sigs)
     } else {
         append_wasi_type_sigs(type_sigs)
     }
+    append_wit_type_sigs(type_sigs, bindings)
     append_function_type_sigs(type_sigs, functions, fn_count)
     append_wrapper_type_sig(type_sigs, needs_wrapper)
     type_sigs
+}
+
+fn append_wit_type_sigs(type_sigs: Vec<String>, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
+    let mut i = 0
+    while i < module_wit_imports::wit_import_count(bindings) {
+        push(type_sigs, module_wit_imports::wit_import_type_sig(bindings, i))
+        i = i + 1
+    }
 }
 
 fn append_wasi_type_sigs(type_sigs: Vec<String>) {

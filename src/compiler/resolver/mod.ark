@@ -19,11 +19,11 @@ pub fn ModuleDecls_new(name: String, decls: Vec<AstNode>) -> ModuleDecls {
 }
 
 pub fn resolve_module(decls: Vec<AstNode>) -> ResolveCtx {
-    program::resolve_program(decls, Vec_new_ModuleDecls())
+    program::resolve_program(decls, Vec_new_ModuleDecls(), Vec_new_String())
 }
 
-pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> ResolveCtx {
-    program::resolve_program(decls, modules)
+pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>) -> ResolveCtx {
+    program::resolve_program(decls, modules, wit_paths)
 }
 
 pub fn count_user_symbols(ctx: ResolveCtx) -> i32 {

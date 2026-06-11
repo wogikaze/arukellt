@@ -268,5 +268,5 @@ uses `use` throughout; most `import <single-id>` patterns appear in specific tes
 - [ADR-007-targets.md](ADR-007-targets.md) — T3 (wasm32-wasi-p2) as primary target.
 - [../spec/import-system.md](../spec/import-system.md) — normative Layer S / Layer C contract page.
 - [../module-resolution.md](../module-resolution.md) — Layer S resolution behaviour for `use` / `import`.
-- Issue [#074](../../issues/done/074-wasi-p2-native-component.md) — WASI p2 native component output.
-- Issue [#124](../../issues/open/124-wit-component-import-syntax.md) — WIT component import syntax implementation.
+- Issue [#074](../../issues/open/074-wasi-p2-native-component.md) — WASI p2 native component output.
+- Issue [#124](../../issues/done/124-wit-component-import-syntax.md) — WIT component import syntax implementation.

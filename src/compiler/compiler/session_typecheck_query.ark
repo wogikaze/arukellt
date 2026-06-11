@@ -3,8 +3,8 @@
 use typechecker::contract_result_state
 use typechecker::entry
 
-fn session_typecheck_decls(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeCheckResult {
-entry::typecheck_module(decls, resolve_ctx)
+fn session_typecheck_decls(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec<String>) -> TypeCheckResult {
+entry::typecheck_module(decls, resolve_ctx, wit_paths)
 }
 
 fn session_empty_typecheck_result() -> TypeCheckResult {

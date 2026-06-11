@@ -6,11 +6,11 @@ use resolver::scope_metrics
 
 fn session_resolve_decls(decls: Vec<AstNode>) -> ResolveCtx {
 let empty_modules = Vec_new_ModuleDecls()
-program::resolve_program(decls, empty_modules)
+program::resolve_program(decls, empty_modules, Vec_new_String())
 }
 
-fn session_resolve_decls_with_modules(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> ResolveCtx {
-program::resolve_program(decls, modules)
+fn session_resolve_decls_with_modules(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>) -> ResolveCtx {
+program::resolve_program(decls, modules, wit_paths)
 }
 
 fn session_empty_resolve_ctx() -> ResolveCtx {

@@ -41,6 +41,7 @@ fn MIR_SHR() -> i32 { 39 }
 fn MIR_CALL() -> i32 { 40 }
 fn MIR_CALL_INDIRECT() -> i32 { 41 }
 fn MIR_RETURN() -> i32 { 42 }
+fn MIR_WIT_CALL() -> i32 { 43 }
 fn MIR_EXTEND_I32_TO_I64() -> i32 { 45 }
 fn MIR_TRUNC_I64_TO_I32() -> i32 { 46 }
 

@@ -3,7 +3,8 @@
 // Compatibility facade for the Wasm emission entrypoint.
 
 use wasm
+use resolver::wit_import_bind
 
 pub fn emit_wasm(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
-    wasm::emit_wasm(mir, target, opt_level)
+    wasm::emit_wasm(mir, target, opt_level, Vec_new_WitImportBinding())
 }

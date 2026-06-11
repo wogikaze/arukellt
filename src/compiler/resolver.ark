@@ -56,8 +56,8 @@ pub fn resolve_module(decls: Vec<AstNode>) -> ResolveCtx {
 /// Resolve a program consisting of a main module and zero or more imported modules.
 /// Each imported module's pub symbols are registered under "module_name::symbol_name"
 /// so that qualified name resolution (e.g. mymath::add) works.
-pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> ResolveCtx {
-    mod::resolve_program(decls, modules)
+pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>) -> ResolveCtx {
+    mod::resolve_program(decls, modules, wit_paths)
 }
 
 pub fn count_user_symbols(ctx: ResolveCtx) -> i32 {

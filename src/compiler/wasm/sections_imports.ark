@@ -7,16 +7,19 @@ use wasm::writer_leb
 use wasm::writer_sections
 use wasm::writer_string
 use wasm::emit_target
+use wasm::sections_wit_imports
+use mir::module_wit_imports
 
-fn emit_import_section(out: WasmWriter, host_type_map: Vec<i32>, target: String) {
+fn emit_import_section(out: WasmWriter, host_type_map: Vec<i32>, target: String, bindings: Vec<resolver::wit_import_bind::WitImportBinding>, wit_type_map: Vec<i32>) {
     let import_sec = writer_core::WasmWriter_new()
+    let wit_count = module_wit_imports::wit_import_count(bindings)
+    writer_leb::emit_leb128_u(import_sec, emit_target::total_import_count(clone(target), wit_count))
     if emit_target::is_freestanding_target(clone(target)) {
-        writer_leb::emit_leb128_u(import_sec, constants::NUM_T2_IMPORTS())
         emit_t2_import_entries(import_sec, host_type_map)
     } else {
-        writer_leb::emit_leb128_u(import_sec, constants::NUM_WASI_IMPORTS())
         emit_wasi_import_entries(import_sec, host_type_map)
     }
+    sections_wit_imports::emit_wit_import_entries(import_sec, bindings, wit_type_map)
     writer_sections::emit_section(out, opcodes::SEC_IMPORT(), import_sec)
 }
 

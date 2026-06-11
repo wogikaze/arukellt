@@ -38,6 +38,9 @@ fn should_tee_store_early(inst: MirInst, next_op: i32, next_arg1: i32) -> bool {
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
         return true
     }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_WIT_CALL() && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
+        return true
+    }
     false
 }
 
@@ -117,6 +120,9 @@ fn is_direct_consumer_op(op: i32) -> bool {
     if op == opcodes::MIR_CALL() {
         return true
     }
+    if op == opcodes::MIR_WIT_CALL() {
+        return true
+    }
     if op == opcodes::MIR_STRUCT_GET() {
         return true
     }
@@ -147,6 +153,9 @@ fn is_load_followed_by_consumer(op: i32) -> bool {
         return true
     }
     if op == opcodes::MIR_CALL() {
+        return true
+    }
+    if op == opcodes::MIR_WIT_CALL() {
         return true
     }
     if opcodes::is_arith_opcode(op) {

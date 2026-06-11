@@ -2,10 +2,14 @@
 
 use wasm::emit_target
 
-fn defined_function_index(function_idx: i32, target: String) -> i32 {
-    function_idx + emit_target::host_import_count(clone(target))
+fn defined_function_index(function_idx: i32, target: String, wit_import_count: i32) -> i32 {
+    function_idx + emit_target::total_import_count(clone(target), wit_import_count)
 }
 
-fn wrapper_function_index(fn_count: i32, target: String) -> i32 {
-    fn_count + emit_target::host_import_count(clone(target))
+fn wrapper_function_index(fn_count: i32, target: String, wit_import_count: i32) -> i32 {
+    fn_count + emit_target::total_import_count(clone(target), wit_import_count)
+}
+
+fn wit_import_function_index(wit_idx: i32, target: String, wit_import_count: i32) -> i32 {
+    emit_target::host_import_count(clone(target)) + wit_idx
 }

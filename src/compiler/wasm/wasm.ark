@@ -3,10 +3,10 @@
 use wasm::writer_core
 use wasm::wasm_sections
 
-fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
+fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> Vec<i32> {
     let out = writer_core::WasmWriter_new()
     emit_wasm_module_header(out)
-    wasm_sections::emit_wasm_module_sections(out, mir, target, opt_level)
+    wasm_sections::emit_wasm_module_sections(out, mir, target, opt_level, bindings)
     writer_core::writer_bytes(out)
 }
 

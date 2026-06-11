@@ -3,8 +3,8 @@
 use wasm::wasm
 use wasm::wat
 
-pub fn emit_wasm(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
-    wasm::emit_wasm_module(mir, target, opt_level)
+pub fn emit_wasm(mir: MirModule, target: String, opt_level: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> Vec<i32> {
+    wasm::emit_wasm_module(mir, target, opt_level, bindings)
 }
 
 pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {

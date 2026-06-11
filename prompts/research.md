@@ -224,6 +224,7 @@ autonomous commit policy
   - dependency-graph.md 更新
   - audit 結果の反映
 - これらの差分がある状態で停止してはならない。
+- **各 wave の reopen / index 同期 / 監査レポート反映が終わったら、その wave の orchestration-state だけを必ずコミットする**（監査継続指示時も同様。product implementation 差分と混ぜない）。
 - 親コミット後は再分類をやり直し、dispatch 可能な issue が残るなら継続する。
 
 human-escalation gate

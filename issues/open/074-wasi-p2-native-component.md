@@ -1,19 +1,29 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-05-16
-ID: 60
+Updated: 2026-06-12
+ID: 074
 Track: wasi-feature
 Depends on: 510, 121
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v4 exit: no
-Status note: Parent close gate for WASI P2 native. Do not close until P2 import-table switching, the minimum Canonical ABI surface, and P2 validate/run evidence are all present.
-Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
-Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
-P2 ネイティブでは Core Wasm が直接 `wasi: io/streams` 等をインポートするため、
-Operational rule: if an implementation slice only improves adapter bypass or
+Status note: Parent close gate for WASI P2 native. Reopened 2026-06-12 — false-done; selfhost bootstrap used component passthrough stub; close-gate evidence still missing.
 ---
+
+## Reopened by audit — 2026-06-12
+
+**Reopen reason:** Parent close gate for WASI P2 native component is not satisfied: P2 stdio bridge, `wasi:cli/run` export shape, and wasmtime runtime proof remain missing. Bootstrap selfhost uses component passthrough stub (`scripts/selfhost/checks.py` BOOTSTRAP_COMPONENT_STUB).
+
+**Violated acceptance:** Close gate items 3–6 (P2 stdio, component export shape, validate+run proof, 80KB reduction); acceptance items 3–4
+
+**Evidence files:**
+- `issues/open/074-wasi-p2-native-component.md (close gate + ❌ notes)`
+- `scripts/selfhost/checks.py (BOOTSTRAP_COMPONENT_STUB passthrough)`
+- `src/compiler/component/emit.ark (generic wrapper; no P2 stdio/run proof)`
+- `tests/fixtures/wasi_p2_native/hello.ark (compile-only; no run gate)`
+
+**Follow-up split issue:** none (scope unchanged)
 
 # WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成
 

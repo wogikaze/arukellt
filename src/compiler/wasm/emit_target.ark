@@ -19,3 +19,11 @@ fn host_type_count(target: String) -> i32 {
     }
     constants::NUM_WASI_TYPES()
 }
+
+fn total_import_count(target: String, wit_import_count: i32) -> i32 {
+    host_import_count(clone(target)) + wit_import_count
+}
+
+fn total_host_type_count(target: String, wit_import_count: i32) -> i32 {
+    host_type_count(clone(target)) + wit_import_count
+}

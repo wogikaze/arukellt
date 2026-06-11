@@ -27,8 +27,8 @@ struct ResolveCtx {
     next_decl_index: i32,
 }
 
-pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeCheckResult {
-    mod::typecheck_module(decls, resolve_ctx)
+pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec<String>) -> TypeCheckResult {
+    mod::typecheck_module(decls, resolve_ctx, wit_paths)
 }
 
 fn main() {

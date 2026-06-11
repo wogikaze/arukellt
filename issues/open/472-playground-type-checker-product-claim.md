@@ -1,12 +1,25 @@
 ---
-Status: done
+Status: open
 Created: 2026-04-03
-Updated: 2026-04-14
+Updated: 2026-06-12
 ID: 472
 Track: playground
 Depends on: 466
 Orchestration class: implementation-ready
 ---
+
+## Reopened by audit — 2026-06-12
+
+**Reopen reason:** Callable type-checker product claim is false: `playground/src/engine.ts` `typecheckSource()` wraps parse diagnostics only. `crates/ark-playground-wasm` was removed in #631.
+
+**Violated acceptance:** Acceptance: callable checker surface; entrypoint invokes real checker; tests verify checker behavior (not parser diagnostics)
+
+**Evidence files:**
+- `playground/src/engine.ts (typecheckSource → parseSource)`
+- `issues/done/472-playground-type-checker-product-claim.md (audit: CHECKER SURFACE ABSENT)`
+- `issues/done/631-phase7-delete-ark-playground-wasm.md`
+
+**Follow-up split issue:** none (scope unchanged)
 
 # Playground: type-checker product claim を独立 issue に分離する
 
@@ -53,9 +66,9 @@ Findings:
 
 Acceptance criteria status:
 
-- [x] callable checker surface exists in repo — **YES** (implemented in #500: `pub fn typecheck` in `crates/ark-playground-wasm/src/lib.rs`)
-- [x] entrypoint invokes checker surface — **YES** (wired in `playground/src/worker.ts`, `worker-client.ts`, `playground.ts` via #500)
-- [x] command/test/fixture verifies checker behavior — **YES** (3 native tests in `crates/ark-playground-wasm/src/lib.rs` via #500)
+- [ ] callable checker surface exists in repo — **NO** (`typecheckSource` in `playground/src/engine.ts` wraps parse only; `crates/ark-playground-wasm` removed in #631)
+- [ ] entrypoint invokes checker surface — **NO** (no real typechecker invocation in browser entrypoint)
+- [ ] command/test/fixture verifies checker behavior — **NO** (no test proves type errors distinct from parse errors)
 
 **This issue must NOT be closed until `ark-typecheck` (or equivalent) is exported
 from `crates/ark-playground-wasm/src/lib.rs` and invoked from `playground/src/`.**
@@ -98,9 +111,9 @@ type-checker claim は parser / format / diagnostics とは別の product claim 
 
 ## Acceptance criteria
 
-- [x] current repo に callable checker surface が存在し、その source path が issue 本文に明記されている。
-- [x] issue 466 の browser entrypoint から、その checker surface が実際に invoke されることを repo files で確認できる。
-- [x] checker result を機械的に検証する command / test / fixture が repo に存在する。
+- [ ] current repo に callable checker surface が存在し、その source path が issue 本文に明記されている。
+- [ ] issue 466 の browser entrypoint から、その checker surface が実際に invoke されることを repo files で確認できる。
+- [ ] checker result を機械的に検証する command / test / fixture が repo に存在する。
 
 ## Close evidence (2026-04-14)
 
