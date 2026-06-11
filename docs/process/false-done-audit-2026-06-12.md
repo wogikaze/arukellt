@@ -172,3 +172,125 @@ None.
 
 Wave completion commits are mandatory per updated `prompts/research.md`
 (`autonomous commit policy` — orchestration-state only, per wave).
+
+---
+
+## Wave 3 — 2026-06-11 (host capability surface)
+
+Orchestration note: the `/orchestrate` substrate (`scripts/cli.ts`) is present
+as a Cursor plugin skill, but `bun cli.ts run --root` exits immediately with
+`CURSOR_API_KEY required` (`agent-manager.ts`), and no such user key is injected
+into this environment. Per `prompts/research.md` → `unsupported-in-this-run`,
+the absence of spawnable workers is **not** a stop reason; the audit/reopen/
+issue-creation work was performed directly by the planner, matching the wave 1–2
+methodology.
+
+### 1. Audit theme
+
+The selfhost-first migration (#559 / #583, ADR-029) **deleted the entire Rust
+workspace** (`crates/` is absent). The Rust `arukellt_host` runtime — which
+provided the Wasmtime linker host functions for HTTP, sockets, UDP, clock, and
+random — is gone, and the selfhost compiler never reimplemented those host
+intrinsics. The only execution path is now `wasmtime run <selfhost.wasm>`
+(`scripts/run/arukellt-selfhost.sh`). The selfhost host-call dispatch
+`src/compiler/wasm/call_host_io.ark` handles **only** `env`, `fs`
+(exists/read/write), `process::exit`, and `stdio`. Yet `std/manifest.toml` and
+the stdlib docs still advertise the deleted-runtime host families as available.
+
+### 2. Reopened issues
+
+#### #446 — std::host::http implementation
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/446-std-host-http-implementation.md` |
+| New path | `issues/open/446-std-host-http-implementation.md` |
+| Classification | `must-reopen` / `wired-but-not-user-reachable` + `docs-ahead-of-reality` |
+| Reopen reason | Acceptance basis (`crates/arukellt/src/runtime.rs`, `register_http_host_fns`, `HOST_STUB_BUILTINS`, `verify-harness.sh`) all deleted; selfhost compiler has no `__intrinsic_http_*` dispatch; manifest still claims `t1=true,t3=true` |
+| Violated acceptance | All 6 completion conditions (T1/T3 `http::get` runnable, fixtures CI-pass, capability-surface enforcement, target matrix, `verify-harness.sh` 13/13) |
+| Evidence | `src/compiler/wasm/call_host_io.ark`, `std/manifest.toml` (`std::host::http`), `scripts/run/arukellt-selfhost.sh`, absent `crates/`, absent `scripts/run/verify-harness.sh` |
+| Follow-up split | #633 (manifest/docs honesty) |
+
+#### #447 — std::host::sockets implementation
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/447-std-host-sockets-implementation.md` |
+| New path | `issues/open/447-std-host-sockets-implementation.md` |
+| Classification | `must-reopen` / `wired-but-not-user-reachable` |
+| Reopen reason | Same root cause as #446; `tcp_connect_impl` / `sockets_connect` linker lived in deleted `runtime.rs`; no `__intrinsic_sockets_connect` dispatch in selfhost compiler |
+| Violated acceptance | T3 fixture CI-pass, T3 compile pass, T1 diagnostic, capability-surface status, `verify-harness.sh` 13/13 |
+| Evidence | `src/compiler/wasm/call_host_io.ark`, `std/manifest.toml` (`std::host::sockets`), absent `crates/`, absent `verify-harness.sh` |
+| Follow-up split | #633; real P2 backing tracked by #139 / #074 |
+
+### 3. Newly-created future issues
+
+#### #633 — Reconcile host capability claims with the selfhost execution path
+
+| Field | Value |
+|-------|-------|
+| Track | stdlib |
+| Why it must exist | `std/manifest.toml` + docs advertise `std::host::http` (`t1/t3=true`) and `sockets`/`udp` (`t3=true`) via the deleted `arukellt_host` runtime; user-visible over-claim (drives generated stdlib reference & capability badges) |
+| Evidence source | `std/manifest.toml`, `src/compiler/wasm/call_host_io.ark`, `docs/capability-surface.md`, `docs/stdlib/modules/{http,sockets}.md`, `docs/current-state.md` |
+| Primary paths | `std/manifest.toml`, `docs/capability-surface.md`, `docs/stdlib/modules/*`, `scripts/gen/generate-docs.py` |
+| Acceptance | Manifest/docs no longer advertise unbacked host availability; no active reference to `arukellt_host` as current backing; cross-links to #446/#447/#077/#139 |
+| Close gate | `check-docs-consistency.py` rc=0, `manager.py verify quick` rc=0 |
+| Checklist item source | n/a (manifest over-claim) |
+
+### 4. Still-truly-done (spot checks this wave)
+
+| ID | Area | Evidence |
+|----|------|----------|
+| 561 | Delete `crates/ark-mir` | `crates/` absent; `rg ark_mir` outside issues/historical returns nothing. The top-of-file "blocked-by-upstream" line is stale pre-deletion scratch; the Resolution section is correct. Keep done. |
+| 445 | std::host::process | `process::exit` dispatched in `call_host_io.ark` and backed by WASI `proc_exit` via wasmtime. (See high-risk note re: `process::abort`.) |
+| 506/507/509/584 | Placeholder issues | Legitimate administrative numbering no-ops; no implementation claim. Keep done. |
+
+### 5. Docs / manifest mismatches
+
+| Claim location | Reality | Action |
+|----------------|---------|--------|
+| `std/manifest.toml` `std::host::http` `availability={t1=true,t3=true}` | No HTTP host fn on selfhost path | Reopen #446 + fix via #633 |
+| `std/manifest.toml` `std::host::sockets`/`udp` `t3=true` | No sockets/udp host fn on selfhost path | Reopen #447 + fix via #633 |
+| `docs/capability-surface.md`, `docs/stdlib/modules/{http,sockets}.md`, `docs/current-state.md` reference `arukellt_host` / `register_http_host_fns` | Rust runtime deleted | Fix via #633 |
+
+### 6. Evidence table (reopen decisions)
+
+| Issue | Repo proof checked | Result |
+|-------|-------------------|--------|
+| 446 | `call_host_io.ark` (no http dispatch), absent `crates/`, absent `verify-harness.sh`, manifest over-claim | FAIL — reopen |
+| 447 | `call_host_io.ark` (no sockets dispatch), absent `crates/`, manifest `t3=true` | FAIL — reopen |
+| 561 | `crates/` absent, no active `ark_mir` refs | PASS — keep done |
+| 445 | `process::exit` dispatched + WASI-backed | PASS — keep done (abort gap noted) |
+
+### 7. Dependency updates
+
+- `#633` depends on `#446`, `#447` (index + dependency-graph regenerated).
+- `#077` (native P2 http) and `#139` (P2 sockets) remain the native-path tracks.
+
+### 8. Remaining high-risk false-done items (monitor / next wave)
+
+- **#445 process::abort** — manifest declares `abort` (`__intrinsic_process_abort`,
+  `t1/t3=true`) but `call_host_io.ark` has no `process::abort` dispatch and no
+  `process_abort` exists in `src/`. `process::exit` works; `abort` appears
+  unbacked. Smaller sub-surface — flagged, not reopened this wave.
+- **std::host::udp** — same deleted-runtime root cause as http/sockets; no
+  dedicated done issue, covered by #633 docs honesty + #139 native track.
+- **std::host::clock / random** — already reopened as #051 (wave 1); consistent
+  with the deleted-`arukellt_host` root cause confirmed this wave.
+
+### 9. Checklist items not tracked as issues
+
+None newly identified this wave (`docs/release-checklist.md` items remain
+covered by existing CI/issue work, unchanged from wave 1).
+
+### 10. Newly-created checklist tracking issues
+
+None.
+
+### Verification at wave close
+
+`python3 scripts/manager.py verify quick` → 138 passed / 9 failed. All 9
+failures are pre-existing systemic gates (fixture manifest sync, doc-example,
+selfhost analysis/LSP/DAP gates #568/#569/#571, docs consistency, compiler
+boundary/import-cycle, broken links) untouched by this wave; this wave modified
+only `issues/**` + regenerated `issues/open/` indexes. No new failure introduced.

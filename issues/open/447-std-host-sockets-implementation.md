@@ -1,11 +1,47 @@
 ---
-Status: done
+Status: open
 Created: 2026-04-02
-Updated: 2026-04-18
+Updated: 2026-06-11
 ID: 447
 Track: runtime
 Depends on: none
 Orchestration class: implementation-ready
+---
+
+## Reopened by audit — 2026-06-11 (wave 3)
+
+**Classification**: `must-reopen` / `wired-but-not-user-reachable`
+
+**Reopen reason**: Like #446 (http), this issue's acceptance was satisfied by the
+now-deleted Rust runtime. After the selfhost-first migration (#559 / #583,
+ADR-029) the host socket backing is gone and was never reimplemented on the
+selfhost compile path.
+
+**Repo evidence (canonical truth = current files):**
+
+- `crates/` is **absent**; `crates/arukellt/src/runtime.rs` (Step 1/Step 2's
+  `sockets_connect` linker registration and `tcp_connect_impl`) no longer exists.
+  `HOST_STUB_BUILTINS` / `tcp_connect_impl` appear only in `std/` + `docs/`.
+- `src/compiler/wasm/call_host_io.ark` has **no** `__intrinsic_sockets_connect`
+  dispatch (only env/fs/process::exit/stdio), so `sockets::connect` cannot lower
+  on the only compile path (`wasmtime run <selfhost.wasm>`).
+- `scripts/run/verify-harness.sh` (acceptance "13/13 pass") is **absent**.
+- `std/manifest.toml` declares `std::host::sockets::connect` with
+  `availability = { t1 = false, t3 = true }`; the `t3 = true` claim is unbacked
+  on the current selfhost path.
+
+**Violated acceptance** (rolled back below): T3 `sockets::connect` fixture
+CI-pass, T3 compile pass after `HOST_STUB_BUILTINS` removal, T1 compile-time
+diagnostic, `capability-surface.md` status, and `verify-harness.sh` 13/13.
+
+**Evidence files**: `src/compiler/wasm/call_host_io.ark`,
+`std/manifest.toml` (`std::host::sockets` block), `std/host/sockets.ark`,
+`scripts/run/arukellt-selfhost.sh`, `tests/fixtures/host/sockets/`.
+
+**Dependency note**: real WASI P2 sockets backing is tracked by open #139
+(`std-wasi-sockets-p2`) and the P2 component gate #074. This issue covers the
+selfhost host-binding gap for `sockets::connect` specifically.
+
 ---
 
 # std: ":host::sockets::connect: WASI P2 最小実装・T3 限定 compile-time 明確化"
@@ -249,11 +285,15 @@ Issue 448 の完了に依存するが、以下の動作を確保する。
 
 ## 完了条件
 
-- [x] T3 で `sockets::connect("127.0.0.1", 1)` が `Err(...)` を返す fixture が CI pass
-- [x] T3 で `sockets::connect` が compile 通過する（HOST_STUB_BUILTINS から削除）
-- [x] T1 で `sockets::connect` を使うと compile-time error または明確な diagnostics が出る
-- [x] `docs/capability-surface.md` の sockets Status が更新されている
-- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass
+> Audit note (2026-06-11, wave 3): rolled back to unmet. The Rust runtime that
+> satisfied these conditions was deleted and the selfhost compiler has no
+> `__intrinsic_sockets_connect` dispatch; `verify-harness.sh` no longer exists.
+
+- [ ] `__intrinsic_sockets_connect` を selfhost compiler (`src/compiler/wasm/`) が dispatch する
+- [ ] T3 で `sockets::connect("127.0.0.1", 1)` が `Err(...)` を返す fixture が現行 selfhost path で CI pass
+- [ ] T1 で `sockets::connect` を使うと compile-time error または明確な diagnostics が出る
+- [ ] `docs/capability-surface.md` / `std/manifest.toml` の sockets availability が実態と一致している
+- [ ] エラーケース fixture が現行 verify path で pass
 
 ---
 
