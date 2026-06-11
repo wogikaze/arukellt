@@ -9,7 +9,7 @@ Verification gate at audit time: `python3 scripts/manager.py verify quick` — 1
 | Metric | Count |
 |--------|------:|
 | Done issues reviewed (targeted) | ~45 |
-| **Reopened (must-reopen)** | **5** |
+| **Reopened (must-reopen)** | **6** (wave 1: 5, wave 2: 1) |
 | Truly-done spot checks | 14 |
 | Stale reopen notes (kept done; evidence now satisfies claim) | 2 (#034, #028b) |
 | High-risk remaining in done (monitor) | 1 (#051 random-only partial was reopened) |
@@ -142,3 +142,33 @@ Monitor on next full audit (not reopened this run due to insufficient new contra
 ## 10. Newly-created checklist tracking issues
 
 None.
+
+---
+
+## Wave 2 — 2026-06-12 (continued)
+
+### Additional reopen
+
+#### #123 — import syntax unification
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/123-import-syntax-unification.md` |
+| New path | `issues/open/123-import-syntax-unification.md` |
+| Classification | `must-reopen` / `acceptance-not-actually-met` |
+| Reopen reason | Close review explicitly says full issue not ready for `done`; only docs/ADR slice was completed |
+| Violated acceptance | Implementation work for unified import syntax policy (beyond documentation) |
+| Evidence | Issue body lines 425–432 (`Full issue ready to move to done: no`) |
+
+### Audit resolution (kept in done)
+
+#### #034 — WIT CLI integration
+
+`truly-done` after 2026-06-12 recheck: `wit_import/main.ark` and
+`component/import_scalar_func.ark` prove callable WIT imports through
+`--wit` + `--emit component`. Audit resolution note added to issue file.
+
+### Commit policy
+
+Wave completion commits are mandatory per updated `prompts/research.md`
+(`autonomous commit policy` — orchestration-state only, per wave).

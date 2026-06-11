@@ -3,7 +3,7 @@
 **Status**: DECIDED — Two-layer separation confirmed; `use` reserved for Layer S, `import` reserved for Layer C
 **Date**: 2026-04-25
 **Track**: language-design
-**Issue**: [#123](../../issues/done/123-import-syntax-unification.md)
+**Issue**: [#123](../../issues/open/123-import-syntax-unification.md)
 **Supersedes**: none (refines and consolidates ADR-009, ADR-025, ADR-026)
 
 ---

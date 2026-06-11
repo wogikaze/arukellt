@@ -12,17 +12,18 @@ Scoring criteria (0-5 each, total 25):
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
 | 1 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
-| 2 | 473 | Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC | wasm-feature | 0 | 0 | 2 | 5 | 3 | 10 |
-| 3 | 500 | 500-playground-wasm-typecheck-export | main | 0 | 0 | 1 | 5 | 4 | 10 |
-| 4 | 510 | 510-t3-p2-import-table-switch | main | 2 | 0 | 1 | 2 | 5 | 10 |
-| 5 | 472 | 472-playground-type-checker-product-claim | playground | 0 | 0 | 1 | 5 | 3 | 9 |
-| 6 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 7 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 8 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 9 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 10 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 11 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 12 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 13 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 14 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 15 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 2 | 123 | 123-import-syntax-unification | language-design | 0 | 0 | 1 | 5 | 5 | 11 |
+| 3 | 473 | Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC | wasm-feature | 0 | 0 | 2 | 5 | 3 | 10 |
+| 4 | 500 | 500-playground-wasm-typecheck-export | main | 0 | 0 | 1 | 5 | 4 | 10 |
+| 5 | 510 | 510-t3-p2-import-table-switch | main | 2 | 0 | 1 | 2 | 5 | 10 |
+| 6 | 472 | 472-playground-type-checker-product-claim | playground | 0 | 0 | 1 | 5 | 3 | 9 |
+| 7 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 8 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 9 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 10 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 11 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 12 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 13 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 14 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 15 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 16 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |

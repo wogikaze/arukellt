@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-05-14
+Updated: 2026-06-12
 ID: 123
 Track: language-design
 Depends on: none
@@ -15,6 +15,19 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 LLM が混同するのは `std: ":io` と `wasi:io/streams` が「どちらも IO に関するモジュール参照」に見えるからであり、構文が似ているからではない。構文の違い（`::`vs`:`）は、むしろ **視覚的に2層を区別する手がかり** として機能しうる。"
 Conclusion: this is a close candidate for the docs acceptance slice only. The issue remains open because the implementation work tracked by the issue is not being completed in this review.
 ---
+
+## Reopened by audit — 2026-06-12
+
+**Reopen reason:** Issue frontmatter is Status: done but close review twice states 'Full issue ready to move to done: no' and implementation work (Layer C `import "..."` syntax) remains deferred while docs-only slice was recorded.
+
+**Violated acceptance:** Full issue scope beyond docs/ADR slice; implementation acceptance not met
+
+**Evidence files:**
+- `issues/done/123-import-syntax-unification.md (Close review 2026-04-22: ready to move to done: no)`
+- `issues/done/123-import-syntax-unification.md (Conclusion: remains open because implementation work)`
+- `tests/fixtures/wit_import/main.ark (import syntax now exists — partial overlap with #124, not #123 docs scope)`
+
+**Follow-up split issue:** none (docs slice may stay recorded; implementation track remains here)
 
 | ソースレベル stdlib import | `use std: ":io` | Arukellt ソース内でモジュールを参照する | `::` |"
 | WIT パッケージ識別子 | `wasi: "cli/stdin@0.2.10` | Component Model のバイナリ境界で使われるパッケージ ID | `:` + `/` + `@` |"

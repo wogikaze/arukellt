@@ -2,7 +2,7 @@
 
 ステータス: **DECIDED** — source imports stay Layer S (`use` + `::`); WIT identifiers stay Layer C boundary data
 **Date**: 2026-04-18
-**Track**: language-design (issue [#123](../../issues/done/123-import-syntax-unification.md))
+**Track**: language-design (issue [#123](../../issues/open/123-import-syntax-unification.md))
 
 ## Context / problem
 
@@ -13,7 +13,7 @@ Arukellt currently exposes two different “import-like” surfaces:
 | Source modules (Layer S) | `use std::io` | Resolve `.ark` modules and stdlib; path segments use `::`. |
 | WIT / Component packages (Layer C) | `wasi:cli/stdin@0.2.10` | Package and interface identifiers at the Component Model boundary; use `:` between namespace and package, `/` before interface, `@` for versions. |
 
-They do not collide lexically today because WIT text normally lives in `.wit` files, manifests, and tooling — not in ordinary `use` paths. As Layer C declarations move closer to source (issue [#123](../../issues/done/123-import-syntax-unification.md), [#124](../../issues/open/124-wit-component-import-syntax.md)), the risk shifts to **conceptual** confusion (stdlib vs WASI) and to **future grammar** choices, not to accidental parsing of `std::` as WIT.
+They do not collide lexically today because WIT text normally lives in `.wit` files, manifests, and tooling — not in ordinary `use` paths. As Layer C declarations move closer to source (issue [#123](../../issues/open/123-import-syntax-unification.md), [#124](../../issues/done/124-wit-component-import-syntax.md)), the risk shifts to **conceptual** confusion (stdlib vs WASI) and to **future grammar** choices, not to accidental parsing of `std::` as WIT.
 
 Normative split for current behavior: [ADR-009-import-syntax.md](ADR-009-import-syntax.md) and [../spec/import-system.md](../spec/import-system.md).
 
@@ -42,7 +42,7 @@ The deferred implementation work is intentionally separate:
 - parser / lowering support for any `import "…"` or attribute-based bridge
 - migration away from legacy `import <single_identifier>` source imports
 
-Those items stay tracked with issue [#124](../../issues/open/124-wit-component-import-syntax.md) and implementation work, not with this record.
+Those items stay tracked with issue [#124](../../issues/done/124-wit-component-import-syntax.md) and implementation work, not with this record.
 
 ## WIT-related paths in this repository
 
