@@ -21,6 +21,8 @@
 | [decision-guide.md](decision-guide.md) | 意思決定ガイド | この文書は、現行プロジェクトで判断に迷ったときの設計寄り参照先です。 |
 | [false-done-audit-2026-04-13.md](false-done-audit-2026-04-13.md) | False-Done Audit Report — 2026-04-13 | Audit scope: all files in issues/done/ as of 2026-04-13. |
 | [false-done-audit-2026-06-12.md](false-done-audit-2026-06-12.md) | False-Done Audit Report — 2026-06-12 | Audit orchestrator: prompts/research.md |
+| [false-done-audit-orchestration-plan.md](false-done-audit-orchestration-plan.md) | False-Done 全件監査 — オーケストレーション計画 | For cloud /orchestrate root planner. |
+| [false-done-prevention.md](false-done-prevention.md) | False-Done 再発防止 | 監査オーケストレーター契約: prompts/research.md |
 | [internal-api-migration.md](internal-api-migration.md) | Internal API Migration Notes | Internal consumer guidance for the T3 promotion and pipeline refactor. |
 | [llm-readiness-plan.md](llm-readiness-plan.md) | Archived LLM readiness plan | この文書は過去の計画メモです。現在の active plan ではありません。 |
 | [parser-ark-evaluation.md](parser-ark-evaluation.md) | parser.ark 翻訳評価レポート | parser.rs (Gloss markup parser, 1028 行 Rust) → parser.ark (arukellt v0) の翻訳結果を分析し、言語の書きやすさと v1 改善候補を特定する。 |

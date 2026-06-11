@@ -13,7 +13,6 @@ graph LR
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
   I472["472 472-playground-type-checker-product-claim"]
-  I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I474["474 Async component support (v5)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I500["500 500-playground-wasm-typecheck-export"]
@@ -38,7 +37,6 @@ graph LR
 - **44** depends on: 039, 044, 053; blocks: none
 - **45** depends on: 039, 042, 044; blocks: none
 - **472** depends on: 466; blocks: none
-- **473** depends on: 032, done); blocks: none
 - **474** depends on: 035, done), 074; blocks: none
 - **476** depends on: 035, done), 074; blocks: none
 - **500** depends on: none; blocks: none

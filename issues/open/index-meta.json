@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-11T17:54:53Z",
+  "generated_at": "2026-06-11T18:05:16Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -175,31 +175,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "473",
-      "path": "473-resource-type-v3-advanced-features.md",
-      "title": "Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC",
-      "track": "wasm-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "032",
-        "done)"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
       }
     },
     {

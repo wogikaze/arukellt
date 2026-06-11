@@ -4413,6 +4413,14 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-dap-lifecycle.py",
         ),
         (
+            "false-done hygiene gate",
+            "python3 scripts/check/check-false-done-hygiene.py",
+        ),
+        (
+            "false-done close-gate enforcement",
+            "python3 scripts/check/check-false-done-close-gates.py",
+        ),
+        (
             "compiler boundary check (CoreHIR/MIR separation)",
             "python3 scripts/check/check-compiler-boundaries.py",
         ),

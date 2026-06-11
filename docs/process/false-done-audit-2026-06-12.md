@@ -172,3 +172,32 @@ None.
 
 Wave completion commits are mandatory per updated `prompts/research.md`
 (`autonomous commit policy` — orchestration-state only, per wave).
+
+---
+
+## Wave 3 — 2026-06-12 (prevention + close-gates)
+
+### Deliverables
+
+| Artifact | Purpose |
+|----------|---------|
+| `docs/process/false-done-prevention.md` | Root-cause catalog FD-01–FD-10 + close checklist |
+| `docs/process/false-done-audit-orchestration-plan.md` | Full-audit slice plan + cloud kickoff blocker |
+| `scripts/check/check-false-done-hygiene.py` | Mechanical hygiene in verify quick |
+| `scripts/check/check-false-done-close-gates.py` | Re-close gate when tracked issues land in `done/` |
+| `playground/src/tests/typecheck-close-gate.test.ts` | #472 / #500 behavioral contract |
+
+### Hygiene fixes (wave 3)
+
+| Issue | Action |
+|-------|--------|
+| #473 | Removed stale duplicate under `issues/open/` (authoritative copy in `issues/done/`) |
+| #057 | Added audit resolution; `stdlib_migration/*` fixtures satisfy close gate |
+
+### Cloud orchestrate status
+
+`bun cli.ts kickoff` still blocked: `validation_error: Failed to verify existence of branch 'master'`. Local planner continues per `false-done-audit-orchestration-plan.md` slices A–G.
+
+### Remaining audit surface
+
+~600 `issues/done/` files not yet spot-checked in this run. Slice A (~150 with historical reopen metadata) is next priority.

@@ -8,9 +8,16 @@ Depends on: 039, 041, 042, 044, 048, 049, 052
 Orchestration class: implementation-ready
 Blocks v3 exit: yes
 Reason: "Prelude is still large wrapper surface. Claimed migration fixtures (tests/fixtures/stdlib_migration) absent."
-Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
+Action: Historical false-done audit note (2026-04-13); superseded by resolution below.
 W0100: "`Vec_new_i32` is deprecated. Use `std::collections::vec::new<i32>()` instead."
 ---
+
+## Audit resolution — 2026-06-12
+
+`tests/fixtures/stdlib_migration/new_api_basic.ark` and `old_api_compat.ark` are
+registered in `tests/fixtures/manifest.txt`. Prelude migration fixtures and
+`diag:diagnostics/deprecated_prelude_println.ark` satisfy the close gate for
+this issue. Stale "moved to open" metadata is historical only.
 
 | `Vec_new_i32()` | `use std: ":collections::vec; vec::new<i32>()` |"
 | `Vec_new_i64()` | `vec: ":new<i64>()` |"
