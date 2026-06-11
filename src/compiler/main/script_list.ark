@@ -1,0 +1,59 @@
+// Arukellt Selfhost - CLI script list rendering.
+
+use std::host::stdio
+
+pub fn print_script_list(scripts_content: String) {
+    stdio::println(String_from("Available scripts:"))
+    if len(scripts_content) == 0 {
+        stdio::println(String_from("  (none defined)"))
+        return
+    }
+    let sc_len = len(scripts_content)
+    let mut line_start = 0
+    let mut i = 0
+    while i < sc_len {
+        if char_at(scripts_content, i) == 10 || i == sc_len - 1 {
+            print_script_line(scripts_content, line_start, i, sc_len)
+            line_start = i + 1
+        }
+        i = i + 1
+    }
+}
+
+fn print_script_line(scripts_content: String, line_start: i32, i: i32, sc_len: i32) {
+    let line_end = if char_at(scripts_content, i) == 10 { i } else { i + 1 }
+    let line = substring(scripts_content, line_start, line_end)
+    let line_len = len(line)
+    let mut j = 0
+    while j < line_len && char_at(line, j) == 32 {
+        j = j + 1
+    }
+    let key_start = j
+    while j < line_len && char_at(line, j) != 32 && char_at(line, j) != 61 {
+        j = j + 1
+    }
+    if key_start >= j {
+        return
+    }
+    let key = substring(line, key_start, j)
+    while j < line_len && char_at(line, j) == 32 {
+        j = j + 1
+    }
+    if j >= line_len || char_at(line, j) != 61 {
+        return
+    }
+    j = j + 1
+    while j < line_len && char_at(line, j) == 32 {
+        j = j + 1
+    }
+    if j >= line_len || char_at(line, j) != 34 {
+        return
+    }
+    j = j + 1
+    let val_start = j
+    while j < line_len && char_at(line, j) != 34 {
+        j = j + 1
+    }
+    let val = substring(line, val_start, j)
+    stdio::println(concat(String_from("  "), concat(clone(key), concat(String_from(" = "), clone(val)))))
+}

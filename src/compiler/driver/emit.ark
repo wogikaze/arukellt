@@ -7,11 +7,12 @@ use std::host::stdio
 use component
 use wasm
 use std::host::clock
+use driver::checked_program
 use driver::debug
 
 // Arukellt Driver - final output mode dispatch
 
-fn emit_output(mir_module: MirModule, all_decls: Vec<AstNode>, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+fn emit_output(mir_module: MirModule, program: CheckedProgram, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
     normalize_wasi_version(config)
     let emit_mode = config_record::config_emit_mode(config)
     let component_error = component_target_error(config, clone(emit_mode))
@@ -19,7 +20,7 @@ fn emit_output(mir_module: MirModule, all_decls: Vec<AstNode>, config: DriverCon
         return result_record::CompileResult_err(phases::PHASE_EMIT(), component_error)
     }
     if eq(clone(emit_mode), "wit") {
-        return emit_wit_output(all_decls, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+        return emit_wit_output(checked_program::checked_program_wit_decls(program), config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
     }
     if eq(clone(emit_mode), "wat") {
         return emit_wat_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)

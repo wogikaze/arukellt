@@ -1,0 +1,85 @@
+// Arukellt Selfhost - local module declaration registration.
+
+use loader::module_state_errors
+use loader::module_state_loading
+use loader::module_state_modules
+use loader::module_file_load_local
+use loader::module_names
+use loader::module_parse
+use loader::module_paths
+use loader::module_state
+struct DriverLocalModuleDecls {
+    decls: Vec<AstNode>,
+    path: String,
+    pushed_stack: bool,
+}
+
+fn DriverLocalModuleDecls_new(decls: Vec<AstNode>, path: String, pushed_stack: bool) -> DriverLocalModuleDecls {
+    DriverLocalModuleDecls { decls: decls, path: path, pushed_stack: pushed_stack }
+}
+
+pub fn DriverLocalModuleDecls_decls(loaded: DriverLocalModuleDecls) -> Vec<AstNode> {
+    loaded.decls
+}
+
+fn DriverLocalModuleDecls_path(loaded: DriverLocalModuleDecls) -> String {
+    clone(loaded.path)
+}
+
+pub fn DriverLocalModuleDecls_pushed_stack(loaded: DriverLocalModuleDecls) -> bool {
+    loaded.pushed_stack
+}
+
+pub fn load_local_module_decls(module_name: String, base_dir: String, state: LoadState) -> DriverLocalModuleDecls {
+    let skip = should_skip_local_module_read(clone(module_name), clone(base_dir), state)
+    if skip {
+        return DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
+    }
+    let load_result = module_file_load_local::read_local_module_source(clone(module_name), clone(base_dir))
+    match load_result {
+        Result::Ok(loaded) => {
+            register_local_module_source(clone(module_name), module_file_load_local::DriverLoadedSource_path(loaded), module_file_load_local::DriverLoadedSource_source(loaded), state)
+        },
+        Result::Err(e) => {
+            module_state_errors::LoadState_push_error(state, concat(String_from("failed to load module `"), concat(clone(module_name), concat(String_from("`: "), e))))
+            DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
+        },
+    }
+}
+
+fn should_skip_local_module_read(module_name: String, base_dir: String, state: LoadState) -> bool {
+    let stem = module_paths::module_path_to_file_stem(clone(module_name))
+    let primary_path = module_paths::module_stem_to_file_path(clone(base_dir), clone(stem))
+    if local_candidate_loaded_or_loading(clone(module_name), clone(primary_path), state) {
+        return true
+    }
+    let mod_path = module_paths::module_stem_to_mod_path(clone(base_dir), clone(stem))
+    local_candidate_loaded_or_loading(module_name, mod_path, state)
+}
+
+fn local_candidate_loaded_or_loading(module_name: String, path: String, state: LoadState) -> bool {
+    if module_state_loading::LoadState_has_loaded(state, clone(path)) {
+        return true
+    }
+    if module_state_loading::LoadState_has_loading(state, clone(path)) {
+        module_state_errors::LoadState_push_error(state, concat(String_from("circular import detected: "), module_name))
+        return true
+    }
+    false
+}
+
+fn register_local_module_source(module_name: String, canonical_path: String, source: String, state: LoadState) -> DriverLocalModuleDecls {
+    if module_state_loading::LoadState_has_loaded(state, clone(canonical_path)) {
+        return DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
+    }
+    if module_state_loading::LoadState_has_loading(state, clone(canonical_path)) {
+        module_state_errors::LoadState_push_error(state, concat(String_from("circular import detected: "), clone(module_name)))
+        return DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
+    }
+    module_state_loading::LoadState_push_loading(state, clone(canonical_path))
+    let mod_decls = module_parse::parse_module_source(source)
+    let module_alias = module_names::module_short_name(clone(module_name))
+    module_state_loading::LoadState_push_loaded(state, clone(canonical_path))
+    module_state_modules::LoadState_add_module(state, module_alias, mod_decls)
+    DriverLocalModuleDecls_new(mod_decls, canonical_path, true)
+}

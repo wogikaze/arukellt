@@ -14,18 +14,18 @@ use component
 // Arukellt Selfhost - driver preflight, lex, and parse stages.
 
 fn run_frontend(source: String, config: DriverConfig) -> DriverFrontendResult {
-    let wit_error = validate_wit_imports(config)
-    if len(wit_error) > 0 {
-        return frontend_stop(result_record::CompileResult_err(phases::PHASE_RESOLVE(), wit_error), 0, 0, 0)
-    }
     let t0 = clock::monotonic_now()
     let parsed = run_lex_parse(clone(source), config, t0)
     if frontend_result_should_return(parsed) {
         return parsed
     }
-    let component_error = validate_component_exports(config, frontend_result_decls(parsed))
-    if len(component_error) > 0 {
-        return frontend_stop(result_record::CompileResult_err(phases::PHASE_EMIT(), component_error), t0, frontend_result_t_lex(parsed), clock::monotonic_now())
+    let preflight_error = component::preflight_frontend(
+        config_record::config_emit_mode(config),
+        config_record::config_wit_paths(config),
+        frontend_result_decls(parsed)
+    )
+    if len(preflight_error) > 0 {
+        return frontend_stop(result_record::CompileResult_err(phases::PHASE_EMIT(), preflight_error), t0, frontend_result_t_lex(parsed), clock::monotonic_now())
     }
     frontend_continue(frontend_result_decls(parsed), t0, frontend_result_t_lex(parsed), frontend_result_t_parse(parsed))
 }
@@ -100,17 +100,4 @@ fn frontend_result_t_lex(result: DriverFrontendResult) -> i64 {
 
 fn frontend_result_t_parse(result: DriverFrontendResult) -> i64 {
     result.t_parse
-}
-
-// Arukellt Selfhost - driver preflight validation.
-
-fn validate_wit_imports(config: DriverConfig) -> String {
-    component::validate_wit_import_surface(config_record::config_wit_paths(config))
-}
-
-fn validate_component_exports(config: DriverConfig, decls: Vec<AstNode>) -> String {
-    if eq(config_record::config_emit_mode(config), String_from("component")) {
-        return component::validate_export_surface(decls)
-    }
-    String_from("")
 }

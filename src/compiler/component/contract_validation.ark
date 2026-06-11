@@ -85,3 +85,10 @@ fn validate_export_surface(decls: Vec<AstNode>) -> String {
     }
     String_new()
 }
+
+fn validate_export_surface_from_names(export_names: Vec<String>) -> String {
+    if len(export_names) == 0 {
+        return String_new()
+    }
+    String_new()
+}

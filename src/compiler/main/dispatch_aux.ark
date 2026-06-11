@@ -1,0 +1,46 @@
+// Arukellt Selfhost - auxiliary CLI command dispatch routes.
+
+use main::args_record
+use main::component_cmd
+use main::doc
+use main::fmt
+use main::init
+use main::kinds
+use main::script
+use main::targets
+
+pub fn dispatch_aux_command(opts: CliOptions, command: i32) -> bool {
+    if command == kinds::CMD_TARGETS() {
+        targets::cmd_targets()
+        return true
+    }
+    if command == kinds::CMD_DOC() {
+        doc::cmd_doc(opts)
+        return true
+    }
+    if command == kinds::CMD_INIT() {
+        init::cmd_init(opts)
+        return true
+    }
+    if command == kinds::CMD_FMT() {
+        fmt::cmd_fmt(opts)
+        return true
+    }
+    if command == kinds::CMD_SCRIPT() {
+        script::cmd_script(opts)
+        return true
+    }
+    if command == kinds::CMD_COMPONENT() {
+        if args_record::cli_component_action(opts) == kinds::COMP_ACTION_INSPECT() {
+            component_cmd::cmd_component_inspect(opts)
+            return true
+        }
+        if args_record::cli_component_action(opts) == kinds::COMP_ACTION_VALIDATE() {
+            component_cmd::cmd_component_validate(opts)
+            return true
+        }
+        component_cmd::cmd_component_build(opts)
+        return false
+    }
+    false
+}

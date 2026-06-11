@@ -1,0 +1,40 @@
+// Arukellt Selfhost - scan let bindings for typed local facts.
+
+use corehir::raw_dto
+use corehir::frontend_ast_identity
+use corehir::frontend_ast_children
+use corehir::frontend_stmt_kind
+use corehir::frontend_ast_type_ann
+
+fn scan_typed_locals(decls: Vec<AstNode>) -> Vec<CoreHirTypedLocal> {
+    let locals = Vec_new_CoreHirTypedLocal()
+    let decl_count = len(decls)
+    let mut di = 0
+    while di < decl_count {
+        scan_locals_in_node(get_unchecked(decls, di), locals)
+        di = di + 1
+    }
+    locals
+}
+
+fn default_type_info() -> TypeInfo {
+    TypeInfo { tag: 1, name: String_from("i32"), type_args: Vec_new_TypeInfo() }
+}
+
+fn scan_locals_in_node(node: AstNode, locals: Vec<CoreHirTypedLocal>) {
+    let kind = frontend_ast_identity::corehir_node_kind(node)
+    if frontend_stmt_kind::corehir_kind_is_stmt_let(kind) {
+        let name = frontend_ast_identity::corehir_node_text(node)
+        let ty = default_type_info()
+        if frontend_ast_type_ann::corehir_node_type_ann_count(node) > 0 {
+            ty.name = frontend_ast_identity::corehir_node_text(frontend_ast_type_ann::corehir_node_type_ann_at(node, 0))
+        }
+        push(locals, raw_dto::CoreHirTypedLocal_new(name, ty))
+    }
+    let child_count = frontend_ast_children::corehir_node_child_count(node)
+    let mut ci = 0
+    while ci < child_count {
+        scan_locals_in_node(frontend_ast_children::corehir_node_child_at(node, ci), locals)
+        ci = ci + 1
+    }
+}

@@ -1,0 +1,30 @@
+// Arukellt Selfhost - CoreHIR raw program extension DTOs.
+
+struct CoreHirModuleInfo {
+    name: String,
+    decl_start: i32,
+    decl_count: i32,
+}
+
+struct CoreHirResolvedCall {
+    callee_name: String,
+    is_method: bool,
+    span_start: i32,
+}
+
+struct CoreHirTypedLocal {
+    name: String,
+    type_info: TypeInfo,
+}
+
+fn CoreHirModuleInfo_new(name: String, decl_start: i32, decl_count: i32) -> CoreHirModuleInfo {
+    CoreHirModuleInfo { name: name, decl_start: decl_start, decl_count: decl_count }
+}
+
+fn CoreHirResolvedCall_new(callee_name: String, is_method: bool, span_start: i32) -> CoreHirResolvedCall {
+    CoreHirResolvedCall { callee_name: callee_name, is_method: is_method, span_start: span_start }
+}
+
+fn CoreHirTypedLocal_new(name: String, type_info: TypeInfo) -> CoreHirTypedLocal {
+    CoreHirTypedLocal { name: name, type_info: type_info }
+}

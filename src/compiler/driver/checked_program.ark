@@ -1,0 +1,54 @@
+// Arukellt Selfhost - checked program bundle after typecheck.
+
+use compiler::session
+use corehir::frontend_bundle
+use corehir::mod
+use corehir::raw_record
+use loader::module_state_modules
+
+struct CheckedProgram {
+    bundle: FrontendBundle,
+    core_program: CoreHirRawProgram,
+    session: CompileSession,
+}
+
+fn CheckedProgram_new(bundle: FrontendBundle, core_program: CoreHirRawProgram, session: CompileSession) -> CheckedProgram {
+    CheckedProgram { bundle: bundle, core_program: core_program, session: session }
+}
+
+fn build_checked_program_bundle(all_decls: Vec<AstNode>, check_result: TypeCheckResult, modules: Vec<ModuleDecls>) -> FrontendBundle {
+    let module_names = Vec_new_String()
+    let module_decl_counts = Vec_new_i32()
+    let module_count = len(modules)
+    let mut mi = 0
+    while mi < module_count {
+        let md = get_unchecked(modules, mi)
+        push(module_names, md.name)
+        push(module_decl_counts, module_state_modules::ModuleDecls_decl_count(md))
+        mi = mi + 1
+    }
+    frontend_bundle::FrontendBundle_new(all_decls, check_result, module_names, module_decl_counts)
+}
+
+fn build_checked_program(all_decls: Vec<AstNode>, check_result: TypeCheckResult, modules: Vec<ModuleDecls>) -> CheckedProgram {
+    let bundle = build_checked_program_bundle(all_decls, check_result, modules)
+    let core_program = mod::build_from_frontend_bundle(bundle)
+    let session = session::CompileSession_build(core_program)
+    CheckedProgram_new(bundle, core_program, session)
+}
+
+fn checked_program_session(program: CheckedProgram) -> CompileSession {
+    program.session
+}
+
+fn checked_program_core_program(program: CheckedProgram) -> CoreHirRawProgram {
+    program.core_program
+}
+
+fn checked_program_export_surface(program: CheckedProgram) -> CoreHirExportSurface {
+    raw_record::raw_program_export_surface(program.core_program)
+}
+
+fn checked_program_wit_decls(program: CheckedProgram) -> Vec<AstNode> {
+    frontend_bundle::bundle_decls(program.bundle)
+}

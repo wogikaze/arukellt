@@ -1,31 +1,27 @@
-// Arukellt Selfhost - source loading and module graph loading for the driver
+// Arukellt Selfhost - thin re-export of loader module graph API.
 
-use std::host::fs
-use driver::module_graph
-use driver::module_paths
-use driver::module_state
-use driver::module_state_modules
+use loader::mod
 
 pub fn load_source(path: String) -> Result<String, String> {
-    fs::read_to_string(path)
+    mod::load_source(path)
 }
 
 pub fn parent_dir(path: String) -> String {
-    module_paths::parent_dir(path)
+    mod::parent_dir(path)
 }
 
 pub fn LoadState_new() -> LoadState {
-    module_state::LoadState_new()
+    mod::LoadState_new()
 }
 
 pub fn load_stdlib_module(stdlib_path: String, state: LoadState) {
-    module_graph::load_stdlib_module(stdlib_path, state)
+    mod::load_stdlib_module(stdlib_path, state)
 }
 
 pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState) {
-    module_graph::load_imported_modules(decls, base_dir, state)
+    mod::load_imported_modules(decls, base_dir, state)
 }
 
 pub fn release_module_asts(state: LoadState) {
-    module_state_modules::LoadState_release_module_asts(state)
+    mod::release_module_asts(state)
 }

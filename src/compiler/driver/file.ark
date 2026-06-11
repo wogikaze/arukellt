@@ -1,6 +1,6 @@
 // Arukellt Selfhost - compile-file entrypoint.
 
-use driver::module_paths
+use loader::module_paths
 use driver::config_record
 use driver::pipeline_backend
 use driver::result_record

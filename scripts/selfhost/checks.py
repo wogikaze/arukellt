@@ -2113,6 +2113,121 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
             lines.append(f"  FAIL: {cmd} (no-args: expected non-zero, got {rc_s})")
             fail_count += 1
 
+    # Case 7: targets — must exit zero and mention wasm32-wasi-p2
+    rc_t, out_t = run_self("targets")
+    if rc_t == 0 and "wasm32-wasi-p2" in out_t:
+        lines.append(f"  pass: targets (exit 0, mentions wasm32-wasi-p2)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: targets (exit={rc_t}, output={out_t.strip()!r})")
+        fail_count += 1
+
+    # ── Newly implemented commands ──────────────────────────────────────────
+
+    # Case 8: init — create a project in a temp directory
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        rc_i, out_i = run_self("init", str(tmp / "test_project"))
+        if rc_i == 0 and "Created project" in out_i:
+            lines.append(f"  pass: init (exit 0, mentions 'Created project')")
+            pass_count += 1
+        else:
+            lines.append(f"  FAIL: init (exit={rc_i}, output={out_i.strip()!r})")
+            fail_count += 1
+
+    # Case 9: fmt — format a known source file
+    rc_f, out_f = run_self("fmt", "tests/fixtures/hello_world.ark")
+    if rc_f == 0:
+        lines.append(f"  pass: fmt (exit 0)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: fmt (exit={rc_f}, output={out_f.strip()!r})")
+        fail_count += 1
+
+    # Case 10: component — build a component from a known source
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_wasm = Path(tmpdir) / "test_component.wasm"
+        rc_c, out_c = run_self("component", "tests/fixtures/hello_world.ark",
+                               "-o", str(out_wasm))
+        if rc_c == 0:
+            lines.append(f"  pass: component (exit 0)")
+            pass_count += 1
+        else:
+            lines.append(f"  FAIL: component (exit={rc_c}, output={out_c.strip()!r})")
+            fail_count += 1
+
+    # Case 11: script — run in a directory with ark.toml
+    fixture_project = root / "tests/package-workspace/basic-project"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        shutil.copytree(fixture_project, tmp / "basic-project",
+                        dirs_exist_ok=True)
+        r = _run(
+            [wasmtime, "run", str(current), "--", "script"],
+            tmp / "basic-project",
+        )
+        rc_s, out_s = r.returncode, (r.stdout + r.stderr)
+        if rc_s == 0:
+            lines.append(f"  pass: script (exit 0)")
+            pass_count += 1
+        else:
+            lines.append(f"  FAIL: script (exit={rc_s}, output={out_s.strip()!r})")
+            fail_count += 1
+
+    # Case 12: lint — run lint on a known clean source
+    rc_l, out_l = run_self("lint", "tests/fixtures/selfhost/analysis_clean.ark")
+    if rc_l == 0:
+        lines.append(f"  pass: lint (exit 0)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: lint (exit={rc_l}, output={out_l.strip()!r})")
+        fail_count += 1
+
+    # Case 13: analyze — run analysis on a known clean source
+    rc_a, out_a = run_self("analyze", "tests/fixtures/selfhost/analysis_clean.ark")
+    if rc_a == 0:
+        lines.append(f"  pass: analyze (exit 0)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: analyze (exit={rc_a}, output={out_a.strip()!r})")
+        fail_count += 1
+
+    # Case 14: doc — look up a known standard library module
+    rc_d, out_d = run_self("doc", "std::core")
+    if rc_d == 0:
+        lines.append(f"  pass: doc (exit 0)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: doc (exit={rc_d}, output={out_d.strip()!r})")
+        fail_count += 1
+
+    # Case 15: component build — compile to component wasm
+    rc_cb, out_cb = run_self("component", "build", "tests/fixtures/hello_world.ark")
+    if rc_cb == 0:
+        lines.append(f"  pass: component build (exit 0)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: component build (exit={rc_cb}, output={out_cb.strip()!r})")
+        fail_count += 1
+
+    # Case 16: component inspect — should gracefully report not-yet-implemented
+    rc_ci, out_ci = run_self("component", "inspect", "nonexistent.wasm")
+    if rc_ci == 1 and "not yet implemented" in out_ci:
+        lines.append(f"  pass: component inspect (exit 1, graceful)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: component inspect (exit={rc_ci}, output={out_ci.strip()!r})")
+        fail_count += 1
+
+    # Case 17: component validate — should gracefully report not-yet-implemented
+    rc_cv, out_cv = run_self("component", "validate", "nonexistent.wasm")
+    if rc_cv == 1 and "not yet implemented" in out_cv:
+        lines.append(f"  pass: component validate (exit 1, graceful)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: component validate (exit={rc_cv}, output={out_cv.strip()!r})")
+        fail_count += 1
+
     lines.append("")
     lines.append(f"{YELLOW}cli-parity: PASS={pass_count} FAIL={fail_count}{NC}")
     if fail_count > 0:

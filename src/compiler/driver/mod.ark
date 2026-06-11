@@ -1,0 +1,27 @@
+// Arukellt Selfhost - driver public entry point.
+
+use driver::config_record
+use driver::file
+use driver::pipeline_backend
+use driver::result_record
+use driver::types
+
+pub fn DriverConfig_default() -> DriverConfig {
+    config_record::DriverConfig_default()
+}
+
+pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
+    pipeline_backend::compile_source(source, config)
+}
+
+pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
+    file::compile_file(path, config)
+}
+
+pub fn CompileResult_ok(phase: i32) -> CompileResult {
+    result_record::CompileResult_ok(phase)
+}
+
+pub fn CompileResult_err(phase: i32, msg: String) -> CompileResult {
+    result_record::CompileResult_err(phase, msg)
+}

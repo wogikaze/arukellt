@@ -404,6 +404,20 @@ run:selfhost/comprehension_map_filter.ark
 run:selfhost/comprehension_nested_access.ark
 run:selfhost/comprehension_as_arg.ark
 run:selfhost/comprehension_empty_iter.ark
+# Issue #588 — language surface uplift fixtures (selfhost compiler coverage)
+run:lang_uplift/multi_clause_boolean.ark
+run:lang_uplift/where_clause_generic.ark
+run:lang_uplift/guard_neg_range.ark
+run:lang_uplift/comprehension_guard.ark
+run:lang_uplift/guard_const_enum_destructure.ark
+run:lang_uplift/lambda_pattern.ark
+compile-error:lang_uplift/neg_mixed_arity.ark
+compile-error:lang_uplift/neg_incompatible_return.ark
+compile-error:lang_uplift/neg_guard_name_not_in_scope.ark
+compile-error:lang_uplift/neg_guard_not_bool.ark
+compile-error:lang_uplift/neg_comprehension_non_iterable.ark
+compile-error:lang_uplift/neg_comprehension_filter_not_bool.ark
+compile-error:lang_uplift/neg_unreachable_clause.ark
 diag:selfhost/comprehen_deny_non_iterable.ark
 diag:selfhost/comprehen_deny_filter_not_bool.ark
 diag:selfhost/comprehen_deny_unresolved_filter.ark
@@ -438,6 +452,9 @@ run:stdlib_compiler/compiler_basic.ark
 run:stdlib_collections_compiler/slotmap_basic.ark
 run:stdlib_collections_compiler/interner_basic.ark
 run:stdlib_collections_compiler/rope_basic.ark
+run:stdlib_collections_compiler/arena_basic.ark
+run:stdlib_collections_compiler/slotmap_remove.ark
+run:stdlib_collections_compiler/rope_edit.ark
 run:stdlib_component/component_helpers.ark
 run:stdlib_core/convert.ark
 run:stdlib_core/error_basic.ark
@@ -526,6 +543,8 @@ run:stdlib_json/json_differential.ark
 run:stdlib_linear/linear_basic.ark
 run:stdlib_linear/deque_ops.ark
 run:stdlib_linear/pq_ops.ark
+run:stdlib_linear/deque_wrap.ark
+run:stdlib_linear/pq_sort.ark
 run:stdlib_map/map_string.ark
 run:stdlib_math/abs_min_max.ark
 run:stdlib_math/clamp_i32.ark
@@ -687,6 +706,9 @@ t3-compile:from_trait/from_auto_convert.ark
 t3-compile:stdlib_trait/display_trait.ark
 t3-compile:stdlib_trait/eq_trait.ark
 t3-compile:stdlib_trait/hash_trait.ark
+t3-compile:stdlib_trait/display_trait_vec.ark
+t3-compile:stdlib_trait/eq_trait_string.ark
+t3-compile:stdlib_trait/hash_trait_nested.ark
 t3-compile:functions/basic_fn.ark
 t3-compile:functions/closure_basic.ark
 t3-compile:functions/closure_capture.ark
@@ -852,6 +874,9 @@ t3-run:display_trait/display_struct.ark
 t3-run:stdlib_trait/display_trait.ark
 t3-run:stdlib_trait/eq_trait.ark
 t3-run:stdlib_trait/hash_trait.ark
+t3-run:stdlib_trait/display_trait_vec.ark
+t3-run:stdlib_trait/eq_trait_string.ark
+t3-run:stdlib_trait/hash_trait_nested.ark
 t3-run:enums/enum_struct_variant.ark
 t3-run:enums/exhaustive_match.ark
 t3-run:enums/nested_enum.ark
@@ -1045,4 +1070,9 @@ t3-run:stdlib_host/host_module_contract.ark
 run:stdlib_trait/display_trait.ark
 run:stdlib_trait/eq_trait.ark
 run:stdlib_trait/hash_trait.ark
+run:stdlib_trait/display_trait_vec.ark
+run:stdlib_trait/eq_trait_string.ark
+run:stdlib_trait/hash_trait_nested.ark
 run:stdlib_toml/toml_parse_invalid_array_of_tables.ark
+# issue 487: Vec<Struct> len() correctness (fix in mir_lower)
+run:regression/vec_struct_len.ark

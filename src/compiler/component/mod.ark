@@ -1,6 +1,7 @@
 // Arukellt Selfhost - component public boundary.
 
 use component::contract
+use component::contract_preflight
 use component::emit
 use component::wit_text
 
@@ -26,4 +27,8 @@ pub fn validate_wit_import_surface(paths: Vec<String>) -> String {
 
 pub fn validate_export_surface(decls: Vec<AstNode>) -> String {
     contract::validate_export_surface(decls)
+}
+
+pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
+    contract_preflight::preflight_frontend(config_emit_mode, wit_paths, decls)
 }

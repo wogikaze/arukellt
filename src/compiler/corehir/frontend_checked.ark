@@ -1,13 +1,36 @@
 // Arukellt Selfhost - checked frontend result to CoreHIR adapter.
 
 use corehir::frontend
+use corehir::frontend_bundle
+use corehir::frontend_export_surface
+use corehir::frontend_modules
+use corehir::frontend_resolved_calls
+use corehir::frontend_typed_locals
 use corehir::type_facts
 use typechecker::contract_result_state
 
-fn build_checked_program(decls: Vec<AstNode>, check_result: TypeCheckResult) -> CoreHirRawProgram {
+fn build_checked_program_from_bundle(bundle: FrontendBundle) -> CoreHirRawProgram {
+    let decls = frontend_bundle::bundle_decls(bundle)
+    let check_result = frontend_bundle::bundle_check_result(bundle)
     let facts = type_facts::CoreHirTypeFacts_new(
         contract_result_state::typecheck_result_typed_fns(check_result),
         contract_result_state::typecheck_result_mono_instances(check_result)
     )
-    frontend::build_program_from_facts(decls, facts)
+    let modules = frontend_modules::build_module_infos(
+        frontend_bundle::bundle_module_names(bundle),
+        frontend_bundle::bundle_module_decl_counts(bundle),
+        len(decls)
+    )
+    frontend::build_program_from_facts_with_dto(
+        decls,
+        facts,
+        modules,
+        frontend_resolved_calls::scan_resolved_calls(decls),
+        frontend_typed_locals::scan_typed_locals(decls),
+        frontend_export_surface::build_export_surface(decls)
+    )
+}
+
+fn build_checked_program(decls: Vec<AstNode>, check_result: TypeCheckResult) -> CoreHirRawProgram {
+    build_checked_program_from_bundle(frontend_bundle::FrontendBundle_new(decls, check_result, Vec_new_String(), Vec_new_i32()))
 }

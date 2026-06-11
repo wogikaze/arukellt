@@ -1,0 +1,33 @@
+use std::host::stdio
+
+/// User-defined Display trait verifying trait method dispatch on Vec<Struct> elements.
+trait Display {
+    fn to_string(self: Display) -> String
+}
+
+struct Token {
+    kind: i32,
+    value: String,
+}
+
+impl Display for Token {
+    fn to_string(self: Token) -> String {
+        concat(concat(concat(concat("Token(", to_string(self.kind)), ", \""), self.value), "\")")
+    }
+}
+
+fn main() {
+    let mut tokens: Vec<Token> = Vec_new_Token()
+    push(tokens, Token { kind: 0, value: String_from("eof") })
+    push(tokens, Token { kind: 1, value: String_from("ident") })
+
+    // Display trait dispatch on struct extracted from Vec
+    match get(tokens, 0) {
+        Option::Some(t) => stdio::println(to_string(t)),
+        None => stdio::println("err"),
+    }
+    match get(tokens, 1) {
+        Option::Some(t) => stdio::println(to_string(t)),
+        None => stdio::println("err"),
+    }
+}

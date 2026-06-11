@@ -5,7 +5,7 @@ use main::editor
 use main::kinds
 
 pub fn dispatch_ide_command(opts: CliOptions, command: i32) -> bool {
-    if command == kinds::CMD_IDE_ANALYZE() {
+    if command == kinds::CMD_IDE_ANALYZE() || command == kinds::CMD_LINT() || command == kinds::CMD_ANALYZE() {
         editor::cmd_ide_analyze(opts)
         return true
     }

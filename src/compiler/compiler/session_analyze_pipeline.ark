@@ -6,7 +6,10 @@ use compiler::phases
 use compiler::session_lex_query
 use compiler::session_parse_tokens
 use compiler::session_resolve_query
+use compiler::session
 use compiler::session_typecheck_query
+use corehir::frontend_bundle
+use corehir::mod
 use diagnostics::mod
 
 fn lex_diag_code_string(code: i32) -> String {
@@ -120,6 +123,13 @@ let res_err_count = session_resolve_query::session_resolve_error_count(resolve_c
 session_record_resolve_diagnostics(snap, resolve_ctx)
 let check_result = session_typecheck_query::session_typecheck_decls(decls, resolve_ctx)
 snapshot_state_record::snapshot_set_typed_fn_count(snap, session_typecheck_query::session_typecheck_typed_fn_count(check_result))
-session_record_typecheck_diagnostics(snap, check_result, res_err_count)
-snap
+	session_record_typecheck_diagnostics(snap, check_result, res_err_count)
+	if res_err_count == 0 && session_typecheck_query::session_typecheck_error_count(check_result) == 0 {
+		let empty_names = Vec_new_String()
+		let empty_counts = Vec_new_i32()
+		let bundle = frontend_bundle::FrontendBundle_new(decls, check_result, empty_names, empty_counts)
+		let core_program = mod::build_from_frontend_bundle(bundle)
+		let _sess = session::CompileSession_build(core_program)
+	}
+	snap
 }

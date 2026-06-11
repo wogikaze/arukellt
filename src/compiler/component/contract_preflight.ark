@@ -1,0 +1,24 @@
+// Arukellt Selfhost - component mode preflight validation.
+
+use component::contract
+use component::wit_text
+use corehir::export_surface
+
+fn preflight_wit_imports(wit_paths: Vec<String>) -> String {
+    wit_text::validate_wit_import_surface(wit_paths)
+}
+
+fn validate_export(surface: CoreHirExportSurface) -> String {
+    contract::validate_export_surface_from_names(export_surface::export_surface_names(surface))
+}
+
+fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
+    let wit_error = preflight_wit_imports(wit_paths)
+    if len(wit_error) > 0 {
+        return wit_error
+    }
+    if eq(clone(config_emit_mode), String_from("component")) {
+        return contract::validate_export_surface(decls)
+    }
+    String_from("")
+}

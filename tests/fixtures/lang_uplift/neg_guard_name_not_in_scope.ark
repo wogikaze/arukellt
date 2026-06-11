@@ -1,0 +1,7 @@
+// Error: guard references a name not in scope
+fn describe(x) -> String | undefined_name = "oops"
+fn describe(_) -> String = "fallback"
+
+fn main() {
+    __intrinsic_print(describe(42))
+}

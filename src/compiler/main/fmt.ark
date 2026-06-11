@@ -1,0 +1,112 @@
+// Arukellt Selfhost - CLI fmt command.
+
+use std::host::fs
+use std::host::process
+use std::host::stdio
+use main::args_record
+
+pub fn cmd_fmt(opts: CliOptions) {
+    let input_file = args_record::cli_input_file(opts)
+    if len(input_file) == 0 {
+        stdio::eprintln(String_from("usage: arukellt fmt <file.ark>"))
+        process::exit(2)
+        return
+    }
+    let read_result = fs::read_to_string(clone(input_file))
+    match read_result {
+        Result::Ok(text) => {
+            let formatted = fmt_source(text)
+            let write_result = fs::write_string(clone(input_file), clone(formatted))
+            match write_result {
+                Result::Ok(_) => {
+                    stdio::eprintln(concat(String_from("formatted "), clone(input_file)))
+                },
+                Result::Err(e) => {
+                    stdio::eprintln(concat(String_from("error writing formatted file: "), e))
+                    process::exit(1)
+                },
+            }
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error reading input: "), e))
+            process::exit(1)
+        },
+    }
+}
+
+fn fmt_line(line: String) -> String {
+    let n = len(clone(line))
+    let mut end = n
+    while end > 0 {
+        let c = char_at(clone(line), end - 1)
+        if c != 32 && c != 9 {
+            break
+        }
+        end = end - 1
+    }
+    let mut result = String_new()
+    let mut pos = 0
+    while pos < end {
+        let c = char_at(clone(line), pos)
+        if c == 9 {
+            result = concat(result, String_from("    "))
+        } else {
+            result = concat(result, substring(clone(line), pos, pos + 1))
+        }
+        pos = pos + 1
+    }
+    result
+}
+
+fn fmt_source(input: String) -> String {
+    let mut lines = Vec_new_String()
+    let n = len(clone(input))
+    let mut start = 0
+    let mut i = 0
+    while i < n {
+        if char_at(clone(input), i) == 10 {
+            push(lines, substring(clone(input), start, i))
+            start = i + 1
+        }
+        i = i + 1
+    }
+    push(lines, substring(clone(input), start, n))
+
+    let line_count = len(lines)
+    let mut out_lines = Vec_new_String()
+    let mut prev_blank = false
+    let mut j = 0
+    while j < line_count {
+        let raw = get_unchecked(lines, j)
+        let processed = fmt_line(raw)
+        let is_blank = len(processed) == 0
+        if !(is_blank && prev_blank) {
+            push(out_lines, processed)
+        }
+        prev_blank = is_blank
+        j = j + 1
+    }
+
+    let out_count = len(out_lines)
+    let mut end = out_count
+    while end > 0 {
+        let last = get_unchecked(out_lines, end - 1)
+        if len(last) == 0 {
+            end = end - 1
+        } else {
+            break
+        }
+    }
+
+    let mut result = String_new()
+    let mut k = 0
+    while k < end {
+        if k > 0 {
+            result = concat(result, String_from("\n"))
+        }
+        result = concat(result, clone(get_unchecked(out_lines, k)))
+        k = k + 1
+    }
+    result = concat(result, String_from("\n"))
+    result
+}

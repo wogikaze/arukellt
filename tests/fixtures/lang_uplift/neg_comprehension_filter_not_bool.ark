@@ -1,0 +1,4 @@
+// Comprehension filter not bool — should error
+pub fn main() {
+    let xs = [x for x in [1, 2, 3] if 42]
+}

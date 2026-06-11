@@ -16,7 +16,8 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
     if args_record::cli_show_help(opts) || args_record::cli_show_version(opts) {
         return opts
     }
-    args_record::parse_option_args(argv, argc, opts, 2)
+    parse_component_subcommand(argv, argc, opts)
+    args_record::parse_option_args(argv, argc, opts, component_option_start(argv, argc, opts))
     opts
 }
 
@@ -70,6 +71,34 @@ fn arg_is_help(arg: String) -> bool {
         return true
     }
     len(clone(arg)) == 2 && char_at(clone(arg), 0) == 45 && char_at(clone(arg), 1) == 104
+}
+
+fn parse_component_subcommand(argv: Vec<String>, argc: i32, opts: CliOptions) {
+    if args_record::cli_command(opts) != kinds::CMD_COMPONENT() {
+        return
+    }
+    if argc <= 2 {
+        return
+    }
+    let sub = get_unchecked(argv, 2)
+    if commands::cli_str_eq(clone(sub), String_from("inspect")) {
+        args_record::cli_set_component_action(opts, kinds::COMP_ACTION_INSPECT())
+        return
+    }
+    if commands::cli_str_eq(clone(sub), String_from("validate")) {
+        args_record::cli_set_component_action(opts, kinds::COMP_ACTION_VALIDATE())
+    }
+}
+
+fn component_option_start(argv: Vec<String>, argc: i32, opts: CliOptions) -> i32 {
+    if args_record::cli_command(opts) != kinds::CMD_COMPONENT() || argc <= 2 {
+        return 2
+    }
+    let sub = get_unchecked(argv, 2)
+    if commands::cli_str_eq(clone(sub), String_from("build")) || args_record::cli_component_action(opts) != kinds::COMP_ACTION_BUILD() {
+        return 3
+    }
+    2
 }
 
 fn arg_is_version(arg: String) -> bool {

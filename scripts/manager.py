@@ -322,7 +322,9 @@ def _driver_module_source_lookup_violations(root: Path) -> list[tuple[str, int, 
 
 def _driver_module_graph_relative_import_violations(root: Path) -> list[str]:
     """Return module graph loader patterns that would lose nested relative imports."""
-    graph = root / "src" / "compiler" / "driver" / "module_graph.ark"
+    graph = root / "src" / "compiler" / "loader" / "module_graph.ark"
+    if not graph.is_file():
+        graph = root / "src" / "compiler" / "driver" / "module_graph.ark"
     if not graph.is_file():
         graph = root / "src" / "compiler" / "driver_module_graph.ark"
     if not graph.is_file():
@@ -4409,6 +4411,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         (
             "selfhost DAP lifecycle gate (#571)",
             "python3 scripts/check/check-dap-lifecycle.py",
+        ),
+        (
+            "compiler boundary check (CoreHIR/MIR separation)",
+            "python3 scripts/check/check-compiler-boundaries.py",
         ),
     ]
 

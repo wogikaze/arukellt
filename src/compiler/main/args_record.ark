@@ -1,11 +1,13 @@
 // Arukellt Selfhost - main namespace: args_record
 
+use main::args_record_opt
 use main::commands
 use main::kinds
 // Arukellt Selfhost - CLI option data record.
 
 struct CliOptions {
     command: i32,
+    component_action: i32,
     input_file: String,
     output_file: String,
     target: String,
@@ -21,15 +23,16 @@ struct CliOptions {
     show_timing: bool,
 }
 
-fn CliOptions_new(command: i32, input_file: String, output_file: String, target: String, wit_paths: Vec<String>, opt_level: i32, dump_phases: String, emit_mode: String, json_output: bool, show_help: bool, show_version: bool, has_error: bool, error_msg: String, show_timing: bool) -> CliOptions {
-    CliOptions { command: command, input_file: input_file, output_file: output_file, target: target, wit_paths: wit_paths, opt_level: opt_level, dump_phases: dump_phases, emit_mode: emit_mode, json_output: json_output, show_help: show_help, show_version: show_version, has_error: has_error, error_msg: error_msg, show_timing: show_timing }
+fn CliOptions_new(command: i32, component_action: i32, input_file: String, output_file: String, target: String, wit_paths: Vec<String>, opt_level: i32, dump_phases: String, emit_mode: String, json_output: bool, show_help: bool, show_version: bool, has_error: bool, error_msg: String, show_timing: bool) -> CliOptions {
+    CliOptions { command: command, component_action: component_action, input_file: input_file, output_file: output_file, target: target, wit_paths: wit_paths, opt_level: opt_level, dump_phases: dump_phases, emit_mode: emit_mode, json_output: json_output, show_help: show_help, show_version: show_version, has_error: has_error, error_msg: error_msg, show_timing: show_timing }
 }
 
 fn CliOptions_default() -> CliOptions {
-    CliOptions_new(kinds::CMD_UNKNOWN(), String_new(), String_new(), String_from("wasm32-wasi-p2"), Vec_new_String(), 0, String_new(), String_from("wasm"), false, false, false, false, String_new(), false)
+    CliOptions_new(kinds::CMD_UNKNOWN(), kinds::COMP_ACTION_BUILD(), String_new(), String_new(), String_from("wasm32-wasi-p2"), Vec_new_String(), 0, String_new(), String_from("wasm"), false, false, false, false, String_new(), false)
 }
 
 fn cli_command(opts: CliOptions) -> i32 { opts.command }
+fn cli_component_action(opts: CliOptions) -> i32 { opts.component_action }
 fn cli_show_help(opts: CliOptions) -> bool { opts.show_help }
 fn cli_show_version(opts: CliOptions) -> bool { opts.show_version }
 fn cli_has_error(opts: CliOptions) -> bool { opts.has_error }
@@ -54,6 +57,10 @@ fn cli_has_output_file(opts: CliOptions) -> bool { cli_output_file_len(opts) > 0
 
 fn cli_set_command(opts: CliOptions, command: i32) {
     opts.command = command
+}
+
+fn cli_set_component_action(opts: CliOptions, component_action: i32) {
+    opts.component_action = component_action
 }
 
 fn cli_set_input_file(opts: CliOptions, input_file: String) {
@@ -198,7 +205,7 @@ fn parse_opt_level_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32
     let next = i + 1
     if next < argc {
         let val = get_unchecked(argv, next)
-        cli_set_opt_level(opts, parse_opt_level_value(clone(val), cli_opt_level(opts)))
+        cli_set_opt_level(opts, args_record_opt::parse_opt_level_value(clone(val), cli_opt_level(opts)))
     }
     next
 }
@@ -224,21 +231,4 @@ fn parse_output_option(argv: Vec<String>, argc: i32, opts: CliOptions, arg: Stri
         }
     }
     next
-}
-
-fn parse_opt_level_value(value: String, current: i32) -> i32 {
-    if len(clone(value)) != 1 {
-        return current
-    }
-    let ch = char_at(clone(value), 0)
-    if ch == 48 {
-        return 0
-    }
-    if ch == 49 {
-        return 1
-    }
-    if ch == 50 {
-        return 2
-    }
-    current
 }

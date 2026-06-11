@@ -1,0 +1,13 @@
+// Arukellt Selfhost - CoreHIR component export surface DTO.
+
+struct CoreHirExportSurface {
+    export_names: Vec<String>,
+}
+
+fn CoreHirExportSurface_new(export_names: Vec<String>) -> CoreHirExportSurface {
+    CoreHirExportSurface { export_names: export_names }
+}
+
+fn export_surface_names(surface: CoreHirExportSurface) -> Vec<String> {
+    surface.export_names
+}

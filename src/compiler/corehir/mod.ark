@@ -1,10 +1,20 @@
 // Arukellt Selfhost - CoreHIR public boundary.
 
+use corehir::frontend_bundle
 use corehir::frontend_checked
+use corehir::frontend_export_surface
 use corehir::mir_view
 
 pub fn build_checked_program(decls: Vec<AstNode>, check_result: TypeCheckResult) -> CoreHirRawProgram {
     frontend_checked::build_checked_program(decls, check_result)
+}
+
+pub fn build_from_frontend_bundle(bundle: FrontendBundle) -> CoreHirRawProgram {
+    frontend_checked::build_checked_program_from_bundle(bundle)
+}
+
+fn build_export_surface(decls: Vec<AstNode>) -> CoreHirExportSurface {
+    frontend_export_surface::build_export_surface(decls)
 }
 
 pub fn mir_view_from_program(program: CoreHirRawProgram) -> CoreHirMirView {

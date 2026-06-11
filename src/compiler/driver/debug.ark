@@ -1,8 +1,6 @@
 // Arukellt Selfhost - driver namespace: debug
 
 use std::host::stdio
-use parser::ast
-use parser::kinds
 use driver::config_record
 use driver::parser_dump_view
 use driver::resolver_dump_view
@@ -23,32 +21,6 @@ pub fn dump_ast(decls: Vec<AstNode>) {
         parser_dump_view::driver_print_ast(d, 0)
         j = j + 1
     }
-}
-
-// Arukellt Selfhost - driver AST accessors for orchestration helpers.
-
-fn node_kind(node: AstNode) -> i32 {
-    ast::ast_node_kind(node)
-}
-
-fn node_kind_is(node: AstNode, kind: i32) -> bool {
-    node_kind(node) == kind
-}
-
-fn node_text(node: AstNode) -> String {
-    ast::ast_node_text(node)
-}
-
-fn node_child_count(node: AstNode) -> i32 {
-    ast::ast_node_child_count(node)
-}
-
-fn node_child_at(node: AstNode, index: i32) -> AstNode {
-    ast::ast_node_child_at(node, index)
-}
-
-fn node_is_use_decl(node: AstNode) -> bool {
-    node_kind_is(node, kinds::NK_USE())
 }
 
 // Arukellt Selfhost - driver debug dump routing.

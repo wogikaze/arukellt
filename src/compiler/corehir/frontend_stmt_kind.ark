@@ -1,14 +1,12 @@
 // Arukellt Selfhost - CoreHIR statement kind adapter.
 
-use parser::kinds
+use corehir::frontend_kind_map
 
-// Arukellt Selfhost - parser AST statement kind adapter for CoreHIR frontend.
-
-fn corehir_kind_is_stmt_while(kind: i32) -> bool { kind == kinds::NK_WHILE() }
-fn corehir_kind_is_stmt_loop(kind: i32) -> bool { kind == kinds::NK_LOOP() }
-fn corehir_kind_is_stmt_for(kind: i32) -> bool { kind == kinds::NK_FOR() }
-fn corehir_kind_is_stmt_break(kind: i32) -> bool { kind == kinds::NK_BREAK() }
-fn corehir_kind_is_stmt_continue(kind: i32) -> bool { kind == kinds::NK_CONTINUE() }
-fn corehir_kind_is_stmt_return(kind: i32) -> bool { kind == kinds::NK_RETURN() }
-fn corehir_kind_is_stmt_let(kind: i32) -> bool { kind == kinds::NK_LET() }
-fn corehir_kind_is_stmt_expr_stmt(kind: i32) -> bool { kind == kinds::NK_EXPR_STMT() }
+fn corehir_kind_is_stmt_while(kind: i32) -> bool { kind == frontend_kind_map::nk_while() }
+fn corehir_kind_is_stmt_loop(kind: i32) -> bool { kind == frontend_kind_map::nk_loop() }
+fn corehir_kind_is_stmt_for(kind: i32) -> bool { kind == frontend_kind_map::nk_for() }
+fn corehir_kind_is_stmt_break(kind: i32) -> bool { kind == frontend_kind_map::nk_break() }
+fn corehir_kind_is_stmt_continue(kind: i32) -> bool { kind == frontend_kind_map::nk_continue() }
+fn corehir_kind_is_stmt_return(kind: i32) -> bool { kind == frontend_kind_map::nk_return() }
+fn corehir_kind_is_stmt_let(kind: i32) -> bool { kind == frontend_kind_map::nk_let() }
+fn corehir_kind_is_stmt_expr_stmt(kind: i32) -> bool { kind == frontend_kind_map::nk_expr_stmt() }

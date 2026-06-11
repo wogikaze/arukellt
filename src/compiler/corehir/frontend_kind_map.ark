@@ -1,0 +1,51 @@
+// Arukellt Selfhost - parser NK kind constants for CoreHIR frontend enclave.
+
+use parser::kinds
+
+fn nk_int_lit() -> i32 { kinds::NK_INT_LIT() }
+fn nk_float_lit() -> i32 { kinds::NK_FLOAT_LIT() }
+fn nk_string_lit() -> i32 { kinds::NK_STRING_LIT() }
+fn nk_bool_lit() -> i32 { kinds::NK_BOOL_LIT() }
+fn nk_char_lit() -> i32 { kinds::NK_CHAR_LIT() }
+fn nk_ident() -> i32 { kinds::NK_IDENT() }
+fn nk_path() -> i32 { kinds::NK_PATH() }
+fn nk_binary() -> i32 { kinds::NK_BINARY() }
+fn nk_unary() -> i32 { kinds::NK_UNARY() }
+fn nk_call() -> i32 { kinds::NK_CALL() }
+fn nk_method_call() -> i32 { kinds::NK_METHOD_CALL() }
+fn nk_try() -> i32 { kinds::NK_TRY() }
+fn nk_field_access() -> i32 { kinds::NK_FIELD_ACCESS() }
+fn nk_index() -> i32 { kinds::NK_INDEX() }
+fn nk_array_lit() -> i32 { kinds::NK_ARRAY_LIT() }
+fn nk_tuple() -> i32 { kinds::NK_TUPLE() }
+fn nk_struct_lit() -> i32 { kinds::NK_STRUCT_LIT() }
+fn nk_comprehension() -> i32 { kinds::NK_COMPREHENSION() }
+fn nk_if_expr() -> i32 { kinds::NK_IF_EXPR() }
+fn nk_match_expr() -> i32 { kinds::NK_MATCH_EXPR() }
+fn nk_assign() -> i32 { kinds::NK_ASSIGN() }
+fn nk_closure() -> i32 { kinds::NK_CLOSURE() }
+fn nk_block() -> i32 { kinds::NK_BLOCK() }
+fn nk_range() -> i32 { kinds::NK_RANGE() }
+fn nk_fn_decl() -> i32 { kinds::NK_FN_DECL() }
+fn nk_struct_decl() -> i32 { kinds::NK_STRUCT_DECL() }
+fn nk_enum_decl() -> i32 { kinds::NK_ENUM_DECL() }
+fn nk_trait_decl() -> i32 { kinds::NK_TRAIT_DECL() }
+fn nk_impl_decl() -> i32 { kinds::NK_IMPL_DECL() }
+fn nk_use() -> i32 { kinds::NK_USE() }
+fn nk_import() -> i32 { kinds::NK_IMPORT() }
+fn nk_while() -> i32 { kinds::NK_WHILE() }
+fn nk_loop() -> i32 { kinds::NK_LOOP() }
+fn nk_for() -> i32 { kinds::NK_FOR() }
+fn nk_break() -> i32 { kinds::NK_BREAK() }
+fn nk_continue() -> i32 { kinds::NK_CONTINUE() }
+fn nk_return() -> i32 { kinds::NK_RETURN() }
+fn nk_let() -> i32 { kinds::NK_LET() }
+fn nk_expr_stmt() -> i32 { kinds::NK_EXPR_STMT() }
+fn nk_pat_ident() -> i32 { kinds::NK_PAT_IDENT() }
+fn nk_pat_wildcard() -> i32 { kinds::NK_PAT_WILDCARD() }
+fn nk_pat_literal() -> i32 { kinds::NK_PAT_LITERAL() }
+fn nk_pat_variant() -> i32 { kinds::NK_PAT_VARIANT() }
+fn nk_pat_or() -> i32 { kinds::NK_PAT_OR() }
+fn nk_type_named() -> i32 { kinds::NK_TYPE_NAMED() }
+fn nk_type_generic() -> i32 { kinds::NK_TYPE_GENERIC() }
+fn nk_type_tuple() -> i32 { kinds::NK_TYPE_TUPLE() }

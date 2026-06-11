@@ -8,6 +8,7 @@ use main::dispatch_ide
 use main::kinds
 use main::usage
 use main::compile
+use main::dispatch_aux
 use main::project_build
 use main::project_run
 // Arukellt Selfhost - CLI command dispatch
@@ -38,12 +39,15 @@ fn dispatch_preflight(opts: CliOptions, command: i32) -> bool {
 }
 
 fn dispatch_command_allows_missing_input(command: i32) -> bool {
-    command == kinds::CMD_BUILD() || command == kinds::CMD_TEST()
+    command == kinds::CMD_BUILD() || command == kinds::CMD_TEST() || command == kinds::CMD_TARGETS() || command == kinds::CMD_SCRIPT()
 }
 
 // Arukellt Selfhost - CLI command route selection.
 
 fn dispatch_route(opts: CliOptions, command: i32) {
+    if dispatch_aux::dispatch_aux_command(opts, command) {
+        return
+    }
     if command == kinds::CMD_BUILD() {
         project_build::cmd_build(opts)
         return

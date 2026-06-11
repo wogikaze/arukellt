@@ -1,11 +1,9 @@
 // Arukellt Selfhost - CoreHIR pattern kind adapter.
 
-use parser::kinds
+use corehir::frontend_kind_map
 
-// Arukellt Selfhost - parser AST pattern kind adapter for CoreHIR frontend.
-
-fn corehir_kind_is_pattern_ident(kind: i32) -> bool { kind == kinds::NK_PAT_IDENT() }
-fn corehir_kind_is_pattern_wildcard(kind: i32) -> bool { kind == kinds::NK_PAT_WILDCARD() }
-fn corehir_kind_is_pattern_literal(kind: i32) -> bool { kind == kinds::NK_PAT_LITERAL() }
-fn corehir_kind_is_pattern_variant(kind: i32) -> bool { kind == kinds::NK_PAT_VARIANT() }
-fn corehir_kind_is_pattern_or(kind: i32) -> bool { kind == kinds::NK_PAT_OR() }
+fn corehir_kind_is_pattern_ident(kind: i32) -> bool { kind == frontend_kind_map::nk_pat_ident() }
+fn corehir_kind_is_pattern_wildcard(kind: i32) -> bool { kind == frontend_kind_map::nk_pat_wildcard() }
+fn corehir_kind_is_pattern_literal(kind: i32) -> bool { kind == frontend_kind_map::nk_pat_literal() }
+fn corehir_kind_is_pattern_variant(kind: i32) -> bool { kind == frontend_kind_map::nk_pat_variant() }
+fn corehir_kind_is_pattern_or(kind: i32) -> bool { kind == frontend_kind_map::nk_pat_or() }

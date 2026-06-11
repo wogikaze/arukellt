@@ -1,0 +1,81 @@
+use std::host::stdio
+
+/// User-defined Hash trait verifying trait-based hashing on nested structs.
+trait Hash {
+    fn hash(self: Hash) -> i32
+}
+
+struct Inner {
+    x: i32,
+    y: i32,
+}
+
+impl Hash for Inner {
+    fn hash(self: Inner) -> i32 {
+        let mut h = 37
+        h = h * 31 + self.x
+        if h < 0 {
+            h = 0 - h
+        }
+        h = h * 31 + self.y
+        if h < 0 {
+            h = 0 - h
+        }
+        h
+    }
+}
+
+struct Outer {
+    label: String,
+    inner: Inner,
+}
+
+impl Hash for Outer {
+    fn hash(self: Outer) -> i32 {
+        let mut h = 37
+        let n = len(self.label)
+        h = h * 31 + n
+        if h < 0 {
+            h = 0 - h
+        }
+        h = h * 31 + hash(self.inner)
+        if h < 0 {
+            h = 0 - h
+        }
+        h
+    }
+}
+
+/// Generic function with Hash trait bound (pass-through).
+fn get_hash<T: Hash>(value: T) -> T {
+    value
+}
+
+fn main() {
+    let inner1 = Inner { x: 1, y: 2 }
+    let inner2 = Inner { x: 1, y: 2 }
+    let inner3 = Inner { x: 3, y: 4 }
+
+    // Inner struct hash
+    let hi1 = hash(inner1)
+    let hi2 = hash(inner2)
+    let hi3 = hash(inner3)
+    stdio::println(bool_to_string(hi1 == hi2))
+    stdio::println(bool_to_string(hi1 != hi3))
+
+    // Outer struct with nested Inner -- exercises trait dispatch through nested type
+    let o1 = Outer { label: String_from("a"), inner: inner1 }
+    let o2 = Outer { label: String_from("a"), inner: inner2 }
+    let o3 = Outer { label: String_from("b"), inner: inner3 }
+
+    let ho1 = hash(o1)
+    let ho2 = hash(o2)
+    let ho3 = hash(o3)
+    stdio::println(bool_to_string(ho1 == ho2))
+    stdio::println(bool_to_string(ho1 != ho3))
+
+    // Generic function with Hash bound
+    let p = get_hash(o1)
+    let hp = hash(p)
+    stdio::println(bool_to_string(ho1 == hp))
+}

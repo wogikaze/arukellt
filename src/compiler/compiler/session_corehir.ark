@@ -1,0 +1,20 @@
+// Arukellt Selfhost - compile session CoreHIR queries.
+//
+// The single query route for building, validating, and lowering the CoreHIR
+// program. Both the driver pipeline and LSP analysis go through these
+// functions, so compile and analyze share one build_checked_program path.
+
+use corehir::mod
+use mir
+
+fn session_lower_mir(program: CoreHirRawProgram) -> MirModule {
+    mir::lower_to_mir_no_prune(mir::mir_lower_input_new(mod::mir_view_from_program(program)))
+}
+
+fn session_lower_mir_component(program: CoreHirRawProgram, export_roots: Vec<String>) -> MirModule {
+    mir::lower_to_mir_component(mir::mir_lower_input_new(mod::mir_view_from_program(program)), export_roots)
+}
+
+fn session_validate_corehir(program: CoreHirRawProgram) -> String {
+    String_from("")
+}

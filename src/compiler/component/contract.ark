@@ -13,3 +13,7 @@ fn should_export_func(name: String) -> bool {
 fn validate_export_surface(decls: Vec<AstNode>) -> String {
     contract_validation::validate_export_surface(decls)
 }
+
+fn validate_export_surface_from_names(export_names: Vec<String>) -> String {
+    contract_validation::validate_export_surface_from_names(export_names)
+}

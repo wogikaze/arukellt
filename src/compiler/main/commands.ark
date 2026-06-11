@@ -73,6 +73,30 @@ fn parse_implemented_command(name: String) -> i32 {
     if cli_str_eq(clone(name), String_from("version")) {
         return kinds::CMD_VERSION()
     }
+    if cli_str_eq(clone(name), String_from("init")) {
+        return kinds::CMD_INIT()
+    }
+    if cli_str_eq(clone(name), String_from("fmt")) {
+        return kinds::CMD_FMT()
+    }
+    if cli_str_eq(clone(name), String_from("targets")) {
+        return kinds::CMD_TARGETS()
+    }
+    if cli_str_eq(clone(name), String_from("script")) {
+        return kinds::CMD_SCRIPT()
+    }
+    if cli_str_eq(clone(name), String_from("component")) {
+        return kinds::CMD_COMPONENT()
+    }
+    if cli_str_eq(clone(name), String_from("lint")) {
+        return kinds::CMD_LINT()
+    }
+    if cli_str_eq(clone(name), String_from("analyze")) {
+        return kinds::CMD_ANALYZE()
+    }
+    if cli_str_eq(clone(name), String_from("doc")) {
+        return kinds::CMD_DOC()
+    }
     kinds::CMD_UNKNOWN()
 }
 
@@ -90,30 +114,6 @@ fn parse_service_command(name: String) -> i32 {
 }
 
 fn parse_reserved_command(name: String) -> i32 {
-    if cli_str_eq(clone(name), String_from("init")) {
-        return kinds::CMD_NOT_YET()
-    }
-    if cli_str_eq(clone(name), String_from("fmt")) {
-        return kinds::CMD_NOT_YET()
-    }
-    if cli_str_eq(clone(name), String_from("targets")) {
-        return kinds::CMD_NOT_YET()
-    }
-    if cli_str_eq(clone(name), String_from("script")) {
-        return kinds::CMD_NOT_YET()
-    }
-    if cli_str_eq(clone(name), String_from("component")) {
-        return kinds::CMD_NOT_YET()
-    }
-    if cli_str_eq(clone(name), String_from("lint")) {
-        return kinds::CMD_NOT_YET()
-    }
-    if cli_str_eq(clone(name), String_from("analyze")) {
-        return kinds::CMD_NOT_YET()
-    }
-    if cli_str_eq(clone(name), String_from("doc")) {
-        return kinds::CMD_NOT_YET()
-    }
     if cli_str_eq(clone(name), String_from("compose")) {
         return kinds::CMD_NOT_YET()
     }

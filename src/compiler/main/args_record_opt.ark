@@ -1,0 +1,18 @@
+// Arukellt Selfhost - CLI opt-level parsing helper.
+
+pub fn parse_opt_level_value(value: String, current: i32) -> i32 {
+    if len(clone(value)) != 1 {
+        return current
+    }
+    let ch = char_at(clone(value), 0)
+    if ch == 48 {
+        return 0
+    }
+    if ch == 49 {
+        return 1
+    }
+    if ch == 50 {
+        return 2
+    }
+    current
+}

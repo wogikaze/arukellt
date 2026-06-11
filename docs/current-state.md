@@ -14,8 +14,19 @@ The legacy path remains available as an opt-in fallback via `--mir-select legacy
 - **corehir** (default): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
 - **legacy** (opt-in fallback): `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm`
 - Component path (v2): `... → MIR → WasmEmit → WIT generation → wasm-tools component embed → wasm-tools component new` (default wrap passes `--adapt wasi_snapshot_preview1=…` to `component new` when a Preview 1 adapter module is discoverable; see [target-contract.md](target-contract.md#component-output-separate-guarantee-tier))
-- Shared orchestration entry point: selfhost driver (`src/compiler/driver.ark`).
+- Shared orchestration entry point: selfhost driver (`src/compiler/driver/mod.ark` via `driver.ark` facade).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
+
+### CoreHIR boundary and driver responsibilities
+
+| Layer | Owns | Does not own |
+|-------|------|--------------|
+| `corehir/` | `CoreHirRawProgram` DTO, frontend AST enclave, export surface, MIR view | Parser beyond `frontend_ast_*` / `frontend_*_kind*` / `frontend_kind_map` |
+| `compiler/session*.ark` | `CompileSession` artifact, `session_corehir` lower queries | File loading, emit mode dispatch |
+| `loader/` | Module graph, stdlib paths, `LoadState` | Typecheck, MIR lowering |
+| `driver/` | Pipeline orchestration, config/result, timing | Component contract rules, Wasm bytes |
+| `component/` | WIT/component validation (`contract_preflight`), emit | AST shape parsing |
+| `mir/` | Lowering from `CoreHirMirView` | Direct `parser::` imports (adapters only) |
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets

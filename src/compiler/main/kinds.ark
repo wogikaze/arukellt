@@ -13,3 +13,15 @@ fn CMD_NOT_YET() -> i32 { 10 }
 fn CMD_IDE_ANALYZE() -> i32 { 11 }
 fn CMD_LSP() -> i32 { 12 }
 fn CMD_DAP() -> i32 { 13 }
+fn CMD_INIT() -> i32 { 14 }
+fn CMD_FMT() -> i32 { 15 }
+fn CMD_TARGETS() -> i32 { 16 }
+fn CMD_SCRIPT() -> i32 { 17 }
+fn CMD_COMPONENT() -> i32 { 18 }
+fn CMD_LINT() -> i32 { 19 }
+fn CMD_ANALYZE() -> i32 { 20 }
+fn CMD_DOC() -> i32 { 21 }
+
+fn COMP_ACTION_BUILD() -> i32 { 0 }
+fn COMP_ACTION_INSPECT() -> i32 { 1 }
+fn COMP_ACTION_VALIDATE() -> i32 { 2 }

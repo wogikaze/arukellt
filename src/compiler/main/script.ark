@@ -1,0 +1,33 @@
+// Arukellt Selfhost - CLI script command.
+
+use std::host::fs
+use std::host::process
+use std::host::stdio
+use main::args_record
+use main::script_list
+use main::script_toml
+
+pub fn cmd_script(opts: CliOptions) {
+    let manifest_result = fs::read_to_string(String_from("ark.toml"))
+    match manifest_result {
+        Result::Ok(content) => {
+            let script_name = args_record::cli_input_file(opts)
+            let scripts_content = script_toml::find_toml_section(clone(content), String_from("scripts"))
+            if len(script_name) == 0 {
+                script_list::print_script_list(scripts_content)
+                return
+            }
+            let found = script_toml::find_toml_value(clone(scripts_content), clone(script_name))
+            if len(found) > 0 {
+                stdio::println(clone(found))
+                return
+            }
+            stdio::eprintln(concat(String_from("error: script '"), concat(clone(script_name), String_from("' not found in ark.toml [scripts]"))))
+            process::exit(1)
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error: cannot read ark.toml: "), e))
+            process::exit(1)
+        },
+    }
+}

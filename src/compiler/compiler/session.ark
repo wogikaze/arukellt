@@ -1,0 +1,31 @@
+// Arukellt Selfhost - compile session artifact store.
+//
+// Owns the post-typecheck CoreHIR artifact shared by the driver pipeline
+// and LSP analysis. Consumers query the session instead of rebuilding the
+// program, so every route uses the same CheckedProgram artifacts.
+
+use compiler::session_corehir
+
+struct CompileSession {
+    core_program: CoreHirRawProgram,
+}
+
+fn CompileSession_build(program: CoreHirRawProgram) -> CompileSession {
+    CompileSession { core_program: program }
+}
+
+fn session_core_program(sess: CompileSession) -> CoreHirRawProgram {
+    sess.core_program
+}
+
+fn session_validate(sess: CompileSession) -> String {
+    session_corehir::session_validate_corehir(sess.core_program)
+}
+
+fn session_lower_mir(sess: CompileSession) -> MirModule {
+    session_corehir::session_lower_mir(sess.core_program)
+}
+
+fn session_lower_mir_component(sess: CompileSession, export_roots: Vec<String>) -> MirModule {
+    session_corehir::session_lower_mir_component(sess.core_program, export_roots)
+}

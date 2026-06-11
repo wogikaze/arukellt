@@ -1,0 +1,28 @@
+// Arukellt Selfhost - typed frontend bundle for CoreHIR construction.
+
+struct FrontendBundle {
+    decls: Vec<AstNode>,
+    check_result: TypeCheckResult,
+    module_names: Vec<String>,
+    module_decl_counts: Vec<i32>,
+}
+
+fn FrontendBundle_new(decls: Vec<AstNode>, check_result: TypeCheckResult, module_names: Vec<String>, module_decl_counts: Vec<i32>) -> FrontendBundle {
+    FrontendBundle { decls: decls, check_result: check_result, module_names: module_names, module_decl_counts: module_decl_counts }
+}
+
+fn bundle_decls(bundle: FrontendBundle) -> Vec<AstNode> {
+    bundle.decls
+}
+
+fn bundle_check_result(bundle: FrontendBundle) -> TypeCheckResult {
+    bundle.check_result
+}
+
+fn bundle_module_names(bundle: FrontendBundle) -> Vec<String> {
+    bundle.module_names
+}
+
+fn bundle_module_decl_counts(bundle: FrontendBundle) -> Vec<i32> {
+    bundle.module_decl_counts
+}

@@ -1,0 +1,34 @@
+// Arukellt Selfhost - scan declarations for resolved call sites.
+
+use corehir::raw_dto
+use corehir::frontend_ast_identity
+use corehir::frontend_ast_children
+use corehir::frontend_expr_kind
+use corehir::frontend_ast_span
+
+fn scan_resolved_calls(decls: Vec<AstNode>) -> Vec<CoreHirResolvedCall> {
+    let calls = Vec_new_CoreHirResolvedCall()
+    let decl_count = len(decls)
+    let mut di = 0
+    while di < decl_count {
+        scan_calls_in_node(get_unchecked(decls, di), calls)
+        di = di + 1
+    }
+    calls
+}
+
+fn scan_calls_in_node(node: AstNode, calls: Vec<CoreHirResolvedCall>) {
+    let kind = frontend_ast_identity::corehir_node_kind(node)
+    if frontend_expr_kind::corehir_kind_is_expr_call(kind) {
+        push(calls, raw_dto::CoreHirResolvedCall_new(frontend_ast_identity::corehir_node_text(node), false, frontend_ast_span::corehir_node_span_start(node)))
+    }
+    if frontend_expr_kind::corehir_kind_is_expr_method_call(kind) {
+        push(calls, raw_dto::CoreHirResolvedCall_new(frontend_ast_identity::corehir_node_text(node), true, frontend_ast_span::corehir_node_span_start(node)))
+    }
+    let child_count = frontend_ast_children::corehir_node_child_count(node)
+    let mut ci = 0
+    while ci < child_count {
+        scan_calls_in_node(frontend_ast_children::corehir_node_child_at(node, ci), calls)
+        ci = ci + 1
+    }
+}

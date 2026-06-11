@@ -9,17 +9,12 @@ graph LR
   I124["124 WIT component import syntax"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I30["30 036-jco-javascript-interop"]
-  I37["37 std: ":collections: Deque、PriorityQueue""]
-  I39["39 std: ":collections: Arena、SlotMap、Interner ／ std::text: Rope""]
-  I41["41 std: ":time + std::random: 時刻・期間・乱数""]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I474["474 Async component support (v5)"]
   I475["475 arukellt component subcommand"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
-  I588["588 Language surface uplift plan"]
-  I590["590 Stdlib Core Platform Baseline Plan (Operational Guide)"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I632["632 Playground compiler-Wasm build/run loop"]
@@ -38,17 +33,12 @@ graph LR
 - **124** depends on: 074; blocks: none
 - **139** depends on: 074, 137; blocks: 136
 - **30** depends on: 27; blocks: none
-- **37** depends on: 039, 041; blocks: none
-- **39** depends on: 039, 041; blocks: none
-- **41** depends on: 039, 040; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none
 - **45** depends on: 039, 042, 044; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **474** depends on: 035, done), 074; blocks: none
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
-- **588** depends on: none; blocks: none
-- **590** depends on: none; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **63** depends on: 074, 137; blocks: none
 - **632** depends on: 501; blocks: none

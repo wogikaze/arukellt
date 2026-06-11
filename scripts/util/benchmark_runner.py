@@ -197,6 +197,20 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         description="Hash map ops — std::collections::hash insert/get/contains/remove on 100 entries",
         tags=("stdlib", "hash", "allocation-heavy", "container"),
     ),
+    BenchmarkCase(
+        name="toml_ops",
+        source="benchmarks/bench_stdlib_toml.ark",
+        expected="benchmarks/bench_stdlib_toml.expected",
+        description="TOML parse/access/stringify — std::toml parse, toml_get, stringify (100 iterations)",
+        tags=("stdlib", "toml", "string-heavy", "allocation-heavy"),
+    ),
+    BenchmarkCase(
+        name="time_ops",
+        source="benchmarks/bench_stdlib_time.ark",
+        expected="benchmarks/bench_stdlib_time.expected",
+        description="Time ops — std::time duration creation, arithmetic, clock measurement pattern (200 iterations)",
+        tags=("stdlib", "time", "cpu-bound"),
+    ),
 )
 
 MODE_PRESETS: dict[str, dict[str, Any]] = {

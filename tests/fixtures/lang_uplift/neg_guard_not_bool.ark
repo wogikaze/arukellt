@@ -1,0 +1,8 @@
+// Error: guard expression does not evaluate to bool
+// x is bound to the fn parameter (i32), which is not a bool
+fn magnitude(x) -> String | x = "self"
+fn magnitude(_) -> String = "other"
+
+fn main() {
+    __intrinsic_print(magnitude(5))
+}

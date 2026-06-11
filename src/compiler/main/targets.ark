@@ -1,0 +1,9 @@
+// Arukellt Selfhost - CLI targets command.
+
+use std::host::stdio
+
+pub fn cmd_targets() {
+    stdio::println(String_from("Available targets:"))
+    stdio::println(String_from("  wasm32-wasi-p1    WebAssembly + WASI Preview 1 (32-bit)"))
+    stdio::println(String_from("  wasm32-wasi-p2    WebAssembly + WASI Preview 2 (32-bit, default)"))
+}

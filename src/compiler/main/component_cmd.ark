@@ -1,0 +1,26 @@
+// Arukellt Selfhost - CLI component inspect/validate helpers.
+
+use std::host::process
+use std::host::stdio
+use main::args_record
+
+pub fn cmd_component_inspect(opts: CliOptions) {
+    stdio::eprintln(String_from("error: component inspect is not yet implemented in the selfhost compiler"))
+    stdio::eprintln(String_from(""))
+    stdio::eprintln(String_from("Use wasm-tools instead:"))
+    stdio::eprintln(concat(String_from("  wasm-tools component wit "), args_record::cli_input_file(opts)))
+    process::exit(1)
+}
+
+pub fn cmd_component_validate(opts: CliOptions) {
+    stdio::eprintln(String_from("error: component validate is not yet implemented in the selfhost compiler"))
+    stdio::eprintln(String_from(""))
+    stdio::eprintln(String_from("Use wasm-tools instead:"))
+    stdio::eprintln(concat(String_from("  wasm-tools validate "), args_record::cli_input_file(opts)))
+    process::exit(1)
+}
+
+pub fn cmd_component_build(opts: CliOptions) {
+    args_record::cli_set_emit_mode(opts, String_from("component"))
+    args_record::cli_set_target(opts, String_from("wasm32-wasi-p2"))
+}

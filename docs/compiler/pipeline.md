@@ -46,34 +46,38 @@ Lex
 
 これは「今すぐ全部が独立した public surface」という意味ではなく、責務分割の目印です。
 
-## MIR lowering: legacy fallback state (2026-04-15)
+## CoreHIR → MIR lowering (current)
 
-The `LowerToMIR` step is currently implemented entirely via the **legacy AST lowerer**
-in selfhost `src/compiler/lower/`; selfhost is now the source of truth.
-The CoreHIR lowerer (`lower_hir_to_mir`) is a placeholder returning empty MIR; every
-compilation therefore falls back to the legacy path.
+After typecheck, the driver builds a `CoreHirRawProgram` once via
+`corehir::build_from_frontend_bundle` and stores it in `CompileSession`.
+MIR lowering goes through `compiler/session_corehir.ark`:
 
-- `MirSelection::Legacy` and `OptimizedLegacy` are **deprecated** (since 0.1.0)
-- The `test` command compiles with `MirSelection::OptimizedCoreHir` unconditionally
-  (both CoreHir and Legacy currently use legacy internally)
-- Removal of `lower_to_mir` is blocked until `lower_hir_to_mir` is implemented:
-  see [legacy-path-status.md](legacy-path-status.md) and
-  `issues/open/508-legacy-path-removal-unblocked-by.md`
-- Migration examples and warning behavior are documented in
-  [legacy-path-migration.md](legacy-path-migration.md)
+```text
+TypeCheckResult + FrontendBundle
+  → corehir::build_from_frontend_bundle
+  → CoreHirRawProgram
+  → corehir::mir_view_from_program
+  → mir::lower_to_mir_no_prune
+```
+
+Legacy AST fallback bodies remain available through `mir::mir_lower_input_new`
+for bootstrap compatibility, but the primary path is CoreHIR view-based lowering.
 
 ## 現在の source map
 
-- `src/compiler/lexer.ark`
-- `src/compiler/parser.ark`
-- `src/compiler/resolver.ark`
-- `src/compiler/typechecker.ark`
-- `src/compiler/corehir.ark`
-- MIR (selfhost `src/compiler/mir.ark`)
-- `src/compiler/emitter.ark` (selfhost Wasm emitter)
-- `src/compiler/driver.ark`
-- `src/compiler/diagnostics.ark`
-- LSP (selfhost `src/compiler/lsp.ark`)
+- `src/compiler/lexer/`
+- `src/compiler/parser/`
+- `src/compiler/resolver/`
+- `src/compiler/typechecker/`
+- `src/compiler/corehir/` (DTO + frontend enclave)
+- `src/compiler/compiler/session_corehir.ark` (build / lower queries)
+- `src/compiler/mir/` (lowering + passes)
+- `src/compiler/wasm/` (Wasm emitter)
+- `src/compiler/component/` (component / WIT)
+- `src/compiler/loader/` (module graph loading)
+- `src/compiler/driver/` (pipeline orchestration; `driver/mod.ark` public API)
+- `src/compiler/diagnostics/`
+- LSP / DAP (`src/compiler/lsp/`, `src/compiler/dap/`)
 
 ## Session / Artifact Graph 方針
 

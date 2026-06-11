@@ -1,0 +1,37 @@
+// Arukellt Selfhost - build CoreHIR export surface from parsed declarations.
+
+use corehir::export_surface
+use corehir::decl_node_identity
+use corehir::frontend_decl_kind
+use corehir::frontend_ast_identity
+
+fn should_export_func(name: String) -> bool {
+    if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
+        return false
+    }
+    if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
+        return false
+    }
+    if contains(clone(name), String_from("::")) {
+        return false
+    }
+    true
+}
+
+fn build_export_surface(decls: Vec<AstNode>) -> CoreHirExportSurface {
+    let export_names = Vec_new_String()
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let decl = get_unchecked(decls, i)
+        let kind = frontend_ast_identity::corehir_node_kind(decl)
+        if frontend_decl_kind::corehir_kind_is_decl_fn(kind) {
+            let name = decl_node_identity::decl_name(decl)
+            if decl_node_identity::decl_is_pub(decl) && should_export_func(clone(name)) {
+                push(export_names, name)
+            }
+        }
+        i = i + 1
+    }
+    export_surface::CoreHirExportSurface_new(export_names)
+}
