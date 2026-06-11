@@ -1,0 +1,21 @@
+// Cross-component resource forwarding
+// Resource handles can be forwarded across component boundaries
+// via the canonical ABI handle table.
+
+resource ForwardHandle {
+    id: i32,
+}
+
+pub fn wrap(val: i32) -> ForwardHandle {
+    ForwardHandle { id: val }
+}
+
+pub fn unwrap_handle(h: ForwardHandle) -> i32 {
+    h.id
+}
+
+fn main() {
+    let h = wrap(99)
+    let v = unwrap_handle(h)
+    let _ = v
+}

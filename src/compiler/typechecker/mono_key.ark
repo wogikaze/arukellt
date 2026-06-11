@@ -10,7 +10,7 @@ fn mono_type_key(ty: TypeInfo) -> String {
         return concat(String_from("?"), contract_type_access::TypeInfo_name(ty))
     }
     let mut base = String_from("")
-    if tag == commands::TY_STRUCT() || tag == commands::TY_ENUM() {
+    if tag == commands::TY_STRUCT() || tag == commands::TY_ENUM() || tag == commands::TY_RESOURCE() {
         base = contract_type_access::TypeInfo_name(ty)
     } else {
         base = names::type_tag_name(tag)

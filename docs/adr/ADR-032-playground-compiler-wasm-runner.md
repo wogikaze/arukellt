@@ -3,7 +3,7 @@
 **Status**: DECIDED — ship the selfhost compiler Wasm to the browser and run compiled T2 Wasm in a sandboxed host
 **Date**: 2026-05-17
 **Track**: playground
-**Issue**: [#632](../../issues/open/632-playground-compiler-wasm-build-run-loop.md)
+**Issue**: [#632](../../issues/done/632-playground-compiler-wasm-build-run-loop.md)
 **Supersedes**: none
 **Refines**: [ADR-017](ADR-017-playground-execution-model.md), [ADR-020](ADR-020-t2-io-surface.md)
 

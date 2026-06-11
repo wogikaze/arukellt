@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 874 305 bytes (≈ 854 KiB) |
-| sha256 | `68c515d983b3149dedb2fd8ae7af9291152aa8c565187129f45b19e8ad09857d` |
-| Built from commit | `0808d516` plus the modular full-compile worktree changes (CoreHIR i64 widening in `core_bindings.ark`/`assign.ark`, shaped type-annotation names in `corehir/body_bindings.ark`, binop operand type peek via `binary_type_select.ark`, conditional `local.tee` peephole in `wasm/inst_dispatch_local.ark`, collision-aware export naming via `call_resolve.ark`/`sections_exports.ark`, lexer `LexDiagnostic` rename, IDE commands wired via `main/dispatch_ide.ark` with `analysis`/`lsp`/`dap` included in the bootstrap overlay) |
+| Size | 904 132 bytes (≈ 883 KiB) |
+| sha256 | `ad48865e3e0e34dfe9f375226b22f972c9de6229866ed64027ab9deffea507af` |
+| Built from commit | `75491d03` plus playground T2 `arukellt_io` stdio lowering (`wasm/intrinsic_stdio.ark`, `intrinsics/helpers_io_t2.ark`), `resource` declaration pipeline (#473 foundation), and CoreHIR/driver session lowering fixes |
 | Build target | `wasm32-wasi-p1` |
 | Producer | Modular selfhost compiler stage 3 (`s3.wasm`), confirmed by Stage-3 fixpoint (`sha256(s2) == sha256(s3)`); first pinned artifact compiled from the modular `src/compiler/**` tree (flat bootstrap overlay + heap-grow runtime patch), including the LSP/DAP/analysis IDE surface |
 

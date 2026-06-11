@@ -38,6 +38,27 @@ fn comp_wit_tuple_type(elem_type_indices: Vec<i32>) -> Vec<i32> {
 	writer_core::comp_writer_bytes(w)
 }
 
+fn comp_wit_resource_type() -> Vec<i32> {
+	let w = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_RESOURCE())
+	writer_core::comp_emit_leb128_u(w, 0)
+	writer_core::comp_writer_bytes(w)
+}
+
+fn comp_wit_own_type(type_idx: i32) -> Vec<i32> {
+	let w = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_OWN())
+	writer_core::comp_emit_leb128_u(w, type_idx)
+	writer_core::comp_writer_bytes(w)
+}
+
+fn comp_wit_borrow_type(type_idx: i32) -> Vec<i32> {
+	let w = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_BORROW())
+	writer_core::comp_emit_leb128_u(w, type_idx)
+	writer_core::comp_writer_bytes(w)
+}
+
 fn comp_emit_named_entries(w: writer_core::ComponentWriter, names: Vec<String>) {
 	let count = len(names)
 	writer_core::comp_emit_leb128_u(w, count)

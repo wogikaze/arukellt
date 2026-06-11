@@ -155,6 +155,56 @@
     }
 
     #error-banner.visible { display: block; }
+
+    .playground-build-row {
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .playground-action-button {
+      border: 1px solid #45475a;
+      background: #313244;
+      color: #cdd6f4;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .playground-action-button:hover:not(:disabled) {
+      background: #45475a;
+    }
+
+    .playground-action-button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    #build-run-output {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #181825;
+      border: 1px solid #313244;
+      border-radius: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    #build-run-output.visible { display: flex; }
+
+    .build-run-section-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9399b2;
+    }
   </style>
 </head>
 <body>
@@ -188,8 +238,18 @@
       </button>
     </div>
     <div id="share-status" class="playground-share-status" aria-live="polite"></div>
+    <div class="playground-build-row">
+      <button id="build-button" class="playground-action-button" type="button" disabled>
+        Build
+      </button>
+      <button id="run-button" class="playground-action-button" type="button" disabled>
+        Run
+      </button>
+      <span id="build-run-status" class="playground-share-status" aria-live="polite"></span>
+    </div>
   </section>
   <div id="playground"></div>
+  <section id="build-run-output" aria-label="Build and run output"></section>
 
   <script type="module">
     /**
@@ -213,6 +273,10 @@
       encodeSharePayloadWithVersion,
     } from './dist/share.js';
     import { injectTheme, DEFAULT_THEME_CSS } from './dist/theme.js';
+    import {
+      createCompilerClient,
+      isRunnableT2Output,
+    } from './dist/compiler-client.js';
 
     // Inject the default theme into the page.
     injectTheme(DEFAULT_THEME_CSS);
@@ -223,6 +287,10 @@
     const shareUrlInput = document.getElementById('share-url');
     const copyShareLinkButton = document.getElementById('copy-share-link');
     const shareStatus = document.getElementById('share-status');
+    const buildButton = document.getElementById('build-button');
+    const runButton = document.getElementById('run-button');
+    const buildRunStatus = document.getElementById('build-run-status');
+    const buildRunOutput = document.getElementById('build-run-output');
 
     const examples = getExampleList();
     for (const example of examples) {
@@ -239,6 +307,8 @@
     let currentVersion = undefined;
     let currentShareUrl = window.location.href;
     let app = undefined;
+    let compilerClient = undefined;
+    let lastCompiledWasm = null;
 
     /**
      * Minimal parse stub — returns no diagnostics.
@@ -458,6 +528,133 @@
       });
     });
 
+    function renderBuildRunOutput(sections) {
+      buildRunOutput.innerHTML = '';
+      for (const section of sections) {
+        const title = document.createElement('div');
+        title.className = 'build-run-section-title';
+        title.textContent = section.title;
+        const body = document.createElement('div');
+        body.textContent = section.body;
+        buildRunOutput.appendChild(title);
+        buildRunOutput.appendChild(body);
+      }
+      buildRunOutput.classList.toggle('visible', sections.length > 0);
+    }
+
+    function setBuildRunStatus(message, isError = false) {
+      if (!buildRunStatus) return;
+      buildRunStatus.textContent = message;
+      buildRunStatus.classList.toggle('error', isError);
+    }
+
+    async function initCompilerRuntime() {
+      if (typeof WebAssembly === 'undefined') {
+        setBuildRunStatus('Build/Run unavailable: WebAssembly is not supported here.', true);
+        return;
+      }
+
+      try {
+        compilerClient = await createCompilerClient({
+          compilerUrl: './assets/arukellt-selfhost.wasm',
+          workerUrl: './dist/compiler-worker.js',
+        });
+        const availability = await compilerClient.checkAvailability();
+        if (!availability.compilerAssetPresent) {
+          setBuildRunStatus(
+            availability.reason ?? 'Compiler asset missing. Run `npm run build:app`.',
+            true,
+          );
+          return;
+        }
+        buildButton.disabled = false;
+        setBuildRunStatus('Build/Run ready (compiler Wasm + T2 runner).');
+      } catch (err) {
+        setBuildRunStatus(
+          err instanceof Error ? err.message : 'Unable to initialise compiler worker.',
+          true,
+        );
+      }
+    }
+
+    buildButton.addEventListener('click', async () => {
+      if (!compilerClient || !app) return;
+      buildButton.disabled = true;
+      runButton.disabled = true;
+      lastCompiledWasm = null;
+      setBuildRunStatus('Building…');
+      renderBuildRunOutput([]);
+
+      try {
+        const result = await compilerClient.compile(app.editor.getValue());
+        const sections = [];
+        if (result.compilerStdout) {
+          sections.push({ title: 'Compiler stdout', body: result.compilerStdout });
+        }
+        if (result.compilerStderr) {
+          sections.push({ title: 'Compiler stderr', body: result.compilerStderr });
+        }
+        renderBuildRunOutput(sections);
+
+        if (!result.ok || !result.wasmBytes) {
+          setBuildRunStatus(result.error ?? 'Build failed.', true);
+          return;
+        }
+
+        lastCompiledWasm = result.wasmBytes;
+        const runnable = isRunnableT2Output(result.wasmBytes);
+        runButton.disabled = !runnable;
+        setBuildRunStatus(
+          runnable
+            ? `Build succeeded (${result.outputSize} bytes, ${Math.round(result.elapsedMs)} ms).`
+            : 'Build succeeded, but Run is unavailable until the compiler emits arukellt_io imports.',
+          !runnable,
+        );
+      } catch (err) {
+        setBuildRunStatus(
+          err instanceof Error ? err.message : 'Build failed.',
+          true,
+        );
+      } finally {
+        buildButton.disabled = false;
+      }
+    });
+
+    runButton.addEventListener('click', async () => {
+      if (!compilerClient || !lastCompiledWasm) return;
+      runButton.disabled = true;
+      setBuildRunStatus('Running…');
+
+      try {
+        const result = await compilerClient.run(lastCompiledWasm);
+        const sections = [];
+        if (result.stdout) {
+          sections.push({ title: 'Program stdout', body: result.stdout });
+        }
+        if (result.stderr) {
+          sections.push({ title: 'Program stderr', body: result.stderr });
+        }
+        if (result.trap) {
+          sections.push({ title: 'Trap / runtime error', body: result.trap });
+        }
+        renderBuildRunOutput(sections);
+        setBuildRunStatus(
+          result.ok
+            ? `Run finished (exit ${result.exitCode}, ${Math.round(result.elapsedMs)} ms).`
+            : 'Run failed.',
+          !result.ok,
+        );
+      } catch (err) {
+        setBuildRunStatus(
+          err instanceof Error ? err.message : 'Run failed.',
+          true,
+        );
+      } finally {
+        runButton.disabled = !isRunnableT2Output(lastCompiledWasm);
+      }
+    });
+
+    await initCompilerRuntime();
     await applyFragment(window.location.hash);
     scheduleShareUrlUpdate();
   </script>

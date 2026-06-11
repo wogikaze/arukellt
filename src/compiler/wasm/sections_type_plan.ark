@@ -1,17 +1,17 @@
 // Arukellt Selfhost - Wasm type section plan record.
 
 pub struct TypeSectionPlan {
-    wasi_type_map: Vec<i32>,
+    host_type_map: Vec<i32>,
     fn_type_map: Vec<i32>,
     wrapper_type_idx: i32,
 }
 
-fn TypeSectionPlan_new(wasi_type_map: Vec<i32>, fn_type_map: Vec<i32>, wrapper_type_idx: i32) -> TypeSectionPlan {
-    TypeSectionPlan { wasi_type_map: wasi_type_map, fn_type_map: fn_type_map, wrapper_type_idx: wrapper_type_idx }
+fn TypeSectionPlan_new(host_type_map: Vec<i32>, fn_type_map: Vec<i32>, wrapper_type_idx: i32) -> TypeSectionPlan {
+    TypeSectionPlan { host_type_map: host_type_map, fn_type_map: fn_type_map, wrapper_type_idx: wrapper_type_idx }
 }
 
-fn TypeSectionPlan_wasi_type_map(plan: TypeSectionPlan) -> Vec<i32> {
-    plan.wasi_type_map
+fn TypeSectionPlan_host_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    plan.host_type_map
 }
 
 fn TypeSectionPlan_fn_type_map(plan: TypeSectionPlan) -> Vec<i32> {
@@ -22,36 +22,36 @@ fn TypeSectionPlan_wrapper_type_idx(plan: TypeSectionPlan) -> i32 {
     plan.wrapper_type_idx
 }
 
-fn build_type_section_plan(type_map: Vec<i32>, num_wasi_types: i32, fn_count: i32, needs_wrapper: i32) -> TypeSectionPlan {
-    let wasi_type_map = build_wasi_type_map(type_map, num_wasi_types)
-    let fn_type_map = build_function_type_map(type_map, num_wasi_types, fn_count)
-    let wrapper_type_idx = wrapper_type_index(type_map, num_wasi_types, fn_count, needs_wrapper)
-    TypeSectionPlan_new(wasi_type_map, fn_type_map, wrapper_type_idx)
+fn build_type_section_plan(type_map: Vec<i32>, num_host_types: i32, fn_count: i32, needs_wrapper: i32) -> TypeSectionPlan {
+    let host_type_map = build_host_type_map(type_map, num_host_types)
+    let fn_type_map = build_function_type_map(type_map, num_host_types, fn_count)
+    let wrapper_type_idx = wrapper_type_index(type_map, num_host_types, fn_count, needs_wrapper)
+    TypeSectionPlan_new(host_type_map, fn_type_map, wrapper_type_idx)
 }
 
-fn build_wasi_type_map(type_map: Vec<i32>, num_wasi_types: i32) -> Vec<i32> {
-    let mut wasi_type_map = Vec_new_i32()
+fn build_host_type_map(type_map: Vec<i32>, num_host_types: i32) -> Vec<i32> {
+    let mut host_type_map = Vec_new_i32()
     let mut wti = 0
-    while wti < num_wasi_types {
-        push(wasi_type_map, get_unchecked(type_map, wti))
+    while wti < num_host_types {
+        push(host_type_map, get_unchecked(type_map, wti))
         wti = wti + 1
     }
-    wasi_type_map
+    host_type_map
 }
 
-fn build_function_type_map(type_map: Vec<i32>, num_wasi_types: i32, fn_count: i32) -> Vec<i32> {
+fn build_function_type_map(type_map: Vec<i32>, num_host_types: i32, fn_count: i32) -> Vec<i32> {
     let mut fn_type_map = Vec_new_i32()
     let mut fti = 0
     while fti < fn_count {
-        push(fn_type_map, get_unchecked(type_map, fti + num_wasi_types))
+        push(fn_type_map, get_unchecked(type_map, fti + num_host_types))
         fti = fti + 1
     }
     fn_type_map
 }
 
-fn wrapper_type_index(type_map: Vec<i32>, num_wasi_types: i32, fn_count: i32, needs_wrapper: i32) -> i32 {
+fn wrapper_type_index(type_map: Vec<i32>, num_host_types: i32, fn_count: i32, needs_wrapper: i32) -> i32 {
     if needs_wrapper == 1 {
-        return get_unchecked(type_map, num_wasi_types + fn_count)
+        return get_unchecked(type_map, num_host_types + fn_count)
     }
     0 - 1
 }

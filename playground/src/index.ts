@@ -41,6 +41,9 @@
 // Re-export factory functions.
 export { createPlayground } from "./playground.js";
 export { createWorkerPlayground } from "./worker-client.js";
+export { createCompilerClient, isRunnableT2Output } from "./compiler-client.js";
+export { compileWithCompilerWasm } from "./compiler-host.js";
+export { runT2Wasm, moduleImportsArukelltIo } from "./t2-runner.js";
 
 // Re-export editor components.
 export { createEditor } from "./editor.js";
@@ -183,3 +186,16 @@ export type {
   CapabilityInfo,
   CapabilityWarning,
 } from "./capability-check.js";
+
+export type {
+  CompileOptions,
+  CompileResult,
+  RunOptions,
+  RunResult,
+  CompilerRuntimeAvailability,
+} from "./compiler-types.js";
+
+export type {
+  CompilerClient,
+  CompilerClientOptions,
+} from "./compiler-client.js";

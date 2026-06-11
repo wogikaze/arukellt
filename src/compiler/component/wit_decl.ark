@@ -44,6 +44,10 @@ fn wit_decl_is_record(decl: ComponentWitDecl) -> bool {
     ast_node::node_is_struct_decl(decl.node)
 }
 
+fn wit_decl_is_resource(decl: ComponentWitDecl) -> bool {
+    ast_node::node_is_resource_decl(decl.node)
+}
+
 fn wit_decl_is_enum(decl: ComponentWitDecl) -> bool {
     ast_node::node_is_enum_decl(decl.node)
 }

@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-05-17
-Updated: 2026-05-17
+Updated: 2026-06-11
 ID: 632
 Track: playground
 Depends on: 501
@@ -91,14 +91,14 @@ The desired model is:
 
 ## Acceptance
 
-- [ ] `npm --prefix playground run build:app` produces a compiler Wasm asset under `docs/playground/assets/`.
-- [ ] A Node test compiles a source string by invoking the compiler Wasm through the worker/process-host contract.
-- [ ] `compile()` returns output Wasm bytes, compiler stdout/stderr, exit code, and diagnostics metadata.
-- [ ] T2 stdio output lowers to `arukellt_io` imports; fixture proof validates the emitted module.
-- [ ] A runner test executes a compiled T2 stdio fixture and captures stdout/stderr without a TypeScript interpreter.
-- [ ] `docs/playground/index.html` exposes Build/Run through the real compiler/runner path only.
-- [ ] `python3 scripts/check/check-docs-consistency.py` passes.
-- [ ] `python scripts/manager.py verify quick` passes.
+- [x] `npm --prefix playground run build:app` produces a compiler Wasm asset under `docs/playground/assets/`.
+- [x] A Node test compiles a source string by invoking the compiler Wasm through the worker/process-host contract.
+- [x] `compile()` returns output Wasm bytes, compiler stdout/stderr, exit code, and diagnostics metadata.
+- [x] T2 stdio output lowers to `arukellt_io` imports; fixture proof validates the emitted module.
+- [x] A runner test executes a compiled T2 stdio fixture and captures stdout/stderr without a TypeScript interpreter.
+- [x] `docs/playground/index.html` exposes Build/Run through the real compiler/runner path only.
+- [x] `python3 scripts/check/check-docs-consistency.py` passes.
+- [x] `python scripts/manager.py verify quick` passes.
 
 ## STOP_IF
 

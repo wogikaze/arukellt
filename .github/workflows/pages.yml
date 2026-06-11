@@ -6,6 +6,8 @@ on:
     paths:
       - "docs/**"
       - "playground/**"
+      - "bootstrap/**"
+      - "src/compiler/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -28,6 +30,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+
+      - name: Selfhost fixpoint (stage-3 compiler for playground Run)
+        run: python3 scripts/manager.py selfhost fixpoint --build
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

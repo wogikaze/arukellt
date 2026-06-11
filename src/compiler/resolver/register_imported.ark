@@ -37,8 +37,12 @@ fn register_imported_module_exports(ctx: ResolveCtx, m: ModuleDecls) {
             if ast_decl_predicates::node_is_struct_decl(d) {
                 register_exports::register_module_export(ctx, clone(module_name), clone(symbol_name), commands::SYM_STRUCT(), is_pub)
             } else {
-                if ast_decl_predicates::node_is_enum_decl(d) {
-                    register_exports::register_module_export(ctx, clone(module_name), clone(symbol_name), commands::SYM_ENUM(), is_pub)
+                if ast_decl_predicates::node_is_resource_decl(d) {
+                    register_exports::register_module_export(ctx, clone(module_name), clone(symbol_name), commands::SYM_RESOURCE(), is_pub)
+                } else {
+                    if ast_decl_predicates::node_is_enum_decl(d) {
+                        register_exports::register_module_export(ctx, clone(module_name), clone(symbol_name), commands::SYM_ENUM(), is_pub)
+                    }
                 }
             }
         }

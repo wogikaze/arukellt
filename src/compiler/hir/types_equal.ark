@@ -9,7 +9,7 @@ fn types_equal(a: HirType, b: HirType) -> bool {
     if atag != btag {
         return false
     }
-    if atag == commands::TY_STRUCT() || atag == commands::TY_ENUM() {
+    if atag == commands::TY_STRUCT() || atag == commands::TY_ENUM() || atag == commands::TY_RESOURCE() {
         if !eq(type_contracts::HirType_name(a), type_contracts::HirType_name(b)) {
             return false
         }

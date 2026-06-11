@@ -59,7 +59,7 @@
   "scripts": {
     "build": "tsc",
     "build:all": "npm run build",
-    "build:app": "npm run build && mkdir -p ../docs/playground/dist && cp -r dist/. ../docs/playground/dist/ && bash ../scripts/gen/stamp-playground-assets.sh",
+    "build:app": "npm run build && bash ../scripts/gen/stamp-playground-assets.sh && mkdir -p ../docs/playground/dist && cp -rf dist/. ../docs/playground/dist/",
     "typecheck": "tsc --noEmit",
     "test": "node --test dist/tests/*.test.js",
     "test:typecheck": "tsc --noEmit",

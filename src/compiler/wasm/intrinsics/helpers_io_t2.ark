@@ -1,0 +1,28 @@
+use wasm::constants
+// Arukellt Selfhost - Wasm intrinsic T2 arukellt_io recipes.
+
+use wasm::intrinsics::helpers_io_calls
+use wasm::intrinsics::helpers_io_const
+use wasm::intrinsics::helpers_io_layout
+use wasm::intrinsics::helpers_io_locals
+use wasm::intrinsics::helpers_io_memory
+
+fn emit_t2_write_string_local(w: WasmWriter, string_local: i32, write_import_idx: i32) {
+    helpers_io_locals::emit_local_get(w, string_local)
+    helpers_io_locals::emit_local_get(w, string_local)
+    helpers_io_layout::emit_string_len_from_stack(w)
+    helpers_io_calls::emit_call(w, write_import_idx)
+}
+
+fn emit_t2_write_newline(w: WasmWriter, write_import_idx: i32) {
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_NEWLINE())
+    helpers_io_const::emit_i32_const(w, 10)
+    helpers_io_memory::emit_i32_store8_default(w)
+    helpers_io_const::emit_i32_const(w, constants::SCRATCH_NEWLINE())
+    helpers_io_const::emit_i32_const(w, 1)
+    helpers_io_calls::emit_call(w, write_import_idx)
+}
+
+fn emit_t2_flush(w: WasmWriter, flush_import_idx: i32) {
+    helpers_io_calls::emit_call(w, flush_import_idx)
+}

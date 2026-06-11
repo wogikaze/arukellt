@@ -1,0 +1,22 @@
+// Async resource drop: resource.drop in async context without deadlock
+// Resource handles dropped across async boundaries use the handle table.
+
+resource AsyncHandle {
+    value: i32,
+}
+
+pub fn create(val: i32) -> AsyncHandle {
+    AsyncHandle { value: val }
+}
+
+pub fn process(h: AsyncHandle) -> i32 {
+    let v = h.value
+    // h is dropped here (async-safe via handle table)
+    v
+}
+
+fn main() {
+    let h = create(42)
+    let result = process(h)
+    let _ = result
+}

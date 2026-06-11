@@ -1,0 +1,20 @@
+// Basic resource declaration and usage
+// Resource types provide identity with owned/borrowed handle semantics
+
+resource Handle {
+    id: i32,
+}
+
+pub fn create_handle(val: i32) -> Handle {
+    Handle { id: val }
+}
+
+pub fn get_id(h: Handle) -> i32 {
+    h.id
+}
+
+fn main() {
+    let h = create_handle(42)
+    let id = get_id(h)
+    // basic use: resource struct with identity
+}

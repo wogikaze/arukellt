@@ -33,7 +33,7 @@ fn can_replace_existing_symbol(kind: i32, existing_kind: i32) -> bool {
     if kind == commands::SYM_LOCAL() || kind == commands::SYM_PARAM() {
         return true
     }
-    if (kind == commands::SYM_FN() || kind == commands::SYM_STRUCT() || kind == commands::SYM_ENUM()) && existing_kind == commands::SYM_MODULE() {
+    if (kind == commands::SYM_FN() || kind == commands::SYM_STRUCT() || kind == commands::SYM_ENUM() || kind == commands::SYM_RESOURCE()) && existing_kind == commands::SYM_MODULE() {
         return true
     }
     return false

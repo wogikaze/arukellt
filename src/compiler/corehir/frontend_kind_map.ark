@@ -28,6 +28,7 @@ fn nk_block() -> i32 { kinds::NK_BLOCK() }
 fn nk_range() -> i32 { kinds::NK_RANGE() }
 fn nk_fn_decl() -> i32 { kinds::NK_FN_DECL() }
 fn nk_struct_decl() -> i32 { kinds::NK_STRUCT_DECL() }
+fn nk_resource_decl() -> i32 { kinds::NK_RESOURCE_DECL() }
 fn nk_enum_decl() -> i32 { kinds::NK_ENUM_DECL() }
 fn nk_trait_decl() -> i32 { kinds::NK_TRAIT_DECL() }
 fn nk_impl_decl() -> i32 { kinds::NK_IMPL_DECL() }

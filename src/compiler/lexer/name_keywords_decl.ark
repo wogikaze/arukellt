@@ -24,5 +24,8 @@ fn token_decl_keyword_name(kind: i32) -> String {
     if kind == tokens::TK_WHERE() {
         return String_from("WHERE")
     }
+    if kind == tokens::TK_RESOURCE() {
+        return String_from("RESOURCE")
+    }
     String_new()
 }

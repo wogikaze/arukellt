@@ -1,0 +1,12 @@
+// Arukellt Parser - resource declaration syntax
+
+use parser::decl_resource_header
+use parser::decl_struct_body
+use parser::type_params
+
+fn parse_resource_decl(p: Parser) -> AstNode {
+    let node = decl_resource_header::parse_resource_header(p)
+    type_params::parse_generic_params_into_node(p, node)
+    decl_struct_body::parse_struct_body(p, node)
+    node
+}

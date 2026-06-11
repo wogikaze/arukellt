@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-11T11:54:12Z",
+  "generated_at": "2026-06-11T14:14:53Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -147,8 +147,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 5
+        "checked": 3,
+        "unchecked": 4
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -175,34 +175,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 4
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "475",
-      "path": "475-arukellt-component-subcommand.md",
-      "title": "arukellt component subcommand",
-      "track": "cli",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "035",
-        "done)",
-        "074"
-      ],
-      "blocks_issue_ids": [
-        "485"
-      ],
-      "acceptance": {
-        "checked": 1,
-        "unchecked": 5
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -286,30 +258,6 @@
       }
     },
     {
-      "id": "632",
-      "path": "632-playground-compiler-wasm-build-run-loop.md",
-      "title": "Playground compiler-Wasm build/run loop",
-      "track": "playground",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": true,
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "501"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "136",
       "path": "136-std-wasi-capability-rollout.md",
       "title": "ADR-011 に沿った `std::host` layer の段階的ロールアウト",
@@ -325,30 +273,6 @@
         "138",
         "077",
         "139"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "485",
-      "path": "485-arukellt-component-cli-docs.md",
-      "title": "docs: arukellt component サブコマンド CLI リファレンス",
-      "track": "docs",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "475"
       ],
       "blocks_issue_ids": [],
       "acceptance": {

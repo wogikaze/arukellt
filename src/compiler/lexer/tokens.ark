@@ -56,6 +56,7 @@ pub fn TK_IMPORT() -> i32 { 26 }
 pub fn TK_AS() -> i32 { 27 }
 pub fn TK_USE() -> i32 { 30 }
 pub fn TK_WHERE() -> i32 { 31 }
+pub fn TK_RESOURCE() -> i32 { 32 }
 
 // kind_keyword_transfer
 pub fn TK_BREAK() -> i32 { 22 }

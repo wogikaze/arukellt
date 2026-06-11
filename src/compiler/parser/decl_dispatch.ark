@@ -27,6 +27,11 @@ fn parse_decl(p: Parser) -> AstNode {
         core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
         return d
     }
+    if k2 == tokens::TK_RESOURCE() {
+        let d = decl_types::parse_resource_decl(p)
+        core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
+        return d
+    }
     if k2 == tokens::TK_ENUM() {
         let d = decl_types::parse_enum_decl(p)
         core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)

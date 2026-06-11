@@ -4,6 +4,7 @@ use corehir::frontend_kind_map
 
 fn corehir_kind_is_decl_fn(kind: i32) -> bool { kind == frontend_kind_map::nk_fn_decl() }
 fn corehir_kind_is_decl_struct(kind: i32) -> bool { kind == frontend_kind_map::nk_struct_decl() }
+fn corehir_kind_is_decl_resource(kind: i32) -> bool { kind == frontend_kind_map::nk_resource_decl() }
 fn corehir_kind_is_decl_enum(kind: i32) -> bool { kind == frontend_kind_map::nk_enum_decl() }
 fn corehir_kind_is_decl_trait(kind: i32) -> bool { kind == frontend_kind_map::nk_trait_decl() }
 fn corehir_kind_is_decl_impl(kind: i32) -> bool { kind == frontend_kind_map::nk_impl_decl() }

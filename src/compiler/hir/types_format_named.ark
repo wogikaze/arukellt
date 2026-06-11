@@ -16,6 +16,9 @@ fn named_type_name(ty: HirType) -> String {
     if type_contracts::HirType_tag(ty) == commands::TY_ENUM() {
         return type_contracts::HirType_name(ty)
     }
+    if type_contracts::HirType_tag(ty) == commands::TY_RESOURCE() {
+        return type_contracts::HirType_name(ty)
+    }
     if type_contracts::HirType_tag(ty) == commands::TY_TYPE_VAR() {
         return concat(String_from("?"), type_contracts::HirType_name(ty))
     }

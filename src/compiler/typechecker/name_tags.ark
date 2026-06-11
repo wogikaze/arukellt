@@ -14,6 +14,7 @@ fn type_tag_name(tag: i32) -> String {
     if tag == commands::TY_FN() { return String_from("fn") }
     if tag == commands::TY_STRUCT() { return String_from("struct") }
     if tag == commands::TY_ENUM() { return String_from("enum") }
+    if tag == commands::TY_RESOURCE() { return String_from("resource") }
     if tag == commands::TY_TYPE_VAR() { return String_from("var") }
     String_from("?")
 }

@@ -13,17 +13,13 @@ graph LR
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I474["474 Async component support (v5)"]
-  I475["475 arukellt component subcommand"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
-  I632["632 Playground compiler-Wasm build/run loop"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
-  I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I139 --> I136
-  I475 --> I485
   I124 --> I28
   I30 --> I31
 ```
@@ -37,13 +33,10 @@ graph LR
 - **45** depends on: 039, 042, 044; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **474** depends on: 035, done), 074; blocks: none
-- **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **63** depends on: 074, 137; blocks: none
-- **632** depends on: 501; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
-- **485** depends on: 475; blocks: none
 
 ### Blocked
 

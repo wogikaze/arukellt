@@ -50,7 +50,7 @@ fn build_layout_decls(decls: Vec<AstNode>) -> Vec<CoreHirLayoutDecl> {
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)
-        if decl_node::decl_is_struct(decl) {
+        if decl_node::decl_is_struct(decl) || decl_node::decl_is_resource(decl) {
             push(layouts, build_struct_layout(decl))
         }
         if decl_node::decl_is_enum(decl) {

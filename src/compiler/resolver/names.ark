@@ -18,6 +18,9 @@ fn sym_kind_name(kind: i32) -> String {
     if kind == commands::SYM_ENUM() {
         return String_from("enum")
     }
+    if kind == commands::SYM_RESOURCE() {
+        return String_from("resource")
+    }
     if kind == commands::SYM_VARIANT() {
         return String_from("variant")
     }

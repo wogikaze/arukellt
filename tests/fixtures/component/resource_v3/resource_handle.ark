@@ -1,0 +1,28 @@
+// Resource with handle passing (own/borrow semantics)
+// Tests resource struct identity across function boundaries
+
+resource FileHandle {
+    fd: i32,
+    path_len: i32,
+}
+
+pub fn open(path: String) -> FileHandle {
+    FileHandle { fd: 0, path_len: len(path) }
+}
+
+pub fn read(f: FileHandle, buffer: Vec<i32>) -> i32 {
+    // Read from file handle
+    f.fd
+}
+
+pub fn close(f: FileHandle) {
+    // Close file handle
+    let _ = f.fd
+}
+
+fn main() {
+    let f = open(String_from("test.txt"))
+    let buf = Vec_new_i32()
+    let bytes = read(f, buf)
+    let _ = bytes
+}

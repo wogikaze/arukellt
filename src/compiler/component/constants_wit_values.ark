@@ -27,3 +27,4 @@ fn WIT_TAG_TUPLE() -> i32 { 0x6f }
 fn WIT_TAG_ENUM() -> i32 { 0x6d }
 fn WIT_TAG_OWN() -> i32 { 0x69 }
 fn WIT_TAG_BORROW() -> i32 { 0x68 }
+fn WIT_TAG_RESOURCE() -> i32 { 0x6c }

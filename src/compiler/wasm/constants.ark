@@ -12,6 +12,13 @@ fn WASM_EXTERNREF() -> i32 { 111 }
 fn FS_BUF_SIZE() -> i32 { 4096 }
 fn NUM_WASI_IMPORTS() -> i32 { 7 }
 fn NUM_WASI_TYPES() -> i32 { 5 }
+fn NUM_T2_IMPORTS() -> i32 { 5 }
+fn NUM_T2_TYPES() -> i32 { 3 }
+fn T2_IMPORT_WRITE() -> i32 { 0 }
+fn T2_IMPORT_WRITE_ERR() -> i32 { 1 }
+fn T2_IMPORT_FLUSH() -> i32 { 2 }
+fn T2_IMPORT_FLUSH_ERR() -> i32 { 3 }
+fn T2_IMPORT_READ() -> i32 { 4 }
 fn DATA_START() -> i32 { 128 }
 
 // Scratch offsets for basic I/O buffers.

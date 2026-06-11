@@ -9,6 +9,9 @@ fn decl_node_kind_name(kind: i32) -> String {
     if kind == kinds::NK_STRUCT_DECL() {
         return String_from("StructDecl")
     }
+    if kind == kinds::NK_RESOURCE_DECL() {
+        return String_from("ResourceDecl")
+    }
     if kind == kinds::NK_ENUM_DECL() {
         return String_from("EnumDecl")
     }

@@ -1,33 +1,57 @@
 use mir::inst_accessors_operands
 // Arukellt Selfhost - stdio intrinsic handlers
 
+use wasm::constants
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::intrinsics::helpers_core_locals
 use wasm::intrinsics::helpers_io
+use wasm::intrinsics::helpers_io_t2
 
 // Handler for: stdio::println, println, __intrinsic_println
 fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-                                                                                                                helpers_core_locals::emit_local_set(w, inst_accessors_operands::MirInst_dest(inst))
-                                                                                                                helpers_io::emit_iov_from_string_local(w, inst_accessors_operands::MirInst_dest(inst))
-                                                                                                                helpers_io::emit_fd_write_call(w, 1)
-                                                                                                                helpers_io::emit_write_newline(w, 1)
-    return false
+    let string_local = inst_accessors_operands::MirInst_dest(inst)
+    helpers_core_locals::emit_local_set(w, string_local)
+    if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        helpers_io_t2::emit_t2_write_string_local(w, string_local, constants::T2_IMPORT_WRITE())
+        helpers_io_t2::emit_t2_write_newline(w, constants::T2_IMPORT_WRITE())
+        helpers_io_t2::emit_t2_flush(w, constants::T2_IMPORT_FLUSH())
+    } else {
+        helpers_io::emit_iov_from_string_local(w, string_local)
+        helpers_io::emit_fd_write_call(w, 1)
+        helpers_io::emit_write_newline(w, 1)
     }
+    return false
+}
 
 
 // Handler for: stdio::print, print
 fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-                                                                                                                    helpers_core_locals::emit_local_set(w, inst_accessors_operands::MirInst_dest(inst))
-                                                                                                                    helpers_io::emit_iov_from_string_local(w, inst_accessors_operands::MirInst_dest(inst))
-                                                                                                                    helpers_io::emit_fd_write_call(w, 1)
-    return false
+    let string_local = inst_accessors_operands::MirInst_dest(inst)
+    helpers_core_locals::emit_local_set(w, string_local)
+    if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        helpers_io_t2::emit_t2_write_string_local(w, string_local, constants::T2_IMPORT_WRITE())
+        helpers_io_t2::emit_t2_flush(w, constants::T2_IMPORT_FLUSH())
+    } else {
+        helpers_io::emit_iov_from_string_local(w, string_local)
+        helpers_io::emit_fd_write_call(w, 1)
     }
+    return false
+}
 
 
 // Handler for: stdio::eprintln, eprintln
 fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-                                                                                                                            helpers_core_locals::emit_local_set(w, inst_accessors_operands::MirInst_dest(inst))
-                                                                                                                            helpers_io::emit_iov_from_string_local(w, inst_accessors_operands::MirInst_dest(inst))
-                                                                                                                            helpers_io::emit_fd_write_call(w, 2)
-                                                                                                                            helpers_io::emit_write_newline(w, 2)
-    return false
+    let string_local = inst_accessors_operands::MirInst_dest(inst)
+    helpers_core_locals::emit_local_set(w, string_local)
+    if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        helpers_io_t2::emit_t2_write_string_local(w, string_local, constants::T2_IMPORT_WRITE_ERR())
+        helpers_io_t2::emit_t2_write_newline(w, constants::T2_IMPORT_WRITE_ERR())
+        helpers_io_t2::emit_t2_flush(w, constants::T2_IMPORT_FLUSH_ERR())
+    } else {
+        helpers_io::emit_iov_from_string_local(w, string_local)
+        helpers_io::emit_fd_write_call(w, 2)
+        helpers_io::emit_write_newline(w, 2)
     }
+    return false
+}

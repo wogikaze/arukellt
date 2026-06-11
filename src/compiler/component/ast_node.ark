@@ -35,6 +35,10 @@ fn node_is_struct_decl(node: AstNode) -> bool {
 	node_kind_is(node, kinds::NK_STRUCT_DECL())
 }
 
+fn node_is_resource_decl(node: AstNode) -> bool {
+	node_kind_is(node, kinds::NK_RESOURCE_DECL())
+}
+
 fn node_is_enum_decl(node: AstNode) -> bool {
 	node_kind_is(node, kinds::NK_ENUM_DECL())
 }

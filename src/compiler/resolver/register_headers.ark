@@ -17,10 +17,14 @@ fn register_decl_headers(ctx: ResolveCtx, decls: Vec<AstNode>) {
             if ast_decl_predicates::node_is_struct_decl(d) {
                 scope_define::define_with_vis(ctx, ast_access::node_text(d), commands::SYM_STRUCT(), ast_access::node_is_pub(d))
             } else {
-                if ast_decl_predicates::node_is_enum_decl(d) {
-                    scope_define::define_with_vis(ctx, ast_access::node_text(d), commands::SYM_ENUM(), ast_access::node_is_pub(d))
+                if ast_decl_predicates::node_is_resource_decl(d) {
+                    scope_define::define_with_vis(ctx, ast_access::node_text(d), commands::SYM_RESOURCE(), ast_access::node_is_pub(d))
                 } else {
-                    register_non_type_decl_header(ctx, d)
+                    if ast_decl_predicates::node_is_enum_decl(d) {
+                        scope_define::define_with_vis(ctx, ast_access::node_text(d), commands::SYM_ENUM(), ast_access::node_is_pub(d))
+                    } else {
+                        register_non_type_decl_header(ctx, d)
+                    }
                 }
             }
         }

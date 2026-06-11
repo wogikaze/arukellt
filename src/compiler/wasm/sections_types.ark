@@ -10,15 +10,16 @@ use mir::function_return_view
 use mir::function_param_view
 use mir::local_access
 use wasm::sections_type_plan
+use wasm::emit_target
 
 struct TypeCanonPlan {
     canon_types: Vec<String>,
     type_map: Vec<i32>,
 }
 
-fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32) -> TypeSectionPlan {
-    let num_wasi_types = constants::NUM_WASI_TYPES()
-    let type_sigs = build_type_sigs(functions, fn_count, needs_wrapper)
+fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String) -> TypeSectionPlan {
+    let num_host_types = emit_target::host_type_count(clone(target))
+    let type_sigs = build_type_sigs(functions, fn_count, needs_wrapper, clone(target))
     let canon_plan = canonicalize_type_sigs(type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
@@ -26,7 +27,7 @@ fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32
     writer_leb::emit_leb128_u(type_sec, len(canon_types))
     emit_canon_type_entries(type_sec, canon_types)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
-    sections_type_plan::build_type_section_plan(type_map, num_wasi_types, fn_count, needs_wrapper)
+    sections_type_plan::build_type_section_plan(type_map, num_host_types, fn_count, needs_wrapper)
 }
 
 fn TypeCanonPlan_new(canon_types: Vec<String>, type_map: Vec<i32>) -> TypeCanonPlan {
@@ -41,9 +42,13 @@ fn TypeCanonPlan_type_map(plan: TypeCanonPlan) -> Vec<i32> {
     plan.type_map
 }
 
-fn build_type_sigs(functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32) -> Vec<String> {
+fn build_type_sigs(functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String) -> Vec<String> {
     let type_sigs = Vec_new_String()
-    append_wasi_type_sigs(type_sigs)
+    if emit_target::is_freestanding_target(clone(target)) {
+        append_t2_type_sigs(type_sigs)
+    } else {
+        append_wasi_type_sigs(type_sigs)
+    }
     append_function_type_sigs(type_sigs, functions, fn_count)
     append_wrapper_type_sig(type_sigs, needs_wrapper)
     type_sigs
@@ -55,6 +60,12 @@ fn append_wasi_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32"))
     push(type_sigs, String_from("i32_1i32"))
     push(type_sigs, String_from("i32_0"))
+}
+
+fn append_t2_type_sigs(type_sigs: Vec<String>) {
+    push(type_sigs, String_from("i32_i32_0"))
+    push(type_sigs, String_from("0"))
+    push(type_sigs, String_from("i32_i32_1i32"))
 }
 
 fn append_function_type_sigs(type_sigs: Vec<String>, functions: Vec<MirFunction>, fn_count: i32) {

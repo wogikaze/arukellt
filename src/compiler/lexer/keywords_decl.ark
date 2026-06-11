@@ -24,5 +24,8 @@ pub fn keyword_kind_decl(word: String) -> i32 {
     if eq(word, "impl") {
         return tokens::TK_IMPL()
     }
+    if eq(word, "resource") {
+        return tokens::TK_RESOURCE()
+    }
     0 - 1
 }

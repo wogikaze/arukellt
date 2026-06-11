@@ -25,7 +25,7 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         return a
     }
     if a_tag == b_tag {
-        if a_tag == commands::TY_STRUCT() || a_tag == commands::TY_ENUM() {
+        if a_tag == commands::TY_STRUCT() || a_tag == commands::TY_ENUM() || a_tag == commands::TY_RESOURCE() {
             let a_name = contract_type_access::TypeInfo_name(a)
             let b_name = contract_type_access::TypeInfo_name(b)
             if !eq(clone(a_name), clone(b_name)) {

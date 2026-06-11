@@ -11,6 +11,9 @@ fn decl_kind_to_corehir(kind: i32) -> i32 {
     if frontend_decl_kind::corehir_kind_is_decl_struct(kind) {
         return commands::COREHIR_DECL_STRUCT()
     }
+    if frontend_decl_kind::corehir_kind_is_decl_resource(kind) {
+        return commands::COREHIR_DECL_STRUCT()
+    }
     if frontend_decl_kind::corehir_kind_is_decl_enum(kind) {
         return commands::COREHIR_DECL_ENUM()
     }
@@ -38,7 +41,11 @@ fn decl_is_impl(node: AstNode) -> bool {
 }
 
 fn decl_is_struct(node: AstNode) -> bool {
-    decl_kind_to_corehir(frontend_ast_node::corehir_node_kind(node)) == commands::COREHIR_DECL_STRUCT()
+    frontend_decl_kind::corehir_kind_is_decl_struct(frontend_ast_node::corehir_node_kind(node))
+}
+
+fn decl_is_resource(node: AstNode) -> bool {
+    frontend_decl_kind::corehir_kind_is_decl_resource(frontend_ast_node::corehir_node_kind(node))
 }
 
 fn decl_is_enum(node: AstNode) -> bool {

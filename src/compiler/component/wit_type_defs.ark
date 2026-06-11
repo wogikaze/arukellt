@@ -12,6 +12,9 @@ fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
 		if wit_decl::wit_decl_is_record(d) {
 			out = concat(out, emit_wit_record_type_def(d))
 		}
+		if wit_decl::wit_decl_is_resource(d) {
+			out = concat(out, emit_wit_resource_type_def(d))
+		}
 		if wit_decl::wit_decl_is_enum(d) {
 			out = concat(out, emit_wit_enum_type_def(d))
 		}
@@ -22,6 +25,27 @@ fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
 
 fn emit_wit_record_type_def(d: ComponentWitDecl) -> String {
 	let mut out = String_from("  record ")
+	out = concat(out, wit_names::wit_type_name(wit_decl::wit_decl_name(d)))
+	out = concat(out, String_from(" {\n"))
+	let mut fi = 0
+	while fi < wit_decl::wit_decl_member_count(d) {
+		let field = wit_decl::wit_decl_member_at(d, fi)
+		out = concat(out, String_from("    "))
+		out = concat(out, wit_names::wit_export_name(wit_decl::wit_decl_member_name(field)))
+		out = concat(out, String_from(": "))
+		if wit_decl::wit_decl_member_has_type(field) {
+			out = concat(out, wit_types::wit_type_from_ast(wit_decl::wit_decl_member_type_view(field)))
+		} else {
+			out = concat(out, String_from("s32"))
+		}
+		out = concat(out, String_from(",\n"))
+		fi = fi + 1
+	}
+	concat(out, String_from("  }\n\n"))
+}
+
+fn emit_wit_resource_type_def(d: ComponentWitDecl) -> String {
+	let mut out = String_from("  resource ")
 	out = concat(out, wit_names::wit_type_name(wit_decl::wit_decl_name(d)))
 	out = concat(out, String_from(" {\n"))
 	let mut fi = 0
