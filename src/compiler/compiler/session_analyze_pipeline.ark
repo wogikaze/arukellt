@@ -10,7 +10,8 @@ use compiler::session
 use compiler::session_typecheck_query
 use corehir::frontend_bundle
 use corehir::mod
-use diagnostics::mod
+use diagnostics::severity
+use diagnostics::source_map_offsets
 
 fn lex_diag_code_string(code: i32) -> String {
 	if code == 1 {
@@ -69,9 +70,9 @@ let dcode = lex_diag_code_string(lcode)
 let mut rmsg = String_from("[")
 rmsg = concat(rmsg, clone(dcode))
 rmsg = concat(rmsg, String_from(" "))
-rmsg = concat(rmsg, mod::severity_name(mod::SEV_ERROR()))
+rmsg = concat(rmsg, severity::severity_name(severity::SEV_ERROR()))
 rmsg = concat(rmsg, String_from(" "))
-rmsg = concat(rmsg, mod::location_text(clone(text), dfile, lstart))
+rmsg = concat(rmsg, source_map_offsets::location_text(clone(text), dfile, lstart))
 rmsg = concat(rmsg, String_from("] "))
 rmsg = concat(rmsg, lex_diag_code_message(lcode))
 snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LEX(), rmsg, lstart, lend))

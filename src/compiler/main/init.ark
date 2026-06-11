@@ -10,12 +10,15 @@ pub fn cmd_init(opts: CliOptions) {
     if len(project_name) == 0 {
         stdio::eprintln(String_from("usage: arukellt init <project-name>"))
         process::exit(2)
-        return
     }
     let src_main = concat(clone(project_name), String_from("/src/main.ark"))
     let ark_toml = concat(clone(project_name), String_from("/ark.toml"))
     let main_content = String_from("use std::host::stdio\n\nfn main() {\n    stdio::println(\"Hello from Arukellt!\")\n}\n")
-    let toml_content = concat(concat(concat(concat(concat(concat(String_from("[package]\nname = \""), clone(project_name)), String_from("\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[bin]\npath = \"src/main.ark\"\n\n[targets.wasm32-wasi-p2]\nout = \""), clone(project_name)), String_from(".wasm\"\n")), String_from("\n[world]\nimports = []\nexports = []\n"))
+    let mut toml_content = String_from("[package]\nname = \"")
+    toml_content = concat(toml_content, clone(project_name))
+    toml_content = concat(toml_content, String_from("\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[bin]\npath = \"src/main.ark\"\n\n[targets.wasm32-wasi-p2]\nout = \""))
+    toml_content = concat(toml_content, clone(project_name))
+    toml_content = concat(toml_content, String_from(".wasm\"\n\n[world]\nimports = []\nexports = []\n"))
     let write_main = fs::write_string(src_main, main_content)
     match write_main {
         Result::Ok(_) => {

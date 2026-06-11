@@ -12,7 +12,7 @@ Commands:
   test           Discover and run tests
   targets        List available compile targets
   script         Manage and run project scripts
-  component      Build and inspect WebAssembly components
+  component      Build, inspect and validate WebAssembly components
   lsp            Start the LSP server (stdio transport)
   debug-adapter  Start the DAP debug adapter (stdio transport)
   lint           Run lint rules on .ark source files

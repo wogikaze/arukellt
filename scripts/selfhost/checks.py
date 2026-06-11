@@ -83,6 +83,10 @@ pub fn validate_wit_import_surface(paths: Vec<String>) -> String {
 pub fn validate_export_surface(decls: Vec<AstNode>) -> String {
     String_from("")
 }
+
+pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
+    String_from("")
+}
 """
 
 LOCAL_COMPILER_NAMESPACES = {
@@ -95,6 +99,7 @@ LOCAL_COMPILER_NAMESPACES = {
     "driver",
     "hir",
     "lexer",
+    "loader",
     "lsp",
     "main",
     "mir",
@@ -119,6 +124,7 @@ WORKTREE_OVERLAY_NAMESPACES = frozenset({
     "driver",
     "hir",
     "lexer",
+    "loader",
     "lsp",
     "main",
     "mir",
@@ -1397,9 +1403,11 @@ def _flatten_compiler_imports(text: str) -> str:
         parts = match.group(2).split("::")
         if parts[0] not in LOCAL_COMPILER_NAMESPACES:
             continue
-        alias = parts[-1]
         ns_mod = _flatten_namespace_mod_import(parts)
         flat_name = ns_mod if ns_mod is not None else "_".join(parts)
+        alias = parts[-1]
+        if alias == "mod" and ns_mod is not None:
+            alias = flat_name
         previous = alias_map.get(alias)
         if previous is not None and previous != flat_name:
             raise ValueError(f"ambiguous local import alias `{alias}`")
@@ -2054,9 +2062,16 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
     pass_count = 0
     fail_count = 0
 
-    def run_self(*args: str) -> tuple[int, str]:
-        r = _run([wasmtime, "run", str(current), "--", *args], root)
+    def run_self_with_dirs(dirs: list[Path], *args: str) -> tuple[int, str]:
+        cmd = [wasmtime, "run"]
+        for mount in dirs:
+            cmd.extend(["--dir", str(mount)])
+        cmd.extend([str(current), "--", *args])
+        r = _run(cmd, root)
         return r.returncode, (r.stdout + r.stderr)
+
+    def run_self(*args: str) -> tuple[int, str]:
+        return run_self_with_dirs([root], *args)
 
     def _norm(s: str) -> str:
         return s.replace("\r\n", "\n").rstrip("\n")
@@ -2127,7 +2142,12 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
     # Case 8: init — create a project in a temp directory
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
-        rc_i, out_i = run_self("init", str(tmp / "test_project"))
+        (tmp / "test_project" / "src").mkdir(parents=True)
+        r = _run(
+            [wasmtime, "run", "--dir", ".", str(current), "--", "init", "test_project"],
+            tmp,
+        )
+        rc_i, out_i = r.returncode, (r.stdout + r.stderr)
         if rc_i == 0 and "Created project" in out_i:
             lines.append(f"  pass: init (exit 0, mentions 'Created project')")
             pass_count += 1
@@ -2146,9 +2166,14 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
 
     # Case 10: component — build a component from a known source
     with tempfile.TemporaryDirectory() as tmpdir:
-        out_wasm = Path(tmpdir) / "test_component.wasm"
-        rc_c, out_c = run_self("component", "tests/fixtures/hello_world.ark",
-                               "-o", str(out_wasm))
+        tmp = Path(tmpdir)
+        rc_c, out_c = run_self_with_dirs(
+            [root, tmp],
+            "component",
+            "tests/fixtures/hello_world.ark",
+            "-o",
+            "test_component.wasm",
+        )
         if rc_c == 0:
             lines.append(f"  pass: component (exit 0)")
             pass_count += 1
@@ -2162,9 +2187,10 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
         tmp = Path(tmpdir)
         shutil.copytree(fixture_project, tmp / "basic-project",
                         dirs_exist_ok=True)
+        project_dir = tmp / "basic-project"
         r = _run(
-            [wasmtime, "run", str(current), "--", "script"],
-            tmp / "basic-project",
+            [wasmtime, "run", "--dir", str(project_dir), str(current), "--", "script"],
+            project_dir,
         )
         rc_s, out_s = r.returncode, (r.stdout + r.stderr)
         if rc_s == 0:

@@ -3,23 +3,26 @@
 use compiler::session
 use corehir::export_surface
 use corehir::raw_record
+use driver::checked_program
 use driver::config_record
 
 // Arukellt Selfhost - driver CoreHIR to MIR lowering phase.
 
-fn lower_checked_session(sess: CompileSession, config: DriverConfig) -> MirModule {
+fn lower_checked_program(program: CheckedProgram, config: DriverConfig) -> MirModule {
     let emit_mode = config_record::config_emit_mode(config)
     let component_mode = eq(clone(emit_mode), "component") || eq(clone(emit_mode), "wit")
     if component_mode {
-        return lower_component_session(sess)
+        return lower_component_program(program)
     }
-    session::session_lower_mir(sess)
+    let decls = checked_program::checked_program_wit_decls(program)
+    session::session_lower_mir(checked_program::checked_program_session(program), decls)
 }
 
-fn lower_component_session(sess: CompileSession) -> MirModule {
-    let program = session::session_core_program(sess)
-    let export_roots = export_surface_names_from_program(program)
-    session::session_lower_mir_component(sess, export_roots)
+fn lower_component_program(program: CheckedProgram) -> MirModule {
+    let core_program = checked_program::checked_program_core_program(program)
+    let decls = checked_program::checked_program_wit_decls(program)
+    let export_roots = export_surface_names_from_program(core_program)
+    session::session_lower_mir_component(checked_program::checked_program_session(program), decls, export_roots)
 }
 
 fn export_surface_names_from_program(program: CoreHirRawProgram) -> Vec<String> {

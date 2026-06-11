@@ -7,12 +7,28 @@
 use corehir::mod
 use mir
 
-fn session_lower_mir(program: CoreHirRawProgram) -> MirModule {
-    mir::lower_to_mir_no_prune(mir::mir_lower_input_new(mod::mir_view_from_program(program)))
+fn session_lower_mir_fallback(all_decls: Vec<AstNode>) -> MirLowerFallbackSource {
+    let legacy_decls = Vec_new_MirLowerLegacyDecl()
+    let mut i = 0
+    while i < len(all_decls) {
+        push(legacy_decls, mir::mir_legacy_decl_from_node(get_unchecked(all_decls, i)))
+        i = i + 1
+    }
+    mir::mir_fallback_source_from_decls(legacy_decls)
 }
 
-fn session_lower_mir_component(program: CoreHirRawProgram, export_roots: Vec<String>) -> MirModule {
-    mir::lower_to_mir_component(mir::mir_lower_input_new(mod::mir_view_from_program(program)), export_roots)
+fn session_lower_mir(program: CoreHirRawProgram, all_decls: Vec<AstNode>) -> MirModule {
+    let view = mod::mir_view_from_program(program)
+    let input = mir::mir_lower_input_new(view, session_lower_mir_fallback(all_decls))
+    mir::lower_to_mir_no_prune(input)
+}
+
+fn session_lower_mir_component(program: CoreHirRawProgram, all_decls: Vec<AstNode>, export_roots: Vec<String>) -> MirModule {
+    let view = mod::mir_view_from_program(program)
+    let input = mir::mir_lower_input_new(view, session_lower_mir_fallback(all_decls))
+    let mir_module = mir::lower_to_mir_no_prune(input)
+    let _t3_pruned = mir::mir_prune_unreachable_for_t3(mir_module, export_roots)
+    mir_module
 }
 
 fn session_validate_corehir(program: CoreHirRawProgram) -> String {
