@@ -1,0 +1,61 @@
+// Arukellt LSP - definition lookup via project/stdlib symbol index.
+
+use lsp::state_record
+use lsp::symbol_index_record
+
+struct IndexDefinition {
+    found: bool,
+    uri: String,
+    decl_start: i32,
+    decl_end: i32,
+    detail: String,
+}
+
+fn IndexDefinition_none() -> IndexDefinition {
+    IndexDefinition { found: false, uri: String_new(), decl_start: 0, decl_end: 0, detail: String_new() }
+}
+
+pub fn index_definition_found(def: IndexDefinition) -> bool {
+    def.found
+}
+
+pub fn index_definition_uri(def: IndexDefinition) -> String {
+    clone(def.uri)
+}
+
+pub fn index_definition_decl_start(def: IndexDefinition) -> i32 {
+    def.decl_start
+}
+
+pub fn index_definition_decl_end(def: IndexDefinition) -> i32 {
+    def.decl_end
+}
+
+pub fn index_definition_detail(def: IndexDefinition) -> String {
+    clone(def.detail)
+}
+
+pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
+    let symbols = state_record::lsp_state_symbol_symbols(state)
+    let n = len(symbols)
+    let mut i = 0
+    while i < n {
+        let sym = get_unchecked(symbols, i)
+        if eq(symbol_index_record::indexed_symbol_name(sym), clone(name)) {
+            return IndexDefinition { found: true, uri: symbol_index_record::indexed_symbol_uri(sym), decl_start: symbol_index_record::indexed_symbol_decl_start(sym), decl_end: symbol_index_record::indexed_symbol_decl_end(sym), detail: symbol_index_record::indexed_symbol_detail(sym) }
+        }
+        i = i + 1
+    }
+    let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
+    let sn = len(stdlib)
+    let mut j = 0
+    while j < sn {
+        let sym = get_unchecked(stdlib, j)
+        if eq(symbol_index_record::stdlib_indexed_symbol_name(sym), clone(name)) {
+            let nm = symbol_index_record::stdlib_indexed_symbol_name(sym)
+            return IndexDefinition { found: true, uri: symbol_index_record::stdlib_indexed_symbol_source_uri(sym), decl_start: 0, decl_end: len(nm), detail: symbol_index_record::stdlib_indexed_symbol_detail(sym) }
+        }
+        j = j + 1
+    }
+    IndexDefinition_none()
+}

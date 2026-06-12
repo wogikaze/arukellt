@@ -1,0 +1,15 @@
+// Arukellt LSP - references and documentHighlight (stub pending #338).
+
+use lsp::framing
+use lsp::json_fields
+use lsp::responses
+
+pub fn handle_references(state: LspState, body: String) {
+    let id = json_fields::extract_int_field(clone(body), String_from("id"))
+    framing::append_framed(state, responses::build_empty_array_response(id))
+}
+
+pub fn handle_document_highlight(state: LspState, body: String) {
+    let id = json_fields::extract_int_field(clone(body), String_from("id"))
+    framing::append_framed(state, responses::build_empty_array_response(id))
+}

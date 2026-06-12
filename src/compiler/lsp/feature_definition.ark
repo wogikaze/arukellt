@@ -1,14 +1,36 @@
 // Arukellt LSP - definition request handling.
 
+use analysis::symbols
+use lsp::feature_request
 use lsp::feature_symbol
 use lsp::framing
+use lsp::positions
 use lsp::responses
+use lsp::symbol_index_lookup
 
 pub fn handle_definition(state: LspState, body: String) {
-    let sym = feature_symbol::resolve_symbol_request(state, body)
-    if !feature_symbol::symbol_request_found(sym) {
-        framing::append_framed(state, responses::build_null_response(feature_symbol::symbol_request_id(sym)))
+    let sym = feature_symbol::resolve_symbol_request(state, clone(body))
+    if feature_symbol::symbol_request_found(sym) {
+        framing::append_framed(state, responses::build_definition_response(feature_symbol::symbol_request_id(sym), feature_symbol::symbol_request_uri(sym), feature_symbol::symbol_request_start(sym), feature_symbol::symbol_request_end(sym)))
         return
     }
-    framing::append_framed(state, responses::build_definition_response(feature_symbol::symbol_request_id(sym), feature_symbol::symbol_request_uri(sym), feature_symbol::symbol_request_start(sym), feature_symbol::symbol_request_end(sym)))
+    let req = feature_request::read_text_position_request(state, body)
+    if !feature_request::text_position_request_has_text(req) {
+        framing::append_framed(state, responses::build_null_response(feature_request::text_position_request_id(req)))
+        return
+    }
+    let req_text = feature_request::text_position_request_text(req)
+    let ident = symbols::ident_at_offset(clone(req_text), feature_request::text_position_request_offset(req))
+    if len(ident) == 0 {
+        framing::append_framed(state, responses::build_null_response(feature_request::text_position_request_id(req)))
+        return
+    }
+    let def = symbol_index_lookup::lookup_definition(state, ident)
+    if !symbol_index_lookup::index_definition_found(def) {
+        framing::append_framed(state, responses::build_null_response(feature_request::text_position_request_id(req)))
+        return
+    }
+    let start = positions::offset_to_position(clone(req_text), symbol_index_lookup::index_definition_decl_start(def))
+    let end = positions::offset_to_position(req_text, symbol_index_lookup::index_definition_decl_end(def))
+    framing::append_framed(state, responses::build_definition_response(feature_request::text_position_request_id(req), symbol_index_lookup::index_definition_uri(def), start, end))
 }

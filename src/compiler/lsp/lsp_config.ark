@@ -1,0 +1,15 @@
+// Arukellt LSP - client configuration from initialize params.
+
+use lsp::json_fields
+use lsp::state_record
+
+pub fn apply_initialize_config(state: LspState, body: String) {
+    let level = json_fields::extract_string_field(clone(body), String_from("hoverDetailLevel"))
+    if len(level) > 0 {
+        state_record::lsp_state_set_hover_detail_level(state, level)
+    }
+}
+
+pub fn hover_detail_minimal(state: LspState) -> bool {
+    eq(state_record::lsp_state_hover_detail_level(state), String_from("minimal"))
+}

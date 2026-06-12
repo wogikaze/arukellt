@@ -1,6 +1,8 @@
 // Arukellt Selfhost - LSP completion response builders
 
 use lsp::json_escape
+use lsp::state_record
+use lsp::symbol_index_record
 
 fn quote_string(s: String) -> String {
 	concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
@@ -24,7 +26,7 @@ fn append_completion_item(items: String, item: String) -> String {
 	concat(concat(items, String_from(",")), item)
 }
 
-pub fn build_completion_response(id: i32) -> String {
+pub fn build_completion_response(state: LspState, id: i32) -> String {
 	let mut items = String_new()
 	items = append_completion_item(items, completion_item(String_from("fn"), 14, String_from("keyword")))
 	items = append_completion_item(items, completion_item(String_from("let"), 14, String_from("keyword")))
@@ -35,12 +37,22 @@ pub fn build_completion_response(id: i32) -> String {
 	items = append_completion_item(items, completion_item(String_from("use"), 14, String_from("keyword")))
 	items = append_completion_item(items, completion_item(String_from("pub"), 14, String_from("keyword")))
 	items = append_completion_item(items, completion_item(String_from("return"), 14, String_from("keyword")))
-	items = append_completion_item(items, completion_item(String_from("std::host::stdio"), 9, String_from("module")))
-	items = append_completion_item(items, completion_item(String_from("std::host::fs"), 9, String_from("module")))
-	items = append_completion_item(items, completion_item(String_from("std::path"), 9, String_from("module")))
-	items = append_completion_item(items, completion_item(String_from("println"), 3, String_from("function")))
-	items = append_completion_item(items, completion_item(String_from("i32_to_string"), 3, String_from("function")))
-	items = append_completion_item(items, completion_item(String_from("String_from"), 3, String_from("function")))
+	let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
+	let sn = len(stdlib)
+	let mut j = 0
+	while j < sn {
+		let sym = get_unchecked(stdlib, j)
+		let name = symbol_index_record::stdlib_indexed_symbol_name(sym)
+		let detail = symbol_index_record::stdlib_indexed_symbol_detail(sym)
+		let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
+		let label = if len(module_path) > 0 {
+			concat(concat(clone(module_path), String_from("::")), clone(name))
+		} else {
+			clone(name)
+		}
+		items = append_completion_item(items, completion_item(label, symbol_index_record::stdlib_indexed_symbol_kind(sym), detail))
+		j = j + 1
+	}
 	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
 	body = concat(body, to_string(id))
 	body = concat(body, String_from(",\"result\":{\"isIncomplete\":false,\"items\":["))

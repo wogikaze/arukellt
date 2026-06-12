@@ -55,6 +55,6 @@ fn resolve_symbol_request(state: LspState, body: String) -> LspSymbolRequest {
     let decl_start = symbol_types::symbol_info_decl_start(info)
     let symbol_name = symbol_types::symbol_info_name(info)
     let start = positions::offset_to_position(clone(req_text), decl_start)
-    let end = positions::offset_to_position(clone(req_text), decl_start + len(symbol_name) + 3)
+    let end = positions::offset_to_position(clone(req_text), decl_start + len(symbol_name))
     LspSymbolRequest_new(feature_request::text_position_request_id(req), feature_request::text_position_request_uri(req), true, info, start, end)
 }

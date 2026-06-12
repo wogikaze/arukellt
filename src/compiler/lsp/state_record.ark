@@ -9,6 +9,7 @@ pub struct LspState {
     symbol_stdlib_symbols: Vec<symbol_index_record::StdlibIndexedSymbol>,
     symbol_indexed_uris: Vec<String>,
     project_root: String,
+    hover_detail_level: String,
     initialized: bool,
     shutdown: bool,
     exited: bool,
@@ -22,6 +23,7 @@ fn LspState_new() -> LspState {
         symbol_stdlib_symbols: Vec_new_StdlibIndexedSymbol(),
         symbol_indexed_uris: Vec_new_String(),
         project_root: String_new(),
+        hover_detail_level: String_new(),
         initialized: false,
         shutdown: false,
         exited: false,
@@ -51,6 +53,14 @@ fn lsp_state_project_root(state: LspState) -> String {
 
 fn lsp_state_set_project_root(state: LspState, root: String) {
     state.project_root = root
+}
+
+fn lsp_state_hover_detail_level(state: LspState) -> String {
+    clone(state.hover_detail_level)
+}
+
+fn lsp_state_set_hover_detail_level(state: LspState, level: String) {
+    state.hover_detail_level = level
 }
 
 fn lsp_state_mark_initialized(state: LspState) {

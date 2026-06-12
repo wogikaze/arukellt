@@ -18,6 +18,13 @@ pub fn build_null_response(id: i32) -> String {
 	responses_lifecycle::build_null_response(id)
 }
 
+pub fn build_empty_array_response(id: i32) -> String {
+	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+	body = concat(body, to_string(id))
+	body = concat(body, String_from(",\"result\":[]}"))
+	body
+}
+
 pub fn build_hover_response(id: i32, markdown: String, start: LspPosition, end: LspPosition) -> String {
 	responses_navigation::build_hover_response(id, markdown, start, end)
 }

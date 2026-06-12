@@ -3,6 +3,7 @@
 use lsp::feature_completion
 use lsp::feature_definition
 use lsp::feature_hover
+use lsp::feature_references
 use lsp::feature_workspace_symbol
 
 pub fn handle_hover(state: LspState, body: String) {
@@ -19,4 +20,12 @@ pub fn handle_completion(state: LspState, body: String) {
 
 pub fn handle_workspace_symbol(state: LspState, body: String) {
     feature_workspace_symbol::handle_workspace_symbol(state, body)
+}
+
+pub fn handle_references(state: LspState, body: String) {
+    feature_references::handle_references(state, body)
+}
+
+pub fn handle_document_highlight(state: LspState, body: String) {
+    feature_references::handle_document_highlight(state, body)
 }

@@ -179,6 +179,10 @@ fn render_signature(decl: AstNode) -> String {
     node_text(decl)
 }
 
+pub fn ident_at_offset(text: String, offset: i32) -> String {
+    find_ident_in_decls(session_parse::session_parse_decls(clone(text)), offset)
+}
+
 pub fn symbol_at(text: String, offset: i32) -> symbol_types::SymbolInfo {
     let decls = session_parse::session_parse_decls(clone(text))
     let name = find_ident_in_decls(decls, offset)

@@ -20,5 +20,13 @@ fn dispatch_features(state: LspState, body: String, method: String) -> bool {
         features::handle_workspace_symbol(state, clone(body))
         return true
     }
+    if eq(clone(method), "textDocument/references") {
+        features::handle_references(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/documentHighlight") {
+        features::handle_document_highlight(state, clone(body))
+        return true
+    }
     false
 }
