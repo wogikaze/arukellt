@@ -12,7 +12,7 @@ status: partial
 - **#472** — playground product claim satisfied (type-phase diagnostics)
 
 ### Open / partial
-- **#634** — stdio LSP/DAP entrypoint implemented in `src/compiler/main/editor.ark` but lifecycle stdio gates fail because `resolve_ide_gate_compiler_wasm` uses pinned `bootstrap/arukellt-selfhost.wasm` without stdio support. Rebuilding `.build/selfhost/arukellt-s2.wasm` blocked by missing modules: `resolver_register_wit`, `mir_lower_wit_ctx_init`, `mir_lower_body_call_wit`, `typechecker_module_wit`.
+- **#634** — stdio dispatch wired in `editor.ark`; script-replay LSP/DAP lifecycle passes on rebuilt `arukellt-s2.wasm`. Bare stdio path traps in `stdio::read_to_string()` / `__intrinsic_stdin_read_to_string` (wasm unreachable). WIT stub modules added to unblock s2 rebuild; stdin read fix remains open.
 
 ### verify quick
 - **147/150** passed
