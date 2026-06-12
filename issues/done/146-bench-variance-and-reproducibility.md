@@ -26,6 +26,13 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/146-bench-variance-and-reproducibility.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12 (Slice F)
+
+**Classification:** `truly-done`
+
+2026-04-03 reopen metadata is stale. Implemented variance controls remain cited in
+`benchmarks/schema.json` and benchmark runner metadata; keep done.
+
 ## Implemented — 2026-04-15
 
 **Changes**:

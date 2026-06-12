@@ -28,6 +28,14 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/149-benchmark-governance-and-schema.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12 (Slice F)
+
+**Classification:** `truly-done`
+
+Close Evidence section documents `benchmarks/README.md` and
+`docs/process/benchmark-plan.md` with run-mode definitions; schema/governance artifacts
+present. Keep done.
+
 ## Summary
 
 ベンチ関連スクリプトが増える前に、結果 schema・fixture 命名・quick/full/ci モード・baseline 更新ルールを標準化する。

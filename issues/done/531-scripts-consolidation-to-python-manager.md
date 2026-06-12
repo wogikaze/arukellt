@@ -1,10 +1,22 @@
 # Scripts Consolidation Epic: Python CLI Refactoring
 
-> **Status:** open
+> **Status:** done
 > **Track:** tooling
 > **Type:** Epic
 > **Blocks:** none
 > **Acceptance:** 9 checked / 0 open
+> **Updated:** 2026-06-12
+
+## Audit resolution — 2026-06-12 (Slice F)
+
+**Classification:** `truly-done` (stale `Status: open` while filed under `issues/done/`)
+
+Frontmatter previously said `open` even though Phase 1 (#532) and follow-up domains
+(#533–#537) are all closed with repo evidence in `scripts/manager.py`. Status corrected
+to `done`; no relocation required.
+
+**Evidence:** `issues/done/533-selfhost-domain-migration.md` … `537-shell-script-removal.md`;
+`python3 scripts/manager.py verify quick` includes verify/selfhost/perf/gate domains.
 
 ## Why this must exist
 

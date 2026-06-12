@@ -31,6 +31,15 @@ Result:
 Both hashes are identical, so the release-binary compilation path is
 deterministic for the release smoke fixture.
 
+## Audit resolution — 2026-06-12 (Slice F)
+
+**Classification:** `truly-done` (stale Required Verification prose)
+
+`Required Verification` still cites `cargo build --release -p arukellt`; the active
+release entrypoint is the selfhost wrapper (`scripts/run/arukellt-selfhost.sh` →
+`target/release/arukellt`). Determinism is covered by release checklist step 4 in
+`docs/release-criteria.md` and recheck evidence above (#555 2026-05-17 sha256 match).
+
 ## Checklist Source
 
 docs/release-checklist.md — Pre-release section

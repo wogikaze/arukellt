@@ -325,3 +325,108 @@ failures are pre-existing systemic gates (fixture manifest sync, doc-example,
 selfhost analysis/LSP/DAP gates #568/#569/#571, docs consistency, compiler
 boundary/import-cycle, broken links) untouched by this wave; this wave modified
 only `issues/**` + regenerated `issues/open/` indexes. No new failure introduced.
+
+---
+
+## Slice F — 2026-06-12 (release / benchmark / hygiene)
+
+Orchestrator: subplanner `audit-slice-f` (57 done issues in batch; cloud worker
+spawn unavailable — planner executed audit directly per `unsupported-in-this-run`).
+
+Cross-check anchors: `scripts/manager.py verify quick`, `docs/release-criteria.md`,
+`benchmarks/` (read-only), `mise.toml` bench tasks, hygiene scripts under
+`scripts/check/`.
+
+### 1. Audit summary
+
+| Metric | Count |
+|--------|------:|
+| Done issues reviewed (Slice F batch) | 57 |
+| **Reopened (must-reopen)** | **2** |
+| Audit-resolved stale reopen metadata (kept done) | 6 (#109, #140, #146, #149, #531, #547) |
+| Truly-done spot checks (release #546–556, CI #016/#242/#530–532, hygiene #373–377/#417/#419–421/#424–427) | 49 |
+
+### 2. Reopened issues
+
+#### #418 — orphan/stale file inventory script
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/418-hygiene-orphan-stale-file-inventory.md` |
+| New path | `issues/open/418-hygiene-orphan-stale-file-inventory.md` |
+| Classification | `must-reopen` / `acceptance-not-actually-met` |
+| Reopen reason | Close evidence cites `scripts/check/check-orphan-inventory.sh`; path absent; no manager.py gate |
+| Violated acceptance | Inventory script added; CI/hook callable |
+| Evidence | Missing script; `scripts/manager.py` has no orphan inventory gate |
+| Follow-up split | none |
+
+#### #422 — large artifact size budget / pruning
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/422-hygiene-large-artifact-budget-pruning.md` |
+| New path | `issues/open/422-hygiene-large-artifact-budget-pruning.md` |
+| Classification | `must-reopen` / `acceptance-not-actually-met` |
+| Reopen reason | Resolution cites missing `check-orphan-inventory.sh` and `check-admission-gate.sh`; policy docs exist but measurement check absent |
+| Violated acceptance | Size measurement script/check; CI/hook visibility |
+| Evidence | `docs/retention-policy.md` present; both scripts missing |
+| Follow-up split | blocked by #418 |
+
+### 3. Newly-created future issues
+
+None. Missing orphan inventory reimplementation tracked by reopened #418/#422.
+
+### 4. Still-truly-done (representative)
+
+| ID | Area | Evidence |
+|----|------|----------|
+| 225 | Release criteria doc | `docs/release-criteria.md` + checklist cross-links |
+| 531 | Scripts consolidation epic | #532–537 done; manager.py domains; status corrected |
+| 546–556 | Release verification slices | 2026-05-17 recheck notes + CI integration job |
+| 140 | mise bench workflow | `mise.toml` bench tasks + `benchmark_runner.py` |
+| 109 | Benchmark suite | `benchmarks/legacy/*` + runner supersession (#537) |
+| 373, 417, 421, 427 | Hygiene gates | `check-generated-files.sh`, `check-asset-naming.sh`, `check-links.sh` in verify quick |
+| 465 | Playground false-done audit table | Meta governance issue; no product claim |
+
+### 5. Docs / manager / benchmark mismatches
+
+| Claim location | Reality | Action |
+|----------------|---------|--------|
+| #418/#422 close notes | `check-orphan-inventory.sh`, `check-admission-gate.sh` missing | Reopened #418, #422 |
+| #547 Required Verification | cites `cargo build -p arukellt` | Audit resolution; selfhost wrapper is current path |
+| #544 goals | `benchmarks/cpu/` subdirs | Flat `bench_*` layout + `benchmarks/legacy/`; monitor only |
+| `docs/release-criteria.md` step 4 | needs wasmtime for determinism smoke | Covered by #547/#555; env prerequisite only |
+
+### 6. Evidence table (reopen decisions)
+
+| Issue | Repo proof checked | Result |
+|-------|-------------------|--------|
+| 418 | `scripts/check/check-orphan-inventory.sh` | FAIL — reopen |
+| 422 | orphan script + admission gate | FAIL — reopen |
+| 531 | #533–537 done + manager.py | PASS — keep done (status fix) |
+| 555 | release recheck 2026-05-17 | PASS — keep done |
+| 140 | `mise.toml` bench tasks | PASS — keep done |
+
+### 7. Dependency updates
+
+- `#422` depends on `#418` (size scan blocked on inventory script)
+- Index regenerated after reopen
+
+### 8. Remaining high-risk false-done items (monitor)
+
+- **#426** — cites retired `verify-harness.sh`; hygiene checks now live in `manager.py verify quick` (keep done; doc drift)
+- **#544** — directory reorg goals partially met (flat bench layout); no contradicting user-visible claim
+
+### 9. Checklist items not tracked as issues
+
+`docs/release-criteria.md` pre-release steps remain covered by #242/#555/#547 and
+`manager.py verify` gates. No new checklist tracking issues.
+
+### 10. Newly-created checklist tracking issues
+
+None.
+
+### Verification at slice close
+
+`python3 scripts/manager.py verify quick` — orchestration-state diff only (`issues/**`);
+pre-existing failures unchanged from prior waves.

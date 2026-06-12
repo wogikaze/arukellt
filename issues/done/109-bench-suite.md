@@ -21,6 +21,18 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/109-bench-suite.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12 (Slice F)
+
+**Classification:** `truly-done` (superseded layout; repo proof satisfies suite intent)
+
+Legacy micro-benchmarks (`fib.ark`, `vec_push_pop.ark`, etc.) live under
+`benchmarks/legacy/`. Orchestration moved to `scripts/util/benchmark_runner.py` and
+`mise bench*` tasks (#140, #535). Original `scripts/run/run-benchmarks.sh` path is
+retired per #537; do not bulk-reopen for script rename alone.
+
+**Evidence:** `benchmarks/legacy/fib.ark`, `mise.toml` `[tasks.bench]`,
+`python3 scripts/manager.py perf benchmarks` gate.
+
 ## Summary
 
 roadmap-v4.md §6 item 7 で要求されているベンチマークスイートを `benchmarks/` に構築する。

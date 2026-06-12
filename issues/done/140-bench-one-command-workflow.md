@@ -25,6 +25,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/140-bench-one-command-workflow.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12 (Slice F)
+
+**Classification:** `truly-done`
+
+`mise.toml` defines `bench`, `bench:quick`, `bench:compare`, `bench:update-baseline`,
+and `bench:ci` targeting `scripts/util/benchmark_runner.py`. Checked acceptance matches
+repo entrypoints.
+
+**Evidence:** `mise.toml`, `benchmarks/README.md`, `docs/process/benchmark-plan.md`.
+
 ## Summary
 
 既存の `benchmarks/run_benchmarks.sh`、`scripts/compare-benchmarks.sh`、`scripts/check/perf-gate.sh` が分散しているため、
