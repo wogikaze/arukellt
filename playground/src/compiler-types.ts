@@ -40,6 +40,22 @@ export interface CompileResult {
   error: string | null;
 }
 
+/** Result of a type-check request. */
+export interface CheckResult {
+  /** Whether checking succeeded (exit code 0 and no host trap). */
+  ok: boolean;
+  /** Compiler process exit code. */
+  exitCode: number;
+  /** Captured compiler stdout, including JSON diagnostics when requested. */
+  compilerStdout: string;
+  /** Captured compiler stderr. */
+  compilerStderr: string;
+  /** Elapsed check time in milliseconds. */
+  elapsedMs: number;
+  /** Error message when the host failed before/during checking. */
+  error: string | null;
+}
+
 /** Options for running compiled T2 Wasm. */
 export interface RunOptions {
   /** Stdin bytes supplied to `arukellt_io.read`. */

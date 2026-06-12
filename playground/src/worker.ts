@@ -27,7 +27,7 @@ import {
   formatSource,
   parseSource,
   tokenizeSource,
-  typecheckSource,
+  typecheckSourceWithCompilerBytes,
 } from "./engine.js";
 import type { WorkerRequest, WorkerResponse } from "./types.js";
 
@@ -36,6 +36,7 @@ import type { WorkerRequest, WorkerResponse } from "./types.js";
 // ---------------------------------------------------------------------------
 
 let initialised = false;
+let compilerBytes: Uint8Array | null = null;
 
 // ---------------------------------------------------------------------------
 // Message handler
@@ -49,7 +50,11 @@ async function handleMessage(msg: WorkerRequest): Promise<WorkerResponse> {
 
   try {
     if (cmd === "init") {
-      void msg.wasmUrl;
+      const response = await fetch(msg.wasmUrl);
+      if (!response.ok) {
+        return { id, ok: false, error: `failed to load compiler wasm (${response.status})` };
+      }
+      compilerBytes = new Uint8Array(await response.arrayBuffer());
       initialised = true;
       return { id, ok: true, result: null };
     }
@@ -69,7 +74,10 @@ async function handleMessage(msg: WorkerRequest): Promise<WorkerResponse> {
         return { id, ok: true, result: tokenizeSource(msg.source) };
       }
       case "typecheck": {
-        return { id, ok: true, result: typecheckSource(msg.source) };
+        if (!compilerBytes) {
+          return { id, ok: false, error: "Worker compiler wasm not initialised" };
+        }
+        return { id, ok: true, result: await typecheckSourceWithCompilerBytes(msg.source, compilerBytes) };
       }
       case "version": {
         return { id, ok: true, result: engineVersion() };
