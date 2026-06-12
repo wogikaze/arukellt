@@ -8,7 +8,11 @@ use resolver::register
 use resolver::register_wit
 
 fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>) -> ResolveCtx {
-    let ctx = context::ResolveCtx_new()
+    resolve_program_for_target(decls, modules, wit_paths, String_from("wasm32-wasi-p2"))
+}
+
+fn resolve_program_for_target(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>, target: String) -> ResolveCtx {
+    let ctx = context::ResolveCtx_new_for_target(target)
     register::register_imported_modules(ctx, modules)
     register_wit::register_wit_imports(ctx, wit_paths, decls)
     let count = len(decls)
