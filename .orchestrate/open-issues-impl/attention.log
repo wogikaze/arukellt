@@ -1,0 +1,1 @@
+2026-06-12T05:14Z root planner: bun cli.ts run failed — CURSOR_API_KEY unset in cloud VM. Worker fan-out blocked; falling back to in-session implementation agents for wave 1 tasks.

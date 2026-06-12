@@ -12,7 +12,7 @@ graph LR
   I115["115 115-wasm-name-section"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
   I123["123 123-import-syntax-unification"]
-  I137["137 `std: ":host::*` namespace 導入と migration / target-gated 診断""]
+  I138["138 138-std-wasi-shared-capabilities-t1-t3"]
   I191["191 191-vscode-setup-doctor-command-graph-and-environment-inspection"]
   I216["216 Formatter surface"]
   I217["217 Code actions + refactor code actions"]
@@ -50,7 +50,6 @@ graph LR
   I626["626 626-ide-ready-frontend"]
   I628["628 628-lsp-minimum-viable"]
   I083["083 083-mir-loop-unrolling"]
-  I138["138 138-std-wasi-shared-capabilities-t1-t3"]
   I184["184 184-vscode-extension-foundation"]
   I334["334 334-lsp-stdlib-definition-resolution"]
   I335["335 335-lsp-cross-file-goto-definition"]
@@ -86,7 +85,6 @@ graph LR
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I080 --> I083
-  I137 --> I138
   I191 --> I184
   I333 --> I334
   I333 --> I335
@@ -110,13 +108,11 @@ graph LR
   I074 --> I118
   I074 --> I124
   I074 --> I139
-  I137 --> I139
   I074 --> I474
   I074 --> I476
   I074 --> I62
   I510 --> I62
   I074 --> I63
-  I137 --> I63
   I340 --> I341
   I333 --> I441
   I335 --> I441
@@ -127,7 +123,6 @@ graph LR
   I338 --> I439
   I339 --> I439
   I124 --> I034
-  I137 --> I136
   I138 --> I136
   I139 --> I136
   I476 --> I443
@@ -146,7 +141,7 @@ graph LR
 - **115** depends on: none; blocks: none
 - **117** depends on: none; blocks: 118
 - **123** depends on: none; blocks: none
-- **137** depends on: none; blocks: 136, 138, 139, 63
+- **138** depends on: 137, 051; blocks: 136
 - **191** depends on: 190; blocks: 184
 - **216** depends on: none; blocks: none
 - **217** depends on: 193; blocks: none
@@ -184,7 +179,6 @@ graph LR
 - **626** depends on: 625; blocks: none
 - **628** depends on: 627; blocks: 634
 - **083** depends on: 080; blocks: none
-- **138** depends on: 137, 051; blocks: 136
 - **184** depends on: 189, 190, 191; blocks: 183
 - **334** depends on: 333; blocks: 336, 337, 340, 439
 - **335** depends on: 333; blocks: 439, 441

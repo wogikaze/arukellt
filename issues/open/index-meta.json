@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-12T05:26:18Z",
+  "generated_at": "2026-06-12T05:27:17Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -140,9 +140,9 @@
       }
     },
     {
-      "id": "137",
-      "path": "137-std-wasi-namespace-and-target-gating.md",
-      "title": "`std: \":host::*` namespace 導入と migration / target-gated 診断\"",
+      "id": "138",
+      "path": "138-std-wasi-shared-capabilities-t1-t3.md",
+      "title": "138-std-wasi-shared-capabilities-t1-t3",
       "track": "wasi-feature",
       "status": "open",
       "blocks_v1": "none",
@@ -150,19 +150,19 @@
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
+      "depends_on": [
+        "137",
+        "051"
+      ],
       "blocks_issue_ids": [
-        "136",
-        "138",
-        "139",
-        "63"
+        "136"
       ],
       "acceptance": {
-        "checked": 3,
-        "unchecked": 4
+        "checked": 0,
+        "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },
@@ -1039,33 +1039,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "138",
-      "path": "138-std-wasi-shared-capabilities-t1-t3.md",
-      "title": "138-std-wasi-shared-capabilities-t1-t3",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "137",
-        "051"
-      ],
-      "blocks_issue_ids": [
-        "136"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },
