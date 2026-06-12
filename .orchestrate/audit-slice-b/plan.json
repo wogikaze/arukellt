@@ -1,0 +1,49 @@
+{
+  "rootSlug": "audit-slice-b",
+  "repoUrl": "https://github.com/wogikaze/arukellt.git",
+  "selfAgentId": "bc-bc124ed1-e73e-4b9d-8a72-c4f19447cb11",
+  "goal": "Slice B: Audit user-visible done issues (playground, vscode extension, CLI, docs routes, GitHub Pages)",
+  "status": "completed",
+  "tasks": [
+    {
+      "id": "audit-playground",
+      "type": "worker",
+      "status": "completed",
+      "model": "gpt-5.5-high-fast",
+      "scopedGoal": "Audit playground-track done issues; prove claims against playground/, docs/playground/, workflows",
+      "result": "Reopened #491 (wasm CI gate missing). Kept #466-471, #489, #498, #632 truly-done."
+    },
+    {
+      "id": "audit-cli",
+      "type": "worker",
+      "status": "completed",
+      "model": "gpt-5.5-high-fast",
+      "scopedGoal": "Audit cli-track done issues against src/compiler/main/",
+      "result": "Reopened #464 (init templates), #456 (doc command partial). Kept #475, #575, #461 truly-done."
+    },
+    {
+      "id": "audit-vscode-parallel",
+      "type": "worker",
+      "status": "completed",
+      "model": "gpt-5.5-high-fast",
+      "scopedGoal": "Audit vscode-ide and parallel user-visible done issues against extensions/ and src/compiler/lsp/",
+      "result": "Reopened #216, #217, #219, #440. Kept #453, #622, #480, planning-only parallel issues."
+    },
+    {
+      "id": "audit-docs-routes",
+      "type": "worker",
+      "status": "completed",
+      "model": "gpt-5.5-high-fast",
+      "scopedGoal": "Audit docs/docs-ops tracks and GitHub Pages deploy path",
+      "result": "pages.yml + docs/playground/ wired. #301-304 kept done. No new reopens."
+    },
+    {
+      "id": "merge-verify",
+      "type": "subplanner",
+      "status": "completed",
+      "model": "claude-opus-4-8-thinking-xhigh",
+      "scopedGoal": "Regenerate indexes, update audit report, verify quick, commit orchestration-state",
+      "result": "7 reopens committed; index regenerated; audit report Wave 4 appended."
+    }
+  ]
+}

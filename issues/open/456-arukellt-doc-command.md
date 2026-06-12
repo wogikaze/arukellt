@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-04-02
-Updated: 2026-04-03
+Updated: 2026-06-12
 ID: 456
 Track: cli
 Depends on: 455
@@ -12,6 +12,21 @@ Reason: "This issue has `Status: open` in its frontmatter but was filed under `i
 Evidence: "crates/arukellt/src/cmd_doc.rs with all features, Commands::Doc in main.rs"
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+## Reopened by audit — 2026-06-12 (Slice B)
+
+**Classification**: `must-reopen` / `implementation-parts-only`
+
+**Reopen reason**: Selfhost `cmd_doc` exists but is a minimal markdown-file reader only.
+It lacks `--json`, `--target` filtering, fuzzy match (`Did you mean?`), and manifest-based
+symbol resolution described in acceptance.
+
+**Violated acceptance**: JSON output, target-aware filtering, fuzzy match, module listing.
+
+**Evidence**:
+- `src/compiler/main/doc.ark` — reads `docs/stdlib/modules/<base>.md` only
+- No `--json` / `--target` flags in doc dispatch or usage text
+- Deleted `crates/arukellt/src/cmd_doc.rs` cited in original close evidence
 
 `arukellt doc println` / `arukellt doc std: ":host::http::get` で CLI から標準ライブラリの説明・シグネチャ・target 可用性・stability・代替候補を引けるようにする `doc` サブコマンドを新設する。"
 
@@ -365,12 +380,12 @@ Options:
 ## 完了条件
 
 - [x] `arukellt doc println` がシグネチャ・module・stability を表示する
-- [x] `arukellt doc std::host::http::get` が target 制約を表示する
-- [x] `arukellt doc std::host::http` がモジュール内関数一覧を表示する
-- [x] `arukellt doc --json println` が valid JSON を返す
-- [x] `arukellt doc --target wasm32-wasi-p1 std::host::http::get` が「T1 非対応」を明示する
-- [x] 存在しないシンボルで `Did you mean?` 候補が出る
-- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass
+- [ ] `arukellt doc std::host::http::get` が target 制約を表示する
+- [ ] `arukellt doc std::host::http` がモジュール内関数一覧を表示する
+- [ ] `arukellt doc --json println` が valid JSON を返す
+- [ ] `arukellt doc --target wasm32-wasi-p1 std::host::http::get` が「T1 非対応」を明示する
+- [ ] 存在しないシンボルで `Did you mean?` 候補が出る
+- [ ] `bash scripts/run/verify-harness.sh` が 13/13 pass
 
 ---
 

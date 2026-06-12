@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-30
-Updated: 2026-03-30
+Updated: 2026-06-12
 ID: 217
 Track: parallel
 Depends on: 193
@@ -9,6 +9,19 @@ Orchestration class: implementation-ready
 Blocks v1 exit: no
 ---
 # Code actions + refactor code actions
+
+## Reopened by audit — 2026-06-12 (Slice B)
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met`
+
+**Reopen reason**: No LSP code-action handlers exist in the selfhost compiler. Acceptance
+claims quick fix, refactor, extract/inline, and fix-all code actions with no repo proof.
+
+**Violated acceptance**: All three acceptance items.
+
+**Evidence**:
+- `rg 'codeAction|CodeAction' src/compiler/lsp/` — no matches
+- Deleted `crates/ark-lsp/` cited in References; no replacement handlers in `src/compiler/lsp/`
 
 ## Summary
 
@@ -19,9 +32,9 @@ rename（#193）とは別に、quick fix・source action・structural refactor �
 
 ## Acceptance
 
-- [x] `textDocument/codeAction` が quick fix / refactor / source action を返す
-- [x] extract function / extract variable / inline が動作する
-- [x] fix-all code action が動作する
+- [ ] `textDocument/codeAction` が quick fix / refactor / source action を返す
+- [ ] extract function / extract variable / inline が動作する
+- [ ] fix-all code action が動作する
 
 ## Scope
 

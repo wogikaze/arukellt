@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-31
-Updated: 2026-03-31
+Updated: 2026-06-12
 ID: 440
 Track: vscode-ide
 Depends on: 341, 346, 348, 349, 350, 352
@@ -11,6 +11,21 @@ Priority: 2
 # VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする
 ---
 # VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする
+
+## Reopened by audit — 2026-06-12 (Slice B)
+
+**Classification**: `must-reopen` / `implementation-parts-only`
+
+**Reopen reason**: Issue claims integrated fix pipeline (formatter + code actions + fix-all)
+but references deleted Rust crates and no fix-all or semantic fix pipeline exists in
+`src/compiler/lsp/` or `extensions/arukellt-all-in-one/`.
+
+**Violated acceptance**: All five acceptance items.
+
+**Evidence**:
+- `crates/ark-lsp/`, `crates/ark-parser/src/fmt.rs` — deleted (selfhost-first migration)
+- `rg 'fixAll|codeAction|source.fixAll' src/compiler/lsp/ extensions/` — no LSP fix pipeline
+- Basic `cmd_fmt` exists but is not integrated with LSP or VS Code fix-all
 
 ## Summary
 
@@ -25,11 +40,11 @@ Priority: 2
 
 ## Acceptance
 
-- [x] formatter と semantic fix を分離する。
-- [x] unused import / dead binding の自動修正が可能。
-- [x] `source.fixAll` が複数ルールを統合して適用される。
-- [x] CLI と LSP で同じ修正結果になる。
-- [x] 修正差分が snapshot テストで固定される。
+- [ ] formatter と semantic fix を分離する。
+- [ ] unused import / dead binding の自動修正が可能。
+- [ ] `source.fixAll` が複数ルールを統合して適用される。
+- [ ] CLI と LSP で同じ修正結果になる。
+- [ ] 修正差分が snapshot テストで固定される。
 
 ## References
 
