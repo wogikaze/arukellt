@@ -1,0 +1,3616 @@
+[
+  {
+    "id": 15,
+    "file": "015-t3-docs-current-first-sync.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 17,
+    "file": "017-t3-migration-and-compatibility-notes.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 18,
+    "file": "018-llvm-scaffold-followup.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 19,
+    "file": "019-gc-native-scaffolding.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 20,
+    "file": "020-gc-native-scalars-control-flow.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 21,
+    "file": "021-gc-native-structs.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 23,
+    "file": "023-gc-native-strings.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 24,
+    "file": "024-gc-native-vec.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 25,
+    "file": "025-gc-native-closures.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 27,
+    "file": "027-gc-native-verification-cleanup.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 30,
+    "file": "030-emit-component.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 31,
+    "file": "031-export-surface.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 35,
+    "file": "035-v2-verification-cleanup.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 38,
+    "file": "038-wit-type-fixtures.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 58,
+    "file": "058-stability-docs.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 59,
+    "file": "059-v3-fixture-harness-integration.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 65,
+    "file": "065-wasm-extended-const.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 95,
+    "file": "095-t3-struct-layout-opt.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 108,
+    "file": "108-runtime-wasm-binary-size.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 110,
+    "file": "110-bench-perf-gate.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 116,
+    "file": "116-wasm-wat-roundtrip.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 122,
+    "file": "122-compile-mir-opt-level-separation.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 131,
+    "file": "131-split-typechecker.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 133,
+    "file": "133-split-mir-opt-passes.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 141,
+    "file": "141-bench-compile-latency-breakdown.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 145,
+    "file": "145-bench-size-attribution-and-diff.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 152,
+    "file": "152-snapshot-and-baseline-governance.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 159,
+    "file": "159-v5-language-spec-freeze.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 160,
+    "file": "160-v5-selfhost-stdlib-checklist.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 161,
+    "file": "161-v5-phase1-lexer.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 162,
+    "file": "162-v5-phase1-parser.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 163,
+    "file": "163-v5-phase1-driver-cli.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 164,
+    "file": "164-v5-phase2-resolver-typechecker.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 165,
+    "file": "165-v5-phase3-wasm-emitter.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 166,
+    "file": "166-v5-bootstrap-verification.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 167,
+    "file": "167-v5-debug-dump-phases.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 168,
+    "file": "168-v5-ir-spec-doc.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 169,
+    "file": "169-v5-bootstrap-doc.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 172,
+    "file": "172-v5-parser-ast-surface.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 174,
+    "file": "174-v5-parser-fixture-parity-and-diagnostics.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 175,
+    "file": "175-v5-driver-cli-surface.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 176,
+    "file": "176-v5-driver-pipeline-orchestration.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 177,
+    "file": "177-v5-resolver-name-binding-and-imports.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 178,
+    "file": "178-v5-typechecker-and-typed-hir.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 179,
+    "file": "179-v5-hir-to-mir-lowering.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 180,
+    "file": "180-v5-wasm-binary-emission.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 181,
+    "file": "181-v5-bootstrap-phase-parity-and-fixpoint.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 182,
+    "file": "182-v5-bootstrap-harness-and-ci-integration.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 185,
+    "file": "185-lsp-ide-workflows-rename-code-actions-formatting.md",
+    "classification": "false-done-risk-high",
+    "action": "audit-resolved",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 186,
+    "file": "186-test-runner-and-vscode-test-explorer-surface.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 187,
+    "file": "187-debug-surface-dap-and-source-level-debugging.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 193,
+    "file": "193-refactor-search-and-workspace-navigation-surface.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 196,
+    "file": "196-arukellt-test-discovery-runner-and-json-reporter.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 197,
+    "file": "197-vscode-test-explorer-and-inline-test-execution.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 199,
+    "file": "199-debug-metadata-and-dap-adapter-foundation.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 202,
+    "file": "202-ark-toml-schema-and-project-workspace-discovery.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 207,
+    "file": "207-extension-security-surface-analysis.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 208,
+    "file": "208-selfhost-module-private-items-in-scope.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 209,
+    "file": "209-selfhost-cli-driver-connection.md",
+    "classification": "false-done-risk-high",
+    "action": "audit-resolved",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 210,
+    "file": "210-selfhost-typechecker-typed-fns.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 211,
+    "file": "211-selfhost-mir-lower-fn-bodies.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 212,
+    "file": "212-vscode-sidebar-and-project-tree-view.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 213,
+    "file": "213-language-status-item-and-observability.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 215,
+    "file": "215-multi-root-workspace-and-per-project-config.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 218,
+    "file": "218-navigation-completeness.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 220,
+    "file": "220-task-provider-improvements.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 221,
+    "file": "221-rebuild-current-state-as-single-source.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 222,
+    "file": "222-readme-as-accurate-entry-point.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 224,
+    "file": "224-sync-issues-with-implementation-state.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 226,
+    "file": "226-language-spec-stability-labels.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 227,
+    "file": "227-document-language-contract.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 228,
+    "file": "228-stdlib-api-stability-labels-and-compat-policy.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 229,
+    "file": "229-update-quickstart-to-stable-patterns.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 230,
+    "file": "230-breaking-change-process-three-piece-set.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 231,
+    "file": "231-ark-toml-as-project-model-entry-point.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 232,
+    "file": "232-single-file-vs-project-mode-distinction.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 233,
+    "file": "233-module-package-workspace-resolution-spec.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 234,
+    "file": "234-visibility-and-api-boundary-as-language-feature.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 237,
+    "file": "237-binary-discovery-server-path-integration.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 238,
+    "file": "238-unify-project-root-resolution-cli-lsp-tasks.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 239,
+    "file": "239-lsp-daily-use-feature-completeness.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 240,
+    "file": "240-actionable-error-guidance-implementation.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 241,
+    "file": "241-define-primary-target-and-tier-others.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 243,
+    "file": "243-no-panic-in-user-paths-quality-standard.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 244,
+    "file": "244-optimization-backend-verification-framework.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 245,
+    "file": "245-distribution-integration-resilience-quality.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 246,
+    "file": "246-migration-v0-to-v1-language-features.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 247,
+    "file": "247-migration-v2-to-v3-stdlib-module-system.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 248,
+    "file": "248-migration-v3-to-v4-optimization-pipeline.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 251,
+    "file": "251-target-matrix-execution-contract.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 252,
+    "file": "252-test-strategy-overhaul.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 255,
+    "file": "255-dap-end-to-end-workflow.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 259,
+    "file": "259-unimplemented-target-verification-status.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 261,
+    "file": "261-test-category-classification-scheme.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 263,
+    "file": "263-package-workspace-manifest-test-first-class.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 265,
+    "file": "265-failure-layer-identification.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 270,
+    "file": "270-current-state-selfhost-verified-update.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 276,
+    "file": "276-dap-core-verbs-implementation.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 277,
+    "file": "277-dap-breakpoint-step-implementation.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 279,
+    "file": "279-dap-target-scope-e2e.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 280,
+    "file": "280-dap-test-wiring.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 287,
+    "file": "287-selfhost-fixture-parity.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 288,
+    "file": "288-selfhost-cli-parity.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 290,
+    "file": "290-selfhost-parser-missing-syntax.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 299,
+    "file": "299-component-type-tier-enforcement.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 302,
+    "file": "302-docs-consistency-expansion.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 303,
+    "file": "303-generated-docs-boundary.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 305,
+    "file": "305-blocked-upstream-review.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 306,
+    "file": "306-backend-illegal-audit.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 307,
+    "file": "307-deny-fs-dir-validation.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 308,
+    "file": "308-selfhost-parser-syntax-surface.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 309,
+    "file": "309-selfhost-module-import-resolution.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 310,
+    "file": "310-selfhost-visibility-enforcement.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 311,
+    "file": "311-selfhost-type-inference-engine.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 313,
+    "file": "313-selfhost-mir-expression-lowering.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 314,
+    "file": "314-selfhost-mir-control-flow.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 315,
+    "file": "315-selfhost-mir-aggregate-ops.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 316,
+    "file": "316-selfhost-wasm-block-emission.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 317,
+    "file": "317-selfhost-wasm-calling-convention.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 318,
+    "file": "318-selfhost-cli-commands.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 319,
+    "file": "319-selfhost-cli-flag-semantics.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 320,
+    "file": "320-selfhost-package-workspace.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 321,
+    "file": "321-selfhost-output-contract.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 323,
+    "file": "323-selfhost-unified-binary.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 324,
+    "file": "324-selfhost-bootstrap-scaffold-removal.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 325,
+    "file": "325-selfhost-parity-scripts.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 327,
+    "file": "327-selfhost-bootstrap-docs-dedup.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 329,
+    "file": "329-dual-period-governance.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 331,
+    "file": "331-perf-baseline-selfhost.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 332,
+    "file": "332-workspace-restructure.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 343,
+    "file": "343-fmt-comment-trivia-preservation.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 345,
+    "file": "345-fmt-syntax-coverage-tests.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 347,
+    "file": "347-fmt-range-formatting.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 348,
+    "file": "348-lint-rule-registry.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 349,
+    "file": "349-lint-unused-detection.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 350,
+    "file": "350-lint-cli-subcommand.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 351,
+    "file": "351-lint-ark-toml-config.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 352,
+    "file": "352-lint-lsp-integration.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 353,
+    "file": "353-ci-ark-lsp-merge-gate.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 354,
+    "file": "354-ci-extension-wiring.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 356,
+    "file": "356-tooling-feature-contract.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 359,
+    "file": "359-stdlib-monomorphic-deprecation.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 360,
+    "file": "360-stdlib-expansion-policy.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 361,
+    "file": "361-stdlib-prelude-dedup.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 363,
+    "file": "363-stdlib-docs-module-overview.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 365,
+    "file": "365-stdlib-docs-cookbook.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 366,
+    "file": "366-stdlib-docs-metadata-enrichment.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 367,
+    "file": "367-stdlib-docs-migration-guidance.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 368,
+    "file": "368-lang-docs-current-first-guide.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 369,
+    "file": "369-lang-docs-maturity-matrix.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 370,
+    "file": "370-lang-docs-spec-guide-sync.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 371,
+    "file": "371-lang-docs-reading-order.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 372,
+    "file": "372-lang-docs-archive-boundary.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 378,
+    "file": "378-playground-execution-model.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 379,
+    "file": "379-playground-wasm-build.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 380,
+    "file": "380-playground-editor-ui.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 381,
+    "file": "381-playground-examples-share.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 384,
+    "file": "384-stdlib-api-admission-gate.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 385,
+    "file": "385-stdlib-text-unicode-conformance.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 387,
+    "file": "387-stdlib-bytes-buffered-io-helpers.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 389,
+    "file": "389-stdlib-serialization-roundtrip-baselines.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 390,
+    "file": "390-stdlib-test-support-helpers.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 392,
+    "file": "392-stdlib-error-result-conventions.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 393,
+    "file": "393-stdlib-module-maturity-scoreboard.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 394,
+    "file": "394-stdlib-prelude-surface-audit.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 395,
+    "file": "395-stdlib-docs-generation-schema-contract.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 396,
+    "file": "396-stdlib-docs-curated-family-overviews.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 398,
+    "file": "398-stdlib-docs-recipe-manifest-linking.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 399,
+    "file": "399-stdlib-docs-canonical-name-search-index.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 400,
+    "file": "400-stdlib-docs-deprecated-badges-crosslinks.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 401,
+    "file": "401-stdlib-docs-example-compile-check.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 402,
+    "file": "402-stdlib-docs-landing-reading-order.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 403,
+    "file": "403-stdlib-docs-metadata-consistency-checks.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 404,
+    "file": "404-stdlib-docs-legacy-cleanup-redirects.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 405,
+    "file": "405-stdlib-docs-ownership-release-gate.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 406,
+    "file": "406-language-docs-current-guide-skeleton.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 407,
+    "file": "407-language-docs-maturity-matrix-generator.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 408,
+    "file": "408-language-docs-boundary-adr-banners.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 409,
+    "file": "409-language-docs-deduplicate-core-sections.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 410,
+    "file": "410-language-docs-example-fixture-integration.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 411,
+    "file": "411-language-docs-diagnostics-alignment.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 412,
+    "file": "412-language-docs-stable-anchor-permalinks.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 413,
+    "file": "413-language-docs-entry-reading-order.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 414,
+    "file": "414-language-docs-transitional-archive-banners.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 415,
+    "file": "415-language-docs-spec-guide-drift-checker.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 416,
+    "file": "416-language-docs-ownership-release-gate.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 428,
+    "file": "428-playground-v1-contract-adr.md",
+    "classification": "false-done-risk-high",
+    "action": "audit-resolved",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 429,
+    "file": "429-playground-wasm-package-runtime-wrapper.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 430,
+    "file": "430-playground-diagnostics-worker-performance.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 431,
+    "file": "431-playground-editor-shell-highlighting.md",
+    "classification": "false-done-risk-high",
+    "action": "audit-resolved",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 433,
+    "file": "433-playground-permalink-share-format.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 434,
+    "file": "434-playground-version-pinning-reproducibility.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 435,
+    "file": "435-playground-unsupported-capability-ux.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 436,
+    "file": "436-playground-docs-site-integration.md",
+    "classification": "false-done-risk-high",
+    "action": "audit-resolved",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 437,
+    "file": "437-playground-deploy-preview-cache.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 438,
+    "file": "438-playground-privacy-telemetry-error-reporting.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 439,
+    "file": "439-vscode-lsp-semantic-stdlib-navigation.md",
+    "classification": "must-reopen",
+    "action": "reopened",
+    "reason": "Slice G repo proof \u2014 selfhost LSP lacks claimed nav/workspace surface",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 441,
+    "file": "441-vscode-project-aware-workspace-package-ark-toml.md",
+    "classification": "must-reopen",
+    "action": "reopened",
+    "reason": "Slice G repo proof \u2014 selfhost LSP lacks claimed nav/workspace surface",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 444,
+    "file": "444-vscode-component-playground-build-run-loop.md",
+    "classification": "false-done-risk-high",
+    "action": "audit-resolved",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 467,
+    "file": "467-playground-docs-route-wired-to-real-entrypoint.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 481,
+    "file": "481-update-target-status-script.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 482,
+    "file": "482-harness-arukellt-bin-env-var.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 483,
+    "file": "483-adr-stringification-policy.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 484,
+    "file": "484-to-string-builtin-implementation.md",
+    "classification": "monitor",
+    "action": "spot-check",
+    "reason": "user-visible + deleted crate refs; needs selfhost port proof",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 486,
+    "file": "486-diagnostic-codes-sync.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 488,
+    "file": "488-generator-checker-path-drift.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 490,
+    "file": "490-pub-use-pub-import-re-export.md",
+    "classification": "truly-done",
+    "action": "audit-resolved",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 492,
+    "file": "492-t3-return-call-ref.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 493,
+    "file": "493-selfhost-mir-control-flow-coverage.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 494,
+    "file": "494-selfhost-mir-ssa-formation.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 495,
+    "file": "495-selfhost-trait-bounds.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 496,
+    "file": "496-selfhost-match-exhaustiveness.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "close note present; verify-harness superseded by manager.py",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 497,
+    "file": "497-cli-test-filter.md",
+    "classification": "monitor",
+    "action": "spot-check",
+    "reason": "user-visible + deleted crate refs; needs selfhost port proof",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 499,
+    "file": "499-selfhost-closure-capture-lowering.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 501,
+    "file": "501-t2-wasm-emit-implementation.md",
+    "classification": "monitor",
+    "action": "audit-resolved",
+    "reason": "user-visible + deleted crate refs; needs selfhost port proof",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 503,
+    "file": "503-selfhost-mir-cfg-infrastructure.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 504,
+    "file": "504-selfhost-trait-syntax.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 505,
+    "file": "505-t3-br-table-type-info-gap.md",
+    "classification": "implementation-parts-only",
+    "action": "monitor",
+    "reason": "Rust-era evidence; no formal close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 508,
+    "file": "508-legacy-path-removal-unblocked-by.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 511,
+    "file": "511-stdlib-syntax-modernization-enum-match.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 512,
+    "file": "512-stdlib-trait-oriented-reuse-surface.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 513,
+    "file": "513-stdlib-prelude-safety-and-wrapper-surface.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 514,
+    "file": "514-stdlib-implementation-quality-audit.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 515,
+    "file": "515-stdlib-result-option-sentinel-cleanup.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 516,
+    "file": "516-stdlib-raw-helper-boundary-and-facades.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 517,
+    "file": "517-stdlib-api-consistency-and-canonical-naming-v2.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 518,
+    "file": "518-stdlib-docs-examples-as-canonical-style.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 519,
+    "file": "519-stdlib-parity-property-and-differential-tests.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 520,
+    "file": "520-stdlib-performance-allocation-and-complexity-audit.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 529,
+    "file": "529-100-percent-selfhost-transition-plan.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 533,
+    "file": "533-selfhost-domain-migration.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 534,
+    "file": "534-docs-domain-migration.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 535,
+    "file": "535-perf-domain-migration.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 536,
+    "file": "536-gate-domain-migration.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 537,
+    "file": "537-shell-script-removal.md",
+    "classification": "monitor",
+    "action": "keep-done",
+    "reason": "harness retired; check manager.py equivalent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 558,
+    "file": "558-expand-selfhost-cli-parity-runner-beyond-help-version.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 560,
+    "file": "560-phase5-delete-ark-driver.md",
+    "classification": "truly-done",
+    "action": "audit-resolved",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 562,
+    "file": "562-phase5-delete-ark-wasm.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 563,
+    "file": "563-phase5-delete-ark-stdlib.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 564,
+    "file": "564-phase5-delete-arukellt.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 574,
+    "file": "574-phase7-delete-ark-lexer.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 576,
+    "file": "576-phase7-delete-ark-resolve.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 577,
+    "file": "577-phase7-delete-ark-typecheck.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 578,
+    "file": "578-phase7-delete-ark-hir.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 579,
+    "file": "579-phase7-delete-ark-diagnostics.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 580,
+    "file": "580-phase7-delete-ark-manifest.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 581,
+    "file": "581-phase7-delete-ark-target.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 582,
+    "file": "582-phase7-remove-cargo-workspace.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 585,
+    "file": "585-selfhost-native-verification-contract.md",
+    "classification": "false-done-risk-high",
+    "action": "reopen-candidate",
+    "reason": "user-visible claim cites deleted Rust paths without close note",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 586,
+    "file": "586-phase5-delete-ark-llvm.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 587,
+    "file": "587-selfhost-s2-rebuild-regression.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 588,
+    "file": "588-language-surface-uplift-plan.md",
+    "classification": "monitor",
+    "action": "spot-check",
+    "reason": "user-visible + deleted crate refs; needs selfhost port proof",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 589,
+    "file": "589-type-system-stage-up-plan.md",
+    "classification": "monitor",
+    "action": "spot-check",
+    "reason": "user-visible + deleted crate refs; needs selfhost port proof",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 590,
+    "file": "590-stdlib-core-platform-baseline-plan.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 591,
+    "file": "591-optimization-uplift-plan.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 592,
+    "file": "592-error-handling-convergence-plan.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 593,
+    "file": "593-selfhost-phase1-multi-file-fixpoint.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 594,
+    "file": "594-selfhost-phase2-fixture-diag-parity.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 595,
+    "file": "595-lang-uplift-multiclauses.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 596,
+    "file": "596-lang-uplift-guards.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 597,
+    "file": "597-lang-uplift-where.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 598,
+    "file": "598-lang-uplift-comprehensions.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 599,
+    "file": "599-lang-uplift-docs-rollout.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 601,
+    "file": "601-typesys-type-schemes.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 602,
+    "file": "602-typesys-qualified-constraints.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 603,
+    "file": "603-typesys-lowering-contract.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 609,
+    "file": "609-opt-measurement-repair.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 610,
+    "file": "610-opt-lower-bottleneck.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 611,
+    "file": "611-opt-t3-unlock.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 612,
+    "file": "612-opt-binary-size.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 614,
+    "file": "614-errhandle-compiler-diagnostics.md",
+    "classification": "monitor",
+    "action": "audit-resolved",
+    "reason": "user-visible + deleted crate refs; needs selfhost port proof",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 615,
+    "file": "615-errhandle-panic-ice-policy.md",
+    "classification": "monitor",
+    "action": "spot-check",
+    "reason": "user-visible + deleted crate refs; needs selfhost port proof",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": true
+    }
+  },
+  {
+    "id": 617,
+    "file": "617-selfhost-corehir-pipeline.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 623,
+    "file": "623-v5-migration-post-release-documentation.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": true,
+      "has_close": false
+    }
+  },
+  {
+    "id": 624,
+    "file": "624-fixpoint-achievement.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": false
+    }
+  },
+  {
+    "id": 625,
+    "file": "625-dual-run-period.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 629,
+    "file": "629-lang-uplift-baseline.md",
+    "classification": "truly-done",
+    "action": "keep-done",
+    "reason": "no contradicting signals; mechanical truly-done sample",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": false,
+      "user_vis": false,
+      "has_close": true
+    }
+  },
+  {
+    "id": 630,
+    "file": "630-phase7-sequencing-fix.md",
+    "classification": "truly-done",
+    "action": "audit-resolve",
+    "reason": "crate retirement; crates/ absent",
+    "flags": {
+      "fm_open": false,
+      "cites_crates": true,
+      "user_vis": true,
+      "has_close": false
+    }
+  }
+]

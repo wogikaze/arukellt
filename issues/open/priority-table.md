@@ -32,3 +32,5 @@ Scoring criteria (0-5 each, total 25):
 | 19 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
 | 20 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
 | 21 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 22 | 439 | VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
+| 23 | 441 | VSCode Extension: Workspace / Package / ark.toml を理解した proj... | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-12T04:18:15Z",
+  "generated_at": "2026-06-12T04:28:32Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -99,6 +99,34 @@
       }
     },
     {
+      "id": "439",
+      "path": "439-vscode-lsp-semantic-stdlib-navigation.md",
+      "title": "VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "333",
+        "334",
+        "335",
+        "338",
+        "339"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "44",
       "path": "054-std-wit-component.md",
       "title": "std: \":wit + std::component: WIT 型、resource handle、canonical ABI\"",
@@ -122,6 +150,32 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "441",
+      "path": "441-vscode-project-aware-workspace-package-ark-toml.md",
+      "title": "VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "333",
+        "335",
+        "340"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
       }
     },
     {

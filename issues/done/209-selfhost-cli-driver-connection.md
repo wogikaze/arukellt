@@ -9,6 +9,10 @@ Orchestration class: implementation-ready
 Blocks v1 exit: no
 Status note: "`src/compiler/main.ark` is wired (agent already added `use driver` and the dispatch block) but cannot be built until #208 is resolved — the module private-items bug prevents `driver.ark` from compiling."
 ---
+## Audit resolution — 2026-06-12 (Slice G)
+
+`truly-done` — `src/compiler/main.ark` wired to driver pipeline; resolution section documents working CLI path.
+
 
 # selfhost: connect CLI main.ark to driver pipeline
 

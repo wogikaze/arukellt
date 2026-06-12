@@ -1,0 +1,48 @@
+{
+  "$schema": "/home/ubuntu/.cursor/plugins/cache/cursor-public/9333/a5cda8b561bb6536e880481734199a568cb647f4/skills/orchestrate/schemas/plan.schema.json",
+  "goal": "Slice G: Spot-check remaining issues/done/*.md not covered by slices A–F. Mechanical truly-done sampling; reopen only with proof. ≤50/wave.",
+  "summary": "False-done audit slice G — remainder mechanical spot-check",
+  "rootSlug": "audit-slice-g",
+  "baseBranch": "master",
+  "repoUrl": "https://github.com/wogikaze/arukellt.git",
+  "selfAgentId": "bc-1f7a8bd8-33d2-43b5-b730-6091b88f3587",
+  "acceptanceCriteria": [
+    "All uncovered done issues have a classification row",
+    "Final audit summary in report"
+  ],
+  "syncStateToGit": true,
+  "tasks": [
+    {
+      "name": "audit-wave-1",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "status": "completed",
+      "scopedGoal": "Mechanical spot-check wave 1 (50 IDs from batch-wave-1.md). Classify per prompts/research.md; reopen only with repo proof; append Slice G to audit report.",
+      "pathsAllowed": ["issues/**", "docs/process/false-done-audit-2026-06-12.md"],
+      "pathsForbidden": ["src/**", "playground/**"]
+    },
+    {
+      "name": "classify-remainder",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "status": "completed",
+      "scopedGoal": "Mechanical classification of all 278 uncovered done issues; publish classification-all.json + audit report evidence table.",
+      "pathsAllowed": ["issues/**", "docs/process/false-done-audit-2026-06-12.md", ".orchestrate/audit-slice-g/**"],
+      "pathsForbidden": ["src/**", "playground/**"]
+    },
+    {
+      "name": "verify-slice-g",
+      "type": "verifier",
+      "model": "claude-opus-4-8",
+      "status": "pending",
+      "verifies": "classify-remainder",
+      "dependsOn": ["classify-remainder"],
+      "scopedGoal": "Verify slice G acceptance: all 278 rows classified; audit report Slice G section; index synced.",
+      "acceptance": [
+        "classification-all.json has 278 rows",
+        "Audit report has Slice G wave",
+        "verify quick passes or pre-existing failures documented"
+      ]
+    }
+  ]
+}

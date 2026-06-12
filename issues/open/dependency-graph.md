@@ -10,7 +10,9 @@ graph LR
   I30["30 036-jco-javascript-interop"]
   I41["41 051-std-time-random"]
   I418["418 Repo Hygiene: orphan / stale file inventory を作るスクリプトを追加する"]
+  I439["439 VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する"]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
+  I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I446["446 446-std-host-http-implementation"]
   I447["447 447-std-host-sockets-implementation"]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
@@ -51,7 +53,9 @@ graph LR
 - **30** depends on: 27; blocks: none
 - **41** depends on: 039, 040; blocks: none
 - **418** depends on: none; blocks: 422
+- **439** depends on: 333, 334, 335, 338, 339; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none
+- **441** depends on: 333, 335, 340; blocks: none
 - **446** depends on: none; blocks: 633
 - **447** depends on: none; blocks: 633
 - **45** depends on: 039, 042, 044; blocks: none
