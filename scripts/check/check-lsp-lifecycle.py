@@ -94,6 +94,12 @@ def main() -> int:
                   file=sys.stderr)
             failures += 1
             continue
+        if script.name == "lsp_symbol_index.lsp-script":
+            if b"helper_fn" not in r.stdout:
+                print(f"FAIL {rel}: workspace/symbol did not return helper_fn",
+                      file=sys.stderr)
+                failures += 1
+                continue
         r_stdio = subprocess.run(
             [wasmtime, "run", "--dir", str(root), str(compiler), "--", "lsp"],
             cwd=str(root),

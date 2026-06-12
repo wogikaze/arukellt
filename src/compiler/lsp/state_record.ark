@@ -1,9 +1,13 @@
 // Arukellt LSP - session lifecycle state data record.
 
 use lsp::state_docs
+use lsp::symbol_index
+use lsp::symbol_index_record
 
 pub struct LspState {
     doc_store: LspDocStore,
+    symbol_index: symbol_index_record::SymbolIndex,
+    project_root: String,
     initialized: bool,
     shutdown: bool,
     exited: bool,
@@ -11,11 +15,23 @@ pub struct LspState {
 }
 
 fn LspState_new() -> LspState {
-    LspState { doc_store: state_docs::LspDocStore_new(), initialized: false, shutdown: false, exited: false, output: String_new() }
+    LspState { doc_store: state_docs::LspDocStore_new(), symbol_index: symbol_index::SymbolIndex_new(), project_root: String_new(), initialized: false, shutdown: false, exited: false, output: String_new() }
 }
 
 fn lsp_state_doc_store(state: LspState) -> LspDocStore {
     state.doc_store
+}
+
+fn lsp_state_symbol_index(state: LspState) -> symbol_index_record::SymbolIndex {
+    state.symbol_index
+}
+
+fn lsp_state_project_root(state: LspState) -> String {
+    clone(state.project_root)
+}
+
+fn lsp_state_set_project_root(state: LspState, root: String) {
+    state.project_root = root
 }
 
 fn lsp_state_mark_initialized(state: LspState) {

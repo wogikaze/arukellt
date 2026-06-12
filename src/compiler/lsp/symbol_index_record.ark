@@ -1,0 +1,127 @@
+// Arukellt LSP - project-wide symbol index records.
+
+pub struct IndexedSymbol {
+    uri: String,
+    name: String,
+    kind: i32,
+    decl_start: i32,
+    decl_end: i32,
+    detail: String,
+    module_path: String,
+}
+
+pub struct StdlibIndexedSymbol {
+    name: String,
+    kind: i32,
+    detail: String,
+    module_path: String,
+    source_uri: String,
+}
+
+pub struct SymbolIndex {
+    symbols: Vec<IndexedSymbol>,
+    stdlib_symbols: Vec<StdlibIndexedSymbol>,
+    indexed_uris: Vec<String>,
+}
+
+pub fn SymbolIndex_new() -> SymbolIndex {
+    SymbolIndex { symbols: Vec_new_IndexedSymbol(), stdlib_symbols: Vec_new_StdlibIndexedSymbol(), indexed_uris: Vec_new_String() }
+}
+
+fn indexed_symbol_uri(sym: IndexedSymbol) -> String {
+    clone(sym.uri)
+}
+
+fn indexed_symbol_name(sym: IndexedSymbol) -> String {
+    clone(sym.name)
+}
+
+fn indexed_symbol_kind(sym: IndexedSymbol) -> i32 {
+    sym.kind
+}
+
+fn indexed_symbol_decl_start(sym: IndexedSymbol) -> i32 {
+    sym.decl_start
+}
+
+fn indexed_symbol_decl_end(sym: IndexedSymbol) -> i32 {
+    sym.decl_end
+}
+
+fn indexed_symbol_detail(sym: IndexedSymbol) -> String {
+    clone(sym.detail)
+}
+
+fn indexed_symbol_module_path(sym: IndexedSymbol) -> String {
+    clone(sym.module_path)
+}
+
+fn stdlib_indexed_symbol_name(sym: StdlibIndexedSymbol) -> String {
+    clone(sym.name)
+}
+
+fn stdlib_indexed_symbol_kind(sym: StdlibIndexedSymbol) -> i32 {
+    sym.kind
+}
+
+fn stdlib_indexed_symbol_detail(sym: StdlibIndexedSymbol) -> String {
+    clone(sym.detail)
+}
+
+fn stdlib_indexed_symbol_module_path(sym: StdlibIndexedSymbol) -> String {
+    clone(sym.module_path)
+}
+
+fn stdlib_indexed_symbol_source_uri(sym: StdlibIndexedSymbol) -> String {
+    clone(sym.source_uri)
+}
+
+fn IndexedSymbol_new(uri: String, name: String, kind: i32, decl_start: i32, decl_end: i32, detail: String, module_path: String) -> IndexedSymbol {
+    IndexedSymbol { uri: uri, name: name, kind: kind, decl_start: decl_start, decl_end: decl_end, detail: detail, module_path: module_path }
+}
+
+fn StdlibIndexedSymbol_new(name: String, kind: i32, detail: String, module_path: String, source_uri: String) -> StdlibIndexedSymbol {
+    StdlibIndexedSymbol { name: name, kind: kind, detail: detail, module_path: module_path, source_uri: source_uri }
+}
+
+fn symbol_index_symbols(index: SymbolIndex) -> Vec<IndexedSymbol> {
+    index.symbols
+}
+
+fn symbol_index_stdlib_symbols(index: SymbolIndex) -> Vec<StdlibIndexedSymbol> {
+    index.stdlib_symbols
+}
+
+fn symbol_index_indexed_uris(index: SymbolIndex) -> Vec<String> {
+    index.indexed_uris
+}
+
+fn symbol_index_push_symbol(index: SymbolIndex, sym: IndexedSymbol) {
+    push(index.symbols, sym)
+}
+
+fn symbol_index_set_stdlib_symbols(index: SymbolIndex, syms: Vec<StdlibIndexedSymbol>) {
+    index.stdlib_symbols = syms
+}
+
+fn symbol_index_mark_indexed(index: SymbolIndex, uri: String) {
+    if symbol_index_uri_index(index, clone(uri)) < 0 {
+        push(index.indexed_uris, uri)
+    }
+}
+
+fn symbol_index_uri_index(index: SymbolIndex, uri: String) -> i32 {
+    let n = len(index.indexed_uris)
+    let mut i = 0
+    while i < n {
+        if eq(clone(get_unchecked(index.indexed_uris, i)), clone(uri)) {
+            return i
+        }
+        i = i + 1
+    }
+    -1
+}
+
+fn symbol_index_is_indexed(index: SymbolIndex, uri: String) -> bool {
+    symbol_index_uri_index(index, uri) >= 0
+}

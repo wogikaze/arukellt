@@ -1,0 +1,56 @@
+// Arukellt LSP - incremental symbol index updates.
+
+use compiler::session_parse
+use lsp::symbol_index_extract
+use lsp::symbol_index_record
+
+pub fn symbol_index_remove_uri(index: symbol_index_record::SymbolIndex, uri: String) {
+    let kept = Vec_new_IndexedSymbol()
+    let n = len(symbol_index_record::symbol_index_symbols(index))
+    let mut i = 0
+    while i < n {
+        let sym = get_unchecked(symbol_index_record::symbol_index_symbols(index), i)
+        if !eq(symbol_index_record::indexed_symbol_uri(sym), clone(uri)) {
+            push(kept, sym)
+        }
+        i = i + 1
+    }
+    index.symbols = kept
+    let uri_idx = symbol_index_record::symbol_index_uri_index(index, clone(uri))
+    if uri_idx >= 0 {
+        let mut uris = symbol_index_record::symbol_index_indexed_uris(index)
+        let tail = Vec_new_String()
+        let un = len(uris)
+        let mut j = uri_idx + 1
+        while j < un {
+            push(tail, get_unchecked(uris, j))
+            j = j + 1
+        }
+        uris = Vec_new_String()
+        let mut k = 0
+        while k < uri_idx {
+            push(uris, get_unchecked(symbol_index_record::symbol_index_indexed_uris(index), k))
+            k = k + 1
+        }
+        let tn = len(tail)
+        let mut m = 0
+        while m < tn {
+            push(uris, get_unchecked(tail, m))
+            m = m + 1
+        }
+        index.indexed_uris = uris
+    }
+}
+
+pub fn symbol_index_update_uri(index: symbol_index_record::SymbolIndex, uri: String, text: String) {
+    symbol_index_remove_uri(index, clone(uri))
+    let decls = session_parse::session_parse_decls(clone(text))
+    let extracted = symbol_index_extract::extract_symbols_from_decls(clone(uri), decls)
+    let en = len(extracted)
+    let mut ei = 0
+    while ei < en {
+        symbol_index_record::symbol_index_push_symbol(index, get_unchecked(extracted, ei))
+        ei = ei + 1
+    }
+    symbol_index_record::symbol_index_mark_indexed(index, uri)
+}

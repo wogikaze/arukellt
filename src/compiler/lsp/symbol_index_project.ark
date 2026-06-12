@@ -1,0 +1,137 @@
+// Arukellt LSP - project file discovery and indexing via import graph.
+
+use loader::module_file_load_local
+use loader::module_import_paths
+use loader::module_package_root
+use loader::module_paths
+use lsp::symbol_index_paths
+use lsp::symbol_index_record
+use lsp::symbol_index_update
+use std::host::fs
+use compiler::session_parse
+
+fn pending_contains(pending: Vec<String>, path: String) -> bool {
+    let n = len(pending)
+    let mut i = 0
+    while i < n {
+        if eq(get_unchecked(pending, i), clone(path)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn pending_push_unique(pending: Vec<String>, path: String) -> Vec<String> {
+    if len(path) == 0 || pending_contains(pending, clone(path)) {
+        return pending
+    }
+    push(pending, path)
+    pending
+}
+
+fn resolve_import_to_path(import_path: String, base_dir: String, root_dir: String) -> String {
+    let base = if contains(clone(import_path), String_from("::")) {
+        root_dir
+    } else {
+        base_dir
+    }
+    let loaded = module_file_load_local::read_local_module_source(clone(import_path), clone(base))
+    match loaded {
+        Result::Ok(src) => {
+            module_file_load_local::DriverLoadedSource_path(src)
+        },
+        Result::Err(_) => {
+            String_new()
+        },
+    }
+}
+
+pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir: String) -> Vec<String> {
+    let out = Vec_new_String()
+    let paths = module_import_paths::collect_import_paths(decls)
+    let n = len(paths)
+    let mut i = 0
+    while i < n {
+        let import_path = get_unchecked(paths, i)
+        if !contains(clone(import_path), String_from("std::")) {
+            let file_path = resolve_import_to_path(clone(import_path), clone(base_dir), clone(root_dir))
+            if len(file_path) > 0 {
+                push(out, file_path)
+            }
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn project_entry_path(project_root: String) -> String {
+    let manifest_path = symbol_index_paths::join_path(clone(project_root), String_from("ark.toml"))
+    let read_result = fs::read_to_string(clone(manifest_path))
+    match read_result {
+        Result::Ok(content) => {
+            let entry = symbol_index_paths::find_toml_value(clone(content), String_from("path"))
+            if len(entry) > 0 {
+                return symbol_index_paths::join_path(clone(project_root), entry)
+            }
+            String_new()
+        },
+        Result::Err(_) => {
+            String_new()
+        },
+    }
+}
+
+fn index_file_at_path(index: symbol_index_record::SymbolIndex, file_path: String) {
+    let uri = symbol_index_paths::file_path_to_uri(clone(file_path))
+    if symbol_index_record::symbol_index_is_indexed(index, clone(uri)) {
+        return
+    }
+    let read_result = fs::read_to_string(clone(file_path))
+    match read_result {
+        Result::Ok(text) => {
+            symbol_index_update::symbol_index_update_uri(index, uri, text)
+        },
+        Result::Err(_) => {},
+    }
+}
+
+fn index_import_graph_from(index: symbol_index_record::SymbolIndex, start_path: String, project_root: String) {
+    let pending = pending_push_unique(Vec_new_String(), clone(start_path))
+    let root_dir = module_package_root::find_package_root(clone(project_root))
+    let mut pos = 0
+    while pos < len(pending) {
+        let path = get_unchecked(pending, pos)
+        index_file_at_path(index, clone(path))
+        let read_result = fs::read_to_string(clone(path))
+        match read_result {
+            Result::Ok(text) => {
+                let decls = session_parse::session_parse_decls(clone(text))
+                let base_dir = module_paths::parent_dir(clone(path))
+                let imports = collect_import_file_paths(decls, base_dir, clone(root_dir))
+                let in_n = len(imports)
+                let mut ii = 0
+                while ii < in_n {
+                    pending = pending_push_unique(pending, get_unchecked(imports, ii))
+                    ii = ii + 1
+                }
+            },
+            Result::Err(_) => {},
+        }
+        pos = pos + 1
+    }
+}
+
+pub fn symbol_index_load_project(index: symbol_index_record::SymbolIndex, project_root: String) {
+    if len(project_root) == 0 {
+        return
+    }
+    let entry = project_entry_path(clone(project_root))
+    if len(entry) > 0 {
+        index_import_graph_from(index, entry, clone(project_root))
+    }
+}
+
+pub fn symbol_index_project_root_from_uri(root_uri: String) -> String {
+    symbol_index_paths::uri_to_file_path(clone(root_uri))
+}

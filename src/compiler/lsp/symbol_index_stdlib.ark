@@ -1,0 +1,72 @@
+// Arukellt LSP - stdlib symbol indexing from std/manifest.toml.
+
+use lsp::kinds
+use lsp::symbol_index_paths
+use lsp::symbol_index_record
+use std::host::fs
+
+fn stdlib_module_to_source_uri(module_path: String) -> String {
+    let rel = replace(clone(module_path), String_from("::"), String_from("/"))
+    symbol_index_paths::file_path_to_uri(concat(concat(String_from("std/"), rel), String_from(".ark")))
+}
+
+fn push_function_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String, module_path: String) {
+    let detail = concat(concat(String_from("fn "), clone(name)), String_from("()"))
+    push(out, symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_FUNCTION(), detail, module_path, stdlib_module_to_source_uri(clone(module_path))))
+}
+
+fn push_type_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String) {
+    let detail = concat(String_from("type "), clone(name))
+    push(out, symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_STRUCT(), detail, String_new(), String_new()))
+}
+
+fn parse_manifest_symbols(content: String) -> Vec<symbol_index_record::StdlibIndexedSymbol> {
+    let out = Vec_new_StdlibIndexedSymbol()
+    let n = len(content)
+    let mut line_start = 0
+    let mut section = 0
+    let mut cur_name = String_new()
+    let mut i = 0
+    while i < n {
+        if char_at(content, i) == 10 || i == n - 1 {
+            let line_end = if char_at(content, i) == 10 { i } else { i + 1 }
+            let line = substring(content, line_start, line_end)
+            if starts_with(clone(line), String_from("[[functions]]")) {
+                section = 1
+                cur_name = String_new()
+            } else {
+                if starts_with(clone(line), String_from("[[types]]")) {
+                    section = 2
+                    cur_name = String_new()
+                } else {
+                    let key_name = symbol_index_paths::find_toml_value(clone(line), String_from("name"))
+                    if len(key_name) > 0 {
+                        cur_name = key_name
+                        if section == 2 {
+                            push_type_symbol(out, clone(cur_name))
+                        }
+                    }
+                    let key_module = symbol_index_paths::find_toml_value(clone(line), String_from("module"))
+                    if section == 1 && len(cur_name) > 0 && len(key_module) > 0 {
+                        push_function_symbol(out, clone(cur_name), key_module)
+                    }
+                }
+            }
+            line_start = i + 1
+        }
+        i = i + 1
+    }
+    out
+}
+
+pub fn symbol_index_load_stdlib(index: symbol_index_record::SymbolIndex) {
+    let read_result = fs::read_to_string(String_from("std/manifest.toml"))
+    match read_result {
+        Result::Ok(content) => {
+            symbol_index_record::symbol_index_set_stdlib_symbols(index, parse_manifest_symbols(content))
+        },
+        Result::Err(_) => {
+            symbol_index_record::symbol_index_set_stdlib_symbols(index, Vec_new_StdlibIndexedSymbol())
+        },
+    }
+}

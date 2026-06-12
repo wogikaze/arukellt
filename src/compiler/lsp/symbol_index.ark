@@ -1,0 +1,37 @@
+// Arukellt LSP - project-wide symbol index facade.
+
+use lsp::symbol_index_imports
+use lsp::symbol_index_project
+use lsp::symbol_index_record
+use lsp::symbol_index_search
+use lsp::symbol_index_stdlib
+use lsp::symbol_index_update
+
+pub fn SymbolIndex_new() -> symbol_index_record::SymbolIndex {
+    symbol_index_record::SymbolIndex_new()
+}
+
+pub fn symbol_index_build_workspace(index: symbol_index_record::SymbolIndex, project_root: String) {
+    symbol_index_stdlib::symbol_index_load_stdlib(index)
+    symbol_index_project::symbol_index_load_project(index, clone(project_root))
+}
+
+pub fn symbol_index_update_open_file(index: symbol_index_record::SymbolIndex, uri: String, text: String) {
+    symbol_index_update::symbol_index_update_uri(index, uri, text)
+}
+
+pub fn symbol_index_update_open_file_with_project(index: symbol_index_record::SymbolIndex, uri: String, text: String, project_root: String) {
+    symbol_index_imports::symbol_index_update_open_file_with_imports(index, uri, text, project_root)
+}
+
+pub fn symbol_index_remove_file(index: symbol_index_record::SymbolIndex, uri: String) {
+    symbol_index_update::symbol_index_remove_uri(index, uri)
+}
+
+pub fn symbol_index_search_query(index: symbol_index_record::SymbolIndex, query: String) -> Vec<symbol_index_record::IndexedSymbol> {
+    symbol_index_search::symbol_index_search(index, query)
+}
+
+pub fn symbol_index_project_root_from_uri(root_uri: String) -> String {
+    symbol_index_project::symbol_index_project_root_from_uri(root_uri)
+}

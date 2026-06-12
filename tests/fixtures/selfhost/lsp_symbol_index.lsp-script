@@ -1,0 +1,13 @@
+Content-Length: 193
+
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":"file://tests/fixtures/selfhost/lsp_symbol_index","capabilities":{}}}Content-Length: 52
+
+{"jsonrpc":"2.0","method":"initialized","params":{}}Content-Length: 249
+
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file://tests/fixtures/selfhost/lsp_symbol_index/main.ark","languageId":"arukellt","version":1,"text":"use helper\n\nfn main() {\n    let _v = helper_fn()\n}\n"}}}Content-Length: 88
+
+{"jsonrpc":"2.0","id":2,"method":"workspace/symbol","params":{"query":"helper_fn"}}Content-Length: 44
+
+{"jsonrpc":"2.0","id":3,"method":"shutdown"}Content-Length: 33
+
+{"jsonrpc":"2.0","method":"exit"}

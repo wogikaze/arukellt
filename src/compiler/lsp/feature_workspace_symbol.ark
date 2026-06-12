@@ -1,0 +1,41 @@
+// Arukellt LSP - workspace/symbol request handler.
+
+use lsp::framing
+use lsp::json_fields
+use lsp::responses
+use lsp::symbol_index
+use lsp::symbol_index_paths
+use lsp::symbol_index_record
+use lsp::state_docs
+use lsp::state_record
+use std::host::fs
+
+pub fn handle_workspace_symbol(state: LspState, body: String) {
+    let id = json_fields::extract_int_field(clone(body), String_from("id"))
+    let query = json_fields::extract_string_field(clone(body), String_from("query"))
+    let matches = symbol_index::symbol_index_search_query(state_record::lsp_state_symbol_index(state), clone(query))
+    let source_texts = Vec_new_String()
+    let mn = len(matches)
+    let mut mi = 0
+    while mi < mn {
+        let sym = get_unchecked(matches, mi)
+        let uri = symbol_index_record::indexed_symbol_uri(sym)
+        let doc_text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), clone(uri))
+        if len(doc_text) > 0 {
+            push(source_texts, doc_text)
+        } else {
+            let file_path = symbol_index_paths::uri_to_file_path(clone(uri))
+            let read_result = fs::read_to_string(clone(file_path))
+            match read_result {
+                Result::Ok(text) => {
+                    push(source_texts, text)
+                },
+                Result::Err(_) => {
+                    push(source_texts, String_new())
+                },
+            }
+        }
+        mi = mi + 1
+    }
+    framing::append_framed(state, responses::build_workspace_symbol_response(id, matches, source_texts))
+}
