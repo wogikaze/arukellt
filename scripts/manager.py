@@ -4450,6 +4450,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "compiler boundary check (CoreHIR/MIR separation)",
             "python3 scripts/check/check-compiler-boundaries.py",
         ),
+        (
+            "orphan/stale file inventory (advisory, #418)",
+            "bash scripts/check/check-orphan-inventory.sh",
+        ),
     ]
 
     bg_results: list[tuple[str, str, int, str]] = []

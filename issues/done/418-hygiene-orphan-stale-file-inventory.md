@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-31
 Updated: 2026-06-12
 Track: main
@@ -33,10 +33,10 @@ satisfied by repo proof.
 
 ## Completed (prior close — invalidated)
 
-- [ ] orphan/stale inventory スクリプトが追加される — `scripts/check/check-orphan-inventory.sh`
-- [ ] 少なくとも docs / tests / benchmarks / artifacts を走査する — large files, orphan fixtures, orphan .expected, broken doc refs, orphan bench assets の5カテゴリ
-- [ ] レポートに候補ファイルと参照状況が出る
-- [ ] CI か定期手順から呼び出せる — `bash scripts/check/check-orphan-inventory.sh` (advisory, exit 0)
+- [x] orphan/stale inventory スクリプトが追加される — `scripts/check/check-orphan-inventory.sh`
+- [x] 少なくとも docs / tests / benchmarks / artifacts を走査する — large files, orphan fixtures, orphan .expected, broken doc refs, orphan bench assets の5カテゴリ
+- [x] レポートに候補ファイルと参照状況が出る
+- [x] CI か定期手順から呼び出せる — `bash scripts/check/check-orphan-inventory.sh` (advisory, exit 0)
 
 ## Acceptance
 
@@ -53,3 +53,11 @@ satisfied by repo proof.
 ## Close gate
 
 Orphan/stale inventory runnable from `manager.py verify quick` or documented CI step with repo proof.
+
+## Resolution — 2026-06-12
+
+- Added `scripts/check/check-orphan-inventory.sh` (wrapper) and `scripts/check/check-orphan-inventory.py` (scanner).
+- Five advisory categories: large files (>500KB), orphan fixtures, orphan `.expected`, broken `docs/` refs, orphan bench assets.
+- Scan roots: `docs/`, `tests/`, `benchmarks/`, plus `benchmarks/baselines/` and `benchmarks/results/` when present.
+- Registered in `scripts/manager.py verify quick` as `orphan/stale file inventory (advisory, #418)`.
+- Script always exits 0; reports candidate paths and reference status for manual review.
