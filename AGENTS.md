@@ -66,6 +66,16 @@ For tracked issue work, that normally means:
 3. relevant docs / ADRs are updated when behavior changed
 4. tracked issue files move from `issues/open/` to `issues/done/` when the task itself is completed
 5. commits stay focused to the files changed for that task
+6. **all changes for the work unit are committed** before ending the turn (do not ask the user whether to commit)
+
+## Commit Policy
+
+- **Every completed work unit must be committed.** Do not wait for the user to say "commit".
+- Commit after implementation, docs/issue updates, audit rollups, or regenerated indexes when verify (or the relevant gate) passes.
+- Do not include unrelated changes; do not commit secrets.
+- Do not `git push` unless the user explicitly asks.
+- If pre-commit fails, fix and create a **new** commit (do not amend unless user rules allow it).
+- Orchestration-only commits (issue moves, audit reports, indexes) stay separate from product implementation when both land in one session.
 
 ## Verification Loop
 

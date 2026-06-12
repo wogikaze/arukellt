@@ -1,20 +1,43 @@
 # False-Done Audit Report — 2026-06-12
 
 Audit orchestrator: `prompts/research.md`  
-Audit scope: HIGH-RISK `issues/done/` slice (616 total; this run prioritized user-visible claims, explicit reopen notes, component/WIT/stdlib gates, playground typecheck, and status/directory mismatches).  
-Verification gate at audit time: `python3 scripts/manager.py verify quick` — 147/147 checks pass.
+Audit scope: full `issues/done/` inventory (~616 at kickoff) via waves 1–3b and slices A–G.  
+**Status: complete (2026-06-12).**  
+Verification gate at audit close: `python3 scripts/manager.py verify quick` — **149/149** checks pass.
 
-## 1. Audit summary
+## 1. Audit summary (final rollup)
 
 | Metric | Count |
 |--------|------:|
-| Done issues reviewed (targeted) | ~45 |
-| **Reopened (must-reopen)** | **6** (wave 1: 5, wave 2: 1) |
-| Truly-done spot checks | 14 |
-| Stale reopen notes (kept done; evidence now satisfies claim) | 2 (#034, #028b) |
-| High-risk remaining in done (monitor) | 1 (#051 random-only partial was reopened) |
+| `issues/done/` at kickoff | ~616 |
+| Slices / waves executed | Waves 1–3b + Slices A–G |
+| Done issues reviewed (all slices) | ~616 |
+| **Reopened (must-reopen, unique)** | **68** |
+| New tracking issues created | 2 (#633, #634) |
+| Audit-resolution notes added (kept done) | ~56+ (#034 wave-2 claim later retracted in Slice C) |
+| Mechanical `truly-done` (Slice G) | 171 |
+| `false-done-risk-high` monitor (Slice G) | 34 |
+| **Open after audit** | **80** |
+| **Done after audit** | **542** |
+| Blocked (`issues/blocked/`) | 2 (#28, #31) |
 
-Confirmed false-done items were moved from `issues/done/` → `issues/open/` with `Status: open`, audit evidence, and acceptance rollback where applicable. Issue index regenerated via `python3 scripts/gen/generate-issue-index.py`.
+### Reopen count by slice
+
+| Slice / wave | Reopened | Notes |
+|--------------|---------:|-------|
+| Wave 1 | 5 | #074, #510, #472, #500, #051 |
+| Wave 2 | 1 | #123 (#034 wave-2 truly-done retracted in Slice C) |
+| Wave 3b | 2 | #446, #447 |
+| Slice F (release/hygiene) | 2 | #418, #422 |
+| Slice A (FD-01 metadata) | 7 | #064, #067, #070, #080, #082, #083, #115 |
+| Slice B (user-visible) | 7 | #216, #217, #219, #440, #456, #464, #491 |
+| Slice C (component/WIT/WASI) | 7 | #034, #073, #117, #118, #138, #443, #618 |
+| Slice D (stdlib/host) | 6 | #137, #292, #293, #295, #358, #445 |
+| Slice E (LSP/IDE/vscode) | 29 | #183–#184, #191, #236, #271, #273, #333–#342, #355, #450–#452, #454, #462–#463, #479–#480, #502, #566, #626, #628 |
+| Slice G (remainder) | 2 | #439, #441 |
+| **Total** | **68** | |
+
+Confirmed false-done items were moved `issues/done/` → `issues/open/` with `Status: open`, audit evidence, and acceptance rollback where applicable. Issue index regenerated via `python3 scripts/gen/generate-issue-index.py` after each wave.
 
 ## 2. Reopened issues
 
@@ -90,7 +113,6 @@ None required this run. Deferred work already tracked:
 
 | ID | Area | Evidence |
 |----|------|----------|
-| 034 | WIT CLI + import binding | `component-compile:wit_import/main.ark` in manifest; compile succeeds |
 | 028b | WIT pipeline wiring | `src/compiler/resolver/wit_import_bind.ark`, component emit path |
 | 466–471 | Playground entrypoint/deploy/docs | `docs/playground/index.html`, pages workflow, build-path-proof |
 | 475, 557, 575 | CLI surface | `src/compiler/main/*.ark` |
@@ -118,7 +140,7 @@ None required this run. Deferred work already tracked:
 | 472 | `engine.ts` typecheckSource | FAIL — reopen |
 | 500 | ark-playground-wasm absent | FAIL — reopen |
 | 051 | monotonic.ark compile | FAIL — reopen |
-| 034 | wit_import compile | PASS — keep done |
+| 034 | E0401 diag; `wit_import/` absent (Slice C) | FAIL — reopen |
 | 632 | playground npm test | PASS — keep done |
 
 ## 7. Dependency updates
@@ -128,12 +150,14 @@ None required this run. Deferred work already tracked:
 - `#500` blocks `#472` (restated)
 - Index regenerated: `issues/open/index.md`, `issues/open/dependency-graph.md`
 
-## 8. Remaining high-risk false-done items
+## 8. Remaining high-risk false-done items (post-audit monitor)
 
-Monitor on next full audit (not reopened this run due to insufficient new contradicting evidence or already re-closed with fixtures):
+Audit complete. Ongoing monitor only (no bulk reopen without new repo proof):
 
-- **#124** — blocked note references #074; Phase 1 import syntax exists (`wit_import/main.ark`) but parent P2 gate open
-- Historical "moved to open (2026-04-03)" notes in many done issues — most were subsequently re-closed with completion evidence; do not bulk-reopen without per-issue proof
+- **34 Slice G `false-done-risk-high` rows** — Rust-era close prose; see `.orchestrate/audit-slice-g/classification-table.md`
+- **#124** — open; parent P2 gate #074 reopened; import syntax work blocked on #074 / #124 close gates
+- **#442, #300** — broad interop claims; partial JCO evidence only (Slice C monitor)
+- **#487** — FD-02 hygiene (`Status: fixed` under `issues/done/`); pre-existing
 
 ## 9. Checklist items not tracked as issues
 
@@ -202,7 +226,7 @@ Cloud kickoff succeeded (`bc-5380e3ed-…`); worker fan-out blocked without
 
 ### Remaining audit surface
 
-~600 `issues/done/` files not yet spot-checked in this run. Slice A (~150 with historical reopen metadata) is next priority.
+**Resolved:** slices A–G completed 2026-06-12 (see §1 final rollup).
 
 ---
 
@@ -1000,3 +1024,21 @@ None.
 
 `python3 scripts/manager.py verify quick` — orchestration-state diff only (`issues/**`);
 pre-existing failures unchanged from prior waves.
+
+---
+
+## Audit complete — final state (2026-06-12)
+
+| Artifact | Path / value |
+|----------|----------------|
+| Open issues | 80 (`issues/open/index.md`) |
+| Done issues | 542 |
+| Blocked issues | 2 (`issues/blocked/`) |
+| Prevention contract | `docs/process/false-done-prevention.md` |
+| Orchestration plan | `docs/process/false-done-audit-orchestration-plan.md` |
+| Mechanical hygiene | `scripts/check/check-false-done-hygiene.py` |
+| Re-close gates | `scripts/check/check-false-done-close-gates.py` |
+| Slice G classification | `.orchestrate/audit-slice-g/classification-table.md` |
+| Verify at close | `python3 scripts/manager.py verify quick` → **149/149** |
+
+**Next work:** per-issue close-gate fixtures for reopened issues (see `false-done-prevention.md` § Reopen 後の done 復帰契約). Priority lanes: #074/#510 (P2 native), #472/#500 (playground typecheck), #634 (LSP stdio), #633 (manifest honesty).

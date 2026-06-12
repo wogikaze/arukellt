@@ -216,6 +216,7 @@ partial handling rule
 - `partial があるのでユーザー判断待ち` は禁止する。
 
 autonomous commit policy
+- **作業単位が終わったら毎回コミットする。** ユーザーに「コミットしますか？」と確認して停止してはならない（`push` はユーザー明示時のみ）。
 - 親は product implementation をしないが、orchestration-state の差分は自律的にコミットしてよい。
 - 親は少なくとも次を自分の責務としてコミットしてよい。
   - issue file の open/done 移動
