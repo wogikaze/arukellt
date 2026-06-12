@@ -12,5 +12,13 @@ fn dispatch_documents(state: LspState, body: String, method: String) -> bool {
         documents::handle_did_change(state, clone(body))
         return true
     }
+    if eq(clone(method), "textDocument/didClose") {
+        documents::handle_did_close(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "workspace/didChangeWatchedFiles") {
+        documents::handle_did_change_watched_files(state, clone(body))
+        return true
+    }
     false
 }

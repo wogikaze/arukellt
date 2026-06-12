@@ -1,0 +1,27 @@
+// Arukellt LSP - LSP SymbolKind constants for workspace symbol responses.
+
+fn LSP_SYMBOL_FILE() -> i32 { 1 }
+fn LSP_SYMBOL_FUNCTION() -> i32 { 12 }
+fn LSP_SYMBOL_METHOD() -> i32 { 6 }
+fn LSP_SYMBOL_STRUCT() -> i32 { 23 }
+fn LSP_SYMBOL_ENUM() -> i32 { 10 }
+fn LSP_SYMBOL_INTERFACE() -> i32 { 11 }
+
+fn lsp_kind_for_nk(kind: i32, is_method: bool) -> i32 {
+    if is_method {
+        return LSP_SYMBOL_METHOD()
+    }
+    if kind == 50 {
+        return LSP_SYMBOL_FUNCTION()
+    }
+    if kind == 51 {
+        return LSP_SYMBOL_STRUCT()
+    }
+    if kind == 52 {
+        return LSP_SYMBOL_ENUM()
+    }
+    if kind == 55 {
+        return LSP_SYMBOL_INTERFACE()
+    }
+    LSP_SYMBOL_FUNCTION()
+}

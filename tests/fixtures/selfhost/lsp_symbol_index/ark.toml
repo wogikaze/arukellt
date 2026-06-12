@@ -1,0 +1,7 @@
+[package]
+name = "lsp-symbol-index-fixture"
+version = "0.1.0"
+
+[bin]
+name = "lsp-symbol-index-fixture"
+path = "main.ark"

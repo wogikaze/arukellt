@@ -1,0 +1,71 @@
+// Arukellt LSP - workspace symbol search over project index.
+
+use lsp::state_record
+use lsp::symbol_index_record
+
+fn ascii_lower_char(c: i32) -> i32 {
+    if c >= 65 && c <= 90 {
+        return c + 32
+    }
+    c
+}
+
+fn ascii_lower_str(s: String) -> String {
+    let n = len(s)
+    let mut out = String_new()
+    let mut i = 0
+    while i < n {
+        out = concat(out, char_to_string(ascii_lower_char(char_at(s, i))))
+        i = i + 1
+    }
+    out
+}
+
+fn name_matches_query(name: String, query: String) -> bool {
+    if len(query) == 0 {
+        return true
+    }
+    contains(ascii_lower_str(clone(name)), ascii_lower_str(clone(query)))
+}
+
+fn result_key(uri: String, name: String) -> String {
+    concat(concat(uri, String_from(":")), name)
+}
+
+fn results_contains(results: Vec<symbol_index_record::IndexedSymbol>, uri: String, name: String) -> bool {
+    let key = result_key(clone(uri), clone(name))
+    let n = len(results)
+    let mut i = 0
+    while i < n {
+        let sym = get_unchecked(results, i)
+        let existing = result_key(symbol_index_record::indexed_symbol_uri(sym), symbol_index_record::indexed_symbol_name(sym))
+        if eq(existing, clone(key)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn push_unique_result(results: Vec<symbol_index_record::IndexedSymbol>, sym: symbol_index_record::IndexedSymbol) -> Vec<symbol_index_record::IndexedSymbol> {
+    if results_contains(results, symbol_index_record::indexed_symbol_uri(sym), symbol_index_record::indexed_symbol_name(sym)) {
+        return results
+    }
+    push(results, sym)
+    results
+}
+
+pub fn symbol_index_search(state: LspState, query: String) -> Vec<symbol_index_record::IndexedSymbol> {
+    let results = Vec_new_IndexedSymbol()
+    let symbols = state_record::lsp_state_symbol_symbols(state)
+    let file_n = len(symbols)
+    let mut fi = 0
+    while fi < file_n {
+        let sym = get_unchecked(symbols, fi)
+        if name_matches_query(symbol_index_record::indexed_symbol_name(sym), clone(query)) {
+            push_unique_result(results, sym)
+        }
+        fi = fi + 1
+    }
+    results
+}

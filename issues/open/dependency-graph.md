@@ -25,7 +25,9 @@ graph LR
   I292["292 292-stub-host-compile-error"]
   I295["295 295-host-api-runtime-tests"]
   I30["30 036-jco-javascript-interop"]
-  I333["333 333-lsp-project-symbol-index"]
+  I334["334 334-lsp-stdlib-definition-resolution"]
+  I335["335 335-lsp-cross-file-goto-definition"]
+  I338["338 338-lsp-semantic-references"]
   I355["355 355-lsp-protocol-e2e-tests"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I41["41 051-std-time-random"]
@@ -68,9 +70,11 @@ graph LR
   I28["28 034-wit-cli-integration"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I184["184 184-vscode-extension-foundation"]
-  I334["334 334-lsp-stdlib-definition-resolution"]
-  I335["335 335-lsp-cross-file-goto-definition"]
-  I338["338 338-lsp-semantic-references"]
+  I336["336 336-lsp-hover-type-inference"]
+  I337["337 337-lsp-signature-help-stdlib"]
+  I340["340 340-lsp-auto-import-manifest"]
+  I339["339 339-lsp-semantic-rename"]
+  I342["342 342-lsp-completion-context"]
   I633["633 Reconcile std::host::http / sockets / udp capability claims with the selfhost execution path"]
   I454["454 454-lsp-regression-fixtures-snapshot"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
@@ -81,16 +85,11 @@ graph LR
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I636["636 636 — Selfhost structured diagnostic parity (codes, spans, warnings)"]
   I183["183 183-vscode-arukellt-all-in-one-extension-epic"]
-  I336["336 336-lsp-hover-type-inference"]
-  I337["337 337-lsp-signature-help-stdlib"]
-  I340["340 340-lsp-auto-import-manifest"]
-  I339["339 339-lsp-semantic-rename"]
-  I342["342 342-lsp-completion-context"]
-  I463["463 463-lsp-performance-smoke-tests"]
-  I638["638 638 — Runtime-level Wasm debugging (source maps + wasmtime hooks)"]
   I341["341 341-lsp-organize-imports"]
   I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I439["439 VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する"]
+  I463["463 463-lsp-performance-smoke-tests"]
+  I638["638 638 — Runtime-level Wasm debugging (source maps + wasmtime hooks)"]
   I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
   I502["502 502-lsp-full-multi-root-workspace"]
   I28["28 034-wit-cli-integration ⛔"]
@@ -101,9 +100,11 @@ graph LR
   I138 --> I136
   I139 --> I136
   I191 --> I184
-  I333 --> I334
-  I333 --> I335
-  I333 --> I338
+  I334 --> I336
+  I334 --> I337
+  I334 --> I340
+  I338 --> I339
+  I338 --> I342
   I446 --> I633
   I447 --> I633
   I450 --> I454
@@ -117,22 +118,15 @@ graph LR
   I510 --> I62
   I566 --> I636
   I184 --> I183
-  I334 --> I336
-  I334 --> I337
-  I334 --> I340
-  I338 --> I339
-  I338 --> I342
-  I454 --> I463
-  I183 --> I638
   I340 --> I341
-  I333 --> I441
   I335 --> I441
   I340 --> I441
-  I333 --> I439
   I334 --> I439
   I335 --> I439
   I338 --> I439
   I339 --> I439
+  I454 --> I463
+  I183 --> I638
   I341 --> I440
   I441 --> I502
   I124 --> I28
@@ -160,7 +154,9 @@ graph LR
 - **292** depends on: none; blocks: none
 - **295** depends on: none; blocks: none
 - **30** depends on: 27; blocks: none
-- **333** depends on: none; blocks: 334, 335, 338, 439, 441
+- **334** depends on: 333; blocks: 336, 337, 340, 439
+- **335** depends on: 333; blocks: 439, 441
+- **338** depends on: 333; blocks: 339, 342, 439
 - **355** depends on: 353; blocks: none
 - **358** depends on: none; blocks: none
 - **41** depends on: 039, 040; blocks: none
@@ -203,9 +199,11 @@ graph LR
 - **28** depends on: 030, 031, 028b, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **184** depends on: 189, 190, 191; blocks: 183
-- **334** depends on: 333; blocks: 336, 337, 340, 439
-- **335** depends on: 333; blocks: 439, 441
-- **338** depends on: 333; blocks: 339, 342, 439
+- **336** depends on: 334; blocks: none
+- **337** depends on: 334; blocks: none
+- **340** depends on: 334; blocks: 341, 441
+- **339** depends on: 338; blocks: 439
+- **342** depends on: 338; blocks: none
 - **633** depends on: 446, 447; blocks: none
 - **454** depends on: 450, 451, 452; blocks: 463
 - **646** depends on: 474; blocks: none
@@ -216,16 +214,11 @@ graph LR
 - **62** depends on: 074, 510; blocks: none
 - **636** depends on: 566; blocks: none
 - **183** depends on: 184, 185, 186, 187, 188, 205, 206, 207; blocks: 638
-- **336** depends on: 334; blocks: none
-- **337** depends on: 334; blocks: none
-- **340** depends on: 334; blocks: 341, 441
-- **339** depends on: 338; blocks: 439
-- **342** depends on: 338; blocks: none
-- **463** depends on: 454; blocks: none
-- **638** depends on: 183; blocks: none
 - **341** depends on: 340; blocks: 440
 - **441** depends on: 333, 335, 340; blocks: 502
 - **439** depends on: 333, 334, 335, 338, 339; blocks: none
+- **463** depends on: 454; blocks: none
+- **638** depends on: 183; blocks: none
 - **440** depends on: 341, 346, 348, 349, 350, 352; blocks: none
 - **502** depends on: 441; blocks: none
 

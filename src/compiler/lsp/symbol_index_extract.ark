@@ -1,0 +1,113 @@
+// Arukellt LSP - extract top-level symbols from parsed declarations.
+
+use lsp::kinds
+use lsp::symbol_index_record
+use parser::ast
+
+fn node_kind(node: AstNode) -> i32 {
+    ast::ast_node_kind(node)
+}
+
+fn node_text(node: AstNode) -> String {
+    ast::ast_node_text(node)
+}
+
+fn node_span_start(node: AstNode) -> i32 {
+    ast::ast_node_span_start(node)
+}
+
+fn node_span_end(node: AstNode) -> i32 {
+    ast::ast_node_span_end(node)
+}
+
+fn node_child_count(node: AstNode) -> i32 {
+    ast::ast_node_child_count(node)
+}
+
+fn node_child_at(node: AstNode, index: i32) -> AstNode {
+    ast::ast_node_child_at(node, index)
+}
+
+fn node_is_fn_decl(node: AstNode) -> bool {
+    node_kind(node) == parser::parser::kinds::NK_FN_DECL()
+}
+
+fn node_is_struct_decl(node: AstNode) -> bool {
+    node_kind(node) == parser::parser::kinds::NK_STRUCT_DECL()
+}
+
+fn node_is_enum_decl(node: AstNode) -> bool {
+    node_kind(node) == parser::parser::kinds::NK_ENUM_DECL()
+}
+
+fn node_is_trait_decl(node: AstNode) -> bool {
+    node_kind(node) == parser::parser::kinds::NK_TRAIT_DECL()
+}
+
+fn node_is_impl_decl(node: AstNode) -> bool {
+    node_kind(node) == parser::parser::kinds::NK_IMPL_DECL()
+}
+
+fn render_fn_detail(name: String) -> String {
+    concat(concat(String_from("fn "), clone(name)), String_from("()"))
+}
+
+fn render_struct_detail(name: String) -> String {
+    concat(String_from("struct "), name)
+}
+
+fn render_enum_detail(name: String) -> String {
+    concat(String_from("enum "), name)
+}
+
+fn render_trait_detail(name: String) -> String {
+    concat(String_from("trait "), name)
+}
+
+fn push_decl_symbol(out: Vec<symbol_index_record::IndexedSymbol>, uri: String, node: AstNode, is_method: bool) {
+    let name = node_text(node)
+    let detail = if node_is_fn_decl(node) {
+        render_fn_detail(clone(name))
+    } else {
+        if node_is_struct_decl(node) {
+            render_struct_detail(clone(name))
+        } else {
+            if node_is_enum_decl(node) {
+                render_enum_detail(clone(name))
+            } else {
+                render_trait_detail(clone(name))
+            }
+        }
+    }
+    push(out, symbol_index_record::IndexedSymbol_new(uri, name, kinds::lsp_kind_for_nk(node_kind(node), is_method), node_span_start(node), node_span_end(node), detail, String_new()))
+}
+
+fn push_impl_methods(out: Vec<symbol_index_record::IndexedSymbol>, uri: String, node: AstNode) {
+    let cn = node_child_count(node)
+    let mut i = 0
+    while i < cn {
+        let child = node_child_at(node, i)
+        if node_is_fn_decl(child) {
+            push_decl_symbol(out, clone(uri), child, true)
+        }
+        i = i + 1
+    }
+}
+
+pub fn extract_symbols_from_decls(uri: String, decls: Vec<AstNode>) -> Vec<symbol_index_record::IndexedSymbol> {
+    let out = Vec_new_IndexedSymbol()
+    let n = len(decls)
+    let mut i = 0
+    while i < n {
+        let d = get_unchecked(decls, i)
+        if node_is_fn_decl(d) || node_is_struct_decl(d) || node_is_enum_decl(d) || node_is_trait_decl(d) {
+            push_decl_symbol(out, clone(uri), d, false)
+        } else {
+            if node_is_impl_decl(d) {
+                push_impl_methods(out, clone(uri), d)
+            }
+        }
+        i = i + 1
+    }
+    out
+}

@@ -1,6 +1,7 @@
 // Arukellt LSP - lifecycle method dispatch.
 
 use lsp::framing
+use lsp::init_workspace
 use lsp::json_fields
 use lsp::responses
 use lsp::state_record
@@ -9,6 +10,7 @@ fn dispatch_lifecycle(state: LspState, body: String, method: String) -> bool {
     if eq(clone(method), "initialize") {
         let id = json_fields::extract_int_field(clone(body), String_from("id"))
         state_record::lsp_state_mark_initialized(state)
+        init_workspace::initialize_workspace_index(state, clone(body))
         framing::append_framed(state, responses::build_initialize_response(id))
         return true
     }

@@ -1,0 +1,5 @@
+use helper
+
+fn main() {
+    let _v = helper_fn()
+}

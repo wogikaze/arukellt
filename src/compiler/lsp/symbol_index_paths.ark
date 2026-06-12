@@ -1,0 +1,102 @@
+// Arukellt LSP - URI and filesystem path helpers for symbol indexing.
+
+pub fn file_path_to_uri(path: String) -> String {
+    if starts_with(clone(path), String_from("file://")) {
+        return path
+    }
+    concat(String_from("file://"), path)
+}
+
+pub fn uri_to_file_path(uri: String) -> String {
+    if starts_with(clone(uri), String_from("file://")) {
+        return substring(uri, 7, len(uri))
+    }
+    uri
+}
+
+pub fn root_uri_from_initialize(body: String) -> String {
+    let root_uri = extract_quoted_field(clone(body), String_from("rootUri"))
+    if len(root_uri) > 0 {
+        return root_uri
+    }
+    extract_workspace_folder_uri(clone(body))
+}
+
+fn extract_workspace_folder_uri(body: String) -> String {
+    let pos = index_of(clone(body), String_from("workspaceFolders"))
+    if pos < 0 {
+        return String_new()
+    }
+    let uri_pos = index_of(substring(body, pos, len(body)), String_from("\"uri\""))
+    if uri_pos < 0 {
+        return String_new()
+    }
+    extract_quoted_field(substring(body, pos + uri_pos, len(body)), String_from("uri"))
+}
+
+fn extract_quoted_field(body: String, key: String) -> String {
+    let key_pat = concat(concat(String_from("\""), clone(key)), String_from("\""))
+    let pos = index_of(clone(body), key_pat)
+    if pos < 0 {
+        return String_new()
+    }
+    let tail = substring(body, pos, len(body))
+    let colon = index_of(clone(tail), String_from(":"))
+    if colon < 0 {
+        return String_new()
+    }
+    let after = substring(tail, colon + 1, len(tail))
+    let q1 = index_of(clone(after), String_from("\""))
+    if q1 < 0 {
+        return String_new()
+    }
+    let rest = substring(after, q1 + 1, len(after))
+    let q2 = index_of(clone(rest), String_from("\""))
+    if q2 < 0 {
+        return String_new()
+    }
+    substring(rest, 0, q2)
+}
+
+pub fn find_toml_value(content: String, key: String) -> String {
+    let content_len = len(content)
+    let key_len = len(key)
+    let mut line_start = 0
+    let mut i = 0
+    while i < content_len {
+        if char_at(content, i) == 10 || i == content_len - 1 {
+            let line_end = if char_at(content, i) == 10 { i } else { i + 1 }
+            let line = substring(content, line_start, line_end)
+            let line_len = len(line)
+            if line_len > key_len + 3 {
+                if eq(substring(line, 0, key_len), clone(key)) {
+                    let mut j = key_len
+                    while j < line_len && char_at(line, j) == 32 { j = j + 1 }
+                    if j < line_len && char_at(line, j) == 61 {
+                        j = j + 1
+                        while j < line_len && char_at(line, j) == 32 { j = j + 1 }
+                        if j < line_len && char_at(line, j) == 34 {
+                            let val_start = j + 1
+                            let mut k = val_start
+                            while k < line_len && char_at(line, k) != 34 { k = k + 1 }
+                            return substring(line, val_start, k)
+                        }
+                    }
+                }
+            }
+            line_start = i + 1
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+pub fn join_path(base: String, rel: String) -> String {
+    if len(base) == 0 {
+        return rel
+    }
+    if ends_with(clone(base), String_from("/")) {
+        return concat(base, rel)
+    }
+    concat(concat(base, String_from("/")), rel)
+}

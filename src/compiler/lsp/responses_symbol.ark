@@ -1,0 +1,75 @@
+// Arukellt LSP - workspace/symbol response builders.
+
+use lsp::positions
+use lsp::responses_json
+use lsp::symbol_index_record
+
+fn quote_string(s: String) -> String {
+    responses_json::quote_string(s)
+}
+
+fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i32) -> String {
+    let start = positions::offset_to_position(clone(text), decl_start)
+    let end = positions::offset_to_position(clone(text), decl_end)
+    let mut out = String_from("{\"uri\":")
+    out = concat(out, quote_string(uri))
+    out = concat(out, String_from(",\"range\":{\"start\":{\"line\":"))
+    out = concat(out, to_string(positions::lsp_position_line(start)))
+    out = concat(out, String_from(",\"character\":"))
+    out = concat(out, to_string(positions::lsp_position_character(start)))
+    out = concat(out, String_from("},\"end\":{\"line\":"))
+    out = concat(out, to_string(positions::lsp_position_line(end)))
+    out = concat(out, String_from(",\"character\":"))
+    out = concat(out, to_string(positions::lsp_position_character(end)))
+    out = concat(out, String_from("}}}"))
+    out
+}
+
+fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String) -> String {
+    let mut out = String_from("{\"name\":")
+    out = concat(out, quote_string(symbol_index_record::indexed_symbol_name(sym)))
+    out = concat(out, String_from(",\"kind\":"))
+    out = concat(out, to_string(symbol_index_record::indexed_symbol_kind(sym)))
+    out = concat(out, String_from(",\"location\":"))
+    if len(text) > 0 && symbol_index_record::indexed_symbol_decl_end(sym) > symbol_index_record::indexed_symbol_decl_start(sym) {
+        out = concat(out, symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), text, symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym)))
+    } else {
+        out = concat(out, symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), String_new(), 0, 0))
+    }
+    let module_path = symbol_index_record::indexed_symbol_module_path(sym)
+    if len(module_path) > 0 {
+        out = concat(out, String_from(",\"containerName\":"))
+        out = concat(out, quote_string(module_path))
+    }
+    out = concat(out, String_from("}"))
+    out
+}
+
+fn append_symbol_information(items: String, item: String) -> String {
+    if len(items) == 0 {
+        return item
+    }
+    concat(concat(items, String_from(",")), item)
+}
+
+pub fn build_workspace_symbol_response(id: i32, symbols: Vec<symbol_index_record::IndexedSymbol>, source_texts: Vec<String>) -> String {
+    let mut items = String_new()
+    let n = len(symbols)
+    let mut i = 0
+    while i < n {
+        let sym = get_unchecked(symbols, i)
+        let text = if i < len(source_texts) {
+            get_unchecked(source_texts, i)
+        } else {
+            String_new()
+        }
+        items = append_symbol_information(items, symbol_information_json(sym, text))
+        i = i + 1
+    }
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = concat(body, to_string(id))
+    body = concat(body, String_from(",\"result\":["))
+    body = concat(body, items)
+    body = concat(body, String_from("]}"))
+    body
+}

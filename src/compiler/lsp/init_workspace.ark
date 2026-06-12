@@ -1,0 +1,18 @@
+// Arukellt LSP - workspace initialization and project index build.
+
+use lsp::symbol_index_paths
+use lsp::symbol_index_project
+use lsp::symbol_index_stdlib
+use lsp::state_record
+
+pub fn initialize_workspace_index(state: LspState, body: String) {
+    let root_uri = symbol_index_paths::root_uri_from_initialize(clone(body))
+    let project_root = if len(root_uri) > 0 {
+        symbol_index_paths::uri_to_file_path(root_uri)
+    } else {
+        String_new()
+    }
+    state_record::lsp_state_set_project_root(state, clone(project_root))
+    symbol_index_stdlib::symbol_index_load_stdlib(state)
+    symbol_index_project::symbol_index_load_project(state, clone(project_root))
+}

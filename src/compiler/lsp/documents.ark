@@ -7,12 +7,17 @@ use lsp::json_fields
 use lsp::json_parse_core
 use lsp::state_docs
 use lsp::state_record
+use lsp::symbol_index
+use lsp::symbol_index_project
+use lsp::symbol_index_stdlib
+use lsp::symbol_index_update
 
 pub fn handle_did_open(state: LspState, body: String) {
     let uri = json_fields::extract_string_field(clone(body), String_from("uri"))
     let text = json_fields::extract_string_field(clone(body), String_from("text"))
     let version = json_fields::extract_int_field(clone(body), String_from("version"))
     state_docs::lsp_doc_store_set(state_record::lsp_state_doc_store(state), clone(uri), clone(text), version)
+    symbol_index_update::symbol_index_update_uri(state, clone(uri), clone(text))
     publish_for(state, clone(uri), clone(text))
 }
 
@@ -26,7 +31,19 @@ pub fn handle_did_change(state: LspState, body: String) {
         json_fields::extract_string_field_after(clone(body), String_from("text"), cc)
     }
     state_docs::lsp_doc_store_set(state_record::lsp_state_doc_store(state), clone(uri), clone(text), version)
+    symbol_index_update::symbol_index_update_uri(state, clone(uri), clone(text))
     publish_for(state, clone(uri), clone(text))
+}
+
+pub fn handle_did_close(state: LspState, body: String) {
+    let uri = json_fields::extract_string_field(clone(body), String_from("uri"))
+    symbol_index::symbol_index_remove_file(state, clone(uri))
+}
+
+pub fn handle_did_change_watched_files(state: LspState, _body: String) {
+    let project_root = state_record::lsp_state_project_root(state)
+    symbol_index_stdlib::symbol_index_load_stdlib(state)
+    symbol_index_project::symbol_index_load_project(state, clone(project_root))
 }
 
 fn publish_for(state: LspState, uri: String, text: String) {

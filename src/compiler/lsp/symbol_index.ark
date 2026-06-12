@@ -1,0 +1,27 @@
+// Arukellt LSP - project-wide symbol index facade.
+
+use lsp::symbol_index_imports
+use lsp::symbol_index_project
+use lsp::symbol_index_record
+use lsp::symbol_index_search
+use lsp::symbol_index_update
+
+pub fn symbol_index_update_open_file(state: LspState, uri: String, text: String) {
+    symbol_index_update::symbol_index_update_uri(state, uri, text)
+}
+
+pub fn symbol_index_update_open_file_with_project(state: LspState, uri: String, text: String, project_root: String) {
+    symbol_index_imports::symbol_index_update_open_file_with_imports(state, uri, text, project_root)
+}
+
+pub fn symbol_index_remove_file(state: LspState, uri: String) {
+    symbol_index_update::symbol_index_remove_uri(state, uri)
+}
+
+pub fn symbol_index_search_query(state: LspState, query: String) -> Vec<symbol_index_record::IndexedSymbol> {
+    symbol_index_search::symbol_index_search(state, query)
+}
+
+pub fn symbol_index_project_root_from_uri(root_uri: String) -> String {
+    symbol_index_project::symbol_index_project_root_from_uri(root_uri)
+}
