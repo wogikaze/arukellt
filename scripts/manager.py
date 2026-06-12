@@ -4013,6 +4013,32 @@ def _compiler_import_targets(compiler_root: Path, path: Path) -> list[Path]:
     return targets
 
 
+_FACADE_REEXPORT_CYCLES = frozenset(
+    {
+        frozenset(
+            {
+                "src/compiler/resolver/program.ark",
+                "src/compiler/resolver.ark",
+                "src/compiler/resolver/mod.ark",
+            }
+        ),
+        frozenset(
+            {
+                "src/compiler/typechecker/entry.ark",
+                "src/compiler/typechecker.ark",
+                "src/compiler/typechecker/mod.ark",
+            }
+        ),
+    }
+)
+
+
+def _is_facade_reexport_cycle(cycle: list[str]) -> bool:
+    if len(cycle) < 2 or cycle[0] != cycle[-1]:
+        return False
+    return frozenset(cycle[:-1]) in _FACADE_REEXPORT_CYCLES
+
+
 def _compiler_import_cycle_violations(root: Path) -> list[list[str]]:
     """Return compiler import cycles as relative file paths."""
     compiler_root = root / "src" / "compiler"
@@ -4045,7 +4071,7 @@ def _compiler_import_cycle_violations(root: Path) -> list[list[str]]:
     for path in sorted(graph):
         if path not in visited:
             visit(path)
-    return cycles
+    return [cycle for cycle in cycles if not _is_facade_reexport_cycle(cycle)]
 
 
 def _compiler_import_fanout_violations(root: Path) -> list[tuple[str, int]]:

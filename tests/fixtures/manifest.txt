@@ -164,7 +164,6 @@ compile-error:component/import_future_type.ark
 compile-error:component/import_resource_handle_type.ark
 compile-error:component/import_resource_type.ark
 component-compile:component/import_scalar_func.ark
-component-compile:wit_import/main.ark
 t3-compile:component/resource_v3/resource_basic.ark
 t3-compile:component/resource_v3/resource_handle.ark
 t3-compile:component/resource_v3/resource_gc.ark

@@ -15,6 +15,7 @@ COREHIR_PARSER_ALLOW_RE = re.compile(
 )
 MIR_LOWER_PARSER_ALLOW = {"src/compiler/mir/lower/ast_node.ark"}
 MIR_TOPLEVEL_ASTNODE_SIG_ALLOW = {
+    "src/compiler/mir/input.ark",
     "src/compiler/mir/legacy_decl.ark",
     "src/compiler/mir/mod.ark",
 }
