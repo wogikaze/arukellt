@@ -6,6 +6,7 @@ use wasm::constants
 
 use wasm::ctx_scratch
 use wasm::intrinsic_env_arg_list_populate
+use wasm::intrinsic_env_var
 use wasm::intrinsics::helpers_core_calls
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_core_locals
@@ -52,13 +53,11 @@ fn emit_env_arg_at(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 fn emit_env_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    emit_env_missing_var_option(w)
-    return true
+    intrinsic_env_var::emit_env_var(w, inst, ctx)
 }
 
 fn emit_env_get_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    emit_env_missing_var_option(w)
-    return true
+    intrinsic_env_var::emit_env_get_var(w, inst, ctx)
 }
 
 fn emit_env_var_or_default(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {

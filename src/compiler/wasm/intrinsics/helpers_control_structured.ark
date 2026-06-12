@@ -25,3 +25,8 @@ fn emit_else(w: WasmWriter) {
 fn emit_end(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
+
+fn emit_block_i32(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, constants::WASM_I32())
+}

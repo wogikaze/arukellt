@@ -47,12 +47,12 @@ fn try_emit_env_arg_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
 // Arukellt Selfhost - env variable host call dispatch.
 
 fn try_emit_env_var_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "env::var") || eq(clone(callee), "env_var") {
+    if eq(clone(callee), "env::var") || eq(clone(callee), "env_var") || eq(clone(callee), "__intrinsic_env_var") {
         let _result_on_stack = intrinsic_env_args::emit_env_var(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "env::get_var") {
+    if eq(clone(callee), "env::get_var") || eq(clone(callee), "__intrinsic_env_get_var") {
         let _result_on_stack = intrinsic_env_args::emit_env_get_var(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true

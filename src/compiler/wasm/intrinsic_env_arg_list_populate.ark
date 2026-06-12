@@ -1,18 +1,16 @@
-use wasm::intrinsics::helpers_memory_access
-use wasm::intrinsics::helpers_numeric_i32_const
-use wasm::intrinsics::helpers_numeric_i32_arith
-use wasm::intrinsics::helpers_numeric_i32_compare
-use wasm::constants
-// Arukellt Selfhost - env argv list population facade.
-
-use wasm::ctx_scratch
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
+use wasm::intrinsics::helpers_control_structured
 use wasm::intrinsics::helpers_core_calls
 use wasm::intrinsics::helpers_core_heap
-use wasm::intrinsics::helpers_control_structured
 use wasm::intrinsics::helpers_core_locals
 use wasm::intrinsics::helpers_core_stack
+use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::constants
+use wasm::ctx_scratch
 
 fn emit_env_args_populate(w: WasmWriter, ctx: SelfEmitCtx) {
     let s_argc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
@@ -92,8 +90,7 @@ fn emit_env_args_copy_loop(w: WasmWriter, ctx: SelfEmitCtx, s_argc: i32, s_data:
     helpers_numeric_i32_arith::emit_i32_add(w)
     helpers_core_locals::emit_local_set(w, s_li)
     helpers_control_branch::emit_br(w, 0)
-    helpers_control_structured::emit_end(w)
-    helpers_control_structured::emit_end(w)
+    helpers_control_loop::emit_block_loop_footer(w)
 }
 
 fn emit_env_args_load_cstr_pointer(w: WasmWriter, ctx: SelfEmitCtx, s_li: i32, s_cstr: i32) {
@@ -136,8 +133,7 @@ fn emit_env_args_cstr_len(w: WasmWriter, s_cstr: i32, s_slen: i32) {
     helpers_numeric_i32_arith::emit_i32_add(w)
     helpers_core_locals::emit_local_set(w, s_slen)
     helpers_control_branch::emit_br(w, 0)
-    helpers_control_structured::emit_end(w)
-    helpers_control_structured::emit_end(w)
+    helpers_control_loop::emit_block_loop_footer(w)
 }
 
 fn emit_env_args_copy_cstr_to_string(w: WasmWriter, ctx: SelfEmitCtx, s_cstr: i32, s_slen: i32, s_str: i32) {

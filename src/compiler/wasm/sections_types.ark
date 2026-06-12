@@ -71,6 +71,7 @@ fn append_wasi_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32"))
     push(type_sigs, String_from("i32_1i32"))
     push(type_sigs, String_from("i32_0"))
+    push(type_sigs, String_from("i32_i64_i32_1i32"))
 }
 
 fn append_t2_type_sigs(type_sigs: Vec<String>) {

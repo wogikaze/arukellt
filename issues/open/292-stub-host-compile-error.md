@@ -2,6 +2,7 @@
 Status: open
 Created: 2026-03-31
 Updated: 2026-06-12
+Closed: 2026-06-12
 ID: 292
 Track: capability
 Depends on: —

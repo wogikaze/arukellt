@@ -10,8 +10,12 @@ fn WASM_EXTERNREF() -> i32 { 111 }
 
 // Emitter scratch layout constants.
 fn FS_BUF_SIZE() -> i32 { 4096 }
-fn NUM_WASI_IMPORTS() -> i32 { 7 }
-fn NUM_WASI_TYPES() -> i32 { 5 }
+fn NUM_WASI_IMPORTS() -> i32 { 11 }
+fn NUM_WASI_TYPES() -> i32 { 6 }
+fn WASI_IMPORT_CLOCK_TIME_GET() -> i32 { 7 }
+fn WASI_IMPORT_RANDOM_GET() -> i32 { 8 }
+fn WASI_IMPORT_ENVIRON_SIZES_GET() -> i32 { 9 }
+fn WASI_IMPORT_ENVIRON_GET() -> i32 { 10 }
 fn NUM_T2_IMPORTS() -> i32 { 5 }
 fn NUM_T2_TYPES() -> i32 { 3 }
 fn T2_IMPORT_WRITE() -> i32 { 0 }
@@ -19,7 +23,7 @@ fn T2_IMPORT_WRITE_ERR() -> i32 { 1 }
 fn T2_IMPORT_FLUSH() -> i32 { 2 }
 fn T2_IMPORT_FLUSH_ERR() -> i32 { 3 }
 fn T2_IMPORT_READ() -> i32 { 4 }
-fn DATA_START() -> i32 { 128 }
+fn DATA_START() -> i32 { 136 }
 
 // Scratch offsets for basic I/O buffers.
 fn SCRATCH_IOV() -> i32 { 0 }
@@ -40,6 +44,7 @@ fn SCRATCH_P_BYTE() -> i32 { 72 }
 // Scratch offsets for WASI args.
 fn SCRATCH_ARGC() -> i32 { 76 }
 fn SCRATCH_ARGV_SIZE() -> i32 { 80 }
+fn SCRATCH_CLOCK_RESULT() -> i32 { 128 }
 
 // Scratch offsets for WASI filesystem calls.
 fn SCRATCH_FS_FD() -> i32 { 84 }
