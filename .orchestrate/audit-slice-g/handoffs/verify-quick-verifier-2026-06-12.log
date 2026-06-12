@@ -1,0 +1,15 @@
+Verifier run — 2026-06-12
+Branch: cursor/audit-slice-g-spot-check-3587
+Command: python3 scripts/manager.py verify quick
+
+Summary: 143/149 passed, 6 failed, 0 skipped (exit 1)
+
+Failed checks (same set as slice-f verifier log):
+1. doc example check (ark blocks in docs/) — FileNotFoundError: arukellt binary missing
+2. docs consistency — generated docs out of date
+3. selfhost analysis API gate (#568) — wasmtime not found in PATH
+4. selfhost DAP lifecycle gate (#571) — wasmtime not found in PATH
+5. selfhost LSP lifecycle gate (#569) — wasmtime not found in PATH
+6. false-done hygiene gate — FD-02 STATUS_MISMATCH #487 (Status: fixed under issues/done/)
+
+No new failure attributable to slice G issue moves (#439, #441 reopen).
