@@ -34,7 +34,7 @@
       "name": "verify-slice-g",
       "type": "verifier",
       "model": "claude-opus-4-8",
-      "status": "pending",
+      "status": "completed",
       "verifies": "classify-remainder",
       "dependsOn": ["classify-remainder"],
       "scopedGoal": "Verify slice G acceptance: all 278 rows classified; audit report Slice G section; index synced.",
