@@ -13,6 +13,10 @@ fn session_resolve_decls_with_modules(decls: Vec<AstNode>, modules: Vec<ModuleDe
 program::resolve_program(decls, modules, wit_paths)
 }
 
+fn session_resolve_decls_with_modules_for_target(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>, target: String) -> ResolveCtx {
+program::resolve_program_for_target(decls, modules, wit_paths, target)
+}
+
 fn session_empty_resolve_ctx() -> ResolveCtx {
 context::ResolveCtx_new()
 }

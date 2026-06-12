@@ -9,8 +9,14 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { parseSource, typecheckSource } from "../engine.js";
+import { parseSource, typecheckSourceWithCompilerBytesSync } from "../engine.js";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(here, "../../..");
 
 /** Syntax-valid source with a type error (bool assigned to i32). */
 const TYPE_ERROR_SOURCE = `fn main() {
@@ -19,18 +25,20 @@ const TYPE_ERROR_SOURCE = `fn main() {
 `;
 
 describe("typecheck close-gate (#472 / #500)", () => {
-  it("reports type errors that parse cleanly", () => {
+  it("reports type errors that parse cleanly", async () => {
+    const compilerBytes = await loadCompilerBytes();
     const parsed = parseSource(TYPE_ERROR_SOURCE);
     assert.equal(parsed.ok, true, "fixture must parse successfully");
 
-    const checked = typecheckSource(TYPE_ERROR_SOURCE);
+    const checked = typecheckSourceWithCompilerBytesSync(TYPE_ERROR_SOURCE, compilerBytes, {
+      timeoutMs: 120_000,
+    });
     assert.equal(checked.ok, false, "typecheck must fail on type error");
     assert.ok(checked.error_count > 0, "typecheck must emit diagnostics");
 
     const hasTypePhase = checked.diagnostics.some(
       (diag) =>
         diag.phase === "typecheck" ||
-        diag.phase === "type" ||
         diag.code.startsWith("E02"),
     );
     assert.ok(
@@ -39,3 +47,19 @@ describe("typecheck close-gate (#472 / #500)", () => {
     );
   });
 });
+
+async function loadCompilerBytes(): Promise<Uint8Array> {
+  const candidates = [
+    resolve(repoRoot, ".build/selfhost/arukellt-s3.wasm"),
+    resolve(repoRoot, ".build/selfhost/arukellt-s2.wasm"),
+    resolve(repoRoot, "bootstrap/arukellt-selfhost.wasm"),
+  ];
+  for (const path of candidates) {
+    try {
+      return new Uint8Array(await readFile(path));
+    } catch {
+      // try next candidate
+    }
+  }
+  throw new Error("no compiler wasm candidate found");
+}

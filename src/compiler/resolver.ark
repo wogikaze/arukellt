@@ -60,6 +60,10 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths
     mod::resolve_program(decls, modules, wit_paths)
 }
 
+pub fn resolve_program_for_target(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>, target: String) -> ResolveCtx {
+    mod::resolve_program_for_target(decls, modules, wit_paths, target)
+}
+
 pub fn count_user_symbols(ctx: ResolveCtx) -> i32 {
     mod::count_user_symbols(ctx)
 }

@@ -15,10 +15,16 @@ import type {
   ModuleItem,
   ModuleSummary,
   ParseResponse,
+  Severity,
   Token,
   TokenizeResponse,
   TypecheckResponse,
 } from "./types.js";
+import type { CheckResult, CompileOptions } from "./compiler-types.js";
+import {
+  checkWithCompilerWasm,
+  checkWithCompilerWasmSync,
+} from "./compiler-host.js";
 
 const VERSION = "selfhost-playground-ts-v1";
 
@@ -158,6 +164,28 @@ function tokenIdentText(token: Token | undefined): string | null {
 
 function countErrors(diagnostics: Diagnostic[]): number {
   return diagnostics.filter((diag) => diag.severity === "error").length;
+}
+
+let configuredCompilerBytes: Uint8Array | null = null;
+
+interface CompilerJsonDiagnostic {
+  code?: unknown;
+  severity?: unknown;
+  span?: {
+    start?: unknown;
+    end?: unknown;
+  };
+  message?: unknown;
+}
+
+interface CompilerJsonEnvelope {
+  phase?: unknown;
+  success?: unknown;
+  diagnostics?: unknown;
+}
+
+export function configureTypecheckCompilerWasm(compilerBytes: Uint8Array | null): void {
+  configuredCompilerBytes = compilerBytes;
 }
 
 export function tokenizeSource(source: string): TokenizeResponse {
@@ -448,14 +476,183 @@ export function formatSource(source: string): FormatResponse {
 }
 
 export function typecheckSource(source: string): TypecheckResponse {
-  const parsed = parseSource(source);
-  return {
-    ok: parsed.ok,
-    diagnostics: parsed.diagnostics,
-    error_count: parsed.error_count,
-  };
+  if (!configuredCompilerBytes) {
+    return typecheckUnavailable("selfhost compiler wasm has not been initialised", source);
+  }
+  return typecheckSourceWithCompilerBytesSync(source, configuredCompilerBytes);
+}
+
+export function typecheckSourceWithCompilerBytesSync(
+  source: string,
+  compilerBytes: Uint8Array,
+  options: CompileOptions = {},
+): TypecheckResponse {
+  const result = checkWithCompilerWasmSync(compilerBytes, source, options);
+  return typecheckResponseFromCheckResult(result, source);
+}
+
+export async function typecheckSourceWithCompilerBytes(
+  source: string,
+  compilerBytes: Uint8Array,
+  options: CompileOptions = {},
+): Promise<TypecheckResponse> {
+  const result = await checkWithCompilerWasm(compilerBytes, source, options);
+  return typecheckResponseFromCheckResult(result, source);
 }
 
 export function engineVersion(): string {
   return VERSION;
+}
+
+function typecheckResponseFromCheckResult(
+  result: CheckResult,
+  source: string,
+): TypecheckResponse {
+  const parsedEnvelope = parseCompilerJsonEnvelope(result.compilerStdout);
+  if (parsedEnvelope) {
+    let diagnostics = compilerDiagnosticsToPlayground(
+      parsedEnvelope,
+      source,
+      result.compilerStderr,
+    );
+    if (!result.ok && diagnostics.length === 0) {
+      diagnostics = diagnosticsFromCompilerText(
+        result.compilerStderr || result.error || "typecheck failed",
+        source,
+        phaseFromCompiler(parsedEnvelope.phase),
+      );
+    }
+    const error_count = countErrors(diagnostics);
+    const success = parsedEnvelope.success === true || result.ok;
+    return {
+      ok: success && error_count === 0,
+      diagnostics,
+      error_count,
+    };
+  }
+
+  if (result.ok) {
+    return { ok: true, diagnostics: [], error_count: 0 };
+  }
+
+  const diagnosticText = result.compilerStderr || result.compilerStdout || result.error || "typecheck failed";
+  const diagnostics = diagnosticsFromCompilerText(diagnosticText, source);
+  return {
+    ok: false,
+    diagnostics,
+    error_count: countErrors(diagnostics),
+  };
+}
+
+function parseCompilerJsonEnvelope(stdout: string): CompilerJsonEnvelope | null {
+  const trimmed = stdout.trim();
+  if (!trimmed.startsWith("{")) return null;
+  try {
+    const parsed = JSON.parse(trimmed) as CompilerJsonEnvelope;
+    if (parsed && typeof parsed === "object") return parsed;
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function compilerDiagnosticsToPlayground(
+  envelope: CompilerJsonEnvelope,
+  source: string,
+  fallbackText: string,
+): Diagnostic[] {
+  if (!Array.isArray(envelope.diagnostics)) {
+    return [];
+  }
+
+  const phase = phaseFromCompiler(envelope.phase);
+  return envelope.diagnostics.map((diag, index) =>
+    compilerDiagnosticToPlayground(diag as CompilerJsonDiagnostic, phase, source, fallbackText, index),
+  );
+}
+
+function compilerDiagnosticToPlayground(
+  diag: CompilerJsonDiagnostic,
+  phase: Diagnostic["phase"],
+  source: string,
+  fallbackText: string,
+  index: number,
+): Diagnostic {
+  const message = typeof diag.message === "string" && diag.message.length > 0
+    ? diag.message
+    : fallbackText || "typecheck failed";
+  const start = clampOffset(numberOr(diag.span?.start, 0), source.length);
+  const rawEnd = numberOr(diag.span?.end, start);
+  const end = Math.max(start, clampOffset(rawEnd, source.length));
+
+  return {
+    code: typeof diag.code === "string" && diag.code.length > 0
+      ? diag.code
+      : fallbackCodeForPhase(phase, index),
+    severity: severityFromCompiler(diag.severity),
+    phase,
+    message,
+    labels: [{ file_id: 0, start, end, message }],
+    notes: [],
+    suggestion: null,
+  };
+}
+
+function diagnosticsFromCompilerText(
+  text: string,
+  source: string,
+  fallbackPhase: Diagnostic["phase"] = "typecheck",
+): Diagnostic[] {
+  const phase = text.includes("|parse]") ? "parse" : fallbackPhase;
+  const codeMatch = text.match(/error\[(E\d{4})\|/u);
+  return [
+    diagnostic(
+      codeMatch?.[1] ?? fallbackCodeForPhase(phase, 0),
+      phase,
+      text.trim() || "typecheck failed",
+      0,
+      Math.min(source.length, 1),
+      "compiler reported this diagnostic",
+    ),
+  ];
+}
+
+function typecheckUnavailable(message: string, source: string): TypecheckResponse {
+  const diagnostics = [
+    diagnostic(
+      "EPLAYGROUND001",
+      "typecheck",
+      message,
+      0,
+      Math.min(source.length, 1),
+      "initialise the playground with the selfhost compiler wasm",
+    ),
+  ];
+  return { ok: false, diagnostics, error_count: 1 };
+}
+
+function phaseFromCompiler(value: unknown): Diagnostic["phase"] {
+  if (value === 1 || value === "1" || value === "lex") return "lex";
+  if (value === 2 || value === "2" || value === "parse") return "parse";
+  return "typecheck";
+}
+
+function severityFromCompiler(value: unknown): Severity {
+  if (value === "warning") return "warning";
+  if (value === "help") return "help";
+  return "error";
+}
+
+function fallbackCodeForPhase(phase: Diagnostic["phase"], index: number): string {
+  if (phase === "lex") return `E00${String(index).padStart(2, "0")}`;
+  if (phase === "parse") return `E01${String(index).padStart(2, "0")}`;
+  return `E02${String(index).padStart(2, "0")}`;
+}
+
+function numberOr(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function clampOffset(value: number, length: number): number {
+  return Math.max(0, Math.min(Math.trunc(value), length));
 }

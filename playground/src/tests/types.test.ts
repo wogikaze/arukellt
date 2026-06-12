@@ -243,9 +243,10 @@ describe("WorkerRequest", () => {
       { id: 2, cmd: "parse", source: "test" },
       { id: 3, cmd: "format", source: "test" },
       { id: 4, cmd: "tokenize", source: "test" },
-      { id: 5, cmd: "version" },
+      { id: 5, cmd: "typecheck", source: "test" },
+      { id: 6, cmd: "version" },
     ];
-    assert.equal(commands.length, 5);
+    assert.equal(commands.length, 6);
   });
 });
 

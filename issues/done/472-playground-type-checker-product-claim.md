@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-03
 Updated: 2026-06-12
 ID: 472
@@ -25,14 +25,14 @@ Orchestration class: implementation-ready
 
 Blocks v1 exit: no
 Priority: 8
-Audit result: CHECKER SURFACE ABSENT — issue remains open
+Audit result: checker surface restored via selfhost compiler wasm — issue closed
 The module doc comment explicitly states: "Provides JS-callable APIs for **parsing and formatting**".
-1. Add `#[wasm_bindgen] pub fn typecheck(source: &str) -> String` to `crates/ark-playground-wasm/src/lib.rs`,
-- Checker source: "`crates/ark-playground-wasm/src/lib.rs` — `pub fn typecheck(source: &str) -> String` backed by `ark_typecheck::TypeChecker::new()` + `register_builtins()` + `check_core_hir_module()`"
-- Frontend wiring: `playground/src/worker.ts`, `playground/src/playground.ts`, `playground/src/worker-client.ts` all expose and invoke `typecheck`
-- Type definitions: `playground/src/types.ts` adds `TypecheckResponse` + updates `Playground`, `WorkerPlayground`, `WorkerRequest`
-- Tests: `crates/ark-playground-wasm/src/lib.rs` — `typecheck_valid_source`, `typecheck_returns_json_array_of_diagnostics`, `typecheck_parse_error_propagates` all pass
-- Verification: `bash scripts/run/verify-harness.sh --quick` — 19/19 passed; `cargo test -p ark-playground-wasm` — 13/13 passed
+1. Do not recreate deleted `crates/ark-playground-wasm`; use the selfhost compiler wasm path.
+- Checker source: `playground/src/compiler-host.ts` — `checkWithCompilerWasm()` / `checkWithCompilerWasmSync()` run `arukellt check --json` in the selfhost compiler wasm.
+- Frontend wiring: `playground/src/engine.ts`, `playground/src/playground.ts`, `playground/src/worker.ts`, and `playground/src/worker-client.ts` expose/invoke `typecheck`; `createPlayground().parse()` surfaces checker diagnostics for the playground app when compiler wasm is loaded.
+- Type definitions: `playground/src/types.ts` already exposes `TypecheckResponse`; `playground/src/index.ts` exports it and the selfhost check host result.
+- Tests: `playground/src/tests/typecheck-close-gate.test.ts` passes for a parse-clean type error.
+- Verification: `npm run build && node --test dist/tests/typecheck-close-gate.test.js`; `python3 scripts/manager.py verify quick` (147/150, unrelated #487/LSP/DAP failures).
 
 # Playground: type-checker product claim を独立 issue に分離する
 
@@ -66,9 +66,9 @@ Findings:
 
 Acceptance criteria status:
 
-- [ ] callable checker surface exists in repo — **NO** (`typecheckSource` in `playground/src/engine.ts` wraps parse only; `crates/ark-playground-wasm` removed in #631)
-- [ ] entrypoint invokes checker surface — **NO** (no real typechecker invocation in browser entrypoint)
-- [ ] command/test/fixture verifies checker behavior — **NO** (no test proves type errors distinct from parse errors)
+- Historical audit: callable checker surface exists in repo — **NO** (`typecheckSource` in `playground/src/engine.ts` wraps parse only; `crates/ark-playground-wasm` removed in #631)
+- Historical audit: entrypoint invokes checker surface — **NO** (no real typechecker invocation in browser entrypoint)
+- Historical audit: command/test/fixture verifies checker behavior — **NO** (no test proves type errors distinct from parse errors)
 
 **This issue must NOT be closed until `ark-typecheck` (or equivalent) is exported
 from `crates/ark-playground-wasm/src/lib.rs` and invoked from `playground/src/`.**
@@ -111,17 +111,18 @@ type-checker claim は parser / format / diagnostics とは別の product claim 
 
 ## Acceptance criteria
 
-- [ ] current repo に callable checker surface が存在し、その source path が issue 本文に明記されている。
-- [ ] issue 466 の browser entrypoint から、その checker surface が実際に invoke されることを repo files で確認できる。
-- [ ] checker result を機械的に検証する command / test / fixture が repo に存在する。
+- [x] current repo に callable checker surface が存在し、その source path が issue 本文に明記されている。
+- [x] issue 466 の browser entrypoint から、その checker surface が実際に invoke されることを repo files で確認できる。
+- [x] checker result を機械的に検証する command / test / fixture が repo に存在する。
 
-## Close evidence (2026-04-14)
+## Close evidence (2026-06-12)
 
-- Checker source: `crates/ark-playground-wasm/src/lib.rs` — `pub fn typecheck(source: &str) -> String` backed by `ark_typecheck::TypeChecker::new()` + `register_builtins()` + `check_core_hir_module()`
-- Frontend wiring: `playground/src/worker.ts`, `playground/src/playground.ts`, `playground/src/worker-client.ts` all expose and invoke `typecheck`
-- Type definitions: `playground/src/types.ts` adds `TypecheckResponse` + updates `Playground`, `WorkerPlayground`, `WorkerRequest`
-- Tests: `crates/ark-playground-wasm/src/lib.rs` — `typecheck_valid_source`, `typecheck_returns_json_array_of_diagnostics`, `typecheck_parse_error_propagates` all pass
-- Verification: `bash scripts/run/verify-harness.sh --quick` — 19/19 passed; `cargo test -p ark-playground-wasm` — 13/13 passed
+- Checker source: `playground/src/compiler-host.ts` — selfhost compiler wasm `check --json` host entry points.
+- Engine surface: `playground/src/engine.ts` — compiler-backed `typecheckSourceWithCompilerBytes()` / `typecheckSourceWithCompilerBytesSync()` and no parse-only `typecheckSource()` fallback.
+- Entrypoints: `playground/src/playground.ts` invokes the checker path for `typecheck` requests and for `parse()` diagnostics when compiler wasm is loaded; `playground/src/worker.ts` invokes the checker path for worker `typecheck` requests; `playground/src/worker-client.ts` exposes the worker request.
+- Types: `playground/src/types.ts`, `playground/src/compiler-types.ts`, `playground/src/index.ts`.
+- Tests: `playground/src/tests/typecheck-close-gate.test.ts`.
+- Verification: `npm run build && node --test dist/tests/typecheck-close-gate.test.js`; `python3 scripts/manager.py verify quick` (147/150, unrelated #487/LSP/DAP failures).
 
 ## Required verification
 
