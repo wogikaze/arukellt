@@ -1,0 +1,60 @@
+FAIL tests/fixtures/selfhost/lsp_hover_definition.lsp-script: response stream mismatch
+  expected (941 bytes):
+Content-Length: 365
+
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"workspaceSymbolProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 114
+
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///hover.ark","diagnostics":[]}}Content-Length: 175
+
+{"jsonrpc":"2.0","id":2,"result":{"contents":{"kind":"markdown","value":"```ark\nfn answer()\n```"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":9}}}}Content-Length: 135
+
+{"jsonrpc":"2.0","id":3,"result":{"uri":"file:///hover.ark","range":{"start":{"line":0,"character":0},"end":{"line":0,"character":9}}}}Content-Length: 38
+
+{"jsonrpc":"2.0","id":4,"result":null}
+  got (910 bytes):
+Content-Length: 334
+
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 114
+
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///hover.ark","diagnostics":[]}}Content-Length: 175
+
+{"jsonrpc":"2.0","id":2,"result":{"contents":{"kind":"markdown","value":"```ark\nfn answer()\n```"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":9}}}}Content-Length: 135
+
+{"jsonrpc":"2.0","id":3,"result":{"uri":"file:///hover.ark","range":{"start":{"line":0,"character":0},"end":{"line":0,"character":9}}}}Content-Length: 38
+
+{"jsonrpc":"2.0","id":4,"result":null}
+FAIL tests/fixtures/selfhost/lsp_lifecycle.lsp-script: response stream mismatch
+  expected (1574 bytes):
+Content-Length: 365
+
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"workspaceSymbolProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 964
+
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///example.ark","diagnostics":[{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 1, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 70, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 71, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 72, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 73, got 0"}]}}Content-Length: 116
+
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///example.ark","diagnostics":[]}}Content-Length: 38
+
+{"jsonrpc":"2.0","id":2,"result":null}
+  got (1543 bytes):
+Content-Length: 334
+
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 964
+
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///example.ark","diagnostics":[{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 1, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 70, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 71, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 72, got 0"},{"range":{"start":{"line":0,"character":2},"end":{"line":0,"character":2}},"severity":1,"source":"arukellt","code":"ark.parse","message":"expected token kind 73, got 0"}]}}Content-Length: 116
+
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///example.ark","diagnostics":[]}}Content-Length: 38
+
+{"jsonrpc":"2.0","id":2,"result":null}
+FAIL tests/fixtures/selfhost/lsp_symbol_index.lsp-script: response stream mismatch
+  expected (868 bytes):
+Content-Length: 365
+
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"workspaceSymbolProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 153
+
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file://tests/fixtures/selfhost/lsp_symbol_index/main.ark","diagnostics":[]}}Content-Length: 221
+
+{"jsonrpc":"2.0","id":2,"result":[{"name":"helper_fn","kind":12,"location":{"uri":"file://tests/fixtures/selfhost/lsp_symbol_index/helper.ark","range":{"start":{"line":0,"character":7},"end":{"line":0,"character":16}}}}]}Content-Length: 38
+
+{"jsonrpc":"2.0","id":3,"result":null}
+  got (0 bytes):
+
+lsp-lifecycle: 3 failure(s)
