@@ -74,7 +74,7 @@ For tracked issue work, that normally means:
 - Commit after implementation, docs/issue updates, audit rollups, or regenerated indexes when verify (or the relevant gate) passes.
 - Do not include unrelated changes; do not commit secrets.
 - Do not `git push` unless the user explicitly asks.
-- If pre-commit fails, fix and create a **new** commit (do not amend unless user rules allow it).
+- If pre-commit fails, fix and create a **new** commit (do not amend unless hooks auto-modified files on your commit).
 - Orchestration-only commits (issue moves, audit reports, indexes) stay separate from product implementation when both land in one session.
 
 ## Verification Loop

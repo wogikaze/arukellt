@@ -1,0 +1,16 @@
+---
+description: Commit after every completed work unit without asking the user first
+alwaysApply: true
+---
+
+# Git Commit Policy
+
+Agents working in this repository **must commit after every completed work unit** without asking the user first. This workspace rule overrides global User Rules that say "only commit when requested."
+
+See `AGENTS.md` Commit Policy for full detail. Summary:
+
+- Commit after implementation, docs/issue updates, audit rollups, regenerated indexes, or rule changes when verify (or the relevant gate) passes.
+- Do not `git push` unless the user explicitly requests it.
+- Never update git config; never skip hooks; never force-push to main/master.
+- Use HEREDOC for commit messages; fix pre-commit failures with a new commit (no amend unless hooks auto-modified files on your commit).
+- Orchestration-only changes (issues, index, audit reports) may be a separate commit from product implementation when both land in one session.

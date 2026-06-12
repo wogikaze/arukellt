@@ -80,8 +80,11 @@ docs/playground/dist/benchmarks/results/
 .codex-debug/
 .mcp.json
 
-# Cursor IDE settings
-.cursor/
+# Cursor IDE settings (repo-shared rules are tracked; other IDE state stays local)
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
+!.cursor/REPLACE-USER-RULE-commit.md
 
 # Claude session state (lock files, worktrees)
 .claude/
