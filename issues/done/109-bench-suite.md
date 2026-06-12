@@ -33,6 +33,14 @@ retired per #537; do not bulk-reopen for script rename alone.
 **Evidence:** `benchmarks/legacy/fib.ark`, `mise.toml` `[tasks.bench]`,
 `python3 scripts/manager.py perf benchmarks` gate.
 
+## Audit resolution — 2026-06-12 (Slice A)
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: `scripts/util/benchmark_runner.py` + `benchmarks/` suite wired in `scripts/manager.py`.
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 roadmap-v4.md §6 item 7 で要求されているベンチマークスイートを `benchmarks/` に構築する。

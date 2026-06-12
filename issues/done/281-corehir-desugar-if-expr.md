@@ -24,6 +24,14 @@ Action: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Reopened by audit — 2026-04-13
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: CoreHIR if-expr lowering in `src/compiler/mir/lower/body_if.ark` + `corehir/`.
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 `lower_hir_to_mir()` は現在スタブで空の MirModule を返す。`Operand::IfExpr` が backend-illegal のまま残り、`validate_backend_legal_module` が reject する。CoreHIR path を default にするための最初のブロッカー。

@@ -430,3 +430,63 @@ None.
 
 `python3 scripts/manager.py verify quick` — orchestration-state diff only (`issues/**`);
 pre-existing failures unchanged from prior waves.
+
+---
+
+## Slice A — FD-01 historical reopen metadata (2026-06-12)
+
+Workspace: `.orchestrate/audit-slice-a/`  
+Contract: `prompts/research.md`  
+Scope: all `issues/done/*.md` whose body or frontmatter records `Moved from issues/done/ → issues/open/` (FD-01 pattern), including `→` arrow notation missed by the original hygiene regex.
+
+### 1. Audit summary
+
+| Metric | Count |
+|--------|------:|
+| FD-01 candidates (historical move metadata) | 156 |
+| FD-01 frontmatter-stale (move note, no resolution section) | 57 |
+| Classified `truly-done` (kept in done) | 149 |
+| **Reopened (`must-reopen` with repo proof)** | **7** |
+| Audit resolution notes added (stale metadata cleanup) | 50 |
+
+Orchestration note: `bun cli.ts run` unavailable in cloud VM (`bun` not on PATH, `CURSOR_API_KEY` unset). Subplanner executed Slice A serially per `prompts/research.md` unsupported-in-this-run policy.
+
+### 2. Reopened issues
+
+| ID | Old path | New path | Reopen reason | Evidence |
+|----|----------|----------|---------------|----------|
+| #064 | `issues/done/064-wasm-branch-hinting.md` | `issues/open/064-wasm-branch-hinting.md` | Branch-hint emission not in selfhost | No `branch_hint` in `src/compiler/` |
+| #067 | `issues/done/067-wasm-sign-extension-ops.md` | `issues/open/067-wasm-sign-extension-ops.md` | Sign-extension Wasm ops absent | No `extend8_s` / `SignExtend` in emitter |
+| #070 | `issues/done/070-wasm-i31ref-scalar.md` | `issues/open/070-wasm-i31ref-scalar.md` | i31ref/scalar support absent | No `i31` refs in `src/compiler/` |
+| #080 | `issues/done/080-mir-licm.md` | `issues/open/080-mir-licm.md` | MIR LICM never landed | `crates/ark-mir` deleted; no `licm` in selfhost |
+| #082 | `issues/done/082-mir-gc-hint.md` | `issues/open/082-mir-gc-hint.md` | GC-hint pass absent | No `gc_hint` in selfhost |
+| #083 | `issues/done/083-mir-loop-unrolling.md` | `issues/open/083-mir-loop-unrolling.md` | Loop-unroll pass absent | No unroll pass in selfhost |
+| #115 | `issues/done/115-wasm-name-section.md` | `issues/open/115-wasm-name-section.md` | Custom name section absent | No name-section emitter in `src/compiler/wasm/` |
+
+All seven had FD-01 stale frontmatter (`Action: Moved … → issues/open/`) with only a 2026-04 `Reopened by audit` note and no subsequent Close note / Audit resolution / fixture proof.
+
+### 3. Truly-done (stale metadata only)
+
+149 candidates remain in `issues/done/`. Breakdown:
+
+| Sub-class | Count | Handling |
+|-----------|------:|----------|
+| Pre-existing resolution / Close / Slice-complete sections | 99 | No change |
+| Audit resolution added 2026-06-12 (fixture or selfhost proof) | 50 | `## Audit resolution — 2026-06-12` appended |
+| Already had audit resolution (#034, #057, …) | included above | — |
+
+Representative selfhost-backed resolutions: #100 (`--time`), #101 (`--opt-level`), #132/#134/#135/#128/#129 (modularized `src/compiler/`), #281–#284 (CoreHIR lowering), #109/#140 (benchmark workflow).
+
+### 4. Monitor (not reopened — insufficient contradicting proof this slice)
+
+~43 FD-01-stale issues cite deleted `crates/ark-*` paths for Rust-era MIR/opt/bench/docs work without a standardized `## Close note`, but acceptance is either (a) satisfied by selfhost successors, (b) backed by `tests/fixtures/manifest.txt`, or (c) non-user-visible roadmap items deferred to a future selfhost opt track. These stay done with new audit-resolution notes where proof was found; otherwise flagged for Slice G mechanical spot-check.
+
+Notable monitors (stay done): #046 `stdlib_collections_ordered/*` fixtures; #073 WASI P1 imports in `src/compiler/wasm/sections_imports.ark`; #125–#127 CoreHIR path items with partial selfhost coverage.
+
+### 5. Hygiene finding (out of Slice A reopen scope)
+
+`check-false-done-hygiene.py` still reports **FD-02** on #487 (`Status: fixed` under `issues/done/`). Pre-existing; not introduced by Slice A.
+
+### 6. Verification at slice close
+
+`python3 scripts/manager.py verify quick` → **143 passed / 6 failed**. Failures unchanged from pre-existing systemic gates (#568/#569/#571, doc-example, docs consistency drift, #487 FD-02). No new failure from Slice A issue moves. `issues/open/index.md` and `issues/open/dependency-graph.md` regenerated.

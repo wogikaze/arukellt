@@ -49,6 +49,14 @@ Total checks: "19 / Passed: 19 / Failed: 0"
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/040-scalar-type-completeness.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: fixtures in manifest: scalar
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 Arukellt の scalar 型セットを `i32/i64/f64/bool/char` から拡張し、

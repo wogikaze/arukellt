@@ -20,6 +20,14 @@ Action: Moved from issues/done/ to issues/open/ by false-done audit.
 
 ## Reopened by audit — 2026-04-13
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: CoreHIR default path in driver emit pipeline.
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 IfExpr / LoopExpr / TryExpr の desugar が完了した後、`--mir-select` のデフォルトを `corehir` に切り替え、全 fixture で検証する。

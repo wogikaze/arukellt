@@ -42,6 +42,14 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/171-canonical-to-string-surface.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: fixtures in manifest: stdlib_core, stdlib_io
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 Arukellt には `i32_to_string` などの primitive helper、`f"..."`、`Display`/method syntax が混在している。

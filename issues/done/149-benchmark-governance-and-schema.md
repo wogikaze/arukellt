@@ -36,6 +36,14 @@ Close Evidence section documents `benchmarks/README.md` and
 `docs/process/benchmark-plan.md` with run-mode definitions; schema/governance artifacts
 present. Keep done.
 
+## Audit resolution — 2026-06-12 (Slice A)
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: historical Rust-era completion superseded by selfhost-first migration (ADR-029); no active user-visible claim contradicted in current repo
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 ベンチ関連スクリプトが増える前に、結果 schema・fixture 命名・quick/full/ci モード・baseline 更新ルールを標準化する。

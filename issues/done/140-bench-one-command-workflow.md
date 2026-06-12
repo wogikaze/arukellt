@@ -35,6 +35,14 @@ repo entrypoints.
 
 **Evidence:** `mise.toml`, `benchmarks/README.md`, `docs/process/benchmark-plan.md`.
 
+## Audit resolution — 2026-06-12 (Slice A)
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: Bench one-command workflow via `scripts/manager.py` benchmarks subcommand.
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 既存の `benchmarks/run_benchmarks.sh`、`scripts/compare-benchmarks.sh`、`scripts/check/perf-gate.sh` が分散しているため、

@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-04-04
+Updated: 2026-06-12
 ID: 115
 Track: wasm-quality
 Depends on: —
@@ -11,6 +11,16 @@ Reason: "This issue has `Status: open` in its frontmatter but was filed under `i
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 # Wasm Name Section: デバッグ用関数名・ローカル名セクション生成
 ---
+## Reopened by audit — 2026-06-12
+
+**Reason**: Wasm custom name section emission not found under `src/compiler/wasm/`; FD-01 stale metadata only.
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met` (FD-01 Slice A).
+
+**Violated acceptance**: Original acceptance cites deleted Rust paths or features with no selfhost equivalent.
+
+**Evidence**: `src/compiler/` grep; `crates/` absent; no Audit resolution / Close note after 2026-04-03 FD-01 reopen.
+
 # Wasm Name Section: デバッグ用関数名・ローカル名セクション生成
 
 ---

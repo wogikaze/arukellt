@@ -24,6 +24,14 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 
 ## Reopened by audit — 2026-04-13
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: CoreHIR loop lowering in `src/compiler/mir/lower/loop_*.ark`.
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 `Operand::LoopExpr` が backend-illegal のまま残っている。loop header + back-edge + break への変換が必要。

@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-04-03
+Updated: 2026-06-12
 ID: 080
 Track: mir-opt
 Depends on: —
@@ -15,6 +15,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 3. `OptimizationSummary` に `licm_hoisted: usize` 追加
 # MIR: "LICM (ループ不変式移動) パス"
 ---
+## Reopened by audit — 2026-06-12
+
+**Reason**: MIR LICM pass absent (deleted `crates/ark-mir`, no selfhost `licm`); no Close note after FD-01 reopen.
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met` (FD-01 Slice A).
+
+**Violated acceptance**: Original acceptance cites deleted Rust paths or features with no selfhost equivalent.
+
+**Evidence**: `src/compiler/` grep; `crates/` absent; no Audit resolution / Close note after 2026-04-03 FD-01 reopen.
+
 # MIR: LICM (ループ不変式移動) パス
 
 ---

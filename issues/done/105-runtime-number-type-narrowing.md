@@ -22,6 +22,14 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/105-runtime-number-type-narrowing.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: historical Rust-era completion superseded by selfhost-first migration (ADR-029); no active user-visible claim contradicted in current repo
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 Arukellt のデフォルト整数型は `i64` だが、値範囲が 32-bit に収まる場合は `i32` を使うことで

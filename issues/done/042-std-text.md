@@ -69,6 +69,14 @@ pub fn pad_right(s: "String, width: i32, fill: char) -> String"
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/042-std-text.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: fixtures in manifest: stdlib_string, stdlib_text
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 現在 prelude に散在する String 操作関数を `std::text::string` モジュールに再配置し、

@@ -33,6 +33,14 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 2026-04-03 reopen metadata is stale. Implemented variance controls remain cited in
 `benchmarks/schema.json` and benchmark runner metadata; keep done.
 
+## Audit resolution — 2026-06-12 (Slice A)
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: historical Rust-era completion superseded by selfhost-first migration (ADR-029); no active user-visible claim contradicted in current repo
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Implemented — 2026-04-15
 
 **Changes**:

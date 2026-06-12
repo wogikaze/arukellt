@@ -56,6 +56,14 @@ pub fn size_u32(x: u32) -> i32  // encoded byte count
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/053-std-wasm.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: fixtures in manifest: stdlib_wasm
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 Wasm バイナリの型定義 (ValType, FuncType, Limits)、opcode enum、

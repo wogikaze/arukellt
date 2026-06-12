@@ -22,6 +22,14 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/135-split-diagnostics.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: Selfhost diagnostics modularized (`src/compiler/diagnostics.ark`).
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 `crates/ark-diagnostics/src/lib.rs` は 1099 行。

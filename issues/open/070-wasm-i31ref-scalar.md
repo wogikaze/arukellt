@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-04-03
+Updated: 2026-06-12
 ID: 56
 Track: wasm-feature
 Depends on: —
@@ -13,6 +13,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 Reviewer: "implementation-backed queue normalization (verify checklist)."
 # Wasm GC i31ref: 小整数 unboxed scalar 最適化
 ---
+## Reopened by audit — 2026-06-12
+
+**Reason**: i31ref/scalar support absent from `src/compiler/`; only reopen note exists after 2026-04-03 audit.
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met` (FD-01 Slice A).
+
+**Violated acceptance**: Original acceptance cites deleted Rust paths or features with no selfhost equivalent.
+
+**Evidence**: `src/compiler/` grep; `crates/` absent; no Audit resolution / Close note after 2026-04-03 FD-01 reopen.
+
 # Wasm GC i31ref: 小整数 unboxed scalar 最適化
 
 ---
