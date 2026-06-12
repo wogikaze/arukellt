@@ -132,7 +132,7 @@ fn try_emit_process_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
 // Arukellt Selfhost - Wasm stdio host call dispatch
 
 fn try_emit_stdio_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if eq(clone(callee), "stdio::read_to_string") || eq(clone(callee), "__intrinsic_stdin_read_to_string") {
+        if eq(clone(callee), "stdio::read_to_string") || eq(clone(callee), "stdin_read_to_string") || eq(clone(callee), "__intrinsic_stdin_read_to_string") {
             let _result_on_stack = intrinsic_stdio::emit_read_stdin_to_string(w, inst, ctx)
             inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
             return true

@@ -58,7 +58,6 @@ graph LR
   I454["454 454-lsp-regression-fixtures-snapshot"]
   I480["480 480-extension-readme-settings-docs"]
   I074["074 074-wasi-p2-native-component"]
-  I634["634 634-selfhost-lsp-dap-stdio-transport-entrypoint"]
   I183["183 183-vscode-arukellt-all-in-one-extension-epic"]
   I336["336 336-lsp-hover-type-inference"]
   I337["337 337-lsp-signature-help-stdlib"]
@@ -96,7 +95,6 @@ graph LR
   I452 --> I454
   I479 --> I480
   I510 --> I074
-  I628 --> I634
   I184 --> I183
   I334 --> I336
   I334 --> I337
@@ -177,7 +175,7 @@ graph LR
 - **56** depends on: none; blocks: none
 - **566** depends on: 565; blocks: none
 - **626** depends on: 625; blocks: none
-- **628** depends on: 627; blocks: 634
+- **628** depends on: 627; blocks: none
 - **083** depends on: 080; blocks: none
 - **184** depends on: 189, 190, 191; blocks: 183
 - **334** depends on: 333; blocks: 336, 337, 340, 439
@@ -187,7 +185,6 @@ graph LR
 - **454** depends on: 450, 451, 452; blocks: 463
 - **480** depends on: 479; blocks: none
 - **074** depends on: 510, 121; blocks: 118, 124, 139, 474, 476, 62, 63
-- **634** depends on: 628; blocks: none
 - **183** depends on: 184, 185, 186, 187, 188, 205, 206, 207; blocks: none
 - **336** depends on: 334; blocks: none
 - **337** depends on: 334; blocks: none

@@ -8,8 +8,9 @@
 #
 # Resolution order:
 #   1. `$ARUKELLT_SELFHOST_WASM`
-#   2. `.build/selfhost/arukellt-s2.wasm`
-#   3. `.bootstrap-build/arukellt-s2.wasm`
+#   2. `.build/selfhost/arukellt-s3.wasm` (stage-3 self-compile)
+#   3. `.build/selfhost/arukellt-s2.wasm`
+#   4. `.bootstrap-build/arukellt-s2.wasm`
 #   4. `bootstrap/arukellt-selfhost.wasm` (committed pinned reference;
 #      see `bootstrap/PROVENANCE.md`)
 # Then `wasmtime run --dir=<repo_root> <wasm> -- "$@"`.
@@ -31,6 +32,7 @@ resolve_selfhost_wasm() {
     echo "$ARUKELLT_SELFHOST_WASM"; return 0
   fi
   for cand in \
+    "$REPO_ROOT/.build/selfhost/arukellt-s3.wasm" \
     "$REPO_ROOT/.build/selfhost/arukellt-s2.wasm" \
     "$REPO_ROOT/.bootstrap-build/arukellt-s2.wasm" \
     "$REPO_ROOT/.build/selfhost/arukellt-pinned-bootstrap.wasm" \
@@ -59,7 +61,8 @@ fi
 
 if ! wasm="$(resolve_selfhost_wasm)"; then
   echo "arukellt-selfhost: error — no selfhost wasm available." >&2
-  echo "  Tried: \$ARUKELLT_SELFHOST_WASM, .build/selfhost/arukellt-s2.wasm," >&2
+  echo "  Tried: \$ARUKELLT_SELFHOST_WASM, .build/selfhost/arukellt-s3.wasm," >&2
+  echo "         .build/selfhost/arukellt-s2.wasm," >&2
   echo "         .bootstrap-build/arukellt-s2.wasm," >&2
   echo "         .build/selfhost/arukellt-pinned-bootstrap.wasm," >&2
   echo "         bootstrap/arukellt-selfhost.wasm" >&2

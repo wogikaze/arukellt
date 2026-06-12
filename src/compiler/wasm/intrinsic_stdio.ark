@@ -9,7 +9,7 @@ use wasm::intrinsics::helpers_core_locals
 use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_io_t2
 
-// Handler for: stdio::read_to_string, __intrinsic_stdin_read_to_string
+// Handler for: stdio::read_to_string, stdin_read_to_string, __intrinsic_stdin_read_to_string
 fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     intrinsic_stdio_read::emit_read_stdin_to_string(w, inst, ctx)
 }

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-12T05:27:17Z",
+  "generated_at": "2026-06-12T06:04:00Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -1006,9 +1006,7 @@
       "depends_on": [
         "627"
       ],
-      "blocks_issue_ids": [
-        "634"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 10,
         "unchecked": 0
@@ -1262,30 +1260,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "634",
-      "path": "634-selfhost-lsp-dap-stdio-transport-entrypoint.md",
-      "title": "634-selfhost-lsp-dap-stdio-transport-entrypoint",
-      "track": "selfhost-frontend",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "628"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
       }
     },
     {
