@@ -42,11 +42,7 @@
 export { createPlayground } from "./playground.js";
 export { createWorkerPlayground } from "./worker-client.js";
 export { createCompilerClient, isRunnableT2Output } from "./compiler-client.js";
-export {
-  checkWithCompilerWasm,
-  checkWithCompilerWasmSync,
-  compileWithCompilerWasm,
-} from "./compiler-host.js";
+export { compileWithCompilerWasm } from "./compiler-host.js";
 export { runT2Wasm, moduleImportsArukelltIo } from "./t2-runner.js";
 
 // Re-export editor components.
@@ -127,7 +123,6 @@ export type {
   ParseResponse,
   FormatResponse,
   TokenizeResponse,
-  TypecheckResponse,
 
   // Diagnostic types
   Diagnostic,
@@ -195,7 +190,6 @@ export type {
 export type {
   CompileOptions,
   CompileResult,
-  CheckResult,
   RunOptions,
   RunResult,
   CompilerRuntimeAvailability,

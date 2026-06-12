@@ -9,19 +9,11 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { createPlayground } from "../playground.js";
-import { configureTypecheckCompilerWasm } from "../engine.js";
-
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "../../..");
 
 describe("createPlayground", () => {
   it("parses, tokenizes, formats, and type-checks source", async () => {
-    configureTypecheckCompilerWasm(await loadCompilerBytes());
     const pg = await createPlayground("/unused/playground-engine.js", {
       wasmUrl: new URL("file:///tmp/unused-playground-engine"),
     });
@@ -49,19 +41,3 @@ describe("createPlayground", () => {
     assert.match(pg.version(), /^selfhost-playground-ts-/);
   });
 });
-
-async function loadCompilerBytes(): Promise<Uint8Array> {
-  const candidates = [
-    resolve(repoRoot, ".build/selfhost/arukellt-s3.wasm"),
-    resolve(repoRoot, ".build/selfhost/arukellt-s2.wasm"),
-    resolve(repoRoot, "bootstrap/arukellt-selfhost.wasm"),
-  ];
-  for (const path of candidates) {
-    try {
-      return new Uint8Array(await readFile(path));
-    } catch {
-      // try next candidate
-    }
-  }
-  throw new Error("no compiler wasm candidate found");
-}

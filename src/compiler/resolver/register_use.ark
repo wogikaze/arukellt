@@ -6,11 +6,9 @@ use resolver::ast_access
 use resolver::scope_define
 use resolver::kinds
 use resolver::paths
-use resolver::target_gate
 
 fn register_use_decl(ctx: ResolveCtx, d: AstNode) {
     let use_path = ast_access::node_text(d)
-    target_gate::reject_target_gated_use(ctx, clone(use_path))
     let existing_use = scope_lookup::lookup(ctx, clone(use_path))
     if existing_use < 0 {
         scope_define::define(ctx, use_path, commands::SYM_IMPORT())
@@ -39,7 +37,6 @@ fn register_use_children(ctx: ResolveCtx, d: AstNode) {
         let child = ast_access::node_child_at(d, ci)
         if ast_decl_predicates::node_is_use(child) {
             let child_path = ast_access::node_text(child)
-            target_gate::reject_target_gated_use(ctx, clone(child_path))
             let existing_child = scope_lookup::lookup(ctx, clone(child_path))
             if existing_child < 0 {
                 scope_define::define(ctx, clone(child_path), commands::SYM_IMPORT())

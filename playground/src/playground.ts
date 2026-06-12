@@ -12,9 +12,7 @@ import {
   formatSource,
   parseSource,
   tokenizeSource,
-  configureTypecheckCompilerWasm,
   typecheckSource,
-  typecheckSourceWithCompilerBytesSync,
 } from "./engine.js";
 import type {
   Playground,
@@ -47,13 +45,9 @@ import type {
  */
 export async function createPlayground(
   enginePath: string,
-  opts: PlaygroundOptions,
+  _opts: PlaygroundOptions,
 ): Promise<Playground> {
   void enginePath;
-  const compilerBytes = await loadCompilerBytes(opts.wasmUrl);
-  if (compilerBytes) {
-    configureTypecheckCompilerWasm(compilerBytes);
-  }
 
   let destroyed = false;
 
@@ -66,15 +60,8 @@ export async function createPlayground(
   return {
     parse(source: string): ParseResponse {
       ensureAlive();
-      const parsed = parseSource(source);
-      if (!compilerBytes || !parsed.ok) return parsed;
-      const checked = typecheckSourceWithCompilerBytesSync(source, compilerBytes);
-      return {
-        ...parsed,
-        ok: checked.ok,
-        diagnostics: checked.diagnostics,
-        error_count: checked.error_count,
-      };
+      typecheckSource(source);
+      return parseSource(source);
     },
 
     format(source: string): FormatResponse {
@@ -89,9 +76,6 @@ export async function createPlayground(
 
     typecheck(source: string): TypecheckResponse {
       ensureAlive();
-      if (compilerBytes) {
-        return typecheckSourceWithCompilerBytesSync(source, compilerBytes);
-      }
       return typecheckSource(source);
     },
 
@@ -104,15 +88,4 @@ export async function createPlayground(
       destroyed = true;
     },
   };
-}
-
-async function loadCompilerBytes(wasmUrl: string | URL): Promise<Uint8Array | null> {
-  try {
-    const response = await fetch(wasmUrl);
-    if (!response.ok) return null;
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    return WebAssembly.validate(bytes) ? bytes : null;
-  } catch {
-    return null;
-  }
 }

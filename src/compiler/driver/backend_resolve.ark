@@ -51,7 +51,7 @@ fn backend_resolve(source: String, config: DriverConfig, decls: Vec<AstNode>) ->
     if module_state_errors::LoadState_error_count(load_state) > 0 {
         return DriverResolveResult_new(true, errors::module_loading_errors_result(module_state_errors::LoadState_errors(load_state)), load_state, session_resolve_query::session_empty_resolve_ctx(), 0)
     }
-    let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules_for_target(decls, module_state_modules::LoadState_modules(load_state), config_record::config_wit_paths(config), config_record::config_target(config))
+    let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules(decls, module_state_modules::LoadState_modules(load_state), config_record::config_wit_paths(config))
     debug::dump_resolved_hir_if_enabled(config, resolve_ctx)
     let resolve_error_count = session_resolve_query::session_resolve_reported_error_count(resolve_ctx)
     if resolve_error_count > 0 {

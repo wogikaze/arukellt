@@ -7,12 +7,7 @@ use resolver::kinds
 use resolver::ctx_record
 
 fn ResolveCtx_new() -> ResolveCtx {
-    ResolveCtx_new_for_target(String_from("wasm32-wasi-p2"))
-}
-
-fn ResolveCtx_new_for_target(target: String) -> ResolveCtx {
     let mut ctx = ctx_record::ResolveCtx_new_empty()
-    ctx_record::resolve_ctx_set_target(ctx, target)
     ctx_record::resolve_ctx_push_scope_value(ctx, scope_stack_scopes::Scope_new(0 - 1))
     register_builtins(ctx)
     ctx
@@ -32,10 +27,6 @@ fn ResolveCtx_reported_error_count(ctx: ResolveCtx) -> i32 {
 
 fn ResolveCtx_error_at(ctx: ResolveCtx, index: i32) -> String {
     ctx_record::resolve_ctx_error_at(ctx, index)
-}
-
-fn ResolveCtx_target(ctx: ResolveCtx) -> String {
-    ctx_record::resolve_ctx_target(ctx)
 }
 
 fn register_builtins(ctx: ResolveCtx) {

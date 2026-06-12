@@ -8,11 +8,10 @@ struct ResolveCtx {
     error_count: i32,
     errors: Vec<String>,
     next_decl_index: i32,
-    target: String,
 }
 
 fn ResolveCtx_new_empty() -> ResolveCtx {
-    ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), next_decl_index: 0, target: String_from("wasm32-wasi-p2") }
+    ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), next_decl_index: 0 }
 }
 
 fn resolve_ctx_scope_count(ctx: ResolveCtx) -> i32 {
@@ -35,14 +34,6 @@ fn resolve_ctx_take_next_decl_index(ctx: ResolveCtx) -> i32 {
     let idx = ctx.next_decl_index
     ctx.next_decl_index = ctx.next_decl_index + 1
     idx
-}
-
-fn resolve_ctx_target(ctx: ResolveCtx) -> String {
-    clone(ctx.target)
-}
-
-fn resolve_ctx_set_target(ctx: ResolveCtx, target: String) {
-    ctx.target = target
 }
 
 fn resolve_ctx_push_depth(ctx: ResolveCtx) {
