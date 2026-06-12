@@ -1,0 +1,56 @@
+{
+  "$schema": "/home/ubuntu/.cursor/plugins/cache/cursor-public/9333/a5cda8b561bb6536e880481734199a568cb647f4/skills/orchestrate/schemas/plan.schema.json",
+  "goal": "Slice D: Audit stdlib / host intrinsic done issues (std/*, host::*, manifest.toml claims). Cross-check std/manifest.toml, tests/fixtures/stdlib_*, call_host_io.ark dispatch. ≤50/wave. Contract: prompts/research.md.",
+  "summary": "False-done audit slice D — stdlib/host intrinsics vs manifest and selfhost dispatch",
+  "rootSlug": "audit-slice-d",
+  "baseBranch": "master",
+  "repoUrl": "https://github.com/wogikaze/arukellt.git",
+  "selfAgentId": "bc-835e9edc-b24f-4ae2-be78-cc97e4a17111",
+  "acceptanceCriteria": [
+    "Stdlib/host false-done reopened with evidence",
+    "Audit report updated"
+  ],
+  "syncStateToGit": true,
+  "tasks": [
+    {
+      "name": "audit-host-wave1",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "scopedGoal": "Audit wave-1 host/stdlib done issues listed in `.orchestrate/audit-slice-d/batches/wave1-host-stdlib.txt`. Contract: `prompts/research.md`. Cross-check each issue acceptance against repo evidence: `std/manifest.toml` availability claims, `src/compiler/wasm/call_host_io.ark` + `intrinsic_*.ark` dispatch, `tests/fixtures/stdlib_*` + `tests/fixtures/manifest.txt` registration. Reopen only confirmed `must-reopen` (repo proof contradicts done acceptance). For each reopen: git mv to `issues/open/`, set Status open, add `Reopened by audit` with evidence paths, roll back unchecked acceptance items. Run `python3 scripts/gen/generate-issue-index.py`. Append Slice D wave section to `docs/process/false-done-audit-2026-06-12.md`. Commit orchestration-state only (issues/**, docs/process/false-done-audit-2026-06-12.md, generated indexes). Run `python3 scripts/manager.py verify quick`. Do not modify `src/**` or `playground/**`.",
+      "pathsAllowed": [
+        "issues/**",
+        "docs/process/false-done-audit-2026-06-12.md",
+        "std/manifest.toml",
+        ".orchestrate/audit-slice-d/**"
+      ],
+      "pathsForbidden": [
+        "src/**",
+        "playground/**"
+      ],
+      "acceptance": [
+        "Wave-1 batch audited with classifications",
+        "Confirmed false-done issues reopened",
+        "Audit report Slice D section appended",
+        "Issue index regenerated"
+      ],
+      "verify": "python3 scripts/manager.py verify quick exits 0 or documents pre-existing failures only"
+    },
+    {
+      "name": "verify-slice-d",
+      "type": "verifier",
+      "model": "claude-opus-4-8",
+      "verifies": "audit-host-wave1",
+      "dependsOn": ["audit-host-wave1"],
+      "scopedGoal": "Verify slice D acceptance: reopened issues have audit evidence; audit report updated; no product code changes under src/ or playground/.",
+      "pathsAllowed": [
+        "issues/**",
+        "docs/process/false-done-audit-2026-06-12.md"
+      ],
+      "acceptance": [
+        "Each reopen cites repo evidence files",
+        "Audit report contains Slice D wave",
+        "Issue open index lists reopened IDs"
+      ]
+    }
+  ]
+}

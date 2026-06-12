@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-12T03:30:27Z",
+  "generated_at": "2026-06-12T04:17:50Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -26,33 +26,9 @@
       }
     },
     {
-      "id": "124",
-      "path": "124-wit-component-import-syntax.md",
-      "title": "WIT component import syntax",
-      "track": "language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "139",
-      "path": "139-std-wasi-sockets-p2.md",
-      "title": "WASI P2: `std::host::sockets` facade と T3 実行検証",
+      "id": "137",
+      "path": "137-std-wasi-namespace-and-target-gating.md",
+      "title": "`std: \":host::*` namespace 導入と migration / target-gated 診断\"",
       "track": "wasi-feature",
       "status": "open",
       "blocks_v1": "none",
@@ -60,20 +36,85 @@
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [
-        "074",
-        "137"
-      ],
+      "depends_on": [],
       "blocks_issue_ids": [
-        "136"
+        "136",
+        "139",
+        "63"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 0
+        "checked": 3,
+        "unchecked": 4
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "292",
+      "path": "292-stub-host-compile-error.md",
+      "title": "292-stub-host-compile-error",
+      "track": "capability",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 1,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "293",
+      "path": "293-env-var-implementation.md",
+      "title": "env: \":var() の実装を完成させる\"",
+      "track": "capability",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 2,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "295",
+      "path": "295-host-api-runtime-tests.md",
+      "title": "295-host-api-runtime-tests",
+      "track": "capability",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 7,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
       }
     },
     {
@@ -98,6 +139,28 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "358",
+      "path": "358-stdlib-host-family-completion.md",
+      "title": "Stdlib: host family の stub を解消し stable capability に引き上げる",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 1,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
       }
     },
     {
@@ -149,6 +212,28 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "445",
+      "path": "445-std-host-process-implementation.md",
+      "title": "445-std-host-process-implementation",
+      "track": "runtime",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 2,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
       }
     },
     {
@@ -250,6 +335,161 @@
       }
     },
     {
+      "id": "500",
+      "path": "500-playground-wasm-typecheck-export.md",
+      "title": "500-playground-wasm-typecheck-export",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 1,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "510",
+      "path": "510-t3-p2-import-table-switch.md",
+      "title": "510-t3-p2-import-table-switch",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "074",
+        "62"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "633",
+      "path": "633-host-capability-surface-honesty-vs-selfhost-runtime.md",
+      "title": "Reconcile std::host::http / sockets / udp capability claims with the selfhost execution path",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "446",
+        "447"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "074",
+      "path": "074-wasi-p2-native-component.md",
+      "title": "074-wasi-p2-native-component",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "510",
+        "121"
+      ],
+      "blocks_issue_ids": [
+        "124",
+        "139",
+        "474",
+        "476",
+        "62",
+        "63"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "124",
+      "path": "124-wit-component-import-syntax.md",
+      "title": "WIT component import syntax",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "139",
+      "path": "139-std-wasi-sockets-p2.md",
+      "title": "WASI P2: `std::host::sockets` facade と T3 実行検証",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "137"
+      ],
+      "blocks_issue_ids": [
+        "136"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "474",
       "path": "474-async-component-support-v5.md",
       "title": "Async component support (v5)",
@@ -302,50 +542,28 @@
       }
     },
     {
-      "id": "500",
-      "path": "500-playground-wasm-typecheck-export.md",
-      "title": "500-playground-wasm-typecheck-export",
-      "track": "main",
+      "id": "62",
+      "path": "076-wasi-p2-filesystem.md",
+      "title": "WASI P2 ネイティブ: \"wasi:filesystem ネイティブバインディング\"",
+      "track": "wasi-feature",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 1,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "510",
-      "path": "510-t3-p2-import-table-switch.md",
-      "title": "510-t3-p2-import-table-switch",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "60",
-        "62"
+      "depends_on": [
+        "074",
+        "510"
       ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
-        "class": null,
-        "upstream_notes": null
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
       }
     },
     {
@@ -389,81 +607,6 @@
         "138",
         "077",
         "139"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "633",
-      "path": "633-host-capability-surface-honesty-vs-selfhost-runtime.md",
-      "title": "Reconcile std::host::http / sockets / udp capability claims with the selfhost execution path",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "446",
-        "447"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "60",
-      "path": "074-wasi-p2-native-component.md",
-      "title": "074-wasi-p2-native-component",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "510",
-        "121"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "62",
-      "path": "076-wasi-p2-filesystem.md",
-      "title": "WASI P2 ネイティブ: \"wasi:filesystem ネイティブバインディング\"",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074",
-        "510"
       ],
       "blocks_issue_ids": [],
       "acceptance": {

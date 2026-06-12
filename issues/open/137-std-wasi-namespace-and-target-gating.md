@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-29
-Updated: 2026-04-03
+Updated: 2026-06-12
 ID: 137
 Track: wasi-feature
 Depends on: —
@@ -25,6 +25,29 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
 - [x] `std: ":host::*` modules registered in `std/manifest.toml` and resolver T3_ONLY_MODULES"
 - [x] Deprecated import paths (`std: ":io`, `std::fs`, etc.) already emit E0104 migration diagnostics"
+
+# `std::host::*` namespace 導入と migration / target-gated 診断
+
+## Reopened by audit — 2026-06-12 (slice D)
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met`
+
+**Reopen reason**: Close evidence cites `T3_ONLY_MODULES` in deleted `crates/ark-resolve/src/load.rs` and passing `verify-harness.sh`. Selfhost resolver/typechecker has no T3-only module import gating; target-gating fixtures cannot be satisfied by current compiler sources.
+
+**Repo evidence**:
+
+- `rg 'T3_ONLY|incompatible.target' src/compiler/` → no module gating implementation.
+- Close note references `crates/ark-resolve/src/load.rs` — `crates/` absent post #583.
+- `scripts/run/verify-harness.sh` cited in close evidence is absent; sole path is `scripts/run/arukellt-selfhost.sh`.
+- `tests/fixtures/target_gating/t1_import_sockets.ark` registered as `diag:` expecting E0500 — no selfhost diagnostic producer found for T1+T3-only imports.
+
+**Violated acceptance**: items 3–6 (unsupported target diagnostics, fixture matrix, cargo test, verify-harness).
+
+**Evidence files**: `src/compiler/resolver/`, `tests/fixtures/target_gating/t1_import_sockets.ark`, `tests/fixtures/manifest.txt`, `std/manifest.toml`
+
+**Follow-up split**: none
+
+---
 
 # `std::host::*` namespace 導入と migration / target-gated 診断
 
@@ -78,7 +101,7 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ### Acceptance criteria
 
 - [x] `std::host::*` modules registered in `std/manifest.toml` and resolver T3_ONLY_MODULES
-- [x] Deprecated import paths (`std::io`, `std::fs`, etc.) already emit E0104 migration diagnostics
-- [x] T3-only module imports on T1 emit E0500 (incompatible target)
-- [x] Compile fixtures covering T1+T3-only module rejection
-- [x] `bash scripts/run/verify-harness.sh --quick` passes (19/19)
+- [ ] Deprecated import paths (`std::io`, `std::fs`, etc.) already emit E0104 migration diagnostics
+- [ ] T3-only module imports on T1 emit E0500 (incompatible target)
+- [ ] Compile fixtures covering T1+T3-only module rejection
+- [ ] `bash scripts/run/verify-harness.sh --quick` passes (19/19)

@@ -325,3 +325,67 @@ failures are pre-existing systemic gates (fixture manifest sync, doc-example,
 selfhost analysis/LSP/DAP gates #568/#569/#571, docs consistency, compiler
 boundary/import-cycle, broken links) untouched by this wave; this wave modified
 only `issues/**` + regenerated `issues/open/` indexes. No new failure introduced.
+
+---
+
+## Wave 4 — Slice D (stdlib / host intrinsics) — 2026-06-12
+
+Orchestration note: subplanner workspace `.orchestrate/audit-slice-d/`;
+`bun cli.ts run` blocked without `CURSOR_API_KEY` (same as wave 3b). Audit
+performed serially per `prompts/research.md` unsupported-in-this-run policy.
+
+### Scope
+
+43-issue wave-1 batch (`.orchestrate/audit-slice-d/batches/wave1-host-stdlib.txt`):
+core `std::*` modules (#041–#057), host capability issues (#137–#138, #291–#295,
+#358, #445), stdlib baseline (#604–#608), JSON/TOML/fs contracts (#521–#528),
+manifest/docs metadata (#383, #397, #455, #457).
+
+Cross-check axes: `std/manifest.toml` availability claims vs
+`src/compiler/wasm/call_host_io.ark` + `intrinsic_*.ark` dispatch;
+`tests/fixtures/stdlib_*` registration in `tests/fixtures/manifest.txt`.
+
+### Reopened issues (must-reopen)
+
+| ID | Old path | Classification | Root cause |
+|----|----------|----------------|------------|
+| #358 | `issues/done/358-stdlib-host-family-completion.md` | `acceptance-not-actually-met` | Umbrella claims http/sockets/env::var executable; selfhost path lacks dispatch |
+| #293 | `issues/done/293-env-var-implementation.md` | `implementation-parts-only` | `emit_env_var` stubs to `None`; close cites deleted `crates/ark-wasm` |
+| #295 | `issues/done/295-host-api-runtime-tests.md` | `acceptance-not-actually-met` | Clock/random fixture claims; no `__intrinsic_clock_*` / `__intrinsic_random_*` handlers |
+| #445 | `issues/done/445-std-host-process-implementation.md` | `implementation-parts-only` | `process::abort` / `__intrinsic_process_abort` unbacked on selfhost path |
+| #292 | `issues/done/292-stub-host-compile-error.md` | `acceptance-not-actually-met` | `host_stub` kind removed from manifest; no compile-time stub gate |
+| #137 | `issues/done/137-std-wasi-namespace-and-target-gating.md` | `acceptance-not-actually-met` | T3-only import gating cited deleted `crates/ark-resolve`; no selfhost gating |
+
+Previously reopened (not re-touched): #051, #446, #447. Manifest honesty: #633 open.
+
+### Still-truly-done (spot checks)
+
+| ID | Area | Evidence |
+|----|------|----------|
+| #045 | std::collections Deque/PQ | Prior wave close + `tests/fixtures/stdlib_*` parity fixtures |
+| #057 | prelude migration | Audit resolution 2026-06-12; `stdlib_migration/*` fixtures |
+| #524–#528 | JSON/TOML/fs/hash contracts | Fixture dirs present + registered in `manifest.txt` |
+| #604–#608 | stdlib baseline plan children | Gap-ledger / contract-honesty artifacts; #605 host_module_contract fixture exists (clock sub-surface blocked on #051) |
+| #041–#050, #052–#053 | Core std modules | Source under `std/` + extensive `tests/fixtures/stdlib_*` trees |
+
+### Evidence table (slice D reopen decisions)
+
+| Issue | Repo proof checked | Result |
+|-------|-------------------|--------|
+| 358 | call_host_io + manifest http/sockets/env | FAIL — reopen |
+| 293 | intrinsic_env_args emit_env_var | FAIL — reopen |
+| 295 | clock/random emitter handlers | FAIL — reopen |
+| 445 | process_abort dispatch | FAIL — reopen |
+| 292 | host_stub kind + compile gate | FAIL — reopen |
+| 137 | T3_ONLY gating in selfhost resolver | FAIL — reopen |
+| 045 | stdlib fixtures | PASS — keep done |
+| 524 | stdlib_fs fixtures | PASS — keep done |
+
+### Newly-created future issues
+
+None (gaps covered by reopened issues + existing #633).
+
+### Verification at wave close
+
+`python3 scripts/manager.py verify quick` — orchestration-state diff only
+(issues/** + regenerated indexes). Pre-existing systemic failures unchanged.
