@@ -12,16 +12,23 @@ graph LR
   I123["123 123-import-syntax-unification"]
   I124["124 WIT component import syntax"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
+  I216["216 Formatter surface"]
+  I217["217 Code actions + refactor code actions"]
+  I219["219 LSP standard feature completeness"]
   I30["30 036-jco-javascript-interop"]
   I41["41 051-std-time-random"]
   I418["418 Repo Hygiene: orphan / stale file inventory を作るスクリプトを追加する"]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
+  I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
   I446["446 446-std-host-http-implementation"]
   I447["447 447-std-host-sockets-implementation"]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
+  I456["456 456-arukellt-doc-command"]
+  I464["464 464-init-template-expansion"]
   I472["472 472-playground-type-checker-product-claim"]
   I474["474 Async component support (v5)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
+  I491["491 491-playground-ci-performance-budget-gates"]
   I500["500 500-playground-wasm-typecheck-export"]
   I510["510 510-t3-p2-import-table-switch"]
   I52["52 064-wasm-branch-hinting"]
@@ -55,16 +62,23 @@ graph LR
 - **123** depends on: none; blocks: none
 - **124** depends on: 074; blocks: none
 - **139** depends on: 074, 137; blocks: 136
+- **216** depends on: none; blocks: none
+- **217** depends on: 193; blocks: none
+- **219** depends on: none; blocks: none
 - **30** depends on: 27; blocks: none
 - **41** depends on: 039, 040; blocks: none
 - **418** depends on: none; blocks: 422
 - **44** depends on: 039, 044, 053; blocks: none
+- **440** depends on: 341, 346, 348, 349, 350, 352; blocks: none
 - **446** depends on: none; blocks: 633
 - **447** depends on: none; blocks: 633
 - **45** depends on: 039, 042, 044; blocks: none
+- **456** depends on: 455; blocks: none
+- **464** depends on: none; blocks: none
 - **472** depends on: 466; blocks: none
 - **474** depends on: 035, done), 074; blocks: none
 - **476** depends on: 035, done), 074; blocks: none
+- **491** depends on: none; blocks: none
 - **500** depends on: none; blocks: none
 - **510** depends on: none; blocks: 60, 62
 - **52** depends on: none; blocks: none

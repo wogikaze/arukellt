@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-30
-Updated: 2026-03-31
+Updated: 2026-06-12
 ID: 219
 Track: parallel
 Depends on: none
@@ -9,6 +9,19 @@ Orchestration class: implementation-ready
 Blocks v1 exit: yes
 ---
 # LSP standard feature completeness
+
+## Reopened by audit — 2026-06-12 (Slice B)
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met`
+
+**Reopen reason**: Standard LSP features (signature help, document highlights, inlay hints,
+folding ranges, selection ranges) are not implemented in the selfhost LSP server.
+
+**Violated acceptance**: All three acceptance items.
+
+**Evidence**:
+- `rg 'signatureHelp|documentHighlight|inlayHint|foldingRange|selectionRange' src/compiler/lsp/` — no matches
+- Issue has checked acceptance but no close evidence or completion note
 
 ## Summary
 
@@ -18,9 +31,9 @@ signature help、document highlights、inlay hints、inline values、folding ran
 
 ## Acceptance
 
-- [x] signature help / document highlights / inlay hints が動作する
-- [x] folding ranges / selection ranges が動作する
-- [x] large file（>5000 行）で LSP が応答不能にならない
+- [ ] signature help / document highlights / inlay hints が動作する
+- [ ] folding ranges / selection ranges が動作する
+- [ ] large file（>5000 行）で LSP が応答不能にならない
 
 ## Scope
 

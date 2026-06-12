@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-04-14
-Updated: 2026-04-14
+Updated: 2026-06-12
 Track: playground
 Source: audit — docs/playground/deployment-strategy.md §4.3
 Orchestration class: implementation-ready
@@ -14,6 +14,20 @@ Depends on: none
 - `issues/open/498-playground-lighthouse-ci.md`: explicit tracking reference for deferred Lighthouse CI
 
 # 491 — Playground CI performance budget enforcement
+
+## Reopened by audit — 2026-06-12 (Slice B)
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met`
+
+**Reopen reason**: Close evidence cites a `playground-wasm-size` CI job that does not exist
+in `.github/workflows/playground-ci.yml`. Only bundle-size and lighthouse jobs are present.
+
+**Violated acceptance**: WASM binary size gate (acceptance item 1).
+
+**Evidence**:
+- `.github/workflows/playground-ci.yml` — no `playground-wasm-size` job
+- `scripts/check/check-playground-size.sh` supports `--wasm` but is not invoked in CI
+- Issue close evidence lines 60–61 reference non-existent workflow job
 
 ## Summary
 
@@ -41,7 +55,7 @@ them as current-state, but they are aspirational.
 
 ## Acceptance
 
-- [x] At least one CI workflow step fails when playground wasm binary exceeds a configured threshold
+- [ ] At least one CI workflow step fails when playground wasm binary exceeds a configured threshold
 - [x] At least one CI workflow step fails when playground bundle exceeds a configured threshold
 - [x] Lighthouse CI is either implemented or explicitly deferred in the deployment-strategy doc with a tracking reference
 - [x] `docs/playground/deployment-strategy.md` accurately reflects which gates are enforced vs aspirational

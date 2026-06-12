@@ -490,3 +490,54 @@ Notable monitors (stay done): #046 `stdlib_collections_ordered/*` fixtures; #073
 ### 6. Verification at slice close
 
 `python3 scripts/manager.py verify quick` → **143 passed / 6 failed**. Failures unchanged from pre-existing systemic gates (#568/#569/#571, doc-example, docs consistency drift, #487 FD-02). No new failure from Slice A issue moves. `issues/open/index.md` and `issues/open/dependency-graph.md` regenerated.
+
+## Wave 4 — 2026-06-12 (Slice B: user-visible surfaces)
+
+Orchestration note: `/orchestrate` substrate (`bun cli.ts run`) unavailable in cloud VM
+(no `CURSOR_API_KEY`). Subplanner performed serial audit per `prompts/research.md`
+`unsupported-in-this-run` policy, matching waves 1–3b methodology.
+
+### Scope
+
+Tracks audited: `playground`, `playground-deploy`, `playground-audit`, `docs-audit`,
+`cli`, `docs`, `docs/ops`, `vscode-ide`, `parallel` (user-visible subset).
+~100 done issues in scope; spot-checked all user-visible acceptance claims against
+`playground/`, `docs/playground/`, `extensions/`, `src/compiler/main/`, `src/compiler/lsp/`,
+`.github/workflows/pages.yml`, `.github/workflows/playground-ci.yml`.
+
+### Reopened issues (7)
+
+| ID | Area | Classification | Root cause |
+|----|------|----------------|------------|
+| 464 | CLI init templates | `acceptance-not-actually-met` | `cmd_init` emits single minimal scaffold only |
+| 456 | CLI doc command | `implementation-parts-only` | Minimal markdown reader; no `--json`/`--target`/fuzzy |
+| 491 | Playground CI gates | `acceptance-not-actually-met` | `playground-wasm-size` job cited but absent from workflow |
+| 216 | Formatter surface | `acceptance-not-actually-met` | No LSP formatting or VS Code formatter contribution |
+| 217 | Code actions | `acceptance-not-actually-met` | No `textDocument/codeAction` in selfhost LSP |
+| 219 | LSP completeness | `acceptance-not-actually-met` | No signatureHelp/inlayHint/foldingRange handlers |
+| 440 | VS Code fix pipeline | `implementation-parts-only` | Deleted Rust fix pipeline; no LSP fix-all integration |
+
+### Still-truly-done (Slice B spot checks)
+
+| ID | Area | Evidence |
+|----|------|----------|
+| 466–471, 489 | Playground entrypoint/docs/deploy | `docs/playground/index.html`, `pages.yml`, build-path-proof |
+| 498 | Playground Lighthouse CI | `.github/workflows/playground-ci.yml` job `playground-lighthouse` |
+| 632 | Playground compiler-wasm loop | `docs/playground/assets/compiler-asset.json`, playground tests |
+| 453, 622 | Extension E2E | `extensions/arukellt-all-in-one/src/test/extension.test.js` |
+| 461 | Doc example CI | `scripts/check/check-doc-examples.py` in verify quick |
+| 475, 575 | CLI surface wiring | `src/compiler/main/dispatch_aux.ark` |
+| 480 | Extension README settings | `extensions/arukellt-all-in-one/README.md` Extension Settings table |
+| 301–304 | Docs ops hygiene | verify quick docs-consistency gates (pre-existing drift aside) |
+| 194, 203 | Parallel planning slices | Acceptance is tracking-only; close notes document planning scope |
+
+### Newly-created future issues
+
+None. Gaps covered by reopened issues above.
+
+### Verification at wave close
+
+`python3 scripts/manager.py verify quick` → 143 passed / 6 failed. Failures are
+pre-existing (#568 analysis, #569 LSP, #571 DAP, doc-example, docs consistency,
+issue #487 hygiene FD-02 outside Slice B scope). This wave modified only `issues/**` +
+regenerated indexes. No new failure introduced by reopen moves.
