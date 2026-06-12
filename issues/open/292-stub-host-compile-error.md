@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-31
-Updated: 2026-04-03
+Updated: 2026-06-12
 ID: 292
 Track: capability
 Depends on: —
@@ -17,6 +17,28 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `std/host/sockets.ark`: "`connect()` が `Err("not implemented")` を返す"
 - `std/manifest.toml: 1685-1720`
 - [x] テスト: "http::get を呼ぶコードが compile error を出す fixture"
+
+# stub host module (http, sockets) の使用を compile error にする
+
+## Reopened by audit — 2026-06-12 (slice D)
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met`
+
+**Reopen reason**: Acceptance requires compile-time rejection of `kind = "host_stub"` calls. Manifest no longer uses `host_stub` (http/sockets are `intrinsic_wrapper` with false availability claims), and the selfhost compiler has no stub-kind compile gate — programs compile and fail only at missing intrinsic lowering.
+
+**Repo evidence**:
+
+- `rg 'kind = \"host_stub\"' std/manifest.toml` → 0 matches.
+- `std/host/http.ark` calls `__intrinsic_http_get` without compile-time rejection; no handler in `src/compiler/wasm/`.
+- `tests/fixtures/host_stub_sockets.ark` expects E0500 but selfhost `src/compiler/` has no target-gating / host_stub diagnostic path (E0500 is emit-failed only).
+
+**Violated acceptance**: all four checkboxes (host_stub compile error, message text, manifest→compiler propagation, http compile-error fixture).
+
+**Evidence files**: `std/manifest.toml`, `std/host/http.ark`, `std/host/sockets.ark`, `tests/fixtures/host_stub_sockets.ark`, `src/compiler/diagnostics/codes.ark`
+
+**Follow-up split**: overlap with #446/#447 reopen; compile-time deny vs runtime honesty tracked via #633
+
+---
 
 # stub host module (http, sockets) の使用を compile error にする
 
@@ -42,10 +64,10 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 ## Acceptance
 
-- [x] `kind = "host_stub"` の関数を呼び出すコードが compile error (E レベル) を出す
-- [x] error メッセージに「この API は未実装です (host_stub)」と表示される
-- [x] `std/manifest.toml` の `kind` 情報がコンパイラに伝搬する経路がある
-- [x] テスト: http::get を呼ぶコードが compile error を出す fixture
+- [ ] `kind = "host_stub"` の関数を呼び出すコードが compile error (E レベル) を出す
+- [ ] error メッセージに「この API は未実装です (host_stub)」と表示される
+- [ ] `std/manifest.toml` の `kind` 情報がコンパイラに伝搬する経路がある
+- [ ] テスト: http::get を呼ぶコードが compile error を出す fixture
 
 ## References
 

@@ -11,45 +11,51 @@ Scoring criteria (0-5 each, total 25):
 
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
-| 1 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
-| 2 | 123 | 123-import-syntax-unification | language-design | 0 | 0 | 1 | 5 | 5 | 11 |
-| 3 | 124 | WIT component import syntax | language-design | 1 | 0 | 1 | 5 | 4 | 11 |
-| 4 | 28 | 034-wit-cli-integration | component-model | 0 | 0 | 5 | 3 | 2 | 10 |
-| 5 | 117 | Component Model: WIT 生成品質の向上と往復検証 | wasm-quality | 1 | 0 | 1 | 3 | 5 | 10 |
-| 6 | 491 | 491-playground-ci-performance-budget-gates | playground | 0 | 0 | 4 | 1 | 5 | 10 |
-| 7 | 500 | 500-playground-wasm-typecheck-export | main | 0 | 0 | 1 | 5 | 4 | 10 |
-| 8 | 510 | 510-t3-p2-import-table-switch | main | 2 | 0 | 1 | 2 | 5 | 10 |
-| 9 | 52 | 064-wasm-branch-hinting | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 10 | 55 | 067-wasm-sign-extension-ops | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 11 | 56 | 070-wasm-i31ref-scalar | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 12 | 59 | 073-wasi-p1-full-syscalls | wasi-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 13 | 115 | 115-wasm-name-section | wasm-quality | 0 | 0 | 1 | 3 | 5 | 9 |
-| 14 | 447 | 447-std-host-sockets-implementation | runtime | 1 | 0 | 1 | 3 | 4 | 9 |
-| 15 | 472 | 472-playground-type-checker-product-claim | playground | 0 | 0 | 1 | 5 | 3 | 9 |
-| 16 | 633 | Reconcile std::host::http / sockets / udp capability claims... | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
-| 17 | 080 | 080-mir-licm | mir-opt | 1 | 0 | 1 | 1 | 5 | 8 |
-| 18 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 19 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 20 | 418 | Repo Hygiene: orphan / stale file inventory を作るスクリプトを追加する | main | 1 | 0 | 1 | 2 | 4 | 8 |
-| 21 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
-| 22 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
-| 23 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 24 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 25 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 26 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 27 | 082 | 082-mir-gc-hint | mir-opt | 0 | 0 | 1 | 1 | 5 | 7 |
-| 28 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
-| 29 | 422 | Repo Hygiene: 大きな artifact と baseline の size budget / pruni... | repo-hygiene | 0 | 0 | 2 | 1 | 4 | 7 |
-| 30 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
-| 31 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 32 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 33 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 34 | 083 | 083-mir-loop-unrolling | mir-opt | 0 | 0 | 1 | 1 | 4 | 6 |
-| 35 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 36 | 216 | Formatter surface | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
-| 37 | 217 | Code actions + refactor code actions | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
-| 38 | 219 | LSP standard feature completeness | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
-| 39 | 456 | 456-arukellt-doc-command | cli | 0 | 0 | 2 | 1 | 3 | 6 |
-| 40 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 41 | 464 | 464-init-template-expansion | cli, dx | 0 | 0 | 1 | 1 | 3 | 5 |
-| 42 | 440 | VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「f... | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
+| 1 | 137 | `std: ":host::*` namespace 導入と migration / target-gated 診断" | wasi-feature | 4 | 0 | 2 | 3 | 4 | 13 |
+| 2 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
+| 3 | 123 | 123-import-syntax-unification | language-design | 0 | 0 | 1 | 5 | 5 | 11 |
+| 4 | 124 | WIT component import syntax | language-design | 1 | 0 | 1 | 5 | 4 | 11 |
+| 5 | 28 | 034-wit-cli-integration | component-model | 0 | 0 | 5 | 3 | 2 | 10 |
+| 6 | 117 | Component Model: WIT 生成品質の向上と往復検証 | wasm-quality | 1 | 0 | 1 | 3 | 5 | 10 |
+| 7 | 295 | 295-host-api-runtime-tests | capability | 0 | 0 | 3 | 3 | 4 | 10 |
+| 8 | 491 | 491-playground-ci-performance-budget-gates | playground | 0 | 0 | 4 | 1 | 5 | 10 |
+| 9 | 500 | 500-playground-wasm-typecheck-export | main | 0 | 0 | 1 | 5 | 4 | 10 |
+| 10 | 510 | 510-t3-p2-import-table-switch | main | 2 | 0 | 1 | 2 | 5 | 10 |
+| 11 | 52 | 064-wasm-branch-hinting | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 12 | 55 | 067-wasm-sign-extension-ops | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 13 | 56 | 070-wasm-i31ref-scalar | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 14 | 59 | 073-wasi-p1-full-syscalls | wasi-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 15 | 115 | 115-wasm-name-section | wasm-quality | 0 | 0 | 1 | 3 | 5 | 9 |
+| 16 | 447 | 447-std-host-sockets-implementation | runtime | 1 | 0 | 1 | 3 | 4 | 9 |
+| 17 | 472 | 472-playground-type-checker-product-claim | playground | 0 | 0 | 1 | 5 | 3 | 9 |
+| 18 | 633 | Reconcile std::host::http / sockets / udp capability claims... | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
+| 19 | 080 | 080-mir-licm | mir-opt | 1 | 0 | 1 | 1 | 5 | 8 |
+| 20 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 21 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 22 | 358 | Stdlib: host family の stub を解消し stable capability に引き上げる | stdlib-api | 0 | 0 | 1 | 3 | 4 | 8 |
+| 23 | 418 | Repo Hygiene: orphan / stale file inventory を作るスクリプトを追加する | main | 1 | 0 | 1 | 2 | 4 | 8 |
+| 24 | 445 | 445-std-host-process-implementation | runtime | 0 | 0 | 1 | 3 | 4 | 8 |
+| 25 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
+| 26 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
+| 27 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 28 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 29 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 30 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 31 | 082 | 082-mir-gc-hint | mir-opt | 0 | 0 | 1 | 1 | 5 | 7 |
+| 32 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
+| 33 | 293 | env: ":var() の実装を完成させる" | capability | 0 | 0 | 2 | 1 | 4 | 7 |
+| 34 | 422 | Repo Hygiene: 大きな artifact と baseline の size budget / pruni... | repo-hygiene | 0 | 0 | 2 | 1 | 4 | 7 |
+| 35 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
+| 36 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 37 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 38 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 39 | 083 | 083-mir-loop-unrolling | mir-opt | 0 | 0 | 1 | 1 | 4 | 6 |
+| 40 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 41 | 216 | Formatter surface | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
+| 42 | 217 | Code actions + refactor code actions | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
+| 43 | 219 | LSP standard feature completeness | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
+| 44 | 292 | 292-stub-host-compile-error | capability | 0 | 0 | 1 | 1 | 4 | 6 |
+| 45 | 456 | 456-arukellt-doc-command | cli | 0 | 0 | 2 | 1 | 3 | 6 |
+| 46 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 47 | 464 | 464-init-template-expansion | cli, dx | 0 | 0 | 1 | 1 | 3 | 5 |
+| 48 | 440 | VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「f... | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-12T04:44:07Z",
+  "generated_at": "2026-06-12T04:45:27Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -144,9 +144,9 @@
       }
     },
     {
-      "id": "138",
-      "path": "138-std-wasi-shared-capabilities-t1-t3.md",
-      "title": "138-std-wasi-shared-capabilities-t1-t3",
+      "id": "137",
+      "path": "137-std-wasi-namespace-and-target-gating.md",
+      "title": "`std: \":host::*` namespace 導入と migration / target-gated 診断\"",
       "track": "wasi-feature",
       "status": "open",
       "blocks_v1": "none",
@@ -154,47 +154,20 @@
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [
-        "137",
-        "051"
-      ],
+      "depends_on": [],
       "blocks_issue_ids": [
-        "136"
+        "136",
+        "138",
+        "139",
+        "63"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 0
+        "checked": 3,
+        "unchecked": 4
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
+        "class": "implementation-ready",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "139",
-      "path": "139-std-wasi-sockets-p2.md",
-      "title": "WASI P2: `std::host::sockets` facade と T3 実行検証",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074",
-        "137"
-      ],
-      "blocks_issue_ids": [
-        "136"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
       }
     },
     {
@@ -266,6 +239,72 @@
       }
     },
     {
+      "id": "292",
+      "path": "292-stub-host-compile-error.md",
+      "title": "292-stub-host-compile-error",
+      "track": "capability",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 1,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "293",
+      "path": "293-env-var-implementation.md",
+      "title": "env: \":var() の実装を完成させる\"",
+      "track": "capability",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 2,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "295",
+      "path": "295-host-api-runtime-tests.md",
+      "title": "295-host-api-runtime-tests",
+      "track": "capability",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 7,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "30",
       "path": "036-jco-javascript-interop.md",
       "title": "036-jco-javascript-interop",
@@ -287,6 +326,28 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "358",
+      "path": "358-stdlib-host-family-completion.md",
+      "title": "Stdlib: host family の stub を解消し stable capability に引き上げる",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 1,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
       }
     },
     {
@@ -386,6 +447,28 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "445",
+      "path": "445-std-host-process-implementation.md",
+      "title": "445-std-host-process-implementation",
+      "track": "runtime",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 2,
         "unchecked": 5
       },
       "orchestration": {
@@ -750,31 +833,6 @@
       }
     },
     {
-      "id": "63",
-      "path": "077-wasi-p2-http.md",
-      "title": "WASI P2: \"`std::host::http` facade と runtime 検証\"",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074",
-        "137"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "083",
       "path": "083-mir-loop-unrolling.md",
       "title": "083-mir-loop-unrolling",
@@ -851,9 +909,9 @@
       }
     },
     {
-      "id": "136",
-      "path": "136-std-wasi-capability-rollout.md",
-      "title": "ADR-011 に沿った `std::host` layer の段階的ロールアウト",
+      "id": "138",
+      "path": "138-std-wasi-shared-capabilities-t1-t3.md",
+      "title": "138-std-wasi-shared-capabilities-t1-t3",
       "track": "wasi-feature",
       "status": "open",
       "blocks_v1": "none",
@@ -863,9 +921,61 @@
       "blocks_v5": "none",
       "depends_on": [
         "137",
-        "138",
-        "077",
-        "139"
+        "051"
+      ],
+      "blocks_issue_ids": [
+        "136"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "139",
+      "path": "139-std-wasi-sockets-p2.md",
+      "title": "WASI P2: `std::host::sockets` facade と T3 実行検証",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "137"
+      ],
+      "blocks_issue_ids": [
+        "136"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "63",
+      "path": "077-wasi-p2-http.md",
+      "title": "WASI P2: \"`std::host::http` facade と runtime 検証\"",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "137"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -874,7 +984,7 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "None"
+        "upstream_notes": null
       }
     },
     {
@@ -1015,6 +1125,33 @@
       "depends_on": [
         "074",
         "510"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "136",
+      "path": "136-std-wasi-capability-rollout.md",
+      "title": "ADR-011 に沿った `std::host` layer の段階的ロールアウト",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "137",
+        "138",
+        "077",
+        "139"
       ],
       "blocks_issue_ids": [],
       "acceptance": {

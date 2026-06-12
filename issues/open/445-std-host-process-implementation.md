@@ -1,13 +1,33 @@
 ---
-Status: done
+Status: open
 Created: 2026-04-02
-Updated: 2026-04-03
+Updated: 2026-06-12
 ID: 445
 Track: runtime
 Depends on: none
 Orchestration class: implementation-ready
 Blocks v1 exit: yes
 Priority: 1
+---
+
+## Reopened by audit — 2026-06-12 (slice D)
+
+**Classification**: `must-reopen` / `implementation-parts-only`
+
+**Reopen reason**: `process::exit` has partial dispatch in `call_host_io.ark`, but `process::abort` / `__intrinsic_process_abort` has no selfhost emitter handler. Close acceptance requires both intrinsics wired with fixtures on T1/T3.
+
+**Repo evidence**:
+
+- `std/host/process.ark` calls `__intrinsic_process_abort()` but `src/compiler/wasm/call_host_io.ark` only handles `process::exit`.
+- `src/compiler/wasm/intrinsic_process.ark` defines `emit_process_exit` only — no abort emitter.
+- Close evidence cites deleted `crates/ark-typecheck`, `crates/ark-wasm`, and absent `scripts/run/verify-harness.sh`.
+
+**Violated acceptance**: abort intrinsic wiring, abort fixtures, verify-harness 13/13 claim.
+
+**Evidence files**: `std/host/process.ark`, `src/compiler/wasm/call_host_io.ark`, `src/compiler/wasm/intrinsic_process.ark`, `std/manifest.toml` (`process::abort` availability)
+
+**Follow-up split**: consider keeping exit-only slice separate from abort when re-dispatching
+
 ---
 
 # std: ":host::process: proc_exit を T1/T3 両エミッターに配線し stub を解除する"
@@ -209,11 +229,11 @@ pub fn abort() {
 
 ## 完了条件
 
-- [x] `__intrinsic_process_exit` / `__intrinsic_process_abort` が T1/T3 emitter で `proc_exit` に落ちる（wasm-tools validate 通過）
-- [x] fixture `exit_zero.ark` / `exit_nonzero.ark` / `abort.ark` が T1/T3 双方で期待 exit code を返す
-- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass のまま（退行なし）
-- [x] `docs/capability-surface.md` の `process::exit` / `abort` が `stub → available` になっている
-- [x] `docs/current-state.md` に反映済み
+- [ ] `__intrinsic_process_exit` / `__intrinsic_process_abort` が T1/T3 emitter で `proc_exit` に落ちる（wasm-tools validate 通過）
+- [ ] fixture `exit_zero.ark` / `exit_nonzero.ark` / `abort.ark` が T1/T3 双方で期待 exit code を返す
+- [ ] `bash scripts/run/verify-harness.sh` が 13/13 pass のまま（退行なし）
+- [ ] `docs/capability-surface.md` の `process::exit` / `abort` が `stub → available` になっている
+- [ ] `docs/current-state.md` に反映済み
 - [x] `std/host/process.ark` の "proc_exit is not wired in yet" コメントが削除されている
 
 ---
