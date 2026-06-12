@@ -1,0 +1,7 @@
+// MIR WIT binding initialization — stub until WIT lowering (#124) is complete.
+
+fn mir_init_wit_bindings(ctx: LowerCtx, wit_paths: Vec<String>, decls: Vec<AstNode>) {
+    let _ = ctx
+    let _ = wit_paths
+    let _ = decls
+}

@@ -1,0 +1,11 @@
+// MIR WIT call lowering — stub; returns sentinel when callee is not a WIT import.
+
+use mir::lower::ast_node
+
+fn try_lower_wit_call(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
+    let _ = ctx
+    let _ = node
+    let _ = callee
+    let _ = child_count
+    return 0 - 2
+}

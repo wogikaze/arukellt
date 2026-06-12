@@ -1,0 +1,9 @@
+// Wasm WIT import section entries — stub until WIT lowering (#124) is complete.
+
+use resolver::wit_import_bind
+
+fn emit_wit_import_entries(import_sec: WasmWriter, bindings: Vec<wit_import_bind::WitImportBinding>, wit_type_map: Vec<i32>) {
+    let _ = import_sec
+    let _ = bindings
+    let _ = wit_type_map
+}

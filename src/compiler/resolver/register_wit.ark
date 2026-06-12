@@ -1,0 +1,7 @@
+// WIT import registration — stub until #124 WIT component import syntax lands.
+
+fn register_wit_imports(ctx: ResolveCtx, wit_paths: Vec<String>, decls: Vec<AstNode>) {
+    let _ = ctx
+    let _ = wit_paths
+    let _ = decls
+}

@@ -1,0 +1,19 @@
+// WIT import binding collection — stub until #124 WIT component import syntax lands.
+
+struct WitImportBinding {
+    type_sig: String,
+}
+
+fn WitImportBinding_new(type_sig: String) -> WitImportBinding {
+    WitImportBinding { type_sig: type_sig }
+}
+
+fn wit_import_binding_type_sig(binding: WitImportBinding) -> String {
+    binding.type_sig
+}
+
+fn wit_collect_bindings(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<WitImportBinding> {
+    let _ = wit_paths
+    let _ = decls
+    return Vec_new_WitImportBinding()
+}

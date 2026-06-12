@@ -1,0 +1,11 @@
+// MIR WIT import metadata — stub until WIT lowering (#124) is complete.
+
+use resolver::wit_import_bind
+
+fn wit_import_count(bindings: Vec<wit_import_bind::WitImportBinding>) -> i32 {
+    return len(bindings)
+}
+
+fn wit_import_type_sig(bindings: Vec<wit_import_bind::WitImportBinding>, index: i32) -> String {
+    return wit_import_bind::wit_import_binding_type_sig(get_unchecked(bindings, index))
+}

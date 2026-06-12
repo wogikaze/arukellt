@@ -1,0 +1,17 @@
+// WIT function signature collection — stub until #124 WIT import syntax lands.
+
+fn collect_wit_fn_sigs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<FnSig> {
+    let _ = wit_paths
+    let _ = decls
+    return Vec_new_FnSig()
+}
+
+fn merge_fn_sigs(base: Vec<FnSig>, wit: Vec<FnSig>) -> Vec<FnSig> {
+    let wit_count = len(wit)
+    let mut i = 0
+    while i < wit_count {
+        push(base, get_unchecked(wit, i))
+        i = i + 1
+    }
+    base
+}
