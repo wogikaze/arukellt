@@ -1,0 +1,39 @@
+use wasm::constants
+use wasm::ctx_scratch
+use wasm::intrinsic_env_var_option
+use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::opcodes
+use wasm::writer_core
+
+fn emit_env_var_clear_result(w: WasmWriter) {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_P_RES())
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_env_var_store_result(w: WasmWriter, ctx: SelfEmitCtx) {
+    let saved = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    helpers_core_locals::emit_local_set(w, saved)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_P_RES())
+    helpers_core_locals::emit_local_get(w, saved)
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_env_var_load_or_none(w: WasmWriter, ctx: SelfEmitCtx) {
+    let none_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    intrinsic_env_var_option::emit_env_var_option_none(w, ctx)
+    helpers_core_locals::emit_local_set(w, none_ptr)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_P_RES())
+    helpers_memory_access::emit_i32_load_default(w)
+    let found_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    helpers_core_locals::emit_local_set(w, found_ptr)
+    helpers_core_locals::emit_local_get(w, found_ptr)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_numeric_i32_compare::emit_i32_ne(w)
+    helpers_core_locals::emit_local_get(w, found_ptr)
+    helpers_core_locals::emit_local_get(w, none_ptr)
+    writer_core::emit_byte(w, opcodes::OP_SELECT())
+}

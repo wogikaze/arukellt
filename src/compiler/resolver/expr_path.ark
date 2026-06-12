@@ -5,9 +5,11 @@ use resolver::ast_access
 use resolver::scope_error
 use resolver::kinds
 use resolver::paths
+use resolver::host_stub_gate
 
 fn resolve_path(ctx: ResolveCtx, node: AstNode) {
     let path = ast_access::node_text(node)
+    host_stub_gate::reject_host_stub_call(ctx, clone(path))
     let module_part = paths::path_module_part(clone(path))
     let symbol_part = paths::path_symbol_part(clone(path))
     let mod_idx = scope_lookup::lookup(ctx, clone(module_part))

@@ -1,0 +1,36 @@
+// Arukellt Resolver - compile-time rejection for manifest host_stub APIs.
+
+use resolver::ctx_record
+use resolver::scope_error
+
+fn host_stub_message(path: String) -> String {
+    concat(String_from("error[E0500|resolve]: この API は未実装です (host_stub): `"), concat(path, String_from("`")))
+}
+
+fn path_is_host_stub(path: String) -> bool {
+    if eq(clone(path), String_from("sockets::connect")) {
+        return true
+    }
+    if eq(clone(path), String_from("std::host::sockets::connect")) {
+        return true
+    }
+    if eq(clone(path), String_from("http::get")) {
+        return true
+    }
+    if eq(clone(path), String_from("http::request")) {
+        return true
+    }
+    if eq(clone(path), String_from("std::host::http::get")) {
+        return true
+    }
+    if eq(clone(path), String_from("std::host::http::request")) {
+        return true
+    }
+    false
+}
+
+fn reject_host_stub_call(ctx: ResolveCtx, path: String) {
+    if path_is_host_stub(clone(path)) {
+        scope_error::resolve_error(ctx, host_stub_message(path))
+    }
+}

@@ -1,7 +1,8 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-31
 Updated: 2026-06-12
+Closed: 2026-06-12
 ID: 295
 Track: capability
 Depends on: —
@@ -57,8 +58,8 @@ Priority: 15
 
 ## Acceptance
 
-- [ ] clock: 2回呼び出しで単調増加を確認する fixture
-- [ ] random: API 呼び出しが成功し、返り値が i32 範囲内であることを確認する fixture（非決定性に依存しない）
+- [x] clock: 2回呼び出しで単調増加を確認する fixture
+- [x] random: API 呼び出しが成功し、返り値が i32 範囲内であることを確認する fixture（非決定性に依存しない）
 - [x] fs: 存在しないファイルの読み取りエラーを確認する fixture（既存 `fs_read_error.ark` で可）
 - [x] env: arg_count / args の引数受け渡しを確認する fixture
 - [ ] process: exit(0) の正常終了を確認する fixture

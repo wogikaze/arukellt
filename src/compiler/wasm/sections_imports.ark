@@ -49,6 +49,10 @@ fn emit_wasi_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {
     emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_read"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_close"), get_unchecked(host_type_map, 3))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("proc_exit"), get_unchecked(host_type_map, 4))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("clock_time_get"), get_unchecked(host_type_map, 5))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("random_get"), get_unchecked(host_type_map, 1))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("environ_sizes_get"), get_unchecked(host_type_map, 1))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("environ_get"), get_unchecked(host_type_map, 1))
 }
 
 fn emit_host_func_import(import_sec: WasmWriter, host_module: String, import_name: String, type_idx: i32) {

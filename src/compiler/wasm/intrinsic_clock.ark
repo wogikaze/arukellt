@@ -1,0 +1,44 @@
+use wasm::constants
+use wasm::intrinsics::helpers_core_calls
+use wasm::intrinsics::helpers_core_stack
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_numeric_i64_arith
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+
+fn emit_clock_now(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_clock_time_get(w, 0)
+    emit_clock_load_i64_result(w)
+    return true
+}
+
+fn emit_clock_now_ms(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_clock_time_get(w, 0)
+    emit_clock_load_i64_result(w)
+    let million: i64 = 1000000
+    emit_i64_const_value(w, million)
+    helpers_numeric_i64_arith::emit_i64_div_u(w)
+    return true
+}
+
+fn emit_clock_time_get(w: WasmWriter, clock_id: i32) {
+    helpers_numeric_i32_const::emit_i32_const(w, clock_id)
+    let zero: i64 = 0
+    emit_i64_const_value(w, zero)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_CLOCK_RESULT())
+    helpers_core_calls::emit_call(w, constants::WASI_IMPORT_CLOCK_TIME_GET())
+    helpers_core_stack::emit_drop(w)
+}
+
+fn emit_clock_load_i64_result(w: WasmWriter) {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_CLOCK_RESULT())
+    writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_leb::emit_leb128_u(w, 0)
+}
+
+fn emit_i64_const_value(w: WasmWriter, value: i64) {
+    writer_core::emit_byte(w, opcodes::OP_I64_CONST())
+    writer_leb::emit_leb128_s_i64(w, value)
+}

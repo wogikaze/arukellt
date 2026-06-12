@@ -1,1 +1,1 @@
-E0500
+error[E0500|resolve]: この API は未実装です (host_stub): `sockets::connect`

@@ -20,9 +20,6 @@ graph LR
   I236["236 236-cli-startup-contract-lsp-version-stdio"]
   I271["271 271-vscode-test-runner-wiring"]
   I273["273 273-extension-lsp-command-task-e2e"]
-  I292["292 292-stub-host-compile-error"]
-  I293["293 env: ":var() の実装を完成させる""]
-  I295["295 295-host-api-runtime-tests"]
   I30["30 036-jco-javascript-interop"]
   I333["333 333-lsp-project-symbol-index"]
   I355["355 355-lsp-protocol-e2e-tests"]
@@ -149,9 +146,6 @@ graph LR
 - **236** depends on: none; blocks: none
 - **271** depends on: 254; blocks: none
 - **273** depends on: 272; blocks: none
-- **292** depends on: none; blocks: none
-- **293** depends on: none; blocks: none
-- **295** depends on: none; blocks: none
 - **30** depends on: 27; blocks: none
 - **333** depends on: none; blocks: 334, 335, 338, 439, 441
 - **355** depends on: 353; blocks: none

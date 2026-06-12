@@ -1,0 +1,25 @@
+use wasm::ctx_record
+use wasm::ctx_scratch
+use wasm::intrinsic_env_var_lookup
+use wasm::intrinsic_env_var_option
+use wasm::intrinsics::helpers_core_locals
+
+fn emit_env_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let name_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    helpers_core_locals::emit_local_set(w, name_local)
+    let target = ctx_record::SelfEmitCtx_target(ctx)
+    if target_is_t1(target) {
+        intrinsic_env_var_option::emit_env_var_option_none(w, ctx)
+        return true
+    }
+    intrinsic_env_var_lookup::emit_env_var_lookup(w, ctx, name_local)
+    return true
+}
+
+fn emit_env_get_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_env_var(w, inst, ctx)
+}
+
+fn target_is_t1(target: String) -> bool {
+    eq(clone(target), String_from("wasm32-wasi-p1")) || eq(target, String_from("p1"))
+}

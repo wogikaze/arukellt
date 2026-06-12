@@ -1,0 +1,15 @@
+use wasm::constants
+use wasm::intrinsics::helpers_core_calls
+use wasm::intrinsics::helpers_core_stack
+use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_numeric_i32_const
+
+fn emit_random_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_I32BUF())
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_core_calls::emit_call(w, constants::WASI_IMPORT_RANDOM_GET())
+    helpers_core_stack::emit_drop(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_I32BUF())
+    helpers_memory_access::emit_i32_load(w, 0)
+    return true
+}

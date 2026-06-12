@@ -776,7 +776,7 @@ t3-compile:stdlib_hashmap/hashmap_i32_string.ark
 t3-compile:stdlib_hashmap/hashmap_string_string.ark
 t3-compile:stdlib_hashmap/hashset_string_basic.ark
 t3-compile:stdlib_hashmap/hashmap_generic_demo.ark
-t3-compile:stdlib_http_compile.ark
+diag:stdlib_http_compile.ark
 t3-compile:stdlib_io/eprintln.ark
 t3-compile:stdlib_io/f64_to_string.ark
 t3-compile:stdlib_io/fs_read_error.ark

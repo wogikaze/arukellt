@@ -1,7 +1,8 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-31
 Updated: 2026-06-12
+Closed: 2026-06-12
 Track: capability
 Orchestration class: implementation-ready
 Depends on: —
@@ -60,9 +61,9 @@ Implemented full WASI environ integration:
 
 ## Acceptance
 
-- [ ] `env::var("HOME")` 等が実際の環境変数値を返す
-- [ ] WASI `environ_sizes_get` / `environ_get` import が条件付きで追加される
-- [ ] テスト: `env::var` が値を返す fixture（`--env` フラグまたは WASI 環境変数経由）
+- [x] `env::var("HOME")` 等が実際の環境変数値を返す
+- [x] WASI `environ_sizes_get` / `environ_get` import が条件付きで追加される
+- [x] テスト: `env::var` が値を返す fixture（`--env` フラグまたは WASI 環境変数経由）
 
 ## References
 
