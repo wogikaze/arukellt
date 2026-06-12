@@ -1,13 +1,26 @@
 ---
-Status: done
+Status: open
 Created: 2026-05-14
-Updated: 2026-05-14
+Updated: 2026-06-12
 ID: 618
 Track: component-model
 Depends on: 262, 476
 Orchestration class: design-ready
 Orchestration upstream: None
 ---
+
+## Reopened by audit — 2026-06-12 (Slice C)
+
+**Reopen reason:** Acceptance items were marked complete but repo evidence shows zero round-trip implementation: design spec §6 implementation order is entirely unchecked; only `tests/component-interop/native/roundtrip/roundtrip.ark` exists with no `run.sh`, no `expected.wit`, and no bindings-generation step.
+
+**Violated acceptance:** Items 2–4 (bindings generation, round-trip smoke, stable runner); item 1 only partially met (skeleton source, no golden WIT)
+
+**Evidence files:**
+- `issues/open/618-wit-bindings-round-trip.md` (design spec §6 all `[ ]`)
+- `tests/component-interop/native/roundtrip/roundtrip.ark` (sole artifact)
+- Absent: `tests/component-interop/roundtrip/run.sh`
+
+**Follow-up split issue:** none (#476 tracks compose separately)
 
 # WIT bindings round-trip regression surface
 
@@ -30,14 +43,14 @@ Issue #262 can remain complete without hiding the bindings-generation gap.
 
 ## Acceptance
 
-- [x] A fixture emits WIT from Arukellt source and stores the expected WIT shape.
-- [x] A bindings-generation step consumes the emitted WIT and produces Arukellt
+- [ ] A fixture emits WIT from Arukellt source and stores the expected WIT shape.
+- [ ] A bindings-generation step consumes the emitted WIT and produces Arukellt
   bindings or an explicitly documented interim binding artifact.
-- [x] The generated bindings participate in a round-trip smoke test through the
+- [ ] The generated bindings participate in a round-trip smoke test through the
   component pipeline.
-- [x] The workflow is wired into `tests/component-interop/` or an adjacent
+- [ ] The workflow is wired into `tests/component-interop/` or an adjacent
   component test directory with a stable runner.
-- [x] `python scripts/manager.py verify` passes.
+- [ ] `python scripts/manager.py verify` passes.
 
 ## Primary paths
 

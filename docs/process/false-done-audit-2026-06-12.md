@@ -541,3 +541,180 @@ None. Gaps covered by reopened issues above.
 pre-existing (#568 analysis, #569 LSP, #571 DAP, doc-example, docs consistency,
 issue #487 hygiene FD-02 outside Slice B scope). This wave modified only `issues/**` +
 regenerated indexes. No new failure introduced by reopen moves.
+
+## Slice C — 2026-06-12 (component / WIT / WASI, #074 dependency graph)
+
+Orchestration note: `/orchestrate` worker fan-out unavailable (`CURSOR_API_KEY`
+unset). Subplanner performed audit directly per `prompts/research.md`
+`unsupported-in-this-run` policy.
+
+### Scope
+
+~32 `issues/done/` files in component / WIT / WASI / CABI cluster, cross-checked
+against `tests/fixtures/manifest.txt` (102 `component-compile:` entries),
+`src/compiler/component/` (115 modules), and open #074 dependency graph
+(#074, #510, #124, #476).
+
+### 1. Audit summary
+
+| Metric | Count |
+|--------|------:|
+| Done issues reviewed | 32 |
+| **Reopened (must-reopen)** | **7** |
+| Truly-done (spot checks) | 22 |
+| Prior resolution retracted | 1 (#034 wave-2 truly-done claim) |
+| New future issues | 0 (gaps tracked by #124, #476, #051) |
+
+### 2. Reopened issues
+
+#### #618 — WIT bindings round-trip
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/618-wit-bindings-round-trip.md` |
+| New path | `issues/open/618-wit-bindings-round-trip.md` |
+| Classification | `must-reopen` / `acceptance-not-actually-met` |
+| Reopen reason | Acceptance all `[x]` but design spec §6 phases unchecked; only skeleton `roundtrip.ark`; no `run.sh` or bindings-generation step |
+| Violated acceptance | Items 2–4 (bindings gen, round-trip smoke, stable runner) |
+| Evidence | `tests/component-interop/native/roundtrip/roundtrip.ark` only; issue design spec |
+| Follow-up split | none |
+
+#### #443 — component composition / linking
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/443-component-composition-linking-model.md` |
+| New path | `issues/open/443-component-composition-linking-model.md` |
+| Classification | `must-reopen` / `implementation-parts-only` |
+| Reopen reason | `arukellt compose` returns `CMD_NOT_YET()`; no linking model on selfhost path |
+| Violated acceptance | All five items (compose, dependency graph, conflict detection) |
+| Evidence | `src/compiler/main/commands.ark`; `issues/open/476-wasm-tools-compose-integration.md` |
+| Follow-up split | none (#476 active) |
+
+#### #118 — multi-export WASI world
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/118-wasm-multi-export-world.md` |
+| New path | `issues/open/118-wasm-multi-export-world.md` |
+| Classification | `must-reopen` |
+| Reopen reason | `--world wasi:cli/command` CLI flag absent; never re-closed after 2026-04-03 reopen |
+| Violated acceptance | All four items |
+| Evidence | No `--world` in `src/compiler/main/`; blocked by #074 |
+| Follow-up split | none |
+
+#### #117 — WIT generation quality
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/117-wasm-component-model-wit-gen-quality.md` |
+| New path | `issues/open/117-wasm-component-model-wit-gen-quality.md` |
+| Classification | `must-reopen` / `acceptance-not-actually-met` |
+| Reopen reason | References deleted `crates/ark-wasm`; no `wasm-tools component wit` CI gate |
+| Violated acceptance | All five items |
+| Evidence | Absent `crates/`; no dedicated WIT quality fixture in manifest |
+| Follow-up split | none |
+
+#### #073 — WASI P1 full syscalls
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/073-wasi-p1-full-syscalls.md` |
+| New path | `issues/open/073-wasi-p1-full-syscalls.md` |
+| Classification | `must-reopen` / `acceptance-not-actually-met` |
+| Reopen reason | Claims 46 syscalls; only 3 `stdlib_host` smoke fixtures |
+| Violated acceptance | Items 1–3 |
+| Evidence | `tests/fixtures/manifest.txt`; `src/compiler/wasm/sections_imports.ark` |
+| Follow-up split | Consider clock/random/args vs remainder |
+
+#### #138 — std::host shared capabilities T1/T3
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/138-std-wasi-shared-capabilities-t1-t3.md` |
+| New path | `issues/open/138-std-wasi-shared-capabilities-t1-t3.md` |
+| Classification | `must-reopen` / `implementation-parts-only` |
+| Reopen reason | Six-module T1/T3 matrix incomplete; `verify-harness.sh` deleted; clock/random gap (#051) |
+| Violated acceptance | Items 3–5 |
+| Evidence | Partial `stdlib_host/*` fixtures; `issues/open/051-std-time-random.md` |
+| Follow-up split | none |
+
+#### #034 — WIT CLI integration (resolution retracted)
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/034-wit-cli-integration.md` |
+| New path | `issues/open/034-wit-cli-integration.md` |
+| Classification | `must-reopen` / `wired-but-not-user-reachable` |
+| Reopen reason | Wave-2 truly-done claim retracted: `wit_import/` absent; `import_scalar_func.diag` = E0401 |
+| Violated acceptance | Callable WIT import binding (blocked on #124) |
+| Evidence | `import_scalar_func.diag`; absent `tests/fixtures/wit_import/` |
+| Follow-up split | none |
+
+### 3. Newly-created future issues
+
+None. Gaps already tracked: #124 (import syntax), #476 (compose), #051 (clock/random), #074 (P2 native parent gate).
+
+### 4. Still-truly-done (spot checks)
+
+| ID | Area | Evidence |
+|----|------|----------|
+| 028, 028b | WIT import parse/wiring | `src/compiler/resolver/`, `src/compiler/component/wit_*.ark` |
+| 029–032 | CABI / export / resources | Component fixtures + #121 close evidence |
+| 030, 033, 038 | Emit component + fixtures | 102 `component-compile:` manifest entries |
+| 121 | Canonical ABI hardening | Issue close evidence; JCO interop surface |
+| 137 | Host namespace gating | `diag:target_gating/t1_import_{sockets,udp}.ark` |
+| 258 | Core vs component guarantee split | `docs/target-contract.md` §Component output |
+| 262, 296–300 | Interop / CABI / multi-export | `tests/component-interop/jco/*` |
+| 391 | stdlib WIT helpers | `run:stdlib_wit/*`, `run:stdlib_component/*` |
+| 442 | Interop readiness | JCO 101-scenario surface (wasmtime skipped in VM) |
+| 475, 485 | `arukellt component` CLI + docs | `src/compiler/main/component_cmd.ark`, `docs/cli-reference.md` |
+| 616 | Selfhost component emit infra | `src/compiler/component/` module tree |
+| 073-adjacent | Partial WASI smoke | `module-run:stdlib_host/wasi_{clock,random,args}.ark` (partial only; parent #073 reopened) |
+
+### 5. Docs / manifest mismatches
+
+| Claim location | Reality | Action |
+|----------------|---------|--------|
+| Wave-2 #034 truly-done note | `wit_import/` absent; import_scalar_func = E0401 guard | Reopen #034 |
+| `docs/target-contract.md` fixture counts | Says 16 `component-compile:`; manifest has 102 | Docs drift (non-blocking); #258 acceptance still met on tier split |
+| `import_scalar_func` manifest kind | Registered `component-compile:` but `.diag` expects E0401 | Monitor; may need `compile-error:` reclassification when #124 closes |
+
+### 6. Evidence table
+
+| Issue | Repo proof | Result |
+|-------|-----------|--------|
+| 618 | roundtrip skeleton only | FAIL — reopen |
+| 443 | compose = CMD_NOT_YET | FAIL — reopen |
+| 118 | no --world flag | FAIL — reopen |
+| 117 | deleted crate refs, no CI gate | FAIL — reopen |
+| 073 | 3/46 syscall fixtures | FAIL — reopen |
+| 138 | partial host fixtures | FAIL — reopen |
+| 034 | E0401 diag, no wit_import | FAIL — reopen |
+| 121 | component interop evidence | PASS — keep done |
+| 258 | target-contract tier split | PASS — keep done |
+| 033 | 102 component-compile entries | PASS — keep done |
+
+### 7. Dependency updates
+
+- #443 now depends on #476 (compose track).
+- #118 blocked by #074 (P2 native world).
+- #138 blocked by #051 (clock/random).
+- #034 remains blocked by #124.
+- Index regenerated: `issues/open/index.md`, `issues/open/dependency-graph.md`.
+
+### 8. Remaining high-risk false-done items (monitor)
+
+- **#032 resource types** — closed with handle-table evidence but resources rejected at compile (E0402); tracked separately from export surface.
+- **#442** — broad interop claim references deleted `crates/`; JCO surface provides partial proof; monitor on full audit.
+- **#300** — cites deleted `verify-harness.sh`; JCO `multi-type-exports` provides replacement evidence.
+
+### 9–10. Checklist / new tracking issues
+
+None.
+
+### Verification at slice close
+
+`python3 scripts/manager.py verify quick` → 143 passed / 6 failed (pre-existing:
+doc-example, docs consistency drift, selfhost analysis/LSP/DAP gates, false-done
+hygiene #487 unrelated). Slice modified only `issues/**` + audit report + regenerated indexes.

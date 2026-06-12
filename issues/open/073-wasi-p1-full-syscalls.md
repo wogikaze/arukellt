@@ -1,23 +1,37 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-04-15
-ID: 59
+Updated: 2026-06-12
+ID: 073
 Track: wasi-feature
 Depends on: —
 Orchestration class: implementation-ready
 Blocks v4 exit: True
-Status note: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
-Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
-Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
-4. fixture: "`wasi_clock.ark` (time取得)、`wasi_random.ark` (ランダムバイト)、`wasi_args.ark` (引数取得)"
-# WASI P1: "全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"
+Status note: Reopened 2026-06-12 — claims 46 P1 syscalls but only 3 smoke fixtures exist.
 ---
+
+## Reopened by audit — 2026-06-12 (Slice C)
+
+**Reopen reason:** Never re-closed after 2026-04-03 reopen. Acceptance requires all 46 `wasi_snapshot_preview1` syscalls; repo has only `wasi_clock`, `wasi_random`, `wasi_args` module-run fixtures and minimal import surface in `src/compiler/wasm/sections_imports.ark`.
+
+**Violated acceptance:** Items 1–3 (full syscall import table, std module coverage, errno handling)
+
+**Evidence files:**
+- `tests/fixtures/manifest.txt` (`module-run:stdlib_host/wasi_{clock,random,args}.ark` only)
+- `src/compiler/wasm/sections_imports.ark` (limited WASI import set)
+- Issue body syscall table (42+ syscalls listed as missing)
+
+**Follow-up split issue:** Consider splitting clock/random/args (partial) vs remaining syscalls
+
 # WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)
 
 ---
 
-## Reopened by audit — 2026-04-03
+# WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)
+
+---
+
+## Reopened by audit — 2026-04-03 (historical)
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.

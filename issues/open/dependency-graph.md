@@ -9,8 +9,10 @@ graph LR
   I080["080 080-mir-licm"]
   I082["082 082-mir-gc-hint"]
   I115["115 115-wasm-name-section"]
+  I117["117 Component Model: WIT 生成品質の向上と往復検証"]
   I123["123 123-import-syntax-unification"]
   I124["124 WIT component import syntax"]
+  I138["138 138-std-wasi-shared-capabilities-t1-t3"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I216["216 Formatter surface"]
   I217["217 Code actions + refactor code actions"]
@@ -34,20 +36,30 @@ graph LR
   I52["52 064-wasm-branch-hinting"]
   I55["55 067-wasm-sign-extension-ops"]
   I56["56 070-wasm-i31ref-scalar"]
+  I59["59 073-wasi-p1-full-syscalls"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I083["083 083-mir-loop-unrolling"]
+  I118["118 118-wasm-multi-export-world"]
+  I28["28 034-wit-cli-integration"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I422["422 Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る"]
   I633["633 Reconcile std::host::http / sockets / udp capability claims with the selfhost execution path"]
+  I443["443 443-component-composition-linking-model"]
+  I618["618 618-wit-bindings-round-trip"]
   I60["60 074-wasi-p2-native-component"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I080 --> I083
+  I117 --> I118
+  I124 --> I28
+  I138 --> I136
   I139 --> I136
   I418 --> I422
   I446 --> I633
   I447 --> I633
+  I476 --> I443
+  I476 --> I618
   I510 --> I60
   I510 --> I62
   I124 --> I28
@@ -59,8 +71,10 @@ graph LR
 - **080** depends on: none; blocks: 083
 - **082** depends on: none; blocks: none
 - **115** depends on: none; blocks: none
+- **117** depends on: none; blocks: 118
 - **123** depends on: none; blocks: none
-- **124** depends on: 074; blocks: none
+- **124** depends on: 074; blocks: 28
+- **138** depends on: 137, 051; blocks: 136
 - **139** depends on: 074, 137; blocks: 136
 - **216** depends on: none; blocks: none
 - **217** depends on: 193; blocks: none
@@ -77,18 +91,23 @@ graph LR
 - **464** depends on: none; blocks: none
 - **472** depends on: 466; blocks: none
 - **474** depends on: 035, done), 074; blocks: none
-- **476** depends on: 035, done), 074; blocks: none
+- **476** depends on: 035, done), 074; blocks: 443, 618
 - **491** depends on: none; blocks: none
 - **500** depends on: none; blocks: none
 - **510** depends on: none; blocks: 60, 62
 - **52** depends on: none; blocks: none
 - **55** depends on: none; blocks: none
 - **56** depends on: none; blocks: none
+- **59** depends on: none; blocks: none
 - **63** depends on: 074, 137; blocks: none
 - **083** depends on: 080; blocks: none
+- **118** depends on: 117, 074; blocks: none
+- **28** depends on: 030, 031, 028b, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **422** depends on: 418; blocks: none
 - **633** depends on: 446, 447; blocks: none
+- **443** depends on: 442, 476; blocks: none
+- **618** depends on: 262, 476; blocks: none
 - **60** depends on: 510, 121; blocks: none
 - **62** depends on: 074, 510; blocks: none
 

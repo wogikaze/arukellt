@@ -333,7 +333,7 @@ for iid in order:
     blocks_vn = ', '.join(blocker_versions) if blocker_versions else 'none'
     progress = f'{data["checked"]} checked / {data["unchecked"]} open'
     orch = data.get('orchestration_class', '') or '—'
-    orch_note = (data.get('orchestration_upstream', '') or '—').replace('|', '/')
+    orch_note = str(data.get('orchestration_upstream', '') or '—').replace('|', '/')
     lines.append(f'| {iid} | [{data["title"]}]({data["path"]}) | {data["track"]} | {blocks_vn} | {deps} | {blocks} | {progress} | {orch} | {orch_note} | |')
 
 if blocked_issues:

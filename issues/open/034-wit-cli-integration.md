@@ -1,34 +1,29 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
 Updated: 2026-06-12
-ID: 28
+ID: 034
 Track: component-model
 Depends on: 030, 031, 028b, 124
 Orchestration class: blocked-by-upstream
 Orchestration upstream: 124
 Blocks v{N}: none
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
-Reason: CLI accepts --wit flag but only validates file existence. Not threaded into resolver/session/component compile.
-Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
 Blocked by: "#124 WIT component import syntax"
 ---
 
-## Audit resolution — 2026-06-12
+## Reopened by audit — 2026-06-12 (Slice C)
 
-Callable WIT import binding is now proven in-repo (supersedes the 2026-05-15
-"Still open" note):
+**Reopen reason:** Prior wave-2 "truly-done" resolution retracted. Callable WIT import binding is not proven: `tests/fixtures/wit_import/` absent; `import_scalar_func.diag` expects `E0401` (guard-only, not success); manifest registers `component-compile:component/import_scalar_func.ark` without callable-import close gate.
 
-- `tests/fixtures/wit_import/main.ark` — `import "test:calculator/math"` with
-  `math::add` / `math::multiply` calls; registered as
-  `component-compile:wit_import/main.ark` in `tests/fixtures/manifest.txt`
-- `tests/fixtures/component/import_scalar_func.ark` — imports `test:host/math`
-  and calls `math::add(1, 2)`; registered as `component-compile:component/import_scalar_func.ark`
-- Selfhost compile of both fixtures with `--emit component --wit ...` succeeds
-  (phase 6) on the current stage-3 compiler
+**Violated acceptance:** Callable `--wit` import binding (blocked reclassification §2026-05-15 still applies)
 
-**Classification:** `truly-done` for WIT CLI + import binding acceptance.
-Stale reopen / "moved to open" metadata from 2026-04 audits is historical only.
+**Evidence files:**
+- Absent `tests/fixtures/wit_import/`
+- `tests/fixtures/component/import_scalar_func.diag` (`E0401`)
+- `issues/open/124-wit-component-import-syntax.md` (upstream blocker)
+
+**Follow-up split issue:** none (CLI/docs slice may be split later; import binding blocked on #124)
 
 ---
 
