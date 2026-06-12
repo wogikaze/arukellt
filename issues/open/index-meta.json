@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-12T12:36:41Z",
+  "generated_at": "2026-06-12T16:36:41Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -508,9 +508,9 @@
       }
     },
     {
-      "id": "338",
-      "path": "338-lsp-semantic-references.md",
-      "title": "338-lsp-semantic-references",
+      "id": "339",
+      "path": "339-lsp-semantic-rename.md",
+      "title": "339-lsp-semantic-rename",
       "track": "lsp-semantic",
       "status": "open",
       "blocks_v1": "none",
@@ -519,15 +519,37 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "333"
+        "338"
       ],
       "blocks_issue_ids": [
-        "339",
-        "342",
         "439"
       ],
       "acceptance": {
         "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "342",
+      "path": "342-lsp-completion-context.md",
+      "title": "342-lsp-completion-context",
+      "track": "lsp-semantic",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "338"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
         "unchecked": 0
       },
       "orchestration": {
@@ -1623,10 +1645,10 @@
       }
     },
     {
-      "id": "339",
-      "path": "339-lsp-semantic-rename.md",
-      "title": "339-lsp-semantic-rename",
-      "track": "lsp-semantic",
+      "id": "439",
+      "path": "439-vscode-lsp-semantic-stdlib-navigation.md",
+      "title": "VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する",
+      "track": "vscode-ide",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
@@ -1634,38 +1656,16 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "338"
-      ],
-      "blocks_issue_ids": [
-        "439"
-      ],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "342",
-      "path": "342-lsp-completion-context.md",
-      "title": "342-lsp-completion-context",
-      "track": "lsp-semantic",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "338"
+        "333",
+        "334",
+        "335",
+        "338",
+        "339"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 5,
-        "unchecked": 0
+        "checked": 0,
+        "unchecked": 5
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1975,34 +1975,6 @@
       "blocks_issue_ids": [
         "502"
       ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "439",
-      "path": "439-vscode-lsp-semantic-stdlib-navigation.md",
-      "title": "VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する",
-      "track": "vscode-ide",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "333",
-        "334",
-        "335",
-        "338",
-        "339"
-      ],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 5

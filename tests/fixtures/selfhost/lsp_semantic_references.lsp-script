@@ -1,0 +1,15 @@
+Content-Length: 107
+
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":null,"capabilities":{}}}Content-Length: 52
+
+{"jsonrpc":"2.0","method":"initialized","params":{}}Content-Length: 255
+
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///semantic_refs.ark","languageId":"arukellt","version":1,"text":"fn main() {\n    let x = 1\n    {\n        let x = 2\n        let y = x\n    }\n    let z = x\n}\n"}}}Content-Length: 172
+
+{"jsonrpc": "2.0", "id": 2, "method": "textDocument/references", "params": {"textDocument": {"uri": "file:///semantic_refs.ark"}, "position": {"line": 4, "character": 16}}}Content-Length: 179
+
+{"jsonrpc": "2.0", "id": 3, "method": "textDocument/documentHighlight", "params": {"textDocument": {"uri": "file:///semantic_refs.ark"}, "position": {"line": 6, "character": 12}}}Content-Length: 44
+
+{"jsonrpc":"2.0","id":4,"method":"shutdown"}Content-Length: 33
+
+{"jsonrpc":"2.0","method":"exit"}

@@ -12,6 +12,6 @@ fn resolve_let(ctx: ResolveCtx, node: AstNode) {
     }
     let binding_name = ast_access::node_text(node)
     if !eq(clone(binding_name), "_") {
-        scope_define::define(ctx, binding_name, commands::SYM_LOCAL())
+        scope_define::define_span(ctx, binding_name, commands::SYM_LOCAL(), ast_access::node_decl_name_span_start(node), ast_access::node_decl_name_span_end(node))
     }
 }

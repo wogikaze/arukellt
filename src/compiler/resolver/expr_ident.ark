@@ -2,11 +2,13 @@
 
 use resolver::scope_lookup
 use resolver::ast_access
+use resolver::ref_sites
 use resolver::scope_error
 
 fn resolve_ident(ctx: ResolveCtx, node: AstNode) {
     let name = ast_access::node_text(node)
     let idx = scope_lookup::lookup(ctx, clone(name))
+    ref_sites::record_use(ctx, idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
     if idx < 0 {
         if !resolver_ident_is_builtin(clone(name)) {
             scope_error::resolve_error(ctx, concat(String_from("undefined name: "), name))

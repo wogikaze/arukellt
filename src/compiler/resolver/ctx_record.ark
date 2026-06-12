@@ -1,5 +1,6 @@
 // Arukellt Resolver - resolver context DTO record.
 
+use resolver::ref_index
 use resolver::scope_record
 
 struct ResolveCtx {
@@ -9,10 +10,15 @@ struct ResolveCtx {
     errors: Vec<String>,
     next_decl_index: i32,
     target: String,
+    ref_index: RefIndex,
 }
 
 fn ResolveCtx_new_empty() -> ResolveCtx {
-    ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), next_decl_index: 0, target: String_from("wasm32-wasi-p2") }
+    ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), next_decl_index: 0, target: String_from("wasm32-wasi-p2"), ref_index: ref_index::RefIndex_new() }
+}
+
+fn resolve_ctx_ref_index(ctx: ResolveCtx) -> RefIndex {
+    ctx.ref_index
 }
 
 fn resolve_ctx_scope_count(ctx: ResolveCtx) -> i32 {

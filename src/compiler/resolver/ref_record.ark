@@ -1,0 +1,46 @@
+// Arukellt Resolver - semantic reference site records (#338).
+
+struct DeclSite {
+    decl_index: i32,
+    start: i32,
+    end: i32,
+    name: String,
+}
+
+struct UseSite {
+    decl_index: i32,
+    start: i32,
+    end: i32,
+}
+
+fn DeclSite_new(decl_index: i32, start: i32, end: i32, name: String) -> DeclSite {
+    DeclSite { decl_index: decl_index, start: start, end: end, name: name }
+}
+
+fn UseSite_new(decl_index: i32, start: i32, end: i32) -> UseSite {
+    UseSite { decl_index: decl_index, start: start, end: end }
+}
+
+fn decl_site_decl_index(site: DeclSite) -> i32 {
+    site.decl_index
+}
+
+fn decl_site_start(site: DeclSite) -> i32 {
+    site.start
+}
+
+fn decl_site_end(site: DeclSite) -> i32 {
+    site.end
+}
+
+fn use_site_decl_index(site: UseSite) -> i32 {
+    site.decl_index
+}
+
+fn use_site_start(site: UseSite) -> i32 {
+    site.start
+}
+
+fn use_site_end(site: UseSite) -> i32 {
+    site.end
+}

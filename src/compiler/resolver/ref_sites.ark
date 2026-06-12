@@ -1,0 +1,33 @@
+// Arukellt Resolver - semantic reference site collection (#338).
+
+use resolver::ctx_record
+use resolver::ref_index
+use resolver::ref_record
+
+fn record_decl(ctx: ResolveCtx, decl_index: i32, start: i32, end: i32, name: String) {
+    ref_index::ref_index_push_decl(ctx_record::resolve_ctx_ref_index(ctx), decl_index, start, end, name)
+}
+
+fn record_use(ctx: ResolveCtx, decl_index: i32, start: i32, end: i32) {
+    ref_index::ref_index_push_use(ctx_record::resolve_ctx_ref_index(ctx), decl_index, start, end)
+}
+
+fn decl_site_count(ctx: ResolveCtx) -> i32 {
+    ref_index::decl_site_count(ctx_record::resolve_ctx_ref_index(ctx))
+}
+
+fn decl_site_at(ctx: ResolveCtx, index: i32) -> DeclSite {
+    ref_index::decl_site_at(ctx_record::resolve_ctx_ref_index(ctx), index)
+}
+
+fn use_site_count(ctx: ResolveCtx) -> i32 {
+    ref_index::use_site_count(ctx_record::resolve_ctx_ref_index(ctx))
+}
+
+fn use_site_at(ctx: ResolveCtx, index: i32) -> UseSite {
+    ref_index::use_site_at(ctx_record::resolve_ctx_ref_index(ctx), index)
+}
+
+fn find_decl_index_at_offset(ctx: ResolveCtx, offset: i32) -> i32 {
+    ref_index::find_decl_index_at_offset(ctx_record::resolve_ctx_ref_index(ctx), offset)
+}

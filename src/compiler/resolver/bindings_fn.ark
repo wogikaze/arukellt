@@ -13,7 +13,7 @@ fn resolve_fn(ctx: ResolveCtx, node: AstNode) {
     while i < child_count - 1 {
         let param = ast_access::node_child_at(node, i)
         if ast_expr_predicates::node_is_ident(param) {
-            scope_define::define(ctx, ast_access::node_text(param), commands::SYM_PARAM())
+            scope_define::define_span(ctx, ast_access::node_text(param), commands::SYM_PARAM(), ast_access::node_span_start(param), ast_access::node_span_end(param))
         }
         i = i + 1
     }

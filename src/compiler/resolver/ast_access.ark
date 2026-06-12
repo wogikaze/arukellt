@@ -33,3 +33,19 @@ fn node_type_ann_at(node: AstNode, index: i32) -> AstNode {
 fn node_is_pub(node: AstNode) -> bool {
     ast::ast_node_is_pub(node)
 }
+
+fn node_span_start(node: AstNode) -> i32 {
+    ast::ast_node_span_start(node)
+}
+
+fn node_span_end(node: AstNode) -> i32 {
+    ast::ast_node_span_end(node)
+}
+
+fn node_decl_name_span_start(node: AstNode) -> i32 {
+    node_span_end(node) + 1
+}
+
+fn node_decl_name_span_end(node: AstNode) -> i32 {
+    node_decl_name_span_start(node) + len(node_text(node))
+}

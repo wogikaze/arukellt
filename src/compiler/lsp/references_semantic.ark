@@ -1,0 +1,139 @@
+// Arukellt LSP - semantic references and document highlights (#338).
+
+use analysis::symbol_references
+use analysis::symbols
+use lsp::feature_request
+use lsp::positions
+use lsp::responses_navigation
+use lsp::state_record
+use lsp::symbol_index_lookup
+use lsp::symbol_index_paths
+use std::host::fs
+
+fn read_uri_text(uri: String) -> String {
+    let path = symbol_index_paths::uri_to_file_path(uri)
+    if len(path) == 0 {
+        return String_new()
+    }
+    let read_result = fs::read_to_string(path)
+    match read_result {
+        Result::Ok(content) => {
+            content
+        },
+        Result::Err(_) => {
+            String_new()
+        },
+    }
+}
+
+fn append_location(items: String, uri: String, text: String, start: i32, end: i32) -> String {
+    let loc = responses_navigation::location_json(uri, text, start, end)
+    if len(items) == 0 {
+        return loc
+    }
+    concat(concat(items, String_from(",")), loc)
+}
+
+fn build_reference_response(id: i32, items: String) -> String {
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = concat(body, to_string(id))
+    body = concat(body, String_from(",\"result\":["))
+    body = concat(body, items)
+    body = concat(body, String_from("]}"))
+    body
+}
+
+fn build_highlight_response(id: i32, items: String) -> String {
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = concat(body, to_string(id))
+    body = concat(body, String_from(",\"result\":["))
+    body = concat(body, items)
+    body = concat(body, String_from("]}"))
+    body
+}
+
+fn append_highlight(items: String, text: String, start: i32, end: i32) -> String {
+    let start_pos = positions::offset_to_position(clone(text), start)
+    let end_pos = positions::offset_to_position(text, end)
+    let mut item = String_from("{\"range\":{\"start\":{\"line\":")
+    item = concat(item, to_string(positions::lsp_position_line(start_pos)))
+    item = concat(item, String_from(",\"character\":"))
+    item = concat(item, to_string(positions::lsp_position_character(start_pos)))
+    item = concat(item, String_from("},\"end\":{\"line\":"))
+    item = concat(item, to_string(positions::lsp_position_line(end_pos)))
+    item = concat(item, String_from(",\"character\":"))
+    item = concat(item, to_string(positions::lsp_position_character(end_pos)))
+    item = concat(item, String_from("}},\"kind\":1}"))
+    if len(items) == 0 {
+        return item
+    }
+    concat(concat(items, String_from(",")), item)
+}
+
+fn indexed_symbol_references(state: LspState, name: String, cursor_uri: String, cursor_text: String, cursor_offset: i32) -> String {
+    let def = symbol_index_lookup::lookup_definition(state, name)
+    if !symbol_index_lookup::index_definition_found(def) {
+        return String_new()
+    }
+    let mut items = String_new()
+    let def_uri = symbol_index_lookup::index_definition_uri(def)
+    let def_text = read_uri_text(clone(def_uri))
+    items = append_location(items, def_uri, def_text, symbol_index_lookup::index_definition_decl_start(def), symbol_index_lookup::index_definition_decl_end(def))
+    let ident_len = len(name)
+    items = append_location(items, cursor_uri, cursor_text, cursor_offset, cursor_offset + ident_len)
+    items
+}
+
+fn semantic_items_for_request(state: LspState, req: LspTextPositionRequest) -> String {
+    let req_text = feature_request::text_position_request_text(req)
+    let offset = feature_request::text_position_request_offset(req)
+    let uri = feature_request::text_position_request_uri(req)
+    let refs = symbol_references::collect_semantic_references(clone(req_text), offset)
+    let rn = len(refs)
+    if rn > 0 {
+        let mut items = String_new()
+        let mut ri = 0
+        while ri < rn {
+            let loc = get_unchecked(refs, ri)
+            items = append_location(items, uri, clone(req_text), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc))
+            ri = ri + 1
+        }
+        return items
+    }
+    let ident = symbols::ident_at_offset(clone(req_text), offset)
+    if len(ident) == 0 {
+        return String_new()
+    }
+    indexed_symbol_references(state, ident, uri, req_text, offset)
+}
+
+fn highlight_items_for_request(req: LspTextPositionRequest) -> String {
+    let req_text = feature_request::text_position_request_text(req)
+    let offset = feature_request::text_position_request_offset(req)
+    let refs = symbol_references::collect_semantic_references(clone(req_text), offset)
+    let rn = len(refs)
+    let mut items = String_new()
+    let mut ri = 0
+    while ri < rn {
+        let loc = get_unchecked(refs, ri)
+        items = append_highlight(items, clone(req_text), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc))
+        ri = ri + 1
+    }
+    items
+}
+
+pub fn build_references_response(state: LspState, body: String, id: i32) -> String {
+    let req = feature_request::read_text_position_request(state, body)
+    if !feature_request::text_position_request_has_text(req) {
+        return build_reference_response(id, String_new())
+    }
+    build_reference_response(id, semantic_items_for_request(state, req))
+}
+
+pub fn build_document_highlight_response(state: LspState, body: String, id: i32) -> String {
+    let req = feature_request::read_text_position_request(state, body)
+    if !feature_request::text_position_request_has_text(req) {
+        return build_highlight_response(id, String_new())
+    }
+    build_highlight_response(id, highlight_items_for_request(req))
+}

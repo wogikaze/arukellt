@@ -1,0 +1,52 @@
+// Arukellt Selfhost - semantic symbol references from resolver (#338).
+
+use compiler::session_parse
+use compiler::session_resolve_query
+use resolver::ref_record
+use resolver::ref_sites
+
+struct ReferenceLocation {
+    start: i32,
+    end: i32,
+}
+
+fn ReferenceLocation_new(start: i32, end: i32) -> ReferenceLocation {
+    ReferenceLocation { start: start, end: end }
+}
+
+pub fn reference_location_start(loc: ReferenceLocation) -> i32 {
+    loc.start
+}
+
+pub fn reference_location_end(loc: ReferenceLocation) -> i32 {
+    loc.end
+}
+
+pub fn collect_semantic_references(text: String, offset: i32) -> Vec<ReferenceLocation> {
+    let out = Vec_new_ReferenceLocation()
+    let decls = session_parse::session_parse_decls(clone(text))
+    let ctx = session_resolve_query::session_resolve_decls(decls)
+    let target = ref_sites::find_decl_index_at_offset(ctx, offset)
+    if target < 0 {
+        return out
+    }
+    let dn = ref_sites::decl_site_count(ctx)
+    let mut di = 0
+    while di < dn {
+        let site = ref_sites::decl_site_at(ctx, di)
+        if ref_record::decl_site_decl_index(site) == target {
+            push(out, ReferenceLocation_new(ref_record::decl_site_start(site), ref_record::decl_site_end(site)))
+        }
+        di = di + 1
+    }
+    let un = ref_sites::use_site_count(ctx)
+    let mut ui = 0
+    while ui < un {
+        let site = ref_sites::use_site_at(ctx, ui)
+        if ref_record::use_site_decl_index(site) == target {
+            push(out, ReferenceLocation_new(ref_record::use_site_start(site), ref_record::use_site_end(site)))
+        }
+        ui = ui + 1
+    }
+    out
+}

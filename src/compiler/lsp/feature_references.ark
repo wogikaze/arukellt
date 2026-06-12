@@ -1,15 +1,15 @@
-// Arukellt LSP - references and documentHighlight (stub pending #338).
+// Arukellt LSP - semantic references and documentHighlight (#338).
 
 use lsp::framing
 use lsp::json_fields
-use lsp::responses
+use lsp::references_semantic
 
 pub fn handle_references(state: LspState, body: String) {
     let id = json_fields::extract_int_field(clone(body), String_from("id"))
-    framing::append_framed(state, responses::build_empty_array_response(id))
+    framing::append_framed(state, references_semantic::build_references_response(state, body, id))
 }
 
 pub fn handle_document_highlight(state: LspState, body: String) {
     let id = json_fields::extract_int_field(clone(body), String_from("id"))
-    framing::append_framed(state, responses::build_empty_array_response(id))
+    framing::append_framed(state, references_semantic::build_document_highlight_response(state, body, id))
 }

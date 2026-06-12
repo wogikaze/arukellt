@@ -20,6 +20,23 @@ fn build_hover_response(id: i32, markdown: String, start: LspPosition, end: LspP
 	body
 }
 
+pub fn location_json(uri: String, text: String, start: i32, end: i32) -> String {
+	let start_pos = positions::offset_to_position(clone(text), start)
+	let end_pos = positions::offset_to_position(text, end)
+	let mut out = String_from("{\"uri\":")
+	out = concat(out, responses_json::quote_string(uri))
+	out = concat(out, String_from(",\"range\":{\"start\":{\"line\":"))
+	out = concat(out, to_string(positions::lsp_position_line(start_pos)))
+	out = concat(out, String_from(",\"character\":"))
+	out = concat(out, to_string(positions::lsp_position_character(start_pos)))
+	out = concat(out, String_from("},\"end\":{\"line\":"))
+	out = concat(out, to_string(positions::lsp_position_line(end_pos)))
+	out = concat(out, String_from(",\"character\":"))
+	out = concat(out, to_string(positions::lsp_position_character(end_pos)))
+	out = concat(out, String_from("}}}"))
+	out
+}
+
 fn build_definition_response(id: i32, uri: String, start: LspPosition, end: LspPosition) -> String {
 	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
 	body = concat(body, to_string(id))

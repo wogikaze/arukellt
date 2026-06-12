@@ -1,7 +1,9 @@
 // Arukellt Resolver - symbol definition policy.
 
 use resolver::kinds
+use resolver::ref_sites
 use resolver::scope_error
+use resolver::scope_lookup
 use resolver::scope_stack_scopes
 use resolver::scope_stack_symbols
 
@@ -29,6 +31,14 @@ fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
     scope_stack_scopes::Scope_push_symbol(scope, sym)
 }
 
+fn record_decl_for_name(ctx: ResolveCtx, name: String, span_start: i32, span_end: i32) {
+    let idx = scope_lookup::lookup(ctx, clone(name))
+    if idx < 0 {
+        return
+    }
+    ref_sites::record_decl(ctx, idx, span_start, span_end, name)
+}
+
 fn can_replace_existing_symbol(kind: i32, existing_kind: i32) -> bool {
     if kind == commands::SYM_LOCAL() || kind == commands::SYM_PARAM() {
         return true
@@ -49,4 +59,14 @@ fn define_pub(ctx: ResolveCtx, name: String, kind: i32) {
 
 fn define_with_vis(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
     define_impl(ctx, name, kind, is_pub)
+}
+
+fn define_span(ctx: ResolveCtx, name: String, kind: i32, span_start: i32, span_end: i32) {
+    define_impl(ctx, clone(name), kind, false)
+    record_decl_for_name(ctx, name, span_start, span_end)
+}
+
+fn define_with_vis_span(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool, span_start: i32, span_end: i32) {
+    define_impl(ctx, clone(name), kind, is_pub)
+    record_decl_for_name(ctx, name, span_start, span_end)
 }
