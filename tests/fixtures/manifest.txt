@@ -16,6 +16,7 @@ run:scalar/f32_local.ark
 # generics, control flow, operators, match, for loops, ? operator.
 bench:../../benchmarks/bench_parse_tree_distance.ark
 
+component-compile:wasi_p2_native/hello.ark
 component-compile:component/export_add.ark
 component-compile:component/export_bool.ark
 component-compile:component/export_bool_renamed.ark

@@ -1,0 +1,149 @@
+// Arukellt Selfhost - WASI Preview 2 stub core modules for component wiring.
+
+use component::sections
+use component::writer_core
+
+fn comp_p2_stdout_stub_core_module() -> Vec<i32> {
+	comp_p2_single_export_stub_core_module(String_from("write"), 0)
+}
+
+fn comp_p2_environment_stub_core_module() -> Vec<i32> {
+	comp_p2_two_export_stub_core_module(String_from("args-sizes"), String_from("arguments"), 1)
+}
+
+fn comp_p2_filesystem_stub_core_module() -> Vec<i32> {
+	comp_p2_fs_stub_core_module()
+}
+
+fn comp_p2_stdin_stub_core_module() -> Vec<i32> {
+	comp_p2_single_export_stub_core_module(String_from("read"), 0)
+}
+
+fn comp_p2_exit_stub_core_module() -> Vec<i32> {
+	comp_p2_void_export_stub_core_module(String_from("exit"), 4)
+}
+
+fn comp_p2_single_export_stub_core_module(export_name: String, type_idx: i32) -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+	let type_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(type_sec, 1)
+	let p4 = Vec_new_i32()
+	push(p4, 0x7f)
+	push(p4, 0x7f)
+	push(p4, 0x7f)
+	push(p4, 0x7f)
+	let r_i32 = Vec_new_i32()
+	push(r_i32, 0x7f)
+	sections::comp_emit_core_func_type(type_sec, p4, r_i32)
+	sections::comp_emit_wasm_section(out, 1, type_sec)
+	let func_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(func_sec, 1)
+	writer_core::comp_emit_leb128_u(func_sec, type_idx)
+	sections::comp_emit_wasm_section(out, 3, func_sec)
+	comp_p2_emit_export(out, clone(export_name), 0)
+	comp_p2_emit_return_zero_body(out)
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_p2_two_export_stub_core_module(export_a: String, export_b: String, type_idx: i32) -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+	let type_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(type_sec, 1)
+	let p2 = Vec_new_i32()
+	push(p2, 0x7f)
+	push(p2, 0x7f)
+	let r_i32 = Vec_new_i32()
+	push(r_i32, 0x7f)
+	sections::comp_emit_core_func_type(type_sec, p2, r_i32)
+	sections::comp_emit_wasm_section(out, 1, type_sec)
+	let func_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(func_sec, 2)
+	writer_core::comp_emit_leb128_u(func_sec, type_idx)
+	writer_core::comp_emit_leb128_u(func_sec, type_idx)
+	sections::comp_emit_wasm_section(out, 3, func_sec)
+	comp_p2_emit_export(out, clone(export_a), 0)
+	comp_p2_emit_export(out, clone(export_b), 1)
+	comp_p2_emit_return_zero_body(out)
+	comp_p2_emit_return_zero_body(out)
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_p2_fs_stub_core_module() -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+	let type_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(type_sec, 2)
+	let p_path = Vec_new_i32()
+	push(p_path, 0x7f)
+	push(p_path, 0x7f)
+	push(p_path, 0x7f)
+	push(p_path, 0x7f)
+	push(p_path, 0x7f)
+	push(p_path, 0x7e)
+	push(p_path, 0x7e)
+	push(p_path, 0x7f)
+	push(p_path, 0x7f)
+	let r_i32 = Vec_new_i32()
+	push(r_i32, 0x7f)
+	sections::comp_emit_core_func_type(type_sec, p_path, r_i32)
+	let p1 = Vec_new_i32()
+	push(p1, 0x7f)
+	sections::comp_emit_core_func_type(type_sec, p1, r_i32)
+	sections::comp_emit_wasm_section(out, 1, type_sec)
+	let func_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(func_sec, 2)
+	writer_core::comp_emit_leb128_u(func_sec, 0)
+	writer_core::comp_emit_leb128_u(func_sec, 1)
+	sections::comp_emit_wasm_section(out, 3, func_sec)
+	comp_p2_emit_export(out, String_from("open-at"), 0)
+	comp_p2_emit_export(out, String_from("close"), 1)
+	comp_p2_emit_return_zero_body(out)
+	comp_p2_emit_return_zero_body(out)
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_p2_void_export_stub_core_module(export_name: String, type_idx: i32) -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+	let type_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(type_sec, 1)
+	let p1 = Vec_new_i32()
+	push(p1, 0x7f)
+	let r_void = Vec_new_i32()
+	sections::comp_emit_core_func_type(type_sec, p1, r_void)
+	sections::comp_emit_wasm_section(out, 1, type_sec)
+	let func_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(func_sec, 1)
+	writer_core::comp_emit_leb128_u(func_sec, type_idx)
+	sections::comp_emit_wasm_section(out, 3, func_sec)
+	comp_p2_emit_export(out, clone(export_name), 0)
+	comp_p2_emit_void_body(out)
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_p2_emit_export(out: writer_core::ComponentWriter, export_name: String, func_idx: i32) {
+	let export_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(export_sec, 1)
+	writer_core::comp_emit_string(export_sec, export_name)
+	writer_core::comp_emit_byte(export_sec, 0x00)
+	writer_core::comp_emit_leb128_u(export_sec, func_idx)
+	sections::comp_emit_wasm_section(out, 7, export_sec)
+}
+
+fn comp_p2_emit_return_zero_body(out: writer_core::ComponentWriter) {
+	let code_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(code_sec, 1)
+	writer_core::comp_emit_leb128_u(code_sec, 4)
+	writer_core::comp_emit_leb128_u(code_sec, 0)
+	writer_core::comp_emit_byte(code_sec, 0x41)
+	writer_core::comp_emit_leb128_u(code_sec, 0)
+	writer_core::comp_emit_byte(code_sec, 0x0b)
+	sections::comp_emit_wasm_section(out, 10, code_sec)
+}
+
+fn comp_p2_emit_void_body(out: writer_core::ComponentWriter) {
+	let code_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(code_sec, 1)
+	writer_core::comp_emit_leb128_u(code_sec, 2)
+	writer_core::comp_emit_leb128_u(code_sec, 0)
+	writer_core::comp_emit_byte(code_sec, 0x0b)
+	sections::comp_emit_wasm_section(out, 10, code_sec)
+}

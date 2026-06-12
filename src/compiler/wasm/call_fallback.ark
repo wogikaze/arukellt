@@ -31,7 +31,7 @@ fn try_emit_resolved_fallback_call(w: WasmWriter, callee: String, inst: MirInst,
         return false
     }
     writer_core::emit_byte(w, opcodes::OP_CALL())
-    writer_leb::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), wit_import_count))
+    writer_leb::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), wit_import_count))
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
     if function_return_view::MirFunction_return_type(called) != value_types::VT_VOID() {
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)

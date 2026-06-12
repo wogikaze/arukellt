@@ -17,7 +17,11 @@ fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_vers
         return specialized
     }
 
-    component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
+    if eq(clone(wasi_version), String_from("p2")) {
+        component_base::comp_emit_p2_and_core_instance_sections(out, core_wasm)
+    } else {
+        component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
+    }
 
     export_sections::emit_generic_alias_section(out, plan)
     let export_type_indices = export_types::emit_generic_export_types(out, plan, mir)

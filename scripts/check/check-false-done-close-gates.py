@@ -62,6 +62,9 @@ def _compiler() -> Path | None:
     debug = REPO_ROOT / "target" / "debug" / "arukellt"
     if debug.is_file():
         return debug
+    wrapper = REPO_ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
+    if wrapper.is_file():
+        return wrapper
     return None
 
 
@@ -78,10 +81,15 @@ def _compile_p2_component(fixture_rel: str, out: Path) -> tuple[int, str]:
     fixture = REPO_ROOT / fixture_rel
     if not fixture.is_file():
         return 1, f"missing fixture {fixture_rel}"
+    fixture_arg = str(fixture_rel)
+    try:
+        out_arg = str(out.relative_to(REPO_ROOT))
+    except ValueError:
+        out_arg = str(out)
     cmd = [
         str(compiler),
         "compile",
-        str(fixture),
+        fixture_arg,
         "--target",
         "wasm32-wasi-p2",
         "--wasi-version",
@@ -89,8 +97,10 @@ def _compile_p2_component(fixture_rel: str, out: Path) -> tuple[int, str]:
         "--emit",
         "component",
         "-o",
-        str(out),
+        out_arg,
     ]
+    if compiler.name == "arukellt-selfhost.sh":
+        cmd = ["bash", str(compiler), *cmd[1:]]
     result = subprocess.run(
         cmd,
         cwd=str(REPO_ROOT),
@@ -152,12 +162,13 @@ def gate_074() -> tuple[int, str]:
 
 
 def gate_510() -> tuple[int, str]:
-    with tempfile.TemporaryDirectory(prefix="close-gate-510-") as tmp:
-        out = Path(tmp) / "p2.component.wasm"
-        rc, msg = _compile_p2_component("tests/fixtures/wasi_p2_native/hello.ark", out)
-        if rc != 0:
-            return rc, msg
-        return _wasm_tools_validate(out)
+    out_dir = REPO_ROOT / ".build" / "close-gate-510"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / "p2.component.wasm"
+    rc, msg = _compile_p2_component("tests/fixtures/wasi_p2_native/hello.ark", out)
+    if rc != 0:
+        return rc, msg
+    return _wasm_tools_validate(out)
 
 
 def gate_472() -> tuple[int, str]:

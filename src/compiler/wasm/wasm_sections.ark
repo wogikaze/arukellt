@@ -14,20 +14,20 @@ use wasm::sections_type_plan
 use wasm::sections_types
 use mir::module_wit_imports
 
-fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, opt_level: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
+fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, opt_level: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let fn_count = module_functions::MirModule_function_count(mir)
     let functions = module_functions::MirModule_functions(mir)
     let strings = strings::prepare_string_table(mir)
-    let mut ctx = wasm_context::emit_wasm_context_new(functions, strings, clone(target))
+    let mut ctx = wasm_context::emit_wasm_context_new(functions, strings, clone(target), clone(wasi_version))
     let needs_wrapper = wasm_start::wasm_module_needs_start_wrapper(mir, fn_count)
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
-    let type_plan = sections_types::emit_type_section(out, functions, fn_count, needs_wrapper, clone(target), bindings)
-    sections_imports::emit_import_section(out, sections_type_plan::TypeSectionPlan_host_type_map(type_plan), clone(target), bindings, sections_type_plan::TypeSectionPlan_wit_type_map(type_plan))
+    let type_plan = sections_types::emit_type_section(out, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), bindings)
+    sections_imports::emit_import_section(out, sections_type_plan::TypeSectionPlan_host_type_map(type_plan), clone(target), clone(wasi_version), bindings, sections_type_plan::TypeSectionPlan_wit_type_map(type_plan))
     sections_functions::emit_function_section(out, fn_count, sections_type_plan::TypeSectionPlan_fn_type_map(type_plan), needs_wrapper, sections_type_plan::TypeSectionPlan_wrapper_type_idx(type_plan))
     sections_memory::emit_memory_section(out)
     sections_memory::emit_global_section(out, strings::EmitStringTablePlan_data_offset(strings))
     let main_idx = wasm_start::wasm_module_start_function_index(mir, fn_count)
-    sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), wit_import_count)
+    sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), wit_import_count)
     code::emit_code_section(out, functions, fn_count, needs_wrapper, main_idx, ctx, bindings)
     sections_data::emit_data_section(out, strings::EmitStringTablePlan_values(strings))
 }

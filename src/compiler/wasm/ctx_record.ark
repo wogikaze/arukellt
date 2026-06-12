@@ -10,14 +10,19 @@ pub struct SelfEmitCtx {
     false_str_idx: i32,
     vec_locals: Vec<i32>,
     target: String,
+    wasi_version: String,
 }
 
-fn SelfEmitCtx_new(functions: Vec<MirFunction>, string_offsets: Vec<i32>, string_lengths: Vec<i32>, string_values: Vec<String>, true_str_idx: i32, false_str_idx: i32, target: String) -> SelfEmitCtx {
-    SelfEmitCtx { functions: functions, string_offsets: string_offsets, string_lengths: string_lengths, string_values: string_values, scratch_base: 0, true_str_idx: true_str_idx, false_str_idx: false_str_idx, vec_locals: Vec_new_i32(), target: target }
+fn SelfEmitCtx_new(functions: Vec<MirFunction>, string_offsets: Vec<i32>, string_lengths: Vec<i32>, string_values: Vec<String>, true_str_idx: i32, false_str_idx: i32, target: String, wasi_version: String) -> SelfEmitCtx {
+    SelfEmitCtx { functions: functions, string_offsets: string_offsets, string_lengths: string_lengths, string_values: string_values, scratch_base: 0, true_str_idx: true_str_idx, false_str_idx: false_str_idx, vec_locals: Vec_new_i32(), target: target, wasi_version: wasi_version }
 }
 
 fn SelfEmitCtx_target(ctx: SelfEmitCtx) -> String {
     ctx.target
+}
+
+fn SelfEmitCtx_wasi_version(ctx: SelfEmitCtx) -> String {
+    ctx.wasi_version
 }
 
 fn SelfEmitCtx_function_count(ctx: SelfEmitCtx) -> i32 {

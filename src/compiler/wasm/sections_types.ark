@@ -18,8 +18,8 @@ struct TypeCanonPlan {
     type_map: Vec<i32>,
 }
 
-fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> TypeSectionPlan {
-    let num_host_types = emit_target::host_type_count(clone(target))
+fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, wasi_version: String, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> TypeSectionPlan {
+    let num_host_types = emit_target::host_type_count(clone(target), clone(wasi_version))
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let type_sigs = build_type_sigs(functions, fn_count, needs_wrapper, clone(target), bindings)
     let canon_plan = canonicalize_type_sigs(type_sigs)

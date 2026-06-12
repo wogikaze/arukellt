@@ -1,6 +1,7 @@
 // Arukellt Selfhost - main namespace: args_parse
 
 use main::args_record
+use main::args_record_opt
 use main::commands
 use main::kinds
 // Arukellt Selfhost - CLI argument parser.
@@ -17,7 +18,7 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
         return opts
     }
     parse_component_subcommand(argv, argc, opts)
-    args_record::parse_option_args(argv, argc, opts, component_option_start(argv, argc, opts))
+    parse_option_args(argv, argc, opts, component_option_start(argv, argc, opts))
     opts
 }
 
@@ -106,5 +107,138 @@ fn arg_is_version(arg: String) -> bool {
         return true
     }
     len(clone(arg)) == 2 && char_at(clone(arg), 0) == 45 && char_at(clone(arg), 1) == 86
+}
+
+fn parse_option_args(argv: Vec<String>, argc: i32, opts: CliOptions, start_index: i32) {
+    let mut i = start_index
+    while i < argc {
+        let arg = get_unchecked(argv, i)
+        if commands::cli_str_eq(clone(arg), String_from("--target")) {
+            i = parse_target_option(argv, argc, opts, i)
+        } else {
+            if commands::cli_str_eq(clone(arg), String_from("--wasi-version")) {
+                i = parse_wasi_version_option(argv, argc, opts, i)
+            } else {
+                if commands::cli_str_eq(clone(arg), String_from("--opt-level")) {
+                    i = parse_opt_level_option(argv, argc, opts, i)
+                } else {
+                    if commands::cli_str_eq(clone(arg), String_from("--emit")) {
+                        i = parse_emit_option(argv, argc, opts, i)
+                    } else {
+                        if commands::cli_str_eq(clone(arg), String_from("--wit")) {
+                            i = parse_wit_option(argv, argc, opts, i)
+                        } else {
+                            if commands::cli_str_eq(clone(arg), String_from("-o")) || commands::cli_str_eq(clone(arg), String_from("--output")) {
+                                i = parse_output_option(argv, argc, opts, arg, i)
+                            } else {
+                                if commands::cli_str_eq(clone(arg), String_from("--dump-phases")) {
+                                    i = parse_dump_phases_option(argv, argc, opts, i)
+                                } else {
+                                    if !parse_flag_option(opts, arg) {
+                                        parse_input_or_error(opts, arg)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+}
+
+fn parse_flag_option(opts: CliOptions, arg: String) -> bool {
+    if commands::cli_str_eq(clone(arg), String_from("--help")) {
+        args_record::cli_set_show_help(opts, true)
+        return true
+    }
+    if commands::cli_str_eq(clone(arg), String_from("--json")) {
+        args_record::cli_set_json_output(opts, true)
+        return true
+    }
+    if commands::cli_str_eq(clone(arg), String_from("--time")) {
+        args_record::cli_set_show_timing(opts, true)
+        return true
+    }
+    if commands::cli_str_eq(clone(arg), String_from("--version")) {
+        args_record::cli_set_show_version(opts, true)
+        return true
+    }
+    false
+}
+
+fn parse_input_or_error(opts: CliOptions, arg: String) {
+    if args_record::cli_input_file_len(opts) == 0 {
+        args_record::cli_set_input_file(opts, clone(arg))
+    } else {
+        args_record::cli_set_error(opts, concat(String_from("unexpected argument: "), clone(arg)))
+    }
+}
+
+fn parse_target_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        args_record::cli_set_target(opts, clone(get_unchecked(argv, next)))
+    }
+    next
+}
+
+fn parse_wasi_version_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        args_record::cli_set_wasi_version(opts, clone(get_unchecked(argv, next)))
+    } else {
+        args_record::cli_set_error(opts, String_from("--wasi-version requires p1 or p2"))
+    }
+    next
+}
+
+fn parse_emit_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        args_record::cli_set_emit_mode(opts, clone(get_unchecked(argv, next)))
+    }
+    next
+}
+
+fn parse_dump_phases_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        args_record::cli_set_dump_phases(opts, clone(get_unchecked(argv, next)))
+    }
+    next
+}
+
+fn parse_opt_level_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        let val = get_unchecked(argv, next)
+        args_record::cli_set_opt_level(opts, args_record_opt::parse_opt_level_value(clone(val), args_record::cli_opt_level(opts)))
+    }
+    next
+}
+
+fn parse_wit_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        args_record::cli_add_wit_path(opts, clone(get_unchecked(argv, next)))
+    } else {
+        args_record::cli_set_error(opts, String_from("--wit requires a path"))
+    }
+    next
+}
+
+fn parse_output_option(argv: Vec<String>, argc: i32, opts: CliOptions, arg: String, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        let out_arg = clone(get_unchecked(argv, next))
+        if commands::cli_str_eq(clone(arg), String_from("--output")) && commands::cli_str_eq(clone(out_arg), String_from("json")) {
+            args_record::cli_set_json_output(opts, true)
+        } else {
+            args_record::cli_set_output_file(opts, clone(out_arg))
+        }
+    }
+    next
 }
 
