@@ -45,6 +45,14 @@ line — `MIR mono pruned: "N function(s)` — when the count is"
 
 ## Reopened by audit — 2026-04-13
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: fixtures in manifest: generics_v1, selfhost
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Consistency audit — 2026-04-18
 
 **Evidence (selfhost)**:

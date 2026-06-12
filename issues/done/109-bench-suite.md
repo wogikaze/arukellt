@@ -21,6 +21,14 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/109-bench-suite.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: `scripts/util/benchmark_runner.py` + `benchmarks/` suite wired in `scripts/manager.py`.
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 roadmap-v4.md §6 item 7 で要求されているベンチマークスイートを `benchmarks/` に構築する。

@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-04-03
+Updated: 2026-06-12
 ID: 55
 Track: wasm-feature
 Depends on: —
@@ -12,6 +12,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 3. MIR の `UnaryOp: ":SignExtend8` 等を追加して T3 で対応命令に map"
 # Wasm Sign Extension Ops: i32.extend8_s / i32.extend16_s / i64 版
 ---
+## Reopened by audit — 2026-06-12
+
+**Reason**: Sign-extension ops (`extend8_s` etc.) not found in selfhost emitter; acceptance requires dedicated Wasm instructions.
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met` (FD-01 Slice A).
+
+**Violated acceptance**: Original acceptance cites deleted Rust paths or features with no selfhost equivalent.
+
+**Evidence**: `src/compiler/` grep; `crates/` absent; no Audit resolution / Close note after 2026-04-03 FD-01 reopen.
+
 # Wasm Sign Extension Ops: i32.extend8_s / i32.extend16_s / i64 版
 
 ---

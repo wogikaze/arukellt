@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-04-15
+Updated: 2026-06-12
 ID: 52
 Track: wasm-feature
 Depends on: —
@@ -15,6 +15,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 Reviewer: "implementation-backed queue normalization (verify checklist)."
 # Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント
 ---
+## Reopened by audit — 2026-06-12
+
+**Reason**: No `branch_hint` / Wasm branch-hint emission in `src/compiler/`; FD-01 frontmatter records move to open without re-close evidence.
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met` (FD-01 Slice A).
+
+**Violated acceptance**: Original acceptance cites deleted Rust paths or features with no selfhost equivalent.
+
+**Evidence**: `src/compiler/` grep; `crates/` absent; no Audit resolution / Close note after 2026-04-03 FD-01 reopen.
+
 # Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント
 
 ---

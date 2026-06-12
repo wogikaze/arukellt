@@ -24,6 +24,14 @@ Reviewer: "implementation-backed queue normalization (verify checklist)."
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/157-adr004-method-syntax-evaluation.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: historical Rust-era completion superseded by selfhost-first migration (ADR-029); no active user-visible claim contradicted in current repo
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 `docs/process/roadmap-v4.md` §6 item 9 および §12 item 1 は、ADR-004 P4 として

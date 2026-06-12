@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-04-15
+Updated: 2026-06-12
 ID: 082
 Track: mir-opt
 Depends on: —
@@ -12,6 +12,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 1. `passes/gc_hint.rs`: ループ内 `struct.new` + 1回使用 + 脱出なしパターン検出
 # MIR: gc_hint パス — 短命オブジェクトのパターン検出
 ---
+## Reopened by audit — 2026-06-12
+
+**Reason**: MIR GC-hint pass absent from selfhost compiler; FD-01 stale metadata only.
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met` (FD-01 Slice A).
+
+**Violated acceptance**: Original acceptance cites deleted Rust paths or features with no selfhost equivalent.
+
+**Evidence**: `src/compiler/` grep; `crates/` absent; no Audit resolution / Close note after 2026-04-03 FD-01 reopen.
+
 # MIR: gc_hint パス — 短命オブジェクトのパターン検出
 
 ---

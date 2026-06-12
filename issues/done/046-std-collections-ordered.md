@@ -51,6 +51,14 @@ pub fn bitset_intersection(a: "BitSet, b: BitSet) -> BitSet"
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/046-std-collections-ordered.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: fixtures in manifest: stdlib_collections_ordered/*
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 順序付き・挿入順保存・ビット集合のデータ構造を実装する。

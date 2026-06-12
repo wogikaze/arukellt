@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-04-03
+Updated: 2026-06-12
 ID: 083
 Track: mir-opt
 Depends on: 080
@@ -12,6 +12,16 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 1. `passes/loop_unroll.rs`: ループ上限が定数でかつ ≤ 16 の場合に展開
 # MIR: "ループ展開 (Loop Unrolling) パス"
 ---
+## Reopened by audit — 2026-06-12
+
+**Reason**: MIR loop-unrolling pass absent from selfhost compiler; FD-01 stale metadata only.
+
+**Classification**: `must-reopen` / `acceptance-not-actually-met` (FD-01 Slice A).
+
+**Violated acceptance**: Original acceptance cites deleted Rust paths or features with no selfhost equivalent.
+
+**Evidence**: `src/compiler/` grep; `crates/` absent; no Audit resolution / Close note after 2026-04-03 FD-01 reopen.
+
 # MIR: ループ展開 (Loop Unrolling) パス
 
 ---

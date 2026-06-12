@@ -1,0 +1,63 @@
+{
+  "$schema": "/home/ubuntu/.cursor/plugins/cache/cursor-public/9333/a5cda8b561bb6536e880481734199a568cb647f4/skills/orchestrate/schemas/plan.schema.json",
+  "goal": "Slice A: Audit issues/done/*.md whose body or frontmatter records a historical move to issues/open/ (FD-01). Verify re-close evidence; must-reopen only with proof. Append to docs/process/false-done-audit-2026-06-12.md.",
+  "summary": "FD-01 false-done audit — 156 candidates, 7 reopen with proof",
+  "rootSlug": "audit-slice-a",
+  "baseBranch": "master",
+  "repoUrl": "https://github.com/wogikaze/arukellt.git",
+  "selfAgentId": "bc-2383d510-1a99-4ed5-9acd-27e283827585",
+  "acceptanceCriteria": [
+    "All Slice A candidates classified",
+    "must-reopen issues git mv'd to issues/open/",
+    "verify quick passes after wave commit"
+  ],
+  "tasks": [
+    {
+      "name": "slice-a-wave1-audit",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "scopedGoal": "Audit FD-01 candidates issues 001-109 (wave 1 manifest). Classify per prompts/research.md; reopen only with repo proof; add audit-resolution notes for truly-done stale metadata.",
+      "pathsAllowed": ["issues/**", "docs/process/false-done-audit-2026-06-12.md"],
+      "pathsForbidden": ["src/**", "crates/**", "std/**", "tests/fixtures/**"],
+      "acceptance": ["Wave 1 batch classified in audit report"]
+    },
+    {
+      "name": "slice-a-wave2-audit",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "dependsOn": ["slice-a-wave1-audit"],
+      "scopedGoal": "Audit FD-01 candidates issues 111-206 (wave 2 manifest). Same contract as wave 1.",
+      "pathsAllowed": ["issues/**", "docs/process/false-done-audit-2026-06-12.md"],
+      "pathsForbidden": ["src/**", "crates/**", "std/**", "tests/fixtures/**"],
+      "acceptance": ["Wave 2 batch classified in audit report"]
+    },
+    {
+      "name": "slice-a-wave3-audit",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "dependsOn": ["slice-a-wave2-audit"],
+      "scopedGoal": "Audit FD-01 candidates issues 214-461 (wave 3 manifest). Same contract as wave 1.",
+      "pathsAllowed": ["issues/**", "docs/process/false-done-audit-2026-06-12.md"],
+      "pathsForbidden": ["src/**", "crates/**", "std/**", "tests/fixtures/**"],
+      "acceptance": ["Wave 3 batch classified in audit report"]
+    },
+    {
+      "name": "slice-a-wave4-audit",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "dependsOn": ["slice-a-wave3-audit"],
+      "scopedGoal": "Audit FD-01 candidates issues 462-470 (wave 4 manifest). Regenerate issue index; verify quick; commit orchestration-state.",
+      "pathsAllowed": ["issues/**", "docs/process/false-done-audit-2026-06-12.md"],
+      "pathsForbidden": ["src/**", "crates/**", "std/**", "tests/fixtures/**"],
+      "acceptance": ["All 156 candidates classified", "Index regenerated", "Audit report appended"]
+    },
+    {
+      "name": "slice-a-verify",
+      "type": "verifier",
+      "model": "claude-opus-4-8",
+      "dependsOn": ["slice-a-wave4-audit"],
+      "verifies": "slice-a-wave4-audit",
+      "verify": "python3 scripts/manager.py verify quick; python3 scripts/check/check-false-done-hygiene.py"
+    }
+  ]
+}

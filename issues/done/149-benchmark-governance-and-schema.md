@@ -28,6 +28,14 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/149-benchmark-governance-and-schema.md` — incorrect directory for an open issue.
 
+## Audit resolution — 2026-06-12
+
+FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to `issues/open/`; file correctly remains under `issues/done/` after re-close verification.
+
+**Evidence**: historical Rust-era completion superseded by selfhost-first migration (ADR-029); no active user-visible claim contradicted in current repo
+
+**Classification**: `truly-done` (stale reopen metadata only).
+
 ## Summary
 
 ベンチ関連スクリプトが増える前に、結果 schema・fixture 命名・quick/full/ci モード・baseline 更新ルールを標準化する。
