@@ -11,22 +11,52 @@ Scoring criteria (0-5 each, total 25):
 
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
-| 1 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
-| 2 | 123 | 123-import-syntax-unification | language-design | 0 | 0 | 1 | 5 | 5 | 11 |
-| 3 | 124 | WIT component import syntax | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
-| 4 | 500 | 500-playground-wasm-typecheck-export | main | 0 | 0 | 1 | 5 | 4 | 10 |
-| 5 | 510 | 510-t3-p2-import-table-switch | main | 2 | 0 | 1 | 2 | 5 | 10 |
-| 6 | 447 | 447-std-host-sockets-implementation | runtime | 1 | 0 | 1 | 3 | 4 | 9 |
-| 7 | 472 | 472-playground-type-checker-product-claim | playground | 0 | 0 | 1 | 5 | 3 | 9 |
-| 8 | 633 | Reconcile std::host::http / sockets / udp capability claims... | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
-| 9 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 10 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
-| 11 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 12 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 13 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 14 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 15 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 16 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 17 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 18 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 19 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 1 | 334 | 334-lsp-stdlib-definition-resolution | lsp-navigation | 3 | 0 | 5 | 3 | 4 | 15 |
+| 2 | 333 | 333-lsp-project-symbol-index | lsp-navigation | 3 | 0 | 5 | 1 | 5 | 14 |
+| 3 | 336 | 336-lsp-hover-type-inference | lsp-navigation | 0 | 0 | 5 | 5 | 4 | 14 |
+| 4 | 566 | 566-phase6-partial-ast-recovery | selfhost-frontend | 0 | 0 | 5 | 5 | 4 | 14 |
+| 5 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
+| 6 | 074 | 074-wasi-p2-native-component | wasi-feature | 5 | 0 | 1 | 3 | 3 | 12 |
+| 7 | 236 | 236-cli-startup-contract-lsp-version-stdio | main | 0 | 0 | 5 | 2 | 5 | 12 |
+| 8 | 337 | 337-lsp-signature-help-stdlib | lsp-navigation | 0 | 0 | 5 | 3 | 4 | 12 |
+| 9 | 338 | 338-lsp-semantic-references | lsp-semantic | 2 | 0 | 5 | 1 | 4 | 12 |
+| 10 | 450 | 450-lsp-goto-definition-identifier-span | vscode-ide | 1 | 0 | 5 | 1 | 5 | 12 |
+| 11 | 451 | 451-lsp-hover-semantic-only | vscode-ide | 1 | 0 | 5 | 1 | 5 | 12 |
+| 12 | 452 | 452-lsp-diagnostics-false-positives | vscode-ide | 1 | 0 | 5 | 1 | 5 | 12 |
+| 13 | 628 | 628-lsp-minimum-viable | main | 1 | 0 | 5 | 2 | 4 | 12 |
+| 14 | 123 | 123-import-syntax-unification | language-design | 0 | 0 | 1 | 5 | 5 | 11 |
+| 15 | 191 | 191-vscode-setup-doctor-command-graph-and-environment-inspe... | parallel | 1 | 0 | 5 | 1 | 4 | 11 |
+| 16 | 271 | 271-vscode-test-runner-wiring | main | 0 | 0 | 5 | 2 | 4 | 11 |
+| 17 | 273 | 273-extension-lsp-command-task-e2e | main | 0 | 0 | 5 | 2 | 4 | 11 |
+| 18 | 340 | 340-lsp-auto-import-manifest | lsp-semantic | 1 | 0 | 5 | 1 | 4 | 11 |
+| 19 | 462 | 462-extension-settings-rationalization | extension | 0 | 0 | 5 | 1 | 5 | 11 |
+| 20 | 626 | 626-ide-ready-frontend | main | 0 | 0 | 5 | 2 | 4 | 11 |
+| 21 | 124 | WIT component import syntax | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
+| 22 | 335 | 335-lsp-cross-file-goto-definition | lsp-navigation | 0 | 0 | 5 | 1 | 4 | 10 |
+| 23 | 339 | 339-lsp-semantic-rename | lsp-semantic | 0 | 0 | 5 | 1 | 4 | 10 |
+| 24 | 341 | 341-lsp-organize-imports | lsp-semantic | 0 | 0 | 5 | 1 | 4 | 10 |
+| 25 | 342 | 342-lsp-completion-context | lsp-semantic | 0 | 0 | 5 | 1 | 4 | 10 |
+| 26 | 355 | 355-lsp-protocol-e2e-tests | tooling-contract | 0 | 0 | 5 | 1 | 4 | 10 |
+| 27 | 463 | 463-lsp-performance-smoke-tests | lsp, testing | 0 | 0 | 5 | 1 | 4 | 10 |
+| 28 | 500 | 500-playground-wasm-typecheck-export | main | 0 | 0 | 1 | 5 | 4 | 10 |
+| 29 | 502 | 502-lsp-full-multi-root-workspace | vscode-ide | 0 | 0 | 5 | 1 | 4 | 10 |
+| 30 | 510 | 510-t3-p2-import-table-switch | main | 2 | 0 | 1 | 2 | 5 | 10 |
+| 31 | 184 | 184-vscode-extension-foundation | parallel | 1 | 0 | 5 | 1 | 2 | 9 |
+| 32 | 447 | 447-std-host-sockets-implementation | runtime | 1 | 0 | 1 | 3 | 4 | 9 |
+| 33 | 454 | 454-lsp-regression-fixtures-snapshot | vscode-ide | 1 | 0 | 5 | 1 | 2 | 9 |
+| 34 | 472 | 472-playground-type-checker-product-claim | playground | 0 | 0 | 1 | 5 | 3 | 9 |
+| 35 | 633 | Reconcile std::host::http / sockets / udp capability claims... | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
+| 36 | 634 | 634-selfhost-lsp-dap-stdio-transport-entrypoint | selfhost-frontend | 0 | 0 | 1 | 5 | 3 | 9 |
+| 37 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 38 | 183 | 183-vscode-arukellt-all-in-one-extension-epic | parallel | 0 | 0 | 5 | 1 | 2 | 8 |
+| 39 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
+| 40 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 41 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 42 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 43 | 479 | 479-lsp-config-struct-and-handler-behavior | vscode-ide | 1 | 0 | 1 | 1 | 4 | 7 |
+| 44 | 480 | 480-extension-readme-settings-docs | docs | 0 | 0 | 1 | 2 | 4 | 7 |
+| 45 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 46 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 47 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 48 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 49 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |

@@ -90,3 +90,12 @@ STOP_IF (deferred here): task **execution** E2E, rich **test controller discover
 * `issues/open/273-extension-lsp-command-task-e2e.md`
 * `issues/open/274-extension-test-controller-restart-e2e.md`
 * `issues/open/275-extension-failure-log-verification.md`
+
+
+## Audit resolution — 2026-06-12 (Slice E)
+
+**Classification:** `truly-done`
+
+**Repo proof:** Acceptance satisfied on selfhost/extension path after cross-check of lifecycle scripts (`scripts/check/check-lsp-lifecycle.py`, `check-dap-lifecycle.py`, `check-analysis-api.py`), `tests/fixtures/selfhost/`, and `extensions/arukellt-all-in-one/`.
+
+**Action:** Kept in `issues/done/`. Prior `Reopened by audit` banners (2026-04-03) were orchestration drift, not current product false-done.

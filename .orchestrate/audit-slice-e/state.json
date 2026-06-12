@@ -1,0 +1,9 @@
+{
+  "goal": "Slice E: Audit LSP / IDE / vscode done issues",
+  "rootSlug": "audit-slice-e",
+  "completedAt": "2026-06-12",
+  "branch": "cursor/audit-slice-e-16a4",
+  "reopenedCount": 29,
+  "newIssues": [634],
+  "keptDoneCount": 21
+}

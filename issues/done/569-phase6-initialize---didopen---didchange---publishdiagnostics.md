@@ -175,3 +175,12 @@ false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8✓ 9✓
 7. ✓ Commit covers only PRIMARY / ALLOWED ADJACENT paths (src/compiler/lsp.ark new; src/compiler/main.ark CLI wire; tests/fixtures/selfhost/ new fixtures; scripts/check/ new gate; scripts/manager.py wires the gate; issues/{open,done}/ move)
 8. ✓ docs-consistency not run (no docs touched)
 9. ✓ New behavioral test: `tests/fixtures/selfhost/lsp_lifecycle.lsp-script`
+
+
+## Audit resolution — 2026-06-12 (Slice E)
+
+**Classification:** `truly-done`
+
+**Repo proof:** Acceptance satisfied on selfhost/extension path after cross-check of lifecycle scripts (`scripts/check/check-lsp-lifecycle.py`, `check-dap-lifecycle.py`, `check-analysis-api.py`), `tests/fixtures/selfhost/`, and `extensions/arukellt-all-in-one/`.
+
+**Action:** Kept in `issues/done/`. Prior `Reopened by audit` banners (2026-04-03) were orchestration drift, not current product false-done.
