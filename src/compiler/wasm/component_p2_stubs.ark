@@ -1,0 +1,179 @@
+// Arukellt Selfhost - P2 stub core modules for bootstrap component emission.
+
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_string
+
+fn p2_stub_new_core_module_writer() -> WasmWriter {
+    let out = writer_core::WasmWriter_new()
+    writer_core::emit_byte(out, 0x00)
+    writer_core::emit_byte(out, 0x61)
+    writer_core::emit_byte(out, 0x73)
+    writer_core::emit_byte(out, 0x6d)
+    writer_core::emit_byte(out, 0x01)
+    writer_core::emit_byte(out, 0x00)
+    writer_core::emit_byte(out, 0x00)
+    writer_core::emit_byte(out, 0x00)
+    out
+}
+
+fn p2_stub_emit_wasm_section(out: WasmWriter, section_id: i32, contents: WasmWriter) {
+    writer_core::emit_byte(out, section_id)
+    writer_leb::emit_leb128_u(out, writer_core::writer_size(contents))
+    writer_core::emit_bytes(out, writer_core::writer_bytes(contents))
+}
+
+fn p2_stub_emit_core_func_type(type_sec: WasmWriter, params: Vec<i32>, results: Vec<i32>) {
+    writer_core::emit_byte(type_sec, 0x60)
+    writer_leb::emit_leb128_u(type_sec, len(params))
+    let mut i = 0
+    while i < len(params) {
+        writer_core::emit_byte(type_sec, get_unchecked(params, i))
+        i = i + 1
+    }
+    writer_leb::emit_leb128_u(type_sec, len(results))
+    i = 0
+    while i < len(results) {
+        writer_core::emit_byte(type_sec, get_unchecked(results, i))
+        i = i + 1
+    }
+}
+
+fn p2_stub_single_export(export_name: String, void_ret: i32) -> Vec<i32> {
+    let out = p2_stub_new_core_module_writer()
+    let type_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(type_sec, 1)
+    if void_ret == 1 {
+        let p1 = Vec_new_i32()
+        push(p1, 0x7f)
+        let r_void = Vec_new_i32()
+        p2_stub_emit_core_func_type(type_sec, p1, r_void)
+    } else {
+        let p4 = Vec_new_i32()
+        push(p4, 0x7f)
+        push(p4, 0x7f)
+        push(p4, 0x7f)
+        push(p4, 0x7f)
+        let r_i32 = Vec_new_i32()
+        push(r_i32, 0x7f)
+        p2_stub_emit_core_func_type(type_sec, p4, r_i32)
+    }
+    p2_stub_emit_wasm_section(out, 1, type_sec)
+    let func_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(func_sec, 1)
+    writer_leb::emit_leb128_u(func_sec, 0)
+    p2_stub_emit_wasm_section(out, 3, func_sec)
+    p2_stub_emit_exports(out, export_name, 0, void_ret)
+    writer_core::writer_bytes(out)
+}
+
+fn p2_stub_env_module() -> Vec<i32> {
+    let out = p2_stub_new_core_module_writer()
+    let type_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(type_sec, 1)
+    let p2 = Vec_new_i32()
+    push(p2, 0x7f)
+    push(p2, 0x7f)
+    let r_i32 = Vec_new_i32()
+    push(r_i32, 0x7f)
+    p2_stub_emit_core_func_type(type_sec, p2, r_i32)
+    p2_stub_emit_wasm_section(out, 1, type_sec)
+    let func_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(func_sec, 2)
+    writer_leb::emit_leb128_u(func_sec, 0)
+    writer_leb::emit_leb128_u(func_sec, 0)
+    p2_stub_emit_wasm_section(out, 3, func_sec)
+    p2_stub_emit_core_exports(out, String_from("args-sizes"), String_from("arguments"), 2)
+    writer_core::writer_bytes(out)
+}
+
+fn p2_stub_fs_module() -> Vec<i32> {
+    let out = p2_stub_new_core_module_writer()
+    let type_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(type_sec, 2)
+    let p_path = Vec_new_i32()
+    push(p_path, 0x7f)
+    push(p_path, 0x7f)
+    push(p_path, 0x7f)
+    push(p_path, 0x7f)
+    push(p_path, 0x7f)
+    push(p_path, 0x7e)
+    push(p_path, 0x7e)
+    push(p_path, 0x7f)
+    push(p_path, 0x7f)
+    let r_i32 = Vec_new_i32()
+    push(r_i32, 0x7f)
+    p2_stub_emit_core_func_type(type_sec, p_path, r_i32)
+    let p1 = Vec_new_i32()
+    push(p1, 0x7f)
+    p2_stub_emit_core_func_type(type_sec, p1, r_i32)
+    p2_stub_emit_wasm_section(out, 1, type_sec)
+    let func_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(func_sec, 2)
+    writer_leb::emit_leb128_u(func_sec, 0)
+    writer_leb::emit_leb128_u(func_sec, 1)
+    p2_stub_emit_wasm_section(out, 3, func_sec)
+    p2_stub_emit_core_exports(out, String_from("open-at"), String_from("close"), 2)
+    writer_core::writer_bytes(out)
+}
+
+fn p2_stub_emit_exports(out: WasmWriter, export_name: String, func_idx: i32, void_ret: i32) {
+    let export_names = Vec_new_String()
+    push(export_names, clone(export_name))
+    let func_idxs = Vec_new_i32()
+    push(func_idxs, func_idx)
+    p2_stub_emit_core_exports_list(out, export_names, func_idxs)
+    if void_ret == 1 {
+        p2_stub_emit_void_body(out)
+    } else {
+        p2_stub_emit_return_zero_bodies(out, 1)
+    }
+}
+
+fn p2_stub_emit_core_exports(out: WasmWriter, export_a: String, export_b: String, body_count: i32) {
+    let export_names = Vec_new_String()
+    push(export_names, clone(export_a))
+    push(export_names, clone(export_b))
+    let func_idxs = Vec_new_i32()
+    push(func_idxs, 0)
+    push(func_idxs, 1)
+    p2_stub_emit_core_exports_list(out, export_names, func_idxs)
+    p2_stub_emit_return_zero_bodies(out, body_count)
+}
+
+fn p2_stub_emit_core_exports_list(out: WasmWriter, export_names: Vec<String>, func_idxs: Vec<i32>) {
+    let export_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(export_sec, len(export_names))
+    let mut i = 0
+    while i < len(export_names) {
+        writer_string::emit_string(export_sec, get_unchecked(export_names, i))
+        writer_core::emit_byte(export_sec, 0x00)
+        writer_leb::emit_leb128_u(export_sec, get_unchecked(func_idxs, i))
+        i = i + 1
+    }
+    p2_stub_emit_wasm_section(out, 7, export_sec)
+}
+
+fn p2_stub_emit_return_zero_bodies(out: WasmWriter, body_count: i32) {
+    let code_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(code_sec, body_count)
+    let mut i = 0
+    while i < body_count {
+        writer_leb::emit_leb128_u(code_sec, 4)
+        writer_leb::emit_leb128_u(code_sec, 0)
+        writer_core::emit_byte(code_sec, 0x41)
+        writer_leb::emit_leb128_u(code_sec, 0)
+        writer_core::emit_byte(code_sec, 0x0b)
+        i = i + 1
+    }
+    p2_stub_emit_wasm_section(out, 10, code_sec)
+}
+
+fn p2_stub_emit_void_body(out: WasmWriter) {
+    let code_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(code_sec, 1)
+    writer_leb::emit_leb128_u(code_sec, 2)
+    writer_leb::emit_leb128_u(code_sec, 0)
+    writer_core::emit_byte(code_sec, 0x0b)
+    p2_stub_emit_wasm_section(out, 10, code_sec)
+}

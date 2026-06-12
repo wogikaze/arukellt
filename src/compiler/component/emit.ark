@@ -22,7 +22,6 @@ fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_vers
     } else {
         component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
     }
-
     export_sections::emit_generic_alias_section(out, plan)
     let export_type_indices = export_types::emit_generic_export_types(out, plan, mir)
     export_sections::emit_generic_canon_section(out, plan, export_type_indices)
