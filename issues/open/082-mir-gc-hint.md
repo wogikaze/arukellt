@@ -53,3 +53,7 @@ wasmtime が GC ヒントをサポートしない場合は no-op とする設計
 ## 参照
 
 - `docs/process/roadmap-v4.md` §5.2 item 7 および §10 item 2
+
+## Docs sync (docs-to-issues audit 2026-06-12)
+
+- [ ] `docs/process/roadmap-v4.md` status updated from「未着手」to reflect MIR pass implementation progress (GC hint tracked by #082)

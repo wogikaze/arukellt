@@ -16,7 +16,6 @@ run:scalar/f32_local.ark
 # generics, control flow, operators, match, for loops, ? operator.
 bench:../../benchmarks/bench_parse_tree_distance.ark
 
-component-compile:wasi_p2_native/hello.ark
 component-compile:component/export_add.ark
 component-compile:component/export_bool.ark
 component-compile:component/export_bool_renamed.ark
@@ -777,7 +776,7 @@ t3-compile:stdlib_hashmap/hashmap_i32_string.ark
 t3-compile:stdlib_hashmap/hashmap_string_string.ark
 t3-compile:stdlib_hashmap/hashset_string_basic.ark
 t3-compile:stdlib_hashmap/hashmap_generic_demo.ark
-diag:stdlib_http_compile.ark
+t3-compile:stdlib_http_compile.ark
 t3-compile:stdlib_io/eprintln.ark
 t3-compile:stdlib_io/f64_to_string.ark
 t3-compile:stdlib_io/fs_read_error.ark
@@ -859,6 +858,7 @@ t3-compile:variables/i64_lit.ark
 t3-compile:variables/mut_var.ark
 t3-compile:variables/string_lit.ark
 t3-compile:variables/tuple.ark
+t3-compile:wasi_p2_native/hello.ark
 t3-run:arrays/array_literal.ark
 t3-run:arrays/array_repeat.ark
 t3-run:closure_capture/capture_struct.ark

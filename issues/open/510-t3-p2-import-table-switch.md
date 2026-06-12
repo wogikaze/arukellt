@@ -104,6 +104,7 @@ RuntimeModel::T3WasmGcP2 if wasi_version == WasiVersion::P2 => {
 3. `--target wasm32-wasi-p2 --wasi-version p2 --emit component` output validates with `wasm-tools validate`.
 4. The issue body explicitly documents how this issue unblocks `#121` and the `#510 -> #121 -> #074` chain.
 5. Regression checks pass for both P1 and P2 paths under existing verification gates.
+6. `docs/target-contract.md` component output tier table synced with P2 import-table switch status (docs-to-issues audit 2026-06-12).
 
 ## Required verification
 

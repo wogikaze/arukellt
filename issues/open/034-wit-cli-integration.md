@@ -239,6 +239,8 @@ arukellt compile --emit component myapp.ark --wit host.wit --target wasm32-wasi-
       boundaries (e.g., I/O functions in component mode).
 - [x] Target help text updated: `wasm32-wasi-p2` description changed from
       "component model not yet implemented" to "component model supported".
+- [ ] `docs/cli-reference.md` documents `component inspect` / `validate` as hint-only stubs
+      pointing to `wasm-tools` (#475 done scope), not native implementations — docs-to-issues audit 2026-06-12
 
 ## Key Files
 

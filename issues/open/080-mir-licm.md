@@ -66,3 +66,7 @@ roadmap-v4.md §5.2 item 5 で明示的に要求されているパス。
 ## 参照
 
 - `docs/process/roadmap-v4.md` §5.2 item 5
+
+## Docs sync (docs-to-issues audit 2026-06-12)
+
+- [ ] `docs/process/roadmap-v4.md` status updated from「未着手」to reflect MIR pass implementation progress (LICM tracked by #080)

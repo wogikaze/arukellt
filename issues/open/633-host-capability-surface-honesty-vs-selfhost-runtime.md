@@ -67,6 +67,7 @@ capability badges via `scripts/gen/generate-docs.py`).
 - [ ] `docs/capability-surface.md` marks http/sockets/udp as not user-reachable
       on the current selfhost path, cross-linking #446/#447/#077/#139.
 - [ ] Generated docs regenerated and consistent.
+- [ ] `docs/current-state.md` and `docs/capability-surface.md` state HTTPS is not supported for `std::host::http` (docs-to-issues audit 2026-06-12).
 
 ## Required verification
 

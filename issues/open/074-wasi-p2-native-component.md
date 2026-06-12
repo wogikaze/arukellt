@@ -119,6 +119,11 @@ Operational rule: if an implementation slice only improves adapter bypass or
 non-stdio P2 component generation, record it as partial progress here. Do not
 close #074 until the close-gate checklist above is satisfied.
 
+## Docs sync (docs-to-issues audit 2026-06-12)
+
+- [ ] `docs/target-contract.md` component output guarantee tiers match P2 native vs adapter reality
+- [ ] `docs/current-state.md` Component Model section cross-links #074 close-gate status (no stale "done" implication)
+
 ## 実装タスク
 
 1. `ark-wasm/src/emit/t3_wasm_gc.rs`: WASI P2 モード分岐 (import 名を P2 形式に変更)

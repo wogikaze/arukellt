@@ -37,6 +37,7 @@ Status note: Parent issue for the all-in-one VS Code experience. Core editor, te
 - [x] #184, #185, #186, #187, #188, #205, #206, #207 が完了している
 - [x] VS Code 体験の責務が foundation / authoring / test / debug / project / cross-cutting DX に分離されている
 - [x] all-in-one 拡張の残課題が issue queue 上で追跡できる
+- [ ] `docs/debug-support.md` Limitations section synced with DAP reality (simulated breakpoints, static variables, #638 scope) — docs-to-issues audit 2026-06-12
 
 ## References
 

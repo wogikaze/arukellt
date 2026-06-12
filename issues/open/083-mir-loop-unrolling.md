@@ -48,3 +48,7 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 ## 参照
 
 - roadmap-v4.md §5.2
+
+## Docs sync (docs-to-issues audit 2026-06-12)
+
+- [ ] `docs/process/roadmap-v4.md` status updated from「未着手」to reflect MIR pass implementation progress (loop unroll tracked by #083)

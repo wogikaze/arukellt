@@ -1,8 +1,30 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-12T08:30:09Z",
+  "generated_at": "2026-06-12T09:07:04Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
+    {
+      "id": "069",
+      "path": "069-wasm-typed-func-ref.md",
+      "title": "069 — Wasm Typed Function References: ref.func / call_ref フル活用",
+      "track": "wasm-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
+      }
+    },
     {
       "id": "080",
       "path": "080-mir-licm.md",
@@ -20,7 +42,7 @@
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
+        "unchecked": 1
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -42,7 +64,7 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
+        "unchecked": 1
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -617,7 +639,7 @@
       ],
       "acceptance": {
         "checked": 2,
-        "unchecked": 6
+        "unchecked": 8
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -830,7 +852,9 @@
         "done)",
         "074"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "646"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 4
@@ -1022,7 +1046,9 @@
       "depends_on": [
         "565"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "636"
+      ],
       "acceptance": {
         "checked": 5,
         "unchecked": 0
@@ -1128,6 +1154,213 @@
       }
     },
     {
+      "id": "635",
+      "path": "635-playground-format-tokenize-browser-ui.md",
+      "title": "635 — Playground: wire format and tokenize in browser UI",
+      "track": "playground",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "637",
+      "path": "637-host-capability-honesty-fs-metadata.md",
+      "title": "637 — Host capability honesty: fs metadata and read_dir surface",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "051",
+        "076"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "639",
+      "path": "639-http-package-registry-resolution.md",
+      "title": "639 — HTTP package registry resolution",
+      "track": "cli",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "487"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "640",
+      "path": "640-opt-equiv-o0-o1-ci-gate.md",
+      "title": "640 — opt-equiv CI gate (O0 == O1 semantics)",
+      "track": "wasm-quality",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "641",
+      "path": "641-t4-selfhost-native-backend-scaffold.md",
+      "title": "641 — T4 selfhost-native backend scaffold",
+      "track": "runtime",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "642",
+      "path": "642-stdlib-scoreboard-auto-generator.md",
+      "title": "642 — Stdlib scoreboard auto-generator",
+      "track": "docs/ops",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "643",
+      "path": "643-grain-wasm-gc-benchmark-hook.md",
+      "title": "643 — Grain Wasm GC benchmark comparison hook",
+      "track": "benchmark",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "112"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "644",
+      "path": "644-docs-anchor-fragment-link-check.md",
+      "title": "644 — Docs anchor fragment link-check (ADR-019 v2)",
+      "track": "docs/ops",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "645",
+      "path": "645-t2-playground-execution-dom-io.md",
+      "title": "645 — T2 playground execution and DOM I/O surface",
+      "track": "playground",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "632"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "083",
       "path": "083-mir-loop-unrolling.md",
       "title": "083-mir-loop-unrolling",
@@ -1144,7 +1377,7 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
+        "unchecked": 1
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1196,7 +1429,7 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 10,
-        "unchecked": 0
+        "unchecked": 1
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -1360,7 +1593,7 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 4
+        "unchecked": 5
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1392,6 +1625,30 @@
       },
       "orchestration": {
         "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "646",
+      "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
+      "title": "646 — T5 wasm32-wasi-p3 target scaffold",
+      "track": "wasm-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "474"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-ready",
         "upstream_notes": null
       }
     },
@@ -1487,7 +1744,7 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
+        "unchecked": 2
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1520,6 +1777,30 @@
       }
     },
     {
+      "id": "636",
+      "path": "636-selfhost-structured-diagnostic-parity.md",
+      "title": "636 — Selfhost structured diagnostic parity (codes, spans, warnings)",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "566"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "183",
       "path": "183-vscode-arukellt-all-in-one-extension-epic.md",
       "title": "183-vscode-arukellt-all-in-one-extension-epic",
@@ -1540,10 +1821,12 @@
         "206",
         "207"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "638"
+      ],
       "acceptance": {
         "checked": 3,
-        "unchecked": 0
+        "unchecked": 1
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1696,6 +1979,30 @@
       },
       "orchestration": {
         "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "638",
+      "path": "638-runtime-level-wasm-debugging.md",
+      "title": "638 — Runtime-level Wasm debugging (source maps + wasmtime hooks)",
+      "track": "runtime",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "183"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "design-ready",
         "upstream_notes": null
       }
     },
