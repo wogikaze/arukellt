@@ -1,0 +1,197 @@
+{
+  "$schema": "/home/ubuntu/.cursor/plugins/cache/cursor-public/9333/a5cda8b561bb6536e880481734199a568cb647f4/skills/orchestrate/schemas/plan.schema.json",
+  "goal": "これらのissueを進めて: #334 stdlib定義解決(manifest駆動), #338 semantic references, #335 cross-file goto-definition, #295 host API runtime tests, #236 CLI/LSP stdio起動契約, #462 extension settings整理, #450-452 vscode-ide LSP goto/hover/diagnostics",
+  "summary": "LSP/capability/CLI issue batch: navigation+semantic+hover+diagnostics (#334/335/338/450/451/452), CLI stdio contract + extension settings (#236/462), host API runtime tests (#295)",
+  "rootSlug": "lsp-cap-cli",
+  "baseBranch": "master",
+  "prBase": "master",
+  "repoUrl": "https://github.com/wogikaze/arukellt.git",
+  "selfAgentId": "bc-e70deb47-de67-45d6-8c71-b694af7aacbd",
+  "syncStateToGit": true,
+  "acceptanceCriteria": [
+    "Each targeted issue's acceptance is met-and-verified or has a documented blocker in its handoff",
+    "python3 scripts/manager.py verify quick exits 0 on each deliverable branch",
+    "Issue files reflect real verified state; only fully-met issues move to issues/done/ with regenerated index"
+  ],
+  "tasks": [
+    {
+      "name": "lsp-foundation-nav",
+      "type": "worker",
+      "model": "gpt-5.5-high",
+      "openPR": false,
+      "scopedGoal": "Advance the foundational LSP navigation issues #450, #334, #335 in the SELFHOST compiler (src/compiler/**). FIRST read `.orchestrate/lsp-cap-cli/bootstrap-context.md` — it maps the stale `crates/ark-*` references in the issue bodies to the real selfhost paths and warns you the `crates/` layout no longer exists. Read issues/open/450-lsp-goto-definition-identifier-span.md, 334-lsp-stdlib-definition-resolution.md, 335-lsp-cross-file-goto-definition.md and follow `.agents/impl-selfhost/SKILL.md` + `.agents/acceptance-slice-implementer/SKILL.md`. #450: add an identifier-only name span to `let`/fn/param in the parser AST (`src/compiler/parser/`, `parser.ark`) and make goto-definition (`src/compiler/lsp/feature_definition.ark`, `feature_symbol.ark`) return the identifier token span, not the whole declaration; handle innermost-shadowing. #334: load `std/manifest.toml` at LSP startup and make stdlib goto-definition return the `std/**/*.ark` implementation location, hover show signature+doc, and completion be manifest-driven (retire hardcoded arrays in completion.ark/feature_completion.ark). #335: switch goto-definition + goto-type-definition from single-file to the project-wide symbol index (`symbol_index*.ark`, #333 already landed) so cross-file, `use`-imported, and qualified `module::item` names resolve. Add/refresh selfhost LSP fixtures under tests/fixtures/selfhost/. Update each issue's `## Acceptance` checkboxes to reflect real verified state; move to issues/done/ only if fully met, then regenerate the issue index. Commit incrementally per issue so partial progress survives.",
+      "pathsAllowed": [
+        "src/compiler/parser/**",
+        "src/compiler/parser.ark",
+        "src/compiler/lsp/**",
+        "src/compiler/analysis/**",
+        "src/compiler/resolver/**",
+        "src/compiler/resolver.ark",
+        "src/compiler/typechecker/**",
+        "tests/fixtures/selfhost/**",
+        "issues/**",
+        "scripts/gen/generate-issue-index.py"
+      ],
+      "pathsForbidden": [
+        "src/compiler/wasm/**",
+        "extensions/**",
+        "playground/**"
+      ],
+      "acceptance": [
+        "#450: goto-definition range covers the identifier token only (let, param, fn name); innermost shadowing binding chosen",
+        "#334: stdlib goto-definition returns std/**/*.ark location; hover shows manifest signature+doc; completion is manifest-driven (no hardcoded arrays)",
+        "#335: cross-file, use-imported, and qualified module::item goto-definition + goto-type-definition resolve via the project-wide symbol index",
+        "New/updated selfhost LSP fixtures pass; python3 scripts/manager.py verify quick exits 0",
+        "Targeted issue files updated; index regenerated if any issue moved"
+      ],
+      "verify": "## Setup\n- Build the selfhost compiler the usual way (scripts/run/arukellt-selfhost.sh) and ensure std/manifest.toml is present.\n## Automated\n- Run `python3 scripts/manager.py verify quick` (must exit 0).\n- Run the selfhost LSP fixture checks under tests/fixtures/selfhost/ (the LSP golden harness used by verify).\n## Manual\n- Exercise goto-definition on (a) a local `let`, (b) a stdlib function, (c) a symbol defined in another file via `use`, and confirm the returned range/URI.\n## Gotchas\n- The issue bodies reference deleted `crates/ark-*` files; the real code is src/compiler/**. Don't recreate crates/."
+    },
+    {
+      "name": "lsp-semantic-refs-hover",
+      "type": "worker",
+      "model": "gpt-5.5-high",
+      "openPR": false,
+      "startingRef": "orch/lsp-cap-cli/lsp-foundation-nav",
+      "dependsOn": ["lsp-foundation-nav"],
+      "scopedGoal": "Advance LSP semantic-references (#338) and semantic-only hover (#451) on top of the lsp-foundation-nav branch. FIRST read `.orchestrate/lsp-cap-cli/bootstrap-context.md` (stale crates/ paths -> selfhost src/compiler/** map). Read issues/open/338-lsp-semantic-references.md and 451-lsp-hover-semantic-only.md; follow `.agents/impl-selfhost/SKILL.md`. #338: replace text-based `references()` / `documentHighlight` (in `src/compiler/lsp/` dispatch/features + `src/compiler/analysis/symbols.ark`) with resolver symbol-id semantics so same-named-but-distinct symbols (shadowing, different scopes) are NOT conflated, and add project-wide cross-file references via the symbol index (#333). #451: make hover semantic-only — return no hover for literals, keywords, and identifiers with no semantic info (drop the `identifier \\`x\\``, `string literal`, `integer literal` noise) while keeping meaningful hover for stdlib/typed identifiers; respect the identifier end-boundary (`start <= off < end`). Add/refresh selfhost LSP fixtures. Update #338/#451 `## Acceptance` checkboxes to real verified state; move to done only if fully met; regenerate index if moved. Commit incrementally per issue.",
+      "pathsAllowed": [
+        "src/compiler/lsp/**",
+        "src/compiler/analysis/**",
+        "src/compiler/resolver/**",
+        "src/compiler/resolver.ark",
+        "tests/fixtures/selfhost/**",
+        "issues/**",
+        "scripts/gen/generate-issue-index.py"
+      ],
+      "pathsForbidden": [
+        "src/compiler/wasm/**",
+        "extensions/**",
+        "playground/**"
+      ],
+      "acceptance": [
+        "#338: references/documentHighlight use resolver symbol ids; shadowed / distinct-scope same-name symbols are not conflated; cross-file references work",
+        "#451: hover returns nothing for literals/keywords and semantic-less identifiers; stdlib/typed identifiers still hover; end-boundary not over-triggered",
+        "New/updated selfhost LSP fixtures pass; python3 scripts/manager.py verify quick exits 0",
+        "#338 and #451 issue files updated; index regenerated if moved"
+      ],
+      "verify": "## Setup\n- Start from the lsp-foundation-nav branch; build the selfhost compiler.\n## Automated\n- `python3 scripts/manager.py verify quick` (exit 0) plus the selfhost LSP fixture/golden harness.\n## Manual\n- references on a shadowed variable returns only the matching binding's uses; hover over a string literal / keyword returns nothing; hover over `println` returns signature.\n## Gotchas\n- Build on the upstream branch; do not regress lsp-foundation-nav's goto/manifest changes."
+    },
+    {
+      "name": "lsp-diagnostics-parity",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "openPR": false,
+      "startingRef": "orch/lsp-cap-cli/lsp-semantic-refs-hover",
+      "dependsOn": ["lsp-semantic-refs-hover"],
+      "scopedGoal": "Fix LSP diagnostics false-positives (#452) on top of the lsp-semantic-refs-hover branch. FIRST read `.orchestrate/lsp-cap-cli/bootstrap-context.md`. Read issues/open/452-lsp-diagnostics-false-positives.md; follow `.agents/impl-selfhost/SKILL.md`. Root-cause the spurious E0100 unresolved-name diagnostics in the selfhost LSP path (`src/compiler/lsp/diagnostics.ark`, dispatch + analysis/resolver prelude binding) so LSP diagnostics match `arukellt check` for valid stdlib-prelude programs: ensure the LSP analysis path binds the stdlib prelude (same as the CLI check / driver Session path) and that the document analysis cache is invalidated on didChange/didSave. Add selfhost regression fixtures for valid-program-zero-diagnostics and stable-after-change. Then un-skip the E0100 E2E in `extensions/arukellt-all-in-one/src/test/extension.test.js` and make it pass (this is the only extension file you may touch). Update #452 `## Acceptance` to real verified state; move to done only if fully met; regenerate index if moved.",
+      "pathsAllowed": [
+        "src/compiler/lsp/**",
+        "src/compiler/analysis/**",
+        "src/compiler/resolver/**",
+        "src/compiler/resolver.ark",
+        "tests/fixtures/selfhost/**",
+        "extensions/arukellt-all-in-one/src/test/**",
+        "issues/**",
+        "scripts/gen/generate-issue-index.py"
+      ],
+      "pathsForbidden": [
+        "src/compiler/wasm/**",
+        "extensions/arukellt-all-in-one/package.json",
+        "extensions/arukellt-all-in-one/src/extension.js",
+        "extensions/arukellt-all-in-one/README.md",
+        "playground/**"
+      ],
+      "acceptance": [
+        "#452: valid stdlib-prelude program produces zero LSP diagnostics, matching arukellt check (no spurious E0100)",
+        "#452: diagnostics update correctly after didChange/didSave (analysis cache invalidated); legitimate unresolved-name E0100 still reported",
+        "E0100 E2E in extensions/.../src/test/extension.test.js is un-skipped and passes",
+        "Selfhost regression fixtures added; python3 scripts/manager.py verify quick exits 0; #452 updated and index regenerated if moved"
+      ],
+      "verify": "## Setup\n- Start from the lsp-semantic-refs-hover branch; build selfhost compiler.\n## Automated\n- `python3 scripts/manager.py verify quick` (exit 0); selfhost diagnostics fixtures; the extension E0100 test (node test runner used by the extension).\n## Manual\n- Open a valid prelude-only .ark file in LSP and confirm zero diagnostics; compare with `arukellt check` on the same file.\n## Gotchas\n- Do NOT suppress legitimate unresolved-name errors; the goal is prelude binding + cache invalidation, suppression is last resort."
+    },
+    {
+      "name": "cli-extension-settings",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "openPR": true,
+      "startingRef": "orch/lsp-cap-cli/lsp-diagnostics-parity",
+      "dependsOn": ["lsp-diagnostics-parity"],
+      "scopedGoal": "Land the CLI/LSP stdio startup contract (#236) and extension settings rationalization (#462) on top of the lsp-diagnostics-parity branch, then open ONE draft PR (base master) covering the whole editor/LSP cluster (#450/#334/#335/#338/#451/#452/#236/#462). FIRST read `.orchestrate/lsp-cap-cli/bootstrap-context.md` (note: #634 already wired `arukellt lsp` stdio; check current cmd_lsp before re-implementing). Read issues/open/236-cli-startup-contract-lsp-version-stdio.md and 462-extension-settings-rationalization.md; follow `.agents/impl-cli/SKILL.md` and `.agents/impl-vscode-ide/SKILL.md`. #236: confirm/implement+document that bare `arukellt lsp` speaks framed JSON-RPC on stdin/stdout with no script-file workaround, `arukellt --version` returns machine-readable semver, stdout=protocol-only & stderr=diagnostics/logs are cleanly separated, and the extension emits an actionable error when the CLI is missing (src/compiler/main/editor.ark, dispatch*.ark, args_*/usage/output; extensions/arukellt-all-in-one/src/extension.js). #462: add the 5+ settings to package.json (enableCodeLens, hoverDetailLevel, useSelfHostBackend, diagnostics.reportLevel, check.onSave), pass them through extension.js initializationOptions, parse them server-side in the selfhost LSP (init_workspace.ark / dispatch_lifecycle.ark) into a config struct + handle workspace/didChangeConfiguration, and wire behavior: enableCodeLens=false -> empty codeLens, hoverDetailLevel=minimal -> signature-only hover, diagnostics.reportLevel=errors -> warnings filtered out; add the settings table to README.md. Add LSP protocol/regression fixtures for the three behaviors. Update #236/#462 acceptance checkboxes to real state; move to done only if fully met; regenerate index if moved. As the terminal task in the editor chain, open the draft PR against master.",
+      "pathsAllowed": [
+        "src/compiler/main/**",
+        "src/compiler/lsp/**",
+        "extensions/arukellt-all-in-one/**",
+        "docs/**",
+        "tests/fixtures/selfhost/**",
+        "issues/**",
+        "scripts/gen/generate-issue-index.py",
+        "scripts/gen/generate-docs.py"
+      ],
+      "pathsForbidden": [
+        "src/compiler/wasm/**",
+        "playground/**"
+      ],
+      "acceptance": [
+        "#236: bare `arukellt lsp` stdio JSON-RPC documented + usable; `arukellt --version` machine-readable semver; stdout/stderr cleanly separated; extension gives actionable error when CLI missing",
+        "#462: 5 settings declared in package.json; passed via initializationOptions; parsed server-side + didChangeConfiguration handled; enableCodeLens/hoverDetailLevel/diagnostics.reportLevel behaviors take effect; README settings table present",
+        "LSP protocol/regression fixtures for the three #462 behaviors pass; python3 scripts/manager.py verify quick exits 0",
+        "#236 and #462 issue files updated; index/docs regenerated as needed; one draft PR against master opened covering the editor cluster"
+      ],
+      "verify": "## Setup\n- Start from the lsp-diagnostics-parity branch; build selfhost compiler; have the extension node test deps available.\n## Automated\n- `python3 scripts/manager.py verify quick` (exit 0); LSP lifecycle / settings fixtures; extension tests.\n## Manual\n- `arukellt --version` prints semver; pipe an initialize+request over stdin to `arukellt lsp` and confirm framed responses on stdout, logs on stderr; toggle each setting and confirm codeLens/hover/diagnostics behavior changes.\n## Gotchas\n- #634 may already satisfy much of #236; verify before rewriting. Settings must default to current behavior (additive, backward compatible)."
+    },
+    {
+      "name": "host-api-runtime-tests",
+      "type": "worker",
+      "model": "gpt-5.5-high",
+      "openPR": true,
+      "scopedGoal": "Advance #295 (host API runtime tests) including its real root cause. FIRST read `.orchestrate/lsp-cap-cli/bootstrap-context.md` — the #295 audit reopen says the selfhost wasm emitter has NO handlers for `__intrinsic_clock_now`, `__intrinsic_clock_now_ms`, `__intrinsic_random_i32` (same root cause as reopened #051), so the clock/random fixtures cannot lower today. Read issues/open/295-host-api-runtime-tests.md and issues/open/051-std-time-random.md; follow `.agents/impl-stdlib/SKILL.md` + `.agents/impl-selfhost/SKILL.md`. Implement the missing clock/random host intrinsic handlers in the selfhost wasm emitter (`src/compiler/wasm/call_host_io.ark` + its dispatch / `emitter.ark`) so the host surfaces lower and execute. Then ensure the runtime-test fixtures exist and are registered in tests/fixtures/manifest.txt and execute under the selfhost harness: clock monotonic (2 calls increase), random returns an in-range i32 (no nondeterminism dependence), fs read-of-missing-file error (existing fs_read_error.ark ok), env arg_count/args passing, and process::exit(0) clean exit. Close evidence must be emitter-backed execution, not fixture presence. Update #295 `## Acceptance` checkboxes (and #051 if its blocker clears) to real verified state; move to done only if fully met; regenerate index if moved. Open a draft PR against master.",
+      "pathsAllowed": [
+        "src/compiler/wasm/**",
+        "src/compiler/emitter.ark",
+        "tests/fixtures/stdlib_io/**",
+        "tests/fixtures/stdlib_env/**",
+        "tests/fixtures/stdlib_time/**",
+        "tests/fixtures/manifest.txt",
+        "std/**",
+        "issues/**",
+        "scripts/gen/generate-issue-index.py"
+      ],
+      "pathsForbidden": [
+        "src/compiler/lsp/**",
+        "extensions/**",
+        "playground/**"
+      ],
+      "acceptance": [
+        "Selfhost wasm emitter has working handlers for __intrinsic_clock_now / __intrinsic_clock_now_ms / __intrinsic_random_i32 (clock+random surfaces lower and execute)",
+        "Fixtures pass under the selfhost harness: clock monotonic, random in-range i32, fs missing-file error, env arg_count/args, process::exit(0)",
+        "All five fixtures registered in tests/fixtures/manifest.txt and exercised by CI; python3 scripts/manager.py verify quick exits 0",
+        "#295 acceptance updated to real verified state; index regenerated if moved; draft PR against master opened"
+      ],
+      "verify": "## Setup\n- Build the selfhost compiler (scripts/run/arukellt-selfhost.sh).\n## Automated\n- `python3 scripts/manager.py verify quick` (exit 0); run the stdlib_io / stdlib_env / stdlib_time fixtures registered in tests/fixtures/manifest.txt under the selfhost harness.\n## Manual\n- Compile+run clock_random fixture and confirm clock is monotonic across 2 calls and random returns an i32 in range; run the process::exit(0) fixture and confirm exit code 0.\n## Gotchas\n- Do not make tests depend on specific random values; assert range/success only. Clock/random need the emitter intrinsic handlers FIRST (the #051 root cause)."
+    },
+    {
+      "name": "verify-editor-lsp",
+      "type": "verifier",
+      "model": "claude-opus-4-8",
+      "verifies": "cli-extension-settings",
+      "dependsOn": ["cli-extension-settings"],
+      "scopedGoal": "Verify the full editor/LSP cluster on the cli-extension-settings branch (the cumulative branch containing #450/#334/#335/#338/#451/#452/#236/#462). Read `.orchestrate/lsp-cap-cli/bootstrap-context.md` and each issue file. Run the code — do not just read diffs. Build the selfhost compiler, run `python3 scripts/manager.py verify quick`, run the selfhost LSP fixtures and the extension tests, and exercise goto-definition (identifier span, stdlib, cross-file, qualified), references (shadowing not conflated), hover (semantic-only), diagnostics (no spurious E0100 + cache invalidation), `arukellt lsp` stdio framing + `arukellt --version`, and the three #462 settings behaviors. Report per-issue acceptance with execution evidence; flag any falsely-checked acceptance box.",
+      "acceptance": [
+        "Verification section records execution evidence for every acceptance criterion of #450/#334/#335/#338/#451/#452/#236/#462",
+        "verify quick result reported; any issue acceptance not actually met is flagged (not rubber-stamped)"
+      ]
+    },
+    {
+      "name": "verify-host-api",
+      "type": "verifier",
+      "model": "claude-opus-4-8",
+      "verifies": "host-api-runtime-tests",
+      "dependsOn": ["host-api-runtime-tests"],
+      "scopedGoal": "Verify #295 on the host-api-runtime-tests branch. Read `.orchestrate/lsp-cap-cli/bootstrap-context.md`, issues/open/295-host-api-runtime-tests.md and 051-std-time-random.md. Run the code: build the selfhost compiler, confirm the clock/random intrinsic handlers actually lower and execute (not just present in source), run the clock/random/fs/env/process fixtures registered in tests/fixtures/manifest.txt under the selfhost harness, and run `python3 scripts/manager.py verify quick`. Report per-criterion acceptance with execution evidence; explicitly confirm close evidence is emitter-backed execution, not fixture-file presence.",
+      "acceptance": [
+        "Verification records emitter-backed execution evidence for clock monotonic, random in-range, fs error, env args, process::exit(0)",
+        "verify quick result reported; any unmet #295 acceptance flagged"
+      ]
+    }
+  ]
+}
