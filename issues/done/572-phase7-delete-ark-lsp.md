@@ -192,3 +192,11 @@ The VS Code extension `extensions/arukellt-all-in-one/` already spawns `arukellt
 8. ✓ `cargo check --workspace` rc=0
 9. ✓ Single commit; `git show --stat` confined to PRIMARY + ALLOWED ADJACENT paths
 10. ✓ `python3 scripts/check/check-docs-consistency.py` rc=0 (folded into verify quick)
+
+## Audit resolution — 2026-06-12 (Slice E)
+
+**Classification:** `truly-done`
+
+**Repo proof:** Acceptance satisfied on selfhost/extension path after cross-check of lifecycle scripts (`scripts/check/check-lsp-lifecycle.py`, `check-dap-lifecycle.py`, `check-analysis-api.py`), `tests/fixtures/selfhost/`, and `extensions/arukellt-all-in-one/`.
+
+**Action:** Kept in `issues/done/`. Prior `Reopened by audit` banners (2026-04-03) were orchestration drift, not current product false-done.

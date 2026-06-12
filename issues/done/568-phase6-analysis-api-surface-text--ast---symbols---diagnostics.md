@@ -183,3 +183,11 @@ verify quick:    16/20 pass, 4 pre-existing failures inherited from master
 
 7✓ 8✓ 9✓ (`scripts/check/check-analysis-api.py` exercises both
 fixtures end-to-end against the committed snapshot goldens)
+
+## Audit resolution — 2026-06-12 (Slice E)
+
+**Classification:** `truly-done`
+
+**Repo proof:** Acceptance satisfied on selfhost/extension path after cross-check of lifecycle scripts (`scripts/check/check-lsp-lifecycle.py`, `check-dap-lifecycle.py`, `check-analysis-api.py`), `tests/fixtures/selfhost/`, and `extensions/arukellt-all-in-one/`.
+
+**Action:** Kept in `issues/done/`. Prior `Reopened by audit` banners (2026-04-03) were orchestration drift, not current product false-done.

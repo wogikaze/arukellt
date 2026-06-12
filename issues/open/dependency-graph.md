@@ -13,47 +13,77 @@ graph LR
   I123["123 123-import-syntax-unification"]
   I124["124 WIT component import syntax"]
   I137["137 `std: ":host::*` namespace 導入と migration / target-gated 診断""]
+  I191["191 191-vscode-setup-doctor-command-graph-and-environment-inspection"]
   I216["216 Formatter surface"]
   I217["217 Code actions + refactor code actions"]
   I219["219 LSP standard feature completeness"]
+  I236["236 236-cli-startup-contract-lsp-version-stdio"]
+  I271["271 271-vscode-test-runner-wiring"]
+  I273["273 273-extension-lsp-command-task-e2e"]
   I292["292 292-stub-host-compile-error"]
   I293["293 env: ":var() の実装を完成させる""]
   I295["295 295-host-api-runtime-tests"]
   I30["30 036-jco-javascript-interop"]
+  I333["333 333-lsp-project-symbol-index"]
+  I355["355 355-lsp-protocol-e2e-tests"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I41["41 051-std-time-random"]
   I418["418 Repo Hygiene: orphan / stale file inventory を作るスクリプトを追加する"]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
-  I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
   I445["445 445-std-host-process-implementation"]
   I446["446 446-std-host-http-implementation"]
   I447["447 447-std-host-sockets-implementation"]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
+  I450["450 450-lsp-goto-definition-identifier-span"]
+  I451["451 451-lsp-hover-semantic-only"]
+  I452["452 452-lsp-diagnostics-false-positives"]
   I456["456 456-arukellt-doc-command"]
+  I462["462 462-extension-settings-rationalization"]
   I464["464 464-init-template-expansion"]
   I472["472 472-playground-type-checker-product-claim"]
   I474["474 Async component support (v5)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
+  I479["479 479-lsp-config-struct-and-handler-behavior"]
   I491["491 491-playground-ci-performance-budget-gates"]
   I500["500 500-playground-wasm-typecheck-export"]
+  I502["502 502-lsp-full-multi-root-workspace"]
   I510["510 510-t3-p2-import-table-switch"]
   I52["52 064-wasm-branch-hinting"]
   I55["55 067-wasm-sign-extension-ops"]
   I56["56 070-wasm-i31ref-scalar"]
+  I566["566 566-phase6-partial-ast-recovery"]
   I59["59 073-wasi-p1-full-syscalls"]
+  I626["626 626-ide-ready-frontend"]
+  I628["628 628-lsp-minimum-viable"]
   I083["083 083-mir-loop-unrolling"]
   I118["118 118-wasm-multi-export-world"]
   I28["28 034-wit-cli-integration"]
   I138["138 138-std-wasi-shared-capabilities-t1-t3"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
+  I184["184 184-vscode-extension-foundation"]
+  I334["334 334-lsp-stdlib-definition-resolution"]
+  I335["335 335-lsp-cross-file-goto-definition"]
+  I338["338 338-lsp-semantic-references"]
   I422["422 Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る"]
   I633["633 Reconcile std::host::http / sockets / udp capability claims with the selfhost execution path"]
+  I454["454 454-lsp-regression-fixtures-snapshot"]
   I443["443 443-component-composition-linking-model"]
   I618["618 618-wit-bindings-round-trip"]
+  I480["480 480-extension-readme-settings-docs"]
   I60["60 074-wasi-p2-native-component"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
+  I634["634 634-selfhost-lsp-dap-stdio-transport-entrypoint"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
+  I183["183 183-vscode-arukellt-all-in-one-extension-epic"]
+  I336["336 336-lsp-hover-type-inference"]
+  I337["337 337-lsp-signature-help-stdlib"]
+  I340["340 340-lsp-auto-import-manifest"]
+  I339["339 339-lsp-semantic-rename"]
+  I342["342 342-lsp-completion-context"]
+  I463["463 463-lsp-performance-smoke-tests"]
+  I341["341 341-lsp-organize-imports"]
+  I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I080 --> I083
@@ -62,16 +92,34 @@ graph LR
   I137 --> I138
   I137 --> I139
   I137 --> I63
+  I191 --> I184
+  I333 --> I334
+  I333 --> I335
+  I333 --> I338
   I418 --> I422
   I446 --> I633
   I447 --> I633
+  I450 --> I454
+  I451 --> I454
+  I452 --> I454
   I476 --> I443
   I476 --> I618
+  I479 --> I480
   I510 --> I60
   I510 --> I62
+  I628 --> I634
   I137 --> I136
   I138 --> I136
   I139 --> I136
+  I184 --> I183
+  I334 --> I336
+  I334 --> I337
+  I334 --> I340
+  I338 --> I339
+  I338 --> I342
+  I454 --> I463
+  I340 --> I341
+  I341 --> I440
   I124 --> I28
   I30 --> I31
 ```
@@ -85,47 +133,77 @@ graph LR
 - **123** depends on: none; blocks: none
 - **124** depends on: 074; blocks: 28
 - **137** depends on: none; blocks: 136, 138, 139, 63
+- **191** depends on: 190; blocks: 184
 - **216** depends on: none; blocks: none
 - **217** depends on: 193; blocks: none
 - **219** depends on: none; blocks: none
+- **236** depends on: none; blocks: none
+- **271** depends on: 254; blocks: none
+- **273** depends on: 272; blocks: none
 - **292** depends on: none; blocks: none
 - **293** depends on: none; blocks: none
 - **295** depends on: none; blocks: none
 - **30** depends on: 27; blocks: none
+- **333** depends on: none; blocks: 334, 335, 338
+- **355** depends on: 353; blocks: none
 - **358** depends on: none; blocks: none
 - **41** depends on: 039, 040; blocks: none
 - **418** depends on: none; blocks: 422
 - **44** depends on: 039, 044, 053; blocks: none
-- **440** depends on: 341, 346, 348, 349, 350, 352; blocks: none
 - **445** depends on: none; blocks: none
 - **446** depends on: none; blocks: 633
 - **447** depends on: none; blocks: 633
 - **45** depends on: 039, 042, 044; blocks: none
+- **450** depends on: none; blocks: 454
+- **451** depends on: none; blocks: 454
+- **452** depends on: none; blocks: 454
 - **456** depends on: 455; blocks: none
+- **462** depends on: none; blocks: none
 - **464** depends on: none; blocks: none
 - **472** depends on: 466; blocks: none
 - **474** depends on: 035, done), 074; blocks: none
 - **476** depends on: 035, done), 074; blocks: 443, 618
+- **479** depends on: 478; blocks: 480
 - **491** depends on: none; blocks: none
 - **500** depends on: none; blocks: none
+- **502** depends on: 441; blocks: none
 - **510** depends on: none; blocks: 60, 62
 - **52** depends on: none; blocks: none
 - **55** depends on: none; blocks: none
 - **56** depends on: none; blocks: none
+- **566** depends on: 565; blocks: none
 - **59** depends on: none; blocks: none
+- **626** depends on: 625; blocks: none
+- **628** depends on: 627; blocks: 634
 - **083** depends on: 080; blocks: none
 - **118** depends on: 117, 074; blocks: none
 - **28** depends on: 030, 031, 028b, 124; blocks: none
 - **138** depends on: 137, 051; blocks: 136
 - **139** depends on: 074, 137; blocks: 136
 - **63** depends on: 074, 137; blocks: none
+- **184** depends on: 189, 190, 191; blocks: 183
+- **334** depends on: 333; blocks: 336, 337, 340
+- **335** depends on: 333; blocks: none
+- **338** depends on: 333; blocks: 339, 342
 - **422** depends on: 418; blocks: none
 - **633** depends on: 446, 447; blocks: none
+- **454** depends on: 450, 451, 452; blocks: 463
 - **443** depends on: 442, 476; blocks: none
 - **618** depends on: 262, 476; blocks: none
+- **480** depends on: 479; blocks: none
 - **60** depends on: 510, 121; blocks: none
 - **62** depends on: 074, 510; blocks: none
+- **634** depends on: 628; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
+- **183** depends on: 184, 185, 186, 187, 188, 205, 206, 207; blocks: none
+- **336** depends on: 334; blocks: none
+- **337** depends on: 334; blocks: none
+- **340** depends on: 334; blocks: 341
+- **339** depends on: 338; blocks: none
+- **342** depends on: 338; blocks: none
+- **463** depends on: 454; blocks: none
+- **341** depends on: 340; blocks: 440
+- **440** depends on: 341, 346, 348, 349, 350, 352; blocks: none
 
 ### Blocked
 

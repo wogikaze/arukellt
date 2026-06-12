@@ -143,3 +143,11 @@ diag codes added (frontend phase, lexer-reserved range 1..=10):
   - LEX_E_UNKNOWN_CHAR         = 6
 false-done checklist: 1✓ 2✓ 3✓ 4✓ 5✓ 6✓ 7✓ 8(no docs touched) 9✓
 ```
+
+## Audit resolution — 2026-06-12 (Slice E)
+
+**Classification:** `truly-done`
+
+**Repo proof:** Acceptance satisfied on selfhost/extension path after cross-check of lifecycle scripts (`scripts/check/check-lsp-lifecycle.py`, `check-dap-lifecycle.py`, `check-analysis-api.py`), `tests/fixtures/selfhost/`, and `extensions/arukellt-all-in-one/`.
+
+**Action:** Kept in `issues/done/`. Prior `Reopened by audit` banners (2026-04-03) were orchestration drift, not current product false-done.

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-12T04:45:27Z",
+  "generated_at": "2026-06-12T04:46:18Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -171,6 +171,32 @@
       }
     },
     {
+      "id": "191",
+      "path": "191-vscode-setup-doctor-command-graph-and-environment-inspection.md",
+      "title": "191-vscode-setup-doctor-command-graph-and-environment-inspection",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "190"
+      ],
+      "blocks_issue_ids": [
+        "184"
+      ],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "216",
       "path": "216-formatter-surface.md",
       "title": "Formatter surface",
@@ -232,6 +258,76 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "236",
+      "path": "236-cli-startup-contract-lsp-version-stdio.md",
+      "title": "236-cli-startup-contract-lsp-version-stdio",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "271",
+      "path": "271-vscode-test-runner-wiring.md",
+      "title": "271-vscode-test-runner-wiring",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "254"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "273",
+      "path": "273-extension-lsp-command-task-e2e.md",
+      "title": "273-extension-lsp-command-task-e2e",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "272"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -326,6 +422,56 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "333",
+      "path": "333-lsp-project-symbol-index.md",
+      "title": "333-lsp-project-symbol-index",
+      "track": "lsp-navigation",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "334",
+        "335",
+        "338"
+      ],
+      "acceptance": {
+        "checked": 6,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "355",
+      "path": "355-lsp-protocol-e2e-tests.md",
+      "title": "355-lsp-protocol-e2e-tests",
+      "track": "tooling-contract",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "353"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
       }
     },
     {
@@ -426,35 +572,6 @@
       }
     },
     {
-      "id": "440",
-      "path": "440-vscode-fix-pipeline-code-actions-formatter-diagnostics.md",
-      "title": "VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする",
-      "track": "vscode-ide",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "341",
-        "346",
-        "348",
-        "349",
-        "350",
-        "352"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "445",
       "path": "445-std-host-process-implementation.md",
       "title": "445-std-host-process-implementation",
@@ -551,6 +668,78 @@
       }
     },
     {
+      "id": "450",
+      "path": "450-lsp-goto-definition-identifier-span.md",
+      "title": "450-lsp-goto-definition-identifier-span",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "454"
+      ],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "451",
+      "path": "451-lsp-hover-semantic-only.md",
+      "title": "451-lsp-hover-semantic-only",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "454"
+      ],
+      "acceptance": {
+        "checked": 7,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "452",
+      "path": "452-lsp-diagnostics-false-positives.md",
+      "title": "452-lsp-diagnostics-false-positives",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "454"
+      ],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "456",
       "path": "456-arukellt-doc-command.md",
       "title": "456-arukellt-doc-command",
@@ -568,6 +757,28 @@
       "acceptance": {
         "checked": 3,
         "unchecked": 6
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "462",
+      "path": "462-extension-settings-rationalization.md",
+      "title": "462-extension-settings-rationalization",
+      "track": "extension",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 10,
+        "unchecked": 0
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -676,6 +887,32 @@
       }
     },
     {
+      "id": "479",
+      "path": "479-lsp-config-struct-and-handler-behavior.md",
+      "title": "479-lsp-config-struct-and-handler-behavior",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "478"
+      ],
+      "blocks_issue_ids": [
+        "480"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "491",
       "path": "491-playground-ci-performance-budget-gates.md",
       "title": "491-playground-ci-performance-budget-gates",
@@ -713,6 +950,30 @@
       "acceptance": {
         "checked": 1,
         "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "502",
+      "path": "502-lsp-full-multi-root-workspace.md",
+      "title": "502-lsp-full-multi-root-workspace",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "441"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -811,6 +1072,30 @@
       }
     },
     {
+      "id": "566",
+      "path": "566-phase6-partial-ast-recovery.md",
+      "title": "566-phase6-partial-ast-recovery",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": false,
+      "depends_on": [
+        "565"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "59",
       "path": "073-wasi-p1-full-syscalls.md",
       "title": "073-wasi-p1-full-syscalls",
@@ -829,6 +1114,56 @@
       },
       "orchestration": {
         "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "626",
+      "path": "626-ide-ready-frontend.md",
+      "title": "626-ide-ready-frontend",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "625"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 7,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "done",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "628",
+      "path": "628-lsp-minimum-viable.md",
+      "title": "628-lsp-minimum-viable",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "627"
+      ],
+      "blocks_issue_ids": [
+        "634"
+      ],
+      "acceptance": {
+        "checked": 10,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "done",
         "upstream_notes": null
       }
     },
@@ -988,6 +1323,113 @@
       }
     },
     {
+      "id": "184",
+      "path": "184-vscode-extension-foundation.md",
+      "title": "184-vscode-extension-foundation",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "189",
+        "190",
+        "191"
+      ],
+      "blocks_issue_ids": [
+        "183"
+      ],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "334",
+      "path": "334-lsp-stdlib-definition-resolution.md",
+      "title": "334-lsp-stdlib-definition-resolution",
+      "track": "lsp-navigation",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "333"
+      ],
+      "blocks_issue_ids": [
+        "336",
+        "337",
+        "340"
+      ],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "335",
+      "path": "335-lsp-cross-file-goto-definition.md",
+      "title": "335-lsp-cross-file-goto-definition",
+      "track": "lsp-navigation",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "333"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "338",
+      "path": "338-lsp-semantic-references.md",
+      "title": "338-lsp-semantic-references",
+      "track": "lsp-semantic",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "333"
+      ],
+      "blocks_issue_ids": [
+        "339",
+        "342"
+      ],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "422",
       "path": "422-hygiene-large-artifact-budget-pruning.md",
       "title": "Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る",
@@ -1034,6 +1476,34 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "454",
+      "path": "454-lsp-regression-fixtures-snapshot.md",
+      "title": "454-lsp-regression-fixtures-snapshot",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "450",
+        "451",
+        "452"
+      ],
+      "blocks_issue_ids": [
+        "463"
+      ],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
       }
     },
     {
@@ -1087,6 +1557,30 @@
       }
     },
     {
+      "id": "480",
+      "path": "480-extension-readme-settings-docs.md",
+      "title": "480-extension-readme-settings-docs",
+      "track": "docs",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "479"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "60",
       "path": "074-wasi-p2-native-component.md",
       "title": "074-wasi-p2-native-component",
@@ -1137,6 +1631,30 @@
       }
     },
     {
+      "id": "634",
+      "path": "634-selfhost-lsp-dap-stdio-transport-entrypoint.md",
+      "title": "634-selfhost-lsp-dap-stdio-transport-entrypoint",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "628"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "136",
       "path": "136-std-wasi-capability-rollout.md",
       "title": "ADR-011 に沿った `std::host` layer の段階的ロールアウト",
@@ -1161,6 +1679,238 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "183",
+      "path": "183-vscode-arukellt-all-in-one-extension-epic.md",
+      "title": "183-vscode-arukellt-all-in-one-extension-epic",
+      "track": "parallel",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "184",
+        "185",
+        "186",
+        "187",
+        "188",
+        "205",
+        "206",
+        "207"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "336",
+      "path": "336-lsp-hover-type-inference.md",
+      "title": "336-lsp-hover-type-inference",
+      "track": "lsp-navigation",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "334"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "337",
+      "path": "337-lsp-signature-help-stdlib.md",
+      "title": "337-lsp-signature-help-stdlib",
+      "track": "lsp-navigation",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "334"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "340",
+      "path": "340-lsp-auto-import-manifest.md",
+      "title": "340-lsp-auto-import-manifest",
+      "track": "lsp-semantic",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "334"
+      ],
+      "blocks_issue_ids": [
+        "341"
+      ],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "339",
+      "path": "339-lsp-semantic-rename.md",
+      "title": "339-lsp-semantic-rename",
+      "track": "lsp-semantic",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "338"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "342",
+      "path": "342-lsp-completion-context.md",
+      "title": "342-lsp-completion-context",
+      "track": "lsp-semantic",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "338"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "463",
+      "path": "463-lsp-performance-smoke-tests.md",
+      "title": "463-lsp-performance-smoke-tests",
+      "track": "lsp, testing",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "454"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 6,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "341",
+      "path": "341-lsp-organize-imports.md",
+      "title": "341-lsp-organize-imports",
+      "track": "lsp-semantic",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "340"
+      ],
+      "blocks_issue_ids": [
+        "440"
+      ],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "440",
+      "path": "440-vscode-fix-pipeline-code-actions-formatter-diagnostics.md",
+      "title": "VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "341",
+        "346",
+        "348",
+        "349",
+        "350",
+        "352"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
       }
     }
   ],

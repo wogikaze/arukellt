@@ -1,0 +1,44 @@
+{
+  "$schema": "/home/ubuntu/.cursor/plugins/cache/cursor-public/9333/a5cda8b561bb6536e880481734199a568cb647f4/skills/orchestrate/schemas/plan.schema.json",
+  "goal": "Slice E: Audit LSP / IDE / vscode done issues. Cross-check scripts/check/check-*-lifecycle.py, tests/fixtures/selfhost/, extension package.",
+  "summary": "False-done audit slice E — LSP/IDE/vscode done issues",
+  "rootSlug": "audit-slice-e",
+  "baseBranch": "master",
+  "repoUrl": "https://github.com/wogikaze/arukellt.git",
+  "selfAgentId": "bc-563812cc-3b7b-4922-8a45-b5e5435a16a4",
+  "acceptanceCriteria": [
+    "IDE/LSP false-done reopened or kept done with proof",
+    "Audit report updated"
+  ],
+  "tasks": [
+    {
+      "name": "audit-lsp-legacy",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "scopedGoal": "Audit legacy LSP done issues (#333-342, #355, #450-454, #463, #502) against selfhost src/compiler/lsp/* and lifecycle fixtures.",
+      "pathsAllowed": ["issues/**", "docs/process/false-done-audit-2026-06-12.md"]
+    },
+    {
+      "name": "audit-phase6-ide",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "scopedGoal": "Audit Phase 6 IDE issues (#565-571, #626-628) against lifecycle scripts and src/compiler/{analysis,lsp,dap}.ark.",
+      "pathsAllowed": ["issues/**", "docs/process/false-done-audit-2026-06-12.md"]
+    },
+    {
+      "name": "audit-vscode-extension",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "scopedGoal": "Audit vscode/extension done issues against extensions/arukellt-all-in-one/.",
+      "pathsAllowed": ["issues/**", "docs/process/false-done-audit-2026-06-12.md"]
+    },
+    {
+      "name": "apply-reopens",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "scopedGoal": "Move must-reopen issues to issues/open/, regenerate index, update audit report, commit orchestration-state.",
+      "pathsAllowed": ["issues/**", "docs/process/false-done-audit-2026-06-12.md"],
+      "dependsOn": ["audit-lsp-legacy", "audit-phase6-ide", "audit-vscode-extension"]
+    }
+  ]
+}

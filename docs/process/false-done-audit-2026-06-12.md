@@ -780,3 +780,108 @@ None (gaps covered by reopened issues + existing #633).
 
 `python3 scripts/manager.py verify quick` — orchestration-state diff only
 (issues/** + regenerated indexes). Pre-existing systemic failures unchanged.
+
+## Wave 4 — Slice E (LSP / IDE / vscode) — 2026-06-12
+
+Orchestration note: `/orchestrate` worker spawn unavailable (`CURSOR_API_KEY` unset in cloud VM). Slice E audit performed directly by subplanner per `prompts/research.md` autonomous policy.
+
+### 1. Audit theme
+
+Cross-checked **~90 candidate** done issues tagged LSP/IDE/vscode/DAP/extension against:
+
+- `scripts/check/check-lsp-lifecycle.py` + `check-dap-lifecycle.py`
+- `tests/fixtures/selfhost/lsp_*.lsp-script`, `dap_*.dap-script`
+- `src/compiler/{analysis,lsp,dap}.ark` and CLI wiring (`src/compiler/main/editor.ark`)
+- `extensions/arukellt-all-in-one/` package + `src/test/extension.test.js`
+
+Headline: **#572 deleted `crates/ark-lsp`**, but many done LSP navigation/semantic issues still claimed Rust-server features. Selfhost MVP (#569/#570) covers lifecycle + hover/definition via **script replay only**; **stdio user entrypoint is missing** (#628 reopened, #634 created).
+
+### 2. Reopened issues (29)
+
+| ID | Area | Classification | Primary evidence |
+|----|------|----------------|------------------|
+| 183 | extension epic | `must-reopen` | Child/rollup gaps (#191, #479, LSP nav) |
+| 184 | extension foundation | `must-reopen` | Depends on false-done children |
+| 191 | setup doctor / command graph | `implementation-parts-only` | `showCommandGraph` is text dump only |
+| 236 | CLI LSP contract | `wired-but-not-user-reachable` | `cmd_lsp` requires script file, not stdio |
+| 271 | extension CI | `acceptance-not-actually-met` | No extension job in `.github/workflows/ci.yml` |
+| 273 | extension task E2E | `acceptance-not-actually-met` | `build` task names ≠ repo tests |
+| 333–342 | LSP navigation/semantic | `must-reopen` | Features absent in `src/compiler/lsp/*` |
+| 355 | LSP protocol E2E | `acceptance-not-actually-met` | Only 2 script fixtures vs broad acceptance |
+| 450–452 | LSP quality | `acceptance-not-actually-met` | Span/E0100 gaps; extension `test.skip` |
+| 454, 463 | LSP tests/perf | `must-reopen` | Rust tests deleted, not ported |
+| 462, 479, 480 | settings → LSP behavior | `must-reopen` / `docs-ahead-of-reality` | `LspConfig` / `crates/ark-lsp` absent |
+| 502 | multi-root LSP | `must-reopen` | No multi-root state in selfhost LSP |
+| 566, 626 | Phase 6 parser recovery | `acceptance-not-actually-met` | NK_ERROR/MISSING contract missing |
+| 628 | LSP MVP parent | `wired-but-not-user-reachable` | Handlers exist; stdio transport missing |
+
+All moved `issues/done/` → `issues/open/` with `Status: open`, `Reopened by audit — 2026-06-12`, and acceptance rollback notes where applicable.
+
+### 3. Newly-created future issues
+
+#### #634 — Selfhost LSP/DAP stdio transport entrypoint
+
+| Field | Value |
+|-------|-------|
+| Path | `issues/open/634-selfhost-lsp-dap-stdio-transport-entrypoint.md` |
+| Track | selfhost-frontend |
+| Why | #628 reopen: extension/docs claim stdio; CLI reads script files only |
+| Depends on | #628 (reopened) |
+| Close gate | stdio loop + lifecycle gates + extension smoke |
+
+### 4. Still-truly-done (Slice E spot checks)
+
+| ID | Area | Evidence |
+|----|------|----------|
+| 565, 567 | Phase 6 lexer/diagnostics | Fixtures + modular `lexer/` / resolver/typechecker accumulation |
+| 568, 627 | Analysis API | `src/compiler/analysis.ark`, `check-analysis-api.py`, 3 fixtures |
+| 569, 570 | LSP handlers (script MVP) | `src/compiler/lsp/*`, 2 lifecycle fixtures |
+| 571 | DAP scaffold | `src/compiler/dap/*`, `dap_lifecycle.dap-script` |
+| 572, 573 | Rust IDE retirement | `crates/` absent; selfhost replacements exist |
+| 189, 190 | Extension bootstrap | `package.json` + `extension.js` wiring |
+| 254, 272, 274, 275, 278 | Extension E2E slices | `extension.test.js` suites (scope-limited claims documented) |
+| 453 | Editor behavior E2E | Def/hover suites active; E0100 explicitly skipped |
+| 477, 478 | Settings manifest/wiring | `package.json` + initializationOptions forwarding |
+| 622 | Task execution + test discovery | `#622` suite closes #254 deferred gaps |
+| 469 | Playground route guard | Narrow URL proof met (`docs/playground/index.html`) |
+
+Added `Audit resolution — 2026-06-12 (Slice E)` notes to these done files.
+
+### 5. Docs / extension / CLI mismatches
+
+| Claim location | Reality | Action |
+|----------------|---------|--------|
+| `docs/current-state.md`, CLI help | `arukellt lsp` is live stdio server | Reopened #236, #628; new #634 |
+| Extension README (#480) | Settings control LSP behavior | Reopened #480; blocked on #479 |
+| `issues/done/` LSP nav (#333–342) | Checked acceptance vs deleted `ark-lsp` | Reopened all |
+| VS Code LanguageClient stdio spawn | Selfhost `cmd_lsp` needs script path | #634 |
+
+### 6. Evidence table (lifecycle gates)
+
+| Gate | Repo artifact | Audit env note |
+|------|---------------|----------------|
+| LSP lifecycle | `check-lsp-lifecycle.py`, 2 fixtures | wasmtime absent in VM; file artifacts + registration verified |
+| DAP lifecycle | `check-dap-lifecycle.py`, 1 fixture | Same |
+| Analysis API | `check-analysis-api.py`, 3 fixtures | Registered in `manager.py verify quick` |
+
+### 7. Dependency updates
+
+- `#634` depends on `#628` (reopened)
+- `#480` blocked by `#479` (reopened)
+- `#462` rollup blocked by `#479`
+- `#183`/`#184` rollups blocked by reopened children
+- Index + dependency graph regenerated
+
+### 8. Remaining high-risk (monitor)
+
+- **#548, #550, #551, #554, #555** — release/extension release gates not fully spot-checked this slice
+- **#185–#216, #219–#220, #439–#444** — IDE workflow epics with broad claims; partial extension wiring only
+- **#453 E0100 skip** — kept done with documented gap; revisit with #452 reopen
+
+### 9–10. Checklist tracking issues
+
+None newly required.
+
+### Verification at slice close
+
+Orchestration-state only (`issues/**`, audit report). `python3 scripts/manager.py verify quick` not re-run in wasmtime-less VM; pre-existing gate failures unchanged from Wave 3b baseline.
