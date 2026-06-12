@@ -10,7 +10,7 @@ fn simple_type(tag: i32) -> TypeInfo {
 }
 
 fn builtin_call_return_type(name: String) -> TypeInfo {
-    if eq(clone(name), "String_from") || eq(clone(name), "i32_to_string") || eq(clone(name), "i64_to_string") || eq(clone(name), "f64_to_string") || eq(clone(name), "bool_to_string") || eq(clone(name), "char_to_string") || eq(clone(name), "to_string") {
+    if eq(clone(name), "String_from") || eq(clone(name), "i32_to_string") || eq(clone(name), "i64_to_string") || eq(clone(name), "f64_to_string") || eq(clone(name), "bool_to_string") || eq(clone(name), "char_to_string") || eq(clone(name), "to_string") || eq(clone(name), "__intrinsic_stdin_read_to_string") {
         return simple_type(commands::TY_STRING())
     }
     if eq(clone(name), "len") {

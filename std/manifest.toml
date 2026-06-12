@@ -2498,6 +2498,18 @@ availability = { t1 = true, t3 = false, note = "T1/WASI P1 only." }
 # === std::host::stdio ===
 
 [[functions]]
+name = "read_to_string"
+module = "std::host::stdio"
+stability = "stable"
+params = []
+returns = "String"
+intrinsic = "__intrinsic_stdin_read_to_string"
+doc_category = "host_stdio"
+doc = "Read all available bytes from standard input into a string."
+availability = { t1 = true, t3 = true }
+examples = [{code = "let input = read_to_string()", description = "Read stdin as a string"}]
+
+[[functions]]
 name = "print"
 module = "std::host::stdio"
 stability = "stable"

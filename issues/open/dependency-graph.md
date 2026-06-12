@@ -40,10 +40,8 @@ graph LR
   I456["456 456-arukellt-doc-command"]
   I462["462 462-extension-settings-rationalization"]
   I464["464 464-init-template-expansion"]
-  I472["472 472-playground-type-checker-product-claim"]
   I479["479 479-lsp-config-struct-and-handler-behavior"]
   I491["491 491-playground-ci-performance-budget-gates"]
-  I500["500 500-playground-wasm-typecheck-export"]
   I510["510 510-t3-p2-import-table-switch"]
   I52["52 064-wasm-branch-hinting"]
   I55["55 067-wasm-sign-extension-ops"]
@@ -176,10 +174,8 @@ graph LR
 - **456** depends on: 455; blocks: none
 - **462** depends on: none; blocks: none
 - **464** depends on: none; blocks: none
-- **472** depends on: 466; blocks: none
 - **479** depends on: 478; blocks: 480
 - **491** depends on: none; blocks: none
-- **500** depends on: none; blocks: none
 - **510** depends on: none; blocks: 074, 62
 - **52** depends on: none; blocks: none
 - **55** depends on: none; blocks: none

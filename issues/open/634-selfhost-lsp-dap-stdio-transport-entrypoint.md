@@ -54,3 +54,21 @@ python3 scripts/check/check-dap-lifecycle.py
 ## Close gate
 
 Close when stdio entrypoint works end-to-end with extension smoke proof and lifecycle gates pass.
+
+## Implementation progress — 2026-06-12
+
+- Wired bare `arukellt lsp` / `arukellt debug-adapter` dispatch to allow missing
+  input and read framed protocol bytes from stdin.
+- Preserved existing script-file replay path for lifecycle golden fixtures.
+- Added `std::host::stdio::read_to_string()` and a selfhost Wasm stdin read-all
+  intrinsic backed by WASI `fd_read` / T2 `arukellt_io.read`.
+- Extended `check-lsp-lifecycle.py` and `check-dap-lifecycle.py` to replay each
+  golden both through the script path and the bare stdio path.
+
+Verification is not yet closeable on this branch: rebuilding a current
+`.build/selfhost/arukellt-s2.wasm` is blocked by pre-existing missing WIT helper
+modules (`resolver_register_wit`, `mir_lower_wit_ctx_init`,
+`mir_lower_body_call_wit`, `typechecker_module_wit`; also noted in #137 close
+notes). With no current s2 artifact, the lifecycle scripts fall back to the
+pinned bootstrap compiler, which still rejects bare stdio with
+`error: no input file specified`.

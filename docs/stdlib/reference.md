@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 386 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 387 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 8 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 175 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 25 | Superseded — see migration guidance. |
@@ -571,6 +571,7 @@ match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
 | `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_eprintln` | Write a string to standard error followed by a newline. |
 | `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
 | `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |
+| `read_to_string` | `() -> String` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_stdin_read_to_string` | Read all available bytes from standard input into a string. |
 
 ### `eprintln` — `std::host::stdio`
 
@@ -598,6 +599,14 @@ println("Hello, world!")
 ```
 
 Expected output: `Hello, world!`
+
+### `read_to_string` — `std::host::stdio`
+
+_Example — Read stdin as a string:_
+
+```ark
+let input = read_to_string()
+```
 
 ## Host Udp
 
@@ -1308,6 +1317,7 @@ Expected output: `hello world`
 | `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
 | `read_stdin_line` | `() -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
+| `read_to_string` | `() -> String` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_stdin_read_to_string` | Read all available bytes from standard input into a string. |
 | `read_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
 | `read_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
 | `read_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes little-endian from a ByteCursor. Returns -1 on underflow. |

@@ -28,6 +28,10 @@ pub fn cmd_ide_analyze(opts: CliOptions) {
 // Arukellt Selfhost - CLI DAP command implementation
 
 pub fn cmd_dap(opts: CliOptions) {
+	if !args_record::cli_has_input_file(opts) {
+		stdio::print(dap::run_dap_session(stdio::read_to_string()))
+		return
+	}
 	let input_file = args_record::cli_input_file(opts)
 	let read_result = fs::read_to_string(clone(input_file))
 	match read_result {
@@ -44,6 +48,10 @@ pub fn cmd_dap(opts: CliOptions) {
 // Arukellt Selfhost - CLI LSP command implementation
 
 pub fn cmd_lsp(opts: CliOptions) {
+	if !args_record::cli_has_input_file(opts) {
+		stdio::print(lsp::run_session(stdio::read_to_string()))
+		return
+	}
 	let input_file = args_record::cli_input_file(opts)
 	let read_result = fs::read_to_string(clone(input_file))
 	match read_result {

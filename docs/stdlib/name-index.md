@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 569
+- **Canonical names:** 570
 - **Historical/deprecated names:** 25
-- **Total entries:** 594
+- **Total entries:** 595
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -424,6 +424,7 @@ Current public API names, sorted alphabetically.
 | `read_stdin_line` | `std::io` | `stable` | Io |
 | `read_string` | `std::fs` | `stable` | Fs |
 | `read_to_string` | `std::host::fs` | `provisional` | Host Fs |
+| `read_to_string` | `std::host::stdio` | `stable` | Host Stdio |
 | `read_u16_le` | `std::bytes` | `stable` | Bytes |
 | `read_u32_be` | `std::bytes` | `stable` | Bytes |
 | `read_u32_le` | `std::bytes` | `stable` | Bytes |
@@ -1059,6 +1060,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
 | `read_string` | ✅ `stable` | `std::fs` | Fs |
 | `read_to_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
+| `read_to_string` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `read_u16_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u32_be` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u32_le` | ✅ `stable` | `std::bytes` | Bytes |

@@ -46,8 +46,8 @@ match content {
 ## `std::host::stdio`
 
 - Source: [`../../../std/host/stdio.ark`](../../../std/host/stdio.ark)
-- Manifest-backed functions: 3
-- Stability: stable 3
+- Manifest-backed functions: 4
+- Stability: stable 4
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
@@ -62,9 +62,20 @@ standard-library surface and must be imported from `std::host::stdio`.
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
+| `read_to_string` | `() -> String` | `stable` | ✅ impl | Reads all available bytes from stdin into a string. |
 | `print` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stdout without appending a newline. |
 | `println` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stdout and appends a newline. |
 | `eprintln` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stderr. |
+
+#### `read_to_string`
+
+Read all available bytes from standard input into a string.
+
+_Example — Read stdin as a string:_
+
+```ark
+let input = read_to_string()
+```
 
 #### `print`
 

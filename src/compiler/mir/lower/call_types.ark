@@ -14,7 +14,7 @@ fn mir_mark_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
 }
 
 fn mark_string_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
-    if eq(clone(callee_name), "String_from") || eq(clone(callee_name), "concat") || eq(clone(callee_name), "clone") || eq(clone(callee_name), "to_string") || eq(clone(callee_name), "char_to_string") || eq(clone(callee_name), "bool_to_string") || eq(clone(callee_name), "f64_to_string") || eq(clone(callee_name), "substring") || eq(clone(callee_name), "trim") || eq(clone(callee_name), "to_uppercase") || eq(clone(callee_name), "to_lowercase") || eq(clone(callee_name), "replace") || eq(clone(callee_name), "string::repeat") || eq(clone(callee_name), "__intrinsic_i32_to_string") || eq(clone(callee_name), "__intrinsic_f64_to_string") {
+    if eq(clone(callee_name), "String_from") || eq(clone(callee_name), "concat") || eq(clone(callee_name), "clone") || eq(clone(callee_name), "to_string") || eq(clone(callee_name), "char_to_string") || eq(clone(callee_name), "bool_to_string") || eq(clone(callee_name), "f64_to_string") || eq(clone(callee_name), "substring") || eq(clone(callee_name), "trim") || eq(clone(callee_name), "to_uppercase") || eq(clone(callee_name), "to_lowercase") || eq(clone(callee_name), "replace") || eq(clone(callee_name), "string::repeat") || eq(clone(callee_name), "stdio::read_to_string") || eq(clone(callee_name), "__intrinsic_stdin_read_to_string") || eq(clone(callee_name), "__intrinsic_i32_to_string") || eq(clone(callee_name), "__intrinsic_f64_to_string") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("string"))
     }
 }

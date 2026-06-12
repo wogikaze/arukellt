@@ -3,6 +3,7 @@
 fn push_convert_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("parse_i64"))
     push(names, String_from("__intrinsic_println"))
+    push(names, String_from("__intrinsic_stdin_read_to_string"))
     push(names, String_from("__intrinsic_i32_to_string"))
     push(names, String_from("__intrinsic_f64_to_string"))
     push(names, String_from("i8_to_i32"))

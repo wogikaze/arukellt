@@ -88,6 +88,27 @@ def main() -> int:
             print(f"FAIL {rel}: missing expected response frames", file=sys.stderr)
             failures += 1
             continue
+        r_stdio = subprocess.run(
+            [wasmtime, "run", "--dir", str(root), str(compiler), "--",
+             "debug-adapter"],
+            cwd=str(root),
+            input=script.read_bytes(),
+            capture_output=True,
+            timeout=60,
+        )
+        if r_stdio.returncode != 0:
+            print(f"FAIL {rel}: debug-adapter stdio exit {r_stdio.returncode}", file=sys.stderr)
+            print(r_stdio.stderr[:500], file=sys.stderr)
+            failures += 1
+            continue
+        if r_stdio.stdout != expected:
+            print(f"FAIL {rel}: stdio response stream mismatch", file=sys.stderr)
+            print(f"  expected ({len(expected)} bytes):", file=sys.stderr)
+            print(expected.decode("utf-8", errors="replace"), file=sys.stderr)
+            print(f"  got ({len(r_stdio.stdout)} bytes):", file=sys.stderr)
+            print(r_stdio.stdout.decode("utf-8", errors="replace"), file=sys.stderr)
+            failures += 1
+            continue
         print(f"  pass: {rel}")
 
     if failures > 0:

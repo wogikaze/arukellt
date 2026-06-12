@@ -5,6 +5,11 @@
 //!
 //! **Availability:** All targets (T1 + T3). Requires WASI stdout/stderr capability.
 
+/// Reads all available bytes from stdin into a string.
+pub fn read_to_string() -> String {
+    __intrinsic_stdin_read_to_string()
+}
+
 /// Writes a string to stdout without appending a newline.
 pub fn print(s: String) {
     __intrinsic_print(s)
