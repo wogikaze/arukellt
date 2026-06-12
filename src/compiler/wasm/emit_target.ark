@@ -6,24 +6,28 @@ fn is_freestanding_target(target: String) -> bool {
     contains(clone(target), String_from("freestanding"))
 }
 
-fn host_import_count(target: String) -> i32 {
+fn is_p2_wasi(wasi_version: String) -> bool {
+    eq(clone(wasi_version), String_from("p2"))
+}
+
+fn host_import_count(target: String, wasi_version: String) -> i32 {
     if is_freestanding_target(clone(target)) {
         return constants::NUM_T2_IMPORTS()
     }
     constants::NUM_WASI_IMPORTS()
 }
 
-fn host_type_count(target: String) -> i32 {
+fn host_type_count(target: String, wasi_version: String) -> i32 {
     if is_freestanding_target(clone(target)) {
         return constants::NUM_T2_TYPES()
     }
     constants::NUM_WASI_TYPES()
 }
 
-fn total_import_count(target: String, wit_import_count: i32) -> i32 {
-    host_import_count(clone(target)) + wit_import_count
+fn total_import_count(target: String, wasi_version: String, wit_import_count: i32) -> i32 {
+    host_import_count(clone(target), clone(wasi_version)) + wit_import_count
 }
 
-fn total_host_type_count(target: String, wit_import_count: i32) -> i32 {
-    host_type_count(clone(target)) + wit_import_count
+fn total_host_type_count(target: String, wasi_version: String, wit_import_count: i32) -> i32 {
+    host_type_count(clone(target), clone(wasi_version)) + wit_import_count
 }

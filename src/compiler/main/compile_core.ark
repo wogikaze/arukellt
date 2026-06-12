@@ -17,6 +17,9 @@ use driver::file
 pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: bool) -> DriverConfig {
 	let config = config_record::DriverConfig_default()
 	config_record::config_set_target(config, args_record::cli_target(opts))
+	if args_record::cli_has_wasi_version(opts) {
+		config_record::config_set_wasi_version(config, args_record::cli_wasi_version(opts))
+	}
 	config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
 	config_record::config_set_emit_mode(config, emit_mode)
 	config_record::config_set_wit_paths(config, args_record::cli_wit_paths(opts))

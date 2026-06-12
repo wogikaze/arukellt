@@ -4,6 +4,6 @@ use wasm::intrinsics::helpers_core_calls
 
 // Handler for: process::exit, host::process::exit
 fn emit_process_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    helpers_core_calls::emit_call(w, 6)
+    helpers_core_calls::emit_call(w, 6)
     return false
-    }
+}

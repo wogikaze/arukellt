@@ -5,6 +5,6 @@
 use wasm
 use resolver::wit_import_bind
 
-pub fn emit_wasm(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
-    wasm::emit_wasm(mir, target, opt_level, Vec_new_WitImportBinding())
+pub fn emit_wasm(mir: MirModule, target: String, wasi_version: String, opt_level: i32) -> Vec<i32> {
+    wasm::emit_wasm(mir, target, wasi_version, opt_level, Vec_new_WitImportBinding())
 }

@@ -19,7 +19,7 @@ fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32
         ci = ci + 1
     }
     if needs_wrapper == 1 {
-        let wrapper_body = emit_start_wrapper_body(main_idx, ctx_record::SelfEmitCtx_target(ctx), len(bindings))
+        let wrapper_body = emit_start_wrapper_body(main_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), len(bindings))
         emit_code_body_entry(code_sec, wrapper_body)
     }
     writer_sections::emit_section(out, opcodes::SEC_CODE(), code_sec)
@@ -30,11 +30,11 @@ fn emit_code_body_entry(code_sec: WasmWriter, body: WasmWriter) {
     writer_core::emit_bytes(code_sec, writer_core::writer_bytes(body))
 }
 
-fn emit_start_wrapper_body(main_idx: i32, target: String, wit_import_count: i32) -> WasmWriter {
+fn emit_start_wrapper_body(main_idx: i32, target: String, wasi_version: String, wit_import_count: i32) -> WasmWriter {
     let wrapper_body = writer_core::WasmWriter_new()
     writer_leb::emit_leb128_u(wrapper_body, 0)
     writer_core::emit_byte(wrapper_body, opcodes::OP_CALL())
-    writer_leb::emit_leb128_u(wrapper_body, function_indices::defined_function_index(main_idx, clone(target), wit_import_count))
+    writer_leb::emit_leb128_u(wrapper_body, function_indices::defined_function_index(main_idx, clone(target), clone(wasi_version), wit_import_count))
     writer_core::emit_byte(wrapper_body, opcodes::OP_DROP())
     writer_core::emit_byte(wrapper_body, opcodes::OP_END())
     wrapper_body

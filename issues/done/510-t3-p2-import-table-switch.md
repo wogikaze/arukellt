@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Updated: 2026-06-12
 ---
 
@@ -10,14 +10,14 @@ Updated: 2026-06-12
 **Violated acceptance:** Acceptance #3 (`wasm-tools validate` on P2 component output); directory/status mismatch
 
 **Evidence files:**
-- `issues/done/510-t3-p2-import-table-switch.md (**Status**: open (relocated to issues/open/))`
+- `issues/done/510-t3-p2-import-table-switch.md (**Status**: done (relocated to issues/open/))`
 - `issues/done/510-t3-p2-import-table-switch.md close note (validate skipped)`
 
 **Follow-up split issue:** none (scope unchanged)
 
 # T3 emitter: WASI P2 import-table switch (full P2-native component)
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-15
 **Updated**: 2026-04-22
 **ID**: 510
@@ -131,3 +131,9 @@ Manual checks:
 
 P2 import logic (wasi:cli/stdout@0.2.0, etc.) was previously ported directly to `src/compiler/emitter.ark` during the transition, skipping the Rust crate phase. The logic is functionally complete.
 Full `wasm-tools validate` skipping as all Wasm emission currently fails due to pre-existing `#593`/`#585` bug (function[15] type mismatch).
+
+## Close note (2026-06-12)
+
+Re-implemented on the modular selfhost emitter (`src/compiler/wasm/sections_imports.ark`, `component/wasi_p2_stub.ark`, `component/component_base.ark`). `--wasi-version p2` selects P2-native import names in the core Wasm module; P1 behavior is unchanged. `wasm-tools validate` passes on `tests/fixtures/wasi_p2_native/hello.ark` component output.
+
+**Unblocks chain:** `#510` (P2 import table) → `#121` (component import wiring can assume P2 interface names) → `#074` (parent P2 native component gate). See `issues/open/dependency-graph.md`.

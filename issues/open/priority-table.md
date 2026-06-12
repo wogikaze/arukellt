@@ -43,47 +43,46 @@ Scoring criteria (0-5 each, total 25):
 | 30 | 463 | 463-lsp-performance-smoke-tests | lsp, testing | 0 | 0 | 5 | 1 | 4 | 10 |
 | 31 | 491 | 491-playground-ci-performance-budget-gates | playground | 0 | 0 | 4 | 1 | 5 | 10 |
 | 32 | 502 | 502-lsp-full-multi-root-workspace | vscode-ide | 0 | 0 | 5 | 1 | 4 | 10 |
-| 33 | 510 | 510-t3-p2-import-table-switch | main | 2 | 0 | 1 | 2 | 5 | 10 |
-| 34 | 52 | 064-wasm-branch-hinting | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 35 | 55 | 067-wasm-sign-extension-ops | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 36 | 56 | 070-wasm-i31ref-scalar | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 37 | 073 | 073-wasi-p1-full-syscalls | wasi-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 38 | 115 | 115-wasm-name-section | wasm-quality | 0 | 0 | 1 | 3 | 5 | 9 |
-| 39 | 184 | 184-vscode-extension-foundation | parallel | 1 | 0 | 5 | 1 | 2 | 9 |
-| 40 | 447 | 447-std-host-sockets-implementation | runtime | 1 | 0 | 1 | 3 | 4 | 9 |
-| 41 | 454 | 454-lsp-regression-fixtures-snapshot | vscode-ide | 1 | 0 | 5 | 1 | 2 | 9 |
-| 42 | 633 | Reconcile std::host::http / sockets / udp capability claims... | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
-| 43 | 634 | 634-selfhost-lsp-dap-stdio-transport-entrypoint | selfhost-frontend | 0 | 0 | 1 | 5 | 3 | 9 |
-| 44 | 080 | 080-mir-licm | mir-opt | 1 | 0 | 1 | 1 | 5 | 8 |
-| 45 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 46 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 47 | 183 | 183-vscode-arukellt-all-in-one-extension-epic | parallel | 0 | 0 | 5 | 1 | 2 | 8 |
-| 48 | 358 | Stdlib: host family の stub を解消し stable capability に引き上げる | stdlib-api | 0 | 0 | 1 | 3 | 4 | 8 |
-| 49 | 445 | 445-std-host-process-implementation | runtime | 0 | 0 | 1 | 3 | 4 | 8 |
-| 50 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
-| 51 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
-| 52 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 53 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 54 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 55 | 082 | 082-mir-gc-hint | mir-opt | 0 | 0 | 1 | 1 | 5 | 7 |
-| 56 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
-| 57 | 293 | env: ":var() の実装を完成させる" | capability | 0 | 0 | 2 | 1 | 4 | 7 |
-| 58 | 422 | Repo Hygiene: 大きな artifact と baseline の size budget / pruni... | repo-hygiene | 0 | 0 | 2 | 1 | 4 | 7 |
-| 59 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
-| 60 | 479 | 479-lsp-config-struct-and-handler-behavior | vscode-ide | 1 | 0 | 1 | 1 | 4 | 7 |
-| 61 | 480 | 480-extension-readme-settings-docs | docs | 0 | 0 | 1 | 2 | 4 | 7 |
-| 62 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 63 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 64 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 65 | 083 | 083-mir-loop-unrolling | mir-opt | 0 | 0 | 1 | 1 | 4 | 6 |
-| 66 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 67 | 216 | Formatter surface | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
-| 68 | 217 | Code actions + refactor code actions | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
-| 69 | 219 | LSP standard feature completeness | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
-| 70 | 292 | 292-stub-host-compile-error | capability | 0 | 0 | 1 | 1 | 4 | 6 |
-| 71 | 456 | 456-arukellt-doc-command | cli | 0 | 0 | 2 | 1 | 3 | 6 |
-| 72 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 73 | 441 | VSCode Extension: Workspace / Package / ark.toml を理解した proj... | vscode-ide | 1 | 0 | 1 | 1 | 2 | 5 |
-| 74 | 464 | 464-init-template-expansion | cli, dx | 0 | 0 | 1 | 1 | 3 | 5 |
-| 75 | 439 | VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
-| 76 | 440 | VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「f... | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
+| 33 | 52 | 064-wasm-branch-hinting | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 34 | 55 | 067-wasm-sign-extension-ops | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 35 | 56 | 070-wasm-i31ref-scalar | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 36 | 073 | 073-wasi-p1-full-syscalls | wasi-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 37 | 115 | 115-wasm-name-section | wasm-quality | 0 | 0 | 1 | 3 | 5 | 9 |
+| 38 | 184 | 184-vscode-extension-foundation | parallel | 1 | 0 | 5 | 1 | 2 | 9 |
+| 39 | 447 | 447-std-host-sockets-implementation | runtime | 1 | 0 | 1 | 3 | 4 | 9 |
+| 40 | 454 | 454-lsp-regression-fixtures-snapshot | vscode-ide | 1 | 0 | 5 | 1 | 2 | 9 |
+| 41 | 633 | Reconcile std::host::http / sockets / udp capability claims... | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
+| 42 | 634 | 634-selfhost-lsp-dap-stdio-transport-entrypoint | selfhost-frontend | 0 | 0 | 1 | 5 | 3 | 9 |
+| 43 | 080 | 080-mir-licm | mir-opt | 1 | 0 | 1 | 1 | 5 | 8 |
+| 44 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 45 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 46 | 183 | 183-vscode-arukellt-all-in-one-extension-epic | parallel | 0 | 0 | 5 | 1 | 2 | 8 |
+| 47 | 358 | Stdlib: host family の stub を解消し stable capability に引き上げる | stdlib-api | 0 | 0 | 1 | 3 | 4 | 8 |
+| 48 | 445 | 445-std-host-process-implementation | runtime | 0 | 0 | 1 | 3 | 4 | 8 |
+| 49 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
+| 50 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
+| 51 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 52 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 53 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 54 | 082 | 082-mir-gc-hint | mir-opt | 0 | 0 | 1 | 1 | 5 | 7 |
+| 55 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
+| 56 | 293 | env: ":var() の実装を完成させる" | capability | 0 | 0 | 2 | 1 | 4 | 7 |
+| 57 | 422 | Repo Hygiene: 大きな artifact と baseline の size budget / pruni... | repo-hygiene | 0 | 0 | 2 | 1 | 4 | 7 |
+| 58 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
+| 59 | 479 | 479-lsp-config-struct-and-handler-behavior | vscode-ide | 1 | 0 | 1 | 1 | 4 | 7 |
+| 60 | 480 | 480-extension-readme-settings-docs | docs | 0 | 0 | 1 | 2 | 4 | 7 |
+| 61 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 62 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 63 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 64 | 083 | 083-mir-loop-unrolling | mir-opt | 0 | 0 | 1 | 1 | 4 | 6 |
+| 65 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 66 | 216 | Formatter surface | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
+| 67 | 217 | Code actions + refactor code actions | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
+| 68 | 219 | LSP standard feature completeness | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
+| 69 | 292 | 292-stub-host-compile-error | capability | 0 | 0 | 1 | 1 | 4 | 6 |
+| 70 | 456 | 456-arukellt-doc-command | cli | 0 | 0 | 2 | 1 | 3 | 6 |
+| 71 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 72 | 441 | VSCode Extension: Workspace / Package / ark.toml を理解した proj... | vscode-ide | 1 | 0 | 1 | 1 | 2 | 5 |
+| 73 | 464 | 464-init-template-expansion | cli, dx | 0 | 0 | 1 | 1 | 3 | 5 |
+| 74 | 439 | VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
+| 75 | 440 | VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「f... | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
