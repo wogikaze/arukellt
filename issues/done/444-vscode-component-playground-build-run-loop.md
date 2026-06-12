@@ -10,6 +10,10 @@ Blocks v1 exit: False
 Priority: 6
 # VSCode Extension × Component: Playground / Editor から component を直接生成・実行できる導線を作る
 ---
+## Audit resolution — 2026-06-12 (Slice G)
+
+`truly-done` — Extension `buildComponent` / `buildComponentWit` commands implemented in `extensions/arukellt-all-in-one/src/extension.js`; P2 compile entrypoint reachable.
+
 # VSCode Extension × Component: Playground / Editor から component を直接生成・実行できる導線を作る
 
 ## Summary

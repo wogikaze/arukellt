@@ -885,3 +885,118 @@ None newly required.
 ### Verification at slice close
 
 Orchestration-state only (`issues/**`, audit report). `python3 scripts/manager.py verify quick` not re-run in wasmtime-less VM; pre-existing gate failures unchanged from Wave 3b baseline.
+
+## Slice G — 2026-06-12 (remainder mechanical spot-check)
+
+Orchestrator: subplanner `audit-slice-g` (278 done issues uncovered by slices A–F;
+wave 1 deep spot-check on 50 high-risk IDs; full mechanical classification on all 278).
+Cloud worker spawn unavailable — planner executed audit directly per
+`unsupported-in-this-run`.
+
+Coverage method: subtract slice A–F batch manifests and branch diffs from current
+`issues/done/` inventory (`598` on master at audit time → **278 uncovered**).
+
+### 1. Audit summary
+
+| Metric | Count |
+|--------|------:|
+| Uncovered done issues (Slice G scope) | 278 |
+| Wave 1 deep spot-check | 50 |
+| **Reopened (must-reopen, repo proof)** | **2** |
+| Mechanical `truly-done` | 171 |
+| `implementation-parts-only` (monitor) | 50 |
+| `monitor` (Rust-era refs, close note or successor path) | 21 |
+| `false-done-risk-high` (no reopen without further proof) | 34 |
+
+Full per-issue classification table:
+`.orchestrate/audit-slice-g/classification-table.md` (278 rows).
+
+### 2. Reopened issues
+
+#### #439 — VSCode LSP semantic stdlib navigation
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/439-vscode-lsp-semantic-stdlib-navigation.md` |
+| New path | `issues/open/439-vscode-lsp-semantic-stdlib-navigation.md` |
+| Classification | `must-reopen` / `acceptance-not-actually-met` |
+| Reopen reason | Selfhost LSP uses single-buffer `symbol_at` only; no std/manifest index, references, rename, or multi-file workspace |
+| Violated acceptance | All five acceptance checkboxes |
+| Evidence | `src/compiler/lsp/feature_definition.ark`, `src/compiler/analysis/symbols.ark`, absent `crates/ark-lsp` |
+| Follow-up split | none |
+
+#### #441 — VSCode project-aware workspace / ark.toml
+
+| Field | Value |
+|-------|-------|
+| Old path | `issues/done/441-vscode-project-aware-workspace-package-ark-toml.md` |
+| New path | `issues/open/441-vscode-project-aware-workspace-package-ark-toml.md` |
+| Classification | `must-reopen` / `wired-but-not-user-reachable` |
+| Reopen reason | Close note delegated to deleted `ark-lsp` / #502; selfhost LSP lacks multi-package graph, cross-package index, package-aware imports |
+| Violated acceptance | All five acceptance checkboxes |
+| Evidence | `src/compiler/lsp/feature_symbol.ark`, `tests/fixtures/selfhost/lsp_hover_definition.lsp-script`, absent `crates/` |
+| Follow-up split | none |
+
+### 3. Newly-created future issues
+
+None. IDE nav/workspace gaps remain covered by reopened #439/#441 and slice E
+branch reopens (#333–#342, #502) pending merge.
+
+### 4. Still-truly-done (wave 1 spot checks)
+
+| ID | Area | Evidence |
+|----|------|----------|
+| 444 | VSCode component build | `extensions/arukellt-all-in-one/src/extension.js` `buildComponent` commands |
+| 501 | T2 emitter | `run:t2/t2_scaffold.ark`, `run:t2/t2_stdio.ark` in manifest |
+| 560 | Delete ark-driver | `crates/` absent |
+| 614 | Structured diagnostics | Close gate 2026-05-16 + selfhost JSON diag fixtures |
+| 428 | Playground ADR contract | `docs/adr/ADR-017-playground-execution-model.md` |
+| 436 | Docs ↔ playground nav | `docs/playground/index.html`, `docs/index.html` link |
+| 490 | pub use re-export | `modules/pub_use_*` manifest fixtures |
+| 209 | CLI ↔ driver | `src/compiler/main.ark` wired to driver |
+| 185 | IDE workflow parent | Tracking-only child separation scope |
+
+### 5. Docs / extension / CLI / workflow mismatches
+
+| Claim location | Reality | Action |
+|----------------|---------|--------|
+| #439 acceptance (stdlib nav) | Selfhost LSP single-file only | Reopened #439 |
+| #441 acceptance (multi-package) | No ark.toml graph in selfhost LSP | Reopened #441 |
+| 34 `false-done-risk-high` rows | Rust-era close prose; may need follow-up after A–F branch merges | Monitor; no bulk reopen without proof |
+
+### 6. Evidence table (reopen decisions)
+
+| Issue | Repo proof checked | Result |
+|-------|-------------------|--------|
+| 439 | selfhost LSP symbol resolution | FAIL — reopen |
+| 441 | selfhost LSP workspace/package | FAIL — reopen |
+| 444 | extension buildComponent | PASS — keep done |
+| 501 | T2 manifest fixtures | PASS — keep done |
+| 560 | crates/ absent | PASS — keep done |
+
+### 7. Dependency updates
+
+- `#441` depends on #333, #335, #340 (unchanged)
+- `#439` depends on #333–#339 (unchanged)
+- Index regenerated after reopen
+
+### 8. Remaining high-risk false-done items (monitor)
+
+- **34 issues** classified `false-done-risk-high` — user-visible or harness claims citing
+  deleted `crates/` without close notes; await targeted proof pass or slice E/B branch merge
+  (#216/#217/#219/#502 on sibling branches).
+- **228 uncovered issues** beyond wave 1 received mechanical classification only; no
+  contradicting repo proof surfaced in automated pass.
+
+### 9. Checklist items not tracked as issues
+
+None newly identified. Release checklist items remain covered by existing CI/issue work.
+
+### 10. Newly-created checklist tracking issues
+
+None.
+
+### Verification at slice close
+
+`python3 scripts/manager.py verify quick` — orchestration-state diff only (`issues/**`);
+pre-existing failures unchanged from prior waves.

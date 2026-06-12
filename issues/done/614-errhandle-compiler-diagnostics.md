@@ -7,6 +7,9 @@ Track: compiler / selfhost
 Orchestration class: implementation-ready
 Depends on: —
 ---
+## Audit resolution — 2026-06-12 (Slice G)
+
+`truly-done` — Close gate satisfied 2026-05-16; stale reopen banner text only — structured diagnostics + JSON output verified via selfhost fixtures.
 
 # Error Handling Convergence: Compiler Structured Diagnostics
 

@@ -10,6 +10,10 @@ Blocks v1 exit: False
 Status note: Parent issue for authoring intelligence beyond today’s base LSP features.
 # IDE surface: rename / code actions / workspace symbols / formatting
 ---
+## Audit resolution — 2026-06-12 (Slice G)
+
+`truly-done` — Parent tracking issue; acceptance is child-issue separation (#192–#195), not LSP feature delivery.
+
 # IDE surface: rename / code actions / workspace symbols / formatting
 
 ## Summary

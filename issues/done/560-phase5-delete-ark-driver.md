@@ -14,6 +14,9 @@ Source: "#529 Phase 5 — Core compiler crate (driver / module loading / lowerin
 Implementation target: "Per #529 Phase 5, this issue removes exactly one Rust crate (`crates/ark-driver`). No Ark product code is added or changed; this is retirement work scoped to a single crate."
 REBUILD_BEFORE_VERIFY: "yes (workspace topology change forces selfhost rebuild)"
 ---
+## Audit resolution — 2026-06-12 (Slice G)
+
+`truly-done` — `crates/` directory absent; Phase 5 ark-driver retirement complete on selfhost-first path.
 
 # 560 — Phase 5: Delete `crates/ark-driver`
 

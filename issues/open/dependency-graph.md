@@ -46,7 +46,6 @@ graph LR
   I479["479 479-lsp-config-struct-and-handler-behavior"]
   I491["491 491-playground-ci-performance-budget-gates"]
   I500["500 500-playground-wasm-typecheck-export"]
-  I502["502 502-lsp-full-multi-root-workspace"]
   I510["510 510-t3-p2-import-table-switch"]
   I52["52 064-wasm-branch-hinting"]
   I55["55 067-wasm-sign-extension-ops"]
@@ -83,7 +82,10 @@ graph LR
   I342["342 342-lsp-completion-context"]
   I463["463 463-lsp-performance-smoke-tests"]
   I341["341 341-lsp-organize-imports"]
+  I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
+  I439["439 VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する"]
   I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
+  I502["502 502-lsp-full-multi-root-workspace"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I080 --> I083
@@ -119,7 +121,16 @@ graph LR
   I338 --> I342
   I454 --> I463
   I340 --> I341
+  I333 --> I441
+  I335 --> I441
+  I340 --> I441
+  I333 --> I439
+  I334 --> I439
+  I335 --> I439
+  I338 --> I439
+  I339 --> I439
   I341 --> I440
+  I441 --> I502
   I124 --> I28
   I30 --> I31
 ```
@@ -144,7 +155,7 @@ graph LR
 - **293** depends on: none; blocks: none
 - **295** depends on: none; blocks: none
 - **30** depends on: 27; blocks: none
-- **333** depends on: none; blocks: 334, 335, 338
+- **333** depends on: none; blocks: 334, 335, 338, 439, 441
 - **355** depends on: 353; blocks: none
 - **358** depends on: none; blocks: none
 - **41** depends on: 039, 040; blocks: none
@@ -166,7 +177,6 @@ graph LR
 - **479** depends on: 478; blocks: 480
 - **491** depends on: none; blocks: none
 - **500** depends on: none; blocks: none
-- **502** depends on: 441; blocks: none
 - **510** depends on: none; blocks: 60, 62
 - **52** depends on: none; blocks: none
 - **55** depends on: none; blocks: none
@@ -182,9 +192,9 @@ graph LR
 - **139** depends on: 074, 137; blocks: 136
 - **63** depends on: 074, 137; blocks: none
 - **184** depends on: 189, 190, 191; blocks: 183
-- **334** depends on: 333; blocks: 336, 337, 340
-- **335** depends on: 333; blocks: none
-- **338** depends on: 333; blocks: 339, 342
+- **334** depends on: 333; blocks: 336, 337, 340, 439
+- **335** depends on: 333; blocks: 439, 441
+- **338** depends on: 333; blocks: 339, 342, 439
 - **422** depends on: 418; blocks: none
 - **633** depends on: 446, 447; blocks: none
 - **454** depends on: 450, 451, 452; blocks: 463
@@ -198,12 +208,15 @@ graph LR
 - **183** depends on: 184, 185, 186, 187, 188, 205, 206, 207; blocks: none
 - **336** depends on: 334; blocks: none
 - **337** depends on: 334; blocks: none
-- **340** depends on: 334; blocks: 341
-- **339** depends on: 338; blocks: none
+- **340** depends on: 334; blocks: 341, 441
+- **339** depends on: 338; blocks: 439
 - **342** depends on: 338; blocks: none
 - **463** depends on: 454; blocks: none
 - **341** depends on: 340; blocks: 440
+- **441** depends on: 333, 335, 340; blocks: 502
+- **439** depends on: 333, 334, 335, 338, 339; blocks: none
 - **440** depends on: 341, 346, 348, 349, 350, 352; blocks: none
+- **502** depends on: 441; blocks: none
 
 ### Blocked
 

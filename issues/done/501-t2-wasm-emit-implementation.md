@@ -9,6 +9,9 @@ Orchestration class: implementation-ready
 Blocks v1 exit: no
 Priority: 20
 ---
+## Audit resolution — 2026-06-12 (Slice G)
+
+`truly-done` — T2 scaffold fixtures registered (`run:t2/t2_scaffold.ark`, `run:t2/t2_stdio.ark`); selfhost T2 path supersedes deleted `crates/ark-wasm` close evidence.
 
 (Option A: import-based bridge with 1-page linear memory for marshaling).  This issue
 This issue was created when issue #382 was audited: all acceptance checkboxes in #382

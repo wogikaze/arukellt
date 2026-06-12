@@ -10,6 +10,10 @@ Blocks v1 exit: False
 Priority: 4
 # Playground: editor shell と syntax highlighting を実装する
 ---
+## Audit resolution — 2026-06-12 (Slice G)
+
+`truly-done` — Historical editor-shell slice; issue status note limits claim to component work — browser product proof tracked separately (#466+).
+
 # Playground: editor shell と syntax highlighting を実装する
 
 ## Status note (2026-04-03)

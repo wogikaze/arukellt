@@ -9,6 +9,9 @@ Orchestration class: verification-ready
 Orchestration upstream: —
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
 ---
+## Audit resolution — 2026-06-12 (Slice G)
+
+`truly-done` — Docs/playground entry exists (`docs/playground/index.html`, linked from `docs/index.html`).
 
 ## Reopened by audit
 

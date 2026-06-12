@@ -10,6 +10,10 @@ Blocks v1 exit: False
 Priority: 1
 # Playground: v1 の product contract と execution ADR を固定する
 ---
+## Audit resolution — 2026-06-12 (Slice G)
+
+`truly-done` — Playground v1 contract ADRs present (`docs/adr/ADR-017-playground-execution-model.md` et al.); planning scope met.
+
 # Playground: v1 の product contract と execution ADR を固定する
 
 ## Summary

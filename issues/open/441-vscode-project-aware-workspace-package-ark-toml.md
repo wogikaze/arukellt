@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-31
-Updated: 2026-04-18
+Updated: 2026-06-12
 ID: 441
 Track: vscode-ide
 Depends on: 333, 335, 340
@@ -12,6 +12,22 @@ Action: Audited acceptance items against actual code; partial scaffolding confir
 ---
 
 # VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする
+
+## Reopened by audit — 2026-06-12 (Slice G)
+
+**Classification:** `must-reopen` / `wired-but-not-user-reachable`
+
+**Reopen reason:** Close note delegates functional acceptance to `#502` via deleted `crates/ark-lsp`. Selfhost LSP has no `workspace_roots`, `ark.toml` graph walk, cross-package index, or package-aware import resolution — only single-buffer symbol lookup.
+
+**Violated acceptance:** Module graph from `ark.toml`, multi-package resolution, cross-package go-to-definition, package-aware imports, workspace index rebuild.
+
+**Evidence files:**
+- `src/compiler/lsp/feature_symbol.ark` — single-file `symbols::symbol_at`
+- `src/compiler/lsp/responses_lifecycle.ark` — no workspace sync capabilities beyond defaults
+- `tests/fixtures/selfhost/lsp_hover_definition.lsp-script` — single-file definition only
+- `crates/` absent — `#502` close evidence cited `crates/ark-lsp/src/server.rs`
+
+**Follow-up split:** none (depends on selfhost multi-root port; #502 remains falsely done on master pending slice E merge)
 
 - `ArukellBackend.workspace_roots: Mutex<Vec<PathBuf>>` is populated from
 `workspace_folders` on LSP initialization (`server.rs: 3696–3740`).
@@ -68,11 +84,11 @@ VSCode拡張を単なるファイル単位ツールから、ark.toml・workspace
 
 ## Acceptance
 
-- [x] `ark.toml` を元に module graph を構築する。 *(completed by #502; historical pre-landing note above)*
-- [x] workspace 内複数 package を解決可能にする。 *(completed by #502; historical pre-landing note above)*
-- [x] cross-package go-to-definition が動作する。 *(completed by #502; historical pre-landing note above)*
-- [x] import 解決が package aware になる。 *(completed by #502; historical pre-landing note above)*
-- [x] workspace 変更時に index が再構築される。 *(completed by #502; historical pre-landing note above)*
+- [ ] `ark.toml` を元に module graph を構築する。
+- [ ] workspace 内複数 package を解決可能にする。
+- [ ] cross-package go-to-definition が動作する。
+- [ ] import 解決が package aware になる。
+- [ ] workspace 変更時に index が再構築される。
 
 ## References
 

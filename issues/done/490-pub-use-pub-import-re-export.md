@@ -11,6 +11,9 @@ Orchestration upstream: —
 Blocks v1 exit: no
 Priority: 50
 ---
+## Audit resolution — 2026-06-12 (Slice G)
+
+`truly-done` — Pub-use fixtures registered in manifest (`modules/pub_use_reexport_visible`, `pub_use_nonpub_hidden`).
 
 # pub use / pub import re-export
 

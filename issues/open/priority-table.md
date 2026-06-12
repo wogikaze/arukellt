@@ -11,33 +11,33 @@ Scoring criteria (0-5 each, total 25):
 
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
-| 1 | 334 | 334-lsp-stdlib-definition-resolution | lsp-navigation | 3 | 0 | 5 | 3 | 4 | 15 |
-| 2 | 333 | 333-lsp-project-symbol-index | lsp-navigation | 3 | 0 | 5 | 1 | 5 | 14 |
+| 1 | 333 | 333-lsp-project-symbol-index | lsp-navigation | 5 | 0 | 5 | 1 | 5 | 16 |
+| 2 | 334 | 334-lsp-stdlib-definition-resolution | lsp-navigation | 4 | 0 | 5 | 3 | 4 | 16 |
 | 3 | 336 | 336-lsp-hover-type-inference | lsp-navigation | 0 | 0 | 5 | 5 | 4 | 14 |
 | 4 | 566 | 566-phase6-partial-ast-recovery | selfhost-frontend | 0 | 0 | 5 | 5 | 4 | 14 |
 | 5 | 137 | `std: ":host::*` namespace 導入と migration / target-gated 診断" | wasi-feature | 4 | 0 | 2 | 3 | 4 | 13 |
-| 6 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
-| 7 | 236 | 236-cli-startup-contract-lsp-version-stdio | main | 0 | 0 | 5 | 2 | 5 | 12 |
-| 8 | 337 | 337-lsp-signature-help-stdlib | lsp-navigation | 0 | 0 | 5 | 3 | 4 | 12 |
-| 9 | 338 | 338-lsp-semantic-references | lsp-semantic | 2 | 0 | 5 | 1 | 4 | 12 |
-| 10 | 450 | 450-lsp-goto-definition-identifier-span | vscode-ide | 1 | 0 | 5 | 1 | 5 | 12 |
-| 11 | 451 | 451-lsp-hover-semantic-only | vscode-ide | 1 | 0 | 5 | 1 | 5 | 12 |
-| 12 | 452 | 452-lsp-diagnostics-false-positives | vscode-ide | 1 | 0 | 5 | 1 | 5 | 12 |
-| 13 | 628 | 628-lsp-minimum-viable | main | 1 | 0 | 5 | 2 | 4 | 12 |
-| 14 | 123 | 123-import-syntax-unification | language-design | 0 | 0 | 1 | 5 | 5 | 11 |
-| 15 | 124 | WIT component import syntax | language-design | 1 | 0 | 1 | 5 | 4 | 11 |
-| 16 | 191 | 191-vscode-setup-doctor-command-graph-and-environment-inspe... | parallel | 1 | 0 | 5 | 1 | 4 | 11 |
-| 17 | 271 | 271-vscode-test-runner-wiring | main | 0 | 0 | 5 | 2 | 4 | 11 |
-| 18 | 273 | 273-extension-lsp-command-task-e2e | main | 0 | 0 | 5 | 2 | 4 | 11 |
-| 19 | 340 | 340-lsp-auto-import-manifest | lsp-semantic | 1 | 0 | 5 | 1 | 4 | 11 |
-| 20 | 341 | 341-lsp-organize-imports | lsp-semantic | 1 | 0 | 5 | 1 | 4 | 11 |
-| 21 | 462 | 462-extension-settings-rationalization | extension | 0 | 0 | 5 | 1 | 5 | 11 |
-| 22 | 626 | 626-ide-ready-frontend | main | 0 | 0 | 5 | 2 | 4 | 11 |
-| 23 | 28 | 034-wit-cli-integration | component-model | 0 | 0 | 5 | 3 | 2 | 10 |
-| 24 | 117 | Component Model: WIT 生成品質の向上と往復検証 | wasm-quality | 1 | 0 | 1 | 3 | 5 | 10 |
-| 25 | 295 | 295-host-api-runtime-tests | capability | 0 | 0 | 3 | 3 | 4 | 10 |
-| 26 | 335 | 335-lsp-cross-file-goto-definition | lsp-navigation | 0 | 0 | 5 | 1 | 4 | 10 |
-| 27 | 339 | 339-lsp-semantic-rename | lsp-semantic | 0 | 0 | 5 | 1 | 4 | 10 |
+| 6 | 338 | 338-lsp-semantic-references | lsp-semantic | 3 | 0 | 5 | 1 | 4 | 13 |
+| 7 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
+| 8 | 236 | 236-cli-startup-contract-lsp-version-stdio | main | 0 | 0 | 5 | 2 | 5 | 12 |
+| 9 | 335 | 335-lsp-cross-file-goto-definition | lsp-navigation | 2 | 0 | 5 | 1 | 4 | 12 |
+| 10 | 337 | 337-lsp-signature-help-stdlib | lsp-navigation | 0 | 0 | 5 | 3 | 4 | 12 |
+| 11 | 340 | 340-lsp-auto-import-manifest | lsp-semantic | 2 | 0 | 5 | 1 | 4 | 12 |
+| 12 | 450 | 450-lsp-goto-definition-identifier-span | vscode-ide | 1 | 0 | 5 | 1 | 5 | 12 |
+| 13 | 451 | 451-lsp-hover-semantic-only | vscode-ide | 1 | 0 | 5 | 1 | 5 | 12 |
+| 14 | 452 | 452-lsp-diagnostics-false-positives | vscode-ide | 1 | 0 | 5 | 1 | 5 | 12 |
+| 15 | 628 | 628-lsp-minimum-viable | main | 1 | 0 | 5 | 2 | 4 | 12 |
+| 16 | 123 | 123-import-syntax-unification | language-design | 0 | 0 | 1 | 5 | 5 | 11 |
+| 17 | 124 | WIT component import syntax | language-design | 1 | 0 | 1 | 5 | 4 | 11 |
+| 18 | 191 | 191-vscode-setup-doctor-command-graph-and-environment-inspe... | parallel | 1 | 0 | 5 | 1 | 4 | 11 |
+| 19 | 271 | 271-vscode-test-runner-wiring | main | 0 | 0 | 5 | 2 | 4 | 11 |
+| 20 | 273 | 273-extension-lsp-command-task-e2e | main | 0 | 0 | 5 | 2 | 4 | 11 |
+| 21 | 339 | 339-lsp-semantic-rename | lsp-semantic | 1 | 0 | 5 | 1 | 4 | 11 |
+| 22 | 341 | 341-lsp-organize-imports | lsp-semantic | 1 | 0 | 5 | 1 | 4 | 11 |
+| 23 | 462 | 462-extension-settings-rationalization | extension | 0 | 0 | 5 | 1 | 5 | 11 |
+| 24 | 626 | 626-ide-ready-frontend | main | 0 | 0 | 5 | 2 | 4 | 11 |
+| 25 | 28 | 034-wit-cli-integration | component-model | 0 | 0 | 5 | 3 | 2 | 10 |
+| 26 | 117 | Component Model: WIT 生成品質の向上と往復検証 | wasm-quality | 1 | 0 | 1 | 3 | 5 | 10 |
+| 27 | 295 | 295-host-api-runtime-tests | capability | 0 | 0 | 3 | 3 | 4 | 10 |
 | 28 | 342 | 342-lsp-completion-context | lsp-semantic | 0 | 0 | 5 | 1 | 4 | 10 |
 | 29 | 355 | 355-lsp-protocol-e2e-tests | tooling-contract | 0 | 0 | 5 | 1 | 4 | 10 |
 | 30 | 463 | 463-lsp-performance-smoke-tests | lsp, testing | 0 | 0 | 5 | 1 | 4 | 10 |
@@ -87,5 +87,7 @@ Scoring criteria (0-5 each, total 25):
 | 74 | 292 | 292-stub-host-compile-error | capability | 0 | 0 | 1 | 1 | 4 | 6 |
 | 75 | 456 | 456-arukellt-doc-command | cli | 0 | 0 | 2 | 1 | 3 | 6 |
 | 76 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 77 | 464 | 464-init-template-expansion | cli, dx | 0 | 0 | 1 | 1 | 3 | 5 |
-| 78 | 440 | VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「f... | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
+| 77 | 441 | VSCode Extension: Workspace / Package / ark.toml を理解した proj... | vscode-ide | 1 | 0 | 1 | 1 | 2 | 5 |
+| 78 | 464 | 464-init-template-expansion | cli, dx | 0 | 0 | 1 | 1 | 3 | 5 |
+| 79 | 439 | VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
+| 80 | 440 | VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「f... | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
