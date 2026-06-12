@@ -1,16 +1,26 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-04-03
+Updated: 2026-06-12
 ID: 118
 Track: wasm-quality
-Depends on: 117
-Orchestration class: implementation-ready
+Depends on: 117, 074
+Orchestration class: blocked-by-upstream
 Blocks v4 exit: no
-Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
-Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
-WASI P2 の `wasi: "cli/command`・`wasi:http/proxy` など標準 world への"
+Blocked by: "#074 WASI P2 native component parent gate"
 ---
+
+## Reopened by audit — 2026-06-12 (Slice C)
+
+**Reopen reason:** Never re-closed after 2026-04-03 reopen; `--world wasi:cli/command` CLI flag absent (`rg --world src/compiler/` → no matches); standard WASI world binding unimplemented on selfhost path.
+
+**Violated acceptance:** All four acceptance items (`--world` flags, error messages, wasmtime execution proof)
+
+**Evidence files:**
+- `src/compiler/main/` (no `--world` parsing)
+- `issues/open/074-wasi-p2-native-component.md` (parent P2 native gate open)
+
+**Follow-up split issue:** none
 
 # Component Model: 複数エクスポート world の自動生成
 

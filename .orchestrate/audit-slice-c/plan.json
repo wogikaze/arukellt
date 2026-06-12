@@ -1,0 +1,20 @@
+{
+  "$schema": "/home/ubuntu/.cursor/plugins/cache/cursor-public/9333/a5cda8b561bb6536e880481734199a568cb647f4/skills/orchestrate/schemas/plan.schema.json",
+  "goal": "Slice C: Audit component / WIT / WASI issues in issues/done/ (#074 dependency graph, component-compile fixtures). Cross-check tests/fixtures/manifest.txt and src/compiler/component/.",
+  "summary": "Component/WIT/WASI false-done audit — 7 reopen, 22 truly-done",
+  "rootSlug": "audit-slice-c",
+  "baseBranch": "master",
+  "repoUrl": "https://github.com/wogikaze/arukellt.git",
+  "selfAgentId": "bc-49e34830-4810-42a2-90b1-a9d7bd972d78",
+  "tasks": [
+    {
+      "name": "audit-component-wit-wasi",
+      "type": "worker",
+      "model": "gpt-5.5-high-fast",
+      "status": "done",
+      "scopedGoal": "Audit ~32 component/WIT/WASI done issues; reopen must-reopen; update audit report",
+      "pathsAllowed": ["issues/**", "docs/process/false-done-audit-2026-06-12.md"],
+      "acceptance": ["7 reopen committed", "audit report updated", "index regenerated"]
+    }
+  ]
+}

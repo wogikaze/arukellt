@@ -12,21 +12,28 @@ Scoring criteria (0-5 each, total 25):
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
 | 1 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
-| 2 | 123 | 123-import-syntax-unification | language-design | 0 | 0 | 1 | 5 | 5 | 11 |
-| 3 | 124 | WIT component import syntax | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
-| 4 | 500 | 500-playground-wasm-typecheck-export | main | 0 | 0 | 1 | 5 | 4 | 10 |
-| 5 | 510 | 510-t3-p2-import-table-switch | main | 2 | 0 | 1 | 2 | 5 | 10 |
-| 6 | 447 | 447-std-host-sockets-implementation | runtime | 1 | 0 | 1 | 3 | 4 | 9 |
-| 7 | 472 | 472-playground-type-checker-product-claim | playground | 0 | 0 | 1 | 5 | 3 | 9 |
-| 8 | 633 | Reconcile std::host::http / sockets / udp capability claims... | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
-| 9 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 10 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
-| 11 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 12 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 13 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 14 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 15 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 16 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 17 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 18 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 19 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 2 | 074 | 074-wasi-p2-native-component | wasi-feature | 5 | 0 | 1 | 3 | 3 | 12 |
+| 3 | 123 | 123-import-syntax-unification | language-design | 0 | 0 | 1 | 5 | 5 | 11 |
+| 4 | 124 | WIT component import syntax | language-design | 1 | 0 | 1 | 5 | 4 | 11 |
+| 5 | 034 | 034-wit-cli-integration | component-model | 0 | 0 | 5 | 3 | 2 | 10 |
+| 6 | 117 | Component Model: WIT 生成品質の向上と往復検証 | wasm-quality | 1 | 0 | 1 | 3 | 5 | 10 |
+| 7 | 500 | 500-playground-wasm-typecheck-export | main | 0 | 0 | 1 | 5 | 4 | 10 |
+| 8 | 510 | 510-t3-p2-import-table-switch | main | 2 | 0 | 1 | 2 | 5 | 10 |
+| 9 | 073 | 073-wasi-p1-full-syscalls | wasi-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 10 | 447 | 447-std-host-sockets-implementation | runtime | 1 | 0 | 1 | 3 | 4 | 9 |
+| 11 | 472 | 472-playground-type-checker-product-claim | playground | 0 | 0 | 1 | 5 | 3 | 9 |
+| 12 | 633 | Reconcile std::host::http / sockets / udp capability claims... | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
+| 13 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 14 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 15 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
+| 16 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
+| 17 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 18 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 19 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 20 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
+| 21 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
+| 22 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 23 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 24 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 25 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 26 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 1 | 3 | 2 | 6 |

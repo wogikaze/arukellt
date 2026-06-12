@@ -1,26 +1,35 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-29
-Updated: 2026-04-10
+Updated: 2026-06-12
 ID: 138
 Track: wasi-feature
-Depends on: 137
-Orchestration class: implementation-ready
+Depends on: 137, 051
+Orchestration class: blocked-by-upstream
 Blocks v1 exit: False
-Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
-Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
-T1/T3 の両方で意味を共有できる host capability を `std: ":host::*` として提供する。"
-対象は `std: ":host::stdio`, `std::host::fs`, `std::host::env`, `std::host::process`, `std::host::clock`, `std::host::random` とし、"
-1. `std: ":host::stdio`, `std::host::env`, `std::host::process` に stdio / args / env / exit 相当の facade を定義する"
-2. `std: ":host::fs` に read / write の最小 surface を定義する"
-3. `std: ":host::clock`, `std::host::random` を target-specific backend へ接続する"
-# `std: ":host` 共通 capability (`stdio` / `fs` / `env` / `process` / `clock` / `random`) を T1/T3 両対応で実装"
+Blocked by: "#051 std::time/clock intrinsics (reopened wave 1)"
+---
+
+## Reopened by audit — 2026-06-12 (Slice C)
+
+**Reopen reason:** Never re-closed after 2026-04-03 reopen. Acceptance requires T1/T3 smoke for six `std::host::*` modules plus `verify-harness.sh`; `scripts/run/verify-harness.sh` deleted (#531), clock/random host intrinsics reopened as #051, only partial `stdlib_host/*` fixtures remain.
+
+**Violated acceptance:** Items 3–5 (T1/T3 runtime fixtures for all six modules, execution records, verify-harness gate)
+
+**Evidence files:**
+- `tests/fixtures/manifest.txt` (partial `stdlib_host/wasi_{clock,random,args}.ark`; no full six-module matrix)
+- `issues/open/051-std-time-random.md` (clock/random gap)
+- Absent `scripts/run/verify-harness.sh`
+
+**Follow-up split issue:** none (#051 tracks clock/random sub-surface)
+
+# `std::host` 共通 capability (`stdio` / `fs` / `env` / `process` / `clock` / `random`) を T1/T3 両対応で実装
 ---
 # `std::host` 共通 capability (`stdio` / `fs` / `env` / `process` / `clock` / `random`) を T1/T3 両対応で実装
 
 ---
 
-## Reopened by audit — 2026-04-03
+## Reopened by audit — 2026-04-03 (historical)
 
 **Audit evidence**:
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.

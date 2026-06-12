@@ -1,21 +1,33 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-04-15
+Updated: 2026-06-12
 ID: 117
 Track: wasm-quality
 Depends on: —
 Orchestration class: implementation-ready
 Blocks v4 exit: False
-Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
-Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+---
 # Component Model: WIT 生成品質の向上と往復検証
 ---
 # Component Model: WIT 生成品質の向上と往復検証
 
 ---
 
-## Reopened by audit — 2026-04-03
+## Reopened by audit — 2026-06-12 (Slice C)
+
+**Reopen reason:** Never re-closed with selfhost evidence after 2026-04-03 reopen. Issue still references deleted `crates/ark-wasm/src/component/mod.rs`; acceptance item 4 (`wasm-tools component wit` CI parse test) has no repo fixture or verify gate.
+
+**Violated acceptance:** Items 1–5 (option/result/tuple WIT conversion quality, `wasm-tools component wit` CI, kebab-case consistency)
+
+**Evidence files:**
+- Absent `crates/ark-wasm/` (selfhost-first migration #559)
+- `src/compiler/component/wit_text.ark` (partial selfhost WIT text path; no dedicated quality/round-trip gate)
+- No `component wit` parse fixture in `tests/fixtures/manifest.txt`
+
+**Follow-up split issue:** none
+
+## Reopened by audit — 2026-04-03 (historical)
 
 **Audit evidence**:
 - `**Status**: done` in this file's own frontmatter confirms it was never closed.
