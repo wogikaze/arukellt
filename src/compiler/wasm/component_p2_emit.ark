@@ -1,0 +1,82 @@
+// Arukellt Selfhost - self-contained WASI P2 command component emitter for bootstrap.
+
+use wasm::component_p2_stubs
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_string
+
+fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
+    let out = p2_comp_new_component_writer()
+    p2_comp_emit_p2_stubs_and_core_modules(out, core_wasm)
+    p2_comp_emit_p2_core_instance_section(out)
+    writer_core::writer_bytes(out)
+}
+
+fn p2_comp_new_component_writer() -> WasmWriter {
+    let out = writer_core::WasmWriter_new()
+    writer_core::emit_byte(out, 0x00)
+    writer_core::emit_byte(out, 0x61)
+    writer_core::emit_byte(out, 0x73)
+    writer_core::emit_byte(out, 0x6d)
+    writer_core::emit_byte(out, 0x0d)
+    writer_core::emit_byte(out, 0x00)
+    writer_core::emit_byte(out, 0x01)
+    writer_core::emit_byte(out, 0x00)
+    out
+}
+
+fn p2_comp_emit_section(out: WasmWriter, section_id: i32, contents: WasmWriter) {
+    writer_core::emit_byte(out, section_id)
+    writer_leb::emit_leb128_u(out, writer_core::writer_size(contents))
+    writer_core::emit_bytes(out, writer_core::writer_bytes(contents))
+}
+
+fn p2_comp_emit_p2_stubs_and_core_modules(out: WasmWriter, core_wasm: Vec<i32>) {
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export(String_from("write"), 0))
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_env_module())
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_fs_module())
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export(String_from("read"), 0))
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export(String_from("exit"), 1))
+    p2_comp_emit_core_module(out, core_wasm)
+}
+
+fn p2_comp_emit_core_module(out: WasmWriter, module_wasm: Vec<i32>) {
+    let sec = writer_core::WasmWriter_new()
+    writer_core::emit_bytes(sec, module_wasm)
+    p2_comp_emit_section(out, 1, sec)
+}
+
+fn p2_comp_emit_p2_core_instance_section(out: WasmWriter) {
+    let sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(sec, 6)
+    p2_comp_emit_core_instance_ref(sec, 0, 0)
+    p2_comp_emit_core_instance_ref(sec, 1, 0)
+    p2_comp_emit_core_instance_ref(sec, 2, 0)
+    p2_comp_emit_core_instance_ref(sec, 3, 0)
+    p2_comp_emit_core_instance_ref(sec, 4, 0)
+    p2_comp_emit_p2_user_core_instance(sec)
+    p2_comp_emit_section(out, 2, sec)
+}
+
+fn p2_comp_emit_core_instance_ref(sec: WasmWriter, module_index: i32, instance_index: i32) {
+    writer_core::emit_byte(sec, 0x00)
+    writer_leb::emit_leb128_u(sec, module_index)
+    writer_leb::emit_leb128_u(sec, instance_index)
+}
+
+fn p2_comp_emit_p2_user_core_instance(sec: WasmWriter) {
+    writer_core::emit_byte(sec, 0x00)
+    writer_leb::emit_leb128_u(sec, 5)
+    writer_leb::emit_leb128_u(sec, 5)
+    p2_comp_emit_p2_instance_arg(sec, String_from("wasi:cli/stdout@0.2.0"), 0)
+    p2_comp_emit_p2_instance_arg(sec, String_from("wasi:cli/environment@0.2.0"), 1)
+    p2_comp_emit_p2_instance_arg(sec, String_from("wasi:filesystem/types@0.2.0"), 2)
+    p2_comp_emit_p2_instance_arg(sec, String_from("wasi:cli/stdin@0.2.0"), 3)
+    p2_comp_emit_p2_instance_arg(sec, String_from("wasi:cli/exit@0.2.0"), 4)
+}
+
+fn p2_comp_emit_p2_instance_arg(sec: WasmWriter, import_name: String, instance_index: i32) {
+    writer_string::emit_string(sec, import_name)
+    writer_core::emit_byte(sec, 0x12)
+    writer_leb::emit_leb128_u(sec, instance_index)
+}
