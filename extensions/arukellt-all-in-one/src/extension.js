@@ -174,14 +174,18 @@ function discoverBinary(configuredPath) {
   return { command: configuredPath, probe: { ok: false, message: 'arukellt binary not found. Install via cargo or set arukellt.server.path.' } }
 }
 
-function serverSpawnOptions() {
+function serverSpawnOptions(command) {
   const repoRoot = path.resolve(__dirname, '..', '..', '..')
   const env = { ...process.env }
   const bootstrapWasm = path.join(repoRoot, 'bootstrap', 'arukellt-selfhost.wasm')
   if (fs.existsSync(bootstrapWasm)) {
     env.ARUKELLT_SELFHOST_WASM = bootstrapWasm
   }
-  return { env, cwd: repoRoot }
+  const options = { env, cwd: repoRoot }
+  if (typeof command === 'string' && command.endsWith('.sh')) {
+    options.shell = true
+  }
+  return options
 }
 
 function startLanguageServer(context, options = {}) {
@@ -224,13 +228,13 @@ function startLanguageServer(context, options = {}) {
       command,
       args: [...extraArgs, 'lsp'],
       transport: TransportKind.stdio,
-      options: serverSpawnOptions(),
+      options: serverSpawnOptions(command),
     },
     debug: {
       command,
       args: [...extraArgs, 'lsp'],
       transport: TransportKind.stdio,
-      options: serverSpawnOptions(),
+      options: serverSpawnOptions(command),
     },
   }
 

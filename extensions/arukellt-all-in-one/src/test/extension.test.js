@@ -736,6 +736,15 @@ suite("LSP Handshake (#273)", function () {
     }
 
     const { api } = await activateExtension();
+    const boot = api.verifyBootstrap();
+    assert.ok(boot.probe.ok, `selfhost wrapper probe should succeed: ${boot.probe.message}`);
+    assert.strictEqual(boot.command, binary, "verifyBootstrap should resolve the selfhost wrapper");
+
+    const doc = await vscode.workspace.openTextDocument({
+      language: "arukellt",
+      content: "fn main() {}\n",
+    });
+    await vscode.window.showTextDocument(doc);
 
     await waitFor(
       () => {
