@@ -49,9 +49,23 @@ done
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 to_kb() { echo "$(( ($1 + 1023) / 1024 )) KB"; }
 
-# ─── Check retired Wasm binary argument ───────────────────────────────────────
+# ─── Check selfhost compiler Wasm asset ───────────────────────────────────────
 if [[ -n "$WASM_FILE" ]]; then
-    echo "[playground-size] SKIP: wasm size gate retired with the Rust playground wasm crate"
+    if [[ ! -f "$WASM_FILE" ]]; then
+        echo "[playground-size] SKIP: wasm file not found: $WASM_FILE"
+        echo "[playground-size]   Run 'npm run build:app' in playground/ after selfhost fixpoint."
+    else
+        SIZE=$(stat -c%s "$WASM_FILE" 2>/dev/null || stat -f%z "$WASM_FILE")
+        echo "[playground-size] compiler wasm: $(to_kb "$SIZE") / budget $(to_kb "$WASM_LIMIT")"
+        if [[ "$SIZE" -le "$WASM_LIMIT" ]]; then
+            echo "[playground-size] PASS: compiler wasm within budget"
+        else
+            echo "[playground-size] FAIL: compiler wasm $(to_kb "$SIZE") exceeds budget $(to_kb "$WASM_LIMIT")" >&2
+            echo "[playground-size]   To raise the budget: update PLAYGROUND_WASM_LIMIT in" >&2
+            echo "[playground-size]   .github/workflows/playground-ci.yml and document the reason." >&2
+            FAIL=1
+        fi
+    fi
 fi
 
 # ─── Check JS bundle directory ────────────────────────────────────────────────

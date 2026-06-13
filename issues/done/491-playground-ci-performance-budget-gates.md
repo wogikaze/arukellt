@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-14
-Updated: 2026-06-12
+Updated: 2026-06-14
 Track: playground
 Source: audit — docs/playground/deployment-strategy.md §4.3
 Orchestration class: implementation-ready
@@ -55,7 +55,7 @@ them as current-state, but they are aspirational.
 
 ## Acceptance
 
-- [ ] At least one CI workflow step fails when playground wasm binary exceeds a configured threshold
+- [x] At least one CI workflow step fails when playground wasm binary exceeds a configured threshold
 - [x] At least one CI workflow step fails when playground bundle exceeds a configured threshold
 - [x] Lighthouse CI is either implemented or explicitly deferred in the deployment-strategy doc with a tracking reference
 - [x] `docs/playground/deployment-strategy.md` accurately reflects which gates are enforced vs aspirational

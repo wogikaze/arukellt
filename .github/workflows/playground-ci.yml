@@ -4,6 +4,7 @@ name: Playground CI
 #
 #  Job                     Gate type   Merge gate?   Threshold
 #  ─────────────────────── ─────────── ─────────────────────────────────────
+#  playground-wasm-size    size        yes           selfhost compiler wasm ≤ 1.15 MB
 #  playground-bundle-size  size        yes           JS bundle ≤ 512 KB
 #
 # See docs/playground/deployment-strategy.md §4.3 for threshold rationale.
@@ -29,6 +30,35 @@ on:
       - "docs/playground/**"
 
 jobs:
+
+  # ── Playground selfhost compiler wasm size gate (merge gate) ─────────────
+  playground-wasm-size:
+    name: "Playground wasm size gate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+
+      - name: Selfhost fixpoint (stage-3 compiler for playground)
+        run: python3 scripts/manager.py selfhost fixpoint --build
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Stamp playground compiler wasm asset
+        working-directory: playground
+        run: npm install --no-audit --no-fund --package-lock=false && npm run build:app
+
+      - name: Wasm size gate (≤ 1.15 MB selfhost compiler)
+        env:
+          PLAYGROUND_WASM_LIMIT: '1205862'
+        run: bash scripts/check/check-playground-size.sh --wasm docs/playground/assets/arukellt-selfhost.wasm
 
   # ── Playground JS bundle size gate (merge gate) ───────────────────────────
   playground-bundle-size:

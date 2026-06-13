@@ -31,7 +31,6 @@ graph LR
   I474["474 Async component support (v5)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I480["480 480-extension-readme-settings-docs"]
-  I491["491 491-playground-ci-performance-budget-gates"]
   I502["502 502-lsp-full-multi-root-workspace"]
   I52["52 064-wasm-branch-hinting"]
   I55["55 067-wasm-sign-extension-ops"]
@@ -104,7 +103,6 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: 646
 - **476** depends on: 035, done), 074; blocks: 443, 618
 - **480** depends on: 479; blocks: none
-- **491** depends on: none; blocks: none
 - **502** depends on: 441; blocks: none
 - **52** depends on: none; blocks: none
 - **55** depends on: none; blocks: none

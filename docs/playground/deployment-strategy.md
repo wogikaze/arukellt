@@ -15,6 +15,8 @@
   `docs/playground/dist/`
 - JS bundle size gate: `.github/workflows/playground-ci.yml` job
   `playground-bundle-size`
+- Selfhost compiler wasm gate: `.github/workflows/playground-ci.yml` job
+  `playground-wasm-size` (threshold `PLAYGROUND_WASM_LIMIT=1205862`)
 - Lighthouse audit: `.github/workflows/playground-ci.yml` job
   `playground-lighthouse`
 
