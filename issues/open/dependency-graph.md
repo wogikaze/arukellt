@@ -24,7 +24,6 @@ graph LR
   I41["41 051-std-time-random"]
   I422["422 Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る"]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
-  I445["445 445-std-host-process-implementation"]
   I446["446 446-std-host-http-implementation"]
   I447["447 447-std-host-sockets-implementation"]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
@@ -102,7 +101,6 @@ graph LR
 - **41** depends on: 039, 040; blocks: none
 - **422** depends on: 418; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none
-- **445** depends on: none; blocks: none
 - **446** depends on: none; blocks: 633
 - **447** depends on: none; blocks: 633
 - **45** depends on: 039, 042, 044; blocks: none

@@ -61,6 +61,16 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     let mut linker = Linker::<WasiP1Ctx>::new(&engine);
     wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |cx| cx)
         .map_err(|e| format!("wasi link error: {}", e))?;
+    linker.allow_shadowing(true);
+    linker
+        .func_wrap(
+            "wasi_snapshot_preview1",
+            "proc_exit",
+            |_caller: Caller<'_, WasiP1Ctx>, code: i32| -> Result<(), wasmtime::Error> {
+                Err(wasmtime_wasi::I32Exit(code).into())
+            },
+        )
+        .map_err(|e| format!("proc_exit override error: {}", e))?;
 
     let needs_http = module
         .imports()
@@ -103,17 +113,15 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
         .get_typed_func::<(), ()>(&mut store, "_start")
         .map_err(|e| format!("missing _start: {}", e))?;
 
-    start
-        .call(&mut store, ())
-        .map_err(|e| {
-            if e.downcast_ref::<wasmtime_wasi::I32Exit>().is_some() {
-                return String::new();
+    match start.call(&mut store, ()) {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            if let Some(exit) = e.downcast_ref::<wasmtime_wasi::I32Exit>() {
+                std::process::exit(exit.0);
             }
-            format!("runtime error: {}", e)
-        })
-        .or_else(|e| if e.is_empty() { Ok(()) } else { Err(e) })?;
-
-    Ok(())
+            Err(format!("runtime error: {}", e))
+        }
+    }
 }
 
 pub(crate) fn read_string_from_mem(

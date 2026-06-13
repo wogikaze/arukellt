@@ -40,29 +40,28 @@ Scoring criteria (0-5 each, total 25):
 | 27 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
 | 28 | 183 | 183-vscode-arukellt-all-in-one-extension-epic | parallel | 1 | 0 | 4 | 1 | 2 | 8 |
 | 29 | 358 | Stdlib: host family の stub を解消し stable capability に引き上げる | stdlib-api | 0 | 0 | 1 | 3 | 4 | 8 |
-| 30 | 445 | 445-std-host-process-implementation | runtime | 0 | 0 | 1 | 3 | 4 | 8 |
-| 31 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
-| 32 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
-| 33 | 638 | 638 — Runtime-level Wasm debugging (source maps + wasmtime ... | runtime | 0 | 0 | 1 | 3 | 4 | 8 |
-| 34 | 643 | 643 — Grain Wasm GC benchmark comparison hook | benchmark | 0 | 0 | 1 | 3 | 4 | 8 |
-| 35 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
-| 36 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 37 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 38 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 39 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 40 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
-| 41 | 422 | Repo Hygiene: 大きな artifact と baseline の size budget / pruni... | repo-hygiene | 0 | 0 | 2 | 1 | 4 | 7 |
-| 42 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
-| 43 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
-| 44 | 480 | 480-extension-readme-settings-docs | docs | 0 | 0 | 1 | 2 | 4 | 7 |
-| 45 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 46 | 637 | 637 — Host capability honesty: fs metadata and read_dir sur... | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 47 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 48 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 49 | 083 | 083-mir-loop-unrolling | mir-opt | 0 | 0 | 1 | 1 | 4 | 6 |
-| 50 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 51 | 217 | Code actions + refactor code actions | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
-| 52 | 219 | LSP standard feature completeness | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
-| 53 | 292 | 292-stub-host-compile-error | capability | 0 | 0 | 1 | 1 | 4 | 6 |
-| 54 | 639 | 639 — HTTP package registry resolution | cli | 0 | 0 | 1 | 1 | 4 | 6 |
-| 55 | 645 | 645 — T2 playground execution and DOM I/O surface | playground | 0 | 0 | 1 | 1 | 4 | 6 |
+| 30 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
+| 31 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
+| 32 | 638 | 638 — Runtime-level Wasm debugging (source maps + wasmtime ... | runtime | 0 | 0 | 1 | 3 | 4 | 8 |
+| 33 | 643 | 643 — Grain Wasm GC benchmark comparison hook | benchmark | 0 | 0 | 1 | 3 | 4 | 8 |
+| 34 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
+| 35 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 36 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 37 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 38 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 39 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
+| 40 | 422 | Repo Hygiene: 大きな artifact と baseline の size budget / pruni... | repo-hygiene | 0 | 0 | 2 | 1 | 4 | 7 |
+| 41 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
+| 42 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
+| 43 | 480 | 480-extension-readme-settings-docs | docs | 0 | 0 | 1 | 2 | 4 | 7 |
+| 44 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 45 | 637 | 637 — Host capability honesty: fs metadata and read_dir sur... | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 46 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 47 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 48 | 083 | 083-mir-loop-unrolling | mir-opt | 0 | 0 | 1 | 1 | 4 | 6 |
+| 49 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 50 | 217 | Code actions + refactor code actions | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
+| 51 | 219 | LSP standard feature completeness | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
+| 52 | 292 | 292-stub-host-compile-error | capability | 0 | 0 | 1 | 1 | 4 | 6 |
+| 53 | 639 | 639 — HTTP package registry resolution | cli | 0 | 0 | 1 | 1 | 4 | 6 |
+| 54 | 645 | 645 — T2 playground execution and DOM I/O surface | playground | 0 | 0 | 1 | 1 | 4 | 6 |

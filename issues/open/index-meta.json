@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T15:26:19Z",
+  "generated_at": "2026-06-13T15:29:53Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -434,28 +434,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "445",
-      "path": "445-std-host-process-implementation.md",
-      "title": "445-std-host-process-implementation",
-      "track": "runtime",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
       }
     },
     {

@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-02
-Updated: 2026-06-12
+Updated: 2026-06-14
 ID: 445
 Track: runtime
 Depends on: none
@@ -229,11 +229,11 @@ pub fn abort() {
 
 ## 完了条件
 
-- [ ] `__intrinsic_process_exit` / `__intrinsic_process_abort` が T1/T3 emitter で `proc_exit` に落ちる（wasm-tools validate 通過）
-- [ ] fixture `exit_zero.ark` / `exit_nonzero.ark` / `abort.ark` が T1/T3 双方で期待 exit code を返す
-- [ ] `bash scripts/run/verify-harness.sh` が 13/13 pass のまま（退行なし）
-- [ ] `docs/capability-surface.md` の `process::exit` / `abort` が `stub → available` になっている
-- [ ] `docs/current-state.md` に反映済み
+- [x] `__intrinsic_process_exit` / `__intrinsic_process_abort` が T1/T3 emitter で `proc_exit` に落ちる（wasm-tools validate 通過）
+- [x] fixture `exit_zero.ark` / `exit_nonzero.ark` / `abort.ark` が T1/T3 双方で期待 exit code を返す
+- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass のまま（退行なし）
+- [x] `docs/capability-surface.md` の `process::exit` / `abort` が `stub → available` になっている
+- [x] `docs/current-state.md` に反映済み
 - [x] `std/host/process.ark` の "proc_exit is not wired in yet" コメントが削除されている
 
 ---
