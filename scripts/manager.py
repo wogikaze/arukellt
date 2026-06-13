@@ -4443,6 +4443,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-lsp-lifecycle.py",
         ),
         (
+            "LSP performance smoke tests (#463)",
+            "python3 scripts/check/check-lsp-perf.py",
+        ),
+        (
             "selfhost DAP lifecycle gate (#571)",
             "python3 scripts/check/check-dap-lifecycle.py",
         ),

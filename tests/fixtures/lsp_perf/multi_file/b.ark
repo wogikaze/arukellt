@@ -1,0 +1,57 @@
+use std::host::stdio
+import a
+import b
+import c
+import d
+
+fn helper_001(x: i32) -> i32 { x + 1 }
+fn helper_002(x: i32) -> i32 { x + 2 }
+fn helper_003(x: i32) -> i32 { x + 3 }
+fn helper_004(x: i32) -> i32 { x + 4 }
+fn helper_005(x: i32) -> i32 { x + 5 }
+fn helper_006(x: i32) -> i32 { x + 6 }
+fn helper_007(x: i32) -> i32 { x + 7 }
+fn helper_008(x: i32) -> i32 { x + 8 }
+fn helper_009(x: i32) -> i32 { x + 9 }
+fn helper_010(x: i32) -> i32 { x + 10 }
+fn helper_011(x: i32) -> i32 { x + 11 }
+fn helper_012(x: i32) -> i32 { x + 12 }
+fn helper_013(x: i32) -> i32 { x + 13 }
+fn helper_014(x: i32) -> i32 { x + 14 }
+fn helper_015(x: i32) -> i32 { x + 15 }
+fn helper_016(x: i32) -> i32 { x + 16 }
+fn helper_017(x: i32) -> i32 { x + 17 }
+fn helper_018(x: i32) -> i32 { x + 18 }
+fn helper_019(x: i32) -> i32 { x + 19 }
+fn helper_020(x: i32) -> i32 { x + 20 }
+fn helper_021(x: i32) -> i32 { x + 21 }
+fn helper_022(x: i32) -> i32 { x + 22 }
+fn helper_023(x: i32) -> i32 { x + 23 }
+fn helper_024(x: i32) -> i32 { x + 24 }
+fn helper_025(x: i32) -> i32 { x + 25 }
+fn helper_026(x: i32) -> i32 { x + 26 }
+fn helper_027(x: i32) -> i32 { x + 27 }
+fn helper_028(x: i32) -> i32 { x + 28 }
+fn helper_029(x: i32) -> i32 { x + 29 }
+fn helper_030(x: i32) -> i32 { x + 30 }
+fn helper_031(x: i32) -> i32 { x + 31 }
+fn helper_032(x: i32) -> i32 { x + 32 }
+fn helper_033(x: i32) -> i32 { x + 33 }
+fn helper_034(x: i32) -> i32 { x + 34 }
+fn helper_035(x: i32) -> i32 { x + 35 }
+fn helper_036(x: i32) -> i32 { x + 36 }
+fn helper_037(x: i32) -> i32 { x + 37 }
+fn helper_038(x: i32) -> i32 { x + 38 }
+fn helper_039(x: i32) -> i32 { x + 39 }
+fn helper_040(x: i32) -> i32 { x + 40 }
+fn helper_041(x: i32) -> i32 { x + 41 }
+fn helper_042(x: i32) -> i32 { x + 42 }
+fn helper_043(x: i32) -> i32 { x + 43 }
+fn helper_044(x: i32) -> i32 { x + 44 }
+fn helper_045(x: i32) -> i32 { x + 45 }
+fn helper_046(x: i32) -> i32 { x + 46 }
+fn helper_047(x: i32) -> i32 { x + 47 }
+fn helper_048(x: i32) -> i32 { x + 48 }
+fn helper_049(x: i32) -> i32 { x + 49 }
+fn helper_050(x: i32) -> i32 { x + 50 }
+fn main() { stdio::println(i32_to_string(helper_001(1))) }

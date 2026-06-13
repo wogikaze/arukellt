@@ -1,0 +1,406 @@
+use std::host::stdio
+
+fn helper_001(x: i32) -> i32 { x + 1 }
+fn helper_002(x: i32) -> i32 { x + 2 }
+fn helper_003(x: i32) -> i32 { x + 3 }
+fn helper_004(x: i32) -> i32 { x + 4 }
+fn helper_005(x: i32) -> i32 { x + 5 }
+fn helper_006(x: i32) -> i32 { x + 6 }
+fn helper_007(x: i32) -> i32 { x + 7 }
+fn helper_008(x: i32) -> i32 { x + 8 }
+fn helper_009(x: i32) -> i32 { x + 9 }
+fn helper_010(x: i32) -> i32 { x + 10 }
+fn helper_011(x: i32) -> i32 { x + 11 }
+fn helper_012(x: i32) -> i32 { x + 12 }
+fn helper_013(x: i32) -> i32 { x + 13 }
+fn helper_014(x: i32) -> i32 { x + 14 }
+fn helper_015(x: i32) -> i32 { x + 15 }
+fn helper_016(x: i32) -> i32 { x + 16 }
+fn helper_017(x: i32) -> i32 { x + 17 }
+fn helper_018(x: i32) -> i32 { x + 18 }
+fn helper_019(x: i32) -> i32 { x + 19 }
+fn helper_020(x: i32) -> i32 { x + 20 }
+fn helper_021(x: i32) -> i32 { x + 21 }
+fn helper_022(x: i32) -> i32 { x + 22 }
+fn helper_023(x: i32) -> i32 { x + 23 }
+fn helper_024(x: i32) -> i32 { x + 24 }
+fn helper_025(x: i32) -> i32 { x + 25 }
+fn helper_026(x: i32) -> i32 { x + 26 }
+fn helper_027(x: i32) -> i32 { x + 27 }
+fn helper_028(x: i32) -> i32 { x + 28 }
+fn helper_029(x: i32) -> i32 { x + 29 }
+fn helper_030(x: i32) -> i32 { x + 30 }
+fn helper_031(x: i32) -> i32 { x + 31 }
+fn helper_032(x: i32) -> i32 { x + 32 }
+fn helper_033(x: i32) -> i32 { x + 33 }
+fn helper_034(x: i32) -> i32 { x + 34 }
+fn helper_035(x: i32) -> i32 { x + 35 }
+fn helper_036(x: i32) -> i32 { x + 36 }
+fn helper_037(x: i32) -> i32 { x + 37 }
+fn helper_038(x: i32) -> i32 { x + 38 }
+fn helper_039(x: i32) -> i32 { x + 39 }
+fn helper_040(x: i32) -> i32 { x + 40 }
+fn helper_041(x: i32) -> i32 { x + 41 }
+fn helper_042(x: i32) -> i32 { x + 42 }
+fn helper_043(x: i32) -> i32 { x + 43 }
+fn helper_044(x: i32) -> i32 { x + 44 }
+fn helper_045(x: i32) -> i32 { x + 45 }
+fn helper_046(x: i32) -> i32 { x + 46 }
+fn helper_047(x: i32) -> i32 { x + 47 }
+fn helper_048(x: i32) -> i32 { x + 48 }
+fn helper_049(x: i32) -> i32 { x + 49 }
+fn helper_050(x: i32) -> i32 { x + 50 }
+fn helper_051(x: i32) -> i32 { x + 51 }
+fn helper_052(x: i32) -> i32 { x + 52 }
+fn helper_053(x: i32) -> i32 { x + 53 }
+fn helper_054(x: i32) -> i32 { x + 54 }
+fn helper_055(x: i32) -> i32 { x + 55 }
+fn helper_056(x: i32) -> i32 { x + 56 }
+fn helper_057(x: i32) -> i32 { x + 57 }
+fn helper_058(x: i32) -> i32 { x + 58 }
+fn helper_059(x: i32) -> i32 { x + 59 }
+fn helper_060(x: i32) -> i32 { x + 60 }
+fn helper_061(x: i32) -> i32 { x + 61 }
+fn helper_062(x: i32) -> i32 { x + 62 }
+fn helper_063(x: i32) -> i32 { x + 63 }
+fn helper_064(x: i32) -> i32 { x + 64 }
+fn helper_065(x: i32) -> i32 { x + 65 }
+fn helper_066(x: i32) -> i32 { x + 66 }
+fn helper_067(x: i32) -> i32 { x + 67 }
+fn helper_068(x: i32) -> i32 { x + 68 }
+fn helper_069(x: i32) -> i32 { x + 69 }
+fn helper_070(x: i32) -> i32 { x + 70 }
+fn helper_071(x: i32) -> i32 { x + 71 }
+fn helper_072(x: i32) -> i32 { x + 72 }
+fn helper_073(x: i32) -> i32 { x + 73 }
+fn helper_074(x: i32) -> i32 { x + 74 }
+fn helper_075(x: i32) -> i32 { x + 75 }
+fn helper_076(x: i32) -> i32 { x + 76 }
+fn helper_077(x: i32) -> i32 { x + 77 }
+fn helper_078(x: i32) -> i32 { x + 78 }
+fn helper_079(x: i32) -> i32 { x + 79 }
+fn helper_080(x: i32) -> i32 { x + 80 }
+fn helper_081(x: i32) -> i32 { x + 81 }
+fn helper_082(x: i32) -> i32 { x + 82 }
+fn helper_083(x: i32) -> i32 { x + 83 }
+fn helper_084(x: i32) -> i32 { x + 84 }
+fn helper_085(x: i32) -> i32 { x + 85 }
+fn helper_086(x: i32) -> i32 { x + 86 }
+fn helper_087(x: i32) -> i32 { x + 87 }
+fn helper_088(x: i32) -> i32 { x + 88 }
+fn helper_089(x: i32) -> i32 { x + 89 }
+fn helper_090(x: i32) -> i32 { x + 90 }
+fn helper_091(x: i32) -> i32 { x + 91 }
+fn helper_092(x: i32) -> i32 { x + 92 }
+fn helper_093(x: i32) -> i32 { x + 93 }
+fn helper_094(x: i32) -> i32 { x + 94 }
+fn helper_095(x: i32) -> i32 { x + 95 }
+fn helper_096(x: i32) -> i32 { x + 96 }
+fn helper_097(x: i32) -> i32 { x + 97 }
+fn helper_098(x: i32) -> i32 { x + 98 }
+fn helper_099(x: i32) -> i32 { x + 99 }
+fn helper_100(x: i32) -> i32 { x + 100 }
+fn helper_101(x: i32) -> i32 { x + 101 }
+fn helper_102(x: i32) -> i32 { x + 102 }
+fn helper_103(x: i32) -> i32 { x + 103 }
+fn helper_104(x: i32) -> i32 { x + 104 }
+fn helper_105(x: i32) -> i32 { x + 105 }
+fn helper_106(x: i32) -> i32 { x + 106 }
+fn helper_107(x: i32) -> i32 { x + 107 }
+fn helper_108(x: i32) -> i32 { x + 108 }
+fn helper_109(x: i32) -> i32 { x + 109 }
+fn helper_110(x: i32) -> i32 { x + 110 }
+fn helper_111(x: i32) -> i32 { x + 111 }
+fn helper_112(x: i32) -> i32 { x + 112 }
+fn helper_113(x: i32) -> i32 { x + 113 }
+fn helper_114(x: i32) -> i32 { x + 114 }
+fn helper_115(x: i32) -> i32 { x + 115 }
+fn helper_116(x: i32) -> i32 { x + 116 }
+fn helper_117(x: i32) -> i32 { x + 117 }
+fn helper_118(x: i32) -> i32 { x + 118 }
+fn helper_119(x: i32) -> i32 { x + 119 }
+fn helper_120(x: i32) -> i32 { x + 120 }
+fn helper_121(x: i32) -> i32 { x + 121 }
+fn helper_122(x: i32) -> i32 { x + 122 }
+fn helper_123(x: i32) -> i32 { x + 123 }
+fn helper_124(x: i32) -> i32 { x + 124 }
+fn helper_125(x: i32) -> i32 { x + 125 }
+fn helper_126(x: i32) -> i32 { x + 126 }
+fn helper_127(x: i32) -> i32 { x + 127 }
+fn helper_128(x: i32) -> i32 { x + 128 }
+fn helper_129(x: i32) -> i32 { x + 129 }
+fn helper_130(x: i32) -> i32 { x + 130 }
+fn helper_131(x: i32) -> i32 { x + 131 }
+fn helper_132(x: i32) -> i32 { x + 132 }
+fn helper_133(x: i32) -> i32 { x + 133 }
+fn helper_134(x: i32) -> i32 { x + 134 }
+fn helper_135(x: i32) -> i32 { x + 135 }
+fn helper_136(x: i32) -> i32 { x + 136 }
+fn helper_137(x: i32) -> i32 { x + 137 }
+fn helper_138(x: i32) -> i32 { x + 138 }
+fn helper_139(x: i32) -> i32 { x + 139 }
+fn helper_140(x: i32) -> i32 { x + 140 }
+fn helper_141(x: i32) -> i32 { x + 141 }
+fn helper_142(x: i32) -> i32 { x + 142 }
+fn helper_143(x: i32) -> i32 { x + 143 }
+fn helper_144(x: i32) -> i32 { x + 144 }
+fn helper_145(x: i32) -> i32 { x + 145 }
+fn helper_146(x: i32) -> i32 { x + 146 }
+fn helper_147(x: i32) -> i32 { x + 147 }
+fn helper_148(x: i32) -> i32 { x + 148 }
+fn helper_149(x: i32) -> i32 { x + 149 }
+fn helper_150(x: i32) -> i32 { x + 150 }
+fn helper_151(x: i32) -> i32 { x + 151 }
+fn helper_152(x: i32) -> i32 { x + 152 }
+fn helper_153(x: i32) -> i32 { x + 153 }
+fn helper_154(x: i32) -> i32 { x + 154 }
+fn helper_155(x: i32) -> i32 { x + 155 }
+fn helper_156(x: i32) -> i32 { x + 156 }
+fn helper_157(x: i32) -> i32 { x + 157 }
+fn helper_158(x: i32) -> i32 { x + 158 }
+fn helper_159(x: i32) -> i32 { x + 159 }
+fn helper_160(x: i32) -> i32 { x + 160 }
+fn helper_161(x: i32) -> i32 { x + 161 }
+fn helper_162(x: i32) -> i32 { x + 162 }
+fn helper_163(x: i32) -> i32 { x + 163 }
+fn helper_164(x: i32) -> i32 { x + 164 }
+fn helper_165(x: i32) -> i32 { x + 165 }
+fn helper_166(x: i32) -> i32 { x + 166 }
+fn helper_167(x: i32) -> i32 { x + 167 }
+fn helper_168(x: i32) -> i32 { x + 168 }
+fn helper_169(x: i32) -> i32 { x + 169 }
+fn helper_170(x: i32) -> i32 { x + 170 }
+fn helper_171(x: i32) -> i32 { x + 171 }
+fn helper_172(x: i32) -> i32 { x + 172 }
+fn helper_173(x: i32) -> i32 { x + 173 }
+fn helper_174(x: i32) -> i32 { x + 174 }
+fn helper_175(x: i32) -> i32 { x + 175 }
+fn helper_176(x: i32) -> i32 { x + 176 }
+fn helper_177(x: i32) -> i32 { x + 177 }
+fn helper_178(x: i32) -> i32 { x + 178 }
+fn helper_179(x: i32) -> i32 { x + 179 }
+fn helper_180(x: i32) -> i32 { x + 180 }
+fn helper_181(x: i32) -> i32 { x + 181 }
+fn helper_182(x: i32) -> i32 { x + 182 }
+fn helper_183(x: i32) -> i32 { x + 183 }
+fn helper_184(x: i32) -> i32 { x + 184 }
+fn helper_185(x: i32) -> i32 { x + 185 }
+fn helper_186(x: i32) -> i32 { x + 186 }
+fn helper_187(x: i32) -> i32 { x + 187 }
+fn helper_188(x: i32) -> i32 { x + 188 }
+fn helper_189(x: i32) -> i32 { x + 189 }
+fn helper_190(x: i32) -> i32 { x + 190 }
+fn helper_191(x: i32) -> i32 { x + 191 }
+fn helper_192(x: i32) -> i32 { x + 192 }
+fn helper_193(x: i32) -> i32 { x + 193 }
+fn helper_194(x: i32) -> i32 { x + 194 }
+fn helper_195(x: i32) -> i32 { x + 195 }
+fn helper_196(x: i32) -> i32 { x + 196 }
+fn helper_197(x: i32) -> i32 { x + 197 }
+fn helper_198(x: i32) -> i32 { x + 198 }
+fn helper_199(x: i32) -> i32 { x + 199 }
+fn helper_200(x: i32) -> i32 { x + 200 }
+
+fn main() {
+    let v001 = helper_001(1)
+    let v002 = helper_002(2)
+    let v003 = helper_003(3)
+    let v004 = helper_004(4)
+    let v005 = helper_005(5)
+    let v006 = helper_006(6)
+    let v007 = helper_007(7)
+    let v008 = helper_008(8)
+    let v009 = helper_009(9)
+    let v010 = helper_010(10)
+    let v011 = helper_011(11)
+    let v012 = helper_012(12)
+    let v013 = helper_013(13)
+    let v014 = helper_014(14)
+    let v015 = helper_015(15)
+    let v016 = helper_016(16)
+    let v017 = helper_017(17)
+    let v018 = helper_018(18)
+    let v019 = helper_019(19)
+    let v020 = helper_020(20)
+    let v021 = helper_021(21)
+    let v022 = helper_022(22)
+    let v023 = helper_023(23)
+    let v024 = helper_024(24)
+    let v025 = helper_025(25)
+    let v026 = helper_026(26)
+    let v027 = helper_027(27)
+    let v028 = helper_028(28)
+    let v029 = helper_029(29)
+    let v030 = helper_030(30)
+    let v031 = helper_031(31)
+    let v032 = helper_032(32)
+    let v033 = helper_033(33)
+    let v034 = helper_034(34)
+    let v035 = helper_035(35)
+    let v036 = helper_036(36)
+    let v037 = helper_037(37)
+    let v038 = helper_038(38)
+    let v039 = helper_039(39)
+    let v040 = helper_040(40)
+    let v041 = helper_041(41)
+    let v042 = helper_042(42)
+    let v043 = helper_043(43)
+    let v044 = helper_044(44)
+    let v045 = helper_045(45)
+    let v046 = helper_046(46)
+    let v047 = helper_047(47)
+    let v048 = helper_048(48)
+    let v049 = helper_049(49)
+    let v050 = helper_050(50)
+    let v051 = helper_051(51)
+    let v052 = helper_052(52)
+    let v053 = helper_053(53)
+    let v054 = helper_054(54)
+    let v055 = helper_055(55)
+    let v056 = helper_056(56)
+    let v057 = helper_057(57)
+    let v058 = helper_058(58)
+    let v059 = helper_059(59)
+    let v060 = helper_060(60)
+    let v061 = helper_061(61)
+    let v062 = helper_062(62)
+    let v063 = helper_063(63)
+    let v064 = helper_064(64)
+    let v065 = helper_065(65)
+    let v066 = helper_066(66)
+    let v067 = helper_067(67)
+    let v068 = helper_068(68)
+    let v069 = helper_069(69)
+    let v070 = helper_070(70)
+    let v071 = helper_071(71)
+    let v072 = helper_072(72)
+    let v073 = helper_073(73)
+    let v074 = helper_074(74)
+    let v075 = helper_075(75)
+    let v076 = helper_076(76)
+    let v077 = helper_077(77)
+    let v078 = helper_078(78)
+    let v079 = helper_079(79)
+    let v080 = helper_080(80)
+    let v081 = helper_081(81)
+    let v082 = helper_082(82)
+    let v083 = helper_083(83)
+    let v084 = helper_084(84)
+    let v085 = helper_085(85)
+    let v086 = helper_086(86)
+    let v087 = helper_087(87)
+    let v088 = helper_088(88)
+    let v089 = helper_089(89)
+    let v090 = helper_090(90)
+    let v091 = helper_091(91)
+    let v092 = helper_092(92)
+    let v093 = helper_093(93)
+    let v094 = helper_094(94)
+    let v095 = helper_095(95)
+    let v096 = helper_096(96)
+    let v097 = helper_097(97)
+    let v098 = helper_098(98)
+    let v099 = helper_099(99)
+    let v100 = helper_100(100)
+    let v101 = helper_101(101)
+    let v102 = helper_102(102)
+    let v103 = helper_103(103)
+    let v104 = helper_104(104)
+    let v105 = helper_105(105)
+    let v106 = helper_106(106)
+    let v107 = helper_107(107)
+    let v108 = helper_108(108)
+    let v109 = helper_109(109)
+    let v110 = helper_110(110)
+    let v111 = helper_111(111)
+    let v112 = helper_112(112)
+    let v113 = helper_113(113)
+    let v114 = helper_114(114)
+    let v115 = helper_115(115)
+    let v116 = helper_116(116)
+    let v117 = helper_117(117)
+    let v118 = helper_118(118)
+    let v119 = helper_119(119)
+    let v120 = helper_120(120)
+    let v121 = helper_121(121)
+    let v122 = helper_122(122)
+    let v123 = helper_123(123)
+    let v124 = helper_124(124)
+    let v125 = helper_125(125)
+    let v126 = helper_126(126)
+    let v127 = helper_127(127)
+    let v128 = helper_128(128)
+    let v129 = helper_129(129)
+    let v130 = helper_130(130)
+    let v131 = helper_131(131)
+    let v132 = helper_132(132)
+    let v133 = helper_133(133)
+    let v134 = helper_134(134)
+    let v135 = helper_135(135)
+    let v136 = helper_136(136)
+    let v137 = helper_137(137)
+    let v138 = helper_138(138)
+    let v139 = helper_139(139)
+    let v140 = helper_140(140)
+    let v141 = helper_141(141)
+    let v142 = helper_142(142)
+    let v143 = helper_143(143)
+    let v144 = helper_144(144)
+    let v145 = helper_145(145)
+    let v146 = helper_146(146)
+    let v147 = helper_147(147)
+    let v148 = helper_148(148)
+    let v149 = helper_149(149)
+    let v150 = helper_150(150)
+    let v151 = helper_151(151)
+    let v152 = helper_152(152)
+    let v153 = helper_153(153)
+    let v154 = helper_154(154)
+    let v155 = helper_155(155)
+    let v156 = helper_156(156)
+    let v157 = helper_157(157)
+    let v158 = helper_158(158)
+    let v159 = helper_159(159)
+    let v160 = helper_160(160)
+    let v161 = helper_161(161)
+    let v162 = helper_162(162)
+    let v163 = helper_163(163)
+    let v164 = helper_164(164)
+    let v165 = helper_165(165)
+    let v166 = helper_166(166)
+    let v167 = helper_167(167)
+    let v168 = helper_168(168)
+    let v169 = helper_169(169)
+    let v170 = helper_170(170)
+    let v171 = helper_171(171)
+    let v172 = helper_172(172)
+    let v173 = helper_173(173)
+    let v174 = helper_174(174)
+    let v175 = helper_175(175)
+    let v176 = helper_176(176)
+    let v177 = helper_177(177)
+    let v178 = helper_178(178)
+    let v179 = helper_179(179)
+    let v180 = helper_180(180)
+    let v181 = helper_181(181)
+    let v182 = helper_182(182)
+    let v183 = helper_183(183)
+    let v184 = helper_184(184)
+    let v185 = helper_185(185)
+    let v186 = helper_186(186)
+    let v187 = helper_187(187)
+    let v188 = helper_188(188)
+    let v189 = helper_189(189)
+    let v190 = helper_190(190)
+    let v191 = helper_191(191)
+    let v192 = helper_192(192)
+    let v193 = helper_193(193)
+    let v194 = helper_194(194)
+    let v195 = helper_195(195)
+    let v196 = helper_196(196)
+    let v197 = helper_197(197)
+    let v198 = helper_198(198)
+    let v199 = helper_199(199)
+    let v200 = helper_200(200)
+    stdio::println(i32_to_string(v001))
+}
