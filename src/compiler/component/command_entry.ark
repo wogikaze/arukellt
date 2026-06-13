@@ -1,0 +1,18 @@
+// Arukellt Selfhost - detect CLI command entry (main/_start) for P2 component worlds.
+
+use mir::function_identity
+use mir::module_functions
+
+fn comp_mir_has_command_entry(mir: MirModule) -> bool {
+    let fn_count = module_functions::MirModule_function_count(mir)
+    let mut fi = 0
+    while fi < fn_count {
+        let f = module_functions::MirModule_function_at(mir, fi)
+        let name = function_identity::MirFunction_name(f)
+        if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
+            return true
+        }
+        fi = fi + 1
+    }
+    false
+}

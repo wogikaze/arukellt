@@ -1,0 +1,110 @@
+// Arukellt Selfhost - wasi:cli/command run wrapper for P2 native components.
+
+use component::constants_sections_linkage
+use component::writer_core
+
+fn comp_p2_run_inner_component_bytes() -> Vec<i32> {
+    comp_p2_run_bytes_from_hex(String_from("0061736d0d0001000708026a0000400000000a1401000f696d706f72742d66756e632d72756e01010708026a0000400000020b0b01000372756e0100010103"))
+}
+
+fn comp_p2_run_bytes_from_hex(hex: String) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let n = len(hex)
+    let mut i = 0
+    while i + 1 < n {
+        let hi = comp_p2_run_hex_val(char_at(hex, i))
+        let lo = comp_p2_run_hex_val(char_at(hex, i + 1))
+        push(out, hi * 16 + lo)
+        i = i + 2
+    }
+    out
+}
+
+fn comp_p2_run_hex_val(c: i32) -> i32 {
+    if c >= 48 && c <= 57 {
+        return c - 48
+    }
+    if c >= 97 && c <= 102 {
+        return c - 87
+    }
+    0
+}
+
+fn comp_emit_p2_command_run_world(out: writer_core::ComponentWriter) {
+    comp_p2_run_emit_component_section(out)
+    comp_p2_run_emit_instance_section(out)
+    comp_p2_run_emit_alias_section(out)
+    comp_p2_run_emit_type_section(out)
+    comp_p2_run_emit_canon_section(out)
+    comp_p2_run_emit_export_section(out)
+}
+
+fn comp_p2_run_emit_section(out: writer_core::ComponentWriter, section_id: i32, contents: writer_core::ComponentWriter) {
+    writer_core::comp_emit_section(out, section_id, contents)
+}
+
+fn comp_p2_run_emit_alias_section(out: writer_core::ComponentWriter) {
+    let sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(sec, 1)
+    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_leb128_u(sec, 5)
+    writer_core::comp_emit_string(sec, String_from("_start"))
+    comp_p2_run_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), sec)
+}
+
+fn comp_p2_run_emit_type_section(out: writer_core::ComponentWriter) {
+    let sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(sec, 2)
+    writer_core::comp_emit_byte(sec, 0x6a)
+    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_byte(sec, 0x40)
+    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_byte(sec, 0x40)
+    writer_core::comp_emit_leb128_u(sec, 0)
+    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_byte(sec, 0x00)
+    comp_p2_run_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), sec)
+}
+
+fn comp_p2_run_emit_canon_section(out: writer_core::ComponentWriter) {
+    let sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(sec, 1)
+    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_leb128_u(sec, 0)
+    writer_core::comp_emit_leb128_u(sec, 0)
+    writer_core::comp_emit_leb128_u(sec, 1)
+    comp_p2_run_emit_section(out, constants_sections_linkage::COMP_SEC_CANON(), sec)
+}
+
+fn comp_p2_run_emit_component_section(out: writer_core::ComponentWriter) {
+    let sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_bytes(sec, comp_p2_run_inner_component_bytes())
+    comp_p2_run_emit_section(out, 4, sec)
+}
+
+fn comp_p2_run_emit_instance_section(out: writer_core::ComponentWriter) {
+    let sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(sec, 1)
+    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_leb128_u(sec, 0)
+    writer_core::comp_emit_leb128_u(sec, 1)
+    writer_core::comp_emit_string(sec, String_from("import-func-run"))
+    writer_core::comp_emit_byte(sec, 0x01)
+    writer_core::comp_emit_leb128_u(sec, 0)
+    comp_p2_run_emit_section(out, 5, sec)
+}
+
+fn comp_p2_run_emit_export_section(out: writer_core::ComponentWriter) {
+    let sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(sec, 1)
+    writer_core::comp_emit_string(sec, String_from("wasi:cli/run@0.2.0"))
+    writer_core::comp_emit_byte(sec, 0x05)
+    writer_core::comp_emit_leb128_u(sec, 0)
+    writer_core::comp_emit_byte(sec, 0x00)
+    comp_p2_run_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), sec)
+}
