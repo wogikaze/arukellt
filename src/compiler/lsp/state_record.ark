@@ -9,6 +9,7 @@ pub struct LspState {
     symbol_stdlib_symbols: Vec<symbol_index_record::StdlibIndexedSymbol>,
     symbol_indexed_uris: Vec<String>,
     project_root: String,
+    workspace_roots: Vec<String>,
     hover_detail_level: String,
     enable_code_lens: bool,
     diagnostics_errors_only: bool,
@@ -26,6 +27,7 @@ fn LspState_new() -> LspState {
         symbol_stdlib_symbols: Vec_new_StdlibIndexedSymbol(),
         symbol_indexed_uris: Vec_new_String(),
         project_root: String_new(),
+        workspace_roots: Vec_new_String(),
         hover_detail_level: String_new(),
         enable_code_lens: true,
         diagnostics_errors_only: false,
@@ -63,6 +65,18 @@ fn lsp_state_project_root(state: LspState) -> String {
 
 fn lsp_state_set_project_root(state: LspState, root: String) {
     state.project_root = root
+}
+
+fn lsp_state_workspace_roots_len(state: LspState) -> i32 {
+    len(state.workspace_roots)
+}
+
+fn lsp_state_workspace_root_at(state: LspState, index: i32) -> String {
+    clone(get_unchecked(state.workspace_roots, index))
+}
+
+fn lsp_state_set_workspace_roots(state: LspState, roots: Vec<String>) {
+    state.workspace_roots = roots
 }
 
 fn lsp_state_hover_detail_level(state: LspState) -> String {

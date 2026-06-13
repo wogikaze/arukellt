@@ -15,7 +15,7 @@ pub fn uri_to_file_path(uri: String) -> String {
 }
 
 pub fn root_uri_from_initialize(body: String) -> String {
-    let root_uri = extract_quoted_field(clone(body), String_from("rootUri"))
+    let root_uri = extract_json_string_field(clone(body), String_from("rootUri"))
     if len(root_uri) > 0 {
         return root_uri
     }
@@ -31,10 +31,10 @@ fn extract_workspace_folder_uri(body: String) -> String {
     if uri_pos < 0 {
         return String_new()
     }
-    extract_quoted_field(substring(body, pos + uri_pos, len(body)), String_from("uri"))
+    extract_json_string_field(substring(body, pos + uri_pos, len(body)), String_from("uri"))
 }
 
-fn extract_quoted_field(body: String, key: String) -> String {
+pub fn extract_json_string_field(body: String, key: String) -> String {
     let key_pat = concat(concat(String_from("\""), clone(key)), String_from("\""))
     let pos = index_of(clone(body), key_pat)
     if pos < 0 {
@@ -46,11 +46,22 @@ fn extract_quoted_field(body: String, key: String) -> String {
         return String_new()
     }
     let after = substring(tail, colon + 1, len(tail))
-    let q1 = index_of(clone(after), String_from("\""))
-    if q1 < 0 {
+    let after_len = len(after)
+    let mut p = 0
+    while p < after_len {
+        let c = char_at(after, p)
+        if c != 32 && c != 9 && c != 10 && c != 13 {
+            break
+        }
+        p = p + 1
+    }
+    if p < after_len && char_at(after, p) == 110 && starts_with(substring(after, p, after_len), String_from("null")) {
         return String_new()
     }
-    let rest = substring(after, q1 + 1, len(after))
+    if p >= after_len || char_at(after, p) != 34 {
+        return String_new()
+    }
+    let rest = substring(after, p + 1, after_len)
     let q2 = index_of(clone(rest), String_from("\""))
     if q2 < 0 {
         return String_new()

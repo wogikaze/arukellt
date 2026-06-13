@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T18:59:41Z",
+  "generated_at": "2026-06-13T19:17:43Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -491,30 +491,6 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "502",
-      "path": "502-lsp-full-multi-root-workspace.md",
-      "title": "502-lsp-full-multi-root-workspace",
-      "track": "vscode-ide",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "441"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 5,
         "unchecked": 0
       },
       "orchestration": {

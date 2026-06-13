@@ -1,0 +1,96 @@
+// Arukellt LSP - multi-root workspace package discovery from ark.toml graphs.
+
+use lsp::symbol_index_paths
+use std::host::fs
+
+fn roots_contains(roots: Vec<String>, path: String) -> bool {
+    let n = len(roots)
+    let mut i = 0
+    while i < n {
+        if eq(get_unchecked(roots, i), clone(path)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn roots_push_unique(roots: Vec<String>, path: String) -> Vec<String> {
+    if len(path) == 0 || roots_contains(roots, clone(path)) {
+        return roots
+    }
+    push(roots, path)
+    roots
+}
+
+pub fn workspace_roots_from_initialize(body: String) -> Vec<String> {
+    let uris = workspace_folder_uris_from_initialize(clone(body))
+    let n = len(uris)
+    let mut out = Vec_new_String()
+    let mut i = 0
+    while i < n {
+        let path = symbol_index_paths::uri_to_file_path(get_unchecked(uris, i))
+        out = roots_push_unique(out, path)
+        i = i + 1
+    }
+    if len(out) > 0 {
+        return out
+    }
+    let root_uri = symbol_index_paths::root_uri_from_initialize(clone(body))
+    if len(root_uri) > 0 {
+        out = roots_push_unique(out, symbol_index_paths::uri_to_file_path(root_uri))
+    }
+    out
+}
+
+fn workspace_folder_uris_from_initialize(body: String) -> Vec<String> {
+    let pos = index_of(clone(body), String_from("workspaceFolders"))
+    if pos < 0 {
+        return Vec_new_String()
+    }
+    let tail = substring(body, pos, len(body))
+    let arr_start = index_of(clone(tail), String_from("["))
+    if arr_start < 0 {
+        return Vec_new_String()
+    }
+    let arr_end = index_of(clone(tail), String_from("]"))
+    if arr_end < arr_start {
+        return Vec_new_String()
+    }
+    let section = substring(tail, arr_start, arr_end)
+    let out = Vec_new_String()
+    let mut scan = 0
+    let section_len = len(section)
+    while scan < section_len {
+        let rest = substring(section, scan, section_len)
+        let uri_pos = index_of(clone(rest), String_from("\"uri\""))
+        if uri_pos < 0 {
+            break
+        }
+        let uri = symbol_index_paths::extract_json_string_field(substring(rest, uri_pos, len(rest)), String_from("uri"))
+        if len(uri) > 0 {
+            out = roots_push_unique(out, uri)
+        }
+        scan = scan + uri_pos + 5
+    }
+    out
+}
+
+pub fn find_package_root(start_dir: String) -> String {
+    if len(start_dir) == 0 {
+        return String_new()
+    }
+    let manifest = symbol_index_paths::join_path(clone(start_dir), String_from("ark.toml"))
+    if fs::exists(clone(manifest)) {
+        return start_dir
+    }
+    let parent = loader::module_paths::parent_dir(clone(start_dir))
+    if eq(clone(parent), clone(start_dir)) {
+        return String_new()
+    }
+    find_package_root(parent)
+}
+
+pub fn watched_files_body_has_ark_toml(body: String) -> bool {
+    contains(clone(body), String_from("ark.toml"))
+}

@@ -1,18 +1,166 @@
 // Arukellt LSP - workspace initialization and project index build.
 
+use lsp::lsp_package_definition
+use lsp::state_record
 use lsp::symbol_index_paths
 use lsp::symbol_index_project
 use lsp::symbol_index_stdlib
-use lsp::state_record
+use lsp::symbol_index_update
+use std::host::fs
+
+fn collect_path_dependency_rel_paths(content: String) -> Vec<String> {
+    let out = Vec_new_String()
+    let needle = String_from("path = \"")
+    let content_len = len(content)
+    let needle_len = len(needle)
+    let mut search_from = 0
+    while search_from < content_len {
+        let tail = substring(content, search_from, content_len)
+        let pos = index_of(clone(tail), needle)
+        if pos < 0 {
+            return out
+        }
+        let abs = search_from + pos + needle_len
+        let rest = substring(content, abs, content_len)
+        let end = index_of(clone(rest), String_from("\""))
+        if end < 0 {
+            return out
+        }
+        push(out, substring(rest, 0, end))
+        search_from = abs + end + 1
+    }
+    out
+}
+
+fn tail_strings(items: Vec<String>) -> Vec<String> {
+    let out = Vec_new_String()
+    let n = len(items)
+    let mut i = 1
+    while i < n {
+        push(out, get_unchecked(items, i))
+        i = i + 1
+    }
+    out
+}
+
+fn roots_contains(roots: Vec<String>, path: String) -> bool {
+    let n = len(roots)
+    let mut i = 0
+    while i < n {
+        if eq(get_unchecked(roots, i), clone(path)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn roots_push_unique(roots: Vec<String>, path: String) -> Vec<String> {
+    if len(path) == 0 || roots_contains(roots, clone(path)) {
+        return roots
+    }
+    push(roots, path)
+    roots
+}
+
+fn discover_path_dependency_roots(seed_root: String) -> Vec<String> {
+    let mut ordered = Vec_new_String()
+    let mut visited = Vec_new_String()
+    let mut pending = roots_push_unique(Vec_new_String(), clone(seed_root))
+    while len(pending) > 0 {
+        let next = get_unchecked(pending, 0)
+        pending = tail_strings(pending)
+        if roots_contains(visited, clone(next)) {
+            continue
+        }
+        visited = roots_push_unique(visited, clone(next))
+        let manifest_path = symbol_index_paths::join_path(clone(next), String_from("ark.toml"))
+        let read_result = fs::read_to_string(clone(manifest_path))
+        match read_result {
+            Result::Ok(content) => {
+                ordered = roots_push_unique(ordered, clone(next))
+                let deps = collect_path_dependency_rel_paths(clone(content))
+                let dn = len(deps)
+                let mut di = 0
+                while di < dn {
+                    let dep_rel = get_unchecked(deps, di)
+                    let dep_start = symbol_index_paths::resolve_relative_path(clone(next), dep_rel)
+                    let dep_root = lsp_package_definition::find_package_root(dep_start)
+                    if len(dep_root) > 0 {
+                        pending = roots_push_unique(pending, dep_root)
+                    }
+                    di = di + 1
+                }
+            },
+            Result::Err(_) => {},
+        }
+    }
+    ordered
+}
+
+fn discover_workspace_package_roots(workspace_roots: Vec<String>) -> Vec<String> {
+    let mut out = Vec_new_String()
+    let n = len(workspace_roots)
+    let mut i = 0
+    while i < n {
+        let seed = get_unchecked(workspace_roots, i)
+        let project_root = lsp_package_definition::find_package_root(clone(seed))
+        if len(project_root) > 0 {
+            let discovered = discover_path_dependency_roots(clone(project_root))
+            let dn = len(discovered)
+            let mut di = 0
+            while di < dn {
+                out = roots_push_unique(out, clone(get_unchecked(discovered, di)))
+                di = di + 1
+            }
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn build_workspace_seeds(state: LspState) -> Vec<String> {
+    let out = Vec_new_String()
+    let n = state_record::lsp_state_workspace_roots_len(state)
+    let mut i = 0
+    while i < n {
+        push(out, state_record::lsp_state_workspace_root_at(state, i))
+        i = i + 1
+    }
+    if len(out) > 0 {
+        return out
+    }
+    let project_root = state_record::lsp_state_project_root(state)
+    if len(project_root) > 0 {
+        push(out, project_root)
+    }
+    out
+}
+
+pub fn rebuild_workspace_package_index(state: LspState) {
+    symbol_index_stdlib::symbol_index_load_stdlib(state)
+    let package_roots = discover_workspace_package_roots(build_workspace_seeds(state))
+    let n = len(package_roots)
+    let mut i = 0
+    while i < n {
+        symbol_index_project::symbol_index_load_project(state, get_unchecked(package_roots, i))
+        i = i + 1
+    }
+}
 
 pub fn initialize_workspace_index(state: LspState, body: String) {
-    let root_uri = symbol_index_paths::root_uri_from_initialize(clone(body))
-    let project_root = if len(root_uri) > 0 {
-        symbol_index_paths::uri_to_file_path(root_uri)
+    let workspace_roots = lsp_package_definition::workspace_roots_from_initialize(clone(body))
+    let primary = if len(workspace_roots) > 0 {
+        get_unchecked(workspace_roots, 0)
     } else {
         String_new()
     }
-    state_record::lsp_state_set_project_root(state, clone(project_root))
-    symbol_index_stdlib::symbol_index_load_stdlib(state)
-    symbol_index_project::symbol_index_load_project(state, clone(project_root))
+    state_record::lsp_state_set_workspace_roots(state, workspace_roots)
+    state_record::lsp_state_set_project_root(state, clone(primary))
+    rebuild_workspace_package_index(state)
+}
+
+pub fn rebuild_workspace_package_index_from_manifest_change(state: LspState) {
+    symbol_index_update::symbol_index_clear_project(state)
+    rebuild_workspace_package_index(state)
 }

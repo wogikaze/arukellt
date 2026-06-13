@@ -5,6 +5,11 @@ use lsp::state_record
 use lsp::symbol_index_extract
 use lsp::symbol_index_record
 
+pub fn symbol_index_clear_project(state: LspState) {
+    state.symbol_symbols = Vec_new_IndexedSymbol()
+    state.symbol_indexed_uris = Vec_new_String()
+}
+
 pub fn symbol_index_remove_uri(state: LspState, uri: String) {
     let kept = Vec_new_IndexedSymbol()
     let symbols = state_record::lsp_state_symbol_symbols(state)

@@ -123,7 +123,14 @@ fn project_entry_path(project_root: String) -> String {
         Result::Ok(content) => {
             let entry = symbol_index_paths::find_toml_value(clone(content), String_from("path"))
             if len(entry) > 0 {
-                return symbol_index_paths::join_path(clone(project_root), entry)
+                let candidate = symbol_index_paths::join_path(clone(project_root), entry)
+                if fs::exists(clone(candidate)) {
+                    return candidate
+                }
+            }
+            let lib = symbol_index_paths::join_path(clone(project_root), String_from("src/lib.ark"))
+            if fs::exists(clone(lib)) {
+                return lib
             }
             String_new()
         },

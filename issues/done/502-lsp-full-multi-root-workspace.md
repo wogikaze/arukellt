@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-14
-Updated: 2026-06-12
+Updated: 2026-06-14
 ID: 502
 Track: vscode-ide
 Depends on: 441
@@ -122,9 +122,8 @@ any `ark.toml` in the workspace changes.
 
 ## Completion Note
 
-Closed 2026-04-15. `ark-lsp` now discovers path-dependency package roots from all workspace
-folders, rebuilds the symbol index across those package roots on watched `ark.toml` changes,
-and analyzes opened documents against dependency package source directories so cross-package
-definition lookup and import diagnostics work in multi-root workspaces. Regression coverage was
-added for both dependency-package go-to-definition and dependency import diagnostics under
-`tests/package-workspace/multi-root-indexing/` and `crates/ark-lsp/tests/lsp_e2e.rs`.
+Closed 2026-06-14. Selfhost LSP (`src/compiler/lsp/`) now parses `workspaceFolders` with
+null-safe `rootUri`, stores `workspace_roots`, walks cycle-safe `ark.toml` path-dependency
+graphs via `lsp_package_definition` + `init_workspace`, rebuilds the multi-package symbol index
+on `workspace/didChangeWatchedFiles` when `ark.toml` changes, and indexes library packages
+without a `[bin]` entry. Regression: `tests/fixtures/selfhost/lsp_package_definition.lsp-script`.
