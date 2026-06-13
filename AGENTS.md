@@ -82,8 +82,8 @@ whether to commit. This policy **overrides** global Cursor User Rules that say
 - Orchestration-only commits (issue moves, audit reports, indexes) stay separate from product implementation when both land in one session.
 - Use HEREDOC for commit messages (`git commit -m "$(cat <<'EOF' ... EOF)"`).
 
-Human operators syncing Cursor: replace the global `committing-changes-with-git` User Rule using
-`.cursor/REPLACE-USER-RULE-commit.md` so agents do not stall waiting for an explicit "commit" prompt.
+Project Rules（Cursor Settings → Rules に表示される `git-commits` / `AGENTS`）で自律コミットは有効。
+グローバル User Rules の有無は `.cursor/REPLACE-USER-RULE-commit.md` を参照（多くの環境では追加作業不要）。
 
 ## Verification Loop
 

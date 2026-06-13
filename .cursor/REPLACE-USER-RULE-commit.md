@@ -1,17 +1,32 @@
-# Cursor User Rules: コミット方針の置き換え
+# コミット方針（Cursor Rules）
 
-グローバル User Rules にある `committing-changes-with-git`（「明示依頼時のみコミット」）は、
-このリポジトリでは **`.cursor/rules/git-commits.mdc`**（`alwaysApply: true`）と矛盾します。
+## このリポジトリで有効な設定
 
-**Workspace rule が優先**されますが、エージェントが旧 User Rule を読み続けると停止・確認待ちが起きるため、User Rules も下記に置換してください。
+Cursor Settings → **Rules** に表示される次の項目で、自律コミットはすでに有効です。
 
-## 手順
+| UI に表示される名前 | 実体 |
+|--------------------|------|
+| **git-commits** | `.cursor/rules/git-commits.mdc`（`alwaysApply: true`） |
+| **AGENTS** | `AGENTS.md` → Commit Policy |
+| CLAUDE | `CLAUDE.md`（リポジトリ境界・検証ループ） |
+| japanese-summaries | `.cursor/rules/japanese-summaries.mdc` |
 
-1. **Cursor Settings** → **Rules** → **User Rules** を開く
-2. `<committing-changes-with-git>...</committing-changes-with-git>` ブロックを**削除**
-3. 下記を User Rules に貼る（ブロック全体をこれに置換）
+**追加の設定は不要です。** 作業完了後、エージェントはユーザーに「コミットしますか？」と聞かず、ターン終了前にコミットします。
 
-## 貼り付け用（新 User Rule）
+## 優先順位
+
+1. `.cursor/rules/git-commits.mdc`（常時適用）
+2. `AGENTS.md` Commit Policy
+3. `prompts/research.md` の autonomous commit policy（監査 orchestration 用）
+
+## グローバル User Rules がある場合のみ（任意）
+
+Cursor のバージョンやアカウント設定によっては、**プロジェクト Rules とは別**に
+グローバル User Rules（「明示依頼時のみコミット」など）が残っていることがあります。
+Settings に **User Rules** タブが見当たらない場合は、**無視して構いません** —
+上記の Project Rules がこのリポジトリでは十分です。
+
+グローバル側に `committing-changes-with-git` がある場合だけ、下記に置換してください。
 
 ```markdown
 <committing-changes-with-git>
@@ -25,12 +40,3 @@ In the arukellt repository, follow `.cursor/rules/git-commits.mdc` and `AGENTS.m
 - Orchestration-only changes (issues, index, audit reports) may be a separate commit from product implementation when both land in one session.
 </committing-changes-with-git>
 ```
-
-## 優先順位（このリポジトリ）
-
-| 層 | 正 |
-|----|-----|
-| `.cursor/rules/git-commits.mdc` (`alwaysApply: true`) | 作業完了ごとにコミット（ユーザー確認不要） |
-| `AGENTS.md` Commit Policy | 同上 |
-| `prompts/research.md` autonomous commit policy | 監査 orchestration も自律コミット |
-| 旧 User Rule「明示依頼のみ」 | **削除または上記に置換** |

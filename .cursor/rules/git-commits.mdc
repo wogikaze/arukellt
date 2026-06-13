@@ -19,4 +19,4 @@ See `AGENTS.md` → Commit Policy for full detail. Summary:
 - Never update git config; never skip hooks; never force-push to main/master.
 - Use HEREDOC for commit messages; fix pre-commit failures with a **new** commit (amend only when hooks auto-modified files on your commit).
 - Keep commits focused; orchestration-only changes (issues, indexes) may be a separate commit from product code in the same session.
-- Operators: sync global User Rules via `.cursor/REPLACE-USER-RULE-commit.md` so agents do not stall on commit confirmation.
+- Optional: if a separate global User Rules UI exists, see `.cursor/REPLACE-USER-RULE-commit.md`.
