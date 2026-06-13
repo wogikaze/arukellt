@@ -1,6 +1,6 @@
-Content-Length: 424
+Content-Length: 454
 
-{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"workspaceSymbolProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 153
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"typeDefinitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"workspaceSymbolProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 153
 
 {"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file://tests/fixtures/selfhost/lsp_symbol_index/main.ark","diagnostics":[]}}Content-Length: 38
 

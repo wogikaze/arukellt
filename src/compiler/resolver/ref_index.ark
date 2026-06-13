@@ -57,5 +57,5 @@ fn find_decl_index_at_offset(index: RefIndex, offset: i32) -> i32 {
         }
         j = j + 1
     }
-    -1
+    return 0 - 1
 }

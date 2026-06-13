@@ -118,7 +118,7 @@ fn symbol_index_uri_index(indexed_uris: Vec<String>, uri: String) -> i32 {
         }
         i = i + 1
     }
-    -1
+    return 0 - 1
 }
 
 fn symbol_index_is_indexed(indexed_uris: Vec<String>, uri: String) -> bool {

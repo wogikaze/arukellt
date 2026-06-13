@@ -28,7 +28,7 @@ fn lsp_doc_index_of(store: LspDocStore, uri: String) -> i32 {
         }
         i = i + 1
     }
-    -1
+    return 0 - 1
 }
 
 fn lsp_doc_store_set(store: LspDocStore, uri: String, text: String, version: i32) {
