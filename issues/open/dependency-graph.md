@@ -19,7 +19,6 @@ graph LR
   I219["219 LSP standard feature completeness"]
   I292["292 292-stub-host-compile-error"]
   I30["30 036-jco-javascript-interop"]
-  I355["355 355-lsp-protocol-e2e-tests"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I41["41 051-std-time-random"]
   I422["422 Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る"]
@@ -27,7 +26,7 @@ graph LR
   I446["446 446-std-host-http-implementation"]
   I447["447 447-std-host-sockets-implementation"]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
-  I454["454 454-lsp-regression-fixtures-snapshot"]
+  I463["463 463-lsp-performance-smoke-tests"]
   I474["474 Async component support (v5)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I480["480 480-extension-readme-settings-docs"]
@@ -51,7 +50,6 @@ graph LR
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I184["184 184-vscode-extension-foundation"]
   I633["633 Reconcile std::host::http / sockets / udp capability claims with the selfhost execution path"]
-  I463["463 463-lsp-performance-smoke-tests"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I443["443 443-component-composition-linking-model"]
   I618["618 618-wit-bindings-round-trip"]
@@ -66,7 +64,6 @@ graph LR
   I191 --> I184
   I446 --> I633
   I447 --> I633
-  I454 --> I463
   I474 --> I646
   I476 --> I443
   I476 --> I618
@@ -91,7 +88,6 @@ graph LR
 - **219** depends on: none; blocks: none
 - **292** depends on: none; blocks: none
 - **30** depends on: 27; blocks: none
-- **355** depends on: 353; blocks: none
 - **358** depends on: none; blocks: none
 - **41** depends on: 039, 040; blocks: none
 - **422** depends on: 418; blocks: none
@@ -99,7 +95,7 @@ graph LR
 - **446** depends on: none; blocks: 633
 - **447** depends on: none; blocks: 633
 - **45** depends on: 039, 042, 044; blocks: none
-- **454** depends on: 450, 451, 452; blocks: 463
+- **463** depends on: 454; blocks: none
 - **474** depends on: 035, done), 074; blocks: 646
 - **476** depends on: 035, done), 074; blocks: 443, 618
 - **480** depends on: 479; blocks: none
@@ -123,7 +119,6 @@ graph LR
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **184** depends on: 189, 190, 191; blocks: 183
 - **633** depends on: 446, 447; blocks: none
-- **463** depends on: 454; blocks: none
 - **646** depends on: 474; blocks: none
 - **443** depends on: 442, 476; blocks: none
 - **618** depends on: 262, 476; blocks: none

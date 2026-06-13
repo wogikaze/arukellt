@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T15:41:54Z",
+  "generated_at": "2026-06-13T15:42:59Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -316,30 +316,6 @@
       }
     },
     {
-      "id": "355",
-      "path": "355-lsp-protocol-e2e-tests.md",
-      "title": "355-lsp-protocol-e2e-tests",
-      "track": "tooling-contract",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "353"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "358",
       "path": "358-stdlib-host-family-completion.md",
       "title": "Stdlib: host family の stub を解消し stable capability に引き上げる",
@@ -511,10 +487,10 @@
       }
     },
     {
-      "id": "454",
-      "path": "454-lsp-regression-fixtures-snapshot.md",
-      "title": "454-lsp-regression-fixtures-snapshot",
-      "track": "vscode-ide",
+      "id": "463",
+      "path": "463-lsp-performance-smoke-tests.md",
+      "title": "463-lsp-performance-smoke-tests",
+      "track": "lsp, testing",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
@@ -522,15 +498,11 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "450",
-        "451",
-        "452"
+        "454"
       ],
-      "blocks_issue_ids": [
-        "463"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 4,
+        "checked": 6,
         "unchecked": 0
       },
       "orchestration": {
@@ -1103,30 +1075,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "463",
-      "path": "463-lsp-performance-smoke-tests.md",
-      "title": "463-lsp-performance-smoke-tests",
-      "track": "lsp, testing",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "454"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 6,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
       }
     },
     {

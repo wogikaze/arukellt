@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-02
-Updated: 2026-06-12
+Updated: 2026-06-14
 ID: 454
 Track: vscode-ide
 Depends on: 450, 451, 452
