@@ -1,6 +1,6 @@
-Content-Length: 536
+Content-Length: 558
 
-{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"typeDefinitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"signatureHelpProvider":{"triggerCharacters":["(",","]},"codeActionProvider":true,"workspaceSymbolProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 120
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"typeDefinitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"renameProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"signatureHelpProvider":{"triggerCharacters":["(",","]},"codeActionProvider":true,"workspaceSymbolProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 120
 
 {"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///auto_import.ark","diagnostics":[]}}Content-Length: 67
 

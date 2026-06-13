@@ -6,6 +6,7 @@ use lsp::feature_request
 use lsp::framing
 use lsp::import_graph
 use lsp::json_escape
+use lsp::organize_imports
 use lsp::positions
 use lsp::responses
 use lsp::state_record
@@ -71,6 +72,18 @@ pub fn handle_code_action(state: LspState, body: String) {
     }
     let req_text = feature_request::text_position_request_text(req)
     let req_uri = feature_request::text_position_request_uri(req)
+    if organize_imports::request_wants_organize_imports(clone(body)) {
+        let organize = organize_imports::build_organize_imports_action(clone(req_uri), clone(req_text))
+        let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+        body_out = concat(body_out, to_string(req_id))
+        body_out = concat(body_out, String_from(",\"result\":["))
+        if len(organize) > 0 {
+            body_out = concat(body_out, organize)
+        }
+        body_out = concat(body_out, String_from("]}"))
+        framing::append_framed(state, body_out)
+        return
+    }
     let offset = feature_request::text_position_request_offset(req)
     let span = symbols::ident_span_at_offset(clone(req_text), offset)
     if !ident_span::ident_span_found(span) {

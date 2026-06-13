@@ -5,6 +5,7 @@ use lsp::feature_completion
 use lsp::feature_definition
 use lsp::feature_hover
 use lsp::feature_references
+use lsp::feature_rename
 use lsp::feature_signature_help
 use lsp::feature_type_definition
 use lsp::feature_workspace_symbol
@@ -50,6 +51,14 @@ fn dispatch_features(state: LspState, body: String, method: String) -> bool {
     }
     if eq(clone(method), "textDocument/typeDefinition") {
         features::handle_type_definition(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/prepareRename") {
+        feature_rename::handle_prepare_rename(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/rename") {
+        feature_rename::handle_rename(state, clone(body))
         return true
     }
     false

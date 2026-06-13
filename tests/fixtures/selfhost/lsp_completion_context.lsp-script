@@ -1,0 +1,15 @@
+Content-Length: 107
+
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":null,"capabilities":{}}}Content-Length: 52
+
+{"jsonrpc":"2.0","method":"initialized","params":{}}Content-Length: 275
+
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///completion_context.ark","languageId":"arukellt","version":1,"text":"struct Point { x: i32, y: i32 }\n\nfn main() {\n    let p: Point = Point { x: 1, y: 2 }\n    p.\n    let n: \n}\n"}}}Content-Length: 162
+
+{"jsonrpc":"2.0","id":2,"method":"textDocument/completion","params":{"textDocument":{"uri":"file:///completion_context.ark"},"position":{"line":4,"character":6}}}Content-Length: 163
+
+{"jsonrpc":"2.0","id":3,"method":"textDocument/completion","params":{"textDocument":{"uri":"file:///completion_context.ark"},"position":{"line":5,"character":11}}}Content-Length: 44
+
+{"jsonrpc":"2.0","id":4,"method":"shutdown"}Content-Length: 33
+
+{"jsonrpc":"2.0","method":"exit"}

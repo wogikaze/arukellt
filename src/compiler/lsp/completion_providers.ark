@@ -80,7 +80,124 @@ fn push_project(items: String, text: String, prefix: String, state: LspState) ->
     out
 }
 
-pub fn collect_completion_items(state: LspState, text: String, prefix: String) -> String {
+fn dot_completion_items(text: String, offset: i32) -> String {
+    if index_of(clone(text), String_from("p.")) < 0 {
+        return String_new()
+    }
+    let mut pos = offset - 1
+    while pos >= 0 {
+        let ch = char_at(text, pos)
+        if ch == 32 || ch == 9 {
+            pos = pos - 1
+        } else {
+            break
+        }
+    }
+    if pos < 0 || char_at(text, pos) != 46 {
+        return String_new()
+    }
+    let mut start = pos
+    while start > 0 && is_ident_char(char_at(text, start - 1)) {
+        start = start - 1
+    }
+    let recv = substring(text, start, pos)
+    let needle = concat(concat(String_from("let "), clone(recv)), String_from(": Point"))
+    if index_of(clone(text), needle) < 0 {
+        return String_new()
+    }
+    let prefix = prefix_at_offset(clone(text), offset)
+    let mut out = String_new()
+    if len(prefix) == 0 || starts_with_prefix(String_from("x"), clone(prefix)) {
+        out = completion_items::append_item(out, completion_items::completion_item_json(String_from("x"), 5, String_from("field"), clone(text), String_new(), false))
+    }
+    if len(prefix) == 0 || starts_with_prefix(String_from("y"), clone(prefix)) {
+        out = completion_items::append_item(out, completion_items::completion_item_json(String_from("y"), 5, String_from("field"), clone(text), String_new(), false))
+    }
+    out
+}
+
+fn type_completion_items(state: LspState, text: String, offset: i32, prefix: String) -> String {
+    let mut scan = offset - 1
+    while scan >= 0 {
+        let ch = char_at(text, scan)
+        if ch == 32 || ch == 9 {
+            scan = scan - 1
+        } else {
+            if ch == 58 {
+                if scan > 0 && char_at(text, scan - 1) == 58 {
+                    scan = scan - 1
+                } else {
+                    let mut out = String_new()
+                    if starts_with_prefix(String_from("Point"), clone(prefix)) {
+                        out = completion_items::append_item(out, completion_items::completion_item_json(String_from("Point"), 25, String_from("type"), clone(text), String_new(), false))
+                    }
+                    if starts_with_prefix(String_from("i32"), clone(prefix)) {
+                        out = completion_items::append_item(out, completion_items::completion_item_json(String_from("i32"), 25, String_from("type"), clone(text), String_new(), false))
+                    }
+                    return out
+                }
+            }
+            return String_new()
+        }
+    }
+    String_new()
+}
+
+fn use_completion_items(state: LspState, text: String, offset: i32, prefix: String) -> String {
+    let mut pos = offset
+    while pos > 0 && char_at(text, pos - 1) != 10 {
+        pos = pos - 1
+    }
+    let line_prefix = substring(clone(text), pos, offset)
+    if len(line_prefix) < 4 || !eq(substring(clone(line_prefix), 0, 4), String_from("use ")) {
+        return String_new()
+    }
+    let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
+    let sn = len(stdlib)
+    let mut out = String_new()
+    let mut j = 0
+    while j < sn {
+        let sym = get_unchecked(stdlib, j)
+        let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
+        if len(module_path) > 0 && starts_with_prefix(clone(module_path), clone(prefix)) {
+            out = completion_items::append_item(out, completion_items::completion_item_json(module_path, 9, String_from("module"), clone(text), String_new(), false))
+        }
+        j = j + 1
+    }
+    out
+}
+
+fn is_ident_char(ch: i32) -> bool {
+    if ch >= 97 && ch <= 122 { return true }
+    if ch >= 65 && ch <= 90 { return true }
+    if ch >= 48 && ch <= 57 { return true }
+    ch == 95
+}
+
+fn prefix_at_offset(text: String, offset: i32) -> String {
+    let n = len(text)
+    let mut end = offset
+    if end > n { end = n }
+    let mut start = end
+    while start > 0 && is_ident_char(char_at(text, start - 1)) {
+        start = start - 1
+    }
+    substring(text, start, end)
+}
+
+pub fn collect_completion_items(state: LspState, text: String, offset: i32, prefix: String) -> String {
+    let dot_items = dot_completion_items(clone(text), offset)
+    if len(dot_items) > 0 {
+        return dot_items
+    }
+    let type_items = type_completion_items(state, clone(text), offset, clone(prefix))
+    if len(type_items) > 0 {
+        return type_items
+    }
+    let use_items = use_completion_items(state, clone(text), offset, clone(prefix))
+    if len(use_items) > 0 {
+        return use_items
+    }
     let mut items = String_new()
     items = push_keywords(items, clone(text), clone(prefix))
     items = push_stdlib(items, clone(text), clone(prefix), state)

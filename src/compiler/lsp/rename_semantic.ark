@@ -1,0 +1,129 @@
+// Arukellt LSP - semantic rename and prepareRename (#339).
+
+use analysis::ident_span
+use analysis::symbol_references
+use analysis::symbols
+use lsp::feature_request
+use lsp::json_escape
+use lsp::json_fields
+use lsp::positions
+use lsp::rename_workspace
+use lsp::responses
+
+fn quote_string(s: String) -> String {
+    concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
+}
+
+fn null_result(id: i32) -> String {
+    responses::build_null_response(id)
+}
+
+fn is_keyword_name(name: String) -> bool {
+    if eq(clone(name), String_from("fn")) { return true }
+    if eq(clone(name), String_from("let")) { return true }
+    if eq(clone(name), String_from("mut")) { return true }
+    if eq(clone(name), String_from("if")) { return true }
+    if eq(clone(name), String_from("else")) { return true }
+    if eq(clone(name), String_from("match")) { return true }
+    if eq(clone(name), String_from("use")) { return true }
+    if eq(clone(name), String_from("pub")) { return true }
+    if eq(clone(name), String_from("return")) { return true }
+    if eq(clone(name), String_from("while")) { return true }
+    if eq(clone(name), String_from("loop")) { return true }
+    if eq(clone(name), String_from("for")) { return true }
+    if eq(clone(name), String_from("struct")) { return true }
+    if eq(clone(name), String_from("enum")) { return true }
+    if eq(clone(name), String_from("trait")) { return true }
+    if eq(clone(name), String_from("impl")) { return true }
+    false
+}
+
+fn is_renamable_at_offset(text: String, offset: i32) -> bool {
+    let refs = symbol_references::collect_semantic_references(clone(text), offset)
+    if len(refs) > 0 {
+        return true
+    }
+    let span = symbols::ident_span_at_offset(clone(text), offset)
+    if !ident_span::ident_span_found(span) {
+        return false
+    }
+    !is_keyword_name(ident_span::ident_span_name(span))
+}
+
+fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
+    if !is_renamable_at_offset(clone(text), offset) {
+        return null_result(id)
+    }
+    let refs = symbol_references::collect_semantic_references(clone(text), offset)
+    let mut start = 0
+    let mut end = 0
+    let mut name = String_new()
+    if len(refs) > 0 {
+        let loc = get_unchecked(refs, 0)
+        start = symbol_references::reference_location_start(loc)
+        end = symbol_references::reference_location_end(loc)
+        name = substring(clone(text), start, end)
+    } else {
+        let span = symbols::ident_span_at_offset(clone(text), offset)
+        if !ident_span::ident_span_found(span) {
+            return null_result(id)
+        }
+        start = ident_span::ident_span_start(span)
+        end = ident_span::ident_span_end(span)
+        name = ident_span::ident_span_name(span)
+    }
+    let start_pos = positions::offset_to_position(clone(text), start)
+    let end_pos = positions::offset_to_position(text, end)
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = concat(body, to_string(id))
+    body = concat(body, String_from(",\"result\":{\"range\":{\"start\":{\"line\":"))
+    body = concat(body, to_string(positions::lsp_position_line(start_pos)))
+    body = concat(body, String_from(",\"character\":"))
+    body = concat(body, to_string(positions::lsp_position_character(start_pos)))
+    body = concat(body, String_from("},\"end\":{\"line\":"))
+    body = concat(body, to_string(positions::lsp_position_line(end_pos)))
+    body = concat(body, String_from(",\"character\":"))
+    body = concat(body, to_string(positions::lsp_position_character(end_pos)))
+    body = concat(body, String_from("}},\"placeholder\":"))
+    body = concat(body, quote_string(name))
+    body = concat(body, String_from("}}"))
+    body
+}
+
+fn build_rename_response(id: i32, changes: String) -> String {
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = concat(body, to_string(id))
+    body = concat(body, String_from(",\"result\":{\"changes\":{"))
+    body = concat(body, changes)
+    body = concat(body, String_from("}}}"))
+    body
+}
+
+pub fn build_prepare_rename_response_for_request(state: LspState, body: String, id: i32) -> String {
+    let req = feature_request::read_text_position_request(state, clone(body))
+    if !feature_request::text_position_request_has_text(req) {
+        return null_result(id)
+    }
+    build_prepare_rename_response(id, feature_request::text_position_request_text(req), feature_request::text_position_request_offset(req))
+}
+
+pub fn build_rename_response_for_request(state: LspState, body: String, id: i32) -> String {
+    let req = feature_request::read_text_position_request(state, clone(body))
+    if !feature_request::text_position_request_has_text(req) {
+        return null_result(id)
+    }
+    let req_text = feature_request::text_position_request_text(req)
+    let offset = feature_request::text_position_request_offset(req)
+    if !is_renamable_at_offset(clone(req_text), offset) {
+        return null_result(id)
+    }
+    let new_name = json_fields::extract_string_field(clone(body), String_from("newName"))
+    if len(new_name) == 0 || is_keyword_name(clone(new_name)) {
+        return null_result(id)
+    }
+    let changes = rename_workspace::collect_workspace_changes(state, feature_request::text_position_request_uri(req), clone(req_text), offset, new_name)
+    if len(changes) == 0 {
+        return null_result(id)
+    }
+    build_rename_response(id, changes)
+}

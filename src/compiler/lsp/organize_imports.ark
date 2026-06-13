@@ -1,0 +1,47 @@
+// Arukellt LSP - organize imports code action (#341).
+
+use lsp::json_escape
+use lsp::organize_imports_detect
+use lsp::positions
+
+fn quote_string(s: String) -> String {
+    concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
+}
+
+fn build_organize_edit(uri: String, text: String, entries: Vec<ImportEntry>) -> String {
+    let sorted = organize_imports_detect::sorted_import_lines(entries, clone(text))
+    let span = organize_imports_detect::import_block_span(entries)
+    let first_start = organize_imports_detect::import_block_start(span)
+    let last_end = organize_imports_detect::import_block_end(span)
+    let start_pos = positions::offset_to_position(clone(text), first_start)
+    let end_pos = positions::offset_to_position(text, last_end)
+    let mut out = String_from("{\"title\":\"Organize Imports\",\"kind\":\"source.organizeImports\",\"edit\":{\"changes\":{")
+    out = concat(out, quote_string(uri))
+    out = concat(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
+    out = concat(out, to_string(positions::lsp_position_line(start_pos)))
+    out = concat(out, String_from(",\"character\":"))
+    out = concat(out, to_string(positions::lsp_position_character(start_pos)))
+    out = concat(out, String_from("},\"end\":{\"line\":"))
+    out = concat(out, to_string(positions::lsp_position_line(end_pos)))
+    out = concat(out, String_from(",\"character\":"))
+    out = concat(out, to_string(positions::lsp_position_character(end_pos)))
+    out = concat(out, String_from("}},\"newText\":"))
+    out = concat(out, quote_string(sorted))
+    out = concat(out, String_from("}]}}}"))
+    out
+}
+
+pub fn build_organize_imports_action(uri: String, text: String) -> String {
+    let entries = organize_imports_detect::collect_import_entries(clone(text))
+    if len(entries) == 0 {
+        return String_new()
+    }
+    if !organize_imports_detect::imports_need_change(clone(text), entries) {
+        return String_new()
+    }
+    build_organize_edit(uri, text, entries)
+}
+
+pub fn request_wants_organize_imports(body: String) -> bool {
+    index_of(clone(body), String_from("source.organizeImports")) >= 0
+}
