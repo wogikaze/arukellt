@@ -7,6 +7,10 @@
  * @module
  */
 
+import type {
+  CompileOptions,
+  RunOptions,
+} from "./compiler-types.js";
 import {
   engineVersion,
   formatSource,
@@ -15,6 +19,9 @@ import {
   configureTypecheckCompilerWasm,
   typecheckSource,
   typecheckSourceWithCompilerBytesSync,
+  compileSource,
+  runWasm,
+  runSource as runSourceWithEngine,
 } from "./engine.js";
 import type {
   Playground,
@@ -93,6 +100,25 @@ export async function createPlayground(
         return typecheckSourceWithCompilerBytesSync(source, compilerBytes);
       }
       return typecheckSource(source);
+    },
+
+    compile(source: string, options?: CompileOptions) {
+      ensureAlive();
+      return compileSource(source, options);
+    },
+
+    run(wasmBytes: Uint8Array, options?: RunOptions) {
+      ensureAlive();
+      return runWasm(wasmBytes, options);
+    },
+
+    runSource(
+      source: string,
+      compileOptions?: CompileOptions,
+      runOptions?: RunOptions,
+    ) {
+      ensureAlive();
+      return runSourceWithEngine(source, compileOptions, runOptions);
     },
 
     version(): string {

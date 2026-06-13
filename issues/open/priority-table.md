@@ -63,4 +63,3 @@ Scoring criteria (0-5 each, total 25):
 | 50 | 219 | LSP standard feature completeness | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
 | 51 | 292 | 292-stub-host-compile-error | capability | 0 | 0 | 1 | 1 | 4 | 6 |
 | 52 | 639 | 639 — HTTP package registry resolution | cli | 0 | 0 | 1 | 1 | 4 | 6 |
-| 53 | 645 | 645 — T2 playground execution and DOM I/O surface | playground | 0 | 0 | 1 | 1 | 4 | 6 |

@@ -20,12 +20,20 @@ import type {
   TokenizeResponse,
   TypecheckResponse,
 } from "./types.js";
-import type { CheckResult, CompileOptions } from "./compiler-types.js";
+import type {
+  CheckResult,
+  CompileOptions,
+  CompileResult,
+  RunOptions,
+  RunResult,
+} from "./compiler-types.js";
 import {
   checkWithCompilerWasm,
   checkWithCompilerWasmSync,
+  compileWithCompilerWasm,
   formatWithCompilerWasmSync,
 } from "./compiler-host.js";
+import { runT2Wasm } from "./t2-runner.js";
 
 const VERSION = "selfhost-playground-ts-v1";
 
@@ -501,6 +509,39 @@ export function engineVersion(): string {
   return VERSION;
 }
 
+/** Compile Arukellt source to T2 Wasm using the configured compiler asset. */
+export async function compileSource(
+  source: string,
+  options: CompileOptions = {},
+): Promise<CompileResult> {
+  if (!configuredCompilerBytes) {
+    return compileUnavailableResult(source);
+  }
+  return compileWithCompilerWasm(configuredCompilerBytes, source, options);
+}
+
+/** Run compiled T2 Wasm through the ADR-020 `arukellt_io` host bridge. */
+export async function runWasm(
+  wasmBytes: Uint8Array,
+  options: RunOptions = {},
+): Promise<RunResult> {
+  return runT2Wasm(wasmBytes, options);
+}
+
+/** Compile then run when compilation succeeds. */
+export async function runSource(
+  source: string,
+  compileOptions: CompileOptions = {},
+  runOptions: RunOptions = {},
+): Promise<{ compile: CompileResult; run: RunResult | null }> {
+  const compile = await compileSource(source, compileOptions);
+  if (!compile.ok || !compile.wasmBytes) {
+    return { compile, run: null };
+  }
+  const run = await runWasm(compile.wasmBytes, runOptions);
+  return { compile, run };
+}
+
 function typecheckResponseFromCheckResult(
   result: CheckResult,
   source: string,
@@ -612,6 +653,20 @@ function diagnosticsFromCompilerText(
       "compiler reported this diagnostic",
     ),
   ];
+}
+
+function compileUnavailableResult(source: string): CompileResult {
+  const message = "selfhost compiler wasm has not been initialised";
+  return {
+    ok: false,
+    exitCode: 1,
+    compilerStdout: "",
+    compilerStderr: message,
+    wasmBytes: null,
+    outputSize: 0,
+    elapsedMs: 0,
+    error: message,
+  };
 }
 
 function typecheckUnavailable(message: string, source: string): TypecheckResponse {

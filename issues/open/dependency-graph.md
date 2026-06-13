@@ -47,7 +47,6 @@ graph LR
   I639["639 639 — HTTP package registry resolution"]
   I641["641 641 — T4 selfhost-native backend scaffold"]
   I643["643 643 — Grain Wasm GC benchmark comparison hook"]
-  I645["645 645 — T2 playground execution and DOM I/O surface"]
   I118["118 118-wasm-multi-export-world"]
   I28["28 034-wit-cli-integration"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
@@ -121,7 +120,6 @@ graph LR
 - **639** depends on: 487; blocks: none
 - **641** depends on: none; blocks: none
 - **643** depends on: 112; blocks: none
-- **645** depends on: 632; blocks: none
 - **118** depends on: 117, 074; blocks: none
 - **28** depends on: 030, 031, 028b, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none

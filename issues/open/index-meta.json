@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T15:33:20Z",
+  "generated_at": "2026-06-13T15:40:07Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -992,30 +992,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "645",
-      "path": "645-t2-playground-execution-dom-io.md",
-      "title": "645 — T2 playground execution and DOM I/O surface",
-      "track": "playground",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "632"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "design-ready",
         "upstream_notes": null
       }
     },

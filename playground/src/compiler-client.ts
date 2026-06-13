@@ -25,6 +25,11 @@ export interface CompilerClientOptions {
 export interface CompilerClient {
   compile(source: string, options?: CompileOptions): Promise<CompileResult>;
   run(wasmBytes: Uint8Array, options?: RunOptions): Promise<RunResult>;
+  compileAndRun(
+    source: string,
+    compileOptions?: CompileOptions,
+    runOptions?: RunOptions,
+  ): Promise<{ compile: CompileResult; run: RunResult | null }>;
   checkAvailability(): Promise<CompilerRuntimeAvailability>;
   destroy(): void;
 }
@@ -81,15 +86,38 @@ export async function createCompilerClient(
 
   let destroyed = false;
 
-  return {
-    async compile(source: string, options?: CompileOptions): Promise<CompileResult> {
-      if (destroyed) throw new Error("Compiler client destroyed");
-      return send<CompileResult>({ id: 0, cmd: "compile", source, options });
-    },
+  async function compileRequest(
+    source: string,
+    options?: CompileOptions,
+  ): Promise<CompileResult> {
+    if (destroyed) throw new Error("Compiler client destroyed");
+    return send<CompileResult>({ id: 0, cmd: "compile", source, options });
+  }
 
-    async run(wasmBytes: Uint8Array, options?: RunOptions): Promise<RunResult> {
-      if (destroyed) throw new Error("Compiler client destroyed");
-      return send<RunResult>({ id: 0, cmd: "run", wasmBytes, options });
+  async function runRequest(
+    wasmBytes: Uint8Array,
+    options?: RunOptions,
+  ): Promise<RunResult> {
+    if (destroyed) throw new Error("Compiler client destroyed");
+    return send<RunResult>({ id: 0, cmd: "run", wasmBytes, options });
+  }
+
+  return {
+    compile: compileRequest,
+
+    run: runRequest,
+
+    async compileAndRun(
+      source: string,
+      compileOptions?: CompileOptions,
+      runOptions?: RunOptions,
+    ): Promise<{ compile: CompileResult; run: RunResult | null }> {
+      const compile = await compileRequest(source, compileOptions);
+      if (!compile.ok || !compile.wasmBytes) {
+        return { compile, run: null };
+      }
+      const run = await runRequest(compile.wasmBytes, runOptions);
+      return { compile, run };
     },
 
     async checkAvailability(): Promise<CompilerRuntimeAvailability> {

@@ -41,6 +41,12 @@
 // Re-export factory functions.
 export { createPlayground } from "./playground.js";
 export { createWorkerPlayground } from "./worker-client.js";
+export {
+  configureTypecheckCompilerWasm,
+  compileSource,
+  runWasm,
+  runSource,
+} from "./engine.js";
 export { createCompilerClient, isRunnableT2Output } from "./compiler-client.js";
 export {
   checkWithCompilerWasm,
@@ -73,6 +79,20 @@ export {
 
 // Re-export playground app integration.
 export { createPlaygroundApp } from "./playground-app.js";
+export {
+  buildStatusMessage,
+  mergeConsoleSections,
+  runStatusMessage,
+  sectionsFromCompileResult,
+  sectionsFromRunResult,
+} from "./console-bridge.js";
+export type { ConsoleOutputSection } from "./console-bridge.js";
+export {
+  createRunOutputPanel,
+  injectRunOutputStyles,
+  RUN_OUTPUT_CSS,
+} from "./run-output.js";
+export type { RunOutputPanel, RunOutputPanelOptions } from "./run-output.js";
 
 // Re-export capability detection.
 export {
@@ -171,8 +191,6 @@ export type {
   PlaygroundAppOptions,
   PlaygroundApp,
 } from "./playground-app.js";
-
-// Re-export share types.
 export type {
   SharePayload,
   ShareEncodeResult,

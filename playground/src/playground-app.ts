@@ -41,6 +41,17 @@ import {
   checkCapabilities,
   capabilityWarningsToDiagnostics,
 } from "./capability-check.js";
+import type { CompilerClient } from "./compiler-client.js";
+import { isRunnableT2Output } from "./compiler-client.js";
+import type { CompileResult, RunResult } from "./compiler-types.js";
+import {
+  buildStatusMessage,
+  runStatusMessage,
+  sectionsFromCompileResult,
+  sectionsFromRunResult,
+} from "./console-bridge.js";
+import { createRunOutputPanel, injectRunOutputStyles } from "./run-output.js";
+import type { RunOutputPanel } from "./run-output.js";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -106,6 +117,12 @@ export interface PlaygroundAppOptions {
     diagnostics: Diagnostic[],
     response: ParseResponse,
   ) => void;
+
+  /**
+   * Browser compiler worker client for T2 build/run (ADR-032 / ADR-020).
+   * When set, the app exposes build/run helpers and a stdout output panel.
+   */
+  compilerClient?: CompilerClient;
 }
 
 /** A playground application instance. */
@@ -116,8 +133,23 @@ export interface PlaygroundApp {
   /** The diagnostics panel instance. */
   readonly diagnosticsPanel: DiagnosticsPanel;
 
+  /** Stdout/stderr panel for build and run output (present when `compilerClient` is set). */
+  readonly runOutputPanel: RunOutputPanel | null;
+
+  /** Whether a prior build produced runnable T2 Wasm. */
+  readonly canRun: boolean;
+
   /** Force an immediate re-parse of the current editor content. */
   parse(): void;
+
+  /** Compile the current editor source via the compiler worker. */
+  build(): Promise<CompileResult | null>;
+
+  /** Run the last successful build artifact. */
+  run(): Promise<RunResult | null>;
+
+  /** Attach or replace the compiler worker client after initialisation. */
+  setCompilerClient(client: CompilerClient | null): void;
 
   /** Destroy the application and clean up all resources. */
   destroy(): void;
@@ -164,10 +196,12 @@ export function createPlaygroundApp(
     placeholder,
     readOnly = false,
     onDiagnostics,
+    compilerClient: initialCompilerClient,
   } = options;
 
   // Inject diagnostic styles (idempotent).
   injectDiagnosticStyles();
+  injectRunOutputStyles();
 
   // --- Layout ---
   const wrapper = document.createElement("div");
@@ -216,6 +250,41 @@ export function createPlaygroundApp(
   const diagnosticsPanel = createDiagnosticsPanel(wrapper, {
     injectStyles: false, // already injected above
   });
+
+  let compilerClient: CompilerClient | null = initialCompilerClient ?? null;
+  let lastCompiledWasm: Uint8Array | null = null;
+  let canRun = false;
+  let runOutputPanel: RunOutputPanel | null = null;
+
+  function ensureRunOutputPanel(): RunOutputPanel {
+    if (!runOutputPanel) {
+      runOutputPanel = createRunOutputPanel(wrapper, { injectStyles: false });
+    }
+    return runOutputPanel;
+  }
+
+  function setRunStatus(message: string, isError = false): void {
+    if (!compilerClient) return;
+    ensureRunOutputPanel().update([], message, isError);
+  }
+
+  function showCompileOutput(result: CompileResult): boolean {
+    const runnable = isRunnableT2Output(result.wasmBytes);
+    ensureRunOutputPanel().update(
+      sectionsFromCompileResult(result),
+      buildStatusMessage(result, runnable),
+      !result.ok || !runnable,
+    );
+    return runnable;
+  }
+
+  function showRunOutput(result: RunResult): void {
+    ensureRunOutputPanel().update(
+      sectionsFromRunResult(result),
+      runStatusMessage(result),
+      !result.ok,
+    );
+  }
 
   // --- Parse + diagnostics wiring ---
   let destroyed = false;
@@ -302,6 +371,14 @@ export function createPlaygroundApp(
       return diagnosticsPanel;
     },
 
+    get runOutputPanel(): RunOutputPanel | null {
+      return runOutputPanel;
+    },
+
+    get canRun(): boolean {
+      return canRun;
+    },
+
     parse(): void {
       // Cancel any pending debounced parse and run immediately.
       if (parseTimer !== undefined) {
@@ -309,6 +386,51 @@ export function createPlaygroundApp(
         parseTimer = undefined;
       }
       triggerParse();
+    },
+
+    async build(): Promise<CompileResult | null> {
+      if (!compilerClient || destroyed) return null;
+      lastCompiledWasm = null;
+      canRun = false;
+      runOutputPanel?.clear();
+      setRunStatus("Building…");
+
+      try {
+        const result = await compilerClient.compile(editor.getValue());
+        canRun = showCompileOutput(result);
+        if (result.ok && result.wasmBytes) {
+          lastCompiledWasm = result.wasmBytes;
+        }
+        return result;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Build failed.";
+        setRunStatus(message, true);
+        return null;
+      }
+    },
+
+    async run(): Promise<RunResult | null> {
+      if (!compilerClient || destroyed || !lastCompiledWasm) return null;
+      setRunStatus("Running…");
+
+      try {
+        const result = await compilerClient.run(lastCompiledWasm);
+        showRunOutput(result);
+        return result;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Run failed.";
+        setRunStatus(message, true);
+        return null;
+      }
+    },
+
+    setCompilerClient(client: CompilerClient | null): void {
+      compilerClient = client;
+      if (!client) {
+        lastCompiledWasm = null;
+        canRun = false;
+        runOutputPanel?.clear();
+      }
     },
 
     destroy(): void {
@@ -322,6 +444,7 @@ export function createPlaygroundApp(
       editor.textarea.removeEventListener("scroll", handleOverlayScroll);
       unsubChange();
       diagnosticsPanel.destroy();
+      runOutputPanel?.destroy();
       editor.destroy();
 
       if (wrapper.parentNode) {

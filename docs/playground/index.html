@@ -202,34 +202,8 @@
       cursor: not-allowed;
     }
 
-    #build-run-output {
+    .ark-run-output-panel {
       flex-shrink: 0;
-      display: none;
-      flex-direction: column;
-      gap: 8px;
-      padding: 12px 16px;
-      margin: 0 16px 16px;
-      max-width: 960px;
-      width: calc(100% - 32px);
-      max-height: 30vh;
-      overflow-y: auto;
-      align-self: center;
-      background: #181825;
-      border: 1px solid #313244;
-      border-radius: 10px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.82rem;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    #build-run-output.visible { display: flex; }
-
-    .build-run-section-title {
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #9399b2;
     }
   </style>
 </head>
@@ -278,7 +252,6 @@
     </div>
   </section>
   <div id="playground"></div>
-  <section id="build-run-output" aria-label="Build and run output"></section>
 
   <script type="module">
     /**
@@ -304,7 +277,6 @@
     import { injectTheme, DEFAULT_THEME_CSS } from './dist/theme.js';
     import {
       createCompilerClient,
-      isRunnableT2Output,
     } from './dist/compiler-client.js';
 
     // Inject the default theme into the page.
@@ -320,7 +292,6 @@
     const buildButton = document.getElementById('build-button');
     const runButton = document.getElementById('run-button');
     const buildRunStatus = document.getElementById('build-run-status');
-    const buildRunOutput = document.getElementById('build-run-output');
 
     const examples = getExampleList();
     for (const example of examples) {
@@ -338,7 +309,6 @@
     let currentShareUrl = window.location.href;
     let app = undefined;
     let compilerClient = undefined;
-    let lastCompiledWasm = null;
 
     /**
      * Minimal parse stub — returns no diagnostics.
@@ -587,20 +557,6 @@
       });
     });
 
-    function renderBuildRunOutput(sections) {
-      buildRunOutput.innerHTML = '';
-      for (const section of sections) {
-        const title = document.createElement('div');
-        title.className = 'build-run-section-title';
-        title.textContent = section.title;
-        const body = document.createElement('div');
-        body.textContent = section.body;
-        buildRunOutput.appendChild(title);
-        buildRunOutput.appendChild(body);
-      }
-      buildRunOutput.classList.toggle('visible', sections.length > 0);
-    }
-
     function setBuildRunStatus(message, isError = false) {
       if (!buildRunStatus) return;
       buildRunStatus.textContent = message;
@@ -618,6 +574,7 @@
           compilerUrl: './assets/arukellt-selfhost.wasm',
           workerUrl: './dist/compiler-worker.js',
         });
+        app?.setCompilerClient(compilerClient);
         const availability = await compilerClient.checkAvailability();
         if (!availability.compilerAssetPresent) {
           setBuildRunStatus(
@@ -637,38 +594,20 @@
     }
 
     buildButton.addEventListener('click', async () => {
-      if (!compilerClient || !app) return;
+      if (!app) return;
       buildButton.disabled = true;
       runButton.disabled = true;
-      lastCompiledWasm = null;
       setBuildRunStatus('Building…');
-      renderBuildRunOutput([]);
 
       try {
-        const result = await compilerClient.compile(app.editor.getValue());
-        const sections = [];
-        if (result.compilerStdout) {
-          sections.push({ title: 'Compiler stdout', body: result.compilerStdout });
-        }
-        if (result.compilerStderr) {
-          sections.push({ title: 'Compiler stderr', body: result.compilerStderr });
-        }
-        renderBuildRunOutput(sections);
-
-        if (!result.ok || !result.wasmBytes) {
-          setBuildRunStatus(result.error ?? 'Build failed.', true);
+        const result = await app.build();
+        if (!result) {
+          setBuildRunStatus('Build unavailable.', true);
           return;
         }
-
-        lastCompiledWasm = result.wasmBytes;
-        const runnable = isRunnableT2Output(result.wasmBytes);
-        runButton.disabled = !runnable;
-        setBuildRunStatus(
-          runnable
-            ? `Build succeeded (${result.outputSize} bytes, ${Math.round(result.elapsedMs)} ms).`
-            : 'Build succeeded, but Run is unavailable until the compiler emits arukellt_io imports.',
-          !runnable,
-        );
+        runButton.disabled = !app.canRun;
+        const panelStatus = app.runOutputPanel?.element.querySelector('.ark-run-output-status');
+        setBuildRunStatus(panelStatus?.textContent ?? '', panelStatus?.classList.contains('error'));
       } catch (err) {
         setBuildRunStatus(
           err instanceof Error ? err.message : 'Build failed.',
@@ -680,36 +619,25 @@
     });
 
     runButton.addEventListener('click', async () => {
-      if (!compilerClient || !lastCompiledWasm) return;
+      if (!app) return;
       runButton.disabled = true;
       setBuildRunStatus('Running…');
 
       try {
-        const result = await compilerClient.run(lastCompiledWasm);
-        const sections = [];
-        if (result.stdout) {
-          sections.push({ title: 'Program stdout', body: result.stdout });
+        const result = await app.run();
+        if (!result) {
+          setBuildRunStatus('Run unavailable.', true);
+          return;
         }
-        if (result.stderr) {
-          sections.push({ title: 'Program stderr', body: result.stderr });
-        }
-        if (result.trap) {
-          sections.push({ title: 'Trap / runtime error', body: result.trap });
-        }
-        renderBuildRunOutput(sections);
-        setBuildRunStatus(
-          result.ok
-            ? `Run finished (exit ${result.exitCode}, ${Math.round(result.elapsedMs)} ms).`
-            : 'Run failed.',
-          !result.ok,
-        );
+        const panelStatus = app.runOutputPanel?.element.querySelector('.ark-run-output-status');
+        setBuildRunStatus(panelStatus?.textContent ?? '', panelStatus?.classList.contains('error'));
       } catch (err) {
         setBuildRunStatus(
           err instanceof Error ? err.message : 'Run failed.',
           true,
         );
       } finally {
-        runButton.disabled = !isRunnableT2Output(lastCompiledWasm);
+        runButton.disabled = !app.canRun;
       }
     });
 
