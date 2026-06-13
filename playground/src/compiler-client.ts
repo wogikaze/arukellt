@@ -29,12 +29,20 @@ export interface CompilerClient {
   destroy(): void;
 }
 
+function resolveCompilerAssetUrl(compilerUrl: string | URL): string {
+  if (typeof globalThis.location === "undefined") {
+    return compilerUrl.toString();
+  }
+  return new URL(compilerUrl, globalThis.location.href).href;
+}
+
 /**
  * Create a compiler worker client.
  */
 export async function createCompilerClient(
   opts: CompilerClientOptions,
 ): Promise<CompilerClient> {
+  const resolvedCompilerUrl = resolveCompilerAssetUrl(opts.compilerUrl);
   const workerUrl = opts.workerUrl ?? new URL("./compiler-worker.js", import.meta.url);
   const worker = new Worker(workerUrl, { type: "module" });
 
@@ -69,7 +77,7 @@ export async function createCompilerClient(
     });
   }
 
-  await send({ id: 0, cmd: "init", compilerUrl: opts.compilerUrl.toString() });
+  await send({ id: 0, cmd: "init", compilerUrl: resolvedCompilerUrl });
 
   let destroyed = false;
 
@@ -96,7 +104,7 @@ export async function createCompilerClient(
       }
 
       try {
-        const response = await fetch(opts.compilerUrl);
+        const response = await fetch(resolvedCompilerUrl);
         if (!response.ok) {
           return {
             compilerAssetPresent: false,

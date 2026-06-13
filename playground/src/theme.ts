@@ -59,6 +59,10 @@ export const DEFAULT_THEME_CSS = /* css */ `
   background: var(--ark-bg);
   border-radius: var(--ark-border-radius);
   overflow: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .ark-editor-backdrop,
@@ -75,7 +79,6 @@ export const DEFAULT_THEME_CSS = /* css */ `
   overflow-wrap: break-word;
   box-sizing: border-box;
   width: 100%;
-  min-height: 100%;
 }
 
 .ark-editor-backdrop {
@@ -86,19 +89,22 @@ export const DEFAULT_THEME_CSS = /* css */ `
   bottom: 0;
   color: var(--ark-fg);
   pointer-events: none;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .ark-editor-textarea {
   position: relative;
   z-index: 1;
   display: block;
-  resize: vertical;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  resize: none;
   background: transparent;
   color: transparent;
   caret-color: var(--ark-caret);
   outline: none;
-  min-height: 200px;
 }
 
 .ark-editor-textarea::selection {

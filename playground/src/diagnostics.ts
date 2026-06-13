@@ -383,6 +383,7 @@ export const DIAGNOSTICS_CSS = /* css */ `
 /* ------------------------------------------------------------------ */
 
 .ark-diagnostics-panel {
+  flex-shrink: 0;
   --ark-diag-bg: #1e1e2e;
   --ark-diag-border: #313244;
   --ark-diag-fg: #cdd6f4;
@@ -522,7 +523,7 @@ export const DIAGNOSTICS_CSS = /* css */ `
   min-height: 100%;
   pointer-events: none;
   color: transparent;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .ark-diag-marker-error {
@@ -552,6 +553,7 @@ export const DIAGNOSTICS_CSS = /* css */ `
   flex-direction: column;
   border-radius: var(--ark-border-radius, 8px);
   overflow: hidden;
+  min-height: 0;
 }
 `;
 

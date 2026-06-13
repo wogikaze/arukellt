@@ -60,6 +60,7 @@
     "build": "tsc",
     "build:all": "npm run build",
     "build:app": "npm run build && bash ../scripts/gen/stamp-playground-assets.sh && mkdir -p ../docs/playground/dist && cp -rf dist/. ../docs/playground/dist/",
+    "serve": "npx --yes serve@14 ../docs/playground -l 3000 --no-clipboard",
     "typecheck": "tsc --noEmit",
     "test": "node --test dist/tests/*.test.js",
     "test:typecheck": "tsc --noEmit",
