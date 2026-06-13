@@ -4,25 +4,25 @@ use typechecker::contract_result_state
 use typechecker::entry
 
 fn session_typecheck_decls(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec<String>) -> TypeCheckResult {
-entry::typecheck_module(decls, resolve_ctx, wit_paths)
+    entry::typecheck_module(decls, resolve_ctx, wit_paths)
 }
 
 fn session_empty_typecheck_result() -> TypeCheckResult {
-contract_result_state::TypeCheckResult_new()
+    contract_result_state::TypeCheckResult_new()
 }
 
 fn session_typecheck_error_count(result: TypeCheckResult) -> i32 {
-contract_result_state::typecheck_result_message_count(result)
+    contract_result_state::typecheck_result_message_count(result)
 }
 
 fn session_typecheck_error_at(result: TypeCheckResult, index: i32) -> String {
-contract_result_state::typecheck_result_error_at(result, index)
+    contract_result_state::typecheck_result_error_at(result, index)
 }
 
 fn session_typecheck_errors(result: TypeCheckResult) -> Vec<String> {
-contract_result_state::typecheck_result_errors(result)
+    contract_result_state::typecheck_result_errors(result)
 }
 
 fn session_typecheck_typed_fn_count(result: TypeCheckResult) -> i32 {
-contract_result_state::typecheck_result_typed_fn_count(result)
+    contract_result_state::typecheck_result_typed_fn_count(result)
 }

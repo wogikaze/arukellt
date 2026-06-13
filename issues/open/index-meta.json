@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T03:37:14Z",
+  "generated_at": "2026-06-13T07:59:45Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -408,54 +408,6 @@
       }
     },
     {
-      "id": "336",
-      "path": "336-lsp-hover-type-inference.md",
-      "title": "336-lsp-hover-type-inference",
-      "track": "lsp-navigation",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "334"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "337",
-      "path": "337-lsp-signature-help-stdlib.md",
-      "title": "337-lsp-signature-help-stdlib",
-      "track": "lsp-navigation",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "334"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "339",
       "path": "339-lsp-semantic-rename.md",
       "title": "339-lsp-semantic-rename",
@@ -482,9 +434,9 @@
       }
     },
     {
-      "id": "340",
-      "path": "340-lsp-auto-import-manifest.md",
-      "title": "340-lsp-auto-import-manifest",
+      "id": "341",
+      "path": "341-lsp-organize-imports.md",
+      "title": "341-lsp-organize-imports",
       "track": "lsp-semantic",
       "status": "open",
       "blocks_v1": "none",
@@ -493,11 +445,10 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "334"
+        "340"
       ],
       "blocks_issue_ids": [
-        "341",
-        "441"
+        "440"
       ],
       "acceptance": {
         "checked": 4,
@@ -651,6 +602,34 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "441",
+      "path": "441-vscode-project-aware-workspace-package-ark-toml.md",
+      "title": "VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "333",
+        "335",
+        "340"
+      ],
+      "blocks_issue_ids": [
+        "502"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
       }
     },
     {
@@ -1459,35 +1438,9 @@
       }
     },
     {
-      "id": "341",
-      "path": "341-lsp-organize-imports.md",
-      "title": "341-lsp-organize-imports",
-      "track": "lsp-semantic",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "340"
-      ],
-      "blocks_issue_ids": [
-        "440"
-      ],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "441",
-      "path": "441-vscode-project-aware-workspace-package-ark-toml.md",
-      "title": "VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする",
+      "id": "440",
+      "path": "440-vscode-fix-pipeline-code-actions-formatter-diagnostics.md",
+      "title": "VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする",
       "track": "vscode-ide",
       "status": "open",
       "blocks_v1": "none",
@@ -1496,16 +1449,41 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "333",
-        "335",
-        "340"
+        "341",
+        "346",
+        "348",
+        "349",
+        "350",
+        "352"
       ],
-      "blocks_issue_ids": [
-        "502"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "502",
+      "path": "502-lsp-full-multi-root-workspace.md",
+      "title": "502-lsp-full-multi-root-workspace",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "441"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1736,59 +1714,6 @@
       "acceptance": {
         "checked": 3,
         "unchecked": 1
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "440",
-      "path": "440-vscode-fix-pipeline-code-actions-formatter-diagnostics.md",
-      "title": "VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする",
-      "track": "vscode-ide",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "341",
-        "346",
-        "348",
-        "349",
-        "350",
-        "352"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "502",
-      "path": "502-lsp-full-multi-root-workspace.md",
-      "title": "502-lsp-full-multi-root-workspace",
-      "track": "vscode-ide",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "441"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 0
       },
       "orchestration": {
         "class": "implementation-ready",

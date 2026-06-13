@@ -4,9 +4,9 @@ Content-Length: 536
 
 {"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///semantic_hover.ark","diagnostics":[]}}Content-Length: 38
 
-{"jsonrpc":"2.0","id":2,"result":null}Content-Length: 165
+{"jsonrpc":"2.0","id":2,"result":null}Content-Length: 170
 
-{"jsonrpc":"2.0","id":3,"result":{"contents":{"kind":"markdown","value":"```ark\nn\n```"},"range":{"start":{"line":3,"character":8},"end":{"line":3,"character":9}}}}Content-Length: 182
+{"jsonrpc":"2.0","id":3,"result":{"contents":{"kind":"markdown","value":"```ark\nn: i32\n```"},"range":{"start":{"line":3,"character":8},"end":{"line":3,"character":9}}}}Content-Length: 182
 
 {"jsonrpc":"2.0","id":4,"result":{"contents":{"kind":"markdown","value":"```ark\nfn answer() -> i32\n```"},"range":{"start":{"line":0,"character":3},"end":{"line":0,"character":9}}}}Content-Length: 38
 

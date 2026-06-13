@@ -23,16 +23,15 @@ graph LR
   I273["273 273-extension-lsp-command-task-e2e"]
   I292["292 292-stub-host-compile-error"]
   I30["30 036-jco-javascript-interop"]
-  I336["336 336-lsp-hover-type-inference"]
-  I337["337 337-lsp-signature-help-stdlib"]
   I339["339 339-lsp-semantic-rename"]
-  I340["340 340-lsp-auto-import-manifest"]
+  I341["341 341-lsp-organize-imports"]
   I342["342 342-lsp-completion-context"]
   I355["355 355-lsp-protocol-e2e-tests"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I41["41 051-std-time-random"]
   I422["422 Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る"]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
+  I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I445["445 445-std-host-process-implementation"]
   I446["446 446-std-host-http-implementation"]
   I447["447 447-std-host-sockets-implementation"]
@@ -66,8 +65,8 @@ graph LR
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I184["184 184-vscode-extension-foundation"]
   I439["439 VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する"]
-  I341["341 341-lsp-organize-imports"]
-  I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
+  I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
+  I502["502 502-lsp-full-multi-root-workspace"]
   I633["633 Reconcile std::host::http / sockets / udp capability claims with the selfhost execution path"]
   I463["463 463-lsp-performance-smoke-tests"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
@@ -77,8 +76,6 @@ graph LR
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I636["636 636 — Selfhost structured diagnostic parity (codes, spans, warnings)"]
   I183["183 183-vscode-arukellt-all-in-one-extension-epic"]
-  I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
-  I502["502 502-lsp-full-multi-root-workspace"]
   I638["638 638 — Runtime-level Wasm debugging (source maps + wasmtime hooks)"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
@@ -89,8 +86,8 @@ graph LR
   I139 --> I136
   I191 --> I184
   I339 --> I439
-  I340 --> I341
-  I340 --> I441
+  I341 --> I440
+  I441 --> I502
   I446 --> I633
   I447 --> I633
   I454 --> I463
@@ -101,8 +98,6 @@ graph LR
   I510 --> I62
   I566 --> I636
   I184 --> I183
-  I341 --> I440
-  I441 --> I502
   I183 --> I638
   I124 --> I28
   I30 --> I31
@@ -127,16 +122,15 @@ graph LR
 - **273** depends on: 272; blocks: none
 - **292** depends on: none; blocks: none
 - **30** depends on: 27; blocks: none
-- **336** depends on: 334; blocks: none
-- **337** depends on: 334; blocks: none
 - **339** depends on: 338; blocks: 439
-- **340** depends on: 334; blocks: 341, 441
+- **341** depends on: 340; blocks: 440
 - **342** depends on: 338; blocks: none
 - **355** depends on: 353; blocks: none
 - **358** depends on: none; blocks: none
 - **41** depends on: 039, 040; blocks: none
 - **422** depends on: 418; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none
+- **441** depends on: 333, 335, 340; blocks: 502
 - **445** depends on: none; blocks: none
 - **446** depends on: none; blocks: 633
 - **447** depends on: none; blocks: 633
@@ -170,8 +164,8 @@ graph LR
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **184** depends on: 189, 190, 191; blocks: 183
 - **439** depends on: 333, 334, 335, 338, 339; blocks: none
-- **341** depends on: 340; blocks: 440
-- **441** depends on: 333, 335, 340; blocks: 502
+- **440** depends on: 341, 346, 348, 349, 350, 352; blocks: none
+- **502** depends on: 441; blocks: none
 - **633** depends on: 446, 447; blocks: none
 - **463** depends on: 454; blocks: none
 - **646** depends on: 474; blocks: none
@@ -181,8 +175,6 @@ graph LR
 - **62** depends on: 074, 510; blocks: none
 - **636** depends on: 566; blocks: none
 - **183** depends on: 184, 185, 186, 187, 188, 205, 206, 207; blocks: 638
-- **440** depends on: 341, 346, 348, 349, 350, 352; blocks: none
-- **502** depends on: 441; blocks: none
 - **638** depends on: 183; blocks: none
 
 ### Blocked
