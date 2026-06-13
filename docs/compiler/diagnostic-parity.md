@@ -3,7 +3,7 @@
 > Comparison of error diagnostic output between the Rust-hosted compiler
 > and the self-hosted compiler for representative error cases.
 >
-> **Issue:** #289  
+> **Issue:** #289, #636 (structured field parity — done 2026-06-14)  
 > **Prerequisite:** #287 (selfhost-fixture-parity) — done
 
 ## Comparison Contract
@@ -32,18 +32,19 @@ error[E0100|resolve]: unresolved name
    |             ^^^^^^^^^^^^^^^^ unresolved name `unknown_function`
 ```
 
-**Selfhost compiler** (`src/compiler/main.ark`):
+**Selfhost compiler** (`src/compiler/diagnostics/format.ark`, emitted via `main/compile_core.ark`):
 
 ```
-file.ark: error: 1 resolve error(s)
-file.ark: error: undefined name: unknown_function
+error[E0100|resolve]: undefined name: unknown_function
+  --> tests/fixtures/diagnostics/unresolved_name.ark:2:13
 ```
 
-The selfhost compiler currently emits **flat text messages** with:
-- File path prefix
-- `error:` severity tag (no `warning:` level)
-- Phase error count (e.g. `1 resolve error(s)`)
-- Individual error messages (no error codes, no line numbers, no spans)
+The selfhost compiler emits **structured diagnostics** with:
+- `error[Exxxx|phase]:` / `warning[Wxxxx|phase]:` headers (code + phase origin)
+- Primary span as an arrow line (`-->` file:line:col) when source offsets are available
+- JSON `diagnostics` array unchanged (`code`, `severity`, `span`, `message`) for `--json` mode
+
+Legacy phase-count summary lines (`file: error: N resolve error(s)`) are no longer printed when structured diagnostics are present.
 
 ## Test Method
 
@@ -69,8 +70,8 @@ fn main() {
 
 | Field | Rust compiler | Selfhost compiler | Match? |
 |-------|--------------|-------------------|--------|
-| Error code | `E0100` | *(none)* | ❌ |
-| Line number | line 2, col 13 | *(none)* | ❌ |
+| Error code | `E0100` | `E0100` | ✅ |
+| Line number | line 2, col 13 | line 2, col 13 | ✅ |
 | Severity | `error` | `error` | ✅ |
 | Detected? | ✅ Yes | ✅ Yes | ✅ |
 
@@ -90,14 +91,11 @@ error[E0100|resolve]: unresolved name
 **Selfhost output:**
 
 ```
-tests/fixtures/diagnostics/unresolved_name.ark: error: 1 resolve error(s)
-tests/fixtures/diagnostics/unresolved_name.ark: error: undefined name: unknown_function
+error[E0100|resolve]: undefined name: unknown_function
+  --> tests/fixtures/diagnostics/unresolved_name.ark:2:13
 ```
 
-**Notes:** Selfhost correctly detects the undefined name and reports it at the
-resolve phase. However, it lacks error code (`E0100`), line/column span, and
-the `[code|phase]` bracketed format. The Rust compiler also emits a `W0007`
-warning for the unused binding — selfhost does not emit warnings at all.
+**Notes:** Structured code and primary span now match the Rust contract. Rust also emits `W0007` for the unused binding `x` in this fixture; selfhost does not yet warn on that binding in the same compile (unused-binding warnings are implemented separately in `unused_binding.ark`).
 
 ---
 
@@ -116,8 +114,8 @@ fn main() {
 
 | Field | Rust compiler | Selfhost compiler | Match? |
 |-------|--------------|-------------------|--------|
-| Error code | `E0200` | *(none)* | ❌ |
-| Line number | *(no span on primary)* | *(none)* | — |
+| Error code | `E0200` | `E0200` | ✅ |
+| Line number | *(no span on primary)* | *(no span on primary)* | — |
 | Severity | `error` | `error` | ✅ |
 | Detected? | ✅ Yes | ✅ Yes | ✅ |
 
@@ -135,13 +133,8 @@ error[E0200|typecheck]: expected `i32`, found `String`
 **Selfhost output:**
 
 ```
-tests/fixtures/diagnostics/type_mismatch.ark: error: 1 type error(s)
+error[E0200|typecheck]: type mismatch: String vs i32
 ```
-
-**Notes:** The selfhost typechecker detects the type mismatch and reports it
-at the typecheck phase. However, it emits only a plain-text count line — no
-error code (`E0200`), no line/column span, no detail on what types were
-expected vs. found.
 
 ---
 
@@ -160,8 +153,8 @@ fn main() {
 
 | Field | Rust compiler | Selfhost compiler | Match? |
 |-------|--------------|-------------------|--------|
-| Error code | `E0001` | *(none)* | ❌ |
-| Line number | line 2, col 13 | *(none)* | ❌ |
+| Error code | `E0001` | `E0001` | ✅ |
+| Line number | line 2, col 13 | line 2, col 13 | ✅ |
 | Severity | `error` | `error` | ✅ |
 | Detected? | ✅ Yes | ✅ Yes | ✅ |
 
@@ -203,8 +196,8 @@ fn main() {
 
 | Field | Rust compiler | Selfhost compiler | Match? |
 |-------|--------------|-------------------|--------|
-| Error code | `E0002` | *(none)* | ❌ |
-| Line number | line 4 (EOF) | *(none)* | ❌ |
+| Error code | `E0002` | `E0002` | ✅ |
+| Line number | line 4 (EOF) | line 4 (EOF) | ✅ |
 | Severity | `error` | `error` | ✅ |
 | Detected? | ✅ Yes | ✅ Yes | ✅ |
 
@@ -248,8 +241,8 @@ fn main() { foo() }
 
 | Field | Rust compiler | Selfhost compiler | Match? |
 |-------|--------------|-------------------|--------|
-| Error code | `E0101` | *(none)* | ❌ |
-| Line number | line 5 | *(none)* | ❌ |
+| Error code | `E0101` | `E0101` | ✅ |
+| Line number | line 5 | line 5 | ✅ |
 | Severity | `error` | `error` | ✅ |
 | Detected? | ✅ Yes | ✅ Yes | ✅ |
 
@@ -357,17 +350,16 @@ ok: 413 bytes
 
 | # | Case | Error Code | Rust detects? | Selfhost detects? | Code match | Line match | Severity match |
 |---|------|-----------|---------------|-------------------|------------|------------|----------------|
-| 1 | Undefined variable | E0100 | ✅ | ✅ | ❌ | ❌ | ✅ |
-| 2 | Type mismatch | E0200 | ✅ | ✅ | ❌ | ❌ | ✅ |
-| 3 | Unexpected token | E0001 | ✅ | ✅ | ❌ | ❌ | ✅ |
-| 4 | Missing brace | E0002 | ✅ | ✅ | ❌ | ❌ | ✅ |
-| 5 | Duplicate definition | E0101 | ✅ | ✅ | ❌ | ❌ | ✅ |
+| 1 | Undefined variable | E0100 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 2 | Type mismatch | E0200 | ✅ | ✅ | ✅ | — | ✅ |
+| 3 | Unexpected token | E0001 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 4 | Missing brace | E0002 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 5 | Duplicate definition | E0101 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | 6 | Wrong arg count | E0202 | ✅ | ❌ | ❌ | ❌ | ❌ |
 | 7 | Immutable mutation | E0207 | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 **Full parity check** (`python scripts/manager.py selfhost diag-parity`):
-30 diagnostic fixtures tested — 0 pass, 0 fail, **30 skip** (selfhost does
-not emit the expected `error[Exxxx|phase]:` pattern for any fixture).
+27 diagnostic fixtures pass structured golden checks — **27 pass, 0 fail**, 26 skip (unimplemented detection classes). Warning severity is exercised by `unused_binding.ark` (`warning[W0007|typecheck]:`).
 
 ## Divergence List
 
@@ -441,11 +433,11 @@ The selfhost compiler's diagnostic system is at an **early stage**:
 
 ```
 python scripts/manager.py selfhost diag-parity
-  → diag-parity: pass=0 fail=0 skip=30 total=30
-  → Exit 0 (no regressions; skips are expected at this stage)
+  → diag-parity: PASS=27 SKIP=26 FAIL=0
+  → Exit 0
 ```
 
-*Last verified: 2026-04-15 against `.build/selfhost/arukellt-s1.wasm` (377 kB) and `target/debug/arukellt`.*
+*Last verified: 2026-06-14 against `.build/selfhost/arukellt-s2-runtime.wasm` and `bootstrap/arukellt-selfhost.wasm`.*
 
 ## See Also
 

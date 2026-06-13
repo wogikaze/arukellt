@@ -1,1 +1,2 @@
-error[E0001|parse]: unexpected token
+error[E0001|parse]: unexpected token in expression: 73
+  -->

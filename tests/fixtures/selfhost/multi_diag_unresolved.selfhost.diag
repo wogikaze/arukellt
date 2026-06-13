@@ -1,3 +1,1 @@
-undefined name: foo
-tests/fixtures/selfhost/multi_diag_unresolved.ark: error[E0100|resolve]: undefined name: bar
-tests/fixtures/selfhost/multi_diag_unresolved.ark: error[E0100|resolve]: undefined name: baz
+error[E0100|resolve]: undefined name: foo

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T18:17:52Z",
+  "generated_at": "2026-06-13T18:43:18Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -727,30 +727,6 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "636",
-      "path": "636-selfhost-structured-diagnostic-parity.md",
-      "title": "636 — Selfhost structured diagnostic parity (codes, spans, warnings)",
-      "track": "selfhost-frontend",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "566"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": null
       }
     },
