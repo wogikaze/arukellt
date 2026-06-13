@@ -13,7 +13,7 @@ snippets, command palette workflows, and the `arukellt lsp` language server.
 - Supports restarting the language server from the command palette
 - Adds command palette actions for `check`, `compile`, and `run` on the active `.ark` file
 - Adds a basic `arukellt` task provider and status bar state
-- Adds setup doctor, command graph, and environment diff diagnostics in the output channel
+- Adds setup doctor (QuickPick diagnostics), executable command graph tree view, and environment diff picker
 
 ## Commands
 

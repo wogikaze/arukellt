@@ -627,6 +627,57 @@ suite("Extension Activation (#272)", () => {
 });
 
 // ============================================================
+// #191 — setup doctor / command graph / environment diff
+// ============================================================
+
+suite("Ops Surfaces (#191)", () => {
+  test("command graph exposes executable workflow nodes", async () => {
+    const { api } = await activateExtension();
+    const ops = api.__getOpsSurfacesForTests?.();
+    assert.ok(ops, "ops surfaces should be initialized");
+    const snapshot = ops.getCommandGraphSnapshotForTests();
+    assert.ok(snapshot.hasProvider, "command graph tree provider should exist");
+    assert.deepStrictEqual(
+      snapshot.workflow.map((node) => node.id),
+      ["check", "compile", "run", "test"]
+    );
+    assert.strictEqual(snapshot.workflow[0].command, "arukellt.checkCurrentFile");
+    assert.strictEqual(snapshot.workflow[2].command, "arukellt.runCurrentFile");
+    assert.ok(
+      snapshot.ops.some((node) => node.command === "arukellt.showSetupDoctor"),
+      "ops nodes should link to setup doctor"
+    );
+  });
+
+  test("setup doctor report includes dependency checks", async () => {
+    const { api } = await activateExtension();
+    const ops = api.__getOpsSurfacesForTests?.();
+    assert.ok(ops, "ops surfaces should be initialized");
+    const report = ops.collectSetupDoctorReport();
+    const ids = report.checks.map((check) => check.id);
+    assert.ok(ids.includes("binary"), "doctor should inspect binary discovery");
+    assert.ok(ids.includes("workspace"), "doctor should inspect workspace folders");
+    assert.ok(ids.includes("manifest"), "doctor should inspect ark.toml presence");
+    assert.ok(report.summary.pass + report.summary.warn + report.summary.fail === report.checks.length);
+  });
+
+  test("environment diff compares local, ci, and profile surfaces", async () => {
+    const { api } = await activateExtension();
+    const ops = api.__getOpsSurfacesForTests?.();
+    assert.ok(ops, "ops surfaces should be initialized");
+    const diff = ops.collectEnvironmentDiff();
+    assert.ok(diff.local.label.includes("Local"));
+    assert.ok(diff.ci.label.includes("CI"));
+    assert.ok(diff.profile.label.includes("Profile"));
+    assert.ok(diff.rows.length >= 5, "environment diff should expose multiple dimensions");
+    assert.ok(
+      diff.rows.every((row) => "local" in row && "ci" in row && "profile" in row),
+      "each row should include all three surfaces"
+    );
+  });
+});
+
+// ============================================================
 // #273 — LSP handshake / command execution / task execution E2E
 // ============================================================
 
@@ -657,6 +708,8 @@ suite("Command Registration (#273)", () => {
       "arukellt.debugMain",
       "arukellt.runTest",
       "arukellt.debugTest",
+      "arukellt.runWorkspaceTests",
+      "arukellt.refreshCommandGraph",
     ];
     for (const cmd of expected) {
       assert.ok(

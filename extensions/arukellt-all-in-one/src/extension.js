@@ -4,8 +4,10 @@ const os = require('os')
 const path = require('path')
 const fs = require('fs')
 const { LanguageClient, TransportKind } = require('vscode-languageclient/node')
+const { createOpsSurfaces } = require('./ops-surfaces')
 
 let client = null
+let opsSurfaces = null
 let isDeactivating = false
 let suppressClientRestart = false
 let outputChannel = null
@@ -59,6 +61,17 @@ function activate(context) {
   // Language status item — shows LSP server state
   setupLanguageStatus(context)
 
+  opsSurfaces = createOpsSurfaces({
+    discoverBinary,
+    resolveServerCommand,
+    getConfiguration,
+    detectProjects,
+    getLanguageServerState,
+    appendLanguageServerOutputLine,
+    isHeadlessOpsUi: () => context.extensionMode === vscode.ExtensionMode.Test,
+  })
+  opsSurfaces.setupCommandGraphView(context)
+
   registerCommands(context)
   registerTaskProvider(context)
   setupTestController(context)
@@ -71,6 +84,7 @@ function activate(context) {
     __getTestState: getTestState,
     __discoverTestsForTests: discoverTestsForTests,
     __refreshProjectTreeForTests: refreshProjectTreeForTests,
+    __getOpsSurfacesForTests: () => opsSurfaces,
     shutdownForTests,
     verifyBootstrap,
   }
@@ -723,60 +737,26 @@ async function openInPlayground() {
 }
 
 function showSetupDoctor() {
-  const config = getConfiguration()
-  const { command: configuredPath, extraArgs } = resolveServerCommand()
-  const { command, probe } = discoverBinary(configuredPath)
-
-  const lines = [
-    '# Arukellt Setup Doctor',
-    '',
-    `- Configured path: ${configuredPath}`,
-    `- Resolved binary: ${command}`,
-    `- CLI args before lsp: ${extraArgs.join(' ') || '(none)'}`,
-    `- CLI probe: ${probe.ok ? `ok (${probe.version || 'version unknown'})` : `failed (${probe.message})`}`,
-    `- Default target: ${config.get('target', 'wasm32-wasi-p1')}`,
-    `- Default emit: ${config.get('emit', 'core-wasm')}`,
-    `- Workspace folders: ${vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.map(f => f.uri.fsPath).join(', ') : '(none)'}`,
-  ]
-  outputChannel.clear()
-  outputChannel.appendLine(lines.join('\n'))
-  outputChannel.show()
-  vscode.window.showInformationMessage('Arukellt setup doctor written to the output channel.')
+  if (!opsSurfaces) return
+  return opsSurfaces.presentSetupDoctor()
 }
 
 function showCommandGraph() {
-  const lines = [
-    '# Arukellt Command Graph',
-    '',
-    'check -> compile -> run',
-    '   \\-> restart language server',
-    '',
-    '- check: arukellt check <file> --target <target>',
-    '- compile: arukellt compile <file> --target <target> --emit <emit>',
-    '- run: arukellt run <file> --target <target>',
-  ]
-  outputChannel.clear()
-  outputChannel.appendLine(lines.join('\n'))
-  outputChannel.show()
+  if (!opsSurfaces) return
+  return opsSurfaces.revealCommandGraph()
 }
 
 function showEnvironmentDiff() {
-  const config = getConfiguration()
-  const { command, extraArgs } = resolveServerCommand()
+  if (!opsSurfaces) return
+  return opsSurfaces.presentEnvironmentDiff()
+}
 
-  const lines = [
-    '# Arukellt Environment Diff',
-    '',
-    '| Surface | Local | CI/Profile assumption |',
-    '|---|---|---|',
-    `| arukellt binary | ${command} | ci uses PATH lookup unless overridden |`,
-    `| extra args | ${extraArgs.join(' ') || '(none)'} | often empty in CI |`,
-    `| target | ${config.get('target', 'wasm32-wasi-p1')} | may differ per task/profile |`,
-    `| emit | ${config.get('emit', 'core-wasm')} | may differ per task/profile |`,
-  ]
-  outputChannel.clear()
-  outputChannel.appendLine(lines.join('\n'))
-  outputChannel.show()
+function getLanguageServerState() {
+  const hasClient = !!client
+  const detail = languageStatusItem?.detail || (hasClient ? 'Language server client active' : 'Language server not started')
+  const ready = hasClient && languageStatusItem?.text?.includes('Ready')
+  const starting = !ready && (languageStatusItem?.text?.includes('Starting') || languageStatusItem?.text?.includes('Indexing'))
+  return { hasClient, ready, starting, detail }
 }
 
 function registerCommands(context) {
@@ -1514,5 +1494,6 @@ module.exports = {
   __getTestState: getTestState,
   __discoverTestsForTests: discoverTestsForTests,
   __refreshProjectTreeForTests: refreshProjectTreeForTests,
+  __getOpsSurfacesForTests: () => opsSurfaces,
   verifyBootstrap,
 }

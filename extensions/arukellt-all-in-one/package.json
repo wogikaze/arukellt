@@ -34,6 +34,8 @@
     "onCommand:arukellt.showSetupDoctor",
     "onCommand:arukellt.showCommandGraph",
     "onCommand:arukellt.showEnvironmentDiff",
+    "onCommand:arukellt.runWorkspaceTests",
+    "onCommand:arukellt.refreshCommandGraph",
     "onCommand:arukellt.openDocs",
     "onCommand:arukellt.explainCode",
     "onCommand:arukellt.showPipeline",
@@ -46,7 +48,8 @@
     "onCommand:arukellt.debugMain",
     "onCommand:arukellt.runTest",
     "onCommand:arukellt.debugTest",
-    "onView:arukellt-project"
+    "onView:arukellt-project",
+    "onView:arukellt-command-graph"
   ],
   "main": "./src/extension.js",
   "contributes": {
@@ -104,6 +107,16 @@
       {
         "command": "arukellt.showEnvironmentDiff",
         "title": "Arukellt: Show Environment Diff"
+      },
+      {
+        "command": "arukellt.runWorkspaceTests",
+        "title": "Arukellt: Run Workspace Tests"
+      },
+      {
+        "command": "arukellt.refreshCommandGraph",
+        "title": "Refresh Command Graph",
+        "category": "Arukellt",
+        "icon": "$(refresh)"
       },
       {
         "command": "arukellt.openDocs",
@@ -330,6 +343,11 @@
           "id": "arukellt-project",
           "name": "Project",
           "icon": "$(folder)"
+        },
+        {
+          "id": "arukellt-command-graph",
+          "name": "Command Graph",
+          "icon": "$(type-hierarchy)"
         }
       ]
     },
@@ -337,6 +355,10 @@
       {
         "view": "arukellt-project",
         "contents": "No Arukellt project found.\n[Initialize Project](command:arukellt.initProject)\nOpen a folder containing ark.toml to get started."
+      },
+      {
+        "view": "arukellt-command-graph",
+        "contents": "Executable workflow for check → compile → run → test.\n[Open Setup Doctor](command:arukellt.showSetupDoctor)\n[Compare Environments](command:arukellt.showEnvironmentDiff)"
       }
     ],
     "menus": {
@@ -344,6 +366,11 @@
         {
           "command": "arukellt.refreshProjectTree",
           "when": "view == arukellt-project",
+          "group": "navigation"
+        },
+        {
+          "command": "arukellt.refreshCommandGraph",
+          "when": "view == arukellt-command-graph",
           "group": "navigation"
         }
       ],

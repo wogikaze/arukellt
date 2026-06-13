@@ -7,5 +7,5 @@ All notable changes to the Arukellt All-in-One extension are recorded here.
 - Initial marketplace-ready package metadata.
 - Arukellt language registration, grammar, snippets, and command palette actions.
 - LSP startup through the configured `arukellt lsp` command.
-- Project view, setup doctor, command graph, environment diff, and task provider surfaces.
+- Project view, setup doctor QuickPick, executable command graph tree view, environment diff picker, and task provider surfaces.
 - Component build commands for `wasm32-wasi-p2` workflows.
