@@ -1,0 +1,82 @@
+// Arukellt Selfhost - formatter whitespace normalization.
+
+fn fmt_normalize_line(line: String) -> String {
+    let n = len(clone(line))
+    let mut end = n
+    while end > 0 {
+        let c = char_at(clone(line), end - 1)
+        if c != 32 && c != 9 {
+            break
+        }
+        end = end - 1
+    }
+    let mut result = String_new()
+    let mut pos = 0
+    while pos < end {
+        let c = char_at(clone(line), pos)
+        if c == 9 {
+            result = concat(result, String_from("    "))
+        } else {
+            result = concat(result, substring(clone(line), pos, pos + 1))
+        }
+        pos = pos + 1
+    }
+    result
+}
+
+fn fmt_collapse_blank_lines(lines: Vec<String>) -> Vec<String> {
+    let line_count = len(lines)
+    let mut out_lines = Vec_new_String()
+    let mut prev_blank = false
+    let mut j = 0
+    while j < line_count {
+        let raw = get_unchecked(lines, j)
+        let processed = fmt_normalize_line(raw)
+        let is_blank = len(processed) == 0
+        if !(is_blank && prev_blank) {
+            push(out_lines, processed)
+        }
+        prev_blank = is_blank
+        j = j + 1
+    }
+    out_lines
+}
+
+fn fmt_join_lines(lines: Vec<String>) -> String {
+    let mut end = len(lines)
+    while end > 0 {
+        let last = get_unchecked(lines, end - 1)
+        if len(last) == 0 {
+            end = end - 1
+        } else {
+            break
+        }
+    }
+    let mut result = String_new()
+    let mut k = 0
+    while k < end {
+        if k > 0 {
+            result = concat(result, String_from("\n"))
+        }
+        result = concat(result, clone(get_unchecked(lines, k)))
+        k = k + 1
+    }
+    result = concat(result, String_from("\n"))
+    result
+}
+
+fn fmt_split_lines(input: String) -> Vec<String> {
+    let mut lines = Vec_new_String()
+    let n = len(clone(input))
+    let mut start = 0
+    let mut i = 0
+    while i < n {
+        if char_at(clone(input), i) == 10 {
+            push(lines, substring(clone(input), start, i))
+            start = i + 1
+        }
+        i = i + 1
+    }
+    push(lines, substring(clone(input), start, n))
+    lines
+}

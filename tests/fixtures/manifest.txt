@@ -8,7 +8,7 @@
 # Every .ark entry point must be listed here.
 # Fixture manifest — single source of truth for test fixtures.
 # Format: kind:path (relative to tests/fixtures/)
-# Kinds: run, diag, module-run, module-diag, t3-compile, component-compile, compile-error
+# Kinds: run, diag, fmt, module-run, module-diag, t3-compile, component-compile, compile-error
 run:scalar/f32_local.ark
 # Optimisation tests
 # The harness reads this file instead of globbing.
@@ -171,6 +171,9 @@ t3-compile:component/resource_v3/resource_async_drop.ark
 t3-compile:component/resource_v3/resource_forward.ark
 compile-error:selfhost/fn_multiclause_mixed_arity.ark
 compile-error:selfhost/fn_multiclause_multi_param.ark
+fmt:fmt/comments_preserved.ark
+fmt:fmt/if_else.ark
+fmt:fmt/imports_unsorted.ark
 diag:diagnostics/deprecated_prelude_println.ark
 diag:diagnostics/deprecated_std_io_import.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
@@ -443,6 +446,7 @@ diag:diagnostics/resolve_dup_fn.ark
 diag:diagnostics/resolve_undef_module.ark
 run:t2/t2_scaffold.ark
 run:t2/t2_stdio.ark
+run:t2/t2_println_i32_var.ark
 run:stdlib_bytes/bytes_basic.ark
 run:stdlib_bytes/bytes_helpers.ark
 run:stdlib_bytes/buf_basic.ark

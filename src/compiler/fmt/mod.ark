@@ -1,0 +1,36 @@
+// Arukellt Selfhost - formatter public boundary.
+
+use fmt::parse_gate
+use fmt::program
+use fmt::range
+use fmt::sort_imports
+
+pub fn format_source(input: String) -> Option<String> {
+    program::fmt_format_source(input)
+}
+
+pub fn sort_imports(input: String) -> Option<String> {
+    program::fmt_sort_imports(input)
+}
+
+pub fn sorted_import_block(input: String) -> Option<String> {
+    sort_imports::fmt_sorted_import_block(input)
+}
+
+pub fn import_block_span(input: String) -> i32 {
+    sort_imports::fmt_import_block_span_value(input)
+}
+
+pub fn format_range(input: String, start_line: i32, end_line: i32) -> Option<String> {
+    range::fmt_range_format(input, start_line, end_line)
+}
+
+pub fn format_parse_error_at(input: String, index: i32) -> Diagnostic {
+    let gate = parse_gate::fmt_parse_gate(input)
+    parse_gate::fmt_parse_gate_error_at(gate, index)
+}
+
+pub fn format_parse_error_count(input: String) -> i32 {
+    let gate = parse_gate::fmt_parse_gate(input)
+    parse_gate::fmt_parse_gate_error_count(gate)
+}

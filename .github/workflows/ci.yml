@@ -56,6 +56,42 @@ jobs:
       - name: Check docs consistency
         run: python3 scripts/check/check-docs-consistency.py
 
+  extension-tests:
+    name: "VS Code extension E2E"
+    runs-on: ubuntu-latest
+    needs: verification
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+
+      - name: Ensure bootstrap wasm exists
+        run: test -f bootstrap/arukellt-selfhost.wasm
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: npm
+          cache-dependency-path: extensions/arukellt-all-in-one/package-lock.json
+
+      - name: Install Xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - name: Install extension dependencies
+        working-directory: extensions/arukellt-all-in-one
+        run: npm ci
+
+      - name: Run extension tests
+        working-directory: extensions/arukellt-all-in-one
+        env:
+          ARUKELLT_SELFHOST_WASM: ${{ github.workspace }}/bootstrap/arukellt-selfhost.wasm
+        run: xvfb-run -a npm test
+
   release-tag:
     name: "Release tag version"
     runs-on: ubuntu-latest
@@ -69,6 +105,6 @@ jobs:
   verify:
     name: "Final gate"
     runs-on: ubuntu-latest
-    needs: [verification, selfhost, docs]
+    needs: [verification, selfhost, docs, extension-tests]
     steps:
       - run: echo "Required CI gates passed"

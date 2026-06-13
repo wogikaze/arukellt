@@ -4,7 +4,7 @@
  * @module
  */
 
-import type { CheckResult, CompileOptions, CompileResult } from "./compiler-types.js";
+import type { CheckResult, CompileOptions, CompileResult, FormatResult } from "./compiler-types.js";
 import {
   createWasiHost,
   readVirtualFile,
@@ -53,6 +53,7 @@ export async function compileWithCompilerWasm(
   files.set(inputPath, sourceBytes);
 
   const argv = [
+    "_",
     "arukellt",
     "compile",
     inputPath,
@@ -178,6 +179,28 @@ export function checkWithCompilerWasmSync(
   return finishCheck(runner);
 }
 
+/**
+ * Synchronous format entry point for the main-thread playground API.
+ */
+export function formatWithCompilerWasmSync(
+  compilerBytes: Uint8Array,
+  source: string,
+  options: CompileOptions = {},
+): FormatResult {
+  const runner = createFmtRunner(compilerBytes, source, options);
+  if ("result" in runner) return runner.result;
+
+  try {
+    const module = new WebAssembly.Module(compilerBytes as unknown as BufferSource);
+    const instance = new WebAssembly.Instance(module, runner.host.imports);
+    runCompilerInstance(instance, runner.host);
+  } catch (err) {
+    runner.trap = err instanceof Error ? err.message : String(err);
+  }
+
+  return finishFmt(runner);
+}
+
 type CheckRunner =
   | { result: CheckResult }
   | {
@@ -217,6 +240,7 @@ function createCheckRunner(
   files.set(inputPath, sourceBytes);
 
   const argv = [
+    "_",
     "arukellt",
     "check",
     inputPath,
@@ -230,6 +254,77 @@ function createCheckRunner(
     timeoutMs,
     trap: null,
     started,
+  };
+}
+
+type FmtRunner =
+  | { result: FormatResult }
+  | {
+      host: ReturnType<typeof createWasiHost>;
+      files: Map<string, Uint8Array>;
+      timeoutMs: number;
+      trap: string | null;
+      started: number;
+      inputPath: string;
+    };
+
+function createFmtRunner(
+  compilerBytes: Uint8Array,
+  source: string,
+  options: CompileOptions,
+): FmtRunner {
+  const started = performance.now();
+  const inputPath = options.inputPath ?? DEFAULT_INPUT;
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const maxSourceBytes = options.maxSourceBytes ?? DEFAULT_MAX_SOURCE_BYTES;
+
+  const encoder = new TextEncoder();
+  const sourceBytes = encoder.encode(source);
+  if (sourceBytes.length > maxSourceBytes) {
+    return {
+      result: {
+        ok: false,
+        exitCode: 1,
+        compilerStdout: "",
+        compilerStderr: "",
+        formatted: null,
+        elapsedMs: performance.now() - started,
+        error: `source exceeds ${maxSourceBytes} byte limit`,
+      },
+    };
+  }
+
+  const files = new Map<string, Uint8Array>();
+  files.set(inputPath, sourceBytes);
+
+  const argv = ["_", "arukellt", "fmt", inputPath];
+
+  return {
+    host: createWasiHost({ argv, files }),
+    files,
+    timeoutMs,
+    trap: null,
+    started,
+    inputPath,
+  };
+}
+
+function finishFmt(runner: Exclude<FmtRunner, { result: FormatResult }>): FormatResult {
+  const formattedBytes = readVirtualFile(runner.files, runner.inputPath);
+  const formatted = formattedBytes ? new TextDecoder().decode(formattedBytes) : null;
+  const ok = runner.host.result.exitCode === 0 && formatted !== null && !runner.trap;
+  return {
+    ok,
+    exitCode: runner.host.result.exitCode,
+    compilerStdout: runner.host.result.stdout,
+    compilerStderr: runner.host.result.stderr,
+    formatted: ok ? formatted : null,
+    elapsedMs: performance.now() - runner.started,
+    error:
+      runner.trap ??
+      (runner.host.result.exitCode !== 0
+        ? runner.host.result.stderr.trim() || `compiler exited with code ${runner.host.result.exitCode}`
+        : null),
   };
 }
 

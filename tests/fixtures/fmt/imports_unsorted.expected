@@ -1,0 +1,6 @@
+use std::host::stdio
+use std::collections::vec as v
+
+fn main() {
+    stdio::println("imports")
+}

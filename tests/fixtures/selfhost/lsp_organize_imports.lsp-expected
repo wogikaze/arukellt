@@ -1,9 +1,9 @@
-Content-Length: 558
+Content-Length: 631
 
-{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"typeDefinitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"renameProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"signatureHelpProvider":{"triggerCharacters":["(",","]},"codeActionProvider":true,"workspaceSymbolProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 125
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"typeDefinitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"renameProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"signatureHelpProvider":{"triggerCharacters":["(",","]},"codeActionProvider":true,"workspaceSymbolProvider":true,"documentFormattingProvider":true,"documentRangeFormattingProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 125
 
-{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///organize_imports.ark","diagnostics":[]}}Content-Length: 251
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///organize_imports.ark","diagnostics":[]}}Content-Length: 36
 
-{"jsonrpc":"2.0","id":2,"result":[{"title":"Organize Imports","kind":"source.organizeImports","edit":{"changes":{"file:///organize_imports.ark":[{"range":{"start":{"line":0,"character":0},"end":{"line":2,"character":0}},"newText":"use helper\n"}]}}}]}Content-Length: 38
+{"jsonrpc":"2.0","id":2,"result":[]}Content-Length: 38
 
 {"jsonrpc":"2.0","id":3,"result":null}

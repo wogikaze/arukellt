@@ -16,7 +16,6 @@ graph LR
   I138["138 138-std-wasi-shared-capabilities-t1-t3"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I191["191 191-vscode-setup-doctor-command-graph-and-environment-inspection"]
-  I216["216 Formatter surface"]
   I217["217 Code actions + refactor code actions"]
   I219["219 LSP standard feature completeness"]
   I271["271 271-vscode-test-runner-wiring"]
@@ -106,7 +105,6 @@ graph LR
 - **138** depends on: 137, 051; blocks: 136
 - **139** depends on: 074, 137; blocks: 136
 - **191** depends on: 190; blocks: 184
-- **216** depends on: none; blocks: none
 - **217** depends on: 193; blocks: none
 - **219** depends on: none; blocks: none
 - **271** depends on: 254; blocks: none

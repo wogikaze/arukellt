@@ -45,6 +45,7 @@ from selfhost.checks import (  # noqa: E402
     run_diag_parity,
     run_fixpoint,
     run_fixture_parity,
+    run_fmt_parity,
     run_parity,
 )
 from docs_domain.checks import (  # noqa: E402
@@ -1180,6 +1181,7 @@ def _compiler_namespace_layout_violations(root: Path) -> list[str]:
         "corehir",
         "diagnostics",
         "driver",
+        "fmt",
         "hir",
         "lexer",
         "mir",
@@ -1210,6 +1212,7 @@ def _compiler_public_boundary_violations(root: Path) -> list[tuple[str, int, str
         "src/compiler/wasm/mod.ark",
         "src/compiler/mir/mod.ark",
         "src/compiler/diagnostics/mod.ark",
+        "src/compiler/fmt/mod.ark",
         "src/compiler/parser/mod.ark",
         "src/compiler/resolver/mod.ark",
         "src/compiler/typechecker/mod.ark",
@@ -1224,6 +1227,7 @@ def _compiler_public_boundary_violations(root: Path) -> list[tuple[str, int, str
         "src/compiler/wasm",
         "src/compiler/mir",
         "src/compiler/corehir",
+        "src/compiler/fmt",
         "src/compiler/resolver",
         "src/compiler/typechecker",
     )
@@ -4431,6 +4435,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-analysis-api.py",
         ),
         (
+            "selfhost formatter parity gate (#216)",
+            "python3 scripts/manager.py selfhost fmt-parity",
+        ),
+        (
             "selfhost LSP lifecycle gate (#569)",
             "python3 scripts/check/check-lsp-lifecycle.py",
         ),
@@ -6534,6 +6542,7 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
     for name, help_text in [
         ("fixture-parity", "Run selfhost fixture parity"),
         ("diag-parity", "Run selfhost diagnostic parity"),
+        ("fmt-parity", "Run selfhost formatter parity"),
     ]:
         q = sub.add_parser(name, help=help_text)
         q.add_argument("--dry-run", action="store_true")
@@ -6725,6 +6734,7 @@ def main() -> int:
             "fixpoint":       cmd_selfhost_fixpoint,
             "fixture-parity": cmd_selfhost_fixture_parity,
             "diag-parity":    cmd_selfhost_diag_parity,
+            "fmt-parity":     cmd_selfhost_fmt_parity,
             "parity":         cmd_selfhost_parity,
         }
         subcommand = getattr(args, "subcommand", None)
@@ -6868,6 +6878,34 @@ def cmd_selfhost_diag_parity(args: argparse.Namespace) -> int:
             category="bootstrap",
             command="python3 scripts/manager.py selfhost diag-parity",
             primary_path="tests/fixtures/",
+        )
+        for line in out.splitlines()[-30:]:
+            print(line)
+
+    total, passed, skipped, failed = h.summary()
+    print(f"\n{YELLOW}Summary{NC}")
+    print(f"Total checks: {total}")
+    print(f"Passed: {GREEN}{passed}{NC}")
+    print(f"Skipped: {YELLOW}{skipped}{NC}")
+    print(f"Failed: {RED}{failed}{NC}")
+    return h.exit_code()
+
+
+def cmd_selfhost_fmt_parity(args: argparse.Namespace) -> int:
+    root = _repo_root()
+    dry_run: bool = args.dry_run
+    h = Harness(repo_root=root, dry_run=dry_run)
+
+    print(f"\n{YELLOW}[selfhost] Running selfhost formatter parity check...{NC}")
+    rc, out = run_fmt_parity(root, dry_run)
+    if rc == 0:
+        h.check_pass("selfhost formatter parity")
+    else:
+        h.check_fail(
+            "selfhost formatter parity",
+            category="bootstrap",
+            command="python3 scripts/manager.py selfhost fmt-parity",
+            primary_path="tests/fixtures/fmt/",
         )
         for line in out.splitlines()[-30:]:
             print(line)

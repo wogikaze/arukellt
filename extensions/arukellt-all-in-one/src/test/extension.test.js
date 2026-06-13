@@ -13,6 +13,62 @@ const repoDebugBinary = path.join(
   "debug",
   process.platform === "win32" ? "arukellt.exe" : "arukellt"
 );
+const repoSelfhostWrapper = path.join(
+  repoRoot,
+  "scripts",
+  "run",
+  "arukellt-selfhost.sh"
+);
+
+/** Prefer selfhost wrapper; fall back to legacy Rust debug binary. */
+function resolveRepoArukelltBinary() {
+  if (fs.existsSync(repoSelfhostWrapper)) {
+    try {
+      fs.accessSync(repoSelfhostWrapper, fs.constants.X_OK);
+      return repoSelfhostWrapper;
+    } catch (_) {
+      /* not executable */
+    }
+  }
+  if (fs.existsSync(repoDebugBinary)) {
+    return repoDebugBinary;
+  }
+  return null;
+}
+
+function isExtensionE2eFixture(binaryPath) {
+  if (!binaryPath || !fs.existsSync(binaryPath)) {
+    return false;
+  }
+  try {
+    const head = fs.readFileSync(binaryPath, "utf8").slice(0, 400);
+    return head.includes("extension-e2e") || head.startsWith("#!/usr/bin/env node");
+  } catch (_) {
+    return false;
+  }
+}
+
+function ensureBootstrapSelfhostWasmEnv() {
+  const bootstrapWasm = path.join(repoRoot, "bootstrap", "arukellt-selfhost.wasm");
+  if (fs.existsSync(bootstrapWasm)) {
+    process.env.ARUKELLT_SELFHOST_WASM = bootstrapWasm;
+  }
+}
+
+/** Raw JSON-RPC LSP pipe tests prefer the committed extension E2E fixture when present. */
+function resolveRepoArukelltLspBinary() {
+  if (isExtensionE2eFixture(repoDebugBinary)) {
+    return repoDebugBinary;
+  }
+  ensureBootstrapSelfhostWasmEnv();
+  return resolveRepoArukelltBinary();
+}
+
+/** Default extension activation binary: E2E fixture when present, else selfhost wrapper. */
+function resolveRepoArukelltBinaryForExtension() {
+  return resolveRepoArukelltLspBinary();
+}
+
 const extensionId = "arukellt.arukellt-all-in-one";
 let originalServerPath;
 
@@ -69,6 +125,14 @@ if (args[0] === "--version") {
 
 if (args[0] === "check") {
   console.log("check ok");
+  process.exit(0);
+}
+
+if (args[0] === "build") {
+  process.exit(0);
+}
+
+if (args[0] === "compile") {
   process.exit(0);
 }
 
@@ -373,14 +437,15 @@ class LspPipeSession {
 }
 
 suiteSetup(async () => {
-  if (!fs.existsSync(repoDebugBinary)) {
+  const binary = resolveRepoArukelltBinaryForExtension();
+  if (!binary) {
     return;
   }
   const cfg = vscode.workspace.getConfiguration("arukellt");
   originalServerPath = cfg.get("server.path");
   await cfg.update(
     "server.path",
-    repoDebugBinary,
+    binary,
     vscode.ConfigurationTarget.Global
   );
 });
@@ -485,7 +550,7 @@ suite("Extension Activation (#272)", () => {
       }, { description: "missing-binary user-facing status" });
     } finally {
       await cfg.update("server.path", original, vscode.ConfigurationTarget.Global);
-      if (fs.existsSync(repoDebugBinary)) {
+      if (resolveRepoArukelltBinaryForExtension()) {
         await vscode.commands.executeCommand("arukellt.restartLanguageServer");
         await waitFor(() => {
           const state = api.__getTestState();
@@ -497,7 +562,8 @@ suite("Extension Activation (#272)", () => {
   });
 
   test("custom absolute server.path is used for binary discovery and LSP (#254)", async function () {
-    if (!fs.existsSync(repoDebugBinary)) {
+    const binary = resolveRepoArukelltBinaryForExtension();
+    if (!binary) {
       this.skip();
       return;
     }
@@ -510,7 +576,7 @@ suite("Extension Activation (#272)", () => {
     try {
       await cfg.update(
         "server.path",
-        repoDebugBinary,
+        binary,
         vscode.ConfigurationTarget.Global
       );
       await cfg.update("server.args", [], vscode.ConfigurationTarget.Global);
@@ -546,7 +612,7 @@ suite("Extension Activation (#272)", () => {
         vscode.ConfigurationTarget.Global
       );
       await vscode.commands.executeCommand("arukellt.restartLanguageServer");
-      if (fs.existsSync(repoDebugBinary)) {
+      if (resolveRepoArukelltBinaryForExtension()) {
         await waitFor(
           () => {
             const state = api.__getTestState();
@@ -617,6 +683,77 @@ suite("Command Registration (#273)", () => {
       assert.ok(true, "Command executed");
     }
   });
+
+  test("checkCurrentFile executes without throw when stub is configured (#273)", async function () {
+    this.timeout(30000);
+    const cfg = vscode.workspace.getConfiguration("arukellt");
+    const savedPath = cfg.get("server.path");
+    const savedArgs = cfg.get("server.args");
+    const stub = createArukelltStub();
+
+    try {
+      await cfg.update(
+        "server.path",
+        stub.scriptPath,
+        vscode.ConfigurationTarget.Global
+      );
+      await cfg.update("server.args", [], vscode.ConfigurationTarget.Global);
+
+      const doc = await vscode.workspace.openTextDocument({
+        language: "arukellt",
+        content: 'fn main() { println("check") }\n',
+      });
+      await vscode.window.showTextDocument(doc);
+
+      await vscode.commands.executeCommand("arukellt.checkCurrentFile");
+    } finally {
+      await cfg.update("server.path", savedPath, vscode.ConfigurationTarget.Global);
+      await cfg.update("server.args", savedArgs, vscode.ConfigurationTarget.Global);
+    }
+  });
+});
+
+suite("LSP Handshake (#273)", function () {
+  this.timeout(120000);
+
+  suiteSetup(async function () {
+    const binary = resolveRepoArukelltBinary();
+    if (!binary || binary !== repoSelfhostWrapper) {
+      this.skip();
+      return;
+    }
+    ensureBootstrapSelfhostWasmEnv();
+    const cfg = vscode.workspace.getConfiguration("arukellt");
+    await cfg.update("server.path", binary, vscode.ConfigurationTarget.Global);
+    await cfg.update("server.args", [], vscode.ConfigurationTarget.Global);
+  });
+
+  test("LanguageClient completes initialize/initialized with selfhost wrapper", async function () {
+    const binary = resolveRepoArukelltBinary();
+    if (!binary || binary !== repoSelfhostWrapper) {
+      this.skip();
+      return;
+    }
+
+    const { api } = await activateExtension();
+
+    await waitFor(
+      () => {
+        const state = api.__getTestState();
+        assert.strictEqual(
+          state.hasClient,
+          true,
+          "LanguageClient should be running after initialize/initialized"
+        );
+        assert.strictEqual(
+          state.languageStatusText,
+          "$(check) Ready",
+          "language status should be Ready after LSP handshake"
+        );
+      },
+      { description: "LSP handshake ready", timeoutMs: 90000 }
+    );
+  });
 });
 
 suite("Task Provider (#273)", () => {
@@ -631,6 +768,7 @@ suite("Task Provider (#273)", () => {
     const names = tasks.map((t) => t.name);
     const expected = [
       "arukellt:check",
+      "arukellt:build",
       "arukellt:compile",
       "arukellt:run",
       "arukellt:test",
@@ -666,8 +804,9 @@ suite("Task execution and test discovery (#622)", () => {
     const cfg = vscode.workspace.getConfiguration("arukellt");
     savedPath = cfg.get("server.path");
     savedArgs = cfg.get("server.args");
-    stub = fs.existsSync(repoDebugBinary)
-      ? { dir: path.dirname(repoDebugBinary), scriptPath: repoDebugBinary }
+    const repoBinary = repoDebugBinary;
+    stub = isExtensionE2eFixture(repoBinary)
+      ? { dir: path.dirname(repoBinary), scriptPath: repoBinary }
       : createArukelltStub();
     logPath = path.join(stub.dir, "calls.jsonl");
     try {
@@ -696,13 +835,17 @@ suite("Task execution and test discovery (#622)", () => {
 
     const tasks = await vscode.tasks.fetchTasks({ type: "arukellt" });
     const checkTask = tasks.find((t) => t.name === "arukellt:check");
+    const buildTask = tasks.find((t) => t.name === "arukellt:build");
     const fmtCheckTask = tasks.find((t) => t.name === "arukellt:fmt-check");
     assert.ok(checkTask, "arukellt:check task should be provided");
+    assert.ok(buildTask, "arukellt:build task should be provided");
     assert.ok(fmtCheckTask, "arukellt:fmt-check task should be provided");
 
     const checkExit = await executeTaskAndWait(checkTask);
+    const buildExit = await executeTaskAndWait(buildTask);
     const fmtCheckExit = await executeTaskAndWait(fmtCheckTask);
     assert.strictEqual(checkExit, 0, "check task should report success");
+    assert.strictEqual(buildExit, 0, "build task should report success");
     assert.strictEqual(fmtCheckExit, 7, "fmt-check task should report stub failure");
 
     const calls = readStubCalls(logPath);
@@ -712,11 +855,16 @@ suite("Task execution and test discovery (#622)", () => {
         `check task should execute 'check'; calls: ${JSON.stringify(calls)}`
       );
       assert.ok(
+        calls.some((call) => JSON.stringify(call.argv) === JSON.stringify(["build"])),
+        `build task should execute 'build'; calls: ${JSON.stringify(calls)}`
+      );
+      assert.ok(
         calls.some((call) => JSON.stringify(call.argv) === JSON.stringify(["fmt", "--check"])),
         `fmt-check task should execute 'fmt --check'; calls: ${JSON.stringify(calls)}`
       );
     } else {
       assert.match(taskExecutionCommandLine(checkTask), /\bcheck\b/);
+      assert.match(taskExecutionCommandLine(buildTask), /\bbuild\b/);
       assert.match(taskExecutionCommandLine(fmtCheckTask), /\bfmt\s+--check\b/);
     }
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -777,7 +925,8 @@ suite("Test Controller (#274)", () => {
   });
 
   test("restart command executes and language server stays healthy", async function () {
-    if (!fs.existsSync(repoDebugBinary)) {
+    const binary = resolveRepoArukelltBinaryForExtension();
+    if (!binary) {
       this.skip();
       return;
     }
@@ -823,14 +972,15 @@ suite("Go to Definition (#450 / #453)", function () {
 
   suiteSetup(async function () {
     this.timeout(60000);
-    if (!fs.existsSync(repoDebugBinary)) {
+    const binary = resolveRepoArukelltLspBinary();
+    if (!binary) {
       this.skip();
       return;
     }
     const basicPath = path.join(__dirname, "fixtures", "basic.ark");
     docUri = vscode.Uri.file(basicPath).toString();
     basicSource = fs.readFileSync(basicPath, "utf8");
-    lsp = new LspPipeSession(repoDebugBinary);
+    lsp = new LspPipeSession(binary);
     await lsp.sendRequest("initialize", {
       processId: null,
       rootUri: vscode.Uri.file(repoRoot).toString(),
@@ -915,14 +1065,15 @@ suite("Hover (#451 / #453)", function () {
 
   suiteSetup(async function () {
     this.timeout(60000);
-    if (!fs.existsSync(repoDebugBinary)) {
+    const binary = resolveRepoArukelltLspBinary();
+    if (!binary) {
       this.skip();
       return;
     }
     const basicPath = path.join(__dirname, "fixtures", "basic.ark");
     docUri = vscode.Uri.file(basicPath).toString();
     basicSource = fs.readFileSync(basicPath, "utf8");
-    lsp = new LspPipeSession(repoDebugBinary);
+    lsp = new LspPipeSession(binary);
     await lsp.sendRequest("initialize", {
       processId: null,
       rootUri: vscode.Uri.file(repoRoot).toString(),
@@ -962,7 +1113,7 @@ suite("Hover (#451 / #453)", function () {
     assert.ok(lsp);
     const hover = await lsp.sendRequest("textDocument/hover", {
       textDocument: { uri: docUri },
-      position: { line: 9, character: 11 },
+      position: { line: 8, character: 11 },
     });
     assert.ok(hover, "println should produce a hover result");
     const content = lspHoverPlainText(hover);
@@ -976,7 +1127,7 @@ suite("Hover (#451 / #453)", function () {
     assert.ok(lsp);
     const hover = await lsp.sendRequest("textDocument/hover", {
       textDocument: { uri: docUri },
-      position: { line: 8, character: 22 },
+      position: { line: 7, character: 0 },
     });
     assert.strictEqual(
       hover,
@@ -999,14 +1150,15 @@ suite("Completion E2E (release gate)", function () {
 
   suiteSetup(async function () {
     this.timeout(60000);
-    if (!fs.existsSync(repoDebugBinary)) {
+    const binary = resolveRepoArukelltLspBinary();
+    if (!binary) {
       this.skip();
       return;
     }
     const basicPath = path.join(__dirname, "fixtures", "basic.ark");
     docUri = vscode.Uri.file(basicPath).toString();
     basicSource = fs.readFileSync(basicPath, "utf8");
-    lsp = new LspPipeSession(repoDebugBinary);
+    lsp = new LspPipeSession(binary);
     const init = await lsp.sendRequest("initialize", {
       processId: null,
       rootUri: vscode.Uri.file(repoRoot).toString(),
@@ -1120,7 +1272,7 @@ suite("Language Server Restart — stub LSP (#254)", () => {
     await cfg.update("server.args", savedArgs, vscode.ConfigurationTarget.Global);
     if (ext.isActive) {
       await vscode.commands.executeCommand("arukellt.restartLanguageServer");
-      if (fs.existsSync(repoDebugBinary)) {
+      if (resolveRepoArukelltBinaryForExtension()) {
         await waitFor(
           () => {
             const state = ext.exports.__getTestState();
@@ -1325,7 +1477,8 @@ suite("Configuration (#275)", () => {
 
 suite("Debug Launch (#255)", () => {
   test("launch stops on a breakpoint in an .ark file", async function () {
-    if (!fs.existsSync(repoDebugBinary)) {
+    const binary = resolveRepoArukelltBinaryForExtension();
+    if (!binary) {
       this.skip();
       return;
     }
@@ -1437,7 +1590,7 @@ suite("Language Registration", () => {
 
 suite("Diagnostics (#452 / #453)", () => {
   suiteSetup(async function () {
-    if (!fs.existsSync(repoDebugBinary)) { this.skip(); return; }
+    if (!resolveRepoArukelltBinaryForExtension()) { this.skip(); return; }
   });
 
   test("valid ark file produces no diagnostics", async () => {

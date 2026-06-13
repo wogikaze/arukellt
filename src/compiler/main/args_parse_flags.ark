@@ -24,5 +24,9 @@ pub fn parse_flag_option(opts: CliOptions, arg: String) -> bool {
         args_record::cli_set_list_templates(opts, true)
         return true
     }
+    if commands::cli_str_eq(clone(arg), String_from("--check")) {
+        args_record::cli_set_fmt_check(opts, true)
+        return true
+    }
     false
 }

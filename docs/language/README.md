@@ -6,7 +6,7 @@
 ## Current Snapshot
 
 - Current user-visible behavior is described by [../current-state.md](../current-state.md).
-- Fixture-backed verification covers 1052 manifest entries.
+- Fixture-backed verification covers 1056 manifest entries.
 - Canonical target for current docs: `wasm32-wasi-p2`
 
 ## Reading Paths
@@ -46,6 +46,7 @@ Choose the path that fits your goal.
 | Types | [type-system.md](type-system.md) | You need type rules, generics, or inference details |
 | Errors | [error-handling.md](error-handling.md) | You're working with Result, Option, or `?` |
 | Memory | [memory-model.md](memory-model.md) | You need ownership, GC, or value-semantics rules |
+| Formatter | [formatter.md](formatter.md) | You need canonical layout rules for fmt / LSP formatting |
 | Stability | [maturity-matrix.md](maturity-matrix.md) | You want to know if a feature is stable, provisional, or experimental |
 
 ### 🔮 Language Evolution
@@ -75,6 +76,7 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | File | Class | Note |
 |------|-------|------|
 | [error-handling.md](error-handling.md) | normative | Current-first error handling reference; reflects implemented Result/Option behavior |
+| [formatter.md](formatter.md) | — | (unclassified — add entry to language-doc-classifications.toml) |
 | [guide.md](guide.md) | explanatory | Current-first language guide; stable/implemented features only; recommended first reading |
 | [maturity-matrix.md](maturity-matrix.md) | normative | Generated feature maturity matrix; do not edit manually — regenerated from [[features]] below |
 | [memory-model.md](memory-model.md) | normative | Current-first memory model reference; reflects GC-native T3 implementation |
@@ -89,6 +91,7 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | File | Title | Class | Summary |
 |------|-------|-------|---------|
 | [error-handling.md](error-handling.md) | エラー処理 | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
+| [formatter.md](formatter.md) | Formatter canonical surface | — | The selfhost formatter (src/compiler/fmt/) is the single source of truth for |
 | [guide.md](guide.md) | Arukellt Language Guide | explanatory | Explanatory: This document explains concepts and usage patterns. |
 | [maturity-matrix.md](maturity-matrix.md) | Feature Maturity Matrix | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [memory-model.md](memory-model.md) | メモリモデル | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |

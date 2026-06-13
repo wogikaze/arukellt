@@ -97,9 +97,13 @@ function getCandidatePaths(configuredPath) {
     candidates.push({ path: configuredPath, source: 'arukellt.server.path setting' })
     return candidates
   }
-  // 2. Repo-local builds when running the extension from a source checkout.
+  // 2. Repo-local entrypoints when running the extension from a source checkout.
   const exeName = process.platform === 'win32' ? 'arukellt.exe' : 'arukellt'
   const repoRoot = path.resolve(__dirname, '..', '..', '..')
+  const selfhostWrapper = path.join(repoRoot, 'scripts', 'run', 'arukellt-selfhost.sh')
+  if (fs.existsSync(selfhostWrapper)) {
+    candidates.push({ path: selfhostWrapper, source: 'repo selfhost wrapper: scripts/run/arukellt-selfhost.sh' })
+  }
   for (const rel of [
     path.join('target', 'debug', exeName),
     path.join('target', 'release', exeName),
@@ -170,6 +174,16 @@ function discoverBinary(configuredPath) {
   return { command: configuredPath, probe: { ok: false, message: 'arukellt binary not found. Install via cargo or set arukellt.server.path.' } }
 }
 
+function serverSpawnOptions() {
+  const repoRoot = path.resolve(__dirname, '..', '..', '..')
+  const env = { ...process.env }
+  const bootstrapWasm = path.join(repoRoot, 'bootstrap', 'arukellt-selfhost.wasm')
+  if (fs.existsSync(bootstrapWasm)) {
+    env.ARUKELLT_SELFHOST_WASM = bootstrapWasm
+  }
+  return { env, cwd: repoRoot }
+}
+
 function startLanguageServer(context, options = {}) {
   resetLanguageServerTestTelemetry({ keepOutputChannelLines: !!options.afterRestartShutdown })
   if (options.afterRestartShutdown) {
@@ -210,11 +224,13 @@ function startLanguageServer(context, options = {}) {
       command,
       args: [...extraArgs, 'lsp'],
       transport: TransportKind.stdio,
+      options: serverSpawnOptions(),
     },
     debug: {
       command,
       args: [...extraArgs, 'lsp'],
       transport: TransportKind.stdio,
+      options: serverSpawnOptions(),
     },
   }
 
@@ -945,6 +961,7 @@ function registerTaskProvider(context) {
 
       const definitions = [
         { type: 'arukellt', task: 'check', command: 'check', group: vscode.TaskGroup.Build },
+        { type: 'arukellt', task: 'build', command: 'build', group: vscode.TaskGroup.Build },
         { type: 'arukellt', task: 'compile', command: 'compile', group: vscode.TaskGroup.Build },
         { type: 'arukellt', task: 'run', command: 'run', group: undefined },
         { type: 'arukellt', task: 'test', command: 'test', group: vscode.TaskGroup.Test },

@@ -1,0 +1,30 @@
+// Arukellt Selfhost - formatter parse gate (#344).
+
+use compiler::session_frontend_query
+use parser
+
+struct FmtParseGate {
+    decls: Vec<AstNode>,
+    errors: Vec<Diagnostic>,
+}
+
+fn fmt_parse_gate(input: String) -> FmtParseGate {
+    let frontend = session_frontend_query::session_parse_source(clone(input))
+    let parse_result = session_frontend_query::frontend_result_parse(frontend)
+    FmtParseGate {
+        decls: parser::ParseResult_decls(parse_result),
+        errors: parser::ParseResult_errors(parse_result),
+    }
+}
+
+fn fmt_parse_gate_error_count(gate: FmtParseGate) -> i32 {
+    len(gate.errors)
+}
+
+fn fmt_parse_gate_error_at(gate: FmtParseGate, index: i32) -> Diagnostic {
+    get_unchecked(gate.errors, index)
+}
+
+fn fmt_parse_gate_decls(gate: FmtParseGate) -> Vec<AstNode> {
+    gate.decls
+}

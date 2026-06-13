@@ -1,0 +1,28 @@
+// Arukellt Selfhost - formatter comment preservation (#343).
+
+use fmt::whitespace
+
+fn fmt_is_full_line_comment(trimmed: String) -> bool {
+    len(trimmed) >= 2 && char_at(trimmed, 0) == 47 && char_at(trimmed, 1) == 47
+}
+
+fn fmt_line_starts_block_comment(trimmed: String) -> bool {
+    index_of(clone(trimmed), String_from("/*")) >= 0
+}
+
+fn fmt_preserve_comment_lines(lines: Vec<String>) -> Vec<String> {
+    let n = len(lines)
+    let mut out = Vec_new_String()
+    let mut i = 0
+    while i < n {
+        let raw = get_unchecked(lines, i)
+        let trimmed = whitespace::fmt_normalize_line(raw)
+        if fmt_is_full_line_comment(clone(trimmed)) || fmt_line_starts_block_comment(clone(trimmed)) {
+            push(out, trimmed)
+        } else {
+            push(out, raw)
+        }
+        i = i + 1
+    }
+    out
+}

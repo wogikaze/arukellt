@@ -32,22 +32,14 @@ def _find_wasmtime() -> str | None:
 
 
 def _resolve_ide_compiler_wasm(root: Path) -> Path | None:
-    """Return selfhost compiler wasm for IDE gates.
-
-    Stdin read uses the normalized intrinsic name ``stdin_read_to_string``; the
-    stage-3 self-compile applies the emitter fix inside the running compiler.
-    Bootstrap-built stage-2 traps on bare stdio until that self-compile exists.
-    """
+    """Return selfhost compiler wasm for IDE gates."""
     from scripts.selfhost.checks import resolve_ide_gate_compiler_wasm, run_fixpoint
 
-    s3 = root / ".build" / "selfhost" / "arukellt-s3.wasm"
-    if s3.is_file():
-        return s3
+    compiler = resolve_ide_gate_compiler_wasm(root)
+    if compiler is not None:
+        return compiler
 
     run_fixpoint(root, dry_run=False, no_build=False)
-    if s3.is_file():
-        return s3
-
     return resolve_ide_gate_compiler_wasm(root)
 
 

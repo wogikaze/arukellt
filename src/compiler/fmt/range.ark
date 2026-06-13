@@ -1,0 +1,94 @@
+// Arukellt Selfhost - formatter range extraction (#347).
+
+use fmt::program
+use fmt::whitespace
+
+fn fmt_line_count(text: String) -> i32 {
+    len(whitespace::fmt_split_lines(text))
+}
+
+fn fmt_snap_line_start(line: i32) -> i32 {
+    if line < 0 {
+        return 0
+    }
+    line
+}
+
+fn fmt_snap_line_end(line: i32, max_line: i32) -> i32 {
+    if line > max_line {
+        return max_line
+    }
+    if line < 0 {
+        return 0
+    }
+    line
+}
+
+fn fmt_extract_line_range(text: String, start_line: i32, end_line: i32) -> String {
+    let lines = whitespace::fmt_split_lines(clone(text))
+    let max_line = len(lines) - 1
+    let start = fmt_snap_line_start(start_line)
+    let end = fmt_snap_line_end(end_line, max_line)
+    let mut out = String_new()
+    let mut i = start
+    while i <= end && i < len(lines) {
+        if i > start {
+            out = concat(out, String_from("\n"))
+        }
+        out = concat(out, clone(get_unchecked(lines, i)))
+        i = i + 1
+    }
+    if end < max_line {
+        out = concat(out, String_from("\n"))
+    }
+    out
+}
+
+fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacement: String) -> String {
+    let lines = whitespace::fmt_split_lines(clone(text))
+    let max_line = len(lines) - 1
+    let start = fmt_snap_line_start(start_line)
+    let end = fmt_snap_line_end(end_line, max_line)
+    let mut out = String_new()
+    let mut i = 0
+    while i < start && i < len(lines) {
+        if i > 0 {
+            out = concat(out, String_from("\n"))
+        }
+        out = concat(out, clone(get_unchecked(lines, i)))
+        i = i + 1
+    }
+    if len(replacement) > 0 {
+        if start > 0 {
+            out = concat(out, String_from("\n"))
+        }
+        out = concat(out, clone(replacement))
+    }
+    let mut j = end + 1
+    while j < len(lines) {
+        out = concat(out, String_from("\n"))
+        out = concat(out, clone(get_unchecked(lines, j)))
+        j = j + 1
+    }
+    if len(lines) > 0 {
+        out = concat(out, String_from("\n"))
+    }
+    out
+}
+
+fn fmt_range_format(input: String, start_line: i32, end_line: i32) -> Option<String> {
+    let formatted = match program::fmt_format_source(clone(input)) {
+        Option::None => {
+            return Option::None
+        },
+        Option::Some(text) => {
+            text
+        },
+    }
+    let original_region = fmt_extract_line_range(clone(input), start_line, end_line)
+    let formatted_region = fmt_extract_line_range(clone(formatted), start_line, end_line)
+    if original_region == formatted_region {
+        return Option::Some(clone(input))
+    }
+    Option::Some(fmt_replace_line_range(input, start_line, end_line, formatted_region))
+}

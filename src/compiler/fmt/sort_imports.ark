@@ -1,0 +1,168 @@
+// Arukellt Selfhost - formatter import sorting (#346).
+
+use fmt::parse_gate
+use resolver::ast_access
+use resolver::ast_decl_predicates
+
+struct FmtImportEntry {
+    line_start: i32,
+    line_end: i32,
+    path: String,
+    sort_group: i32,
+    has_alias: bool,
+}
+
+fn fmt_import_entry_new(line_start: i32, line_end: i32, path: String, sort_group: i32, has_alias: bool) -> FmtImportEntry {
+    FmtImportEntry { line_start: line_start, line_end: line_end, path: path, sort_group: sort_group, has_alias: has_alias }
+}
+
+fn fmt_import_sort_group(path: String, has_alias: bool) -> i32 {
+    if has_alias {
+        return 2
+    }
+    if starts_with(clone(path), String_from("std::")) {
+        return 0
+    }
+    1
+}
+
+fn fmt_import_line_end(text: String, line_start: i32) -> i32 {
+    let n = len(text)
+    let mut i = line_start
+    while i < n && char_at(text, i) != 10 {
+        i = i + 1
+    }
+    if i < n {
+        return i + 1
+    }
+    i
+}
+
+fn fmt_collect_import_entries(text: String, decls: Vec<AstNode>) -> Vec<FmtImportEntry> {
+    let out = Vec_new_FmtImportEntry()
+    let n = len(decls)
+    let mut i = 0
+    while i < n {
+        let d = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_use(d) {
+            let path = ast_access::node_text(d)
+            let has_alias = ast_access::node_type_ann_count(d) > 0
+            let line_start = ast_access::node_span_start(d)
+            let mut line_begin = line_start
+            while line_begin > 0 && char_at(text, line_begin - 1) != 10 {
+                line_begin = line_begin - 1
+            }
+            let line_end = fmt_import_line_end(clone(text), line_begin)
+            let group = fmt_import_sort_group(clone(path), has_alias)
+            push(out, fmt_import_entry_new(line_begin, line_end, path, group, has_alias))
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn fmt_import_entry_line_start(entry: FmtImportEntry) -> i32 {
+    entry.line_start
+}
+
+fn fmt_import_entry_line_end(entry: FmtImportEntry) -> i32 {
+    entry.line_end
+}
+
+fn fmt_import_entry_sort_group(entry: FmtImportEntry) -> i32 {
+    entry.sort_group
+}
+
+fn fmt_import_block_bounds(entries: Vec<FmtImportEntry>) -> i32 {
+    let en = len(entries)
+    if en == 0 {
+        return 0 - 1
+    }
+    let mut first_start = fmt_import_entry_line_start(get_unchecked(entries, 0))
+    let mut last_end = fmt_import_entry_line_end(get_unchecked(entries, 0))
+    let mut i = 1
+    while i < en {
+        let entry = get_unchecked(entries, i)
+        if fmt_import_entry_line_start(entry) < first_start {
+            first_start = fmt_import_entry_line_start(entry)
+        }
+        if fmt_import_entry_line_end(entry) > last_end {
+            last_end = fmt_import_entry_line_end(entry)
+        }
+        i = i + 1
+    }
+    first_start * 1000000 + last_end
+}
+
+fn fmt_import_block_start(span: i32) -> i32 {
+    if span < 0 { return 0 }
+    span / 1000000
+}
+
+fn fmt_import_block_end(span: i32) -> i32 {
+    if span < 0 { return 0 }
+    span % 1000000
+}
+
+fn fmt_sorted_import_text(text: String, entries: Vec<FmtImportEntry>) -> String {
+    let en = len(entries)
+    let mut out = String_new()
+    let mut group = 0
+    while group <= 2 {
+        let mut i = 0
+        while i < en {
+            let entry = get_unchecked(entries, i)
+            if fmt_import_entry_sort_group(entry) == group {
+                let line = substring(clone(text), fmt_import_entry_line_start(entry), fmt_import_entry_line_end(entry))
+                out = concat(out, line)
+            }
+            i = i + 1
+        }
+        group = group + 1
+    }
+    out
+}
+
+fn fmt_apply_sorted_imports(text: String, entries: Vec<FmtImportEntry>) -> String {
+    let span = fmt_import_block_bounds(entries)
+    if span < 0 {
+        return clone(text)
+    }
+    let first = fmt_import_block_start(span)
+    let last = fmt_import_block_end(span)
+    let sorted = fmt_sorted_import_text(clone(text), entries)
+    concat(concat(substring(clone(text), 0, first), sorted), substring(text, last, len(text)))
+}
+
+fn fmt_sort_imports_text(input: String) -> Option<String> {
+    let gate = parse_gate::fmt_parse_gate(clone(input))
+    if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
+        return Option::None
+    }
+    let entries = fmt_collect_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
+    if len(entries) == 0 {
+        return Option::Some(clone(input))
+    }
+    Option::Some(fmt_apply_sorted_imports(input, entries))
+}
+
+fn fmt_sorted_import_block(input: String) -> Option<String> {
+    let gate = parse_gate::fmt_parse_gate(clone(input))
+    if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
+        return Option::None
+    }
+    let entries = fmt_collect_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
+    if len(entries) == 0 {
+        return Option::Some(String_new())
+    }
+    Option::Some(fmt_sorted_import_text(input, entries))
+}
+
+fn fmt_import_block_span_value(input: String) -> i32 {
+    let gate = parse_gate::fmt_parse_gate(clone(input))
+    if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
+        return 0 - 1
+    }
+    let entries = fmt_collect_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
+    fmt_import_block_bounds(entries)
+}

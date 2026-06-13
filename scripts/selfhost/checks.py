@@ -97,6 +97,7 @@ LOCAL_COMPILER_NAMESPACES = {
     "dap",
     "diagnostics",
     "driver",
+    "fmt",
     "hir",
     "lexer",
     "loader",
@@ -122,6 +123,7 @@ WORKTREE_OVERLAY_NAMESPACES = frozenset({
     "dap",
     "diagnostics",
     "driver",
+    "fmt",
     "hir",
     "lexer",
     "loader",
@@ -1093,13 +1095,18 @@ def _stage3_compiler_wasm(root: Path, pinned: Path, built_s2: Path) -> Path | No
 
 def resolve_ide_gate_compiler_wasm(root: Path) -> Path | None:
     """Compiler wasm for LSP/DAP/analysis quick gates."""
+    s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
+    pinned = _find_pinned_wasm(root)
+    if s2.is_file() and pinned is not None:
+        runtime = _parity_runtime_compiler(root, pinned, s2)
+        if runtime is not None:
+            return runtime
+    if s2.is_file():
+        return s2
     s3 = root / ".build" / "selfhost" / "arukellt-s3.wasm"
     if s3.is_file():
         return s3
-    s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
-    if s2.is_file():
-        return s2
-    return _find_pinned_wasm(root)
+    return pinned
 
 
 def _parity_runtime_compiler(root: Path, pinned: Path, built_s2: Path) -> Path | None:
@@ -1579,6 +1586,21 @@ def _compile_selfhost_bootstrap_chain(
     return last
 
 
+def _wasm_fmt(
+    wasmtime: str,
+    compiler_wasm: Path,
+    src: str,
+    root: Path,
+    timeout: int | None = None,
+) -> subprocess.CompletedProcess:
+    return _run(
+        [wasmtime, "run", "--dir", str(root), str(compiler_wasm), "--",
+         "fmt", src],
+        root,
+        timeout=timeout,
+    )
+
+
 def _wasm_check(
     wasmtime: str,
     compiler_wasm: Path,
@@ -2037,6 +2059,111 @@ def run_diag_parity(root: Path, dry_run: bool) -> tuple[int, str]:
         f"{GREEN}✓ diag parity: {pass_count} fixtures pass against committed selfhost goldens, "
         f"{skip_count} skipped (Phase 3 pending){NC}"
     )
+    return (0, "\n".join(lines) + "\n")
+
+
+def run_fmt_parity(root: Path, dry_run: bool) -> tuple[int, str]:
+    """Formatter golden gate (#216, #345).
+
+    For each ``fmt:`` fixture, run ``arukellt fmt`` and compare output to the
+    committed ``.expected`` golden. Also checks idempotency and parse validity.
+    """
+    if dry_run:
+        print("DRY-RUN: run_fmt_parity()")
+        return (0, "")
+
+    lines: list[str] = []
+
+    pinned = _find_pinned_wasm(root)
+    if pinned is None:
+        return (1, f"{RED}error: pinned-reference selfhost wasm not found at "
+                   f"{PINNED_WASM_REL}{NC}\n")
+
+    wasmtime = _find_wasmtime()
+    if not wasmtime:
+        return (1, f"{RED}error: wasmtime not found{NC}\n")
+
+    current, err = _ensure_current_selfhost(root, wasmtime, pinned)
+    if current is None:
+        return (1, err)
+
+    fixtures, err = _load_manifest_fixtures(root, "fmt")
+    if err:
+        return (1, err + "\n")
+
+    lines.append(f"{YELLOW}[fmt-parity] Checking {len(fixtures)} fmt: fixtures "
+                 f"against committed .expected goldens...{NC}")
+
+    pass_count = 0
+    fail_count = 0
+    skip_count = 0
+
+    for fixture in fixtures:
+        ark_path = root / "tests" / "fixtures" / fixture
+        expected_path = root / "tests" / "fixtures" / (fixture[:-4] + ".expected")
+        work_rel = str(Path("tests") / "fixtures" / (fixture[:-4] + ".fmt_work.ark"))
+        work_path = root / work_rel
+
+        if not ark_path.is_file():
+            lines.append(f"  skip: {fixture} (source not found)")
+            skip_count += 1
+            continue
+        if not expected_path.is_file():
+            lines.append(f"  skip: {fixture} (.expected file not found)")
+            skip_count += 1
+            continue
+
+        expected = expected_path.read_text(encoding="utf-8")
+        shutil.copyfile(ark_path, work_path)
+        try:
+            r = _wasm_fmt(wasmtime, current, work_rel, root)
+            if r.returncode != 0:
+                lines.append(
+                    f"  FAIL: {fixture} (fmt exit {r.returncode}: "
+                    f"{(r.stdout + r.stderr).strip()!r})"
+                )
+                fail_count += 1
+                continue
+            formatted = work_path.read_text(encoding="utf-8")
+            if formatted != expected:
+                lines.append(f"  FAIL: {fixture} (output mismatch vs .expected)")
+                fail_count += 1
+                continue
+
+            r2 = _wasm_fmt(wasmtime, current, work_rel, root)
+            if r2.returncode != 0:
+                lines.append(f"  FAIL: {fixture} (idempotent fmt exit {r2.returncode})")
+                fail_count += 1
+                continue
+            formatted2 = work_path.read_text(encoding="utf-8")
+            if formatted2 != formatted:
+                lines.append(f"  FAIL: {fixture} (not idempotent)")
+                fail_count += 1
+                continue
+
+            check = _wasm_check(wasmtime, current, work_rel, root)
+            if check.returncode != 0:
+                lines.append(f"  FAIL: {fixture} (formatted output does not parse)")
+                fail_count += 1
+                continue
+
+            lines.append(f"  pass: {fixture}")
+            pass_count += 1
+        finally:
+            if work_path.is_file():
+                work_path.unlink()
+
+    lines.append("")
+    lines.append(f"{YELLOW}fmt-parity: PASS={pass_count} SKIP={skip_count} FAIL={fail_count}{NC}")
+
+    if fail_count > 0:
+        lines.append(f"{RED}✗ fmt parity: {fail_count} fixture(s) regressed{NC}")
+        return (1, "\n".join(lines) + "\n")
+    if pass_count == 0:
+        lines.append(f"{RED}✗ fmt parity: no fixtures exercised{NC}")
+        return (1, "\n".join(lines) + "\n")
+
+    lines.append(f"{GREEN}✓ fmt parity: {pass_count} fixtures pass{NC}")
     return (0, "\n".join(lines) + "\n")
 
 

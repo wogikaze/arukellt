@@ -3,27 +3,45 @@
 use std::host::fs
 use std::host::process
 use std::host::stdio
+use diagnostics::record
+use fmt
 use main::args_record
 
 pub fn cmd_fmt(opts: CliOptions) {
     let input_file = args_record::cli_input_file(opts)
     if len(input_file) == 0 {
-        stdio::eprintln(String_from("usage: arukellt fmt <file.ark>"))
+        stdio::eprintln(String_from("usage: arukellt fmt <file.ark> [--check]"))
         process::exit(2)
         return
     }
     let read_result = fs::read_to_string(clone(input_file))
     match read_result {
         Result::Ok(text) => {
-            let formatted = fmt_source(text)
-            let write_result = fs::write_string(clone(input_file), clone(formatted))
-            match write_result {
-                Result::Ok(_) => {
-                    stdio::eprintln(concat(String_from("formatted "), clone(input_file)))
-                },
-                Result::Err(e) => {
-                    stdio::eprintln(concat(String_from("error writing formatted file: "), e))
+            let formatted_opt = fmt::format_source(text)
+            match formatted_opt {
+                Option::None => {
+                    fmt_emit_parse_errors(text)
                     process::exit(1)
+                },
+                Option::Some(formatted) => {
+                    if args_record::cli_fmt_check(opts) {
+                        if !eq(clone(formatted), clone(text)) {
+                            stdio::eprintln(concat(String_from("fmt check failed: "), clone(input_file)))
+                            process::exit(1)
+                        }
+                        stdio::eprintln(concat(String_from("ok: "), clone(input_file)))
+                        return
+                    }
+                    let write_result = fs::write_string(clone(input_file), clone(formatted))
+                    match write_result {
+                        Result::Ok(_) => {
+                            stdio::eprintln(concat(String_from("formatted "), clone(input_file)))
+                        },
+                        Result::Err(e) => {
+                            stdio::eprintln(concat(String_from("error writing formatted file: "), e))
+                            process::exit(1)
+                        },
+                    }
                 },
             }
         },
@@ -34,79 +52,12 @@ pub fn cmd_fmt(opts: CliOptions) {
     }
 }
 
-fn fmt_line(line: String) -> String {
-    let n = len(clone(line))
-    let mut end = n
-    while end > 0 {
-        let c = char_at(clone(line), end - 1)
-        if c != 32 && c != 9 {
-            break
-        }
-        end = end - 1
-    }
-    let mut result = String_new()
-    let mut pos = 0
-    while pos < end {
-        let c = char_at(clone(line), pos)
-        if c == 9 {
-            result = concat(result, String_from("    "))
-        } else {
-            result = concat(result, substring(clone(line), pos, pos + 1))
-        }
-        pos = pos + 1
-    }
-    result
-}
-
-fn fmt_source(input: String) -> String {
-    let mut lines = Vec_new_String()
-    let n = len(clone(input))
-    let mut start = 0
+fn fmt_emit_parse_errors(text: String) {
+    let count = fmt::format_parse_error_count(clone(text))
     let mut i = 0
-    while i < n {
-        if char_at(clone(input), i) == 10 {
-            push(lines, substring(clone(input), start, i))
-            start = i + 1
-        }
+    while i < count {
+        let diag = fmt::format_parse_error_at(clone(text), i)
+        stdio::eprintln(concat(record::diagnostic_code(diag), concat(String_from(": "), record::diagnostic_message(diag))))
         i = i + 1
     }
-    push(lines, substring(clone(input), start, n))
-
-    let line_count = len(lines)
-    let mut out_lines = Vec_new_String()
-    let mut prev_blank = false
-    let mut j = 0
-    while j < line_count {
-        let raw = get_unchecked(lines, j)
-        let processed = fmt_line(raw)
-        let is_blank = len(processed) == 0
-        if !(is_blank && prev_blank) {
-            push(out_lines, processed)
-        }
-        prev_blank = is_blank
-        j = j + 1
-    }
-
-    let out_count = len(out_lines)
-    let mut end = out_count
-    while end > 0 {
-        let last = get_unchecked(out_lines, end - 1)
-        if len(last) == 0 {
-            end = end - 1
-        } else {
-            break
-        }
-    }
-
-    let mut result = String_new()
-    let mut k = 0
-    while k < end {
-        if k > 0 {
-            result = concat(result, String_from("\n"))
-        }
-        result = concat(result, clone(get_unchecked(out_lines, k)))
-        k = k + 1
-    }
-    result = concat(result, String_from("\n"))
-    result
 }

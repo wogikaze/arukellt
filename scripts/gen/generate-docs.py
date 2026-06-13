@@ -1579,6 +1579,7 @@ def render_language_readme(
         "| Types | [type-system.md](type-system.md) | You need type rules, generics, or inference details |",
         "| Errors | [error-handling.md](error-handling.md) | You're working with Result, Option, or `?` |",
         "| Memory | [memory-model.md](memory-model.md) | You need ownership, GC, or value-semantics rules |",
+        "| Formatter | [formatter.md](formatter.md) | You need canonical layout rules for fmt / LSP formatting |",
         "| Stability | [maturity-matrix.md](maturity-matrix.md) | You want to know if a feature is stable, provisional, or experimental |",
         "",
         "### 🔮 Language Evolution",

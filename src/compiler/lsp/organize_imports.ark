@@ -1,18 +1,26 @@
-// Arukellt LSP - organize imports code action (#341).
+// Arukellt LSP - organize imports code action (#341, #346).
 
+use fmt
 use lsp::json_escape
-use lsp::organize_imports_detect
 use lsp::positions
 
 fn quote_string(s: String) -> String {
     concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
 }
 
-fn build_organize_edit(uri: String, text: String, entries: Vec<ImportEntry>) -> String {
-    let sorted = organize_imports_detect::sorted_import_lines(entries, clone(text))
-    let span = organize_imports_detect::import_block_span(entries)
-    let first_start = organize_imports_detect::import_block_start(span)
-    let last_end = organize_imports_detect::import_block_end(span)
+fn import_block_start(span: i32) -> i32 {
+    if span < 0 { return 0 }
+    span / 1000000
+}
+
+fn import_block_end(span: i32) -> i32 {
+    if span < 0 { return 0 }
+    span % 1000000
+}
+
+fn build_organize_edit(uri: String, text: String, sorted_block: String, span: i32) -> String {
+    let first_start = import_block_start(span)
+    let last_end = import_block_end(span)
     let start_pos = positions::offset_to_position(clone(text), first_start)
     let end_pos = positions::offset_to_position(text, last_end)
     let mut out = String_from("{\"title\":\"Organize Imports\",\"kind\":\"source.organizeImports\",\"edit\":{\"changes\":{")
@@ -26,20 +34,31 @@ fn build_organize_edit(uri: String, text: String, entries: Vec<ImportEntry>) -> 
     out = concat(out, String_from(",\"character\":"))
     out = concat(out, to_string(positions::lsp_position_character(end_pos)))
     out = concat(out, String_from("}},\"newText\":"))
-    out = concat(out, quote_string(sorted))
+    out = concat(out, quote_string(sorted_block))
     out = concat(out, String_from("}]}}}"))
     out
 }
 
 pub fn build_organize_imports_action(uri: String, text: String) -> String {
-    let entries = organize_imports_detect::collect_import_entries(clone(text))
-    if len(entries) == 0 {
-        return String_new()
+    let sorted_opt = fmt::sorted_import_block(clone(text))
+    match sorted_opt {
+        Option::None => {
+            return String_new()
+        },
+        Option::Some(sorted_block) => {
+            let span = fmt::import_block_span(clone(text))
+            if span < 0 {
+                return String_new()
+            }
+            let first_start = import_block_start(span)
+            let last_end = import_block_end(span)
+            let current_block = substring(clone(text), first_start, last_end)
+            if eq(clone(current_block), clone(sorted_block)) {
+                return String_new()
+            }
+            build_organize_edit(uri, text, sorted_block, span)
+        },
     }
-    if !organize_imports_detect::imports_need_change(clone(text), entries) {
-        return String_new()
-    }
-    build_organize_edit(uri, text, entries)
 }
 
 pub fn request_wants_organize_imports(body: String) -> bool {

@@ -1,0 +1,88 @@
+// Arukellt Selfhost - formatter structural indentation.
+
+fn fmt_indent_trimmed(line: String) -> String {
+    let n = len(clone(line))
+    let mut start = 0
+    while start < n {
+        let c = char_at(clone(line), start)
+        if c != 32 && c != 9 {
+            break
+        }
+        start = start + 1
+    }
+    substring(line, start, n)
+}
+
+fn fmt_indent_closes_else_opens(trimmed: String) -> bool {
+    if len(trimmed) < 6 {
+        return false
+    }
+    if char_at(clone(trimmed), 0) != 125 {
+        return false
+    }
+    return index_of(clone(trimmed), String_from("else")) >= 0 && fmt_indent_count_char(trimmed, 123) > 0
+}
+
+fn fmt_indent_starts_close(trimmed: String) -> bool {
+    if len(trimmed) == 0 {
+        return false
+    }
+    let c = char_at(trimmed, 0)
+    c == 125 || c == 93 || c == 41
+}
+
+fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
+    let line_count = len(lines)
+    let mut out = Vec_new_String()
+    let mut indent = 0
+    let mut i = 0
+    while i < line_count {
+        let raw = get_unchecked(lines, i)
+        let trimmed = fmt_indent_trimmed(raw)
+        if len(trimmed) == 0 {
+            push(out, String_new())
+            i = i + 1
+            continue
+        }
+        let closes_else = fmt_indent_closes_else_opens(clone(trimmed))
+        let mut line_indent = indent
+        if fmt_indent_starts_close(clone(trimmed)) {
+            line_indent = indent - 1
+            if line_indent < 0 {
+                line_indent = 0
+            }
+        }
+        let mut prefix = String_new()
+        let mut d = 0
+        while d < line_indent {
+            prefix = concat(prefix, String_from("    "))
+            d = d + 1
+        }
+        push(out, concat(prefix, trimmed))
+        if closes_else {
+            indent = line_indent + 1
+        } else {
+            let opens = fmt_indent_count_char(trimmed, 123) + fmt_indent_count_char(trimmed, 91) + fmt_indent_count_char(trimmed, 40)
+            let closes = fmt_indent_count_char(trimmed, 125) + fmt_indent_count_char(trimmed, 93) + fmt_indent_count_char(trimmed, 41)
+            indent = indent + opens - closes
+            if indent < 0 {
+                indent = 0
+            }
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn fmt_indent_count_char(text: String, ch: i32) -> i32 {
+    let n = len(text)
+    let mut count = 0
+    let mut i = 0
+    while i < n {
+        if char_at(clone(text), i) == ch {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
+}

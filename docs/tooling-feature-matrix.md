@@ -6,7 +6,7 @@ This document defines which tooling features are available in the CLI, LSP, and 
 
 | Feature | CLI | LSP | VS Code Extension | Source of Truth |
 |---------|-----|-----|-------------------|-----------------|
-| **Format** (`fmt`) | `arukellt fmt` | `textDocument/formatting` | Format Document | `selfhost formatter` (shared) |
+| **Format** (`fmt`) | `arukellt fmt` / `--check` | `textDocument/formatting`, `rangeFormatting` | Format Document / Selection (`editor.defaultFormatter`) | `src/compiler/fmt` (`format_source`) |
 | **Check** (`check`) | `arukellt check` | diagnostics on open/change | Problems panel | `selfhost typechecker` + `selfhost resolver` (shared) |
 | **Lint** | `arukellt lint` | diagnostics (W-codes) | Problems panel | `selfhost diagnostics` (shared) |
 | **Go to Definition** | — | `textDocument/definition` | Ctrl+Click / F12 | LSP `goto_definition()` with symbol index |
@@ -21,7 +21,7 @@ This document defines which tooling features are available in the CLI, LSP, and 
 | **Document Highlight** | — | `textDocument/documentHighlight` | Word highlight | LSP `document_highlight()` scope-aware |
 | **Code Actions** | — | `textDocument/codeAction` | Lightbulb | LSP `code_action()` |
 | **Auto-import** | — | code action (quickfix) | Lightbulb | LSP + manifest `import_candidates()` |
-| **Organize Imports** | — | `source.organizeImports` | Organize Imports | LSP (sort + remove unused) |
+| **Organize Imports** | — | `source.organizeImports` | Organize Imports | `fmt::sort_imports` only (#346) |
 | **Fix All** | — | `source.fixAll` | Source Action | LSP (formatter + lint fixes) |
 | **Diagnostics** | exit code + stderr | `textDocument/publishDiagnostics` | Problems panel | `selfhost diagnostics` (shared) |
 
@@ -29,7 +29,9 @@ This document defines which tooling features are available in the CLI, LSP, and 
 
 ### Shared Code Paths (CLI = LSP)
 
-- **Formatter**: Both CLI `arukellt fmt` and LSP `textDocument/formatting` call `selfhost formatter`. Output is guaranteed identical.
+- **Formatter**: CLI `arukellt fmt`, LSP formatting/range formatting, and the
+  playground formatter delegate to `fmt::format_source()`. See
+  [language/formatter.md](language/formatter.md).
 - **Diagnostics**: Both CLI `arukellt check` and LSP produce diagnostics via `selfhost typechecker` and `selfhost resolver` using the same error codes.
 - **Lint**: Both CLI `arukellt lint` and LSP lint diagnostics use the same warning codes (W0001–W0006+).
 
@@ -51,8 +53,9 @@ This document defines which tooling features are available in the CLI, LSP, and 
 
 | Feature | Test ID | Type |
 |---------|---------|------|
-| Format (shared) | `formatter_and_fix_all_produce_consistent_output` | LSP unit |
-| Format idempotency | `format_idempotent` | Parser unit |
+| Format goldens | `python3 scripts/manager.py selfhost fmt-parity` | selfhost gate |
+| Format LSP smoke | `tests/fixtures/selfhost/lsp_formatting.lsp-script` | LSP lifecycle |
+| Format idempotency | `fmt-parity` (second `fmt` pass) | selfhost gate |
 | Diagnostics | `lint_diagnostics_have_arukellt_lint_source` | LSP unit |
 | Go to Definition | `definition_resolves_local_symbol` | LSP E2E |
 | Completion | `completion_returns_results` | LSP E2E |

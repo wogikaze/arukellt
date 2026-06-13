@@ -56,6 +56,24 @@ export interface CheckResult {
   error: string | null;
 }
 
+/** Result of a format request. */
+export interface FormatResult {
+  /** Whether formatting succeeded (exit code 0 and no host trap). */
+  ok: boolean;
+  /** Compiler process exit code. */
+  exitCode: number;
+  /** Captured compiler stdout. */
+  compilerStdout: string;
+  /** Captured compiler stderr. */
+  compilerStderr: string;
+  /** Formatted source when formatting succeeded. */
+  formatted: string | null;
+  /** Elapsed format time in milliseconds. */
+  elapsedMs: number;
+  /** Error message when the host failed before/during formatting. */
+  error: string | null;
+}
+
 /** Options for running compiled T2 Wasm. */
 export interface RunOptions {
   /** Stdin bytes supplied to `arukellt_io.read`. */

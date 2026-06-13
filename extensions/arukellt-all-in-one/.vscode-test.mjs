@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const bootstrapWasm = path.join(__dirname, "..", "..", "bootstrap", "arukellt-selfhost.wasm");
 const downloadedCode = path.join(
   __dirname,
   ".vscode-test",
@@ -19,6 +20,9 @@ export default defineConfig([
     files: "src/test/extension.test.js",
     workspaceFolder: "./src/test/fixtures",
     launchArgs: ["--no-sandbox"],
+    env: fs.existsSync(bootstrapWasm)
+      ? { ARUKELLT_SELFHOST_WASM: bootstrapWasm }
+      : {},
     ...localDownloadedInstall,
     mocha: {
       timeout: 30000,

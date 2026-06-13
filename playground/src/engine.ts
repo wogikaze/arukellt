@@ -24,6 +24,7 @@ import type { CheckResult, CompileOptions } from "./compiler-types.js";
 import {
   checkWithCompilerWasm,
   checkWithCompilerWasmSync,
+  formatWithCompilerWasmSync,
 } from "./compiler-host.js";
 
 const VERSION = "selfhost-playground-ts-v1";
@@ -456,23 +457,19 @@ export function formatSource(source: string): FormatResponse {
     return { ok: false, error: "source contains syntax errors" };
   }
 
-  const lines = source.replace(/\s+$/u, "").split(/\r?\n/u);
-  let indent = 0;
-  const formatted = lines
-    .map((line) => {
-      const trimmed = line.trim();
-      if (trimmed.startsWith("}") || trimmed.startsWith("]") || trimmed.startsWith(")")) {
-        indent = Math.max(0, indent - 1);
-      }
-      const out = trimmed.length === 0 ? "" : `${"    ".repeat(indent)}${trimmed}`;
-      const opens = (trimmed.match(/[{\[(]/g) ?? []).length;
-      const closes = (trimmed.match(/[}\])]/g) ?? []).length;
-      indent = Math.max(0, indent + opens - closes);
-      return out;
-    })
-    .join("\n");
+  if (!configuredCompilerBytes) {
+    return { ok: false, error: "selfhost compiler wasm has not been initialised" };
+  }
 
-  return { ok: true, formatted: formatted + "\n" };
+  const result = formatWithCompilerWasmSync(configuredCompilerBytes, source);
+  if (!result.ok || result.formatted === null) {
+    return {
+      ok: false,
+      error: result.error ?? (result.compilerStderr.trim() || "formatting failed"),
+    };
+  }
+
+  return { ok: true, formatted: result.formatted };
 }
 
 export function typecheckSource(source: string): TypecheckResponse {

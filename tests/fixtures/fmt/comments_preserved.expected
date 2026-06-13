@@ -1,0 +1,6 @@
+// header comment
+
+fn main() {
+    // body comment
+    println("hi")
+}

@@ -449,7 +449,7 @@
         "properties": {
           "task": {
             "type": "string",
-            "description": "The Arukellt task to execute (check, compile, run, test, fmt, watch)"
+            "description": "The Arukellt task to execute (check, build, compile, run, test, fmt, watch)"
           },
           "command": {
             "type": "string",
@@ -462,6 +462,11 @@
         }
       }
     ]
+  },
+  "configurationDefaults": {
+    "[arukellt]": {
+      "editor.defaultFormatter": "arukellt.arukellt-all-in-one"
+    }
   },
   "scripts": {
     "lint": "node -e \"const ext=require('./src/extension.js'); const result=ext.verifyBootstrap(); if(!result.command){process.exit(1)}\"",

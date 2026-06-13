@@ -1,0 +1,15 @@
+// Arukellt LSP - formatting request handling (#216).
+
+use lsp::formatting
+use lsp::framing
+use lsp::json_fields
+
+pub fn handle_formatting(state: LspState, body: String) {
+    let id = json_fields::extract_int_field(clone(body), String_from("id"))
+    framing::append_framed(state, formatting::build_formatting_response_for_request(state, clone(body), id))
+}
+
+pub fn handle_range_formatting(state: LspState, body: String) {
+    let id = json_fields::extract_int_field(clone(body), String_from("id"))
+    framing::append_framed(state, formatting::build_range_formatting_response_for_request(state, clone(body), id))
+}
