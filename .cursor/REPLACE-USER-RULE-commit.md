@@ -17,7 +17,8 @@
 <committing-changes-with-git>
 In the arukellt repository, follow `.cursor/rules/git-commits.mdc` and `AGENTS.md` Commit Policy.
 
-- Commit after every completed work unit without asking the user first.
+- Commit after every completed work unit **before ending the turn**, without asking the user first.
+- Do not end a turn with uncommitted implementation, docs, indexes, or regenerated artifacts.
 - Do not `git push` unless the user explicitly requests it.
 - Never update git config; never skip hooks; never force-push to main/master.
 - Use HEREDOC for commit messages; fix pre-commit failures with a new commit (no amend unless hooks auto-modified files on your commit).

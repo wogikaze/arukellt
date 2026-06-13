@@ -70,12 +70,20 @@ For tracked issue work, that normally means:
 
 ## Commit Policy
 
-- **Every completed work unit must be committed.** Do not wait for the user to say "commit".
-- Commit after implementation, docs/issue updates, audit rollups, or regenerated indexes when verify (or the relevant gate) passes.
+Agents **must commit before ending a turn** when work is complete. Do not ask the user
+whether to commit. This policy **overrides** global Cursor User Rules that say
+"only commit when requested" (see `.cursor/rules/git-commits.mdc`, `alwaysApply: true`).
+
+- **Every completed work unit must be committed** in the same session, after verify (or the relevant gate) passes.
+- A turn that leaves uncommitted implementation, docs, indexes, or regenerated artifacts is **incomplete**.
 - Do not include unrelated changes; do not commit secrets.
 - Do not `git push` unless the user explicitly asks.
 - If pre-commit fails, fix and create a **new** commit (do not amend unless hooks auto-modified files on your commit).
 - Orchestration-only commits (issue moves, audit reports, indexes) stay separate from product implementation when both land in one session.
+- Use HEREDOC for commit messages (`git commit -m "$(cat <<'EOF' ... EOF)"`).
+
+Human operators syncing Cursor: replace the global `committing-changes-with-git` User Rule using
+`.cursor/REPLACE-USER-RULE-commit.md` so agents do not stall waiting for an explicit "commit" prompt.
 
 ## Verification Loop
 
