@@ -7,7 +7,7 @@ Source-backed docs for TCP socket operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::host::sockets` module provides TCP socket operations via WASI Preview 2 (`wasi:sockets` interfaces). This module is T3-only: it requires `wasm32-wasi-p2` (component model) and is not available on T1 (wasm32-wasi-p1). A compile-time error (E0500) is emitted by the resolver when this module is used on T1.
+The `std::host::sockets` module defines TCP socket helpers (provisional). It is **not user-reachable** on the current selfhost compile path — host bindings are tracked by [#447](../../../issues/done/447-std-host-sockets-implementation.md) and native WASI P2 sockets by [#139](../../../issues/open/139-std-wasi-sockets-p2.md). Importing this module on T1 (wasm32-wasi-p1) emits E0500.
 
 **Recommended API highlights:**
 
@@ -15,7 +15,7 @@ The `std::host::sockets` module provides TCP socket operations via WASI Preview 
 |-----|---------|
 | `connect(host, port)` | Open a TCP connection; returns `Ok(fd)` or `Err(message)`. |
 
-**Target constraints:** ⚠ **T3 only** — `wasm32-wasi-p2` (component model) required.
+**Target constraints:** ⚠ **Not user-reachable** on the current selfhost compile/run path. See [capability-surface.md](../../capability-surface.md) and issues #446 / #447 / #077 / #139.
 
 **Typical usage:**
 
@@ -37,23 +37,13 @@ match sock {
 - Manifest-backed functions: 1
 - Stability: provisional 1
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ⚠️ **T3 only** · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-wasi-p2` · ⚠️ **Not user-reachable** · ⚠️ **Status:** not user-reachable on selfhost path
 
-Host TCP socket helpers via the `arukellt_host` Wasmtime linker.
+Host TCP socket helpers (provisional). **Not user-reachable** on the
+current selfhost compile path — see
+`docs/capability-surface.md` and issues #447 / #139.
 
-This module is **provisional and minimal**: it currently exposes only
-`connect`, with no in-tree read / write / close surface. Full socket fd
-lifecycle management is deferred (see issue chain under #074 / #139 and
-`docs/stdlib/604-contract-honesty-gap-ledger.md`).
-
-Honesty caveats:
-
-- These APIs are host-bound and only available on `wasm32-wasi-p2` (T3)
-targets. On T1 (`wasm32-wasi-p1`) a compile-time error (E0500) is emitted
-by the resolver.
-- `connect` returns a fixed file descriptor value of `3` on success in the
-current minimum implementation; this is **not** a real fd table entry and
-should not be passed to other fd-shaped APIs.
+Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.
 
 ### Public API
 
@@ -65,7 +55,7 @@ should not be passed to other fd-shaped APIs.
 
 Open a TCP connection to the given hostname and port. Returns a socket descriptor on success.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — TCP connect requires WASI Preview 2 component model (wasi:sockets).
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — ⚠️ Not available on wasm32-wasi-p2 — Not user-reachable on selfhost path (#633). Host bindings: #447 / #139. Importing on T1 emits E0500.
 
 **Errors:** Err on DNS resolution failure, connection refused, or network unreachable.
 

@@ -666,10 +666,14 @@ let name = wit_type_name(t)   // "u32"
         "modules": ["std::host::http"],
         "overview": {
             "summary": (
-                "The `std::host::http` module provides an HTTP/1.1 client backed by host "
-                "functions registered via the Wasmtime linker (`arukellt_host`). Both T1 "
-                "(wasm32-wasi-p1) and T3 (wasm32-wasi-p2) targets are supported. Only plain "
-                "`http://` URLs are supported — HTTPS is not available."
+                "The `std::host::http` module defines HTTP/1.1 client helpers "
+                "(provisional). It is **not user-reachable** on the current "
+                "selfhost compile path — host bindings are tracked by "
+                "[#446](../../../issues/done/446-std-host-http-implementation.md) and "
+                "native WASI P2 HTTP by "
+                "[#077](../../../issues/open/077-wasi-p2-http.md). "
+                "When implemented, only plain `http://` URLs are supported — "
+                "**HTTPS is not available**."
             ),
             "highlights": [
                 ("`request(method, url, body)`", "Send an HTTP request with an explicit method, URL, and body."),
@@ -694,11 +698,13 @@ match body {
         "modules": ["std::host::sockets"],
         "overview": {
             "summary": (
-                "The `std::host::sockets` module provides TCP socket operations via WASI "
-                "Preview 2 (`wasi:sockets` interfaces). This module is T3-only: it requires "
-                "`wasm32-wasi-p2` (component model) and is not available on T1 "
-                "(wasm32-wasi-p1). A compile-time error (E0500) is emitted by the resolver "
-                "when this module is used on T1."
+                "The `std::host::sockets` module defines TCP socket helpers "
+                "(provisional). It is **not user-reachable** on the current "
+                "selfhost compile path — host bindings are tracked by "
+                "[#447](../../../issues/done/447-std-host-sockets-implementation.md) and "
+                "native WASI P2 sockets by "
+                "[#139](../../../issues/open/139-std-wasi-sockets-p2.md). "
+                "Importing this module on T1 (wasm32-wasi-p1) emits E0500."
             ),
             "highlights": [
                 ("`connect(host, port)`", "Open a TCP connection; returns `Ok(fd)` or `Err(message)`."),
@@ -716,6 +722,31 @@ match sock {
         },
     },
 ]
+
+HOST_MODULE_SOURCE_DOC_OVERRIDES: dict[str, list[str]] = {
+    "std::host::http": [
+        "Host HTTP client helpers (provisional). **Not user-reachable** on the",
+        "current selfhost compile path — see",
+        "`docs/capability-surface.md` and issues #446 / #077.",
+        "",
+        "When implemented, only plaintext HTTP/1.1 over TCP is in scope;",
+        "**HTTPS is not supported**.",
+    ],
+    "std::host::sockets": [
+        "Host TCP socket helpers (provisional). **Not user-reachable** on the",
+        "current selfhost compile path — see",
+        "`docs/capability-surface.md` and issues #447 / #139.",
+        "",
+        "Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.",
+    ],
+    "std::host::udp": [
+        "Host UDP datagram helpers (provisional). **Not user-reachable** on the",
+        "current selfhost compile path — see",
+        "`docs/capability-surface.md` and issues #447 / #139.",
+        "",
+        "Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.",
+    ],
+}
 
 STDLIB_ALIAS_PAGES = [
     {
@@ -1103,12 +1134,17 @@ def format_host_module_badges(
 
     # Detect T3-only status from function availability data (manifest-driven).
     t3_only = _availability_t3_only(functions)
-    t3_badge = " · ⚠️ **T3 only**" if t3_only else ""
+    unbacked = _availability_unbacked(functions)
+    t3_badge = " · ⚠️ **T3 only**" if t3_only and not unbacked else ""
+    if unbacked:
+        t3_badge = " · ⚠️ **Not user-reachable**"
 
     # Determine implementation status from function ``kind`` fields.
     stub_count = sum(1 for fn in functions if fn.get("kind") == "host_stub")
     total = len(functions) if functions else 0
-    if total > 0 and stub_count == total:
+    if unbacked:
+        status = "⚠️ **Status:** not user-reachable on selfhost path"
+    elif total > 0 and stub_count == total:
         status = "⚠️ **Status:** stub — not yet implemented"
     elif stub_count > 0:
         status = f"⚠️ **Status:** mixed — {stub_count}/{total} stub"
@@ -2060,9 +2096,12 @@ def render_stdlib_module_page(
         if badge_lines:
             lines.extend(badge_lines)
 
+        doc_lines = HOST_MODULE_SOURCE_DOC_OVERRIDES.get(
+            module_name, source_module.docs
+        )
         lines.extend(
             render_source_doc_block(
-                source_module.docs,
+                doc_lines,
                 "_No module doc comment yet. Add `//!` comments in the source file to describe this module._",
             )
         )
@@ -2171,6 +2210,8 @@ def render_stdlib_module_page(
                     avail_parts: list[str] = []
                     if fn_avail.get("t1") is False:
                         avail_parts.append("⚠️ Not available on wasm32-wasi-p1")
+                    if fn_avail.get("t3") is False:
+                        avail_parts.append("⚠️ Not available on wasm32-wasi-p2")
                     if fn_avail.get("note"):
                         avail_parts.append(fn_avail["note"])
                     if avail_parts:
@@ -2383,6 +2424,15 @@ def _availability_t3_only(funcs: list[dict]) -> bool:
     return all(not a.get("t1", True) for a in avail_entries)
 
 
+def _availability_unbacked(funcs: list[dict]) -> bool:
+    avail_entries = [f["availability"] for f in funcs if f.get("availability")]
+    if not avail_entries:
+        return False
+    return all(
+        not a.get("t1", True) and not a.get("t3", True) for a in avail_entries
+    )
+
+
 def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
     """Derive a human-readable target-constraint string from manifest data.
 
@@ -2409,6 +2459,12 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
     )
 
     # Primary signal: availability.t1 / availability.t3 tier flags from manifest.
+    if _availability_unbacked(funcs):
+        return (
+            "⚠ **Not user-reachable** on the current selfhost compile/run path. "
+            "See [capability-surface.md](../../capability-surface.md) and issues "
+            "#446 / #447 / #077 / #139."
+        )
     if _availability_t3_only(funcs):
         base = "⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."
         return base + fs_runtime if fs_on_page else base

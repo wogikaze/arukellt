@@ -132,19 +132,19 @@ Read-probe semantics — NOT a general path-existence query. Attempts a full UTF
 
 Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset.
 
-**Availability:** T1/WASI P1 only.
+**Availability:** ⚠️ Not available on wasm32-wasi-p2 — T1/WASI P1 only.
 
 #### `fd_tell`
 
 Return the current file offset for an open file descriptor.
 
-**Availability:** T1/WASI P1 only.
+**Availability:** ⚠️ Not available on wasm32-wasi-p2 — T1/WASI P1 only.
 
 #### `fd_fdstat_errno`
 
 Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 
-**Availability:** T1/WASI P1 only.
+**Availability:** ⚠️ Not available on wasm32-wasi-p2 — T1/WASI P1 only.
 
 ## `std::fs`
 

@@ -7,7 +7,7 @@ Source-backed docs for HTTP client operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::host::http` module provides an HTTP/1.1 client backed by host functions registered via the Wasmtime linker (`arukellt_host`). Both T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) targets are supported. Only plain `http://` URLs are supported — HTTPS is not available.
+The `std::host::http` module defines HTTP/1.1 client helpers (provisional). It is **not user-reachable** on the current selfhost compile path — host bindings are tracked by [#446](../../../issues/done/446-std-host-http-implementation.md) and native WASI P2 HTTP by [#077](../../../issues/open/077-wasi-p2-http.md). When implemented, only plain `http://` URLs are supported — **HTTPS is not available**.
 
 **Recommended API highlights:**
 
@@ -16,7 +16,7 @@ The `std::host::http` module provides an HTTP/1.1 client backed by host function
 | `request(method, url, body)` | Send an HTTP request with an explicit method, URL, and body. |
 | `get(url)` | Send an HTTP GET request and return the response body as a string. |
 
-**Target constraints:** All targets (T1 + T3). No host capability required.
+**Target constraints:** ⚠ **Not user-reachable** on the current selfhost compile/run path. See [capability-surface.md](../../capability-surface.md) and issues #446 / #447 / #077 / #139.
 
 **Typical usage:**
 
@@ -38,24 +38,14 @@ match body {
 - Manifest-backed functions: 2
 - Stability: provisional 2
 
-> 🎯 **Target:** `wasm32-wasi-p1, wasm32-wasi-p2` · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-wasi-p1, wasm32-wasi-p2` · ⚠️ **Not user-reachable** · ⚠️ **Status:** not user-reachable on selfhost path
 
-Host HTTP client helpers backed by the `arukellt_host` runtime.
+Host HTTP client helpers (provisional). **Not user-reachable** on the
+current selfhost compile path — see
+`docs/capability-surface.md` and issues #446 / #077.
 
-These APIs are **partial**: they expose a TCP-based HTTP/1.1 surface via
-host-provided functions. They are not a full HTTP client and are subject
-to the constraints documented in
-`docs/stdlib/604-contract-honesty-gap-ledger.md`:
-
-- **HTTPS is not supported** by the current capability surface; only
-plaintext HTTP/1.1 over TCP is reachable from this module.
-- Only the verbs explicitly exposed (`request`, `get`) are available; there
-is no header customization, streaming body, or response-status surface
-beyond the returned body string today.
-- Network access requires the host to be invoked with the appropriate
-networking capability flags; without them every call returns `Err`.
-
-For the broader host capability picture see `docs/capability-surface.md`.
+When implemented, only plaintext HTTP/1.1 over TCP is in scope;
+**HTTPS is not supported**.
 
 ### Public API
 
@@ -66,9 +56,9 @@ For the broader host capability picture see `docs/capability-surface.md`.
 
 #### `request`
 
-Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Available on T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) via Wasmtime linker.
+Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path.
 
-**Availability:** T1+T3 via Wasmtime linker (arukellt_host::http_request). HTTPS not supported.
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — ⚠️ Not available on wasm32-wasi-p2 — Not user-reachable on selfhost path (#633). Host bindings: #446 / #077. HTTPS not supported.
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
@@ -80,9 +70,9 @@ let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\
 
 #### `get`
 
-Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Available on T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) via Wasmtime linker.
+Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path.
 
-**Availability:** T1+T3 via Wasmtime linker (arukellt_host::http_get). HTTPS not supported.
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — ⚠️ Not available on wasm32-wasi-p2 — Not user-reachable on selfhost path (#633). Host bindings: #446 / #077. HTTPS not supported.
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 

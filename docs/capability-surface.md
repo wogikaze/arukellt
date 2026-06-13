@@ -16,9 +16,9 @@
 | [`std::host::env`](#stdhostenv) | 5 | Available | all (partial T1) |
 | [`std::host::fs`](#stdhostfs) | 3 | Available | all |
 | [`std::host::process`](#stdhostprocess) | 2 | Available | all |
-| [`std::host::http`](#stdhosthttp) | 2 | Available | all |
-| [`std::host::sockets`](#stdhostsockets) | 1 | Available (T3 only) | wasm32-wasi-p2 |
-| [`std::host::udp`](#stdhostudp) | 1 | Provisional (T3 only) | wasm32-wasi-p2 |
+| [`std::host::http`](#stdhosthttp) | 2 | Not user-reachable | — |
+| [`std::host::sockets`](#stdhostsockets) | 1 | Not user-reachable | — |
+| [`std::host::udp`](#stdhostudp) | 1 | Not user-reachable | — |
 
 ---
 
@@ -118,23 +118,17 @@ gating (see Issue 448 for future `--deny-process` support).
 
 ### `std::host::http`
 
-HTTP client via TCP-based HTTP/1.1 host functions (Wasmtime linker, T1 and T3).
-HTTP**S** is not supported; only plain `http://` URLs work.
-Both T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) support this module via the
-same `register_http_host_fns` linker registration (issue 446).
+HTTP helpers are **not user-reachable** on the selfhost path (`call_host_io.ark`
+covers env/fs/process/stdio only). Tracked by
+[#446](../issues/done/446-std-host-http-implementation.md) and
+[#077](../issues/open/077-wasi-p2-http.md). **HTTPS not supported.**
 
-| Function | Signature | Status | Targets | Host import |
+| Function | Signature | Status | Targets | Backing |
 |---|---|---|---|---|
-| `request` | `(String, String, String) -> Result<String, String>` | available | all | `arukellt_host::http_request` |
-| `get` | `(String) -> Result<String, String>` | available | all | `arukellt_host::http_get` |
+| `request` | `(String, String, String) -> Result<String, String>` | not user-reachable | — | #446 / #077 |
+| `get` | `(String) -> Result<String, String>` | not user-reachable | — | #446 / #077 |
 
-Both functions are wired in the Wasmtime linker via `register_http_host_fns`.
-They use the host TCP HTTP/1.1 implementation; no external HTTP client library
-is required.
-
-#### Error mapping
-
-The following error strings are returned as the `Err` variant:
+#### Error mapping (when implemented)
 
 | Situation | `Err(String)` value |
 |---|---|
@@ -151,34 +145,24 @@ Module stability is **provisional** (HTTPS not supported). There is no `--deny-h
 
 ### `std::host::sockets`
 
-TCP/UDP sockets via WASI Preview 2 `wasi:sockets` interfaces.
+**Not user-reachable** on the selfhost path.
+[#447](../issues/done/447-std-host-sockets-implementation.md) /
+[#139](../issues/open/139-std-wasi-sockets-p2.md).
 
-| Function | Signature | Status | Targets | WASI import |
+| Function | Signature | Status | Targets | Backing |
 |---|---|---|---|---|
-| `connect` | `(String, i32) -> Result<i32, String>` | available | wasm32-wasi-p2 | `arukellt_host::sockets_connect` |
-
-Registers a TCP connection to the given hostname and port.  Returns
-`Ok(fd)` (fd = 3, placeholder — full fd management is a future extension)
-on success, or `Err("connect: <host>:<port>: <reason>")` on failure.
-Module stability is **provisional**.  On T1 (wasm32-wasi-p1) a compile-time
-diagnostic E0500 (incompatible target) is emitted by the resolver.
+| `connect` | `(String, i32) -> Result<i32, String>` | not user-reachable | — | #447 / #139 |
 
 ---
 
 ### `std::host::udp`
 
-UDP datagram helpers via WASI Preview 2 `wasi:sockets/udp` interface.
+**Not user-reachable** on the selfhost path.
+[#139](../issues/open/139-std-wasi-sockets-p2.md).
 
-| Function | Signature | Status | Targets | WASI import |
+| Function | Signature | Status | Targets | Backing |
 |---|---|---|---|---|
-| `send` | `(String, i32, String) -> Result<i32, String>` | provisional | wasm32-wasi-p2 | `arukellt_host::udp_send` |
-
-Sends a UDP datagram to the given hostname and port.  Returns `Ok(bytes_sent)`
-on success or `Err("udp: <host>:<port>: <reason>")` on failure.  Module
-stability is **provisional**; full UDP receive support is a future extension.
-On T1 (wasm32-wasi-p1) a compile-time diagnostic E0500 (incompatible target)
-is emitted by the resolver because WASI Preview 1 does not expose the
-`wasi:sockets/udp` interface.
+| `send` | `(String, i32, String) -> Result<i32, String>` | not user-reachable | — | #139 |
 
 ---
 
@@ -213,14 +197,13 @@ is emitted by the resolver because WASI Preview 1 does not expose the
 
 ## Host Stub Enforcement
 
-Programs that reference unimplemented host stubs are rejected at compile
-time by a MIR scan. There are currently **no** builtins in the stub list —
-`sockets_connect` was promoted to a real T3 host function in issue 447.
-
-(The infrastructure is kept for future host-stub additions.)
-
-`std::host::http` and `std::host::sockets` are both fully wired in the
-Wasmtime linker and do not require a host-stub guard.
+No builtins in the stub list. `std::host::http`, `std::host::sockets`, and
+`std::host::udp` are **not user-reachable** on the selfhost path — see
+[#633](../issues/done/633-host-capability-surface-honesty-vs-selfhost-runtime.md),
+[#446](../issues/done/446-std-host-http-implementation.md),
+[#447](../issues/done/447-std-host-sockets-implementation.md),
+[#077](../issues/open/077-wasi-p2-http.md),
+[#139](../issues/open/139-std-wasi-sockets-p2.md).
 
 ---
 
@@ -261,9 +244,9 @@ blocked intrinsic, the program is still rejected.
 | `fs::write_bytes` | ✓ | ✓ |
 | `process::exit` | ✓ | ✓ |
 | `process::abort` | ✓ | ✓ |
-| `http::request` | ✓ | ✓ |
-| `http::get` | ✓ | ✓ |
-| `sockets::connect` | E0500 | ✓ |
+| `http::request` | — | — |
+| `http::get` | — | — |
+| `sockets::connect` | E0500 | — |
 
 ---
 
@@ -272,11 +255,8 @@ blocked intrinsic, the program is still rejected.
 1. **`env::var` unavailable on T1.** WASI Preview 1 on the T1 backend does
    not import `environ_get`, so `std::host::env::var` is T3-only.
 
-2. **HTTP is available on both T1 and T3.** `std::host::http` is wired via
-   `register_http_host_fns` in the Wasmtime linker for both T1 (wasm32-wasi-p1)
-   and T3 (wasm32-wasi-p2). `std::host::sockets` is available on T3 only;
-   importing it on T1 emits E0500.
-   `std::host::http` uses HTTP/1.1 only; HTTPS is not supported.
+2. **HTTP/sockets/UDP not user-reachable (#633).** See #446/#447/#077/#139.
+   HTTPS not supported for HTTP.
 
 3. **No `--deny-stdio` flag.** Standard I/O is unconditionally available.
 

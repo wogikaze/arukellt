@@ -2640,7 +2640,7 @@ name = "std::host::http"
 target = ["wasm32-wasi-p1", "wasm32-wasi-p2"]
 stability = "provisional"
 family = "expansion"
-doc = "HTTP client via TCP-based HTTP/1.1 host functions (Wasmtime linker, T1 and T3). Available on both wasm32-wasi-p1 and wasm32-wasi-p2 via register_http_host_fns (issue 446). HTTPS is not supported."
+doc = "HTTP client helpers (provisional). Not user-reachable on the current selfhost compile path (call_host_io.ark dispatches env/fs/process/stdio only). Host bindings tracked by #446; native WASI P2 HTTP by #077. When implemented: HTTP/1.1 over TCP only; HTTPS is not supported."
 
 [[functions]]
 name = "request"
@@ -2652,9 +2652,9 @@ returns = "Result<String, String>"
 target = ["wasm32-wasi-p1", "wasm32-wasi-p2"]
 stability = "provisional"
 doc_category = "host_http"
-doc = "Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Available on T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) via Wasmtime linker."
+doc = "Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = true, t3 = true, note = "T1+T3 via Wasmtime linker (arukellt_host::http_request). HTTPS not supported." }
+availability = { t1 = false, t3 = false, note = "Not user-reachable on selfhost path (#633). Host bindings: #446 / #077. HTTPS not supported." }
 examples = [{code = "let resp = http::request(\"POST\", \"http://api.example.com/data\", \"{\\\"key\\\":\\\"val\\\"}\")", description = "POST JSON to an API endpoint"}]
 
 [[functions]]
@@ -2667,9 +2667,9 @@ returns = "Result<String, String>"
 target = ["wasm32-wasi-p1", "wasm32-wasi-p2"]
 stability = "provisional"
 doc_category = "host_http"
-doc = "Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Available on T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) via Wasmtime linker."
+doc = "Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = true, t3 = true, note = "T1+T3 via Wasmtime linker (arukellt_host::http_get). HTTPS not supported." }
+availability = { t1 = false, t3 = false, note = "Not user-reachable on selfhost path (#633). Host bindings: #446 / #077. HTTPS not supported." }
 examples = [{code = "let body = http::get(\"http://example.com\")\nmatch body {\n  Ok(s) => println(s)\n  Err(e) => eprintln(e)\n}", description = "Fetch a URL and print its body"}]
 
 # === std::host::sockets ===
@@ -2679,7 +2679,7 @@ name = "std::host::sockets"
 target = ["wasm32-wasi-p2"]
 stability = "provisional"
 family = "expansion"
-doc = "TCP/UDP sockets via WASI Preview 2 wasi:sockets interfaces"
+doc = "TCP socket helpers (provisional). Not user-reachable on the current selfhost compile path. Host bindings tracked by #447; native WASI P2 sockets by #139."
 
 [[functions]]
 name = "connect"
@@ -2693,7 +2693,7 @@ stability = "provisional"
 doc_category = "host_sockets"
 doc = "Open a TCP connection to the given hostname and port. Returns a socket descriptor on success."
 errors = "Err on DNS resolution failure, connection refused, or network unreachable."
-availability = { t1 = false, t3 = true, note = "TCP connect requires WASI Preview 2 component model (wasi:sockets)." }
+availability = { t1 = false, t3 = false, note = "Not user-reachable on selfhost path (#633). Host bindings: #447 / #139. Importing on T1 emits E0500." }
 examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }", description = "Connect to a local server on port 8080"}]
 
 [[modules]]
@@ -2701,7 +2701,7 @@ name = "std::host::udp"
 target = ["wasm32-wasi-p2"]
 stability = "provisional"
 family = "expansion"
-doc = "UDP datagram helpers via WASI Preview 2 wasi:sockets/udp interface (T3 only)"
+doc = "UDP datagram helpers (provisional). Not user-reachable on the current selfhost compile path. Host bindings tracked by #447; native WASI P2 UDP by #139."
 
 [[functions]]
 name = "send"
@@ -2715,7 +2715,7 @@ stability = "provisional"
 doc_category = "host_udp"
 doc = "Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success."
 errors = "Err on DNS resolution failure, invalid port, or network unreachable."
-availability = { t1 = false, t3 = true, note = "UDP datagrams require WASI Preview 2 wasi:sockets/udp interface." }
+availability = { t1 = false, t3 = false, note = "Not user-reachable on selfhost path (#633). Host bindings: #447 / #139. Importing on T1 emits E0500." }
 
 # === std::bytes ===
 
