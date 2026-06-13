@@ -60,11 +60,11 @@ Choose the path that fits your goal.
 
 ### 🎮 Playground
 
-<!-- issue-466 ✅ entrypoint live; issue-467 ✅ docs route wired; deploy/type-checking tracked by issues/open/468, 472 -->
-> **[▶ Try the Playground](../playground/index.html)** — parse Arukellt code in your browser (with diagnostics display).
+<!-- issue-466 ✅ entrypoint live; issue-467 ✅ docs route wired; issue-635 ✅ format + tokenize highlight in browser UI -->
+> **[▶ Try the Playground](../playground/index.html)** — parse, format, and edit Arukellt code in your browser (with diagnostics and syntax highlighting).
 
-The playground editor shell supports parse + diagnostics via the browser-native TypeScript engine.
-Format and tokenize are available from the same browser engine API but not yet wired in the browser UI.
+The playground editor shell supports parse + diagnostics, a **Format** toolbar action, and
+tokenize-driven syntax highlighting via the browser-native TypeScript engine.
 See the [Playground docs](../playground/README.md) for architecture details, design policies, and remaining work.
 
 ## Classification (ADR-018)

@@ -239,6 +239,9 @@
     </div>
     <div id="share-status" class="playground-share-status" aria-live="polite"></div>
     <div class="playground-build-row">
+      <button id="format-button" class="playground-action-button" type="button" disabled>
+        Format
+      </button>
       <button id="build-button" class="playground-action-button" type="button" disabled>
         Build
       </button>
@@ -287,6 +290,7 @@
     const shareUrlInput = document.getElementById('share-url');
     const copyShareLinkButton = document.getElementById('copy-share-link');
     const shareStatus = document.getElementById('share-status');
+    const formatButton = document.getElementById('format-button');
     const buildButton = document.getElementById('build-button');
     const runButton = document.getElementById('run-button');
     const buildRunStatus = document.getElementById('build-run-status');
@@ -464,6 +468,7 @@
     // local docs browsing, fall back to the stub so the shell still renders.
     let parseFn = stubParse;
     let tokenizeFn = undefined;
+    let formatFn = undefined;
 
     try {
       const { createPlayground } = await import('./dist/index.js');
@@ -474,7 +479,11 @@
       );
       parseFn = (source) => pg.parse(source);
       tokenizeFn = (source) => pg.tokenize(source);
+      formatFn = (source) => pg.format(source);
       currentVersion = pg.version();
+      if (formatButton) {
+        formatButton.disabled = false;
+      }
     } catch {
       // Built assets not yet available; editor runs with stub parse.
       if (errorBanner) {
@@ -512,6 +521,30 @@
       copyShareUrl().catch(() => {
         setShareStatus('Unable to copy the share link.', true);
       });
+    });
+
+    formatButton.addEventListener('click', () => {
+      if (!formatFn || !app) {
+        setShareStatus('Format unavailable — run `npm run build:app`.', true);
+        return;
+      }
+
+      const source = app.editor.getValue();
+      const result = formatFn(source);
+      if (!result.ok || !result.formatted) {
+        const message = result.error || 'Format failed.';
+        setShareStatus(message, true);
+        return;
+      }
+
+      app.editor.setValue(result.formatted);
+      app.parse();
+      if (currentExampleId) {
+        currentExampleId = "";
+        exampleSelect.value = "";
+      }
+      scheduleShareUrlUpdate();
+      setShareStatus('Formatted.');
     });
 
     app.editor.onChange(() => {
