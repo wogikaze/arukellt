@@ -9,6 +9,7 @@ fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     let out = p2_comp_new_component_writer()
     p2_comp_emit_p2_stubs_and_core_modules(out, core_wasm)
     p2_comp_emit_p2_core_instance_section(out)
+    component_p2_run_sections::p2_run_emit_command_world_sections(out)
     writer_core::writer_bytes(out)
 }
 

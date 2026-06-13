@@ -171,15 +171,16 @@ def gate_074() -> tuple[int, str]:
     entry = "component-compile:wasi_p2_native/hello.ark"
     if not _manifest_contains(entry):
         return 1, f"manifest missing {entry}"
-    with tempfile.TemporaryDirectory(prefix="close-gate-074-") as tmp:
-        out = Path(tmp) / "hello.component.wasm"
-        rc, msg = _compile_p2_component("tests/fixtures/wasi_p2_native/hello.ark", out)
-        if rc != 0:
-            return rc, msg
-        rc, msg = _wasm_tools_validate(out)
-        if rc != 0:
-            return rc, msg
-        return _wasmtime_run(out, "hello p2")
+    out_dir = REPO_ROOT / ".build" / "close-gate-074"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / "hello.component.wasm"
+    rc, msg = _compile_p2_component("tests/fixtures/wasi_p2_native/hello.ark", out)
+    if rc != 0:
+        return rc, msg
+    rc, msg = _wasm_tools_validate(out)
+    if rc != 0:
+        return rc, msg
+    return _wasmtime_run(out, "hello p2")
 
 
 def gate_510() -> tuple[int, str]:

@@ -10,6 +10,10 @@ pub fn emit_wasm(mir: MirModule, target: String, wasi_version: String, opt_level
     wasm::emit_wasm_module(mir, target, wasi_version, opt_level, bindings)
 }
 
+pub fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
+    component_p2_emit::emit_p2_command_component(core_wasm)
+}
+
 pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {
     wat::emit_wat_module(mir, target, opt_level)
 }

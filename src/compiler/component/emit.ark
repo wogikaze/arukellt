@@ -1,12 +1,10 @@
 // Arukellt Selfhost - component emission entrypoint.
 
-use component::command_entry
 use component::component_base
 use component::export_plan
 use component::export_sections
 use component::export_types
 use component::emit_specialized
-use component::p2_command_run
 use component::writer_core
 
 fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String) -> Vec<i32> {
@@ -20,14 +18,10 @@ fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_vers
     }
 
     if eq(clone(wasi_version), String_from("p2")) {
-        component_base::comp_emit_p2_and_core_instance_sections(out, core_wasm)
-        if command_entry::comp_mir_has_command_entry(mir) {
-            p2_command_run::comp_emit_p2_command_run_world(out)
-            return writer_core::comp_writer_bytes(out)
-        }
-    } else {
-        component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
+        return wasm::emit_p2_command_component(core_wasm)
     }
+
+    component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
     export_sections::emit_generic_alias_section(out, plan)
     let export_type_indices = export_types::emit_generic_export_types(out, plan, mir)
     export_sections::emit_generic_canon_section(out, plan, export_type_indices)

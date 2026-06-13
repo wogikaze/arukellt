@@ -79,7 +79,7 @@ fn p2_run_emit_instance_section(out: WasmWriter) {
 fn p2_run_emit_export_section(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
     writer_leb::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, String_from("wasi:cli/run@0.2.0"))
+    writer_string::emit_string(sec, String_from("wasi:cli/run@0.2.6"))
     writer_core::emit_byte(sec, 0x05)
     writer_leb::emit_leb128_u(sec, 0)
     writer_core::emit_byte(sec, 0x00)
