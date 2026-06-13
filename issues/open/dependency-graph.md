@@ -50,7 +50,6 @@ graph LR
   I626["626 626-ide-ready-frontend"]
   I628["628 628-lsp-minimum-viable"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
-  I635["635 635 — Playground: wire format and tokenize in browser UI"]
   I637["637 637 — Host capability honesty: fs metadata and read_dir surface"]
   I639["639 639 — HTTP package registry resolution"]
   I641["641 641 — T4 selfhost-native backend scaffold"]
@@ -146,7 +145,6 @@ graph LR
 - **626** depends on: 625; blocks: none
 - **628** depends on: 627; blocks: none
 - **63** depends on: 074, 137; blocks: none
-- **635** depends on: none; blocks: none
 - **637** depends on: 051, 076; blocks: none
 - **639** depends on: 487; blocks: none
 - **641** depends on: none; blocks: none
