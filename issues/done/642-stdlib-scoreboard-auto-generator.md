@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-12
 Updated: 2026-06-12
 ID: 642
@@ -30,10 +30,10 @@ Changing stdlib API surface, manifest schema redesign
 
 ## Acceptance
 
-- [ ] Generator script under scripts/gen/ produces scoreboard data from manifest + fixture coverage
-- [ ] docs/stdlib/scoreboard.md generated or semi-generated with documented regen command
-- [ ] docs/directory-ownership.md updated (hand-maintained → generated)
-- [ ] docs/stdlib/README.md #613 reference corrected (#613 is done in issues/done/)
+- [x] Generator script under scripts/gen/ produces scoreboard data from manifest + fixture coverage
+- [x] docs/stdlib/scoreboard.md generated or semi-generated with documented regen command
+- [x] docs/directory-ownership.md updated (hand-maintained → generated)
+- [x] docs/stdlib/README.md #613 reference corrected (#613 is done in issues/done/)
 
 ## Required verification
 

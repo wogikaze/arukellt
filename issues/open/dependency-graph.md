@@ -53,11 +53,8 @@ graph LR
   I635["635 635 — Playground: wire format and tokenize in browser UI"]
   I637["637 637 — Host capability honesty: fs metadata and read_dir surface"]
   I639["639 639 — HTTP package registry resolution"]
-  I640["640 640 — opt-equiv CI gate (O0 == O1 semantics)"]
   I641["641 641 — T4 selfhost-native backend scaffold"]
-  I642["642 642 — Stdlib scoreboard auto-generator"]
   I643["643 643 — Grain Wasm GC benchmark comparison hook"]
-  I644["644 644 — Docs anchor fragment link-check (ADR-019 v2)"]
   I645["645 645 — T2 playground execution and DOM I/O surface"]
   I083["083 083-mir-loop-unrolling"]
   I118["118 118-wasm-multi-export-world"]
@@ -152,11 +149,8 @@ graph LR
 - **635** depends on: none; blocks: none
 - **637** depends on: 051, 076; blocks: none
 - **639** depends on: 487; blocks: none
-- **640** depends on: none; blocks: none
 - **641** depends on: none; blocks: none
-- **642** depends on: none; blocks: none
 - **643** depends on: 112; blocks: none
-- **644** depends on: none; blocks: none
 - **645** depends on: 632; blocks: none
 - **083** depends on: 080; blocks: none
 - **118** depends on: 117, 074; blocks: none

@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-12
 Updated: 2026-06-12
 ID: 640
@@ -30,9 +30,9 @@ O2/O3 equivalence, performance regression gates
 
 ## Acceptance
 
-- [ ] python scripts/manager.py verify includes opt-equivalence check (or dedicated verify subcommand invoked by verify quick)
-- [ ] Gate fails when O1 changes program output vs O0 on covered fixtures
-- [ ] docs/release-checklist.md DEFERRED comment replaced with active CI checkbox
+- [x] python scripts/manager.py verify includes opt-equivalence check (or dedicated verify subcommand invoked by verify quick)
+- [x] Gate fails when O1 changes program output vs O0 on covered fixtures
+- [x] docs/release-checklist.md DEFERRED comment replaced with active CI checkbox
 
 ## Required verification
 

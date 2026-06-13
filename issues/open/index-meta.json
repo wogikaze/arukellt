@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T07:59:45Z",
+  "generated_at": "2026-06-13T08:33:37Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -1143,28 +1143,6 @@
       }
     },
     {
-      "id": "640",
-      "path": "640-opt-equiv-o0-o1-ci-gate.md",
-      "title": "640 — opt-equiv CI gate (O0 == O1 semantics)",
-      "track": "wasm-quality",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "641",
       "path": "641-t4-selfhost-native-backend-scaffold.md",
       "title": "641 — T4 selfhost-native backend scaffold",
@@ -1187,28 +1165,6 @@
       }
     },
     {
-      "id": "642",
-      "path": "642-stdlib-scoreboard-auto-generator.md",
-      "title": "642 — Stdlib scoreboard auto-generator",
-      "track": "docs/ops",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "643",
       "path": "643-grain-wasm-gc-benchmark-hook.md",
       "title": "643 — Grain Wasm GC benchmark comparison hook",
@@ -1222,28 +1178,6 @@
       "depends_on": [
         "112"
       ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "644",
-      "path": "644-docs-anchor-fragment-link-check.md",
-      "title": "644 — Docs anchor fragment link-check (ADR-019 v2)",
-      "track": "docs/ops",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,

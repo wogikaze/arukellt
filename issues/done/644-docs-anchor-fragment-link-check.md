@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-12
 Updated: 2026-06-12
 ID: 644
@@ -30,9 +30,9 @@ External URL checking, stub file policy changes
 
 ## Acceptance
 
-- [ ] CI or verify check validates internal markdown anchor fragments resolve
-- [ ] ADR-019 §3.2 updated from deferred to implemented with harness reference
-- [ ] False positive rate acceptable (allowlist for generated docs if needed)
+- [x] CI or verify check validates internal markdown anchor fragments resolve
+- [x] ADR-019 §3.2 updated from deferred to implemented with harness reference
+- [x] False positive rate acceptable (allowlist for generated docs if needed)
 
 ## Required verification
 
