@@ -1,0 +1,172 @@
+// Arukellt Selfhost - MIR loop unrolling for constant-trip counted loops (O2+).
+
+use mir::block_inst_access
+use mir::block_inst_mutation
+use mir::function_block_mutation
+use mir::function_block_queries
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_const_i32
+use mir::inst_record
+use mir::opcodes
+use mir::types
+use mir_opt::const_fold
+use mir_opt::loop_regions
+use mir_opt::summary_record
+
+struct LoopUnrollResult {
+    instructions: Vec<MirInst>,
+    unrolled: i32,
+}
+
+fn LoopUnrollResult_new(instructions: Vec<MirInst>, unrolled: i32) -> LoopUnrollResult {
+    LoopUnrollResult { instructions: instructions, unrolled: unrolled }
+}
+
+fn loop_unroll_max_trips() -> i32 { 16 }
+fn loop_unroll_size_limit() -> i32 { 8 }
+
+fn loop_unroll_detect_counted_loop(insts: Vec<MirInst>, region: loop_regions::LoopRegion) -> i32 {
+    let start = loop_regions::LoopRegion_loop_start(region)
+    let end = loop_regions::LoopRegion_loop_end(region)
+    if start + 4 >= end { return 0 - 1 }
+    let mut i = start + 1
+    while i + 3 < end && i < start + 12 {
+        let inst = get_unchecked(insts, i)
+        if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GTEQ() {
+            let counter = inst_accessors_operands::MirInst_arg0(inst)
+            let bound_local = inst_accessors_operands::MirInst_arg1(inst)
+            let bound_val = const_fold::mir_opt_local_const_value(insts, start, bound_local)
+            if bound_val <= 0 { return 0 - 1 }
+            let init_val = const_fold::mir_opt_local_const_value(insts, start, counter)
+            if init_val != 0 { return 0 - 1 }
+            let trips = bound_val - init_val
+            if trips <= 0 || trips > loop_unroll_max_trips() { return 0 - 1 }
+            return trips
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn loop_unroll_find_header_end(insts: Vec<MirInst>, start: i32, end: i32) -> i32 {
+    let mut i = start + 1
+    while i < end {
+        if inst_accessors_shape::MirInst_op(get_unchecked(insts, i)) == opcodes::MIR_BR_IF() {
+            return i + 1
+        }
+        i = i + 1
+    }
+    start + 1
+}
+
+fn loop_unroll_find_body_end(insts: Vec<MirInst>, body_start: i32, end: i32) -> i32 {
+    let mut i = end - 1
+    while i > body_start {
+        let op = inst_accessors_shape::MirInst_op(get_unchecked(insts, i))
+        if op == opcodes::MIR_BR() || op == opcodes::MIR_END() {
+            i = i - 1
+            continue
+        }
+        return i + 1
+    }
+    body_start
+}
+
+fn loop_unroll_replace_counter_gets(body: Vec<MirInst>, counter: i32, trip: i32) -> Vec<MirInst> {
+    let out = Vec_new_MirInst()
+    let mut bi = 0
+    while bi < len(body) {
+        let inst = get_unchecked(body, bi)
+        if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() {
+            if inst_accessors_operands::MirInst_arg0(inst) == counter {
+                push(out, inst_const_i32::MirInst_const_i32(trip, inst_accessors_operands::MirInst_dest(inst)))
+                bi = bi + 1
+                continue
+            }
+        }
+        push(out, inst)
+        bi = bi + 1
+    }
+    out
+}
+
+fn loop_unroll_expand_body(insts: Vec<MirInst>, body_start: i32, body_end: i32, counter: i32, trips: i32) -> Vec<MirInst> {
+    let body = Vec_new_MirInst()
+    let mut i = body_start
+    while i < body_end {
+        push(body, get_unchecked(insts, i))
+        i = i + 1
+    }
+    let out = Vec_new_MirInst()
+    let mut t = 0
+    while t < trips {
+        let expanded = loop_unroll_replace_counter_gets(body, counter, t)
+        let mut ei = 0
+        while ei < len(expanded) {
+            push(out, get_unchecked(expanded, ei))
+            ei = ei + 1
+        }
+        t = t + 1
+    }
+    out
+}
+
+fn loop_unroll_try_region(insts: Vec<MirInst>, region: loop_regions::LoopRegion) -> LoopUnrollResult {
+    let trips = loop_unroll_detect_counted_loop(insts, region)
+    if trips <= 0 { return LoopUnrollResult_new(insts, 0) }
+    let start = loop_regions::LoopRegion_loop_start(region)
+    let end = loop_regions::LoopRegion_loop_end(region)
+    let header_end = loop_unroll_find_header_end(insts, start, end)
+    let body_end = loop_unroll_find_body_end(insts, header_end, end)
+    let body_size = body_end - header_end
+    if body_size <= 0 || body_size * trips > body_size * loop_unroll_size_limit() {
+        return LoopUnrollResult_new(insts, 0)
+    }
+    let gteq_inst = get_unchecked(insts, header_end - 2)
+    let counter = inst_accessors_operands::MirInst_arg0(gteq_inst)
+    let expanded = loop_unroll_expand_body(insts, header_end, body_end, counter, trips)
+    let out = Vec_new_MirInst()
+    let mut i = 0
+    while i < start { push(out, get_unchecked(insts, i)); i = i + 1 }
+    let mut ei = 0
+    while ei < len(expanded) { push(out, get_unchecked(expanded, ei)); ei = ei + 1 }
+    i = end + 1
+    while i < len(insts) { push(out, get_unchecked(insts, i)); i = i + 1 }
+    LoopUnrollResult_new(const_fold::mir_opt_const_fold_insts(out), 1)
+}
+
+fn loop_unroll_optimize_block_insts(insts: Vec<MirInst>) -> LoopUnrollResult {
+    let regions = loop_regions::mir_opt_pick_innermost(loop_regions::mir_opt_collect_loop_regions(insts))
+    let mut current = insts
+    let mut total = 0
+    let mut ri = 0
+    while ri < len(regions) {
+        let result = loop_unroll_try_region(current, get_unchecked(regions, ri))
+        current = result.instructions
+        total = total + result.unrolled
+        ri = ri + 1
+    }
+    LoopUnrollResult_new(current, total)
+}
+
+fn loop_unroll_optimize_function(f: MirFunction) -> OptimizationSummary {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let updated_blocks = Vec_new_MirBlock()
+    let mut total = 0
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let result = loop_unroll_optimize_block_insts(block_inst_access::MirBlock_instructions(block))
+        block_inst_mutation::MirBlock_set_instructions(block, result.instructions)
+        total = total + result.unrolled
+        push(updated_blocks, block)
+        bi = bi + 1
+    }
+    function_block_mutation::MirFunction_set_blocks(f, updated_blocks)
+    summary_record::OptimizationSummary_add_loop_unroll(summary_record::OptimizationSummary_new(), total)
+}
+
+pub fn run_loop_unroll(f: MirFunction) -> OptimizationSummary {
+    loop_unroll_optimize_function(f)
+}

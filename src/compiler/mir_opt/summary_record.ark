@@ -3,10 +3,11 @@
 pub struct OptimizationSummary {
     licm_hoisted: i32,
     gc_hinted: i32,
+    loop_unrolled: i32,
 }
 
 fn OptimizationSummary_new() -> OptimizationSummary {
-    OptimizationSummary { licm_hoisted: 0, gc_hinted: 0 }
+    OptimizationSummary { licm_hoisted: 0, gc_hinted: 0, loop_unrolled: 0 }
 }
 
 fn OptimizationSummary_licm_hoisted(s: OptimizationSummary) -> i32 {
@@ -18,13 +19,21 @@ fn OptimizationSummary_gc_hinted(s: OptimizationSummary) -> i32 {
 }
 
 fn OptimizationSummary_add_licm(s: OptimizationSummary, n: i32) -> OptimizationSummary {
-    OptimizationSummary { licm_hoisted: s.licm_hoisted + n, gc_hinted: s.gc_hinted }
+    OptimizationSummary { licm_hoisted: s.licm_hoisted + n, gc_hinted: s.gc_hinted, loop_unrolled: s.loop_unrolled }
 }
 
 fn OptimizationSummary_add_gc_hint(s: OptimizationSummary, n: i32) -> OptimizationSummary {
-    OptimizationSummary { licm_hoisted: s.licm_hoisted, gc_hinted: s.gc_hinted + n }
+    OptimizationSummary { licm_hoisted: s.licm_hoisted, gc_hinted: s.gc_hinted + n, loop_unrolled: s.loop_unrolled }
+}
+
+fn OptimizationSummary_add_loop_unroll(s: OptimizationSummary, n: i32) -> OptimizationSummary {
+    OptimizationSummary { licm_hoisted: s.licm_hoisted, gc_hinted: s.gc_hinted, loop_unrolled: s.loop_unrolled + n }
 }
 
 fn OptimizationSummary_merge(a: OptimizationSummary, b: OptimizationSummary) -> OptimizationSummary {
-    OptimizationSummary { licm_hoisted: a.licm_hoisted + b.licm_hoisted, gc_hinted: a.gc_hinted + b.gc_hinted }
+    OptimizationSummary {
+        licm_hoisted: a.licm_hoisted + b.licm_hoisted,
+        gc_hinted: a.gc_hinted + b.gc_hinted,
+        loop_unrolled: a.loop_unrolled + b.loop_unrolled,
+    }
 }

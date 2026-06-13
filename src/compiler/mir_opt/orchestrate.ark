@@ -4,6 +4,7 @@ use mir::module_functions
 use mir::types
 use mir_opt::gc_hint
 use mir_opt::licm
+use mir_opt::loop_unroll
 
 fn mir_opt_optimize_module(m: MirModule, opt_level: i32) -> MirModule {
     if opt_level < 2 {
@@ -14,6 +15,7 @@ fn mir_opt_optimize_module(m: MirModule, opt_level: i32) -> MirModule {
     let mut fi = 0
     while fi < fn_count {
         let f = module_functions::MirModule_function_at(m, fi)
+        loop_unroll::run_loop_unroll(f)
         licm::run_licm(f)
         gc_hint::run_gc_hint(f)
         push(updated, f)
