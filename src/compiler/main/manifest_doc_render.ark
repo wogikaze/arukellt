@@ -1,0 +1,156 @@
+// Arukellt Selfhost - manifest doc text/json rendering (#456).
+
+use std::host::stdio
+use lsp::json_escape
+use main::manifest_doc_lookup
+use main::manifest_doc_record
+
+fn doc_target_is_p1(target: String) -> bool {
+    contains(clone(target), String_from("wasm32-wasi-p1"))
+}
+
+fn doc_target_is_p2(target: String) -> bool {
+    contains(clone(target), String_from("wasm32-wasi-p2"))
+}
+
+fn doc_target_warning(e: manifest_doc_record::DocFnEntry, filter_target: String) -> String {
+    if len(filter_target) == 0 {
+        return String_new()
+    }
+    if doc_target_is_p1(clone(filter_target)) && manifest_doc_record::DocFnEntry_avail_t1(e) == 0 {
+        return concat(String_from("Not available on "), clone(filter_target))
+    }
+    if doc_target_is_p2(clone(filter_target)) && manifest_doc_record::DocFnEntry_avail_t3(e) == 0 {
+        return concat(String_from("Not available on "), clone(filter_target))
+    }
+    String_new()
+}
+
+fn doc_format_signature(e: manifest_doc_record::DocFnEntry) -> String {
+    let mut sig = concat(String_from("fn "), manifest_doc_record::DocFnEntry_name(e))
+    sig = concat(sig, String_from("("))
+    let params = manifest_doc_record::DocFnEntry_params(e)
+    if len(params) > 0 {
+        sig = concat(sig, params)
+    }
+    sig = concat(sig, String_from(") -> "))
+    let ret = manifest_doc_record::DocFnEntry_returns(e)
+    if len(ret) > 0 {
+        sig = concat(sig, ret)
+    } else {
+        sig = concat(sig, String_from("()"))
+    }
+    sig
+}
+
+pub fn doc_print_function(e: manifest_doc_record::DocFnEntry, filter_target: String) {
+    let warn = doc_target_warning(e, clone(filter_target))
+    if len(warn) > 0 {
+        stdio::println(concat(String_from("warning: "), warn))
+    }
+    stdio::println(doc_format_signature(e))
+    stdio::println(concat(String_from("  Module: "), manifest_doc_record::DocFnEntry_module(e)))
+    let stab = manifest_doc_record::DocFnEntry_stability(e)
+    if len(stab) > 0 {
+        stdio::println(concat(String_from("  Stability: "), stab))
+    }
+    let tgt = manifest_doc_record::DocFnEntry_target(e)
+    if len(tgt) > 0 {
+        stdio::println(concat(String_from("  Supported on: "), tgt))
+    } else {
+        if manifest_doc_record::DocFnEntry_avail_t1(e) == 1 && manifest_doc_record::DocFnEntry_avail_t3(e) == 1 {
+            stdio::println(String_from("  Supported on: wasm32-wasi-p1, wasm32-wasi-p2"))
+        } else {
+            if manifest_doc_record::DocFnEntry_avail_t3(e) == 1 {
+                stdio::println(String_from("  Supported on: wasm32-wasi-p2"))
+            }
+        }
+    }
+    let doc = manifest_doc_record::DocFnEntry_doc(e)
+    if len(doc) > 0 {
+        stdio::println(String_from(""))
+        stdio::println(concat(String_from("  "), doc))
+    }
+    let err = manifest_doc_record::DocFnEntry_errors(e)
+    if len(err) > 0 {
+        stdio::println(String_from(""))
+        stdio::println(concat(String_from("  Errors: "), err))
+    }
+}
+
+fn doc_json_string_field(out: String, key: String, value: String, comma: bool) -> String {
+    let mut r = out
+    if comma { r = concat(r, String_from(",")) }
+    r = concat(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":\"")), concat(json_escape::json_escape(value), String_from("\""))))
+    r
+}
+
+fn doc_json_bool_field(out: String, key: String, value: bool, comma: bool) -> String {
+    let mut r = out
+    if comma { r = concat(r, String_from(",")) }
+    if value {
+        r = concat(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":")), String_from("true")))
+    } else {
+        r = concat(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":")), String_from("false")))
+    }
+    r
+}
+
+pub fn doc_emit_function_json(e: manifest_doc_record::DocFnEntry, filter_target: String) {
+    let mut out = String_from("{")
+    out = doc_json_string_field(out, String_from("kind"), String_from("function"), false)
+    out = doc_json_string_field(out, String_from("name"), manifest_doc_record::DocFnEntry_name(e), true)
+    out = doc_json_string_field(out, String_from("module"), manifest_doc_record::DocFnEntry_module(e), true)
+    out = doc_json_string_field(out, String_from("params"), manifest_doc_record::DocFnEntry_params(e), true)
+    out = doc_json_string_field(out, String_from("returns"), manifest_doc_record::DocFnEntry_returns(e), true)
+    out = doc_json_string_field(out, String_from("stability"), manifest_doc_record::DocFnEntry_stability(e), true)
+    out = doc_json_bool_field(out, String_from("avail_t1"), manifest_doc_record::DocFnEntry_avail_t1(e) == 1, true)
+    out = doc_json_bool_field(out, String_from("avail_t3"), manifest_doc_record::DocFnEntry_avail_t3(e) == 1, true)
+    let doc = manifest_doc_record::DocFnEntry_doc(e)
+    if len(doc) > 0 {
+        out = doc_json_string_field(out, String_from("doc"), doc, true)
+    }
+    let warn = doc_target_warning(e, clone(filter_target))
+    if len(warn) > 0 {
+        out = doc_json_string_field(out, String_from("target_warning"), warn, true)
+    }
+    out = concat(out, String_from("}"))
+    stdio::println(out)
+}
+
+pub fn doc_print_module(table: manifest_doc_record::DocManifestTable, module: String, filter_target: String) {
+    let mid = manifest_doc_lookup::doc_find_module(table, clone(module))
+    stdio::println(concat(String_from("module "), clone(module)))
+    if mid >= 0 {
+        let m = manifest_doc_record::DocManifestTable_module_at(table, mid)
+        let stab = manifest_doc_record::DocModuleEntry_stability(m)
+        if len(stab) > 0 {
+            stdio::println(concat(String_from("  Stability: "), stab))
+        }
+        let tgt = manifest_doc_record::DocModuleEntry_target(m)
+        if len(tgt) > 0 {
+            stdio::println(concat(String_from("  Supported on: "), tgt))
+        }
+        let doc = manifest_doc_record::DocModuleEntry_doc(m)
+        if len(doc) > 0 {
+            stdio::println(String_from(""))
+            stdio::println(concat(String_from("  "), doc))
+        }
+    }
+    stdio::println(String_from(""))
+    stdio::println(String_from("  Functions:"))
+    let n = manifest_doc_record::DocManifestTable_function_count(table)
+    let mut i = 0
+    while i < n {
+        let e = manifest_doc_record::DocManifestTable_function_at(table, i)
+        if eq(manifest_doc_record::DocFnEntry_module(e), clone(module)) {
+            let warn = doc_target_warning(e, clone(filter_target))
+            let mut line = concat(String_from("    "), doc_format_signature(e))
+            if len(warn) > 0 {
+                line = concat(line, concat(String_from("  ["), concat(warn, String_from("]"))))
+            }
+            stdio::println(line)
+        }
+        i = i + 1
+    }
+}

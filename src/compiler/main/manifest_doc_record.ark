@@ -1,0 +1,93 @@
+// Arukellt Selfhost - manifest-backed doc lookup records (#456).
+
+struct DocFnEntry {
+    name: String,
+    module: String,
+    params: String,
+    returns: String,
+    stability: String,
+    doc: String,
+    errors: String,
+    target: String,
+    avail_t1: i32,
+    avail_t3: i32,
+    avail_note: String,
+}
+
+fn DocFnEntry_new(name: String, module: String, params: String, returns: String, stability: String, doc: String, errors: String, target: String, avail_t1: i32, avail_t3: i32, avail_note: String) -> DocFnEntry {
+    DocFnEntry { name: name, module: module, params: params, returns: returns, stability: stability, doc: doc, errors: errors, target: target, avail_t1: avail_t1, avail_t3: avail_t3, avail_note: avail_note }
+}
+
+fn DocFnEntry_name(e: DocFnEntry) -> String { clone(e.name) }
+fn DocFnEntry_module(e: DocFnEntry) -> String { clone(e.module) }
+fn DocFnEntry_params(e: DocFnEntry) -> String { clone(e.params) }
+fn DocFnEntry_returns(e: DocFnEntry) -> String { clone(e.returns) }
+fn DocFnEntry_stability(e: DocFnEntry) -> String { clone(e.stability) }
+fn DocFnEntry_doc(e: DocFnEntry) -> String { clone(e.doc) }
+fn DocFnEntry_errors(e: DocFnEntry) -> String { clone(e.errors) }
+fn DocFnEntry_target(e: DocFnEntry) -> String { clone(e.target) }
+fn DocFnEntry_avail_t1(e: DocFnEntry) -> i32 { e.avail_t1 }
+fn DocFnEntry_avail_t3(e: DocFnEntry) -> i32 { e.avail_t3 }
+fn DocFnEntry_avail_note(e: DocFnEntry) -> String { clone(e.avail_note) }
+
+struct DocModuleEntry {
+    name: String,
+    stability: String,
+    target: String,
+    doc: String,
+}
+
+fn DocModuleEntry_new(name: String, stability: String, target: String, doc: String) -> DocModuleEntry {
+    DocModuleEntry { name: name, stability: stability, target: target, doc: doc }
+}
+
+fn DocModuleEntry_name(e: DocModuleEntry) -> String { clone(e.name) }
+fn DocModuleEntry_stability(e: DocModuleEntry) -> String { clone(e.stability) }
+fn DocModuleEntry_target(e: DocModuleEntry) -> String { clone(e.target) }
+fn DocModuleEntry_doc(e: DocModuleEntry) -> String { clone(e.doc) }
+
+struct DocManifestTable {
+    functions: Vec<DocFnEntry>,
+    modules: Vec<DocModuleEntry>,
+}
+
+fn DocManifestTable_new(functions: Vec<DocFnEntry>, modules: Vec<DocModuleEntry>) -> DocManifestTable {
+    DocManifestTable { functions: functions, modules: modules }
+}
+
+fn DocManifestTable_functions(t: DocManifestTable) -> Vec<DocFnEntry> { clone(t.functions) }
+fn DocManifestTable_modules(t: DocManifestTable) -> Vec<DocModuleEntry> { clone(t.modules) }
+fn DocManifestTable_function_count(t: DocManifestTable) -> i32 { len(t.functions) }
+fn DocManifestTable_module_count(t: DocManifestTable) -> i32 { len(t.modules) }
+fn DocManifestTable_function_at(t: DocManifestTable, idx: i32) -> DocFnEntry { get_unchecked(t.functions, idx) }
+fn DocManifestTable_module_at(t: DocManifestTable, idx: i32) -> DocModuleEntry { get_unchecked(t.modules, idx) }
+
+struct DocModuleNameParts {
+    module: String,
+    name: String,
+}
+
+fn DocModuleNameParts_new(module: String, name: String) -> DocModuleNameParts {
+    DocModuleNameParts { module: module, name: name }
+}
+
+fn DocModuleNameParts_module(p: DocModuleNameParts) -> String { clone(p.module) }
+fn DocModuleNameParts_name(p: DocModuleNameParts) -> String { clone(p.name) }
+
+fn doc_split_module_and_name(symbol: String) -> DocModuleNameParts {
+    let n = len(symbol)
+    let mut split = 0 - 1
+    let mut i = n - 1
+    while i >= 1 {
+        if char_at(symbol, i - 1) == 58 && char_at(symbol, i) == 58 {
+            split = i + 1
+            i = 0 - 1
+        } else {
+            i = i - 1
+        }
+    }
+    if split < 0 {
+        return DocModuleNameParts_new(String_new(), clone(symbol))
+    }
+    DocModuleNameParts_new(substring(symbol, 0, split - 2), substring(symbol, split, n))
+}

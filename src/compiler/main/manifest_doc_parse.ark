@@ -1,0 +1,185 @@
+// Arukellt Selfhost - parse std/manifest.toml for doc lookup (#456).
+
+use lsp::symbol_index_paths
+use main::manifest_doc_record
+
+struct DocParseFnState {
+    name: String,
+    module: String,
+    params: String,
+    returns: String,
+    stability: String,
+    doc: String,
+    errors: String,
+    target: String,
+    avail_t1: i32,
+    avail_t3: i32,
+    avail_note: String,
+    kind: String,
+}
+
+fn DocParseFnState_new() -> DocParseFnState {
+    DocParseFnState { name: String_new(), module: String_new(), params: String_new(), returns: String_new(), stability: String_new(), doc: String_new(), errors: String_new(), target: String_new(), avail_t1: 1, avail_t3: 1, avail_note: String_new(), kind: String_new() }
+}
+
+struct DocParseModState {
+    name: String,
+    stability: String,
+    target: String,
+    doc: String,
+}
+
+fn DocParseModState_new() -> DocParseModState {
+    DocParseModState { name: String_new(), stability: String_new(), target: String_new(), doc: String_new() }
+}
+
+fn doc_trim_brackets(raw: String) -> String {
+    let n = len(raw)
+    let mut start = 0
+    while start < n && char_at(raw, start) == 32 { start = start + 1 }
+    let mut end = n
+    while end > start && char_at(raw, end - 1) == 32 { end = end - 1 }
+    let s = substring(raw, start, end)
+    let sn = len(s)
+    if sn >= 2 && char_at(s, 0) == 91 {
+        let inner = substring(s, 1, sn - 1)
+        let in_n = len(inner)
+        if in_n >= 2 && char_at(inner, 0) == 34 {
+            return substring(inner, 1, in_n - 1)
+        }
+        return inner
+    }
+    s
+}
+
+fn doc_parse_availability_line(line: String, state: DocParseFnState) -> DocParseFnState {
+    if contains(clone(line), String_from("t1 = false")) {
+        state.avail_t1 = 0
+    }
+    if contains(clone(line), String_from("t3 = false")) {
+        state.avail_t3 = 0
+    }
+    let note_key = symbol_index_paths::find_toml_value(clone(line), String_from("note"))
+    if len(note_key) > 0 {
+        state.avail_note = note_key
+    }
+    state
+}
+
+fn doc_apply_fn_fields(state: DocParseFnState, line: String) -> DocParseFnState {
+    let key_doc = symbol_index_paths::find_toml_value(clone(line), String_from("doc"))
+    if len(key_doc) > 0 { state.doc = key_doc }
+    let key_err = symbol_index_paths::find_toml_value(clone(line), String_from("errors"))
+    if len(key_err) > 0 { state.errors = key_err }
+    let key_stab = symbol_index_paths::find_toml_value(clone(line), String_from("stability"))
+    if len(key_stab) > 0 { state.stability = key_stab }
+    let key_ret = symbol_index_paths::find_toml_value(clone(line), String_from("returns"))
+    if len(key_ret) > 0 { state.returns = key_ret }
+    let key_mod = symbol_index_paths::find_toml_value(clone(line), String_from("module"))
+    if len(key_mod) > 0 { state.module = key_mod }
+    let key_kind = symbol_index_paths::find_toml_value(clone(line), String_from("kind"))
+    if len(key_kind) > 0 { state.kind = key_kind }
+    if contains(clone(line), String_from("params =")) {
+        let eq_pos = index_of(clone(line), String_from("="))
+        if eq_pos >= 0 {
+            state.params = doc_trim_brackets(substring(line, eq_pos + 1, len(line)))
+        }
+    }
+    if contains(clone(line), String_from("target =")) {
+        let eq_pos = index_of(clone(line), String_from("="))
+        if eq_pos >= 0 {
+            state.target = doc_trim_brackets(substring(line, eq_pos + 1, len(line)))
+        }
+    }
+    if contains(clone(line), String_from("availability =")) {
+        state = doc_parse_availability_line(line, state)
+    }
+    state
+}
+
+fn doc_flush_fn(out: Vec<manifest_doc_record::DocFnEntry>, state: DocParseFnState) {
+    if len(state.name) == 0 || len(state.module) == 0 {
+        return
+    }
+    if eq(clone(state.kind), String_from("intrinsic")) {
+        return
+    }
+    push(out, manifest_doc_record::DocFnEntry_new(state.name, state.module, state.params, state.returns, state.stability, state.doc, state.errors, state.target, state.avail_t1, state.avail_t3, state.avail_note))
+}
+
+fn doc_apply_mod_fields(state: DocParseModState, line: String) -> DocParseModState {
+    let key_doc = symbol_index_paths::find_toml_value(clone(line), String_from("doc"))
+    if len(key_doc) > 0 { state.doc = key_doc }
+    let key_stab = symbol_index_paths::find_toml_value(clone(line), String_from("stability"))
+    if len(key_stab) > 0 { state.stability = key_stab }
+    if contains(clone(line), String_from("target =")) {
+        let eq_pos = index_of(clone(line), String_from("="))
+        if eq_pos >= 0 {
+            state.target = doc_trim_brackets(substring(line, eq_pos + 1, len(line)))
+        }
+    }
+    state
+}
+
+fn doc_flush_mod(out: Vec<manifest_doc_record::DocModuleEntry>, state: DocParseModState) {
+    if len(state.name) == 0 {
+        return
+    }
+    push(out, manifest_doc_record::DocModuleEntry_new(state.name, state.stability, state.target, state.doc))
+}
+
+pub fn doc_parse_manifest(content: String) -> DocManifestTable {
+    let fns = Vec_new_DocFnEntry()
+    let mods = Vec_new_DocModuleEntry()
+    let mut fn_state = DocParseFnState_new()
+    let mut mod_state = DocParseModState_new()
+    let mut section = 0
+    let n = len(content)
+    let mut line_start = 0
+    let mut i = 0
+    while i < n {
+        if char_at(content, i) == 10 || i == n - 1 {
+            let line_end = if char_at(content, i) == 10 { i } else { i + 1 }
+            let line = substring(content, line_start, line_end)
+            if starts_with(clone(line), String_from("[[functions]]")) {
+                doc_flush_fn(fns, clone(fn_state))
+                fn_state = DocParseFnState_new()
+                section = 1
+            } else {
+                if starts_with(clone(line), String_from("[[modules]]")) {
+                    doc_flush_mod(mods, clone(mod_state))
+                    mod_state = DocParseModState_new()
+                    section = 2
+                } else {
+                    let key_name = symbol_index_paths::find_toml_value(clone(line), String_from("name"))
+                    if len(key_name) > 0 && section == 1 {
+                        doc_flush_fn(fns, clone(fn_state))
+                        fn_state = DocParseFnState_new()
+                        fn_state.name = key_name
+                        fn_state = doc_apply_fn_fields(fn_state, line)
+                    } else {
+                        if len(key_name) > 0 && section == 2 {
+                            doc_flush_mod(mods, clone(mod_state))
+                            mod_state = DocParseModState_new()
+                            mod_state.name = key_name
+                            mod_state = doc_apply_mod_fields(mod_state, line)
+                        } else {
+                            if section == 1 {
+                                fn_state = doc_apply_fn_fields(fn_state, line)
+                            } else {
+                                if section == 2 {
+                                    mod_state = doc_apply_mod_fields(mod_state, line)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            line_start = i + 1
+        }
+        i = i + 1
+    }
+    doc_flush_fn(fns, fn_state)
+    doc_flush_mod(mods, mod_state)
+    manifest_doc_record::DocManifestTable_new(fns, mods)
+}

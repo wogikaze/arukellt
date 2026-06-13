@@ -1,0 +1,73 @@
+// Arukellt Selfhost - arukellt init project templates (#464).
+
+use std::host::stdio
+
+pub fn init_list_templates() {
+    stdio::println(String_from("minimal    - Minimal Hello World project (default)"))
+    stdio::println(String_from("cli        - CLI tool with argument parsing"))
+    stdio::println(String_from("with-tests - Project with test functions"))
+    stdio::println(String_from("wasi-host  - WASI host API usage example (wasm32-wasi-p2)"))
+}
+
+pub fn init_template_is_valid(name: String) -> bool {
+    if eq(clone(name), String_from("minimal")) {
+        return true
+    }
+    if eq(clone(name), String_from("cli")) {
+        return true
+    }
+    if eq(clone(name), String_from("with-tests")) {
+        return true
+    }
+    if eq(clone(name), String_from("wasi-host")) {
+        return true
+    }
+    false
+}
+
+pub fn init_template_normalize(name: String) -> String {
+    if len(name) == 0 {
+        return String_from("minimal")
+    }
+    clone(name)
+}
+
+pub fn init_template_main_ark(template: String) -> String {
+    if eq(clone(template), String_from("cli")) {
+        return String_from("use std::host::stdio\nuse std::host::process\n\nfn greet(name: String) -> String {\n    concat(concat(String_from(\"Hello, \"), name), String_from(\"!\"))\n}\n\nfn main() {\n    let name = String_from(\"World\")\n    stdio::println(greet(name))\n    process::exit(0)\n}\n")
+    }
+    if eq(clone(template), String_from("with-tests")) {
+        return String_from("use std::host::stdio\n\npub fn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n\npub fn subtract(a: i32, b: i32) -> i32 {\n    a - b\n}\n\nfn test_add() {\n    let result = add(2, 3)\n    assert(result == 5)\n}\n\nfn test_subtract() {\n    let result = subtract(10, 4)\n    assert(result == 6)\n}\n\nfn main() {\n    let result = add(1, 2)\n    stdio::println(concat(String_from(\"1 + 2 = \"), i32_to_string(result)))\n}\n")
+    }
+    if eq(clone(template), String_from("wasi-host")) {
+        return String_from("// Build with: arukellt run --target wasm32-wasi-p2 main.ark\nuse std::host::stdio\nuse std::host::http\n\nfn main() {\n    stdio::println(String_from(\"Fetching example.com...\"))\n    // match http::get(String_from(\"http://example.com\")) {\n    //     Ok(body) => stdio::println(concat(String_from(\"Got \"), body))\n    //     Err(e) => stdio::eprintln(concat(String_from(\"Error: \"), e))\n    // }\n    stdio::println(String_from(\"Done. Uncomment the HTTP call in main.ark to try it.\"))\n}\n")
+    }
+    String_from("use std::host::stdio\n\nfn main() {\n    stdio::println(String_from(\"Hello, Arukellt!\"))\n}\n")
+}
+
+pub fn init_template_ark_toml(project_name: String, template: String) -> String {
+    let mut out = String_from("[package]\nname = \"")
+    out = concat(out, clone(project_name))
+    out = concat(out, String_from("\"\nversion = \"0.1.0\"\n\n[bin]\nname = \""))
+    out = concat(out, clone(project_name))
+    out = concat(out, String_from("\"\npath = \"main.ark\"\n"))
+    if eq(clone(template), String_from("wasi-host")) {
+        out = concat(out, String_from("target = \"wasm32-wasi-p2\"\n"))
+    }
+    out
+}
+
+pub fn init_template_print_next_steps(project_name: String, template: String) {
+    stdio::eprintln(concat(String_from("Initialized Arukellt project in "), concat(clone(project_name), concat(String_from(" (template: "), concat(clone(template), String_from(")"))))))
+    stdio::eprintln(String_from(""))
+    stdio::eprintln(String_from("Next steps:"))
+    stdio::eprintln(concat(String_from("  cd "), clone(project_name)))
+    stdio::eprintln(String_from("  arukellt check main.ark        # type-check"))
+    stdio::eprintln(String_from("  arukellt run main.ark          # run the program"))
+    if eq(clone(template), String_from("with-tests")) {
+        stdio::eprintln(String_from("  arukellt test main.ark         # run tests"))
+    }
+    if eq(clone(template), String_from("wasi-host")) {
+        stdio::eprintln(String_from("  arukellt check --target wasm32-wasi-p2 main.ark"))
+    }
+}

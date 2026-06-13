@@ -20,14 +20,16 @@ struct CliOptions {
     has_error: bool,
     error_msg: String,
     show_timing: bool,
+    init_template: String,
+    list_templates: bool,
 }
 
-fn CliOptions_new(command: i32, component_action: i32, input_file: String, output_file: String, target: String, wasi_version: String, wit_paths: Vec<String>, opt_level: i32, dump_phases: String, emit_mode: String, json_output: bool, show_help: bool, show_version: bool, has_error: bool, error_msg: String, show_timing: bool) -> CliOptions {
-    CliOptions { command: command, component_action: component_action, input_file: input_file, output_file: output_file, target: target, wasi_version: wasi_version, wit_paths: wit_paths, opt_level: opt_level, dump_phases: dump_phases, emit_mode: emit_mode, json_output: json_output, show_help: show_help, show_version: show_version, has_error: has_error, error_msg: error_msg, show_timing: show_timing }
+fn CliOptions_new(command: i32, component_action: i32, input_file: String, output_file: String, target: String, wasi_version: String, wit_paths: Vec<String>, opt_level: i32, dump_phases: String, emit_mode: String, json_output: bool, show_help: bool, show_version: bool, has_error: bool, error_msg: String, show_timing: bool, init_template: String, list_templates: bool) -> CliOptions {
+    CliOptions { command: command, component_action: component_action, input_file: input_file, output_file: output_file, target: target, wasi_version: wasi_version, wit_paths: wit_paths, opt_level: opt_level, dump_phases: dump_phases, emit_mode: emit_mode, json_output: json_output, show_help: show_help, show_version: show_version, has_error: has_error, error_msg: error_msg, show_timing: show_timing, init_template: init_template, list_templates: list_templates }
 }
 
 fn CliOptions_default() -> CliOptions {
-    CliOptions_new(kinds::CMD_UNKNOWN(), kinds::COMP_ACTION_BUILD(), String_new(), String_new(), String_from("wasm32-wasi-p2"), String_new(), Vec_new_String(), 0, String_new(), String_from("wasm"), false, false, false, false, String_new(), false)
+    CliOptions_new(kinds::CMD_UNKNOWN(), kinds::COMP_ACTION_BUILD(), String_new(), String_new(), String_from("wasm32-wasi-p2"), String_new(), Vec_new_String(), 0, String_new(), String_from("wasm"), false, false, false, false, String_new(), false, String_from("minimal"), false)
 }
 
 fn cli_command(opts: CliOptions) -> i32 { opts.command }
@@ -115,4 +117,15 @@ fn cli_set_error(opts: CliOptions, error_msg: String) {
 
 fn cli_set_show_timing(opts: CliOptions, show_timing: bool) {
     opts.show_timing = show_timing
+}
+
+fn cli_init_template(opts: CliOptions) -> String { clone(opts.init_template) }
+fn cli_list_templates(opts: CliOptions) -> bool { opts.list_templates }
+
+fn cli_set_init_template(opts: CliOptions, init_template: String) {
+    opts.init_template = init_template
+}
+
+fn cli_set_list_templates(opts: CliOptions, list_templates: bool) {
+    opts.list_templates = list_templates
 }

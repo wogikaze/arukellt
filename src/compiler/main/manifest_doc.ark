@@ -1,0 +1,66 @@
+// Arukellt Selfhost - manifest-backed doc command (#456).
+
+use std::host::env
+use std::host::fs
+use std::host::process
+use std::host::stdio
+use main::manifest_doc_lookup
+use main::manifest_doc_parse
+use main::manifest_doc_record
+use main::manifest_doc_render
+
+fn doc_load_manifest() -> manifest_doc_record::DocManifestTable {
+    let mut path = String_from("std/manifest.toml")
+    match env::var(String_from("ARUKELLT_MANIFEST")) {
+        Result::Ok(p) => {
+            if len(p) > 0 {
+                path = p
+            }
+        },
+        Result::Err(_) => {},
+    }
+    let read_result = fs::read_to_string(clone(path))
+    match read_result {
+        Result::Ok(content) => {
+            manifest_doc_parse::doc_parse_manifest(content)
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error: could not load stdlib manifest: "), e))
+            process::exit(1)
+            manifest_doc_record::DocManifestTable_new(Vec_new_DocFnEntry(), Vec_new_DocModuleEntry())
+        },
+    }
+}
+
+pub fn cmd_manifest_doc(symbol: String, json_out: bool, filter_target: String) {
+    if len(symbol) == 0 {
+        return
+    }
+    let table = doc_load_manifest()
+    let query = manifest_doc_lookup::doc_resolve_query(table, clone(symbol))
+    let hits = manifest_doc_lookup::doc_query_hits(query)
+    if manifest_doc_lookup::doc_query_show_module(query) == 1 {
+        manifest_doc_render::doc_print_module(table, clone(symbol), clone(filter_target))
+        return
+    }
+    if len(hits) == 0 {
+        stdio::eprintln(concat(String_from("error: symbol '"), concat(clone(symbol), String_from("' not found"))))
+        let candidates = manifest_doc_lookup::doc_find_closest(table, clone(symbol), 3)
+        if len(candidates) > 0 {
+            stdio::eprintln(String_from(""))
+            stdio::eprintln(String_from("Did you mean?"))
+            let mut ci = 0
+            while ci < len(candidates) {
+                stdio::eprintln(concat(String_from("  "), get_unchecked(candidates, ci)))
+                ci = ci + 1
+            }
+        }
+        process::exit(1)
+    }
+    let e = manifest_doc_record::DocManifestTable_function_at(table, get_unchecked(hits, 0))
+    if json_out {
+        manifest_doc_render::doc_emit_function_json(e, clone(filter_target))
+    } else {
+        manifest_doc_render::doc_print_function(e, clone(filter_target))
+    }
+}

@@ -1,0 +1,86 @@
+// Arukellt Selfhost - manifest doc symbol lookup helpers (#456).
+
+use main::manifest_doc_record
+
+fn doc_last_segment(path: String) -> String {
+    let n = len(path)
+    let mut i = n - 1
+    while i >= 0 {
+        if i + 1 < n && char_at(path, i) == 58 && char_at(path, i + 1) == 58 {
+            return substring(path, i + 2, n)
+        }
+        i = i - 1
+    }
+    clone(path)
+}
+
+fn doc_fn_matches_name(e: DocFnEntry, name: String) -> bool {
+    eq(manifest_doc_record::DocFnEntry_name(e), clone(name))
+}
+
+fn doc_fn_matches_module_name(e: DocFnEntry, module: String, name: String) -> bool {
+    eq(manifest_doc_record::DocFnEntry_name(e), clone(name)) && eq(manifest_doc_record::DocFnEntry_module(e), clone(module))
+}
+
+pub fn doc_find_by_name(table: DocManifestTable, name: String) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let n = manifest_doc_record::DocManifestTable_function_count(table)
+    let mut i = 0
+    while i < n {
+        let e = manifest_doc_record::DocManifestTable_function_at(table, i)
+        if doc_fn_matches_name(e, clone(name)) {
+            push(out, i)
+        }
+        i = i + 1
+    }
+    out
+}
+
+pub fn doc_find_by_module_name(table: DocManifestTable, module: String, name: String) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let n = manifest_doc_record::DocManifestTable_function_count(table)
+    let mut i = 0
+    while i < n {
+        let e = manifest_doc_record::DocManifestTable_function_at(table, i)
+        if doc_fn_matches_module_name(e, clone(module), clone(name)) {
+            push(out, i)
+        }
+        i = i + 1
+    }
+    out
+}
+
+pub fn doc_module_has_functions(table: DocManifestTable, module: String) -> bool {
+    let n = manifest_doc_record::DocManifestTable_function_count(table)
+    let mut i = 0
+    while i < n {
+        let e = manifest_doc_record::DocManifestTable_function_at(table, i)
+        if eq(manifest_doc_record::DocFnEntry_module(e), clone(module)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+pub fn doc_find_module(table: DocManifestTable, module: String) -> i32 {
+    let n = manifest_doc_record::DocManifestTable_module_count(table)
+    let mut i = 0
+    while i < n {
+        let m = manifest_doc_record::DocManifestTable_module_at(table, i)
+        if eq(manifest_doc_record::DocModuleEntry_name(m), clone(module)) {
+            return i
+        }
+        i = i + 1
+    }
+    return 0 - 1
+}
+
+pub fn doc_symbol_is_module_query(symbol: String) -> bool {
+    if !contains(clone(symbol), String_from("::")) {
+        return false
+    }
+    let last = doc_last_segment(clone(symbol))
+    let ch = char_at(last, 0)
+    ch >= 65 && ch <= 90
+}

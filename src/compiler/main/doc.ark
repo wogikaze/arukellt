@@ -1,10 +1,9 @@
 // Arukellt Selfhost - CLI doc command.
 
-use std::host::fs
 use std::host::process
-use std::host::stdio
 use main::args_record
 use main::doc_usage
+use main::manifest_doc
 
 pub fn cmd_doc(opts: CliOptions) {
     let symbol = args_record::cli_input_file(opts)
@@ -13,38 +12,7 @@ pub fn cmd_doc(opts: CliOptions) {
         process::exit(2)
         return
     }
-    let base = doc_symbol_base(symbol)
-    let doc_path = concat(concat(String_from("docs/stdlib/modules/"), clone(base)), String_from(".md"))
-    let read_result = fs::read_to_string(clone(doc_path))
-    match read_result {
-        Result::Ok(content) => {
-            stdio::println(concat(String_from("--- "), concat(clone(symbol), String_from(" ---"))))
-            stdio::println(String_from(""))
-            stdio::print(content)
-        },
-        Result::Err(_) => {
-            stdio::eprintln(concat(String_from("error: no documentation found for '"), concat(clone(symbol), String_from("'"))))
-            process::exit(1)
-        },
-    }
-}
-
-fn doc_symbol_base(symbol: String) -> String {
-    let n = len(symbol)
-    let mut last_sep = 0
-    let mut found_sep = false
-    let mut i = 0
-    while i < n {
-        if i + 1 < n && char_at(symbol, i) == 58 && char_at(symbol, i + 1) == 58 {
-            last_sep = i + 2
-            found_sep = true
-            i = i + 2
-        } else {
-            i = i + 1
-        }
-    }
-    if found_sep {
-        return substring(symbol, last_sep, n)
-    }
-    clone(symbol)
+    let json_out = args_record::cli_json_output(opts)
+    let filter_target = args_record::cli_target(opts)
+    manifest_doc::cmd_manifest_doc(clone(symbol), json_out, filter_target)
 }

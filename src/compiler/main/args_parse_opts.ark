@@ -1,0 +1,81 @@
+// Arukellt Selfhost - CLI valued option parsing helpers.
+
+use main::args_record
+use main::args_record_opt
+use main::commands
+
+pub fn parse_target_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        args_record::cli_set_target(opts, clone(get_unchecked(argv, next)))
+    }
+    next
+}
+
+pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        args_record::cli_set_wasi_version(opts, clone(get_unchecked(argv, next)))
+    } else {
+        args_record::cli_set_error(opts, String_from("--wasi-version requires p1 or p2"))
+    }
+    next
+}
+
+pub fn parse_emit_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        args_record::cli_set_emit_mode(opts, clone(get_unchecked(argv, next)))
+    }
+    next
+}
+
+pub fn parse_dump_phases_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        args_record::cli_set_dump_phases(opts, clone(get_unchecked(argv, next)))
+    }
+    next
+}
+
+pub fn parse_opt_level_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        let val = get_unchecked(argv, next)
+        args_record::cli_set_opt_level(opts, args_record_opt::parse_opt_level_value(clone(val), args_record::cli_opt_level(opts)))
+    }
+    next
+}
+
+pub fn parse_wit_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        args_record::cli_add_wit_path(opts, clone(get_unchecked(argv, next)))
+    } else {
+        args_record::cli_set_error(opts, String_from("--wit requires a path"))
+    }
+    next
+}
+
+pub fn parse_output_option(argv: Vec<String>, argc: i32, opts: CliOptions, arg: String, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        let out_arg = clone(get_unchecked(argv, next))
+        if commands::cli_str_eq(clone(arg), String_from("--output")) && commands::cli_str_eq(clone(out_arg), String_from("json")) {
+            args_record::cli_set_json_output(opts, true)
+        } else {
+            args_record::cli_set_output_file(opts, clone(out_arg))
+        }
+    }
+    next
+}
+
+pub fn parse_template_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next < argc {
+        args_record::cli_set_init_template(opts, clone(get_unchecked(argv, next)))
+    } else {
+        args_record::cli_set_error(opts, String_from("--template requires a template name"))
+    }
+    next
+}

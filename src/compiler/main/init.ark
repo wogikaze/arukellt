@@ -4,37 +4,48 @@ use std::host::fs
 use std::host::process
 use std::host::stdio
 use main::args_record
+use main::init_templates
 
 pub fn cmd_init(opts: CliOptions) {
+    if args_record::cli_list_templates(opts) {
+        init_templates::init_list_templates()
+        return
+    }
     let project_name = args_record::cli_input_file(opts)
     if len(project_name) == 0 {
-        stdio::eprintln(String_from("usage: arukellt init <project-name>"))
+        stdio::eprintln(String_from("usage: arukellt init <project-name> [--template minimal|cli|with-tests|wasi-host]"))
+        stdio::eprintln(String_from("       arukellt init --list-templates"))
         process::exit(2)
     }
-    let src_main = concat(clone(project_name), String_from("/src/main.ark"))
+    let template = init_templates::init_template_normalize(args_record::cli_init_template(opts))
+    if !init_templates::init_template_is_valid(clone(template)) {
+        stdio::eprintln(concat(String_from("error: unknown template '"), concat(clone(template), String_from("' (use --list-templates)"))))
+        process::exit(2)
+    }
+    let src_main = concat(clone(project_name), String_from("/main.ark"))
     let ark_toml = concat(clone(project_name), String_from("/ark.toml"))
-    let main_content = String_from("use std::host::stdio\n\nfn main() {\n    stdio::println(\"Hello from Arukellt!\")\n}\n")
-    let mut toml_content = String_from("[package]\nname = \"")
-    toml_content = concat(toml_content, clone(project_name))
-    toml_content = concat(toml_content, String_from("\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[bin]\npath = \"src/main.ark\"\n\n[targets.wasm32-wasi-p2]\nout = \""))
-    toml_content = concat(toml_content, clone(project_name))
-    toml_content = concat(toml_content, String_from(".wasm\"\n\n[world]\nimports = []\nexports = []\n"))
+    if fs::exists(clone(ark_toml)) {
+        stdio::eprintln(concat(String_from("error: ark.toml already exists in "), clone(project_name)))
+        process::exit(1)
+    }
+    let main_content = init_templates::init_template_main_ark(clone(template))
+    let toml_content = init_templates::init_template_ark_toml(clone(project_name), clone(template))
     let write_main = fs::write_string(src_main, main_content)
     match write_main {
         Result::Ok(_) => {
             let write_toml = fs::write_string(ark_toml, toml_content)
             match write_toml {
                 Result::Ok(_) => {
-                    stdio::println(concat(String_from("Created project: "), clone(project_name)))
+                    init_templates::init_template_print_next_steps(clone(project_name), clone(template))
                 },
                 Result::Err(e) => {
-                    stdio::eprintln(concat(String_from("error creating ark.toml: "), e))
+                    stdio::eprintln(concat(String_from("error creating ark.toml: "), fs::fs_error_message(e)))
                     process::exit(1)
                 },
             }
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error creating project: "), e))
+            stdio::eprintln(concat(String_from("error creating project: "), fs::fs_error_message(e)))
             process::exit(1)
         },
     }

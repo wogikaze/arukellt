@@ -4439,6 +4439,14 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-dap-lifecycle.py",
         ),
         (
+            "init template gate (#464)",
+            "python3 scripts/check/check-init-templates.py",
+        ),
+        (
+            "manifest doc command gate (#456)",
+            "python3 scripts/check/check-manifest-doc.py",
+        ),
+        (
             "false-done hygiene gate",
             "python3 scripts/check/check-false-done-hygiene.py",
         ),
