@@ -9,3 +9,7 @@ fn MirBlock_inst_count(block: MirBlock) -> i32 {
 fn MirBlock_inst_at(block: MirBlock, idx: i32) -> MirInst {
     get_unchecked(block.instructions, idx)
 }
+
+fn MirBlock_instructions(block: MirBlock) -> Vec<MirInst> {
+    block.instructions
+}

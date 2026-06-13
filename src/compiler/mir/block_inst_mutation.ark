@@ -5,3 +5,7 @@ use mir::types
 fn MirBlock_push_inst(block: MirBlock, inst: MirInst) {
     push(block.instructions, inst)
 }
+
+fn MirBlock_set_instructions(block: MirBlock, instructions: Vec<MirInst>) {
+    block.instructions = instructions
+}

@@ -34,5 +34,5 @@ pub fn parse_prefix(p: Parser) -> AstNode {
     }
     core_api_expect::error(p, concat(String_from("unexpected token in expression: "), to_string(kind)))
     p.pos = p.pos + 1
-    core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), String_from("_error"), core_api_expect::tok_span(t))
+    core_ast_factory::AstNode_error(String_from("expr"), core_api_expect::tok_span(t))
 }

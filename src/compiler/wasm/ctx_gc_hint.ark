@@ -1,0 +1,15 @@
+// Arukellt Selfhost - Wasm emitter GC hint offset tracking.
+
+use wasm::ctx_record
+
+fn SelfEmitCtx_push_gc_hint_offset(ctx: SelfEmitCtx, offset: i32) {
+    push(ctx.gc_hint_offsets, offset)
+}
+
+fn SelfEmitCtx_gc_hint_offsets(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.gc_hint_offsets
+}
+
+fn SelfEmitCtx_gc_hint_count(ctx: SelfEmitCtx) -> i32 {
+    len(ctx.gc_hint_offsets)
+}

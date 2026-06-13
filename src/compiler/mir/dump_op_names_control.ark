@@ -30,5 +30,8 @@ fn mir_control_op_name(op: i32) -> String {
     if op == opcodes::MIR_PHI() {
         return String_from("phi")
     }
+    if op == opcodes::MIR_GC_HINT() {
+        return String_from("gc_hint")
+    }
     String_from("")
 }

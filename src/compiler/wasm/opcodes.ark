@@ -139,3 +139,4 @@ fn SEC_ELEMENT() -> i32 { 9 }
 // Code/data section IDs.
 fn SEC_CODE() -> i32 { 10 }
 fn SEC_DATA() -> i32 { 11 }
+fn SEC_CUSTOM() -> i32 { 0 }

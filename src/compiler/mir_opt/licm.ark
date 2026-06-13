@@ -1,0 +1,9 @@
+// Arukellt Selfhost - LICM pass facade.
+
+use mir::types
+use mir_opt::licm_core
+use mir_opt::summary_record
+
+pub fn run_licm(f: MirFunction) -> OptimizationSummary {
+    licm_core::licm_optimize_function(f)
+}

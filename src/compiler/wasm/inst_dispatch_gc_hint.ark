@@ -1,0 +1,14 @@
+// Arukellt Selfhost - MIR GC hint instruction Wasm dispatch (metadata-only).
+
+use mir::inst_accessors_shape
+use mir::inst_gc_hint
+use mir::types
+
+fn try_emit_gc_hint_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    if op != inst_gc_hint::mir_gc_hint_opcode() {
+        return false
+    }
+    // GC hints are recorded via metadata.code.gc_hint; no Wasm bytecode.
+    true
+}

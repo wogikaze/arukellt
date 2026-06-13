@@ -1,0 +1,14 @@
+// Arukellt Selfhost - MIR GC hint instruction constructors.
+
+use mir::inst_factory
+use mir::opcodes
+use mir::types
+use mir::value_types
+
+fn mir_gc_hint_opcode() -> i32 {
+    opcodes::MIR_GC_HINT()
+}
+
+fn MirInst_gc_hint_short_lived() -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_GC_HINT(), 0 - 1, opcodes::MIR_GC_HINT_SHORT_LIVED(), 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+}

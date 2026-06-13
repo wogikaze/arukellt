@@ -6,9 +6,14 @@ use wasm::opcodes
 
 use wasm::writer_core
 use wasm::writer_leb
+use wasm::ctx_gc_hint
+use mir::inst_gc_hint
 use mir::value_types
 
-fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
+    if prev_op == inst_gc_hint::mir_gc_hint_opcode() {
+        ctx_gc_hint::SelfEmitCtx_push_gc_hint_offset(ctx, writer_core::writer_size(w))
+    }
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
     writer_leb::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())

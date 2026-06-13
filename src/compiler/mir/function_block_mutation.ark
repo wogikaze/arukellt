@@ -14,3 +14,7 @@ fn MirFunction_increment_next_block(f: MirFunction) {
 fn MirFunction_push_block(f: MirFunction, block: MirBlock) {
     push(f.blocks, block)
 }
+
+fn MirFunction_set_blocks(f: MirFunction, blocks: Vec<MirBlock>) {
+    f.blocks = blocks
+}

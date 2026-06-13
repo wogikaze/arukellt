@@ -1,0 +1,101 @@
+// Arukellt Selfhost - MIR loop region discovery for opt passes.
+
+use mir::inst_accessors_shape
+use mir::opcodes
+use mir::types
+
+pub struct LoopRegion {
+    loop_start: i32,
+    loop_end: i32,
+    depth: i32,
+}
+
+fn LoopRegion_new(loop_start: i32, loop_end: i32, depth: i32) -> LoopRegion {
+    LoopRegion { loop_start: loop_start, loop_end: loop_end, depth: depth }
+}
+
+fn LoopRegion_loop_start(r: LoopRegion) -> i32 {
+    r.loop_start
+}
+
+fn LoopRegion_loop_end(r: LoopRegion) -> i32 {
+    r.loop_end
+}
+
+fn LoopRegion_depth(r: LoopRegion) -> i32 {
+    r.depth
+}
+
+fn mir_opt_collect_loop_regions(insts: Vec<MirInst>) -> Vec<LoopRegion> {
+    let regions = Vec_new_LoopRegion()
+    let stack = Vec_new_i32()
+    let depths = Vec_new_i32()
+    let count = len(insts)
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(insts, i)
+        let op = inst_accessors_shape::MirInst_op(inst)
+        if op == opcodes::MIR_LOOP() {
+            push(stack, i)
+            push(depths, len(stack))
+        }
+        if op == opcodes::MIR_END() {
+            if len(stack) > 0 {
+                let start = get_unchecked(stack, len(stack) - 1)
+                pop(stack)
+                let depth = get_unchecked(depths, len(depths) - 1)
+                pop(depths)
+                push(regions, LoopRegion_new(start, i, depth))
+            }
+        }
+        i = i + 1
+    }
+    regions
+}
+
+fn mir_opt_pick_innermost(regions: Vec<LoopRegion>) -> Vec<LoopRegion> {
+    let mut max_depth = 0
+    let mut ri = 0
+    while ri < len(regions) {
+        let d = LoopRegion_depth(get_unchecked(regions, ri))
+        if d > max_depth {
+            max_depth = d
+        }
+        ri = ri + 1
+    }
+    let out = Vec_new_LoopRegion()
+    ri = 0
+    while ri < len(regions) {
+        let r = get_unchecked(regions, ri)
+        if LoopRegion_depth(r) == max_depth {
+            push(out, r)
+        }
+        ri = ri + 1
+    }
+    out
+}
+
+fn mir_opt_regions_by_depth_desc(regions: Vec<LoopRegion>) -> Vec<LoopRegion> {
+    let out = Vec_new_LoopRegion()
+    let mut max_depth = 0
+    let mut ri = 0
+    while ri < len(regions) {
+        let d = LoopRegion_depth(get_unchecked(regions, ri))
+        if d > max_depth {
+            max_depth = d
+        }
+        ri = ri + 1
+    }
+    while max_depth > 0 {
+        ri = 0
+        while ri < len(regions) {
+            let r = get_unchecked(regions, ri)
+            if LoopRegion_depth(r) == max_depth {
+                push(out, r)
+            }
+            ri = ri + 1
+        }
+        max_depth = max_depth - 1
+    }
+    out
+}

@@ -1,0 +1,18 @@
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn main() {
+    let mut total: i32 = 0
+    let mut i: i32 = 0
+    while i < 3 {
+        let p = Point { x: i, y: i + 1 }
+        total = total + p.x
+        i = i + 1
+    }
+    stdio::println(i32_to_string(total))
+}
+// Short-lived Point in loop; GC hint at O2. Sum 0+1+2 = 3.

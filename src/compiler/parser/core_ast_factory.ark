@@ -1,6 +1,7 @@
 // Arukellt Parser - public AST construction API.
 
 use parser::ast_node_record
+use parser::kinds
 
 fn AstNode_new(kind: i32, span: Span) -> AstNode {
     ast_node_record::AstNode_new(kind, span)
@@ -8,4 +9,12 @@ fn AstNode_new(kind: i32, span: Span) -> AstNode {
 
 fn AstNode_leaf(kind: i32, text: String, span: Span) -> AstNode {
     ast_node_record::AstNode_leaf(kind, text, span)
+}
+
+fn AstNode_error(text: String, span: Span) -> AstNode {
+    ast_node_record::AstNode_leaf(kinds::NK_ERROR(), text, span)
+}
+
+fn AstNode_missing(text: String, span: Span) -> AstNode {
+    ast_node_record::AstNode_leaf(kinds::NK_MISSING(), text, span)
 }

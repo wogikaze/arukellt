@@ -1,0 +1,21 @@
+// Arukellt Selfhost - MIR optimization orchestration at O2+.
+
+use mir::module_functions
+use mir::types
+use mir_opt::gc_hint
+use mir_opt::licm
+
+fn mir_opt_optimize_module(m: MirModule, opt_level: i32) -> MirModule {
+    if opt_level < 2 {
+        return m
+    }
+    let fn_count = module_functions::MirModule_function_count(m)
+    let mut fi = 0
+    while fi < fn_count {
+        let f = module_functions::MirModule_function_at(m, fi)
+        let _licm = licm::run_licm(f)
+        let _gc = gc_hint::run_gc_hint(f)
+        fi = fi + 1
+    }
+    m
+}

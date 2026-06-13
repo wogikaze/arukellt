@@ -1,0 +1,30 @@
+// Arukellt Selfhost - MIR optimization summary counters.
+
+pub struct OptimizationSummary {
+    licm_hoisted: i32,
+    gc_hinted: i32,
+}
+
+fn OptimizationSummary_new() -> OptimizationSummary {
+    OptimizationSummary { licm_hoisted: 0, gc_hinted: 0 }
+}
+
+fn OptimizationSummary_licm_hoisted(s: OptimizationSummary) -> i32 {
+    s.licm_hoisted
+}
+
+fn OptimizationSummary_gc_hinted(s: OptimizationSummary) -> i32 {
+    s.gc_hinted
+}
+
+fn OptimizationSummary_add_licm(s: OptimizationSummary, n: i32) -> OptimizationSummary {
+    OptimizationSummary { licm_hoisted: s.licm_hoisted + n, gc_hinted: s.gc_hinted }
+}
+
+fn OptimizationSummary_add_gc_hint(s: OptimizationSummary, n: i32) -> OptimizationSummary {
+    OptimizationSummary { licm_hoisted: s.licm_hoisted, gc_hinted: s.gc_hinted + n }
+}
+
+fn OptimizationSummary_merge(a: OptimizationSummary, b: OptimizationSummary) -> OptimizationSummary {
+    OptimizationSummary { licm_hoisted: a.licm_hoisted + b.licm_hoisted, gc_hinted: a.gc_hinted + b.gc_hinted }
+}

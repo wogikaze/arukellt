@@ -1,5 +1,6 @@
 // Arukellt Selfhost - driver namespace: pipeline_backend
 
+use driver::config_record
 use driver::pipeline_frontend
 use driver::backend_resolve
 use driver::backend_typecheck
@@ -9,6 +10,7 @@ use driver::emit
 use driver::lower
 use loader::mod
 use loader::module_decls
+use mir_opt::optimize_module
 use std::host::clock
 
 // Arukellt Selfhost - compilation pipeline orchestration.
@@ -39,7 +41,8 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         backend_resolve::resolve_result_loaded_modules(resolved)
     )
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
-    let mir_module = lower::lower_checked_program(program, config)
+    let mir_lowered = lower::lower_checked_program(program, config)
+    let mir_module = mir_opt::optimize_module(mir_lowered, config_record::config_opt_level(config))
     debug::dump_mir_if_enabled(config, mir_module)
     let t_lower = clock::monotonic_now()
     emit::emit_output(mir_module, program, config, t0, t_lex, t_parse, backend_resolve::resolve_result_t_resolve(resolved), backend_typecheck::typecheck_result_t_typecheck(checked), t_lower)

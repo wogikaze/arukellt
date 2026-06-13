@@ -1,5 +1,6 @@
 // Arukellt Parser - AST node display names facade
 
+use parser::kinds
 use parser::name_decl
 use parser::name_expr
 use parser::name_pattern
@@ -26,6 +27,12 @@ fn node_kind_name(kind: i32) -> String {
     let type_name = name_type::type_node_kind_name(kind)
     if len(type_name) > 0 {
         return type_name
+    }
+    if kind == kinds::NK_ERROR() {
+        return String_from("Error")
+    }
+    if kind == kinds::NK_MISSING() {
+        return String_from("Missing")
     }
     String_from("Unknown")
 }

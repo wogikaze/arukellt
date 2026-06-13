@@ -1,0 +1,122 @@
+// Arukellt Selfhost - LICM hoistability predicates.
+
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::opcodes
+use mir::types
+
+fn licm_has_side_effect(op: i32) -> bool {
+    if op == opcodes::MIR_CALL() { return true }
+    if op == opcodes::MIR_STORE_LOCAL() { return true }
+    if op == opcodes::MIR_STORE_FIELD() { return true }
+    if op == opcodes::MIR_ARRAY_SET() { return true }
+    if op == opcodes::MIR_STRUCT_NEW() { return true }
+    if op == opcodes::MIR_ARRAY_NEW() { return true }
+    if op == opcodes::MIR_PRINT() { return true }
+    if op == opcodes::MIR_GC_HINT() { return true }
+    false
+}
+
+fn licm_is_pure_const_op(op: i32) -> bool {
+    if op == opcodes::MIR_CONST_I32() { return true }
+    if op == opcodes::MIR_CONST_I64() { return true }
+    if op == opcodes::MIR_CONST_F64() { return true }
+    if op == opcodes::MIR_CONST_BOOL() { return true }
+    if op == opcodes::MIR_CONST_STRING() { return true }
+    if op == opcodes::MIR_LOCAL_GET() { return true }
+    false
+}
+
+fn licm_is_pure_arith_op(op: i32) -> bool {
+    if op == opcodes::MIR_ADD() { return true }
+    if op == opcodes::MIR_SUB() { return true }
+    if op == opcodes::MIR_MUL() { return true }
+    if op == opcodes::MIR_DIV() { return true }
+    if op == opcodes::MIR_MOD() { return true }
+    if op == opcodes::MIR_NEG() { return true }
+    false
+}
+
+fn licm_is_pure_compare_op(op: i32) -> bool {
+    if op == opcodes::MIR_EQ() { return true }
+    if op == opcodes::MIR_NEQ() { return true }
+    if op == opcodes::MIR_LT() { return true }
+    if op == opcodes::MIR_LTEQ() { return true }
+    if op == opcodes::MIR_GT() { return true }
+    if op == opcodes::MIR_GTEQ() { return true }
+    if op == opcodes::MIR_EQZ() { return true }
+    false
+}
+
+fn licm_is_pure_logic_op(op: i32) -> bool {
+    if op == opcodes::MIR_AND() { return true }
+    if op == opcodes::MIR_OR() { return true }
+    if op == opcodes::MIR_NOT() { return true }
+    false
+}
+
+fn licm_is_pure_bit_op(op: i32) -> bool {
+    if op == opcodes::MIR_BIT_AND() { return true }
+    if op == opcodes::MIR_BIT_OR() { return true }
+    if op == opcodes::MIR_BIT_XOR() { return true }
+    if op == opcodes::MIR_SHL() { return true }
+    if op == opcodes::MIR_SHR() { return true }
+    false
+}
+
+fn licm_is_pure_convert_op(op: i32) -> bool {
+    if op == opcodes::MIR_EXTEND_I32_TO_I64() { return true }
+    if op == opcodes::MIR_TRUNC_I64_TO_I32() { return true }
+    false
+}
+
+fn licm_is_pure_aggregate_read_op(op: i32) -> bool {
+    if op == opcodes::MIR_STRUCT_GET() { return true }
+    if op == opcodes::MIR_ARRAY_GET() { return true }
+    if op == opcodes::MIR_ARRAY_LEN() { return true }
+    false
+}
+
+fn licm_is_pure_compute_op(op: i32) -> bool {
+    if licm_is_pure_const_op(op) { return true }
+    if licm_is_pure_arith_op(op) { return true }
+    if licm_is_pure_compare_op(op) { return true }
+    if licm_is_pure_logic_op(op) { return true }
+    if licm_is_pure_bit_op(op) { return true }
+    if licm_is_pure_convert_op(op) { return true }
+    if licm_is_pure_aggregate_read_op(op) { return true }
+    false
+}
+
+fn licm_is_hoistable_inst(inst: MirInst) -> bool {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    if licm_has_side_effect(op) { return false }
+    if !licm_is_pure_compute_op(op) { return false }
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    if dest < 0 { return false }
+    true
+}
+
+fn licm_inst_uses_local(inst: MirInst, local: i32) -> bool {
+    let a0 = inst_accessors_operands::MirInst_arg0(inst)
+    let a1 = inst_accessors_operands::MirInst_arg1(inst)
+    if a0 == local { return true }
+    if a1 == local { return true }
+    false
+}
+
+fn licm_inst_defines_local(inst: MirInst) -> i32 {
+    inst_accessors_operands::MirInst_dest(inst)
+}
+
+fn licm_block_defs_local(block: MirBlock, local: i32) -> bool {
+    let insts = block.instructions
+    let n = len(insts)
+    let mut i = 0
+    while i < n {
+        let inst = get_unchecked(insts, i)
+        if licm_inst_defines_local(inst) == local { return true }
+        i = i + 1
+    }
+    false
+}

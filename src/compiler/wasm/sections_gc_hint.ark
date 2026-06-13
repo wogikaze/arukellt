@@ -1,0 +1,34 @@
+// Arukellt Selfhost - metadata.code.gc_hint custom section emission.
+
+use wasm::ctx_gc_hint
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_sections
+
+fn emit_gc_hint_custom_section(out: WasmWriter, ctx: SelfEmitCtx) {
+    let count = ctx_gc_hint::SelfEmitCtx_gc_hint_count(ctx)
+    if count <= 0 {
+        return
+    }
+    let payload = writer_core::WasmWriter_new()
+    emit_gc_hint_section_name(payload, String_from("metadata.code.gc_hint"))
+    writer_leb::emit_leb128_u(payload, count)
+    let offsets = ctx_gc_hint::SelfEmitCtx_gc_hint_offsets(ctx)
+    let mut i = 0
+    while i < count {
+        writer_leb::emit_leb128_u(payload, get_unchecked(offsets, i))
+        i = i + 1
+    }
+    writer_sections::emit_section(out, opcodes::SEC_CUSTOM(), payload)
+}
+
+fn emit_gc_hint_section_name(w: WasmWriter, name: String) {
+    let nlen = len(name)
+    writer_leb::emit_leb128_u(w, nlen)
+    let mut ci = 0
+    while ci < nlen {
+        writer_core::emit_byte(w, char_at(name, ci))
+        ci = ci + 1
+    }
+}

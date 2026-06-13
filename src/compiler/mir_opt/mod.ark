@@ -1,0 +1,8 @@
+// Arukellt Selfhost - mir_opt public boundary.
+
+use mir::types
+use mir_opt::orchestrate
+
+pub fn optimize_module(m: MirModule, opt_level: i32) -> MirModule {
+    orchestrate::mir_opt_optimize_module(m, opt_level)
+}

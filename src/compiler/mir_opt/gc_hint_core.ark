@@ -1,0 +1,128 @@
+// Arukellt Selfhost - short-lived struct GC hint annotation.
+
+use mir::block_inst_access
+use mir::block_inst_mutation
+use mir::function_block_queries
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_gc_hint
+use mir::opcodes
+use mir::types
+use mir_opt::loop_regions
+use mir_opt::summary_record
+
+pub struct GcHintAnnotateResult {
+    instructions: Vec<MirInst>,
+    annotated: i32,
+}
+
+fn GcHintAnnotateResult_new(instructions: Vec<MirInst>, annotated: i32) -> GcHintAnnotateResult {
+    GcHintAnnotateResult { instructions: instructions, annotated: annotated }
+}
+
+fn gc_hint_count_local_uses(insts: Vec<MirInst>, from: i32, to: i32, local: i32) -> i32 {
+    let mut uses = 0
+    let mut i = from
+    while i <= to {
+        let inst = get_unchecked(insts, i)
+        if inst_accessors_operands::MirInst_arg0(inst) == local {
+            uses = uses + 1
+        }
+        if inst_accessors_operands::MirInst_arg1(inst) == local {
+            uses = uses + 1
+        }
+        i = i + 1
+    }
+    uses
+}
+
+fn gc_hint_local_escapes(insts: Vec<MirInst>, from: i32, to: i32, local: i32) -> bool {
+    let mut i = from
+    while i <= to {
+        let inst = get_unchecked(insts, i)
+        let op = inst_accessors_shape::MirInst_op(inst)
+        if op == opcodes::MIR_CALL() || op == opcodes::MIR_WIT_CALL() {
+            if inst_accessors_operands::MirInst_arg0(inst) == local {
+                return true
+            }
+            if inst_accessors_operands::MirInst_arg1(inst) == local {
+                return true
+            }
+        }
+        if op == opcodes::MIR_STRUCT_SET() {
+            if inst_accessors_operands::MirInst_arg1(inst) == local {
+                return true
+            }
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn gc_hint_should_annotate(insts: Vec<MirInst>, idx: i32, end: i32) -> bool {
+    let inst = get_unchecked(insts, idx)
+    if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_STRUCT_NEW() {
+        return false
+    }
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    if dest < 0 {
+        return false
+    }
+    let uses = gc_hint_count_local_uses(insts, idx + 1, end, dest)
+    if uses != 1 {
+        return false
+    }
+    if gc_hint_local_escapes(insts, idx + 1, end, dest) {
+        return false
+    }
+    true
+}
+
+fn gc_hint_annotate_loop(insts: Vec<MirInst>, region: LoopRegion) -> GcHintAnnotateResult {
+    let start = loop_regions::LoopRegion_loop_start(region)
+    let end = loop_regions::LoopRegion_loop_end(region)
+    let out = Vec_new_MirInst()
+    let mut annotated = 0
+    let mut i = 0
+    while i < len(insts) {
+        if i > start && i < end && gc_hint_should_annotate(insts, i, end) {
+            push(out, inst_gc_hint::MirInst_gc_hint_short_lived())
+            push(out, get_unchecked(insts, i))
+            annotated = annotated + 1
+            i = i + 1
+            continue
+        }
+        push(out, get_unchecked(insts, i))
+        i = i + 1
+    }
+    GcHintAnnotateResult_new(out, annotated)
+}
+
+fn gc_hint_optimize_block_insts(insts: Vec<MirInst>) -> GcHintAnnotateResult {
+    let regions = loop_regions::mir_opt_collect_loop_regions(insts)
+    let mut current = insts
+    let mut total = 0
+    let mut ri = 0
+    while ri < len(regions) {
+        let result = gc_hint_annotate_loop(current, get_unchecked(regions, ri))
+        current = result.instructions
+        total = total + result.annotated
+        ri = ri + 1
+    }
+    GcHintAnnotateResult_new(current, total)
+}
+
+fn gc_hint_optimize_function(f: MirFunction) -> OptimizationSummary {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut total = 0
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let insts = block_inst_access::MirBlock_instructions(block)
+        let result = gc_hint_optimize_block_insts(insts)
+        block_inst_mutation::MirBlock_set_instructions(block, result.instructions)
+        total = total + result.annotated
+        bi = bi + 1
+    }
+    summary_record::OptimizationSummary_add_gc_hint(summary_record::OptimizationSummary_new(), total)
+}

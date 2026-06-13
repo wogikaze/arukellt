@@ -71,6 +71,9 @@ fn MIR_NOP() -> i32 { 71 }
 fn MIR_UNREACHABLE() -> i32 { 72 }
 fn MIR_PHI() -> i32 { 73 }
 
+fn MIR_GC_HINT() -> i32 { 74 }
+fn MIR_GC_HINT_SHORT_LIVED() -> i32 { 0 }
+
 fn is_arith_opcode(op: i32) -> bool {
     op >= MIR_ADD() && op <= MIR_SHR()
 }

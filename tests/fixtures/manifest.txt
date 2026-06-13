@@ -357,6 +357,7 @@ run:scalar/u64_basic.ark
 run:scalar/u8_basic.ark
 run:scalar/u8_overflow.ark
 run:scalar/licm_hoist.ark
+run:scalar/gc_hint_short_lived.ark
 run:selfhost/issue499_closure_literal.ark
 run:selfhost/lsp_symbol_index/main.ark
 run:selfhost/mir_lowering.ark

@@ -1,0 +1,91 @@
+// Arukellt Selfhost - LICM hoist implementation.
+
+use mir::block_inst_access
+use mir::block_inst_mutation
+use mir::function_block_mutation
+use mir::function_block_queries
+use mir::types
+use mir_opt::licm_predicates
+use mir_opt::loop_regions
+use mir_opt::summary_record
+
+struct LicmBlockResult {
+    instructions: Vec<MirInst>,
+    hoisted: i32,
+}
+
+fn LicmBlockResult_new(instructions: Vec<MirInst>, hoisted: i32) -> LicmBlockResult {
+    LicmBlockResult { instructions: instructions, hoisted: hoisted }
+}
+
+fn licm_hoist_region(insts: Vec<MirInst>, region: LoopRegion) -> LicmBlockResult {
+    let start = loop_regions::LoopRegion_loop_start(region)
+    let end = loop_regions::LoopRegion_loop_end(region)
+    let modified = licm_predicates::licm_collect_loop_modified(insts, start, end)
+    let hoist_marks = Vec_new_i32()
+    let mut hoist_count = 0
+    let mut i = start + 1
+    while i < end {
+        let inst = get_unchecked(insts, i)
+        if licm_predicates::licm_is_hoistable_inst(inst) {
+            if !licm_predicates::licm_inst_depends_on_any(inst, modified) {
+                push(hoist_marks, i)
+                hoist_count = hoist_count + 1
+            }
+        }
+        i = i + 1
+    }
+    if hoist_count == 0 {
+        return LicmBlockResult_new(insts, 0)
+    }
+    let out = Vec_new_MirInst()
+    i = 0
+    while i < start {
+        push(out, get_unchecked(insts, i))
+        i = i + 1
+    }
+    let mut hi = 0
+    while hi < len(hoist_marks) {
+        let idx = get_unchecked(hoist_marks, hi)
+        push(out, get_unchecked(insts, idx))
+        hi = hi + 1
+    }
+    i = start
+    while i < len(insts) {
+        if !licm_predicates::licm_inst_marked_hoist(i, hoist_marks) {
+            push(out, get_unchecked(insts, i))
+        }
+        i = i + 1
+    }
+    LicmBlockResult_new(out, hoist_count)
+}
+
+fn licm_optimize_block_insts(insts: Vec<MirInst>) -> LicmBlockResult {
+    let regions = loop_regions::mir_opt_collect_loop_regions(insts)
+    let ordered = loop_regions::mir_opt_regions_by_depth_desc(regions)
+    let mut current = insts
+    let mut total = 0
+    let mut ri = 0
+    while ri < len(ordered) {
+        let result = licm_hoist_region(current, get_unchecked(ordered, ri))
+        current = result.instructions
+        total = total + result.hoisted
+        ri = ri + 1
+    }
+    LicmBlockResult_new(current, total)
+}
+
+fn licm_optimize_function(f: MirFunction) -> OptimizationSummary {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut total_hoisted = 0
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let insts = block_inst_access::MirBlock_instructions(block)
+        let result = licm_optimize_block_insts(insts)
+        block_inst_mutation::MirBlock_set_instructions(block, result.instructions)
+        total_hoisted = total_hoisted + result.hoisted
+        bi = bi + 1
+    }
+    summary_record::OptimizationSummary_add_licm(summary_record::OptimizationSummary_new(), total_hoisted)
+}

@@ -76,6 +76,10 @@ fn NK_TYPE_TUPLE() -> i32 { 93 }
 fn NK_TYPE_OPTION() -> i32 { 94 }
 fn NK_TYPE_RESULT() -> i32 { 95 }
 
+// Error recovery AST node kinds (#566).
+fn NK_ERROR() -> i32 { 96 }
+fn NK_MISSING() -> i32 { 97 }
+
 // Arithmetic operator kinds.
 fn OP_ADD() -> i32 { 1 }
 fn OP_SUB() -> i32 { 2 }

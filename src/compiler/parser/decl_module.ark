@@ -1,7 +1,49 @@
 // Arukellt Parser - top-level module parsing.
 
+use lexer::tokens
 use parser::core_api_cursor
 use parser::decl_dispatch
+use parser::state_record
+
+// Returns true if `kind` can start a top-level declaration (#566 recovery).
+fn is_decl_start(kind: i32) -> bool {
+    if kind == tokens::TK_FN() {
+        return true
+    }
+    if kind == tokens::TK_PUB() {
+        return true
+    }
+    if kind == tokens::TK_STRUCT() {
+        return true
+    }
+    if kind == tokens::TK_ENUM() {
+        return true
+    }
+    if kind == tokens::TK_TRAIT() {
+        return true
+    }
+    if kind == tokens::TK_IMPL() {
+        return true
+    }
+    if kind == tokens::TK_USE() {
+        return true
+    }
+    if kind == tokens::TK_IMPORT() {
+        return true
+    }
+    false
+}
+
+// Synchronise to the next plausible top-level declaration start (#566).
+fn sync_to_decl_start(p: Parser) {
+    while !core_api_cursor::at_eof(p) {
+        let k = core_api_cursor::peek_kind(p)
+        if is_decl_start(k) {
+            return
+        }
+        state_record::parser_advance(p)
+    }
+}
 
 fn parse_module_impl(p: Parser) -> Vec<AstNode> {
     let mut decls: Vec<AstNode> = Vec_new_AstNode()
@@ -11,8 +53,16 @@ fn parse_module_impl(p: Parser) -> Vec<AstNode> {
         if core_api_cursor::at_eof(p) {
             break
         }
+        let err_before = state_record::parser_error_count(p)
+        let pos_before = state_record::parser_position(p)
         let d = decl_dispatch::parse_decl(p)
         push(decls, d)
+        if state_record::parser_error_count(p) > err_before {
+            if state_record::parser_position(p) == pos_before {
+                state_record::parser_advance(p)
+            }
+            sync_to_decl_start(p)
+        }
         core_api_cursor::skip_newlines(p)
     }
     decls
