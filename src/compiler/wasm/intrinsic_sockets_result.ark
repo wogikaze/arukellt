@@ -26,7 +26,7 @@ fn emit_sockets_write_err_len_prefix(w: WasmWriter) {
     helpers_memory_access::emit_i32_load_default(w)
     helpers_numeric_i32_const::emit_i32_const(w, 0)
     helpers_numeric_i32_compare::emit_i32_lt_s(w)
-    helpers_control_structured::emit_if_i32(w)
+    helpers_control_structured::emit_if_empty(w)
     intrinsic_http_result::emit_http_write_len_prefix(w, constants::SCRATCH_SOCK_RESPPTR(), constants::SCRATCH_SOCK_ABSLEN())
     helpers_control_structured::emit_end(w)
 }
@@ -36,7 +36,7 @@ fn emit_sockets_bump_heap_for_err(w: WasmWriter) {
     helpers_memory_access::emit_i32_load_default(w)
     helpers_numeric_i32_const::emit_i32_const(w, 0)
     helpers_numeric_i32_compare::emit_i32_lt_s(w)
-    helpers_control_structured::emit_if_i32(w)
+    helpers_control_structured::emit_if_empty(w)
     intrinsic_http_result::emit_http_bump_heap_by_abs_len(w, constants::SCRATCH_SOCK_ABSLEN())
     helpers_control_structured::emit_end(w)
 }

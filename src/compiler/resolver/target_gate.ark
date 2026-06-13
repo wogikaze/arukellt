@@ -8,7 +8,7 @@ fn target_is_t1(target: String) -> bool {
 }
 
 fn module_is_t3_only(module_path: String) -> bool {
-    eq(clone(module_path), String_from("std::host::sockets")) || eq(module_path, String_from("std::host::udp"))
+    eq(clone(module_path), String_from("std::host::udp"))
 }
 
 fn t3_only_message(module_path: String) -> String {

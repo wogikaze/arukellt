@@ -183,9 +183,9 @@ def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
     if _wasm_needs_host_linker(wasm_path):
         hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
         if hosted.is_file():
-            return ["bash", str(hosted), str(wasm_path)]
+            return ["bash", str(hosted), f"--dir={root}", str(wasm_path)]
     wasmtime = _find_wasmtime()
-    return [wasmtime or "wasmtime", "run", str(wasm_path)]
+    return [wasmtime or "wasmtime", "run", f"--dir={root}", str(wasm_path)]
 
 
 def _run(cmd: list[str], root: Path, capture: bool = True, timeout: int | None = None) -> subprocess.CompletedProcess:
@@ -2162,8 +2162,8 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
             tmp,
         )
         rc_i, out_i = r.returncode, (r.stdout + r.stderr)
-        if rc_i == 0 and "Created project" in out_i:
-            lines.append(f"  pass: init (exit 0, mentions 'Created project')")
+        if rc_i == 0 and "Initialized Arukellt project" in out_i:
+            lines.append(f"  pass: init (exit 0, mentions 'Initialized Arukellt project')")
             pass_count += 1
         else:
             lines.append(f"  FAIL: init (exit={rc_i}, output={out_i.strip()!r})")
