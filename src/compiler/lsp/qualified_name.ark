@@ -1,0 +1,84 @@
+// Arukellt LSP - qualified identifier text at cursor.
+
+use analysis::ident_span
+use analysis::symbols
+
+struct IdentSlice {
+    text: String,
+    start: i32,
+}
+
+fn IdentSlice_new(text: String, start: i32) -> IdentSlice {
+    IdentSlice { text: text, start: start }
+}
+
+fn is_ident_char(ch: i32) -> bool {
+    if ch >= 97 && ch <= 122 {
+        return true
+    }
+    if ch >= 65 && ch <= 90 {
+        return true
+    }
+    if ch >= 48 && ch <= 57 {
+        return true
+    }
+    ch == 95
+}
+
+fn read_ident_backward(text: String, pos: i32) -> IdentSlice {
+    let n = len(text)
+    let mut end = pos
+    while end < n && is_ident_char(char_at(text, end)) {
+        end = end + 1
+    }
+    let mut start = pos
+    while start > 0 && is_ident_char(char_at(text, start - 1)) {
+        start = start - 1
+    }
+    IdentSlice_new(substring(text, start, end), start)
+}
+
+fn scan_colon_colon_before(text: String, ident_start: i32) -> i32 {
+    let mut pos = ident_start - 1
+    while pos >= 0 && char_at(text, pos) == 32 {
+        pos = pos - 1
+    }
+    if pos >= 1 && char_at(text, pos) == 58 && char_at(text, pos - 1) == 58 {
+        return pos - 1
+    }
+    -1
+}
+
+pub fn lookup_name_at_offset(text: String, offset: i32) -> String {
+    let span = symbols::ident_span_at_offset(clone(text), offset)
+    if !ident_span::ident_span_found(span) {
+        return String_new()
+    }
+    let name = ident_span::ident_span_name(span)
+    let ident_start = ident_span::ident_span_start(span)
+    let mut qual_end = ident_start
+    let mut qual = String_new()
+    let mut more = true
+    while more {
+        let colon_pos = scan_colon_colon_before(clone(text), qual_end)
+        if colon_pos < 0 {
+            more = false
+        } else {
+            let part = read_ident_backward(clone(text), colon_pos)
+            if len(part.text) == 0 {
+                more = false
+            } else {
+                if len(qual) == 0 {
+                    qual = part.text
+                } else {
+                    qual = concat(part.text, concat(String_from("::"), qual))
+                }
+                qual_end = part.start
+            }
+        }
+    }
+    if len(qual) > 0 {
+        return concat(qual, concat(String_from("::"), name))
+    }
+    name
+}

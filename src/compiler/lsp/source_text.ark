@@ -1,0 +1,27 @@
+// Arukellt LSP - read document text for URI position mapping.
+
+use lsp::state_docs
+use lsp::state_record
+use lsp::symbol_index_paths
+use std::host::fs
+
+pub fn text_for_uri(state: LspState, uri: String) -> String {
+    let store = state_record::lsp_state_doc_store(state)
+    let from_store = state_docs::lsp_doc_store_lookup_text(store, clone(uri))
+    if len(from_store) > 0 {
+        return from_store
+    }
+    let path = symbol_index_paths::uri_to_file_path(clone(uri))
+    if len(path) == 0 {
+        return String_new()
+    }
+    let read_result = fs::read_to_string(path)
+    match read_result {
+        Result::Ok(text) => {
+            text
+        },
+        Result::Err(_) => {
+            String_new()
+        },
+    }
+}

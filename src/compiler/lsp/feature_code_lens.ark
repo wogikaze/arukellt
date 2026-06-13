@@ -1,0 +1,16 @@
+// Arukellt LSP - codeLens request handling.
+
+use lsp::feature_request
+use lsp::framing
+use lsp::json_fields
+use lsp::responses
+use lsp::state_record
+
+pub fn handle_code_lens(state: LspState, body: String) {
+    let id = json_fields::extract_int_field(clone(body), String_from("id"))
+    if !state_record::lsp_state_enable_code_lens(state) {
+        framing::append_framed(state, responses::build_empty_array_response(id))
+        return
+    }
+    framing::append_framed(state, responses::build_empty_array_response(id))
+}

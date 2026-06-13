@@ -69,3 +69,24 @@ The extension requires the CLI to support:
 - `arukellt lsp` subcommand
 - `arukellt debug-adapter` subcommand
 - `arukellt check`, `arukellt compile`, `arukellt run` for task provider
+
+### Version output format
+
+- Command: `arukellt --version` or `arukellt -V`
+- Exit code: `0`
+- stdout: single line `arukellt 0.1.0` (plain text; extension probes exit code only)
+- stderr: empty on success
+
+## stdio separation
+
+| Stream | Content |
+|--------|---------|
+| stdout | LSP/DAP JSON-RPC frames only (`Content-Length` framed) |
+| stderr | Human-readable errors, build logs, `eprintln` diagnostics |
+
+Script replay (CI fixtures): `arukellt lsp <path/to/script.lsp-script>` reads a
+fixture file and writes framed responses to stdout — same framing as stdio mode.
+
+Verification: `python3 scripts/check/check-lsp-lifecycle.py` runs every
+`tests/fixtures/selfhost/lsp_*.lsp-script` through both file-arg and stdin stdio
+paths against the selfhost compiler wasm.

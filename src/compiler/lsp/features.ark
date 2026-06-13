@@ -1,9 +1,10 @@
 // Arukellt LSP - hover, definition, and completion requests.
 
-use lsp::feature_completion
+use lsp::feature_code_lens
 use lsp::feature_definition
 use lsp::feature_hover
 use lsp::feature_references
+use lsp::feature_type_definition
 use lsp::feature_workspace_symbol
 
 pub fn handle_hover(state: LspState, body: String) {
@@ -28,4 +29,12 @@ pub fn handle_references(state: LspState, body: String) {
 
 pub fn handle_document_highlight(state: LspState, body: String) {
     feature_references::handle_document_highlight(state, body)
+}
+
+pub fn handle_type_definition(state: LspState, body: String) {
+    feature_type_definition::handle_type_definition(state, body)
+}
+
+pub fn handle_code_lens(state: LspState, body: String) {
+    feature_code_lens::handle_code_lens(state, body)
 }

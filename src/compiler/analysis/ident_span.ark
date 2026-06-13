@@ -1,0 +1,32 @@
+// Arukellt Selfhost - identifier span at cursor.
+
+pub struct IdentSpan {
+    found: bool,
+    name: String,
+    start: i32,
+    end: i32,
+}
+
+pub fn IdentSpan_none() -> IdentSpan {
+    IdentSpan { found: false, name: String_new(), start: 0, end: 0 }
+}
+
+pub fn IdentSpan_found(name: String, start: i32, end: i32) -> IdentSpan {
+    IdentSpan { found: true, name: name, start: start, end: end }
+}
+
+pub fn ident_span_found(span: IdentSpan) -> bool {
+    span.found
+}
+
+pub fn ident_span_name(span: IdentSpan) -> String {
+    clone(span.name)
+}
+
+pub fn ident_span_start(span: IdentSpan) -> i32 {
+    span.start
+}
+
+pub fn ident_span_end(span: IdentSpan) -> i32 {
+    span.end
+}

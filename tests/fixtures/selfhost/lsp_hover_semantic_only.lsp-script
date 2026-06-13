@@ -1,0 +1,19 @@
+Content-Length: 107
+
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":null,"capabilities":{}}}Content-Length: 52
+
+{"jsonrpc":"2.0","method":"initialized","params":{}}Content-Length: 233
+
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///semantic_hover.ark","languageId":"arukellt","version":1,"text":"fn answer() -> i32 { 42 }\n\nfn main() {\n    let n = 42\n    answer()\n}\n"}}}Content-Length: 154
+
+{"jsonrpc":"2.0","id":2,"method":"textDocument/hover","params":{"textDocument":{"uri":"file:///semantic_hover.ark"},"position":{"line":3,"character":12}}}Content-Length: 153
+
+{"jsonrpc":"2.0","id":3,"method":"textDocument/hover","params":{"textDocument":{"uri":"file:///semantic_hover.ark"},"position":{"line":3,"character":9}}}Content-Length: 153
+
+{"jsonrpc":"2.0","id":4,"method":"textDocument/hover","params":{"textDocument":{"uri":"file:///semantic_hover.ark"},"position":{"line":4,"character":6}}}Content-Length: 154
+
+{"jsonrpc":"2.0","id":5,"method":"textDocument/hover","params":{"textDocument":{"uri":"file:///semantic_hover.ark"},"position":{"line":4,"character":10}}}Content-Length: 44
+
+{"jsonrpc":"2.0","id":6,"method":"shutdown"}Content-Length: 33
+
+{"jsonrpc":"2.0","method":"exit"}

@@ -26,6 +26,10 @@ pub fn analyze(uri: String, text: String) -> AnalysisSnapshot {
 session_analyze_pipeline::run_session_analyze(uri, text)
 }
 
+pub fn analyze_with_modules(uri: String, text: String, modules: Vec<ModuleDecls>) -> AnalysisSnapshot {
+session_analyze_pipeline::run_session_analyze_with_modules(uri, text, modules)
+}
+
 pub fn snapshot_summary(snap: AnalysisSnapshot) -> String {
 let mut out = String_from("analysis ")
 out = concat(out, snapshot_state_record::snapshot_uri(snap))

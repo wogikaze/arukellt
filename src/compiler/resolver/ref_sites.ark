@@ -31,3 +31,16 @@ fn use_site_at(ctx: ResolveCtx, index: i32) -> UseSite {
 fn find_decl_index_at_offset(ctx: ResolveCtx, offset: i32) -> i32 {
     ref_index::find_decl_index_at_offset(ctx_record::resolve_ctx_ref_index(ctx), offset)
 }
+
+fn find_decl_binding_site(ctx: ResolveCtx, decl_index: i32) -> DeclSite {
+    let n = decl_site_count(ctx)
+    let mut i = 0
+    while i < n {
+        let site = decl_site_at(ctx, i)
+        if ref_record::decl_site_decl_index(site) == decl_index {
+            return site
+        }
+        i = i + 1
+    }
+    ref_record::DeclSite_new(-1, 0, 0, String_new())
+}

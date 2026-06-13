@@ -1076,13 +1076,13 @@ def _stage3_compiler_wasm(root: Path, pinned: Path, built_s2: Path) -> Path | No
 
 def resolve_ide_gate_compiler_wasm(root: Path) -> Path | None:
     """Compiler wasm for LSP/DAP/analysis quick gates."""
-    pinned = _find_pinned_wasm(root)
-    if pinned is None:
-        return None
+    s3 = root / ".build" / "selfhost" / "arukellt-s3.wasm"
+    if s3.is_file():
+        return s3
     s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
     if s2.is_file():
         return s2
-    return pinned
+    return _find_pinned_wasm(root)
 
 
 def _parity_runtime_compiler(root: Path, pinned: Path, built_s2: Path) -> Path | None:

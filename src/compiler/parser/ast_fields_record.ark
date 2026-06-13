@@ -43,6 +43,26 @@ fn ast_node_set_span(node: AstNode, span: Span) {
     node.span = span
 }
 
+fn ast_node_name_span(node: AstNode) -> Span {
+    node.name_span
+}
+
+fn ast_node_set_name_span(node: AstNode, span: Span) {
+    node.name_span = span
+}
+
+fn ast_node_name_span_start(node: AstNode) -> i32 {
+    ast_span_record::span_start(node.name_span)
+}
+
+fn ast_node_name_span_end(node: AstNode) -> i32 {
+    ast_span_record::span_end(node.name_span)
+}
+
+fn ast_node_has_name_span(node: AstNode) -> bool {
+    ast_span_record::span_end(node.name_span) > ast_span_record::span_start(node.name_span)
+}
+
 fn ast_node_span_end(node: AstNode) -> i32 {
     ast_span_record::span_end(node.span)
 }

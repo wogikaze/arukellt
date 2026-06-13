@@ -1,7 +1,9 @@
 // Arukellt LSP - definition lookup via project/stdlib symbol index.
 
+use lsp::kinds
 use lsp::state_record
 use lsp::symbol_index_record
+use lsp::symbol_index_stdlib_spans
 
 struct IndexDefinition {
     found: bool,
@@ -9,10 +11,11 @@ struct IndexDefinition {
     decl_start: i32,
     decl_end: i32,
     detail: String,
+    doc: String,
 }
 
 fn IndexDefinition_none() -> IndexDefinition {
-    IndexDefinition { found: false, uri: String_new(), decl_start: 0, decl_end: 0, detail: String_new() }
+    IndexDefinition { found: false, uri: String_new(), decl_start: 0, decl_end: 0, detail: String_new(), doc: String_new() }
 }
 
 pub fn index_definition_found(def: IndexDefinition) -> bool {
@@ -35,6 +38,10 @@ pub fn index_definition_detail(def: IndexDefinition) -> String {
     clone(def.detail)
 }
 
+pub fn index_definition_doc(def: IndexDefinition) -> String {
+    clone(def.doc)
+}
+
 pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
     let symbols = state_record::lsp_state_symbol_symbols(state)
     let n = len(symbols)
@@ -42,7 +49,7 @@ pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
     while i < n {
         let sym = get_unchecked(symbols, i)
         if eq(symbol_index_record::indexed_symbol_name(sym), clone(name)) {
-            return IndexDefinition { found: true, uri: symbol_index_record::indexed_symbol_uri(sym), decl_start: symbol_index_record::indexed_symbol_decl_start(sym), decl_end: symbol_index_record::indexed_symbol_decl_end(sym), detail: symbol_index_record::indexed_symbol_detail(sym) }
+            return IndexDefinition { found: true, uri: symbol_index_record::indexed_symbol_uri(sym), decl_start: symbol_index_record::indexed_symbol_decl_start(sym), decl_end: symbol_index_record::indexed_symbol_decl_end(sym), detail: symbol_index_record::indexed_symbol_detail(sym), doc: String_new() }
         }
         i = i + 1
     }
@@ -52,10 +59,36 @@ pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
     while j < sn {
         let sym = get_unchecked(stdlib, j)
         if eq(symbol_index_record::stdlib_indexed_symbol_name(sym), clone(name)) {
-            let nm = symbol_index_record::stdlib_indexed_symbol_name(sym)
-            return IndexDefinition { found: true, uri: symbol_index_record::stdlib_indexed_symbol_source_uri(sym), decl_start: 0, decl_end: len(nm), detail: symbol_index_record::stdlib_indexed_symbol_detail(sym) }
+            let source_uri = symbol_index_record::stdlib_indexed_symbol_source_uri(sym)
+            let mut decl_start = symbol_index_record::stdlib_indexed_symbol_decl_start(sym)
+            let mut decl_end = symbol_index_record::stdlib_indexed_symbol_decl_end(sym)
+            if len(source_uri) > 0 {
+                let span = symbol_index_stdlib_spans::lookup_stdlib_source_span(clone(source_uri), clone(name))
+                if symbol_index_stdlib_spans::source_span_found(span) {
+                    decl_start = symbol_index_stdlib_spans::source_span_start(span)
+                    decl_end = symbol_index_stdlib_spans::source_span_end(span)
+                }
+            }
+            return IndexDefinition { found: true, uri: source_uri, decl_start: decl_start, decl_end: decl_end, detail: symbol_index_record::stdlib_indexed_symbol_detail(sym), doc: symbol_index_record::stdlib_indexed_symbol_doc(sym) }
         }
         j = j + 1
     }
     IndexDefinition_none()
+}
+
+pub fn lookup_type_definition(state: LspState, name: String) -> IndexDefinition {
+    let symbols = state_record::lsp_state_symbol_symbols(state)
+    let n = len(symbols)
+    let mut i = 0
+    while i < n {
+        let sym = get_unchecked(symbols, i)
+        if eq(symbol_index_record::indexed_symbol_name(sym), clone(name)) {
+            let kind = symbol_index_record::indexed_symbol_kind(sym)
+            if kind == kinds::LSP_SYMBOL_STRUCT() || kind == kinds::LSP_SYMBOL_ENUM() {
+                return IndexDefinition { found: true, uri: symbol_index_record::indexed_symbol_uri(sym), decl_start: symbol_index_record::indexed_symbol_decl_start(sym), decl_end: symbol_index_record::indexed_symbol_decl_end(sym), detail: symbol_index_record::indexed_symbol_detail(sym), doc: String_new() }
+            }
+        }
+        i = i + 1
+    }
+    lookup_definition(state, name)
 }

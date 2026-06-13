@@ -64,6 +64,19 @@ fn render_trait_detail(name: String) -> String {
     concat(String_from("trait "), name)
 }
 
+fn node_decl_name_span_start(node: AstNode) -> i32 {
+    if ast::ast_node_has_name_span(node) {
+        return ast::ast_node_name_span_start(node)
+    }
+    node_span_start(node)
+}
+
+fn node_decl_name_span_end(node: AstNode) -> i32 {
+    if ast::ast_node_has_name_span(node) {
+        return ast::ast_node_name_span_end(node)
+    }
+    node_span_start(node) + len(node_text(node))
+}
 fn push_decl_symbol(out: Vec<symbol_index_record::IndexedSymbol>, uri: String, node: AstNode, is_method: bool) {
     let name = node_text(node)
     let detail = if node_is_fn_decl(node) {
@@ -79,7 +92,7 @@ fn push_decl_symbol(out: Vec<symbol_index_record::IndexedSymbol>, uri: String, n
             }
         }
     }
-    push(out, symbol_index_record::IndexedSymbol_new(uri, name, kinds::lsp_kind_for_nk(node_kind(node), is_method), node_span_start(node), node_span_end(node), detail, String_new()))
+    push(out, symbol_index_record::IndexedSymbol_new(uri, name, kinds::lsp_kind_for_nk(node_kind(node), is_method), node_decl_name_span_start(node), node_decl_name_span_end(node), detail, String_new()))
 }
 
 fn push_impl_methods(out: Vec<symbol_index_record::IndexedSymbol>, uri: String, node: AstNode) {

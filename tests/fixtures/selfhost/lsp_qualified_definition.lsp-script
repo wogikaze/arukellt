@@ -6,7 +6,7 @@ Content-Length: 152
 
 {"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file://tests/fixtures/selfhost/lsp_symbol_index/main.ark","languageId":"arukellt","version":1,"text":"use helper\n\nfn main() {\n    let _v = helper::helper_fn()\n}\n"}}}Content-Length: 189
 
-{"jsonrpc":"2.0","id":2,"method":"textDocument/definition","params":{"textDocument":{"uri":"file://tests/fixtures/selfhost/lsp_symbol_index/main.ark"},"position":{"line":3,"character":24}}}Content-Length: 44
+{"jsonrpc":"2.0","id":2,"method":"textDocument/definition","params":{"textDocument":{"uri":"file://tests/fixtures/selfhost/lsp_symbol_index/main.ark"},"position":{"line":3,"character":15}}}Content-Length: 44
 
 {"jsonrpc":"2.0","id":3,"method":"shutdown"}Content-Length: 33
 

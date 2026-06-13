@@ -1,5 +1,5 @@
 use helper
 
 fn main() {
-    let _v = helper_fn()
+    let _v = helper::helper_fn()
 }

@@ -1,0 +1,76 @@
+// Arukellt LSP - build resolver ModuleDecls from indexed workspace files.
+
+use compiler::session_parse
+use lsp::state_docs
+use lsp::state_record
+use lsp::symbol_index_paths
+use resolver
+use std::host::fs
+
+fn ark_stem_from_path(path: String) -> String {
+    let n = len(path)
+    let mut last_slash = 0 - 1
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(path, i) == 47 {
+            last_slash = i
+            i = 0 - 1
+        } else {
+            i = i - 1
+        }
+    }
+    let start = if last_slash < 0 {
+        0
+    } else {
+        last_slash + 1
+    }
+    let name = substring(path, start, n)
+    let nl = len(name)
+    if nl > 4 && eq(substring(clone(name), nl - 4, nl), String_from(".ark")) {
+        return substring(name, 0, nl - 4)
+    }
+    name
+}
+
+fn module_text_for_uri(state: LspState, uri: String) -> String {
+    let store = state_record::lsp_state_doc_store(state)
+    let from_store = state_docs::lsp_doc_store_lookup_text(store, clone(uri))
+    if len(from_store) > 0 {
+        return from_store
+    }
+    let path = symbol_index_paths::uri_to_file_path(clone(uri))
+    if len(path) == 0 {
+        return String_new()
+    }
+    let read_result = fs::read_to_string(path)
+    match read_result {
+        Result::Ok(text) => {
+            text
+        },
+        Result::Err(_) => {
+            String_new()
+        },
+    }
+}
+
+pub fn build_resolve_modules(state: LspState, current_uri: String) -> Vec<ModuleDecls> {
+    let out = Vec_new_ModuleDecls()
+    let indexed = state_record::lsp_state_symbol_indexed_uris(state)
+    let n = len(indexed)
+    let mut i = 0
+    while i < n {
+        let uri = get_unchecked(indexed, i)
+        if !eq(clone(uri), clone(current_uri)) {
+            let text = module_text_for_uri(state, clone(uri))
+            if len(text) > 0 {
+                let decls = session_parse::session_parse_decls(clone(text))
+                let stem = ark_stem_from_path(symbol_index_paths::uri_to_file_path(clone(uri)))
+                if len(stem) > 0 {
+                    push(out, resolver::ModuleDecls_new(stem, decls))
+                }
+            }
+        }
+        i = i + 1
+    }
+    out
+}

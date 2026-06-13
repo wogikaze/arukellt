@@ -1,16 +1,15 @@
-// Arukellt LSP - definition request handling.
+// Arukellt LSP - type definition request handling.
 
-use analysis::symbols
 use lsp::feature_request
 use lsp::feature_symbol
 use lsp::framing
 use lsp::positions
-use lsp::responses
 use lsp::qualified_name
+use lsp::responses
 use lsp::source_text
 use lsp::symbol_index_lookup
 
-pub fn handle_definition(state: LspState, body: String) {
+pub fn handle_type_definition(state: LspState, body: String) {
     let sym = feature_symbol::resolve_symbol_request(state, clone(body))
     if feature_symbol::symbol_request_found(sym) {
         framing::append_framed(state, responses::build_definition_response(feature_symbol::symbol_request_id(sym), feature_symbol::symbol_request_uri(sym), feature_symbol::symbol_request_start(sym), feature_symbol::symbol_request_end(sym)))
@@ -43,7 +42,7 @@ pub fn handle_definition(state: LspState, body: String) {
             short_name = substring(lookup_name, last_colon, len(lookup_name))
         }
     }
-    let def = symbol_index_lookup::lookup_definition(state, short_name)
+    let def = symbol_index_lookup::lookup_type_definition(state, short_name)
     if !symbol_index_lookup::index_definition_found(def) {
         framing::append_framed(state, responses::build_null_response(feature_request::text_position_request_id(req)))
         return

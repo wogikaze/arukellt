@@ -33,6 +33,10 @@ fn decl_site_end(site: DeclSite) -> i32 {
     site.end
 }
 
+fn decl_site_name(site: DeclSite) -> String {
+    clone(site.name)
+}
+
 fn use_site_decl_index(site: UseSite) -> i32 {
     site.decl_index
 }

@@ -26,6 +26,22 @@ fn ast_node_span_end(node: AstNode) -> i32 {
     ast_fields_record::ast_node_span_end(node)
 }
 
+fn ast_node_name_span_start(node: AstNode) -> i32 {
+    ast_fields_record::ast_node_name_span_start(node)
+}
+
+fn ast_node_name_span_end(node: AstNode) -> i32 {
+    ast_fields_record::ast_node_name_span_end(node)
+}
+
+fn ast_node_has_name_span(node: AstNode) -> bool {
+    ast_fields_record::ast_node_has_name_span(node)
+}
+
+fn ast_node_set_name_span(node: AstNode, span: Span) {
+    ast_fields_record::ast_node_set_name_span(node, span)
+}
+
 fn ast_node_op(node: AstNode) -> i32 {
     ast_fields_record::ast_node_op(node)
 }

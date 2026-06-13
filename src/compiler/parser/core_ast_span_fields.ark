@@ -5,3 +5,4 @@ use parser::ast_fields_record
 fn AstNode_span(node: AstNode) -> Span { ast_fields_record::ast_node_span(node) }
 fn AstNode_span_end(node: AstNode) -> i32 { ast_fields_record::ast_node_span_end(node) }
 fn AstNode_set_span(node: AstNode, span: Span) { ast_fields_record::ast_node_set_span(node, span) }
+fn AstNode_set_name_span(node: AstNode, span: Span) { ast_fields_record::ast_node_set_name_span(node, span) }

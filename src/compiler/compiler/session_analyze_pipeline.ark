@@ -111,6 +111,10 @@ ti = ti + 1
 }
 
 fn run_session_analyze(uri: String, text: String) -> AnalysisSnapshot {
+	run_session_analyze_with_modules(uri, text, Vec_new_ModuleDecls())
+}
+
+pub fn run_session_analyze_with_modules(uri: String, text: String, modules: Vec<ModuleDecls>) -> AnalysisSnapshot {
 let snap = snapshot_state_record::AnalysisSnapshot_new(uri)
 let lex_result = session_lex_query::session_lex(clone(text))
 session_record_lex_diagnostics(snap, text, lex_result)
@@ -118,7 +122,7 @@ let parse_result = session_parse_tokens::session_parse_tokens(session_lex_query:
 snapshot_state_record::snapshot_set_decl_count(snap, session_parse_tokens::session_parse_decl_count(parse_result))
 session_record_parse_diagnostics(snap, parse_result)
 let decls = session_parse_tokens::session_parse_decls_from_result(parse_result)
-let resolve_ctx = session_resolve_query::session_resolve_decls(decls)
+let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules(decls, modules, Vec_new_String())
 snapshot_state_record::snapshot_set_symbol_count(snap, session_resolve_query::session_count_user_symbols(resolve_ctx))
 let res_err_count = session_resolve_query::session_resolve_error_count(resolve_ctx)
 session_record_resolve_diagnostics(snap, resolve_ctx)

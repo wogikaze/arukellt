@@ -5,57 +5,144 @@ use lsp::symbol_index_paths
 use lsp::symbol_index_record
 use std::host::fs
 
-fn stdlib_module_to_source_uri(module_path: String) -> String {
-    let rel = replace(clone(module_path), String_from("::"), String_from("/"))
-    symbol_index_paths::file_path_to_uri(concat(concat(String_from("std/"), rel), String_from(".ark")))
+struct ManifestParseState {
+    section: i32,
+    name: String,
+    module: String,
+    params: String,
+    returns: String,
+    doc: String,
 }
 
-fn push_function_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String, module_path: String) {
-    let detail = concat(concat(String_from("fn "), clone(name)), String_from("()"))
-    push(out, symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_FUNCTION(), detail, module_path, stdlib_module_to_source_uri(clone(module_path))))
+fn ManifestParseState_new() -> ManifestParseState {
+    ManifestParseState { section: 0, name: String_new(), module: String_new(), params: String_new(), returns: String_new(), doc: String_new() }
+}
+
+fn stdlib_module_to_source_uri(module_path: String) -> String {
+    let rel = replace(clone(module_path), String_from("::"), String_from("/"))
+    symbol_index_paths::file_path_to_uri(concat(rel, String_from(".ark")))
+}
+
+fn render_manifest_signature(name: String, params: String, returns: String) -> String {
+    let mut sig = concat(String_from("fn "), clone(name))
+    sig = concat(sig, String_from("("))
+    if len(params) > 0 {
+        sig = concat(sig, concat(String_from("s: "), params))
+    }
+    sig = concat(sig, String_from(")"))
+    if len(returns) > 0 {
+        sig = concat(sig, concat(String_from(" -> "), returns))
+    }
+    sig
+}
+
+fn push_function_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String, module_path: String, detail: String, doc: String) {
+    let nm = clone(name)
+    push(out, symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_FUNCTION(), detail, module_path, stdlib_module_to_source_uri(clone(module_path)), 0, len(nm), doc))
 }
 
 fn push_type_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String) {
     let detail = concat(String_from("type "), clone(name))
-    push(out, symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_STRUCT(), detail, String_new(), String_new()))
+    push(out, symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_STRUCT(), detail, String_new(), String_new(), 0, len(detail), String_new()))
+}
+
+fn flush_function_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, state: ManifestParseState) {
+    if len(state.name) > 0 && len(state.module) > 0 {
+        let detail = render_manifest_signature(clone(state.name), clone(state.params), clone(state.returns))
+        push_function_symbol(out, state.name, state.module, detail, state.doc)
+    }
+}
+
+fn apply_manifest_line(out: Vec<symbol_index_record::StdlibIndexedSymbol>, state: ManifestParseState, line: String) -> ManifestParseState {
+    if starts_with(clone(line), String_from("[[functions]]")) {
+        flush_function_symbol(out, clone(state))
+        return ManifestParseState_new()
+    }
+    if starts_with(clone(line), String_from("[[types]]")) {
+        flush_function_symbol(out, clone(state))
+        let mut next = ManifestParseState_new()
+        next.section = 2
+        return next
+    }
+    let key_name = symbol_index_paths::find_toml_value(clone(line), String_from("name"))
+    if len(key_name) > 0 && state.section == 2 {
+        push_type_symbol(out, clone(key_name))
+        return state
+    }
+    if len(key_name) > 0 && state.section == 1 {
+        flush_function_symbol(out, clone(state))
+        let mut next = ManifestParseState_new()
+        next.section = 1
+        next.name = key_name
+        return apply_manifest_fields(next, line)
+    }
+    if state.section == 1 {
+        return apply_manifest_fields(state, line)
+    }
+    state
+}
+
+fn trim_brackets(raw: String) -> String {
+    let n = len(raw)
+    let mut start = 0
+    while start < n && char_at(raw, start) == 32 {
+        start = start + 1
+    }
+    let mut end = n
+    while end > start && char_at(raw, end - 1) == 32 {
+        end = end - 1
+    }
+    let s = substring(raw, start, end)
+    let sn = len(s)
+    if sn >= 2 && char_at(s, 0) == 91 {
+        let inner = substring(s, 1, sn - 1)
+        let in_n = len(inner)
+        if in_n >= 2 && char_at(inner, 0) == 34 {
+            return substring(inner, 1, in_n - 1)
+        }
+        return inner
+    }
+    s
+}
+
+fn apply_manifest_fields(state: ManifestParseState, line: String) -> ManifestParseState {
+    let key_doc = symbol_index_paths::find_toml_value(clone(line), String_from("doc"))
+    if len(key_doc) > 0 {
+        state.doc = key_doc
+    }
+    if contains(clone(line), String_from("params =")) {
+        let eq_pos = index_of(clone(line), String_from("="))
+        if eq_pos >= 0 {
+            state.params = trim_brackets(substring(line, eq_pos + 1, len(line)))
+        }
+    }
+    let key_ret = symbol_index_paths::find_toml_value(clone(line), String_from("returns"))
+    if len(key_ret) > 0 {
+        state.returns = key_ret
+    }
+    let key_module = symbol_index_paths::find_toml_value(clone(line), String_from("module"))
+    if len(key_module) > 0 {
+        state.module = key_module
+    }
+    state
 }
 
 fn parse_manifest_symbols(content: String) -> Vec<symbol_index_record::StdlibIndexedSymbol> {
     let out = Vec_new_StdlibIndexedSymbol()
+    let mut state = ManifestParseState_new()
     let n = len(content)
     let mut line_start = 0
-    let mut section = 0
-    let mut cur_name = String_new()
     let mut i = 0
     while i < n {
         if char_at(content, i) == 10 || i == n - 1 {
             let line_end = if char_at(content, i) == 10 { i } else { i + 1 }
             let line = substring(content, line_start, line_end)
-            if starts_with(clone(line), String_from("[[functions]]")) {
-                section = 1
-                cur_name = String_new()
-            } else {
-                if starts_with(clone(line), String_from("[[types]]")) {
-                    section = 2
-                    cur_name = String_new()
-                } else {
-                    let key_name = symbol_index_paths::find_toml_value(clone(line), String_from("name"))
-                    if len(key_name) > 0 {
-                        cur_name = key_name
-                        if section == 2 {
-                            push_type_symbol(out, clone(cur_name))
-                        }
-                    }
-                    let key_module = symbol_index_paths::find_toml_value(clone(line), String_from("module"))
-                    if section == 1 && len(cur_name) > 0 && len(key_module) > 0 {
-                        push_function_symbol(out, clone(cur_name), key_module)
-                    }
-                }
-            }
+            state = apply_manifest_line(out, state, line)
             line_start = i + 1
         }
         i = i + 1
     }
+    flush_function_symbol(out, state)
     out
 }
 

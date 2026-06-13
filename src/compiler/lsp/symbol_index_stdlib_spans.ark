@@ -1,0 +1,60 @@
+// Arukellt LSP - stdlib source span lookup for definition/hover.
+
+use compiler::session_parse
+use lsp::symbol_index_extract
+use lsp::symbol_index_paths
+use lsp::symbol_index_record
+use std::host::fs
+
+struct SourceSpan {
+    found: bool,
+    start: i32,
+    end: i32,
+}
+
+fn SourceSpan_none() -> SourceSpan {
+    SourceSpan { found: false, start: 0, end: 0 }
+}
+
+fn SourceSpan_found(start: i32, end: i32) -> SourceSpan {
+    SourceSpan { found: true, start: start, end: end }
+}
+
+pub fn source_span_found(span: SourceSpan) -> bool {
+    span.found
+}
+
+pub fn source_span_start(span: SourceSpan) -> i32 {
+    span.start
+}
+
+pub fn source_span_end(span: SourceSpan) -> i32 {
+    span.end
+}
+
+pub fn lookup_stdlib_source_span(uri: String, name: String) -> SourceSpan {
+    let path = symbol_index_paths::uri_to_file_path(clone(uri))
+    if len(path) == 0 {
+        return SourceSpan_none()
+    }
+    let read_result = fs::read_to_string(path)
+    match read_result {
+        Result::Ok(text) => {
+            let decls = session_parse::session_parse_decls(clone(text))
+            let extracted = symbol_index_extract::extract_symbols_from_decls(clone(uri), decls)
+            let n = len(extracted)
+            let mut i = 0
+            while i < n {
+                let sym = get_unchecked(extracted, i)
+                if eq(symbol_index_record::indexed_symbol_name(sym), clone(name)) {
+                    return SourceSpan_found(symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym))
+                }
+                i = i + 1
+            }
+            SourceSpan_none()
+        },
+        Result::Err(_) => {
+            SourceSpan_none()
+        },
+    }
+}

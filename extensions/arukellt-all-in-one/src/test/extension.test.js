@@ -962,13 +962,26 @@ suite("Hover (#451 / #453)", function () {
     assert.ok(lsp);
     const hover = await lsp.sendRequest("textDocument/hover", {
       textDocument: { uri: docUri },
-      position: { line: 8, character: 11 },
+      position: { line: 9, character: 11 },
     });
     assert.ok(hover, "println should produce a hover result");
     const content = lspHoverPlainText(hover);
     assert.ok(
       content.includes("println") || content.includes("fn"),
       `Hover should contain function name or signature, got: ${content.slice(0, 200)}`
+    );
+  });
+
+  test("identifier trailing position returns no hover", async () => {
+    assert.ok(lsp);
+    const hover = await lsp.sendRequest("textDocument/hover", {
+      textDocument: { uri: docUri },
+      position: { line: 8, character: 22 },
+    });
+    assert.strictEqual(
+      hover,
+      null,
+      "Position immediately after greet identifier should not hover"
     );
   });
 });
@@ -1444,7 +1457,7 @@ suite("Diagnostics (#452 / #453)", () => {
     );
   });
 
-  test.skip("unresolved name produces E0100 diagnostic", async () => {
+  test("unresolved name produces resolve diagnostic", async () => {
     const content =
       "use std::host::stdio\nfn main() {\n    stdio::println(undefined_var)\n}\n";
     const fixturePath = path.join(__dirname, "fixtures", "undefined_var.ark");
@@ -1454,12 +1467,13 @@ suite("Diagnostics (#452 / #453)", () => {
       await vscode.window.showTextDocument(doc);
       await new Promise((r) => setTimeout(r, 4000));
       const diags = vscode.languages.getDiagnostics(doc.uri);
-      const hasE0100 = diags.some(
+      const hasResolveError = diags.some(
         (d) =>
           d.message.includes("E0100") ||
-          d.message.toLowerCase().includes("unresolved")
+          d.message.toLowerCase().includes("unresolved") ||
+          d.message.includes("undefined name")
       );
-      assert.ok(hasE0100, `Should have E0100 for undefined_var, got: ${diags.map((d) => d.message).join(", ")}`);
+      assert.ok(hasResolveError, `Should have resolve error for undefined_var, got: ${diags.map((d) => d.message).join(", ")}`);
     } finally {
       fs.unlinkSync(fixturePath);
     }

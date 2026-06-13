@@ -29,6 +29,14 @@ pub fn symbol_info_decl_start(info: SymbolInfo) -> i32 {
     info.decl_start
 }
 
+pub fn symbol_info_decl_end(info: SymbolInfo) -> i32 {
+    info.decl_end
+}
+
+pub fn symbol_info_kind(info: SymbolInfo) -> i32 {
+    info.kind
+}
+
 pub fn symbol_info_signature(info: SymbolInfo) -> String {
     clone(info.signature)
 }

@@ -2,6 +2,7 @@
 
 use lexer::tokens
 use parser::core_ast_text_fields
+use parser::core_ast_span_fields
 use parser::core_ast_factory
 use parser::core_api_cursor
 use parser::core_api_expect
@@ -17,6 +18,7 @@ fn parse_fn_decl_header(p: Parser) -> AstNode {
     let node = core_ast_factory::AstNode_new(kinds::NK_FN_DECL(), core_api_expect::tok_span(t))
     let name = core_api_expect::expect_token(p, tokens::TK_IDENT())
     core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name))
+    core_ast_span_fields::AstNode_set_name_span(node, core_api_expect::tok_span(name))
     type_params::parse_generic_params_into_node(p, node)
     fn_params_regular::parse_regular_fn_params(p, node)
     core_api_cursor::skip_newlines(p)

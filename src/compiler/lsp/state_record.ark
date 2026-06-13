@@ -10,6 +10,9 @@ pub struct LspState {
     symbol_indexed_uris: Vec<String>,
     project_root: String,
     hover_detail_level: String,
+    enable_code_lens: bool,
+    diagnostics_errors_only: bool,
+    check_on_save: bool,
     initialized: bool,
     shutdown: bool,
     exited: bool,
@@ -24,6 +27,9 @@ fn LspState_new() -> LspState {
         symbol_indexed_uris: Vec_new_String(),
         project_root: String_new(),
         hover_detail_level: String_new(),
+        enable_code_lens: true,
+        diagnostics_errors_only: false,
+        check_on_save: true,
         initialized: false,
         shutdown: false,
         exited: false,
@@ -61,6 +67,30 @@ fn lsp_state_hover_detail_level(state: LspState) -> String {
 
 fn lsp_state_set_hover_detail_level(state: LspState, level: String) {
     state.hover_detail_level = level
+}
+
+fn lsp_state_enable_code_lens(state: LspState) -> bool {
+    state.enable_code_lens
+}
+
+fn lsp_state_set_enable_code_lens(state: LspState, enabled: bool) {
+    state.enable_code_lens = enabled
+}
+
+fn lsp_state_diagnostics_errors_only(state: LspState) -> bool {
+    state.diagnostics_errors_only
+}
+
+fn lsp_state_set_diagnostics_errors_only(state: LspState, errors_only: bool) {
+    state.diagnostics_errors_only = errors_only
+}
+
+fn lsp_state_check_on_save(state: LspState) -> bool {
+    state.check_on_save
+}
+
+fn lsp_state_set_check_on_save(state: LspState, enabled: bool) {
+    state.check_on_save = enabled
 }
 
 fn lsp_state_mark_initialized(state: LspState) {

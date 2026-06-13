@@ -3,10 +3,33 @@
 use lsp::json_fields
 use lsp::state_record
 
+fn parse_bool_field(body: String, key: String, default_value: bool) -> bool {
+    let raw = json_fields::extract_string_field(clone(body), clone(key))
+    if len(raw) == 0 {
+        if contains(clone(body), concat(concat(String_from("\""), clone(key)), String_from("\":false"))) {
+            return false
+        }
+        if contains(clone(body), concat(concat(String_from("\""), clone(key)), String_from("\":true"))) {
+            return true
+        }
+        return default_value
+    }
+    if eq(clone(raw), String_from("false")) {
+        return false
+    }
+    true
+}
+
 pub fn apply_initialize_config(state: LspState, body: String) {
     let level = json_fields::extract_string_field(clone(body), String_from("hoverDetailLevel"))
     if len(level) > 0 {
         state_record::lsp_state_set_hover_detail_level(state, level)
+    }
+    state_record::lsp_state_set_enable_code_lens(state, parse_bool_field(clone(body), String_from("enableCodeLens"), true))
+    state_record::lsp_state_set_check_on_save(state, parse_bool_field(clone(body), String_from("checkOnSave"), true))
+    let report = json_fields::extract_string_field(clone(body), String_from("diagnosticsReportLevel"))
+    if eq(clone(report), String_from("errors")) {
+        state_record::lsp_state_set_diagnostics_errors_only(state, true)
     }
 }
 

@@ -28,5 +28,13 @@ fn dispatch_features(state: LspState, body: String, method: String) -> bool {
         features::handle_document_highlight(state, clone(body))
         return true
     }
+    if eq(clone(method), "textDocument/codeLens") {
+        features::handle_code_lens(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/typeDefinition") {
+        features::handle_type_definition(state, clone(body))
+        return true
+    }
     false
 }

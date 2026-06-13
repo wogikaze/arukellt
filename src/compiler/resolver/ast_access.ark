@@ -43,9 +43,15 @@ fn node_span_end(node: AstNode) -> i32 {
 }
 
 fn node_decl_name_span_start(node: AstNode) -> i32 {
+    if ast::ast_node_has_name_span(node) {
+        return ast::ast_node_name_span_start(node)
+    }
     node_span_end(node) + 1
 }
 
 fn node_decl_name_span_end(node: AstNode) -> i32 {
+    if ast::ast_node_has_name_span(node) {
+        return ast::ast_node_name_span_end(node)
+    }
     node_decl_name_span_start(node) + len(node_text(node))
 }

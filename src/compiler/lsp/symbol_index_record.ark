@@ -16,6 +16,9 @@ pub struct StdlibIndexedSymbol {
     detail: String,
     module_path: String,
     source_uri: String,
+    decl_start: i32,
+    decl_end: i32,
+    doc: String,
 }
 
 pub struct SymbolIndex {
@@ -80,8 +83,20 @@ fn IndexedSymbol_new(uri: String, name: String, kind: i32, decl_start: i32, decl
     IndexedSymbol { uri: uri, name: name, kind: kind, decl_start: decl_start, decl_end: decl_end, detail: detail, module_path: module_path }
 }
 
-fn StdlibIndexedSymbol_new(name: String, kind: i32, detail: String, module_path: String, source_uri: String) -> StdlibIndexedSymbol {
-    StdlibIndexedSymbol { name: name, kind: kind, detail: detail, module_path: module_path, source_uri: source_uri }
+fn stdlib_indexed_symbol_decl_start(sym: StdlibIndexedSymbol) -> i32 {
+    sym.decl_start
+}
+
+fn stdlib_indexed_symbol_decl_end(sym: StdlibIndexedSymbol) -> i32 {
+    sym.decl_end
+}
+
+fn stdlib_indexed_symbol_doc(sym: StdlibIndexedSymbol) -> String {
+    clone(sym.doc)
+}
+
+fn StdlibIndexedSymbol_new(name: String, kind: i32, detail: String, module_path: String, source_uri: String, decl_start: i32, decl_end: i32, doc: String) -> StdlibIndexedSymbol {
+    StdlibIndexedSymbol { name: name, kind: kind, detail: detail, module_path: module_path, source_uri: source_uri, decl_start: decl_start, decl_end: decl_end, doc: doc }
 }
 
 fn symbol_index_push_symbol(symbols: Vec<IndexedSymbol>, sym: IndexedSymbol) {

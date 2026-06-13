@@ -53,8 +53,8 @@ fn resolve_symbol_request(state: LspState, body: String) -> LspSymbolRequest {
         return LspSymbolRequest_new(feature_request::text_position_request_id(req), feature_request::text_position_request_uri(req), false, info, positions::LspPosition_new(0, 0), positions::LspPosition_new(0, 0))
     }
     let decl_start = symbol_types::symbol_info_decl_start(info)
-    let symbol_name = symbol_types::symbol_info_name(info)
+    let decl_end = symbol_types::symbol_info_decl_end(info)
     let start = positions::offset_to_position(clone(req_text), decl_start)
-    let end = positions::offset_to_position(clone(req_text), decl_start + len(symbol_name))
+    let end = positions::offset_to_position(clone(req_text), decl_end)
     LspSymbolRequest_new(feature_request::text_position_request_id(req), feature_request::text_position_request_uri(req), true, info, start, end)
 }

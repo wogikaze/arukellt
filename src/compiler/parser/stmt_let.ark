@@ -2,6 +2,7 @@ use lexer::tokens
 use parser::core_ast_text_fields
 use parser::core_ast_flag_fields
 use parser::core_ast_factory
+use parser::core_ast_span_fields
 // Arukellt Parser - let statement syntax.
 
 use parser::core_api_cursor
@@ -21,6 +22,7 @@ pub fn parse_let(p: Parser) -> AstNode {
     }
     let name = core_api_expect::expect_token(p, tokens::TK_IDENT())
     core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name))
+    core_ast_span_fields::AstNode_set_name_span(node, core_api_expect::tok_span(name))
     stmt_let_type::parse_let_type_ann(p, node)
     stmt_let_init::parse_let_initializer(p, node)
     node
