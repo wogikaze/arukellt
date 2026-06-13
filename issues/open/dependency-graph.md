@@ -13,7 +13,7 @@ graph LR
   I124["124 WIT component import syntax"]
   I138["138 138-std-wasi-shared-capabilities-t1-t3"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
-  I191["191 191-vscode-setup-doctor-command-graph-and-environment-inspection"]
+  I184["184 184-vscode-extension-foundation"]
   I217["217 Code actions + refactor code actions"]
   I219["219 LSP standard feature completeness"]
   I292["292 292-stub-host-compile-error"]
@@ -43,11 +43,10 @@ graph LR
   I118["118 118-wasm-multi-export-world"]
   I28["28 034-wit-cli-integration"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
-  I184["184 184-vscode-extension-foundation"]
+  I183["183 183-vscode-arukellt-all-in-one-extension-epic"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I443["443 443-component-composition-linking-model"]
   I618["618 618-wit-bindings-round-trip"]
-  I183["183 183-vscode-arukellt-all-in-one-extension-epic"]
   I638["638 638 — Runtime-level Wasm debugging (source maps + wasmtime hooks)"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
@@ -55,11 +54,10 @@ graph LR
   I124 --> I28
   I138 --> I136
   I139 --> I136
-  I191 --> I184
+  I184 --> I183
   I474 --> I646
   I476 --> I443
   I476 --> I618
-  I184 --> I183
   I183 --> I638
   I124 --> I28
   I30 --> I31
@@ -74,7 +72,7 @@ graph LR
 - **124** depends on: 074; blocks: 28
 - **138** depends on: 137, 051; blocks: 136
 - **139** depends on: 074, 137; blocks: 136
-- **191** depends on: 190; blocks: 184
+- **184** depends on: 189, 190, 191; blocks: 183
 - **217** depends on: 193; blocks: none
 - **219** depends on: none; blocks: none
 - **292** depends on: none; blocks: none
@@ -104,11 +102,10 @@ graph LR
 - **118** depends on: 117, 074; blocks: none
 - **28** depends on: 030, 031, 028b, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
-- **184** depends on: 189, 190, 191; blocks: 183
+- **183** depends on: 184, 185, 186, 187, 188, 205, 206, 207; blocks: 638
 - **646** depends on: 474; blocks: none
 - **443** depends on: 442, 476; blocks: none
 - **618** depends on: 262, 476; blocks: none
-- **183** depends on: 184, 185, 186, 187, 188, 205, 206, 207; blocks: 638
 - **638** depends on: 183; blocks: none
 
 ### Blocked

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T18:43:18Z",
+  "generated_at": "2026-06-13T18:46:57Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -174,9 +174,9 @@
       }
     },
     {
-      "id": "191",
-      "path": "191-vscode-setup-doctor-command-graph-and-environment-inspection.md",
-      "title": "191-vscode-setup-doctor-command-graph-and-environment-inspection",
+      "id": "184",
+      "path": "184-vscode-extension-foundation.md",
+      "title": "184-vscode-extension-foundation",
       "track": "parallel",
       "status": "open",
       "blocks_v1": "none",
@@ -185,10 +185,12 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "190"
+        "189",
+        "190",
+        "191"
       ],
       "blocks_issue_ids": [
-        "184"
+        "183"
       ],
       "acceptance": {
         "checked": 3,
@@ -905,9 +907,9 @@
       }
     },
     {
-      "id": "184",
-      "path": "184-vscode-extension-foundation.md",
-      "title": "184-vscode-extension-foundation",
+      "id": "183",
+      "path": "183-vscode-arukellt-all-in-one-extension-epic.md",
+      "title": "183-vscode-arukellt-all-in-one-extension-epic",
       "track": "parallel",
       "status": "open",
       "blocks_v1": "none",
@@ -916,16 +918,21 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "189",
-        "190",
-        "191"
+        "184",
+        "185",
+        "186",
+        "187",
+        "188",
+        "205",
+        "206",
+        "207"
       ],
       "blocks_issue_ids": [
-        "183"
+        "638"
       ],
       "acceptance": {
         "checked": 3,
-        "unchecked": 0
+        "unchecked": 1
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1004,39 +1011,6 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "183",
-      "path": "183-vscode-arukellt-all-in-one-extension-epic.md",
-      "title": "183-vscode-arukellt-all-in-one-extension-epic",
-      "track": "parallel",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "184",
-        "185",
-        "186",
-        "187",
-        "188",
-        "205",
-        "206",
-        "207"
-      ],
-      "blocks_issue_ids": [
-        "638"
-      ],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
       }
     },
     {
