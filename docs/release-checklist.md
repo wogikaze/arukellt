@@ -11,7 +11,7 @@ release refs; items marked **Manual** require human verification.
 - [ ] **CI** — `python3 scripts/manager.py selfhost fixture-parity` passes
 - [ ] **CI** — `python3 scripts/manager.py selfhost parity --mode --cli` passes
 - [ ] **CI** — `python3 scripts/manager.py selfhost diag-parity` passes
-<!-- DEFERRED: opt-equiv (O0 == O1) is not implemented; tracked in manager.py `_MISSING` set. Re-add as a CI checkbox when a real gate exists. -->
+- [ ] **CI** — opt-equivalence (O0 == O1): `bash scripts/run/test-opt-equivalence.sh --quick` passes
 - [ ] **CI** — Binary smoke: `arukellt --version` exits 0
 - [ ] **CI** — Binary smoke: `arukellt run tests/fixtures/hello_world.ark` outputs `Hello, World!`
 - [ ] **CI** — Binary smoke: `arukellt check tests/fixtures/type_error.diag` exits non-zero

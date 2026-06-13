@@ -10,7 +10,7 @@
 
 | Module | Functions | Status | Targets |
 |---|---|---|---|
-| [`std::host::stdio`](#stdhostsstdio) | 3 | Available | all |
+| [`std::host::stdio`](#stdhoststdio) | 3 | Available | all |
 | [`std::host::clock`](#stdhostclock) | 1 | Available | all |
 | [`std::host::random`](#stdhostrandom) | 3 | Available | all |
 | [`std::host::env`](#stdhostenv) | 5 | Available | all (partial T1) |

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import sys
 import unittest
 from pathlib import Path
@@ -19,7 +20,61 @@ from docs_domain.checks import (  # noqa: E402
     run_regenerate,
 )
 
-_ROOT = Path("/home/wogikaze/arukellt")
+_ROOT = Path(__file__).resolve().parent.parent.parent
+_ANCHOR_CHECK = _SCRIPTS_DIR / "check" / "check-anchor-fragments.py"
+_anchor_spec = importlib.util.spec_from_file_location(
+    "check_anchor_fragments", _ANCHOR_CHECK
+)
+_anchor_mod = importlib.util.module_from_spec(_anchor_spec)
+assert _anchor_spec.loader is not None
+_anchor_spec.loader.exec_module(_anchor_mod)
+gfm_slug = _anchor_mod.gfm_slug
+build_anchor_set = _anchor_mod.build_anchor_set
+
+
+class TestGfmSlug(unittest.TestCase):
+    def test_em_dash_heading(self):
+        self.assertEqual(
+            gfm_slug("Memory Model — GC native"),
+            "memory-model--gc-native",
+        )
+
+    def test_numbered_section(self):
+        self.assertEqual(
+            gfm_slug("1. Lexical Structure"),
+            "1-lexical-structure",
+        )
+
+    def test_strips_non_ascii(self):
+        self.assertEqual(
+            gfm_slug("Result / Option エラー処理"),
+            "result--option-",
+        )
+
+
+class TestAnchorSet(unittest.TestCase):
+    def test_explicit_id(self):
+        content = '<a id="error-result-type"></a>\n## Error Handling: Result Type\n'
+        self.assertIn("error-result-type", build_anchor_set(content))
+
+    def test_duplicate_headings(self):
+        content = "## Foo\n\nbody\n\n## Foo\n"
+        anchors = build_anchor_set(content)
+        self.assertIn("foo", anchors)
+        self.assertIn("foo-1", anchors)
+
+    def test_html_comment_stripped_from_heading(self):
+        content = "## 1. Lexical Structure <!-- stability: stable -->\n"
+        self.assertIn("1-lexical-structure", build_anchor_set(content))
+
+    def test_adr_example_explicit_and_generated(self):
+        content = (
+            '<a id="memory-model-gc-native"></a>\n'
+            "## Memory Model — GC native\n"
+        )
+        anchors = build_anchor_set(content)
+        self.assertIn("memory-model-gc-native", anchors)
+        self.assertIn("memory-model--gc-native", anchors)
 
 
 class TestDryRun(unittest.TestCase):

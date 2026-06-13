@@ -1093,6 +1093,8 @@ Non-prelude: `f32_to_string(f: f32) -> String`.
 | `max(a: i32, b: i32) -> i32` | Maximum |
 | `clamp_i32(x: i32, lo: i32, hi: i32) -> i32` | Clamp to range |
 
+<a id="94-control"></a>
+
 ### 9.4 Control (prelude)
 
 | Signature | Description |
@@ -1164,6 +1166,8 @@ Non-prelude: `f32_to_string(f: f32) -> String`.
 | `reverse_String(v: Vec<String>)` | In-place reverse |
 | `remove_i32(v: Vec<i32>, index: i32)` | Remove at index |
 
+<a id="910-option"></a>
+
 ### 9.10 Option (prelude)
 
 | Signature | Description |
@@ -1176,6 +1180,8 @@ Non-prelude: `f32_to_string(f: f32) -> String`.
 | `expect(o: Option<T>, msg: String) -> T` | Extract or panic with message |
 | `map_option_i32_i32(o: Option<i32>, f: fn(i32) -> i32) -> Option<i32>` | Map over Option |
 | `map_option_String_String(o: Option<String>, f: fn(String) -> String) -> Option<String>` | Map over Option |
+
+<a id="911-result"></a>
 
 ### 9.11 Result (prelude)
 

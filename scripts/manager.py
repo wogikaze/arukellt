@@ -4462,6 +4462,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "orphan/stale file inventory (advisory, #418)",
             "bash scripts/check/check-orphan-inventory.sh",
         ),
+        (
+            "opt-equivalence (O0 == O1)",
+            "bash scripts/run/test-opt-equivalence.sh --quick",
+        ),
     ]
 
     bg_results: list[tuple[str, str, int, str]] = []
@@ -6146,6 +6150,22 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
                 "broken internal links detected (run scripts/check/check-links.sh)",
                 category="docs",
                 command="bash scripts/check/check-links.sh",
+                primary_path="docs/",
+            )
+
+    # ── Anchor fragment integrity ─────────────────────────────────────────────
+    anchor_script = root / "scripts" / "check" / "check-anchor-fragments.py"
+    if anchor_script.exists():
+        rc, _, _ = _run(
+            ["python3", str(anchor_script)], cwd=root, dry_run=dry_run
+        )
+        if rc == 0:
+            h.check_pass("anchor fragment integrity")
+        else:
+            h.check_fail(
+                "broken anchor fragments detected (run scripts/check/check-anchor-fragments.py)",
+                category="docs",
+                command="python3 scripts/check/check-anchor-fragments.py",
                 primary_path="docs/",
             )
 

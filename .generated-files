@@ -26,6 +26,7 @@ docs/_sidebar.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-d
 # stdlib reference and module pages (generate-docs.py)
 docs/stdlib/reference.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/name-index.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/stdlib/scoreboard.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/core.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/io.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/bytes.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py

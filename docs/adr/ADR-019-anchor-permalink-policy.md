@@ -175,25 +175,30 @@ A link-check script already exists at `scripts/check/check-links.sh`. It:
 This script is the **v1 canonical link-checker**. Do not add a second link-checker unless the
 scope of this script is demonstrably insufficient for a specific assigned work order.
 
-#### 3.2 Anchor fragment checking (deferred to v2)
+#### 3.2 Anchor fragment checking (implemented)
 
-Anchor fragment validation requires either:
-- A live Docsify-rendered site, or
-- A Markdown heading extraction pass (extracting all `##...` headings and resolving `path.md#anchor`).
+Anchor fragment validation is implemented in `scripts/check/check-anchor-fragments.py`
+and wired into `python3 scripts/manager.py verify quick` (static pass, immediately after
+`scripts/check/check-links.sh`).
 
-This is deferred to v2. For v1, the policy is:
+The checker:
 
-- **Authors are responsible** for verifying anchor targets when adding cross-document links.
-- **PRs that rename S1 headings** in normative docs MUST include a search for inbound anchor references
-  and either update them or add explicit `<a id="">` elements to preserve the target.
+- Scans Markdown under `docs/` and `issues/`, plus `README.md` and `AGENTS.md`.
+- Validates relative links of the form `path.md#anchor` and same-file `#anchor` references.
+- Resolves targets using GFM heading slug rules (§1.1) plus explicit `<a id="">` anchors (§1.3).
+- Skips external URLs (`http://`, `https://`, `mailto:`) and Docsify router paths (`#/...`).
+- Supports an optional allowlist at `scripts/check/anchor-allowlist.txt` for known exceptions.
 
-#### 3.3 Summary of v1 link-check guarantees
+Authors adding cross-document anchor links should still verify targets locally; the harness
+catches drift on CI and in `verify quick`.
 
-| Check | Tool | v1 Status |
-|-------|------|-----------|
+#### 3.3 Summary of link-check guarantees
+
+| Check | Tool | Status |
+|-------|------|--------|
 | Internal file references (e.g. `path/to/file....md`) | `scripts/check/check-links.sh` | ✅ Covered |
-| Anchor fragments (e.g. `file....md#section-id`) | — | ❌ Not covered (v2) |
-| Pure in-page anchors (e.g. `#section-id`) | — | ❌ Not covered (v2) |
+| Anchor fragments (e.g. `file....md#section-id`) | `scripts/check/check-anchor-fragments.py` | ✅ Covered |
+| Pure in-page anchors (e.g. `#section-id`) | `scripts/check/check-anchor-fragments.py` | ✅ Covered |
 | External URLs (`https://...`) | — | ❌ Out of scope |
 
 ---
@@ -203,8 +208,8 @@ This is deferred to v2. For v1, the policy is:
 - Every PR that renames an S1 heading in a normative document MUST either (a) update all inbound
   anchor links, or (b) add an explicit `<a id="old-anchor">` to preserve the old target.
 - Every PR that moves or removes a document MUST add a Docsify alias entry to `docs/index.html`.
-- `scripts/check/check-links.sh` is the v1 canonical link checker; no additional tool is required for v1.
-- Anchor fragment checking is a v2 enhancement (separate work order).
+- `scripts/check/check-links.sh` validates internal file references; `scripts/check/check-anchor-fragments.py`
+  validates anchor fragments — both run in `verify quick`.
 - ADR-018 classification banners are orthogonal to this policy; both apply independently.
 
 ---
@@ -216,8 +221,8 @@ Rejected: The docs site (Docsify) does not process YAML front matter for redirec
 in `docs/index.html` are the appropriate mechanism.
 
 **Add anchor-fragment checking to `check-links.sh` now**
-Rejected for v1: Requires Markdown heading extraction logic that is non-trivial to maintain correctly
-across heading level nesting. Deferred to v2 as a standalone enhancement.
+Rejected: heading extraction and slug deduplication are easier to maintain in a dedicated
+`check-anchor-fragments.py` script (implemented in issue #644).
 
 **Use a separate `_redirects` file (Netlify-style)**
 Rejected: The project is not currently deployed to Netlify or any service that reads `_redirects`.
@@ -229,6 +234,7 @@ Docsify aliases in `docs/index.html` are self-contained and do not require a hos
 
 - `docs/index.html` — Docsify configuration including alias entries
 - `scripts/check/check-links.sh` — existing internal file reference checker
+- `scripts/check/check-anchor-fragments.py` — anchor fragment checker (GFM slugs + explicit ids)
 - `docs/data/language-doc-classifications.toml` — per-document classification data (ADR-018)
 - ADR-018: Language Docs Classification — Normative / Explanatory / Transitional
 - ADR-016: Breaking Change Process — Three-Piece Set

@@ -31,7 +31,7 @@
 | `docs/` | product | — | User and developer documentation |
 | `docs/stdlib/reference.md` | generated | `scripts/gen/generate-docs.py` | Stdlib API reference |
 | `docs/stdlib/modules/*.md` | generated | `scripts/gen/generate-docs.py` | Per-module reference pages |
-| `docs/stdlib/scoreboard.md` | hand-maintained | — | Module maturity scoreboard (auto-generator not yet implemented) |
+| `docs/stdlib/scoreboard.md` | generated | `scripts/gen/generate-docs.py` | Module maturity scoreboard |
 | `docs/data/` | generated | `scripts/gen/generate-docs.py` | Project state data |
 | `docs/spec/` | archive | — | Previous version specs |
 | `docs/migration/` | archive | — | Version migration guides |
@@ -49,7 +49,7 @@ These files are auto-generated. Run the generator instead of editing manually:
 |------|-----------|
 | `docs/stdlib/reference.md` | `python3 scripts/gen/generate-docs.py` |
 | `docs/stdlib/modules/*.md` | `python3 scripts/gen/generate-docs.py` |
-| `docs/stdlib/scoreboard.md` | manual edit (auto-generator not yet implemented) |
+| `docs/stdlib/scoreboard.md` | `python3 scripts/gen/generate-docs.py` |
 | `issues/open/index.md` | `python3 scripts/gen/generate-issue-index.py` |
 | `issues/open/index-meta.json` | `python3 scripts/gen/generate-issue-index.py` |
 | `issues/done/index.md` | `python3 scripts/gen/generate-issue-index.py` |

@@ -1,6 +1,6 @@
 # #613 Phase 0 — Stdlib `Result<_, String>` Surface Inventory
 
-**Issue**: issues/open/613-errhandle-stdlib-result-surface.md (not yet filed)
+**Issue**: [issues/done/613-errhandle-stdlib-result-surface.md](../../issues/done/613-errhandle-stdlib-result-surface.md)
 **Phase**: 0 — read-only audit (no API changes in this slice)
 **Method**: `rg -n "Result<" std/` over `std/**/*.ark`, cross-referenced with `std/manifest.toml`.
 
