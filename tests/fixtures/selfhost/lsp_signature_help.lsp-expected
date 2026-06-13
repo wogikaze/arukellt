@@ -1,0 +1,11 @@
+Content-Length: 536
+
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"typeDefinitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"signatureHelpProvider":{"triggerCharacters":["(",","]},"codeActionProvider":true,"workspaceSymbolProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 117
+
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///sig_help.ark","diagnostics":[]}}Content-Length: 270
+
+{"jsonrpc":"2.0","id":2,"result":{"signatures":[{"label":"fn println(s: String) -> ()","documentation":{"kind":"markdown","value":"Write a string to standard output followed by a newline."},"parameters":[{"label":"s: String"}]}],"activeSignature":0,"activeParameter":0}}Content-Length: 270
+
+{"jsonrpc":"2.0","id":3,"result":{"signatures":[{"label":"fn println(s: String) -> ()","documentation":{"kind":"markdown","value":"Write a string to standard output followed by a newline."},"parameters":[{"label":"s: String"}]}],"activeSignature":0,"activeParameter":1}}Content-Length: 38
+
+{"jsonrpc":"2.0","id":4,"result":null}

@@ -1,62 +1,41 @@
-// Arukellt Selfhost - LSP completion response builders
+// Arukellt LSP - completion prefix extraction and response assembly.
 
-use lsp::json_escape
-use lsp::state_record
-use lsp::symbol_index_record
+use lsp::completion_providers
+use lsp::positions
 
-fn quote_string(s: String) -> String {
-	concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
+fn is_ident_char(ch: i32) -> bool {
+    if ch >= 97 && ch <= 122 {
+        return true
+    }
+    if ch >= 65 && ch <= 90 {
+        return true
+    }
+    if ch >= 48 && ch <= 57 {
+        return true
+    }
+    ch == 95
 }
 
-fn completion_item(label: String, kind: i32, detail: String) -> String {
-	let mut out = String_from("{\"label\":")
-	out = concat(out, quote_string(label))
-	out = concat(out, String_from(",\"kind\":"))
-	out = concat(out, to_string(kind))
-	out = concat(out, String_from(",\"detail\":"))
-	out = concat(out, quote_string(detail))
-	out = concat(out, String_from("}"))
-	out
+fn prefix_at_offset(text: String, offset: i32) -> String {
+    let n = len(text)
+    let mut end = offset
+    if end > n {
+        end = n
+    }
+    let mut start = end
+    while start > 0 && is_ident_char(char_at(text, start - 1)) {
+        start = start - 1
+    }
+    substring(text, start, end)
 }
 
-fn append_completion_item(items: String, item: String) -> String {
-	if len(items) == 0 {
-		return item
-	}
-	concat(concat(items, String_from(",")), item)
-}
-
-pub fn build_completion_response(state: LspState, id: i32) -> String {
-	let mut items = String_new()
-	items = append_completion_item(items, completion_item(String_from("fn"), 14, String_from("keyword")))
-	items = append_completion_item(items, completion_item(String_from("let"), 14, String_from("keyword")))
-	items = append_completion_item(items, completion_item(String_from("mut"), 14, String_from("keyword")))
-	items = append_completion_item(items, completion_item(String_from("if"), 14, String_from("keyword")))
-	items = append_completion_item(items, completion_item(String_from("else"), 14, String_from("keyword")))
-	items = append_completion_item(items, completion_item(String_from("match"), 14, String_from("keyword")))
-	items = append_completion_item(items, completion_item(String_from("use"), 14, String_from("keyword")))
-	items = append_completion_item(items, completion_item(String_from("pub"), 14, String_from("keyword")))
-	items = append_completion_item(items, completion_item(String_from("return"), 14, String_from("keyword")))
-	let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
-	let sn = len(stdlib)
-	let mut j = 0
-	while j < sn {
-		let sym = get_unchecked(stdlib, j)
-		let name = symbol_index_record::stdlib_indexed_symbol_name(sym)
-		let detail = symbol_index_record::stdlib_indexed_symbol_detail(sym)
-		let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
-		let label = if len(module_path) > 0 {
-			concat(concat(clone(module_path), String_from("::")), clone(name))
-		} else {
-			clone(name)
-		}
-		items = append_completion_item(items, completion_item(label, symbol_index_record::stdlib_indexed_symbol_kind(sym), detail))
-		j = j + 1
-	}
-	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-	body = concat(body, to_string(id))
-	body = concat(body, String_from(",\"result\":{\"isIncomplete\":false,\"items\":["))
-	body = concat(body, items)
-	body = concat(body, String_from("]}}"))
-	body
+pub fn build_completion_response(state: LspState, id: i32, text: String, offset: i32) -> String {
+    let prefix = prefix_at_offset(clone(text), offset)
+    let items = completion_providers::collect_completion_items(state, clone(text), prefix)
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = concat(body, to_string(id))
+    body = concat(body, String_from(",\"result\":{\"isIncomplete\":false,\"items\":["))
+    body = concat(body, items)
+    body = concat(body, String_from("]}}"))
+    body
 }

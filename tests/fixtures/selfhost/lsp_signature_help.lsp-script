@@ -1,0 +1,15 @@
+Content-Length: 107
+
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":null,"capabilities":{}}}Content-Length: 52
+
+{"jsonrpc":"2.0","method":"initialized","params":{}}Content-Length: 228
+
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///sig_help.ark","languageId":"arukellt","version":1,"text":"use std::host::stdio::println\n\nfn main() {\n    println(\"a\", \"b\")\n}\n"}}}Content-Length: 156
+
+{"jsonrpc":"2.0","id":2,"method":"textDocument/signatureHelp","params":{"textDocument":{"uri":"file:///sig_help.ark"},"position":{"line":3,"character":13}}}Content-Length: 156
+
+{"jsonrpc":"2.0","id":3,"method":"textDocument/signatureHelp","params":{"textDocument":{"uri":"file:///sig_help.ark"},"position":{"line":3,"character":18}}}Content-Length: 44
+
+{"jsonrpc":"2.0","id":4,"method":"shutdown"}Content-Length: 33
+
+{"jsonrpc":"2.0","method":"exit"}

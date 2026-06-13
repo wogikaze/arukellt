@@ -8,7 +8,7 @@ Content-Length: 107
 
 {"jsonrpc":"2.0","id":2,"method":"textDocument/hover","params":{"textDocument":{"uri":"file:///semantic_hover.ark"},"position":{"line":3,"character":12}}}Content-Length: 153
 
-{"jsonrpc":"2.0","id":3,"method":"textDocument/hover","params":{"textDocument":{"uri":"file:///semantic_hover.ark"},"position":{"line":3,"character":9}}}Content-Length: 153
+{"jsonrpc":"2.0","id":3,"method":"textDocument/hover","params":{"textDocument":{"uri":"file:///semantic_hover.ark"},"position":{"line":3,"character":8}}}Content-Length: 153
 
 {"jsonrpc":"2.0","id":4,"method":"textDocument/hover","params":{"textDocument":{"uri":"file:///semantic_hover.ark"},"position":{"line":4,"character":6}}}Content-Length: 154
 

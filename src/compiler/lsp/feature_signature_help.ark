@@ -1,0 +1,59 @@
+// Arukellt LSP - signature help request handling.
+
+use lsp::feature_request
+use lsp::framing
+use lsp::qualified_name
+use lsp::responses
+use lsp::responses_signature
+use lsp::signature_help_call
+use lsp::signature_help_resolve
+
+pub fn handle_signature_help(state: LspState, body: String) {
+    let req = feature_request::read_text_position_request(state, clone(body))
+    let req_id = feature_request::text_position_request_id(req)
+    if !feature_request::text_position_request_has_text(req) {
+        framing::append_framed(state, responses::build_null_response(req_id))
+        return
+    }
+    let req_text = feature_request::text_position_request_text(req)
+    let offset = feature_request::text_position_request_offset(req)
+    let ctx = signature_help_call::call_context_at_offset(clone(req_text), offset)
+    let mut callee = signature_help_call::call_context_callee(ctx)
+    if !signature_help_call::call_context_found(ctx) {
+        let lookup = qualified_name::lookup_name_at_offset(clone(req_text), offset)
+        if len(lookup) > 0 {
+            callee = lookup
+        }
+    }
+    if len(callee) == 0 {
+        framing::append_framed(state, responses::build_null_response(req_id))
+        return
+    }
+    let mut short_name = clone(callee)
+    if contains(clone(callee), String_from("::")) {
+        let mut last_colon = 0
+        let mut pos = len(callee) - 1
+        while pos >= 0 {
+            if char_at(callee, pos) == 58 && pos > 0 && char_at(callee, pos - 1) == 58 {
+                last_colon = pos + 1
+                pos = 0 - 1
+            } else {
+                pos = pos - 1
+            }
+        }
+        if last_colon > 0 && last_colon < len(callee) {
+            short_name = substring(callee, last_colon, len(callee))
+        }
+    }
+    let sig = signature_help_resolve::resolve_signature_for_name(state, short_name)
+    if !signature_help_resolve::resolved_signature_found(sig) {
+        framing::append_framed(state, responses::build_null_response(req_id))
+        return
+    }
+    let active = if signature_help_call::call_context_found(ctx) {
+        signature_help_call::call_context_active_param(ctx)
+    } else {
+        0
+    }
+    framing::append_framed(state, responses_signature::build_signature_help_response(req_id, signature_help_resolve::resolved_signature_label(sig), signature_help_resolve::resolved_signature_doc(sig), signature_help_resolve::resolved_signature_params(sig), active))
+}

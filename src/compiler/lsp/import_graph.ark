@@ -1,0 +1,48 @@
+// Arukellt LSP - import state from parsed use declarations.
+
+use compiler::session_parse
+use loader::module_import_paths
+
+fn path_is_imported(paths: Vec<String>, import_path: String) -> bool {
+    let n = len(paths)
+    let mut i = 0
+    while i < n {
+        if eq(get_unchecked(paths, i), clone(import_path)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+pub fn import_paths_in_text(text: String) -> Vec<String> {
+    module_import_paths::collect_import_paths(session_parse::session_parse_decls(clone(text)))
+}
+
+pub fn is_path_imported(text: String, import_path: String) -> bool {
+    path_is_imported(import_paths_in_text(clone(text)), import_path)
+}
+
+pub fn stdlib_import_path(module_path: String, symbol_name: String) -> String {
+    concat(module_path, concat(String_from("::"), symbol_name))
+}
+
+pub fn build_use_statement(import_path: String) -> String {
+    concat(String_from("use "), concat(import_path, String_from("\n")))
+}
+
+pub fn first_use_insert_offset(text: String) -> i32 {
+    let use_pos = index_of(clone(text), String_from("use "))
+    if use_pos < 0 {
+        return 0
+    }
+    let n = len(text)
+    let mut line_end = use_pos
+    while line_end < n && char_at(text, line_end) != 10 {
+        line_end = line_end + 1
+    }
+    if line_end < n {
+        return line_end + 1
+    }
+    line_end
+}

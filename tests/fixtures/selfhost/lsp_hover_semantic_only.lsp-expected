@@ -1,14 +1,14 @@
-Content-Length: 454
+Content-Length: 536
 
-{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"typeDefinitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"workspaceSymbolProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 123
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"typeDefinitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"signatureHelpProvider":{"triggerCharacters":["(",","]},"codeActionProvider":true,"workspaceSymbolProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 123
 
 {"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///semantic_hover.ark","diagnostics":[]}}Content-Length: 38
 
-{"jsonrpc":"2.0","id":2,"result":null}Content-Length: 38
+{"jsonrpc":"2.0","id":2,"result":null}Content-Length: 165
 
-{"jsonrpc":"2.0","id":3,"result":null}Content-Length: 175
+{"jsonrpc":"2.0","id":3,"result":{"contents":{"kind":"markdown","value":"```ark\nn\n```"},"range":{"start":{"line":3,"character":8},"end":{"line":3,"character":9}}}}Content-Length: 182
 
-{"jsonrpc":"2.0","id":4,"result":{"contents":{"kind":"markdown","value":"```ark\nfn answer()\n```"},"range":{"start":{"line":0,"character":3},"end":{"line":0,"character":9}}}}Content-Length: 38
+{"jsonrpc":"2.0","id":4,"result":{"contents":{"kind":"markdown","value":"```ark\nfn answer() -> i32\n```"},"range":{"start":{"line":0,"character":3},"end":{"line":0,"character":9}}}}Content-Length: 38
 
 {"jsonrpc":"2.0","id":5,"result":null}Content-Length: 38
 

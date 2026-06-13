@@ -1,0 +1,13 @@
+Content-Length: 107
+
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":null,"capabilities":{}}}Content-Length: 52
+
+{"jsonrpc":"2.0","method":"initialized","params":{}}Content-Length: 184
+
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///auto_import.ark","languageId":"arukellt","version":1,"text":"fn main() {\n    println\n}\n"}}}Content-Length: 156
+
+{"jsonrpc":"2.0","id":2,"method":"textDocument/completion","params":{"textDocument":{"uri":"file:///auto_import.ark"},"position":{"line":1,"character":11}}}Content-Length: 44
+
+{"jsonrpc":"2.0","id":3,"method":"shutdown"}Content-Length: 33
+
+{"jsonrpc":"2.0","method":"exit"}

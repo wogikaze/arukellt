@@ -49,6 +49,10 @@ fn lsp_state_symbol_stdlib_symbols(state: LspState) -> Vec<symbol_index_record::
     state.symbol_stdlib_symbols
 }
 
+fn lsp_state_set_symbol_stdlib_symbols(state: LspState, symbols: Vec<symbol_index_record::StdlibIndexedSymbol>) {
+    state.symbol_stdlib_symbols = symbols
+}
+
 fn lsp_state_symbol_indexed_uris(state: LspState) -> Vec<String> {
     state.symbol_indexed_uris
 }

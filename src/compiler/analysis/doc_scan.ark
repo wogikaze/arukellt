@@ -1,0 +1,83 @@
+// Arukellt Analysis - doc comment scanning above declarations.
+
+fn line_start(text: String, offset: i32) -> i32 {
+    let mut pos = offset
+    while pos > 0 {
+        if char_at(text, pos - 1) == 10 {
+            return pos
+        }
+        pos = pos - 1
+    }
+    0
+}
+
+fn trim_line_prefix(line: String) -> String {
+    let mut start = 0
+    while start < len(line) && char_at(line, start) == 32 {
+        start = start + 1
+    }
+    if start >= len(line) {
+        return String_new()
+    }
+    substring(line, start, len(line))
+}
+
+fn is_doc_line(line: String) -> bool {
+    if len(line) < 3 {
+        return false
+    }
+    char_at(line, 0) == 47 && char_at(line, 1) == 47 && char_at(line, 2) == 47
+}
+
+fn doc_text_from_line(line: String) -> String {
+    if len(line) < 4 {
+        return String_new()
+    }
+    let mut start = 3
+    if len(line) > 4 && char_at(line, 3) == 32 {
+        start = 4
+    }
+    substring(line, start, len(line))
+}
+
+fn doc_scan_above_offset(text: String, decl_start: i32) -> String {
+    let mut line_begin = line_start(clone(text), decl_start)
+    if line_begin > 0 {
+        line_begin = line_begin - 1
+    }
+    let mut docs = Vec_new_String()
+    let mut pos = line_begin
+    while pos >= 0 {
+        let line_end = if pos == line_begin { decl_start } else { pos + 1 }
+        let line_begin_cur = line_start(clone(text), pos)
+        let line = substring(text, line_begin_cur, line_end)
+        let trimmed = trim_line_prefix(line)
+        if len(trimmed) == 0 {
+            if len(docs) > 0 { break }
+            if line_begin_cur == 0 { break }
+            pos = line_begin_cur - 1
+            continue
+        }
+        if !is_doc_line(trimmed) {
+            break
+        }
+        push(docs, doc_text_from_line(trimmed))
+        if line_begin_cur == 0 { break }
+        pos = line_begin_cur - 1
+    }
+    let n = len(docs)
+    if n == 0 {
+        return String_new()
+    }
+    let mut out = get_unchecked(docs, n - 1)
+    let mut i = n - 2
+    while i >= 0 {
+        out = concat(concat(get_unchecked(docs, i), String_from("\n")), out)
+        i = i - 1
+    }
+    out
+}
+
+pub fn doc_comment_before_offset(text: String, decl_start: i32) -> String {
+    doc_scan_above_offset(text, decl_start)
+}

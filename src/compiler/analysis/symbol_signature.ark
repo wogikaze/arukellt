@@ -1,0 +1,199 @@
+// Arukellt Selfhost - AST-based signature rendering for hover.
+
+use compiler::session_parse
+use compiler::session_resolve_query
+use compiler::session_typecheck_query
+use parser::ast
+use parser::kinds
+
+fn AT_NK_FN_DECL() -> i32 {
+    kinds::NK_FN_DECL()
+}
+
+fn AT_NK_LET() -> i32 {
+    kinds::NK_LET()
+}
+
+fn AT_NK_STRUCT_DECL() -> i32 {
+    kinds::NK_STRUCT_DECL()
+}
+
+fn AT_NK_ENUM_DECL() -> i32 {
+    kinds::NK_ENUM_DECL()
+}
+
+fn AT_NK_INT_LIT() -> i32 {
+    kinds::NK_INT_LIT()
+}
+
+fn AT_NK_BOOL_LIT() -> i32 {
+    kinds::NK_BOOL_LIT()
+}
+
+fn AT_NK_FLOAT_LIT() -> i32 {
+    kinds::NK_FLOAT_LIT()
+}
+
+fn node_kind(node: AstNode) -> i32 {
+    ast::ast_node_kind(node)
+}
+
+fn node_kind_is(node: AstNode, kind: i32) -> bool {
+    node_kind(node) == kind
+}
+
+fn node_text(node: AstNode) -> String {
+    ast::ast_node_text(node)
+}
+
+fn node_child_count(node: AstNode) -> i32 {
+    ast::ast_node_child_count(node)
+}
+
+fn node_child_at(node: AstNode, index: i32) -> AstNode {
+    ast::ast_node_child_at(node, index)
+}
+
+fn node_type_ann_count(node: AstNode) -> i32 {
+    ast::ast_node_type_ann_count(node)
+}
+
+fn node_type_ann_at(node: AstNode, index: i32) -> AstNode {
+    ast::ast_node_type_ann_at(node, index)
+}
+
+fn node_is_fn_decl(node: AstNode) -> bool {
+    node_kind_is(node, AT_NK_FN_DECL())
+}
+
+fn node_is_struct_decl(node: AstNode) -> bool {
+    node_kind_is(node, AT_NK_STRUCT_DECL())
+}
+
+fn node_is_enum_decl(node: AstNode) -> bool {
+    node_kind_is(node, AT_NK_ENUM_DECL())
+}
+
+fn node_is_let(node: AstNode) -> bool {
+    node_kind_is(node, AT_NK_LET())
+}
+
+fn fn_return_type_text(decl: AstNode) -> String {
+    let tn = node_type_ann_count(decl)
+    let mut i = 0
+    while i < tn {
+        let ann = node_type_ann_at(decl, i)
+        if eq(node_text(ann), String_from("__return")) && node_child_count(ann) > 0 {
+            return node_text(node_child_at(ann, 0))
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn infer_let_type(decl: AstNode) -> String {
+    let tn = node_type_ann_count(decl)
+    if tn > 0 {
+        return node_text(node_type_ann_at(decl, 0))
+    }
+    if node_child_count(decl) > 0 {
+        let init = node_child_at(decl, 0)
+        let ik = node_kind(init)
+        if ik == AT_NK_INT_LIT() {
+            return String_from("i32")
+        }
+        if ik == AT_NK_BOOL_LIT() {
+            return String_from("bool")
+        }
+        if ik == AT_NK_FLOAT_LIT() {
+            return String_from("f64")
+        }
+    }
+    String_new()
+}
+
+pub fn render_signature(decl: AstNode) -> String {
+    if node_is_fn_decl(decl) {
+        let mut sig = String_from("fn ")
+        sig = concat(sig, node_text(decl))
+        sig = concat(sig, String_from("("))
+        let cn = node_child_count(decl)
+        let last = if cn > 0 { cn - 1 } else { 0 }
+        let mut i = 0
+        let mut first = true
+        while i < last {
+            let p = node_child_at(decl, i)
+            if !first {
+                sig = concat(sig, String_from(", "))
+            }
+            first = false
+            sig = concat(sig, node_text(p))
+            i = i + 1
+        }
+        sig = concat(sig, String_from(")"))
+        let ret = fn_return_type_text(decl)
+        if len(ret) > 0 {
+            sig = concat(sig, concat(String_from(" -> "), ret))
+        }
+        return sig
+    }
+    if node_is_struct_decl(decl) {
+        return concat(String_from("struct "), node_text(decl))
+    }
+    if node_is_enum_decl(decl) {
+        return concat(String_from("enum "), node_text(decl))
+    }
+    if node_is_let(decl) {
+        return concat(String_from("let "), node_text(decl))
+    }
+    node_text(decl)
+}
+
+fn typecheck_binding_type(text: String, name: String) -> String {
+    let decls = session_parse::session_parse_decls(clone(text))
+    let ctx = session_resolve_query::session_resolve_decls(decls)
+    let check = session_typecheck_query::session_typecheck_decls(decls, ctx, Vec_new_String())
+    session_typecheck_query::session_typecheck_binding_display(check, clone(name))
+}
+
+fn typecheck_fn_return_type(text: String, name: String) -> String {
+    let decls = session_parse::session_parse_decls(clone(text))
+    let ctx = session_resolve_query::session_resolve_decls(decls)
+    let check = session_typecheck_query::session_typecheck_decls(decls, ctx, Vec_new_String())
+    session_typecheck_query::session_typecheck_fn_return_display(check, clone(name))
+}
+
+pub fn enrich_signature_for_decl(text: String, decl: AstNode, name: String, kind: i32, base_sig: String) -> String {
+    if kind == AT_NK_LET() {
+        let mut ty = infer_let_type(decl)
+        if len(ty) == 0 {
+            ty = typecheck_binding_type(clone(text), clone(name))
+        }
+        if len(ty) > 0 {
+            return concat(concat(String_from("let "), clone(name)), concat(String_from(": "), ty))
+        }
+    }
+    if kind == AT_NK_FN_DECL() {
+        let mut ret = fn_return_type_text(decl)
+        if len(ret) == 0 {
+            ret = typecheck_fn_return_type(clone(text), clone(name))
+        }
+        if len(ret) > 0 && !contains(clone(base_sig), String_from("->")) {
+            return concat(base_sig, concat(String_from(" -> "), ret))
+        }
+    }
+    base_sig
+}
+
+pub fn use_site_signature(text: String, decl: AstNode, name: String) -> String {
+    if node_is_let(decl) {
+        let mut ty = infer_let_type(decl)
+        if len(ty) == 0 {
+            ty = typecheck_binding_type(clone(text), clone(name))
+        }
+        if len(ty) > 0 {
+            return concat(concat(clone(name), String_from(": ")), ty)
+        }
+    }
+    String_new()
+}

@@ -1,0 +1,93 @@
+// Arukellt LSP - code action request handling.
+
+use analysis::ident_span
+use analysis::symbols
+use lsp::feature_request
+use lsp::framing
+use lsp::import_graph
+use lsp::json_escape
+use lsp::positions
+use lsp::responses
+use lsp::state_record
+use lsp::symbol_index_lookup
+use lsp::symbol_index_record
+
+fn quote_string(s: String) -> String {
+    concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
+}
+
+fn build_import_action(title: String, uri: String, import_path: String, text: String) -> String {
+    let offset = import_graph::first_use_insert_offset(clone(text))
+    let pos = positions::offset_to_position(clone(text), offset)
+    let mut out = String_from("{\"title\":")
+    out = concat(out, quote_string(title))
+    out = concat(out, String_from(",\"kind\":\"quickfix\",\"edit\":{\"changes\":{"))
+    out = concat(out, quote_string(uri))
+    out = concat(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
+    out = concat(out, to_string(positions::lsp_position_line(pos)))
+    out = concat(out, String_from(",\"character\":"))
+    out = concat(out, to_string(positions::lsp_position_character(pos)))
+    out = concat(out, String_from("},\"end\":{\"line\":"))
+    out = concat(out, to_string(positions::lsp_position_line(pos)))
+    out = concat(out, String_from(",\"character\":"))
+    out = concat(out, to_string(positions::lsp_position_character(pos)))
+    out = concat(out, String_from("}},\"newText\":"))
+    out = concat(out, quote_string(import_graph::build_use_statement(import_path)))
+    out = concat(out, String_from("}]}}}"))
+    out
+}
+
+fn build_import_actions_json(state: LspState, uri: String, text: String, name: String) -> String {
+    let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
+    let sn = len(stdlib)
+    let mut j = 0
+    let mut actions = String_new()
+    while j < sn {
+        let sym = get_unchecked(stdlib, j)
+        if eq(symbol_index_record::stdlib_indexed_symbol_name(sym), clone(name)) {
+            let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
+            if len(module_path) > 0 {
+                let import_path = import_graph::stdlib_import_path(clone(module_path), clone(name))
+                if !import_graph::is_path_imported(clone(text), clone(import_path)) {
+                    let title = concat(concat(String_from("Import '"), clone(import_path)), String_from("'"))
+                    if len(actions) > 0 {
+                        actions = concat(actions, String_from(","))
+                    }
+                    actions = concat(actions, build_import_action(title, uri, import_path, clone(text)))
+                }
+            }
+        }
+        j = j + 1
+    }
+    actions
+}
+
+pub fn handle_code_action(state: LspState, body: String) {
+    let req = feature_request::read_text_position_request(state, clone(body))
+    let req_id = feature_request::text_position_request_id(req)
+    if !feature_request::text_position_request_has_text(req) {
+        framing::append_framed(state, responses::build_empty_array_response(req_id))
+        return
+    }
+    let req_text = feature_request::text_position_request_text(req)
+    let req_uri = feature_request::text_position_request_uri(req)
+    let offset = feature_request::text_position_request_offset(req)
+    let span = symbols::ident_span_at_offset(clone(req_text), offset)
+    if !ident_span::ident_span_found(span) {
+        framing::append_framed(state, responses::build_empty_array_response(req_id))
+        return
+    }
+    let name = ident_span::ident_span_name(span)
+    let def = symbol_index_lookup::lookup_definition(state, clone(name))
+    if symbol_index_lookup::index_definition_found(def) {
+        framing::append_framed(state, responses::build_empty_array_response(req_id))
+        return
+    }
+    let actions = build_import_actions_json(state, clone(req_uri), clone(req_text), clone(name))
+    let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body_out = concat(body_out, to_string(req_id))
+    body_out = concat(body_out, String_from(",\"result\":["))
+    body_out = concat(body_out, actions)
+    body_out = concat(body_out, String_from("]}"))
+    framing::append_framed(state, body_out)
+}

@@ -1,8 +1,10 @@
 // Arukellt LSP - stdlib symbol indexing from std/manifest.toml.
 
 use lsp::kinds
+use lsp::state_record
 use lsp::symbol_index_paths
 use lsp::symbol_index_record
+use std::host::env
 use std::host::fs
 
 struct ManifestParseState {
@@ -56,7 +58,9 @@ fn flush_function_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, sta
 fn apply_manifest_line(out: Vec<symbol_index_record::StdlibIndexedSymbol>, state: ManifestParseState, line: String) -> ManifestParseState {
     if starts_with(clone(line), String_from("[[functions]]")) {
         flush_function_symbol(out, clone(state))
-        return ManifestParseState_new()
+        let mut next = ManifestParseState_new()
+        next.section = 1
+        return next
     }
     if starts_with(clone(line), String_from("[[types]]")) {
         flush_function_symbol(out, clone(state))
@@ -146,14 +150,26 @@ fn parse_manifest_symbols(content: String) -> Vec<symbol_index_record::StdlibInd
     out
 }
 
+fn manifest_load_path() -> String {
+    match env::var(String_from("ARUKELLT_MANIFEST")) {
+        Result::Ok(p) => {
+            if len(p) > 0 {
+                return p
+            }
+        },
+        Result::Err(_) => {},
+    }
+    String_from("std/manifest.toml")
+}
+
 pub fn symbol_index_load_stdlib(state: LspState) {
-    let read_result = fs::read_to_string(String_from("std/manifest.toml"))
+    let read_result = fs::read_to_string(manifest_load_path())
     match read_result {
         Result::Ok(content) => {
-            state.symbol_stdlib_symbols = parse_manifest_symbols(content)
+            state_record::lsp_state_set_symbol_stdlib_symbols(state, parse_manifest_symbols(content))
         },
         Result::Err(_) => {
-            state.symbol_stdlib_symbols = Vec_new_StdlibIndexedSymbol()
+            state_record::lsp_state_set_symbol_stdlib_symbols(state, Vec_new_StdlibIndexedSymbol())
         },
     }
 }

@@ -1,10 +1,16 @@
 // Arukellt LSP - completion request handling.
 
 use lsp::completion
+use lsp::feature_request
 use lsp::framing
 use lsp::json_fields
 
 pub fn handle_completion(state: LspState, body: String) {
     let id = json_fields::extract_int_field(clone(body), String_from("id"))
-    framing::append_framed(state, completion::build_completion_response(state, id))
+    let req = feature_request::read_text_position_request(state, clone(body))
+    if !feature_request::text_position_request_has_text(req) {
+        framing::append_framed(state, completion::build_completion_response(state, id, String_new(), 0))
+        return
+    }
+    framing::append_framed(state, completion::build_completion_response(state, id, feature_request::text_position_request_text(req), feature_request::text_position_request_offset(req)))
 }

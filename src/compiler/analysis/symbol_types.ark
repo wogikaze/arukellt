@@ -7,14 +7,15 @@ pub struct SymbolInfo {
     decl_start: i32,
     decl_end: i32,
     signature: String,
+    doc: String,
 }
 
 fn SymbolInfo_none() -> SymbolInfo {
-    SymbolInfo { found: false, name: String_new(), kind: 0, decl_start: 0, decl_end: 0, signature: String_new() }
+    SymbolInfo { found: false, name: String_new(), kind: 0, decl_start: 0, decl_end: 0, signature: String_new(), doc: String_new() }
 }
 
-pub fn SymbolInfo_found(name: String, kind: i32, decl_start: i32, decl_end: i32, signature: String) -> SymbolInfo {
-    SymbolInfo { found: true, name: name, kind: kind, decl_start: decl_start, decl_end: decl_end, signature: signature }
+pub fn SymbolInfo_found(name: String, kind: i32, decl_start: i32, decl_end: i32, signature: String, doc: String) -> SymbolInfo {
+    SymbolInfo { found: true, name: name, kind: kind, decl_start: decl_start, decl_end: decl_end, signature: signature, doc: doc }
 }
 
 pub fn symbol_info_found(info: SymbolInfo) -> bool {
@@ -39,4 +40,8 @@ pub fn symbol_info_kind(info: SymbolInfo) -> i32 {
 
 pub fn symbol_info_signature(info: SymbolInfo) -> String {
     clone(info.signature)
+}
+
+pub fn symbol_info_doc(info: SymbolInfo) -> String {
+    clone(info.doc)
 }

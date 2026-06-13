@@ -7,7 +7,9 @@ use lsp::feature_symbol
 use lsp::framing
 use lsp::lsp_config
 use lsp::positions
+use lsp::qualified_name
 use lsp::responses
+use lsp::stdlib_definition
 use lsp::symbol_index_lookup
 
 fn render_index_hover_markdown(detail: String, doc: String, minimal: bool) -> String {
@@ -21,6 +23,30 @@ fn render_index_hover_markdown(detail: String, doc: String, minimal: bool) -> St
         out = concat(out, concat(String_from("\n\n"), doc))
     }
     out
+}
+
+fn lookup_short_name(text: String, offset: i32) -> String {
+    let lookup_name = qualified_name::lookup_name_at_offset(clone(text), offset)
+    if len(lookup_name) == 0 {
+        return String_new()
+    }
+    if !contains(clone(lookup_name), String_from("::")) {
+        return lookup_name
+    }
+    let mut last_colon = 0
+    let mut pos = len(lookup_name) - 1
+    while pos >= 0 {
+        if char_at(lookup_name, pos) == 58 && pos > 0 && char_at(lookup_name, pos - 1) == 58 {
+            last_colon = pos + 1
+            pos = 0 - 1
+        } else {
+            pos = pos - 1
+        }
+    }
+    if last_colon > 0 && last_colon < len(lookup_name) {
+        return substring(lookup_name, last_colon, len(lookup_name))
+    }
+    lookup_name
 }
 
 pub fn handle_hover(state: LspState, body: String) {
@@ -39,18 +65,34 @@ pub fn handle_hover(state: LspState, body: String) {
     }
     let req_text = feature_request::text_position_request_text(req)
     let offset = feature_request::text_position_request_offset(req)
-    let ident_span = symbols::ident_span_at_offset(clone(req_text), offset)
-    if !ident_span::ident_span_found(ident_span) {
+    let short_name = lookup_short_name(clone(req_text), offset)
+    if len(short_name) == 0 {
         framing::append_framed(state, responses::build_null_response(req_id))
         return
     }
-    let ident = ident_span::ident_span_name(ident_span)
-    let def = symbol_index_lookup::lookup_definition(state, ident)
+    if stdlib_definition::lookup_stdlib_definition(state, clone(short_name)) {
+        let ident_span = symbols::ident_span_at_offset(clone(req_text), offset)
+        let md = render_index_hover_markdown(stdlib_definition::stdlib_definition_detail(state, clone(short_name)), stdlib_definition::stdlib_definition_doc(state, clone(short_name)), minimal)
+        if !ident_span::ident_span_found(ident_span) {
+            framing::append_framed(state, responses::build_null_response(req_id))
+            return
+        }
+        let start = positions::offset_to_position(clone(req_text), ident_span::ident_span_start(ident_span))
+        let end = positions::offset_to_position(req_text, ident_span::ident_span_end(ident_span))
+        framing::append_framed(state, responses::build_hover_response(req_id, md, start, end))
+        return
+    }
+    let def = symbol_index_lookup::lookup_definition(state, short_name)
     if !symbol_index_lookup::index_definition_found(def) {
         framing::append_framed(state, responses::build_null_response(req_id))
         return
     }
+    let ident_span = symbols::ident_span_at_offset(clone(req_text), offset)
     let md = render_index_hover_markdown(symbol_index_lookup::index_definition_detail(def), symbol_index_lookup::index_definition_doc(def), minimal)
+    if !ident_span::ident_span_found(ident_span) {
+        framing::append_framed(state, responses::build_null_response(req_id))
+        return
+    }
     let start = positions::offset_to_position(clone(req_text), ident_span::ident_span_start(ident_span))
     let end = positions::offset_to_position(req_text, ident_span::ident_span_end(ident_span))
     framing::append_framed(state, responses::build_hover_response(req_id, md, start, end))

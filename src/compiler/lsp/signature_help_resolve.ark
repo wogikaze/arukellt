@@ -1,0 +1,103 @@
+// Arukellt LSP - resolve function signatures for signature help.
+
+use lsp::state_record
+use lsp::symbol_index_lookup
+use lsp::symbol_index_record
+
+struct ResolvedSignature {
+    found: bool,
+    label: String,
+    doc: String,
+    params: Vec<String>,
+}
+
+fn ResolvedSignature_none() -> ResolvedSignature {
+    ResolvedSignature { found: false, label: String_new(), doc: String_new(), params: Vec_new_String() }
+}
+
+pub fn resolved_signature_found(sig: ResolvedSignature) -> bool {
+    sig.found
+}
+
+pub fn resolved_signature_label(sig: ResolvedSignature) -> String {
+    clone(sig.label)
+}
+
+pub fn resolved_signature_doc(sig: ResolvedSignature) -> String {
+    clone(sig.doc)
+}
+
+pub fn resolved_signature_params(sig: ResolvedSignature) -> Vec<String> {
+    sig.params
+}
+
+fn split_param_list(inner: String) -> Vec<String> {
+    let out = Vec_new_String()
+    if len(inner) == 0 {
+        return out
+    }
+    let mut start = 0
+    let n = len(inner)
+    let mut depth = 0
+    let mut i = 0
+    while i < n {
+        let ch = char_at(inner, i)
+        if ch == 60 {
+            depth = depth + 1
+        } else {
+            if ch == 62 {
+                if depth > 0 {
+                    depth = depth - 1
+                }
+            } else {
+                if ch == 44 && depth == 0 {
+                    push(out, substring(inner, start, i))
+                    start = i + 1
+                }
+            }
+        }
+        i = i + 1
+    }
+    push(out, substring(inner, start, n))
+    out
+}
+
+fn params_from_detail(detail: String) -> Vec<String> {
+    let open = index_of(clone(detail), String_from("("))
+    if open < 0 {
+        return Vec_new_String()
+    }
+    let close = index_of(substring(detail, open + 1, len(detail)), String_from(")"))
+    if close < 0 {
+        return Vec_new_String()
+    }
+    split_param_list(substring(detail, open + 1, open + 1 + close))
+}
+
+fn resolve_from_index_def(def: symbol_index_lookup::IndexDefinition) -> ResolvedSignature {
+    let detail = symbol_index_lookup::index_definition_detail(def)
+    ResolvedSignature { found: true, label: clone(detail), doc: symbol_index_lookup::index_definition_doc(def), params: params_from_detail(detail) }
+}
+
+fn resolve_from_project_symbol(sym: symbol_index_record::IndexedSymbol) -> ResolvedSignature {
+    let detail = symbol_index_record::indexed_symbol_detail(sym)
+    ResolvedSignature { found: true, label: clone(detail), doc: String_new(), params: params_from_detail(detail) }
+}
+
+pub fn resolve_signature_for_name(state: LspState, name: String) -> ResolvedSignature {
+    let def = symbol_index_lookup::lookup_definition(state, clone(name))
+    if symbol_index_lookup::index_definition_found(def) {
+        return resolve_from_index_def(def)
+    }
+    let symbols = state_record::lsp_state_symbol_symbols(state)
+    let n = len(symbols)
+    let mut i = 0
+    while i < n {
+        let sym = get_unchecked(symbols, i)
+        if eq(symbol_index_record::indexed_symbol_name(sym), clone(name)) {
+            return resolve_from_project_symbol(sym)
+        }
+        i = i + 1
+    }
+    ResolvedSignature_none()
+}

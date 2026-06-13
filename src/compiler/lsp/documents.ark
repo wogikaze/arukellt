@@ -18,6 +18,7 @@ pub fn handle_did_open(state: LspState, body: String) {
     let text = json_fields::extract_string_field(clone(body), String_from("text"))
     let version = json_fields::extract_int_field(clone(body), String_from("version"))
     state_docs::lsp_doc_store_set(state_record::lsp_state_doc_store(state), clone(uri), clone(text), version)
+    symbol_index_stdlib::symbol_index_load_stdlib(state)
     symbol_index_update::symbol_index_update_uri(state, clone(uri), clone(text))
     publish_for(state, clone(uri), clone(text))
 }

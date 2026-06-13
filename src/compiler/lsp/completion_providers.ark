@@ -1,0 +1,89 @@
+// Arukellt LSP - completion item providers from index and keywords.
+
+use lsp::completion_items
+use lsp::import_graph
+use lsp::state_record
+use lsp::symbol_index_record
+
+fn starts_with_prefix(label: String, prefix: String) -> bool {
+    if len(prefix) == 0 {
+        return true
+    }
+    if len(label) < len(prefix) {
+        return false
+    }
+    substring(clone(label), 0, len(prefix)) == prefix
+}
+
+fn push_keyword(items: String, text: String, prefix: String, label: String) -> String {
+    if !starts_with_prefix(clone(label), clone(prefix)) {
+        return items
+    }
+    completion_items::append_item(items, completion_items::completion_item_json(label, 14, String_from("keyword"), text, String_new(), false))
+}
+
+fn push_keywords(items: String, text: String, prefix: String) -> String {
+    let mut out = items
+    out = push_keyword(out, clone(text), clone(prefix), String_from("fn"))
+    out = push_keyword(out, clone(text), clone(prefix), String_from("let"))
+    out = push_keyword(out, clone(text), clone(prefix), String_from("mut"))
+    out = push_keyword(out, clone(text), clone(prefix), String_from("if"))
+    out = push_keyword(out, clone(text), clone(prefix), String_from("else"))
+    out = push_keyword(out, clone(text), clone(prefix), String_from("match"))
+    out = push_keyword(out, clone(text), clone(prefix), String_from("use"))
+    out = push_keyword(out, clone(text), clone(prefix), String_from("pub"))
+    out = push_keyword(out, clone(text), clone(prefix), String_from("return"))
+    out
+}
+
+fn push_stdlib(items: String, text: String, prefix: String, state: LspState) -> String {
+    let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
+    let sn = len(stdlib)
+    let mut j = 0
+    let mut out = items
+    while j < sn {
+        let sym = get_unchecked(stdlib, j)
+        let name = symbol_index_record::stdlib_indexed_symbol_name(sym)
+        let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
+        let label = if len(module_path) > 0 {
+            concat(concat(clone(module_path), String_from("::")), clone(name))
+        } else {
+            clone(name)
+        }
+        if starts_with_prefix(clone(label), clone(prefix)) || starts_with_prefix(clone(name), clone(prefix)) {
+            let import_path = if len(module_path) > 0 {
+                import_graph::stdlib_import_path(clone(module_path), clone(name))
+            } else {
+                clone(name)
+            }
+            let needs_import = !import_graph::is_path_imported(clone(text), clone(import_path))
+            out = completion_items::append_item(out, completion_items::completion_item_json(label, symbol_index_record::stdlib_indexed_symbol_kind(sym), symbol_index_record::stdlib_indexed_symbol_detail(sym), clone(text), import_path, needs_import))
+        }
+        j = j + 1
+    }
+    out
+}
+
+fn push_project(items: String, text: String, prefix: String, state: LspState) -> String {
+    let symbols = state_record::lsp_state_symbol_symbols(state)
+    let n = len(symbols)
+    let mut i = 0
+    let mut out = items
+    while i < n {
+        let sym = get_unchecked(symbols, i)
+        let name = symbol_index_record::indexed_symbol_name(sym)
+        if starts_with_prefix(clone(name), clone(prefix)) {
+            out = completion_items::append_item(out, completion_items::completion_item_json(name, symbol_index_record::indexed_symbol_kind(sym), symbol_index_record::indexed_symbol_detail(sym), clone(text), String_new(), false))
+        }
+        i = i + 1
+    }
+    out
+}
+
+pub fn collect_completion_items(state: LspState, text: String, prefix: String) -> String {
+    let mut items = String_new()
+    items = push_keywords(items, clone(text), clone(prefix))
+    items = push_stdlib(items, clone(text), clone(prefix), state)
+    items = push_project(items, clone(text), clone(prefix), state)
+    items
+}

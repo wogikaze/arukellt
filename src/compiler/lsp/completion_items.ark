@@ -1,0 +1,53 @@
+// Arukellt Selfhost - LSP completion item JSON builders.
+
+use lsp::import_graph
+use lsp::json_escape
+use lsp::positions
+
+fn quote_string(s: String) -> String {
+    concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
+}
+
+pub fn completion_item(label: String, kind: i32, detail: String) -> String {
+    let mut out = String_from("{\"label\":")
+    out = concat(out, quote_string(label))
+    out = concat(out, String_from(",\"kind\":"))
+    out = concat(out, to_string(kind))
+    out = concat(out, String_from(",\"detail\":"))
+    out = concat(out, quote_string(detail))
+    out = concat(out, String_from("}"))
+    out
+}
+
+pub fn completion_item_json(label: String, kind: i32, detail: String, text: String, import_path: String, needs_import: bool) -> String {
+    if !needs_import || len(import_path) == 0 {
+        return completion_item(label, kind, detail)
+    }
+    let offset = import_graph::first_use_insert_offset(clone(text))
+    let pos = positions::offset_to_position(clone(text), offset)
+    let mut out = String_from("{\"label\":")
+    out = concat(out, quote_string(label))
+    out = concat(out, String_from(",\"kind\":"))
+    out = concat(out, to_string(kind))
+    out = concat(out, String_from(",\"detail\":"))
+    out = concat(out, quote_string(detail))
+    out = concat(out, String_from(",\"additionalTextEdits\":[{\"range\":{\"start\":{\"line\":"))
+    out = concat(out, to_string(positions::lsp_position_line(pos)))
+    out = concat(out, String_from(",\"character\":"))
+    out = concat(out, to_string(positions::lsp_position_character(pos)))
+    out = concat(out, String_from("},\"end\":{\"line\":"))
+    out = concat(out, to_string(positions::lsp_position_line(pos)))
+    out = concat(out, String_from(",\"character\":"))
+    out = concat(out, to_string(positions::lsp_position_character(pos)))
+    out = concat(out, String_from("}},\"newText\":"))
+    out = concat(out, quote_string(import_graph::build_use_statement(import_path)))
+    out = concat(out, String_from("}]}"))
+    out
+}
+
+pub fn append_item(items: String, item: String) -> String {
+    if len(items) == 0 {
+        return item
+    }
+    concat(concat(items, String_from(",")), item)
+}
