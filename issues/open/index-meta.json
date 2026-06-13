@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T18:46:57Z",
+  "generated_at": "2026-06-13T18:59:41Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -48,9 +48,9 @@
       }
     },
     {
-      "id": "117",
-      "path": "117-wasm-component-model-wit-gen-quality.md",
-      "title": "Component Model: WIT 生成品質の向上と往復検証",
+      "id": "118",
+      "path": "118-wasm-multi-export-world.md",
+      "title": "118-wasm-multi-export-world",
       "track": "wasm-quality",
       "status": "open",
       "blocks_v1": "none",
@@ -58,16 +58,17 @@
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "118"
+      "depends_on": [
+        "117",
+        "074"
       ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },
@@ -824,31 +825,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "118",
-      "path": "118-wasm-multi-export-world.md",
-      "title": "118-wasm-multi-export-world",
-      "track": "wasm-quality",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "117",
-        "074"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
         "upstream_notes": null
       }
     },

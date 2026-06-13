@@ -8,7 +8,7 @@
 # Every .ark entry point must be listed here.
 # Fixture manifest — single source of truth for test fixtures.
 # Format: kind:path (relative to tests/fixtures/)
-# Kinds: run, diag, fmt, module-run, module-diag, t3-compile, component-compile, compile-error
+# Kinds: run, diag, fmt, module-run, module-diag, t3-compile, component-compile, component-wit-parse, compile-error
 run:scalar/f32_local.ark
 # Optimisation tests
 # The harness reads this file instead of globbing.
@@ -53,6 +53,7 @@ component-compile:component/export_option_i64.ark
 component-compile:component/export_option_i64_param.ark
 component-compile:component/export_option_roundtrip.ark
 component-compile:component/export_option_roundtrip_renamed.ark
+component-wit-parse:component/wit_quality.ark
 component-compile:component/export_record_add.ark
 component-compile:component/export_record_add_renamed.ark
 component-compile:component/export_record.ark

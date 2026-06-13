@@ -1,0 +1,23 @@
+// Issue #117 — WIT generation quality gate: option/result/tuple + kebab-case exports.
+pub fn maybe_double(n: i32) -> Option<i32> {
+    if n > 0 {
+        Some(n * 2)
+    } else {
+        None
+    }
+}
+
+pub fn safe_div(a: i32, b: i32) -> Result<i32, String> {
+    if b == 0 {
+        Err("division by zero")
+    } else {
+        Ok(a / b)
+    }
+}
+
+pub fn swap_pair(a: i32, b: i32) -> (i32, i32) {
+    (b, a)
+}
+
+fn main() {
+}

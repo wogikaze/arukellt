@@ -4467,6 +4467,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-false-done-close-gates.py",
         ),
         (
+            "component WIT parse gate (#117)",
+            "python3 scripts/check/check-component-wit-parse.py",
+        ),
+        (
             "compiler boundary check (CoreHIR/MIR separation)",
             "python3 scripts/check/check-compiler-boundaries.py",
         ),
