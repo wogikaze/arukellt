@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-30
-Updated: 2026-06-12
+Updated: 2026-06-13
 ID: 273
 Track: main
 Depends on: 272

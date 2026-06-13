@@ -18,8 +18,6 @@ graph LR
   I191["191 191-vscode-setup-doctor-command-graph-and-environment-inspection"]
   I217["217 Code actions + refactor code actions"]
   I219["219 LSP standard feature completeness"]
-  I271["271 271-vscode-test-runner-wiring"]
-  I273["273 273-extension-lsp-command-task-e2e"]
   I292["292 292-stub-host-compile-error"]
   I30["30 036-jco-javascript-interop"]
   I355["355 355-lsp-protocol-e2e-tests"]
@@ -107,8 +105,6 @@ graph LR
 - **191** depends on: 190; blocks: 184
 - **217** depends on: 193; blocks: none
 - **219** depends on: none; blocks: none
-- **271** depends on: 254; blocks: none
-- **273** depends on: 272; blocks: none
 - **292** depends on: none; blocks: none
 - **30** depends on: 27; blocks: none
 - **355** depends on: 353; blocks: none
