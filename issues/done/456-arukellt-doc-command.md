@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-02
 Updated: 2026-06-12
 ID: 456
@@ -8,9 +8,7 @@ Depends on: 455
 Orchestration class: implementation-ready
 Blocks v1 exit: no
 Priority: 3
-Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
-Evidence: "crates/arukellt/src/cmd_doc.rs with all features, Commands::Doc in main.rs"
-Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
+Status note: "Selfhost `cmd_manifest_doc` resolves symbols from `std/manifest.toml` with `--json`, `--target`, and fuzzy Did you mean?; gated by `scripts/check/check-manifest-doc.py`."
 ---
 
 ## Reopened by audit — 2026-06-12 (Slice B)
@@ -380,12 +378,12 @@ Options:
 ## 完了条件
 
 - [x] `arukellt doc println` がシグネチャ・module・stability を表示する
-- [ ] `arukellt doc std::host::http::get` が target 制約を表示する
-- [ ] `arukellt doc std::host::http` がモジュール内関数一覧を表示する
-- [ ] `arukellt doc --json println` が valid JSON を返す
-- [ ] `arukellt doc --target wasm32-wasi-p1 std::host::http::get` が「T1 非対応」を明示する
-- [ ] 存在しないシンボルで `Did you mean?` 候補が出る
-- [ ] `bash scripts/run/verify-harness.sh` が 13/13 pass
+- [x] `arukellt doc std::host::http::get` が target 制約を表示する
+- [x] `arukellt doc std::host::http` がモジュール内関数一覧を表示する
+- [x] `arukellt doc --json println` が valid JSON を返す
+- [x] `arukellt doc --target wasm32-wasi-p1 std::host::http::get` が「T1 非対応」を明示する
+- [x] 存在しないシンボルで `Did you mean?` 候補が出る
+- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass
 
 ---
 

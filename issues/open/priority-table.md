@@ -79,11 +79,9 @@ Scoring criteria (0-5 each, total 25):
 | 66 | 217 | Code actions + refactor code actions | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
 | 67 | 219 | LSP standard feature completeness | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
 | 68 | 292 | 292-stub-host-compile-error | capability | 0 | 0 | 1 | 1 | 4 | 6 |
-| 69 | 456 | 456-arukellt-doc-command | cli | 0 | 0 | 2 | 1 | 3 | 6 |
-| 70 | 635 | 635 — Playground: wire format and tokenize in browser UI | playground | 0 | 0 | 1 | 1 | 4 | 6 |
-| 71 | 639 | 639 — HTTP package registry resolution | cli | 0 | 0 | 1 | 1 | 4 | 6 |
-| 72 | 645 | 645 — T2 playground execution and DOM I/O surface | playground | 0 | 0 | 1 | 1 | 4 | 6 |
-| 73 | 441 | VSCode Extension: Workspace / Package / ark.toml を理解した proj... | vscode-ide | 1 | 0 | 1 | 1 | 2 | 5 |
-| 74 | 464 | 464-init-template-expansion | cli, dx | 0 | 0 | 1 | 1 | 3 | 5 |
-| 75 | 439 | VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
-| 76 | 440 | VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「f... | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
+| 69 | 635 | 635 — Playground: wire format and tokenize in browser UI | playground | 0 | 0 | 1 | 1 | 4 | 6 |
+| 70 | 639 | 639 — HTTP package registry resolution | cli | 0 | 0 | 1 | 1 | 4 | 6 |
+| 71 | 645 | 645 — T2 playground execution and DOM I/O surface | playground | 0 | 0 | 1 | 1 | 4 | 6 |
+| 72 | 441 | VSCode Extension: Workspace / Package / ark.toml を理解した proj... | vscode-ide | 1 | 0 | 1 | 1 | 2 | 5 |
+| 73 | 439 | VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |
+| 74 | 440 | VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「f... | vscode-ide | 0 | 0 | 1 | 1 | 2 | 4 |

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T01:56:14Z",
+  "generated_at": "2026-06-13T03:32:11Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -771,52 +771,6 @@
       "acceptance": {
         "checked": 4,
         "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "456",
-      "path": "456-arukellt-doc-command.md",
-      "title": "456-arukellt-doc-command",
-      "track": "cli",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "455"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "464",
-      "path": "464-init-template-expansion.md",
-      "title": "464-init-template-expansion",
-      "track": "cli, dx",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 1,
-        "unchecked": 7
       },
       "orchestration": {
         "class": "implementation-ready",

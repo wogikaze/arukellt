@@ -38,8 +38,6 @@ graph LR
   I447["447 447-std-host-sockets-implementation"]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
   I454["454 454-lsp-regression-fixtures-snapshot"]
-  I456["456 456-arukellt-doc-command"]
-  I464["464 464-init-template-expansion"]
   I474["474 Async component support (v5)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I480["480 480-extension-readme-settings-docs"]
@@ -144,8 +142,6 @@ graph LR
 - **447** depends on: none; blocks: 633
 - **45** depends on: 039, 042, 044; blocks: none
 - **454** depends on: 450, 451, 452; blocks: 463
-- **456** depends on: 455; blocks: none
-- **464** depends on: none; blocks: none
 - **474** depends on: 035, done), 074; blocks: 646
 - **476** depends on: 035, done), 074; blocks: 443, 618
 - **480** depends on: 479; blocks: none
