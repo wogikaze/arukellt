@@ -4,6 +4,7 @@ use std::host::env
 use std::host::fs
 use std::host::process
 use std::host::stdio
+use main::manifest_doc_fuzzy
 use main::manifest_doc_lookup
 use main::manifest_doc_parse
 use main::manifest_doc_record
@@ -38,14 +39,14 @@ pub fn cmd_manifest_doc(symbol: String, json_out: bool, filter_target: String) {
     }
     let table = doc_load_manifest()
     let query = manifest_doc_lookup::doc_resolve_query(table, clone(symbol))
-    let hits = manifest_doc_lookup::doc_query_hits(query)
-    if manifest_doc_lookup::doc_query_show_module(query) == 1 {
+    let hits = manifest_doc_record::DocQuery_hits(query)
+    if manifest_doc_record::DocQuery_show_module(query) == 1 {
         manifest_doc_render::doc_print_module(table, clone(symbol), clone(filter_target))
         return
     }
     if len(hits) == 0 {
         stdio::eprintln(concat(String_from("error: symbol '"), concat(clone(symbol), String_from("' not found"))))
-        let candidates = manifest_doc_lookup::doc_find_closest(table, clone(symbol), 3)
+        let candidates = manifest_doc_fuzzy::doc_find_closest(table, clone(symbol), 3)
         if len(candidates) > 0 {
             stdio::eprintln(String_from(""))
             stdio::eprintln(String_from("Did you mean?"))

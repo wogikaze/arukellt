@@ -91,3 +91,15 @@ fn doc_split_module_and_name(symbol: String) -> DocModuleNameParts {
     }
     DocModuleNameParts_new(substring(symbol, 0, split - 2), substring(symbol, split, n))
 }
+
+struct DocQuery {
+    hits: Vec<i32>,
+    show_module: i32,
+}
+
+fn DocQuery_new(hits: Vec<i32>, show_module: i32) -> DocQuery {
+    DocQuery { hits: hits, show_module: show_module }
+}
+
+fn DocQuery_hits(q: DocQuery) -> Vec<i32> { clone(q.hits) }
+fn DocQuery_show_module(q: DocQuery) -> i32 { q.show_module }

@@ -22,7 +22,7 @@ fn doc_fn_matches_module_name(e: DocFnEntry, module: String, name: String) -> bo
     eq(manifest_doc_record::DocFnEntry_name(e), clone(name)) && eq(manifest_doc_record::DocFnEntry_module(e), clone(module))
 }
 
-pub fn doc_find_by_name(table: DocManifestTable, name: String) -> Vec<i32> {
+fn doc_find_by_name(table: DocManifestTable, name: String) -> Vec<i32> {
     let out = Vec_new_i32()
     let n = manifest_doc_record::DocManifestTable_function_count(table)
     let mut i = 0
@@ -36,7 +36,7 @@ pub fn doc_find_by_name(table: DocManifestTable, name: String) -> Vec<i32> {
     out
 }
 
-pub fn doc_find_by_module_name(table: DocManifestTable, module: String, name: String) -> Vec<i32> {
+fn doc_find_by_module_name(table: DocManifestTable, module: String, name: String) -> Vec<i32> {
     let out = Vec_new_i32()
     let n = manifest_doc_record::DocManifestTable_function_count(table)
     let mut i = 0
@@ -50,7 +50,7 @@ pub fn doc_find_by_module_name(table: DocManifestTable, module: String, name: St
     out
 }
 
-pub fn doc_module_has_functions(table: DocManifestTable, module: String) -> bool {
+fn doc_module_has_functions(table: DocManifestTable, module: String) -> bool {
     let n = manifest_doc_record::DocManifestTable_function_count(table)
     let mut i = 0
     while i < n {
@@ -76,11 +76,32 @@ pub fn doc_find_module(table: DocManifestTable, module: String) -> i32 {
     return 0 - 1
 }
 
-pub fn doc_symbol_is_module_query(symbol: String) -> bool {
+fn doc_symbol_is_module_query(symbol: String) -> bool {
     if !contains(clone(symbol), String_from("::")) {
         return false
     }
     let last = doc_last_segment(clone(symbol))
     let ch = char_at(last, 0)
     ch >= 65 && ch <= 90
+}
+
+pub fn doc_resolve_query(table: DocManifestTable, symbol: String) -> DocQuery {
+    let mut hits = Vec_new_i32()
+    let mut show_module = 0
+    if contains(clone(symbol), String_from("::")) {
+        let parts = manifest_doc_record::doc_split_module_and_name(clone(symbol))
+        hits = doc_find_by_module_name(table, manifest_doc_record::DocModuleNameParts_module(parts), manifest_doc_record::DocModuleNameParts_name(parts))
+        if len(hits) == 0 && (doc_find_module(table, clone(symbol)) >= 0 || doc_module_has_functions(table, clone(symbol))) {
+            show_module = 1
+        }
+    } else {
+        hits = doc_find_by_name(table, clone(symbol))
+        if len(hits) == 0 && (doc_find_module(table, clone(symbol)) >= 0 || doc_module_has_functions(table, clone(symbol))) {
+            show_module = 1
+        }
+    }
+    if doc_symbol_is_module_query(clone(symbol)) && len(hits) == 0 {
+        show_module = 1
+    }
+    manifest_doc_record::DocQuery_new(hits, show_module)
 }

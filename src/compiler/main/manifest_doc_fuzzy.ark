@@ -1,0 +1,62 @@
+// Arukellt Selfhost - fuzzy symbol matching for manifest doc (#456).
+
+use main::manifest_doc_record
+
+fn doc_qualified_name(module: String, name: String) -> String {
+    concat(clone(module), concat(String_from("::"), clone(name)))
+}
+
+fn doc_score_name(query: String, candidate: String) -> i32 {
+    if eq(clone(query), clone(candidate)) {
+        return 0
+    }
+    if starts_with(clone(candidate), clone(query)) {
+        return len(candidate) - len(query)
+    }
+    if contains(clone(candidate), clone(query)) {
+        return len(candidate)
+    }
+    len(candidate) + len(query)
+}
+
+pub fn doc_find_closest(table: DocManifestTable, query: String, limit: i32) -> Vec<String> {
+    let out = Vec_new_String()
+    let n = manifest_doc_record::DocManifestTable_function_count(table)
+    let mut emitted = 0
+    while emitted < limit {
+        let mut best = 0 - 1
+        let mut best_score = 1000000
+        let mut i = 0
+        while i < n {
+            let e = manifest_doc_record::DocManifestTable_function_at(table, i)
+            let label = doc_qualified_name(manifest_doc_record::DocFnEntry_module(e), manifest_doc_record::DocFnEntry_name(e))
+            let mut skip = false
+            let mut oi = 0
+            while oi < len(out) {
+                if eq(get_unchecked(out, oi), clone(label)) {
+                    skip = true
+                }
+                oi = oi + 1
+            }
+            if !skip {
+                let name = manifest_doc_record::DocFnEntry_name(e)
+                let bare = doc_score_name(clone(query), clone(name))
+                let qual = doc_score_name(clone(query), clone(label))
+                let score = if bare < qual { bare } else { qual }
+                if score < best_score {
+                    best_score = score
+                    best = i
+                }
+            }
+            i = i + 1
+        }
+        if best < 0 {
+            emitted = limit
+        } else {
+            let pick = manifest_doc_record::DocManifestTable_function_at(table, best)
+            push(out, doc_qualified_name(manifest_doc_record::DocFnEntry_module(pick), manifest_doc_record::DocFnEntry_name(pick)))
+            emitted = emitted + 1
+        }
+    }
+    out
+}
