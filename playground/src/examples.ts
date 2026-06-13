@@ -126,17 +126,13 @@ fn main() {
     Blue,
 }
 
-fn describe(c: Color) -> str {
-    match c {
-        Color::Red => "red",
-        Color::Green => "green",
-        Color::Blue => "blue",
-    }
-}
-
 fn main() {
     let c = Color::Green
-    println(describe(c))
+    match c {
+        Color::Red => println("red"),
+        Color::Green => println("green"),
+        Color::Blue => println("blue"),
+    }
 }
 `,
     tags: ["types"],
@@ -166,17 +162,15 @@ fn main() {
     id: "traits",
     name: "Traits",
     description: "Defining and implementing traits for types.",
-    source: `pub trait Greet {
-    fn hello(self) -> str
-}
+    source: `pub trait Greet {}
 
 pub struct Person {
-    name: str,
+    name: String,
 }
 
 impl Greet for Person {
-    fn hello(self) -> str {
-        "Hello, " + self.name
+    fn hello(self) -> String {
+        concat(String_from("Hello, "), self.name)
     }
 }
 

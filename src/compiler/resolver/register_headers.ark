@@ -1,5 +1,6 @@
 // Arukellt Resolver - local declaration header registration
 
+use resolver::impl_target
 use resolver::scope_define
 use resolver::ast_decl_predicates
 use resolver::ast_access
@@ -43,7 +44,7 @@ fn register_non_type_decl_header(ctx: ResolveCtx, d: AstNode) {
 }
 
 fn register_impl_method_headers(ctx: ResolveCtx, d: AstNode) {
-    let struct_name = ast_access::node_text(d)
+    let struct_name = impl_target::impl_self_type_name(d)
     let mcount = ast_access::node_child_count(d)
     let mut mi = 0
     while mi < mcount {

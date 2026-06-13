@@ -1,5 +1,7 @@
 // Arukellt Selfhost - MIR lowering entry declaration emission.
 
+use corehir::mir_signature_method
+use corehir::mod
 use mir::lower::entry_body_source
 use mir::lower::decl_source
 use mir::lower::entry_fns
@@ -19,7 +21,8 @@ fn mir_emit_view_decls(ctx: LowerCtx, view: CoreHirMirView, body_source: MirLowe
             fn_idx = entry_fns::mir_emit_top_level_fn_decl(ctx, body_source, i, decl_name, fn_idx, entry_main_decl_index, midx, mir_tr)
         }
         if decl_source::mir_decl_source_is_impl_at(decl_source, i) {
-            entry_methods::mir_emit_impl_methods(ctx, body_source, i, decl_name, midx)
+            let struct_name = signature_method::mir_signature_method_owner_name_for_impl(mod::view_signature_source(view), i, decl_name)
+            entry_methods::mir_emit_impl_methods(ctx, body_source, i, struct_name, midx)
         }
         i = i + 1
     }

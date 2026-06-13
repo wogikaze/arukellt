@@ -1,6 +1,6 @@
 // Arukellt Selfhost - frontend method metadata to CoreHIR facts.
 
-use corehir::decl_node_identity
+use corehir::decl_impl_target
 use corehir::decl_member_collections
 use corehir::decl_node
 use corehir::method_info
@@ -24,7 +24,7 @@ fn build_method_infos(decls: Vec<AstNode>) -> Vec<CoreHirMethodInfo> {
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         if decl_node::decl_is_impl(decl) {
-            let owner_name = decl_node_identity::decl_name(decl)
+            let owner_name = decl_impl_target::impl_self_type_name(decl)
             let method_count = decl_member_collections::decl_method_count(decl)
             let mut mi = 0
             while mi < method_count {

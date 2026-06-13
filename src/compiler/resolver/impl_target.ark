@@ -1,0 +1,15 @@
+// Arukellt Resolver - impl block self / owner type resolution.
+
+use resolver::ast_access
+
+// Return the concrete type that owns methods in an impl block.
+fn impl_self_type_name(decl: AstNode) -> String {
+    let ann_count = ast_access::node_type_ann_count(decl)
+    if ann_count >= 2 {
+        return ast_access::node_text(ast_access::node_type_ann_at(decl, 1))
+    }
+    if ann_count >= 1 {
+        return ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
+    }
+    return ast_access::node_text(decl)
+}

@@ -34,3 +34,7 @@ fn mir_signature_method_return_vt_at(source: CoreHirMirSignatureSource, info_ind
 fn mir_signature_method_return_type_name_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: String) -> String {
     method_info::method_info_return_type_name_at(signature_source_record::mir_signature_source_method_infos(source), info_index, fallback)
 }
+
+fn mir_signature_method_owner_name_for_impl(source: CoreHirMirSignatureSource, impl_decl_index: i32, fallback: String) -> String {
+    method_info::method_info_owner_name_for_impl(signature_source_record::mir_signature_source_method_infos(source), impl_decl_index, fallback)
+}

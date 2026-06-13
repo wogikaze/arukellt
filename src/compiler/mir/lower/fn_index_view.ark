@@ -1,5 +1,7 @@
 // Arukellt Selfhost - MIR function index builder from CoreHIR view.
 
+use corehir::mir_signature_method
+use corehir::mod
 use mir::lower::decl_source
 use mir::lower::fn_index
 use mir::lower::fn_index_fns
@@ -21,7 +23,8 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex) -> MirLow
             fn_index = fn_index_fns::mir_index_top_level_fn(fn_names, fn_return_vts, fn_return_type_names, d, decl_name, fn_index, source, midx)
         }
         if decl_source::mir_decl_source_is_impl_at(decl_source, d) {
-            fn_index = fn_index_methods::mir_index_impl_methods(fn_names, fn_return_vts, fn_return_type_names, d, decl_name, fn_index, source, midx)
+            let owner_name = signature_method::mir_signature_method_owner_name_for_impl(mod::view_signature_source(view), d, decl_name)
+            fn_index = fn_index_methods::mir_index_impl_methods(fn_names, fn_return_vts, fn_return_type_names, d, owner_name, fn_index, source, midx)
         }
         d = d + 1
     }

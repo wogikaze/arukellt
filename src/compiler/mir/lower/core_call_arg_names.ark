@@ -11,3 +11,7 @@ fn mir_core_call_bool_result_name(name: String) -> bool {
 fn mir_core_call_i32_result_name(name: String) -> bool {
     eq(clone(name), "len") || eq(clone(name), "parse_i32") || eq(clone(name), "abs") || eq(clone(name), "min") || eq(clone(name), "max") || eq(clone(name), "sum_i32") || eq(clone(name), "product_i32") || eq(clone(name), "index_of") || eq(clone(name), "clamp_i32")
 }
+
+fn mir_core_call_string_result_name(name: String) -> bool {
+    eq(clone(name), "String_from") || eq(clone(name), "concat") || eq(clone(name), "text::concat") || eq(clone(name), "to_string") || eq(clone(name), "to_upper") || eq(clone(name), "to_lower") || eq(clone(name), "to_uppercase") || eq(clone(name), "to_lowercase") || ends_with(clone(name), "_to_string")
+}

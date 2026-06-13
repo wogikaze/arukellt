@@ -1,0 +1,19 @@
+// Arukellt Selfhost - impl block self / owner type resolution.
+
+use corehir::decl_ann_member
+use corehir::decl_ann_name
+use corehir::decl_node_identity
+
+// Return the concrete type that owns methods in an impl block.
+// - `impl Trait for Type` → Type (type_ann[1])
+// - `impl Type { ... }` → Type (type_ann[0] or decl name)
+fn impl_self_type_name(decl: AstNode) -> String {
+    let ann_count = decl_ann_member::decl_ann_count(decl)
+    if ann_count >= 2 {
+        return decl_ann_name::decl_ann_name(decl_ann_member::decl_ann_at(decl, 1))
+    }
+    if ann_count >= 1 {
+        return decl_ann_name::decl_ann_name(decl_ann_member::decl_ann_at(decl, 0))
+    }
+    return decl_node_identity::decl_name(decl)
+}

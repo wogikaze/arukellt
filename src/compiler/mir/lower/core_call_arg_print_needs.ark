@@ -2,28 +2,34 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 // Arukellt Selfhost - CoreHIR print argument conversion decision.
 
-use mir::lower::core_call_arg_names
+use mir::lower::core_call_arg_print_call
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
-use mir::lower::core_expr_shape_calls
+use mir::value_types
 
 fn mir_core_print_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, arg_idx: i32) -> bool {
+    if arg_idx >= 0 {
+        let arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
+        if arg_vt == value_types::VT_REF() {
+            return false
+        }
+        let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
+        if eq(clone(lt), "String") || eq(clone(lt), "str") || eq(clone(lt), "string") {
+            return false
+        }
+    }
+    let expr_type_name = core_expr_shape_accessors::mir_core_expr_type_name(arg)
+    if eq(clone(expr_type_name), "String") || eq(clone(expr_type_name), "str") || eq(clone(expr_type_name), "string") {
+        return false
+    }
+    if core_call_arg_print_call::mir_core_expr_is_print_call_arg(arg) {
+        return core_call_arg_print_call::mir_core_print_call_arg_needs_string_conversion(ctx, arg, arg_idx)
+    }
     let mut needs_convert = core_expr_shape_atoms::mir_core_expr_is_int(arg) || core_expr_shape_atoms::mir_core_expr_is_bool(arg) || core_expr_shape_atoms::mir_core_expr_is_char(arg) || core_expr_shape_atoms::mir_core_expr_is_float(arg)
     if !needs_convert {
         let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
         if eq(clone(lt), "char") || eq(clone(lt), "u8") || eq(clone(lt), "u16") || eq(clone(lt), "u32") || eq(clone(lt), "u64") || eq(clone(lt), "i16") || eq(clone(lt), "i32") || eq(clone(lt), "i64") || eq(clone(lt), "bool") || eq(clone(lt), "f64") {
             needs_convert = true
-        }
-    }
-    if !needs_convert && core_expr_shape_calls::mir_core_expr_is_call(arg) {
-        let cn = core_expr_shape_accessors::mir_core_expr_text(arg)
-        if core_call_arg_names::mir_core_call_bool_result_name(clone(cn)) {
-            needs_convert = true
-            ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("bool"))
-        }
-        if core_call_arg_names::mir_core_call_i32_result_name(cn) {
-            needs_convert = true
-            ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("i32"))
         }
     }
     needs_convert

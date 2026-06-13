@@ -1,5 +1,7 @@
 // Arukellt Selfhost - CoreHIR method info helpers.
 
+use corehir::param
+use corehir::value_types
 struct CoreHirMethodInfo {
     impl_decl_index: i32,
     method_index: i32,
@@ -55,8 +57,27 @@ fn method_info_param_count_at(method_infos: Vec<CoreHirMethodInfo>, info_index: 
 }
 
 fn method_info_param_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, param_index: i32) -> CoreHirParam {
+    if info_index < 0 || info_index >= len(method_infos) {
+        return param::CoreHirParam_new(String_from(""), value_types::VT_I32(), String_from(""), String_from(""), false, false)
+    }
     let info = get_unchecked(method_infos, info_index)
+    if param_index < 0 || param_index >= len(info.params) {
+        return param::CoreHirParam_new(String_from(""), value_types::VT_I32(), String_from(""), String_from(""), false, false)
+    }
     get_unchecked(info.params, param_index)
+}
+
+fn method_info_owner_name_for_impl(method_infos: Vec<CoreHirMethodInfo>, impl_decl_index: i32, fallback: String) -> String {
+    let count = len(method_infos)
+    let mut i = 0
+    while i < count {
+        let info = get_unchecked(method_infos, i)
+        if info.impl_decl_index == impl_decl_index {
+            return clone(info.owner_name)
+        }
+        i = i + 1
+    }
+    fallback
 }
 
 fn method_info_count_for_impl(method_infos: Vec<CoreHirMethodInfo>, impl_decl_index: i32) -> i32 {

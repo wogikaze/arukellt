@@ -1,0 +1,5 @@
+// T2 freestanding — println must coerce i32 locals, not treat them as string pointers.
+fn main() {
+    let x = 42
+    println(x)
+}

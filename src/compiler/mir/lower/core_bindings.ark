@@ -7,6 +7,7 @@ use mir::lower::ctx_types
 
 use mir::inst_convert
 use mir::inst_local_set
+use mir::lower::core_bindings_type
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_calls
 use mir::value_types
@@ -47,6 +48,7 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
         if len(init_type) > 1 && len(type_name) == 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
         }
+        core_bindings_type::infer_core_let_local_type_name(ctx, exprs, expr, local_idx, val_idx, clone(type_name), child_count)
     }
     if child_count >= 1 {
         let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))

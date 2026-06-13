@@ -1,0 +1,54 @@
+use mir::lower::core_call_arg_names
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_atoms
+use mir::lower::core_expr_shape_calls
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR let binding local type inference.
+
+use mir::value_types
+
+fn infer_core_let_local_type_name(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, local_idx: i32, val_idx: i32, type_name: String, child_count: i32) {
+    if len(type_name) > 0 || len(ctx_api_local_types::ctx_get_local_type(ctx, local_idx)) > 0 || child_count < 1 {
+        return
+    }
+    let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    if core_expr_shape_atoms::mir_core_expr_is_int(init_expr) {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("i32"))
+        return
+    }
+    if core_expr_shape_atoms::mir_core_expr_is_bool(init_expr) {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("bool"))
+        return
+    }
+    if core_expr_shape_atoms::mir_core_expr_is_char(init_expr) {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("char"))
+        return
+    }
+    if core_expr_shape_atoms::mir_core_expr_is_float(init_expr) {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("f64"))
+        return
+    }
+    if val_idx < 0 {
+        return
+    }
+    let val_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
+    if val_vt == value_types::VT_I32() {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("i32"))
+        return
+    }
+    if val_vt == value_types::VT_I64() {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("i64"))
+        return
+    }
+    if val_vt == value_types::VT_F64() {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("f64"))
+        return
+    }
+    if core_expr_shape_calls::mir_core_expr_is_call(init_expr) {
+        let callee = core_expr_shape_accessors::mir_core_expr_text(init_expr)
+        if core_call_arg_names::mir_core_call_string_result_name(clone(callee)) {
+            ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("string"))
+        }
+    }
+}

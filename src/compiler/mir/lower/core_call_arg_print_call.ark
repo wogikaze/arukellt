@@ -1,0 +1,43 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+// Arukellt Selfhost - CoreHIR println call-argument conversion checks.
+
+use mir::lower::core_call_arg_names
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_calls
+use mir::lower::ctx_fn_return_type
+use mir::lower::ctx_fn_return_vt
+use mir::value_types
+
+fn mir_core_print_call_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, arg_idx: i32) -> bool {
+    let cn = core_expr_shape_accessors::mir_core_expr_text(arg)
+    if core_call_arg_names::mir_core_call_string_result_name(clone(cn)) {
+        return false
+    }
+    let return_type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(cn))
+    if eq(clone(return_type_name), "String") || eq(clone(return_type_name), "str") || eq(clone(return_type_name), "string") {
+        return false
+    }
+    if ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(cn)) == value_types::VT_REF() {
+        return false
+    }
+    if core_call_arg_names::mir_core_call_bool_result_name(clone(cn)) {
+        ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("bool"))
+        return true
+    }
+    if core_call_arg_names::mir_core_call_i32_result_name(cn) {
+        ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("i32"))
+        return true
+    }
+    if arg_idx >= 0 {
+        let call_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
+        if call_vt == value_types::VT_I32() || call_vt == value_types::VT_I64() || call_vt == value_types::VT_F64() {
+            return true
+        }
+    }
+    false
+}
+
+fn mir_core_expr_is_print_call_arg(arg: CoreHirExpr) -> bool {
+    core_expr_shape_calls::mir_core_expr_is_call(arg)
+}
