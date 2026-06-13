@@ -1,0 +1,6 @@
+use unused_mod
+use helper
+
+fn main() {
+    helper::helper_fn()
+}

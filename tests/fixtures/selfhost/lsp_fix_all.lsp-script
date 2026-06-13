@@ -1,0 +1,13 @@
+Content-Length: 107
+
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":null,"capabilities":{}}}Content-Length: 52
+
+{"jsonrpc":"2.0","method":"initialized","params":{}}Content-Length: 222
+
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///fix_all.ark","languageId":"arukellt","version":1,"text":"use unused_mod\nuse helper\n\nfn main() {\n    helper::helper_fn()\n}\n"}}}Content-Length: 226
+
+{"jsonrpc":"2.0","id":2,"method":"textDocument/codeAction","params":{"textDocument":{"uri":"file:///fix_all.ark"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":0}},"context":{"only":["source.fixAll"]}}}Content-Length: 44
+
+{"jsonrpc":"2.0","id":3,"method":"shutdown"}Content-Length: 33
+
+{"jsonrpc":"2.0","method":"exit"}

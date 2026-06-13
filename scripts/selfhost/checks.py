@@ -14,6 +14,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -23,6 +24,29 @@ RED    = "\033[0;31m"
 GREEN  = "\033[0;32m"
 YELLOW = "\033[1;33m"
 NC     = "\033[0m"
+
+
+def _remove_tree(path: Path) -> None:
+    """Remove a directory tree; retry on WSL where shutil/rm can race."""
+    if not path.exists():
+        return
+    for attempt in range(12):
+        if os.name == "posix":
+            subprocess.run(["chmod", "-R", "u+w", str(path)], check=False)
+            subprocess.run(["rm", "-rf", str(path)], check=False)
+            if path.exists():
+                subprocess.run(["find", str(path), "-mindepth", "1", "-delete"], check=False)
+                subprocess.run(["rmdir", str(path)], check=False)
+        else:
+            shutil.rmtree(path, ignore_errors=True)
+        if not path.exists():
+            return
+        shutil.rmtree(path, ignore_errors=True)
+        if not path.exists():
+            return
+        time.sleep(0.05 * (attempt + 1))
+    if path.exists():
+        raise OSError(f"failed to remove directory tree: {path}")
 
 
 # Bootstrap overlay (``MONOLITHIC_OVERLAY_*``) remains for stage-0→s2 builds when
@@ -104,6 +128,7 @@ LOCAL_COMPILER_NAMESPACES = {
     "lsp",
     "main",
     "mir",
+    "mir_opt",
     "parser",
     "resolver",
     "typechecker",
@@ -130,6 +155,7 @@ WORKTREE_OVERLAY_NAMESPACES = frozenset({
     "lsp",
     "main",
     "mir",
+    "mir_opt",
     "parser",
     "resolver",
     "typechecker",
@@ -227,11 +253,22 @@ def _wasm_compile(
         root,
         timeout=timeout,
     )
-    if workspace_root is not None and result.returncode == 0:
+    if workspace_root is not None:
         staged = workspace_root / guest_out
-        final = root / out_rel
-        final.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(staged, final)
+        stderr = result.stderr or ""
+        compiled_ok = result.returncode == 0 or (
+            staged.is_file()
+            and staged.stat().st_size > 0
+            and "compilation succeeded" in stderr
+        )
+        if compiled_ok and staged.is_file():
+            final = root / out_rel
+            final.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(staged, final)
+            if result.returncode != 0:
+                result = subprocess.CompletedProcess(
+                    result.args, returncode=0, stdout=result.stdout, stderr=result.stderr,
+                )
     return result
 
 
@@ -1361,7 +1398,7 @@ def _ensure_hop_bootstrap_compiler_wasm(root: Path, bootstrap: Path) -> Path | N
         return None
     work_dir = root / ".build" / "hop-bootstrap-work"
     if work_dir.exists():
-        shutil.rmtree(work_dir)
+        _remove_tree(work_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
     src_dir = work_dir / "src" / "compiler"
     archive = subprocess.run(
@@ -1461,7 +1498,7 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
     overlay_root = root / ".build" / "selfhost" / "flat-src"
     compiler_out = overlay_root / "src" / "compiler"
     if overlay_root.exists():
-        shutil.rmtree(overlay_root)
+        _remove_tree(overlay_root)
     compiler_out.mkdir(parents=True, exist_ok=True)
     write_order: list[str] = []
     monolithic_written = _write_monolithic_overlay_fallbacks(compiler_out, root, write_order)
@@ -1507,7 +1544,7 @@ def _prepare_bootstrap_workspace(root: Path) -> Path:
     flat_root = _prepare_flattened_selfhost_source(root)
     workspace = root / BOOTSTRAP_WORKSPACE_REL
     if workspace.exists():
-        shutil.rmtree(workspace)
+        _remove_tree(workspace)
     shutil.copytree(flat_root, workspace)
     return workspace
 

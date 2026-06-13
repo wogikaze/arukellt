@@ -1,7 +1,7 @@
-// Arukellt LSP - organize imports code action (#341, #346).
+// Arukellt LSP - organize imports and fix-all code actions (#341, #440).
 
-use fmt
 use lsp::json_escape
+use lsp::organize_imports_detect
 use lsp::positions
 
 fn quote_string(s: String) -> String {
@@ -18,12 +18,16 @@ fn import_block_end(span: i32) -> i32 {
     span % 1000000
 }
 
-fn build_organize_edit(uri: String, text: String, sorted_block: String, span: i32) -> String {
+fn build_semantic_fix_edit(title: String, kind: String, uri: String, text: String, fixed_block: String, span: i32) -> String {
     let first_start = import_block_start(span)
     let last_end = import_block_end(span)
     let start_pos = positions::offset_to_position(clone(text), first_start)
     let end_pos = positions::offset_to_position(text, last_end)
-    let mut out = String_from("{\"title\":\"Organize Imports\",\"kind\":\"source.organizeImports\",\"edit\":{\"changes\":{")
+    let mut out = String_from("{\"title\":")
+    out = concat(out, quote_string(title))
+    out = concat(out, String_from(",\"kind\":"))
+    out = concat(out, quote_string(kind))
+    out = concat(out, String_from(",\"edit\":{\"changes\":{"))
     out = concat(out, quote_string(uri))
     out = concat(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
     out = concat(out, to_string(positions::lsp_position_line(start_pos)))
@@ -34,33 +38,45 @@ fn build_organize_edit(uri: String, text: String, sorted_block: String, span: i3
     out = concat(out, String_from(",\"character\":"))
     out = concat(out, to_string(positions::lsp_position_character(end_pos)))
     out = concat(out, String_from("}},\"newText\":"))
-    out = concat(out, quote_string(sorted_block))
+    out = concat(out, quote_string(fixed_block))
     out = concat(out, String_from("}]}}}"))
     out
 }
 
-pub fn build_organize_imports_action(uri: String, text: String) -> String {
-    let sorted_opt = fmt::sorted_import_block(clone(text))
-    match sorted_opt {
+fn build_semantic_fix_action(uri: String, text: String, title: String, kind: String) -> String {
+    let fixed_opt = organize_imports_detect::pruned_import_block(clone(text))
+    match fixed_opt {
         Option::None => {
             return String_new()
         },
-        Option::Some(sorted_block) => {
-            let span = fmt::import_block_span(clone(text))
+        Option::Some(fixed_block) => {
+            let span = organize_imports_detect::import_block_span(clone(text))
             if span < 0 {
                 return String_new()
             }
             let first_start = import_block_start(span)
             let last_end = import_block_end(span)
             let current_block = substring(clone(text), first_start, last_end)
-            if eq(clone(current_block), clone(sorted_block)) {
+            if eq(clone(current_block), clone(fixed_block)) {
                 return String_new()
             }
-            build_organize_edit(uri, text, sorted_block, span)
+            build_semantic_fix_edit(title, kind, uri, text, fixed_block, span)
         },
     }
 }
 
+pub fn build_organize_imports_action(uri: String, text: String) -> String {
+    build_semantic_fix_action(uri, text, String_from("Organize Imports"), String_from("source.organizeImports"))
+}
+
+pub fn build_fix_all_action(uri: String, text: String) -> String {
+    build_semantic_fix_action(uri, text, String_from("Fix All"), String_from("source.fixAll"))
+}
+
 pub fn request_wants_organize_imports(body: String) -> bool {
     index_of(clone(body), String_from("source.organizeImports")) >= 0
+}
+
+pub fn request_wants_fix_all(body: String) -> bool {
+    index_of(clone(body), String_from("source.fixAll")) >= 0
 }

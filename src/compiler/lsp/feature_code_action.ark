@@ -72,6 +72,18 @@ pub fn handle_code_action(state: LspState, body: String) {
     }
     let req_text = feature_request::text_position_request_text(req)
     let req_uri = feature_request::text_position_request_uri(req)
+    if organize_imports::request_wants_fix_all(clone(body)) {
+        let fix_all = organize_imports::build_fix_all_action(clone(req_uri), clone(req_text))
+        let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+        body_out = concat(body_out, to_string(req_id))
+        body_out = concat(body_out, String_from(",\"result\":["))
+        if len(fix_all) > 0 {
+            body_out = concat(body_out, fix_all)
+        }
+        body_out = concat(body_out, String_from("]}"))
+        framing::append_framed(state, body_out)
+        return
+    }
     if organize_imports::request_wants_organize_imports(clone(body)) {
         let organize = organize_imports::build_organize_imports_action(clone(req_uri), clone(req_text))
         let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")

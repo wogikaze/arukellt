@@ -24,10 +24,7 @@ graph LR
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I41["41 051-std-time-random"]
   I422["422 Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る"]
-  I439["439 VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する"]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
-  I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
-  I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I445["445 445-std-host-process-implementation"]
   I446["446 446-std-host-http-implementation"]
   I447["447 447-std-host-sockets-implementation"]
@@ -37,6 +34,7 @@ graph LR
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I480["480 480-extension-readme-settings-docs"]
   I491["491 491-playground-ci-performance-budget-gates"]
+  I502["502 502-lsp-full-multi-root-workspace"]
   I510["510 510-t3-p2-import-table-switch"]
   I52["52 064-wasm-branch-hinting"]
   I55["55 067-wasm-sign-extension-ops"]
@@ -56,7 +54,6 @@ graph LR
   I28["28 034-wit-cli-integration"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I184["184 184-vscode-extension-foundation"]
-  I502["502 502-lsp-full-multi-root-workspace"]
   I633["633 Reconcile std::host::http / sockets / udp capability claims with the selfhost execution path"]
   I463["463 463-lsp-performance-smoke-tests"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
@@ -75,7 +72,6 @@ graph LR
   I138 --> I136
   I139 --> I136
   I191 --> I184
-  I441 --> I502
   I446 --> I633
   I447 --> I633
   I454 --> I463
@@ -111,10 +107,7 @@ graph LR
 - **358** depends on: none; blocks: none
 - **41** depends on: 039, 040; blocks: none
 - **422** depends on: 418; blocks: none
-- **439** depends on: 333, 334, 335, 338, 339; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none
-- **440** depends on: 341, 346, 348, 349, 350, 352; blocks: none
-- **441** depends on: 333, 335, 340; blocks: 502
 - **445** depends on: none; blocks: none
 - **446** depends on: none; blocks: 633
 - **447** depends on: none; blocks: 633
@@ -124,6 +117,7 @@ graph LR
 - **476** depends on: 035, done), 074; blocks: 443, 618
 - **480** depends on: 479; blocks: none
 - **491** depends on: none; blocks: none
+- **502** depends on: 441; blocks: none
 - **510** depends on: none; blocks: 60, 62
 - **52** depends on: none; blocks: none
 - **55** depends on: none; blocks: none
@@ -143,7 +137,6 @@ graph LR
 - **28** depends on: 030, 031, 028b, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **184** depends on: 189, 190, 191; blocks: 183
-- **502** depends on: 441; blocks: none
 - **633** depends on: 446, 447; blocks: none
 - **463** depends on: 454; blocks: none
 - **646** depends on: 474; blocks: none

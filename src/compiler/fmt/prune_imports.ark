@@ -1,0 +1,241 @@
+// Arukellt Selfhost - semantic import pruning and sorting (#440).
+
+use fmt::parse_gate
+use resolver::ast_access
+use resolver::ast_decl_predicates
+
+struct PruneImportEntry {
+    line_start: i32,
+    line_end: i32,
+    path: String,
+    sort_group: i32,
+    has_alias: bool,
+}
+
+fn prune_import_entry_new(line_start: i32, line_end: i32, path: String, sort_group: i32, has_alias: bool) -> PruneImportEntry {
+    PruneImportEntry { line_start: line_start, line_end: line_end, path: path, sort_group: sort_group, has_alias: has_alias }
+}
+
+fn prune_import_sort_group(path: String, has_alias: bool) -> i32 {
+    if has_alias {
+        return 2
+    }
+    if starts_with(clone(path), String_from("std::")) {
+        return 0
+    }
+    1
+}
+
+fn prune_import_line_end(text: String, line_start: i32) -> i32 {
+    let n = len(text)
+    let mut i = line_start
+    while i < n && char_at(text, i) != 10 {
+        i = i + 1
+    }
+    if i < n {
+        return i + 1
+    }
+    i
+}
+
+fn path_symbol_part(path: String) -> String {
+    let pos = index_of(clone(path), String_from("::"))
+    if pos < 0 {
+        return String_new()
+    }
+    substring(path, pos + 2, len(path))
+}
+
+fn use_module_short_name(path: String) -> String {
+    let n = len(path)
+    let mut last_sep = 0 - 1
+    let mut i = n - 2
+    while i >= 0 {
+        if eq(substring(path, i, i + 2), String_from("::")) {
+            last_sep = i
+            i = 0 - 1
+        } else {
+            i = i - 1
+        }
+    }
+    if last_sep < 0 {
+        clone(path)
+    } else {
+        substring(path, last_sep + 2, n)
+    }
+}
+
+fn is_ident_char(ch: i32) -> bool {
+    if ch >= 97 && ch <= 122 { return true }
+    if ch >= 65 && ch <= 90 { return true }
+    if ch >= 48 && ch <= 57 { return true }
+    ch == 95
+}
+
+fn contains_ident_usage(body: String, name: String) -> bool {
+    let name_len = len(name)
+    if name_len == 0 {
+        return false
+    }
+    let n = len(body)
+    let mut i = 0
+    while i <= n - name_len {
+        if substring(clone(body), i, i + name_len) == name {
+            let before_ok = i == 0 || !is_ident_char(char_at(body, i - 1))
+            let after_ok = i + name_len >= n || !is_ident_char(char_at(body, i + name_len))
+            if before_ok && after_ok {
+                return true
+            }
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn import_is_used(path: String, body: String) -> bool {
+    let sym = path_symbol_part(clone(path))
+    if len(sym) > 0 {
+        return contains_ident_usage(clone(body), sym)
+    }
+    let short = use_module_short_name(clone(path))
+    let needle = concat(clone(short), String_from("::"))
+    if index_of(clone(body), needle) >= 0 {
+        return true
+    }
+    contains_ident_usage(clone(body), short)
+}
+
+fn collect_prune_import_entries(text: String, decls: Vec<AstNode>) -> Vec<PruneImportEntry> {
+    let out = Vec_new_PruneImportEntry()
+    let n = len(decls)
+    let mut i = 0
+    while i < n {
+        let d = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_use(d) {
+            let path = ast_access::node_text(d)
+            let has_alias = ast_access::node_type_ann_count(d) > 0
+            let line_start = ast_access::node_span_start(d)
+            let mut line_begin = line_start
+            while line_begin > 0 && char_at(text, line_begin - 1) != 10 {
+                line_begin = line_begin - 1
+            }
+            let line_end = prune_import_line_end(clone(text), line_begin)
+            let group = prune_import_sort_group(clone(path), has_alias)
+            push(out, prune_import_entry_new(line_begin, line_end, path, group, has_alias))
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn body_after_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
+    let en = len(entries)
+    if en == 0 {
+        return clone(text)
+    }
+    let mut last_end = 0
+    let mut i = 0
+    while i < en {
+        let end = get_unchecked(entries, i).line_end
+        if end > last_end {
+            last_end = end
+        }
+        i = i + 1
+    }
+    substring(text, last_end, len(text))
+}
+
+fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
+    let body = body_after_imports(clone(text), entries)
+    let en = len(entries)
+    let mut out = String_new()
+    let mut group = 0
+    while group <= 2 {
+        let mut i = 0
+        while i < en {
+            let entry = get_unchecked(entries, i)
+            if entry.sort_group == group && import_is_used(clone(entry.path), clone(body)) {
+                let line = substring(clone(text), entry.line_start, entry.line_end)
+                out = concat(out, line)
+            }
+            i = i + 1
+        }
+        group = group + 1
+    }
+    out
+}
+
+fn import_block_bounds(entries: Vec<PruneImportEntry>) -> i32 {
+    let en = len(entries)
+    if en == 0 {
+        return 0 - 1
+    }
+    let mut first_start = get_unchecked(entries, 0).line_start
+    let mut last_end = get_unchecked(entries, 0).line_end
+    let mut i = 1
+    while i < en {
+        let entry = get_unchecked(entries, i)
+        if entry.line_start < first_start {
+            first_start = entry.line_start
+        }
+        if entry.line_end > last_end {
+            last_end = entry.line_end
+        }
+        i = i + 1
+    }
+    first_start * 1000000 + last_end
+}
+
+fn import_block_start(span: i32) -> i32 {
+    if span < 0 { return 0 }
+    span / 1000000
+}
+
+fn import_block_end(span: i32) -> i32 {
+    if span < 0 { return 0 }
+    span % 1000000
+}
+
+fn apply_pruned_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
+    let span = import_block_bounds(entries)
+    if span < 0 {
+        return clone(text)
+    }
+    let first = import_block_start(span)
+    let last = import_block_end(span)
+    let pruned = pruned_import_text(clone(text), entries)
+    concat(concat(substring(clone(text), 0, first), pruned), substring(text, last, len(text)))
+}
+
+fn pruned_import_block(input: String) -> Option<String> {
+    let gate = parse_gate::fmt_parse_gate(clone(input))
+    if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
+        return Option::None
+    }
+    let entries = collect_prune_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
+    if len(entries) == 0 {
+        return Option::Some(String_new())
+    }
+    Option::Some(pruned_import_text(input, entries))
+}
+
+fn import_block_span_value(input: String) -> i32 {
+    let gate = parse_gate::fmt_parse_gate(clone(input))
+    if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
+        return 0 - 1
+    }
+    let entries = collect_prune_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
+    import_block_bounds(entries)
+}
+
+fn prune_imports_source(input: String) -> Option<String> {
+    let gate = parse_gate::fmt_parse_gate(clone(input))
+    if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
+        return Option::None
+    }
+    let entries = collect_prune_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
+    if len(entries) == 0 {
+        return Option::Some(clone(input))
+    }
+    Option::Some(apply_pruned_imports(input, entries))
+}

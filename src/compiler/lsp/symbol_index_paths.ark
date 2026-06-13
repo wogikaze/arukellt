@@ -100,3 +100,31 @@ pub fn join_path(base: String, rel: String) -> String {
     }
     concat(concat(base, String_from("/")), rel)
 }
+
+pub fn resolve_relative_path(base: String, rel: String) -> String {
+    if len(rel) == 0 {
+        return clone(base)
+    }
+    if starts_with(clone(rel), String_from("../")) {
+        let parent = loader::module_paths::parent_dir(clone(base))
+        return resolve_relative_path(parent, substring(rel, 3, len(rel)))
+    }
+    if starts_with(clone(rel), String_from("./")) {
+        return resolve_relative_path(clone(base), substring(rel, 2, len(rel)))
+    }
+    join_path(clone(base), rel)
+}
+
+pub fn find_dependency_path(content: String, dep_name: String) -> String {
+    let needle = concat(clone(dep_name), String_from(" = { path = \""))
+    let pos = index_of(clone(content), needle)
+    if pos < 0 {
+        return String_new()
+    }
+    let tail = substring(content, pos + len(needle), len(content))
+    let end = index_of(clone(tail), String_from("\""))
+    if end < 0 {
+        return String_new()
+    }
+    substring(tail, 0, end)
+}

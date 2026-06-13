@@ -2,8 +2,8 @@ Content-Length: 631
 
 {"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"typeDefinitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"renameProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"signatureHelpProvider":{"triggerCharacters":["(",","]},"codeActionProvider":true,"workspaceSymbolProvider":true,"documentFormattingProvider":true,"documentRangeFormattingProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 153
 
-{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file://tests/fixtures/selfhost/lsp_symbol_index/main.ark","diagnostics":[]}}Content-Length: 38
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file://tests/fixtures/selfhost/lsp_symbol_index/main.ark","diagnostics":[]}}Content-Length: 177
 
-{"jsonrpc":"2.0","id":2,"result":null}Content-Length: 38
+{"jsonrpc":"2.0","id":2,"result":{"uri":"file://tests/fixtures/selfhost/lsp_symbol_index/helper.ark","range":{"start":{"line":4,"character":7},"end":{"line":4,"character":16}}}}Content-Length: 38
 
 {"jsonrpc":"2.0","id":3,"result":null}

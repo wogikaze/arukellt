@@ -1,0 +1,13 @@
+Content-Length: 159
+
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":"file://tests/package-workspace/multi-root-indexing/app","capabilities":{}}}Content-Length: 52
+
+{"jsonrpc":"2.0","method":"initialized","params":{}}Content-Length: 251
+
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file://tests/package-workspace/multi-root-indexing/app/src/main.ark","languageId":"arukellt","version":1,"text":"use shared\n\nfn main() {\n    shared::helper()\n}\n"}}}Content-Length: 200
+
+{"jsonrpc":"2.0","id":2,"method":"textDocument/definition","params":{"textDocument":{"uri":"file://tests/package-workspace/multi-root-indexing/app/src/main.ark"},"position":{"line":3,"character":12}}}Content-Length: 44
+
+{"jsonrpc":"2.0","id":3,"method":"shutdown"}Content-Length: 33
+
+{"jsonrpc":"2.0","method":"exit"}

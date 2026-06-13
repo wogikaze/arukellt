@@ -15,7 +15,7 @@ fn index_import_neighbors(state: LspState, file_path: String, project_root: Stri
             let decls = session_parse::session_parse_decls(clone(text))
             let base_dir = loader::parent_dir(clone(file_path))
             let root_dir = loader::module_package_root::find_package_root(if len(project_root) > 0 { clone(project_root) } else { clone(base_dir) })
-            let imports = symbol_index_project::collect_import_file_paths(decls, base_dir, root_dir)
+            let imports = symbol_index_project::collect_import_file_paths(decls, base_dir, root_dir, clone(project_root))
             let indexed_uris = state_record::lsp_state_symbol_indexed_uris(state)
             let n = len(imports)
             let mut i = 0

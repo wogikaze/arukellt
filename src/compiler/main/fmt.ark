@@ -7,43 +7,70 @@ use diagnostics::record
 use fmt
 use main::args_record
 
+fn fmt_write_or_check(input_file: String, output: String, original: String, check: bool, ok_label: String) {
+    if check {
+        if !eq(clone(output), clone(original)) {
+            stdio::eprintln(concat(String_from("fmt check failed: "), clone(input_file)))
+            process::exit(1)
+        }
+        stdio::eprintln(concat(String_from("ok: "), clone(input_file)))
+        return
+    }
+    let write_result = fs::write_string(clone(input_file), clone(output))
+    match write_result {
+        Result::Ok(_) => {
+            stdio::eprintln(concat(ok_label, clone(input_file)))
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error writing formatted file: "), e))
+            process::exit(1)
+        },
+    }
+}
+
+fn cmd_fmt_apply_fix(opts: CliOptions, input_file: String, text: String) {
+    let original = clone(text)
+    let fixed_opt = fmt::fix_source(text)
+    match fixed_opt {
+        Option::None => {
+            fmt_emit_parse_errors(original)
+            process::exit(1)
+        },
+        Option::Some(fixed) => {
+            fmt_write_or_check(clone(input_file), fixed, original, args_record::cli_fmt_check(opts), String_from("fixed "))
+        },
+    }
+}
+
+fn cmd_fmt_apply_format(opts: CliOptions, input_file: String, text: String) {
+    let original = clone(text)
+    let formatted_opt = fmt::format_source(text)
+    match formatted_opt {
+        Option::None => {
+            fmt_emit_parse_errors(original)
+            process::exit(1)
+        },
+        Option::Some(formatted) => {
+            fmt_write_or_check(clone(input_file), formatted, original, args_record::cli_fmt_check(opts), String_from("formatted "))
+        },
+    }
+}
+
 pub fn cmd_fmt(opts: CliOptions) {
     let input_file = args_record::cli_input_file(opts)
     if len(input_file) == 0 {
-        stdio::eprintln(String_from("usage: arukellt fmt <file.ark> [--check]"))
+        stdio::eprintln(String_from("usage: arukellt fmt <file.ark> [--check] [--fix]"))
         process::exit(2)
         return
     }
     let read_result = fs::read_to_string(clone(input_file))
     match read_result {
         Result::Ok(text) => {
-            let formatted_opt = fmt::format_source(text)
-            match formatted_opt {
-                Option::None => {
-                    fmt_emit_parse_errors(text)
-                    process::exit(1)
-                },
-                Option::Some(formatted) => {
-                    if args_record::cli_fmt_check(opts) {
-                        if !eq(clone(formatted), clone(text)) {
-                            stdio::eprintln(concat(String_from("fmt check failed: "), clone(input_file)))
-                            process::exit(1)
-                        }
-                        stdio::eprintln(concat(String_from("ok: "), clone(input_file)))
-                        return
-                    }
-                    let write_result = fs::write_string(clone(input_file), clone(formatted))
-                    match write_result {
-                        Result::Ok(_) => {
-                            stdio::eprintln(concat(String_from("formatted "), clone(input_file)))
-                        },
-                        Result::Err(e) => {
-                            stdio::eprintln(concat(String_from("error writing formatted file: "), e))
-                            process::exit(1)
-                        },
-                    }
-                },
+            if args_record::cli_fmt_fix(opts) {
+                cmd_fmt_apply_fix(opts, clone(input_file), clone(text))
+                return
             }
+            cmd_fmt_apply_format(opts, clone(input_file), text)
         },
         Result::Err(e) => {
             stdio::eprintln(concat(String_from("error reading input: "), e))

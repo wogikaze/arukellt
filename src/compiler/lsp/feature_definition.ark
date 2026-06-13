@@ -9,6 +9,8 @@ use lsp::responses
 use lsp::source_text
 use lsp::stdlib_definition
 use lsp::symbol_index_lookup
+use lsp::symbol_index_record
+use lsp::symbol_index_search
 
 fn lookup_short_name(text: String, offset: i32) -> String {
     let lookup_name = qualified_name::lookup_name_at_offset(clone(text), offset)
@@ -41,19 +43,32 @@ pub fn handle_definition(state: LspState, body: String) {
         return
     }
     let req_text = feature_request::text_position_request_text(req)
-    let short_name = lookup_short_name(clone(req_text), feature_request::text_position_request_offset(req))
+    let req_offset = feature_request::text_position_request_offset(req)
+    let qualified = qualified_name::lookup_name_at_offset(clone(req_text), req_offset)
+    let short_name = lookup_short_name(clone(req_text), req_offset)
     if len(short_name) > 0 && stdlib_definition::lookup_stdlib_definition(state, clone(short_name)) {
         framing::append_framed(state, responses::build_definition_response(feature_request::text_position_request_id(req), stdlib_definition::stdlib_definition_uri(state, clone(short_name)), stdlib_definition::stdlib_definition_start(state, clone(short_name)), stdlib_definition::stdlib_definition_end(state, clone(short_name))))
         return
     }
     let sym = feature_symbol::resolve_symbol_request(state, body)
-    if feature_symbol::symbol_request_found(sym) {
+    let use_local_def = feature_symbol::symbol_request_found(sym) && !contains(clone(qualified), String_from("::"))
+    if use_local_def {
         framing::append_framed(state, responses::build_definition_response(feature_symbol::symbol_request_id(sym), feature_symbol::symbol_request_uri(sym), feature_symbol::symbol_request_start(sym), feature_symbol::symbol_request_end(sym)))
         return
     }
-    let def = symbol_index_lookup::lookup_definition(state, short_name)
+    let def = symbol_index_lookup::lookup_definition(state, clone(short_name))
     if !symbol_index_lookup::index_definition_found(def) {
-        framing::append_framed(state, responses::build_null_response(feature_request::text_position_request_id(req)))
+        let matches = symbol_index_search::symbol_index_search(state, clone(short_name))
+        if len(matches) == 0 {
+            framing::append_framed(state, responses::build_null_response(feature_request::text_position_request_id(req)))
+            return
+        }
+        let hit = get_unchecked(matches, 0)
+        let def_uri = symbol_index_record::indexed_symbol_uri(hit)
+        let def_text = source_text::text_for_uri(state, clone(def_uri))
+        let start = positions::offset_to_position(clone(def_text), symbol_index_record::indexed_symbol_decl_start(hit))
+        let end = positions::offset_to_position(def_text, symbol_index_record::indexed_symbol_decl_end(hit))
+        framing::append_framed(state, responses::build_definition_response(feature_request::text_position_request_id(req), def_uri, start, end))
         return
     }
     let def_uri = symbol_index_lookup::index_definition_uri(def)

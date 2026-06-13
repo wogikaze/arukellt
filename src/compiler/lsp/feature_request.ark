@@ -3,6 +3,7 @@
 use lsp::feature_position
 use lsp::json_fields
 use lsp::positions
+use lsp::source_text
 use lsp::state_docs
 use lsp::state_record
 
@@ -44,6 +45,9 @@ fn read_text_position_request(state: LspState, body: String) -> LspTextPositionR
     let line = feature_position::extract_position_field(clone(body), String_from("line"))
     let character = feature_position::extract_position_field(clone(body), String_from("character"))
     let text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), clone(uri))
+    if len(text) == 0 {
+        text = source_text::text_for_uri(state, clone(uri))
+    }
     if len(text) == 0 {
         return LspTextPositionRequest_new(id, uri, text, 0, false)
     }

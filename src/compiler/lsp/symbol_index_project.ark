@@ -31,7 +31,7 @@ fn pending_push_unique(pending: Vec<String>, path: String) -> Vec<String> {
     pending
 }
 
-fn resolve_import_to_path(import_path: String, base_dir: String, root_dir: String) -> String {
+fn resolve_import_to_path(import_path: String, base_dir: String, root_dir: String, project_root: String) -> String {
     let base = if contains(clone(import_path), String_from("::")) {
         root_dir
     } else {
@@ -43,12 +43,62 @@ fn resolve_import_to_path(import_path: String, base_dir: String, root_dir: Strin
             module_file_load_local::DriverLoadedSource_path(src)
         },
         Result::Err(_) => {
+            if contains(clone(import_path), String_from("::")) {
+                return String_new()
+            }
+            dependency_module_file(clone(project_root), clone(import_path))
+        },
+    }
+}
+
+fn dependency_module_file(project_root: String, import_name: String) -> String {
+    if len(project_root) == 0 || len(import_name) == 0 {
+        return String_new()
+    }
+    let manifest_path = symbol_index_paths::join_path(clone(project_root), String_from("ark.toml"))
+    let read_result = fs::read_to_string(clone(manifest_path))
+    match read_result {
+        Result::Ok(content) => {
+            let dep_rel = symbol_index_paths::find_dependency_path(clone(content), clone(import_name))
+            if len(dep_rel) == 0 {
+                return String_new()
+            }
+            let dep_root = symbol_index_paths::resolve_relative_path(clone(project_root), dep_rel)
+            let dep_manifest = symbol_index_paths::join_path(clone(dep_root), String_from("ark.toml"))
+            let dep_read = fs::read_to_string(dep_manifest)
+            match dep_read {
+                Result::Ok(dep_content) => {
+                    let pkg_name = symbol_index_paths::find_toml_value(clone(dep_content), String_from("name"))
+                    if len(pkg_name) > 0 && eq(clone(import_name), clone(pkg_name)) {
+                        let lib_path = symbol_index_paths::find_toml_value(clone(dep_content), String_from("path"))
+                        if len(lib_path) > 0 {
+                            return symbol_index_paths::join_path(clone(dep_root), lib_path)
+                        }
+                        return symbol_index_paths::join_path(clone(dep_root), String_from("src/lib.ark"))
+                    }
+                    let dep_src = symbol_index_paths::join_path(clone(dep_root), String_from("src"))
+                    let loaded = module_file_load_local::read_local_module_source(clone(import_name), dep_src)
+                    match loaded {
+                        Result::Ok(src) => {
+                            module_file_load_local::DriverLoadedSource_path(src)
+                        },
+                        Result::Err(_) => {
+                            String_new()
+                        },
+                    }
+                },
+                Result::Err(_) => {
+                    String_new()
+                },
+            }
+        },
+        Result::Err(_) => {
             String_new()
         },
     }
 }
 
-pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir: String) -> Vec<String> {
+pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir: String, project_root: String) -> Vec<String> {
     let out = Vec_new_String()
     let paths = module_import_paths::collect_import_paths(decls)
     let n = len(paths)
@@ -56,7 +106,7 @@ pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir
     while i < n {
         let import_path = get_unchecked(paths, i)
         if !contains(clone(import_path), String_from("std::")) {
-            let file_path = resolve_import_to_path(clone(import_path), clone(base_dir), clone(root_dir))
+            let file_path = resolve_import_to_path(clone(import_path), clone(base_dir), clone(root_dir), clone(project_root))
             if len(file_path) > 0 {
                 push(out, file_path)
             }
@@ -110,7 +160,7 @@ fn index_import_graph_from(state: LspState, start_path: String, project_root: St
             Result::Ok(text) => {
                 let decls = session_parse::session_parse_decls(clone(text))
                 let base_dir = module_paths::parent_dir(clone(path))
-                let imports = collect_import_file_paths(decls, base_dir, clone(root_dir))
+                let imports = collect_import_file_paths(decls, base_dir, clone(root_dir), clone(project_root))
                 let in_n = len(imports)
                 let mut ii = 0
                 while ii < in_n {
