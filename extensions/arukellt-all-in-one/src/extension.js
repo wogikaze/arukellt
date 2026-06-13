@@ -181,11 +181,7 @@ function serverSpawnOptions(command) {
   if (fs.existsSync(bootstrapWasm)) {
     env.ARUKELLT_SELFHOST_WASM = bootstrapWasm
   }
-  const options = { env, cwd: repoRoot }
-  if (typeof command === 'string' && command.endsWith('.sh')) {
-    options.shell = true
-  }
-  return options
+  return { env, cwd: repoRoot }
 }
 
 function startLanguageServer(context, options = {}) {

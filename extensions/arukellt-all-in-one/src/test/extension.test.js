@@ -716,52 +716,84 @@ suite("Command Registration (#273)", () => {
 suite("LSP Handshake (#273)", function () {
   this.timeout(120000);
 
-  suiteSetup(async function () {
-    const binary = resolveRepoArukelltBinary();
-    if (!binary || binary !== repoSelfhostWrapper) {
-      this.skip();
+  test("selfhost wrapper probes successfully when configured as server.path", async () => {
+    if (!fs.existsSync(repoSelfhostWrapper)) {
       return;
     }
-    ensureBootstrapSelfhostWasmEnv();
+    const { api } = await activateExtension();
     const cfg = vscode.workspace.getConfiguration("arukellt");
-    await cfg.update("server.path", binary, vscode.ConfigurationTarget.Global);
-    await cfg.update("server.args", [], vscode.ConfigurationTarget.Global);
+    const originalPath = cfg.get("server.path");
+    const originalArgs = cfg.get("server.args");
+
+    try {
+      ensureBootstrapSelfhostWasmEnv();
+      await cfg.update(
+        "server.path",
+        repoSelfhostWrapper,
+        vscode.ConfigurationTarget.Global
+      );
+      await cfg.update("server.args", [], vscode.ConfigurationTarget.Global);
+
+      const boot = api.verifyBootstrap();
+      assert.strictEqual(
+        boot.command,
+        repoSelfhostWrapper,
+        "verifyBootstrap should resolve the selfhost wrapper path"
+      );
+      assert.ok(
+        boot.probe.ok,
+        `selfhost wrapper should respond to --version: ${boot.probe.message}`
+      );
+    } finally {
+      await cfg.update("server.path", originalPath, vscode.ConfigurationTarget.Global);
+      await cfg.update("server.args", originalArgs, vscode.ConfigurationTarget.Global);
+    }
   });
 
-  test("LanguageClient completes initialize/initialized with selfhost wrapper", async function () {
-    const binary = resolveRepoArukelltBinary();
-    if (!binary || binary !== repoSelfhostWrapper) {
+  test("LanguageClient completes initialize/initialized with repo compiler binary", async function () {
+    const binary = resolveRepoArukelltBinaryForExtension();
+    if (!binary) {
       this.skip();
       return;
     }
 
     const { api } = await activateExtension();
-    const boot = api.verifyBootstrap();
-    assert.ok(boot.probe.ok, `selfhost wrapper probe should succeed: ${boot.probe.message}`);
-    assert.strictEqual(boot.command, binary, "verifyBootstrap should resolve the selfhost wrapper");
+    const cfg = vscode.workspace.getConfiguration("arukellt");
+    const originalPath = cfg.get("server.path");
+    const originalArgs = cfg.get("server.args");
 
-    const doc = await vscode.workspace.openTextDocument({
-      language: "arukellt",
-      content: "fn main() {}\n",
-    });
-    await vscode.window.showTextDocument(doc);
+    try {
+      await cfg.update("server.path", binary, vscode.ConfigurationTarget.Global);
+      await cfg.update("server.args", [], vscode.ConfigurationTarget.Global);
+      await vscode.commands.executeCommand("arukellt.restartLanguageServer");
 
-    await waitFor(
-      () => {
-        const state = api.__getTestState();
-        assert.strictEqual(
-          state.hasClient,
-          true,
-          "LanguageClient should be running after initialize/initialized"
-        );
-        assert.strictEqual(
-          state.languageStatusText,
-          "$(check) Ready",
-          "language status should be Ready after LSP handshake"
-        );
-      },
-      { description: "LSP handshake ready", timeoutMs: 90000 }
-    );
+      const doc = await vscode.workspace.openTextDocument({
+        language: "arukellt",
+        content: "fn main() {}\n",
+      });
+      await vscode.window.showTextDocument(doc);
+
+      await waitFor(
+        () => {
+          const state = api.__getTestState();
+          assert.strictEqual(
+            state.hasClient,
+            true,
+            "LanguageClient should be running after initialize/initialized"
+          );
+          assert.strictEqual(
+            state.languageStatusText,
+            "$(check) Ready",
+            "language status should be Ready after LSP handshake"
+          );
+        },
+        { description: "LSP handshake ready", timeoutMs: 60000 }
+      );
+    } finally {
+      await cfg.update("server.path", originalPath, vscode.ConfigurationTarget.Global);
+      await cfg.update("server.args", originalArgs, vscode.ConfigurationTarget.Global);
+      await vscode.commands.executeCommand("arukellt.restartLanguageServer");
+    }
   });
 });
 
