@@ -3,6 +3,7 @@
 use compiler::phases
 use compiler::session_resolve_query
 use driver::config_record
+use driver::debug
 use driver::errors
 use loader::load
 use loader::module_state_errors
@@ -55,7 +56,7 @@ fn backend_resolve(source: String, config: DriverConfig, decls: Vec<AstNode>) ->
     debug::dump_resolved_hir_if_enabled(config, resolve_ctx)
     let resolve_error_count = session_resolve_query::session_resolve_reported_error_count(resolve_ctx)
     if resolve_error_count > 0 {
-        return DriverResolveResult_new(true, errors::resolve_errors_result(resolve_error_count, session_resolve_query::session_resolve_errors(resolve_ctx)), load_state, resolve_ctx, 0)
+        return DriverResolveResult_new(true, errors::resolve_errors_result(clone(source), config_record::config_source_file(config), resolve_error_count, session_resolve_query::session_resolve_diagnostics(resolve_ctx), session_resolve_query::session_resolve_errors(resolve_ctx)), load_state, resolve_ctx, 0)
     }
     DriverResolveResult_new(false, result_record::CompileResult_ok(phases::PHASE_RESOLVE()), load_state, resolve_ctx, clock::monotonic_now())
 }

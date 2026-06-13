@@ -9,6 +9,7 @@ use driver::source_file
 fn compile_file(path: String, config: DriverConfig) -> CompileResult {
     let cloned_path = clone(path)
     config_record::config_set_source_dir(config, module_paths::parent_dir(clone(cloned_path)))
+    config_record::config_set_source_file(config, clone(cloned_path))
     let source_result = source_file::load_source_file(cloned_path)
     match source_result {
         Result::Ok(source) => {

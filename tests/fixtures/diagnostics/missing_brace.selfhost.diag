@@ -1,1 +1,2 @@
-parse
+error[E0002|parse]: expected `RBrace`
+  -->

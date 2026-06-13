@@ -1,5 +1,6 @@
 // Arukellt Selfhost - diagnostics public boundary.
 
+use diagnostics::format
 use diagnostics::json
 use diagnostics::record
 use diagnostics::severity
@@ -17,6 +18,10 @@ pub fn SEV_ERROR() -> i32 {
     severity::SEV_ERROR()
 }
 
+pub fn SEV_WARNING() -> i32 {
+    severity::SEV_WARNING()
+}
+
 pub fn severity_name(sev: i32) -> String {
     severity::severity_name(sev)
 }
@@ -27,4 +32,8 @@ pub fn span_from_offsets(source: String, file: String, start: i32, end: i32) -> 
 
 pub fn location_text(source: String, file: String, offset: i32) -> String {
     source_map_offsets::location_text(source, file, offset)
+}
+
+pub fn format_diagnostic_text(source: String, source_file: String, diag: Diagnostic) -> String {
+    format::format_diagnostic_text(source, source_file, diag)
 }

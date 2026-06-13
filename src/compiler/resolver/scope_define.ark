@@ -7,7 +7,7 @@ use resolver::scope_lookup
 use resolver::scope_stack_scopes
 use resolver::scope_stack_symbols
 
-fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
+fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool, span_start: i32, span_end: i32) {
     let idx = scope_stack_scopes::ResolveCtx_take_next_decl_index(ctx)
     let current_depth = scope_stack_scopes::ResolveCtx_current_depth(ctx)
     let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, current_depth)
@@ -22,7 +22,7 @@ fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
                 scope_stack_symbols::Symbol_set_is_pub(existing, is_pub)
                 return
             }
-            scope_error::resolve_error(ctx, concat(String_from("duplicate definition: "), clone(name)))
+            scope_error::resolve_duplicate_symbol(ctx, clone(name), span_start, span_end)
             return
         }
         i = i + 1
@@ -50,23 +50,23 @@ fn can_replace_existing_symbol(kind: i32, existing_kind: i32) -> bool {
 }
 
 fn define(ctx: ResolveCtx, name: String, kind: i32) {
-    define_impl(ctx, name, kind, false)
+    define_impl(ctx, name, kind, false, 0, 0)
 }
 
 fn define_pub(ctx: ResolveCtx, name: String, kind: i32) {
-    define_impl(ctx, name, kind, true)
+    define_impl(ctx, name, kind, true, 0, 0)
 }
 
 fn define_with_vis(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
-    define_impl(ctx, name, kind, is_pub)
+    define_impl(ctx, name, kind, is_pub, 0, 0)
 }
 
 fn define_span(ctx: ResolveCtx, name: String, kind: i32, span_start: i32, span_end: i32) {
-    define_impl(ctx, clone(name), kind, false)
+    define_impl(ctx, clone(name), kind, false, span_start, span_end)
     record_decl_for_name(ctx, name, span_start, span_end)
 }
 
 fn define_with_vis_span(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool, span_start: i32, span_end: i32) {
-    define_impl(ctx, clone(name), kind, is_pub)
+    define_impl(ctx, clone(name), kind, is_pub, span_start, span_end)
     record_decl_for_name(ctx, name, span_start, span_end)
 }

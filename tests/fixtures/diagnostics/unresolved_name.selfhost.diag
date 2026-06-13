@@ -1,1 +1,2 @@
-resolve
+error[E0100|resolve]: undefined name: unknown_function
+  -->

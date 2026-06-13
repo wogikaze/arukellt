@@ -8,13 +8,14 @@ struct ResolveCtx {
     current_depth: i32,
     error_count: i32,
     errors: Vec<String>,
+    diagnostics: Vec<Diagnostic>,
     next_decl_index: i32,
     target: String,
     ref_index: RefIndex,
 }
 
 fn ResolveCtx_new_empty() -> ResolveCtx {
-    ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), next_decl_index: 0, target: String_from("wasm32-wasi-p2"), ref_index: ref_index::RefIndex_new() }
+    ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), diagnostics: Vec_new_Diagnostic(), next_decl_index: 0, target: String_from("wasm32-wasi-p2"), ref_index: ref_index::RefIndex_new() }
 }
 
 fn resolve_ctx_ref_index(ctx: ResolveCtx) -> RefIndex {
@@ -64,8 +65,16 @@ fn resolve_ctx_push_error(ctx: ResolveCtx, msg: String) {
     push(ctx.errors, msg)
 }
 
+fn resolve_ctx_push_diagnostic(ctx: ResolveCtx, diag: Diagnostic) {
+    push(ctx.diagnostics, diag)
+}
+
 fn resolve_ctx_errors(ctx: ResolveCtx) -> Vec<String> {
     ctx.errors
+}
+
+fn resolve_ctx_diagnostics(ctx: ResolveCtx) -> Vec<Diagnostic> {
+    ctx.diagnostics
 }
 
 fn resolve_ctx_error_message_count(ctx: ResolveCtx) -> i32 {

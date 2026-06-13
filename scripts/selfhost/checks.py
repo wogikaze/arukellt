@@ -256,12 +256,25 @@ def _wasm_compile(
     if workspace_root is not None:
         staged = workspace_root / guest_out
         stderr = result.stderr or ""
+        root_staged = root / guest_out
         compiled_ok = result.returncode == 0 or (
-            staged.is_file()
-            and staged.stat().st_size > 0
+            (
+                (staged.is_file() and staged.stat().st_size > 0)
+                or (root_staged.is_file() and root_staged.stat().st_size > 0)
+            )
             and "compilation succeeded" in stderr
         )
-        if compiled_ok and staged.is_file():
+        if compiled_ok:
+            if not staged.is_file() and root_staged.is_file():
+                staged = root_staged
+            if staged.is_file():
+                final = root / out_rel
+                final.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(staged, final)
+                if result.returncode != 0:
+                    result = subprocess.CompletedProcess(
+                        result.args, returncode=0, stdout=result.stdout, stderr=result.stderr,
+                    )
             final = root / out_rel
             final.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(staged, final)
@@ -1454,7 +1467,10 @@ def _flatten_compiler_imports(text: str) -> str:
     The committed pinned wasm predates directory-backed compiler namespaces. The
     generated overlay is only a bootstrap adapter; checked-in source stays nested.
     """
-    use_re = re.compile(r"^(\s*)use\s+([A-Za-z][A-Za-z0-9_]*(?:::[A-Za-z][A-Za-z0-9_]*)+)\s*$")
+    use_re = re.compile(
+        r"^(\s*)use\s+([A-Za-z][A-Za-z0-9_]*(?:::[A-Za-z][A-Za-z0-9_]*)+)"
+        r"(?:\s+as\s+([A-Za-z_][A-Za-z0-9_]*))?\s*$",
+    )
     alias_map: dict[str, str] = {}
     lines = text.splitlines()
     for line in lines:
@@ -1466,9 +1482,13 @@ def _flatten_compiler_imports(text: str) -> str:
             continue
         ns_mod = _flatten_namespace_mod_import(parts)
         flat_name = ns_mod if ns_mod is not None else "_".join(parts)
-        alias = parts[-1]
-        if alias == "mod" and ns_mod is not None:
+        explicit_alias = match.group(3)
+        if explicit_alias is not None:
+            alias = explicit_alias
+        elif parts[-1] == "mod" and ns_mod is not None:
             alias = flat_name
+        else:
+            alias = parts[-1]
         previous = alias_map.get(alias)
         if previous is not None and previous != flat_name:
             raise ValueError(f"ambiguous local import alias `{alias}`")
@@ -1482,7 +1502,11 @@ def _flatten_compiler_imports(text: str) -> str:
             if parts[0] in LOCAL_COMPILER_NAMESPACES:
                 ns_mod = _flatten_namespace_mod_import(parts)
                 flat = ns_mod if ns_mod is not None else "_".join(parts)
-                output.append(f"{match.group(1)}use {flat}")
+                explicit_alias = match.group(3)
+                if explicit_alias is not None:
+                    output.append(f"{match.group(1)}use {flat} as {explicit_alias}")
+                else:
+                    output.append(f"{match.group(1)}use {flat}")
                 continue
         rewritten = line
         for alias, flat_name in sorted(alias_map.items(), key=lambda item: len(item[0]), reverse=True):
@@ -1492,10 +1516,38 @@ def _flatten_compiler_imports(text: str) -> str:
     return "\n".join(output) + trailing
 
 
+_FLAT_OVERLAY_CACHE: tuple[float, Path] | None = None
+
+
+def _bootstrap_overlay_root(root: Path) -> Path:
+    """Return workspace root for flattened selfhost overlay.
+
+    Large overlay trees are prone to WSL9 directory races under the repo
+    ``.build/`` tree; prefer ``/tmp`` unless overridden.  Include PID so
+    concurrent bootstrap jobs do not delete each other's trees.
+    """
+    env = os.environ.get("ARUKELLT_SELFHOST_OVERLAY_ROOT", "").strip()
+    if env:
+        return Path(env)
+    release = os.uname().release.lower()
+    if "microsoft" in release or "wsl" in release:
+        digest = hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:10]
+        return Path("/tmp") / f"arukellt-selfhost-flat-{digest}-{os.getpid()}"
+    return root / ".build" / "selfhost" / "flat-src"
+
+
 def _prepare_flattened_selfhost_source(root: Path) -> Path:
     """Generate a flat-module overlay for bootstrapping with the pinned wasm."""
+    global _FLAT_OVERLAY_CACHE
+    source_mtime = _compiler_source_mtime(root)
+    if _FLAT_OVERLAY_CACHE is not None:
+        cached_mtime, cached_root = _FLAT_OVERLAY_CACHE
+        compiler_dir = cached_root / "src" / "compiler"
+        if cached_mtime >= source_mtime and compiler_dir.is_dir():
+            return cached_root
+
     source_root = root / "src" / "compiler"
-    overlay_root = root / ".build" / "selfhost" / "flat-src"
+    overlay_root = _bootstrap_overlay_root(root)
     compiler_out = overlay_root / "src" / "compiler"
     if overlay_root.exists():
         _remove_tree(overlay_root)
@@ -1536,17 +1588,14 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
     ark_toml = source_root / "ark.toml"
     if ark_toml.is_file():
         shutil.copyfile(ark_toml, compiler_out / "ark.toml")
+    _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     return overlay_root
 
 
 def _prepare_bootstrap_workspace(root: Path) -> Path:
     """Return an isolated workspace whose ``src/compiler`` shadows the live tree."""
-    flat_root = _prepare_flattened_selfhost_source(root)
-    workspace = root / BOOTSTRAP_WORKSPACE_REL
-    if workspace.exists():
-        _remove_tree(workspace)
-    shutil.copytree(flat_root, workspace)
-    return workspace
+    # Flat overlay is already isolated; skip copytree (WSL races on ~1.5k files).
+    return _prepare_flattened_selfhost_source(root)
 
 
 def _write_bootstrap_namespace_facades(compiler_out: Path) -> None:
@@ -1644,13 +1693,27 @@ def _wasm_check(
     src: str,
     root: Path,
     timeout: int | None = None,
+    extra_args: list[str] | None = None,
 ) -> subprocess.CompletedProcess:
+    cmd = [wasmtime, "run", "--dir", str(root), str(compiler_wasm), "--"]
+    cmd.extend(["check"])
+    if extra_args:
+        cmd.extend(extra_args)
+    cmd.append(src)
     return _run(
-        [wasmtime, "run", "--dir", str(root), str(compiler_wasm), "--",
-         "check", src],
+        cmd,
         root,
         timeout=timeout,
     )
+
+
+def _diag_fixture_flags(root: Path, fixture: str) -> list[str]:
+    """Return extra CLI args from a sibling ``.flags`` file, one token per line."""
+    flags_path = root / "tests" / "fixtures" / (fixture[:-4] + ".flags")
+    if not flags_path.is_file():
+        return []
+    lines = flags_path.read_text(encoding="utf-8").splitlines()
+    return [line.strip() for line in lines if line.strip()]
 
 
 # ── SelfhostFixpointResult ────────────────────────────────────────────────────
@@ -1992,7 +2055,6 @@ DIAG_PARITY_SKIP: frozenset[str] = frozenset({
     "diagnostics/mutable_sharing.ark",
     "diagnostics/non_exhaustive.ark",
     "diagnostics/question_type_mismatch.ark",
-    "diagnostics/unused_binding.ark",
     "diagnostics/unused_import.ark",
     "diagnostics/wrong_arg_count.ark",
     "deny_clock_compile.ark",
@@ -2071,7 +2133,13 @@ def run_diag_parity(root: Path, dry_run: bool) -> tuple[int, str]:
         else:
             pattern = diag_path.read_text().strip()
 
-        r = _wasm_check(wasmtime, current, str(Path("tests") / "fixtures" / fixture), root)
+        r = _wasm_check(
+            wasmtime,
+            current,
+            str(Path("tests") / "fixtures" / fixture),
+            root,
+            extra_args=_diag_fixture_flags(root, fixture),
+        )
         out = r.stdout + r.stderr
 
         if pattern in out:

@@ -3,17 +3,17 @@
 fn DIAG_BACKEND_VALIDATE() -> String { String_from("E0400") }
 fn DIAG_COMPONENT_CANONICAL_ABI() -> String { String_from("E0401") }
 fn DIAG_COMPONENT_RESOURCE_UNSUPPORTED() -> String { String_from("E0402") }
-fn DIAG_EMIT_FAILED() -> String { String_from("E0500") }
+pub pub pub pub pub pub pub fn DIAG_EMIT_FAILED() -> String { String_from("E0500") }
 fn DIAG_EMIT_VALIDATION_FAILED() -> String { String_from("E0501") }
 
 pub fn DIAG_PARSE_UNEXPECTED() -> String { String_from("E0001") }
-fn DIAG_PARSE_MISSING_RBRACE() -> String { String_from("E0002") }
+pub pub pub pub pub pub pub fn DIAG_PARSE_MISSING_RBRACE() -> String { String_from("E0002") }
 fn DIAG_PARSE_EXPECTED_TYPE() -> String { String_from("E0003") }
 pub fn DIAG_PARSE_EXPECTED_TOKEN() -> String { String_from("E0004") }
 fn DIAG_WIT_UNSUPPORTED_FLAGS() -> String { String_from("E0090") }
 
-fn DIAG_RESOLVE_UNKNOWN_NAME() -> String { String_from("E0100") }
-fn DIAG_RESOLVE_DUPLICATE_SYMBOL() -> String { String_from("E0101") }
+pub pub pub pub pub pub pub fn DIAG_RESOLVE_UNKNOWN_NAME() -> String { String_from("E0100") }
+pub pub pub pub pub pub pub fn DIAG_RESOLVE_DUPLICATE_SYMBOL() -> String { String_from("E0101") }
 fn DIAG_RESOLVE_MODULE_NOT_FOUND() -> String { String_from("E0102") }
 fn DIAG_RESOLVE_AMBIGUOUS_IMPORT() -> String { String_from("E0103") }
 fn DIAG_RESOLVE_PRIVATE_SYMBOL() -> String { String_from("E0104") }
@@ -23,7 +23,7 @@ fn DIAG_RESOLVE_CAPABILITY_CONFLICT() -> String { String_from("E0122") }
 fn DIAG_RESOLVE_HOST_IMPORT_UNAVAILABLE() -> String { String_from("E0123") }
 fn DIAG_RESOLVE_HOST_IMPORT_FORBIDDEN() -> String { String_from("E0124") }
 
-fn DIAG_TYPE_MISMATCH() -> String { String_from("E0200") }
+pub pub pub pub pub pub pub fn DIAG_TYPE_MISMATCH() -> String { String_from("E0200") }
 fn DIAG_TYPE_UNKNOWN() -> String { String_from("E0201") }
 fn DIAG_TYPE_NOT_CALLABLE() -> String { String_from("E0202") }
 fn DIAG_TYPE_BAD_ARITY() -> String { String_from("E0203") }
@@ -51,7 +51,7 @@ fn DIAG_WARN_UNUSED_SYMBOL() -> String { String_from("W0003") }
 fn DIAG_WARN_WASM_VALIDATION() -> String { String_from("W0004") }
 fn DIAG_WARN_CAPABILITY_STUB() -> String { String_from("W0005") }
 fn DIAG_WARN_UNREACHABLE_CODE() -> String { String_from("W0006") }
-fn DIAG_WARN_EXPERIMENTAL_FEATURE() -> String { String_from("W0007") }
+pub pub pub pub pub pub pub fn DIAG_WARN_EXPERIMENTAL_FEATURE() -> String { String_from("W0007") }
 fn DIAG_WARN_DOC_DRIFT() -> String { String_from("W0008") }
 fn DIAG_WARN_DEPRECATED_API() -> String { String_from("W0009") }
 fn DIAG_WARN_COMPONENT_LOWERING_NOTE() -> String { String_from("W0101") }

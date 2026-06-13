@@ -23,6 +23,14 @@ fn session_typecheck_errors(result: TypeCheckResult) -> Vec<String> {
     contract_result_state::typecheck_result_errors(result)
 }
 
+fn session_typecheck_diagnostics(result: TypeCheckResult) -> Vec<Diagnostic> {
+    contract_result_state::typecheck_result_diagnostics(result)
+}
+
+fn session_typecheck_warnings(result: TypeCheckResult) -> Vec<Diagnostic> {
+    contract_result_state::typecheck_result_warnings(result)
+}
+
 fn session_typecheck_typed_fn_count(result: TypeCheckResult) -> i32 {
     contract_result_state::typecheck_result_typed_fn_count(result)
 }

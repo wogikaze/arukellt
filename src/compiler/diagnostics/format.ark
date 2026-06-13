@@ -1,0 +1,54 @@
+// Arukellt Selfhost - diagnostic text formatting.
+
+use diagnostics::record
+use diagnostics::severity
+use diagnostics::source_map_offsets
+
+fn diagnostic_phase_name(code: String, msg: String) -> String {
+    if eq(clone(code), String_from("E0500")) {
+        if len(msg) >= 8 && eq(substring(clone(msg), 0, 8), String_from("module `")) {
+            return String_from("resolve")
+        }
+        return String_from("emit")
+    }
+    if len(code) >= 1 && eq(substring(clone(code), 0, 1), String_from("W")) {
+        return String_from("typecheck")
+    }
+    if len(code) >= 3 {
+        let family = substring(clone(code), 1, 3)
+        if eq(family, String_from("00")) {
+            return String_from("parse")
+        }
+        if eq(family, String_from("01")) {
+            return String_from("resolve")
+        }
+        if eq(family, String_from("02")) {
+            return String_from("typecheck")
+        }
+    }
+    if len(code) >= 1 && eq(substring(clone(code), 0, 1), String_from("W")) {
+        return String_from("typecheck")
+    }
+    String_from("unknown")
+}
+
+fn format_diagnostic_text(source: String, source_file: String, diag: Diagnostic) -> String {
+    let code = record::diagnostic_code(diag)
+    let sev = record::diagnostic_severity(diag)
+    let msg = record::diagnostic_message(diag)
+    let phase = diagnostic_phase_name(clone(code), clone(msg))
+    let mut out = severity::severity_name(sev)
+    out = concat(out, String_from("["))
+    out = concat(out, concat(code, concat(String_from("|"), concat(phase, concat(String_from("]: "), msg))))))
+    let span = record::diagnostic_span(diag)
+    let start = record::diagnostic_span_start(span)
+    let end = record::diagnostic_span_end(span)
+    if start > 0 || end > 0 {
+        out = concat(out, concat(String_from("\n  --> "), source_map_offsets::location_text(clone(source), clone(source_file), start)))
+        return out
+    }
+    if len(source_file) > 0 {
+        out = concat(out, concat(String_from("\n  --> "), clone(source_file)))
+    }
+    out
+}

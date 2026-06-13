@@ -8,6 +8,7 @@ use driver::config_record
 use std::host::stdio
 use driver::result_record
 use main::output
+use diagnostics::mod as diag_mod
 use std::host::fs
 use std::host::process
 use driver::file
@@ -70,17 +71,26 @@ fn should_dump(opts: CliOptions, phase: String) -> bool {
 
 // Arukellt Selfhost - CLI compile error reporting
 
-fn print_compile_errors(input_file: String, result: CompileResult, json_mode: bool) {
+fn print_compile_diagnostics(input_file: String, result: CompileResult, json_mode: bool) {
 	if json_mode {
 		stdio::println(output::format_error_json(clone(input_file), result_record::compile_result_phase_reached(result), result_record::compile_result_diagnostics(result)))
-	} else {
-		let err_count = len(result.error_messages)
+		return
+	}
+	let err_count = result_record::compile_result_error_message_count(result)
+	if err_count > 0 {
 		let mut i = 0
 		while i < err_count {
-			let msg = result_record::compile_result_error_message_at(result, i)
-			stdio::eprintln(output::format_error_phased(clone(input_file), result_record::compile_result_phase_reached(result), clone(msg)))
+			stdio::eprintln(result_record::compile_result_error_message_at(result, i))
 			i = i + 1
 		}
+		return
+	}
+	let diags = result_record::compile_result_diagnostics(result)
+	let diag_count = len(diags)
+	let mut j = 0
+	while j < diag_count {
+		stdio::eprintln(diag_mod::format_diagnostic_text(String_new(), clone(input_file), get_unchecked(diags, j)))
+		j = j + 1
 	}
 }
 
@@ -151,7 +161,7 @@ pub fn cmd_compile_single(opts: CliOptions) {
 	if result_record::compile_result_success(result) {
 		handle_single_compile_success(opts, clone(input_file), result, json_mode)
 	} else {
-		print_compile_errors(clone(input_file), result, json_mode)
+		print_compile_diagnostics(clone(input_file), result, json_mode)
 		process::exit(1)
 	}
 }

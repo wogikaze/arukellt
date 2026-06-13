@@ -47,7 +47,7 @@ fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFronten
     debug::dump_ast_if_enabled(config, decls)
     let parse_error_count = session_parse_tokens::session_parse_error_count(parse_result)
     if parse_error_count > 0 {
-        return frontend_stop(errors::parse_errors_result(clone(source), config_record::config_source_dir(config), session_parse_tokens::session_parse_errors_from_result(parse_result)), t0, t_lex, 0)
+        return frontend_stop(errors::parse_errors_result(clone(source), config_record::config_source_file(config), session_parse_tokens::session_parse_errors_from_result(parse_result)), t0, t_lex, 0)
     }
     if config_record::config_parse_only(config) {
         return frontend_stop(result_record::CompileResult_ok(phases::PHASE_PARSE()), t0, t_lex, clock::monotonic_now())

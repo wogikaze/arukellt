@@ -3,9 +3,10 @@ use typechecker::kinds
 
 use typechecker::ast_expr_predicates
 use typechecker::ast_access
+use typechecker::contract_env_record
 use typechecker::scope
 
-fn infer_leaf_expr(scope: LocalScope, node: AstNode) -> TypeInfo {
+fn infer_leaf_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
     if ast_expr_predicates::node_is_int_lit(node) {
         return TypeInfo_simple(commands::TY_I32())
     }
@@ -19,7 +20,9 @@ fn infer_leaf_expr(scope: LocalScope, node: AstNode) -> TypeInfo {
         return TypeInfo_simple(commands::TY_BOOL())
     }
     if ast_expr_predicates::node_is_ident(node) {
-        return scope::scope_lookup(scope, ast_access::node_text(node))
+        let name = ast_access::node_text(node)
+        contract_env_record::type_env_mark_binding_used(env, clone(name))
+        return scope::scope_lookup(scope, name)
     }
     TypeInfo_simple(commands::TY_UNKNOWN())
 }

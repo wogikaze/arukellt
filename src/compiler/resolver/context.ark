@@ -22,6 +22,10 @@ fn ResolveCtx_errors(ctx: ResolveCtx) -> Vec<String> {
     ctx_record::resolve_ctx_errors(ctx)
 }
 
+fn ResolveCtx_diagnostics(ctx: ResolveCtx) -> Vec<Diagnostic> {
+    ctx_record::resolve_ctx_diagnostics(ctx)
+}
+
 fn ResolveCtx_error_message_count(ctx: ResolveCtx) -> i32 {
     ctx_record::resolve_ctx_error_message_count(ctx)
 }

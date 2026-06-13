@@ -1,7 +1,30 @@
 // Arukellt Resolver - resolver error collection.
 
+use diagnostics::codes
+use diagnostics::mod as diag_mod
+use diagnostics::record
 use resolver::ctx_record
 
-fn resolve_error(ctx: ResolveCtx, msg: String) {
+fn resolve_diagnostic(ctx: ResolveCtx, code: String, msg: String, span_start: i32, span_end: i32) {
     ctx_record::resolve_ctx_push_error(ctx, msg)
+    let span = record::DiagnosticSpan_from_raw(span_start, span_end)
+    let diag = diag_mod::Diagnostic_new(code, diag_mod::SEV_ERROR(), span, msg)
+    ctx_record::resolve_ctx_push_diagnostic(ctx, diag)
+}
+
+fn resolve_error(ctx: ResolveCtx, msg: String) {
+    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), msg, 0, 0)
+}
+
+fn resolve_unknown_name(ctx: ResolveCtx, name: String, span_start: i32, span_end: i32) {
+    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), concat(String_from("undefined name: "), name), span_start, span_end)
+}
+
+fn resolve_duplicate_symbol(ctx: ResolveCtx, name: String, span_start: i32, span_end: i32) {
+    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_DUPLICATE_SYMBOL(), concat(String_from("duplicate definition: "), name), span_start, span_end)
+}
+
+fn resolve_target_gated_module(ctx: ResolveCtx, module_path: String, span_start: i32, span_end: i32) {
+    let msg = concat(String_from("module `"), concat(module_path, String_from("` requires target wasm32-wasi-p2 (T3); use `--target wasm32-wasi-p2` to enable this module")))
+    resolve_diagnostic(ctx, codes::DIAG_EMIT_FAILED(), msg, span_start, span_end)
 }

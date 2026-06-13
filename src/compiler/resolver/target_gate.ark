@@ -8,11 +8,7 @@ fn target_is_t1(target: String) -> bool {
 }
 
 fn module_is_t3_only(module_path: String) -> bool {
-    eq(clone(module_path), String_from("std::host::udp"))
-}
-
-fn t3_only_message(module_path: String) -> String {
-    concat(String_from("error[E0500|resolve]: module `"), concat(module_path, String_from("` requires target wasm32-wasi-p2 (T3); use `--target wasm32-wasi-p2` to enable this module")))
+    eq(clone(module_path), String_from("std::host::udp")) || eq(module_path, String_from("std::host::sockets"))
 }
 
 fn reject_target_gated_use(ctx: ResolveCtx, module_path: String) {
@@ -20,6 +16,6 @@ fn reject_target_gated_use(ctx: ResolveCtx, module_path: String) {
         return
     }
     if module_is_t3_only(clone(module_path)) {
-        scope_error::resolve_error(ctx, t3_only_message(module_path))
+        scope_error::resolve_target_gated_module(ctx, module_path, 0, 0)
     }
 }

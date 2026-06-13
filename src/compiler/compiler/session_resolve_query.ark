@@ -33,6 +33,10 @@ fn session_resolve_errors(ctx: ResolveCtx) -> Vec<String> {
 context::ResolveCtx_errors(ctx)
 }
 
+fn session_resolve_diagnostics(ctx: ResolveCtx) -> Vec<Diagnostic> {
+context::ResolveCtx_diagnostics(ctx)
+}
+
 fn session_count_user_symbols(ctx: ResolveCtx) -> i32 {
 scope_metrics::count_user_symbols(ctx)
 }

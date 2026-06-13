@@ -61,6 +61,10 @@ fn compile_result_error_message_at(result: CompileResult, index: i32) -> String 
     clone(get_unchecked(result.error_messages, index))
 }
 
+fn compile_result_error_message_count(result: CompileResult) -> i32 {
+    len(result.error_messages)
+}
+
 fn compile_result_phase_reached(result: CompileResult) -> i32 {
     result.phase_reached
 }

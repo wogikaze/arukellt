@@ -2,12 +2,46 @@
 
 use diagnostics::codes
 use diagnostics::record
+use lexer::tokens
 use parser::cursor
 use parser::token_state
 
+fn parser_token_kind_name(kind: i32) -> String {
+    if kind == tokens::TK_RBRACE() {
+        return String_from("RBrace")
+    }
+    if kind == tokens::TK_LBRACE() {
+        return String_from("LBrace")
+    }
+    if kind == tokens::TK_RPAREN() {
+        return String_from("RParen")
+    }
+    if kind == tokens::TK_LPAREN() {
+        return String_from("LParen")
+    }
+    if kind == tokens::TK_SEMI() {
+        return String_from("Semi")
+    }
+    if kind == tokens::TK_COMMA() {
+        return String_from("Comma")
+    }
+    if kind == tokens::TK_EOF() {
+        return String_from("Eof")
+    }
+    String_from("token")
+}
+
+fn parser_expected_code(expected: i32) -> String {
+    if expected == tokens::TK_RBRACE() {
+        return codes::DIAG_PARSE_MISSING_RBRACE()
+    }
+    return codes::DIAG_PARSE_UNEXPECTED()
+}
+
 fn parser_push_expected_token_error(p: Parser, expected: i32, actual: i32, tok: Token) {
-    let message = concat(String_from("expected token kind "), concat(to_string(expected), concat(String_from(", got "), to_string(actual))))
-    let diag = record::Diagnostic_new_parse(codes::DIAG_PARSE_EXPECTED_TOKEN(), message, token_state::Token_start(tok), token_state::Token_end(tok))
+    let expected_name = parser_token_kind_name(expected)
+    let message = concat(String_from("expected `"), concat(expected_name, String_from("`")))
+    let diag = record::Diagnostic_new_parse(parser_expected_code(expected), message, token_state::Token_start(tok), token_state::Token_end(tok))
     push(p.errors, diag)
 }
 

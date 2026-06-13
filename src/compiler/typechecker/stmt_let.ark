@@ -2,6 +2,7 @@ use typechecker::kinds
 // Arukellt Typechecker - let statement checking.
 
 use typechecker::ast_access
+use typechecker::contract_env_record
 use typechecker::scope
 use typechecker::types
 use typechecker::unify
@@ -20,5 +21,6 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
     let bind_name = ast_access::node_text(node)
     if !eq(clone(bind_name), "_") {
         scope::scope_define(scope, bind_name, bind_ty)
+        contract_env_record::type_env_track_binding(env, clone(bind_name), ast_access::node_span_start(node), ast_access::node_span_end(node))
     }
 }

@@ -1,6 +1,9 @@
 use typechecker::kinds
 // Arukellt Typechecker - inference environment helpers
 
+use diagnostics::codes
+use diagnostics::mod as diag_mod
+use diagnostics::record
 use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::contract_typevar
@@ -19,4 +22,7 @@ fn fresh_var(env: TypeEnv) -> TypeInfo {
 fn type_error(env: TypeEnv, msg: String) {
     env.error_count = env.error_count + 1
     push(env.errors, msg)
+    let span = record::DiagnosticSpan_from_raw(0, 0)
+    let diag = diag_mod::Diagnostic_new(codes::DIAG_TYPE_MISMATCH(), diag_mod::SEV_ERROR(), span, msg)
+    push(env.diagnostics, diag)
 }

@@ -4,5 +4,5 @@ use resolver::scope_define
 
 fn register_module_export(ctx: ResolveCtx, module_name: String, symbol_name: String, kind: i32, is_pub: bool) {
     let qualified = concat(clone(module_name), concat(String_from("::"), clone(symbol_name)))
-    scope_define::define_impl(ctx, qualified, kind, is_pub)
+    scope_define::define_impl(ctx, qualified, kind, is_pub, 0, 0)
 }
