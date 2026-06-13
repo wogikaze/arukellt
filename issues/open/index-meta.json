@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T08:58:36Z",
+  "generated_at": "2026-06-13T10:44:26Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -408,82 +408,6 @@
       }
     },
     {
-      "id": "339",
-      "path": "339-lsp-semantic-rename.md",
-      "title": "339-lsp-semantic-rename",
-      "track": "lsp-semantic",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "338"
-      ],
-      "blocks_issue_ids": [
-        "439"
-      ],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "341",
-      "path": "341-lsp-organize-imports.md",
-      "title": "341-lsp-organize-imports",
-      "track": "lsp-semantic",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "340"
-      ],
-      "blocks_issue_ids": [
-        "440"
-      ],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "342",
-      "path": "342-lsp-completion-context.md",
-      "title": "342-lsp-completion-context",
-      "track": "lsp-semantic",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "338"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "355",
       "path": "355-lsp-protocol-e2e-tests.md",
       "title": "355-lsp-protocol-e2e-tests",
@@ -579,6 +503,34 @@
       }
     },
     {
+      "id": "439",
+      "path": "439-vscode-lsp-semantic-stdlib-navigation.md",
+      "title": "VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "333",
+        "334",
+        "335",
+        "338",
+        "339"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "44",
       "path": "054-std-wit-component.md",
       "title": "std: \":wit + std::component: WIT 型、resource handle、canonical ABI\"",
@@ -602,6 +554,35 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "440",
+      "path": "440-vscode-fix-pipeline-code-actions-formatter-diagnostics.md",
+      "title": "VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする",
+      "track": "vscode-ide",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "341",
+        "346",
+        "348",
+        "349",
+        "350",
+        "352"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
       }
     },
     {
@@ -1315,63 +1296,6 @@
       "acceptance": {
         "checked": 3,
         "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "439",
-      "path": "439-vscode-lsp-semantic-stdlib-navigation.md",
-      "title": "VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する",
-      "track": "vscode-ide",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "333",
-        "334",
-        "335",
-        "338",
-        "339"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "440",
-      "path": "440-vscode-fix-pipeline-code-actions-formatter-diagnostics.md",
-      "title": "VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする",
-      "track": "vscode-ide",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "341",
-        "346",
-        "348",
-        "349",
-        "350",
-        "352"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
       },
       "orchestration": {
         "class": "implementation-ready",

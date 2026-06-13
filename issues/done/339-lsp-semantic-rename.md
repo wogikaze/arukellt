@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-31
-Updated: 2026-06-12
+Updated: 2026-06-13
 ID: 339
 Track: lsp-semantic
 Depends on: 338
