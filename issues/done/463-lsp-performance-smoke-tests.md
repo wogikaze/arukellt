@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-02
-Updated: 2026-06-12
+Updated: 2026-06-14
 ID: 463
 Track: lsp, testing
 Depends on: 454

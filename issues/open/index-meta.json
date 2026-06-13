@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T15:43:55Z",
+  "generated_at": "2026-06-13T15:58:05Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -22,30 +22,6 @@
       },
       "orchestration": {
         "class": "design-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "083",
-      "path": "083-mir-loop-unrolling.md",
-      "title": "083-mir-loop-unrolling",
-      "track": "mir-opt",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "080"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": null
       }
     },
@@ -413,54 +389,6 @@
       }
     },
     {
-      "id": "446",
-      "path": "446-std-host-http-implementation.md",
-      "title": "446-std-host-http-implementation",
-      "track": "runtime",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "633"
-      ],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "447",
-      "path": "447-std-host-sockets-implementation.md",
-      "title": "447-std-host-sockets-implementation",
-      "track": "runtime",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "633"
-      ],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "45",
       "path": "055-std-json-toml-csv.md",
       "title": "std: \":json + std::toml + std::csv: データ形式パーサ\"",
@@ -484,30 +412,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "463",
-      "path": "463-lsp-performance-smoke-tests.md",
-      "title": "463-lsp-performance-smoke-tests",
-      "track": "lsp, testing",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "454"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 6,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
       }
     },
     {
@@ -827,6 +731,31 @@
       }
     },
     {
+      "id": "633",
+      "path": "633-host-capability-surface-honesty-vs-selfhost-runtime.md",
+      "title": "Reconcile std::host::http / sockets / udp capability claims with the selfhost execution path",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "446",
+        "447"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "636",
       "path": "636-selfhost-structured-diagnostic-parity.md",
       "title": "636 — Selfhost structured diagnostic parity (codes, spans, warnings)",
@@ -1050,31 +979,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "633",
-      "path": "633-host-capability-surface-honesty-vs-selfhost-runtime.md",
-      "title": "Reconcile std::host::http / sockets / udp capability claims with the selfhost execution path",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "446",
-        "447"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
       }
     },
     {

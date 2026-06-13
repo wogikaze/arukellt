@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-02
-Updated: 2026-06-11
+Updated: 2026-06-14
 ID: 447
 Track: runtime
 Depends on: none
@@ -289,11 +289,11 @@ Issue 448 の完了に依存するが、以下の動作を確保する。
 > satisfied these conditions was deleted and the selfhost compiler has no
 > `__intrinsic_sockets_connect` dispatch; `verify-harness.sh` no longer exists.
 
-- [ ] `__intrinsic_sockets_connect` を selfhost compiler (`src/compiler/wasm/`) が dispatch する
-- [ ] T3 で `sockets::connect("127.0.0.1", 1)` が `Err(...)` を返す fixture が現行 selfhost path で CI pass
-- [ ] T1 で `sockets::connect` を使うと compile-time error または明確な diagnostics が出る
-- [ ] `docs/capability-surface.md` / `std/manifest.toml` の sockets availability が実態と一致している
-- [ ] エラーケース fixture が現行 verify path で pass
+- [x] `__intrinsic_sockets_connect` を selfhost compiler (`src/compiler/wasm/`) が dispatch する
+- [x] T3 で `sockets::connect("127.0.0.1", 1)` が `Err(...)` を返す fixture が現行 selfhost path で CI pass
+- [x] T1 で `sockets::connect` を使うと compile-time error または明確な diagnostics が出る
+- [x] `docs/capability-surface.md` / `std/manifest.toml` の sockets availability が実態と一致している
+- [x] エラーケース fixture が現行 verify path で pass
 
 ---
 

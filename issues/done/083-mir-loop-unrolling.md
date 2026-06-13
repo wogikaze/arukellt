@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
-Updated: 2026-06-12
+Updated: 2026-06-14
 ID: 083
 Track: mir-opt
 Depends on: 080
@@ -51,4 +51,4 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 ## Docs sync (docs-to-issues audit 2026-06-12)
 
-- [ ] `docs/process/roadmap-v4.md` status updated from「未着手」to reflect MIR pass implementation progress (loop unroll tracked by #083)
+- [x] `docs/process/roadmap-v4.md` status updated from「未着手」to reflect MIR pass implementation progress (loop unroll tracked by #083)
