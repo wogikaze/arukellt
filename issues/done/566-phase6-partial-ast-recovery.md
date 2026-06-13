@@ -1,11 +1,11 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-22
-Updated: 2026-06-12
+Updated: 2026-06-14
 ID: 566
 Track: selfhost-frontend
 Depends on: 565
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks: 568
 Blocks v5: no

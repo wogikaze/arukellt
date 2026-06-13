@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T15:12:43Z",
+  "generated_at": "2026-06-13T15:26:19Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -26,9 +26,9 @@
       }
     },
     {
-      "id": "080",
-      "path": "080-mir-licm.md",
-      "title": "080-mir-licm",
+      "id": "083",
+      "path": "083-mir-loop-unrolling.md",
+      "title": "083-mir-loop-unrolling",
       "track": "mir-opt",
       "status": "open",
       "blocks_v1": "none",
@@ -36,31 +36,9 @@
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "083"
+      "depends_on": [
+        "080"
       ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "082",
-      "path": "082-mir-gc-hint.md",
-      "title": "082-mir-gc-hint",
-      "track": "mir-opt",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
@@ -801,32 +779,6 @@
       }
     },
     {
-      "id": "566",
-      "path": "566-phase6-partial-ast-recovery.md",
-      "title": "566-phase6-partial-ast-recovery",
-      "track": "selfhost-frontend",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": false,
-      "depends_on": [
-        "565"
-      ],
-      "blocks_issue_ids": [
-        "636"
-      ],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "59",
       "path": "073-wasi-p1-full-syscalls.md",
       "title": "073-wasi-p1-full-syscalls",
@@ -918,6 +870,30 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "636",
+      "path": "636-selfhost-structured-diagnostic-parity.md",
+      "title": "636 — Selfhost structured diagnostic parity (codes, spans, warnings)",
+      "track": "selfhost-frontend",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "566"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": null
       }
     },
@@ -1037,30 +1013,6 @@
       },
       "orchestration": {
         "class": "design-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "083",
-      "path": "083-mir-loop-unrolling.md",
-      "title": "083-mir-loop-unrolling",
-      "track": "mir-opt",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "080"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": null
       }
     },
@@ -1342,30 +1294,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "636",
-      "path": "636-selfhost-structured-diagnostic-parity.md",
-      "title": "636 — Selfhost structured diagnostic parity (codes, spans, warnings)",
-      "track": "selfhost-frontend",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "566"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
       }
     },
     {

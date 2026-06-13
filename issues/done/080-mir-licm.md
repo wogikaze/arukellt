@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
-Updated: 2026-06-12
+Updated: 2026-06-14
 ID: 080
 Track: mir-opt
 Depends on: —
@@ -69,4 +69,10 @@ roadmap-v4.md §5.2 item 5 で明示的に要求されているパス。
 
 ## Docs sync (docs-to-issues audit 2026-06-12)
 
-- [ ] `docs/process/roadmap-v4.md` status updated from「未着手」to reflect MIR pass implementation progress (LICM tracked by #080)
+- [x] `docs/process/roadmap-v4.md` status updated from「未着手」to reflect MIR pass implementation progress (LICM tracked by #080)
+
+## Close — 2026-06-14
+
+Selfhost `src/compiler/mir_opt/` implements the pass at `--opt-level 2` with
+`OptimizationSummary` counters, pipeline wiring in `driver/pipeline_backend.ark`,
+scalar fixtures, and wasm `metadata.code.gc_hint` custom section. Commit `ff8f8ded`.

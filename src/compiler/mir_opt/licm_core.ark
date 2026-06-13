@@ -77,6 +77,7 @@ fn licm_optimize_block_insts(insts: Vec<MirInst>) -> LicmBlockResult {
 
 fn licm_optimize_function(f: MirFunction) -> OptimizationSummary {
     let block_count = function_block_queries::MirFunction_block_count(f)
+    let updated_blocks = Vec_new_MirBlock()
     let mut total_hoisted = 0
     let mut bi = 0
     while bi < block_count {
@@ -85,7 +86,9 @@ fn licm_optimize_function(f: MirFunction) -> OptimizationSummary {
         let result = licm_optimize_block_insts(insts)
         block_inst_mutation::MirBlock_set_instructions(block, result.instructions)
         total_hoisted = total_hoisted + result.hoisted
+        push(updated_blocks, block)
         bi = bi + 1
     }
+    function_block_mutation::MirFunction_set_blocks(f, updated_blocks)
     summary_record::OptimizationSummary_add_licm(summary_record::OptimizationSummary_new(), total_hoisted)
 }
