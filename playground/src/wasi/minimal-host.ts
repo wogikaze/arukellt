@@ -217,6 +217,39 @@ export function createWasiHost(opts: WasiHostOptions): WasiHostHandle {
         result.exitCode = code >>> 0;
         throw new WasiExit(result.exitCode);
       },
+
+      clock_time_get(clockId: number, _precision: bigint, timePtr: number): number {
+        const mem = view();
+        const nowNs =
+          clockId === 1
+            ? BigInt(Math.floor(performance.now() * 1_000_000))
+            : BigInt(Date.now()) * 1_000_000n;
+        mem.setBigUint64(timePtr, nowNs, true);
+        return WASI_ERRNO_SUCCESS;
+      },
+
+      random_get(bufPtr: number, bufLen: number): number {
+        const buf = new Uint8Array(requireMemory().buffer, bufPtr, bufLen);
+        if (typeof globalThis.crypto?.getRandomValues === "function") {
+          globalThis.crypto.getRandomValues(buf);
+        } else {
+          for (let i = 0; i < bufLen; i++) {
+            buf[i] = Math.floor(Math.random() * 256);
+          }
+        }
+        return WASI_ERRNO_SUCCESS;
+      },
+
+      environ_sizes_get(countPtr: number, bufSizePtr: number): number {
+        const mem = view();
+        mem.setUint32(countPtr, 0, true);
+        mem.setUint32(bufSizePtr, 0, true);
+        return WASI_ERRNO_SUCCESS;
+      },
+
+      environ_get(_environPtr: number, _environBufPtr: number): number {
+        return WASI_ERRNO_SUCCESS;
+      },
     },
   };
 

@@ -6,6 +6,7 @@ import { dirname, resolve } from "node:path";
 
 import { compileWithCompilerWasm } from "../compiler-host.js";
 import { isRunnableT2Output } from "../compiler-client.js";
+import { createWasiHost } from "../wasi/minimal-host.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "../../..");
@@ -25,6 +26,18 @@ async function loadCompilerBytes(): Promise<Uint8Array> {
   }
   throw new Error("no compiler wasm candidate found");
 }
+
+test("createWasiHost satisfies selfhost compiler WASI imports", async () => {
+  const compilerBytes = await loadCompilerBytes();
+  const host = createWasiHost({
+    argv: ["arukellt", "--version"],
+    files: new Map(),
+  });
+
+  const module = new WebAssembly.Module(compilerBytes as unknown as BufferSource);
+  const instance = new WebAssembly.Instance(module, host.imports);
+  assert.ok(instance.exports.memory);
+});
 
 test("compileWithCompilerWasm compiles T2 stdio fixture through WASI host", async () => {
   const compilerBytes = await loadCompilerBytes();
