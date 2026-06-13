@@ -1,0 +1,24 @@
+// Arukellt Selfhost - Wasm call namespace: host HTTP and sockets dispatch.
+
+use wasm::inst_store
+use wasm::intrinsic_http
+use wasm::intrinsic_sockets
+
+fn try_emit_network_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "http_get") || eq(clone(callee), "__intrinsic_http_get") || eq(clone(callee), "http::get") || eq(clone(callee), "std::host::http::get") {
+        let _result_on_stack = intrinsic_http::emit_http_get(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "http_request") || eq(clone(callee), "__intrinsic_http_request") || eq(clone(callee), "http::request") || eq(clone(callee), "std::host::http::request") {
+        let _result_on_stack = intrinsic_http::emit_http_request(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "sockets_connect") || eq(clone(callee), "__intrinsic_sockets_connect") || eq(clone(callee), "sockets::connect") || eq(clone(callee), "std::host::sockets::connect") {
+        let _result_on_stack = intrinsic_sockets::emit_sockets_connect(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    false
+}

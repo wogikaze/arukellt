@@ -1,7 +1,7 @@
-use std::host::sockets
+use std::host::udp
 use std::host::stdio
 
 fn main() {
-    let conn = sockets::connect("localhost", 8080)
+    let sent = udp::send("localhost", 8080, "ping")
     stdio::println("done")
 }

@@ -92,6 +92,9 @@ if [[ "${1:-}" == "run" ]]; then
   if [[ "$out_path" != /* ]]; then
     out_path="$REPO_ROOT/$out_path"
   fi
+  if grep -aq 'arukellt_host' "$out_path" 2>/dev/null; then
+    exec "$REPO_ROOT/scripts/run/arukellt-run-hosted.sh" --dir="$REPO_ROOT" "$out_path"
+  fi
   exec wasmtime run --dir="$REPO_ROOT" "$out_path"
 fi
 

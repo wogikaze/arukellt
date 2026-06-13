@@ -2,14 +2,14 @@
 
 use wasm::emit_target
 
-fn defined_function_index(function_idx: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {
-    function_idx + emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count)
+fn defined_function_index(function_idx: i32, target: String, wasi_version: String, needs_arukellt_host: i32, wit_import_count: i32) -> i32 {
+    function_idx + emit_target::total_import_count(clone(target), clone(wasi_version), needs_arukellt_host, wit_import_count)
 }
 
-fn wrapper_function_index(fn_count: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {
-    fn_count + emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count)
+fn wrapper_function_index(fn_count: i32, target: String, wasi_version: String, needs_arukellt_host: i32, wit_import_count: i32) -> i32 {
+    fn_count + emit_target::total_import_count(clone(target), clone(wasi_version), needs_arukellt_host, wit_import_count)
 }
 
-fn wit_import_function_index(wit_idx: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {
-    emit_target::host_import_count(clone(target), clone(wasi_version)) + wit_idx
+fn wit_import_function_index(wit_idx: i32, target: String, wasi_version: String, needs_arukellt_host: i32, wit_import_count: i32) -> i32 {
+    emit_target::host_import_count(clone(target), clone(wasi_version), needs_arukellt_host) + wit_idx
 }

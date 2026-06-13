@@ -1,0 +1,44 @@
+// Arukellt Selfhost - TCP sockets_connect intrinsic handler.
+
+use wasm::constants
+use wasm::ctx_scratch
+use wasm::intrinsic_http_result
+use wasm::intrinsic_sockets_result
+use wasm::intrinsics::helpers_core_calls
+use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_io
+use wasm::intrinsics::helpers_io_layout
+use wasm::intrinsics::helpers_memory_access
+
+fn emit_sockets_connect(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_host = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_port = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    emit_sockets_connect_save_args(w, s_host, s_port)
+    intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_SOCK_RESPPTR())
+    emit_sockets_connect_call(w)
+    intrinsic_sockets_result::emit_sockets_finalize_i32_result(w)
+    return true
+}
+
+fn emit_sockets_connect_save_args(w: WasmWriter, host_local: i32, port_local: i32) {
+    helpers_core_locals::emit_local_set(w, port_local)
+    helpers_core_locals::emit_local_set(w, host_local)
+    helpers_io::emit_store_string_local_to_scratch(w, host_local, constants::SCRATCH_SOCK_HOSTPTR(), constants::SCRATCH_SOCK_HOSTLEN())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_PORT())
+    helpers_core_locals::emit_local_get(w, port_local)
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_sockets_connect_call(w: WasmWriter) {
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTLEN())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_PORT())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RESPPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_core_calls::emit_call(w, constants::WASI_IMPORT_SOCKETS_CONNECT())
+    helpers_memory_access::emit_i32_store_default(w)
+}

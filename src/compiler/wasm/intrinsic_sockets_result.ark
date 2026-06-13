@@ -1,0 +1,78 @@
+// Arukellt Selfhost - sockets_connect result emission helpers.
+
+use wasm::constants
+use wasm::intrinsic_http_result
+use wasm::intrinsics::helpers_control_structured
+use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_io_layout
+use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::opcodes
+use wasm::writer_core
+
+fn emit_sockets_finalize_i32_result(w: WasmWriter) {
+    intrinsic_http_result::emit_http_store_abs_len(w, constants::SCRATCH_SOCK_RET(), constants::SCRATCH_SOCK_ABSLEN())
+    emit_sockets_write_err_len_prefix(w)
+    emit_sockets_bump_heap_for_err(w)
+    emit_sockets_build_result_enum(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_ENUMPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+}
+
+fn emit_sockets_write_err_len_prefix(w: WasmWriter) {
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_numeric_i32_compare::emit_i32_lt_s(w)
+    helpers_control_structured::emit_if_i32(w)
+    intrinsic_http_result::emit_http_write_len_prefix(w, constants::SCRATCH_SOCK_RESPPTR(), constants::SCRATCH_SOCK_ABSLEN())
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_sockets_bump_heap_for_err(w: WasmWriter) {
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_numeric_i32_compare::emit_i32_lt_s(w)
+    helpers_control_structured::emit_if_i32(w)
+    intrinsic_http_result::emit_http_bump_heap_by_abs_len(w, constants::SCRATCH_SOCK_ABSLEN())
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_sockets_build_result_enum(w: WasmWriter) {
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_ENUMPTR())
+    helpers_core_heap::emit_heap_get(w)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_ENUMPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_numeric_i32_compare::emit_i32_lt_s(w)
+    writer_core::emit_byte(w, opcodes::OP_SELECT())
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_ENUMPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_numeric_i32_compare::emit_i32_lt_s(w)
+    helpers_control_structured::emit_if_i32(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RESPPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_control_structured::emit_else(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_control_structured::emit_end(w)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 8)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+}

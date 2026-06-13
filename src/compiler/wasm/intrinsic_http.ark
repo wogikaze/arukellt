@@ -1,0 +1,82 @@
+// Arukellt Selfhost - HTTP host intrinsic handlers (http_get / http_request).
+
+use wasm::constants
+use wasm::ctx_scratch
+use wasm::intrinsic_http_result
+use wasm::intrinsics::helpers_core_calls
+use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_io
+use wasm::intrinsics::helpers_io_layout
+use wasm::intrinsics::helpers_memory_access
+
+fn emit_http_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_url = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    emit_http_get_save_url(w, s_url)
+    intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_HTTP_RESPPTR())
+    emit_http_get_call(w)
+    intrinsic_http_result::emit_http_finalize_string_result(w, constants::SCRATCH_HTTP_RESPPTR(), constants::SCRATCH_HTTP_RET(), constants::SCRATCH_HTTP_ABSLEN(), constants::SCRATCH_HTTP_ENUMPTR())
+    return true
+}
+
+fn emit_http_request(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_method = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_url = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_body = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    emit_http_request_save_args(w, s_method, s_url, s_body)
+    intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_HTTP_REQ_RESPPTR())
+    emit_http_request_call(w)
+    intrinsic_http_result::emit_http_finalize_string_result(w, constants::SCRATCH_HTTP_REQ_RESPPTR(), constants::SCRATCH_HTTP_REQ_RET(), constants::SCRATCH_HTTP_REQ_ABSLEN(), constants::SCRATCH_HTTP_REQ_ENUMPTR())
+    return true
+}
+
+fn emit_http_get_save_url(w: WasmWriter, url_local: i32) {
+    helpers_core_locals::emit_local_set(w, url_local)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_URLPTR())
+    helpers_core_locals::emit_local_get(w, url_local)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_URLLEN())
+    helpers_core_locals::emit_local_get(w, url_local)
+    helpers_io_layout::emit_string_len_from_stack(w)
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_http_request_save_args(w: WasmWriter, method_local: i32, url_local: i32, body_local: i32) {
+    helpers_core_locals::emit_local_set(w, body_local)
+    helpers_core_locals::emit_local_set(w, url_local)
+    helpers_core_locals::emit_local_set(w, method_local)
+    helpers_io::emit_store_string_local_to_scratch(w, method_local, constants::SCRATCH_HTTP_URLPTR(), constants::SCRATCH_HTTP_URLLEN())
+    helpers_io::emit_store_string_local_to_scratch(w, url_local, constants::SCRATCH_HTTP_REQ_URLPTR(), constants::SCRATCH_HTTP_REQ_URLLEN())
+    helpers_io::emit_store_string_local_to_scratch(w, body_local, constants::SCRATCH_HTTP_REQ_BODYPTR(), constants::SCRATCH_HTTP_REQ_BODYLEN())
+}
+
+fn emit_http_get_call(w: WasmWriter) {
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_RET())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_URLPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_URLLEN())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_RESPPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_core_calls::emit_call(w, constants::WASI_IMPORT_HTTP_GET())
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_http_request_call(w: WasmWriter) {
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_REQ_RET())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_URLPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_URLLEN())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_REQ_URLPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_REQ_URLLEN())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_REQ_BODYPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_REQ_BODYLEN())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_REQ_RESPPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_core_calls::emit_call(w, constants::WASI_IMPORT_HTTP_REQUEST())
+    helpers_memory_access::emit_i32_store_default(w)
+}

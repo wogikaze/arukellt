@@ -10,24 +10,36 @@ fn is_p2_wasi(wasi_version: String) -> bool {
     eq(clone(wasi_version), String_from("p2"))
 }
 
-fn host_import_count(target: String, wasi_version: String) -> i32 {
+fn host_import_count(target: String, wasi_version: String, needs_arukellt_host: i32) -> i32 {
     if is_freestanding_target(clone(target)) {
         return constants::NUM_T2_IMPORTS()
     }
-    constants::NUM_WASI_IMPORTS()
+    if is_p2_wasi(clone(wasi_version)) {
+        if needs_arukellt_host == 1 {
+            return constants::NUM_P2_IMPORTS_BASE() + 3
+        }
+        return constants::NUM_P2_IMPORTS_BASE()
+    }
+    if needs_arukellt_host == 1 {
+        return constants::NUM_WASI_IMPORTS()
+    }
+    constants::NUM_WASI_IMPORTS_BASE()
 }
 
-fn host_type_count(target: String, wasi_version: String) -> i32 {
+fn host_type_count(target: String, wasi_version: String, needs_arukellt_host: i32) -> i32 {
     if is_freestanding_target(clone(target)) {
         return constants::NUM_T2_TYPES()
     }
-    constants::NUM_WASI_TYPES()
+    if needs_arukellt_host == 1 {
+        return constants::NUM_WASI_TYPES()
+    }
+    constants::NUM_WASI_TYPES_BASE()
 }
 
-fn total_import_count(target: String, wasi_version: String, wit_import_count: i32) -> i32 {
-    host_import_count(clone(target), clone(wasi_version)) + wit_import_count
+fn total_import_count(target: String, wasi_version: String, needs_arukellt_host: i32, wit_import_count: i32) -> i32 {
+    host_import_count(clone(target), clone(wasi_version), needs_arukellt_host) + wit_import_count
 }
 
-fn total_host_type_count(target: String, wasi_version: String, wit_import_count: i32) -> i32 {
-    host_type_count(clone(target), clone(wasi_version)) + wit_import_count
+fn total_host_type_count(target: String, wasi_version: String, needs_arukellt_host: i32, wit_import_count: i32) -> i32 {
+    host_type_count(clone(target), clone(wasi_version), needs_arukellt_host) + wit_import_count
 }

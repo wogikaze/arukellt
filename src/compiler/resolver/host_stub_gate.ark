@@ -8,22 +8,10 @@ fn host_stub_message(path: String) -> String {
 }
 
 fn path_is_host_stub(path: String) -> bool {
-    if eq(clone(path), String_from("sockets::connect")) {
+    if eq(clone(path), String_from("udp::send")) {
         return true
     }
-    if eq(clone(path), String_from("std::host::sockets::connect")) {
-        return true
-    }
-    if eq(clone(path), String_from("http::get")) {
-        return true
-    }
-    if eq(clone(path), String_from("http::request")) {
-        return true
-    }
-    if eq(clone(path), String_from("std::host::http::get")) {
-        return true
-    }
-    if eq(clone(path), String_from("std::host::http::request")) {
+    if eq(clone(path), String_from("std::host::udp::send")) {
         return true
     }
     false

@@ -171,6 +171,23 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def _wasm_needs_host_linker(wasm_path: Path) -> bool:
+    try:
+        return b"arukellt_host" in wasm_path.read_bytes()
+    except OSError:
+        return False
+
+
+def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
+    """Return argv to execute user wasm, using host-linker when imports need it."""
+    if _wasm_needs_host_linker(wasm_path):
+        hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
+        if hosted.is_file():
+            return ["bash", str(hosted), str(wasm_path)]
+    wasmtime = _find_wasmtime()
+    return [wasmtime or "wasmtime", "run", str(wasm_path)]
+
+
 def _run(cmd: list[str], root: Path, capture: bool = True, timeout: int | None = None) -> subprocess.CompletedProcess:
     try:
         return subprocess.run(
@@ -1849,11 +1866,11 @@ def run_fixture_parity(root: Path, dry_run: bool) -> tuple[int, str]:
                 continue
 
             # Compare execution output
-            r_p = _run([wasmtime, "run", str(out_pinned)], root, timeout=15)
+            r_p = _run(_wasm_run_argv(root, out_pinned), root, timeout=15)
             p_out = (r_p.stdout + r_p.stderr).strip()
             p_code = r_p.returncode
 
-            r_c = _run([wasmtime, "run", str(out_current)], root, timeout=15)
+            r_c = _run(_wasm_run_argv(root, out_current), root, timeout=15)
             c_out = (r_c.stdout + r_c.stderr).strip()
             c_code = r_c.returncode
 

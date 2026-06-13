@@ -3,6 +3,11 @@
 use mir::function_core_record
 use mir::module_record
 use mir::types
+use mir::function_block_queries
+use mir::block_inst_access
+use mir::inst_accessors_shape
+use mir::inst_accessors_literals
+use mir::opcodes
 
 fn MirModule_functions(m: MirModule) -> Vec<MirFunction> {
     m.functions
@@ -22,4 +27,72 @@ fn MirModule_set_functions(m: MirModule, functions: Vec<MirFunction>) {
 
 fn MirModule_push_function(m: MirModule, f: MirFunction) {
     push(m.functions, f)
+}
+
+fn mir_call_is_arukellt_host(callee: String) -> bool {
+    if eq(clone(callee), String_from("http_get")) {
+        return true
+    }
+    if eq(clone(callee), String_from("__intrinsic_http_get")) {
+        return true
+    }
+    if eq(clone(callee), String_from("http::get")) {
+        return true
+    }
+    if eq(clone(callee), String_from("std::host::http::get")) {
+        return true
+    }
+    if eq(clone(callee), String_from("http_request")) {
+        return true
+    }
+    if eq(clone(callee), String_from("__intrinsic_http_request")) {
+        return true
+    }
+    if eq(clone(callee), String_from("http::request")) {
+        return true
+    }
+    if eq(clone(callee), String_from("std::host::http::request")) {
+        return true
+    }
+    if eq(clone(callee), String_from("sockets_connect")) {
+        return true
+    }
+    if eq(clone(callee), String_from("__intrinsic_sockets_connect")) {
+        return true
+    }
+    if eq(clone(callee), String_from("sockets::connect")) {
+        return true
+    }
+    if eq(clone(callee), String_from("std::host::sockets::connect")) {
+        return true
+    }
+    false
+}
+
+fn mir_module_needs_arukellt_host(mir: MirModule) -> i32 {
+    let fn_count = MirModule_function_count(mir)
+    let mut fi = 0
+    while fi < fn_count {
+        let f = MirModule_function_at(mir, fi)
+        let block_count = function_block_queries::MirFunction_block_count(f)
+        let mut bi = 0
+        while bi < block_count {
+            let block = function_block_queries::MirFunction_block_at(f, bi)
+            let inst_count = block_inst_access::MirBlock_inst_count(block)
+            let mut ii = 0
+            while ii < inst_count {
+                let inst = block_inst_access::MirBlock_inst_at(block, ii)
+                if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
+                    let callee = inst_accessors_literals::MirInst_str_val(inst)
+                    if mir_call_is_arukellt_host(clone(callee)) {
+                        return 1
+                    }
+                }
+                ii = ii + 1
+            }
+            bi = bi + 1
+        }
+        fi = fi + 1
+    }
+    0
 }
