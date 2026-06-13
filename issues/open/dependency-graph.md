@@ -33,11 +33,12 @@ graph LR
   I480["480 480-extension-readme-settings-docs"]
   I491["491 491-playground-ci-performance-budget-gates"]
   I502["502 502-lsp-full-multi-root-workspace"]
-  I510["510 510-t3-p2-import-table-switch"]
   I52["52 064-wasm-branch-hinting"]
   I55["55 067-wasm-sign-extension-ops"]
   I56["56 070-wasm-i31ref-scalar"]
   I59["59 073-wasi-p1-full-syscalls"]
+  I60["60 074-wasi-p2-native-component"]
+  I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I626["626 626-ide-ready-frontend"]
   I628["628 628-lsp-minimum-viable"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
@@ -56,8 +57,6 @@ graph LR
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I443["443 443-component-composition-linking-model"]
   I618["618 618-wit-bindings-round-trip"]
-  I60["60 074-wasi-p2-native-component"]
-  I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I183["183 183-vscode-arukellt-all-in-one-extension-epic"]
   I638["638 638 — Runtime-level Wasm debugging (source maps + wasmtime hooks)"]
   I28["28 034-wit-cli-integration ⛔"]
@@ -73,8 +72,6 @@ graph LR
   I474 --> I646
   I476 --> I443
   I476 --> I618
-  I510 --> I60
-  I510 --> I62
   I184 --> I183
   I183 --> I638
   I124 --> I28
@@ -110,11 +107,12 @@ graph LR
 - **480** depends on: 479; blocks: none
 - **491** depends on: none; blocks: none
 - **502** depends on: 441; blocks: none
-- **510** depends on: none; blocks: 60, 62
 - **52** depends on: none; blocks: none
 - **55** depends on: none; blocks: none
 - **56** depends on: none; blocks: none
 - **59** depends on: none; blocks: none
+- **60** depends on: 510, 121; blocks: none
+- **62** depends on: 074, 510; blocks: none
 - **626** depends on: 625; blocks: none
 - **628** depends on: 627; blocks: none
 - **63** depends on: 074, 137; blocks: none
@@ -133,8 +131,6 @@ graph LR
 - **646** depends on: 474; blocks: none
 - **443** depends on: 442, 476; blocks: none
 - **618** depends on: 262, 476; blocks: none
-- **60** depends on: 510, 121; blocks: none
-- **62** depends on: 074, 510; blocks: none
 - **183** depends on: 184, 185, 186, 187, 188, 205, 206, 207; blocks: 638
 - **638** depends on: 183; blocks: none
 

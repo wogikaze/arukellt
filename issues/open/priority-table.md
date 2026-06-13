@@ -24,44 +24,43 @@ Scoring criteria (0-5 each, total 25):
 | 11 | 463 | 463-lsp-performance-smoke-tests | lsp, testing | 0 | 0 | 5 | 1 | 4 | 10 |
 | 12 | 491 | 491-playground-ci-performance-budget-gates | playground | 0 | 0 | 4 | 1 | 5 | 10 |
 | 13 | 502 | 502-lsp-full-multi-root-workspace | vscode-ide | 0 | 0 | 5 | 1 | 4 | 10 |
-| 14 | 510 | 510-t3-p2-import-table-switch | main | 2 | 0 | 1 | 2 | 5 | 10 |
-| 15 | 636 | 636 — Selfhost structured diagnostic parity (codes, spans, ... | selfhost-frontend | 0 | 0 | 1 | 5 | 4 | 10 |
-| 16 | 641 | 641 — T4 selfhost-native backend scaffold | runtime | 0 | 0 | 1 | 5 | 4 | 10 |
-| 17 | 52 | 064-wasm-branch-hinting | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 18 | 55 | 067-wasm-sign-extension-ops | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 19 | 56 | 070-wasm-i31ref-scalar | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 20 | 59 | 073-wasi-p1-full-syscalls | wasi-feature | 0 | 0 | 1 | 3 | 5 | 9 |
-| 21 | 115 | 115-wasm-name-section | wasm-quality | 0 | 0 | 1 | 3 | 5 | 9 |
-| 22 | 184 | 184-vscode-extension-foundation | parallel | 1 | 0 | 5 | 1 | 2 | 9 |
-| 23 | 447 | 447-std-host-sockets-implementation | runtime | 1 | 0 | 1 | 3 | 4 | 9 |
-| 24 | 454 | 454-lsp-regression-fixtures-snapshot | vscode-ide | 1 | 0 | 5 | 1 | 2 | 9 |
-| 25 | 633 | Reconcile std::host::http / sockets / udp capability claims... | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
-| 26 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 27 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 28 | 183 | 183-vscode-arukellt-all-in-one-extension-epic | parallel | 1 | 0 | 4 | 1 | 2 | 8 |
-| 29 | 358 | Stdlib: host family の stub を解消し stable capability に引き上げる | stdlib-api | 0 | 0 | 1 | 3 | 4 | 8 |
-| 30 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
-| 31 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
-| 32 | 638 | 638 — Runtime-level Wasm debugging (source maps + wasmtime ... | runtime | 0 | 0 | 1 | 3 | 4 | 8 |
-| 33 | 643 | 643 — Grain Wasm GC benchmark comparison hook | benchmark | 0 | 0 | 1 | 3 | 4 | 8 |
-| 34 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
-| 35 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 36 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 37 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 38 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 39 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
-| 40 | 422 | Repo Hygiene: 大きな artifact と baseline の size budget / pruni... | repo-hygiene | 0 | 0 | 2 | 1 | 4 | 7 |
-| 41 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
-| 42 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
-| 43 | 480 | 480-extension-readme-settings-docs | docs | 0 | 0 | 1 | 2 | 4 | 7 |
-| 44 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 45 | 637 | 637 — Host capability honesty: fs metadata and read_dir sur... | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 46 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 47 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 48 | 083 | 083-mir-loop-unrolling | mir-opt | 0 | 0 | 1 | 1 | 4 | 6 |
-| 49 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 50 | 217 | Code actions + refactor code actions | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
-| 51 | 219 | LSP standard feature completeness | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
-| 52 | 292 | 292-stub-host-compile-error | capability | 0 | 0 | 1 | 1 | 4 | 6 |
-| 53 | 639 | 639 — HTTP package registry resolution | cli | 0 | 0 | 1 | 1 | 4 | 6 |
-| 54 | 645 | 645 — T2 playground execution and DOM I/O surface | playground | 0 | 0 | 1 | 1 | 4 | 6 |
+| 14 | 636 | 636 — Selfhost structured diagnostic parity (codes, spans, ... | selfhost-frontend | 0 | 0 | 1 | 5 | 4 | 10 |
+| 15 | 641 | 641 — T4 selfhost-native backend scaffold | runtime | 0 | 0 | 1 | 5 | 4 | 10 |
+| 16 | 52 | 064-wasm-branch-hinting | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 17 | 55 | 067-wasm-sign-extension-ops | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 18 | 56 | 070-wasm-i31ref-scalar | wasm-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 19 | 59 | 073-wasi-p1-full-syscalls | wasi-feature | 0 | 0 | 1 | 3 | 5 | 9 |
+| 20 | 115 | 115-wasm-name-section | wasm-quality | 0 | 0 | 1 | 3 | 5 | 9 |
+| 21 | 184 | 184-vscode-extension-foundation | parallel | 1 | 0 | 5 | 1 | 2 | 9 |
+| 22 | 447 | 447-std-host-sockets-implementation | runtime | 1 | 0 | 1 | 3 | 4 | 9 |
+| 23 | 454 | 454-lsp-regression-fixtures-snapshot | vscode-ide | 1 | 0 | 5 | 1 | 2 | 9 |
+| 24 | 633 | Reconcile std::host::http / sockets / udp capability claims... | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
+| 25 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 26 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 27 | 183 | 183-vscode-arukellt-all-in-one-extension-epic | parallel | 1 | 0 | 4 | 1 | 2 | 8 |
+| 28 | 358 | Stdlib: host family の stub を解消し stable capability に引き上げる | stdlib-api | 0 | 0 | 1 | 3 | 4 | 8 |
+| 29 | 446 | 446-std-host-http-implementation | runtime | 1 | 0 | 1 | 3 | 3 | 8 |
+| 30 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
+| 31 | 638 | 638 — Runtime-level Wasm debugging (source maps + wasmtime ... | runtime | 0 | 0 | 1 | 3 | 4 | 8 |
+| 32 | 643 | 643 — Grain Wasm GC benchmark comparison hook | benchmark | 0 | 0 | 1 | 3 | 4 | 8 |
+| 33 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
+| 34 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 35 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 36 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 37 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 38 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
+| 39 | 422 | Repo Hygiene: 大きな artifact と baseline の size budget / pruni... | repo-hygiene | 0 | 0 | 2 | 1 | 4 | 7 |
+| 40 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
+| 41 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
+| 42 | 480 | 480-extension-readme-settings-docs | docs | 0 | 0 | 1 | 2 | 4 | 7 |
+| 43 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 44 | 637 | 637 — Host capability honesty: fs metadata and read_dir sur... | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 45 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 46 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 47 | 083 | 083-mir-loop-unrolling | mir-opt | 0 | 0 | 1 | 1 | 4 | 6 |
+| 48 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 49 | 217 | Code actions + refactor code actions | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
+| 50 | 219 | LSP standard feature completeness | parallel | 0 | 0 | 1 | 1 | 4 | 6 |
+| 51 | 292 | 292-stub-host-compile-error | capability | 0 | 0 | 1 | 1 | 4 | 6 |
+| 52 | 639 | 639 — HTTP package registry resolution | cli | 0 | 0 | 1 | 1 | 4 | 6 |
+| 53 | 645 | 645 — T2 playground execution and DOM I/O surface | playground | 0 | 0 | 1 | 1 | 4 | 6 |

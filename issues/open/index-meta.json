@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-13T15:29:53Z",
+  "generated_at": "2026-06-13T15:33:20Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -666,31 +666,6 @@
       }
     },
     {
-      "id": "510",
-      "path": "510-t3-p2-import-table-switch.md",
-      "title": "510-t3-p2-import-table-switch",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "60",
-        "62"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "52",
       "path": "064-wasm-branch-hinting.md",
       "title": "064-wasm-branch-hinting",
@@ -776,6 +751,56 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "60",
+      "path": "074-wasi-p2-native-component.md",
+      "title": "074-wasi-p2-native-component",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "510",
+        "121"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "62",
+      "path": "076-wasi-p2-filesystem.md",
+      "title": "WASI P2 ネイティブ: \"wasi:filesystem ネイティブバインディング\"",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "510"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
       }
     },
     {
@@ -1221,56 +1246,6 @@
       },
       "orchestration": {
         "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "60",
-      "path": "074-wasi-p2-native-component.md",
-      "title": "074-wasi-p2-native-component",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "510",
-        "121"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "62",
-      "path": "076-wasi-p2-filesystem.md",
-      "title": "WASI P2 ネイティブ: \"wasi:filesystem ネイティブバインディング\"",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074",
-        "510"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
         "upstream_notes": "None"
       }
     },

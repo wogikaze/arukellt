@@ -11,6 +11,7 @@ Issue IDs: 074, 510, 472, 500, 051, 123
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -52,6 +53,10 @@ def _issue_in_done(issue_id: str) -> bool:
 
 
 def _find_tool(name: str) -> str | None:
+    if name == "wasm-tools":
+        cargo = Path.home() / ".cargo" / "bin" / "wasm-tools"
+        if cargo.is_file():
+            return str(cargo)
     return shutil.which(name)
 
 
@@ -66,6 +71,21 @@ def _compiler() -> Path | None:
     if wrapper.is_file():
         return wrapper
     return None
+
+
+def _selfhost_compile_env() -> dict[str, str]:
+    """Prefer pinned selfhost wasm over stale local bootstrap-build artifacts."""
+    env = dict(os.environ)
+    if "ARUKELLT_SELFHOST_WASM" in env:
+        return env
+    for candidate in (
+        REPO_ROOT / ".build" / "selfhost" / "arukellt-pinned-bootstrap.wasm",
+        REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm",
+    ):
+        if candidate.is_file():
+            env["ARUKELLT_SELFHOST_WASM"] = str(candidate)
+            break
+    return env
 
 
 def _manifest_contains(entry: str) -> bool:
@@ -107,6 +127,7 @@ def _compile_p2_component(fixture_rel: str, out: Path) -> tuple[int, str]:
         capture_output=True,
         text=True,
         timeout=120,
+        env=_selfhost_compile_env(),
     )
     if result.returncode != 0:
         tail = (result.stderr or result.stdout)[-800:]
