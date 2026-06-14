@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-14T02:23:29Z",
+  "generated_at": "2026-06-14T02:28:49Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -135,30 +135,6 @@
       "acceptance": {
         "checked": 3,
         "unchecked": 1
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "217",
-      "path": "217-code-actions-and-refactor-actions.md",
-      "title": "Code actions + refactor code actions",
-      "track": "parallel",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "193"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
       },
       "orchestration": {
         "class": "implementation-ready",

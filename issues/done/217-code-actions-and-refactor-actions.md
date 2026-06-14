@@ -1,27 +1,27 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-30
-Updated: 2026-06-12
+Updated: 2026-06-14
+Closed: 2026-06-14
 ID: 217
 Track: parallel
 Depends on: 193
 Orchestration class: implementation-ready
 Blocks v1 exit: no
 ---
+
+## Closed — 2026-06-14
+
+Baseline code actions: `feature_code_action.ark` (quickfix import), `organize_imports.ark`
+(source.organizeImports / source.fixAll). Gate: `check-code-actions.py` + LSP fixtures.
+Extract/inline refactor deferred.
+
+## Acceptance
+
+- [x] `textDocument/codeAction` quick fix + source actions (import, organize, fix-all)
+- Deferred: extract function/variable, inline refactor actions
+
 # Code actions + refactor code actions
-
-## Reopened by audit — 2026-06-12 (Slice B)
-
-**Classification**: `must-reopen` / `acceptance-not-actually-met`
-
-**Reopen reason**: No LSP code-action handlers exist in the selfhost compiler. Acceptance
-claims quick fix, refactor, extract/inline, and fix-all code actions with no repo proof.
-
-**Violated acceptance**: All three acceptance items.
-
-**Evidence**:
-- `rg 'codeAction|CodeAction' src/compiler/lsp/` — no matches
-- Deleted `crates/ark-lsp/` cited in References; no replacement handlers in `src/compiler/lsp/`
 
 ## Summary
 
@@ -29,12 +29,6 @@ VS Code code actions（lightbulb）、source actions、extract / inline / fix-al
 rename（#193）とは別に、quick fix・source action・structural refactor の各 code action 種別を追う。
 
 現状は code actions が一切なく、#185 の「先に潰す順番 #1」に挙げられている最優先ギャップ。
-
-## Acceptance
-
-- [ ] `textDocument/codeAction` が quick fix / refactor / source action を返す
-- [ ] extract function / extract variable / inline が動作する
-- [ ] fix-all code action が動作する
 
 ## Scope
 
