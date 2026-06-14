@@ -1,0 +1,68 @@
+/**
+ * @arukellt/playground — Browser API for the Arukellt language playground.
+ *
+ * This package provides a typed, ergonomic API for parsing, formatting,
+ * tokenizing, and type-checking Arukellt source code in the browser.
+ *
+ * ## Quick start
+ *
+ * ### Main-thread (synchronous)
+ *
+ * ```ts
+ * import { createPlayground } from "@arukellt/playground";
+ *
+ * const pg = await createPlayground(
+ *   "/assets/playground-engine",
+ *   { wasmUrl: "/assets/playground-engine" },
+ * );
+ *
+ * const result = pg.parse("fn main() {}");
+ * console.log(result.ok);             // true
+ * console.log(result.module?.items);   // [{ kind: "fn", name: "main", ... }]
+ * ```
+ *
+ * ### Worker-based (asynchronous, non-blocking)
+ *
+ * ```ts
+ * import { createWorkerPlayground } from "@arukellt/playground";
+ *
+ * const pg = await createWorkerPlayground({
+ *   wasmUrl: "/assets/playground-engine",
+ *   workerUrl: "/assets/worker.js",
+ * });
+ *
+ * const result = await pg.parse("fn main() {}");
+ * pg.destroy();
+ * ```
+ *
+ * @module
+ */
+// Re-export factory functions.
+export { createPlayground } from "./playground.js";
+export { createWorkerPlayground } from "./worker-client.js";
+export { configureTypecheckCompilerWasm, compileSource, runWasm, runSource, } from "./engine.js";
+export { createCompilerClient, isRunnableT2Output } from "./compiler-client.js";
+export { checkWithCompilerWasm, checkWithCompilerWasmSync, compileWithCompilerWasm, } from "./compiler-host.js";
+export { runT2Wasm, moduleImportsArukelltIo, stdinBytesToLineChunks } from "./t2-runner.js";
+// Re-export editor components.
+export { createEditor } from "./editor.js";
+// Re-export highlighting utilities.
+export { classifyTokenKind, categoryClass, highlightTokens, } from "./highlight.js";
+// Re-export theme utilities.
+export { DEFAULT_THEME_CSS, injectTheme } from "./theme.js";
+// Re-export diagnostics components.
+export { createDiagnosticsPanel, offsetToLineCol, buildDiagnosticOverlay, DIAGNOSTICS_CSS, injectDiagnosticStyles, } from "./diagnostics.js";
+// Re-export playground app integration.
+export { createPlaygroundApp } from "./playground-app.js";
+export { buildStatusMessage, mergeConsoleSections, runStatusMessage, sectionsFromCompileResult, sectionsFromRunResult, } from "./console-bridge.js";
+export { createRunOutputPanel, injectRunOutputStyles, RUN_OUTPUT_CSS, } from "./run-output.js";
+export { createStdinPanel, injectStdinPanelStyles, STDIN_PANEL_CSS, } from "./stdin-panel.js";
+// Re-export capability detection.
+export { checkCapabilities, capabilityWarningsToDiagnostics, UNSUPPORTED_CAPABILITIES, getCapabilityInfo, } from "./capability-check.js";
+// Re-export telemetry guardrails (v1: disabled; see docs/playground/privacy-telemetry-policy.md).
+export { TELEMETRY_DISABLED, reportError, reportWasmLoadError, reportCompilerPanic, } from "./telemetry.js";
+// Re-export share link encoder/decoder (ADR-021).
+export { encodeSharePayload, decodeSharePayload, parseFragment, checkVersionMismatch, encodeSharePayloadWithVersion, CURRENT_SHARE_VERSION, SHARE_URL_TARGET_LENGTH, SHARE_URL_HARD_LIMIT, REPRODUCIBILITY_CONTRACT, } from "./share.js";
+// Re-export examples catalog.
+export { EXAMPLES, FIXTURE_BASE_PATH, getExample, getExampleList, getExamplesByTag, getFixtureMap, } from "./examples.js";
+//# sourceMappingURL=index.js.map
