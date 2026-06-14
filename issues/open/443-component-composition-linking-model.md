@@ -5,10 +5,10 @@ Updated: 2026-06-12
 ID: 443
 Track: component-composition
 Depends on: 442, 476
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Blocks v1 exit: False
 Priority: 5
-Blocked by: "#476 wasm-tools compose integration"
+Status note: Implementation-ready — upstream #442 and #476 done.
 ---
 ## Reopened by audit — 2026-06-12 (Slice C)
 

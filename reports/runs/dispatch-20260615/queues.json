@@ -1,0 +1,416 @@
+{
+  "schema": "arukellt-dispatch-queues-v1",
+  "run_id": "dispatch-20260615",
+  "generated_at": "2026-06-14T20:19:48Z",
+  "generator": "wave-minus1-orchestration",
+  "summary": {
+    "open_issues": 30,
+    "ready": 15,
+    "design": 2,
+    "blocked": 13
+  },
+  "queues": {
+    "ready": [
+      {
+        "id": "63",
+        "path": "077-wasi-p2-http.md",
+        "title": "WASI P2: \"`std::host::http` facade と runtime 検証\"",
+        "track": "wasi-feature",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "074",
+          "137"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "124",
+        "path": "124-wit-component-import-syntax.md",
+        "title": "WIT component import syntax",
+        "track": "language-design",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "074"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "139",
+        "path": "139-std-wasi-sockets-p2.md",
+        "title": "WASI P2: `std::host::sockets` facade と T3 実行検証",
+        "track": "wasi-feature",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "074",
+          "137"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "443",
+        "path": "443-component-composition-linking-model.md",
+        "title": "443-component-composition-linking-model",
+        "track": "component-composition",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "442",
+          "476"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "648",
+        "path": "648-component-export-general-canonical-abi.md",
+        "title": "648 — Component export: general canonical ABI adapters (post-#121)",
+        "track": "component-model",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "121",
+          "074"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "650",
+        "path": "650-t3-mir-gated-pass-unlock.md",
+        "title": "650 — T3 MIR: unlock remaining gated O2/O3 passes and general dead-fn-elim",
+        "track": "mir-opt",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "611"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "652",
+        "path": "652-wit-import-parser-grammar.md",
+        "title": "652 — WIT import parser grammar (`import \"...\" as alias`)",
+        "track": "language-design",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "074"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "655",
+        "path": "655-wasi-p2-http-outgoing-client.md",
+        "title": "655 — WASI P2 HTTP outgoing client facade",
+        "track": "wasi-feature",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "074",
+          "137"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "656",
+        "path": "656-wasi-p2-http-incoming-server.md",
+        "title": "656 — WASI P2 HTTP incoming server facade",
+        "track": "wasi-feature",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "074",
+          "137"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "657",
+        "path": "657-std-wasi-sockets-connect-read.md",
+        "title": "657 — WASI P2 sockets: connect and read/write",
+        "track": "wasi-feature",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "074",
+          "137"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "658",
+        "path": "658-std-wasi-sockets-listen-accept.md",
+        "title": "658 — WASI P2 sockets: listen and accept",
+        "track": "wasi-feature",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "074",
+          "137"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "659",
+        "path": "659-component-export-f32-canonical-abi.md",
+        "title": "659 — Component export: general f32 canonical ABI",
+        "track": "component-model",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "121",
+          "074"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "660",
+        "path": "660-component-export-tier2-general-adapters.md",
+        "title": "660 — Component export: Tier2 general canonical ABI adapters",
+        "track": "component-model",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "121",
+          "074"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "661",
+        "path": "661-std-time-clock-intrinsics-emitter.md",
+        "title": "661 — std::time/host clock and random intrinsics (emitter)",
+        "track": "stdlib",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "039",
+          "040"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "662",
+        "path": "662-std-time-duration-typecheck.md",
+        "title": "662 — std::time duration helpers typecheck fix",
+        "track": "stdlib",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "039",
+          "040"
+        ],
+        "waiting_on": []
+      }
+    ],
+    "design": [
+      {
+        "id": "618",
+        "path": "618-wit-bindings-round-trip.md",
+        "title": "618-wit-bindings-round-trip",
+        "track": "component-model",
+        "orchestration_class": "design-ready",
+        "depends_on": [
+          "262",
+          "476"
+        ],
+        "waiting_on": []
+      },
+      {
+        "id": "649",
+        "path": "649-t4-native-full-lowering.md",
+        "title": "649 — T4 native full lowering (beyond scaffold #641)",
+        "track": "wasm-feature",
+        "orchestration_class": "design-ready",
+        "depends_on": [
+          "641"
+        ],
+        "waiting_on": []
+      }
+    ],
+    "blocked": [
+      {
+        "id": "28",
+        "path": "034-wit-cli-integration.md",
+        "title": "034-wit-cli-integration",
+        "track": "component-model",
+        "orchestration_class": "blocked-by-upstream",
+        "depends_on": [
+          "030",
+          "031",
+          "028b",
+          "124"
+        ],
+        "waiting_on": [
+          "30",
+          "124"
+        ],
+        "reason": "wait #30, #124"
+      },
+      {
+        "id": "30",
+        "path": "036-jco-javascript-interop.md",
+        "title": "036-jco-javascript-interop",
+        "track": "component-model",
+        "orchestration_class": "partially-blocked",
+        "depends_on": [
+          "27"
+        ],
+        "waiting_on": [],
+        "reason": "partially-blocked"
+      },
+      {
+        "id": "41",
+        "path": "051-std-time-random.md",
+        "title": "051-std-time-random",
+        "track": "stdlib",
+        "orchestration_class": "partially-blocked",
+        "depends_on": [
+          "039",
+          "040"
+        ],
+        "waiting_on": [],
+        "reason": "partially-blocked"
+      },
+      {
+        "id": "44",
+        "path": "054-std-wit-component.md",
+        "title": "std: \":wit + std::component: WIT 型、resource handle、canonical ABI\"",
+        "track": "stdlib",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "039",
+          "044",
+          "053"
+        ],
+        "waiting_on": [
+          "44"
+        ],
+        "reason": "wait #44"
+      },
+      {
+        "id": "45",
+        "path": "055-std-json-toml-csv.md",
+        "title": "std: \":json + std::toml + std::csv: データ形式パーサ\"",
+        "track": "stdlib",
+        "orchestration_class": "blocked-by-upstream",
+        "depends_on": [
+          "039",
+          "042",
+          "044"
+        ],
+        "waiting_on": [
+          "44"
+        ],
+        "reason": "wait #44"
+      },
+      {
+        "id": "136",
+        "path": "136-std-wasi-capability-rollout.md",
+        "title": "ADR-011 に沿った `std::host` layer の段階的ロールアウト",
+        "track": "wasi-feature",
+        "orchestration_class": "blocked-by-upstream",
+        "depends_on": [
+          "137",
+          "138",
+          "077",
+          "139"
+        ],
+        "waiting_on": [
+          "138",
+          "139"
+        ],
+        "reason": "wait #138, #139"
+      },
+      {
+        "id": "138",
+        "path": "138-std-wasi-shared-capabilities-t1-t3.md",
+        "title": "138-std-wasi-shared-capabilities-t1-t3",
+        "track": "wasi-feature",
+        "orchestration_class": "blocked-by-upstream",
+        "depends_on": [
+          "137",
+          "051"
+        ],
+        "waiting_on": [],
+        "reason": "blocked-by-upstream"
+      },
+      {
+        "id": "473",
+        "path": "473-wit-resource-handles.md",
+        "title": "473 — WIT resource handles (`resource`, `own<T>`, `borrow<T>`)",
+        "track": "component-model",
+        "orchestration_class": "design-ready",
+        "depends_on": [
+          "074",
+          "124"
+        ],
+        "waiting_on": [
+          "124"
+        ],
+        "reason": "wait #124"
+      },
+      {
+        "id": "474",
+        "path": "474-async-component-support-v5.md",
+        "title": "Async component support (v5)",
+        "track": "wasm-feature",
+        "orchestration_class": "blocked-by-upstream",
+        "depends_on": [
+          "035",
+          "done)",
+          "074"
+        ],
+        "waiting_on": [],
+        "reason": "blocked-by-upstream"
+      },
+      {
+        "id": "646",
+        "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
+        "title": "646 — T5 wasm32-wasi-p3 target scaffold",
+        "track": "wasm-feature",
+        "orchestration_class": "design-ready",
+        "depends_on": [
+          "474"
+        ],
+        "waiting_on": [
+          "474"
+        ],
+        "reason": "wait #474"
+      },
+      {
+        "id": "651",
+        "path": "651-wit-flags-type-support.md",
+        "title": "651 — WIT `flags` type support (remove E0090 rejection)",
+        "track": "component-model",
+        "orchestration_class": "design-ready",
+        "depends_on": [
+          "074",
+          "124"
+        ],
+        "waiting_on": [
+          "124"
+        ],
+        "reason": "wait #124"
+      },
+      {
+        "id": "653",
+        "path": "653-wit-import-resolver-mir.md",
+        "title": "653 — WIT import resolver, typecheck, and MIR lowering",
+        "track": "language-design",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "652",
+          "074"
+        ],
+        "waiting_on": [
+          "652"
+        ],
+        "reason": "wait #652"
+      },
+      {
+        "id": "654",
+        "path": "654-wit-import-component-emit.md",
+        "title": "654 — WIT import component emit and end-to-end fixture",
+        "track": "language-design",
+        "orchestration_class": "implementation-ready",
+        "depends_on": [
+          "653",
+          "074"
+        ],
+        "waiting_on": [
+          "653"
+        ],
+        "reason": "wait #653"
+      }
+    ],
+    "active": [],
+    "generated": []
+  }
+}

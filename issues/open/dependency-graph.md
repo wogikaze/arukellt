@@ -20,11 +20,22 @@ graph LR
   I648["648 648 — Component export: general canonical ABI adapters (post-#121)"]
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
   I650["650 650 — T3 MIR: unlock remaining gated O2/O3 passes and general dead-fn-elim"]
+  I652["652 652 — WIT import parser grammar (`import "..." as alias`)"]
+  I655["655 655 — WASI P2 HTTP outgoing client facade"]
+  I656["656 656 — WASI P2 HTTP incoming server facade"]
+  I657["657 657 — WASI P2 sockets: connect and read/write"]
+  I658["658 658 — WASI P2 sockets: listen and accept"]
+  I659["659 659 — Component export: general f32 canonical ABI"]
+  I660["660 660 — Component export: Tier2 general canonical ABI adapters"]
+  I661["661 661 — std::time/host clock and random intrinsics (emitter)"]
+  I662["662 662 — std::time duration helpers typecheck fix"]
   I28["28 034-wit-cli-integration"]
   I473["473 473 — WIT resource handles (`resource`, `own<T>`, `borrow<T>`)"]
   I651["651 651 — WIT `flags` type support (remove E0090 rejection)"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
+  I653["653 653 — WIT import resolver, typecheck, and MIR lowering"]
+  I654["654 654 — WIT import component emit and end-to-end fixture"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I124 --> I28
@@ -33,6 +44,8 @@ graph LR
   I138 --> I136
   I139 --> I136
   I474 --> I646
+  I652 --> I653
+  I653 --> I654
   I124 --> I28
   I30 --> I31
 ```
@@ -53,11 +66,22 @@ graph LR
 - **648** depends on: 121, 074; blocks: none
 - **649** depends on: 641; blocks: none
 - **650** depends on: 611; blocks: none
+- **652** depends on: 074; blocks: 653
+- **655** depends on: 074, 137; blocks: none
+- **656** depends on: 074, 137; blocks: none
+- **657** depends on: 074, 137; blocks: none
+- **658** depends on: 074, 137; blocks: none
+- **659** depends on: 121, 074; blocks: none
+- **660** depends on: 121, 074; blocks: none
+- **661** depends on: 039, 040; blocks: none
+- **662** depends on: 039, 040; blocks: none
 - **28** depends on: 030, 031, 028b, 124; blocks: none
 - **473** depends on: 074, 124; blocks: none
 - **651** depends on: 074, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **646** depends on: 474; blocks: none
+- **653** depends on: 652, 074; blocks: 654
+- **654** depends on: 653, 074; blocks: none
 
 ### Blocked
 

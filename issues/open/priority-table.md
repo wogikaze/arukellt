@@ -14,19 +14,30 @@ Scoring criteria (0-5 each, total 25):
 | 1 | 124 | WIT component import syntax | language-design | 3 | 0 | 1 | 5 | 4 | 13 |
 | 2 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
 | 3 | 28 | 034-wit-cli-integration | component-model | 0 | 0 | 5 | 3 | 2 | 10 |
-| 4 | 651 | 651 — WIT `flags` type support (remove E0090 rejection) | component-model | 0 | 0 | 1 | 5 | 3 | 9 |
-| 5 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 6 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 7 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
-| 8 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 9 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 10 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
-| 11 | 473 | 473 — WIT resource handles (`resource`, `own<T>`, `borrow<T>`) | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 12 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
-| 13 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 14 | 648 | 648 — Component export: general canonical ABI adapters (pos... | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 15 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 16 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 17 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 18 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 19 | 650 | 650 — T3 MIR: unlock remaining gated O2/O3 passes and gener... | mir-opt | 0 | 0 | 1 | 2 | 3 | 6 |
+| 4 | 652 | 652 — WIT import parser grammar (`import "..." as alias`) | language-design | 1 | 0 | 1 | 5 | 3 | 10 |
+| 5 | 653 | 653 — WIT import resolver, typecheck, and MIR lowering | language-design | 1 | 0 | 1 | 5 | 3 | 10 |
+| 6 | 651 | 651 — WIT `flags` type support (remove E0090 rejection) | component-model | 0 | 0 | 1 | 5 | 3 | 9 |
+| 7 | 654 | 654 — WIT import component emit and end-to-end fixture | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
+| 8 | 662 | 662 — std::time duration helpers typecheck fix | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
+| 9 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 10 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 11 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
+| 12 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 13 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 14 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
+| 15 | 473 | 473 — WIT resource handles (`resource`, `own<T>`, `borrow<T>`) | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 16 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
+| 17 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 18 | 648 | 648 — Component export: general canonical ABI adapters (pos... | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 19 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 20 | 655 | 655 — WASI P2 HTTP outgoing client facade | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 21 | 656 | 656 — WASI P2 HTTP incoming server facade | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 22 | 657 | 657 — WASI P2 sockets: connect and read/write | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 23 | 658 | 658 — WASI P2 sockets: listen and accept | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 24 | 659 | 659 — Component export: general f32 canonical ABI | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 25 | 660 | 660 — Component export: Tier2 general canonical ABI adapters | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 26 | 661 | 661 — std::time/host clock and random intrinsics (emitter) | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 27 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 28 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 29 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 30 | 650 | 650 — T3 MIR: unlock remaining gated O2/O3 passes and gener... | mir-opt | 0 | 0 | 1 | 2 | 3 | 6 |

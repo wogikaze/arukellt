@@ -5,10 +5,10 @@ Updated: 2026-05-14
 ID: 44
 Track: stdlib
 Depends on: 039, 044, 053
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v3 exit: "no (Experimental)"
-Status note: FROZEN — depends on #044. #312 generic monomorphization is complete, but #044 remains blocked on trait-bound hash/equality dispatch (#495/#504), so this lane stays frozen until #044 is unfrozen.
+Status note: Implementation-ready — upstream #039, #044, and #053 done.
 Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---

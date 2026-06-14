@@ -7,8 +7,9 @@ Depends on: 074, 137
 Track: wasi-feature
 Orchestration class: implementation-ready
 Orchestration upstream: None
+Blocks: 655, 656
 Blocks v{N}: none
-Status note: Implementation-ready — upstream gates #074 and #137 resolved.
+Status note: Implementation-ready — upstream gates #074 and #137 resolved. Umbrella; dispatch child slices #655 (outgoing client), #656 (incoming server).
 Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 WASI Preview 2 の `wasi: "http/incoming-handler` と `wasi:http/outgoing-handler` を"

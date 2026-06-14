@@ -5,9 +5,10 @@ Updated: 2026-04-13
 ID: 30
 Track: component-model
 Depends on: 27
-Orchestration class: blocked-by-upstream
-Orchestration upstream: None
+Orchestration class: partially-blocked
+Orchestration upstream: "#037 jco GC upstream"
 Blocks v{N}: none
+Status note: Partially blocked — wasmtime scalar interop done; jco/Node path blocked on #037 upstream GC support.
 Reason: Tests in tests/component-interop/jco/ use Wasmtime, not Node/JCO. Not actual JavaScript interop.
 Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
 Implementation: "wasmtime CLI–based component interop smoke test (jco blocked)."

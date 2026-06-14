@@ -7,7 +7,9 @@ Track: component-model
 Depends on: 121, 074
 Orchestration class: implementation-ready
 Orchestration upstream: None
+Blocks: 659, 660
 Blocks v{N}: none
+Status note: Umbrella; dispatch child slices #659 (f32 general), #660 (Tier2 general adapters).
 Source: docs/current-state.md Known v2 carry-over limitations (Tier 1/2 partial adapters post-#121)
 ---
 

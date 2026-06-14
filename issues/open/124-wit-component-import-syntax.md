@@ -3,13 +3,14 @@ Status: open
 Created: 2026-03-28
 ID: 124
 Track: language-design
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Orchestration upstream: None
 Depends on: "074 (wasi-p2-native-component)"
+Blocks: 652, 653, 654
 Blocks v4 exit: yes
 ADR candidate: yes
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
-Status note: BLOCKED — downstream of the #074 WASI P2 native parent gate. Do not dispatch until #074 has P2 import-table, minimum Canonical ABI, and validate/run evidence.
+Status note: Implementation-ready — upstream #074 done. Umbrella issue; dispatch child slices #652 (parser), #653 (resolver+MIR), #654 (component emit).
 ---
 
 # WIT component import syntax
