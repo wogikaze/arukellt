@@ -14,7 +14,6 @@ graph LR
   I30["30 036-jco-javascript-interop"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I41["41 051-std-time-random"]
-  I422["422 Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る"]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
   I474["474 Async component support (v5)"]
@@ -55,7 +54,6 @@ graph LR
 - **30** depends on: 27; blocks: none
 - **358** depends on: none; blocks: none
 - **41** depends on: 039, 040; blocks: none
-- **422** depends on: 418; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none
 - **45** depends on: 039, 042, 044; blocks: none
 - **474** depends on: 035, done), 074; blocks: 646

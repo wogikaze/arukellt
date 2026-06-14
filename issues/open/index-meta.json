@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-14T02:32:03Z",
+  "generated_at": "2026-06-14T02:34:34Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -210,30 +210,6 @@
       "orchestration": {
         "class": "partially-blocked",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "422",
-      "path": "422-hygiene-large-artifact-budget-pruning.md",
-      "title": "Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る",
-      "track": "repo-hygiene",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "418"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
       }
     },
     {
