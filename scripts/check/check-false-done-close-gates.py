@@ -99,6 +99,12 @@ def _manifest_contains(entry: str) -> bool:
 
 
 def _compile_p2_component(fixture_rel: str, out: Path) -> tuple[int, str]:
+    """Core wasm + post-wrap for gate 074 (run export + stdio bridge path)."""
+    return _compile_p2_component_wrapped(fixture_rel, out)
+
+
+def _compile_p2_component_direct(fixture_rel: str, out: Path) -> tuple[int, str]:
+    """Pinned bootstrap `--emit component` (validate-only gates)."""
     compiler = _compiler()
     if compiler is None:
         return 2, "arukellt compiler binary not found (build release/debug first)"
@@ -136,6 +142,70 @@ def _compile_p2_component(fixture_rel: str, out: Path) -> tuple[int, str]:
     if result.returncode != 0:
         tail = (result.stderr or result.stdout)[-800:]
         return 1, f"compile failed: {tail}"
+    return 0, ""
+
+
+def _compile_p2_component_wrapped(fixture_rel: str, out: Path) -> tuple[int, str]:
+    compiler = _compiler()
+    if compiler is None:
+        return 2, "arukellt compiler binary not found (build release/debug first)"
+    fixture = REPO_ROOT / fixture_rel
+    if not fixture.is_file():
+        return 1, f"missing fixture {fixture_rel}"
+    fixture_arg = str(fixture_rel)
+    out_dir = out.parent
+    out_dir.mkdir(parents=True, exist_ok=True)
+    core_out = out_dir / f"{out.stem}.core.wasm"
+    try:
+        core_arg = str(core_out.relative_to(REPO_ROOT))
+    except ValueError:
+        core_arg = str(core_out)
+    try:
+        out_arg = str(out.relative_to(REPO_ROOT))
+    except ValueError:
+        out_arg = str(out)
+    cmd = [
+        str(compiler),
+        "compile",
+        fixture_arg,
+        "--target",
+        "wasm32-wasi-p2",
+        "--wasi-version",
+        "p2",
+        "--emit",
+        "wasm",
+        "-o",
+        core_arg,
+    ]
+    if compiler.name == "arukellt-selfhost.sh":
+        cmd = ["bash", str(compiler), *cmd[1:]]
+    result = subprocess.run(
+        cmd,
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=120,
+        env=_selfhost_compile_env(),
+    )
+    if result.returncode != 0:
+        tail = (result.stderr or result.stdout)[-800:]
+        return 1, f"compile failed: {tail}"
+    if not core_out.is_file():
+        return 1, f"missing core wasm output {core_out}"
+    wrap = REPO_ROOT / "scripts" / "selfhost" / "p2_component_wrap.py"
+    wrap_cmd = [sys.executable, str(wrap), core_arg, out_arg]
+    result = subprocess.run(
+        wrap_cmd,
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    if result.returncode != 0:
+        tail = (result.stderr or result.stdout)[-800:]
+        return 1, f"p2_component_wrap failed: {tail}"
+    if not out.is_file():
+        return 1, f"missing component output {out}"
     return 0, ""
 
 
@@ -191,7 +261,7 @@ def gate_510() -> tuple[int, str]:
     out_dir = REPO_ROOT / ".build" / "close-gate-510"
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / "p2.component.wasm"
-    rc, msg = _compile_p2_component("tests/fixtures/wasi_p2_native/hello.ark", out)
+    rc, msg = _compile_p2_component_direct("tests/fixtures/wasi_p2_native/hello.ark", out)
     if rc != 0:
         return rc, msg
     return _wasm_tools_validate(out)

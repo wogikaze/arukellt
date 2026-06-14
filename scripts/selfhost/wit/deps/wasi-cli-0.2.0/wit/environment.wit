@@ -1,0 +1,4 @@
+interface environment {
+  args-sizes: func(a: u32, b: u32) -> u32;
+  arguments: func(a: u32, b: u32) -> u32;
+}

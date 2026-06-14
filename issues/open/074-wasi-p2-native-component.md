@@ -241,7 +241,24 @@ Source-side work landed in-tree (not yet in pinned selfhost wasm):
 
 **Bootstrap refresh blocker (2026-06-14 bisect):** flat-overlay `arukellt-s2.wasm` still traps after `mir_opt` passthrough stub + bootstrap P2 component stub + overlay freeze of ff8f8ded wasm gc_hint modules. Root regression: commit `ff8f8ded` (MIR opt LICM/GC hint, #080/#082). Last good overlay compiler: `f9924aa8` / `4b859775`. Stage-2 builds validate but `wasmtime run … compile` hits `unreachable` until mir/ overlay catches up (out of lane #074 wasm/component-only scope). Pinned `bootstrap/arukellt-selfhost.wasm` still lacks baked-in P2 routing → `gate_074` wasmtime run stays red.
 
-**Next step to close:** fix ff8f8ded+ mir/selfhost overlay interaction (or refresh pin from `f9924aa8` base + selective HEAD overlays), then `python3 scripts/manager.py selfhost fixpoint --build`, update `bootstrap/PROVENANCE.md`, re-run `gate_074`.
+**Next step to close:** wire P2 stdout through `wasm-tools component embed/new` + parametric `p2_stdout_adapt.wat` (guest write-call patch lands ptr/len on stack) **or** share guest `memory` into the stdout bridge core instance; then re-run `gate_074` until wasmtime prints `hello p2`. Bootstrap compile currently emits `_start: () -> ()` (848-byte core) while the working proof core uses `() -> i32` (853 bytes) — `p2_component_wrap` legacy tail validates only for the latter today.
+
+## Attempt evidence — 2026-06-14 wave orchestrator (still open)
+
+Gate compile path now uses **core wasm + `p2_component_wrap.py`** (not bare `--emit component` from pinned bootstrap):
+
+- `scripts/check/check-false-done-close-gates.py` `_compile_p2_component` → `--emit wasm` + wrap helper
+- `scripts/selfhost/p2_component_wrap.py` legacy `wasi:cli/run@0.2.6` tail (validate + run export shape)
+- `scripts/selfhost/p2_guest_stdio_patch.py` rewrites `write(1,0,1,8)` calls to load ptr/len from mem `[0,4)` for adapt modules without local memory
+- `scripts/selfhost/p2_stdout_adapt.wat` + stub adapt WATs + patched `scripts/selfhost/wit/` for `wasm-tools component embed/new` experiments
+- `wasm-tools component new` on embedded guest still blocked (`get-stdout` instance wiring / adapt metadata)
+
+| Gate item | Status | Evidence |
+|-----------|--------|----------|
+| P2 compile hello (core) | ✅ | pinned bootstrap → 848-byte core |
+| wrap + wasm-tools validate | ⚠️ partial | validates for 853-byte proof core; **fails** for pinned 848-byte core (`lowered result types [I32]…`) |
+| wasmtime run stdio | ❌ | stdout empty even when validate passes (write stub no-op / memory not shared) |
+| P2 stdio bridge | ❌ | no `hello p2` yet; 28KB P1 adapt path explicitly out of scope |
 
 ## 参照
 
