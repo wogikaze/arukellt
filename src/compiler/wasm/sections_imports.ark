@@ -85,6 +85,10 @@ fn emit_p2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, needs
     emit_host_func_import(import_sec, String_from("wasi:cli/stdin@0.2.0"), String_from("read"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("close"), get_unchecked(host_type_map, 3))
     emit_host_func_import(import_sec, String_from("wasi:cli/exit@0.2.0"), String_from("exit"), get_unchecked(host_type_map, 4))
+    emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("read-via-stream"), get_unchecked(host_type_map, 6))
+    emit_host_func_import(import_sec, String_from("wasi:io/streams@0.2.0"), String_from("blocking-read"), get_unchecked(host_type_map, 0))
+    emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("write-via-stream"), get_unchecked(host_type_map, 6))
+    emit_host_func_import(import_sec, String_from("wasi:io/streams@0.2.0"), String_from("blocking-write-and-flush"), get_unchecked(host_type_map, 0))
     if needs_arukellt_host == 1 {
         emit_arukellt_host_import_entries(import_sec, host_type_map)
     }

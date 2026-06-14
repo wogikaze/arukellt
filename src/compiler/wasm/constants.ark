@@ -12,8 +12,8 @@ fn WASM_EXTERNREF() -> i32 { 111 }
 fn FS_BUF_SIZE() -> i32 { 4096 }
 fn NUM_WASI_IMPORTS_BASE() -> i32 { 15 }
 fn NUM_WASI_IMPORTS() -> i32 { 18 }
-fn NUM_WASI_TYPES_BASE() -> i32 { 6 }
-fn NUM_WASI_TYPES() -> i32 { 9 }
+fn NUM_WASI_TYPES_BASE() -> i32 { 7 }
+fn NUM_WASI_TYPES() -> i32 { 10 }
 fn WASI_IMPORT_PROC_EXIT() -> i32 { 6 }
 fn WASI_IMPORT_CLOCK_TIME_GET() -> i32 { 7 }
 fn WASI_IMPORT_RANDOM_GET() -> i32 { 8 }
@@ -47,7 +47,18 @@ fn SCRATCH_SOCK_RET() -> i32 { 100 }
 fn SCRATCH_SOCK_ABSLEN() -> i32 { 104 }
 fn SCRATCH_SOCK_ENUMPTR() -> i32 { 108 }
 fn NUM_T2_IMPORTS() -> i32 { 5 }
-fn NUM_P2_IMPORTS_BASE() -> i32 { 7 }
+fn NUM_P2_IMPORTS_BASE() -> i32 { 11 }
+fn P2_IMPORT_WRITE() -> i32 { 0 }
+fn P2_IMPORT_ARGS_SIZES() -> i32 { 1 }
+fn P2_IMPORT_ARGS() -> i32 { 2 }
+fn P2_IMPORT_OPEN_AT() -> i32 { 3 }
+fn P2_IMPORT_STDIN_READ() -> i32 { 4 }
+fn P2_IMPORT_CLOSE() -> i32 { 5 }
+fn P2_IMPORT_EXIT() -> i32 { 6 }
+fn P2_IMPORT_READ_VIA_STREAM() -> i32 { 7 }
+fn P2_IMPORT_BLOCKING_READ() -> i32 { 8 }
+fn P2_IMPORT_WRITE_VIA_STREAM() -> i32 { 9 }
+fn P2_IMPORT_BLOCKING_WRITE_FLUSH() -> i32 { 10 }
 fn NUM_T2_TYPES() -> i32 { 3 }
 fn T2_IMPORT_WRITE() -> i32 { 0 }
 fn T2_IMPORT_WRITE_ERR() -> i32 { 1 }
@@ -84,6 +95,7 @@ fn SCRATCH_FS_PATHLEN() -> i32 { 92 }
 fn SCRATCH_FS_NREAD() -> i32 { 96 }
 fn SCRATCH_FS_BUFSTART() -> i32 { 100 }
 fn SCRATCH_FS_STRPTR() -> i32 { 104 }
+fn SCRATCH_FS_STREAM() -> i32 { 132 }
 
 // Scratch offsets for f64 parsing.
 fn SCRATCH_PF_RESULT() -> i32 { 112 }
