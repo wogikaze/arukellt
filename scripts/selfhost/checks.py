@@ -81,7 +81,21 @@ BOOTSTRAP_EXCLUDED_OVERLAY_PREFIXES = (
     "emit_wat.ark",
     "emitter.ark",
     "parser.ark",
+    "mir/inst_gc_hint.ark",
+    "wasm/ctx_gc_hint.ark",
+    "wasm/inst_dispatch_gc_hint.ark",
+    "wasm/sections_gc_hint.ark",
+    "wasm/sections_tail.ark",
 )
+
+# Bootstrap overlay: freeze wasm/mir gc_hint files at pre-ff8f8ded (selfhost trap).
+BOOTSTRAP_OVERLAY_FILE_FREEZE_REVS: dict[str, str] = {
+    "wasm/inst_dispatch.ark": "4b859775",
+    "wasm/inst_dispatch_struct.ark": "4b859775",
+    "wasm/inst_struct_record.ark": "4b859775",
+    "wasm/ctx_record.ark": "4b859775",
+    "wasm/wasm_sections.ark": "4b859775",
+}
 
 # ff8f8ded mir_opt LICM/GC passes trap in flat-overlay selfhost wasm; use passthrough stub.
 BOOTSTRAP_STUB_OVERLAY_NAMESPACES: frozenset[str] = frozenset({"mir_opt"})
@@ -899,6 +913,7 @@ def _write_worktree_namespace_overlay(
     namespace: str,
     compiler_out: Path,
     source_root: Path,
+    root: Path,
     write_order: list[str],
 ) -> set[str]:
     """Seed a namespace from flattened working-tree modules (not git monolith)."""
@@ -921,8 +936,15 @@ def _write_worktree_namespace_overlay(
     for source_path, rel in candidates:
         flat_name = _flat_overlay_module_name(rel)
         out_path = compiler_out / f"{flat_name}.ark"
-        text = source_path.read_text(encoding="utf-8")
         rel_name = rel.as_posix()
+        freeze_rev = BOOTSTRAP_OVERLAY_FILE_FREEZE_REVS.get(rel_name)
+        if freeze_rev is not None:
+            frozen = _git_compiler_file(root, freeze_rev, rel_name)
+            if frozen is None:
+                continue
+            text = frozen
+        else:
+            text = source_path.read_text(encoding="utf-8")
         if rel_name == "wasm/mod.ark":
             text = _patch_bootstrap_wasm_mod_stub_emit_wat(text)
             text = _patch_bootstrap_wasm_mod_p2_emit(text)
@@ -1607,7 +1629,7 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
     monolithic_written |= _write_bootstrap_stub_namespace_overlays(compiler_out, write_order)
     for ns in sorted(WORKTREE_OVERLAY_NAMESPACES):
         monolithic_written |= _write_worktree_namespace_overlay(
-            ns, compiler_out, source_root, write_order,
+            ns, compiler_out, source_root, root, write_order,
         )
     # Deepest namespace owners first; thin facades (mod.ark, core_api_*, root
     # *.ark) are deferred so their re-exports lose to implementation modules.

@@ -239,9 +239,9 @@ Source-side work landed in-tree (not yet in pinned selfhost wasm):
 | wasmtime run stdio | ❌ | `no exported instance named wasi:cli/run@0.2.6` — pinned wasm does not execute new `component/emit.ark` routing |
 | P2 stdio at runtime | ❌ (unproven) | blocked on run export + bootstrap refresh |
 
-**Bootstrap refresh blocker:** `python3 scripts/manager.py selfhost fixpoint --build` builds `arukellt-s2.wasm` but stage-3 self-recompile fails; `arukellt-s2.wasm` traps (`unreachable`) compiling even trivial fixtures via flat bootstrap overlay. Until pinned wasm is refreshed per `bootstrap/PROVENANCE.md`, close gate item 5 cannot go green from source-only changes.
+**Bootstrap refresh blocker (2026-06-14 bisect):** flat-overlay `arukellt-s2.wasm` still traps after `mir_opt` passthrough stub + bootstrap P2 component stub + overlay freeze of ff8f8ded wasm gc_hint modules. Root regression: commit `ff8f8ded` (MIR opt LICM/GC hint, #080/#082). Last good overlay compiler: `f9924aa8` / `4b859775`. Stage-2 builds validate but `wasmtime run … compile` hits `unreachable` until mir/ overlay catches up (out of lane #074 wasm/component-only scope). Pinned `bootstrap/arukellt-selfhost.wasm` still lacks baked-in P2 routing → `gate_074` wasmtime run stays red.
 
-**Next step to close:** refresh pinned selfhost wasm after fixing flat-overlay stage-2 runtime trap, then re-run `gate_074` + full verify.
+**Next step to close:** fix ff8f8ded+ mir/selfhost overlay interaction (or refresh pin from `f9924aa8` base + selective HEAD overlays), then `python3 scripts/manager.py selfhost fixpoint --build`, update `bootstrap/PROVENANCE.md`, re-run `gate_074`.
 
 ## 参照
 

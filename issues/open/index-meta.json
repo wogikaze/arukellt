@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-14T01:54:50Z",
+  "generated_at": "2026-06-14T02:03:11Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -225,28 +225,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "292",
-      "path": "292-stub-host-compile-error.md",
-      "title": "292-stub-host-compile-error",
-      "track": "capability",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 1,
-        "unchecked": 4
       },
       "orchestration": {
         "class": "implementation-ready",

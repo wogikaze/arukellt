@@ -1,8 +1,8 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-31
-Updated: 2026-06-12
-Closed: 2026-06-12
+Updated: 2026-06-14
+Closed: 2026-06-14
 ID: 292
 Track: capability
 Depends on: —
@@ -13,6 +13,10 @@ Reason: "This issue has `Status: open` in its frontmatter but was filed under `i
 Evidence: "E0500 (incompatible-target) in codes.rs, implemented in load.rs"
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
+
+## Closed — 2026-06-14
+
+host_stub_gate.ark + diag:host_stub_sockets.ark gate passes (check-host-stub-gate.py).
 
 - `std/host/http.ark`: "`request()` / `get()` が `Err("not implemented")` を返す"
 - `std/host/sockets.ark`: "`connect()` が `Err("not implemented")` を返す"
@@ -65,10 +69,10 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 ## Acceptance
 
-- [ ] `kind = "host_stub"` の関数を呼び出すコードが compile error (E レベル) を出す
-- [ ] error メッセージに「この API は未実装です (host_stub)」と表示される
-- [ ] `std/manifest.toml` の `kind` 情報がコンパイラに伝搬する経路がある
-- [ ] テスト: http::get を呼ぶコードが compile error を出す fixture
+- [x] `kind = "host_stub"` の関数を呼び出すコードが compile error (E レベル) を出す
+- [x] error メッセージに「この API は未実装です (host_stub)」と表示される
+- [x] `std/manifest.toml` の `kind` 情報がコンパイラに伝搬する経路がある
+- [x] テスト: http::get を呼ぶコードが compile error を出す fixture
 
 ## References
 

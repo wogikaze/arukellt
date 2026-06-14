@@ -15,7 +15,6 @@ graph LR
   I183["183 183-vscode-arukellt-all-in-one-extension-epic"]
   I217["217 Code actions + refactor code actions"]
   I219["219 LSP standard feature completeness"]
-  I292["292 292-stub-host-compile-error"]
   I30["30 036-jco-javascript-interop"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I41["41 051-std-time-random"]
@@ -65,7 +64,6 @@ graph LR
 - **183** depends on: 184, 185, 186, 187, 188, 205, 206, 207; blocks: 638
 - **217** depends on: 193; blocks: none
 - **219** depends on: none; blocks: none
-- **292** depends on: none; blocks: none
 - **30** depends on: 27; blocks: none
 - **358** depends on: none; blocks: none
 - **41** depends on: 039, 040; blocks: none
