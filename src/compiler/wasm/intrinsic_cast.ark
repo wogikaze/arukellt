@@ -2,6 +2,7 @@
 
 use mir::inst_accessors_literals
 use wasm::intrinsics::helpers_numeric_f64
+use wasm::intrinsics::helpers_numeric_sign_extend
 use wasm::intrinsics::helpers_numeric_i32_bitwise
 use wasm::intrinsics::helpers_numeric_i32_const
 use wasm::intrinsics::helpers_numeric_i32_convert
@@ -20,7 +21,12 @@ fn emit_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // Handler for: i8_to_i32, u8_to_i32, i16_to_i32, u16_to_i32
-fn emit_i8_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_i8_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, callee: String) -> bool {
+    if eq(clone(callee), "i16_to_i32") {
+        helpers_numeric_sign_extend::emit_i32_extend16_s(w)
+    } else if eq(clone(callee), "i8_to_i32") {
+        helpers_numeric_sign_extend::emit_i32_extend8_s(w)
+    }
     return true
 }
 

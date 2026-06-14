@@ -82,7 +82,7 @@ fn try_emit_host_int_widen_convert_call(w: WasmWriter, callee: String, inst: Mir
         return true
     }
     if eq(clone(callee), "i8_to_i32") || eq(clone(callee), "u8_to_i32") || eq(clone(callee), "i16_to_i32") || eq(clone(callee), "u16_to_i32") {
-        let _result_on_stack = intrinsic_cast::emit_i8_to_i32(w, inst, ctx)
+        let _result_on_stack = intrinsic_cast::emit_i8_to_i32(w, inst, ctx, clone(callee))
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }

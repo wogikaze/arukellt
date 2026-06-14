@@ -116,6 +116,11 @@ fn OP_F64_DIV() -> i32 { 163 }
 // Conversion opcodes.
 fn OP_I32_WRAP_I64() -> i32 { 167 }
 fn OP_I32_TRUNC_F64_S() -> i32 { 170 }
+fn OP_I32_EXTEND8_S() -> i32 { 192 }
+fn OP_I32_EXTEND16_S() -> i32 { 193 }
+fn OP_I64_EXTEND8_S() -> i32 { 194 }
+fn OP_I64_EXTEND16_S() -> i32 { 195 }
+fn OP_I64_EXTEND32_S() -> i32 { 196 }
 fn OP_I64_EXTEND_I32_S() -> i32 { 172 }
 fn OP_I64_EXTEND_I32_U() -> i32 { 173 }
 fn OP_F64_CONVERT_I32_S() -> i32 { 183 }

@@ -1,0 +1,14 @@
+// Arukellt Selfhost - i31ref scalar optimization hint section stub (#070).
+
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_sections
+use wasm::writer_string
+
+fn emit_i31ref_hint_custom_section(out: WasmWriter) {
+    let payload = writer_core::WasmWriter_new()
+    writer_string::emit_string(payload, String_from("metadata.code.i31ref"))
+    writer_leb::emit_leb128_u(payload, 0)
+    writer_sections::emit_section(out, opcodes::SEC_CUSTOM(), payload)
+}

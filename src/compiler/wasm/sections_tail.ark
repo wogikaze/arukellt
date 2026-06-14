@@ -1,10 +1,16 @@
 // Arukellt Selfhost - Wasm tail section facade (gc_hint + data).
 
+use wasm::sections_branch_hint
 use wasm::sections_data
 use wasm::sections_gc_hint
+use wasm::sections_i31ref_hint
+use wasm::sections_name
 use wasm::strings
 
-fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTablePlan) {
+fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTablePlan, opt_level: i32) {
     sections_gc_hint::emit_gc_hint_custom_section(out, ctx)
+    sections_branch_hint::emit_branch_hint_custom_section(out)
+    sections_i31ref_hint::emit_i31ref_hint_custom_section(out)
+    sections_name::emit_name_custom_section(out, opt_level)
     sections_data::emit_data_section(out, strings::EmitStringTablePlan_values(strings))
 }

@@ -1,0 +1,24 @@
+// Arukellt Selfhost - Wasm sign-extension op helpers (#067).
+
+use wasm::opcodes
+use wasm::writer_core
+
+fn emit_i32_extend8_s(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_EXTEND8_S())
+}
+
+fn emit_i32_extend16_s(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I32_EXTEND16_S())
+}
+
+fn emit_i64_extend8_s(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I64_EXTEND8_S())
+}
+
+fn emit_i64_extend16_s(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I64_EXTEND16_S())
+}
+
+fn emit_i64_extend32_s(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I64_EXTEND32_S())
+}

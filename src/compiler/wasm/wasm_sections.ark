@@ -30,5 +30,5 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     let main_idx = wasm_start::wasm_module_start_function_index(mir, fn_count)
     sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, wit_import_count)
     code::emit_code_section(out, functions, fn_count, needs_wrapper, main_idx, ctx, bindings)
-    sections_tail::emit_tail_sections(out, ctx, strings)
+    sections_tail::emit_tail_sections(out, ctx, strings, opt_level)
 }
