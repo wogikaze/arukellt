@@ -193,6 +193,7 @@ def emit_p2_run_command_world_sections(out: Writer) -> None:
     alias_sec = Writer()
     alias_sec.leb(1)
     alias_sec.byte(0x00)
+    alias_sec.byte(0x00)
     alias_sec.byte(0x01)
     alias_sec.leb(5)
     alias_sec.string("_start")
