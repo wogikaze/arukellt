@@ -13,24 +13,22 @@ Scoring criteria (0-5 each, total 25):
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
 | 1 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
 | 2 | 124 | WIT component import syntax | language-design | 1 | 0 | 1 | 5 | 4 | 11 |
-| 3 | 626 | 626-ide-ready-frontend | main | 0 | 0 | 5 | 2 | 4 | 11 |
-| 4 | 628 | 628-lsp-minimum-viable | main | 0 | 0 | 5 | 2 | 4 | 11 |
-| 5 | 28 | 034-wit-cli-integration | component-model | 0 | 0 | 5 | 3 | 2 | 10 |
-| 6 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 7 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 8 | 183 | 183-vscode-arukellt-all-in-one-extension-epic | parallel | 1 | 0 | 4 | 1 | 2 | 8 |
-| 9 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
-| 10 | 638 | 638 — Runtime-level Wasm debugging (source maps + wasmtime ... | runtime | 0 | 0 | 1 | 3 | 4 | 8 |
-| 11 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
-| 12 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 13 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 14 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 15 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 16 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
-| 17 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
-| 18 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
-| 19 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 20 | 637 | 637 — Host capability honesty: fs metadata and read_dir sur... | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 21 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 22 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 23 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 3 | 28 | 034-wit-cli-integration | component-model | 0 | 0 | 5 | 3 | 2 | 10 |
+| 4 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 5 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 6 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
+| 7 | 480 | 480-extension-readme-settings-docs | main | 0 | 0 | 1 | 2 | 5 | 8 |
+| 8 | 638 | 638 — Runtime-level Wasm debugging (source maps + wasmtime ... | runtime | 0 | 0 | 1 | 3 | 4 | 8 |
+| 9 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
+| 10 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 11 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 12 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 13 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 14 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
+| 15 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
+| 16 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
+| 17 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 18 | 637 | 637 — Host capability honesty: fs metadata and read_dir sur... | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 19 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 20 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 21 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
