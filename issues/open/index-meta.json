@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-14T02:34:34Z",
+  "generated_at": "2026-06-14T02:35:24Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -163,28 +163,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "358",
-      "path": "358-stdlib-host-family-completion.md",
-      "title": "Stdlib: host family の stub を解消し stable capability に引き上げる",
-      "track": "stdlib-api",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 1,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
       }
     },
     {

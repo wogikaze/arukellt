@@ -12,7 +12,6 @@ graph LR
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I183["183 183-vscode-arukellt-all-in-one-extension-epic"]
   I30["30 036-jco-javascript-interop"]
-  I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I41["41 051-std-time-random"]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
@@ -52,7 +51,6 @@ graph LR
 - **139** depends on: 074, 137; blocks: 136
 - **183** depends on: 184, 185, 186, 187, 188, 205, 206, 207; blocks: 638
 - **30** depends on: 27; blocks: none
-- **358** depends on: none; blocks: none
 - **41** depends on: 039, 040; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none
 - **45** depends on: 039, 042, 044; blocks: none
