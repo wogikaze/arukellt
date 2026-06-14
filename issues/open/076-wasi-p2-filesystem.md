@@ -1,5 +1,5 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
 Updated: 2026-06-14
 ID: 62
@@ -8,7 +8,7 @@ Depends on: 074, 510
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v4 exit: no
-Status note: Closed — gate_076 passes (P2 fs guest patch + component wrap; stdout `hello p2 fs`).
+Status note: Implementation-ready — gate_076 stdout passes; acceptance #4 (p2_fs_out.txt on disk) still open.
 WASI Preview 2 の `wasi: "filesystem/types` と `wasi:filesystem/preopens` を"
 ---
 
@@ -20,11 +20,25 @@ WASI Preview 2 の `wasi:filesystem/types` と `wasi:filesystem/preopens` を
 Arukellt `std/path` と `std/fs` モジュールから P2 ネイティブで呼び出す。
 resource 型 (`descriptor`) の canonical ABI ハンドリングを実装する必要がある。
 
-## Close note (2026-06-14)
+## Reopened by audit
 
-- **gate_076**: `wasi_fs_p2.ark` component validate + wasmtime stdout `hello p2 fs`
-- **Bootstrap path**: pinned `bootstrap/arukellt-selfhost.wasm` emits P1-style fd_write on stdout import; `p2_guest_fs_patch.py` retargets to `write-via-stream` import and `p2_component_wrap.py` applies fs + stdio patches before component embed
-- **Follow-up**: real filesystem write (`p2_fs_out.txt`) and emitter `helpers_fs_p2` remain for bootstrap refresh / full P2 fs adapt
+- **Date**: 2026-04-21
+- **Reason**: WASI Preview 2 filesystem capability is product-critical host functionality and is not explicitly tracked by an active open issue.
+
+## Serial audit (2026-06-14, 5b9e5b3e)
+
+- **Verdict**: false-close reverted — issue stays **open**
+- **Gate stdout**: raw bytes `\xb9hello p2 fs\n` (`0xb9` prefix); `errors="replace"` in `e2a50c5c` masked UTF-8 decode failure
+- **Gate filesystem**: `p2_fs_out.txt` **not** created — acceptance #4 unmet
+- **WIP retained**: `p2_guest_fs_patch.py`, component wrap patches from parallel agents
+
+## Serial audit (2026-06-14, 7f069f90 revert)
+
+- **Verdict**: false-close — issue back to **open** (SERIAL audit)
+- **gate_076**: rc=0 (validate + wasmtime stdout `hello p2 fs`); stdout prefix issue fixed in `7f069f90`
+- **Strict filesystem**: `p2_fs_out.txt` still **not** created under `wasmtime run --dir <repo>`; fixture `fs::write_string` does not persist bytes
+- **Acceptance #4**: `wasi_fs_p2.ark` ファイル読み書き確認 remains unmet for honest close
+- **Code retained**: P2 fs guest patch + `p2_component_wrap` from `7f069f90` (stdout gate only)
 
 ## 受け入れ条件
 
