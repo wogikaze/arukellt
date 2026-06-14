@@ -138,6 +138,14 @@ pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decl
 }
 """
 
+BOOTSTRAP_COMPONENT_WORLD_SPEC_STUB = """// Bootstrap overlay stub — world_spec excluded with component model.
+fn world_target_error(world: String, target: String, emit_mode: String) -> String {
+    if len(world) == 0 { return String_new() }
+    if !contains(clone(target), String_from("-p2")) { return String_from("--world requires --target wasm32-wasi-p2") }
+    String_new()
+}
+"""
+
 LOCAL_COMPILER_NAMESPACES = {
     "analysis",
     "compiler",
@@ -336,6 +344,8 @@ def _flatten_namespace_mod_import(parts: list[str]) -> str | None:
 
 def _should_exclude_bootstrap_overlay_source(rel: Path) -> bool:
     rel_str = rel.as_posix()
+    if rel_str == "component/" or rel_str.startswith("component/"):
+        return False
     for prefix in BOOTSTRAP_EXCLUDED_OVERLAY_PREFIXES:
         if rel_str == prefix or rel_str.startswith(prefix):
             return True
@@ -1657,6 +1667,9 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
         write_order.append(out_name)
     _reapply_global_overlay_dedupe(compiler_out, write_order)
     (compiler_out / "component.ark").write_text(BOOTSTRAP_COMPONENT_STUB, encoding="utf-8")
+    (compiler_out / "component_world_spec.ark").write_text(
+        BOOTSTRAP_COMPONENT_WORLD_SPEC_STUB, encoding="utf-8",
+    )
     _patch_bootstrap_wasm_ark_p2_emit(compiler_out)
     _write_bootstrap_namespace_facades(compiler_out)
     ark_toml = source_root / "ark.toml"

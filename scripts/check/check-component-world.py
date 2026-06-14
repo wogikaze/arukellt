@@ -15,10 +15,9 @@ def _env():
     env = dict(os.environ)
     if "ARUKELLT_SELFHOST_WASM" in env:
         return env
-    for c in (REPO_ROOT / ".build/selfhost/arukellt-s3.wasm", REPO_ROOT / ".build/selfhost/arukellt-s2.wasm", REPO_ROOT / "bootstrap/arukellt-selfhost.wasm"):
-        if c.is_file():
-            env["ARUKELLT_SELFHOST_WASM"] = str(c.resolve())
-            break
+    pinned = REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm"
+    if pinned.is_file():
+        env["ARUKELLT_SELFHOST_WASM"] = str(pinned.resolve())
     return env
 
 def _entries(kind):
