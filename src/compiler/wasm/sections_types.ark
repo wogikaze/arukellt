@@ -1,6 +1,7 @@
 use wasm::opcodes
 use wasm::constants
 // Arukellt Selfhost - Wasm type section builder.
+
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_sections
@@ -71,7 +72,6 @@ fn append_wasi_type_sigs(type_sigs: Vec<String>, needs_arukellt_host: i32) {
     push(type_sigs, String_from("i32_1i32"))
     push(type_sigs, String_from("i32_0"))
     push(type_sigs, String_from("i32_i64_i32_1i32"))
-    push(type_sigs, String_from("i32_i32_i32_1i32"))
     if needs_arukellt_host == 1 {
         push(type_sigs, String_from("i32_i32_i32_1i32"))
         push(type_sigs, String_from("i32_i32_i32_i32_i32_i32_i32_1i32"))
