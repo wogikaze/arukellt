@@ -7,6 +7,8 @@ OLD = bytes([0x41, 0x01, 0x41, 0x00, 0x41, 0x01, 0x41, 0x08, 0x10, 0x00])
 NEW = bytes([0x41, 0x00, 0x28, 0x02, 0x00, 0x41, 0x04, 0x28, 0x02, 0x00, 0x41, 0x00, 0x41, 0x00, 0x10, 0x00])
 VOID_FUNC_TYPE = bytes([0x60, 0x00, 0x00])
 I32_FUNC_TYPE = bytes([0x60, 0x00, 0x01, 0x7F])
+RETURN_I32 = bytes([0x41, 0x00, 0x0B])
+VOID_RETURN_END = bytes([0x0F, 0x0B])
 
 
 def _leb_read(data: bytes, pos: int) -> tuple[int, int]:
@@ -35,6 +37,11 @@ def _leb_write(value: int) -> bytes:
     return bytes(out)
 
 
+def patch_guest_core(core_wasm: bytes) -> bytes:
+    """Apply stdio + `_start` signature patches needed by the P2 wrap helper."""
+    return _patch_start_returns_i32(patch_guest_write_calls(core_wasm))
+
+
 def patch_guest_write_calls(core_wasm: bytes) -> bytes:
     if core_wasm[:4] != b"\x00asm":
         return core_wasm
@@ -55,13 +62,217 @@ def patch_guest_write_calls(core_wasm: bytes) -> bytes:
         out.append(section_id)
         out.extend(_leb_write(len(payload)))
         out.extend(payload)
-    patched = bytes(out)
-    return patched
+    return bytes(out)
 
 
 def _patch_start_returns_i32(core_wasm: bytes) -> bytes:
-    """Reserved for future pinned-core `_start` signature alignment."""
-    return core_wasm
+    """Align pinned bootstrap `_start: () -> ()` with wasi:cli/run canon lift."""
+    if core_wasm[:4] != b"\x00asm":
+        return core_wasm
+
+    start_func_idx = _export_func_index(core_wasm, "_start")
+    if start_func_idx is None:
+        return core_wasm
+
+    import_func_count = _import_func_count(core_wasm)
+    defined_idx = start_func_idx - import_func_count
+    if defined_idx < 0:
+        return core_wasm
+
+    type_idx = _defined_func_type_index(core_wasm, defined_idx)
+    if type_idx is None:
+        return core_wasm
+
+    type_payload = _section_payload(core_wasm, 1)
+    if type_payload is None:
+        return core_wasm
+    if _type_at(type_payload, type_idx) != VOID_FUNC_TYPE:
+        return core_wasm
+
+    i32_type_idx = _find_type_index(type_payload, I32_FUNC_TYPE)
+    if i32_type_idx is None:
+        return core_wasm
+
+    core_wasm = _set_defined_func_type(core_wasm, defined_idx, i32_type_idx)
+    return _patch_defined_func_body(core_wasm, defined_idx, _append_return_i32)
+
+
+def _export_func_index(core_wasm: bytes, name: str) -> int | None:
+    payload = _section_payload(core_wasm, 7)
+    if payload is None:
+        return None
+    count, pos = _leb_read(payload, 0)
+    for _ in range(count):
+        name_len, pos = _leb_read(payload, pos)
+        export_name = payload[pos : pos + name_len].decode("utf-8")
+        pos += name_len
+        kind = payload[pos]
+        pos += 1
+        index, pos = _leb_read(payload, pos)
+        if kind == 0x00 and export_name == name:
+            return index
+    return None
+
+
+def _import_func_count(core_wasm: bytes) -> int:
+    payload = _section_payload(core_wasm, 2)
+    if payload is None:
+        return 0
+    count, pos = _leb_read(payload, 0)
+    import_funcs = 0
+    for _ in range(count):
+        mod_len, pos = _leb_read(payload, pos)
+        pos += mod_len
+        field_len, pos = _leb_read(payload, pos)
+        pos += field_len
+        kind = payload[pos]
+        pos += 1
+        if kind == 0x00:
+            _, pos = _leb_read(payload, pos)
+            import_funcs += 1
+        elif kind == 0x01:
+            flags = payload[pos]
+            pos += 1
+            if flags & 0x03 == 0x00:
+                pos += 1
+            elif flags & 0x03 == 0x01:
+                pos += 2
+            else:
+                pos += 3
+        elif kind == 0x02:
+            pos += 1
+        elif kind == 0x03:
+            pos += 1
+        else:
+            break
+    return import_funcs
+
+
+def _defined_func_type_index(core_wasm: bytes, defined_idx: int) -> int | None:
+    payload = _section_payload(core_wasm, 3)
+    if payload is None:
+        return None
+    count, pos = _leb_read(payload, 0)
+    if defined_idx >= count:
+        return None
+    for _ in range(defined_idx):
+        _, pos = _leb_read(payload, pos)
+    type_idx, _ = _leb_read(payload, pos)
+    return type_idx
+
+
+def _set_defined_func_type(core_wasm: bytes, defined_idx: int, type_idx: int) -> bytes:
+    payload = bytearray(_section_payload(core_wasm, 3) or b"")
+    count, pos = _leb_read(payload, 0)
+    for _ in range(defined_idx):
+        _, pos = _leb_read(payload, pos)
+    start = pos
+    _, pos = _leb_read(payload, pos)
+    end = pos
+    new_payload = bytes(payload[:start]) + _leb_write(type_idx) + bytes(payload[end:])
+    return _replace_section(core_wasm, 3, new_payload)
+
+
+def _patch_defined_func_body(
+    core_wasm: bytes,
+    defined_idx: int,
+    patch_body: callable,
+) -> bytes:
+    payload = bytearray(_section_payload(core_wasm, 10) or b"")
+    count, pos = _leb_read(payload, 0)
+    out = bytearray()
+    out.extend(_leb_write(count))
+    for idx in range(count):
+        body_size, pos = _leb_read(payload, pos)
+        body = bytearray(payload[pos : pos + body_size])
+        pos += body_size
+        if idx == defined_idx:
+            body = bytearray(patch_body(bytes(body)))
+        out.extend(_leb_write(len(body)))
+        out.extend(body)
+    return _replace_section(core_wasm, 10, bytes(out))
+
+
+def _append_return_i32(body: bytes) -> bytes:
+    if body.endswith(RETURN_I32):
+        return body
+    if body.endswith(VOID_RETURN_END):
+        return body[:-2] + RETURN_I32
+    if body.endswith(b"\x0B"):
+        return body[:-1] + RETURN_I32
+    return body + RETURN_I32
+
+
+def _section_payload(core_wasm: bytes, section_id: int) -> bytes | None:
+    pos = 8
+    while pos < len(core_wasm):
+        sid = core_wasm[pos]
+        pos += 1
+        size, pos = _leb_read(core_wasm, pos)
+        payload = core_wasm[pos : pos + size]
+        pos += size
+        if sid == section_id:
+            return payload
+    return None
+
+
+def _replace_section(core_wasm: bytes, section_id: int, payload: bytes) -> bytes:
+    pos = 8
+    out = bytearray(core_wasm[:8])
+    while pos < len(core_wasm):
+        sid = core_wasm[pos]
+        pos += 1
+        size, pos = _leb_read(core_wasm, pos)
+        old_payload = core_wasm[pos : pos + size]
+        pos += size
+        if sid == section_id:
+            old_payload = payload
+        out.append(sid)
+        out.extend(_leb_write(len(old_payload)))
+        out.extend(old_payload)
+    return bytes(out)
+
+
+def _type_at(type_payload: bytes, index: int) -> bytes | None:
+    count, pos = _leb_read(type_payload, 0)
+    if index >= count:
+        return None
+    for _ in range(index):
+        form = type_payload[pos]
+        pos += 1
+        if form != 0x60:
+            return None
+        param_count, pos = _leb_read(type_payload, pos)
+        pos += param_count
+        result_count, pos = _leb_read(type_payload, pos)
+        pos += result_count
+    start = pos
+    form = type_payload[pos]
+    pos += 1
+    if form != 0x60:
+        return None
+    param_count, pos = _leb_read(type_payload, pos)
+    pos += param_count
+    result_count, pos = _leb_read(type_payload, pos)
+    pos += result_count
+    return type_payload[start:pos]
+
+
+def _find_type_index(type_payload: bytes, needle: bytes) -> int | None:
+    count, pos = _leb_read(type_payload, 0)
+    for idx in range(count):
+        start = pos
+        form = type_payload[pos]
+        pos += 1
+        if form != 0x60:
+            return None
+        param_count, pos = _leb_read(type_payload, pos)
+        pos += param_count
+        result_count, pos = _leb_read(type_payload, pos)
+        pos += result_count
+        if type_payload[start:pos] == needle:
+            return idx
+    return None
 
 
 def _patch_code_section(payload: bytes) -> bytes:

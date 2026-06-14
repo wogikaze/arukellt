@@ -18,7 +18,7 @@ from pathlib import Path
 _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
-from p2_guest_stdio_patch import patch_guest_write_calls
+from p2_guest_stdio_patch import patch_guest_core
 
 _DATA_DIR = Path(__file__).resolve().parent / "data"
 _BRIDGE_WASM = Path(__file__).resolve().parent / "p2_stdout_bridge.wasm"
@@ -234,23 +234,34 @@ def emit_instance_arg(sec: Writer, import_name: str, instance_index: int) -> Non
     sec.leb(instance_index)
 
 
-def emit_bridge_instance_ref(sec: Writer, get_stdout_core: int, flush_core: int) -> None:
+def emit_core_instance_export_arg(
+    sec: Writer, import_module: str, import_name: str, instance_index: int, export_name: str
+) -> None:
+    sec.string(import_module)
+    sec.string(import_name)
+    sec.byte(0x09)
+    sec.leb(instance_index)
+    sec.string(export_name)
+
+
+def emit_bridge_instance_ref(
+    sec: Writer, get_stdout_inst: int, flush_inst: int, guest_inst: int
+) -> None:
     sec.byte(0x00)
     sec.leb(0)
-    sec.leb(2)
+    sec.leb(3)
     sec.string("env")
     sec.string("get-stdout")
-    sec.byte(0x01)
-    sec.leb(get_stdout_core)
+    sec.byte(0x12)
+    sec.leb(get_stdout_inst)
     sec.string("env")
     sec.string("blocking-write-and-flush")
-    sec.byte(0x01)
-    sec.leb(flush_core)
+    sec.byte(0x12)
+    sec.leb(flush_inst)
+    emit_core_instance_export_arg(sec, "host", "memory", guest_inst, "memory")
 
 
-def emit_p2_run_command_world_sections(out: Writer) -> None:
-    emit_section(out, 4, P2_RUN_INNER_COMPONENT)
-
+def _run_export_section_payloads() -> dict[int, bytes]:
     alias_sec = Writer()
     alias_sec.leb(1)
     alias_sec.byte(0x00)
@@ -258,8 +269,6 @@ def emit_p2_run_command_world_sections(out: Writer) -> None:
     alias_sec.byte(0x01)
     alias_sec.byte(0x05)
     alias_sec.string("_start")
-    emit_section(out, 6, alias_sec.finish())
-
     type_sec = Writer()
     type_sec.leb(2)
     type_sec.byte(0x6A)
@@ -269,8 +278,6 @@ def emit_p2_run_command_world_sections(out: Writer) -> None:
     type_sec.byte(0x00)
     type_sec.byte(0x00)
     type_sec.byte(0x00)
-    emit_section(out, 7, type_sec.finish())
-
     canon_sec = Writer()
     canon_sec.leb(1)
     canon_sec.byte(0x00)
@@ -278,8 +285,6 @@ def emit_p2_run_command_world_sections(out: Writer) -> None:
     canon_sec.leb(0)
     canon_sec.leb(0)
     canon_sec.leb(1)
-    emit_section(out, 8, canon_sec.finish())
-
     inst = Writer()
     inst.leb(1)
     inst.byte(0x00)
@@ -288,8 +293,6 @@ def emit_p2_run_command_world_sections(out: Writer) -> None:
     inst.string("import-func-run")
     inst.byte(0x01)
     inst.leb(0)
-    emit_section(out, 5, inst.finish())
-
     export_sec = Writer()
     export_sec.leb(1)
     export_sec.byte(0x00)
@@ -297,7 +300,93 @@ def emit_p2_run_command_world_sections(out: Writer) -> None:
     export_sec.byte(0x05)
     export_sec.leb(0)
     export_sec.byte(0x00)
-    emit_section(out, 11, export_sec.finish())
+    return {
+        4: P2_RUN_INNER_COMPONENT,
+        5: inst.finish(),
+        6: alias_sec.finish(),
+        7: type_sec.finish(),
+        8: canon_sec.finish(),
+        11: export_sec.finish(),
+    }
+
+
+def emit_p2_run_command_world_sections(out: Writer) -> None:
+    payloads = _run_export_section_payloads()
+    for section_id in (4, 6, 7, 8, 5, 11):
+        emit_section(out, section_id, payloads[section_id])
+
+
+def _parse_component_sections(component: bytes) -> dict[int, list[bytes]]:
+    if component[:4] != b"\x00asm":
+        raise ValueError("not a component")
+    pos = 8
+    sections: dict[int, list[bytes]] = {}
+    while pos < len(component):
+        section_id = component[pos]
+        pos += 1
+        section_size, pos = _leb_read_component(component, pos)
+        payload = component[pos : pos + section_size]
+        pos += section_size
+        sections.setdefault(section_id, []).append(payload)
+    return sections
+
+
+def _leb_read_component(data: bytes, pos: int) -> tuple[int, int]:
+    result = 0
+    shift = 0
+    while pos < len(data):
+        byte = data[pos]
+        pos += 1
+        result |= (byte & 0x7F) << shift
+        if not (byte & 0x80):
+            return result, pos
+        shift += 7
+    raise ValueError("truncated leb128")
+
+
+def _emit_component_sections(sections: dict[int, list[bytes]]) -> bytes:
+    out = Writer()
+    out.bytes(b"\x00asm\x0d\x00\x01\x00")
+    for section_id in sorted(sections):
+        if section_id == 0:
+            continue
+        for payload in sections[section_id]:
+            emit_section(out, section_id, payload)
+    for payload in sections.get(0, []):
+        emit_section(out, 0, payload)
+    return out.finish()
+
+
+def _run_export_section_payloads_embed() -> dict[int, bytes]:
+    payloads = _run_export_section_payloads()
+    return {
+        4: payloads[4],
+        5: payloads[5],
+        6: payloads[6],
+        10: payloads[8],
+        2: payloads[5],
+        11: payloads[11],
+    }
+
+
+def _merge_run_export_sections(component: bytes) -> bytes:
+    sections = _parse_component_sections(component)
+    for section_id, payload in _run_export_section_payloads().items():
+        sections.setdefault(section_id, []).append(payload)
+    return _emit_component_sections(sections)
+
+
+def _merge_run_export_sections_embed(component: bytes) -> bytes:
+    sections = _parse_component_sections(component)
+    embed_payloads = _run_export_section_payloads_embed()
+    # Run instance belongs in section 2 for wasm-tools embed layout.
+    run_inst = _run_export_section_payloads()[5]
+    sections.setdefault(2, []).append(run_inst)
+    for section_id, payload in embed_payloads.items():
+        if section_id == 2:
+            continue
+        sections.setdefault(section_id, []).append(payload)
+    return _emit_component_sections(sections)
 
 
 def _wasm_tools() -> str | None:
@@ -309,10 +398,7 @@ def _wasm_tools() -> str | None:
 
 
 def _append_run_sections(component: bytes) -> bytes:
-    out = Writer()
-    out.bytes(component)
-    emit_p2_run_command_world_sections(out)
-    return out.finish()
+    return _merge_run_export_sections(component)
 
 
 def _wrap_via_wasm_tools(core_wasm: bytes) -> bytes | None:
@@ -321,13 +407,12 @@ def _wrap_via_wasm_tools(core_wasm: bytes) -> bytes | None:
         return None
     import tempfile
 
-    patched = patch_guest_write_calls(core_wasm)
-    sh = _SELFHOST_DIR
+    patched = patch_guest_core(core_wasm)
     with tempfile.TemporaryDirectory(prefix="p2-wrap-") as tmp:
         tmp_path = Path(tmp)
         core = tmp_path / "guest.core.wasm"
         emb = tmp_path / "guest.emb.wasm"
-        new = tmp_path / "guest.component.wasm"
+        merged = tmp_path / "guest.component.wasm"
         core.write_bytes(patched)
         embed = subprocess.run(
             [
@@ -346,29 +431,56 @@ def _wrap_via_wasm_tools(core_wasm: bytes) -> bytes | None:
         )
         if embed.returncode != 0:
             return None
-        adapt_stdout = sh / "p2_stdout_adapt.wat"
-        cmd = [
-            tool,
-            "component",
-            "new",
-            str(emb),
-            "--adapt",
-            f"wasi:cli/stdout@0.2.0={adapt_stdout}",
-            "--adapt",
-            f"wasi:cli/environment@0.2.0={sh / 'p2_stub_env_adapt.wat'}",
-            "--adapt",
-            f"wasi:filesystem/types@0.2.0={sh / 'p2_stub_fs_adapt.wat'}",
-            "--adapt",
-            f"wasi:cli/stdin@0.2.0={sh / 'p2_stub_stdin_adapt.wat'}",
-            "--adapt",
-            f"wasi:cli/exit@0.2.0={sh / 'p2_stub_exit_adapt.wat'}",
-            "-o",
-            str(new),
-        ]
-        created = subprocess.run(cmd, capture_output=True, text=True)
-        if created.returncode != 0:
+        component = _merge_run_export_sections_embed(emb.read_bytes())
+        merged.write_bytes(component)
+        result = subprocess.run(
+            [tool, "validate", str(merged)],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
             return None
-        return _append_run_sections(new.read_bytes())
+        return component
+
+
+def _wrap_p2_command_component_bridged(core_wasm: bytes) -> bytes:
+    """Host-import prefix + stdout bridge core instance (no 28KB P1 adapt)."""
+    out = Writer()
+    out.bytes(b"\x00asm\x0d\x00\x01\x00")
+    out.bytes(P2_HOST_IMPORT_PREFIX.read_bytes())
+
+    bridge = load_bridge_module()
+    guest = patch_guest_core(core_wasm)
+    for module in (
+        bridge,
+        stub_env_module(),
+        stub_fs_module(),
+        stub_single_export("read", False),
+        stub_single_export("exit", True),
+        guest,
+    ):
+        emit_section(out, 1, module)
+
+    inst_sec = Writer()
+    inst_sec.leb(6)
+    emit_bridge_instance_ref(inst_sec, get_stdout_inst=0, flush_inst=1, guest_inst=5)
+    for module_index in range(1, 5):
+        emit_core_instance_ref(inst_sec, module_index, 0)
+    inst_sec.byte(0x00)
+    inst_sec.leb(5)
+    inst_sec.leb(5)
+    for import_name, instance_index in (
+        ("wasi:cli/stdout@0.2.0", 0),
+        ("wasi:cli/environment@0.2.0", 1),
+        ("wasi:filesystem/types@0.2.0", 2),
+        ("wasi:cli/stdin@0.2.0", 3),
+        ("wasi:cli/exit@0.2.0", 4),
+    ):
+        emit_instance_arg(inst_sec, import_name, instance_index)
+    emit_section(out, 2, inst_sec.finish())
+
+    emit_p2_run_command_world_sections(out)
+    return out.finish()
 
 
 def wrap_p2_command_component(core_wasm: bytes) -> bytes:
@@ -397,7 +509,7 @@ def _wrap_p2_command_component_host(core_wasm: bytes) -> bytes:
 
     inst_sec = Writer()
     inst_sec.leb(6)
-    emit_bridge_instance_ref(inst_sec, get_stdout_core=0, flush_core=1)
+    emit_bridge_instance_ref(inst_sec, get_stdout_inst=0, flush_inst=1, guest_inst=5)
     for module_index in range(1, 5):
         emit_core_instance_ref(inst_sec, module_index, 0)
     inst_sec.byte(0x00)
@@ -419,6 +531,7 @@ def _wrap_p2_command_component_host(core_wasm: bytes) -> bytes:
 
 def _wrap_p2_command_component_legacy(core_wasm: bytes) -> bytes:
     """Stub-only wrap (validate + run export shape; stdout stays empty)."""
+    guest = patch_guest_core(core_wasm)
     out = Writer()
     out.bytes(b"\x00asm\x0d\x00\x01\x00")
 
@@ -428,7 +541,7 @@ def _wrap_p2_command_component_legacy(core_wasm: bytes) -> bytes:
         stub_fs_module(),
         stub_single_export("read", False),
         stub_single_export("exit", True),
-        core_wasm,
+        guest,
     ):
         emit_section(out, 1, module)
 

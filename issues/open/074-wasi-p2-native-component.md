@@ -260,6 +260,31 @@ Gate compile path now uses **core wasm + `p2_component_wrap.py`** (not bare `--e
 | wasmtime run stdio | ❌ | stdout empty even when validate passes (write stub no-op / memory not shared) |
 | P2 stdio bridge | ❌ | no `hello p2` yet; 28KB P1 adapt path explicitly out of scope |
 
+## Attempt evidence — 2026-06-14 final push (still open)
+
+**Landed in-tree (this session):**
+
+- `p2_guest_stdio_patch.py`: `patch_guest_core()` — `write` call patch + `_start: () -> ()` → `() -> i32` (848→880 byte core validates)
+- `p2_stdout_bridge.wat`: stack ptr/len (no guest memory import in bridge core)
+- `p2_component_wrap.py`: applies `patch_guest_core` in legacy path; `wasm-tools component embed` + merged run export attempted (validate still fails on embed layout)
+
+**Gate 074 status (pinned bootstrap + wrap):**
+
+| Gate item | Status | Evidence |
+|-----------|--------|----------|
+| P2 compile hello (core) | ✅ | 848-byte core via pinned bootstrap |
+| patch + wrap + validate | ✅ | `wasm-tools validate` passes on `.build/close-gate-074/hello.component.wasm` |
+| wasmtime run stdio | ❌ | exit 0, stdout `''` — legacy write stub returns 0; host streams not wired |
+| P2 stdio bridge | ❌ | `component new` blocked (adapt needs component metadata for `wasi:io/streams`); prefix+wiring bin incompatible (`type index 10`); core `instantiatearg` needs instance exports from component imports before adapt instance |
+
+**Root blockers for `hello p2`:**
+
+1. Component-level WASI host imports + instance exports must precede stdout adapt/bridge instantiation (`core:instantiatearg` is instance-only per CM binary encoding; rust wasip2 reference uses ~2KB of instance/type/canon sections before guest).
+2. `p2_stdio_host_wiring.bin` + `p2_host_import_prefix_020.bin` together fail validate (`type index 10 is not an instance type`).
+3. `wasm-tools component embed` + run-export merge cannot re-emit embed core modules (component-encoded section 1 ≠ raw wasm).
+
+**Next step:** generate stdout adapt as a proper component (wit-component / `wasm-tools component wit --wasm` with deps) OR transplant instance/canon wiring from a known-good wasip2 command component (rustc `wasm32-wasip2` hello) for stdout+streams only, then re-run gate until wasmtime prints `hello p2`.
+
 ## 参照
 
 - `docs/spec/spec-WASI-0.2.10/OVERVIEW.md`
