@@ -10,8 +10,8 @@ fn WASM_EXTERNREF() -> i32 { 111 }
 
 // Emitter scratch layout constants.
 fn FS_BUF_SIZE() -> i32 { 4096 }
-fn NUM_WASI_IMPORTS_BASE() -> i32 { 11 }
-fn NUM_WASI_IMPORTS() -> i32 { 14 }
+fn NUM_WASI_IMPORTS_BASE() -> i32 { 15 }
+fn NUM_WASI_IMPORTS() -> i32 { 18 }
 fn NUM_WASI_TYPES_BASE() -> i32 { 6 }
 fn NUM_WASI_TYPES() -> i32 { 9 }
 fn WASI_IMPORT_PROC_EXIT() -> i32 { 6 }

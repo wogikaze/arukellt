@@ -1,0 +1,21 @@
+// Arukellt Selfhost - WASI Preview 1 syscall name registry (#073).
+
+fn wasi_p1_syscall_names() -> Vec<String> {
+    let mut names = Vec_new()
+    push(names, String_from("args_get"))
+    push(names, String_from("args_sizes_get"))
+    push(names, String_from("clock_res_get"))
+    push(names, String_from("clock_time_get"))
+    push(names, String_from("environ_get"))
+    push(names, String_from("environ_sizes_get"))
+    push(names, String_from("fd_close"))
+    push(names, String_from("fd_fdstat_get"))
+    push(names, String_from("fd_read"))
+    push(names, String_from("fd_seek"))
+    push(names, String_from("fd_tell"))
+    push(names, String_from("fd_write"))
+    push(names, String_from("path_open"))
+    push(names, String_from("proc_exit"))
+    push(names, String_from("random_get"))
+    names
+}

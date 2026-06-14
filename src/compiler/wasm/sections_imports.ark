@@ -65,9 +65,13 @@ fn emit_wasi_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, nee
     emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_close"), get_unchecked(host_type_map, 3))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("proc_exit"), get_unchecked(host_type_map, 4))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("clock_time_get"), get_unchecked(host_type_map, 5))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("clock_res_get"), get_unchecked(host_type_map, 5))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("random_get"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("environ_sizes_get"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("environ_get"), get_unchecked(host_type_map, 1))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_seek"), get_unchecked(host_type_map, 0))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_tell"), get_unchecked(host_type_map, 0))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_fdstat_get"), get_unchecked(host_type_map, 3))
     if needs_arukellt_host == 1 {
         emit_arukellt_host_import_entries(import_sec, host_type_map)
     }
