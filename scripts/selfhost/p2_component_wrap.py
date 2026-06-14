@@ -21,6 +21,12 @@ _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 from p2_guest_stdio_patch import patch_guest_core
+from p2_guest_fs_patch import patch_guest_fs_writes
+
+
+def patch_guest_for_wrap(core_wasm: bytes) -> bytes:
+    """Apply filesystem + stdio patches required by gate fixtures."""
+    return patch_guest_core(patch_guest_fs_writes(core_wasm))
 
 _DATA_DIR = Path(__file__).resolve().parent / "data"
 _BRIDGE_WASM = Path(__file__).resolve().parent / "p2_stdout_bridge.wasm"
@@ -413,7 +419,7 @@ def _wrap_via_wasm_tools_locked(core_wasm: bytes) -> bytes | None:
     import subprocess
     import tempfile
 
-    patched = patch_guest_core(core_wasm)
+    patched = patch_guest_for_wrap(core_wasm)
     wit = _WIT_DIR
     fs_wit = wit / "deps" / "filesystem"
     adapt_wats = {
@@ -524,7 +530,7 @@ def _wrap_p2_command_component_bridged(core_wasm: bytes) -> bytes:
     out.bytes(P2_HOST_IMPORT_PREFIX.read_bytes())
 
     bridge = load_bridge_module()
-    guest = patch_guest_core(core_wasm)
+    guest = patch_guest_for_wrap(core_wasm)
     for module in (
         bridge,
         stub_env_module(),
@@ -653,7 +659,7 @@ def _wrap_p2_command_component_host(core_wasm: bytes) -> bytes:
 
 def _wrap_p2_command_component_legacy(core_wasm: bytes) -> bytes:
     """Stub-only wrap (validate + run export shape; stdout stays empty)."""
-    guest = patch_guest_core(core_wasm)
+    guest = patch_guest_for_wrap(core_wasm)
     out = Writer()
     out.bytes(b"\x00asm\x0d\x00\x01\x00")
 

@@ -49,12 +49,11 @@ FD_WRITE_NEW = bytes(
         0x02,
         0x00,
         0x41,
-        0x84,
-        0x01,
+        0x00,  # iov ptr @ SCRATCH_IOV
         0x41,
-        0x00,
+        0x01,  # iov count 1
         0x10,
-        0x02,  # call write-via-stream (adapt performs flush)
+        0x02,  # call write-via-stream (P1 fd_write shim)
         0x1A,
     ]
 )
