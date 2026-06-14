@@ -1,7 +1,14 @@
 //! Wasmtime runner with conditional `arukellt_host` HTTP and TCP socket linking.
 
+mod debug_runner;
 mod host_http;
 mod host_sockets;
+mod source_map;
+mod wasm_debug_patch;
+
+pub use debug_runner::{run_smoke, run_until_breakpoint, DebugPause, LiveLocal};
+pub use source_map::{parse_source_map, SourceMapEntry};
+pub use wasm_debug_patch::prepare_debug_wasm;
 
 use wasmtime::*;
 use wasmtime_wasi::preview1::WasiP1Ctx;

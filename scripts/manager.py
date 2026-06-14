@@ -4453,6 +4453,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-dap-lifecycle.py",
         ),
         (
+            "runtime Wasm debug smoke gate (#638)",
+            "python3 scripts/check/check-wasm-debug-smoke.py",
+        ),
+        (
             "init template gate (#464)",
             "python3 scripts/check/check-init-templates.py",
         ),

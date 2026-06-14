@@ -64,16 +64,13 @@ for the full DAP workflow.
 
 ### Current limitations
 
-These match `docs/debug-support.md` Limitations and the implemented DAP surface:
+These match [docs/debug-support.md](../../docs/debug-support.md):
 
-- Breakpoints are **simulated at source level** (not injected into the Wasm runtime)
-- Variables show **static source-text values**, not live runtime values
+- T1/T3 smoke programs support **live Wasm locals** via `arukellt_debug::breakpoint` hooks
 - Step In / Step Out behave the same as Step Over (no call-level granularity)
 - No watch expressions, evaluate support, or conditional breakpoints
 - Single main thread only
-
-Runtime-level Wasm debugging (source maps, wasmtime hooks, live variables) is
-tracked separately as issue #638.
+- Component targets remain best-effort / static variables
 
 ## Compatibility
 

@@ -1,0 +1,5 @@
+// Minimal .ark smoke program for runtime Wasm debugging (#638).
+fn main() {
+    let x = 42
+    print(x)
+}

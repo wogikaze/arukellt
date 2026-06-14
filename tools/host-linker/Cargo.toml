@@ -7,6 +7,21 @@ edition = "2021"
 name = "arukellt-host-run"
 path = "src/main.rs"
 
+[[bin]]
+name = "arukellt-debug-adapter"
+path = "src/bin/debug_adapter.rs"
+
+[[bin]]
+name = "arukellt-debug-probe"
+path = "src/bin/debug_probe.rs"
+
+[[bin]]
+name = "arukellt-debug-prepare"
+path = "src/bin/debug_prepare.rs"
+
 [dependencies]
 wasmtime = "30"
 wasmtime-wasi = "30"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+walrus = "0.23"

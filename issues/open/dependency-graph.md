@@ -20,7 +20,6 @@ graph LR
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I637["637 637 — Host capability honesty: fs metadata and read_dir surface"]
-  I638["638 638 — Runtime-level Wasm debugging (source maps + wasmtime hooks)"]
   I28["28 034-wit-cli-integration"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
@@ -54,7 +53,6 @@ graph LR
 - **62** depends on: 074, 510; blocks: none
 - **63** depends on: 074, 137; blocks: none
 - **637** depends on: 051, 076; blocks: none
-- **638** depends on: 183; blocks: none
 - **28** depends on: 030, 031, 028b, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **646** depends on: 474; blocks: none

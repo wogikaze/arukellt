@@ -11,8 +11,8 @@ inspection through static source analysis.
 
 | Target | Debug Status | Breakpoints | Stepping | Variables |
 |--------|-------------|-------------|---------|-----------|
-| `wasm32-wasi-p1` (T1) | ✅ Supported | ✅ Source-level | ✅ Next/Continue | ✅ Static |
-| `wasm32-wasi-p2` (T3) | ✅ Supported | ✅ Source-level | ✅ Next/Continue | ✅ Static |
+| `wasm32-wasi-p1` (T1) | ✅ Supported | ✅ Wasm hooks | ✅ Next/Continue | ✅ Live (T1 smoke) |
+| `wasm32-wasi-p2` (T3) | ✅ Supported | ✅ Wasm hooks | ✅ Next/Continue | ✅ Live (T3 smoke) |
 | `wasm32-component` | ⚡ Best-effort | ✅ Source-level | ✅ Next/Continue | ✅ Static |
 | T2/T4/T5 | 🔴 Not implemented | — | — | — |
 
@@ -121,21 +121,28 @@ executable line.
 
 ## Limitations
 
-- Variables show source-text values, not runtime values
 - Step In / Step Out behave identically to Step Over
 - No watch expressions or evaluate support
 - No multi-thread debugging (single "main" thread)
-- Breakpoints are simulated at source level, not injected into Wasm runtime
 - No conditional breakpoints or function breakpoints
+- Component-model (`wasm32-component`) targets still use best-effort source-level debugging only
 
-## Future: Runtime-Level Debugging
+## Runtime-level debugging (T1/T3)
 
-A future enhancement will add Wasm-level breakpoint injection for true runtime
-debugging with live variable values. This requires:
+For programs compiled to core Wasm modules, `tools/host-linker` post-links a
+`metadata.debug.source_map` custom section (offset → source line) and injects
+`arukellt_debug::breakpoint` imports before execution. The
+`arukellt-debug-adapter` path registers wasmtime hooks that pause at mapped
+lines and return **live** Wasm local values in DAP `variables` responses.
 
-1. Compiler source map emission (Wasm offset → source line mapping)
-2. Wasmtime debug hook API integration
-3. Live variable inspection through Wasm locals
+Smoke coverage: `tests/fixtures/selfhost/debug_smoke.ark` and
+`scripts/check/check-wasm-debug-smoke.py`.
+
+## Future enhancements
+
+- Richer local naming beyond smoke heuristics
+- Multi-local / structured value pretty-printing
+- Conditional breakpoints and watch expressions
 
 ## Testing
 
