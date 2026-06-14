@@ -1,6 +1,10 @@
 # Legacy Path Deprecation Migration
 
-> Current state first: the canonical pipeline is described in [../current-state.md](../current-state.md).
+> **Archive**: This document describes a previous version. See [current-state](../../current-state.md).
+> **Archived**: 2026-06-15 (#647) — the selfhost-native CLI no longer exposes `--mir-select`;
+> CoreHIR is the only pipeline. Preserved for Rust-era migration history.
+
+> Current state first: the canonical pipeline is described in [../../current-state.md](../../current-state.md).
 > This page documents how to migrate off the deprecated legacy MIR-lowering path and what warnings to expect while that path still exists.
 
 ## What Is Deprecated
@@ -102,7 +106,7 @@ The strategy is intentionally staged:
 - Stage 2: document the migration path and keep the compatibility fallback available
 - Stage 3: remove the fallback after the real CoreHIR lowerer exists and fixture parity is proven
 
-Removal is not date-driven alone. It was blocked by [../../issues/done/508-legacy-path-removal-unblocked-by.md](../../issues/done/508-legacy-path-removal-unblocked-by.md), because `lower_hir_to_mir` still returned empty MIR.
+Removal is not date-driven alone. It was blocked by [../../../issues/done/508-legacy-path-removal-unblocked-by.md](../../../issues/done/508-legacy-path-removal-unblocked-by.md), because `lower_hir_to_mir` still returned empty MIR.
 
 ## Recommended Migration Order
 
@@ -114,7 +118,7 @@ Removal is not date-driven alone. It was blocked by [../../issues/done/508-legac
 ## Related Docs
 
 - [legacy-path-status.md](legacy-path-status.md)
-- [pipeline.md](pipeline.md)
-- [ir-spec.md](ir-spec.md)
-- [../../issues/done/285-legacy-path-deprecation.md](../../issues/done/285-legacy-path-deprecation.md)
-- [../../issues/done/508-legacy-path-removal-unblocked-by.md](../../issues/done/508-legacy-path-removal-unblocked-by.md)
+- [../../compiler/pipeline.md](../../compiler/pipeline.md)
+- [../../compiler/ir-spec.md](../../compiler/ir-spec.md)
+- [../../../issues/done/285-legacy-path-deprecation.md](../../../issues/done/285-legacy-path-deprecation.md)
+- [../../../issues/done/508-legacy-path-removal-unblocked-by.md](../../../issues/done/508-legacy-path-removal-unblocked-by.md)

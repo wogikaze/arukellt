@@ -21,8 +21,6 @@
 | [error-codes.md](error-codes.md) | Error Code Reference | Canonical listing of every diagnostic code emitted by the Arukellt compiler. |
 | [incremental-parse-design.md](incremental-parse-design.md) | Incremental Parse Design | The fundamental unit of incremental parsing is the file (module). When a file changes, the entire file is re-parsed. Fine-grained incremental parsing at the declaration or function level is considered out of scope for Phase 1 to limit complexity. |
 | [ir-spec.md](ir-spec.md) | CoreHIR / MIR Specification | This document describes the intermediate representations (IRs) used by the |
-| [legacy-path-migration.md](legacy-path-migration.md) | Legacy Path Deprecation Migration | Current state first: the canonical pipeline is described in ../current-state.md. |
-| [legacy-path-status.md](legacy-path-status.md) | Legacy Lowering Path Status | Retirement note (2026-04-22, #561): This document describes the legacy MIR |
 | [optimization.md](optimization.md) | Optimization Passes | Current-first reference for the v4 optimization pipeline. |
 | [panic-ice-policy.md](panic-ice-policy.md) | Panic / ICE Policy | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [pipeline.md](pipeline.md) | コンパイルパイプライン | Current reality first: 実装の現在地は ../current-state.md を基準にしてください。 |

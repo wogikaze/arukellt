@@ -17,7 +17,6 @@ graph LR
   I474["474 Async component support (v5)"]
   I618["618 618-wit-bindings-round-trip"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
-  I647["647 647 — Remove `--mir-select legacy` and legacy-path documentation"]
   I648["648 648 — Component export: general canonical ABI adapters (post-#121)"]
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
   I650["650 650 — T3 MIR: unlock remaining gated O2/O3 passes and general dead-fn-elim"]
@@ -51,7 +50,6 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: 646
 - **618** depends on: 262, 476; blocks: none
 - **63** depends on: 074, 137; blocks: none
-- **647** depends on: 585; blocks: none
 - **648** depends on: 121, 074; blocks: none
 - **649** depends on: 641; blocks: none
 - **650** depends on: 611; blocks: none

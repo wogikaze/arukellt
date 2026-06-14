@@ -12,6 +12,8 @@
 
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
+| [archive/legacy-path-migration.md](archive/legacy-path-migration.md) | Legacy Path Deprecation Migration | Archive | Archive: This document describes a previous version. See current-state. |
+| [archive/legacy-path-status.md](archive/legacy-path-status.md) | Legacy Lowering Path Status | Archive | Archive: This document describes a previous version. See current-state. |
 | [import-system.md](import-system.md) | Import System Contract | Archive | Status: normative for language/docs alignment in issue #123 acceptance slice. |
 | [scalar-types.md](scalar-types.md) | Scalar Types Specification | Archive | Archive: This document is a historical reference and is not the current behavior contract. |
 | [v0-unified-spec.md](v0-unified-spec.md) | Archived v0 unified spec | Archive | Archive: This document is a historical reference and is not the current behavior contract. |

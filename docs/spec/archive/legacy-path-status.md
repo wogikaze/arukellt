@@ -1,5 +1,9 @@
 # Legacy Lowering Path Status
 
+> **Archive**: This document describes a previous version. See [current-state](../../current-state.md).
+> **Archived**: 2026-06-15 (#647) — the selfhost-native CLI no longer exposes `--mir-select`;
+> CoreHIR is the only pipeline. Preserved for Rust-era lowering history.
+
 > **Retirement note (2026-04-22, #561)**: This document describes the legacy MIR
 > lowering surface as it existed inside the **now-deleted** Rust `crates/ark-mir/`.
 > That entire crate was removed in #561; the symbols and file paths below
@@ -11,8 +15,8 @@
 > picture.
 
 **Updated**: 2026-04-18
-**Related issue**: [issues/done/285-legacy-path-deprecation.md](../../issues/done/285-legacy-path-deprecation.md)
-**Blocker issue**: [issues/done/508-legacy-path-removal-unblocked-by.md](../../issues/done/508-legacy-path-removal-unblocked-by.md)
+**Related issue**: [../../../issues/done/285-legacy-path-deprecation.md](../../../issues/done/285-legacy-path-deprecation.md)
+**Blocker issue**: [../../../issues/done/508-legacy-path-removal-unblocked-by.md](../../../issues/done/508-legacy-path-removal-unblocked-by.md)
 **Migration guide**: [legacy-path-migration.md](legacy-path-migration.md)
 
 ## Current Pipeline State
@@ -62,7 +66,7 @@ implementation**. It processes the typed AST and produces all MIR functions that
 the Wasm backend needs. Until `lower_hir_to_mir` is implemented to produce actual
 MIR functions from CoreHIR, no compilation fixture will pass without it.
 
-This was tracked in [issues/done/508-legacy-path-removal-unblocked-by.md](../../issues/done/508-legacy-path-removal-unblocked-by.md).
+This was tracked in [../../../issues/done/508-legacy-path-removal-unblocked-by.md](../../../issues/done/508-legacy-path-removal-unblocked-by.md).
 
 ## What Has Changed (2026-04-15)
 

@@ -4,14 +4,12 @@ This note is implementation-facing only. It freezes the frontend handoff expecte
 
 ## Compile path status
 
-CoreHIR is **the default** compile path for all CLI commands (`compile`, `build`, `run`).
+CoreHIR is **the only** compile path for all CLI commands (`compile`, `build`, `run`, `check`).
+The selfhost-native CLI exposes no MIR selector flags.
 
 A desugaring pass (historically `crates/ark-mir/src/opt/desugar.rs`; now in selfhost `src/compiler/mir.ark` after the Rust crate was retired in #561) runs as a pre-optimization step and
 converts `IfExpr`, `LoopExpr`, and `TryExpr` operands into statement form (`IfStmt`,
 `WhileStmt`, `Assign` with temporaries). This ensures `validate_backend_legal_module` passes.
-
-**CLI flag**: Use `--mir-select legacy` to opt in to the legacy path if needed.
-The default is `--mir-select corehir`.
 
 ## CoreHIR node inventory
 

@@ -8,11 +8,9 @@
 
 ## Pipeline
 
-The **corehir** path is the default for all CLI commands (`compile`, `build`, `run`, `check`).
-The legacy path remains available as an opt-in fallback via `--mir-select legacy`.
+The **corehir** path is the only pipeline for all CLI commands (`compile`, `build`, `run`, `check`).
 
-- **corehir** (default): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
-- **legacy** (opt-in fallback): `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm`
+- **corehir** (only path): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
 - Component path (v2): `... → MIR → WasmEmit → WIT generation → wasm-tools component embed → wasm-tools component new` (default wrap passes `--adapt wasi_snapshot_preview1=…` to `component new` when a Preview 1 adapter module is discoverable; see [target-contract.md](target-contract.md#component-output-separate-guarantee-tier))
 - Shared orchestration entry point: selfhost driver (`src/compiler/driver/mod.ark` via `driver.ark` facade).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`

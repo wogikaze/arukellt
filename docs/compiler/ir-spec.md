@@ -67,17 +67,14 @@ Wasm Emitter ──► .wasm binary  (selfhost: src/compiler/emitter.ark)
 | MIR validation | `MirModule` | Validated `MirModule` | selfhost `src/compiler/mir.ark` |
 | Wasm emit | `MirModule` | `.wasm` binary | selfhost emitter (`src/compiler/emitter.ark`) |
 
-Two lowering paths exist:
+The selfhost-native compiler exposes a single lowering path:
 
-- **CoreHIR path** (`MirSelection::CoreHir`): the default user-visible route. It lowers
-    from typed HIR via `lower_check_output_to_mir`, but currently falls through to the
-    legacy implementation because the real CoreHIR lowerer is still incomplete.
-- **Legacy path** (`MirSelection::Legacy`): deprecated compatibility selector that lowers
-    directly from AST when explicitly requested.
+- **CoreHIR path** (default and only user-visible route): lowers from typed HIR /
+    CoreHIR via `lower_check_output_to_mir` in selfhost `src/compiler/mir.ark`.
 
-For deprecation status, migration examples, and blocker details, see
-[legacy-path-status.md](legacy-path-status.md) and
-[legacy-path-migration.md](legacy-path-migration.md).
+Historical notes on the retired Rust-era dual-path lowering are archived in
+[../spec/archive/legacy-path-status.md](../spec/archive/legacy-path-status.md) and
+[../spec/archive/legacy-path-migration.md](../spec/archive/legacy-path-migration.md).
 
 ---
 

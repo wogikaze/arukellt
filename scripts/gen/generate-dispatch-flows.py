@@ -19,7 +19,7 @@ MULTI = [
     ("3", "VSCode プロジェクト", "vscode-ide", [(441, "ark.toml"), (502, "multi-root")]),
     ("4", "VSCode セマンティック UX", "vscode-ide", [(439, "stdlib nav"), (440, "fix-all")]),
     ("5", "VSCode 基盤→Epic", "vscode-ide / runtime", [(191, "setup doctor"), (184, "extension foundation"), (183, "all-in-one epic"), (638, "Wasm debug")]),
-    ("6", "MIR 最適化", "mir-opt", [(80, "LICM"), (83, "loop unrolling")]),
+    ("6", "MIR 最適化", "mir-opt", [(80, "LICM"), (83, "loop unrolling"), (650, "T3 gated O2/O3 passes")]),
     ("7", "std::host 実装", "runtime/stdlib", [(445, "process"), (446, "http"), (447, "sockets"), (633, "capability honesty")]),
     ("8", "Selfhost フロント", "selfhost-frontend", [(566, "partial AST"), (636, "structured diag")]),
     ("9", "Wasm 品質", "wasm-quality", [(117, "WIT quality"), (118, "multi-export world")]),
@@ -29,25 +29,29 @@ MULTI = [
         "12",
         "Component compose",
         "wasm-feature",
-        [(74, "native component (#074)"), (476, "wasm-tools compose"), (443, "composition linking"), (618, "WIT bindings round-trip")],
+        [(74, "native component (#074)"), (476, "wasm-tools compose"), (443, "composition linking"), (618, "WIT bindings round-trip"), (648, "general canonical ABI (#648)"), (659, "f32 general adapters"), (660, "Tier2 general adapters")],
     ),
-    ("13", "WIT / CLI", "component-model", [(74, "native component (#074)"), (124, "WIT import syntax"), (30, "jco interop"), (28, "wit-cli (#034)")]),
+    ("13", "WIT / CLI", "component-model", [(74, "native component (#074)"), (124, "WIT import syntax (#124)"), (652, "WIT import parser"), (653, "WIT import resolver+MIR"), (654, "WIT import component emit"), (473, "WIT resource handles"), (651, "WIT flags type"), (30, "jco interop"), (28, "wit-cli (#034)")]),
     (
         "14",
         "std::host P2 rollout",
         "wasi-feature",
-        [(74, "native component (#074)"), (139, "sockets P2 facade"), (63, "http P2 facade (#077)"), (138, "shared capabilities T1/T3"), (136, "host layer rollout")],
+        [(74, "native component (#074)"), (139, "sockets P2 facade (#139)"), (657, "sockets connect+read"), (658, "sockets listen+accept"), (63, "http P2 facade (#077)"), (655, "HTTP outgoing client"), (656, "HTTP incoming server"), (138, "shared capabilities T1/T3"), (136, "host layer rollout")],
     ),
-    ("15", "Async / P3", "wasm-feature", [(74, "native component (#074)"), (474, "async component (v5)"), (646, "T5 wasi-p3 scaffold")]),
+    ("15", "Async / P3", "wasm-feature", [(74, "native component (#074)"), (474, "async component (v5)"), (646, "T5 wasi-p3 scaffold"), (649, "T4 native full lowering")]),
 ]
 
 BLOCKED = [
-    ("16", "stdlib blocked", "stdlib", 41, "std-time-random"),
+    ("16", "stdlib blocked", "stdlib", 41, "std-time-random (#051 umbrella)"),
+    ("16", "stdlib blocked", "stdlib", 661, "clock/random intrinsics emitter"),
+    ("16", "stdlib blocked", "stdlib", 662, "time duration typecheck"),
     ("16", "stdlib blocked", "stdlib", 44, "std-wit-component"),
     ("16", "stdlib blocked", "stdlib", 45, "std-json-toml-csv"),
 ]
 
-HYGIENE: list[tuple[str, str, str, int, str]] = []
+HYGIENE: list[tuple[str, str, str, int, str]] = [
+    ("17", "Selfhost hygiene", "selfhost-retirement", 647, "remove mir-select legacy docs"),
+]
 LANE_ISSUE_KEYS: set[str] = set()
 
 
@@ -193,6 +197,14 @@ def main() -> None:
     )
     for lane_id, name, track, iid, summary in BLOCKED:
         key = resolve_lane_id(iid)
+        if not is_open(key, open_by_key):
+            continue
+        st, pr, _ = dispatch_cell(iid, open_by_key, prio)
+        lines.append(f"| {lane_id} {name} | {track} | {format_issue_ref(iid)} | {pr} | {st} | {summary} |")
+
+    for lane_id, name, track, iid, summary in HYGIENE:
+        key = resolve_lane_id(iid)
+        register_lane_id(iid)
         if not is_open(key, open_by_key):
             continue
         st, pr, _ = dispatch_cell(iid, open_by_key, prio)
