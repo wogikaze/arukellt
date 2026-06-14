@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-14T10:34:14Z",
+  "generated_at": "2026-06-14T11:12:37Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -132,6 +132,31 @@
       }
     },
     {
+      "id": "443",
+      "path": "443-component-composition-linking-model.md",
+      "title": "443-component-composition-linking-model",
+      "track": "component-composition",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "442",
+        "476"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "45",
       "path": "055-std-json-toml-csv.md",
       "title": "std: \":json + std::toml + std::csv: データ形式パーサ\"",
@@ -186,10 +211,10 @@
       }
     },
     {
-      "id": "476",
-      "path": "476-wasm-tools-compose-integration.md",
-      "title": "`wasm-tools compose` 統合 (v3 候補)",
-      "track": "wasm-feature",
+      "id": "618",
+      "path": "618-wit-bindings-round-trip.md",
+      "title": "618-wit-bindings-round-trip",
+      "track": "component-model",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
@@ -197,20 +222,16 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "035",
-        "done)",
-        "074"
+        "262",
+        "476"
       ],
-      "blocks_issue_ids": [
-        "443",
-        "618"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 5
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "design-ready",
         "upstream_notes": "None"
       }
     },
@@ -365,56 +386,6 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "443",
-      "path": "443-component-composition-linking-model.md",
-      "title": "443-component-composition-linking-model",
-      "track": "component-composition",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "442",
-        "476"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "618",
-      "path": "618-wit-bindings-round-trip.md",
-      "title": "618-wit-bindings-round-trip",
-      "track": "component-model",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "262",
-        "476"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
       }
     }
   ],

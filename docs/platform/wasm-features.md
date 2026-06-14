@@ -81,6 +81,19 @@
 | `T3WasmGcP2` | Wasm GC-native runtime on `wasm32-wasi-p2` | Active |
 | `T4LlvmScaffold` | LLVM native scaffold | Optional / not implemented |
 
+## Component composition (`wasm-tools` / `wac`)
+
+Arukellt component 出力は **core wasm → `wasm-tools component embed` → `wasm-tools component new`**（WASI P1 では `wasi_snapshot_preview1.reactor.wasm` adapter）で `.component.wasm` にします。
+
+複数コンポーネントのリンクは **`wac plug`**（`wasm-tools compose` の後継）を使います。
+
+1. **Provider**（例: `math_lib.ark`）を `--emit wasm` で core wasm にコンパイルし、WIT world と `component embed/new` で plug component を生成する。
+2. **Consumer socket** は import を宣言した WIT world が必要（#124 完了までは `tests/component-interop/compose/runner-cargo/` の cargo-component ゲストが socket を供給）。
+3. `wac plug --plug <provider.component.wasm> <socket.component.wasm> -o composed.component.wasm`
+4. `wasmtime run --wasm gc --wasm component-model --invoke 'run()' composed.component.wasm`
+
+スモークテスト: `bash tests/component-interop/compose/run.sh`（`ARUKELLT_TEST_COMPOSE=1` で `verify quick` に含める）。
+
 ## 関連
 
 - [../current-state.md](../current-state.md)

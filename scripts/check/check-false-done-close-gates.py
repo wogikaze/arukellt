@@ -27,12 +27,14 @@ DONE_DIR = REPO_ROOT / "issues" / "done"
 MANIFEST = REPO_ROOT / "tests" / "fixtures" / "manifest.txt"
 PLAYGROUND = REPO_ROOT / "playground"
 _GATE074_LOCK = REPO_ROOT / ".build" / "close-gate-074.lock"
+_GATE076_LOCK = REPO_ROOT / ".build" / "close-gate-076.lock"
 
 ISSUE_ID_RE = re.compile(r"^(\d{3})")
 
 # issue_id -> list of human-readable gate names (for error messages)
 TRACKED: dict[str, list[str]] = {
     "074": ["P2 component validate + wasmtime run (wasi_p2_native/hello.ark)"],
+    "076": ["P2 filesystem fixture validate + wasmtime run (wasi_fs_p2.ark)"],
     "510": ["P2 component wasm-tools validate"],
     "472": ["playground typecheck distinguishes parse vs type errors"],
     "500": ["playground wasm typecheck export gate"],
@@ -245,6 +247,66 @@ def _wasmtime_run(component: Path, expect_stdout: str) -> tuple[int, str]:
     return 0, ""
 
 
+
+def _wasmtime_run_dir(component: Path, expect_stdout: str) -> tuple[int, str]:
+    wasmtime = _find_tool("wasmtime")
+    if not wasmtime:
+        return 2, "wasmtime not in PATH"
+    result = subprocess.run(
+        [wasmtime, "run", "--dir", str(REPO_ROOT), str(component)],
+        capture_output=True, text=True, timeout=60, cwd=str(REPO_ROOT),
+    )
+    if result.returncode != 0:
+        return 1, f"wasmtime exit {result.returncode}: {(result.stderr or '')[-400:]}"
+    if expect_stdout not in result.stdout:
+        return 1, f"expected stdout containing {expect_stdout!r}, got {result.stdout!r}"
+    return 0, ""
+
+
+def gate_076() -> tuple[int, str]:
+    entry = "component-compile:wasi_fs_p2.ark"
+    if not _manifest_contains(entry):
+        return 1, f"manifest missing {entry}"
+    _GATE076_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    with _GATE076_LOCK.open("w", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        return _gate_076_locked()
+
+
+def _gate_076_locked() -> tuple[int, str]:
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("runtime_lock", REPO_ROOT / "scripts" / "selfhost" / "runtime_lock.py")
+    if spec is None or spec.loader is None:
+        return 1, "missing scripts/selfhost/runtime_lock.py"
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.with_selfhost_runtime_lock(_gate_076_body)
+
+
+def _gate_076_body() -> tuple[int, str]:
+    last_rc = 1
+    last_msg = ""
+    for attempt in range(3):
+        out_dir = Path(tempfile.mkdtemp(prefix="close-gate-076-", dir=REPO_ROOT / ".build"))
+        try:
+            out = out_dir / "wasi_fs_p2.component.wasm"
+            last_rc, last_msg = _compile_p2_component("tests/fixtures/wasi_fs_p2.ark", out)
+            if last_rc != 0:
+                continue
+            last_rc, last_msg = _wasm_tools_validate(out)
+            if last_rc != 0:
+                continue
+            last_rc, last_msg = _wasmtime_run_dir(out, "hello p2 fs")
+            if last_rc == 0:
+                return 0, ""
+        finally:
+            shutil.rmtree(out_dir, ignore_errors=True)
+        if attempt < 2:
+            time.sleep(0.1 * (attempt + 1))
+    return last_rc, last_msg
+
+
+
 def gate_074() -> tuple[int, str]:
     entry = "component-compile:wasi_p2_native/hello.ark"
     if not _manifest_contains(entry):
@@ -441,6 +503,7 @@ def gate_643() -> tuple[int, str]:
 
 GATES: dict[str, callable[[], tuple[int, str]]] = {
     "074": gate_074,
+    "076": gate_076,
     "510": gate_510,
     "472": gate_472,
     "500": gate_500,

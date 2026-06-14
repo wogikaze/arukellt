@@ -11,24 +11,21 @@ graph LR
   I30["30 036-jco-javascript-interop"]
   I41["41 051-std-time-random"]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
+  I443["443 443-component-composition-linking-model"]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
   I474["474 Async component support (v5)"]
-  I476["476 `wasm-tools compose` 統合 (v3 候補)"]
+  I618["618 618-wit-bindings-round-trip"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I637["637 637 — Host capability honesty: fs metadata and read_dir surface"]
   I28["28 034-wit-cli-integration"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
-  I443["443 443-component-composition-linking-model"]
-  I618["618 618-wit-bindings-round-trip"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I124 --> I28
   I138 --> I136
   I474 --> I646
-  I476 --> I443
-  I476 --> I618
   I124 --> I28
   I30 --> I31
 ```
@@ -40,17 +37,16 @@ graph LR
 - **30** depends on: 27; blocks: none
 - **41** depends on: 039, 040; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none
+- **443** depends on: 442, 476; blocks: none
 - **45** depends on: 039, 042, 044; blocks: none
 - **474** depends on: 035, done), 074; blocks: 646
-- **476** depends on: 035, done), 074; blocks: 443, 618
+- **618** depends on: 262, 476; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **63** depends on: 074, 137; blocks: none
 - **637** depends on: 051, 076; blocks: none
 - **28** depends on: 030, 031, 028b, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **646** depends on: 474; blocks: none
-- **443** depends on: 442, 476; blocks: none
-- **618** depends on: 262, 476; blocks: none
 
 ### Blocked
 

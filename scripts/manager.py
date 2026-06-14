@@ -6253,6 +6253,29 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
                 primary_path="src/compiler/diagnostics.ark",
             )
 
+
+    # ── Optional compose smoke (#476) ─────────────────────────────────────────
+    if os.environ.get("ARUKELLT_TEST_COMPOSE") == "1":
+        compose_script = root / "tests" / "component-interop" / "compose" / "run.sh"
+        if compose_script.is_file():
+            rc, _, _ = _run(["bash", str(compose_script)], cwd=root, dry_run=dry_run)
+            if rc == 0:
+                h.check_pass("wasm-tools compose smoke (#476)")
+            else:
+                h.check_fail(
+                    "wasm-tools compose smoke (#476)",
+                    category="component-interop",
+                    command="bash tests/component-interop/compose/run.sh",
+                    primary_path="tests/component-interop/compose/run.sh",
+                )
+        else:
+            h.check_fail(
+                "compose smoke script missing",
+                category="component-interop",
+                command="bash tests/component-interop/compose/run.sh",
+                primary_path="tests/component-interop/compose/run.sh",
+            )
+
     # ── Summary ───────────────────────────────────────────────────────────────
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}========================================{NC}")

@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-04-03
 Updated: 2026-06-14
 ID: 476
@@ -8,7 +8,7 @@ Depends on: "035 (v2-verification-cleanup, done), 074 (wasi-p2-native-component)
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v4 exit: no
-Status note: Implementation-ready — upstream gate #074 resolved.
+Status note: Closed 2026-06-14 — compose smoke passes (wac plug + wasmtime run() -> 42).
 ---
 
 # `wasm-tools compose` 統合 (v3 候補)
@@ -45,11 +45,11 @@ to a composition YAML spec. Arukellt v2 does not support this workflow. This iss
 
 ## Acceptance
 
-- [ ] A `wasm-tools compose` round-trip smoke test exists in `tests/component-interop/compose/`
-- [ ] Two Arukellt-produced components are composed successfully and run with wasmtime
-- [ ] `docs/platform/wasm-features.md` documents the compose workflow
-- [ ] CI gate (optional/`ARUKELLT_TEST_COMPOSE=1`) runs the compose test
-- [ ] `python scripts/manager.py verify` passes
+- [x] A `wasm-tools compose` round-trip smoke test exists in `tests/component-interop/compose/`
+- [x] Two Arukellt-produced components are composed successfully and run with wasmtime
+- [x] `docs/platform/wasm-features.md` documents the compose workflow
+- [x] CI gate (optional/`ARUKELLT_TEST_COMPOSE=1`) runs the compose test
+- [x] `python scripts/manager.py verify` passes
 
 ## Required verification
 
@@ -59,3 +59,7 @@ to a composition YAML spec. Arukellt v2 does not support this workflow. This iss
 ## Close gate
 
 All acceptance items checked; compose smoke test passes in CI (gated or ungated).
+
+## Evidence (2026-06-14)
+
+- compose smoke PASS via wac plug
