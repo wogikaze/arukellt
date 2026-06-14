@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Patch P2 guest core wasm Preview-1 fd_write sequences to P2 stream writes."""
+"""Patch P2 guest core wasm Preview-1 fd_write sequences for P1 reactor adapt."""
 
 from __future__ import annotations
 
@@ -17,15 +17,16 @@ from p2_guest_stdio_patch import (
     _section_payload,
 )
 
-# P1-style fd_write(fd@84, iov@0, 1, nwritten@8) misrouted to stdout import 0.
+_PREVIEW1 = "wasi_snapshot_preview1"
+
 FD_WRITE_OLD = bytes(
     [
         0x41,
         0xD4,
-        0x00,  # i32.const 84
+        0x00,
         0x28,
         0x02,
-        0x00,  # i32.load
+        0x00,
         0x41,
         0x00,
         0x41,
@@ -33,13 +34,11 @@ FD_WRITE_OLD = bytes(
         0x41,
         0x08,
         0x10,
-        0x00,  # call 0
-        0x1A,  # drop
+        0x00,
+        0x1A,
     ]
 )
 
-# write-via-stream import 2; blocking-write-and-flush import 4 (replaced guest imports).
-# Stream handle lives at result@132+4 after write-via-stream.
 FD_WRITE_NEW = bytes(
     [
         0x41,
@@ -49,44 +48,46 @@ FD_WRITE_NEW = bytes(
         0x02,
         0x00,
         0x41,
-        0x00,  # iov ptr @ SCRATCH_IOV
+        0x00,
         0x41,
-        0x01,  # iov count 1
+        0x01,
+        0x41,
+        0x08,
         0x10,
-        0x02,  # call write-via-stream (P1 fd_write shim)
+        0x02,
         0x1A,
     ]
 )
 
-WRITE_VIA_STREAM_TYPE_IDX = 5
-WRITE_VIA_STREAM_IMPORT_IDX = 2
-BLOCKING_WRITE_FLUSH_IMPORT_IDX = 4
+FD_WRITE_TYPE_IDX = 0
+FD_WRITE_IMPORT_IDX = 2
+OPEN_AT_IMPORT_IDX = 3
+OPEN_AT_TYPE_IDX = 2
+FD_CLOSE_IMPORT_IDX = 5
+FD_CLOSE_TYPE_IDX = 3
 
 
 def patch_guest_fs_writes(core_wasm: bytes) -> bytes:
-    """Rewrite misrouted fd_write calls and retarget unused guest imports."""
     if core_wasm[:4] != b"\x00asm":
         return core_wasm
     if FD_WRITE_OLD not in core_wasm:
         return core_wasm
-    core_wasm = _retarget_fs_stream_imports(core_wasm)
+    core_wasm = _retarget_preview1_fs_imports(core_wasm)
     return _patch_code_section(core_wasm)
 
 
-def _retarget_fs_stream_imports(core_wasm: bytes) -> bytes:
+def _retarget_preview1_fs_imports(core_wasm: bytes) -> bytes:
     import_payload = bytearray(_section_payload(core_wasm, 2) or b"")
-    if b"write-via-stream" in import_payload:
+    if _PREVIEW1.encode("utf-8") in import_payload and b"path_open" in import_payload:
         return core_wasm
 
     entries = _parse_import_entries(import_payload)
-    if len(entries) <= BLOCKING_WRITE_FLUSH_IMPORT_IDX:
+    if len(entries) <= FD_CLOSE_IMPORT_IDX:
         return core_wasm
 
-    entries[WRITE_VIA_STREAM_IMPORT_IDX] = (
-        "wasi:filesystem/types@0.2.0",
-        "write-via-stream",
-        WRITE_VIA_STREAM_TYPE_IDX,
-    )
+    entries[FD_WRITE_IMPORT_IDX] = (_PREVIEW1, "fd_write", FD_WRITE_TYPE_IDX)
+    entries[OPEN_AT_IMPORT_IDX] = (_PREVIEW1, "path_open", OPEN_AT_TYPE_IDX)
+    entries[FD_CLOSE_IMPORT_IDX] = (_PREVIEW1, "fd_close", FD_CLOSE_TYPE_IDX)
     return _replace_section(core_wasm, 2, _encode_import_entries(entries))
 
 

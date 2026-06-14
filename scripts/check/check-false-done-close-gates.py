@@ -34,7 +34,7 @@ ISSUE_ID_RE = re.compile(r"^(\d{3})")
 # issue_id -> list of human-readable gate names (for error messages)
 TRACKED: dict[str, list[str]] = {
     "074": ["P2 component validate + wasmtime run (wasi_p2_native/hello.ark)"],
-    "076": ["P2 filesystem fixture validate + wasmtime run (wasi_fs_p2.ark)"],
+    "076": ["P2 filesystem fixture validate + wasmtime run + p2_fs_out.txt (wasi_fs_p2.ark)"],
     "510": ["P2 component wasm-tools validate"],
     "472": ["playground typecheck distinguishes parse vs type errors"],
     "500": ["playground wasm typecheck export gate"],
@@ -254,12 +254,19 @@ def _wasmtime_run_dir(component: Path, expect_stdout: str) -> tuple[int, str]:
         return 2, "wasmtime not in PATH"
     result = subprocess.run(
         [wasmtime, "run", "--dir", str(REPO_ROOT), str(component)],
-        capture_output=True, text=True, timeout=60, cwd=str(REPO_ROOT),
+        capture_output=True,
+        timeout=60,
+        cwd=str(REPO_ROOT),
     )
     if result.returncode != 0:
-        return 1, f"wasmtime exit {result.returncode}: {(result.stderr or '')[-400:]}"
-    if expect_stdout not in result.stdout:
-        return 1, f"expected stdout containing {expect_stdout!r}, got {result.stdout!r}"
+        stderr = (result.stderr or b"").decode("utf-8", errors="replace")
+        return 1, f"wasmtime exit {result.returncode}: {stderr[-400:]}"
+    try:
+        stdout = result.stdout.decode("utf-8")
+    except UnicodeDecodeError:
+        return 1, f"stdout is not valid UTF-8: {result.stdout!r}"
+    if expect_stdout not in stdout:
+        return 1, f"expected stdout containing {expect_stdout!r}, got {stdout!r}"
     return 0, ""
 
 
@@ -286,9 +293,12 @@ def _gate_076_locked() -> tuple[int, str]:
 def _gate_076_body() -> tuple[int, str]:
     last_rc = 1
     last_msg = ""
+    out_file = REPO_ROOT / "p2_fs_out.txt"
     for attempt in range(3):
         out_dir = Path(tempfile.mkdtemp(prefix="close-gate-076-", dir=REPO_ROOT / ".build"))
         try:
+            if out_file.is_file():
+                out_file.unlink()
             out = out_dir / "wasi_fs_p2.component.wasm"
             last_rc, last_msg = _compile_p2_component("tests/fixtures/wasi_fs_p2.ark", out)
             if last_rc != 0:
@@ -297,8 +307,14 @@ def _gate_076_body() -> tuple[int, str]:
             if last_rc != 0:
                 continue
             last_rc, last_msg = _wasmtime_run_dir(out, "hello p2 fs")
-            if last_rc == 0:
-                return 0, ""
+            if last_rc != 0:
+                continue
+            if not out_file.is_file():
+                return 1, "p2_fs_out.txt missing after wasmtime run"
+            content = out_file.read_text(encoding="utf-8")
+            if content != "hello p2 fs":
+                return 1, f"p2_fs_out.txt expected 'hello p2 fs', got {content!r}"
+            return 0, ""
         finally:
             shutil.rmtree(out_dir, ignore_errors=True)
         if attempt < 2:

@@ -403,6 +403,41 @@ def _wasm_tools() -> str | None:
     return shutil.which("wasm-tools")
 
 
+def _preview1_reactor_adapter() -> Path | None:
+    """Locate WASI Preview 1 reactor adapter for guest preview1 imports."""
+    repo = _SELFHOST_DIR.parents[1]
+    candidates = [
+        repo / "wasi_snapshot_preview1.reactor.wasm",
+        repo / "bootstrap" / "wasi_snapshot_preview1.reactor.wasm",
+        Path.home() / ".local" / "share" / "arukellt" / "wasi_snapshot_preview1.reactor.wasm",
+        Path("/tmp/wasi_snapshot_preview1.reactor.wasm"),
+    ]
+    for path in candidates:
+        if path.is_file():
+            return path
+    dest = repo / ".build" / "wasi_snapshot_preview1.reactor.wasm"
+    if dest.is_file():
+        return dest
+    tool = _wasm_tools()
+    if tool is None:
+        return None
+    import subprocess
+    import urllib.request
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    url = (
+        "https://github.com/bytecodealliance/wasmtime/releases/download/"
+        "v39.0.1/wasi_snapshot_preview1.reactor.wasm"
+    )
+    try:
+        urllib.request.urlretrieve(url, dest)
+    except Exception:
+        return None
+    if dest.is_file() and dest.stat().st_size > 0:
+        return dest
+    return None
+
+
 def _append_run_sections(component: bytes) -> bytes:
     return _merge_run_export_sections(component)
 
@@ -487,27 +522,30 @@ def _wrap_via_wasm_tools_locked(core_wasm: bytes) -> bytes | None:
                 return None
             adapts[key] = dest
 
+        new_cmd = [
+            tool,
+            "component",
+            "new",
+            str(guest_emb),
+            "--import-name",
+            "wasi:cli/stdout-host@0.2.0=wasi:cli/stdout@0.2.0",
+            "--adapt",
+            f"wasi:cli/stdout@0.2.0={adapts['stdout']}",
+            "--adapt",
+            f"wasi:cli/environment@0.2.0={adapts['env']}",
+            "--adapt",
+            f"wasi:filesystem/types@0.2.0={adapts['fs']}",
+            "--adapt",
+            f"wasi:cli/stdin@0.2.0={adapts['stdin']}",
+            "--adapt",
+            f"wasi:cli/exit@0.2.0={adapts['exit']}",
+        ]
+        preview1 = _preview1_reactor_adapter()
+        if preview1 is not None:
+            new_cmd.extend(["--adapt", f"wasi_snapshot_preview1={preview1}"])
+        new_cmd.extend(["-o", str(out)])
         new = subprocess.run(
-            [
-                tool,
-                "component",
-                "new",
-                str(guest_emb),
-                "--import-name",
-                "wasi:cli/stdout-host@0.2.0=wasi:cli/stdout@0.2.0",
-                "--adapt",
-                f"wasi:cli/stdout@0.2.0={adapts['stdout']}",
-                "--adapt",
-                f"wasi:cli/environment@0.2.0={adapts['env']}",
-                "--adapt",
-                f"wasi:filesystem/types@0.2.0={adapts['fs']}",
-                "--adapt",
-                f"wasi:cli/stdin@0.2.0={adapts['stdin']}",
-                "--adapt",
-                f"wasi:cli/exit@0.2.0={adapts['exit']}",
-                "-o",
-                str(out),
-            ],
+            new_cmd,
             capture_output=True,
             text=True,
         )
