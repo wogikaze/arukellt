@@ -59,15 +59,48 @@ def _leb_write(value: int) -> bytes:
 
 
 def patch_guest_core(core_wasm: bytes) -> bytes:
-    """Apply stdio + `_start` signature patches needed by the P2 wrap helper."""
-    return _add_run_export(_patch_start_returns_i32(patch_guest_write_calls(core_wasm)))
+    """Apply stdio + `run` export patches needed by the P2 wrap helper."""
+    return _add_run_export(patch_guest_write_calls(core_wasm))
 
 
 def _add_run_export(core_wasm: bytes) -> bytes:
-    """Export `run` alias for `wasi:cli/command` embed + component-new."""
+    """Export `run` for wasi:cli/command when `_start` is still () -> ()."""
     start_idx = _export_func_index(core_wasm, "_start")
     if start_idx is None:
         return core_wasm
+    if _export_func_index(core_wasm, "run") is not None:
+        return core_wasm
+
+    import_func_count = _import_func_count(core_wasm)
+    defined_idx = start_idx - import_func_count
+    if defined_idx < 0:
+        return core_wasm
+    start_type_idx = _defined_func_type_index(core_wasm, defined_idx)
+    type_payload = _section_payload(core_wasm, 1)
+    if type_payload is None or start_type_idx is None:
+        return core_wasm
+    if _type_at(type_payload, start_type_idx) != VOID_FUNC_TYPE:
+        run_idx = start_idx
+    else:
+        core_wasm, i32_type_idx = _ensure_i32_func_type_index(core_wasm)
+        func_payload = bytearray(_section_payload(core_wasm, 3) or b"")
+        func_count, pos = _leb_read(func_payload, 0)
+        func_payload = _leb_write(func_count + 1) + bytes(func_payload[pos:]) + _leb_write(i32_type_idx)
+        core_wasm = _replace_section(core_wasm, 3, bytes(func_payload))
+        run_defined_idx = func_count
+        run_idx = import_func_count + run_defined_idx
+        body = bytearray()
+        body.extend(_leb_write(0))
+        body.append(0x10)
+        body.extend(_leb_write(start_idx))
+        body.extend(RETURN_I32)
+        code_payload = bytearray(_section_payload(core_wasm, 10) or b"")
+        code_count, pos = _leb_read(code_payload, 0)
+        code_payload = bytearray(_leb_write(code_count + 1) + bytes(code_payload[pos:]))
+        code_payload.extend(_leb_write(len(body)))
+        code_payload.extend(body)
+        core_wasm = _replace_section(core_wasm, 10, bytes(code_payload))
+
     for name in ("run", "wasi:cli/run@0.2.0#run"):
         if _export_func_index(core_wasm, name) is not None:
             continue
@@ -77,7 +110,7 @@ def _add_run_export(core_wasm: bytes) -> bytes:
         extra.extend(_leb_write(len(name)))
         extra.extend(name.encode("utf-8"))
         extra.append(0x00)
-        extra.extend(_leb_write(start_idx))
+        extra.extend(_leb_write(run_idx))
         new_payload = _leb_write(count + 1) + bytes(payload[pos:]) + bytes(extra)
         core_wasm = _replace_section(core_wasm, 7, bytes(new_payload))
     return core_wasm
@@ -104,6 +137,20 @@ def patch_guest_write_calls(core_wasm: bytes) -> bytes:
         out.extend(_leb_write(len(payload)))
         out.extend(payload)
     return bytes(out)
+
+
+def _ensure_i32_func_type_index(core_wasm: bytes) -> tuple[bytes, int]:
+    type_payload = _section_payload(core_wasm, 1)
+    if type_payload is None:
+        return core_wasm, 0
+    i32_type_idx = _find_type_index(type_payload, I32_FUNC_TYPE)
+    if i32_type_idx is not None:
+        return core_wasm, i32_type_idx
+    new_payload = bytes(type_payload) + I32_FUNC_TYPE
+    count, pos = _leb_read(new_payload, 0)
+    new_payload = _leb_write(count + 1) + new_payload[pos:]
+    core_wasm = _replace_section(core_wasm, 1, new_payload)
+    return core_wasm, count
 
 
 def _patch_start_returns_i32(core_wasm: bytes) -> bytes:

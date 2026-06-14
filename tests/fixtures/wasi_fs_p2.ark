@@ -1,0 +1,10 @@
+use std::host::fs
+
+fn main() {
+    let msg = "hello p2 fs"
+    let path = "p2_fs_out.txt"
+    match fs::write_string(path, msg) {
+        Result::Ok(_) => __intrinsic_println(msg),
+        Result::Err(_) => __intrinsic_println("write err"),
+    }
+}

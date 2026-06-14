@@ -1104,3 +1104,4 @@ run:stdlib_trait/hash_trait_nested.ark
 run:stdlib_toml/toml_parse_invalid_array_of_tables.ark
 # issue 487: Vec<Struct> len() correctness (fix in mir_lower)
 run:regression/vec_struct_len.ark
+component-compile:wasi_fs_p2.ark
