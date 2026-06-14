@@ -7,7 +7,7 @@ Source-backed docs for TCP socket operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::host::sockets` module defines TCP socket helpers (provisional, T3 only). Minimum `connect` is available on `wasm32-wasi-p2` via the host-linker; read/write/close are deferred. Importing this module on T1 (wasm32-wasi-p1) emits E0500. See [#139](../../../issues/done/139-std-wasi-sockets-p2.md).
+The `std::host::sockets` module defines TCP socket helpers (provisional). It is **not user-reachable** on the current selfhost compile path — host bindings are tracked by [#447](../../../issues/done/447-std-host-sockets-implementation.md) and native WASI P2 sockets by [#139](../../../issues/open/139-std-wasi-sockets-p2.md). Importing this module on T1 (wasm32-wasi-p1) emits E0500.
 
 **Recommended API highlights:**
 
@@ -15,7 +15,7 @@ The `std::host::sockets` module defines TCP socket helpers (provisional, T3 only
 |-----|---------|
 | `connect(host, port)` | Open a TCP connection; returns `Ok(fd)` or `Err(message)`. |
 
-**Target constraints:** ⚠ **T3 only** — `wasm32-wasi-p2` (component model) required.
+**Target constraints:** ⚠ **Not user-reachable** on the current selfhost compile/run path. See [capability-surface.md](../../capability-surface.md) and issues #446 / #447 / #077 / #139.
 
 **Typical usage:**
 
@@ -37,11 +37,11 @@ match sock {
 - Manifest-backed functions: 1
 - Stability: provisional 1
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ⚠️ **T3 only** · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-wasi-p2` · ⚠️ **Not user-reachable** · ⚠️ **Status:** not user-reachable on selfhost path
 
-Host TCP socket helpers (provisional, T3 only). Minimum `connect` is
-available on `wasm32-wasi-p2` via the host-linker; read/write/close
-are deferred. See `docs/capability-surface.md` and #139.
+Host TCP socket helpers (provisional). **Not user-reachable** on the
+current selfhost compile path — see
+`docs/capability-surface.md` and issues #447 / #139.
 
 Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.
 
@@ -55,7 +55,7 @@ Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.
 
 Open a TCP connection to the given hostname and port. Returns a socket descriptor on success.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 only. Minimum connect via host-linker; returned fd is a placeholder (3), not a real fd table entry. Importing on T1 emits E0500.
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — ⚠️ Not available on wasm32-wasi-p2 — Not user-reachable on selfhost path (#633). Host bindings: #447 / #139. Importing on T1 emits E0500.
 
 **Errors:** Err on DNS resolution failure, connection refused, or network unreachable.
 

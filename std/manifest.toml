@@ -2679,7 +2679,7 @@ name = "std::host::sockets"
 target = ["wasm32-wasi-p2"]
 stability = "provisional"
 family = "expansion"
-doc = "TCP socket helpers (provisional, T3 only). Minimum `connect` via host-linker on wasm32-wasi-p2; read/write/close deferred. Importing on T1 emits E0500."
+doc = "TCP socket helpers (provisional). Not user-reachable on the current selfhost compile path. Host bindings tracked by #447; native WASI P2 sockets by #139."
 
 [[functions]]
 name = "connect"
@@ -2693,7 +2693,7 @@ stability = "provisional"
 doc_category = "host_sockets"
 doc = "Open a TCP connection to the given hostname and port. Returns a socket descriptor on success."
 errors = "Err on DNS resolution failure, connection refused, or network unreachable."
-availability = { t1 = false, t3 = true, note = "T3 only. Minimum connect via host-linker; returned fd is a placeholder (3), not a real fd table entry. Importing on T1 emits E0500." }
+availability = { t1 = false, t3 = false, note = "Not user-reachable on selfhost path (#633). Host bindings: #447 / #139. Importing on T1 emits E0500." }
 examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }", description = "Connect to a local server on port 8080"}]
 
 [[modules]]

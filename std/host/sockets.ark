@@ -2,7 +2,8 @@
 //!
 //! This module is **provisional and minimal**: it currently exposes only
 //! `connect`, with no in-tree read / write / close surface. Full socket fd
-//! lifecycle management is deferred (see `docs/stdlib/604-contract-honesty-gap-ledger.md`).
+//! lifecycle management is deferred (see issue chain under #074 / #139 and
+//! `docs/stdlib/604-contract-honesty-gap-ledger.md`).
 //!
 //! Honesty caveats:
 //!
