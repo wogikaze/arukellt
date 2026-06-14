@@ -2251,6 +2251,20 @@ def run_fmt_parity(root: Path, dry_run: bool) -> tuple[int, str]:
         print("DRY-RUN: run_fmt_parity()")
         return (0, "")
 
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "runtime_lock",
+        root / "scripts" / "selfhost" / "runtime_lock.py",
+    )
+    if spec is None or spec.loader is None:
+        return (1, f"{RED}error: missing scripts/selfhost/runtime_lock.py{NC}\n")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.with_selfhost_runtime_lock(lambda: _run_fmt_parity_locked(root))
+
+
+def _run_fmt_parity_locked(root: Path) -> tuple[int, str]:
     lines: list[str] = []
 
     pinned = _find_pinned_wasm(root)

@@ -19,14 +19,13 @@ Scoring criteria (0-5 each, total 25):
 | 6 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
 | 7 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
 | 8 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 9 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 10 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 11 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 12 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
-| 13 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
-| 14 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
-| 15 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 16 | 637 | 637 — Host capability honesty: fs metadata and read_dir sur... | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 17 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 18 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 19 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 9 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 10 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 11 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
+| 12 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
+| 13 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
+| 14 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 15 | 637 | 637 — Host capability honesty: fs metadata and read_dir sur... | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 16 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 17 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 18 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |

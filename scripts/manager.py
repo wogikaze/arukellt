@@ -4349,6 +4349,30 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     if manifest_ok:
         h.check_pass(f"Fixture manifest completeness ({fixture_count} entries)")
 
+    # Close gates use wasmtime + wasm-tools; run before parallel bg work.
+    close_gate_cmd = "python3 scripts/check/check-false-done-close-gates.py"
+    if dry_run:
+        h.check_pass("false-done close-gate enforcement")
+    else:
+        close_result = subprocess.run(
+            ["bash", "-lc", close_gate_cmd],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+        )
+        close_out = close_result.stdout + close_result.stderr
+        if close_result.returncode == 0:
+            h.check_pass("false-done close-gate enforcement")
+        else:
+            h.check_fail(
+                "false-done close-gate enforcement",
+                category="verification-hygiene",
+                command=close_gate_cmd,
+                primary_path="scripts/manager.py",
+            )
+            for line in close_out.splitlines()[-30:]:
+                print(line)
+
     # ── Background checks ─────────────────────────────────────────────────────
     print(f"\n{YELLOW}[bg] Running background checks in parallel...{NC}")
 
@@ -4467,10 +4491,6 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         (
             "false-done hygiene gate",
             "python3 scripts/check/check-false-done-hygiene.py",
-        ),
-        (
-            "false-done close-gate enforcement",
-            "python3 scripts/check/check-false-done-close-gates.py",
         ),
         (
             "component WIT parse gate (#117)",

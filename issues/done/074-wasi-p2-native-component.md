@@ -1,14 +1,14 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
-Updated: 2026-06-12
+Updated: 2026-06-14
 ID: 074
 Track: wasi-feature
 Depends on: 510, 121
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v4 exit: no
-Status note: Parent close gate for WASI P2 native. Reopened 2026-06-12 — false-done; selfhost bootstrap used component passthrough stub; close-gate evidence still missing.
+Status note: Closed 2026-06-14 — gate_074 passes (wasm-tools validate + wasmtime prints `hello p2` via component-new stdout adapt).
 ---
 
 ## Reopened by audit — 2026-06-12
@@ -121,8 +121,19 @@ close #074 until the close-gate checklist above is satisfied.
 
 ## Docs sync (docs-to-issues audit 2026-06-12)
 
-- [ ] `docs/target-contract.md` component output guarantee tiers match P2 native vs adapter reality
-- [ ] `docs/current-state.md` Component Model section cross-links #074 close-gate status (no stale "done" implication)
+- [x] `docs/target-contract.md` component output guarantee tiers match P2 native vs adapter reality (P2 native gate closed; adapter path remains separate)
+- [x] `docs/current-state.md` Component Model section cross-links #074 close-gate status (done 2026-06-14)
+
+## Close evidence — 2026-06-14
+
+| Gate item | Status | Evidence |
+|-----------|--------|----------|
+| compile + wrap | ✅ | `p2_component_wrap.py` → ~5.3KB component (`wasm-tools component embed/new`) |
+| wasm-tools validate | ✅ | `.build/close-gate-074/hello.component.wasm` |
+| wasmtime run stdio | ✅ | `gate_074` prints `hello p2` |
+| verify quick | ✅ | 164/164 |
+
+**Root fix:** `p2_guest_stdio_patch.py` now emits canonical ABI `write(ret=16, ptr, len, 0)` (was wrongly `write(ptr, len, 0, 0)`). Memory-less `p2_stdout_bridge_adapt.wat` forwards to host `get-stdout` + `blocking-write-and-flush`; `wasm-tools component new` wires guest memory for canon lower (no local adapt memory, no P1 adapter blob).
 
 ## 実装タスク
 

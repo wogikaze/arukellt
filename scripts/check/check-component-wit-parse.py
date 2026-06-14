@@ -11,6 +11,7 @@ For each ``component-wit-parse:`` manifest entry:
 
 from __future__ import annotations
 
+import fcntl
 import os
 import shutil
 import subprocess
@@ -19,6 +20,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = REPO_ROOT / "tests" / "fixtures" / "manifest.txt"
+_WASM_TOOLS_LOCK = REPO_ROOT / ".build" / "wasm-tools-component.lock"
 
 REQUIRED_MARKERS = (
     "option<",
@@ -83,12 +85,15 @@ def _normalize_wit(text: str) -> str:
 
 
 def _wasm_tools_parse_wit(tool: str, wit_path: Path) -> tuple[int, str]:
-    result = subprocess.run(
-        [tool, "component", "wit", str(wit_path)],
-        capture_output=True,
-        text=True,
-        timeout=60,
-    )
+    _WASM_TOOLS_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    with _WASM_TOOLS_LOCK.open("w", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        result = subprocess.run(
+            [tool, "component", "wit", str(wit_path)],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
     if result.returncode != 0:
         return result.returncode, (result.stderr or result.stdout)[-800:]
     return 0, result.stdout

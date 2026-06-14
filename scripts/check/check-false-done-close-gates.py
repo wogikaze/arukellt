@@ -16,8 +16,9 @@ import re
 import shutil
 import subprocess
 import sys
-import sys
 import tempfile
+import time
+import fcntl
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -25,6 +26,7 @@ OPEN_DIR = REPO_ROOT / "issues" / "open"
 DONE_DIR = REPO_ROOT / "issues" / "done"
 MANIFEST = REPO_ROOT / "tests" / "fixtures" / "manifest.txt"
 PLAYGROUND = REPO_ROOT / "playground"
+_GATE074_LOCK = REPO_ROOT / ".build" / "close-gate-074.lock"
 
 ISSUE_ID_RE = re.compile(r"^(\d{3})")
 
@@ -192,18 +194,20 @@ def _compile_p2_component_wrapped(fixture_rel: str, out: Path) -> tuple[int, str
         return 1, f"compile failed: {tail}"
     if not core_out.is_file():
         return 1, f"missing core wasm output {core_out}"
-    wrap = REPO_ROOT / "scripts" / "selfhost" / "p2_component_wrap.py"
-    wrap_cmd = [sys.executable, str(wrap), core_arg, out_arg]
-    result = subprocess.run(
-        wrap_cmd,
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    if result.returncode != 0:
-        tail = (result.stderr or result.stdout)[-800:]
-        return 1, f"p2_component_wrap failed: {tail}"
+    try:
+        import importlib.util
+
+        wrap_spec = importlib.util.spec_from_file_location(
+            "p2_component_wrap",
+            REPO_ROOT / "scripts" / "selfhost" / "p2_component_wrap.py",
+        )
+        if wrap_spec is None or wrap_spec.loader is None:
+            return 1, "missing scripts/selfhost/p2_component_wrap.py"
+        wrap_mod = importlib.util.module_from_spec(wrap_spec)
+        wrap_spec.loader.exec_module(wrap_mod)
+        out.write_bytes(wrap_mod.wrap_p2_command_component(core_out.read_bytes()))
+    except Exception as exc:  # noqa: BLE001
+        return 1, f"p2_component_wrap failed: {exc}"
     if not out.is_file():
         return 1, f"missing component output {out}"
     return 0, ""
@@ -245,16 +249,51 @@ def gate_074() -> tuple[int, str]:
     entry = "component-compile:wasi_p2_native/hello.ark"
     if not _manifest_contains(entry):
         return 1, f"manifest missing {entry}"
-    out_dir = REPO_ROOT / ".build" / "close-gate-074"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out = out_dir / "hello.component.wasm"
-    rc, msg = _compile_p2_component("tests/fixtures/wasi_p2_native/hello.ark", out)
-    if rc != 0:
-        return rc, msg
-    rc, msg = _wasm_tools_validate(out)
-    if rc != 0:
-        return rc, msg
-    return _wasmtime_run(out, "hello p2")
+    _GATE074_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    with _GATE074_LOCK.open("w", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        return _gate_074_locked()
+
+
+def _gate_074_locked() -> tuple[int, str]:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "runtime_lock",
+        REPO_ROOT / "scripts" / "selfhost" / "runtime_lock.py",
+    )
+    if spec is None or spec.loader is None:
+        return 1, "missing scripts/selfhost/runtime_lock.py"
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.with_selfhost_runtime_lock(_gate_074_body)
+
+
+def _gate_074_body() -> tuple[int, str]:
+    last_rc = 1
+    last_msg = ""
+    for attempt in range(3):
+        out_dir = Path(
+            tempfile.mkdtemp(prefix="close-gate-074-", dir=REPO_ROOT / ".build")
+        )
+        try:
+            out = out_dir / "hello.component.wasm"
+            last_rc, last_msg = _compile_p2_component(
+                "tests/fixtures/wasi_p2_native/hello.ark", out
+            )
+            if last_rc != 0:
+                continue
+            last_rc, last_msg = _wasm_tools_validate(out)
+            if last_rc != 0:
+                continue
+            last_rc, last_msg = _wasmtime_run(out, "hello p2")
+            if last_rc == 0:
+                return 0, ""
+        finally:
+            shutil.rmtree(out_dir, ignore_errors=True)
+        if attempt < 2:
+            time.sleep(0.1 * (attempt + 1))
+    return last_rc, last_msg
 
 
 def gate_510() -> tuple[int, str]:

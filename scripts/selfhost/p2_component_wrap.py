@@ -9,9 +9,11 @@ and appends wasi:cli/run export sections.
 from __future__ import annotations
 
 import argparse
+import fcntl
 import shutil
 import subprocess
 import sys
+import time
 from io import BytesIO
 from pathlib import Path
 
@@ -389,11 +391,10 @@ def _merge_run_export_sections_embed(component: bytes) -> bytes:
 
 
 def _wasm_tools() -> str | None:
-    tool = shutil.which("wasm-tools")
-    if tool:
-        return tool
     cargo = Path.home() / ".cargo" / "bin" / "wasm-tools"
-    return str(cargo) if cargo.is_file() else None
+    if cargo.is_file():
+        return str(cargo)
+    return shutil.which("wasm-tools")
 
 
 def _append_run_sections(component: bytes) -> bytes:
@@ -402,6 +403,10 @@ def _append_run_sections(component: bytes) -> bytes:
 
 def _wrap_via_wasm_tools(core_wasm: bytes) -> bytes | None:
     """Build command component via wasm-tools embed + component new + adapts."""
+    return _with_wasm_tools_lock(lambda: _wrap_via_wasm_tools_locked(core_wasm))
+
+
+def _wrap_via_wasm_tools_locked(core_wasm: bytes) -> bytes | None:
     tool = _wasm_tools()
     if tool is None or not _WIT_DIR.is_dir():
         return None
@@ -552,13 +557,43 @@ def _wrap_p2_command_component_bridged(core_wasm: bytes) -> bytes:
     return out.finish()
 
 
+_WRAP_LOCK = Path(__file__).resolve().parents[2] / ".build" / "p2-component-wrap.lock"
+_WASM_TOOLS_LOCK = Path(__file__).resolve().parents[2] / ".build" / "wasm-tools-component.lock"
+
+
+def _with_wasm_tools_lock(fn):
+    _WASM_TOOLS_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    with _WASM_TOOLS_LOCK.open("w", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        return fn()
+
+
+def _with_wrap_lock(fn):
+    _WRAP_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    with _WRAP_LOCK.open("w", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        return fn()
+
+
 def wrap_p2_command_component(core_wasm: bytes) -> bytes:
+    return _with_wrap_lock(lambda: _wrap_p2_command_component_locked(core_wasm))
+
+
+def _wrap_p2_command_component_locked(core_wasm: bytes) -> bytes:
+    tool = _wasm_tools()
+    if tool is not None:
+        for attempt in range(10):
+            via_tools = _wrap_via_wasm_tools(core_wasm)
+            if via_tools is not None:
+                return via_tools
+            if attempt < 9:
+                time.sleep(0.25)
+        raise RuntimeError("wasm-tools component embed/new failed")
     via_tools = _wrap_via_wasm_tools(core_wasm)
     if via_tools is not None:
         return via_tools
     try:
         bridged = _wrap_p2_command_component_bridged(core_wasm)
-        tool = _wasm_tools()
         if tool:
             import subprocess
             import tempfile

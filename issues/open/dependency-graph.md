@@ -16,7 +16,6 @@ graph LR
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
   I474["474 Async component support (v5)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
-  I60["60 074-wasi-p2-native-component"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I637["637 637 — Host capability honesty: fs metadata and read_dir surface"]
@@ -49,7 +48,6 @@ graph LR
 - **45** depends on: 039, 042, 044; blocks: none
 - **474** depends on: 035, done), 074; blocks: 646
 - **476** depends on: 035, done), 074; blocks: 443, 618
-- **60** depends on: 510, 121; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **63** depends on: 074, 137; blocks: none
 - **637** depends on: 051, 076; blocks: none
