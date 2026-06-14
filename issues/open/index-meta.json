@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-14T03:18:30Z",
+  "generated_at": "2026-06-14T03:21:14Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -314,54 +314,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "626",
-      "path": "626-ide-ready-frontend.md",
-      "title": "626-ide-ready-frontend",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "625"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 7,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "done",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "628",
-      "path": "628-lsp-minimum-viable.md",
-      "title": "628-lsp-minimum-viable",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "627"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 10,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "done",
-        "upstream_notes": null
       }
     },
     {
