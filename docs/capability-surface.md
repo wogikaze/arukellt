@@ -17,7 +17,7 @@
 | [`std::host::fs`](#stdhostfs) | 3 | Available | all |
 | [`std::host::process`](#stdhostprocess) | 2 | Available | all |
 | [`std::host::http`](#stdhosthttp) | 2 | Not user-reachable | — |
-| [`std::host::sockets`](#stdhostsockets) | 1 | Not user-reachable | — |
+| [`std::host::sockets`](#stdhostsockets) | 1 | Available (T3 only) | T3 |
 | [`std::host::udp`](#stdhostudp) | 1 | Not user-reachable | — |
 
 ---
@@ -145,24 +145,24 @@ Module stability is **provisional** (HTTPS not supported). There is no `--deny-h
 
 ### `std::host::sockets`
 
-**Not user-reachable** on the selfhost path.
-[#447](../issues/done/447-std-host-sockets-implementation.md) /
-[#139](../issues/open/139-std-wasi-sockets-p2.md).
+**T3 only** (`wasm32-wasi-p2`). Minimum TCP `connect` via the host-linker
+(`arukellt_host::sockets_connect`); read/write/close are not exposed yet.
+Closed by [#139](../issues/done/139-std-wasi-sockets-p2.md); host binding
+history in [#447](../issues/done/447-std-host-sockets-implementation.md).
 
 | Function | Signature | Status | Targets | Backing |
 |---|---|---|---|---|
-| `connect` | `(String, i32) -> Result<i32, String>` | not user-reachable | — | #447 / #139 |
+| `connect` | `(String, i32) -> Result<i32, String>` | available (minimum) | T3 | host-linker TCP connect |
 
 ---
 
 ### `std::host::udp`
 
-**Not user-reachable** on the selfhost path.
-[#139](../issues/open/139-std-wasi-sockets-p2.md).
+**Not user-reachable** on the selfhost path (no backing yet).
 
 | Function | Signature | Status | Targets | Backing |
 |---|---|---|---|---|
-| `send` | `(String, i32, String) -> Result<i32, String>` | not user-reachable | — | #139 |
+| `send` | `(String, i32, String) -> Result<i32, String>` | not user-reachable | — | — |
 
 ---
 
@@ -197,13 +197,14 @@ Module stability is **provisional** (HTTPS not supported). There is no `--deny-h
 
 ## Host Stub Enforcement
 
-No builtins in the stub list. `std::host::http`, `std::host::sockets`, and
-`std::host::udp` are **not user-reachable** on the selfhost path — see
+No builtins in the stub list. `std::host::http` and `std::host::udp` are
+**not user-reachable** on the selfhost path — see
 [#633](../issues/done/633-host-capability-surface-honesty-vs-selfhost-runtime.md),
 [#446](../issues/done/446-std-host-http-implementation.md),
-[#447](../issues/done/447-std-host-sockets-implementation.md),
-[#077](../issues/open/077-wasi-p2-http.md),
-[#139](../issues/open/139-std-wasi-sockets-p2.md).
+[#077](../issues/open/077-wasi-p2-http.md).
+`std::host::sockets::connect` is **T3-reachable** via the host-linker
+([#139](../issues/done/139-std-wasi-sockets-p2.md),
+[#447](../issues/done/447-std-host-sockets-implementation.md)).
 
 ---
 
@@ -246,7 +247,7 @@ blocked intrinsic, the program is still rejected.
 | `process::abort` | ✓ | ✓ |
 | `http::request` | — | — |
 | `http::get` | — | — |
-| `sockets::connect` | E0500 | — |
+| `sockets::connect` | E0500 | ✓ |
 
 ---
 
@@ -255,7 +256,8 @@ blocked intrinsic, the program is still rejected.
 1. **`env::var` unavailable on T1.** WASI Preview 1 on the T1 backend does
    not import `environ_get`, so `std::host::env::var` is T3-only.
 
-2. **HTTP/sockets/UDP not user-reachable (#633).** See #446/#447/#077/#139.
+2. **HTTP/UDP not user-reachable (#633).** See #446/#077. `std::host::sockets`
+   exposes minimum T3 `connect` only (#139); read/write/close deferred.
    HTTPS not supported for HTTP.
 
 3. **No `--deny-stdio` flag.** Standard I/O is unconditionally available.

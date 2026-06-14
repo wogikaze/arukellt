@@ -9,7 +9,6 @@ graph LR
   I118["118 118-wasm-multi-export-world"]
   I124["124 WIT component import syntax"]
   I138["138 138-std-wasi-shared-capabilities-t1-t3"]
-  I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I30["30 036-jco-javascript-interop"]
   I41["41 051-std-time-random"]
   I44["44 std: ":wit + std::component: WIT 型、resource handle、canonical ABI""]
@@ -28,7 +27,6 @@ graph LR
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I124 --> I28
   I138 --> I136
-  I139 --> I136
   I474 --> I646
   I476 --> I443
   I476 --> I618
@@ -41,7 +39,6 @@ graph LR
 - **118** depends on: 117, 074; blocks: none
 - **124** depends on: 074; blocks: 28
 - **138** depends on: 137, 051; blocks: 136
-- **139** depends on: 074, 137; blocks: 136
 - **30** depends on: 27; blocks: none
 - **41** depends on: 039, 040; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none

@@ -15,17 +15,16 @@ Scoring criteria (0-5 each, total 25):
 | 2 | 124 | WIT component import syntax | language-design | 1 | 0 | 1 | 5 | 4 | 11 |
 | 3 | 28 | 034-wit-cli-integration | component-model | 0 | 0 | 5 | 3 | 2 | 10 |
 | 4 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 5 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 6 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
-| 7 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
-| 8 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 9 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 10 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 11 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
-| 12 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
-| 13 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
-| 14 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 15 | 637 | 637 — Host capability honesty: fs metadata and read_dir sur... | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 16 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 17 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 18 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 5 | 476 | `wasm-tools compose` 統合 (v3 候補) | wasm-feature | 2 | 0 | 1 | 3 | 2 | 8 |
+| 6 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
+| 7 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 8 | 62 | WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 9 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 10 | 118 | 118-wasm-multi-export-world | wasm-quality | 0 | 0 | 1 | 3 | 3 | 7 |
+| 11 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
+| 12 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
+| 13 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 14 | 637 | 637 — Host capability honesty: fs metadata and read_dir sur... | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 15 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 16 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 17 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |

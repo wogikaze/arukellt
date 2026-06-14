@@ -699,12 +699,10 @@ match body {
         "overview": {
             "summary": (
                 "The `std::host::sockets` module defines TCP socket helpers "
-                "(provisional). It is **not user-reachable** on the current "
-                "selfhost compile path — host bindings are tracked by "
-                "[#447](../../../issues/done/447-std-host-sockets-implementation.md) and "
-                "native WASI P2 sockets by "
-                "[#139](../../../issues/open/139-std-wasi-sockets-p2.md). "
-                "Importing this module on T1 (wasm32-wasi-p1) emits E0500."
+                "(provisional, T3 only). Minimum `connect` is available on "
+                "`wasm32-wasi-p2` via the host-linker; read/write/close are "
+                "deferred. Importing this module on T1 (wasm32-wasi-p1) emits "
+                "E0500. See [#139](../../../issues/done/139-std-wasi-sockets-p2.md)."
             ),
             "highlights": [
                 ("`connect(host, port)`", "Open a TCP connection; returns `Ok(fd)` or `Err(message)`."),
@@ -733,9 +731,9 @@ HOST_MODULE_SOURCE_DOC_OVERRIDES: dict[str, list[str]] = {
         "**HTTPS is not supported**.",
     ],
     "std::host::sockets": [
-        "Host TCP socket helpers (provisional). **Not user-reachable** on the",
-        "current selfhost compile path — see",
-        "`docs/capability-surface.md` and issues #447 / #139.",
+        "Host TCP socket helpers (provisional, T3 only). Minimum `connect` is",
+        "available on `wasm32-wasi-p2` via the host-linker; read/write/close",
+        "are deferred. See `docs/capability-surface.md` and #139.",
         "",
         "Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.",
     ],
