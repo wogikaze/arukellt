@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-14T15:17:11Z",
+  "generated_at": "2026-06-14T19:18:32Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -18,7 +18,9 @@
         "074"
       ],
       "blocks_issue_ids": [
-        "28"
+        "28",
+        "473",
+        "651"
       ],
       "acceptance": {
         "checked": 0,
@@ -288,6 +290,103 @@
       }
     },
     {
+      "id": "647",
+      "path": "647-remove-mir-select-legacy.md",
+      "title": "647 — Remove `--mir-select legacy` and legacy-path documentation",
+      "track": "selfhost-retirement",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "585"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "648",
+      "path": "648-component-export-general-canonical-abi.md",
+      "title": "648 — Component export: general canonical ABI adapters (post-#121)",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "121",
+        "074"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "649",
+      "path": "649-t4-native-full-lowering.md",
+      "title": "649 — T4 native full lowering (beyond scaffold #641)",
+      "track": "wasm-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "641"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "650",
+      "path": "650-t3-mir-gated-pass-unlock.md",
+      "title": "650 — T3 MIR: unlock remaining gated O2/O3 passes and general dead-fn-elim",
+      "track": "mir-opt",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "611"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "28",
       "path": "034-wit-cli-integration.md",
       "title": "034-wit-cli-integration",
@@ -312,6 +411,56 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": 124
+      }
+    },
+    {
+      "id": "473",
+      "path": "473-wit-resource-handles.md",
+      "title": "473 — WIT resource handles (`resource`, `own<T>`, `borrow<T>`)",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "124"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "651",
+      "path": "651-wit-flags-type-support.md",
+      "title": "651 — WIT `flags` type support (remove E0090 rejection)",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "124"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
       }
     },
     {
