@@ -7,8 +7,8 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 387 | Backward-compatible within a major version. Safe for production use. |
-| [provisional](#provisional-apis) | 8 | API is usable but may change in minor versions based on feedback. |
+| [stable](#stable-apis) | 389 | Backward-compatible within a major version. Safe for production use. |
+| [provisional](#provisional-apis) | 17 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 175 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 25 | Superseded — see migration guidance. |
 
@@ -420,6 +420,11 @@ Expected output: `42`
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
 | `exists` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); no… |
+| `is_dir` | `(String) -> bool` | `std::fs` | `provisional` | `builtin` | no | - | Always false on current targets (honest stub until metadata intrinsics land). |
+| `is_file` | `(String) -> bool` | `std::fs` | `provisional` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. |
+| `is_readable_file` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Preferred read-probe name; semantics identical to exists. |
+| `metadata` | `(String) -> Result<String, String>` | `std::fs` | `provisional` | `builtin` | no | - | Always Err on current targets — path metadata not yet supported. |
+| `read_dir` | `(String) -> Result<Vec<String>, String>` | `std::fs` | `provisional` | `builtin` | no | - | Always Err on current targets — directory listing not yet supported. |
 | `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
 
@@ -463,13 +468,27 @@ match home { Some(p) => println(p), None => println("not set") }
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `exists` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | Read-probe semantics — NOT a general path-existence query. Attempts a full UTF-8 file read via the s… |
+| `exists` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | @deprecated Use is_readable_file instead. Same read-probe semantics — NOT a general path-existence q… |
 | `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
 | `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
+| `fs_error_message` | `(FsError) -> String` | `std::host::fs` | `provisional` | `builtin` | no | - | Format an FsError for display (used by read_dir/metadata and future typed fs APIs). |
+| `is_dir` | `(String) -> bool` | `std::host::fs` | `provisional` | `builtin` | no | - | Always false on current targets — directory-type detection requires path_filestat_get-style intrinsi… |
+| `is_file` | `(String) -> bool` | `std::host::fs` | `provisional` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until … |
+| `is_readable_file` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | Read-probe / readable-file check via __intrinsic_fs_read_file. False does not distinguish missing vs… |
+| `metadata` | `(String) -> Result<FsMetadata, FsError>` | `std::host::fs` | `provisional` | `builtin` | no | - | Structured metadata API contract. Always returns Err(IoError) on current targets because path_filest… |
+| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `std::host::fs` | `provisional` | `builtin` | no | - | Directory listing API contract. Always returns Err(IoError) on current targets because WASI director… |
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
+
+### `metadata` — `std::host::fs`
+
+**Errors:** Err(FsError::IoError) with message 'metadata not yet supported: <path>'.
+
+### `read_dir` — `std::host::fs`
+
+**Errors:** Err(FsError::IoError) with message 'directory listing not yet supported: <path>'.
 
 ### `read_to_string` — `std::host::fs`
 
@@ -1156,7 +1175,7 @@ Expected output: `hello world`
 | `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - | - |
 | `exists` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); no… |
-| `exists` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | Read-probe semantics — NOT a general path-existence query. Attempts a full UTF-8 file read via the s… |
+| `exists` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | @deprecated Use is_readable_file instead. Same read-probe semantics — NOT a general path-existence q… |
 | `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
 | `exit` | `(i32) -> ()` | `std::process` | `stable` | `builtin` | no | - | Terminate the process with the given exit code. |
 | `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
@@ -1237,6 +1256,8 @@ Expected output: `hello world`
 | `is_none` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `is_ok` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `is_power_of_two` | `(i32) -> bool` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `is_readable_file` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Preferred read-probe name; semantics identical to exists. |
+| `is_readable_file` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | Read-probe / readable-file check via __intrinsic_fs_read_file. False does not distinguish missing vs… |
 | `is_some` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_join` | - |
 | `join` | `(Vec<String>, String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_join` | - |
@@ -1417,7 +1438,16 @@ Expected output: `hello world`
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
 | `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
 | `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `builtin` | no | - | - |
+| `fs_error_message` | `(FsError) -> String` | `std::host::fs` | `provisional` | `builtin` | no | - | Format an FsError for display (used by read_dir/metadata and future typed fs APIs). |
 | `get` | `(String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p1, wasm32-wasi-p2)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:… |
+| `is_dir` | `(String) -> bool` | `std::fs` | `provisional` | `builtin` | no | - | Always false on current targets (honest stub until metadata intrinsics land). |
+| `is_dir` | `(String) -> bool` | `std::host::fs` | `provisional` | `builtin` | no | - | Always false on current targets — directory-type detection requires path_filestat_get-style intrinsi… |
+| `is_file` | `(String) -> bool` | `std::fs` | `provisional` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. |
+| `is_file` | `(String) -> bool` | `std::host::fs` | `provisional` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until … |
+| `metadata` | `(String) -> Result<String, String>` | `std::fs` | `provisional` | `builtin` | no | - | Always Err on current targets — path metadata not yet supported. |
+| `metadata` | `(String) -> Result<FsMetadata, FsError>` | `std::host::fs` | `provisional` | `builtin` | no | - | Structured metadata API contract. Always returns Err(IoError) on current targets because path_filest… |
+| `read_dir` | `(String) -> Result<Vec<String>, String>` | `std::fs` | `provisional` | `builtin` | no | - | Always Err on current targets — directory listing not yet supported. |
+| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `std::host::fs` | `provisional` | `builtin` | no | - | Directory listing API contract. Always returns Err(IoError) on current targets because WASI director… |
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
 | `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p1, wasm32-wasi-p2)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
 | `send` | `(String, i32, String) -> Result<i32, String>` | `std::host::udp` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_udp_send` | Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success. |

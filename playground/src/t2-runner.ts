@@ -4,9 +4,10 @@
  * @module
  */
 
-import type { RunOptions, RunResult } from "./compiler-types.js";
+import type { RunOptions, RunResult, StdinMode } from "./compiler-types.js";
 
 const textDecoder = new TextDecoder();
+const textEncoder = new TextEncoder();
 
 function getWasmInstance(
   instantiated: WebAssembly.Instance | WebAssembly.WebAssemblyInstantiatedSource,
@@ -18,6 +19,78 @@ function getWasmInstance(
 }
 
 /**
+ * Split stdin bytes into newline-delimited chunks for line-oriented reads.
+ *
+ * Each chunk ends with `\n` except a final line with no trailing newline in the
+ * source text.
+ */
+export function stdinBytesToLineChunks(stdin: Uint8Array): Uint8Array[] {
+  if (stdin.length === 0) {
+    return [];
+  }
+
+  const text = textDecoder.decode(stdin);
+  const parts = text.split("\n");
+  const chunks: Uint8Array[] = [];
+
+  for (let i = 0; i < parts.length; i++) {
+    const isLast = i === parts.length - 1;
+    const suffix = isLast && !text.endsWith("\n") ? "" : "\n";
+    chunks.push(textEncoder.encode(parts[i] + suffix));
+  }
+
+  return chunks;
+}
+
+function createStdinReader(stdin: Uint8Array, mode: StdinMode) {
+  if (mode === "stream") {
+    let offset = 0;
+    return {
+      read(ptr: number, len: number, memory: WebAssembly.Memory): number {
+        const available = stdin.length - offset;
+        if (available <= 0) return 0;
+        const toCopy = Math.min(len, available);
+        new Uint8Array(memory.buffer, ptr, toCopy).set(
+          stdin.subarray(offset, offset + toCopy),
+        );
+        offset += toCopy;
+        return toCopy;
+      },
+    };
+  }
+
+  const lines = stdinBytesToLineChunks(stdin);
+  let lineIndex = 0;
+  let pending: Uint8Array | null = null;
+  let endCurrentSession = false;
+
+  return {
+    read(ptr: number, len: number, memory: WebAssembly.Memory): number {
+      if (endCurrentSession) {
+        endCurrentSession = false;
+        return 0;
+      }
+
+      if (!pending) {
+        if (lineIndex >= lines.length) {
+          return 0;
+        }
+        pending = lines[lineIndex];
+        lineIndex += 1;
+      }
+
+      const toCopy = Math.min(len, pending.length);
+      new Uint8Array(memory.buffer, ptr, toCopy).set(pending.subarray(0, toCopy));
+      pending = toCopy < pending.length ? pending.subarray(toCopy) : null;
+      if (!pending) {
+        endCurrentSession = true;
+      }
+      return toCopy;
+    },
+  };
+}
+
+/**
  * Instantiate and execute T2 Wasm bytes with an `arukellt_io` stdio host.
  */
 export async function runT2Wasm(
@@ -26,7 +99,8 @@ export async function runT2Wasm(
 ): Promise<RunResult> {
   const started = performance.now();
   const stdin = options.stdin ?? new Uint8Array();
-  let stdinOffset = 0;
+  const stdinMode = options.stdinMode ?? "stream";
+  const stdinReader = createStdinReader(stdin, stdinMode);
   const stdoutChunks: string[] = [];
   const stderrChunks: string[] = [];
 
@@ -51,14 +125,7 @@ export async function runT2Wasm(
       read(ptr: number, len: number): number {
         const memory = activeMemory;
         if (!memory) return 0;
-        const available = stdin.length - stdinOffset;
-        if (available <= 0) return 0;
-        const toCopy = Math.min(len, available);
-        new Uint8Array(memory.buffer, ptr, toCopy).set(
-          stdin.subarray(stdinOffset, stdinOffset + toCopy),
-        );
-        stdinOffset += toCopy;
-        return toCopy;
+        return stdinReader.read(ptr, len, memory);
       },
     },
   };

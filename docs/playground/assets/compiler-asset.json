@@ -1,6 +1,6 @@
 {
   "path": "assets/arukellt-selfhost.wasm",
-  "source": ".build/selfhost/arukellt-s3.wasm",
-  "size_bytes": 1105911,
-  "sha256": "a1f6ccc6e837043893940bf2e7eaf2c406a0e1aec9050f113683e8edbb2cb06c"
+  "source": ".bootstrap-build/arukellt-s3.wasm",
+  "size_bytes": 964645,
+  "sha256": "37b114cf3c2f12a6d3714d1d452ecbdad72c6b4f88671ddfea4b8b97c1b764af"
 }

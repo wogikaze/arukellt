@@ -15,6 +15,8 @@
  * @module
  */
 
+import type { StdinMode } from "./compiler-types.js";
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -31,6 +33,10 @@ export interface ExampleEntry {
   source: string;
   /** Tags for categorization (optional). */
   tags?: string[];
+  /** Default stdin for playground Run (one REPL line per line). */
+  stdin?: string;
+  /** How Run delivers {@link stdin}. Defaults to `line` when stdin is set. */
+  stdinMode?: StdinMode;
   /**
    * Path to the corresponding CI-verified test fixture, relative to
    * `tests/fixtures/`.  Must appear in `tests/fixtures/manifest.txt`.
@@ -186,9 +192,11 @@ fn main() {
     id: "rpn-repl",
     name: "RPN REPL",
     description:
-      "Reverse Polish notation calculator demo. Edit DEMO_INPUT to try expressions like \"2 7 -\".",
-    source: `// RPN demo for playground — edit DEMO_INPUT to try expressions (no stdin).
-fn DEMO_INPUT() -> String { String_from("1 2 +") }
+      "Reverse Polish notation calculator REPL. Edit stdin (e.g. \"2 7 -\") and Run.",
+    stdin: "1 2 +\n",
+    stdinMode: "line",
+    source: `// T2 RPN REPL — interactive stdin loop.
+fn read_stdin() -> String { __intrinsic_stdin_read_to_string() }
 
 enum RpnOp { Invalid, Add, Sub, Mul }
 
@@ -274,14 +282,17 @@ fn main() {
     println("RPN REPL")
     println("enter space-separated tokens (e.g. 3 4 +). Ctrl+Z to exit.")
     println("")
-    print("> ")
-    eval_line(DEMO_INPUT())
-    print("> ")
-    println("bye")
+    let mut running: bool = true
+    while running {
+        print("> ")
+        let input: String = read_stdin()
+        if len(trim(input)) == 0 { println("bye"); running = false }
+        else { eval_line(input) }
+    }
 }
 `,
     tags: ["algorithms", "interactive"],
-    fixturePath: "examples/rpn_repl_demo.ark",
+    fixturePath: "examples/rpn_repl.ark",
   },
 ];
 

@@ -59,35 +59,21 @@ fn classify_fs_error(raw: String, path: String, op: String) -> FsError {
 
 /// Reads a UTF-8 text file into memory.
 ///
-/// Returns `FsError` on failure, classifying the raw intrinsic error into
-/// `NotFound`, `PermissionDenied`, `Utf8Error`, or `IoError`.
-pub fn read_to_string(path: String) -> Result<String, FsError> {
-    match __intrinsic_fs_read_file(path) {
-        Result::Ok(s) => Result::Ok(s),
-        Result::Err(raw) => Result::Err(classify_fs_error(raw, path, "read_to_string")),
-    }
+/// Returns a raw host error string on failure (emitter-backed `Result<String, String>`).
+/// Use `read_dir` / `metadata` for `FsError`-typed errors; whole-file I/O keeps
+/// string errors until intrinsic lowering supports `FsError` ABI (#613 follow-up).
+pub fn read_to_string(path: String) -> Result<String, String> {
+    __intrinsic_fs_read_file(path)
 }
 
 /// Writes a UTF-8 string to a file, replacing any existing contents.
-///
-/// Returns `FsError` on failure, classifying the raw intrinsic error into
-/// `NotFound`, `PermissionDenied`, `Utf8Error`, or `IoError`.
-pub fn write_string(path: String, contents: String) -> Result<(), FsError> {
-    match __intrinsic_fs_write_file(path, contents) {
-        Result::Ok(_) => Result::Ok(()),
-        Result::Err(raw) => Result::Err(classify_fs_error(raw, path, "write_string")),
-    }
+pub fn write_string(path: String, contents: String) -> Result<(), String> {
+    __intrinsic_fs_write_file(path, contents)
 }
 
 /// Writes a byte array to a file, replacing any existing contents.
-///
-/// Returns `FsError` on failure, classifying the raw intrinsic error into
-/// `NotFound`, `PermissionDenied`, `Utf8Error`, or `IoError`.
-pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), FsError> {
-    match __intrinsic_fs_write_bytes(path, bytes) {
-        Result::Ok(_) => Result::Ok(()),
-        Result::Err(raw) => Result::Err(classify_fs_error(raw, path, "write_bytes")),
-    }
+pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
+    __intrinsic_fs_write_bytes(path, bytes)
 }
 
 // ─── Path predicates (read-probe based) ────────────────────────────────────

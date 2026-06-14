@@ -17,7 +17,6 @@ graph LR
   I474["474 Async component support (v5)"]
   I618["618 618-wit-bindings-round-trip"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
-  I637["637 637 — Host capability honesty: fs metadata and read_dir surface"]
   I28["28 034-wit-cli-integration"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
@@ -44,7 +43,6 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: 646
 - **618** depends on: 262, 476; blocks: none
 - **63** depends on: 074, 137; blocks: none
-- **637** depends on: 051, 076; blocks: none
 - **28** depends on: 030, 031, 028b, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **646** depends on: 474; blocks: none

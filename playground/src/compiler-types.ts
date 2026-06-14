@@ -74,10 +74,20 @@ export interface FormatResult {
   error: string | null;
 }
 
+/** How virtual stdin is delivered through `arukellt_io.read`. */
+export type StdinMode = "stream" | "line";
+
 /** Options for running compiled T2 Wasm. */
 export interface RunOptions {
   /** Stdin bytes supplied to `arukellt_io.read`. */
   stdin?: Uint8Array;
+  /**
+   * Stdin delivery mode.
+   *
+   * - `stream` (default): byte stream until EOF.
+   * - `line`: one line per `read_to_string` call (REPL-friendly).
+   */
+  stdinMode?: StdinMode;
   /** Wall-clock timeout in milliseconds. */
   timeoutMs?: number;
 }

@@ -39,8 +39,8 @@ write_string("output.txt", "hello")
 ## `std::host::fs`
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
-- Manifest-backed functions: 7
-- Stability: experimental 3, provisional 3, stable 1
+- Manifest-backed functions: 13
+- Stability: experimental 3, provisional 8, stable 2
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
@@ -83,13 +83,23 @@ are future on both targets.
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
+| `fs_error_message` | `(FsError) -> String` | `provisional` | ✅ impl | - |
 | `read_to_string` | `(String) -> Result<String, String>` | `provisional` | ✅ impl | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
+| `is_readable_file` | `(String) -> bool` | `stable` | ✅ impl | Read-probe semantics — not a general path-existence query. |
 | `exists` | `(String) -> bool` | `stable` | ✅ impl | @deprecated Use is_readable_file instead. This function has the same |
+| `is_file` | `(String) -> bool` | `provisional` | ✅ impl | Returns true when the path is a readable file (same semantics as |
+| `is_dir` | `(String) -> bool` | `provisional` | ✅ impl | Returns false unconditionally on current targets. |
+| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `provisional` | ✅ impl | List the entries in a directory. |
+| `metadata` | `(String) -> Result<FsMetadata, FsError>` | `provisional` | ✅ impl | Query file metadata for a given path. |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ impl | Seeks within an open file descriptor. |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ impl | Returns the current file offset for an open file descriptor. |
 | `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ impl | Returns the errno from fd_fdstat_get for an open file descriptor. |
+
+#### `fs_error_message`
+
+Format an FsError for display (used by read_dir/metadata and future typed fs APIs).
 
 #### `read_to_string`
 
@@ -122,11 +132,45 @@ Write a byte sequence (Vec<i32> where each element is 0–255) to the given file
 
 **Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
 
-#### `exists`
+#### `is_readable_file`
 
-Read-probe semantics — NOT a general path-existence query. Attempts a full UTF-8 file read via the same intrinsic as read_to_string and returns true only when that read succeeds end-to-end. Best-effort: a false result does not distinguish missing file vs permission denied vs not-a-regular-file (e.g. directory or broken symlink) vs invalid UTF-8 vs mid-read I/O error — all collapse to false. A true result implies readability at call time, not writability or stability of subsequent reads. True path-existence semantics are tracked under issue #605.
+Read-probe / readable-file check via __intrinsic_fs_read_file. False does not distinguish missing vs unreadable vs directory; not a path-existence query.
 
 **Availability:** Requires the --dir capability flag at runtime.
+
+#### `exists`
+
+@deprecated Use is_readable_file instead. Same read-probe semantics — NOT a general path-existence query.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+#### `is_file`
+
+Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until metadata intrinsics land.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+#### `is_dir`
+
+Always false on current targets — directory-type detection requires path_filestat_get-style intrinsics not yet exposed.
+
+**Availability:** Honest stub: no directory metadata intrinsic yet.
+
+#### `read_dir`
+
+Directory listing API contract. Always returns Err(IoError) on current targets because WASI directory iteration is not yet exposed in the intrinsic layer.
+
+**Availability:** Honest rejection until backend support lands.
+
+**Errors:** Err(FsError::IoError) with message 'directory listing not yet supported: <path>'.
+
+#### `metadata`
+
+Structured metadata API contract. Always returns Err(IoError) on current targets because path_filestat_get is not yet exposed.
+
+**Availability:** Honest rejection until backend support lands.
+
+**Errors:** Err(FsError::IoError) with message 'metadata not yet supported: <path>'.
 
 #### `fd_seek`
 
@@ -149,8 +193,8 @@ Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 ## `std::fs`
 
 - Source: [`../../../std/fs/mod.ark`](../../../std/fs/mod.ark)
-- Manifest-backed functions: 3
-- Stability: stable 3
+- Manifest-backed functions: 8
+- Stability: provisional 4, stable 4
 
 Small host-backed file helpers — a **partial bridge**, not a full filesystem API.
 
@@ -186,6 +230,11 @@ supported on any target.
 | `read_string` | `(String) -> Result<String, String>` | `stable` | Reads the entire contents of a file into a UTF-8 string. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, creating or truncating it. |
 | `exists` | `(String) -> bool` | `stable` | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
+| `is_readable_file` | `(String) -> bool` | `stable` | Read probe — the new recommended name for the probe check. |
+| `is_file` | `(String) -> bool` | `provisional` | Returns true when the path is a readable file. |
+| `is_dir` | `(String) -> bool` | `provisional` | Returns false unconditionally on current targets. |
+| `read_dir` | `(String) -> Result<Vec<String>, String>` | `provisional` | List the entries in a directory. |
+| `metadata` | `(String) -> Result<String, String>` | `provisional` | Query file metadata for a given path. |
 
 #### `read_string`
 
@@ -208,3 +257,33 @@ Write a UTF-8 string to a file, creating or truncating it.
 Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); not a path-existence query. Directories, missing paths, and unreadable paths may return false.
 
 **Availability:** Requires the --dir capability flag at runtime.
+
+#### `is_readable_file`
+
+Preferred read-probe name; semantics identical to exists.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+#### `is_file`
+
+Read-probe equivalent to is_readable_file on current targets.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+#### `is_dir`
+
+Always false on current targets (honest stub until metadata intrinsics land).
+
+**Availability:** Honest stub.
+
+#### `read_dir`
+
+Always Err on current targets — directory listing not yet supported.
+
+**Availability:** Honest rejection.
+
+#### `metadata`
+
+Always Err on current targets — path metadata not yet supported.
+
+**Availability:** Honest rejection.

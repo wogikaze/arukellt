@@ -2404,6 +2404,56 @@ returns = "bool"
 doc = "Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); not a path-existence query. Directories, missing paths, and unreadable paths may return false."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
+[[functions]]
+name = "is_readable_file"
+module = "std::fs"
+doc_category = "fs"
+stability = "stable"
+params = ["String"]
+returns = "bool"
+doc = "Preferred read-probe name; semantics identical to exists."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "is_file"
+module = "std::fs"
+doc_category = "fs"
+stability = "provisional"
+params = ["String"]
+returns = "bool"
+doc = "Read-probe equivalent to is_readable_file on current targets."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "is_dir"
+module = "std::fs"
+doc_category = "fs"
+stability = "provisional"
+params = ["String"]
+returns = "bool"
+doc = "Always false on current targets (honest stub until metadata intrinsics land)."
+availability = { t1 = true, t3 = true, note = "Honest stub." }
+
+[[functions]]
+name = "read_dir"
+module = "std::fs"
+doc_category = "fs"
+stability = "provisional"
+params = ["String"]
+returns = "Result<Vec<String>, String>"
+doc = "Always Err on current targets — directory listing not yet supported."
+availability = { t1 = true, t3 = true, note = "Honest rejection." }
+
+[[functions]]
+name = "metadata"
+module = "std::fs"
+doc_category = "fs"
+stability = "provisional"
+params = ["String"]
+returns = "Result<String, String>"
+doc = "Always Err on current targets — path metadata not yet supported."
+availability = { t1 = true, t3 = true, note = "Honest rejection." }
+
 # === std::host::fs ===
 
 # === std::host::fs ===
@@ -2412,7 +2462,7 @@ availability = { t1 = true, t3 = true, note = "Requires the --dir capability fla
 name = "std::host::fs"
 stability = "stable"
 family = "host"
-doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, write_string, write_bytes are stable whole-file I/O. exists is intentionally a best-effort read-probe (NOT a general path-existence predicate) — see #605 and the function-level docs in std/host/fs.ark. The fd_seek/fd_tell/fd_fdstat_errno helpers are explicitly experimental and T1-only."
+doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, write_string, write_bytes are stable whole-file I/O. is_readable_file/exists are read-probes (NOT path-existence). is_dir always false; read_dir/metadata return honest Err until directory/metadata intrinsics land. fd_* helpers are experimental T1-only."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]
@@ -2459,8 +2509,69 @@ stability = "stable"
 params = ["String"]
 returns = "bool"
 doc_category = "host_fs"
-doc = "Read-probe semantics — NOT a general path-existence query. Attempts a full UTF-8 file read via the same intrinsic as read_to_string and returns true only when that read succeeds end-to-end. Best-effort: a false result does not distinguish missing file vs permission denied vs not-a-regular-file (e.g. directory or broken symlink) vs invalid UTF-8 vs mid-read I/O error — all collapse to false. A true result implies readability at call time, not writability or stability of subsequent reads. True path-existence semantics are tracked under issue #605."
+doc = "@deprecated Use is_readable_file instead. Same read-probe semantics — NOT a general path-existence query."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "is_readable_file"
+module = "std::host::fs"
+stability = "stable"
+params = ["String"]
+returns = "bool"
+doc_category = "host_fs"
+doc = "Read-probe / readable-file check via __intrinsic_fs_read_file. False does not distinguish missing vs unreadable vs directory; not a path-existence query."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "is_file"
+module = "std::host::fs"
+stability = "provisional"
+params = ["String"]
+returns = "bool"
+doc_category = "host_fs"
+doc = "Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until metadata intrinsics land."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "is_dir"
+module = "std::host::fs"
+stability = "provisional"
+params = ["String"]
+returns = "bool"
+doc_category = "host_fs"
+doc = "Always false on current targets — directory-type detection requires path_filestat_get-style intrinsics not yet exposed."
+availability = { t1 = true, t3 = true, note = "Honest stub: no directory metadata intrinsic yet." }
+
+[[functions]]
+name = "read_dir"
+module = "std::host::fs"
+stability = "provisional"
+params = ["String"]
+returns = "Result<Vec<String>, FsError>"
+doc_category = "host_fs"
+doc = "Directory listing API contract. Always returns Err(IoError) on current targets because WASI directory iteration is not yet exposed in the intrinsic layer."
+errors = "Err(FsError::IoError) with message 'directory listing not yet supported: <path>'."
+availability = { t1 = true, t3 = true, note = "Honest rejection until backend support lands." }
+
+[[functions]]
+name = "metadata"
+module = "std::host::fs"
+stability = "provisional"
+params = ["String"]
+returns = "Result<FsMetadata, FsError>"
+doc_category = "host_fs"
+doc = "Structured metadata API contract. Always returns Err(IoError) on current targets because path_filestat_get is not yet exposed."
+errors = "Err(FsError::IoError) with message 'metadata not yet supported: <path>'."
+availability = { t1 = true, t3 = true, note = "Honest rejection until backend support lands." }
+
+[[functions]]
+name = "fs_error_message"
+module = "std::host::fs"
+stability = "provisional"
+params = ["FsError"]
+returns = "String"
+doc_category = "host_fs"
+doc = "Format an FsError for display (used by read_dir/metadata and future typed fs APIs)."
 
 [[functions]]
 name = "fd_seek"

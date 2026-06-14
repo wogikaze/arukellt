@@ -92,6 +92,17 @@ Filesystem read/write via WASI preopened directories.
 | `read_to_string` | `(String) -> Result<String, String>` | available | all | `path_open`, `fd_read`, `fd_close` |
 | `write_string` | `(String, String) -> Result<(), String>` | available | all | `path_open`, `fd_write`, `fd_close` |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | available | all | `path_open`, `fd_write`, `fd_close` |
+| `is_readable_file` | `(String) -> bool` | available (read probe) | all | same as `read_to_string` |
+| `exists` | `(String) -> bool` | available (deprecated probe) | all | same as `read_to_string` |
+| `is_file` | `(String) -> bool` | available (probe, not type check) | all | same as `read_to_string` |
+| `is_dir` | `(String) -> bool` | honest stub (always `false`) | all | — |
+| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | honest rejection | all | — |
+| `metadata` | `(String) -> Result<FsMetadata, FsError>` | honest rejection | all | — |
+
+`is_readable_file` / `exists` / `is_file` are **read probes**, not path-existence or
+file-type queries. `is_dir` always returns `false` until directory metadata
+intrinsics exist. `read_dir` and `metadata` always return `Err` documenting the
+capability gap — see `std/host/fs.ark` and issue #637.
 
 Filesystem access is **deny-by-default**. A directory must be explicitly
 granted with `--dir` before any of these functions can succeed. See

@@ -53,7 +53,7 @@ export {
   checkWithCompilerWasmSync,
   compileWithCompilerWasm,
 } from "./compiler-host.js";
-export { runT2Wasm, moduleImportsArukelltIo } from "./t2-runner.js";
+export { runT2Wasm, moduleImportsArukelltIo, stdinBytesToLineChunks } from "./t2-runner.js";
 
 // Re-export editor components.
 export { createEditor } from "./editor.js";
@@ -93,6 +93,12 @@ export {
   RUN_OUTPUT_CSS,
 } from "./run-output.js";
 export type { RunOutputPanel, RunOutputPanelOptions } from "./run-output.js";
+export {
+  createStdinPanel,
+  injectStdinPanelStyles,
+  STDIN_PANEL_CSS,
+} from "./stdin-panel.js";
+export type { StdinPanel, StdinPanelOptions } from "./stdin-panel.js";
 
 // Re-export capability detection.
 export {
@@ -216,6 +222,7 @@ export type {
   CheckResult,
   RunOptions,
   RunResult,
+  StdinMode,
   CompilerRuntimeAvailability,
 } from "./compiler-types.js";
 

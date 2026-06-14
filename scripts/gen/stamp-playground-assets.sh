@@ -14,6 +14,10 @@ pick_compiler_wasm() {
     echo "${ROOT}/.build/selfhost/arukellt-s3.wasm"
     return 0
   fi
+  if [[ -f "${ROOT}/.bootstrap-build/arukellt-s3.wasm" ]]; then
+    echo "${ROOT}/.bootstrap-build/arukellt-s3.wasm"
+    return 0
+  fi
   if [[ -f "${ROOT}/.build/selfhost/arukellt-s2.wasm" ]]; then
     echo "${ROOT}/.build/selfhost/arukellt-s2.wasm"
     return 0

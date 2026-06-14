@@ -43,7 +43,7 @@ import {
 } from "./capability-check.js";
 import type { CompilerClient } from "./compiler-client.js";
 import { isRunnableT2Output } from "./compiler-client.js";
-import type { CompileResult, RunResult } from "./compiler-types.js";
+import type { CompileResult, RunOptions, RunResult } from "./compiler-types.js";
 import {
   buildStatusMessage,
   runStatusMessage,
@@ -52,6 +52,8 @@ import {
 } from "./console-bridge.js";
 import { createRunOutputPanel, injectRunOutputStyles } from "./run-output.js";
 import type { RunOutputPanel } from "./run-output.js";
+import { createStdinPanel, injectStdinPanelStyles } from "./stdin-panel.js";
+import type { StdinPanel } from "./stdin-panel.js";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -136,6 +138,9 @@ export interface PlaygroundApp {
   /** Stdout/stderr panel for build and run output (present when `compilerClient` is set). */
   readonly runOutputPanel: RunOutputPanel | null;
 
+  /** Virtual stdin panel for Run (below the editor). */
+  readonly stdinPanel: StdinPanel;
+
   /** Whether a prior build produced runnable T2 Wasm. */
   readonly canRun: boolean;
 
@@ -147,6 +152,12 @@ export interface PlaygroundApp {
 
   /** Run the last successful build artifact. */
   run(): Promise<RunResult | null>;
+
+  /** Replace stdin text used on the next Run. */
+  setStdin(text: string): void;
+
+  /** Replace stdin text used on the next Run. */
+  setStdin(text: string): void;
 
   /** Attach or replace the compiler worker client after initialisation. */
   setCompilerClient(client: CompilerClient | null): void;
@@ -202,6 +213,7 @@ export function createPlaygroundApp(
   // Inject diagnostic styles (idempotent).
   injectDiagnosticStyles();
   injectRunOutputStyles();
+  injectStdinPanelStyles();
 
   // --- Layout ---
   const wrapper = document.createElement("div");
@@ -211,6 +223,8 @@ export function createPlaygroundApp(
   const editorContainer = document.createElement("div");
   editorContainer.className = "ark-playground-editor-container";
   wrapper.appendChild(editorContainer);
+
+  const stdinPanel = createStdinPanel(wrapper, { injectStyles: false });
 
   // --- Editor ---
   const editor = createEditor(editorContainer, {
@@ -361,6 +375,13 @@ export function createPlaygroundApp(
   // Run initial parse.
   triggerParse();
 
+  function buildRunOptions(): RunOptions {
+    return {
+      stdin: new TextEncoder().encode(stdinPanel.getValue()),
+      stdinMode: "line",
+    };
+  }
+
   // --- Public API ---
   return {
     get editor(): ArkEditor {
@@ -373,6 +394,10 @@ export function createPlaygroundApp(
 
     get runOutputPanel(): RunOutputPanel | null {
       return runOutputPanel;
+    },
+
+    get stdinPanel(): StdinPanel {
+      return stdinPanel;
     },
 
     get canRun(): boolean {
@@ -414,7 +439,10 @@ export function createPlaygroundApp(
       setRunStatus("Running…");
 
       try {
-        const result = await compilerClient.run(lastCompiledWasm);
+        const result = await compilerClient.run(
+          lastCompiledWasm,
+          buildRunOptions(),
+        );
         showRunOutput(result);
         return result;
       } catch (err) {
@@ -433,6 +461,10 @@ export function createPlaygroundApp(
       }
     },
 
+    setStdin(text: string): void {
+      stdinPanel.setValue(text);
+    },
+
     destroy(): void {
       if (destroyed) return;
       destroyed = true;
@@ -445,6 +477,7 @@ export function createPlaygroundApp(
       unsubChange();
       diagnosticsPanel.destroy();
       runOutputPanel?.destroy();
+      stdinPanel.destroy();
       editor.destroy();
 
       if (wrapper.parentNode) {

@@ -388,6 +388,9 @@
       app.editor.setValue(example.source);
       app.parse();
       setExampleSelection(example.id);
+      if (typeof app.setStdin === 'function') {
+        app.setStdin(example.stdin ?? '');
+      }
       scheduleShareUrlUpdate();
       setShareStatus(`Loaded example: ${example.name}`);
 

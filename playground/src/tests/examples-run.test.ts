@@ -10,10 +10,11 @@ import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { EXAMPLES } from "../examples.js";
+import { EXAMPLES, getExample } from "../examples.js";
 import { compileWithCompilerWasm } from "../compiler-host.js";
 import { runT2Wasm } from "../t2-runner.js";
 import { isRunnableT2Output } from "../compiler-client.js";
+import type { RunOptions } from "../compiler-types.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "../../..");
@@ -33,6 +34,8 @@ const EXPECTED_STDOUT: Readonly<Record<string, string>> = {
 
 async function loadCompilerBytes(): Promise<Uint8Array> {
   const candidates = [
+    resolve(repoRoot, "docs/playground/assets/arukellt-selfhost.wasm"),
+    resolve(repoRoot, ".bootstrap-build/arukellt-s3.wasm"),
     resolve(repoRoot, ".build/selfhost/arukellt-s3.wasm"),
     resolve(repoRoot, ".build/selfhost/arukellt-s2.wasm"),
     resolve(repoRoot, "bootstrap/arukellt-selfhost.wasm"),
@@ -47,7 +50,37 @@ async function loadCompilerBytes(): Promise<Uint8Array> {
   throw new Error("no compiler wasm candidate found");
 }
 
+function runOptionsFor(example: (typeof EXAMPLES)[number]): RunOptions {
+  if (example.stdin === undefined) {
+    return {};
+  }
+  return {
+    stdin: new TextEncoder().encode(example.stdin),
+    stdinMode: example.stdinMode ?? "line",
+  };
+}
+
 describe("Playground examples build and run", () => {
+  it("rpn-repl reads line-delimited virtual stdin", async () => {
+    const compiler = await loadCompilerBytes();
+    const example = getExample("rpn-repl");
+    assert.ok(example);
+
+    const compile = await compileWithCompilerWasm(compiler, example.source, {
+      timeoutMs: 120_000,
+    });
+    assert.equal(
+      compile.ok,
+      true,
+      compile.error ?? compile.compilerStderr ?? undefined,
+    );
+    assert.ok(compile.wasmBytes);
+
+    const run = await runT2Wasm(compile.wasmBytes, runOptionsFor(example));
+    assert.ok(run.ok, run.trap ?? "run failed");
+    assert.equal(run.stdout, EXPECTED_STDOUT["rpn-repl"]);
+  });
+
   it("each catalog example compiles to runnable T2 wasm with expected stdout", async () => {
     const compiler = await loadCompilerBytes();
 
@@ -74,7 +107,7 @@ describe("Playground examples build and run", () => {
         `${example.id}: wasm does not import arukellt_io`,
       );
 
-      const run = await runT2Wasm(compile.wasmBytes);
+      const run = await runT2Wasm(compile.wasmBytes, runOptionsFor(example));
       assert.equal(run.ok, true, `${example.id}: run failed: ${run.trap}`);
       assert.equal(
         run.stdout,
