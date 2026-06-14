@@ -1,0 +1,4 @@
+// Package module for HTTP registry positive fixture (#639).
+pub fn helper_fn() -> i32 {
+    41
+}

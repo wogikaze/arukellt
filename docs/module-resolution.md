@@ -186,7 +186,9 @@ url = "file://./mock_reg"
 ```
 
 The mock directory must contain `<package-name>.ark` or
-`<package-name>/mod.ark`. Network (HTTP) registries are a planned follow-up.
+`<package-name>/mod.ark`. HTTP registries use plaintext `http://` URLs
+(HTTPS deferred); the resolver fetches `{registry_url}/{package}.ark` via
+`std::host::http::get` (#639).
 
 **Failure diagnostics** (all compile-time, per ADR-023 §2):
 
@@ -279,7 +281,8 @@ agree on which project is active.
 
 | Issue | Topic | Status |
 |-------|-------|--------|
-| #234 | Visibility enforcement as compiler error | Open |
-| #235 | Multi-root workspace tool layer unification | Open |
+| #234 | Visibility enforcement as compiler error | Done (#490) |
+| #235 | Multi-root workspace tool layer unification | Done (#502) |
+| #639 | HTTP package registry resolution | Done |
 | v2 | Multi-package workspace support | Planned |
 | v4 | Component Model boundary imports (`import` keyword v4) | Planned |

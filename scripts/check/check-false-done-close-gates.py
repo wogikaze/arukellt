@@ -16,6 +16,7 @@ import re
 import shutil
 import subprocess
 import sys
+import sys
 import tempfile
 from pathlib import Path
 
@@ -36,6 +37,7 @@ TRACKED: dict[str, list[str]] = {
     "051": ["stdlib_time monotonic run + clock intrinsic emitter handlers"],
     "123": ["Layer C import string syntax component fixture"],
     "641": ["T4 native scaffold compile (t4/native_scaffold.ark)"],
+    "639": ["HTTP registry fixtures + gate-639-registry-http.py"],
 }
 
 
@@ -270,6 +272,24 @@ def gate_123() -> tuple[int, str]:
     return 0, ""
 
 
+def gate_639() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-639-registry-http.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-639-registry-http.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    if result.returncode == 2:
+        return 2, (result.stdout + result.stderr)[-400:]
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
 def gate_641() -> tuple[int, str]:
     entry = "t4-compile:t4/native_scaffold.ark"
     if not _manifest_contains(entry):
@@ -300,6 +320,7 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "500": gate_500,
     "051": gate_051,
     "123": gate_123,
+    "639": gate_639,
     "641": gate_641,
 }
 

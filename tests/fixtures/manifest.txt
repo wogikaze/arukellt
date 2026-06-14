@@ -206,6 +206,9 @@ module-diag:modules/circular/main.ark
 module-diag:modules/pub_private/main.ark
 module-diag:modules/pub_use_nonpub_hidden/main.ark
 module-diag:modules/registry_not_found/main.ark
+module-diag:modules/registry_http_ok/main.ark
+parse-only:modules/registry_http_ok/mock_reg/my_http_pkg.ark
+module-diag:modules/registry_http_unreachable/main.ark
 module-diag:modules/use_not_found/main.ark
 module-diag:modules/visibility_enforce/main.ark
 module-run:modules/import_basic/main.ark

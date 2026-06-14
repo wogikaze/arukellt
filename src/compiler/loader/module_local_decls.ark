@@ -8,6 +8,9 @@ use loader::module_names
 use loader::module_parse
 use loader::module_paths
 use loader::module_state
+use loader::module_package_root
+use loader::registry_config
+use loader::registry_resolve
 struct DriverLocalModuleDecls {
     decls: Vec<AstNode>,
     path: String,
@@ -40,8 +43,26 @@ pub fn load_local_module_decls(module_name: String, base_dir: String, state: Loa
         Result::Ok(loaded) => {
             register_local_module_source(clone(module_name), module_file_load_local::DriverLoadedSource_path(loaded), module_file_load_local::DriverLoadedSource_source(loaded), state)
         },
+        Result::Err(_) => {
+            try_load_registry_module(clone(module_name), clone(base_dir), state)
+        },
+    }
+}
+
+fn try_load_registry_module(module_name: String, base_dir: String, state: LoadState) -> DriverLocalModuleDecls {
+    let package_root = module_package_root::find_package_root(clone(base_dir))
+    if !registry_config::is_registry_dependency(clone(package_root), clone(module_name)) {
+        module_state_errors::LoadState_push_error(state, concat(String_from("failed to load module `"), concat(clone(module_name), String_from("`"))))
+        return DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
+    }
+    let registry_result = registry_resolve::resolve_registry_module_source(clone(package_root), clone(module_name))
+    match registry_result {
+        Result::Ok(source) => {
+            let virtual_path = concat(clone(package_root), concat(String_from("/.registry/"), concat(clone(module_name), String_from(".ark"))))
+            register_local_module_source(clone(module_name), virtual_path, source, state)
+        },
         Result::Err(e) => {
-            module_state_errors::LoadState_push_error(state, concat(String_from("failed to load module `"), concat(clone(module_name), concat(String_from("`: "), e))))
+            module_state_errors::LoadState_push_error(state, e)
             DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
         },
     }

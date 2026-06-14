@@ -1,0 +1,9 @@
+[package]
+name = "registry-http-unreachable-test"
+version = "0.1.0"
+
+[dependencies]
+missing_pkg = "1.0.0"
+
+[registry]
+url = "http://127.0.0.1:1"

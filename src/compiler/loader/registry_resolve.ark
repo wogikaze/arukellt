@@ -1,0 +1,98 @@
+// Arukellt Selfhost - package registry resolution (#639, ADR-023).
+
+use std::host::fs
+use std::host::http
+use loader::registry_config
+
+fn registry_error_unreachable(url: String, reason: String) -> String {
+    concat(String_from("registry unreachable: "), concat(clone(url), concat(String_from(" ("), concat(reason, String_from(")")))))
+}
+
+fn registry_error_not_found(package_name: String) -> String {
+    concat(String_from("package '"), concat(clone(package_name), String_from("' not found in registry")))
+}
+
+fn starts_with_http(url: String) -> bool {
+    starts_with(clone(url), String_from("http://")) || starts_with(clone(url), String_from("https://"))
+}
+
+fn starts_with_file(url: String) -> bool {
+    starts_with(clone(url), String_from("file://"))
+}
+
+fn file_registry_root(package_root: String, registry_url: String) -> String {
+    if eq(clone(registry_url), String_from("file://.")) {
+        return clone(package_root)
+    }
+    if starts_with(clone(registry_url), String_from("file://./")) {
+        let rel = substring(registry_url, 7, len(registry_url))
+        return concat(clone(package_root), concat(String_from("/"), rel))
+    }
+    if starts_with(clone(registry_url), String_from("file://")) {
+        return substring(registry_url, 7, len(registry_url))
+    }
+    clone(package_root)
+}
+
+fn registry_package_primary_path(registry_root: String, package_name: String) -> String {
+    concat(clone(registry_root), concat(String_from("/"), concat(clone(package_name), String_from(".ark"))))
+}
+
+fn registry_package_mod_path(registry_root: String, package_name: String) -> String {
+    concat(clone(registry_root), concat(String_from("/"), concat(clone(package_name), String_from("/mod.ark"))))
+}
+
+fn read_local_registry_source(registry_root: String, package_name: String) -> Result<String, String> {
+    let primary = registry_package_primary_path(clone(registry_root), clone(package_name))
+    match fs::read_to_string(clone(primary)) {
+        Result::Ok(source) => Result::Ok(source),
+        Result::Err(_) => {
+            let mod_path = registry_package_mod_path(clone(registry_root), clone(package_name))
+            match fs::read_to_string(clone(mod_path)) {
+                Result::Ok(source) => Result::Ok(source),
+                Result::Err(_) => Result::Err(registry_error_not_found(clone(package_name))),
+            }
+        },
+    }
+}
+
+fn http_registry_fetch_url(registry_url: String, package_name: String) -> String {
+    if ends_with(clone(registry_url), String_from("/")) {
+        return concat(clone(registry_url), concat(clone(package_name), String_from(".ark")))
+    }
+    concat(clone(registry_url), concat(String_from("/"), concat(clone(package_name), String_from(".ark"))))
+}
+
+fn read_http_registry_source(registry_url: String, package_name: String) -> Result<String, String> {
+    let fetch_url = http_registry_fetch_url(clone(registry_url), clone(package_name))
+    match http::get(clone(fetch_url)) {
+        Result::Ok(body) => {
+            if len(body) == 0 {
+                Result::Err(registry_error_not_found(clone(package_name)))
+            } else {
+                Result::Ok(body)
+            }
+        },
+        Result::Err(reason) => {
+            Result::Err(registry_error_unreachable(clone(registry_url), reason))
+        },
+    }
+}
+
+pub fn resolve_registry_module_source(package_root: String, package_name: String) -> Result<String, String> {
+    if !registry_config::is_registry_dependency(clone(package_root), clone(package_name)) {
+        return Result::Err(registry_error_not_found(clone(package_name)))
+    }
+    let registry_url = registry_config::registry_url_for_root(clone(package_root))
+    if len(registry_url) == 0 {
+        return Result::Err(registry_error_not_found(clone(package_name)))
+    }
+    if starts_with_file(clone(registry_url)) {
+        let registry_root = file_registry_root(clone(package_root), clone(registry_url))
+        return read_local_registry_source(registry_root, clone(package_name))
+    }
+    if starts_with_http(clone(registry_url)) {
+        return read_http_registry_source(clone(registry_url), clone(package_name))
+    }
+    Result::Err(registry_error_unreachable(clone(registry_url), String_from("unsupported registry URL scheme")))
+}

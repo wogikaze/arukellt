@@ -1,0 +1,6 @@
+// Fixture: registry HTTP positive path (#639).
+use my_http_pkg
+
+fn main() {
+    let _v = my_http_pkg::helper_fn()
+}

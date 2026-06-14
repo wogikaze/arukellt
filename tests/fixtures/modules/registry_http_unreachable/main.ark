@@ -1,0 +1,5 @@
+// Fixture: unreachable HTTP registry emits E0120 (#639).
+use missing_pkg
+
+fn main() {
+}

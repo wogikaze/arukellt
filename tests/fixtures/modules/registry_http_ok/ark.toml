@@ -1,0 +1,9 @@
+[package]
+name = "registry-http-ok-test"
+version = "0.1.0"
+
+[dependencies]
+my_http_pkg = "1.0.0"
+
+[registry]
+url = "file://./mock_reg"
