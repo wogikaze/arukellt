@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-14T01:52:28Z",
+  "generated_at": "2026-06-14T01:54:50Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -70,28 +70,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "123",
-      "path": "123-import-syntax-unification.md",
-      "title": "123-import-syntax-unification",
-      "track": "language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "—"
       }
     },
     {

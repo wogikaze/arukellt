@@ -1,7 +1,8 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
-Updated: 2026-06-12
+Updated: 2026-06-14
+Closed: 2026-06-14
 ID: 123
 Track: language-design
 Depends on: none
@@ -15,6 +16,14 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 LLM が混同するのは `std: ":io` と `wasi:io/streams` が「どちらも IO に関するモジュール参照」に見えるからであり、構文が似ているからではない。構文の違い（`::`vs`:`）は、むしろ **視覚的に2層を区別する手がかり** として機能しうる。"
 Conclusion: this is a close candidate for the docs acceptance slice only. The issue remains open because the implementation work tracked by the issue is not being completed in this review.
 ---
+
+## Closed — 2026-06-14
+
+Import syntax unification is recorded in ADR-031 (DECIDED): Layer S `use` + `::`,
+Layer C `import "…"` reserved; W0101 deprecation path implemented. Layer C
+pipeline wiring remains #124.
+
+Close gate: `gate_123` (wit_import fixture + manifest).
 
 ## Reopened by audit — 2026-06-12
 
