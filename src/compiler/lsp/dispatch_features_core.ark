@@ -1,0 +1,69 @@
+// Arukellt LSP - core language feature dispatch.
+
+use lsp::feature_code_action
+use lsp::feature_completion
+use lsp::feature_formatting
+use lsp::feature_rename
+use lsp::feature_signature_help
+use lsp::feature_workspace_symbol
+use lsp::features
+
+fn dispatch_core_features(state: LspState, body: String, method: String) -> bool {
+    if eq(clone(method), "textDocument/hover") {
+        features::handle_hover(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/definition") {
+        features::handle_definition(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/completion") {
+        features::handle_completion(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/signatureHelp") {
+        feature_signature_help::handle_signature_help(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/codeAction") {
+        feature_code_action::handle_code_action(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "workspace/symbol") {
+        features::handle_workspace_symbol(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/references") {
+        features::handle_references(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/documentHighlight") {
+        features::handle_document_highlight(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/codeLens") {
+        features::handle_code_lens(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/typeDefinition") {
+        features::handle_type_definition(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/prepareRename") {
+        feature_rename::handle_prepare_rename(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/rename") {
+        feature_rename::handle_rename(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/formatting") {
+        feature_formatting::handle_formatting(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/rangeFormatting") {
+        feature_formatting::handle_range_formatting(state, clone(body))
+        return true
+    }
+    false
+}

@@ -1,0 +1,13 @@
+Content-Length: 107
+
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":null,"capabilities":{}}}Content-Length: 52
+
+{"jsonrpc":"2.0","method":"initialized","params":{}}Content-Length: 178
+
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///sel.ark","languageId":"arukellt","version":1,"text":"fn main() {\n    let x = 1\n}\n"}}}Content-Length: 154
+
+{"jsonrpc":"2.0","id":2,"method":"textDocument/selectionRange","params":{"textDocument":{"uri":"file:///sel.ark"},"positions":[{"line":1,"character":4}]}}Content-Length: 44
+
+{"jsonrpc":"2.0","id":3,"method":"shutdown"}Content-Length: 33
+
+{"jsonrpc":"2.0","method":"exit"}

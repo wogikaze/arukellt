@@ -11,7 +11,6 @@ graph LR
   I138["138 138-std-wasi-shared-capabilities-t1-t3"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I183["183 183-vscode-arukellt-all-in-one-extension-epic"]
-  I219["219 LSP standard feature completeness"]
   I30["30 036-jco-javascript-interop"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I41["41 051-std-time-random"]
@@ -53,7 +52,6 @@ graph LR
 - **138** depends on: 137, 051; blocks: 136
 - **139** depends on: 074, 137; blocks: 136
 - **183** depends on: 184, 185, 186, 187, 188, 205, 206, 207; blocks: 638
-- **219** depends on: none; blocks: none
 - **30** depends on: 27; blocks: none
 - **358** depends on: none; blocks: none
 - **41** depends on: 039, 040; blocks: none

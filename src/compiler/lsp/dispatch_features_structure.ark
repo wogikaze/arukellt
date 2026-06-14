@@ -1,0 +1,16 @@
+// Arukellt LSP - structure feature dispatch (#219).
+
+use lsp::feature_folding_range
+use lsp::feature_selection_range
+
+fn dispatch_structure_features(state: LspState, body: String, method: String) -> bool {
+    if eq(clone(method), "textDocument/foldingRange") {
+        feature_folding_range::handle_folding_range(state, clone(body))
+        return true
+    }
+    if eq(clone(method), "textDocument/selectionRange") {
+        feature_selection_range::handle_selection_range(state, clone(body))
+        return true
+    }
+    false
+}

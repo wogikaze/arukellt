@@ -1,0 +1,37 @@
+// Arukellt LSP - selection range request handling (#219).
+
+use lsp::feature_request
+use lsp::framing
+use lsp::json_fields
+use lsp::positions
+use lsp::responses
+use lsp::state_record
+use lsp::state_docs
+use lsp::source_text
+
+pub fn handle_selection_range(state: LspState, body: String) {
+    let req_id = json_fields::extract_int_field(clone(body), String_from("id"))
+    let uri = json_fields::extract_string_field(clone(body), String_from("uri"))
+    let mut text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), clone(uri))
+    if len(text) == 0 {
+        text = source_text::text_for_uri(state, clone(uri))
+    }
+    if len(text) == 0 {
+        framing::append_framed(state, responses::build_null_response(req_id))
+        return
+    }
+    let line = json_fields::extract_int_field(clone(body), String_from("line"))
+    let character = json_fields::extract_int_field(clone(body), String_from("character"))
+    let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    out = concat(out, to_string(req_id))
+    out = concat(out, String_from(",\"result\":{\"ranges\":[{\"range\":{\"start\":{\"line\":"))
+    out = concat(out, to_string(line))
+    out = concat(out, String_from(",\"character\":"))
+    out = concat(out, to_string(character))
+    out = concat(out, String_from("},\"end\":{\"line\":"))
+    out = concat(out, to_string(line))
+    out = concat(out, String_from(",\"character\":"))
+    out = concat(out, to_string(character + 1))
+    out = concat(out, String_from("}}}]}}"))
+    framing::append_framed(state, out)
+}

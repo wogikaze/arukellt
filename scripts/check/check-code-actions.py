@@ -9,7 +9,11 @@ from _gate_open_skip import skip_if_any_open
 def main() -> int:
     if (s := skip_if_any_open(["217"], "check-code-actions")) is not None: return s
     a = (REPO_ROOT/"src/compiler/lsp/feature_code_action.ark").read_text(encoding="utf-8")
-    d = (REPO_ROOT/"src/compiler/lsp/dispatch_features.ark").read_text(encoding="utf-8")
+    paths = (
+        REPO_ROOT / "src/compiler/lsp/dispatch_features.ark",
+        REPO_ROOT / "src/compiler/lsp/dispatch_features_core.ark",
+    )
+    d = "\n".join(p.read_text(encoding="utf-8") for p in paths if p.is_file())
     if "textDocument/codeAction" not in d: print("FAIL: dispatch", file=sys.stderr); return 1
     for n in ("quickfix","organize_imports","fix_all"):
         if n not in a: print(f"FAIL: {n}", file=sys.stderr); return 1
