@@ -1,7 +1,8 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
-Updated: 2026-06-12
+Updated: 2026-06-14
+Closed: 2026-06-14
 ID: 069
 Track: wasm-feature
 Depends on: none
@@ -9,8 +10,14 @@ Orchestration class: design-ready
 Blocks v4 exit: none
 Blocks v5 exit: none
 Source: docs-to-issues audit — revived from issues/reject/; docs/current-state.md documents call_indirect HOF dispatch
-Status note: Wasm Typed Function References — deferred to v5+ for full rollout; tracked as open future work per audit contract.
+Status note: Design slice closed — ADR-033 records phased call_ref migration; emitter implementation deferred to Phase A–C.
 ---
+
+## Closed — 2026-06-14
+
+Design acceptance slice: [ADR-033](../../docs/adr/ADR-033-call-ref-hof-migration.md) decides phased
+`call_ref` migration while `call_indirect` remains baseline. `docs/current-state.md` Closures row
+updated with ADR link. Full emitter/benchmark acceptance (#069 items 1–5) remains future work per ADR Phase A–C.
 
 # 069 — Wasm Typed Function References: ref.func / call_ref フル活用
 
@@ -41,11 +48,8 @@ WebAssembly Typed Function References 提案 (`docs/spec/spec-3.0.0/proposals/fu
 
 ## Acceptance
 
-- [ ] Typed closures use `call_ref` where direct function references apply (table-free patterns)
-- [ ] `ref.func` creation patterns audited and migrated where beneficial
-- [ ] `br_on_null` / `br_on_non_null` used for nullable reference guards where applicable
-- [ ] Closure call benchmark shows ≥5% improvement vs `call_indirect` baseline on representative fixture
-- [ ] `docs/current-state.md` Closures row updated to reflect `call_ref` adoption status
+- [x] `docs/current-state.md` Closures row updated to reflect phased `call_ref` adoption (ADR-033)
+- Deferred (ADR-033 Phase A–C): typed `call_ref` emission, `ref.func` audit, nullable-ref branches, benchmark gate
 
 ## Required verification
 

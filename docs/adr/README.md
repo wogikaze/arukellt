@@ -46,3 +46,4 @@
 | [ADR-030-incremental-parse.md](ADR-030-incremental-parse.md) | test | Archive | See the document for details. |
 | [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md) | ADR-031: Import Syntax and WIT Package Identifier Unification | Archive | Status: DECIDED — Two-layer separation confirmed; use reserved for Layer S, import reserved for Layer C |
 | [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 Compiler Wasm and Browser Runner Model | Archive | Status: DECIDED — ship the selfhost compiler Wasm to the browser and run compiled T2 Wasm in a sandboxed host |
+| [ADR-033-call-ref-hof-migration.md](ADR-033-call-ref-hof-migration.md) | ADR-033: Typed Function References (call_ref) HOF Migration | Archive | Status: DECIDED — phased migration; call_indirect remains baseline until table-free patterns land |

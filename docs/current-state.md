@@ -86,7 +86,7 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
 | Enums / Option / Result | Subtype hierarchy — base + variant subtypes; `br_on_cast` for dispatch |
 | Tuples (concrete) | `__tupleN` structs with `i32` fields |
 | Tuples (generic) | `__tupleN_any` structs with `anyref` fields; `ref.i31` boxing/unboxing |
-| Closures | Parameter-passing captures; `call_indirect` for HOF dispatch |
+| Closures | Parameter-passing captures; `call_indirect` for HOF dispatch today; phased `call_ref` migration per [ADR-033](adr/ADR-033-call-ref-hof-migration.md) |
 
 ## Performance Snapshot
 
