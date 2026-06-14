@@ -48,12 +48,26 @@ arukellt debug-adapter
 
 ## Extension settings
 
-| Setting               | Type     | Default           | Used by         |
-|-----------------------|----------|-------------------|-----------------|
-| `arukellt.server.path` | string   | `"arukellt"`      | LSP, DAP, tasks |
-| `arukellt.server.args` | string[] | `[]`              | LSP             |
-| `arukellt.target`      | string   | `"wasm32-wasi-p1"`| tasks, commands |
-| `arukellt.emit`        | string   | `"core-wasm"`     | compile command |
+Canonical declarations live in
+`extensions/arukellt-all-in-one/package.json` (`contributes.configuration.properties`).
+The extension README lists the same keys, types, defaults, and descriptions.
+
+| Setting | Type | Default | Used by |
+|---------|------|---------|---------|
+| `arukellt.server.path` | `string` | `"arukellt"` | LSP, DAP, tasks |
+| `arukellt.server.args` | `string[]` | `[]` | LSP launch args |
+| `arukellt.target` | `"wasm32-wasi-p1"` \| `"wasm32-wasi-p2"` \| `null` | `null` | LSP (`arkTarget`), tasks, commands |
+| `arukellt.emit` | `string` | `"core-wasm"` | compile command |
+| `arukellt.playgroundUrl` | `string` | `"https://wogikaze.github.io/arukellt/playground/"` | Open in Playground |
+| `arukellt.enableCodeLens` | `boolean` | `true` | LSP (`enableCodeLens`) |
+| `arukellt.hoverDetailLevel` | `"full"` \| `"minimal"` | `"full"` | LSP (`hoverDetailLevel`) |
+| `arukellt.diagnostics.reportLevel` | `"errors"` \| `"warnings"` \| `"all"` | `"all"` | LSP (`diagnosticsReportLevel`) |
+| `arukellt.useSelfHostBackend` | `boolean` | `false` | LSP (`useSelfHostBackend`; extension warns and falls back before Stage 2 fixpoint) |
+| `arukellt.check.onSave` | `boolean` | `true` | LSP (`checkOnSave`) |
+
+LSP behaviour settings are sent on startup via `initializationOptions` and on change
+via `workspace/didChangeConfiguration` (`extensions/arukellt-all-in-one/src/extension.js`).
+Server-side handling is implemented in the selfhost LSP (`lsp/lsp_config.ark`, Issue #479).
 
 ## Error reporting
 

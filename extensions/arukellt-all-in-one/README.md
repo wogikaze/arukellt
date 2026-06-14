@@ -28,25 +28,26 @@ snippets, command palette workflows, and the `arukellt lsp` language server.
 
 ## Extension Settings
 
-The following five settings (added in #477/#478/#479) control LSP server behaviour and are forwarded as `initializationOptions`. All settings can be configured in `.vscode/settings.json` or VS Code's Settings UI.
+All settings are declared in `package.json` under `contributes.configuration.properties`
+and can be configured in `.vscode/settings.json` or VS Code's Settings UI.
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `arukellt.enableCodeLens` | `boolean` | `true` | Show Run / Debug / Test CodeLens above functions in `.ark` files. Set to `false` to hide all CodeLens entries. Forwarded to the LSP server as `enableCodeLens`. |
-| `arukellt.hoverDetailLevel` | `"full"` \| `"minimal"` | `"full"` | Controls how much information is shown on hover. `"full"`: signature + docs + availability + usage examples. `"minimal"`: type signature only. Forwarded to the LSP server as `hoverDetailLevel`. |
-| `arukellt.diagnostics.reportLevel` | `"errors"` \| `"warnings"` \| `"all"` | `"all"` | Controls which diagnostics appear in the Problems panel. `"errors"`: errors only. `"warnings"`: errors + warnings. `"all"`: all severities including hints. Forwarded to the LSP server as `diagnosticsReportLevel`. |
-| `arukellt.useSelfHostBackend` | `boolean` | `false` | Use the self-hosted (ark-compiled) compiler backend. Requires Stage 2 fixpoint (Issue 459). When `true` before Stage 2, the extension logs a warning and falls back to the Rust backend silently. Forwarded to the LSP server as `useSelfHostBackend`. |
-| `arukellt.check.onSave` | `boolean` | `true` | Run `arukellt check` on file save. Set to `false` to disable automatic checking on save. Forwarded to the LSP server as `checkOnSave`. |
+| `arukellt.server.path` | `string` | `"arukellt"` | Path to the arukellt CLI used to launch the language server. |
+| `arukellt.server.args` | `string[]` | `[]` | Additional arguments passed before the built-in `lsp` subcommand. |
+| `arukellt.target` | `"wasm32-wasi-p1"` \| `"wasm32-wasi-p2"` \| `null` | `null` | Default compilation target passed to the LSP server and to check/compile/run commands. `null` means auto-detect from `ark.toml`. |
+| `arukellt.emit` | `string` | `"core-wasm"` | Default emit kind passed by extension compile commands. |
+| `arukellt.playgroundUrl` | `string` | `"https://wogikaze.github.io/arukellt/playground/"` | Base URL used by the `Open in Playground` command. Only the repo-proved route (`docs/playground/index.html` on GitHub Pages) is supported. |
+| `arukellt.enableCodeLens` | `boolean` | `true` | Show Run / Debug / Test CodeLens above functions in `.ark` files. Set to `false` to hide all CodeLens entries. |
+| `arukellt.hoverDetailLevel` | `"full"` \| `"minimal"` | `"full"` | Controls how much information is shown on hover. `"full"`: signature + docs + availability + examples. `"minimal"`: signature only. |
+| `arukellt.diagnostics.reportLevel` | `"errors"` \| `"warnings"` \| `"all"` | `"all"` | Controls which diagnostic severities are shown in the Problems panel. `"errors"`: errors only. `"warnings"`: errors + warnings. `"all"`: everything. |
+| `arukellt.useSelfHostBackend` | `boolean` | `false` | Use the self-hosted (ark-compiled) compiler backend instead of the Rust backend. Requires Stage 2 fixpoint (Issue 459). When `true` before Stage 2 is achieved, the extension logs a warning and continues using the Rust backend. |
+| `arukellt.check.onSave` | `boolean` | `true` | Run `arukellt check` on file save. |
 
-### Other Settings
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `arukellt.server.path` | `string` | `"arukellt"` | Path to the `arukellt` binary used to launch the language server. |
-| `arukellt.server.args` | `string[]` | `[]` | Extra arguments inserted before the built-in `lsp` subcommand. |
-| `arukellt.target` | `"wasm32-wasi-p1"` \| `"wasm32-wasi-p2"` \| `null` | `null` | Compilation target for the LSP server and CLI commands. `null` means auto-detect from `ark.toml`. |
-| `arukellt.emit` | `string` | `"core-wasm"` | Default emit kind for compile commands. |
-| `arukellt.playgroundUrl` | `string` | `"https://wogikaze.github.io/arukellt/playground/"` | Base URL used by the `Open in Playground` command. Only the repo-proved route is supported: `https://wogikaze.github.io/arukellt/playground/` backed by `docs/playground/index.html`. |
+Six settings are forwarded to the LSP server via `initializationOptions` and
+`workspace/didChangeConfiguration` (Issue #479): `enableCodeLens`, `hoverDetailLevel`,
+`target` (as `arkTarget`), `diagnostics.reportLevel` (as `diagnosticsReportLevel`),
+`useSelfHostBackend`, and `check.onSave` (as `checkOnSave`).
 
 ## Supported Targets
 
@@ -54,6 +55,25 @@ The following five settings (added in #477/#478/#479) control LSP server behavio
 |--------|--------|-------|
 | `wasm32-wasi-p1` | supported | Compatibility target for core Wasm run/check/compile workflows. |
 | `wasm32-wasi-p2` | primary | Component Model and WIT workflows use this target. |
+
+## Debugging
+
+The extension registers the `arukellt` debug type and launches `arukellt debug-adapter`
+for source-level stepping. See [docs/debug-support.md](../../docs/debug-support.md)
+for the full DAP workflow.
+
+### Current limitations
+
+These match `docs/debug-support.md` Limitations and the implemented DAP surface:
+
+- Breakpoints are **simulated at source level** (not injected into the Wasm runtime)
+- Variables show **static source-text values**, not live runtime values
+- Step In / Step Out behave the same as Step Over (no call-level granularity)
+- No watch expressions, evaluate support, or conditional breakpoints
+- Single main thread only
+
+Runtime-level Wasm debugging (source maps, wasmtime hooks, live variables) is
+tracked separately as issue #638.
 
 ## Compatibility
 

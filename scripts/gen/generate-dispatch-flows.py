@@ -19,6 +19,7 @@ MULTI = [
     (8,"selfhost-frontend","完了",[("A","566","partial AST"),("B","636","structured diag")]),
     (9,"wasm-quality","blocked",[("A","117","WIT quality"),("B","118","multi-export world")]),
     (10,"wasi-feature","B 着手可",[("A","510","P2 import switch"),("B","074","native component"),("C","076","filesystem"),("D","637","fs metadata")]),
+    (11,"docs","完了",[("A","480","extension README / settings 同期")]),
 ]
 SINGLE = [(12,"cli","639","HTTP registry"),(13,"benchmark","643","Grain hook"),(14,"language-design","123","import syntax"),(15,"wasm-feature","069","call_ref HOF"),(16,"stdlib/capability","358","host family"),(17,"stdlib/capability","292","host_stub gate"),(18,"repo-hygiene","422","artifact budget"),(19,"wasi-feature","073","WASI P1"),(20,"wasm-quality","115","name section"),(21,"parallel","219","LSP completeness"),(22,"parallel","217","code actions")]
 

@@ -17,7 +17,6 @@ graph LR
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
   I474["474 Async component support (v5)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
-  I480["480 480-extension-readme-settings-docs"]
   I60["60 074-wasi-p2-native-component"]
   I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I626["626 626-ide-ready-frontend"]
@@ -56,7 +55,6 @@ graph LR
 - **45** depends on: 039, 042, 044; blocks: none
 - **474** depends on: 035, done), 074; blocks: 646
 - **476** depends on: 035, done), 074; blocks: 443, 618
-- **480** depends on: 479; blocks: none
 - **60** depends on: 510, 121; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **626** depends on: 625; blocks: none
