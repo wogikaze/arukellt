@@ -1,14 +1,14 @@
 ---
 Status: open
 Created: 2026-03-28
-Updated: 2026-04-03
+Updated: 2026-06-15
 ID: 63
 Depends on: 074, 137
 Track: wasi-feature
-Orchestration class: blocked-by-upstream
-Orchestration upstream: #74
+Orchestration class: implementation-ready
+Orchestration upstream: None
 Blocks v{N}: none
-Status note: BLOCKED — downstream of the #074 WASI P2 native parent gate. Runtime maturity is not the active blocker.
+Status note: Implementation-ready — upstream gates #074 and #137 resolved.
 Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 WASI Preview 2 の `wasi: "http/incoming-handler` と `wasi:http/outgoing-handler` を"

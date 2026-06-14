@@ -124,7 +124,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 45 | [std: ":json + std::toml + std::csv: データ形式パーサ"](055-std-json-toml-csv.md) | stdlib | none | 039, 042, 044 | none | 0 checked / 0 open | blocked-by-upstream | None | |
 | 474 | [Async component support (v5)](474-async-component-support-v5.md) | wasm-feature | none | 035, done), 074 | 646 | 0 checked / 4 open | blocked-by-upstream | None | |
 | 618 | [618-wit-bindings-round-trip](618-wit-bindings-round-trip.md) | component-model | none | 262, 476 | none | 0 checked / 5 open | design-ready | None | |
-| 63 | [WASI P2: "`std::host::http` facade と runtime 検証"](077-wasi-p2-http.md) | wasi-feature | none | 074, 137 | none | 0 checked / 0 open | blocked-by-upstream | — | |
+| 63 | [WASI P2: "`std::host::http` facade と runtime 検証"](077-wasi-p2-http.md) | wasi-feature | none | 074, 137 | none | 0 checked / 0 open | implementation-ready | None | |
 | 28 | [034-wit-cli-integration](034-wit-cli-integration.md) | component-model | none | 030, 031, 028b, 124 | none | 10 checked / 1 open | blocked-by-upstream | 124 | |
 | 136 | [ADR-011 に沿った `std::host` layer の段階的ロールアウト](136-std-wasi-capability-rollout.md) | wasi-feature | none | 137, 138, 077, 139 | none | 0 checked / 0 open | blocked-by-upstream | None | |
 | 646 | [646 — T5 wasm32-wasi-p3 target scaffold](646-t5-wasm32-wasi-p3-target-scaffold.md) | wasm-feature | none | 474 | none | 0 checked / 3 open | design-ready | — | |
