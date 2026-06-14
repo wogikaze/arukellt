@@ -6,6 +6,7 @@
 
   (import "env" "get-stdout" (func $get_stdout (type $get_stdout)))
   (import "env" "blocking-write-and-flush" (func $flush (type $flush)))
+  (import "host" "memory" (memory 0))
 
   (func (export "write") (type $write) (param $ret i32) (param $ptr i32) (param $len i32) (param $unused i32) (result i32)
     (call $flush

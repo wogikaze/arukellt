@@ -237,9 +237,8 @@ def emit_instance_arg(sec: Writer, import_name: str, instance_index: int) -> Non
 def emit_core_instance_export_arg(
     sec: Writer, import_module: str, import_name: str, instance_index: int, export_name: str
 ) -> None:
-    sec.string(import_module)
     sec.string(import_name)
-    sec.byte(0x09)
+    sec.byte(0x02)
     sec.leb(instance_index)
     sec.string(export_name)
 
@@ -402,45 +401,115 @@ def _append_run_sections(component: bytes) -> bytes:
 
 
 def _wrap_via_wasm_tools(core_wasm: bytes) -> bytes | None:
+    """Build command component via wasm-tools embed + component new + adapts."""
     tool = _wasm_tools()
     if tool is None or not _WIT_DIR.is_dir():
         return None
+    import subprocess
     import tempfile
 
     patched = patch_guest_core(core_wasm)
+    wit = _WIT_DIR
+    fs_wit = wit / "deps" / "filesystem"
+    adapt_wats = {
+        "stdout": _SELFHOST_DIR / "p2_stdout_bridge_adapt.wat",
+        "env": _SELFHOST_DIR / "p2_stub_env_adapt.wat",
+        "fs": _SELFHOST_DIR / "p2_stub_fs_adapt.wat",
+        "stdin": _SELFHOST_DIR / "p2_stub_stdin_adapt.wat",
+        "exit": _SELFHOST_DIR / "p2_stub_exit_adapt.wat",
+    }
+    for path in adapt_wats.values():
+        if not path.is_file():
+            return None
+
     with tempfile.TemporaryDirectory(prefix="p2-wrap-") as tmp:
         tmp_path = Path(tmp)
-        core = tmp_path / "guest.core.wasm"
-        emb = tmp_path / "guest.emb.wasm"
-        merged = tmp_path / "guest.component.wasm"
-        core.write_bytes(patched)
+        guest = tmp_path / "guest.core.wasm"
+        guest_emb = tmp_path / "guest.emb.wasm"
+        out = tmp_path / "guest.component.wasm"
+        guest.write_bytes(patched)
+
         embed = subprocess.run(
             [
                 tool,
                 "component",
                 "embed",
                 "--world",
-                "wasi:cli/imports@0.2.0",
-                str(_WIT_DIR),
-                str(core),
+                "wasi:cli/command@0.2.0",
+                str(wit),
+                str(guest),
                 "-o",
-                str(emb),
+                str(guest_emb),
             ],
             capture_output=True,
             text=True,
         )
         if embed.returncode != 0:
             return None
-        component = _merge_run_export_sections_embed(emb.read_bytes())
-        merged.write_bytes(component)
+
+        adapts: dict[str, Path] = {}
+        embed_specs = [
+            ("stdout", wit, "stdout-bridge-adapt", adapt_wats["stdout"]),
+            ("env", wit, "environment-stub-adapt", adapt_wats["env"]),
+            ("fs", fs_wit, "types-stub-adapt", adapt_wats["fs"]),
+            ("stdin", wit, "stdin-stub-adapt", adapt_wats["stdin"]),
+            ("exit", wit, "exit-stub-adapt", adapt_wats["exit"]),
+        ]
+        for key, wit_dir, world, wat in embed_specs:
+            dest = tmp_path / f"adapt-{key}.wasm"
+            step = subprocess.run(
+                [
+                    tool,
+                    "component",
+                    "embed",
+                    "--world",
+                    world,
+                    str(wit_dir),
+                    str(wat),
+                    "-o",
+                    str(dest),
+                ],
+                capture_output=True,
+                text=True,
+            )
+            if step.returncode != 0:
+                return None
+            adapts[key] = dest
+
+        new = subprocess.run(
+            [
+                tool,
+                "component",
+                "new",
+                str(guest_emb),
+                "--import-name",
+                "wasi:cli/stdout-host@0.2.0=wasi:cli/stdout@0.2.0",
+                "--adapt",
+                f"wasi:cli/stdout@0.2.0={adapts['stdout']}",
+                "--adapt",
+                f"wasi:cli/environment@0.2.0={adapts['env']}",
+                "--adapt",
+                f"wasi:filesystem/types@0.2.0={adapts['fs']}",
+                "--adapt",
+                f"wasi:cli/stdin@0.2.0={adapts['stdin']}",
+                "--adapt",
+                f"wasi:cli/exit@0.2.0={adapts['exit']}",
+                "-o",
+                str(out),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if new.returncode != 0:
+            return None
         result = subprocess.run(
-            [tool, "validate", str(merged)],
+            [tool, "validate", str(out)],
             capture_output=True,
             text=True,
         )
         if result.returncode != 0:
             return None
-        return component
+        return out.read_bytes()
 
 
 def _wrap_p2_command_component_bridged(core_wasm: bytes) -> bytes:
@@ -487,6 +556,26 @@ def wrap_p2_command_component(core_wasm: bytes) -> bytes:
     via_tools = _wrap_via_wasm_tools(core_wasm)
     if via_tools is not None:
         return via_tools
+    try:
+        bridged = _wrap_p2_command_component_bridged(core_wasm)
+        tool = _wasm_tools()
+        if tool:
+            import subprocess
+            import tempfile
+
+            with tempfile.NamedTemporaryFile(suffix=".wasm", delete=False) as tmp:
+                tmp.write(bridged)
+                tmp_path = tmp.name
+            result = subprocess.run(
+                [tool, "validate", tmp_path],
+                capture_output=True,
+                text=True,
+            )
+            Path(tmp_path).unlink(missing_ok=True)
+            if result.returncode == 0:
+                return bridged
+    except Exception:
+        pass
     return _wrap_p2_command_component_legacy(core_wasm)
 
 
@@ -494,8 +583,6 @@ def _wrap_p2_command_component_host(core_wasm: bytes) -> bytes:
     out = Writer()
     out.bytes(b"\x00asm\x0d\x00\x01\x00")
     out.bytes(P2_HOST_IMPORT_PREFIX.read_bytes())
-    out.bytes(P2_STDIO_HOST_WIRING.read_bytes())
-
     bridge = load_bridge_module()
     for module in (
         bridge,

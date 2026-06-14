@@ -39,7 +39,27 @@ def _leb_write(value: int) -> bytes:
 
 def patch_guest_core(core_wasm: bytes) -> bytes:
     """Apply stdio + `_start` signature patches needed by the P2 wrap helper."""
-    return _patch_start_returns_i32(patch_guest_write_calls(core_wasm))
+    return _add_run_export(_patch_start_returns_i32(patch_guest_write_calls(core_wasm)))
+
+
+def _add_run_export(core_wasm: bytes) -> bytes:
+    """Export `run` alias for `wasi:cli/command` embed + component-new."""
+    start_idx = _export_func_index(core_wasm, "_start")
+    if start_idx is None:
+        return core_wasm
+    for name in ("run", "wasi:cli/run@0.2.0#run"):
+        if _export_func_index(core_wasm, name) is not None:
+            continue
+        payload = bytearray(_section_payload(core_wasm, 7) or b"")
+        count, pos = _leb_read(payload, 0)
+        extra = bytearray()
+        extra.extend(_leb_write(len(name)))
+        extra.extend(name.encode("utf-8"))
+        extra.append(0x00)
+        extra.extend(_leb_write(start_idx))
+        new_payload = _leb_write(count + 1) + bytes(payload[pos:]) + bytes(extra)
+        core_wasm = _replace_section(core_wasm, 7, bytes(new_payload))
+    return core_wasm
 
 
 def patch_guest_write_calls(core_wasm: bytes) -> bytes:

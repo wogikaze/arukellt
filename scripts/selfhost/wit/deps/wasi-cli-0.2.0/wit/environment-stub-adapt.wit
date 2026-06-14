@@ -1,0 +1,8 @@
+package wasi:cli@0.2.0;
+
+world environment-stub-adapt {
+  import environment;
+
+  export args-sizes: func(a: u32, b: u32) -> u32;
+  export arguments: func(a: u32, b: u32) -> u32;
+}

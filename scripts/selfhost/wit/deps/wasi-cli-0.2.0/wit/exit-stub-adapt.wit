@@ -1,0 +1,7 @@
+package wasi:cli@0.2.0;
+
+world exit-stub-adapt {
+  import exit;
+
+  export exit: func(status: result);
+}

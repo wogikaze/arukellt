@@ -285,6 +285,26 @@ Gate compile path now uses **core wasm + `p2_component_wrap.py`** (not bare `--e
 
 **Next step:** generate stdout adapt as a proper component (wit-component / `wasm-tools component wit --wasm` with deps) OR transplant instance/canon wiring from a known-good wasip2 command component (rustc `wasm32-wasip2` hello) for stdout+streams only, then re-run gate until wasmtime prints `hello p2`.
 
+## Attempt evidence — 2026-06-14 lane10-B resume (still open)
+
+**Landed (component-new pipeline, validate green, stdout still empty):**
+
+- `scripts/selfhost/wit/deps/wasi-cli-0.2.0/wit/*-stub-adapt.wit` + `stdout-bridge-adapt.wit` + `stdout-host.wit` — WIT worlds for `wasm-tools component embed/new`
+- `scripts/selfhost/p2_stdout_bridge_adapt.wat` — memory-less stdout adapt (`get-stdout` + `blocking-write-and-flush`)
+- `scripts/selfhost/p2_guest_stdio_patch.py` — `run` / `wasi:cli/run@0.2.0#run` export aliases + write-call patch
+- `scripts/selfhost/p2_component_wrap.py` — `_wrap_via_wasm_tools()` uses `component embed` (command world) + stub adapts + `component new` (~5KB component, no P1 adapter)
+
+**Gate 074 (2026-06-14):**
+
+| Step | Status | Evidence |
+|------|--------|----------|
+| compile + wrap | ✅ | `p2_component_wrap` → ~5.2KB component |
+| wasm-tools validate | ✅ | validates |
+| wasmtime run stdio | ❌ | `gate_074: expected stdout containing 'hello p2', got ''` |
+| verify quick | ✅ | 164/164 |
+
+**Root blocker:** adapt `write` runs but canonical list `ptr/len` refer to guest linear memory; separate adapt core instance cannot read guest memory without wit-component-generated copy/`cabi_realloc` shim (input adapt modules cannot define local memory per `component new` reduction).
+
 ## 参照
 
 - `docs/spec/spec-WASI-0.2.10/OVERVIEW.md`

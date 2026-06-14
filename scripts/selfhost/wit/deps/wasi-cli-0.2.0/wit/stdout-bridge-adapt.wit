@@ -1,0 +1,10 @@
+package wasi:cli@0.2.0;
+
+/// Adapter world: guest `stdout::write` via host streams + get-stdout.
+world stdout-bridge-adapt {
+  import stdout-host;
+  import wasi:io/streams@0.2.0;
+  import wasi:io/error@0.2.0;
+
+  export write: func(a: u32, b: u32, c: u32, d: u32) -> u32;
+}
