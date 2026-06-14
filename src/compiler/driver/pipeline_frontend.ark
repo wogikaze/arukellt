@@ -22,7 +22,8 @@ fn run_frontend(source: String, config: DriverConfig) -> DriverFrontendResult {
     let preflight_error = component::preflight_frontend(
         config_record::config_emit_mode(config),
         config_record::config_wit_paths(config),
-        frontend_result_decls(parsed)
+        frontend_result_decls(parsed),
+        config_record::config_world(config)
     )
     if len(preflight_error) > 0 {
         return frontend_stop(result_record::CompileResult_err(phases::PHASE_EMIT(), preflight_error), t0, frontend_result_t_lex(parsed), clock::monotonic_now())

@@ -4497,6 +4497,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-component-wit-parse.py",
         ),
         (
+            "component standard-world gate (#118)",
+            "python3 scripts/check/check-component-world.py",
+        ),
+        (
             "compiler boundary check (CoreHIR/MIR separation)",
             "python3 scripts/check/check-compiler-boundaries.py",
         ),

@@ -1,0 +1,65 @@
+// Arukellt Selfhost - standard WASI world specs for --world.
+
+use component::constants_world_spec
+
+fn world_spec_kind(world: String) -> i32 {
+    if eq(clone(world), String_from("wasi:cli/command")) { return constants_world_spec::WORLD_KIND_CLI_COMMAND() }
+    if eq(clone(world), String_from("wasi:http/proxy")) { return constants_world_spec::WORLD_KIND_HTTP_PROXY() }
+    constants_world_spec::WORLD_KIND_NONE()
+}
+
+fn world_spec_is_cli_command(world: String) -> bool {
+    world_spec_kind(clone(world)) == constants_world_spec::WORLD_KIND_CLI_COMMAND()
+}
+
+fn world_spec_world_name(world: String) -> String {
+    let kind = world_spec_kind(clone(world))
+    if kind == constants_world_spec::WORLD_KIND_CLI_COMMAND() { return String_from("command") }
+    if kind == constants_world_spec::WORLD_KIND_HTTP_PROXY() { return String_from("proxy") }
+    String_from("arukellt")
+}
+
+fn world_spec_parse_error(world: String) -> String {
+    if len(world) == 0 { return String_new() }
+    if world_spec_kind(clone(world)) != constants_world_spec::WORLD_KIND_NONE() { return String_new() }
+    concat(String_from("unknown world `"), concat(clone(world), String_from("` (supported: wasi:cli/command, wasi:http/proxy)")))
+}
+
+fn world_spec_emit_use_block(world: String) -> String {
+    let kind = world_spec_kind(clone(world))
+    let mut out = String_new()
+    if kind == constants_world_spec::WORLD_KIND_CLI_COMMAND() {
+        out = concat(out, String_from("    import wasi:cli/stdin@0.2.0;\n    import wasi:cli/stdout@0.2.0;\n    import wasi:clocks/wall-clock@0.2.0;\n\n"))
+        return out
+    }
+    if kind == constants_world_spec::WORLD_KIND_HTTP_PROXY() {
+        out = concat(out, String_from("    import wasi:http/types@0.2.0;\n\n    export wasi:http/incoming-handler@0.2.0;\n\n"))
+        return out
+    }
+    out
+}
+
+fn world_spec_wit_export_name(func_name: String, world: String) -> String {
+    if world_spec_is_cli_command(clone(world)) {
+        if eq(clone(func_name), String_from("main")) || eq(clone(func_name), String_from("_start")) {
+            return String_from("run")
+        }
+    }
+    func_name
+}
+
+fn world_spec_uses_p2_command_component(world: String, wasi_version: String) -> bool {
+    if eq(clone(wasi_version), String_from("p2")) {
+        if len(clone(world)) == 0 { return true }
+        return world_spec_is_cli_command(clone(world))
+    }
+    false
+}
+
+fn world_target_error(world: String, target: String, emit_mode: String) -> String {
+    if len(world) == 0 { return String_new() }
+    let unknown = world_spec_parse_error(clone(world))
+    if len(unknown) > 0 { return unknown }
+    if !contains(clone(target), String_from("-p2")) { return String_from("--world requires --target wasm32-wasi-p2") }
+    String_new()
+}

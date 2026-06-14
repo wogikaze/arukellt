@@ -24,14 +24,15 @@ struct CliOptions {
     list_templates: bool,
     fmt_check: bool,
     fmt_fix: bool,
+    world: String,
 }
 
-fn CliOptions_new(command: i32, component_action: i32, input_file: String, output_file: String, target: String, wasi_version: String, wit_paths: Vec<String>, opt_level: i32, dump_phases: String, emit_mode: String, json_output: bool, show_help: bool, show_version: bool, has_error: bool, error_msg: String, show_timing: bool, init_template: String, list_templates: bool, fmt_check: bool, fmt_fix: bool) -> CliOptions {
-    CliOptions { command: command, component_action: component_action, input_file: input_file, output_file: output_file, target: target, wasi_version: wasi_version, wit_paths: wit_paths, opt_level: opt_level, dump_phases: dump_phases, emit_mode: emit_mode, json_output: json_output, show_help: show_help, show_version: show_version, has_error: has_error, error_msg: error_msg, show_timing: show_timing, init_template: init_template, list_templates: list_templates, fmt_check: fmt_check, fmt_fix: fmt_fix }
+fn CliOptions_new(command: i32, component_action: i32, input_file: String, output_file: String, target: String, wasi_version: String, wit_paths: Vec<String>, opt_level: i32, dump_phases: String, emit_mode: String, json_output: bool, show_help: bool, show_version: bool, has_error: bool, error_msg: String, show_timing: bool, init_template: String, list_templates: bool, fmt_check: bool, fmt_fix: bool, world: String) -> CliOptions {
+    CliOptions { command: command, component_action: component_action, input_file: input_file, output_file: output_file, target: target, wasi_version: wasi_version, wit_paths: wit_paths, opt_level: opt_level, dump_phases: dump_phases, emit_mode: emit_mode, json_output: json_output, show_help: show_help, show_version: show_version, has_error: has_error, error_msg: error_msg, show_timing: show_timing, init_template: init_template, list_templates: list_templates, fmt_check: fmt_check, fmt_fix: fmt_fix, world: world }
 }
 
 fn CliOptions_default() -> CliOptions {
-    CliOptions_new(kinds::CMD_UNKNOWN(), kinds::COMP_ACTION_BUILD(), String_new(), String_new(), String_from("wasm32-wasi-p2"), String_new(), Vec_new_String(), 0, String_new(), String_from("wasm"), false, false, false, false, String_new(), false, String_from("minimal"), false, false, false)
+    CliOptions_new(kinds::CMD_UNKNOWN(), kinds::COMP_ACTION_BUILD(), String_new(), String_new(), String_from("wasm32-wasi-p2"), String_new(), Vec_new_String(), 0, String_new(), String_from("wasm"), false, false, false, false, String_new(), false, String_from("minimal"), false, false, false, String_new())
 }
 
 fn cli_command(opts: CliOptions) -> i32 { opts.command }
@@ -143,3 +144,7 @@ fn cli_fmt_fix(opts: CliOptions) -> bool { opts.fmt_fix }
 fn cli_set_fmt_fix(opts: CliOptions, fmt_fix: bool) {
     opts.fmt_fix = fmt_fix
 }
+
+fn cli_world(opts: CliOptions) -> String { clone(opts.world) }
+fn cli_has_world(opts: CliOptions) -> bool { len(opts.world) > 0 }
+fn cli_set_world(opts: CliOptions, world: String) { opts.world = world }

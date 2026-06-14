@@ -2,23 +2,50 @@
 
 use component::contract
 use component::wit_text
+use component::world_spec
+use component::wit_decl
 use corehir::export_surface
 
-fn preflight_wit_imports(wit_paths: Vec<String>) -> String {
-    wit_text::validate_wit_import_surface(wit_paths)
-}
+fn preflight_wit_imports(wit_paths: Vec<String>) -> String { wit_text::validate_wit_import_surface(wit_paths) }
 
 fn validate_export(surface: CoreHirExportSurface) -> String {
     contract::validate_export_surface_from_names(export_surface::export_surface_names(surface))
 }
 
-fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
+fn world_spec_has_command_entry(decls: Vec<AstNode>) -> bool {
+    let mut i = 0
+    while i < len(decls) {
+        let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
+        if wit_decl::wit_decl_is_func(decl) {
+            let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
+            let name = wit_decl::wit_func_name(f)
+            if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) { return true }
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn world_spec_export_roots_satisfy_run(export_roots: Vec<String>, decls: Vec<AstNode>) -> bool {
+    let mut i = 0
+    while i < len(export_roots) {
+        if eq(clone(get_unchecked(export_roots, i)), String_from("run")) { return true }
+        i = i + 1
+    }
+    world_spec_has_command_entry(decls)
+}
+
+fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>, world: String) -> String {
     let wit_error = preflight_wit_imports(wit_paths)
-    if len(wit_error) > 0 {
-        return wit_error
+    if len(wit_error) > 0 { return wit_error }
+    let world_error = world_spec::world_spec_parse_error(clone(world))
+    if len(world_error) > 0 { return world_error }
+    if len(world) > 0 && world_spec::world_spec_is_cli_command(clone(world)) {
+        let export_roots = wit_text::collect_export_roots(decls)
+        if !world_spec_export_roots_satisfy_run(export_roots, decls) {
+            return concat(String_from("world `"), concat(clone(world), String_from("` requires export `wasi:cli/run/run`, but no matching function found")))
+        }
     }
-    if eq(clone(config_emit_mode), String_from("component")) {
-        return contract::validate_export_surface(decls)
-    }
+    if eq(clone(config_emit_mode), String_from("component")) { return contract::validate_export_surface(decls) }
     String_from("")
 }

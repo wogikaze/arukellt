@@ -4,13 +4,55 @@ use component::wit_decl
 use component::wit_names
 use component::wit_type_defs
 use component::wit_types
+use component::world_spec
 use std::host::fs
 
 fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
+	emit_wit_text_from_decls_with_world(decls, String_new())
+}
+
+fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String) -> String {
+	let package_name = if len(clone(world)) > 0 { String_from("arukellt:app") } else { String_from("arukellt:generated") }
+	let world_name = world_spec::world_spec_world_name(clone(world))
+	let mut out = concat(String_from("package "), concat(package_name, String_from(";\n\nworld ")))
+	out = concat(out, world_name)
+	out = concat(out, String_from(" {\n"))
+	out = concat(out, world_spec::world_spec_emit_use_block(clone(world)))
+	out = concat(out, wit_type_defs::emit_wit_type_defs(decls))
+	out = concat(out, emit_wit_func_exports_with_world(decls, clone(world)))
+	return concat(out, String_from("}\n"))
+}
+
+fn emit_wit_text_from_decls_legacy(decls: Vec<AstNode>) -> String {
 	let mut out = String_from("package arukellt:generated;\n\nworld arukellt {\n")
 	out = concat(out, wit_type_defs::emit_wit_type_defs(decls))
 	out = concat(out, emit_wit_func_exports(decls))
 	concat(out, String_from("}\n"))
+}
+
+
+fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> String {
+	let mut out = String_from("")
+	let mut i = 0
+	while i < len(decls) {
+		let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
+		if wit_decl::wit_decl_is_func(decl) {
+			let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
+			let fname = wit_decl::wit_func_name(f)
+			if wit_decl::wit_func_is_export(f) || (world_spec::world_spec_is_cli_command(clone(world)) && (eq(clone(fname), String_from("main")) || eq(clone(fname), String_from("_start")))) {
+				if !wit_decl::wit_func_is_export(f) && !world_spec::world_spec_is_cli_command(clone(world)) { i = i + 1; continue }
+				let export_name = world_spec::world_spec_wit_export_name(fname, clone(world))
+				let export_key = concat(String_from("export "), concat(wit_names::wit_export_name(export_name), String_from(":")))
+				if !contains(clone(out), clone(export_key)) {
+					out = concat(out, String_from("    export "))
+					out = concat(out, wit_names::wit_export_name(export_name))
+					out = concat(out, String_from(": func();\n"))
+				}
+			}
+		}
+		i = i + 1
+	}
+	out
 }
 
 fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {

@@ -5,12 +5,16 @@ use component::contract_preflight
 use component::emit
 use component::wit_text
 
-pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String) -> Vec<i32> {
-    emit::emit_component(core_wasm, mir, target, wasi_version)
+pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
+    emit::emit_component(core_wasm, mir, target, wasi_version, world)
 }
 
 pub fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
     wit_text::emit_wit_text_from_decls(decls)
+}
+
+pub fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String) -> String {
+    wit_text::emit_wit_text_from_decls_with_world(decls, world)
 }
 
 pub fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
@@ -29,6 +33,6 @@ pub fn validate_export_surface(decls: Vec<AstNode>) -> String {
     contract::validate_export_surface(decls)
 }
 
-pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
-    contract_preflight::preflight_frontend(config_emit_mode, wit_paths, decls)
+pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>, world: String) -> String {
+    contract_preflight::preflight_frontend(config_emit_mode, wit_paths, decls, world)
 }

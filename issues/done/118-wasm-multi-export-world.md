@@ -1,7 +1,8 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
 Updated: 2026-06-14
+Close evidence: --world CLI + world_spec + check-component-world.py gate
 ID: 118
 Track: wasm-quality
 Depends on: 117, 074

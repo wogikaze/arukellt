@@ -106,7 +106,7 @@ pub fn optimize_module(m: MirModule, opt_level: i32) -> MirModule {
 """
 
 BOOTSTRAP_COMPONENT_STUB = """// Bootstrap overlay stub — full component model excluded to reduce memory.
-pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String) -> Vec<i32> {
+pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
     if eq(clone(wasi_version), String_from("p2")) {
         return wasm_component_p2_emit::emit_p2_command_component(core_wasm)
     }
@@ -133,7 +133,7 @@ pub fn validate_export_surface(decls: Vec<AstNode>) -> String {
     String_from("")
 }
 
-pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
+pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>, world: String) -> String {
     String_from("")
 }
 """

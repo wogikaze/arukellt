@@ -1,0 +1,5 @@
+// Arukellt Selfhost - standard WASI world kind ids for --world.
+
+fn WORLD_KIND_NONE() -> i32 { 0 }
+fn WORLD_KIND_CLI_COMMAND() -> i32 { 1 }
+fn WORLD_KIND_HTTP_PROXY() -> i32 { 2 }
