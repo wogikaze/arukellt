@@ -27,6 +27,8 @@ const EXPECTED_STDOUT: Readonly<Record<string, string>> = {
   enums: "green\n",
   fibonacci: "55\n",
   traits: "Hello, Alice\n",
+  "rpn-repl":
+    "RPN REPL\nenter space-separated tokens (e.g. 3 4 +). Ctrl+Z to exit.\n\n> 3\nok: result = 3\n> bye\n",
 };
 
 async function loadCompilerBytes(): Promise<Uint8Array> {

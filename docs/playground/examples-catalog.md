@@ -81,6 +81,7 @@ playground/src/examples.ts   ← catalog (source + metadata + fixturePath)
 | enums         | `enums/exhaustive_match.ark`    | types             |
 | fibonacci     | `functions/recursive.ark`       | algorithms        |
 | traits        | `trait/trait_impl.ark`          | types, traits     |
+| rpn-repl      | `examples/rpn_repl_demo.ark`    | algorithms, interactive |
 
 ## Machine-readable access
 

@@ -459,6 +459,8 @@ diag:diagnostics/resolve_undef_module.ark
 run:t2/t2_scaffold.ark
 run:t2/t2_stdio.ark
 run:t2/t2_println_i32_var.ark
+run:examples/rpn_repl_demo.ark
+run:examples/rpn_repl.ark
 t4-compile:t4/native_scaffold.ark
 run:stdlib_bytes/bytes_basic.ark
 run:stdlib_bytes/bytes_helpers.ark
