@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-14T03:13:42Z",
+  "generated_at": "2026-06-14T03:18:30Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -267,28 +267,6 @@
       }
     },
     {
-      "id": "480",
-      "path": "480-extension-readme-settings-docs.md",
-      "title": "480-extension-readme-settings-docs",
-      "track": "main",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "60",
       "path": "074-wasi-p2-native-component.md",
       "title": "074-wasi-p2-native-component",
@@ -336,6 +314,54 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "626",
+      "path": "626-ide-ready-frontend.md",
+      "title": "626-ide-ready-frontend",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "625"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 7,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "done",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "628",
+      "path": "628-lsp-minimum-viable.md",
+      "title": "628-lsp-minimum-viable",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "627"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 10,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "done",
+        "upstream_notes": null
       }
     },
     {
