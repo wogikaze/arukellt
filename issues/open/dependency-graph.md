@@ -16,6 +16,7 @@ graph LR
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
   I474["474 Async component support (v5)"]
   I618["618 618-wit-bindings-round-trip"]
+  I62["62 WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング""]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I637["637 637 — Host capability honesty: fs metadata and read_dir surface"]
   I28["28 034-wit-cli-integration"]
@@ -43,6 +44,7 @@ graph LR
 - **45** depends on: 039, 042, 044; blocks: none
 - **474** depends on: 035, done), 074; blocks: 646
 - **618** depends on: 262, 476; blocks: none
+- **62** depends on: 074, 510; blocks: none
 - **63** depends on: 074, 137; blocks: none
 - **637** depends on: 051, 076; blocks: none
 - **28** depends on: 030, 031, 028b, 124; blocks: none

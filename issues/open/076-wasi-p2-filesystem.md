@@ -1,5 +1,5 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
 Updated: 2026-06-14
 ID: 62
@@ -33,6 +33,14 @@ WASI Preview 2 の `wasi: "filesystem/types` と `wasi:filesystem/preopens` を"
 WASI Preview 2 の `wasi:filesystem/types` と `wasi:filesystem/preopens` を
 Arukellt `std/path` と `std/fs` モジュールから P2 ネイティブで呼び出す。
 resource 型 (`descriptor`) の canonical ABI ハンドリングを実装する必要がある。
+
+## Serial audit (2026-06-14)
+
+- **Verdict**: false-close reverted — issue stays **open**
+- **Gate stdout**: raw bytes `\xb9hello p2 fs\n` (`0xb9` prefix); `errors="replace"` in `e2a50c5c` masked UTF-8 decode failure
+- **Gate filesystem**: `p2_fs_out.txt` **not** created — stub adapter false-success (acceptance #4 unmet)
+- **Removed**: `errors="replace"` decode workaround in close-gate runner
+- **WIP retained**: `p2_guest_fs_patch.py`, flattened WIT shims, compiler P2 import plumbing from `5a10b96b`
 
 ## 受け入れ条件
 

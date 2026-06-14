@@ -4,5 +4,7 @@ world types-stub-adapt {
   import types;
 
   export open-at: func(a: u32, b: u32, c: u32, d: u32, e: u32, f: s64, g: s64, h: u32, i: u32) -> u32;
+  export read-via-stream: func(a: u32, b: u32, c: u32) -> u32;
+  export write-via-stream: func(a: u32, b: u32, c: u32) -> u32;
   export close: func(a: u32) -> u32;
 }

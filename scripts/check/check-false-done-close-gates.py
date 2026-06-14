@@ -254,7 +254,7 @@ def _wasmtime_run_dir(component: Path, expect_stdout: str) -> tuple[int, str]:
         return 2, "wasmtime not in PATH"
     result = subprocess.run(
         [wasmtime, "run", "--dir", str(REPO_ROOT), str(component)],
-        capture_output=True, text=True, errors="replace", timeout=60, cwd=str(REPO_ROOT),
+        capture_output=True, text=True, timeout=60, cwd=str(REPO_ROOT),
     )
     if result.returncode != 0:
         return 1, f"wasmtime exit {result.returncode}: {(result.stderr or '')[-400:]}"
