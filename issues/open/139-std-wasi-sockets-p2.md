@@ -1,14 +1,14 @@
 ---
 Status: open
 Created: 2026-03-29
-Updated: 2026-04-03
+Updated: 2026-06-14
 ID: 139
 Depends on: 074, 137
 Track: wasi-feature
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v{N}: none
-Status note: BLOCKED — P2-only capability downstream of the
+Status note: Implementation-ready — upstream gates #074 and #137 resolved. the
 Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 WASI Preview 2 の sockets capability を `std: ":host::sockets` として提供する。"
@@ -47,4 +47,4 @@ WASI Preview 2 の sockets capability を `std::host::sockets` として提供�
 ## 参照
 
 - `docs/adr/ADR-011-wasi-host-layering.md`
-- `issues/open/074-wasi-p2-native-component.md`
+- `issues/done/074-wasi-p2-native-component.md`

@@ -1,13 +1,14 @@
 ---
 Status: open
 Created: 2026-04-03
-Updated: 2026-04-03
+Updated: 2026-06-14
 ID: 476
 Track: wasm-feature
 Depends on: "035 (v2-verification-cleanup, done), 074 (wasi-p2-native-component)"
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v4 exit: no
+Status note: Implementation-ready — upstream gate #074 resolved.
 ---
 
 # `wasm-tools compose` 統合 (v3 候補)

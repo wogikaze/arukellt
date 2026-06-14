@@ -1,13 +1,13 @@
 ---
 Status: open
 Created: 2026-03-28
-Updated: 2026-06-12
+Updated: 2026-06-14
 ID: 118
 Track: wasm-quality
 Depends on: 117, 074
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Blocks v4 exit: no
-Blocked by: "#074 WASI P2 native component parent gate"
+Status note: Implementation-ready — upstream gates #117 and #074 resolved.
 ---
 
 ## Reopened by audit — 2026-06-12 (Slice C)
@@ -18,7 +18,7 @@ Blocked by: "#074 WASI P2 native component parent gate"
 
 **Evidence files:**
 - `src/compiler/main/` (no `--world` parsing)
-- `issues/open/074-wasi-p2-native-component.md` (parent P2 native gate open)
+- `issues/done/074-wasi-p2-native-component.md` (parent P2 native gate resolved)
 
 **Follow-up split issue:** none
 

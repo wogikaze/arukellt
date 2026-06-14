@@ -118,17 +118,17 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 
 | ID | Title | Track | Blocks v{N} | Depends on | Blocks | Acceptance | Orchestration | Orch notes | |
 |----|-------|-------|-------------|------------|--------|------------|---------------|------------|-|
-| 118 | [118-wasm-multi-export-world](118-wasm-multi-export-world.md) | wasm-quality | none | 117, 074 | none | 0 checked / 0 open | blocked-by-upstream | — | |
+| 118 | [118-wasm-multi-export-world](118-wasm-multi-export-world.md) | wasm-quality | none | 117, 074 | none | 0 checked / 0 open | implementation-ready | — | |
 | 124 | [WIT component import syntax](124-wit-component-import-syntax.md) | language-design | none | 074 | 28 | 0 checked / 0 open | blocked-by-upstream | None | |
 | 138 | [138-std-wasi-shared-capabilities-t1-t3](138-std-wasi-shared-capabilities-t1-t3.md) | wasi-feature | none | 137, 051 | 136 | 0 checked / 0 open | blocked-by-upstream | — | |
-| 139 | [WASI P2: `std::host::sockets` facade と T3 実行検証](139-std-wasi-sockets-p2.md) | wasi-feature | none | 074, 137 | 136 | 0 checked / 0 open | blocked-by-upstream | None | |
+| 139 | [WASI P2: `std::host::sockets` facade と T3 実行検証](139-std-wasi-sockets-p2.md) | wasi-feature | none | 074, 137 | 136 | 0 checked / 0 open | implementation-ready | None | |
 | 30 | [036-jco-javascript-interop](036-jco-javascript-interop.md) | component-model | none | 27 | none | 5 checked / 0 open | blocked-by-upstream | None | |
 | 41 | [051-std-time-random](051-std-time-random.md) | stdlib | none | 039, 040 | none | 0 checked / 0 open | partially-blocked | None | |
 | 44 | [std: ":wit + std::component: WIT 型、resource handle、canonical ABI"](054-std-wit-component.md) | stdlib | none | 039, 044, 053 | none | 0 checked / 0 open | blocked-by-upstream | None | |
 | 45 | [std: ":json + std::toml + std::csv: データ形式パーサ"](055-std-json-toml-csv.md) | stdlib | none | 039, 042, 044 | none | 0 checked / 0 open | blocked-by-upstream | None | |
 | 474 | [Async component support (v5)](474-async-component-support-v5.md) | wasm-feature | none | 035, done), 074 | 646 | 0 checked / 4 open | blocked-by-upstream | None | |
-| 476 | [`wasm-tools compose` 統合 (v3 候補)](476-wasm-tools-compose-integration.md) | wasm-feature | none | 035, done), 074 | 443, 618 | 0 checked / 5 open | blocked-by-upstream | None | |
-| 62 | [WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング"](076-wasi-p2-filesystem.md) | wasi-feature | none | 074, 510 | none | 0 checked / 0 open | blocked-by-upstream | None | |
+| 476 | [`wasm-tools compose` 統合 (v3 候補)](476-wasm-tools-compose-integration.md) | wasm-feature | none | 035, done), 074 | 443, 618 | 0 checked / 5 open | implementation-ready | None | |
+| 62 | [WASI P2 ネイティブ: "wasi:filesystem ネイティブバインディング"](076-wasi-p2-filesystem.md) | wasi-feature | none | 074, 510 | none | 0 checked / 0 open | implementation-ready | None | |
 | 63 | [WASI P2: "`std::host::http` facade と runtime 検証"](077-wasi-p2-http.md) | wasi-feature | none | 074, 137 | none | 0 checked / 0 open | blocked-by-upstream | — | |
 | 637 | [637 — Host capability honesty: fs metadata and read_dir surface](637-host-capability-honesty-fs-metadata.md) | stdlib | none | 051, 076 | none | 0 checked / 4 open | implementation-ready | — | |
 | 28 | [034-wit-cli-integration](034-wit-cli-integration.md) | component-model | none | 030, 031, 028b, 124 | none | 10 checked / 1 open | blocked-by-upstream | 124 | |

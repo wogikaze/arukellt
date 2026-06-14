@@ -1,14 +1,14 @@
 ---
 Status: open
 Created: 2026-03-28
-Updated: 2026-03-28
+Updated: 2026-06-14
 ID: 62
 Track: wasi-feature
 Depends on: 074, 510
-Orchestration class: blocked-by-upstream
+Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v4 exit: no
-Status note: BLOCKED — downstream of the #074 WASI P2 native parent gate and #510 import-table switch. Runtime maturity is not the active blocker.
+Status note: Implementation-ready — upstream gates #074 and #510 resolved.
 WASI Preview 2 の `wasi: "filesystem/types` と `wasi:filesystem/preopens` を"
 ---
 
